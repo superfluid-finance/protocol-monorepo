@@ -59,11 +59,7 @@ contract AgreementMock is AgreementBase {
             _REAL_TIME_BALANCE_SLOT_ID,
             3
         );
-        return (
-            uint256(slotData[0]).toInt256(),
-            uint256(slotData[1]),
-            uint256(slotData[2])
-        );
+        return (uint256(slotData[0]).toInt256(), uint256(slotData[1]), uint256(slotData[2]));
     }
 
     /**
@@ -81,11 +77,7 @@ contract AgreementMock is AgreementBase {
         slotData[0] = bytes32(uint256(dynamicBalance));
         slotData[1] = bytes32(uint256(deposit));
         slotData[2] = bytes32(uint256(owedDeposit));
-        token.updateAgreementStateSlot(
-            account,
-            _REAL_TIME_BALANCE_SLOT_ID,
-            slotData
-        );
+        token.updateAgreementStateSlot(account, _REAL_TIME_BALANCE_SLOT_ID, slotData);
     }
 
     function createAgreementFor(
@@ -274,9 +266,7 @@ contract AgreementMock is AgreementBase {
         uint256 ping,
         bytes calldata ctx
     ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
-        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(
-            ctx
-        );
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         assert(context.msgSender == expectedMsgSender);
         emit Pong(ping);
         return ctx;
@@ -299,21 +289,15 @@ contract AgreementMock is AgreementBase {
         uint256 noopBit,
         bytes calldata ctx
     ) private {
-        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(
-            ctx
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
+        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
+            ISuperfluidToken(address(0)), /* token */
+            address(app), /* account */
+            0, /* agreementId */
+            "" /* agreementData */
         );
-        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary
-            .createCallbackInputs(
-                ISuperfluidToken(address(0)), /* token */
-                address(app), /* account */
-                0, /* agreementId */
-                "" /* agreementData */
-            );
         cbStates.noopBit = noopBit;
-        bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(
-            cbStates,
-            ctx
-        );
+        bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
         emit AppBeforeCallbackResult(
             context.appCallbackLevel,
             context.callType,
@@ -323,11 +307,7 @@ contract AgreementMock is AgreementBase {
     }
 
     /// _callAppAfterAgreementCallback base agreement operation, emits AppAfterCallbackResult event
-    event AppAfterCallbackResult(
-        uint8 appLevel,
-        uint8 callType,
-        bytes4 agreementSelector
-    );
+    event AppAfterCallbackResult(uint8 appLevel, uint8 callType, bytes4 agreementSelector);
 
     function _callAppAfterAgreementCallback(
         ISuperApp app,
@@ -335,23 +315,16 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     ) private returns (bytes memory newCtx) {
         bool isJailed = ISuperfluid(msg.sender).isAppJailed(app);
-        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(
-            ctx
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
+        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary.createCallbackInputs(
+            ISuperfluidToken(address(0)), /* token */
+            address(app), /* account */
+            0, /* agreementId */
+            "" /* agreementData */
         );
-        AgreementLibrary.CallbackInputs memory cbStates = AgreementLibrary
-            .createCallbackInputs(
-                ISuperfluidToken(address(0)), /* token */
-                address(app), /* account */
-                0, /* agreementId */
-                "" /* agreementData */
-            );
         cbStates.noopBit = noopBit;
         ISuperfluid.Context memory appContext;
-        (appContext, newCtx) = AgreementLibrary.callAppAfterCallback(
-            cbStates,
-            "",
-            ctx
-        );
+        (appContext, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
         if (isJailed) {
             // appContext.callType is a sufficient check that the callback was not called at all
             require(
@@ -371,22 +344,20 @@ contract AgreementMock is AgreementBase {
         );
     }
 
-    function callAppBeforeAgreementCreatedCallback(
-        ISuperApp app,
-        bytes calldata ctx
-    ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
-        _callAppBeforeCallback(
-            app,
-            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP,
-            ctx
-        );
+    function callAppBeforeAgreementCreatedCallback(ISuperApp app, bytes calldata ctx)
+        external
+        requireValidCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        _callAppBeforeCallback(app, SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP, ctx);
         return ctx;
     }
 
-    function callAppAfterAgreementCreatedCallback(
-        ISuperApp app,
-        bytes calldata ctx
-    ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
+    function callAppAfterAgreementCreatedCallback(ISuperApp app, bytes calldata ctx)
+        external
+        requireValidCtx(ctx)
+        returns (bytes memory newCtx)
+    {
         return
             _callAppAfterAgreementCallback(
                 app,
@@ -395,22 +366,20 @@ contract AgreementMock is AgreementBase {
             );
     }
 
-    function callAppBeforeAgreementUpdatedCallback(
-        ISuperApp app,
-        bytes calldata ctx
-    ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
-        _callAppBeforeCallback(
-            app,
-            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP,
-            ctx
-        );
+    function callAppBeforeAgreementUpdatedCallback(ISuperApp app, bytes calldata ctx)
+        external
+        requireValidCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        _callAppBeforeCallback(app, SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP, ctx);
         return ctx;
     }
 
-    function callAppAfterAgreementUpdatedCallback(
-        ISuperApp app,
-        bytes calldata ctx
-    ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
+    function callAppAfterAgreementUpdatedCallback(ISuperApp app, bytes calldata ctx)
+        external
+        requireValidCtx(ctx)
+        returns (bytes memory newCtx)
+    {
         return
             _callAppAfterAgreementCallback(
                 app,
@@ -419,22 +388,20 @@ contract AgreementMock is AgreementBase {
             );
     }
 
-    function callAppBeforeAgreementTerminatedCallback(
-        ISuperApp app,
-        bytes calldata ctx
-    ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
-        _callAppBeforeCallback(
-            app,
-            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
-            ctx
-        );
+    function callAppBeforeAgreementTerminatedCallback(ISuperApp app, bytes calldata ctx)
+        external
+        requireValidCtx(ctx)
+        returns (bytes memory newCtx)
+    {
+        _callAppBeforeCallback(app, SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP, ctx);
         newCtx = ctx;
     }
 
-    function callAppAfterAgreementTerminatedCallback(
-        ISuperApp app,
-        bytes calldata ctx
-    ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
+    function callAppAfterAgreementTerminatedCallback(ISuperApp app, bytes calldata ctx)
+        external
+        requireValidCtx(ctx)
+        returns (bytes memory newCtx)
+    {
         return
             _callAppAfterAgreementCallback(
                 app,

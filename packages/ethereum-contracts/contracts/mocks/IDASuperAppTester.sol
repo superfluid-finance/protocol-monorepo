@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.14;
 
-import {
-    ISuperfluid,
-    ISuperToken,
-    ISuperApp
-} from "../superfluid/Superfluid.sol";
+import { ISuperfluid, ISuperToken, ISuperApp } from "../superfluid/Superfluid.sol";
 import {
     IInstantDistributionAgreementV1
 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
@@ -81,19 +77,16 @@ contract IDASuperAppTester is ISuperApp {
         bytes32 callbackType,
         bytes calldata agreementData
     ) private view {
-        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(
-            ctx
-        );
+        ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         bytes32 expectedCallbackType;
         bytes4 expectedSelector;
         bytes memory expectedAgreementData;
-        (expectedCallbackType, expectedSelector, expectedAgreementData) = abi
-            .decode(context.userData, (bytes32, bytes4, bytes));
-        require(expectedCallbackType == callbackType, "wrong callbackType");
-        require(
-            expectedSelector == context.agreementSelector,
-            "wrong agreementSelector"
+        (expectedCallbackType, expectedSelector, expectedAgreementData) = abi.decode(
+            context.userData,
+            (bytes32, bytes4, bytes)
         );
+        require(expectedCallbackType == callbackType, "wrong callbackType");
+        require(expectedSelector == context.agreementSelector, "wrong agreementSelector");
         require(
             keccak256(expectedAgreementData) == keccak256(agreementData),
             "wrong aAgreementData"
@@ -115,26 +108,17 @@ contract IDASuperAppTester is ISuperApp {
         uint256 pendingDistribution
     );
 
-    function _packSubscriptionData(bytes32 agreementId)
-        private
-        view
-        returns (bytes memory)
-    {
+    function _packSubscriptionData(bytes32 agreementId) private view returns (bytes memory) {
         address publisher;
         uint32 indexId;
         bool approved;
         uint128 units;
         uint256 pendingDistribution;
-        (publisher, indexId, approved, units, pendingDistribution) = _ida
-            .getSubscriptionByID(_token, agreementId);
-        return
-            abi.encode(
-                publisher,
-                indexId,
-                approved,
-                units,
-                pendingDistribution
-            );
+        (publisher, indexId, approved, units, pendingDistribution) = _ida.getSubscriptionByID(
+            _token,
+            agreementId
+        );
+        return abi.encode(publisher, indexId, approved, units, pendingDistribution);
     }
 
     bool private _forceGetSubscriptionByID = false;
@@ -155,27 +139,19 @@ contract IDASuperAppTester is ISuperApp {
         uint256 pendingDistribution;
 
         if (cbdata.length > 0) {
-            (publisher, indexId, approved, units, pendingDistribution) = abi
-                .decode(cbdata, (address, uint32, bool, uint128, uint256));
-            emit SubscriptionDataBefore(
-                publisher,
-                indexId,
-                approved,
-                units,
-                pendingDistribution
+            (publisher, indexId, approved, units, pendingDistribution) = abi.decode(
+                cbdata,
+                (address, uint32, bool, uint128, uint256)
             );
+            emit SubscriptionDataBefore(publisher, indexId, approved, units, pendingDistribution);
         }
 
         if (!deleted) {
-            (publisher, indexId, approved, units, pendingDistribution) = _ida
-                .getSubscriptionByID(_token, agreementId);
-            emit SubscriptionDataAfter(
-                publisher,
-                indexId,
-                approved,
-                units,
-                pendingDistribution
+            (publisher, indexId, approved, units, pendingDistribution) = _ida.getSubscriptionByID(
+                _token,
+                agreementId
             );
+            emit SubscriptionDataAfter(publisher, indexId, approved, units, pendingDistribution);
         }
     }
 
@@ -304,10 +280,7 @@ contract IDASuperAppTester is ISuperApp {
     }
 
     modifier requireValidCtx(bytes calldata ctx) {
-        require(
-            ISuperfluid(msg.sender).isCtxValid(ctx),
-            "IDASuperAppTester: ctx not valid before"
-        );
+        require(ISuperfluid(msg.sender).isCtxValid(ctx), "IDASuperAppTester: ctx not valid before");
         _;
     }
 

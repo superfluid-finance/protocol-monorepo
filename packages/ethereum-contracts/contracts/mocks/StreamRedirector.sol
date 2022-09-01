@@ -9,9 +9,7 @@ import {
     SuperAppDefinitions
 } from "../apps/SuperAppBase.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperfluid.sol";
 
 contract StreamRedirector is SuperAppBase {
@@ -64,12 +62,7 @@ contract StreamRedirector is SuperAppBase {
      * @param _flowRate desired flow rate
      */
     function startStreamToSelf(address _originAccount, int96 _flowRate) public {
-        cfaV1.createFlowByOperator(
-            _originAccount,
-            address(this),
-            token,
-            _flowRate
-        );
+        cfaV1.createFlowByOperator(_originAccount, address(this), token, _flowRate);
     }
 
     /**
@@ -118,12 +111,7 @@ contract StreamRedirector is SuperAppBase {
     {
         newCtx = _ctx;
         int96 netFlowRate = cfaV1.cfa.getNetFlow(_superToken, address(this));
-        newCtx = cfaV1.createFlowWithCtx(
-            newCtx,
-            receiver,
-            _superToken,
-            netFlowRate
-        );
+        newCtx = cfaV1.createFlowWithCtx(newCtx, receiver, _superToken, netFlowRate);
     }
 
     function afterAgreementTerminated(
@@ -134,26 +122,15 @@ contract StreamRedirector is SuperAppBase {
         bytes calldata, // calldata _cbdata,
         bytes calldata _ctx
     ) external override onlyHost returns (bytes memory newCtx) {
-        if (
-            !_isCFAv1(_agreementClass) || address(_superToken) != address(token)
-        ) {
+        if (!_isCFAv1(_agreementClass) || address(_superToken) != address(token)) {
             return _ctx;
         }
 
         newCtx = _ctx;
-        (, int96 currentFlowRate, , ) = cfaV1.cfa.getFlow(
-            _superToken,
-            address(this),
-            receiver
-        );
+        (, int96 currentFlowRate, , ) = cfaV1.cfa.getFlow(_superToken, address(this), receiver);
 
         if (currentFlowRate > 0) {
-            newCtx = cfaV1.deleteFlowWithCtx(
-                newCtx,
-                address(this),
-                receiver,
-                _superToken
-            );
+            newCtx = cfaV1.deleteFlowWithCtx(newCtx, address(this), receiver, _superToken);
         }
     }
 

@@ -7,9 +7,7 @@ import {
     SuperAppBase,
     SuperAppDefinitions
 } from "../apps/SuperAppBase.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /**
  * @dev This is a CFA SuperApp that maintains at most one inflow from a sender at any moment.
@@ -117,10 +115,7 @@ contract NonClosableOutflowTestApp is SuperAppBase {
         _flowRate = flowRate;
         _host.callAgreement(
             _cfa,
-            abi.encodeCall(
-                _cfa.createFlow,
-                (superToken, receiver, flowRate, new bytes(0))
-            ),
+            abi.encodeCall(_cfa.createFlow, (superToken, receiver, flowRate, new bytes(0))),
             new bytes(0) // user data
         );
     }
@@ -133,10 +128,7 @@ contract NonClosableOutflowTestApp is SuperAppBase {
         bytes calldata, /*cbdata*/
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
-        (address flowSender, address flowReceiver) = abi.decode(
-            agreementData,
-            (address, address)
-        );
+        (address flowSender, address flowReceiver) = abi.decode(agreementData, (address, address));
         assert(flowSender == address(this));
         assert(flowReceiver == _receiver);
 
@@ -282,11 +274,7 @@ contract FlowExchangeTestApp is SuperAppBase {
     ) external override returns (bytes memory newCtx) {
         newCtx = ctx;
         ISuperfluid.Context memory context = _host.decodeCtx(ctx);
-        (, int96 flowRate, , ) = _cfa.getFlow(
-            superToken,
-            context.msgSender,
-            address(this)
-        );
+        (, int96 flowRate, , ) = _cfa.getFlow(superToken, context.msgSender, address(this));
         (newCtx, ) = _host.callAgreementWithContext(
             _cfa,
             abi.encodeCall(

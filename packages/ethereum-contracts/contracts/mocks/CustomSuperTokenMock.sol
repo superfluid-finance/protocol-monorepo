@@ -8,11 +8,7 @@ import {
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 abstract contract CustomSuperTokenBaseMock is CustomSuperTokenBase, UUPSProxy {
-    function getFirstCustomTokenStorageSlot()
-        external
-        pure
-        virtual
-        returns (uint256 slot);
+    function getFirstCustomTokenStorageSlot() external pure virtual returns (uint256 slot);
 
     function callSelfBurn(
         address to,
@@ -35,22 +31,14 @@ abstract contract CustomSuperTokenBaseMock is CustomSuperTokenBase, UUPSProxy {
 }
 
 // solhint-disable-next-line no-empty-blocks
-abstract contract CustomSuperTokenMock is
-    CustomSuperTokenBaseMock,
-    ISuperToken
-{
+abstract contract CustomSuperTokenMock is CustomSuperTokenBaseMock, ISuperToken {
 
 }
 
 contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
     uint256 private _firstStorageSlot;
 
-    function getFirstCustomTokenStorageSlot()
-        external
-        pure
-        override
-        returns (uint256 slot)
-    {
+    function getFirstCustomTokenStorageSlot() external pure override returns (uint256 slot) {
         assembly {
             slot := _firstStorageSlot.slot
         }
@@ -75,10 +63,7 @@ contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
         address logic = _implementation();
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, ) = logic.delegatecall(
-            abi.encodeCall(
-                ISuperToken(address(this)).selfMint,
-                (to, amount, userData)
-            )
+            abi.encodeCall(ISuperToken(address(this)).selfMint, (to, amount, userData))
         );
         assert(success);
     }
@@ -100,12 +85,7 @@ contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
         address recipient,
         uint256 amount
     ) external override {
-        ISuperToken(address(this)).selfTransferFrom(
-            holder,
-            spender,
-            recipient,
-            amount
-        );
+        ISuperToken(address(this)).selfTransferFrom(holder, spender, recipient, amount);
     }
 
     // this function self calls approveFor

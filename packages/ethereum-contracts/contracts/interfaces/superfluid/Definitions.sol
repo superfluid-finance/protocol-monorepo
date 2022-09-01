@@ -24,11 +24,7 @@ library SuperAppDefinitions {
     // The app is at the second level, it may interact with other final level apps if whitelisted
     uint256 internal constant APP_LEVEL_SECOND = 1 << 1;
 
-    function getAppCallbackLevel(uint256 configWord)
-        internal
-        pure
-        returns (uint8)
-    {
+    function getAppCallbackLevel(uint256 configWord) internal pure returns (uint8) {
         return uint8(configWord & APP_LEVEL_MASK);
     }
 
@@ -66,16 +62,10 @@ library SuperAppDefinitions {
     uint256 internal constant APP_RULE_MAX_APP_LEVEL_REACHED = 40;
 
     // Validate configWord cleaness for future compatibility, or else may introduce undefined future behavior
-    function isConfigWordClean(uint256 configWord)
-        internal
-        pure
-        returns (bool)
-    {
+    function isConfigWordClean(uint256 configWord) internal pure returns (bool) {
         return
-            (configWord &
-                ~(APP_LEVEL_MASK |
-                    APP_JAIL_BIT |
-                    AGREEMENT_CALLBACK_NOOP_BITMASKS)) == uint256(0);
+            (configWord & ~(APP_LEVEL_MASK | APP_JAIL_BIT | AGREEMENT_CALLBACK_NOOP_BITMASKS)) ==
+            uint256(0);
     }
 }
 
@@ -93,8 +83,7 @@ library ContextDefinitions {
 
     // call type
     uint256 internal constant CALL_INFO_CALL_TYPE_SHIFT = 32;
-    uint256 internal constant CALL_INFO_CALL_TYPE_MASK =
-        0xF << CALL_INFO_CALL_TYPE_SHIFT;
+    uint256 internal constant CALL_INFO_CALL_TYPE_MASK = 0xF << CALL_INFO_CALL_TYPE_SHIFT;
     uint8 internal constant CALL_INFO_CALL_TYPE_AGREEMENT = 1;
     uint8 internal constant CALL_INFO_CALL_TYPE_APP_ACTION = 2;
     uint8 internal constant CALL_INFO_CALL_TYPE_APP_CALLBACK = 3;
@@ -105,9 +94,7 @@ library ContextDefinitions {
         returns (uint8 appCallbackLevel, uint8 callType)
     {
         appCallbackLevel = uint8(callInfo & CALL_INFO_APP_LEVEL_MASK);
-        callType = uint8(
-            (callInfo & CALL_INFO_CALL_TYPE_MASK) >> CALL_INFO_CALL_TYPE_SHIFT
-        );
+        callType = uint8((callInfo & CALL_INFO_CALL_TYPE_MASK) >> CALL_INFO_CALL_TYPE_SHIFT);
     }
 
     function encodeCallInfo(uint8 appCallbackLevel, uint8 callType)
@@ -115,9 +102,7 @@ library ContextDefinitions {
         pure
         returns (uint256 callInfo)
     {
-        return
-            uint256(appCallbackLevel) |
-            (uint256(callType) << CALL_INFO_CALL_TYPE_SHIFT);
+        return uint256(appCallbackLevel) | (uint256(callType) << CALL_INFO_CALL_TYPE_SHIFT);
     }
 }
 
@@ -137,11 +122,7 @@ library FlowOperatorDefinitions {
     uint8 internal constant REVOKE_FLOW_OPERATOR_UPDATE = ~(uint8(1) << 1);
     uint8 internal constant REVOKE_FLOW_OPERATOR_DELETE = ~(uint8(1) << 2);
 
-    function isPermissionsClean(uint8 permissions)
-        internal
-        pure
-        returns (bool)
-    {
+    function isPermissionsClean(uint8 permissions) internal pure returns (bool) {
         return
             (permissions &
                 ~(AUTHORIZE_FLOW_OPERATOR_CREATE |
@@ -210,8 +191,7 @@ library BatchOperation {
      *     data
      * )
      */
-    uint32 internal constant OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION =
-        2 + 200;
+    uint32 internal constant OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION = 2 + 200;
 }
 
 /**
@@ -222,30 +202,20 @@ library SuperfluidGovernanceConfigs {
     bytes32 internal constant SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY =
         keccak256("org.superfluid-finance.superfluid.rewardAddress");
     bytes32 internal constant CFAV1_PPP_CONFIG_KEY =
-        keccak256(
-            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration"
-        );
+        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration");
     bytes32 internal constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
-    function getTrustedForwarderConfigKey(address forwarder)
+    function getTrustedForwarderConfigKey(address forwarder) internal pure returns (bytes32) {
+        return
+            keccak256(abi.encode("org.superfluid-finance.superfluid.trustedForwarder", forwarder));
+    }
+
+    function getAppRegistrationConfigKey(address deployer, string memory registrationKey)
         internal
         pure
         returns (bytes32)
     {
-        return
-            keccak256(
-                abi.encode(
-                    "org.superfluid-finance.superfluid.trustedForwarder",
-                    forwarder
-                )
-            );
-    }
-
-    function getAppRegistrationConfigKey(
-        address deployer,
-        string memory registrationKey
-    ) internal pure returns (bytes32) {
         return
             keccak256(
                 abi.encode(
@@ -256,17 +226,10 @@ library SuperfluidGovernanceConfigs {
             );
     }
 
-    function getAppFactoryConfigKey(address factory)
-        internal
-        pure
-        returns (bytes32)
-    {
+    function getAppFactoryConfigKey(address factory) internal pure returns (bytes32) {
         return
             keccak256(
-                abi.encode(
-                    "org.superfluid-finance.superfluid.appWhiteListing.factory",
-                    factory
-                )
+                abi.encode("org.superfluid-finance.superfluid.appWhiteListing.factory", factory)
             );
     }
 

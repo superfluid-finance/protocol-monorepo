@@ -2,9 +2,7 @@
 pragma solidity 0.8.14;
 
 import { UUPSUtils } from "./UUPSUtils.sol";
-import {
-    Initializable
-} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 /**
  * @title UUPS (Universal Upgradeable Proxy Standard) Proxiable contract.
@@ -38,10 +36,7 @@ abstract contract UUPSProxiable is Initializable {
      */
     function _updateCodeAddress(address newAddress) internal {
         // require UUPSProxy.initializeProxy first
-        require(
-            UUPSUtils.implementation() != address(0),
-            "UUPSProxiable: not upgradable"
-        );
+        require(UUPSUtils.implementation() != address(0), "UUPSProxiable: not upgradable");
         require(
             proxiableUUID() == UUPSProxiable(newAddress).proxiableUUID(),
             "UUPSProxiable: not compatible logic"

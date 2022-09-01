@@ -60,11 +60,7 @@ contract CallUtilsMock {
     }
 
     // case 2: (Panic(uint256)) 0x51
-    function revertZeroInitializedFunctionPointer()
-        external
-        pure
-        returns (int256)
-    {
+    function revertZeroInitializedFunctionPointer() external pure returns (int256) {
         // Variable containing a function pointer
         function(int256, int256) internal pure returns (int256) funcPtr;
 
@@ -88,9 +84,7 @@ contract CallUtilsMock {
 
     function revertTest(string memory funcSig) public {
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory data) = address(this).call(
-            abi.encodeWithSignature(funcSig)
-        );
+        (bool success, bytes memory data) = address(this).call(abi.encodeWithSignature(funcSig));
         if (!success) {
             CallUtils.revertFromReturnedData(data);
         }

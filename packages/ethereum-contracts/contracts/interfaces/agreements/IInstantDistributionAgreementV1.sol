@@ -42,10 +42,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external pure override returns (bytes32) {
-        return
-            keccak256(
-                "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
-            );
+        return keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
     }
 
     /**************************************************************************
@@ -120,11 +117,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
         address publisher,
         uint32 indexId,
         uint256 amount
-    )
-        external
-        view
-        virtual
-        returns (uint256 actualAmount, uint128 newIndexValue);
+    ) external view virtual returns (uint256 actualAmount, uint128 newIndexValue);
 
     /**
      * @dev Update index value of an index

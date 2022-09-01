@@ -1,9 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.14;
 
-import {
-    IERC1820Registry
-} from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
+import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 
 /**
  * @title ERC777 helper library
@@ -30,16 +28,8 @@ library ERC777Helper {
     }
 
     function register(address token) internal {
-        _ERC1820_REGISTRY.setInterfaceImplementer(
-            token,
-            keccak256("ERC777Token"),
-            address(this)
-        );
-        _ERC1820_REGISTRY.setInterfaceImplementer(
-            token,
-            keccak256("ERC20Token"),
-            address(this)
-        );
+        _ERC1820_REGISTRY.setInterfaceImplementer(token, keccak256("ERC777Token"), address(this));
+        _ERC1820_REGISTRY.setInterfaceImplementer(token, keccak256("ERC20Token"), address(this));
     }
 
     function isOperatorFor(
@@ -59,10 +49,7 @@ library ERC777Helper {
         address holder,
         address operator
     ) internal {
-        require(
-            holder != operator,
-            "ERC777Operators: authorizing self as operator"
-        );
+        require(holder != operator, "ERC777Operators: authorizing self as operator");
 
         if (self.defaultOperators[operator]) {
             delete self.revokedDefaultOperators[holder][operator];
@@ -76,10 +63,7 @@ library ERC777Helper {
         address holder,
         address operator
     ) internal {
-        require(
-            operator != msg.sender,
-            "ERC777Operators: revoking self as operator"
-        );
+        require(operator != msg.sender, "ERC777Operators: revoking self as operator");
         if (self.defaultOperators[operator]) {
             self.revokedDefaultOperators[holder][operator] = true;
         } else {
@@ -87,18 +71,11 @@ library ERC777Helper {
         }
     }
 
-    function defaultOperators(Operators storage self)
-        internal
-        view
-        returns (address[] memory)
-    {
+    function defaultOperators(Operators storage self) internal view returns (address[] memory) {
         return self.defaultOperatorsArray;
     }
 
-    function setupDefaultOperators(
-        Operators storage self,
-        address[] memory operators
-    ) internal {
+    function setupDefaultOperators(Operators storage self, address[] memory operators) internal {
         // According to 777 spec: default operators should only be setup once
         assert(self.defaultOperatorsArray.length == 0);
         self.defaultOperatorsArray = operators;

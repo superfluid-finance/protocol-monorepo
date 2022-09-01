@@ -61,11 +61,7 @@ library CallUtils {
      * Copied from: https://github.com/argentlabs/argent-contracts/
      * blob/master/contracts/modules/common/Utils.sol#L54-L60
      */
-    function parseSelector(bytes memory callData)
-        internal
-        pure
-        returns (bytes4 selector)
-    {
+    function parseSelector(bytes memory callData) internal pure returns (bytes4 selector) {
         require(callData.length >= 4, "CallUtils: invalid callData");
         // solhint-disable-next-line no-inline-assembly
         assembly {
@@ -76,11 +72,7 @@ library CallUtils {
     /**
      * @dev Pad length to 32 bytes word boundary
      */
-    function padLength32(uint256 len)
-        internal
-        pure
-        returns (uint256 paddedLen)
-    {
+    function padLength32(uint256 len) internal pure returns (uint256 paddedLen) {
         return
             ((len / 32) +
                 (
@@ -97,11 +89,7 @@ library CallUtils {
      * | word 1      | word 2           | word 3           | the rest...
      * | data length | bytesData offset | bytesData length | bytesData + padLength32 zeros |
      */
-    function isValidAbiEncodedBytes(bytes memory data)
-        internal
-        pure
-        returns (bool)
-    {
+    function isValidAbiEncodedBytes(bytes memory data) internal pure returns (bool) {
         if (data.length < 64) return false;
         uint256 bytesOffset;
         uint256 bytesLen;

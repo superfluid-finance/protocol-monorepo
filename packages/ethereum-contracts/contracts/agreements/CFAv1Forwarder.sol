@@ -8,9 +8,7 @@ import {
     FlowOperatorDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 import { CallUtils } from "../libs/CallUtils.sol";
 
@@ -32,9 +30,7 @@ contract CFAv1Forwarder {
         _cfa = IConstantFlowAgreementV1(
             address(
                 _host.getAgreementClass(
-                    keccak256(
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                    )
+                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
                 )
             )
         );
@@ -114,11 +110,7 @@ contract CFAv1Forwarder {
             uint256 owedDeposit
         )
     {
-        (lastUpdated, flowrate, deposit, owedDeposit) = _cfa.getFlow(
-            token,
-            sender,
-            receiver
-        );
+        (lastUpdated, flowrate, deposit, owedDeposit) = _cfa.getFlow(token, sender, receiver);
     }
 
     /**
@@ -244,9 +236,7 @@ contract CFAv1Forwarder {
      * @param token Super token address
      * @param flowOperator Account to which permissions are granted
      */
-    function grantPermissions(ISuperToken token, address flowOperator)
-        external
-    {
+    function grantPermissions(ISuperToken token, address flowOperator) external {
         _updateFlowOperatorPermissions(
             token,
             flowOperator,
@@ -263,9 +253,7 @@ contract CFAv1Forwarder {
      * @param token Super token address
      * @param flowOperator Account from which permissions are revoked
      */
-    function revokePermissions(ISuperToken token, address flowOperator)
-        external
-    {
+    function revokePermissions(ISuperToken token, address flowOperator) external {
         _updateFlowOperatorPermissions(token, flowOperator, 0, 0);
     }
 
@@ -284,12 +272,7 @@ contract CFAv1Forwarder {
         uint8 permissions,
         int96 flowrateAllowance
     ) external {
-        _updateFlowOperatorPermissions(
-            token,
-            flowOperator,
-            permissions,
-            flowrateAllowance
-        );
+        _updateFlowOperatorPermissions(token, flowOperator, permissions, flowrateAllowance);
     }
 
     /**
@@ -305,11 +288,7 @@ contract CFAv1Forwarder {
         address sender,
         address flowOperator
     ) external view returns (uint8 permissions, int96 flowrateAllowance) {
-        (, permissions, flowrateAllowance) = _cfa.getFlowOperatorData(
-            token,
-            sender,
-            flowOperator
-        );
+        (, permissions, flowrateAllowance) = _cfa.getFlowOperatorData(token, sender, flowOperator);
     }
 
     /**************************************************************************
@@ -463,10 +442,7 @@ contract CFAv1Forwarder {
             abi.encode(callData, userData) // data
         );
 
-        bytes memory fwBatchCallData = abi.encodeCall(
-            _host.forwardBatchCall,
-            (ops)
-        );
+        bytes memory fwBatchCallData = abi.encodeCall(_host.forwardBatchCall, (ops));
 
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory returnedData) = address(_host).call(

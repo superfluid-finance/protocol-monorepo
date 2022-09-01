@@ -90,10 +90,7 @@ interface ISuperfluidToken {
      * @param account The account to check
      * @return isCritical Whether the account is critical
      */
-    function isAccountCriticalNow(address account)
-        external
-        view
-        returns (bool isCritical);
+    function isAccountCriticalNow(address account) external view returns (bool isCritical);
 
     /**
      * @notice Check if account is solvent
@@ -113,10 +110,7 @@ interface ISuperfluidToken {
      * @param account The account to check
      * @return isSolvent True if the account is solvent, false otherwise
      */
-    function isAccountSolventNow(address account)
-        external
-        view
-        returns (bool isSolvent);
+    function isAccountSolventNow(address account) external view returns (bool isSolvent);
 
     /**
      * @notice Get a list of agreements that is active for the account
@@ -146,11 +140,7 @@ interface ISuperfluidToken {
      * @param id Agreement ID
      * @param data Agreement data
      */
-    event AgreementCreated(
-        address indexed agreementClass,
-        bytes32 id,
-        bytes32[] data
-    );
+    event AgreementCreated(address indexed agreementClass, bytes32 id, bytes32[] data);
 
     /**
      * @dev Get data of the agreement
@@ -177,11 +167,7 @@ interface ISuperfluidToken {
      * @param id Agreement ID
      * @param data Agreement data
      */
-    event AgreementUpdated(
-        address indexed agreementClass,
-        bytes32 id,
-        bytes32[] data
-    );
+    event AgreementUpdated(address indexed agreementClass, bytes32 id, bytes32[] data);
 
     /**
      * @dev Close the agreement

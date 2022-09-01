@@ -22,21 +22,12 @@ contract UUPSProxy is Proxy {
      */
     function initializeProxy(address initialAddress) external {
         require(initialAddress != address(0), "UUPSProxy: zero address");
-        require(
-            UUPSUtils.implementation() == address(0),
-            "UUPSProxy: already initialized"
-        );
+        require(UUPSUtils.implementation() == address(0), "UUPSProxy: already initialized");
         UUPSUtils.setImplementation(initialAddress);
     }
 
     /// @dev Proxy._implementation implementation
-    function _implementation()
-        internal
-        view
-        virtual
-        override
-        returns (address)
-    {
+    function _implementation() internal view virtual override returns (address) {
         return UUPSUtils.implementation();
     }
 }

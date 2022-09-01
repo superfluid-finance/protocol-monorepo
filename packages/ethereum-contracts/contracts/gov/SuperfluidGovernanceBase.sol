@@ -25,8 +25,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
     }
 
     // host => superToken => config
-    mapping(address => mapping(address => mapping(bytes32 => Value)))
-        internal _configs;
+    mapping(address => mapping(address => mapping(bytes32 => Value))) internal _configs;
 
     /**************************************************************************
     /* ISuperfluidGovernance interface
@@ -59,15 +58,11 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
             UUPSProxiable(address(hostNewLogic)).castrate();
         }
         for (uint256 i = 0; i < agreementClassNewLogics.length; ++i) {
-            host.updateAgreementClass(
-                ISuperAgreement(agreementClassNewLogics[i])
-            );
+            host.updateAgreementClass(ISuperAgreement(agreementClassNewLogics[i]));
             UUPSProxiable(address(agreementClassNewLogics[i])).castrate();
         }
         if (superTokenFactoryNewLogic != address(0)) {
-            host.updateSuperTokenFactory(
-                ISuperTokenFactory(superTokenFactoryNewLogic)
-            );
+            host.updateSuperTokenFactory(ISuperTokenFactory(superTokenFactoryNewLogic));
 
             // the factory logic can be updated for non-upgradable hosts too,
             // in this case it's used without proxy and already initialized.
@@ -83,10 +78,11 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
         }
     }
 
-    function batchUpdateSuperTokenLogic(
-        ISuperfluid host,
-        ISuperToken[] calldata tokens
-    ) external override onlyAuthorized(host) {
+    function batchUpdateSuperTokenLogic(ISuperfluid host, ISuperToken[] calldata tokens)
+        external
+        override
+        onlyAuthorized(host)
+    {
         for (uint256 i = 0; i < tokens.length; ++i) {
             host.updateSuperTokenLogic(tokens[i]);
         }
@@ -97,8 +93,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
         ISuperToken[] calldata tokens,
         uint256[] calldata minimumDeposits
     ) external {
-        if (tokens.length != minimumDeposits.length)
-            revert SF_GOV_ARRAYS_NOT_SAME_LENGTH();
+        if (tokens.length != minimumDeposits.length) revert SF_GOV_ARRAYS_NOT_SAME_LENGTH();
         for (uint256 i = 0; i < minimumDeposits.length; ++i) {
             setSuperTokenMinimumDeposit(host, tokens[i], minimumDeposits[i]);
         }
@@ -144,17 +139,8 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
         bytes32 key,
         address value
     ) internal onlyAuthorized(host) {
-        emit ConfigChanged(
-            host,
-            superToken,
-            key,
-            true,
-            uint256(uint160(value))
-        );
-        _configs[address(host)][address(superToken)][key] = Value(
-            true,
-            uint256(uint160(value))
-        );
+        emit ConfigChanged(host, superToken, key, true, uint256(uint160(value)));
+        _configs[address(host)][address(superToken)][key] = Value(true, uint256(uint160(value)));
     }
 
     function _setConfig(
@@ -241,9 +227,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
         emit RewardAddressChanged(host, superToken, true, rewardAddress);
     }
 
-    function clearRewardAddress(ISuperfluid host, ISuperfluidToken superToken)
-        external
-    {
+    function clearRewardAddress(ISuperfluid host, ISuperfluidToken superToken) external {
         _clearConfig(
             host,
             superToken,
@@ -279,8 +263,9 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
             superToken,
             SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY
         );
-        (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs
-            .decodePPPConfig(pppConfig);
+        (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodePPPConfig(
+            pppConfig
+        );
     }
 
     function setPPPConfig(
@@ -296,31 +281,13 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
         ) {
             revert SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD();
         }
-        uint256 value = (uint256(liquidationPeriod) << 32) |
-            uint256(patricianPeriod);
-        _setConfig(
-            host,
-            superToken,
-            SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY,
-            value
-        );
-        emit PPPConfigurationChanged(
-            host,
-            superToken,
-            true,
-            liquidationPeriod,
-            patricianPeriod
-        );
+        uint256 value = (uint256(liquidationPeriod) << 32) | uint256(patricianPeriod);
+        _setConfig(host, superToken, SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY, value);
+        emit PPPConfigurationChanged(host, superToken, true, liquidationPeriod, patricianPeriod);
     }
 
-    function clearPPPConfig(ISuperfluid host, ISuperfluidToken superToken)
-        external
-    {
-        _clearConfig(
-            host,
-            superToken,
-            SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY
-        );
+    function clearPPPConfig(ISuperfluid host, ISuperfluidToken superToken) external {
+        _clearConfig(host, superToken, SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY);
         emit PPPConfigurationChanged(host, superToken, false, 0, 0);
     }
 
@@ -332,10 +299,11 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
         uint256 minimumDeposit
     );
 
-    function getSuperTokenMinimumDeposit(
-        ISuperfluid host,
-        ISuperfluidToken superToken
-    ) external view returns (uint256 value) {
+    function getSuperTokenMinimumDeposit(ISuperfluid host, ISuperfluidToken superToken)
+        external
+        view
+        returns (uint256 value)
+    {
         return
             getConfigAsUint256(
                 host,
@@ -358,15 +326,8 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
         emit SuperTokenMinimumDepositChanged(host, superToken, true, value);
     }
 
-    function clearSuperTokenMinimumDeposit(
-        ISuperfluid host,
-        ISuperToken superToken
-    ) external {
-        _clearConfig(
-            host,
-            superToken,
-            SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY
-        );
+    function clearSuperTokenMinimumDeposit(ISuperfluid host, ISuperToken superToken) external {
+        _clearConfig(host, superToken, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
         emit SuperTokenMinimumDepositChanged(host, superToken, false, 0);
     }
 
@@ -388,9 +349,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
             getConfigAsUint256(
                 host,
                 superToken,
-                SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(
-                    forwarder
-                )
+                SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder)
             ) == 1;
     }
 
@@ -434,13 +393,11 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
         address deployer,
         string memory registrationKey
     ) external view returns (bool validNow, uint256 expirationTs) {
-        bytes32 configKey = SuperfluidGovernanceConfigs
-            .getAppRegistrationConfigKey(deployer, registrationKey);
-        uint256 expirationTs = getConfigAsUint256(
-            host,
-            ISuperfluidToken(address(0)),
-            configKey
+        bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
+            deployer,
+            registrationKey
         );
+        uint256 expirationTs = getConfigAsUint256(host, ISuperfluidToken(address(0)), configKey);
         return (
             // solhint-disable-next-line not-rely-on-time
             expirationTs >= block.timestamp,
@@ -454,15 +411,12 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
         string memory registrationKey,
         uint256 expirationTs
     ) external {
-        bytes32 configKey = SuperfluidGovernanceConfigs
-            .getAppRegistrationConfigKey(deployer, registrationKey);
-        _setConfig(host, ISuperfluidToken(address(0)), configKey, expirationTs);
-        emit AppRegistrationKeyChanged(
-            host,
+        bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
             deployer,
-            registrationKey,
-            expirationTs
+            registrationKey
         );
+        _setConfig(host, ISuperfluidToken(address(0)), configKey, expirationTs);
+        emit AppRegistrationKeyChanged(host, deployer, registrationKey, expirationTs);
     }
 
     function clearAppRegistrationKey(
@@ -470,8 +424,10 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
         address deployer,
         string memory registrationKey
     ) external {
-        bytes32 configKey = SuperfluidGovernanceConfigs
-            .getAppRegistrationConfigKey(deployer, registrationKey);
+        bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
+            deployer,
+            registrationKey
+        );
         _clearConfig(host, ISuperfluidToken(address(0)), configKey);
         emit AppRegistrationKeyChanged(host, deployer, registrationKey, 0);
     }
@@ -512,9 +468,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance {
                 cs := extcodesize(factory)
             }
             if (cs == 0)
-                revert SuperfluidErrors.MUST_BE_CONTRACT(
-                    SuperfluidErrors.SF_GOV_MUST_BE_CONTRACT
-                );
+                revert SuperfluidErrors.MUST_BE_CONTRACT(SuperfluidErrors.SF_GOV_MUST_BE_CONTRACT);
         }
         _setConfig(
             host,

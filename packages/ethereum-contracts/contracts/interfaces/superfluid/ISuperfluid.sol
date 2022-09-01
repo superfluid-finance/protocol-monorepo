@@ -74,10 +74,7 @@ interface ISuperfluid {
     /**
      * @dev Get the current governance address of the Superfluid host
      */
-    function getGovernance()
-        external
-        view
-        returns (ISuperfluidGovernance governance);
+    function getGovernance() external view returns (ISuperfluidGovernance governance);
 
     /**
      * @dev Replace the current governance with a new one
@@ -89,10 +86,7 @@ interface ISuperfluid {
      * @param oldGov Address of the old governance contract
      * @param newGov Address of the new governance contract
      */
-    event GovernanceReplaced(
-        ISuperfluidGovernance oldGov,
-        ISuperfluidGovernance newGov
-    );
+    event GovernanceReplaced(ISuperfluidGovernance oldGov, ISuperfluidGovernance newGov);
 
     /**************************************************************************
      * Agreement Whitelisting
@@ -105,8 +99,7 @@ interface ISuperfluid {
      * @custom:modifiers
      * - onlyGovernance
      */
-    function registerAgreementClass(ISuperAgreement agreementClassLogic)
-        external;
+    function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
 
     /**
      * @notice Agreement class registered event
@@ -137,10 +130,7 @@ interface ISuperfluid {
      * @notice Check if the agreement type is whitelisted
      * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
      */
-    function isAgreementTypeListed(bytes32 agreementType)
-        external
-        view
-        returns (bool yes);
+    function isAgreementTypeListed(bytes32 agreementType) external view returns (bool yes);
 
     /**
      * @dev Check if the agreement class is whitelisted
@@ -183,10 +173,10 @@ interface ISuperfluid {
      * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
      * @param bitmap Agreement class bitmap
      */
-    function removeFromAgreementClassesBitmap(
-        uint256 bitmap,
-        bytes32 agreementType
-    ) external view returns (uint256 newBitmap);
+    function removeFromAgreementClassesBitmap(uint256 bitmap, bytes32 agreementType)
+        external
+        view
+        returns (uint256 newBitmap);
 
     /**************************************************************************
      * Super Token Factory
@@ -196,10 +186,7 @@ interface ISuperfluid {
      * @dev Get the super token factory
      * @return factory The factory
      */
-    function getSuperTokenFactory()
-        external
-        view
-        returns (ISuperTokenFactory factory);
+    function getSuperTokenFactory() external view returns (ISuperTokenFactory factory);
 
     /**
      * @dev Get the super token factory logic (applicable to upgradable deployment)
@@ -259,10 +246,7 @@ interface ISuperfluid {
      * While the message sender must be the super app itself, the transaction sender (tx.origin)
      * must be the deployer account the registration key was issued for.
      */
-    function registerAppWithKey(
-        uint256 configWord,
-        string calldata registrationKey
-    ) external;
+    function registerAppWithKey(uint256 configWord, string calldata registrationKey) external;
 
     /**
      * @dev Message sender (must be a contract) declares app as a super app
@@ -282,10 +266,7 @@ interface ISuperfluid {
      * @dev Query app callbacklevel
      * @param app Super app address
      */
-    function getAppCallbackLevel(ISuperApp app)
-        external
-        view
-        returns (uint8 appCallbackLevel);
+    function getAppCallbackLevel(ISuperApp app) external view returns (uint8 appCallbackLevel);
 
     /**
      * @dev Get the manifest of the super app
@@ -586,10 +567,7 @@ interface ISuperfluid {
             bytes memory newCtx
         );
 
-    function decodeCtx(bytes memory ctx)
-        external
-        pure
-        returns (Context memory context);
+    function decodeCtx(bytes memory ctx) external pure returns (Context memory context);
 
     function isCtxValid(bytes calldata ctx) external view returns (bool);
 

@@ -45,8 +45,7 @@ contract SuperUpgrader is AccessControlEnumerable {
         uint256 amount
     ) external {
         require(
-            msg.sender == account ||
-                (hasRole(BACKEND_ROLE, msg.sender) && !_optout[account]),
+            msg.sender == account || (hasRole(BACKEND_ROLE, msg.sender) && !_optout[account]),
             "operation not allowed"
         );
         // get underlying token
@@ -58,11 +57,7 @@ contract SuperUpgrader is AccessControlEnumerable {
         token.safeApprove(address(superToken), 0);
         token.safeApprove(address(superToken), amount);
         // upgrade tokens and send back to user
-        superToken.upgradeTo(
-            account,
-            token.balanceOf(address(this)) - beforeBalance,
-            new bytes(0)
-        );
+        superToken.upgradeTo(account, token.balanceOf(address(this)) - beforeBalance, new bytes(0));
     }
 
     /**

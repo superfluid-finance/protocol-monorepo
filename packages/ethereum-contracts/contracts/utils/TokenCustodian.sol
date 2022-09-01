@@ -2,12 +2,8 @@
 pragma solidity 0.8.14;
 
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
-import {
-    IERC1820Registry
-} from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
-import {
-    IERC777Recipient
-} from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
+import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
+import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 
 /**
  * @title Token custodian contract
@@ -27,16 +23,8 @@ contract TokenCustodian is IERC777Recipient {
         );
     }
 
-    event CustodianDeposit(
-        IERC777 indexed token,
-        address recipient,
-        uint256 amount
-    );
-    event CustodianWithdrawal(
-        IERC777 indexed token,
-        address recipient,
-        uint256 amount
-    );
+    event CustodianDeposit(IERC777 indexed token, address recipient, uint256 amount);
+    event CustodianWithdrawal(IERC777 indexed token, address recipient, uint256 amount);
 
     // transfers tokens it has in custody for the given recipient to it
     function flush(IERC777 token, address recipient) public {

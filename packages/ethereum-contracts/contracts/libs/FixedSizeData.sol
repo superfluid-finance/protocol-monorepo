@@ -27,11 +27,7 @@ library FixedSizeData {
         }
     }
 
-    function hasData(bytes32 slot, uint256 dataLength)
-        internal
-        view
-        returns (bool)
-    {
+    function hasData(bytes32 slot, uint256 dataLength) internal view returns (bool) {
         for (uint256 j = 0; j < dataLength; ++j) {
             bytes32 d;
             assembly {

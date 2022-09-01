@@ -6,9 +6,7 @@ import {
     ISuperAgreement,
     ISuperToken
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
@@ -45,12 +43,7 @@ contract BatchLiquidator {
                         ISuperAgreement(cfa),
                         abi.encodeCall(
                             IConstantFlowAgreementV1(cfa).deleteFlow,
-                            (
-                                ISuperToken(superToken),
-                                senders[i],
-                                receivers[i],
-                                new bytes(0)
-                            )
+                            (ISuperToken(superToken), senders[i], receivers[i], new bytes(0))
                         ),
                         new bytes(0)
                     )
@@ -64,11 +57,7 @@ contract BatchLiquidator {
         {
             uint256 balance = ERC20(superToken).balanceOf(address(this));
             if (balance > 0) {
-                ERC20(superToken).transferFrom(
-                    address(this),
-                    msg.sender,
-                    balance
-                );
+                ERC20(superToken).transferFrom(address(this), msg.sender, balance);
             }
         }
     }

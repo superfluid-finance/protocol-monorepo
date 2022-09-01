@@ -17,11 +17,7 @@ contract SuperfluidGovernanceIIProxy is Ownable, UUPSProxy {
 
 }
 
-contract SuperfluidGovernanceII is
-    Ownable,
-    UUPSProxiable,
-    SuperfluidGovernanceBase
-{
+contract SuperfluidGovernanceII is Ownable, UUPSProxiable, SuperfluidGovernanceBase {
     error SF_GOV_II_ONLY_OWNER();
 
     function _requireAuthorised() private view {
@@ -33,10 +29,7 @@ contract SuperfluidGovernanceII is
      **************************************************************************/
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return
-            keccak256(
-                "org.superfluid-finance.contracts.SuperfluidGovernanceII.implementation"
-            );
+        return keccak256("org.superfluid-finance.contracts.SuperfluidGovernanceII.implementation");
     }
 
     function updateCode(address newAddress) external override {

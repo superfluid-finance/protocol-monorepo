@@ -22,10 +22,7 @@ interface ISuperTokenFactory {
     /**
      * @dev Get the current super token logic used by the factory
      */
-    function getSuperTokenLogic()
-        external
-        view
-        returns (ISuperToken superToken);
+    function getSuperTokenLogic() external view returns (ISuperToken superToken);
 
     /**
      * @dev Upgradability modes

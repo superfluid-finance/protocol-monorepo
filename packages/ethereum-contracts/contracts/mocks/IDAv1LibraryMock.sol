@@ -22,16 +22,12 @@ contract IDAv1LibraryMock {
     IDAv1Library.InitData internal _idaLib;
 
     bytes32 internal constant _IDAV1_HASH =
-        keccak256(
-            "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
-        );
+        keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
 
     constructor(ISuperfluid host) {
         _idaLib = IDAv1Library.InitData(
             host,
-            IInstantDistributionAgreementV1(
-                address(host.getAgreementClass(_IDAV1_HASH))
-            )
+            IInstantDistributionAgreementV1(address(host.getAgreementClass(_IDAV1_HASH)))
         );
     }
 
@@ -96,10 +92,7 @@ contract IDAv1LibraryMock {
     }
 
     /// @dev agreementId == keccak256(abi.encodePacked("subscription", subscriber, indexId));
-    function getSubscriptionByIDTest(
-        ISuperfluidToken token,
-        bytes32 agreementId
-    )
+    function getSubscriptionByIDTest(ISuperfluidToken token, bytes32 agreementId)
         external
         view
         returns (
@@ -217,13 +210,7 @@ contract IDAv1LibraryMock {
         uint128 units,
         bytes memory userData
     ) external {
-        _idaLib.updateSubscriptionUnits(
-            token,
-            indexId,
-            subscriber,
-            units,
-            userData
-        );
+        _idaLib.updateSubscriptionUnits(token, indexId, subscriber, units, userData);
     }
 
     function deleteSubscriptionTest(
@@ -242,13 +229,7 @@ contract IDAv1LibraryMock {
         address subscriber,
         bytes memory userData
     ) external {
-        _idaLib.deleteSubscription(
-            token,
-            publisher,
-            indexId,
-            subscriber,
-            userData
-        );
+        _idaLib.deleteSubscription(token, publisher, indexId, subscriber, userData);
     }
 
     function claimTest(
@@ -334,10 +315,7 @@ contract IDAv1LibrarySuperAppMock is IDAv1LibraryMock, SuperAppBase {
     /// @param token super token
     /// @param ctx Context string
     /// @return New Context
-    function _callbackTest(ISuperToken token, bytes memory ctx)
-        internal
-        returns (bytes memory)
-    {
+    function _callbackTest(ISuperToken token, bytes memory ctx) internal returns (bytes memory) {
         // extract userData, then decode everything else
         bytes memory userData = _idaLib.host.decodeCtx(ctx).userData;
         (
@@ -350,90 +328,29 @@ contract IDAv1LibrarySuperAppMock is IDAv1LibraryMock, SuperAppBase {
 
         if (functionIndex == uint8(FunctionIndex.CREATE_INDEX)) {
             return _idaLib.createIndexWithCtx(ctx, token, indexId);
-        } else if (
-            functionIndex == uint8(FunctionIndex.CREATE_INDEX_USER_DATA)
-        ) {
-            return
-                _idaLib.createIndexWithCtx(
-                    ctx,
-                    token,
-                    indexId,
-                    _MOCK_USER_DATA
-                );
+        } else if (functionIndex == uint8(FunctionIndex.CREATE_INDEX_USER_DATA)) {
+            return _idaLib.createIndexWithCtx(ctx, token, indexId, _MOCK_USER_DATA);
         } else if (functionIndex == uint8(FunctionIndex.UPDATE_INDEX)) {
             return _idaLib.updateIndexValueWithCtx(ctx, token, indexId, units);
-        } else if (
-            functionIndex == uint8(FunctionIndex.UPDATE_INDEX_USER_DATA)
-        ) {
-            return
-                _idaLib.updateIndexValueWithCtx(
-                    ctx,
-                    token,
-                    indexId,
-                    units,
-                    _MOCK_USER_DATA
-                );
+        } else if (functionIndex == uint8(FunctionIndex.UPDATE_INDEX_USER_DATA)) {
+            return _idaLib.updateIndexValueWithCtx(ctx, token, indexId, units, _MOCK_USER_DATA);
         } else if (functionIndex == uint8(FunctionIndex.DISTRIBUTE)) {
             return _idaLib.distributeWithCtx(ctx, token, indexId, units);
         } else if (functionIndex == uint8(FunctionIndex.DISTRIBUTE_USER_DATA)) {
-            return
-                _idaLib.distributeWithCtx(
-                    ctx,
-                    token,
-                    indexId,
-                    units,
-                    _MOCK_USER_DATA
-                );
+            return _idaLib.distributeWithCtx(ctx, token, indexId, units, _MOCK_USER_DATA);
         } else if (functionIndex == uint8(FunctionIndex.APROVE_SUBSCRIPTION)) {
+            return _idaLib.approveSubscriptionWithCtx(ctx, token, publisher, indexId);
+        } else if (functionIndex == uint8(FunctionIndex.APROVE_SUBSCRIPTION_USER_DATA)) {
             return
-                _idaLib.approveSubscriptionWithCtx(
-                    ctx,
-                    token,
-                    publisher,
-                    indexId
-                );
-        } else if (
-            functionIndex == uint8(FunctionIndex.APROVE_SUBSCRIPTION_USER_DATA)
-        ) {
-            return
-                _idaLib.approveSubscriptionWithCtx(
-                    ctx,
-                    token,
-                    publisher,
-                    indexId,
-                    _MOCK_USER_DATA
-                );
+                _idaLib.approveSubscriptionWithCtx(ctx, token, publisher, indexId, _MOCK_USER_DATA);
         } else if (functionIndex == uint8(FunctionIndex.REVOKE_SUBSCRIPTION)) {
+            return _idaLib.revokeSubscriptionWithCtx(ctx, token, publisher, indexId);
+        } else if (functionIndex == uint8(FunctionIndex.REVOKE_SUBSCRIPTION_USER_DATA)) {
             return
-                _idaLib.revokeSubscriptionWithCtx(
-                    ctx,
-                    token,
-                    publisher,
-                    indexId
-                );
-        } else if (
-            functionIndex == uint8(FunctionIndex.REVOKE_SUBSCRIPTION_USER_DATA)
-        ) {
-            return
-                _idaLib.revokeSubscriptionWithCtx(
-                    ctx,
-                    token,
-                    publisher,
-                    indexId,
-                    _MOCK_USER_DATA
-                );
+                _idaLib.revokeSubscriptionWithCtx(ctx, token, publisher, indexId, _MOCK_USER_DATA);
         } else if (functionIndex == uint8(FunctionIndex.UPDATE_SUBSCRIPTION)) {
-            return
-                _idaLib.updateSubscriptionUnitsWithCtx(
-                    ctx,
-                    token,
-                    indexId,
-                    subscriber,
-                    units
-                );
-        } else if (
-            functionIndex == uint8(FunctionIndex.UPDATE_SUBSCRIPTION_USER_DATA)
-        ) {
+            return _idaLib.updateSubscriptionUnitsWithCtx(ctx, token, indexId, subscriber, units);
+        } else if (functionIndex == uint8(FunctionIndex.UPDATE_SUBSCRIPTION_USER_DATA)) {
             return
                 _idaLib.updateSubscriptionUnitsWithCtx(
                     ctx,
@@ -444,17 +361,8 @@ contract IDAv1LibrarySuperAppMock is IDAv1LibraryMock, SuperAppBase {
                     _MOCK_USER_DATA
                 );
         } else if (functionIndex == uint8(FunctionIndex.DELETE_SUBSCRIPTION)) {
-            return
-                _idaLib.deleteSubscriptionWithCtx(
-                    ctx,
-                    token,
-                    publisher,
-                    indexId,
-                    subscriber
-                );
-        } else if (
-            functionIndex == uint8(FunctionIndex.DELETE_SUBSCRIPTION_USER_DATA)
-        ) {
+            return _idaLib.deleteSubscriptionWithCtx(ctx, token, publisher, indexId, subscriber);
+        } else if (functionIndex == uint8(FunctionIndex.DELETE_SUBSCRIPTION_USER_DATA)) {
             return
                 _idaLib.deleteSubscriptionWithCtx(
                     ctx,
@@ -465,24 +373,10 @@ contract IDAv1LibrarySuperAppMock is IDAv1LibraryMock, SuperAppBase {
                     _MOCK_USER_DATA
                 );
         } else if (functionIndex == uint8(FunctionIndex.CLAIM)) {
-            return
-                _idaLib.claimWithCtx(
-                    ctx,
-                    token,
-                    publisher,
-                    indexId,
-                    subscriber
-                );
+            return _idaLib.claimWithCtx(ctx, token, publisher, indexId, subscriber);
         } else if (functionIndex == uint8(FunctionIndex.CLAIM_USER_DATA)) {
             return
-                _idaLib.claimWithCtx(
-                    ctx,
-                    token,
-                    publisher,
-                    indexId,
-                    subscriber,
-                    _MOCK_USER_DATA
-                );
+                _idaLib.claimWithCtx(ctx, token, publisher, indexId, subscriber, _MOCK_USER_DATA);
         } else {
             revert("invalid function index");
         }

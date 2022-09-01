@@ -22,9 +22,7 @@ abstract contract AgreementBase is UUPSProxiable, ISuperAgreement {
 
     function updateCode(address newAddress) external override {
         if (msg.sender != _host)
-            revert SuperfluidErrors.ONLY_HOST(
-                SuperfluidErrors.AGREEMENT_BASE_ONLY_HOST
-            );
+            revert SuperfluidErrors.ONLY_HOST(SuperfluidErrors.AGREEMENT_BASE_ONLY_HOST);
         return _updateCodeAddress(newAddress);
     }
 }

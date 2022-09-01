@@ -9,9 +9,7 @@ import {
     SuperAppDefinitions,
     ContextDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import {
-    ISuperfluidToken
-} from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
@@ -71,15 +69,16 @@ library AgreementLibrary {
         inputs.agreementData = agreementData;
     }
 
-    function callAppBeforeCallback(
-        CallbackInputs memory inputs,
-        bytes memory ctx
-    ) internal returns (bytes memory cbdata) {
+    function callAppBeforeCallback(CallbackInputs memory inputs, bytes memory ctx)
+        internal
+        returns (bytes memory cbdata)
+    {
         bool isSuperApp;
         bool isJailed;
         uint256 noopMask;
-        (isSuperApp, isJailed, noopMask) = ISuperfluid(msg.sender)
-            .getAppManifest(ISuperApp(inputs.account));
+        (isSuperApp, isJailed, noopMask) = ISuperfluid(msg.sender).getAppManifest(
+            ISuperApp(inputs.account)
+        );
         if (isSuperApp && !isJailed) {
             bytes memory appCtx = _pushCallbackStack(ctx, inputs);
             if ((noopMask & inputs.noopBit) == 0) {
@@ -94,8 +93,7 @@ library AgreementLibrary {
                 cbdata = ISuperfluid(msg.sender).callAppBeforeCallback(
                     ISuperApp(inputs.account),
                     callData,
-                    inputs.noopBit ==
-                        SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
+                    inputs.noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP,
                     appCtx
                 );
             }
@@ -109,15 +107,13 @@ library AgreementLibrary {
         bytes memory cbdata,
         bytes /* const */
             memory ctx
-    )
-        internal
-        returns (ISuperfluid.Context memory appContext, bytes memory newCtx)
-    {
+    ) internal returns (ISuperfluid.Context memory appContext, bytes memory newCtx) {
         bool isSuperApp;
         bool isJailed;
         uint256 noopMask;
-        (isSuperApp, isJailed, noopMask) = ISuperfluid(msg.sender)
-            .getAppManifest(ISuperApp(inputs.account));
+        (isSuperApp, isJailed, noopMask) = ISuperfluid(msg.sender).getAppManifest(
+            ISuperApp(inputs.account)
+        );
 
         newCtx = ctx;
         if (isSuperApp && !isJailed) {
@@ -135,8 +131,7 @@ library AgreementLibrary {
                 newCtx = ISuperfluid(msg.sender).callAppAfterCallback(
                     ISuperApp(inputs.account),
                     callData,
-                    inputs.noopBit ==
-                        SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
+                    inputs.noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP,
                     newCtx
                 );
 
@@ -159,10 +154,11 @@ library AgreementLibrary {
      * @param appCallbackDepositDelta set in callback - sum of deposit deltas of callback agreements and
      * current flow owed deposit amount
      */
-    function _adjustNewAppCreditUsed(
-        uint256 appCreditGranted,
-        int256 appCallbackDepositDelta
-    ) internal pure returns (int256) {
+    function _adjustNewAppCreditUsed(uint256 appCreditGranted, int256 appCallbackDepositDelta)
+        internal
+        pure
+        returns (int256)
+    {
         // NOTE: we use max(0, ...) because appCallbackDepositDelta can be negative and appCallbackDepositDelta
         // should never go below 0, otherwise the SuperApp can return more money than borrowed
         return
@@ -174,28 +170,16 @@ library AgreementLibrary {
             );
     }
 
-    function _selectorFromNoopBit(uint256 noopBit)
-        private
-        pure
-        returns (bytes4 selector)
-    {
+    function _selectorFromNoopBit(uint256 noopBit) private pure returns (bytes4 selector) {
         if (noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP) {
             return ISuperApp.beforeAgreementCreated.selector;
-        } else if (
-            noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
-        ) {
+        } else if (noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP) {
             return ISuperApp.beforeAgreementUpdated.selector;
-        } else if (
-            noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
-        ) {
+        } else if (noopBit == SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP) {
             return ISuperApp.beforeAgreementTerminated.selector;
-        } else if (
-            noopBit == SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP
-        ) {
+        } else if (noopBit == SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP) {
             return ISuperApp.afterAgreementCreated.selector;
-        } else if (
-            noopBit == SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP
-        ) {
+        } else if (noopBit == SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP) {
             return ISuperApp.afterAgreementUpdated.selector;
         }
         /* if (noopBit == SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP) */

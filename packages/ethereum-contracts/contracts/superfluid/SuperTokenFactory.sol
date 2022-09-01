@@ -16,9 +16,7 @@ import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 import { SuperToken } from "../superfluid/SuperToken.sol";
 
-import {
-    FullUpgradableSuperTokenProxy
-} from "./FullUpgradableSuperTokenProxy.sol";
+import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
 
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
@@ -33,12 +31,7 @@ abstract contract SuperTokenFactoryBase is UUPSProxiable, ISuperTokenFactory {
     }
 
     /// @dev ISuperTokenFactory.getHost implementation
-    function getHost()
-        external
-        view
-        override(ISuperTokenFactory)
-        returns (address host)
-    {
+    function getHost() external view override(ISuperTokenFactory) returns (address host) {
         return address(_host);
     }
 
@@ -54,17 +47,12 @@ abstract contract SuperTokenFactoryBase is UUPSProxiable, ISuperTokenFactory {
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return
-            keccak256(
-                "org.superfluid-finance.contracts.SuperTokenFactory.implementation"
-            );
+        return keccak256("org.superfluid-finance.contracts.SuperTokenFactory.implementation");
     }
 
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host)) {
-            revert SuperfluidErrors.ONLY_HOST(
-                SuperfluidErrors.SUPER_TOKEN_FACTORY_ONLY_HOST
-            );
+            revert SuperfluidErrors.ONLY_HOST(SuperfluidErrors.SUPER_TOKEN_FACTORY_ONLY_HOST);
         }
         _updateCodeAddress(newAddress);
         _updateSuperTokenLogic();
@@ -84,10 +72,7 @@ abstract contract SuperTokenFactoryBase is UUPSProxiable, ISuperTokenFactory {
         return _superTokenLogic;
     }
 
-    function createSuperTokenLogic(ISuperfluid host)
-        external
-        virtual
-        returns (address logic);
+    function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
 
     function createERC20Wrapper(
         IERC20 underlyingToken,
@@ -97,9 +82,7 @@ abstract contract SuperTokenFactoryBase is UUPSProxiable, ISuperTokenFactory {
         string calldata symbol
     ) public override returns (ISuperToken superToken) {
         if (address(underlyingToken) == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(
-                SuperfluidErrors.SUPER_TOKEN_FACTORY_ZERO_ADDRESS
-            );
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_FACTORY_ZERO_ADDRESS);
         }
 
         if (upgradability == Upgradability.NON_UPGRADABLE) {
@@ -118,12 +101,7 @@ abstract contract SuperTokenFactoryBase is UUPSProxiable, ISuperTokenFactory {
         }
 
         // initialize the token
-        superToken.initialize(
-            underlyingToken,
-            underlyingDecimals,
-            name,
-            symbol
-        );
+        superToken.initialize(underlyingToken, underlyingDecimals, name, symbol);
 
         emit SuperTokenCreated(superToken);
     }
@@ -144,10 +122,7 @@ abstract contract SuperTokenFactoryBase is UUPSProxiable, ISuperTokenFactory {
             );
     }
 
-    function initializeCustomSuperToken(address customSuperTokenProxy)
-        external
-        override
-    {
+    function initializeCustomSuperToken(address customSuperTokenProxy) external override {
         // odd solidity stuff..
         // NOTE payable necessary because UUPSProxy has a payable fallback function
         address payable a = payable(address(uint160(customSuperTokenProxy)));
@@ -174,11 +149,7 @@ contract SuperTokenFactory is SuperTokenFactoryBase {
         _helper = helper;
     }
 
-    function createSuperTokenLogic(ISuperfluid host)
-        external
-        override
-        returns (address logic)
-    {
+    function createSuperTokenLogic(ISuperfluid host) external override returns (address logic) {
         return _helper.create(host);
     }
 }

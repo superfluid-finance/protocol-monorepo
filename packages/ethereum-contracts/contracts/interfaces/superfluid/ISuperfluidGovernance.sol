@@ -26,8 +26,7 @@ interface ISuperfluidGovernance {
     /**
      * @dev Register a new agreement class
      */
-    function registerAgreementClass(ISuperfluid host, address agreementClass)
-        external;
+    function registerAgreementClass(ISuperfluid host, address agreementClass) external;
 
     /**
      * @dev Update logics of the contracts
@@ -45,10 +44,7 @@ interface ISuperfluidGovernance {
     /**
      * @dev Update supertoken logic contract to the latest that is managed by the super token factory
      */
-    function batchUpdateSuperTokenLogic(
-        ISuperfluid host,
-        ISuperToken[] calldata tokens
-    ) external;
+    function batchUpdateSuperTokenLogic(ISuperfluid host, ISuperToken[] calldata tokens) external;
 
     /**
      * @dev Set configuration as address value

@@ -7,21 +7,13 @@ import {
     ISuperToken
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
-import {
-    ISuperApp,
-    ISuperAgreement
-} from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperApp, ISuperAgreement } from "../interfaces/superfluid/ISuperfluid.sol";
 
-import {
-    ContextDefinitions,
-    SuperAppDefinitions
-} from "../interfaces/superfluid/ISuperfluid.sol";
+import { ContextDefinitions, SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { SuperAppBase } from "../apps/SuperAppBase.sol";
 
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
 
@@ -38,9 +30,7 @@ contract CFALibraryMock {
             IConstantFlowAgreementV1(
                 address(
                     host.getAgreementClass(
-                        keccak256(
-                            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                        )
+                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
                     )
                 )
             )
@@ -99,25 +89,18 @@ contract CFALibraryMock {
         uint8 permissions,
         int96 flowRateAllowance
     ) public {
-        cfaV1.updateFlowOperatorPermissions(
-            flowOperator,
-            token,
-            permissions,
-            flowRateAllowance
-        );
+        cfaV1.updateFlowOperatorPermissions(flowOperator, token, permissions, flowRateAllowance);
     }
 
-    function authorizeFlowOperatorWithFullControlTest(
-        address flowOperator,
-        ISuperfluidToken token
-    ) public {
+    function authorizeFlowOperatorWithFullControlTest(address flowOperator, ISuperfluidToken token)
+        public
+    {
         cfaV1.authorizeFlowOperatorWithFullControl(flowOperator, token);
     }
 
-    function revokeFlowOperatorWithFullControlTest(
-        address flowOperator,
-        ISuperfluidToken token
-    ) public {
+    function revokeFlowOperatorWithFullControlTest(address flowOperator, ISuperfluidToken token)
+        public
+    {
         cfaV1.revokeFlowOperatorWithFullControl(flowOperator, token);
     }
 }
@@ -158,9 +141,7 @@ contract CFALibrarySuperAppMock is SuperAppBase {
             IConstantFlowAgreementV1(
                 address(
                     host.getAgreementClass(
-                        keccak256(
-                            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                        )
+                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
                     )
                 )
             )
@@ -203,40 +184,17 @@ contract CFALibrarySuperAppMock is SuperAppBase {
         if (functionIndex == uint8(FunctionIndex.CREATE_FLOW))
             return cfaV1.createFlowWithCtx(ctx, receiver, token, FLOW_RATE);
         else if (functionIndex == uint8(FunctionIndex.UPDATE_FLOW))
-            return
-                cfaV1.updateFlowWithCtx(
-                    ctx,
-                    receiver,
-                    token,
-                    UPDATED_FLOW_RATE
-                );
+            return cfaV1.updateFlowWithCtx(ctx, receiver, token, UPDATED_FLOW_RATE);
         else if (functionIndex == uint8(FunctionIndex.DELETE_FLOW))
             return cfaV1.deleteFlowWithCtx(ctx, address(this), receiver, token);
         else if (functionIndex == uint8(FunctionIndex.CREATE_FLOW_BY_OPERATOR))
-            return
-                cfaV1.createFlowByOperatorWithCtx(
-                    ctx,
-                    sender,
-                    receiver,
-                    token,
-                    FLOW_RATE
-                );
+            return cfaV1.createFlowByOperatorWithCtx(ctx, sender, receiver, token, FLOW_RATE);
         else if (functionIndex == uint8(FunctionIndex.UPDATE_FLOW_BY_OPERATOR))
             return
-                cfaV1.updateFlowByOperatorWithCtx(
-                    ctx,
-                    sender,
-                    receiver,
-                    token,
-                    UPDATED_FLOW_RATE
-                );
+                cfaV1.updateFlowByOperatorWithCtx(ctx, sender, receiver, token, UPDATED_FLOW_RATE);
         else if (functionIndex == uint8(FunctionIndex.DELETE_FLOW_BY_OPERATOR))
-            return
-                cfaV1.deleteFlowByOperatorWithCtx(ctx, sender, receiver, token);
-        else if (
-            functionIndex ==
-            uint8(FunctionIndex.UPDATE_FLOW_OPERATOR_PERMISSIONS)
-        )
+            return cfaV1.deleteFlowByOperatorWithCtx(ctx, sender, receiver, token);
+        else if (functionIndex == uint8(FunctionIndex.UPDATE_FLOW_OPERATOR_PERMISSIONS))
             return
                 cfaV1.updateFlowOperatorPermissionsWithCtx(
                     ctx,
@@ -245,26 +203,10 @@ contract CFALibrarySuperAppMock is SuperAppBase {
                     PERMISSIONS,
                     FLOW_RATE
                 );
-        else if (
-            functionIndex ==
-            uint8(FunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL)
-        )
-            return
-                cfaV1.authorizeFlowOperatorWithFullControlWithCtx(
-                    ctx,
-                    flowOperator,
-                    token
-                );
-        else if (
-            functionIndex ==
-            uint8(FunctionIndex.REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL)
-        )
-            return
-                cfaV1.revokeFlowOperatorWithFullControlWithCtx(
-                    ctx,
-                    flowOperator,
-                    token
-                );
+        else if (functionIndex == uint8(FunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL))
+            return cfaV1.authorizeFlowOperatorWithFullControlWithCtx(ctx, flowOperator, token);
+        else if (functionIndex == uint8(FunctionIndex.REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL))
+            return cfaV1.revokeFlowOperatorWithFullControlWithCtx(ctx, flowOperator, token);
         else revert("invalid function index");
     }
 }

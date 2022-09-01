@@ -24,20 +24,12 @@ contract Resolver is IResolver, AccessControlEnumerable {
     }
 
     function set(string calldata name, address target) external override {
-        require(
-            hasRole(DEFAULT_ADMIN_ROLE, _msgSender()),
-            "Caller is not an admin"
-        );
+        require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Caller is not an admin");
         _registry[name] = target;
         emit Set(name, target);
     }
 
-    function get(string calldata name)
-        external
-        view
-        override
-        returns (address)
-    {
+    function get(string calldata name) external view override returns (address) {
         return _registry[name];
     }
 }

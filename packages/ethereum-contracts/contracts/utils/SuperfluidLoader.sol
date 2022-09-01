@@ -46,14 +46,10 @@ contract SuperfluidLoader {
         );
         result.superTokenFactory = result.superfluid.getSuperTokenFactory();
         result.agreementCFAv1 = result.superfluid.getAgreementClass(
-            keccak256(
-                "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-            )
+            keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
         );
         result.agreementIDAv1 = result.superfluid.getAgreementClass(
-            keccak256(
-                "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
-            )
+            keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
         );
     }
 }

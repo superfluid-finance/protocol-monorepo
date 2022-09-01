@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.14;
 
-import {
-    ISuperfluid,
-    ISuperAgreement,
-    SuperToken
-} from "../superfluid/SuperToken.sol";
+import { ISuperfluid, ISuperAgreement, SuperToken } from "../superfluid/SuperToken.sol";
 
 contract SuperTokenStorageLayoutTester is SuperToken {
     constructor(ISuperfluid host)
@@ -25,19 +21,13 @@ contract SuperTokenStorageLayoutTester is SuperToken {
             slot := _inactiveAgreementBitmap.slot
             offset := _inactiveAgreementBitmap.offset
         }
-        require(
-            slot == 1 && offset == 0,
-            "_inactiveAgreementBitmap changed location"
-        );
+        require(slot == 1 && offset == 0, "_inactiveAgreementBitmap changed location");
 
         assembly {
             slot := _sharedSettledBalances.slot
             offset := _sharedSettledBalances.offset
         }
-        require(
-            slot == 2 && offset == 0,
-            "_sharedSettledBalances changed location"
-        );
+        require(slot == 2 && offset == 0, "_sharedSettledBalances changed location");
 
         assembly {
             slot := _totalSupply.slot
@@ -69,10 +59,7 @@ contract SuperTokenStorageLayoutTester is SuperToken {
             slot := _underlyingDecimals.slot
             offset := _underlyingDecimals.offset
         }
-        require(
-            slot == 14 && offset == 20,
-            "_underlyingDecimals changed location"
-        );
+        require(slot == 14 && offset == 20, "_underlyingDecimals changed location");
 
         assembly {
             slot := _name.slot
@@ -112,11 +99,7 @@ contract SuperTokenStorageLayoutTester is SuperToken {
         require(slot == 31 && offset == 0, "_reserve31 changed location");
     }
 
-    function getLastSuperTokenStorageSlot()
-        external
-        pure
-        returns (uint256 slot)
-    {
+    function getLastSuperTokenStorageSlot() external pure returns (uint256 slot) {
         assembly {
             slot := _reserve31.slot
         }

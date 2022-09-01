@@ -31,10 +31,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
 
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external pure override returns (bytes32) {
-        return
-            keccak256(
-                "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-            );
+        return keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
     }
 
     /**
@@ -43,10 +40,11 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param deposit Deposit amount used for creating the flow
      * @return flowRate The maximum flow rate
      */
-    function getMaximumFlowRateFromDeposit(
-        ISuperfluidToken token,
-        uint256 deposit
-    ) external view virtual returns (int96 flowRate);
+    function getMaximumFlowRateFromDeposit(ISuperfluidToken token, uint256 deposit)
+        external
+        view
+        virtual
+        returns (int96 flowRate);
 
     /**
      * @notice Get the deposit required for creating the flow
@@ -58,10 +56,11 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      *   than the minimum deposit, we use the minimum deposit otherwise
      *   we use the calculated deposit
      */
-    function getDepositRequiredForFlowRate(
-        ISuperfluidToken token,
-        int96 flowRate
-    ) external view virtual returns (uint256 deposit);
+    function getDepositRequiredForFlowRate(ISuperfluidToken token, int96 flowRate)
+        external
+        view
+        virtual
+        returns (uint256 deposit);
 
     /**
      * @dev Returns whether it is the patrician period based on host.getNow()
@@ -158,10 +157,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return permissions A bitmask representation of the granted permissions
      * @return flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      */
-    function getFlowOperatorDataByID(
-        ISuperfluidToken token,
-        bytes32 flowOperatorId
-    )
+    function getFlowOperatorDataByID(ISuperfluidToken token, bytes32 flowOperatorId)
         external
         view
         virtual

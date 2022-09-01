@@ -39,21 +39,13 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**
      * @dev Returns the name of the token.
      */
-    function name()
-        external
-        view
-        override(IERC777, TokenInfo)
-        returns (string memory);
+    function name() external view override(IERC777, TokenInfo) returns (string memory);
 
     /**
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
      */
-    function symbol()
-        external
-        view
-        override(IERC777, TokenInfo)
-        returns (string memory);
+    function symbol() external view override(IERC777, TokenInfo) returns (string memory);
 
     /**
      * @dev Returns the number of decimals used to get its user representation.
@@ -79,11 +71,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**
      * @dev See {IERC20-totalSupply}.
      */
-    function totalSupply()
-        external
-        view
-        override(IERC777, IERC20)
-        returns (uint256);
+    function totalSupply() external view override(IERC777, IERC20) returns (uint256);
 
     /**
      * @dev Returns the amount of tokens owned by an account (`owner`).
@@ -105,10 +93,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:emits a {Transfer} event.
      */
-    function transfer(address recipient, uint256 amount)
-        external
-        override(IERC20)
-        returns (bool);
+    function transfer(address recipient, uint256 amount) external override(IERC20) returns (bool);
 
     /**
      * @dev Returns the remaining number of tokens that `spender` will be
@@ -137,10 +122,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:emits an {Approval} event.
      */
-    function approve(address spender, uint256 amount)
-        external
-        override(IERC20)
-        returns (bool);
+    function approve(address spender, uint256 amount) external override(IERC20) returns (bool);
 
     /**
      * @dev Moves `amount` tokens from `sender` to `recipient` using the
@@ -168,9 +150,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * @custom:requirements
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(address spender, uint256 addedValue)
-        external
-        returns (bool);
+    function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
 
     /**
      * @dev Atomically decreases the allowance granted to `spender` by the caller.
@@ -185,9 +165,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(address spender, uint256 subtractedValue)
-        external
-        returns (bool);
+    function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool);
 
     /**************************************************************************
      * ERC777
@@ -235,9 +213,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * @custom:requirements
      * - the caller must have at least `amount` tokens.
      */
-    function burn(uint256 amount, bytes calldata data)
-        external
-        override(IERC777);
+    function burn(uint256 amount, bytes calldata data) external override(IERC777);
 
     /**
      * @dev Returns true if an account is an operator of `tokenHolder`.
@@ -284,11 +260,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * This list is immutable, but individual holders may revoke these via
      * {revokeOperator}, in which case {isOperatorFor} will return false.
      */
-    function defaultOperators()
-        external
-        view
-        override(IERC777)
-        returns (address[] memory);
+    function defaultOperators() external view override(IERC777) returns (address[] memory);
 
     /**
      * @dev Moves `amount` tokens from `sender` to `recipient`. The caller must

@@ -5,9 +5,7 @@ import {
     ISuperToken,
     CustomSuperTokenBase
 } from "../interfaces/superfluid/CustomSuperTokenBase.sol";
-import {
-    IPureSuperTokenCustom
-} from "../interfaces/tokens/IPureSuperToken.sol";
+import { IPureSuperTokenCustom } from "../interfaces/tokens/IPureSuperToken.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -16,11 +14,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * @author Superfluid
  * @dev This is a simple implementation where the supply is pre-minted.
  */
-contract PureSuperToken is
-    IPureSuperTokenCustom,
-    CustomSuperTokenBase,
-    UUPSProxy
-{
+contract PureSuperToken is IPureSuperTokenCustom, CustomSuperTokenBase, UUPSProxy {
     function initialize(
         string calldata name,
         string calldata symbol,
@@ -33,10 +27,6 @@ contract PureSuperToken is
             name,
             symbol
         );
-        ISuperToken(address(this)).selfMint(
-            msg.sender,
-            initialSupply,
-            new bytes(0)
-        );
+        ISuperToken(address(this)).selfMint(msg.sender, initialSupply, new bytes(0));
     }
 }

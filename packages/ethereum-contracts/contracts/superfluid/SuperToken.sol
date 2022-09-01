@@ -16,17 +16,11 @@ import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
 
-import {
-    SafeERC20
-} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {
-    IERC777Recipient
-} from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
-import {
-    IERC777Sender
-} from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
+import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
+import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { SuperfluidErrors } from "../interfaces/superfluid/Definitions.sol";
 
@@ -108,17 +102,12 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return
-            keccak256(
-                "org.superfluid-finance.contracts.SuperToken.implementation"
-            );
+        return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host))
-            revert SuperfluidErrors.ONLY_HOST(
-                SuperfluidErrors.SUPER_TOKEN_ONLY_HOST
-            );
+            revert SuperfluidErrors.ONLY_HOST(SuperfluidErrors.SUPER_TOKEN_ONLY_HOST);
         UUPSProxiable._updateCodeAddress(newAddress);
     }
 
@@ -269,9 +258,7 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
         bytes memory operatorData
     ) internal {
         if (account == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(
-                SuperfluidErrors.SUPER_TOKEN_MINT_TO_ZERO_ADDRESS
-            );
+            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_MINT_TO_ZERO_ADDRESS);
         }
 
         SuperfluidToken._mint(account, amount);
@@ -310,14 +297,7 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
             );
         }
 
-        _callTokensToSend(
-            operator,
-            from,
-            address(0),
-            amount,
-            userData,
-            operatorData
-        );
+        _callTokensToSend(operator, from, address(0), amount, userData, operatorData);
 
         SuperfluidToken._burn(from, amount);
 
@@ -375,12 +355,10 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
         bytes memory userData,
         bytes memory operatorData
     ) private {
-        address implementer = ERC777Helper
-            ._ERC1820_REGISTRY
-            .getInterfaceImplementer(
-                from,
-                ERC777Helper._TOKENS_SENDER_INTERFACE_HASH
-            );
+        address implementer = ERC777Helper._ERC1820_REGISTRY.getInterfaceImplementer(
+            from,
+            ERC777Helper._TOKENS_SENDER_INTERFACE_HASH
+        );
         if (implementer != address(0)) {
             IERC777Sender(implementer).tokensToSend(
                 operator,
@@ -413,12 +391,10 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
         bytes memory operatorData,
         bool requireReceptionAck
     ) private {
-        address implementer = ERC777Helper
-            ._ERC1820_REGISTRY
-            .getInterfaceImplementer(
-                to,
-                ERC777Helper._TOKENS_RECIPIENT_INTERFACE_HASH
-            );
+        address implementer = ERC777Helper._ERC1820_REGISTRY.getInterfaceImplementer(
+            to,
+            ERC777Helper._TOKENS_RECIPIENT_INTERFACE_HASH
+        );
         if (implementer != address(0)) {
             IERC777Recipient(implementer).tokensReceived(
                 operator,
@@ -429,8 +405,7 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
                 operatorData
             );
         } else if (requireReceptionAck) {
-            if (to.isContract())
-                revert SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT();
+            if (to.isContract()) revert SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT();
         }
     }
 
@@ -442,39 +417,21 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
         return _totalSupply;
     }
 
-    function balanceOf(address account)
-        public
-        view
-        override
-        returns (uint256 balance)
-    {
+    function balanceOf(address account) public view override returns (uint256 balance) {
         // solhint-disable-next-line not-rely-on-time
         (int256 availableBalance, , , ) = super.realtimeBalanceOfNow(account);
         return availableBalance < 0 ? 0 : uint256(availableBalance);
     }
 
-    function transfer(address recipient, uint256 amount)
-        public
-        override
-        returns (bool)
-    {
+    function transfer(address recipient, uint256 amount) public override returns (bool) {
         return _transferFrom(msg.sender, msg.sender, recipient, amount);
     }
 
-    function allowance(address account, address spender)
-        public
-        view
-        override
-        returns (uint256)
-    {
+    function allowance(address account, address spender) public view override returns (uint256) {
         return _allowances[account][spender];
     }
 
-    function approve(address spender, uint256 amount)
-        public
-        override
-        returns (bool)
-    {
+    function approve(address spender, uint256 amount) public override returns (bool) {
         _approve(msg.sender, spender, amount);
         return true;
     }
@@ -487,16 +444,8 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
         return _transferFrom(msg.sender, holder, recipient, amount);
     }
 
-    function increaseAllowance(address spender, uint256 addedValue)
-        public
-        override
-        returns (bool)
-    {
-        _approve(
-            msg.sender,
-            spender,
-            _allowances[msg.sender][spender] + addedValue
-        );
+    function increaseAllowance(address spender, uint256 addedValue) public override returns (bool) {
+        _approve(msg.sender, spender, _allowances[msg.sender][spender] + addedValue);
         return true;
     }
 
@@ -557,12 +506,7 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
         emit RevokedOperator(operator, holder);
     }
 
-    function defaultOperators()
-        external
-        view
-        override
-        returns (address[] memory)
-    {
+    function defaultOperators() external view override returns (address[] memory) {
         return ERC777Helper.defaultOperators(_operators);
     }
 
@@ -683,20 +627,12 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
         bytes memory userData,
         bytes memory operatorData
     ) private {
-        if (address(_underlyingToken) == address(0))
-            revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
+        if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
 
-        (
-            uint256 underlyingAmount,
-            uint256 adjustedAmount
-        ) = _toUnderlyingAmount(amount);
+        (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
 
         uint256 amountBefore = _underlyingToken.balanceOf(address(this));
-        _underlyingToken.safeTransferFrom(
-            account,
-            address(this),
-            underlyingAmount
-        );
+        _underlyingToken.safeTransferFrom(account, address(this), underlyingAmount);
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
         uint256 actualUpgradedAmount = amountAfter - amountBefore;
         if (underlyingAmount != actualUpgradedAmount)
@@ -722,13 +658,9 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
         bytes memory data,
         bytes memory operatorData
     ) private {
-        if (address(_underlyingToken) == address(0))
-            revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
+        if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
 
-        (
-            uint256 underlyingAmount,
-            uint256 adjustedAmount
-        ) = _toUnderlyingAmount(amount);
+        (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
 
         // _burn will check the (actual) amount availability again
         _burn(operator, account, adjustedAmount, data, operatorData);
@@ -791,19 +723,11 @@ contract SuperToken is UUPSProxiable, SuperfluidToken, ISuperToken {
         _transferFrom(account, spender, recipient, amount);
     }
 
-    function operationUpgrade(address account, uint256 amount)
-        external
-        override
-        onlyHost
-    {
+    function operationUpgrade(address account, uint256 amount) external override onlyHost {
         _upgrade(msg.sender, account, account, amount, "", "");
     }
 
-    function operationDowngrade(address account, uint256 amount)
-        external
-        override
-        onlyHost
-    {
+    function operationDowngrade(address account, uint256 amount) external override onlyHost {
         _downgrade(msg.sender, account, amount, "", "");
     }
 

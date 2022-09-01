@@ -102,10 +102,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return
-            keccak256(
-                "org.superfluid-finance.contracts.Superfluid.implementation"
-            );
+        return keccak256("org.superfluid-finance.contracts.Superfluid.implementation");
     }
 
     function updateCode(address newAddress) external override onlyGovernance {
@@ -128,20 +125,11 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
     // Governance
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    function getGovernance()
-        external
-        view
-        override
-        returns (ISuperfluidGovernance)
-    {
+    function getGovernance() external view override returns (ISuperfluidGovernance) {
         return _gov;
     }
 
-    function replaceGovernance(ISuperfluidGovernance newGov)
-        external
-        override
-        onlyGovernance
-    {
+    function replaceGovernance(ISuperfluidGovernance newGov) external override onlyGovernance {
         emit GovernanceReplaced(_gov, newGov);
         _gov = newGov;
     }
@@ -174,10 +162,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         // register the agreement proxy
         _agreementClasses.push((agreementClass));
         _agreementClassIndices[agreementType] = _agreementClasses.length;
-        emit AgreementClassRegistered(
-            agreementType,
-            address(agreementClassLogic)
-        );
+        emit AgreementClassRegistered(agreementType, address(agreementClassLogic));
     }
 
     function updateAgreementClass(ISuperAgreement agreementClassLogic)
@@ -193,9 +178,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                 SuperfluidErrors.HOST_AGREEMENT_IS_NOT_REGISTERED
             );
         }
-        UUPSProxiable proxiable = UUPSProxiable(
-            address(_agreementClasses[idx - 1])
-        );
+        UUPSProxiable proxiable = UUPSProxiable(address(_agreementClasses[idx - 1]));
         proxiable.updateCode(address(agreementClassLogic));
         emit AgreementClassUpdated(agreementType, address(agreementClassLogic));
     }
@@ -275,10 +258,12 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         return bitmap | (1 << (idx - 1));
     }
 
-    function removeFromAgreementClassesBitmap(
-        uint256 bitmap,
-        bytes32 agreementType
-    ) external view override returns (uint256 newBitmap) {
+    function removeFromAgreementClassesBitmap(uint256 bitmap, bytes32 agreementType)
+        external
+        view
+        override
+        returns (uint256 newBitmap)
+    {
         uint256 idx = _agreementClassIndices[agreementType];
         if (idx == 0) {
             revert SuperfluidErrors.DOES_NOT_EXIST(
@@ -292,21 +277,11 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
     // Super Token Factory
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    function getSuperTokenFactory()
-        external
-        view
-        override
-        returns (ISuperTokenFactory factory)
-    {
+    function getSuperTokenFactory() external view override returns (ISuperTokenFactory factory) {
         return _superTokenFactory;
     }
 
-    function getSuperTokenFactoryLogic()
-        external
-        view
-        override
-        returns (address logic)
-    {
+    function getSuperTokenFactoryLogic() external view override returns (address logic) {
         assert(address(_superTokenFactory) != address(0));
         if (NON_UPGRADABLE_DEPLOYMENT) return address(_superTokenFactory);
         else return UUPSProxiable(address(_superTokenFactory)).getCodeAddress();
@@ -329,18 +304,12 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
             _superTokenFactory.initialize();
         } else {
             if (NON_UPGRADABLE_DEPLOYMENT) revert HOST_NON_UPGRADEABLE();
-            UUPSProxiable(address(_superTokenFactory)).updateCode(
-                address(newFactory)
-            );
+            UUPSProxiable(address(_superTokenFactory)).updateCode(address(newFactory));
         }
         emit SuperTokenFactoryUpdated(_superTokenFactory);
     }
 
-    function updateSuperTokenLogic(ISuperToken token)
-        external
-        override
-        onlyGovernance
-    {
+    function updateSuperTokenLogic(ISuperToken token) external override onlyGovernance {
         address code = address(_superTokenFactory.getSuperTokenLogic());
         // assuming it's uups proxiable
         UUPSProxiable(address(token)).updateCode(code);
@@ -359,17 +328,16 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 
-    function registerAppWithKey(
-        uint256 configWord,
-        string calldata registrationKey
-    ) external override {
+    function registerAppWithKey(uint256 configWord, string calldata registrationKey)
+        external
+        override
+    {
         if (APP_WHITE_LISTING_ENABLED) {
-            bytes32 configKey = SuperfluidGovernanceConfigs
-                .getAppRegistrationConfigKey(
-                    // solhint-disable-next-line avoid-tx-origin
-                    tx.origin,
-                    registrationKey
-                );
+            bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
+                // solhint-disable-next-line avoid-tx-origin
+                tx.origin,
+                registrationKey
+            );
             // check if the key is valid and not expired
             if (
                 _gov.getConfigAsUint256(
@@ -383,10 +351,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 
-    function registerAppByFactory(ISuperApp app, uint256 configWord)
-        external
-        override
-    {
+    function registerAppByFactory(ISuperApp app, uint256 configWord) external override {
         // msg sender must be a contract
         {
             uint256 cs;
@@ -395,23 +360,19 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                 cs := extcodesize(caller())
             }
             if (cs == 0)
-                revert SuperfluidErrors.MUST_BE_CONTRACT(
-                    SuperfluidErrors.HOST_MUST_BE_CONTRACT
-                );
+                revert SuperfluidErrors.MUST_BE_CONTRACT(SuperfluidErrors.HOST_MUST_BE_CONTRACT);
         }
 
         if (APP_WHITE_LISTING_ENABLED) {
             // check if msg sender is authorized to register
-            bytes32 configKey = SuperfluidGovernanceConfigs
-                .getAppFactoryConfigKey(msg.sender);
+            bytes32 configKey = SuperfluidGovernanceConfigs.getAppFactoryConfigKey(msg.sender);
             bool isAuthorizedAppFactory = _gov.getConfigAsUint256(
                 this,
                 ISuperfluidToken(address(0)),
                 configKey
             ) == 1;
 
-            if (!isAuthorizedAppFactory)
-                revert HOST_UNAUTHORIZED_SUPER_APP_FACTORY();
+            if (!isAuthorizedAppFactory) revert HOST_UNAUTHORIZED_SUPER_APP_FACTORY();
         }
         _registerApp(configWord, app, false);
     }
@@ -423,9 +384,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
     ) private {
         // solhint-disable-next-line avoid-tx-origin
         if (msg.sender == tx.origin) {
-            revert SuperfluidErrors.APP_RULE(
-                SuperAppDefinitions.APP_RULE_NO_REGISTRATION_FOR_EOA
-            );
+            revert SuperfluidErrors.APP_RULE(SuperAppDefinitions.APP_RULE_NO_REGISTRATION_FOR_EOA);
         }
 
         if (checkIfInAppConstructor) {
@@ -436,8 +395,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
             }
             if (cs != 0) {
                 revert SuperfluidErrors.APP_RULE(
-                    SuperAppDefinitions
-                        .APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR
+                    SuperAppDefinitions.APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR
                 );
             }
         }
@@ -458,16 +416,8 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         return _appManifests[app].configWord > 0;
     }
 
-    function getAppCallbackLevel(ISuperApp appAddr)
-        public
-        view
-        override
-        returns (uint8)
-    {
-        return
-            SuperAppDefinitions.getAppCallbackLevel(
-                _appManifests[appAddr].configWord
-            );
+    function getAppCallbackLevel(ISuperApp appAddr) public view override returns (uint8) {
+        return SuperAppDefinitions.getAppCallbackLevel(_appManifests[appAddr].configWord);
     }
 
     function getAppManifest(ISuperApp app)
@@ -484,9 +434,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         isSuperApp = (manifest.configWord > 0);
         if (isSuperApp) {
             isJailed = SuperAppDefinitions.isAppJailed(manifest.configWord);
-            noopMask =
-                manifest.configWord &
-                SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
+            noopMask = manifest.configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
         }
     }
 
@@ -522,13 +470,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         bytes calldata callData,
         bool isTermination,
         bytes calldata ctx
-    )
-        external
-        override
-        onlyAgreement
-        assertValidCtx(ctx)
-        returns (bytes memory cbdata)
-    {
+    ) external override onlyAgreement assertValidCtx(ctx) returns (bytes memory cbdata) {
         (bool success, bytes memory returnedData) = _callCallback(
             app,
             true,
@@ -545,10 +487,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                         SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED
                     );
                 } else {
-                    _jailApp(
-                        app,
-                        SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED
-                    );
+                    _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED);
                 }
             }
         }
@@ -559,13 +498,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         bytes calldata callData,
         bool isTermination,
         bytes calldata ctx
-    )
-        external
-        override
-        onlyAgreement
-        assertValidCtx(ctx)
-        returns (bytes memory newCtx)
-    {
+    ) external override onlyAgreement assertValidCtx(ctx) returns (bytes memory newCtx) {
         (bool success, bytes memory returnedData) = _callCallback(
             app,
             false,
@@ -584,10 +517,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                         );
                     } else {
                         newCtx = ctx;
-                        _jailApp(
-                            app,
-                            SuperAppDefinitions.APP_RULE_CTX_IS_READONLY
-                        );
+                        _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
                     }
                 }
             } else {
@@ -597,10 +527,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                     );
                 } else {
                     newCtx = ctx;
-                    _jailApp(
-                        app,
-                        SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED
-                    );
+                    _jailApp(app, SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED);
                 }
             }
         } else {
@@ -614,23 +541,14 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         uint256 appCreditGranted,
         int256 appCreditUsed,
         ISuperfluidToken appCreditToken
-    )
-        external
-        override
-        onlyAgreement
-        assertValidCtx(ctx)
-        returns (bytes memory appCtx)
-    {
+    ) external override onlyAgreement assertValidCtx(ctx) returns (bytes memory appCtx) {
         Context memory context = decodeCtx(ctx);
         // NOTE: we use 1 as a magic number here as we want to do this check once we are in a callback
         // we use 1 instead of MAX_APP_CALLBACK_LEVEL because 1 captures what we are trying to enforce
-        if (
-            isApp(ISuperApp(context.msgSender)) && context.appCallbackLevel >= 1
-        ) {
+        if (isApp(ISuperApp(context.msgSender)) && context.appCallbackLevel >= 1) {
             if (!_compositeApps[ISuperApp(context.msgSender)][app]) {
                 revert SuperfluidErrors.APP_RULE(
-                    SuperAppDefinitions
-                        .APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED
+                    SuperAppDefinitions.APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED
                 );
             }
         }
@@ -671,13 +589,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         bytes calldata ctx,
         ISuperApp app,
         uint256 reason
-    )
-        external
-        override
-        onlyAgreement
-        assertValidCtx(ctx)
-        returns (bytes memory newCtx)
-    {
+    ) external override onlyAgreement assertValidCtx(ctx) returns (bytes memory newCtx) {
         _jailApp(app, reason);
         return ctx;
     }
@@ -691,12 +603,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         ISuperAgreement agreementClass,
         bytes memory callData,
         bytes memory userData
-    )
-        internal
-        cleanCtx
-        isAgreement(agreementClass)
-        returns (bytes memory returnedData)
-    {
+    ) internal cleanCtx isAgreement(agreementClass) returns (bytes memory returnedData) {
         // beware of the endianness
         bytes4 agreementSelector = CallUtils.parseSelector(callData);
 
@@ -765,17 +672,11 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
             })
         );
         bool success;
-        (success, returnedData) = _callExternalWithReplacedCtx(
-            address(app),
-            callData,
-            ctx
-        );
+        (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
         if (success) {
             ctx = abi.decode(returnedData, (bytes));
             if (!_isCtxValid(ctx))
-                revert SuperfluidErrors.APP_RULE(
-                    SuperAppDefinitions.APP_RULE_CTX_IS_READONLY
-                );
+                revert SuperfluidErrors.APP_RULE(SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
         } else {
             CallUtils.revertFromReturnedData(returnedData);
         }
@@ -854,16 +755,15 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         context.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
-        (
-            bool success,
-            bytes memory returnedData
-        ) = _callExternalWithReplacedCtx(address(app), callData, newCtx);
+        (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(
+            address(app),
+            callData,
+            newCtx
+        );
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             if (!_isCtxValid(newCtx))
-                revert SuperfluidErrors.APP_RULE(
-                    SuperAppDefinitions.APP_RULE_CTX_IS_READONLY
-                );
+                revert SuperfluidErrors.APP_RULE(SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
             // back to old msg.sender
             context = decodeCtx(newCtx);
             context.msgSender = oldSender;
@@ -873,21 +773,11 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         }
     }
 
-    function decodeCtx(bytes memory ctx)
-        public
-        pure
-        override
-        returns (Context memory context)
-    {
+    function decodeCtx(bytes memory ctx) public pure override returns (Context memory context) {
         return _decodeCtx(ctx);
     }
 
-    function isCtxValid(bytes calldata ctx)
-        external
-        view
-        override
-        returns (bool)
-    {
+    function isCtxValid(bytes calldata ctx) external view override returns (bool) {
         return _isCtxValid(ctx);
     }
 
@@ -895,9 +785,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
      * Batch call
      **************************************************************************/
 
-    function _batchCall(address msgSender, Operation[] calldata operations)
-        internal
-    {
+    function _batchCall(address msgSender, Operation[] calldata operations) internal {
         for (uint256 i = 0; i < operations.length; ++i) {
             uint32 operationType = operations[i].operationType;
             if (operationType == BatchOperation.OPERATION_TYPE_ERC20_APPROVE) {
@@ -905,15 +793,8 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                     operations[i].data,
                     (address, uint256)
                 );
-                ISuperToken(operations[i].target).operationApprove(
-                    msgSender,
-                    spender,
-                    amount
-                );
-            } else if (
-                operationType ==
-                BatchOperation.OPERATION_TYPE_ERC20_TRANSFER_FROM
-            ) {
+                ISuperToken(operations[i].target).operationApprove(msgSender, spender, amount);
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC20_TRANSFER_FROM) {
                 (address sender, address receiver, uint256 amount) = abi.decode(
                     operations[i].data,
                     (address, address, uint256)
@@ -924,26 +805,17 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                     receiver,
                     amount
                 );
-            } else if (
-                operationType ==
-                BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE
-            ) {
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE) {
                 ISuperToken(operations[i].target).operationUpgrade(
                     msgSender,
                     abi.decode(operations[i].data, (uint256))
                 );
-            } else if (
-                operationType ==
-                BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE
-            ) {
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE) {
                 ISuperToken(operations[i].target).operationDowngrade(
                     msgSender,
                     abi.decode(operations[i].data, (uint256))
                 );
-            } else if (
-                operationType ==
-                BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT
-            ) {
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT) {
                 (bytes memory callData, bytes memory userData) = abi.decode(
                     operations[i].data,
                     (bytes, bytes)
@@ -954,15 +826,8 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                     callData,
                     userData
                 );
-            } else if (
-                operationType ==
-                BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION
-            ) {
-                _callAppAction(
-                    msgSender,
-                    ISuperApp(operations[i].target),
-                    operations[i].data
-                );
+            } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
+                _callAppAction(msgSender, ISuperApp(operations[i].target), operations[i].data);
             } else {
                 revert HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
             }
@@ -975,27 +840,17 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
     }
 
     /// @dev ISuperfluid.forwardBatchCall implementation
-    function forwardBatchCall(Operation[] calldata operations)
-        external
-        override
-    {
+    function forwardBatchCall(Operation[] calldata operations) external override {
         _batchCall(_getTransactionSigner(), operations);
     }
 
     /// @dev BaseRelayRecipient.isTrustedForwarder implementation
-    function isTrustedForwarder(address forwarder)
-        public
-        view
-        override
-        returns (bool)
-    {
+    function isTrustedForwarder(address forwarder) public view override returns (bool) {
         return
             _gov.getConfigAsUint256(
                 this,
                 ISuperfluidToken(address(0)),
-                SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(
-                    forwarder
-                )
+                SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder)
             ) != 0;
     }
 
@@ -1009,23 +864,15 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
      **************************************************************************/
 
     function _jailApp(ISuperApp app, uint256 reason) internal {
-        if (
-            (_appManifests[app].configWord &
-                SuperAppDefinitions.APP_JAIL_BIT) == 0
-        ) {
+        if ((_appManifests[app].configWord & SuperAppDefinitions.APP_JAIL_BIT) == 0) {
             _appManifests[app].configWord |= SuperAppDefinitions.APP_JAIL_BIT;
             emit Jail(app, reason);
         }
     }
 
-    function _updateContext(Context memory context)
-        private
-        returns (bytes memory ctx)
-    {
+    function _updateContext(Context memory context) private returns (bytes memory ctx) {
         if (context.appCallbackLevel > MAX_APP_CALLBACK_LEVEL) {
-            revert SuperfluidErrors.APP_RULE(
-                SuperAppDefinitions.APP_RULE_MAX_APP_LEVEL_REACHED
-            );
+            revert SuperfluidErrors.APP_RULE(SuperAppDefinitions.APP_RULE_MAX_APP_LEVEL_REACHED);
         }
         uint256 callInfo = ContextDefinitions.encodeCallInfo(
             context.appCallbackLevel,
@@ -1042,21 +889,12 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                 context.agreementSelector,
                 context.userData
             ),
-            abi.encode(
-                creditIO,
-                context.appCreditUsed,
-                context.appAddress,
-                context.appCreditToken
-            )
+            abi.encode(creditIO, context.appCreditUsed, context.appAddress, context.appCreditToken)
         );
         _ctxStamp = keccak256(ctx);
     }
 
-    function _decodeCtx(bytes memory ctx)
-        private
-        pure
-        returns (Context memory context)
-    {
+    function _decodeCtx(bytes memory ctx) private pure returns (Context memory context) {
         bytes memory ctx1;
         bytes memory ctx2;
         (ctx1, ctx2) = abi.decode(ctx, (bytes, bytes));
@@ -1069,17 +907,14 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                 context.agreementSelector,
                 context.userData
             ) = abi.decode(ctx1, (uint256, uint256, address, bytes4, bytes));
-            (context.appCallbackLevel, context.callType) = ContextDefinitions
-                .decodeCallInfo(callInfo);
+            (context.appCallbackLevel, context.callType) = ContextDefinitions.decodeCallInfo(
+                callInfo
+            );
         }
         {
             uint256 creditIO;
-            (
-                creditIO,
-                context.appCreditUsed,
-                context.appAddress,
-                context.appCreditToken
-            ) = abi.decode(ctx2, (uint256, int256, address, ISuperfluidToken));
+            (creditIO, context.appCreditUsed, context.appAddress, context.appCreditToken) = abi
+                .decode(ctx2, (uint256, int256, address, ISuperfluidToken));
             context.appCreditGranted = creditIO & type(uint128).max;
             context.appCreditWantedDeprecated = creditIO >> 128;
         }
@@ -1109,9 +944,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
 
         if (success) {
             if (returnedData.length == 0) {
-                revert SuperfluidErrors.APP_RULE(
-                    SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED
-                );
+                revert SuperfluidErrors.APP_RULE(SuperAppDefinitions.APP_RULE_CTX_IS_MALFORMATED);
             }
         }
     }
@@ -1130,14 +963,10 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
         uint256 gasLeftBefore = gasleft();
         if (isStaticall) {
             /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).staticcall{
-                gas: CALLBACK_GAS_LIMIT
-            }(callData);
+            (success, returnedData) = address(app).staticcall{ gas: CALLBACK_GAS_LIMIT }(callData);
         } else {
             /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).call{
-                gas: CALLBACK_GAS_LIMIT
-            }(callData);
+            (success, returnedData) = address(app).call{ gas: CALLBACK_GAS_LIMIT }(callData);
         }
 
         if (!success) {
@@ -1148,11 +977,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
                 if (!isTermination) {
                     CallUtils.revertFromReturnedData(returnedData);
                 } else {
-                    _jailApp(
-                        app,
-                        SuperAppDefinitions
-                            .APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
-                    );
+                    _jailApp(app, SuperAppDefinitions.APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK);
                 }
             } else {
                 // For legit out of gas issue, the call may still fail if more gas is provided
@@ -1187,8 +1012,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
             assembly {
                 placeHolderCtxLength := mload(add(data, dataLen))
             }
-            if (placeHolderCtxLength != 0)
-                revert HOST_NON_ZERO_LENGTH_PLACEHOLDER_CTX();
+            if (placeHolderCtxLength != 0) revert HOST_NON_ZERO_LENGTH_PLACEHOLDER_CTX();
         }
 
         // 1.b remove the placeholder ctx
@@ -1214,9 +1038,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
 
     modifier requireValidCtx(bytes memory ctx) {
         if (!_isCtxValid(ctx))
-            revert SuperfluidErrors.APP_RULE(
-                SuperAppDefinitions.APP_RULE_CTX_IS_READONLY
-            );
+            revert SuperfluidErrors.APP_RULE(SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
         _;
     }
 
@@ -1227,9 +1049,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
 
     modifier cleanCtx() {
         if (_ctxStamp != 0)
-            revert SuperfluidErrors.APP_RULE(
-                SuperAppDefinitions.APP_RULE_CTX_IS_NOT_CLEAN
-            );
+            revert SuperfluidErrors.APP_RULE(SuperAppDefinitions.APP_RULE_CTX_IS_NOT_CLEAN);
         _;
     }
 
@@ -1259,8 +1079,7 @@ contract Superfluid is UUPSProxiable, ISuperfluid, BaseRelayRecipient {
     modifier isAppActive(ISuperApp app) {
         uint256 configWord = _appManifests[app].configWord;
         if (configWord == 0) revert HOST_NOT_A_SUPER_APP();
-        if (SuperAppDefinitions.isAppJailed(configWord))
-            revert HOST_SUPER_APP_IS_JAILED();
+        if (SuperAppDefinitions.isAppJailed(configWord)) revert HOST_SUPER_APP_IS_JAILED();
         _;
     }
 

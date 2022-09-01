@@ -31,19 +31,13 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             slot := _agreementClassIndices.slot
             offset := _agreementClassIndices.offset
         }
-        require(
-            slot == 2 && offset == 0,
-            "_agreementClassIndices changed location"
-        );
+        require(slot == 2 && offset == 0, "_agreementClassIndices changed location");
 
         assembly {
             slot := _superTokenFactory.slot
             offset := _superTokenFactory.offset
         }
-        require(
-            slot == 3 && offset == 0,
-            "_superTokenFactory changed location"
-        );
+        require(slot == 3 && offset == 0, "_superTokenFactory changed location");
 
         assembly {
             slot := _appManifests.slot
@@ -67,10 +61,7 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             slot := _appKeysUsedDeprecated.slot
             offset := _appKeysUsedDeprecated.offset
         }
-        require(
-            slot == 7 && offset == 0,
-            "_appKeysUsedDeprecated changed location"
-        );
+        require(slot == 7 && offset == 0, "_appKeysUsedDeprecated changed location");
     }
 
     // @dev Make sure the context struct layout never change over the course of the development
@@ -81,10 +72,7 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             assembly {
                 mstore(add(context, mul(32, 0)), 42)
             }
-            require(
-                context.appCallbackLevel == 42,
-                "appLevel changed location"
-            );
+            require(context.appCallbackLevel == 42, "appLevel changed location");
         }
         // context.callType
         {
@@ -108,10 +96,7 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             assembly {
                 mstore(add(context, mul(32, 3)), 42)
             }
-            require(
-                context.msgSender == address(42),
-                "msgSender changed location"
-            );
+            require(context.msgSender == address(42), "msgSender changed location");
         }
         // context.agreementSelector
         {
@@ -146,10 +131,7 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             assembly {
                 mstore(add(context, mul(32, 6)), 42)
             }
-            require(
-                context.appCreditGranted == 42,
-                "appCreditGranted changed location"
-            );
+            require(context.appCreditGranted == 42, "appCreditGranted changed location");
         }
         // context.appCreditWantedDeprecated
         {
@@ -168,10 +150,7 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             assembly {
                 mstore(add(context, mul(32, 8)), 42)
             }
-            require(
-                context.appCreditUsed == 42,
-                "appCreditUsed changed location"
-            );
+            require(context.appCreditUsed == 42, "appCreditUsed changed location");
         }
         // context.appAddress
         {
@@ -179,10 +158,7 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             assembly {
                 mstore(add(context, mul(32, 9)), 42)
             }
-            require(
-                context.appAddress == address(42),
-                "appAddress changed location"
-            );
+            require(context.appAddress == address(42), "appAddress changed location");
         }
         // context.appCreditToken
         {
@@ -206,11 +182,7 @@ contract SuperfluidMock is Superfluid {
 
     }
 
-    function ctxFunc1(uint256 n, bytes calldata ctx)
-        external
-        pure
-        returns (uint256, bytes memory)
-    {
+    function ctxFunc1(uint256 n, bytes calldata ctx) external pure returns (uint256, bytes memory) {
         return (n, ctx);
     }
 
@@ -234,20 +206,14 @@ contract SuperfluidMock is Superfluid {
             bytes memory
         )
     {
-        return (
-            superToken,
-            agreementClass,
-            agreementId,
-            agreementData,
-            cbdata,
-            ctx
-        );
+        return (superToken, agreementClass, agreementId, agreementData, cbdata, ctx);
     }
 
-    function testCtxFuncX(
-        bytes calldata dataWithPlaceHolderCtx,
-        bytes calldata ctx
-    ) external view returns (bytes memory returnedData) {
+    function testCtxFuncX(bytes calldata dataWithPlaceHolderCtx, bytes calldata ctx)
+        external
+        view
+        returns (bytes memory returnedData)
+    {
         bytes memory data = _replacePlaceholderCtx(dataWithPlaceHolderCtx, ctx);
         bool success;
         (success, returnedData) = address(this).staticcall(data);

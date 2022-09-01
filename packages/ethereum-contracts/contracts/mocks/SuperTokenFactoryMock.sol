@@ -2,10 +2,7 @@
 pragma solidity 0.8.14;
 
 import { SuperTokenMock } from "./SuperTokenMock.sol";
-import {
-    SuperTokenFactoryBase,
-    ISuperfluid
-} from "../superfluid/SuperTokenFactory.sol";
+import { SuperTokenFactoryBase, ISuperfluid } from "../superfluid/SuperTokenFactory.sol";
 
 contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
     constructor(ISuperfluid host)
@@ -27,22 +24,14 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
     }
 
     // dummy impl
-    function createSuperTokenLogic(ISuperfluid)
-        external
-        pure
-        override
-        returns (address)
-    {
+    function createSuperTokenLogic(ISuperfluid) external pure override returns (address) {
         return address(0);
     }
 }
 
 // spliting this off because the contract is getting bigger
 contract SuperTokenFactoryMockHelper {
-    function create(ISuperfluid host, uint256 waterMark)
-        external
-        returns (address logic)
-    {
+    function create(ISuperfluid host, uint256 waterMark) external returns (address logic) {
         SuperTokenMock superToken = new SuperTokenMock(host, waterMark);
         return address(superToken);
     }
@@ -51,17 +40,11 @@ contract SuperTokenFactoryMockHelper {
 contract SuperTokenFactoryMock is SuperTokenFactoryBase {
     SuperTokenFactoryMockHelper private immutable _helper;
 
-    constructor(ISuperfluid host, SuperTokenFactoryMockHelper helper)
-        SuperTokenFactoryBase(host)
-    {
+    constructor(ISuperfluid host, SuperTokenFactoryMockHelper helper) SuperTokenFactoryBase(host) {
         _helper = helper;
     }
 
-    function createSuperTokenLogic(ISuperfluid host)
-        external
-        override
-        returns (address logic)
-    {
+    function createSuperTokenLogic(ISuperfluid host) external override returns (address logic) {
         return _helper.create(host, 0);
     }
 }
@@ -69,17 +52,11 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase {
 contract SuperTokenFactoryMock42 is SuperTokenFactoryBase {
     SuperTokenFactoryMockHelper private immutable _helper;
 
-    constructor(ISuperfluid host, SuperTokenFactoryMockHelper helper)
-        SuperTokenFactoryBase(host)
-    {
+    constructor(ISuperfluid host, SuperTokenFactoryMockHelper helper) SuperTokenFactoryBase(host) {
         _helper = helper;
     }
 
-    function createSuperTokenLogic(ISuperfluid host)
-        external
-        override
-        returns (address logic)
-    {
+    function createSuperTokenLogic(ISuperfluid host) external override returns (address logic) {
         return _helper.create(host, 42);
     }
 }

@@ -20,20 +20,12 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenBase, UUPSProxy {
 
     // fallback function which mints Super Tokens for received ETH
     receive() external payable override {
-        ISuperToken(address(this)).selfMint(
-            msg.sender,
-            msg.value,
-            new bytes(0)
-        );
+        ISuperToken(address(this)).selfMint(msg.sender, msg.value, new bytes(0));
         emit TokenUpgraded(msg.sender, msg.value);
     }
 
     function upgradeByETH() external payable override {
-        ISuperToken(address(this)).selfMint(
-            msg.sender,
-            msg.value,
-            new bytes(0)
-        );
+        ISuperToken(address(this)).selfMint(msg.sender, msg.value, new bytes(0));
         emit TokenUpgraded(msg.sender, msg.value);
     }
 

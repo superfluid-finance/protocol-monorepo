@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.14;
 
-import {
-    ISuperfluid,
-    ISuperfluidToken
-} from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperfluid, ISuperfluidToken } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperfluidGovernanceBase } from "../gov/SuperfluidGovernanceBase.sol";
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -32,19 +29,10 @@ contract TestGovernance is Ownable, SuperfluidGovernanceBase {
 
         setRewardAddress(_host, ISuperfluidToken(address(0)), rewardAddress);
 
-        setPPPConfig(
-            host,
-            ISuperfluidToken(address(0)),
-            liquidationPeriod,
-            patricianPeriod
-        );
+        setPPPConfig(host, ISuperfluidToken(address(0)), liquidationPeriod, patricianPeriod);
 
         for (uint256 i = 0; i < trustedForwarders.length; ++i) {
-            enableTrustedForwarder(
-                _host,
-                ISuperfluidToken(address(0)),
-                trustedForwarders[i]
-            );
+            enableTrustedForwarder(_host, ISuperfluidToken(address(0)), trustedForwarders[i]);
         }
     }
 

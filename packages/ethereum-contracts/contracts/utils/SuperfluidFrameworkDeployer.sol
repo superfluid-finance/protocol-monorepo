@@ -9,12 +9,8 @@ import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 import { Superfluid } from "../superfluid/Superfluid.sol";
 import { TestGovernance } from "./TestGovernance.sol";
-import {
-    ConstantFlowAgreementV1
-} from "../agreements/ConstantFlowAgreementV1.sol";
-import {
-    InstantDistributionAgreementV1
-} from "../agreements/InstantDistributionAgreementV1.sol";
+import { ConstantFlowAgreementV1 } from "../agreements/ConstantFlowAgreementV1.sol";
+import { InstantDistributionAgreementV1 } from "../agreements/InstantDistributionAgreementV1.sol";
 import {
     ISuperTokenFactory,
     SuperTokenFactory,
@@ -73,13 +69,7 @@ contract SuperfluidFrameworkDeployer {
 
         // Initialize Governance
         address[] memory trustedForwarders = new address[](0);
-        governance.initialize(
-            host,
-            address(69),
-            4 hours,
-            30 minutes,
-            trustedForwarders
-        );
+        governance.initialize(host, address(69), 4 hours, 30 minutes, trustedForwarders);
 
         // Deploy ConstantFlowAgreementV1
         cfa = new ConstantFlowAgreementV1(host);
@@ -97,18 +87,10 @@ contract SuperfluidFrameworkDeployer {
         SuperTokenFactoryHelper superTokenFactoryHelper = new SuperTokenFactoryHelper();
 
         // Deploy SuperTokenFactory
-        superTokenFactory = new SuperTokenFactory(
-            host,
-            superTokenFactoryHelper
-        );
+        superTokenFactory = new SuperTokenFactory(host, superTokenFactoryHelper);
 
         // 'Update' code with Governance and register SuperTokenFactory with Superfluid
-        governance.updateContracts(
-            host,
-            address(0),
-            new address[](0),
-            address(superTokenFactory)
-        );
+        governance.updateContracts(host, address(0), new address[](0), address(superTokenFactory));
 
         // Deploy Resolver
         resolver = new Resolver();
@@ -143,10 +125,10 @@ contract SuperfluidFrameworkDeployer {
     }
 
     /// @notice Deploy new wrapper super token
-    function deployWrapperSuperToken(
-        string calldata name,
-        string calldata symbol
-    ) external returns (ERC20PresetMinterPauser token, SuperToken superToken) {
+    function deployWrapperSuperToken(string calldata name, string calldata symbol)
+        external
+        returns (ERC20PresetMinterPauser token, SuperToken superToken)
+    {
         token = new ERC20PresetMinterPauser(name, symbol);
         token.grantRole(token.DEFAULT_ADMIN_ROLE(), msg.sender);
         token.grantRole(token.MINTER_ROLE(), msg.sender);

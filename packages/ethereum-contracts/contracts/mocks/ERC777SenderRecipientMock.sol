@@ -11,12 +11,7 @@ import "@openzeppelin/contracts/utils/introspection/ERC1820Implementer.sol";
 
 import { ISuperToken } from "../superfluid/SuperToken.sol";
 
-contract ERC777SenderRecipientMock is
-    Context,
-    IERC777Sender,
-    IERC777Recipient,
-    ERC1820Implementer
-{
+contract ERC777SenderRecipientMock is Context, IERC777Sender, IERC777Recipient, ERC1820Implementer {
     event TokensToSendCalled(
         address operator,
         address from,
@@ -47,10 +42,8 @@ contract ERC777SenderRecipientMock is
     IERC1820Registry private _erc1820 =
         IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
-    bytes32 private constant _TOKENS_SENDER_INTERFACE_HASH =
-        keccak256("ERC777TokensSender");
-    bytes32 private constant _TOKENS_RECIPIENT_INTERFACE_HASH =
-        keccak256("ERC777TokensRecipient");
+    bytes32 private constant _TOKENS_SENDER_INTERFACE_HASH = keccak256("ERC777TokensSender");
+    bytes32 private constant _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
 
     function tokensToSend(
         address operator,
@@ -124,11 +117,7 @@ contract ERC777SenderRecipientMock is
     }
 
     function registerSender(address sender) public {
-        _erc1820.setInterfaceImplementer(
-            address(this),
-            _TOKENS_SENDER_INTERFACE_HASH,
-            sender
-        );
+        _erc1820.setInterfaceImplementer(address(this), _TOKENS_SENDER_INTERFACE_HASH, sender);
     }
 
     function recipientFor(address account) public {
@@ -190,14 +179,11 @@ contract ERC777SenderRecipientMock is
 }
 
 contract ERC777RecipientReverting is IERC777Recipient, IERC1820Implementer {
-    bytes32 private constant _TOKENS_RECIPIENT_INTERFACE_HASH =
-        keccak256("ERC777TokensRecipient");
+    bytes32 private constant _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
 
     // allow to use the hook for this contract itself
     constructor() {
-        IERC1820Registry erc1820 = IERC1820Registry(
-            0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24
-        );
+        IERC1820Registry erc1820 = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
         erc1820.setInterfaceImplementer(
             address(this),
             keccak256("ERC777TokensRecipient"),
@@ -232,8 +218,7 @@ contract ERC777RecipientReverting is IERC777Recipient, IERC1820Implementer {
  * ERC777Recipient which drains all gas it gets, trying to make the caller run out of gas
  */
 contract ERC777RecipientDrainingGas is IERC777Recipient, IERC1820Implementer {
-    bytes32 private constant _TOKENS_RECIPIENT_INTERFACE_HASH =
-        keccak256("ERC777TokensRecipient");
+    bytes32 private constant _TOKENS_RECIPIENT_INTERFACE_HASH = keccak256("ERC777TokensRecipient");
     uint256 internal _uselessVar = 1;
 
     event DrainedGas(uint256 allowance, uint256 burned);

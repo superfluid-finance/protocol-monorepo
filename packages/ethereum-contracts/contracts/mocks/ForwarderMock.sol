@@ -23,9 +23,8 @@ contract ForwarderMock {
         bool success;
         bytes memory ret;
         require(
-            keccak256(
-                abi.encodePacked(IRelayRecipient(req.to).versionRecipient())
-            ) == keccak256("v1"),
+            keccak256(abi.encodePacked(IRelayRecipient(req.to).versionRecipient())) ==
+                keccak256("v1"),
             "unknown IRelayRecipient.versionRecipient"
         );
         // solhint-disable-next-line avoid-low-level-calls

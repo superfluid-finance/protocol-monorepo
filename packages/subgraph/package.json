@@ -59,7 +59,7 @@
     "devDependencies": {
         "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
         "coingecko-api": "^1.0.10",
-        "graphql": "^16.5.0",
+        "graphql": "^16.6.0",
         "graphql-request": "^4.3.0",
         "lodash": "^4.17.21"
     },

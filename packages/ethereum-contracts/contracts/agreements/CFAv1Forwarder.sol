@@ -376,7 +376,7 @@ contract CFAv1Forwarder {
                 )
             );
 
-        _forwardBatchCall(address(_cfa), cfaCallData, new bytes(0));
+        _forwardBatchCall(address(_cfa), cfaCallData);
     }
 
     // compiles the calldata of a single operation for the host invocation and executes it

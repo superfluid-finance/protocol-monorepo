@@ -11,7 +11,6 @@
         "@reduxjs/toolkit": "^1.7.1",
         "@superfluid-finance/sdk-core": "^0.3.2",
         "@superfluid-finance/sdk-redux": "^0.2.0",
-        "ethers": "^5.5.2",
         "graphql": "^16.0.1",
         "next": "^12.0.7",
         "next-redux-wrapper": "^7.0.2",

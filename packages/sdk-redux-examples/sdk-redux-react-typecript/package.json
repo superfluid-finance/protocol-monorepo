@@ -20,7 +20,6 @@
         "@types/react-dom": "^17.0.11",
         "@types/react-redux": "latest",
         "@walletconnect/web3-provider": "^1.7.8",
-        "ethers": "latest",
         "graphql": "latest",
         "graphql-request": "latest",
         "react": "latest",

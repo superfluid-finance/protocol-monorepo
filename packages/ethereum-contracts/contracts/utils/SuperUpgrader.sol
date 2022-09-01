@@ -98,7 +98,7 @@ contract SuperUpgrader is AccessControlEnumerable {
     function getBackendAgents() external view returns(address[] memory) {
         uint256 numberOfMembers = getRoleMemberCount(BACKEND_ROLE);
         address[] memory members = new address[](numberOfMembers);
-        for(uint256 i = 0; i < numberOfMembers; i++) {
+        for (uint256 i = 0; i < numberOfMembers; ++i) {
             members[i] = getRoleMember(BACKEND_ROLE, i);
         }
         return members;

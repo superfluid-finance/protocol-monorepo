@@ -111,9 +111,9 @@ contract CFALibrarySuperAppMock is SuperAppBase {
     CFAv1Library.InitData internal cfaV1;
 
     // default values for smoke tests
-    uint8 internal immutable permissions = 7;
-    int96 internal immutable flowRate = 1000000000000;
-    int96 internal immutable updatedFlowRate = 2000000000000;
+    uint8 internal constant PERMISSIONS = 7;
+    int96 internal constant FLOW_RATE = 1000000000000;
+    int96 internal constant UPDATED_FLOW_RATE = 2000000000000;
     address internal immutable sender;
     address internal immutable receiver;
     address internal immutable flowOperator;
@@ -165,7 +165,7 @@ contract CFALibrarySuperAppMock is SuperAppBase {
     }
 
     function createFlow(ISuperToken token) external {
-        cfaV1.createFlow(receiver, token, flowRate);
+        cfaV1.createFlow(receiver, token, FLOW_RATE);
     }
 
     // literally ONLY for the revokeFlowOperatorWithFullControlWithCtx test.
@@ -185,15 +185,15 @@ contract CFALibrarySuperAppMock is SuperAppBase {
         (uint8 functionIndex) = abi.decode(userData, (uint8));
 
         if (functionIndex == uint8(FunctionIndex.CREATE_FLOW))
-            return cfaV1.createFlowWithCtx(ctx, receiver, token, flowRate);
+            return cfaV1.createFlowWithCtx(ctx, receiver, token, FLOW_RATE);
         else if (functionIndex == uint8(FunctionIndex.UPDATE_FLOW))
-            return cfaV1.updateFlowWithCtx(ctx, receiver, token, updatedFlowRate);
+            return cfaV1.updateFlowWithCtx(ctx, receiver, token, UPDATED_FLOW_RATE);
         else if (functionIndex == uint8(FunctionIndex.DELETE_FLOW))
             return cfaV1.deleteFlowWithCtx(ctx, address(this), receiver, token);
         else if (functionIndex == uint8(FunctionIndex.CREATE_FLOW_BY_OPERATOR))
-            return cfaV1.createFlowByOperatorWithCtx(ctx, sender, receiver, token, flowRate);
+            return cfaV1.createFlowByOperatorWithCtx(ctx, sender, receiver, token, FLOW_RATE);
         else if (functionIndex == uint8(FunctionIndex.UPDATE_FLOW_BY_OPERATOR))
-            return cfaV1.updateFlowByOperatorWithCtx(ctx, sender, receiver, token, updatedFlowRate);
+            return cfaV1.updateFlowByOperatorWithCtx(ctx, sender, receiver, token, UPDATED_FLOW_RATE);
         else if (functionIndex == uint8(FunctionIndex.DELETE_FLOW_BY_OPERATOR))
             return cfaV1.deleteFlowByOperatorWithCtx(ctx, sender, receiver, token);
         else if (functionIndex == uint8(FunctionIndex.UPDATE_FLOW_OPERATOR_PERMISSIONS))
@@ -201,8 +201,8 @@ contract CFALibrarySuperAppMock is SuperAppBase {
                 ctx,
                 flowOperator,
                 token,
-                permissions,
-                flowRate
+                PERMISSIONS,
+                FLOW_RATE
             );
         else if (functionIndex == uint8(FunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL))
             return cfaV1.authorizeFlowOperatorWithFullControlWithCtx(ctx, flowOperator, token);

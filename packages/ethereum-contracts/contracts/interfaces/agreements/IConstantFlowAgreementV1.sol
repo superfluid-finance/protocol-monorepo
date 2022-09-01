@@ -72,7 +72,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     function isPatricianPeriodNow(
         ISuperfluidToken token,
         address account)
-        public view virtual
+        external view virtual
         returns (bool isCurrentlyPatricianPeriod, uint256 timestamp);
 
     /**

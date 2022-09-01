@@ -26,7 +26,7 @@ contract TestGovernance is
         address rewardAddress,
         uint256 liquidationPeriod,
         uint256 patricianPeriod,
-        address[] memory trustedForwarders
+        address[] calldata trustedForwarders
     )
         external
     {

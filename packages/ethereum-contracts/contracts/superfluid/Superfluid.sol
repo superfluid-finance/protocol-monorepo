@@ -214,8 +214,9 @@ contract Superfluid is
         // create memory output using the counted size
         agreementClasses = new ISuperAgreement[](_agreementClasses.length);
         // add to the output
-        for (i; i < _agreementClasses.length; ++i) {
-            if ((bitmap & (1 << i)) != 0) {
+        n = 0;
+        for (i = 0; i < _agreementClasses.length; ++i) {
+            if ((bitmap & (1 << i)) > 0) {
                 agreementClasses[n++] = _agreementClasses[i];
             }
         }
@@ -388,7 +389,7 @@ contract Superfluid is
     }
 
     function isApp(ISuperApp app) public view override returns(bool) {
-        return _appManifests[app].configWord != 0;
+        return _appManifests[app].configWord > 0;
     }
 
     function getAppCallbackLevel(ISuperApp appAddr) public override view returns(uint8) {
@@ -406,7 +407,7 @@ contract Superfluid is
         )
     {
         AppManifest memory manifest = _appManifests[app];
-        isSuperApp = (manifest.configWord != 0);
+        isSuperApp = (manifest.configWord > 0);
         if (isSuperApp) {
             isJailed = SuperAppDefinitions.isAppJailed(manifest.configWord);
             noopMask = manifest.configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
@@ -775,7 +776,7 @@ contract Superfluid is
     )
        internal
     {
-        for (uint256 i; i < operations.length; ++i) {
+        for (uint256 i = 0; i < operations.length; ++i) {
             uint32 operationType = operations[i].operationType;
             if (operationType == BatchOperation.OPERATION_TYPE_ERC20_APPROVE) {
                 (address spender, uint256 amount) =

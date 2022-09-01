@@ -10,7 +10,7 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
     constructor () FoundrySuperfluidTester(3) { }
 
     function testAlice2Bob(uint32 a) public {
-        vm.assume(a != 0);
+        vm.assume(a > 0);
         vm.assume(a <= uint32(type(int32).max));
         int96 flowRate = int96(int32(a));
 
@@ -25,7 +25,7 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
     }
 
     function testBobAliceLoop(uint32 a) public {
-        vm.assume(a != 0);
+        vm.assume(a > 0);
         vm.assume(a <= uint32(type(int32).max));
         int96 flowRate = int96(int32(a));
 

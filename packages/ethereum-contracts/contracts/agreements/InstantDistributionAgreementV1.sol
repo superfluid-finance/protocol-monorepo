@@ -89,7 +89,7 @@ contract InstantDistributionAgreementV1 is
         uint32[] memory slotIds;
         bytes32[] memory sidList;
         (slotIds, sidList) = _listSubscriptionIds(token, account);
-        for (uint32 i; i < sidList.length; ++i) {
+        for (uint32 i = 0; i < sidList.length; ++i) {
             bool exist;
             SubscriptionData memory sdata;
             bytes32 iId;
@@ -232,7 +232,7 @@ contract InstantDistributionAgreementV1 is
         (bytes32 iId, IndexData memory idata) = _loadIndexData(token, publisher, indexId);
         uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
 
-        if (totalUnits != 0) {
+        if (totalUnits > 0) {
             uint128 indexDelta = (amount / totalUnits).toUint128();
             _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta, context.userData);
         }
@@ -680,7 +680,7 @@ contract InstantDistributionAgreementV1 is
         publishers = new address[](sidList.length);
         indexIds = new uint32[](sidList.length);
         unitsList = new uint128[](sidList.length);
-        for (uint32 i; i < sidList.length; ++i) {
+        for (uint32 i = 0; i < sidList.length; ++i) {
             uint32 subId = slotIds[i];
             bytes32 sId = sidList[i];
             (exist, sdata) = _getSubscriptionData(token, sId);
@@ -818,7 +818,7 @@ contract InstantDistributionAgreementV1 is
             "");
         newCtx = ctx;
 
-        if (pendingDistribution != 0) {
+        if (pendingDistribution > 0) {
             cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
 
@@ -932,7 +932,7 @@ contract InstantDistributionAgreementV1 is
     {
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
         uint256 a = uint256(adata[0]);
-        exist = a != 0;
+        exist = a > 0;
     }
 
     function _getIndexData(
@@ -945,7 +945,7 @@ contract InstantDistributionAgreementV1 is
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
         uint256 a = uint256(adata[0]);
         uint256 b = uint256(adata[1]);
-        exist = a != 0;
+        exist = a > 0;
         if (exist) {
             // NOTE We will do an unsafe downcast from uint256 => uint128
             // as we know this is safe
@@ -1033,7 +1033,7 @@ contract InstantDistributionAgreementV1 is
         bytes32[] memory adata = token.getAgreementData(address(this), sId, 2);
         uint256 a = uint256(adata[0]);
         uint256 b = uint256(adata[1]);
-        exist = a != 0;
+        exist = a > 0;
         if (exist) {
             sdata.publisher = address(uint160(a >> (12*8)));
             sdata.indexId = uint32((a >> 32) & type(uint32).max);
@@ -1107,7 +1107,7 @@ contract InstantDistributionAgreementV1 is
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
             _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START);
         // map data to subId
-        for (uint i; i < sidList.length; ++i) {
+        for (uint i = 0; i < sidList.length; ++i) {
             sidList[i] = _getSubscriptionId(subscriber, sidList[i]);
         }
     }

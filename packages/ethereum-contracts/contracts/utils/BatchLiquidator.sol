@@ -27,7 +27,7 @@ contract BatchLiquidator {
     ) external {
         require(senders.length == receivers.length, "arrays different sizes");
 
-        for (uint i; i < senders.length; ++i) {
+        for (uint i = 0; i < senders.length; ++i) {
             bool success;
             // We tolerate any errors occured during liquidations.
             // It could be due to flow had been liquidated by others.
@@ -57,7 +57,7 @@ contract BatchLiquidator {
         // locked in the contract
         {
             uint256 balance = ERC20(superToken).balanceOf(address(this));
-            if (balance != 0) {
+            if (balance > 0) {
                 ERC20(superToken).transferFrom(address(this), msg.sender, balance);
             }
         }

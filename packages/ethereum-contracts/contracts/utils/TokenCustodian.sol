@@ -25,7 +25,7 @@ contract TokenCustodian is IERC777Recipient {
     // transfers tokens it has in custody for the given recipient to it
     function flush(IERC777 token, address recipient) public {
         uint256 amount = balances[token][recipient];
-        if (amount != 0) {
+        if (amount > 0) {
             balances[token][recipient] = 0;
             // solhint-disable-next-line check-send-result
             token.send(recipient, amount, "0x0");

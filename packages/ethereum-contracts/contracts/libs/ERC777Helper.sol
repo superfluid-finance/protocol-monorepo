@@ -70,7 +70,7 @@ library ERC777Helper {
         // According to 777 spec: default operators should only be setup once
         assert(self.defaultOperatorsArray.length == 0);
         self.defaultOperatorsArray = operators;
-        for (uint i; i < operators.length; ++i) {
+        for (uint i = 0; i < operators.length; ++i) {
             self.defaultOperators[operators[i]] = true;
         }
     }

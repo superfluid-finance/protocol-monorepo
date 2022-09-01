@@ -40,7 +40,7 @@ contract TestGovernance is
 
         setPPPConfig(host, ISuperfluidToken(address(0)), liquidationPeriod, patricianPeriod);
 
-        for (uint i; i < trustedForwarders.length; ++i) {
+        for (uint i = 0; i < trustedForwarders.length; ++i) {
             enableTrustedForwarder(_host, ISuperfluidToken(address(0)), trustedForwarders[i]);
         }
     }

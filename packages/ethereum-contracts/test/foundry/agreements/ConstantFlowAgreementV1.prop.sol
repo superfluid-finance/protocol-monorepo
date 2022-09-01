@@ -75,7 +75,7 @@ contract ConstantFlowAgreementV1Properties is Test {
         public
     {
         depositAllowed = uint96(bound(uint256(depositAllowed), cfa.DEFAULT_MINIMUM_DEPOSIT(), cfa.MAXIMUM_DEPOSIT()));
-        vm.assume(liquidationPeriod != 0);
+        vm.assume(liquidationPeriod > 0);
 
         int96 flowRate = cfa.getMaximumFlowRateFromDepositPure(liquidationPeriod, depositAllowed);
         assert(flowRate > 0);
@@ -92,7 +92,7 @@ contract ConstantFlowAgreementV1Properties is Test {
         public
     {
         minimumDeposit = uint32(bound(uint256(minimumDeposit), cfa.DEFAULT_MINIMUM_DEPOSIT(), type(uint64).max));
-        vm.assume(liquidationPeriod != 0);
+        vm.assume(liquidationPeriod > 0);
         vm.assume(flowRate > 0);
         vm.assume(uint256(liquidationPeriod) * uint256(uint96(flowRate)) <= cfa.MAXIMUM_FLOW_RATE());
 

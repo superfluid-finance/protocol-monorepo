@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import {
     ISuperfluid,
@@ -439,11 +439,11 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             deployer,
             registrationKey
         );
-        uint256 expirationTs = getConfigAsUint256(host, ISuperfluidToken(address(0)), configKey);
+        uint256 expirationTS = getConfigAsUint256(host, ISuperfluidToken(address(0)), configKey);
         return (
             // solhint-disable-next-line not-rely-on-time
-            expirationTs >= block.timestamp,
-            expirationTs
+            expirationTS >= block.timestamp,
+            expirationTS
         );
     }
 

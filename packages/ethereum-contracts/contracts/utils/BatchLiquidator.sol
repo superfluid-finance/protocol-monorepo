@@ -57,7 +57,7 @@ contract BatchLiquidator {
         // locked in the contract
         {
             uint256 balance = ERC20(superToken).balanceOf(address(this));
-            if(balance > 0) {
+            if (balance > 0) {
                 ERC20(superToken).transferFrom(address(this), msg.sender, balance);
             }
         }

@@ -546,7 +546,7 @@ interface ISuperfluid {
         // isAppActive(app)
         returns (bytes memory newCtx);
 
-    function decodeCtx(bytes calldata ctx)
+    function decodeCtx(bytes memory ctx)
         external pure
         returns (Context memory context);
 
@@ -571,13 +571,13 @@ interface ISuperfluid {
      * @dev Batch call function
      * @param operations Array of batch operations
      */
-    function batchCall(Operation[] memory operations) external;
+    function batchCall(Operation[] calldata operations) external;
 
     /**
      * @dev Batch call function for trusted forwarders (EIP-2771)
      * @param operations Array of batch operations
      */
-    function forwardBatchCall(Operation[] memory operations) external;
+    function forwardBatchCall(Operation[] calldata operations) external;
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

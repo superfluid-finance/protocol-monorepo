@@ -39,7 +39,7 @@ contract FoundrySuperfluidTester is Test {
     ERC20PresetMinterPauser internal token;
     SuperToken internal superToken;
 
-    uint256 private _expectedTotalSupply = 0;
+    uint256 private _expectedTotalSupply;
 
     constructor (uint8 nTesters) {
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");

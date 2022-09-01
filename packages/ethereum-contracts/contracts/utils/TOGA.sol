@@ -130,7 +130,7 @@ contract TOGA is ITOGAv2, IERC777Recipient {
     uint256 public immutable minBondDuration;
     IERC1820Registry constant internal _ERC1820_REG = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
     // solhint-disable-next-line var-name-mixedcase
-    uint64 immutable public ERC777_SEND_GAS_LIMIT = 3000000;
+    uint64 constant internal ERC777_SEND_GAS_LIMIT = 3000000;
     // takes custody of bonds which the TOGA fails to send back to an outbid PIC
     TokenCustodian public custodian;
 

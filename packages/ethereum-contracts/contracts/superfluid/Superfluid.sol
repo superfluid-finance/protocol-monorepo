@@ -60,10 +60,10 @@ contract Superfluid is
      *   will not be able to call other app.
      */
     // solhint-disable-next-line var-name-mixedcase
-    uint immutable public MAX_APP_CALLBACK_LEVEL = 1;
+    uint constant internal MAX_APP_CALLBACK_LEVEL = 1;
 
     // solhint-disable-next-line var-name-mixedcase
-    uint64 immutable public CALLBACK_GAS_LIMIT = 3000000;
+    uint64 constant public CALLBACK_GAS_LIMIT = 3000000;
 
     /* WARNING: NEVER RE-ORDER VARIABLES! Always double-check that new
        variables are added APPEND-ONLY. Re-ordering variables can
@@ -316,12 +316,12 @@ contract Superfluid is
     function registerAppWithKey(uint256 configWord, string calldata registrationKey)
         external override
     {
-        bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
-            // solhint-disable-next-line avoid-tx-origin
-            tx.origin,
-            registrationKey
-        );
         if (APP_WHITE_LISTING_ENABLED) {
+            bytes32 configKey = SuperfluidGovernanceConfigs.getAppRegistrationConfigKey(
+                // solhint-disable-next-line avoid-tx-origin
+                tx.origin,
+                registrationKey
+            );
             // check if the key is valid and not expired
             if (
                 _gov.getConfigAsUint256(
@@ -417,7 +417,7 @@ contract Superfluid is
     function isAppJailed(
         ISuperApp app
     )
-        public view override
+        external view override
         returns(bool)
     {
         return SuperAppDefinitions.isAppJailed(_appManifests[app].configWord);
@@ -434,7 +434,7 @@ contract Superfluid is
         if (getAppCallbackLevel(sourceApp) <= getAppCallbackLevel(targetApp)) {
             revert HOST_SOURCE_APP_NEEDS_HIGHER_APP_LEVEL();
         } 
-        _compositeApps[ISuperApp(msg.sender)][targetApp] = true;
+        _compositeApps[sourceApp][targetApp] = true;
     }
 
     function isCompositeAppAllowed(
@@ -772,11 +772,11 @@ contract Superfluid is
 
     function _batchCall(
         address msgSender,
-        Operation[] memory operations
+        Operation[] calldata operations
     )
        internal
     {
-        for(uint256 i = 0; i < operations.length; i++) {
+        for (uint256 i = 0; i < operations.length; ++i) {
             uint32 operationType = operations[i].operationType;
             if (operationType == BatchOperation.OPERATION_TYPE_ERC20_APPROVE) {
                 (address spender, uint256 amount) =
@@ -821,7 +821,7 @@ contract Superfluid is
 
     /// @dev ISuperfluid.batchCall implementation
     function batchCall(
-       Operation[] memory operations
+       Operation[] calldata operations
     )
        external override
     {
@@ -829,7 +829,7 @@ contract Superfluid is
     }
 
     /// @dev ISuperfluid.forwardBatchCall implementation
-    function forwardBatchCall(Operation[] memory operations)
+    function forwardBatchCall(Operation[] calldata operations)
         external override
     {
         _batchCall(_getTransactionSigner(), operations);
@@ -956,9 +956,12 @@ contract Superfluid is
         callData = _replacePlaceholderCtx(callData, ctx);
 
         // STEP 2: Call external with replaced context
-        // FIXME make sure existence of target due to EVM rule
         /* solhint-disable-next-line avoid-low-level-calls */
         (success, returnedData) = target.call(callData);
+        // if target is not a contract or some arbitrary address,
+        // success will be true and returnedData will be 0x (length = 0)
+        // this leads to unintended behaviors, so we want to check to ensure
+        // that the length of returnedData is greater than 0
 
         if (success) {
             if (returnedData.length == 0) {

@@ -8,10 +8,16 @@ import {
     ISuperToken,
     ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    IConstantFlowAgreementV1
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
-import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
+import {
+    IERC1820Registry
+} from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
+import {
+    IERC777Recipient
+} from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 
 import { TokenCustodian } from "./TokenCustodian.sol";
 
@@ -39,7 +45,10 @@ interface ITOGAv1 {
      * @dev get the address of the current PIC for the given token.
      * @param token The token for which to get the PIC
      */
-    function getCurrentPIC(ISuperToken token) external view returns(address pic);
+    function getCurrentPIC(ISuperToken token)
+        external
+        view
+        returns (address pic);
 
     /**
      * @dev get info about the state - most importantly the bond amount - of the current PIC for the given token.
@@ -51,8 +60,14 @@ interface ITOGAv1 {
      * @return bond The current bond amount. Can shrink or grow over time, depending on exitRate and rewards accrued
      * @return exitRate The current flowrate of given tokens from the contract to the PIC
      */
-    function getCurrentPICInfo(ISuperToken token) external view
-        returns(address pic, uint256 bond, int96 exitRate);
+    function getCurrentPICInfo(ISuperToken token)
+        external
+        view
+        returns (
+            address pic,
+            uint256 bond,
+            int96 exitRate
+        );
 
     /**
      * @dev Get the exit rate set by default for the given token and bond amount
@@ -60,7 +75,10 @@ interface ITOGAv1 {
      * @param bondAmount The bond amount for which to make the calculation
      * @return exitRate The exit rate set by default for a bid with the given bond amount for the given token
      */
-    function getDefaultExitRateFor(ISuperToken token, uint256 bondAmount) external view returns(int96 exitRate);
+    function getDefaultExitRateFor(ISuperToken token, uint256 bondAmount)
+        external
+        view
+        returns (int96 exitRate);
 
     /**
      * @dev Get the max exit which can be set for the given token and bond amount
@@ -70,18 +88,21 @@ interface ITOGAv1 {
      *
      * This limit is enforced only at the time of setting or updating the flow from the contract to the PIC.
      */
-    function getMaxExitRateFor(ISuperToken token, uint256 bondAmount) external view returns(int96 exitRate);
+    function getMaxExitRateFor(ISuperToken token, uint256 bondAmount)
+        external
+        view
+        returns (int96 exitRate);
 
     /**
-    * @dev allows the current PIC for the given token to change the exit rate
-    * @param token The Super Token the exit rate should be changed for
-    * @param newExitRate The new exit rate. The same constraints as during bidding apply.
-    *
-    * Notes:
-    * newExitRate can't be higher than the value returned by getMaxExitRateFor() for the given token and bond.
-    * newExitRate can also be 0, this triggers closing of the flow from the contract to the PIC.
-    * If newExitRate is > 0 and no flow exists, a flow is created.
-    */
+     * @dev allows the current PIC for the given token to change the exit rate
+     * @param token The Super Token the exit rate should be changed for
+     * @param newExitRate The new exit rate. The same constraints as during bidding apply.
+     *
+     * Notes:
+     * newExitRate can't be higher than the value returned by getMaxExitRateFor() for the given token and bond.
+     * newExitRate can also be 0, this triggers closing of the flow from the contract to the PIC.
+     * If newExitRate is > 0 and no flow exists, a flow is created.
+     */
     function changeExitRate(ISuperToken token, int96 newExitRate) external;
 
     /**
@@ -92,7 +113,12 @@ interface ITOGAv1 {
      * @param exitRate The flowrate at which the bond and accrued rewards will be streamed to the PIC
      * The exitRate must be greater or equal zero and respect the upper bound defined by getMaxExitRateFor()
      */
-    event NewPIC(ISuperToken indexed token, address pic, uint256 bond, int96 exitRate);
+    event NewPIC(
+        ISuperToken indexed token,
+        address pic,
+        uint256 bond,
+        int96 exitRate
+    );
 
     /**
      * @dev Emitted if a PIC changes the exit rate
@@ -104,9 +130,9 @@ interface ITOGAv1 {
 
 interface ITOGAv2 is ITOGAv1 {
     /**
-    * @dev allows previous PICs to withdraw bonds which couldn't be sent back to them
-    * @param token The token for which to withdraw funds in custody
-    */
+     * @dev allows previous PICs to withdraw bonds which couldn't be sent back to them
+     * @param token The token for which to withdraw funds in custody
+     */
     function withdrawFundsInCustody(ISuperToken token) external;
 
     /**
@@ -117,7 +143,6 @@ interface ITOGAv2 is ITOGAv1 {
 }
 
 contract TOGA is ITOGAv2, IERC777Recipient {
-
     using SafeCast for uint256;
     // lightweight struct packing an address and a bool (reentrancy guard) into 1 word
     struct LockablePIC {
@@ -128,83 +153,126 @@ contract TOGA is ITOGAv2, IERC777Recipient {
     ISuperfluid internal immutable _host;
     IConstantFlowAgreementV1 internal immutable _cfa;
     uint256 public immutable minBondDuration;
-    IERC1820Registry constant internal _ERC1820_REG = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
+    IERC1820Registry internal constant _ERC1820_REG =
+        IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
     // solhint-disable-next-line var-name-mixedcase
-    uint64 constant internal ERC777_SEND_GAS_LIMIT = 3000000;
+    uint64 internal constant ERC777_SEND_GAS_LIMIT = 3000000;
     // takes custody of bonds which the TOGA fails to send back to an outbid PIC
     TokenCustodian public custodian;
 
-    constructor(ISuperfluid host_, uint256 minBondDuration_, TokenCustodian custodian_) {
+    constructor(
+        ISuperfluid host_,
+        uint256 minBondDuration_,
+        TokenCustodian custodian_
+    ) {
         _host = ISuperfluid(host_);
         minBondDuration = minBondDuration_;
         _cfa = IConstantFlowAgreementV1(
-            address(host_.getAgreementClass(keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")))
+            address(
+                host_.getAgreementClass(
+                    keccak256(
+                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+                    )
+                )
+            )
         );
         bytes32 erc777TokensRecipientHash = keccak256("ERC777TokensRecipient");
-        _ERC1820_REG.setInterfaceImplementer(address(this), erc777TokensRecipientHash, address(this));
-        _ERC1820_REG.setInterfaceImplementer(address(this), keccak256("TOGAv1"), address(this));
-        _ERC1820_REG.setInterfaceImplementer(address(this), keccak256("TOGAv2"), address(this));
+        _ERC1820_REG.setInterfaceImplementer(
+            address(this),
+            erc777TokensRecipientHash,
+            address(this)
+        );
+        _ERC1820_REG.setInterfaceImplementer(
+            address(this),
+            keccak256("TOGAv1"),
+            address(this)
+        );
+        _ERC1820_REG.setInterfaceImplementer(
+            address(this),
+            keccak256("TOGAv2"),
+            address(this)
+        );
 
         require(
-            _ERC1820_REG.getInterfaceImplementer(address(custodian_), erc777TokensRecipientHash) == address(custodian_),
+            _ERC1820_REG.getInterfaceImplementer(
+                address(custodian_),
+                erc777TokensRecipientHash
+            ) == address(custodian_),
             "TOGA: invalid custodian"
         );
         custodian = custodian_;
     }
 
-    function getCurrentPIC(ISuperToken token) external view override returns(address pic) {
+    function getCurrentPIC(ISuperToken token)
+        external
+        view
+        override
+        returns (address pic)
+    {
         return _currentPICs[token].addr;
     }
 
     function getCurrentPICInfo(ISuperToken token)
-        external view override
-        returns(address pic, uint256 bond, int96 exitRate)
+        external
+        view
+        override
+        returns (
+            address pic,
+            uint256 bond,
+            int96 exitRate
+        )
     {
-        (, exitRate,,) = _cfa.getFlow(token, address(this), _currentPICs[token].addr);
-        return (
-            _currentPICs[token].addr,
-            _getCurrentPICBond(token),
-            exitRate
+        (, exitRate, , ) = _cfa.getFlow(
+            token,
+            address(this),
+            _currentPICs[token].addr
         );
+        return (_currentPICs[token].addr, _getCurrentPICBond(token), exitRate);
     }
 
-    function capToInt96(int256 value) internal pure returns(int96) {
+    function capToInt96(int256 value) internal pure returns (int96) {
         return value < type(int96).max ? int96(value) : type(int96).max;
     }
 
-    function getDefaultExitRateFor(ISuperToken /*token*/, uint256 bondAmount)
-        public view override
-        returns(int96 exitRate)
-    {
+    function getDefaultExitRateFor(
+        ISuperToken, /*token*/
+        uint256 bondAmount
+    ) public view override returns (int96 exitRate) {
         return capToInt96((bondAmount / (minBondDuration * 4)).toInt256());
     }
 
-    function getMaxExitRateFor(ISuperToken /*token*/, uint256 bondAmount)
-        external view override
-        returns(int96 exitRate)
-    {
+    function getMaxExitRateFor(
+        ISuperToken, /*token*/
+        uint256 bondAmount
+    ) external view override returns (int96 exitRate) {
         return capToInt96((bondAmount / minBondDuration).toInt256());
     }
 
-    function changeExitRate(ISuperToken token, int96 newExitRate) external override {
+    function changeExitRate(ISuperToken token, int96 newExitRate)
+        external
+        override
+    {
         address currentPICAddr = _currentPICs[token].addr;
         require(msg.sender == currentPICAddr, "TOGA: only PIC allowed");
         require(newExitRate >= 0, "TOGA: negative exitRate not allowed");
-        require(uint256(int256(newExitRate)) * minBondDuration <= _getCurrentPICBond(token), "TOGA: exitRate too high");
+        require(
+            uint256(int256(newExitRate)) * minBondDuration <=
+                _getCurrentPICBond(token),
+            "TOGA: exitRate too high"
+        );
 
-        (, int96 curExitRate,,) = _cfa.getFlow(token, address(this), currentPICAddr);
+        (, int96 curExitRate, , ) = _cfa.getFlow(
+            token,
+            address(this),
+            currentPICAddr
+        );
         if (curExitRate > 0 && newExitRate > 0) {
             // need to update existing flow
             _host.callAgreement(
                 _cfa,
                 abi.encodeCall(
                     _cfa.updateFlow,
-                    (
-                        token,
-                        currentPICAddr,
-                        newExitRate,
-                        new bytes(0)
-                    )
+                    (token, currentPICAddr, newExitRate, new bytes(0))
                 ),
                 "0x"
             );
@@ -214,12 +282,7 @@ contract TOGA is ITOGAv2, IERC777Recipient {
                 _cfa,
                 abi.encodeCall(
                     _cfa.createFlow,
-                    (
-                        token,
-                        currentPICAddr,
-                        newExitRate,
-                        new bytes(0)
-                    )
+                    (token, currentPICAddr, newExitRate, new bytes(0))
                 ),
                 "0x"
             );
@@ -229,12 +292,7 @@ contract TOGA is ITOGAv2, IERC777Recipient {
                 _cfa,
                 abi.encodeCall(
                     _cfa.deleteFlow,
-                    (
-                        token,
-                        address(this),
-                        currentPICAddr,
-                        new bytes(0)
-                    )
+                    (token, address(this), currentPICAddr, new bytes(0))
                 ),
                 "0x"
             );
@@ -249,18 +307,35 @@ contract TOGA is ITOGAv2, IERC777Recipient {
 
     // ============ internal ============
 
-    function _getCurrentPICBond(ISuperToken token) internal view returns(uint256 bond) {
-        (int256 availBal, uint256 deposit, , ) = token.realtimeBalanceOfNow(address(this));
+    function _getCurrentPICBond(ISuperToken token)
+        internal
+        view
+        returns (uint256 bond)
+    {
+        (int256 availBal, uint256 deposit, , ) = token.realtimeBalanceOfNow(
+            address(this)
+        );
         // The protocol guarantees that we get no values leading to an overflow here
-        return availBal + int256(deposit) > 0 ? uint256(availBal + int256(deposit)) : 0;
+        return
+            availBal + int256(deposit) > 0
+                ? uint256(availBal + int256(deposit))
+                : 0;
     }
 
     // This is the logic for designating a PIC via successful bid - invoked only by the ERC777 send() hook
     // Relies on CFA (SuperApp) hooks not being able to block the transaction by reverting.
-    function _becomePIC(ISuperToken token, address newPIC, uint256 amount, int96 exitRate) internal {
+    function _becomePIC(
+        ISuperToken token,
+        address newPIC,
+        uint256 amount,
+        int96 exitRate
+    ) internal {
         require(!_currentPICs[token].lock, "TOGA: reentrancy not allowed");
         require(exitRate >= 0, "TOGA: negative exitRate not allowed");
-        require(uint256(int256(exitRate)) * minBondDuration <= amount, "TOGA: exitRate too high");
+        require(
+            uint256(int256(exitRate)) * minBondDuration <= amount,
+            "TOGA: exitRate too high"
+        );
         // cannot underflow because amount was added to the balance before
         uint256 currentPICBond = _getCurrentPICBond(token) - amount;
         require(amount > currentPICBond, "TOGA: bid too low");
@@ -269,18 +344,17 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         _currentPICs[token].lock = true; // set reentrancy guard
 
         // close flow to current (soon previous) PIC if exists
-        (, int96 curFlowRate,,) = _cfa.getFlow(token, address(this), currentPICAddr);
+        (, int96 curFlowRate, , ) = _cfa.getFlow(
+            token,
+            address(this),
+            currentPICAddr
+        );
         if (curFlowRate > 0) {
             _host.callAgreement(
                 _cfa,
                 abi.encodeCall(
                     _cfa.deleteFlow,
-                    (
-                        token,
-                        address(this),
-                        currentPICAddr,
-                        new bytes(0)
-                    )
+                    (token, address(this), currentPICAddr, new bytes(0))
                 ),
                 "0x"
             );
@@ -289,14 +363,26 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         // if no PIC was set yet, rewards already accumulated become part of the bond of the first PIC
         if (currentPICAddr != address(0)) {
             // send remaining bond to current PIC
-            // solhint-disable-next-line check-send-result
-            try token.send{gas: ERC777_SEND_GAS_LIMIT}(currentPICAddr, currentPICBond, "0x")
+
+            try
+                // solhint-disable-next-line check-send-result
+                token.send{ gas: ERC777_SEND_GAS_LIMIT }(
+                    currentPICAddr,
+                    currentPICBond,
+                    "0x"
+                )
             // solhint-disable-next-line no-empty-blocks
-            {} catch {
+            {
+
+            } catch {
                 // if sending failed, move the remaining bond to a custody contract
                 // the current PIC can withdraw it in a separate tx anytime later
                 // solhint-disable-next-line check-send-result, multiple-sends
-                token.send(address(custodian), currentPICBond, abi.encode(currentPICAddr));
+                token.send(
+                    address(custodian),
+                    currentPICBond,
+                    abi.encode(currentPICAddr)
+                );
             }
         }
 
@@ -310,12 +396,7 @@ contract TOGA is ITOGAv2, IERC777Recipient {
                 _cfa,
                 abi.encodeCall(
                     _cfa.createFlow,
-                    (
-                        token,
-                        newPIC,
-                        exitRate,
-                        new bytes(0)
-                    )
+                    (token, newPIC, exitRate, new bytes(0))
                 ),
                 "0x"
             );
@@ -329,20 +410,20 @@ contract TOGA is ITOGAv2, IERC777Recipient {
     // ============ IERC777Recipient ============
 
     function tokensReceived(
-        address /*operator*/,
+        address, /*operator*/
         address from,
-        address /*to*/,
+        address, /*to*/
         uint256 amount,
         bytes calldata userData,
         bytes calldata /*operatorData*/
-    ) override external {
+    ) external override {
         // if it's not a SuperToken, something will revert along the way
         ISuperToken token = ISuperToken(msg.sender);
 
-        if(from != _currentPICs[token].addr) {
-            int96 exitRate = userData.length == 0 ?
-                getDefaultExitRateFor(token, amount) :
-                abi.decode(userData, (int96));
+        if (from != _currentPICs[token].addr) {
+            int96 exitRate = userData.length == 0
+                ? getDefaultExitRateFor(token, amount)
+                : abi.decode(userData, (int96));
             _becomePIC(token, from, amount, exitRate);
         } else {
             // current PIC increases the bond

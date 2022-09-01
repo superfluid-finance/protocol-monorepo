@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >=0.8.0;
 
 import {
     ISuperfluid,
@@ -18,7 +18,6 @@ import {
  * @dev the second set of functions are each for use in callAgreementWithContext()
  */
 library CFAv1Library {
-
     /**
      * @dev Initialization data
      * @param host Superfluid host for calling agreements
@@ -182,7 +181,15 @@ library CFAv1Library {
         ISuperfluidToken token,
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
-        return createFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate, new bytes(0));
+        return
+            createFlowWithCtx(
+                cfaLibrary,
+                ctx,
+                receiver,
+                token,
+                flowRate,
+                new bytes(0)
+            );
     }
 
     /**
@@ -233,7 +240,15 @@ library CFAv1Library {
         ISuperfluidToken token,
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
-        return updateFlowWithCtx(cfaLibrary, ctx, receiver, token, flowRate, new bytes(0));
+        return
+            updateFlowWithCtx(
+                cfaLibrary,
+                ctx,
+                receiver,
+                token,
+                flowRate,
+                new bytes(0)
+            );
     }
 
     /**
@@ -284,7 +299,15 @@ library CFAv1Library {
         address receiver,
         ISuperfluidToken token
     ) internal returns (bytes memory newCtx) {
-        return deleteFlowWithCtx(cfaLibrary, ctx, sender, receiver, token, new bytes(0));
+        return
+            deleteFlowWithCtx(
+                cfaLibrary,
+                ctx,
+                sender,
+                receiver,
+                token,
+                new bytes(0)
+            );
     }
 
     /**
@@ -335,7 +358,15 @@ library CFAv1Library {
         ISuperfluidToken token,
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
-        return createFlowByOperator(cfaLibrary, sender, receiver, token, flowRate, new bytes(0));
+        return
+            createFlowByOperator(
+                cfaLibrary,
+                sender,
+                receiver,
+                token,
+                flowRate,
+                new bytes(0)
+            );
     }
 
     /**
@@ -355,20 +386,21 @@ library CFAv1Library {
         int96 flowRate,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        return cfaLibrary.host.callAgreement(
-            cfaLibrary.cfa,
-            abi.encodeCall(
-                cfaLibrary.cfa.createFlowByOperator,
-                (
-                    token,
-                    sender,
-                    receiver,
-                    flowRate,
-                    new bytes(0) // placeholder
-                )
-            ),
-            userData
-        );
+        return
+            cfaLibrary.host.callAgreement(
+                cfaLibrary.cfa,
+                abi.encodeCall(
+                    cfaLibrary.cfa.createFlowByOperator,
+                    (
+                        token,
+                        sender,
+                        receiver,
+                        flowRate,
+                        new bytes(0) // placeholder
+                    )
+                ),
+                userData
+            );
     }
 
     /**
@@ -388,15 +420,16 @@ library CFAv1Library {
         ISuperfluidToken token,
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
-        return createFlowByOperatorWithCtx(
-            cfaLibrary,
-            ctx,
-            sender,
-            receiver,
-            token,
-            flowRate,
-            new bytes(0)
-        );
+        return
+            createFlowByOperatorWithCtx(
+                cfaLibrary,
+                ctx,
+                sender,
+                receiver,
+                token,
+                flowRate,
+                new bytes(0)
+            );
     }
 
     /**
@@ -450,7 +483,15 @@ library CFAv1Library {
         ISuperfluidToken token,
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
-        return updateFlowByOperator(cfaLibrary, sender, receiver, token, flowRate, new bytes(0));
+        return
+            updateFlowByOperator(
+                cfaLibrary,
+                sender,
+                receiver,
+                token,
+                flowRate,
+                new bytes(0)
+            );
     }
 
     /**
@@ -470,20 +511,15 @@ library CFAv1Library {
         int96 flowRate,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        return cfaLibrary.host.callAgreement(
-            cfaLibrary.cfa,
-            abi.encodeCall(
-                cfaLibrary.cfa.updateFlowByOperator,
-                (
-                    token,
-                    sender,
-                    receiver,
-                    flowRate,
-                    new bytes(0)
-                )
-            ),
-            userData
-        );
+        return
+            cfaLibrary.host.callAgreement(
+                cfaLibrary.cfa,
+                abi.encodeCall(
+                    cfaLibrary.cfa.updateFlowByOperator,
+                    (token, sender, receiver, flowRate, new bytes(0))
+                ),
+                userData
+            );
     }
 
     /**
@@ -503,15 +539,16 @@ library CFAv1Library {
         ISuperfluidToken token,
         int96 flowRate
     ) internal returns (bytes memory newCtx) {
-        return updateFlowByOperatorWithCtx(
-            cfaLibrary,
-            ctx,
-            sender,
-            receiver,
-            token,
-            flowRate,
-            new bytes(0)
-        );
+        return
+            updateFlowByOperatorWithCtx(
+                cfaLibrary,
+                ctx,
+                sender,
+                receiver,
+                token,
+                flowRate,
+                new bytes(0)
+            );
     }
 
     /**
@@ -537,13 +574,7 @@ library CFAv1Library {
             cfaLibrary.cfa,
             abi.encodeCall(
                 cfaLibrary.cfa.updateFlowByOperator,
-                (
-                    token,
-                    sender,
-                    receiver,
-                    flowRate,
-                    new bytes(0)
-                )
+                (token, sender, receiver, flowRate, new bytes(0))
             ),
             userData,
             ctx
@@ -563,7 +594,14 @@ library CFAv1Library {
         address receiver,
         ISuperfluidToken token
     ) internal returns (bytes memory newCtx) {
-        return deleteFlowByOperator(cfaLibrary, sender, receiver, token, new bytes(0));
+        return
+            deleteFlowByOperator(
+                cfaLibrary,
+                sender,
+                receiver,
+                token,
+                new bytes(0)
+            );
     }
 
     /**
@@ -581,19 +619,15 @@ library CFAv1Library {
         ISuperfluidToken token,
         bytes memory userData
     ) internal returns (bytes memory newCtx) {
-        return cfaLibrary.host.callAgreement(
-            cfaLibrary.cfa,
-            abi.encodeCall(
-                cfaLibrary.cfa.deleteFlowByOperator,
-                (
-                    token,
-                    sender,
-                    receiver,
-                    new bytes(0)
-                )
-            ),
-            userData
-        );
+        return
+            cfaLibrary.host.callAgreement(
+                cfaLibrary.cfa,
+                abi.encodeCall(
+                    cfaLibrary.cfa.deleteFlowByOperator,
+                    (token, sender, receiver, new bytes(0))
+                ),
+                userData
+            );
     }
 
     /**
@@ -611,7 +645,15 @@ library CFAv1Library {
         address receiver,
         ISuperfluidToken token
     ) internal returns (bytes memory newCtx) {
-        return deleteFlowByOperatorWithCtx(cfaLibrary, ctx, sender, receiver, token, new bytes(0));
+        return
+            deleteFlowByOperatorWithCtx(
+                cfaLibrary,
+                ctx,
+                sender,
+                receiver,
+                token,
+                new bytes(0)
+            );
     }
 
     /**
@@ -635,12 +677,7 @@ library CFAv1Library {
             cfaLibrary.cfa,
             abi.encodeCall(
                 cfaLibrary.cfa.deleteFlowByOperator,
-                (
-                    token,
-                    sender,
-                    receiver,
-                    new bytes(0)
-                )
+                (token, sender, receiver, new bytes(0))
             ),
             userData,
             ctx
@@ -663,20 +700,21 @@ library CFAv1Library {
         uint8 permissions,
         int96 flowRateAllowance
     ) internal returns (bytes memory newCtx) {
-        return cfaLibrary.host.callAgreement(
-            cfaLibrary.cfa,
-            abi.encodeCall(
-                cfaLibrary.cfa.updateFlowOperatorPermissions,
-                (
-                    token,
-                    flowOperator,
-                    permissions,
-                    flowRateAllowance,
-                    new bytes(0)
-                )
-            ),
-            new bytes(0)
-        );
+        return
+            cfaLibrary.host.callAgreement(
+                cfaLibrary.cfa,
+                abi.encodeCall(
+                    cfaLibrary.cfa.updateFlowOperatorPermissions,
+                    (
+                        token,
+                        flowOperator,
+                        permissions,
+                        flowRateAllowance,
+                        new bytes(0)
+                    )
+                ),
+                new bytes(0)
+            );
     }
 
     /**
@@ -725,18 +763,15 @@ library CFAv1Library {
         address flowOperator,
         ISuperfluidToken token
     ) internal returns (bytes memory newCtx) {
-        return cfaLibrary.host.callAgreement(
-            cfaLibrary.cfa,
-            abi.encodeCall(
-                cfaLibrary.cfa.authorizeFlowOperatorWithFullControl,
-                (
-                    token,
-                    flowOperator,
-                    new bytes(0)
-                )
-            ),
-            new bytes(0)
-        );
+        return
+            cfaLibrary.host.callAgreement(
+                cfaLibrary.cfa,
+                abi.encodeCall(
+                    cfaLibrary.cfa.authorizeFlowOperatorWithFullControl,
+                    (token, flowOperator, new bytes(0))
+                ),
+                new bytes(0)
+            );
     }
 
     /**
@@ -756,11 +791,7 @@ library CFAv1Library {
             cfaLibrary.cfa,
             abi.encodeCall(
                 cfaLibrary.cfa.authorizeFlowOperatorWithFullControl,
-                (
-                    token,
-                    flowOperator,
-                    new bytes(0)
-                )
+                (token, flowOperator, new bytes(0))
             ),
             new bytes(0),
             ctx
@@ -778,18 +809,15 @@ library CFAv1Library {
         address flowOperator,
         ISuperfluidToken token
     ) internal returns (bytes memory newCtx) {
-        return cfaLibrary.host.callAgreement(
-            cfaLibrary.cfa,
-            abi.encodeCall(
-                cfaLibrary.cfa.revokeFlowOperatorWithFullControl,
-                (
-                    token,
-                    flowOperator,
-                    new bytes(0)
-                )
-            ),
-            new bytes(0)
-        );
+        return
+            cfaLibrary.host.callAgreement(
+                cfaLibrary.cfa,
+                abi.encodeCall(
+                    cfaLibrary.cfa.revokeFlowOperatorWithFullControl,
+                    (token, flowOperator, new bytes(0))
+                ),
+                new bytes(0)
+            );
     }
 
     /**
@@ -809,11 +837,7 @@ library CFAv1Library {
             cfaLibrary.cfa,
             abi.encodeCall(
                 cfaLibrary.cfa.revokeFlowOperatorWithFullControl,
-                (
-                    token,
-                    flowOperator,
-                    new bytes(0)
-                )
+                (token, flowOperator, new bytes(0))
             ),
             new bytes(0),
             ctx

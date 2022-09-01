@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.14;
 
-import {ISuperfluidToken} from "../interfaces/superfluid/ISuperfluidToken.sol";
+import {
+    ISuperfluidToken
+} from "../interfaces/superfluid/ISuperfluidToken.sol";
 
 /**
  * @title Slots Bitmap library
@@ -16,7 +18,6 @@ import {ISuperfluidToken} from "../interfaces/superfluid/ISuperfluidToken.sol";
  *   - getAgreementStateSlot(dataStateSlotIDStart + stotId) stores the data of the slot
  */
 library SlotsBitmapLibrary {
-
     uint32 internal constant _MAX_NUM_SLOTS = 256;
 
     function findEmptySlotAndFill(
@@ -25,14 +26,15 @@ library SlotsBitmapLibrary {
         uint256 bitmapStateSlotId,
         uint256 dataStateSlotIDStart,
         bytes32 data
-    )
-        public
-        returns (uint32 slotId)
-    {
-        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
-            address(this),
-            account,
-            bitmapStateSlotId, 1)[0]);
+    ) public returns (uint32 slotId) {
+        uint256 subsBitmap = uint256(
+            token.getAgreementStateSlot(
+                address(this),
+                account,
+                bitmapStateSlotId,
+                1
+            )[0]
+        );
         for (slotId = 0; slotId < _MAX_NUM_SLOTS; ++slotId) {
             if ((uint256(subsBitmap >> slotId) & 1) == 0) {
                 // update slot data
@@ -41,13 +43,15 @@ library SlotsBitmapLibrary {
                 token.updateAgreementStateSlot(
                     account,
                     dataStateSlotIDStart + slotId,
-                    slotData);
+                    slotData
+                );
                 // update slot map
                 slotData[0] = bytes32(subsBitmap | (1 << uint256(slotId)));
                 token.updateAgreementStateSlot(
                     account,
                     bitmapStateSlotId,
-                    slotData);
+                    slotData
+                );
                 // update the slots
                 break;
             }
@@ -60,51 +64,51 @@ library SlotsBitmapLibrary {
         address account,
         uint256 bitmapStateSlotId,
         uint32 slotId
-    )
-        public
-    {
-        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
-            address(this),
-            account,
-            bitmapStateSlotId, 1)[0]);
+    ) public {
+        uint256 subsBitmap = uint256(
+            token.getAgreementStateSlot(
+                address(this),
+                account,
+                bitmapStateSlotId,
+                1
+            )[0]
+        );
         bytes32[] memory slotData = new bytes32[](1);
         // [SECURITY] NOTE: We do not allow clearing of nonexistent slots
         assert(subsBitmap & (1 << uint256(slotId)) != 0);
         slotData[0] = bytes32(subsBitmap & ~(1 << uint256(slotId)));
         // zero the data
-        token.updateAgreementStateSlot(
-            account,
-            bitmapStateSlotId,
-            slotData);
+        token.updateAgreementStateSlot(account, bitmapStateSlotId, slotData);
     }
 
     function listData(
-       ISuperfluidToken token,
-       address account,
-       uint256 bitmapStateSlotId,
-       uint256 dataStateSlotIDStart
-    )
-        public view
-        returns (
-            uint32[] memory slotIds,
-            bytes32[] memory dataList)
-    {
-        uint256 subsBitmap = uint256(token.getAgreementStateSlot(
-            address(this),
-            account,
-            bitmapStateSlotId, 1)[0]);
+        ISuperfluidToken token,
+        address account,
+        uint256 bitmapStateSlotId,
+        uint256 dataStateSlotIDStart
+    ) public view returns (uint32[] memory slotIds, bytes32[] memory dataList) {
+        uint256 subsBitmap = uint256(
+            token.getAgreementStateSlot(
+                address(this),
+                account,
+                bitmapStateSlotId,
+                1
+            )[0]
+        );
 
         slotIds = new uint32[](_MAX_NUM_SLOTS);
         dataList = new bytes32[](_MAX_NUM_SLOTS);
         // read all slots
-        uint nSlots;
+        uint256 nSlots;
         for (uint32 slotId = 0; slotId < _MAX_NUM_SLOTS; ++slotId) {
             if ((uint256(subsBitmap >> slotId) & 1) == 0) continue;
             slotIds[nSlots] = slotId;
             dataList[nSlots] = token.getAgreementStateSlot(
                 address(this),
                 account,
-                dataStateSlotIDStart + slotId, 1)[0];
+                dataStateSlotIDStart + slotId,
+                1
+            )[0];
             ++nSlots;
         }
         // resize memory arrays

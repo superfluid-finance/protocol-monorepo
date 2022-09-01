@@ -18,7 +18,6 @@ import {
  * A: Well, no strong reason other than also allowing on-chain one view function loading.
  */
 contract SuperfluidLoader {
-
     IResolver private immutable _resolver;
 
     struct Framework {
@@ -37,19 +36,24 @@ contract SuperfluidLoader {
      * @param releaseVersion Protocol release version of the deployment
      */
     function loadFramework(string calldata releaseVersion)
-        external view
+        external
+        view
         returns (Framework memory result)
     {
         // load superfluid host contract
-        result.superfluid = ISuperfluid(_resolver.get(
-            string.concat("Superfluid.", releaseVersion)
-        ));
+        result.superfluid = ISuperfluid(
+            _resolver.get(string.concat("Superfluid.", releaseVersion))
+        );
         result.superTokenFactory = result.superfluid.getSuperTokenFactory();
         result.agreementCFAv1 = result.superfluid.getAgreementClass(
-            keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
+            keccak256(
+                "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+            )
         );
         result.agreementIDAv1 = result.superfluid.getAgreementClass(
-            keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
+            keccak256(
+                "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
+            )
         );
     }
 }

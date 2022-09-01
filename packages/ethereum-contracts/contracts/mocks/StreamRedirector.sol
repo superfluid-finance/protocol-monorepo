@@ -1,9 +1,17 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.14;
 
-import { ISuperfluid, ISuperToken, SuperAppBase, ISuperApp, SuperAppDefinitions } from "../apps/SuperAppBase.sol";
+import {
+    ISuperfluid,
+    ISuperToken,
+    SuperAppBase,
+    ISuperApp,
+    SuperAppDefinitions
+} from "../apps/SuperAppBase.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    IConstantFlowAgreementV1
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperfluid.sol";
 
 contract StreamRedirector is SuperAppBase {
@@ -126,7 +134,9 @@ contract StreamRedirector is SuperAppBase {
         bytes calldata, // calldata _cbdata,
         bytes calldata _ctx
     ) external override onlyHost returns (bytes memory newCtx) {
-        if (!_isCFAv1(_agreementClass) || address(_superToken) != address(token)) {
+        if (
+            !_isCFAv1(_agreementClass) || address(_superToken) != address(token)
+        ) {
             return _ctx;
         }
 

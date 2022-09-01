@@ -14,8 +14,11 @@ contract SuperfluidGovernanceIIUpgradabilityTester is SuperfluidGovernanceII {
 
         // SuperfluidToken storages
 
-        assembly { slot:= _configs.slot offset := _configs.offset }
-        require (slot == 1 && offset == 0, "_configs changed location");
+        assembly {
+            slot := _configs.slot
+            offset := _configs.offset
+        }
+        require(slot == 1 && offset == 0, "_configs changed location");
         // slot 0 offset 0-19: Ownable, offset 20-22: Initializable
         // _configs aligned to slot 1
     }

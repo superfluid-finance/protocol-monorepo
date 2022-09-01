@@ -8,14 +8,9 @@ import {
 } from "../superfluid/SuperTokenFactory.sol";
 
 contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
-
-    constructor(
-        ISuperfluid host
-    )
-        SuperTokenFactoryBase(host)
-        // solhint-disable-next-line no-empty-blocks
-    {
-    }
+    constructor(ISuperfluid host)
+        SuperTokenFactoryBase(host) // solhint-disable-next-line no-empty-blocks
+    {}
 
     // @dev Make sure the storage layout never change over the course of the development
     function validateStorageLayout() external pure {
@@ -24,13 +19,18 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
 
         // Initializable bool _initialized and bool _initialized
 
-        assembly { slot:= _superTokenLogic.slot offset := _superTokenLogic.offset }
-        require (slot == 0 && offset == 2, "_superTokenLogic changed location");
+        assembly {
+            slot := _superTokenLogic.slot
+            offset := _superTokenLogic.offset
+        }
+        require(slot == 0 && offset == 2, "_superTokenLogic changed location");
     }
 
     // dummy impl
     function createSuperTokenLogic(ISuperfluid)
-        external pure override
+        external
+        pure
+        override
         returns (address)
     {
         return address(0);
@@ -48,47 +48,38 @@ contract SuperTokenFactoryMockHelper {
     }
 }
 
-contract SuperTokenFactoryMock is SuperTokenFactoryBase
-{
-    SuperTokenFactoryMockHelper immutable private _helper;
+contract SuperTokenFactoryMock is SuperTokenFactoryBase {
+    SuperTokenFactoryMockHelper private immutable _helper;
 
-    constructor(
-        ISuperfluid host,
-        SuperTokenFactoryMockHelper helper
-    )
+    constructor(ISuperfluid host, SuperTokenFactoryMockHelper helper)
         SuperTokenFactoryBase(host)
     {
         _helper = helper;
     }
 
     function createSuperTokenLogic(ISuperfluid host)
-        external override
+        external
+        override
         returns (address logic)
     {
         return _helper.create(host, 0);
     }
-
 }
 
-contract SuperTokenFactoryMock42 is SuperTokenFactoryBase
-{
+contract SuperTokenFactoryMock42 is SuperTokenFactoryBase {
+    SuperTokenFactoryMockHelper private immutable _helper;
 
-    SuperTokenFactoryMockHelper immutable private _helper;
-
-    constructor(
-        ISuperfluid host,
-        SuperTokenFactoryMockHelper helper
-    )
+    constructor(ISuperfluid host, SuperTokenFactoryMockHelper helper)
         SuperTokenFactoryBase(host)
     {
         _helper = helper;
     }
 
     function createSuperTokenLogic(ISuperfluid host)
-        external override
+        external
+        override
         returns (address logic)
     {
         return _helper.create(host, 42);
     }
-
 }

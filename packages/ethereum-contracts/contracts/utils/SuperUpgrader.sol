@@ -3,10 +3,7 @@ pragma solidity 0.8.14;
 
 import "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {
-    ISuperToken,
-    IERC20
-} from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperToken, IERC20 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 /**
  * @title Super upgrader contract
@@ -17,7 +14,6 @@ import {
  * - Risk taken by the user is that the underlying tokens are converted to the Super Tokens by the upgrader agents.
  */
 contract SuperUpgrader is AccessControlEnumerable {
-
     using SafeERC20 for IERC20;
     // Create a new role identifier for the backend role
     bytes32 public constant BACKEND_ROLE = keccak256("BACKEND_ROLE");
@@ -47,13 +43,12 @@ contract SuperUpgrader is AccessControlEnumerable {
         address superTokenAddr,
         address account,
         uint256 amount
-    )
-    external
-    {
-        require(msg.sender == account ||
-            (hasRole(BACKEND_ROLE, msg.sender) &&
-            !_optout[account])
-        , "operation not allowed");
+    ) external {
+        require(
+            msg.sender == account ||
+                (hasRole(BACKEND_ROLE, msg.sender) && !_optout[account]),
+            "operation not allowed"
+        );
         // get underlying token
         ISuperToken superToken = ISuperToken(superTokenAddr);
         // get tokens from user
@@ -65,13 +60,15 @@ contract SuperUpgrader is AccessControlEnumerable {
         // upgrade tokens and send back to user
         superToken.upgradeTo(
             account,
-            token.balanceOf(address(this)) - beforeBalance, new bytes(0));
+            token.balanceOf(address(this)) - beforeBalance,
+            new bytes(0)
+        );
     }
 
     /**
      * @dev Test if account is member BACKEND_ROLE
      */
-    function isBackendAgent(address account) external view returns(bool yes) {
+    function isBackendAgent(address account) external view returns (bool yes) {
         return hasRole(BACKEND_ROLE, account);
     }
 
@@ -95,7 +92,7 @@ contract SuperUpgrader is AccessControlEnumerable {
     /**
      * @dev Get list of all members of BACKEND_ROLE
      */
-    function getBackendAgents() external view returns(address[] memory) {
+    function getBackendAgents() external view returns (address[] memory) {
         uint256 numberOfMembers = getRoleMemberCount(BACKEND_ROLE);
         address[] memory members = new address[](numberOfMembers);
         for (uint256 i = 0; i < numberOfMembers; ++i) {

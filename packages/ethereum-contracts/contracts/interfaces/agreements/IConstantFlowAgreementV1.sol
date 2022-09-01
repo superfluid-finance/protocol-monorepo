@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.4;
+pragma solidity >=0.8.4;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
@@ -10,7 +10,6 @@ import { SuperfluidErrors } from "../superfluid/Definitions.sol";
  * @author Superfluid
  */
 abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
-
     /**************************************************************************
      * Errors
      *************************************************************************/
@@ -31,8 +30,11 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     error CFA_NO_SELF_FLOW();
 
     /// @dev ISuperAgreement.agreementType implementation
-    function agreementType() external override pure returns (bytes32) {
-        return keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
+    function agreementType() external pure override returns (bytes32) {
+        return
+            keccak256(
+                "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+            );
     }
 
     /**
@@ -43,25 +45,23 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      */
     function getMaximumFlowRateFromDeposit(
         ISuperfluidToken token,
-        uint256 deposit)
-        external view virtual
-        returns (int96 flowRate);
+        uint256 deposit
+    ) external view virtual returns (int96 flowRate);
 
     /**
      * @notice Get the deposit required for creating the flow
      * @dev Calculates the deposit based on the liquidationPeriod and flowRate
      * @param flowRate Flow rate to be tested
      * @return deposit The deposit amount based on flowRate and liquidationPeriod
-     * @custom:note 
+     * @custom:note
      * - if calculated deposit (flowRate * liquidationPeriod) is less
      *   than the minimum deposit, we use the minimum deposit otherwise
      *   we use the calculated deposit
      */
     function getDepositRequiredForFlowRate(
         ISuperfluidToken token,
-        int96 flowRate)
-        external view virtual
-        returns (uint256 deposit);
+        int96 flowRate
+    ) external view virtual returns (uint256 deposit);
 
     /**
      * @dev Returns whether it is the patrician period based on host.getNow()
@@ -69,10 +69,10 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return isCurrentlyPatricianPeriod Whether it is currently the patrician period dictated by governance
      * @return timestamp The value of host.getNow()
      */
-    function isPatricianPeriodNow(
-        ISuperfluidToken token,
-        address account)
-        external view virtual
+    function isPatricianPeriodNow(ISuperfluidToken token, address account)
+        external
+        view
+        virtual
         returns (bool isCurrentlyPatricianPeriod, uint256 timestamp);
 
     /**
@@ -85,9 +85,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         ISuperfluidToken token,
         address account,
         uint256 timestamp
-    )
-        public view virtual
-        returns (bool);
+    ) public view virtual returns (bool);
 
     /**
      * @dev msgSender from `ctx` updates permissions for the `flowOperator` with `flowRateAllowance`
@@ -103,9 +101,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         uint8 permissions,
         int96 flowRateAllowance,
         bytes calldata ctx
-    ) 
-        external virtual
-        returns(bytes memory newCtx);
+    ) external virtual returns (bytes memory newCtx);
 
     /**
      * @dev msgSender from `ctx` grants `flowOperator` all permissions with flowRateAllowance as type(int96).max
@@ -117,11 +113,9 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         ISuperfluidToken token,
         address flowOperator,
         bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
+    ) external virtual returns (bytes memory newCtx);
 
-     /**
+    /**
      * @notice msgSender from `ctx` revokes `flowOperator` create/update/delete permissions
      * @dev `permissions` and `flowRateAllowance` will both be set to 0
      * @param token Super token address
@@ -132,9 +126,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         ISuperfluidToken token,
         address flowOperator,
         bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
+    ) external virtual returns (bytes memory newCtx);
 
     /**
      * @notice Get the permissions of a flow operator between `sender` and `flowOperator` for `token`
@@ -146,11 +138,13 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      */
     function getFlowOperatorData(
-       ISuperfluidToken token,
-       address sender,
-       address flowOperator
+        ISuperfluidToken token,
+        address sender,
+        address flowOperator
     )
-        public view virtual
+        public
+        view
+        virtual
         returns (
             bytes32 flowOperatorId,
             uint8 permissions,
@@ -165,14 +159,13 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
      */
     function getFlowOperatorDataByID(
-       ISuperfluidToken token,
-       bytes32 flowOperatorId
+        ISuperfluidToken token,
+        bytes32 flowOperatorId
     )
-        external view virtual
-        returns (
-            uint8 permissions,
-            int96 flowRateAllowance
-        );
+        external
+        view
+        virtual
+        returns (uint8 permissions, int96 flowRateAllowance);
 
     /**
      * @notice Create a flow betwen ctx.msgSender and receiver
@@ -182,12 +175,12 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param flowRate New flow rate in amount per second
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
-     * @custom:callbacks 
+     * @custom:callbacks
      * - AgreementCreated
      *   - agreementId - can be used in getFlowByID
      *   - agreementData - abi.encode(address flowSender, address flowReceiver)
      *
-     * @custom:note 
+     * @custom:note
      * - A deposit is taken as safety margin for the solvency agents
      * - A extra gas fee may be taken to pay for solvency agent liquidations
      */
@@ -196,28 +189,24 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address receiver,
         int96 flowRate,
         bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
+    ) external virtual returns (bytes memory newCtx);
 
     /**
-    * @notice Create a flow between sender and receiver
-    * @dev A flow created by an approved flow operator (see above for details on callbacks)
-    * @param token Super token address
-    * @param sender Flow sender address (has granted permissions)
-    * @param receiver Flow receiver address
-    * @param flowRate New flow rate in amount per second
-    * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-    */
+     * @notice Create a flow between sender and receiver
+     * @dev A flow created by an approved flow operator (see above for details on callbacks)
+     * @param token Super token address
+     * @param sender Flow sender address (has granted permissions)
+     * @param receiver Flow receiver address
+     * @param flowRate New flow rate in amount per second
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     */
     function createFlowByOperator(
         ISuperfluidToken token,
         address sender,
         address receiver,
         int96 flowRate,
         bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
+    ) external virtual returns (bytes memory newCtx);
 
     /**
      * @notice Update the flow rate between ctx.msgSender and receiver
@@ -227,12 +216,12 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param flowRate New flow rate in amount per second
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
-     * @custom:callbacks 
+     * @custom:callbacks
      * - AgreementUpdated
      *   - agreementId - can be used in getFlowByID
      *   - agreementData - abi.encode(address flowSender, address flowReceiver)
      *
-     * @custom:note 
+     * @custom:note
      * - Only the flow sender may update the flow rate
      * - Even if the flow rate is zero, the flow is not deleted
      * from the system
@@ -244,28 +233,24 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address receiver,
         int96 flowRate,
         bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
+    ) external virtual returns (bytes memory newCtx);
 
     /**
-    * @notice Update a flow between sender and receiver
-    * @dev A flow updated by an approved flow operator (see above for details on callbacks)
-    * @param token Super token address
-    * @param sender Flow sender address (has granted permissions)
-    * @param receiver Flow receiver address
-    * @param flowRate New flow rate in amount per second
-    * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-    */
+     * @notice Update a flow between sender and receiver
+     * @dev A flow updated by an approved flow operator (see above for details on callbacks)
+     * @param token Super token address
+     * @param sender Flow sender address (has granted permissions)
+     * @param receiver Flow receiver address
+     * @param flowRate New flow rate in amount per second
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     */
     function updateFlowByOperator(
         ISuperfluidToken token,
         address sender,
         address receiver,
         int96 flowRate,
         bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
+    ) external virtual returns (bytes memory newCtx);
 
     /**
      * @dev Get the flow data between `sender` and `receiver` of `token`
@@ -282,7 +267,9 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address sender,
         address receiver
     )
-        external view virtual
+        external
+        view
+        virtual
         returns (
             uint256 timestamp,
             int96 flowRate,
@@ -300,11 +287,10 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return deposit The deposit amount of the flow
      * @return owedDeposit The owed deposit amount of the flow
      */
-    function getFlowByID(
-       ISuperfluidToken token,
-       bytes32 agreementId
-    )
-        external view virtual
+    function getFlowByID(ISuperfluidToken token, bytes32 agreementId)
+        external
+        view
+        virtual
         returns (
             uint256 timestamp,
             int96 flowRate,
@@ -321,16 +307,16 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @return deposit The sum of all deposits for account's flows
      * @return owedDeposit The sum of all owed deposits for account's flows
      */
-    function getAccountFlowInfo(
-        ISuperfluidToken token,
-        address account
-    )
-        external view virtual
+    function getAccountFlowInfo(ISuperfluidToken token, address account)
+        external
+        view
+        virtual
         returns (
             uint256 timestamp,
             int96 flowRate,
             uint256 deposit,
-            uint256 owedDeposit);
+            uint256 owedDeposit
+        );
 
     /**
      * @dev Get the net flow rate of the account
@@ -338,11 +324,10 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param account Account for the query
      * @return flowRate Net flow rate
      */
-    function getNetFlow(
-        ISuperfluidToken token,
-        address account
-    )
-        external view virtual
+    function getNetFlow(ISuperfluidToken token, address account)
+        external
+        view
+        virtual
         returns (int96 flowRate);
 
     /**
@@ -352,12 +337,12 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param receiver Flow receiver address
      *
-     * @custom:callbacks 
+     * @custom:callbacks
      * - AgreementTerminated
      *   - agreementId - can be used in getFlowByID
      *   - agreementData - abi.encode(address flowSender, address flowReceiver)
      *
-     * @custom:note 
+     * @custom:note
      * - Both flow sender and receiver may delete the flow
      * - If Sender account is insolvent or in critical state, a solvency agent may
      *   also terminate the agreement
@@ -368,9 +353,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address sender,
         address receiver,
         bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
+    ) external virtual returns (bytes memory newCtx);
 
     /**
      * @notice Delete the flow between sender and receiver
@@ -384,10 +367,8 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address sender,
         address receiver,
         bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
-     
+    ) external virtual returns (bytes memory newCtx);
+
     /**
      * @dev Flow operator updated event
      * @param token Super token address
@@ -430,8 +411,5 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param flowOperator Flow operator address - the Context.msgSender
      * @param deposit The deposit amount for the stream
      */
-    event FlowUpdatedExtension(
-        address indexed flowOperator,
-        uint256 deposit
-    );
+    event FlowUpdatedExtension(address indexed flowOperator, uint256 deposit);
 }

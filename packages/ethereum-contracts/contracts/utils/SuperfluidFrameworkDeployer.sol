@@ -1,31 +1,35 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
-import {ERC20PresetMinterPauser} from "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
+import {
+    ERC20PresetMinterPauser
+} from "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 
-import {UUPSProxy} from "../upgradability/UUPSProxy.sol";
+import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
-import {Superfluid} from "../superfluid/Superfluid.sol";
-import {TestGovernance} from "./TestGovernance.sol";
-import {ConstantFlowAgreementV1} from "../agreements/ConstantFlowAgreementV1.sol";
-import {InstantDistributionAgreementV1} from "../agreements/InstantDistributionAgreementV1.sol";
+import { Superfluid } from "../superfluid/Superfluid.sol";
+import { TestGovernance } from "./TestGovernance.sol";
+import {
+    ConstantFlowAgreementV1
+} from "../agreements/ConstantFlowAgreementV1.sol";
+import {
+    InstantDistributionAgreementV1
+} from "../agreements/InstantDistributionAgreementV1.sol";
 import {
     ISuperTokenFactory,
     SuperTokenFactory,
     SuperTokenFactoryHelper,
     ERC20WithTokenInfo
 } from "../superfluid/SuperTokenFactory.sol";
-import {SuperToken} from "../superfluid/SuperToken.sol";
-import {Resolver} from "./Resolver.sol";
-import {SuperfluidLoader} from "./SuperfluidLoader.sol";
+import { SuperToken } from "../superfluid/SuperToken.sol";
+import { Resolver } from "./Resolver.sol";
+import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 import "../apps/CFAv1Library.sol";
 import "../apps/IDAv1Library.sol";
-
 
 /// @title Superfluid Framework Deployer
 /// @notice This is NOT for deploying public nets, but rather only for tesing envs
 contract SuperfluidFrameworkDeployer {
-
     struct Framework {
         TestGovernance governance;
         Superfluid host;
@@ -123,10 +127,7 @@ contract SuperfluidFrameworkDeployer {
     }
 
     /// @notice Fetches the framework contracts
-    function getFramework()
-        external view
-        returns (Framework memory sf)
-    {
+    function getFramework() external view returns (Framework memory sf) {
         sf = Framework({
             governance: governance,
             host: host,
@@ -142,24 +143,24 @@ contract SuperfluidFrameworkDeployer {
     }
 
     /// @notice Deploy new wrapper super token
-    function deployWrapperSuperToken(string calldata name, string calldata symbol)
-        external
-        returns (
-            ERC20PresetMinterPauser token,
-            SuperToken superToken
-        )
-    {
+    function deployWrapperSuperToken(
+        string calldata name,
+        string calldata symbol
+    ) external returns (ERC20PresetMinterPauser token, SuperToken superToken) {
         token = new ERC20PresetMinterPauser(name, symbol);
         token.grantRole(token.DEFAULT_ADMIN_ROLE(), msg.sender);
         token.grantRole(token.MINTER_ROLE(), msg.sender);
         token.grantRole(token.PAUSER_ROLE(), msg.sender);
 
-        superToken = SuperToken(address(
-            superTokenFactory.createERC20Wrapper(
-            ERC20WithTokenInfo(address(token)),
-            ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
-            string.concat(name, "x"),
-            string.concat(symbol, "x"))
-        ));
+        superToken = SuperToken(
+            address(
+                superTokenFactory.createERC20Wrapper(
+                    ERC20WithTokenInfo(address(token)),
+                    ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
+                    string.concat(name, "x"),
+                    string.concat(symbol, "x")
+                )
+            )
+        );
     }
 }

@@ -9,13 +9,14 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @dev Test ERC20 token that allows any one mint new tokens.
  */
 contract TestToken is ERC20 {
-
     uint256 public constant MINT_LIMIT = 1e12 ether;
     uint8 private _decimals;
 
-    constructor(string memory name, string memory symbol, uint8 initDecimals)
-        ERC20(name, symbol)
-    {
+    constructor(
+        string memory name,
+        string memory symbol,
+        uint8 initDecimals
+    ) ERC20(name, symbol) {
         _decimals = initDecimals;
     }
 
@@ -31,5 +32,4 @@ contract TestToken is ERC20 {
     function decimals() public view override returns (uint8) {
         return _decimals;
     }
-
 }

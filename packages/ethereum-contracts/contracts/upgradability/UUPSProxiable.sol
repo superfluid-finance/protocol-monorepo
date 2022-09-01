@@ -2,18 +2,18 @@
 pragma solidity 0.8.14;
 
 import { UUPSUtils } from "./UUPSUtils.sol";
-import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
+import {
+    Initializable
+} from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 
 /**
  * @title UUPS (Universal Upgradeable Proxy Standard) Proxiable contract.
  */
 abstract contract UUPSProxiable is Initializable {
-
     /**
      * @dev Get current implementation code address.
      */
-    function getCodeAddress() public view returns (address codeAddress)
-    {
+    function getCodeAddress() public view returns (address codeAddress) {
         return UUPSUtils.implementation();
     }
 
@@ -21,7 +21,7 @@ abstract contract UUPSProxiable is Initializable {
 
     // allows to mark logic contracts as initialized in order to reduce the attack surface
     // solhint-disable-next-line no-empty-blocks
-    function castrate() external initializer { }
+    function castrate() external initializer {}
 
     /**
      * @dev Proxiable UUID marker function, this would help to avoid wrong logic
@@ -36,22 +36,20 @@ abstract contract UUPSProxiable is Initializable {
      * @dev Update code address function.
      *      It is internal, so the derived contract could setup its own permission logic.
      */
-    function _updateCodeAddress(address newAddress) internal
-    {
+    function _updateCodeAddress(address newAddress) internal {
         // require UUPSProxy.initializeProxy first
-        require(UUPSUtils.implementation() != address(0), "UUPSProxiable: not upgradable");
+        require(
+            UUPSUtils.implementation() != address(0),
+            "UUPSProxiable: not upgradable"
+        );
         require(
             proxiableUUID() == UUPSProxiable(newAddress).proxiableUUID(),
             "UUPSProxiable: not compatible logic"
         );
-        require(
-            address(this) != newAddress,
-            "UUPSProxiable: proxy loop"
-        );
+        require(address(this) != newAddress, "UUPSProxiable: proxy loop");
         UUPSUtils.setImplementation(newAddress);
         emit CodeUpdated(proxiableUUID(), newAddress);
     }
 
     event CodeUpdated(bytes32 uuid, address codeAddress);
-
 }

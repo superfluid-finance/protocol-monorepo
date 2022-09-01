@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.14;
 
-import { AccessControlEnumerable } from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
+import {
+    AccessControlEnumerable
+} from "@openzeppelin/contracts/access/AccessControlEnumerable.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
-
 
 /**
  * @title Resolver contract
@@ -16,7 +17,6 @@ import { IResolver } from "../interfaces/utils/IResolver.sol";
  * - IResolver event `Set`: resolver name updates
  */
 contract Resolver is IResolver, AccessControlEnumerable {
-
     mapping(string => address) private _registry;
 
     constructor() {
@@ -24,13 +24,20 @@ contract Resolver is IResolver, AccessControlEnumerable {
     }
 
     function set(string calldata name, address target) external override {
-        require(hasRole(DEFAULT_ADMIN_ROLE, _msgSender()), "Caller is not an admin");
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, _msgSender()),
+            "Caller is not an admin"
+        );
         _registry[name] = target;
         emit Set(name, target);
     }
 
-    function get(string calldata name) external view override returns (address) {
+    function get(string calldata name)
+        external
+        view
+        override
+        returns (address)
+    {
         return _registry[name];
     }
-
 }

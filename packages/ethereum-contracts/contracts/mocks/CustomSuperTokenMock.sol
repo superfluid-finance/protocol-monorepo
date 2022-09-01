@@ -4,12 +4,15 @@ pragma solidity 0.8.14;
 import {
     CustomSuperTokenBase,
     ISuperToken
-}
-from "../interfaces/superfluid/CustomSuperTokenBase.sol";
+} from "../interfaces/superfluid/CustomSuperTokenBase.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 abstract contract CustomSuperTokenBaseMock is CustomSuperTokenBase, UUPSProxy {
-    function getFirstCustomTokenStorageSlot() external pure virtual returns (uint slot);
+    function getFirstCustomTokenStorageSlot()
+        external
+        pure
+        virtual
+        returns (uint256 slot);
 
     function callSelfBurn(
         address to,
@@ -32,14 +35,25 @@ abstract contract CustomSuperTokenBaseMock is CustomSuperTokenBase, UUPSProxy {
 }
 
 // solhint-disable-next-line no-empty-blocks
-abstract contract CustomSuperTokenMock is CustomSuperTokenBaseMock, ISuperToken {}
+abstract contract CustomSuperTokenMock is
+    CustomSuperTokenBaseMock,
+    ISuperToken
+{
+
+}
 
 contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
-
     uint256 private _firstStorageSlot;
 
-    function getFirstCustomTokenStorageSlot() external pure override returns (uint slot) {
-        assembly { slot:= _firstStorageSlot.slot }
+    function getFirstCustomTokenStorageSlot()
+        external
+        pure
+        override
+        returns (uint256 slot)
+    {
+        assembly {
+            slot := _firstStorageSlot.slot
+        }
     }
 
     // this function overrides the default ISuperToken.selfMint behavior
@@ -63,11 +77,7 @@ contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
         (bool success, ) = logic.delegatecall(
             abi.encodeCall(
                 ISuperToken(address(this)).selfMint,
-                (
-                    to,
-                    amount,
-                    userData
-                )
+                (to, amount, userData)
             )
         );
         assert(success);
@@ -90,7 +100,12 @@ contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
         address recipient,
         uint256 amount
     ) external override {
-        ISuperToken(address(this)).selfTransferFrom(holder, spender, recipient, amount);
+        ISuperToken(address(this)).selfTransferFrom(
+            holder,
+            spender,
+            recipient,
+            amount
+        );
     }
 
     // this function self calls approveFor

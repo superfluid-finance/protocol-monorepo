@@ -13,7 +13,9 @@ import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
  * IMPORTANT! Make sure the inheritance order remains in sync with the logic contract (Ownable first)!
  */
 // solhint-disable-next-line no-empty-blocks
-contract SuperfluidGovernanceIIProxy is Ownable, UUPSProxy { }
+contract SuperfluidGovernanceIIProxy is Ownable, UUPSProxy {
+
+}
 
 contract SuperfluidGovernanceII is
     Ownable,
@@ -21,32 +23,34 @@ contract SuperfluidGovernanceII is
     SuperfluidGovernanceBase
 {
     error SF_GOV_II_ONLY_OWNER();
+
     function _requireAuthorised() private view {
         if (owner() != _msgSender()) revert SF_GOV_II_ONLY_OWNER();
     }
 
     /**************************************************************************
-    * UUPSProxiable
-    **************************************************************************/
+     * UUPSProxiable
+     **************************************************************************/
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return keccak256("org.superfluid-finance.contracts.SuperfluidGovernanceII.implementation");
+        return
+            keccak256(
+                "org.superfluid-finance.contracts.SuperfluidGovernanceII.implementation"
+            );
     }
 
-    function updateCode(address newAddress)
-        external override
-    {
+    function updateCode(address newAddress) external override {
         _requireAuthorised();
         _updateCodeAddress(newAddress);
     }
 
     /**************************************************************************
-    * SuperfluidGovernanceBase
-    **************************************************************************/
+     * SuperfluidGovernanceBase
+     **************************************************************************/
 
-    function _requireAuthorised(ISuperfluid /*host*/)
-        internal view override
-    {
+    function _requireAuthorised(
+        ISuperfluid /*host*/
+    ) internal view override {
         _requireAuthorised();
     }
 }

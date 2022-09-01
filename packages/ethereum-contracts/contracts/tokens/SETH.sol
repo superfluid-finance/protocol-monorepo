@@ -4,8 +4,7 @@ pragma solidity 0.8.14;
 import {
     ISuperToken,
     CustomSuperTokenBase
-}
-from "../interfaces/superfluid/CustomSuperTokenBase.sol";
+} from "../interfaces/superfluid/CustomSuperTokenBase.sol";
 import { ISETHCustom } from "../interfaces/tokens/ISETH.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
@@ -21,21 +20,29 @@ contract SETHProxy is ISETHCustom, CustomSuperTokenBase, UUPSProxy {
 
     // fallback function which mints Super Tokens for received ETH
     receive() external payable override {
-        ISuperToken(address(this)).selfMint(msg.sender, msg.value, new bytes(0));
+        ISuperToken(address(this)).selfMint(
+            msg.sender,
+            msg.value,
+            new bytes(0)
+        );
         emit TokenUpgraded(msg.sender, msg.value);
     }
 
-    function upgradeByETH() external override payable {
-        ISuperToken(address(this)).selfMint(msg.sender, msg.value, new bytes(0));
+    function upgradeByETH() external payable override {
+        ISuperToken(address(this)).selfMint(
+            msg.sender,
+            msg.value,
+            new bytes(0)
+        );
         emit TokenUpgraded(msg.sender, msg.value);
     }
 
-    function upgradeByETHTo(address to) external override payable {
+    function upgradeByETHTo(address to) external payable override {
         ISuperToken(address(this)).selfMint(to, msg.value, new bytes(0));
         emit TokenUpgraded(to, msg.value);
     }
 
-    function downgradeToETH(uint wad) external override {
+    function downgradeToETH(uint256 wad) external override {
         ISuperToken(address(this)).selfBurn(msg.sender, wad, new bytes(0));
         payable(msg.sender).transfer(wad);
         emit TokenDowngraded(msg.sender, wad);

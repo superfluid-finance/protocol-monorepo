@@ -7,7 +7,9 @@ import {
     SuperAppBase,
     SuperAppDefinitions
 } from "../apps/SuperAppBase.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    IConstantFlowAgreementV1
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /**
  * @title Multi Flow tester App (MFA)
@@ -16,7 +18,6 @@ import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlow
  *      This is used for testing CFA callbacks logic.
  */
 contract MultiFlowTesterApp is SuperAppBase {
-
     struct ReceiverData {
         address to;
         uint256 proportion;
@@ -36,18 +37,16 @@ contract MultiFlowTesterApp is SuperAppBase {
         _cfa = cfa;
         _host = superfluid;
 
-        uint256 configWord =
-            SuperAppDefinitions.APP_LEVEL_FINAL |
+        uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
             SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
         _host.registerAppWithKey(configWord, "");
     }
 
-    function _parseUserData(
-        bytes memory userData
-    )
-        private pure
+    function _parseUserData(bytes memory userData)
+        private
+        pure
         returns (address sender, Configuration memory configuration)
     {
         // parse user data
@@ -55,18 +54,27 @@ contract MultiFlowTesterApp is SuperAppBase {
         address[] memory receivers;
         uint256[] memory proportions;
         (sender, ratioPct, receivers, proportions) = abi.decode(
-            userData, (address, uint8, address[], uint256[]));
+            userData,
+            (address, uint8, address[], uint256[])
+        );
         assert(receivers.length == proportions.length);
 
         configuration.ratioPct = ratioPct;
         configuration.receivers = new ReceiverData[](receivers.length);
         for (uint256 i = 0; i < receivers.length; ++i) {
             assert(proportions[i] != 0);
-            configuration.receivers[i] = ReceiverData(receivers[i], proportions[i]);
+            configuration.receivers[i] = ReceiverData(
+                receivers[i],
+                proportions[i]
+            );
         }
     }
 
-    function _sumProportions(ReceiverData[] memory receivers) internal pure returns(uint256 sum) {
+    function _sumProportions(ReceiverData[] memory receivers)
+        internal
+        pure
+        returns (uint256 sum)
+    {
         for (uint256 i = 0; i < receivers.length; ++i) {
             sum += receivers[i].proportion;
         }
@@ -79,27 +87,34 @@ contract MultiFlowTesterApp is SuperAppBase {
         int96 flowRate,
         uint256 appCreditGranted,
         bytes calldata ctx
-    )
-        private
-        returns (bytes memory newCtx)
-    {
+    ) private returns (bytes memory newCtx) {
         uint256 sum = _sumProportions(configuration.receivers);
 
         newCtx = ctx;
 
         // in case of mfa, we underutlize the app credit for simplicity
-        uint256 flowRateDeposit = _cfa.getDepositRequiredForFlowRate(superToken, flowRate);
-        int96 safeFlowRate = _cfa.getMaximumFlowRateFromDeposit(superToken, flowRateDeposit - 1);
-        appCreditGranted = _cfa.getDepositRequiredForFlowRate(superToken, safeFlowRate);
+        uint256 flowRateDeposit = _cfa.getDepositRequiredForFlowRate(
+            superToken,
+            flowRate
+        );
+        int96 safeFlowRate = _cfa.getMaximumFlowRateFromDeposit(
+            superToken,
+            flowRateDeposit - 1
+        );
+        appCreditGranted = _cfa.getDepositRequiredForFlowRate(
+            superToken,
+            safeFlowRate
+        );
 
         // scale the flow rate and app credit numbers
-        appCreditGranted = appCreditGranted * configuration.ratioPct / 100;
+        appCreditGranted = (appCreditGranted * configuration.ratioPct) / 100;
         // NOTE casting to int96 is okay here because ratioPct is uint8
-        flowRate = flowRate * int96(uint96(configuration.ratioPct)) / 100;
+        flowRate = (flowRate * int96(uint96(configuration.ratioPct))) / 100;
 
         for (uint256 i = 0; i < configuration.receivers.length; ++i) {
             ReceiverData memory receiverData = configuration.receivers[i];
-            uint256 targetCredit = appCreditGranted * receiverData.proportion / sum;
+            uint256 targetCredit = (appCreditGranted *
+                receiverData.proportion) / sum;
             int96 targetFlowRate = _cfa.getMaximumFlowRateFromDeposit(
                 superToken,
                 targetCredit
@@ -128,18 +143,10 @@ contract MultiFlowTesterApp is SuperAppBase {
         address receiver,
         int96 flowRate,
         bytes calldata ctx
-    )
-        external
-        returns (bytes memory newCtx)
-    {
+    ) external returns (bytes memory newCtx) {
         bytes memory callData = abi.encodeCall(
             _cfa.createFlow,
-            (
-                superToken,
-                receiver,
-                flowRate,
-                new bytes(0)
-            )
+            (superToken, receiver, flowRate, new bytes(0))
         );
         (newCtx, ) = _host.callAgreementWithContext(
             _cfa,
@@ -150,7 +157,7 @@ contract MultiFlowTesterApp is SuperAppBase {
     }
 
     struct StackVars {
-    	ISuperfluid.Context context;
+        ISuperfluid.Context context;
         address mfaSender;
         Configuration configuration;
         address flowSender;
@@ -162,50 +169,48 @@ contract MultiFlowTesterApp is SuperAppBase {
         address agreementClass,
         bytes32 agreementId,
         bytes calldata agreementData,
-        bytes calldata /*cbdata*/,
+        bytes calldata, /*cbdata*/
         bytes calldata ctx
-    )
-        external override
-        onlyHost
-        returns(bytes memory newCtx)
-    {
+    ) external override onlyHost returns (bytes memory newCtx) {
         assert(agreementClass == address(_cfa));
         StackVars memory vars;
 
         vars.context = _host.decodeCtx(ctx);
         // parse user data
-        (vars.mfaSender, vars.configuration) = _parseUserData(vars.context.userData);
+        (vars.mfaSender, vars.configuration) = _parseUserData(
+            vars.context.userData
+        );
         // validate the context
         {
-            (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
+            (vars.flowSender, vars.flowReceiver) = abi.decode(
+                agreementData,
+                (address, address)
+            );
             assert(vars.flowSender == vars.context.msgSender);
             assert(vars.flowReceiver == address(this));
             assert(vars.context.appCreditGranted > 0);
         }
         int96 flowRate;
-        (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
+        (, flowRate, , ) = _cfa.getFlowByID(superToken, agreementId);
         newCtx = _updateMultiFlow(
             vars.configuration,
             superToken,
             _cfa.createFlow.selector,
             flowRate,
             vars.context.appCreditGranted,
-            ctx);
+            ctx
+        );
     }
 
     function beforeAgreementUpdated(
         ISuperToken superToken,
         address agreementClass,
         bytes32 agreementId,
-        bytes calldata /*agreementData*/,
+        bytes calldata, /*agreementData*/
         bytes calldata /*ctx*/
-    )
-        external view override
-        onlyHost
-        returns (bytes memory cbdata)
-    {
+    ) external view override onlyHost returns (bytes memory cbdata) {
         assert(agreementClass == address(_cfa));
-        (, int256 oldFlowRate, ,) = _cfa.getFlowByID(superToken, agreementId);
+        (, int256 oldFlowRate, , ) = _cfa.getFlowByID(superToken, agreementId);
         return abi.encode(oldFlowRate);
     }
 
@@ -214,60 +219,65 @@ contract MultiFlowTesterApp is SuperAppBase {
         address agreementClass,
         bytes32 agreementId,
         bytes calldata agreementData,
-        bytes calldata /* cbdata */,
+        bytes calldata, /* cbdata */
         bytes calldata ctx
-    )
-        external override
-        onlyHost
-        returns (bytes memory newCtx)
-    {
+    ) external override onlyHost returns (bytes memory newCtx) {
         assert(agreementClass == address(_cfa));
         StackVars memory vars;
 
         vars.context = _host.decodeCtx(ctx);
         // parse user data
-        (vars.mfaSender, vars.configuration) = _parseUserData(vars.context.userData);
+        (vars.mfaSender, vars.configuration) = _parseUserData(
+            vars.context.userData
+        );
         // validate the context
         {
-            (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
+            (vars.flowSender, vars.flowReceiver) = abi.decode(
+                agreementData,
+                (address, address)
+            );
             assert(vars.flowSender == vars.context.msgSender);
             assert(vars.flowReceiver == address(this));
             assert(vars.context.appCreditGranted > 0);
         }
         int96 flowRate;
-        (,flowRate,,) = _cfa.getFlowByID(superToken, agreementId);
+        (, flowRate, , ) = _cfa.getFlowByID(superToken, agreementId);
         newCtx = _updateMultiFlow(
             vars.configuration,
             superToken,
             _cfa.updateFlow.selector,
             flowRate,
             vars.context.appCreditGranted,
-            ctx);
+            ctx
+        );
     }
 
     function afterAgreementTerminated(
         ISuperToken superToken,
         address agreementClass,
-        bytes32 /*agreementId*/,
+        bytes32, /*agreementId*/
         bytes calldata agreementData,
-        bytes calldata /*cbdata*/,
+        bytes calldata, /*cbdata*/
         bytes calldata ctx
-    )
-
-        external override
-        onlyHost
-        returns (bytes memory newCtx)
-    {
+    ) external override onlyHost returns (bytes memory newCtx) {
         assert(agreementClass == address(_cfa));
         StackVars memory vars;
 
         vars.context = _host.decodeCtx(ctx);
 
         // parse user data
-        (vars.mfaSender, vars.configuration) = _parseUserData(vars.context.userData);
+        (vars.mfaSender, vars.configuration) = _parseUserData(
+            vars.context.userData
+        );
         // validate the context
-        (vars.flowSender, vars.flowReceiver) = abi.decode(agreementData, (address, address));
-        assert(vars.flowSender == address(this) || vars.flowReceiver == address(this));
+        (vars.flowSender, vars.flowReceiver) = abi.decode(
+            agreementData,
+            (address, address)
+        );
+        assert(
+            vars.flowSender == address(this) ||
+                vars.flowReceiver == address(this)
+        );
 
         bytes memory callData;
         newCtx = ctx;
@@ -289,10 +299,13 @@ contract MultiFlowTesterApp is SuperAppBase {
                     newCtx
                 );
             }
-        } else /* if (vars.flowSender == address(this)) */ {
+        }
+        /* if (vars.flowSender == address(this)) */
+        else {
             for (uint256 i = 0; i < vars.configuration.receivers.length; ++i) {
                 // skip current closed flow
-                if (vars.configuration.receivers[i].to == vars.flowReceiver) continue;
+                if (vars.configuration.receivers[i].to == vars.flowReceiver)
+                    continue;
                 // close the rest of the mfa receiver flows
                 callData = abi.encodeCall(
                     _cfa.deleteFlow,

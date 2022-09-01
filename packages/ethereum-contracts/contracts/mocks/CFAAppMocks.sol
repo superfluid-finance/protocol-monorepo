@@ -7,7 +7,9 @@ import {
     SuperAppBase,
     SuperAppDefinitions
 } from "../apps/SuperAppBase.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    IConstantFlowAgreementV1
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /**
  * @dev This is a CFA SuperApp that maintains at most one inflow from a sender at any moment.
@@ -15,7 +17,6 @@ import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlow
  * This can test the deposit credit logic in the deleteFlow as a recipient.
  */
 contract ExclusiveInflowTestApp is SuperAppBase {
-
     IConstantFlowAgreementV1 private _cfa;
     ISuperfluid private _host;
     address private _currentSender;
@@ -26,41 +27,31 @@ contract ExclusiveInflowTestApp is SuperAppBase {
         _cfa = cfa;
         _host = superfluid;
 
-        uint256 configWord =
-            SuperAppDefinitions.APP_LEVEL_FINAL
-            | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP
+        uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             // | SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP
-            | SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
-            | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP
-            | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
-            // | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
-            ;
+            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
+        // | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
 
         _host.registerAppWithKey(configWord, "");
     }
 
     function afterAgreementCreated(
         ISuperToken superToken,
-        address /*agreementClass*/,
-        bytes32 /*agreementId*/,
-        bytes calldata /*agreementData*/,
-        bytes calldata /*cbdata*/,
+        address, /*agreementClass*/
+        bytes32, /*agreementId*/
+        bytes calldata, /*agreementData*/
+        bytes calldata, /*cbdata*/
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
+    ) external override returns (bytes memory newCtx) {
         newCtx = ctx;
         ISuperfluid.Context memory context = _host.decodeCtx(ctx);
         if (_currentSender != address(0)) {
             bytes memory callData = abi.encodeCall(
                 _cfa.deleteFlow,
-                (
-                    superToken,
-                    _currentSender,
-                    address(this),
-                    new bytes(0)
-                )
+                (superToken, _currentSender, address(this), new bytes(0))
             );
             (newCtx, ) = _host.callAgreementWithContext(
                 _cfa,
@@ -73,22 +64,18 @@ contract ExclusiveInflowTestApp is SuperAppBase {
     }
 
     function afterAgreementTerminated(
-        ISuperToken /*superToken*/,
-        address /*agreementClass*/,
-        bytes32 /*agreementId*/,
+        ISuperToken, /*superToken*/
+        address, /*agreementClass*/
+        bytes32, /*agreementId*/
         bytes calldata agreementData,
-        bytes calldata /*cbdata*/,
+        bytes calldata, /*cbdata*/
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
+    ) external override returns (bytes memory newCtx) {
         (address flowSender, ) = abi.decode(agreementData, (address, address));
         assert(flowSender == _currentSender);
         _currentSender = address(0);
         return ctx;
     }
-
 }
 
 /**
@@ -99,7 +86,6 @@ contract ExclusiveInflowTestApp is SuperAppBase {
  * to low balance.
  */
 contract NonClosableOutflowTestApp is SuperAppBase {
-
     IConstantFlowAgreementV1 private _cfa;
     ISuperfluid private _host;
     address private _receiver;
@@ -111,15 +97,13 @@ contract NonClosableOutflowTestApp is SuperAppBase {
         _cfa = cfa;
         _host = superfluid;
 
-        uint256 configWord =
-            SuperAppDefinitions.APP_LEVEL_FINAL
-            | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP
-            | SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP
-            | SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
-            | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP
-            | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
-            // | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
-            ;
+        uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
+            SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
+        // | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
 
         _host.registerAppWithKey(configWord, "");
     }
@@ -128,21 +112,14 @@ contract NonClosableOutflowTestApp is SuperAppBase {
         ISuperToken superToken,
         address receiver,
         int96 flowRate
-    )
-        external
-    {
+    ) external {
         _receiver = receiver;
         _flowRate = flowRate;
         _host.callAgreement(
             _cfa,
             abi.encodeCall(
                 _cfa.createFlow,
-                (
-                    superToken,
-                    receiver,
-                    flowRate,
-                    new bytes(0)
-                )
+                (superToken, receiver, flowRate, new bytes(0))
             ),
             new bytes(0) // user data
         );
@@ -150,37 +127,27 @@ contract NonClosableOutflowTestApp is SuperAppBase {
 
     function afterAgreementTerminated(
         ISuperToken superToken,
-        address /*agreementClass*/,
-        bytes32 /*agreementId*/,
+        address, /*agreementClass*/
+        bytes32, /*agreementId*/
         bytes calldata agreementData,
-        bytes calldata /*cbdata*/,
+        bytes calldata, /*cbdata*/
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
-        (address flowSender, address flowReceiver) = abi.decode(agreementData, (address, address));
+    ) external override returns (bytes memory newCtx) {
+        (address flowSender, address flowReceiver) = abi.decode(
+            agreementData,
+            (address, address)
+        );
         assert(flowSender == address(this));
         assert(flowReceiver == _receiver);
 
         // moved out to avoid stack too deep error
         bytes memory callData = abi.encodeCall(
             _cfa.createFlow,
-            (
-                superToken,
-                flowReceiver,
-                _flowRate,
-                new bytes(0)
-            )
+            (superToken, flowReceiver, _flowRate, new bytes(0))
         );
 
         // recreate the flow
-        (newCtx, ) = _host.callAgreementWithContext(
-            _cfa,
-            callData,
-            "0x",
-            ctx
-        );
+        (newCtx, ) = _host.callAgreementWithContext(_cfa, callData, "0x", ctx);
     }
 }
 
@@ -188,7 +155,6 @@ contract NonClosableOutflowTestApp is SuperAppBase {
  * @dev This is CFA SuperApp that refuses to accept any opening flow without reverting them.
  */
 contract SelfDeletingFlowTestApp is SuperAppBase {
-
     IConstantFlowAgreementV1 private _cfa;
     ISuperfluid private _host;
     address private _receiver;
@@ -200,42 +166,32 @@ contract SelfDeletingFlowTestApp is SuperAppBase {
         _cfa = cfa;
         _host = superfluid;
 
-        uint256 configWord =
-            SuperAppDefinitions.APP_LEVEL_FINAL
-            | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP
+        uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             // | SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP
-            | SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
-            | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP
-            | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
-            | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
-            ;
+            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
+            SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
 
         _host.registerAppWithKey(configWord, "");
     }
 
     function afterAgreementCreated(
         ISuperToken superToken,
-        address /*agreementClass*/,
-        bytes32 /*agreementId*/,
-        bytes calldata /*agreementData*/,
-        bytes calldata /*cbdata*/,
+        address, /*agreementClass*/
+        bytes32, /*agreementId*/
+        bytes calldata, /*agreementData*/
+        bytes calldata, /*cbdata*/
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
+    ) external override returns (bytes memory newCtx) {
         newCtx = ctx;
         ISuperfluid.Context memory context = _host.decodeCtx(ctx);
         (newCtx, ) = _host.callAgreementWithContext(
             _cfa,
             abi.encodeCall(
                 _cfa.deleteFlow,
-                (
-                    superToken,
-                    context.msgSender,
-                    address(this),
-                    new bytes(0)
-                )
+                (superToken, context.msgSender, address(this), new bytes(0))
             ),
             new bytes(0), // user data
             newCtx
@@ -247,7 +203,6 @@ contract SelfDeletingFlowTestApp is SuperAppBase {
  * @dev This is CFA SuperApp that closes an updated flow.
  */
 contract ClosingOnUpdateFlowTestApp is SuperAppBase {
-
     IConstantFlowAgreementV1 private _cfa;
     ISuperfluid private _host;
 
@@ -257,42 +212,32 @@ contract ClosingOnUpdateFlowTestApp is SuperAppBase {
         _cfa = cfa;
         _host = superfluid;
 
-        uint256 configWord =
-            SuperAppDefinitions.APP_LEVEL_FINAL
-            | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP
-            | SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP
-            | SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
+        uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
+            SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
             // | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP
-            | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
-            | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
-            ;
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
+            SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
 
         _host.registerAppWithKey(configWord, "");
     }
 
     function afterAgreementUpdated(
         ISuperToken superToken,
-        address /*agreementClass*/,
-        bytes32 /*agreementId*/,
-        bytes calldata /*agreementData*/,
-        bytes calldata /*cbdata*/,
+        address, /*agreementClass*/
+        bytes32, /*agreementId*/
+        bytes calldata, /*agreementData*/
+        bytes calldata, /*cbdata*/
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
+    ) external override returns (bytes memory newCtx) {
         newCtx = ctx;
         ISuperfluid.Context memory context = _host.decodeCtx(ctx);
         (newCtx, ) = _host.callAgreementWithContext(
             _cfa,
             abi.encodeCall(
                 _cfa.deleteFlow,
-                (
-                    superToken,
-                    context.msgSender,
-                    address(this),
-                    new bytes(0)
-                )
+                (superToken, context.msgSender, address(this), new bytes(0))
             ),
             new bytes(0), // user data
             newCtx
@@ -301,7 +246,6 @@ contract ClosingOnUpdateFlowTestApp is SuperAppBase {
 }
 
 contract FlowExchangeTestApp is SuperAppBase {
-
     IConstantFlowAgreementV1 private _cfa;
     ISuperfluid private _host;
     ISuperToken private _targetToken;
@@ -309,50 +253,45 @@ contract FlowExchangeTestApp is SuperAppBase {
     constructor(
         IConstantFlowAgreementV1 cfa,
         ISuperfluid superfluid,
-        ISuperToken targetToken) {
+        ISuperToken targetToken
+    ) {
         assert(address(cfa) != address(0));
         assert(address(superfluid) != address(0));
         _cfa = cfa;
         _host = superfluid;
         _targetToken = targetToken;
 
-        uint256 configWord =
-            SuperAppDefinitions.APP_LEVEL_FINAL
-            | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP
+        uint256 configWord = SuperAppDefinitions.APP_LEVEL_FINAL |
+            SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP |
             // | SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP
-            | SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
-            | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP
-            | SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
-            | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP
-            ;
+            SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP |
+            SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP |
+            SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
 
         _host.registerAppWithKey(configWord, "");
     }
 
     function afterAgreementCreated(
         ISuperToken superToken,
-        address /*agreementClass*/,
-        bytes32 /*agreementId*/,
-        bytes calldata /*agreementData*/,
-        bytes calldata /*cbdata*/,
+        address, /*agreementClass*/
+        bytes32, /*agreementId*/
+        bytes calldata, /*agreementData*/
+        bytes calldata, /*cbdata*/
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
+    ) external override returns (bytes memory newCtx) {
         newCtx = ctx;
         ISuperfluid.Context memory context = _host.decodeCtx(ctx);
-        (,int96 flowRate,,) = _cfa.getFlow(superToken, context.msgSender, address(this));
+        (, int96 flowRate, , ) = _cfa.getFlow(
+            superToken,
+            context.msgSender,
+            address(this)
+        );
         (newCtx, ) = _host.callAgreementWithContext(
             _cfa,
             abi.encodeCall(
                 _cfa.createFlow,
-                (
-                    _targetToken,
-                    context.msgSender,
-                    flowRate,
-                    new bytes(0)
-                )
+                (_targetToken, context.msgSender, flowRate, new bytes(0))
             ),
             new bytes(0), // user data
             newCtx

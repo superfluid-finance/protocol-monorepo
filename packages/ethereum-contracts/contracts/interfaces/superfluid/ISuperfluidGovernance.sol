@@ -1,19 +1,17 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.4;
+pragma solidity >=0.8.4;
 
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperToken } from "./ISuperToken.sol";
-import { ISuperfluidToken  } from "./ISuperfluidToken.sol";
+import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { ISuperfluid } from "./ISuperfluid.sol";
 import { SuperfluidErrors } from "./Definitions.sol";
-
 
 /**
  * @title Superfluid governance interface
  * @author Superfluid
  */
 interface ISuperfluidGovernance {
-    
     /**************************************************************************
      * Errors
      *************************************************************************/
@@ -23,21 +21,18 @@ interface ISuperfluidGovernance {
     /**
      * @dev Replace the current governance with a new governance
      */
-    function replaceGovernance(
-        ISuperfluid host,
-        address newGov) external;
+    function replaceGovernance(ISuperfluid host, address newGov) external;
 
     /**
      * @dev Register a new agreement class
      */
-    function registerAgreementClass(
-        ISuperfluid host,
-        address agreementClass) external;
+    function registerAgreementClass(ISuperfluid host, address agreementClass)
+        external;
 
     /**
      * @dev Update logics of the contracts
      *
-     * @custom:note 
+     * @custom:note
      * - Because they might have inter-dependencies, it is good to have one single function to update them all
      */
     function updateContracts(
@@ -52,8 +47,9 @@ interface ISuperfluidGovernance {
      */
     function batchUpdateSuperTokenLogic(
         ISuperfluid host,
-        ISuperToken[] calldata tokens) external;
-    
+        ISuperToken[] calldata tokens
+    ) external;
+
     /**
      * @dev Set configuration as address value
      */
@@ -63,7 +59,7 @@ interface ISuperfluidGovernance {
         bytes32 key,
         address value
     ) external;
-    
+
     /**
      * @dev Set configuration as uint256 value
      */
@@ -89,7 +85,8 @@ interface ISuperfluidGovernance {
     function getConfigAsAddress(
         ISuperfluid host,
         ISuperfluidToken superToken,
-        bytes32 key) external view returns (address value);
+        bytes32 key
+    ) external view returns (address value);
 
     /**
      * @dev Get configuration as uint256 value
@@ -97,6 +94,6 @@ interface ISuperfluidGovernance {
     function getConfigAsUint256(
         ISuperfluid host,
         ISuperfluidToken superToken,
-        bytes32 key) external view returns (uint256 value);
-
+        bytes32 key
+    ) external view returns (uint256 value);
 }

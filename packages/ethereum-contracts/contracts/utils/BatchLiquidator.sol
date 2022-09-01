@@ -1,8 +1,14 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.14;
 
-import { ISuperfluid, ISuperAgreement, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    ISuperfluid,
+    ISuperAgreement,
+    ISuperToken
+} from "../interfaces/superfluid/ISuperfluid.sol";
+import {
+    IConstantFlowAgreementV1
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**
@@ -10,7 +16,6 @@ import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
  * @author Superfluid
  */
 contract BatchLiquidator {
-
     /**
      * @dev Delete flows in batch
      * @param host - The host contract address.
@@ -23,11 +28,12 @@ contract BatchLiquidator {
         address host,
         address cfa,
         address superToken,
-        address[] calldata senders, address[] calldata receivers
+        address[] calldata senders,
+        address[] calldata receivers
     ) external {
         require(senders.length == receivers.length, "arrays different sizes");
 
-        for (uint i = 0; i < senders.length; ++i) {
+        for (uint256 i = 0; i < senders.length; ++i) {
             bool success;
             // We tolerate any errors occured during liquidations.
             // It could be due to flow had been liquidated by others.
@@ -58,9 +64,12 @@ contract BatchLiquidator {
         {
             uint256 balance = ERC20(superToken).balanceOf(address(this));
             if (balance > 0) {
-                ERC20(superToken).transferFrom(address(this), msg.sender, balance);
+                ERC20(superToken).transferFrom(
+                    address(this),
+                    msg.sender,
+                    balance
+                );
             }
         }
     }
 }
-

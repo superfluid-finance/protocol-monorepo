@@ -13,13 +13,11 @@ import {
     ISuperfluidGovernance,
     ISuperApp,
     SuperAppDefinitions
-}
-from "../interfaces/superfluid/ISuperfluid.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
 import { SlotsBitmapLibrary } from "../libs/SlotsBitmapLibrary.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
-
 
 /**
  * @title InstantDistributionAgreementV1 contract
@@ -34,14 +32,16 @@ contract InstantDistributionAgreementV1 is
 {
     using SafeCast for uint256;
 
-    address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
+    address public constant SLOTS_BITMAP_LIBRARY_ADDRESS =
+        address(SlotsBitmapLibrary);
 
     /// @dev Subscriber state slot id for storing subs bitmap
     uint256 private constant _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID = 0;
     /// @dev Publisher state slot id for storing its deposit amount
     uint256 private constant _PUBLISHER_DEPOSIT_STATE_SLOT_ID = 1 << 32;
     /// @dev Subscriber state slot id starting ptoint for subscription data
-    uint256 private constant _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START = 1 << 128;
+    uint256 private constant _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START =
+        1 << 128;
 
     /// @dev Maximum number of subscriptions a subscriber can have
     uint32 private constant _MAX_NUM_SUBS = 256;
@@ -77,7 +77,9 @@ contract InstantDistributionAgreementV1 is
         address account,
         uint256 /*time*/
     )
-        external view override
+        external
+        view
+        override
         returns (
             int256 dynamicBalance,
             uint256 deposit,
@@ -102,18 +104,21 @@ contract InstantDistributionAgreementV1 is
                 iId = token.getAgreementStateSlot(
                     address(this),
                     account,
-                    _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId, 1)[0];
+                    _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START + subId,
+                    1
+                )[0];
             }
 
             {
                 IndexData memory idata;
                 (exist, idata) = _getIndexData(token, iId);
                 assert(exist);
-                dynamicBalance = dynamicBalance + (
-                    // NOTE casting these values to int256 is okay because the original values
+                dynamicBalance =
+                    dynamicBalance +
+                    (// NOTE casting these values to int256 is okay because the original values
                     // are uint128
-                    int256(uint256(idata.indexValue - sdata.indexValue)) * int256(uint256(sdata.units))
-                );
+                    int256(uint256(idata.indexValue - sdata.indexValue)) *
+                        int256(uint256(sdata.units)));
             }
         }
 
@@ -132,15 +137,15 @@ contract InstantDistributionAgreementV1 is
         ISuperfluidToken token,
         uint32 indexId,
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
-        ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+    ) external override returns (bytes memory newCtx) {
+        ISuperfluid.Context memory context = AgreementLibrary
+            .authorizeTokenAccess(token, ctx);
         address publisher = context.msgSender;
         bytes32 iId = _getPublisherId(publisher, indexId);
         if (_hasIndexData(token, iId)) {
-            revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.IDA_INDEX_ALREADY_EXISTS);
+            revert SuperfluidErrors.ALREADY_EXISTS(
+                SuperfluidErrors.IDA_INDEX_ALREADY_EXISTS
+            );
         }
 
         token.createAgreement(iId, _encodeIndexData(IndexData(0, 0, 0)));
@@ -157,12 +162,15 @@ contract InstantDistributionAgreementV1 is
         address publisher,
         uint32 indexId
     )
-        external view override
+        external
+        view
+        override
         returns (
             bool exist,
             uint128 indexValue,
             uint128 totalUnitsApproved,
-            uint128 totalUnitsPending)
+            uint128 totalUnitsPending
+        )
     {
         IndexData memory idata;
         bytes32 iId = _getPublisherId(publisher, indexId);
@@ -181,16 +189,21 @@ contract InstantDistributionAgreementV1 is
         uint32 indexId,
         uint256 amount
     )
-        external view override
-        returns(
-            uint256 actualAmount,
-            uint128 newIndexValue)
+        external
+        view
+        override
+        returns (uint256 actualAmount, uint128 newIndexValue)
     {
         bytes32 iId = _getPublisherId(publisher, indexId);
         (bool exist, IndexData memory idata) = _getIndexData(token, iId);
-        if (!exist) revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_INDEX_DOES_NOT_EXIST);
+        if (!exist)
+            revert SuperfluidErrors.DOES_NOT_EXIST(
+                SuperfluidErrors.IDA_INDEX_DOES_NOT_EXIST
+            );
 
-        uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
+        uint256 totalUnits = uint256(
+            idata.totalUnitsApproved + idata.totalUnitsPending
+        );
         uint128 indexDelta = (amount / totalUnits).toUint128();
         newIndexValue = idata.indexValue + indexDelta;
         actualAmount = uint256(indexDelta) * totalUnits;
@@ -202,16 +215,26 @@ contract InstantDistributionAgreementV1 is
         uint32 indexId,
         uint128 indexValue,
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
-        ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+    ) external override returns (bytes memory newCtx) {
+        ISuperfluid.Context memory context = AgreementLibrary
+            .authorizeTokenAccess(token, ctx);
         address publisher = context.msgSender;
-        (bytes32 iId, IndexData memory idata) = _loadIndexData(token, publisher, indexId);
+        (bytes32 iId, IndexData memory idata) = _loadIndexData(
+            token,
+            publisher,
+            indexId
+        );
         if (indexValue < idata.indexValue) revert IDA_INDEX_SHOULD_GROW();
 
-        _updateIndex(token, publisher, indexId, iId, idata, indexValue, context.userData);
+        _updateIndex(
+            token,
+            publisher,
+            indexId,
+            iId,
+            idata,
+            indexValue,
+            context.userData
+        );
 
         // nothing to be recorded so far
         newCtx = ctx;
@@ -223,18 +246,30 @@ contract InstantDistributionAgreementV1 is
         uint32 indexId,
         uint256 amount,
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
-        ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+    ) external override returns (bytes memory newCtx) {
+        ISuperfluid.Context memory context = AgreementLibrary
+            .authorizeTokenAccess(token, ctx);
         address publisher = context.msgSender;
-        (bytes32 iId, IndexData memory idata) = _loadIndexData(token, publisher, indexId);
-        uint256 totalUnits = uint256(idata.totalUnitsApproved + idata.totalUnitsPending);
+        (bytes32 iId, IndexData memory idata) = _loadIndexData(
+            token,
+            publisher,
+            indexId
+        );
+        uint256 totalUnits = uint256(
+            idata.totalUnitsApproved + idata.totalUnitsPending
+        );
 
         if (totalUnits > 0) {
             uint128 indexDelta = (amount / totalUnits).toUint128();
-            _updateIndex(token, publisher, indexId, iId, idata, idata.indexValue + indexDelta, context.userData);
+            _updateIndex(
+                token,
+                publisher,
+                indexId,
+                iId,
+                idata,
+                idata.indexValue + indexDelta,
+                context.userData
+            );
         }
         // nothing to be recorded so far
         newCtx = ctx;
@@ -248,20 +283,25 @@ contract InstantDistributionAgreementV1 is
         IndexData memory idata,
         uint128 newIndexValue,
         bytes memory userData
-    )
-        private
-    {
+    ) private {
         // - settle the publisher balance INSTANT-ly (ding ding ding, IDA)
         //   - adjust static balance directly
-        token.settleBalance(publisher,
+        token.settleBalance(
+            publisher,
             // NOTE casting these values to int256 is okay because the original values
             // are uint128
-            (-int256(uint256(newIndexValue - idata.indexValue))) * int256(uint256(idata.totalUnitsApproved)));
+            (-int256(uint256(newIndexValue - idata.indexValue))) *
+                int256(uint256(idata.totalUnitsApproved))
+        );
         //   - adjust the publisher's deposit amount
-        _adjustPublisherDeposit(token, publisher,
+        _adjustPublisherDeposit(
+            token,
+            publisher,
             // NOTE casting these values to int256 is okay because the original values
             // are uint128
-            int256(uint256(newIndexValue - idata.indexValue)) * int256(uint256(idata.totalUnitsPending)));
+            int256(uint256(newIndexValue - idata.indexValue)) *
+                int256(uint256(idata.totalUnitsPending))
+        );
         // adjust the publisher's index data
         uint128 oldIndexValue = idata.indexValue;
         idata.indexValue = newIndexValue;
@@ -275,44 +315,45 @@ contract InstantDistributionAgreementV1 is
             newIndexValue,
             idata.totalUnitsPending,
             idata.totalUnitsApproved,
-            userData);
+            userData
+        );
 
         // check account solvency
         if (token.isAccountCriticalNow(publisher)) {
-            revert SuperfluidErrors.INSUFFICIENT_BALANCE(SuperfluidErrors.IDA_INSUFFICIENT_BALANCE);
+            revert SuperfluidErrors.INSUFFICIENT_BALANCE(
+                SuperfluidErrors.IDA_INSUFFICIENT_BALANCE
+            );
         }
     }
 
     function _loadIndexData(
         ISuperfluidToken token,
         address publisher,
-        uint32 indexId)
-        private view
-        returns (
-            bytes32 iId,
-            IndexData memory idata
-        )
-    {
+        uint32 indexId
+    ) private view returns (bytes32 iId, IndexData memory idata) {
         bool exist;
         iId = _getPublisherId(publisher, indexId);
         (exist, idata) = _getIndexData(token, iId);
-        if (!exist) revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_INDEX_DOES_NOT_EXIST);
+        if (!exist)
+            revert SuperfluidErrors.DOES_NOT_EXIST(
+                SuperfluidErrors.IDA_INDEX_DOES_NOT_EXIST
+            );
     }
 
     /**************************************************************************
      * Subscription operations
      *************************************************************************/
 
-     // Stack variables to avoid stack too deep errors in some functions
-     // solhint-disable-next-line contract-name-camelcase
-     struct _SubscriptionOperationVars {
-         bytes32 iId;
-         bool subscriptionExists;
-         bytes32 sId;
-         IndexData idata;
-         SubscriptionData sdata;
-         bytes cbdata;
-     }
+    // Stack variables to avoid stack too deep errors in some functions
+    // solhint-disable-next-line contract-name-camelcase
+    struct _SubscriptionOperationVars {
+        bytes32 iId;
+        bool subscriptionExists;
+        bytes32 sId;
+        IndexData idata;
+        SubscriptionData sdata;
+        bytes cbdata;
+    }
 
     /// @dev IInstantDistributionAgreementV1.approveSubscription implementation
     function approveSubscription(
@@ -320,16 +361,14 @@ contract InstantDistributionAgreementV1 is
         address publisher,
         uint32 indexId,
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
+    ) external override returns (bytes memory newCtx) {
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
         address subscriber;
         bytes memory userData;
         {
-            ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+            ISuperfluid.Context memory context = AgreementLibrary
+                .authorizeTokenAccess(token, ctx);
             subscriber = context.msgSender;
             userData = context.userData;
         }
@@ -345,7 +384,9 @@ contract InstantDistributionAgreementV1 is
         if (vars.subscriptionExists) {
             // required condition check
             if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
-                revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.IDA_SUBSCRIPTION_ALREADY_APPROVED);
+                revert SuperfluidErrors.ALREADY_EXISTS(
+                    SuperfluidErrors.IDA_SUBSCRIPTION_ALREADY_APPROVED
+                );
             }
         }
 
@@ -354,11 +395,16 @@ contract InstantDistributionAgreementV1 is
             token,
             publisher,
             vars.sId,
-            "");
+            ""
+        );
 
         if (!vars.subscriptionExists) {
-            cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
-            vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
+            cbStates.noopBit = SuperAppDefinitions
+                .BEFORE_AGREEMENT_CREATED_NOOP;
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(
+                cbStates,
+                newCtx
+            );
 
             vars.sdata = SubscriptionData({
                 publisher: publisher,
@@ -368,18 +414,34 @@ contract InstantDistributionAgreementV1 is
                 indexValue: vars.idata.indexValue
             });
             // add to subscription list of the subscriber
-            vars.sdata.subId = _findAndFillSubsBitmap(token, subscriber, vars.iId);
-            token.createAgreement(vars.sId, _encodeSubscriptionData(vars.sdata));
+            vars.sdata.subId = _findAndFillSubsBitmap(
+                token,
+                subscriber,
+                vars.iId
+            );
+            token.createAgreement(
+                vars.sId,
+                _encodeSubscriptionData(vars.sdata)
+            );
 
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
-            (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (, newCtx) = AgreementLibrary.callAppAfterCallback(
+                cbStates,
+                vars.cbdata,
+                newCtx
+            );
         } else {
-            cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
-            vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
+            cbStates.noopBit = SuperAppDefinitions
+                .BEFORE_AGREEMENT_UPDATED_NOOP;
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(
+                cbStates,
+                newCtx
+            );
             // NOTE casting these values to int256 is okay because the original values
             // are uint128
-            int balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
-                * int256(uint256(vars.sdata.units));
+            int256 balanceDelta = int256(
+                uint256(vars.idata.indexValue - vars.sdata.indexValue)
+            ) * int256(uint256(vars.sdata.units));
 
             // update publisher data and adjust publisher's deposits
             vars.idata.totalUnitsApproved += vars.sdata.units;
@@ -391,16 +453,33 @@ contract InstantDistributionAgreementV1 is
             // update subscription data and adjust subscriber's balance
             token.settleBalance(subscriber, balanceDelta);
             vars.sdata.indexValue = vars.idata.indexValue;
-            vars.sdata.subId = _findAndFillSubsBitmap(token, subscriber, vars.iId);
-            token.updateAgreementData(vars.sId, _encodeSubscriptionData(vars.sdata));
+            vars.sdata.subId = _findAndFillSubsBitmap(
+                token,
+                subscriber,
+                vars.iId
+            );
+            token.updateAgreementData(
+                vars.sId,
+                _encodeSubscriptionData(vars.sdata)
+            );
 
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (, newCtx) = AgreementLibrary.callAppAfterCallback(
+                cbStates,
+                vars.cbdata,
+                newCtx
+            );
         }
 
         // can index up to three words, hence splitting into two events from publisher or subscriber's view.
         emit IndexSubscribed(token, publisher, indexId, subscriber, userData);
-        emit SubscriptionApproved(token, subscriber, publisher, indexId, userData);
+        emit SubscriptionApproved(
+            token,
+            subscriber,
+            publisher,
+            indexId,
+            userData
+        );
     }
 
     /// @dev IInstantDistributionAgreementV1.revokeSubscription implementation
@@ -409,49 +488,55 @@ contract InstantDistributionAgreementV1 is
         address publisher,
         uint32 indexId,
         bytes calldata ctx
-    )
-         external override
-         returns(bytes memory newCtx)
-    {
+    ) external override returns (bytes memory newCtx) {
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
         address subscriber;
         bytes memory userData;
         {
-            ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+            ISuperfluid.Context memory context = AgreementLibrary
+                .authorizeTokenAccess(token, ctx);
             subscriber = context.msgSender;
             userData = context.userData;
         }
 
-        (
-            vars.iId,
-            vars.sId,
-            vars.idata,
-            ,
-            vars.sdata
-        ) = _loadAllData(token, publisher, subscriber, indexId, true);
+        (vars.iId, vars.sId, vars.idata, , vars.sdata) = _loadAllData(
+            token,
+            publisher,
+            subscriber,
+            indexId,
+            true
+        );
 
         // should not revoke an pending(un-approved) subscription
         if (vars.sdata.subId == _UNALLOCATED_SUB_ID) {
-            revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_SUBSCRIPTION_IS_NOT_APPROVED);
+            revert SuperfluidErrors.DOES_NOT_EXIST(
+                SuperfluidErrors.IDA_SUBSCRIPTION_IS_NOT_APPROVED
+            );
         }
 
         cbStates = AgreementLibrary.createCallbackInputs(
             token,
             publisher,
             vars.sId,
-            "");
+            ""
+        );
         newCtx = ctx;
 
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
         // NOTE downcasting these values to int256 is okay because the original values
         // are uint128
-        int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
-            * int256(uint256(vars.sdata.units));
+        int256 balanceDelta = int256(
+            uint256(vars.idata.indexValue - vars.sdata.indexValue)
+        ) * int256(uint256(vars.sdata.units));
 
-        vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved - vars.sdata.units;
-        vars.idata.totalUnitsPending = vars.idata.totalUnitsPending + vars.sdata.units;
+        vars.idata.totalUnitsApproved =
+            vars.idata.totalUnitsApproved -
+            vars.sdata.units;
+        vars.idata.totalUnitsPending =
+            vars.idata.totalUnitsPending +
+            vars.sdata.units;
         token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
 
         // remove subscription from subscriber's bitmap
@@ -461,15 +546,28 @@ contract InstantDistributionAgreementV1 is
         vars.sdata.indexValue = vars.idata.indexValue;
         // unlink publisher and subscriber
         vars.sdata.subId = _UNALLOCATED_SUB_ID;
-        token.updateAgreementData(vars.sId, _encodeSubscriptionData(vars.sdata));
+        token.updateAgreementData(
+            vars.sId,
+            _encodeSubscriptionData(vars.sdata)
+        );
         // settle subscriber static balance as a result to keep balance unchanged
         token.settleBalance(subscriber, balanceDelta);
 
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+        (, newCtx) = AgreementLibrary.callAppAfterCallback(
+            cbStates,
+            vars.cbdata,
+            newCtx
+        );
 
         emit IndexUnsubscribed(token, publisher, indexId, subscriber, userData);
-        emit SubscriptionRevoked(token, subscriber, publisher, indexId, userData);
+        emit SubscriptionRevoked(
+            token,
+            subscriber,
+            publisher,
+            indexId,
+            userData
+        );
     }
 
     /// @dev IInstantDistributionAgreementV1.updateSubscription implementation
@@ -479,19 +577,19 @@ contract InstantDistributionAgreementV1 is
         address subscriber,
         uint128 units,
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
+    ) external override returns (bytes memory newCtx) {
         if (subscriber == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.IDA_ZERO_ADDRESS_SUBSCRIBER);
+            revert SuperfluidErrors.ZERO_ADDRESS(
+                SuperfluidErrors.IDA_ZERO_ADDRESS_SUBSCRIBER
+            );
         }
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
         bytes memory userData;
         address publisher;
         {
-            ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+            ISuperfluid.Context memory context = AgreementLibrary
+                .authorizeTokenAccess(token, ctx);
             userData = context.userData;
             publisher = context.msgSender;
         }
@@ -508,38 +606,49 @@ contract InstantDistributionAgreementV1 is
             token,
             subscriber,
             vars.sId,
-            "");
+            ""
+        );
         newCtx = ctx;
 
         // before-hook callback
         if (vars.subscriptionExists) {
-            cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
-            vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
+            cbStates.noopBit = SuperAppDefinitions
+                .BEFORE_AGREEMENT_UPDATED_NOOP;
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(
+                cbStates,
+                newCtx
+            );
         } else {
-            cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
-            vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
+            cbStates.noopBit = SuperAppDefinitions
+                .BEFORE_AGREEMENT_CREATED_NOOP;
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(
+                cbStates,
+                newCtx
+            );
         }
 
         // update publisher data
-        if (vars.subscriptionExists && vars.sdata.subId != _UNALLOCATED_SUB_ID) {
+        if (
+            vars.subscriptionExists && vars.sdata.subId != _UNALLOCATED_SUB_ID
+        ) {
             // if the subscription exist and not approved, update the approved units amount
 
             // update total units
-            vars.idata.totalUnitsApproved = (
-                uint256(vars.idata.totalUnitsApproved) +
+            vars.idata.totalUnitsApproved = (uint256(
+                vars.idata.totalUnitsApproved
+            ) +
                 uint256(units) -
-                uint256(vars.sdata.units)
-            ).toUint128();
+                uint256(vars.sdata.units)).toUint128();
             token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
         } else if (vars.subscriptionExists) {
             // if the subscription exists and approved, update the pending units amount
 
             // update pending subscription units of the publisher
-            vars.idata.totalUnitsPending = (
-                uint256(vars.idata.totalUnitsPending) +
+            vars.idata.totalUnitsPending = (uint256(
+                vars.idata.totalUnitsPending
+            ) +
                 uint256(units) -
-                uint256(vars.sdata.units)
-            ).toUint128();
+                uint256(vars.sdata.units)).toUint128();
             token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
         } else {
             // if the subscription does not exist, create it and then update the pending units amount
@@ -552,15 +661,19 @@ contract InstantDistributionAgreementV1 is
                 units: units,
                 indexValue: vars.idata.indexValue
             });
-            token.createAgreement(vars.sId, _encodeSubscriptionData(vars.sdata));
+            token.createAgreement(
+                vars.sId,
+                _encodeSubscriptionData(vars.sdata)
+            );
 
             vars.idata.totalUnitsPending = vars.idata.totalUnitsPending + units;
             token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
         }
         // NOTE casting these values to int256 is okay because the original values
         // are uint128
-        int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
-            * int256(uint256(vars.sdata.units));
+        int256 balanceDelta = int256(
+            uint256(vars.idata.indexValue - vars.sdata.indexValue)
+        ) * int256(uint256(vars.sdata.units));
 
         // adjust publisher's deposit and balances if subscription is pending
         if (vars.sdata.subId == _UNALLOCATED_SUB_ID) {
@@ -575,20 +688,45 @@ contract InstantDistributionAgreementV1 is
         if (vars.subscriptionExists) {
             vars.sdata.indexValue = vars.idata.indexValue;
             vars.sdata.units = units;
-            token.updateAgreementData(vars.sId, _encodeSubscriptionData(vars.sdata));
+            token.updateAgreementData(
+                vars.sId,
+                _encodeSubscriptionData(vars.sdata)
+            );
         }
 
         // after-hook callback
         if (vars.subscriptionExists) {
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (, newCtx) = AgreementLibrary.callAppAfterCallback(
+                cbStates,
+                vars.cbdata,
+                newCtx
+            );
         } else {
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
-            (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (, newCtx) = AgreementLibrary.callAppAfterCallback(
+                cbStates,
+                vars.cbdata,
+                newCtx
+            );
         }
 
-        emit IndexUnitsUpdated(token, publisher, indexId, subscriber, units, userData);
-        emit SubscriptionUnitsUpdated(token, subscriber, publisher, indexId, units, userData);
+        emit IndexUnitsUpdated(
+            token,
+            publisher,
+            indexId,
+            subscriber,
+            units,
+            userData
+        );
+        emit SubscriptionUnitsUpdated(
+            token,
+            subscriber,
+            publisher,
+            indexId,
+            units,
+            userData
+        );
     }
 
     /// @dev IInstantDistributionAgreementV1.getSubscription implementation
@@ -598,7 +736,9 @@ contract InstantDistributionAgreementV1 is
         uint32 indexId,
         address subscriber
     )
-        external view override
+        external
+        view
+        override
         returns (
             bool exist,
             bool approved,
@@ -611,33 +751,35 @@ contract InstantDistributionAgreementV1 is
         IndexData memory idata;
         SubscriptionData memory sdata;
 
-        (
-            iId,
-            sId,
-            idata,
-            exist,
-            sdata
-        ) = _loadAllData(token, publisher, subscriber, indexId, false);
+        (iId, sId, idata, exist, sdata) = _loadAllData(
+            token,
+            publisher,
+            subscriber,
+            indexId,
+            false
+        );
 
         if (!exist) return (false, false, 0, 0);
         approved = sdata.subId != _UNALLOCATED_SUB_ID;
         units = sdata.units;
-        pendingDistribution = approved ? 0 : uint256(idata.indexValue - sdata.indexValue) * uint256(sdata.units);
+        pendingDistribution = approved
+            ? 0
+            : uint256(idata.indexValue - sdata.indexValue) *
+                uint256(sdata.units);
     }
 
     /// @dev IInstantDistributionAgreementV1.getSubscriptionByID implementation
-    function getSubscriptionByID(
-       ISuperfluidToken token,
-       bytes32 agreementId
-    )
-       external view override
-       returns(
-           address publisher,
-           uint32 indexId,
-           bool approved,
-           uint128 units,
-           uint256 pendingDistribution
-       )
+    function getSubscriptionByID(ISuperfluidToken token, bytes32 agreementId)
+        external
+        view
+        override
+        returns (
+            address publisher,
+            uint32 indexId,
+            bool approved,
+            uint128 units,
+            uint256 pendingDistribution
+        )
     {
         bool exist;
         bytes32 iId;
@@ -646,7 +788,9 @@ contract InstantDistributionAgreementV1 is
 
         (exist, sdata) = _getSubscriptionData(token, agreementId);
         if (!exist) {
-            revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_SUBSCRIPTION_DOES_NOT_EXIST);
+            revert SuperfluidErrors.DOES_NOT_EXIST(
+                SuperfluidErrors.IDA_SUBSCRIPTION_DOES_NOT_EXIST
+            );
         }
 
         publisher = sdata.publisher;
@@ -657,20 +801,22 @@ contract InstantDistributionAgreementV1 is
 
         approved = sdata.subId != _UNALLOCATED_SUB_ID;
         units = sdata.units;
-        pendingDistribution = approved ? 0 :
-            uint256(idata.indexValue - sdata.indexValue) * uint256(sdata.units);
+        pendingDistribution = approved
+            ? 0
+            : uint256(idata.indexValue - sdata.indexValue) *
+                uint256(sdata.units);
     }
 
     /// @dev IInstantDistributionAgreementV1.listSubscriptions implementation
-    function listSubscriptions(
-        ISuperfluidToken token,
-        address subscriber
-    )
-        external view override
-        returns(
+    function listSubscriptions(ISuperfluidToken token, address subscriber)
+        external
+        view
+        override
+        returns (
             address[] memory publishers,
             uint32[] memory indexIds,
-            uint128[] memory unitsList)
+            uint128[] memory unitsList
+        )
     {
         uint32[] memory slotIds;
         bytes32[] memory sidList;
@@ -699,21 +845,21 @@ contract InstantDistributionAgreementV1 is
         uint32 indexId,
         address subscriber,
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
+    ) external override returns (bytes memory newCtx) {
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
         address sender;
         bytes memory userData;
         {
-            ISuperfluid.Context memory context = AgreementLibrary.authorizeTokenAccess(token, ctx);
+            ISuperfluid.Context memory context = AgreementLibrary
+                .authorizeTokenAccess(token, ctx);
             sender = context.msgSender;
             userData = context.userData;
         }
         if (subscriber == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.IDA_ZERO_ADDRESS_SUBSCRIBER);
+            revert SuperfluidErrors.ZERO_ADDRESS(
+                SuperfluidErrors.IDA_ZERO_ADDRESS_SUBSCRIBER
+            );
         }
 
         // only publisher can delete a subscription
@@ -721,33 +867,39 @@ contract InstantDistributionAgreementV1 is
         // has the ability to modify the units a subscriber has
         if (sender != publisher) revert IDA_OPERATION_NOT_ALLOWED();
 
-        (
-            vars.iId,
-            vars.sId,
-            vars.idata,
-            ,
-            vars.sdata
-        ) = _loadAllData(token, publisher, subscriber, indexId, true);
+        (vars.iId, vars.sId, vars.idata, , vars.sdata) = _loadAllData(
+            token,
+            publisher,
+            subscriber,
+            indexId,
+            true
+        );
 
         cbStates = AgreementLibrary.createCallbackInputs(
             token,
             subscriber,
             vars.sId,
-            "");
+            ""
+        );
         newCtx = ctx;
 
         cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
         vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
         // NOTE casting these values to int256 is okay because the original values
         // are uint128
-        int256 balanceDelta = int256(uint256(vars.idata.indexValue - vars.sdata.indexValue))
-            * int256(uint256(vars.sdata.units));
+        int256 balanceDelta = int256(
+            uint256(vars.idata.indexValue - vars.sdata.indexValue)
+        ) * int256(uint256(vars.sdata.units));
 
         // update publisher index agreement data
         if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
-            vars.idata.totalUnitsApproved = vars.idata.totalUnitsApproved - vars.sdata.units;
+            vars.idata.totalUnitsApproved =
+                vars.idata.totalUnitsApproved -
+                vars.sdata.units;
         } else {
-            vars.idata.totalUnitsPending = vars.idata.totalUnitsPending - vars.sdata.units;
+            vars.idata.totalUnitsPending =
+                vars.idata.totalUnitsPending -
+                vars.sdata.units;
         }
         token.updateAgreementData(vars.iId, _encodeIndexData(vars.idata));
 
@@ -769,12 +921,36 @@ contract InstantDistributionAgreementV1 is
         token.settleBalance(subscriber, balanceDelta);
 
         cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
-        (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+        (, newCtx) = AgreementLibrary.callAppAfterCallback(
+            cbStates,
+            vars.cbdata,
+            newCtx
+        );
 
         emit IndexUnsubscribed(token, publisher, indexId, subscriber, userData);
-        emit SubscriptionRevoked(token, subscriber, publisher, indexId, userData);
-        emit IndexUnitsUpdated(token, publisher, indexId, subscriber, 0, userData);
-        emit SubscriptionUnitsUpdated(token, subscriber, publisher, indexId, 0, userData);
+        emit SubscriptionRevoked(
+            token,
+            subscriber,
+            publisher,
+            indexId,
+            userData
+        );
+        emit IndexUnitsUpdated(
+            token,
+            publisher,
+            indexId,
+            subscriber,
+            0,
+            userData
+        );
+        emit SubscriptionUnitsUpdated(
+            token,
+            subscriber,
+            publisher,
+            indexId,
+            0,
+            userData
+        );
     }
 
     function claim(
@@ -783,59 +959,89 @@ contract InstantDistributionAgreementV1 is
         uint32 indexId,
         address subscriber,
         bytes calldata ctx
-    )
-        external override
-        returns(bytes memory newCtx)
-    {
+    ) external override returns (bytes memory newCtx) {
         AgreementLibrary.authorizeTokenAccess(token, ctx);
         if (subscriber == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.IDA_ZERO_ADDRESS_SUBSCRIBER);
+            revert SuperfluidErrors.ZERO_ADDRESS(
+                SuperfluidErrors.IDA_ZERO_ADDRESS_SUBSCRIBER
+            );
         }
 
         _SubscriptionOperationVars memory vars;
         AgreementLibrary.CallbackInputs memory cbStates;
 
-        (
-            vars.iId,
-            vars.sId,
-            vars.idata,
-            ,
-            vars.sdata
-        ) = _loadAllData(token, publisher, subscriber, indexId, true);
+        (vars.iId, vars.sId, vars.idata, , vars.sdata) = _loadAllData(
+            token,
+            publisher,
+            subscriber,
+            indexId,
+            true
+        );
 
         // required condition check
         if (vars.sdata.subId != _UNALLOCATED_SUB_ID) {
-            revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.IDA_SUBSCRIPTION_ALREADY_APPROVED);
+            revert SuperfluidErrors.ALREADY_EXISTS(
+                SuperfluidErrors.IDA_SUBSCRIPTION_ALREADY_APPROVED
+            );
         }
 
-        uint256 pendingDistribution = uint256(vars.idata.indexValue - vars.sdata.indexValue)
-            * uint256(vars.sdata.units);
+        uint256 pendingDistribution = uint256(
+            vars.idata.indexValue - vars.sdata.indexValue
+        ) * uint256(vars.sdata.units);
 
         cbStates = AgreementLibrary.createCallbackInputs(
             token,
             publisher,
             vars.sId,
-            "");
+            ""
+        );
         newCtx = ctx;
 
         if (pendingDistribution > 0) {
-            cbStates.noopBit = SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP;
-            vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, newCtx);
+            cbStates.noopBit = SuperAppDefinitions
+                .BEFORE_AGREEMENT_UPDATED_NOOP;
+            vars.cbdata = AgreementLibrary.callAppBeforeCallback(
+                cbStates,
+                newCtx
+            );
 
             // adjust publisher's deposits
-            _adjustPublisherDeposit(token, publisher, -int256(pendingDistribution));
+            _adjustPublisherDeposit(
+                token,
+                publisher,
+                -int256(pendingDistribution)
+            );
             token.settleBalance(publisher, -int256(pendingDistribution));
 
             // update subscription data and adjust subscriber's balance
             vars.sdata.indexValue = vars.idata.indexValue;
-            token.updateAgreementData(vars.sId, _encodeSubscriptionData(vars.sdata));
+            token.updateAgreementData(
+                vars.sId,
+                _encodeSubscriptionData(vars.sdata)
+            );
             token.settleBalance(subscriber, int256(pendingDistribution));
 
-            emit IndexDistributionClaimed(token, publisher, indexId, subscriber, pendingDistribution);
-            emit SubscriptionDistributionClaimed(token, subscriber, publisher, indexId, pendingDistribution);
+            emit IndexDistributionClaimed(
+                token,
+                publisher,
+                indexId,
+                subscriber,
+                pendingDistribution
+            );
+            emit SubscriptionDistributionClaimed(
+                token,
+                subscriber,
+                publisher,
+                indexId,
+                pendingDistribution
+            );
 
             cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
-            (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (, newCtx) = AgreementLibrary.callAppAfterCallback(
+                cbStates,
+                vars.cbdata,
+                newCtx
+            );
         } else {
             // nothing to be recorded in this case
             newCtx = ctx;
@@ -849,7 +1055,8 @@ contract InstantDistributionAgreementV1 is
         uint32 indexId,
         bool requireSubscriptionExisting
     )
-        private view
+        private
+        view
         returns (
             bytes32 iId,
             bytes32 sId,
@@ -862,13 +1069,18 @@ contract InstantDistributionAgreementV1 is
         iId = _getPublisherId(publisher, indexId);
         sId = _getSubscriptionId(subscriber, iId);
         (indexExists, idata) = _getIndexData(token, iId);
-        if (!indexExists) revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_INDEX_DOES_NOT_EXIST);
+        if (!indexExists)
+            revert SuperfluidErrors.DOES_NOT_EXIST(
+                SuperfluidErrors.IDA_INDEX_DOES_NOT_EXIST
+            );
         (subscriptionExists, sdata) = _getSubscriptionData(token, sId);
         if (requireSubscriptionExisting) {
             if (!subscriptionExists) {
-                revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.IDA_SUBSCRIPTION_DOES_NOT_EXIST);
+                revert SuperfluidErrors.DOES_NOT_EXIST(
+                    SuperfluidErrors.IDA_SUBSCRIPTION_DOES_NOT_EXIST
+                );
             }
-             // sanity check
+            // sanity check
             assert(sdata.publisher == publisher);
             assert(sdata.indexId == indexId);
         }
@@ -878,21 +1090,17 @@ contract InstantDistributionAgreementV1 is
      * internal helpers
      *************************************************************************/
 
-    function _getPublisherId(
-        address publisher,
-        uint32 indexId
-    )
-        private pure
+    function _getPublisherId(address publisher, uint32 indexId)
+        private
+        pure
         returns (bytes32 iId)
     {
         return keccak256(abi.encodePacked("publisher", publisher, indexId));
     }
 
-    function _getSubscriptionId(
-        address subscriber,
-        bytes32 iId
-    )
-        private pure
+    function _getSubscriptionId(address subscriber, bytes32 iId)
+        private
+        pure
         returns (bytes32 sId)
     {
         return keccak256(abi.encodePacked("subscription", subscriber, iId));
@@ -907,27 +1115,24 @@ contract InstantDistributionAgreementV1 is
     // WORD 2: | totalUnitsPending | totalUnitsApproved |
     //         | 128b              | 12b                |
 
-    function _encodeIndexData(
-        IndexData memory idata
-    )
-        private pure
-        returns (bytes32[] memory data) {
+    function _encodeIndexData(IndexData memory idata)
+        private
+        pure
+        returns (bytes32[] memory data)
+    {
         data = new bytes32[](2);
         data[0] = bytes32(
-            uint256(1 << 128) /* existance bit */ |
-            uint256(idata.indexValue)
+            uint256(1 << 128) | uint256(idata.indexValue) /* existance bit */
         );
         data[1] = bytes32(
             (uint256(idata.totalUnitsApproved)) |
-            (uint256(idata.totalUnitsPending) << 128)
+                (uint256(idata.totalUnitsPending) << 128)
         );
     }
 
-    function _hasIndexData(
-        ISuperfluidToken token,
-        bytes32 iId
-    )
-        private view
+    function _hasIndexData(ISuperfluidToken token, bytes32 iId)
+        private
+        view
         returns (bool exist)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
@@ -935,11 +1140,9 @@ contract InstantDistributionAgreementV1 is
         exist = a > 0;
     }
 
-    function _getIndexData(
-        ISuperfluidToken token,
-        bytes32 iId
-    )
-        private view
+    function _getIndexData(ISuperfluidToken token, bytes32 iId)
+        private
+        view
         returns (bool exist, IndexData memory idata)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), iId, 2);
@@ -956,23 +1159,21 @@ contract InstantDistributionAgreementV1 is
         }
     }
 
-
     // # Publisher's deposit amount
     //
     // It is stored in state slot in one word
 
-    function _getPublisherDeposit(
-        ISuperfluidToken token,
-        address publisher
-    )
-        private view
+    function _getPublisherDeposit(ISuperfluidToken token, address publisher)
+        private
+        view
         returns (uint256)
     {
         bytes32[] memory data = token.getAgreementStateSlot(
             address(this),
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
-            1);
+            1
+        );
         return uint256(data[0]);
     }
 
@@ -980,20 +1181,20 @@ contract InstantDistributionAgreementV1 is
         ISuperfluidToken token,
         address publisher,
         int256 delta
-    )
-        private
-    {
+    ) private {
         if (delta == 0) return;
         bytes32[] memory data = token.getAgreementStateSlot(
             address(this),
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
-            1);
+            1
+        );
         data[0] = bytes32(uint256(uint256(data[0]).toInt256() + delta));
         token.updateAgreementStateSlot(
             publisher,
             _PUBLISHER_DEPOSIT_STATE_SLOT_ID,
-            data);
+            data
+        );
     }
 
     // # Subscription data operations
@@ -1005,29 +1206,25 @@ contract InstantDistributionAgreementV1 is
     // WORD 2: | units | indexValue |
     //         | 128b  | 128b       |
 
-    function _encodeSubscriptionData(
-        SubscriptionData memory sdata
-    )
-        private pure
+    function _encodeSubscriptionData(SubscriptionData memory sdata)
+        private
+        pure
         returns (bytes32[] memory data)
     {
         data = new bytes32[](2);
         data[0] = bytes32(
-            (uint256(uint160(sdata.publisher)) << (12*8)) |
-            (uint256(sdata.indexId) << 32) |
-            uint256(sdata.subId)
+            (uint256(uint160(sdata.publisher)) << (12 * 8)) |
+                (uint256(sdata.indexId) << 32) |
+                uint256(sdata.subId)
         );
         data[1] = bytes32(
-            uint256(sdata.indexValue) |
-            (uint256(sdata.units) << 128)
+            uint256(sdata.indexValue) | (uint256(sdata.units) << 128)
         );
     }
 
-    function _getSubscriptionData(
-        ISuperfluidToken token,
-        bytes32 sId
-    )
-        private view
+    function _getSubscriptionData(ISuperfluidToken token, bytes32 sId)
+        private
+        view
         returns (bool exist, SubscriptionData memory sdata)
     {
         bytes32[] memory adata = token.getAgreementData(address(this), sId, 2);
@@ -1035,7 +1232,7 @@ contract InstantDistributionAgreementV1 is
         uint256 b = uint256(adata[1]);
         exist = a > 0;
         if (exist) {
-            sdata.publisher = address(uint160(a >> (12*8)));
+            sdata.publisher = address(uint160(a >> (12 * 8)));
             sdata.indexId = uint32((a >> 32) & type(uint32).max);
             sdata.subId = uint32(a & type(uint32).max);
             // NOTE We will do an unsafe downcast from uint256 => uint128
@@ -1066,50 +1263,44 @@ contract InstantDistributionAgreementV1 is
         ISuperfluidToken token,
         address subscriber,
         bytes32 iId
-    )
-        private
-        returns (uint32 subId)
-    {
-        return SlotsBitmapLibrary.findEmptySlotAndFill(
-            token,
-            subscriber,
-            _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
-            _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START,
-            iId);
+    ) private returns (uint32 subId) {
+        return
+            SlotsBitmapLibrary.findEmptySlotAndFill(
+                token,
+                subscriber,
+                _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
+                _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START,
+                iId
+            );
     }
 
     function _clearSubsBitmap(
         ISuperfluidToken token,
         address subscriber,
         uint32 subId
-    )
-        private
-    {
+    ) private {
         SlotsBitmapLibrary.clearSlot(
             token,
             subscriber,
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
-            subId);
+            subId
+        );
     }
 
-    function _listSubscriptionIds(
-       ISuperfluidToken token,
-       address subscriber
-    )
-        private view
-        returns (
-            uint32[] memory slotIds,
-            bytes32[] memory sidList)
+    function _listSubscriptionIds(ISuperfluidToken token, address subscriber)
+        private
+        view
+        returns (uint32[] memory slotIds, bytes32[] memory sidList)
     {
         (slotIds, sidList) = SlotsBitmapLibrary.listData(
             token,
             subscriber,
             _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID,
-            _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START);
+            _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START
+        );
         // map data to subId
-        for (uint i = 0; i < sidList.length; ++i) {
+        for (uint256 i = 0; i < sidList.length; ++i) {
             sidList[i] = _getSubscriptionId(subscriber, sidList[i]);
         }
     }
-
 }

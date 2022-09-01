@@ -16,53 +16,55 @@ import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 import { SuperToken } from "../superfluid/SuperToken.sol";
 
-import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
+import {
+    FullUpgradableSuperTokenProxy
+} from "./FullUpgradableSuperTokenProxy.sol";
 
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 
-
-abstract contract SuperTokenFactoryBase is
-    UUPSProxiable,
-    ISuperTokenFactory
-{
-
-    ISuperfluid immutable internal _host;
+abstract contract SuperTokenFactoryBase is UUPSProxiable, ISuperTokenFactory {
+    ISuperfluid internal immutable _host;
 
     ISuperToken internal _superTokenLogic;
 
-    constructor(
-        ISuperfluid host
-    ) {
+    constructor(ISuperfluid host) {
         _host = host;
     }
 
     /// @dev ISuperTokenFactory.getHost implementation
     function getHost()
-       external view
-       override(ISuperTokenFactory)
-       returns(address host)
+        external
+        view
+        override(ISuperTokenFactory)
+        returns (address host)
     {
-       return address(_host);
+        return address(_host);
     }
 
     /**************************************************************************
-    * UUPSProxiable
-    **************************************************************************/
+     * UUPSProxiable
+     **************************************************************************/
     function initialize()
-        external override
+        external
+        override
         initializer // OpenZeppelin Initializable
     {
         _updateSuperTokenLogic();
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return keccak256("org.superfluid-finance.contracts.SuperTokenFactory.implementation");
+        return
+            keccak256(
+                "org.superfluid-finance.contracts.SuperTokenFactory.implementation"
+            );
     }
 
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host)) {
-            revert SuperfluidErrors.ONLY_HOST(SuperfluidErrors.SUPER_TOKEN_FACTORY_ONLY_HOST);
+            revert SuperfluidErrors.ONLY_HOST(
+                SuperfluidErrors.SUPER_TOKEN_FACTORY_ONLY_HOST
+            );
         }
         _updateCodeAddress(newAddress);
         _updateSuperTokenLogic();
@@ -76,16 +78,16 @@ abstract contract SuperTokenFactoryBase is
     }
 
     /**************************************************************************
-    * ISuperTokenFactory
-    **************************************************************************/
-    function getSuperTokenLogic()
-        external view override
-        returns (ISuperToken)
-    {
+     * ISuperTokenFactory
+     **************************************************************************/
+    function getSuperTokenLogic() external view override returns (ISuperToken) {
         return _superTokenLogic;
     }
 
-    function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
+    function createSuperTokenLogic(ISuperfluid host)
+        external
+        virtual
+        returns (address logic);
 
     function createERC20Wrapper(
         IERC20 underlyingToken,
@@ -93,12 +95,11 @@ abstract contract SuperTokenFactoryBase is
         Upgradability upgradability,
         string calldata name,
         string calldata symbol
-    )
-        public override
-        returns (ISuperToken superToken)
-    {
+    ) public override returns (ISuperToken superToken) {
         if (address(underlyingToken) == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_FACTORY_ZERO_ADDRESS);
+            revert SuperfluidErrors.ZERO_ADDRESS(
+                SuperfluidErrors.SUPER_TOKEN_FACTORY_ZERO_ADDRESS
+            );
         }
 
         if (upgradability == Upgradability.NON_UPGRADABLE) {
@@ -108,7 +109,9 @@ abstract contract SuperTokenFactoryBase is
             // initialize the wrapper
             proxy.initializeProxy(address(_superTokenLogic));
             superToken = ISuperToken(address(proxy));
-        } else /* if (type == Upgradability.FULL_UPGRADABE) */ {
+        }
+        /* if (type == Upgradability.FULL_UPGRADABE) */
+        else {
             FullUpgradableSuperTokenProxy proxy = new FullUpgradableSuperTokenProxy();
             proxy.initialize();
             superToken = ISuperToken(address(proxy));
@@ -130,23 +133,20 @@ abstract contract SuperTokenFactoryBase is
         Upgradability upgradability,
         string calldata name,
         string calldata symbol
-    )
-        external override
-        returns (ISuperToken superToken)
-    {
-        return createERC20Wrapper(
-            underlyingToken,
-            underlyingToken.decimals(),
-            upgradability,
-            name,
-            symbol
-        );
+    ) external override returns (ISuperToken superToken) {
+        return
+            createERC20Wrapper(
+                underlyingToken,
+                underlyingToken.decimals(),
+                upgradability,
+                name,
+                symbol
+            );
     }
 
-    function initializeCustomSuperToken(
-        address customSuperTokenProxy
-    )
-        external override
+    function initializeCustomSuperToken(address customSuperTokenProxy)
+        external
+        override
     {
         // odd solidity stuff..
         // NOTE payable necessary because UUPSProxy has a payable fallback function
@@ -155,35 +155,28 @@ abstract contract SuperTokenFactoryBase is
 
         emit CustomSuperTokenCreated(ISuperToken(customSuperTokenProxy));
     }
-
 }
 
 // splitting this off because the contract is getting bigger
 contract SuperTokenFactoryHelper {
-    function create(ISuperfluid host)
-        external
-        returns (address logic)
-    {
+    function create(ISuperfluid host) external returns (address logic) {
         return address(new SuperToken(host));
     }
 }
 
-contract SuperTokenFactory is SuperTokenFactoryBase
-{
-    SuperTokenFactoryHelper immutable private _helper;
+contract SuperTokenFactory is SuperTokenFactoryBase {
+    SuperTokenFactoryHelper private immutable _helper;
 
-    constructor(
-        ISuperfluid host,
-        SuperTokenFactoryHelper helper
-    )
+    constructor(ISuperfluid host, SuperTokenFactoryHelper helper)
         SuperTokenFactoryBase(host)
-        // solhint-disable-next-line no-empty-blocks
+    // solhint-disable-next-line no-empty-blocks
     {
         _helper = helper;
     }
 
     function createSuperTokenLogic(ISuperfluid host)
-        external override
+        external
+        override
         returns (address logic)
     {
         return _helper.create(host);

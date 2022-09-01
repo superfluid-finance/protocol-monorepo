@@ -9,16 +9,12 @@ import { SuperfluidGovernanceBase } from "../gov/SuperfluidGovernanceBase.sol";
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
-
 /**
  * @title Test governance contract
  * @author Superfluid
  * @dev A initializable version of the governance for testing purpose
  */
-contract TestGovernance is
-    Ownable,
-    SuperfluidGovernanceBase
-{
+contract TestGovernance is Ownable, SuperfluidGovernanceBase {
     ISuperfluid private _host;
 
     function initialize(
@@ -27,9 +23,7 @@ contract TestGovernance is
         uint256 liquidationPeriod,
         uint256 patricianPeriod,
         address[] calldata trustedForwarders
-    )
-        external
-    {
+    ) external {
         // can initialize only once
         assert(address(host) != address(0));
         assert(address(_host) == address(0));
@@ -38,16 +32,23 @@ contract TestGovernance is
 
         setRewardAddress(_host, ISuperfluidToken(address(0)), rewardAddress);
 
-        setPPPConfig(host, ISuperfluidToken(address(0)), liquidationPeriod, patricianPeriod);
+        setPPPConfig(
+            host,
+            ISuperfluidToken(address(0)),
+            liquidationPeriod,
+            patricianPeriod
+        );
 
-        for (uint i = 0; i < trustedForwarders.length; ++i) {
-            enableTrustedForwarder(_host, ISuperfluidToken(address(0)), trustedForwarders[i]);
+        for (uint256 i = 0; i < trustedForwarders.length; ++i) {
+            enableTrustedForwarder(
+                _host,
+                ISuperfluidToken(address(0)),
+                trustedForwarders[i]
+            );
         }
     }
 
-    function _requireAuthorised(ISuperfluid host)
-        internal view override
-    {
+    function _requireAuthorised(ISuperfluid host) internal view override {
         assert(host == _host);
         assert(owner() == _msgSender());
     }

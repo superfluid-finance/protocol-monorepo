@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.4;
+pragma solidity >=0.8.4;
 
 import { ISuperToken } from "./ISuperToken.sol";
 
-import {
-    IERC20,
-    ERC20WithTokenInfo
-} from "../tokens/ERC20WithTokenInfo.sol";
+import { IERC20, ERC20WithTokenInfo } from "../tokens/ERC20WithTokenInfo.sol";
 import { SuperfluidErrors } from "./Definitions.sol";
 
 /**
@@ -17,7 +14,7 @@ interface ISuperTokenFactory {
     /**
      * @dev Get superfluid host contract address
      */
-    function getHost() external view returns(address host);
+    function getHost() external view returns (address host);
 
     /// @dev Initialize the contract
     function initialize() external;
@@ -25,7 +22,10 @@ interface ISuperTokenFactory {
     /**
      * @dev Get the current super token logic used by the factory
      */
-    function getSuperTokenLogic() external view returns (ISuperToken superToken);
+    function getSuperTokenLogic()
+        external
+        view
+        returns (ISuperToken superToken);
 
     /**
      * @dev Upgradability modes
@@ -53,9 +53,7 @@ interface ISuperTokenFactory {
         Upgradability upgradability,
         string calldata name,
         string calldata symbol
-    )
-        external
-        returns (ISuperToken superToken);
+    ) external returns (ISuperToken superToken);
 
     /**
      * @dev Create new super token wrapper for the underlying ERC20 token with extra token info
@@ -72,31 +70,25 @@ interface ISuperTokenFactory {
         Upgradability upgradability,
         string calldata name,
         string calldata symbol
-    )
-        external
-        returns (ISuperToken superToken);
+    ) external returns (ISuperToken superToken);
 
-    function initializeCustomSuperToken(
-        address customSuperTokenProxy
-    )
-        external;
+    function initializeCustomSuperToken(address customSuperTokenProxy) external;
 
     /**
-      * @dev Super token logic created event
-      * @param tokenLogic Token logic address
-      */
+     * @dev Super token logic created event
+     * @param tokenLogic Token logic address
+     */
     event SuperTokenLogicCreated(ISuperToken indexed tokenLogic);
 
     /**
-      * @dev Super token created event
-      * @param token Newly created super token address
-      */
+     * @dev Super token created event
+     * @param token Newly created super token address
+     */
     event SuperTokenCreated(ISuperToken indexed token);
 
     /**
-      * @dev Custom super token created event
-      * @param token Newly created custom super token address
-      */
+     * @dev Custom super token created event
+     * @param token Newly created custom super token address
+     */
     event CustomSuperTokenCreated(ISuperToken indexed token);
-
 }

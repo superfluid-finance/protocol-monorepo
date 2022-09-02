@@ -28,7 +28,7 @@ for i in "${NETWORKS[@]}";do
     SUBGRAPH_ENDPOINT=https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-$SUBGRAPH_RELEASE_TAG-$i
     
     # @note temporarily don't run tests for arbitrum-goerli because the subgraph doesn't have a URL for it yet
-    if [ "$SUBGRAPH_ENDPOINT" != "arbitrum-goerli" ]; then
+    if [ "$i" != "arbitrum-goerli" ]; then
         testSchemaAndQueries
     fi
 

@@ -1,18 +1,20 @@
+import {artifacts, assert, ethers} from "hardhat";
+import {ISuperTokenFactory} from "../../../typechain-types";
+
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const TestEnvironment = require("../../TestEnvironment");
 
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {ethers} = require("hardhat");
 const {toWad} = require("../utils/helpers");
 
 describe("PureSuperToken Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    let admin;
-    let superTokenFactory;
+    let admin: string;
+    let superTokenFactory: ISuperTokenFactory;
 
     before(async () => {
         await t.beforeTestSuite({
@@ -31,24 +33,28 @@ describe("PureSuperToken Contract", function () {
     });
 
     it("#1 initialization", async () => {
-        let tokenProxy = await ethers.getContractFactory("PureSuperToken");
-        tokenProxy = await tokenProxy.deploy();
+        const PureSuperTokenFactory = await ethers.getContractFactory(
+            "PureSuperToken"
+        );
+        const PureSuperToken = await PureSuperTokenFactory.deploy();
         await web3tx(
             superTokenFactory.initializeCustomSuperToken,
             "superTokenFactory.initializeCustomSuperToken"
-        )(tokenProxy.address);
-        await web3tx(tokenProxy.initialize, "tokenProxy.initialize")(
+        )(PureSuperToken.address);
+        await web3tx(PureSuperToken.initialize, "PureSuperToken.initialize")(
             "Didi Token",
             "DD",
             toWad(42).toString()
         );
-        const token = await t.sf.contracts.ISuperToken.at(tokenProxy.address);
+        const token = await t.sf.contracts.ISuperToken.at(
+            PureSuperToken.address
+        );
         assert.equal(
             (await token.balanceOf.call(admin)).toString(),
             toWad(42).toString()
         );
         await expectRevertedWith(
-            tokenProxy.initialize("Hacker", "HH", toWad(0).toString()),
+            PureSuperToken.initialize("Hacker", "HH", toWad(0).toString()),
             "Initializable: contract is already initialized"
         );
     });

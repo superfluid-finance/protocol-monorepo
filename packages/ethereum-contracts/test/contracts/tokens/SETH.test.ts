@@ -1,3 +1,7 @@
+import {assert} from "chai";
+import {artifacts, ethers, web3} from "hardhat";
+import {ISETH} from "../../../typechain-types";
+
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const {expectCustomError} = require("../../utils/expectRevert");
 
@@ -8,14 +12,13 @@ const ISETH = artifacts.require("ISETH");
 const SETHProxy = artifacts.require("SETHProxy");
 
 const {web3tx, toBN, toWad} = require("@decentral.ee/web3-helpers");
-const {ethers} = require("hardhat");
 
 describe("Super ETH (SETH) Contract", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    let alice, bob;
-    let seth;
+    let alice: string, bob: string;
+    let seth: ISETH;
 
     before(async () => {
         await t.beforeTestSuite({

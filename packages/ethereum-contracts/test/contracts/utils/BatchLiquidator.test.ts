@@ -1,11 +1,10 @@
+const traveler = require("ganache-time-traveler");
+import {assert} from "chai";
+import {ethers} from "hardhat";
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const TestEnvironment = require("../../TestEnvironment");
-const BatchLiquidator = artifacts.require("BatchLiquidator");
-const BatchLiquidatorArtifact = require("../../../artifacts/contracts/utils/BatchLiquidator.sol/BatchLiquidator.json");
-
-const traveler = require("ganache-time-traveler");
-const {ethers} = require("hardhat");
+import {BatchLiquidator, SuperToken} from "../../../typechain-types";
 
 describe("Superfluid Liquidator Contract", function () {
     this.timeout(300e3);
@@ -13,16 +12,19 @@ describe("Superfluid Liquidator Contract", function () {
 
     const FLOW_RATE = t.configs.FLOW_RATE1; // 1 per hour
 
-    let superToken;
-    let batch;
+    let superToken: SuperToken;
+    let BatchLiquidator: BatchLiquidator;
 
     before(async () => {
         await t.beforeTestSuite({
             isTruffle: true,
             nAccounts: 10,
         });
-
-        batch = await BatchLiquidator.new({from: t.accounts[0]});
+        const BatchLiquidatorFactory = await ethers.getContractFactory(
+            "BatchLiquidator"
+        );
+        const admin = await ethers.getSigner(t.accounts[0]);
+        BatchLiquidator = await BatchLiquidatorFactory.connect(admin).deploy();
         await t.pushEvmSnapshot();
 
         superToken = t.sf.tokens.TESTx;
@@ -36,12 +38,12 @@ describe("Superfluid Liquidator Contract", function () {
         await t.beforeEachTestCase();
     });
 
-    async function timeTravelOnce(time) {
-        const block1 = await web3.eth.getBlock("latest");
+    async function timeTravelOnce(time: number) {
+        const block1 = await ethers.provider.getBlock("latest");
         console.log("current block time", block1.timestamp);
         console.log(`time traveler going to the future +${time}...`);
         await traveler.advanceTimeAndBlock(time);
-        const block2 = await web3.eth.getBlock("latest");
+        const block2 = await ethers.provider.getBlock("latest");
         console.log("new block time", block2.timestamp);
     }
 
@@ -62,13 +64,13 @@ describe("Superfluid Liquidator Contract", function () {
                 from: t.accounts[1],
             });
             await timeTravelOnce(5 * 3600);
-            await batch.deleteFlows(
+            const signer = await ethers.getSigner(t.accounts[9]);
+            await BatchLiquidator.connect(signer).deleteFlows(
                 t.sf.host.address,
                 t.sf.agreements.cfa.address,
                 superToken.address,
                 Array(7).fill(t.accounts[1]),
-                t.accounts.slice(1, 8),
-                {from: t.accounts[9]}
+                t.accounts.slice(1, 8)
             );
 
             assert.ok(
@@ -99,13 +101,13 @@ describe("Superfluid Liquidator Contract", function () {
                 from: t.accounts[1],
             });
             await timeTravelOnce(1);
-            await batch.deleteFlows(
+            const signer = await ethers.getSigner(t.accounts[0]);
+            await BatchLiquidator.connect(signer).deleteFlows(
                 t.sf.host.address,
                 t.sf.agreements.cfa.address,
                 superToken.address,
                 Array(7).fill(t.accounts[1]),
-                t.accounts.slice(1, 8),
-                {from: t.accounts[0]}
+                t.accounts.slice(1, 8)
             );
             assert.ok(
                 (await superToken.balanceOf(rewardAccount)).gt(rewardBalance)
@@ -134,13 +136,13 @@ describe("Superfluid Liquidator Contract", function () {
                 from: t.accounts[1],
             });
             await timeTravelOnce(5 * 3600);
-            await batch.deleteFlows(
+            const signer = await ethers.getSigner(t.accounts[9]);
+            await BatchLiquidator.connect(signer).deleteFlows(
                 t.sf.host.address,
                 t.sf.agreements.cfa.address,
                 superToken.address,
                 Array(7).fill(t.accounts[1]),
-                t.accounts.slice(1, 8),
-                {from: t.accounts[9]}
+                t.accounts.slice(1, 8)
             );
 
             assert.ok(
@@ -151,13 +153,8 @@ describe("Superfluid Liquidator Contract", function () {
         });
 
         it("#1.4 Revert if size of senders and receivers don't match", async () => {
-            batch = await ethers.getContractAtFromArtifact(
-                BatchLiquidatorArtifact,
-                batch.address,
-                await ethers.getSigner(t.accounts[0])
-            );
             await expectRevertedWith(
-                batch.deleteFlows(
+                BatchLiquidator.deleteFlows(
                     t.sf.host.address,
                     t.sf.agreements.cfa.address,
                     superToken.address,

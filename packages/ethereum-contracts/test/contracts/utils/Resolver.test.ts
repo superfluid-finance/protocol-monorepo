@@ -1,3 +1,4 @@
+import {assert} from "chai";
 const {ethers} = require("hardhat");
 const TestEnvironment = require("../../TestEnvironment");
 const {expectRevertedWith} = require("../../utils/expectRevert");
@@ -8,7 +9,7 @@ const DEFAULT_ADMIN_ROLE =
 describe("Resolver", function () {
     const t = TestEnvironment.getSingleton();
 
-    let admin, alice;
+    let admin: string, alice: string;
 
     before(async () => {
         await t.beforeTestSuite({

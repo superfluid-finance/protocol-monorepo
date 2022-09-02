@@ -1,15 +1,23 @@
+import {assert} from "chai";
+import {ethers} from "hardhat";
+const {web3tx} = require("@decentral.ee/web3-helpers");
+
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const TestEnvironment = require("../../TestEnvironment");
-const SuperUpgrader = artifacts.require("SuperUpgrader");
-
-const {web3tx} = require("@decentral.ee/web3-helpers");
-const {ethers} = require("hardhat");
 const {toWad} = require("./helpers");
+
+import {
+    SuperToken,
+    SuperUpgrader__factory,
+    TestToken,
+} from "../../../typechain-types";
 
 const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
-const BACKEND_ROLE = web3.utils.soliditySha3("BACKEND_ROLE");
+const BACKEND_ROLE = ethers.utils.keccak256(
+    ethers.utils.toUtf8Bytes("BACKEND_ROLE")
+);
 
 describe("Superfluid Super Upgrader Contract", function () {
     this.timeout(300e3);
@@ -17,17 +25,24 @@ describe("Superfluid Super Upgrader Contract", function () {
 
     const {ZERO_ADDRESS} = t.constants;
 
-    let admin, alice, bob, carol, dan, eve;
-    let backend;
-    let superToken;
-    let testToken;
+    let SuperUpgraderFactory: SuperUpgrader__factory;
+
+    let admin: string,
+        alice: string,
+        bob: string,
+        carol: string,
+        dan: string,
+        eve: string;
+    let backend: Array<string>;
+    let superToken: SuperToken;
+    let testToken: TestToken;
 
     before(async () => {
         await t.beforeTestSuite({
             isTruffle: true,
             nAccounts: 6,
         });
-
+        SuperUpgraderFactory = await ethers.getContractFactory("SuperUpgrader");
         ({admin, alice, bob, carol, dan, eve} = t.aliases);
         backend = new Array(bob, carol, dan);
         testToken = await t.sf.contracts.TestToken.at(t.sf.tokens.TEST.address);
@@ -38,9 +53,9 @@ describe("Superfluid Super Upgrader Contract", function () {
         await t.beforeEachTestCase();
     });
 
-    describe("#1 SuperUpgrader Deployement", async () => {
+    describe("#1 SuperUpgrader Deployment", async () => {
         it("#1.1 Should deploy adminRole address", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             const isAdminRole = await upgrader.hasRole(
                 DEFAULT_ADMIN_ROLE,
                 admin
@@ -74,7 +89,10 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#1.3 Should add new Backend addresses", async () => {
-            const upgrader = await SuperUpgrader.new(admin, new Array());
+            const upgrader = await SuperUpgraderFactory.deploy(
+                admin,
+                new Array()
+            );
             await upgrader.grantRole(BACKEND_ROLE, bob);
             const isBackend = await upgrader.hasRole(BACKEND_ROLE, bob);
             assert.isOk(
@@ -86,8 +104,7 @@ describe("Superfluid Super Upgrader Contract", function () {
 
     describe("#2 Upgrades to SuperToken", async () => {
         it("#2.1 Should revert if not in role", async () => {
-            let upgrader = await ethers.getContractFactory("SuperUpgrader");
-            upgrader = await upgrader.deploy(admin, backend);
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             await web3tx(
                 testToken.approve,
                 "testToken.approve - from alice to admin"
@@ -104,24 +121,20 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#2.2 Should upgrade amount and give it back to user", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             await web3tx(
                 testToken.approve,
                 "testToken.approve - from alice to admin"
             )(upgrader.address, toWad("3"), {
                 from: alice,
             });
-            await web3tx(upgrader.upgrade, "upgrader.upgrade")(
+            const signer = await ethers.getSigner(backend[0]);
+            await web3tx(upgrader.connect(signer).upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
-                toWad("3"),
-                {
-                    from: backend[0],
-                }
+                toWad("3")
             );
-            const aliceSuperTokenBalance = await superToken.balanceOf.call(
-                alice
-            );
+            const aliceSuperTokenBalance = await superToken.balanceOf(alice);
             assert.equal(
                 aliceSuperTokenBalance.toString(),
                 toWad("3"),
@@ -130,7 +143,7 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#2.3 Should upgrade small amount", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             await web3tx(
                 testToken.approve,
                 "testToken.approve - from alice to backend"
@@ -138,18 +151,14 @@ describe("Superfluid Super Upgrader Contract", function () {
                 from: alice,
             });
 
-            await web3tx(upgrader.upgrade, "upgrader.upgrade")(
+            const signer = await ethers.getSigner(backend[1]);
+            await web3tx(upgrader.connect(signer).upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
-                1,
-                {
-                    from: backend[1],
-                }
+                1
             );
 
-            const aliceSuperTokenBalance = await superToken.balanceOf.call(
-                alice
-            );
+            const aliceSuperTokenBalance = await superToken.balanceOf(alice);
             assert.equal(
                 aliceSuperTokenBalance.toString(),
                 "1",
@@ -158,7 +167,7 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#2.4 Should upgrade large amount", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             await testToken.mint(alice, toWad("100000000000"), {
                 from: admin,
             });
@@ -169,19 +178,14 @@ describe("Superfluid Super Upgrader Contract", function () {
             )(upgrader.address, toWad("100000000000"), {
                 from: alice,
             });
-
-            await web3tx(upgrader.upgrade, "upgrader.upgrade")(
+            const signer = await ethers.getSigner(backend[2]);
+            await web3tx(upgrader.connect(signer).upgrade, "upgrader.upgrade")(
                 superToken.address,
                 alice,
-                toWad("100000000000"),
-                {
-                    from: backend[2],
-                }
+                toWad("100000000000")
             );
 
-            const aliceSuperTokenBalance = await superToken.balanceOf.call(
-                alice
-            );
+            const aliceSuperTokenBalance = await superToken.balanceOf(alice);
             assert.equal(
                 aliceSuperTokenBalance.toString(),
                 toWad("100000000000").toString(),
@@ -190,8 +194,7 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#2.5 Should revert without approval", async () => {
-            let upgrader = await ethers.getContractFactory("SuperUpgrader");
-            upgrader = await upgrader.deploy(admin, backend);
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             const backendSigner = await ethers.getSigner(backend[0]);
 
             console.log("upgrader.upgrade");
@@ -204,8 +207,7 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#2.6 Should revert approval is less than need it", async () => {
-            let upgrader = await ethers.getContractFactory("SuperUpgrader");
-            upgrader = await upgrader.deploy(admin, backend);
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             const backendSigner = await ethers.getSigner(backend[0]);
             await web3tx(
                 testToken.approve,
@@ -223,24 +225,19 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#2.7 Owner of tokens can use SuperUpgrader directly", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             await web3tx(
                 testToken.approve,
                 "testToken.approve - from alice to admin"
             )(upgrader.address, toWad("1000000"), {
                 from: alice,
             });
-            await web3tx(upgrader.upgrade, "upgrader.upgrade")(
-                superToken.address,
-                alice,
-                toWad("3"),
-                {
-                    from: alice,
-                }
-            );
-            const aliceSuperTokenBalance = await superToken.balanceOf.call(
-                alice
-            );
+            const aliceSigner = await ethers.getSigner(alice);
+            await web3tx(
+                upgrader.connect(aliceSigner).upgrade,
+                "upgrader.upgrade"
+            )(superToken.address, alice, toWad("3"));
+            const aliceSuperTokenBalance = await superToken.balanceOf(alice);
             assert.equal(
                 aliceSuperTokenBalance.toString(),
                 toWad("3"),
@@ -249,8 +246,7 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#2.8 Owner should define optout/optin blocking backend upgrade", async () => {
-            let upgrader = await ethers.getContractFactory("SuperUpgrader");
-            upgrader = await upgrader.deploy(admin, backend);
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             const backendSigner = await ethers.getSigner(backend[0]);
             const aliceSigner = await ethers.getSigner(alice);
             await web3tx(
@@ -288,8 +284,7 @@ describe("Superfluid Super Upgrader Contract", function () {
 
     describe("#3 Control list of roles", async () => {
         it("#3.1 Admin should add/remove backend accounts", async () => {
-            let upgrader = await ethers.getContractFactory("SuperUpgrader");
-            upgrader = await upgrader.deploy(admin, backend);
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             const adminSigner = await ethers.getSigner(admin);
             const eveSigner = await ethers.getSigner(eve);
 
@@ -333,14 +328,12 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#3.2 Admin should add/remove admin accounts", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
-            await web3tx(upgrader.grantRole, "admin add bob to admin")(
-                DEFAULT_ADMIN_ROLE,
-                bob,
-                {
-                    from: admin,
-                }
-            );
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
+            const adminSigner = await ethers.getSigner(admin);
+            await web3tx(
+                upgrader.connect(adminSigner).grantRole,
+                "admin add bob to admin"
+            )(DEFAULT_ADMIN_ROLE, bob);
             assert.isOk(
                 await upgrader.hasRole(DEFAULT_ADMIN_ROLE, bob),
                 "bob should be in admin role"
@@ -348,8 +341,8 @@ describe("Superfluid Super Upgrader Contract", function () {
         });
 
         it("#3.3 List all Backend accounts", async () => {
-            const upgrader = await SuperUpgrader.new(admin, backend);
-            const registerBackend = await upgrader.getBackendAgents.call();
+            const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
+            const registerBackend = await upgrader.getBackendAgents();
             for (let i = 0; i < backend.length; i++) {
                 assert.equal(
                     registerBackend[i],

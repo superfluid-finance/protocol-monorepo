@@ -1,7 +1,8 @@
+import {assert} from "chai";
 import {ethers, expect} from "hardhat";
 const TestEnvironment = require("../../TestEnvironment");
 const {expectRevertedWith} = require("../../utils/expectRevert");
-import {assert} from "chai";
+const {keccak256} = require("../utils/helpers");
 import {
     UUPSProxiableMock__factory,
     UUPSProxy__factory,
@@ -19,12 +20,9 @@ describe("Miscellaneous for test coverages", () => {
         });
     });
 
-    const keccak256 = (x: string) =>
-        ethers.utils.keccak256(ethers.utils.toUtf8Bytes(x));
-
     describe("UUPS", () => {
-        let UUPSProxyFactory: UUPSProxy__factory ;
-        let UUPSProxiableMockFactory: UUPSProxiableMock__factory ;
+        let UUPSProxyFactory: UUPSProxy__factory;
+        let UUPSProxiableMockFactory: UUPSProxiableMock__factory;
         before(async () => {
             UUPSProxyFactory = await ethers.getContractFactory("UUPSProxy");
             UUPSProxiableMockFactory = await ethers.getContractFactory(

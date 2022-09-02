@@ -1,20 +1,32 @@
+import {ethers} from "hardhat";
+import {assert, expect} from "chai";
+import {BigNumber, BigNumberish} from "ethers";
+import {
+    ConstantFlowAgreementV1,
+    IERC1820Registry,
+    Superfluid,
+    SuperToken,
+    TOGA,
+    TokenCustodian,
+} from "../../../typechain-types";
+
 const {expectRevertedWith} = require("../../utils/expectRevert");
 const TestEnvironment = require("../../TestEnvironment");
 const traveler = require("ganache-time-traveler");
-const {toBN, toWad} = require("./helpers");
-const {ethers} = require("hardhat");
-const {expect} = require("chai");
+const {abiCoder, keccak256, toBN, toWad} = require("./helpers");
 
 describe("TOGA", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
     const {ZERO_ADDRESS} = t.constants;
 
-    let admin, alice, bob, carol;
+    let admin: string, alice: string, bob: string, carol: string;
 
-    let superfluid, erc1820, cfa;
-    let toga, custodian;
-    let superToken;
+    let superfluid: Superfluid,
+        erc1820: IERC1820Registry,
+        cfa: ConstantFlowAgreementV1;
+    let TOGA: TOGA, TokenCustodian: TokenCustodian;
+    let superToken: SuperToken;
     const MIN_BOND_DURATION = 3600 * 24 * 7; // 604800 s | 7 days
     const EXIT_RATE_1 = 1; // 1 wad per second
     const EXIT_RATE_1E3 = 1e3; // 1000 wad per second
@@ -43,58 +55,66 @@ describe("TOGA", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
-        custodian = await ethers.getContractFactory("TokenCustodian");
-        custodian = await custodian.deploy();
-        console.log(`custodian deployed at: ${custodian.address}`);
-        toga = await ethers.getContractFactory("TOGA");
-        toga = await toga.deploy(
+        const CustodianFactory = await ethers.getContractFactory(
+            "TokenCustodian"
+        );
+        TokenCustodian = await CustodianFactory.deploy();
+        console.log(`custodian deployed at: ${TokenCustodian.address}`);
+        const TOGAFactory = await ethers.getContractFactory("TOGA");
+        TOGA = await TOGAFactory.deploy(
             superfluid.address,
             MIN_BOND_DURATION,
-            custodian.address
+            TokenCustodian.address
         );
-        console.log(`TOGA deployed at: ${toga.address}`);
+        console.log(`TOGA deployed at: ${TOGA.address}`);
         await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
     });
 
     // copied over from ConstantFlowAgreementV1.test.js - should probably be a shared fn
     async function timeTravelOnce(time = MIN_BOND_DURATION) {
-        const block1 = await web3.eth.getBlock("latest");
+        const block1 = await ethers.provider.getBlock("latest");
         console.log("current block time", block1.timestamp);
         console.log(`time traveler going to the future +${time}...`);
         await traveler.advanceTimeAndBlock(time);
-        const block2 = await web3.eth.getBlock("latest");
+        const block2 = await ethers.provider.getBlock("latest");
         console.log("new block time", block2.timestamp);
     }
 
     // returns a promise
     async function sendPICBid(
-        sender,
-        token,
-        bondAmount,
-        exitRate,
+        sender: string,
+        token: SuperToken,
+        bondAmount: BigNumberish,
+        exitRate?: BigNumberish,
         gasLimit = 3000000
     ) {
         const exitRateEncoded =
             exitRate !== undefined
-                ? web3.eth.abi.encodeParameter("int96", exitRate)
+                ? abiCoder.encode(["int96"], [exitRate])
                 : "0x";
         const signer = await ethers.getSigner(sender);
         return await token
             .connect(signer)
-            .send(toga.address, bondAmount, exitRateEncoded, {
+            .send(TOGA.address, bondAmount, exitRateEncoded, {
                 gasLimit,
             });
     }
 
-    function shouldMaxExitRate(bondAmount) {
-        return Math.floor(bondAmount / MIN_BOND_DURATION);
+    function shouldMaxExitRate(bondAmount: BigNumber) {
+        return Math.floor(
+            Number(bondAmount.div(toBN(MIN_BOND_DURATION)).toString())
+        );
     }
 
-    function shouldDefaultExitRate(bondAmount) {
+    function shouldDefaultExitRate(bondAmount: number) {
         return Math.floor(bondAmount / (MIN_BOND_DURATION * 4));
     }
 
-    async function assertNetFlow(token, account, expectedFlowRate) {
+    async function assertNetFlow(
+        token: SuperToken,
+        account: string,
+        expectedFlowRate: BigNumberish
+    ) {
         const actualFlowrate = await cfa.getNetFlow(token.address, account);
         assert.equal(
             expectedFlowRate.toString(),
@@ -105,13 +125,17 @@ describe("TOGA", function () {
 
     // emulates reward collection through a stream. Will fast forward the chain by the given time.
     // Done with a stream because a transfer() or send() would trigger a bid
-    async function collectRewards(token, flowrate, time) {
+    async function collectRewards(
+        token: SuperToken,
+        flowrate: BigNumberish,
+        time: number
+    ) {
         await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
 
         await t.sf.cfa.createFlow({
             superToken: token.address,
             sender: admin,
-            receiver: toga.address,
+            receiver: TOGA.address,
             flowRate: flowrate.toString(),
         });
 
@@ -120,23 +144,23 @@ describe("TOGA", function () {
         await t.sf.cfa.deleteFlow({
             superToken: token.address,
             sender: admin,
-            receiver: toga.address,
+            receiver: TOGA.address,
             by: admin,
         });
 
         console.log(
             `TOGA balance after collectRewards: ${(
-                await token.balanceOf(toga.address)
+                await token.balanceOf(TOGA.address)
             ).toString()}`
         );
     }
 
     // requires the exit stream to be in a critical state - will fail otherwise
-    async function liquidateExitStream(token) {
+    async function liquidateExitStream(token: SuperToken) {
         await t.sf.cfa.deleteFlow({
             superToken: token.address,
-            sender: toga.address,
-            receiver: await toga.getCurrentPIC(token.address),
+            sender: TOGA.address,
+            receiver: await TOGA.getCurrentPIC(token.address),
             by: admin,
         });
     }
@@ -144,23 +168,23 @@ describe("TOGA", function () {
     // ================================================================================
 
     it("#0 contract setup", async () => {
-        const custodianAddr = await toga.custodian();
-        assert.equal(custodianAddr, custodian.address);
+        const custodianAddr = await TOGA.custodian();
+        assert.equal(custodianAddr, TokenCustodian.address);
 
-        const minBondDuration = await toga.minBondDuration();
+        const minBondDuration = await TOGA.minBondDuration();
         assert.equal(minBondDuration.toNumber(), MIN_BOND_DURATION);
     });
 
     it("#1 alice becomes PIC", async () => {
         assert.equal(
-            await toga.getCurrentPIC(superToken.address),
+            await TOGA.getCurrentPIC(superToken.address),
             ZERO_ADDRESS
         );
 
         await expect(
             sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1)
         )
-            .to.emit(toga, "NewPIC")
+            .to.emit(TOGA, "NewPIC")
             .withArgs(
                 superToken.address,
                 alice,
@@ -168,9 +192,9 @@ describe("TOGA", function () {
                 EXIT_RATE_1.toString()
             );
 
-        assert.equal(await toga.getCurrentPIC(superToken.address), alice);
+        assert.equal(await TOGA.getCurrentPIC(superToken.address), alice);
 
-        const {pic, bond: bond} = await toga.getCurrentPICInfo(
+        const {pic, bond: bond} = await TOGA.getCurrentPICInfo(
             superToken.address
         );
         assert.equal(pic, alice);
@@ -184,9 +208,9 @@ describe("TOGA", function () {
 
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, 0);
 
-        assert.equal(await toga.getCurrentPIC(superToken.address), alice);
+        assert.equal(await TOGA.getCurrentPIC(superToken.address), alice);
 
-        const bond = (await toga.getCurrentPICInfo(superToken.address)).bond;
+        const bond = (await TOGA.getCurrentPICInfo(superToken.address)).bond;
         //console.log(`remaining bond: ${bond}`);
         assert.equal(bond.toString(), BOND_AMOUNT_1E18.toString());
 
@@ -212,7 +236,7 @@ describe("TOGA", function () {
                 EXIT_RATE_1
             )
         )
-            .to.emit(toga, "NewPIC")
+            .to.emit(TOGA, "NewPIC")
             .withArgs(
                 superToken.address,
                 bob,
@@ -220,9 +244,9 @@ describe("TOGA", function () {
                 EXIT_RATE_1.toString()
             );
 
-        assert.equal(await toga.getCurrentPIC(superToken.address), bob);
+        assert.equal(await TOGA.getCurrentPIC(superToken.address), bob);
         assert.equal(
-            (await toga.getCurrentPICInfo(superToken.address)).bond.toString(),
+            (await TOGA.getCurrentPICInfo(superToken.address)).bond.toString(),
             BOND_AMOUNT_1E18.add(toBN(1)).toString()
         );
     });
@@ -230,18 +254,18 @@ describe("TOGA", function () {
     it("#3 TOGA registered with ERC1820", async () => {
         assert.equal(
             await erc1820.getInterfaceImplementer(
-                toga.address,
-                web3.utils.soliditySha3("TOGAv1")
+                TOGA.address,
+                keccak256("TOGAv1")
             ),
-            toga.address
+            TOGA.address
         );
 
         assert.equal(
             await erc1820.getInterfaceImplementer(
-                toga.address,
-                web3.utils.soliditySha3("TOGAv2")
+                TOGA.address,
+                keccak256("TOGAv2")
             ),
-            toga.address
+            TOGA.address
         );
     });
 
@@ -271,27 +295,23 @@ describe("TOGA", function () {
     });
 
     it("#6 max and default exitRate are calculated correctly", async () => {
-        assert.equal(
-            shouldMaxExitRate(BOND_AMOUNT_1E18).toString(),
-            await toga.getMaxExitRateFor(superToken.address, BOND_AMOUNT_1E18)
+        expect(shouldMaxExitRate(BOND_AMOUNT_1E18).toString()).to.equal(
+            await TOGA.getMaxExitRateFor(superToken.address, BOND_AMOUNT_1E18)
         );
 
-        assert.equal(
-            shouldMaxExitRate(BOND_AMOUNT_2E18).toString(),
-            await toga.getMaxExitRateFor(superToken.address, BOND_AMOUNT_2E18)
+        expect(shouldMaxExitRate(BOND_AMOUNT_2E18).toString()).to.equal(
+            await TOGA.getMaxExitRateFor(superToken.address, BOND_AMOUNT_2E18)
         );
 
-        assert.equal(
-            shouldDefaultExitRate(BOND_AMOUNT_1E18).toString(),
-            await toga.getDefaultExitRateFor(
+        expect(shouldDefaultExitRate(BOND_AMOUNT_1E18).toString()).to.equal(
+            await TOGA.getDefaultExitRateFor(
                 superToken.address,
                 BOND_AMOUNT_1E18
             )
         );
 
-        assert.equal(
-            shouldDefaultExitRate(BOND_AMOUNT_2E18).toString(),
-            await toga.getDefaultExitRateFor(
+        expect(shouldDefaultExitRate(BOND_AMOUNT_2E18).toString()).to.equal(
+            await TOGA.getDefaultExitRateFor(
                 superToken.address,
                 BOND_AMOUNT_2E18
             )
@@ -300,7 +320,7 @@ describe("TOGA", function () {
         // the default exit rate needs to be equal or greater than the max exit rate
         assert(
             toBN(shouldMaxExitRate(BOND_AMOUNT_2E18)).gte(
-                await toga.getDefaultExitRateFor(
+                await TOGA.getDefaultExitRateFor(
                     superToken.address,
                     BOND_AMOUNT_2E18
                 )
@@ -313,7 +333,7 @@ describe("TOGA", function () {
         await assertNetFlow(
             superToken,
             alice,
-            await toga.getDefaultExitRateFor(
+            await TOGA.getDefaultExitRateFor(
                 superToken.address,
                 BOND_AMOUNT_1E18
             )
@@ -347,9 +367,9 @@ describe("TOGA", function () {
         //const togaBal1 = await superToken.balanceOf(toga.address);
         //console.log(`toga bal pre close: ${togaBal1.toString()}`);
 
-        const togaPrelimBal = await superToken.balanceOf(toga.address);
+        const togaPrelimBal = await superToken.balanceOf(TOGA.address);
         await sendPICBid(alice, superToken, BOND_AMOUNT_2E18);
-        const aliceBond = (await toga.getCurrentPICInfo(superToken.address))
+        const aliceBond = (await TOGA.getCurrentPICInfo(superToken.address))
             .bond;
 
         // the tokens previously collected in the contract are attributed to Alice's bond
@@ -372,17 +392,17 @@ describe("TOGA", function () {
         await sendPICBid(alice, superToken, BOND_AMOUNT_2E18, 0);
         const aliceIntermediateBal = await superToken.balanceOf(alice);
         await expect(sendPICBid(alice, superToken, BOND_AMOUNT_1E18))
-            .to.emit(toga, "BondIncreased")
+            .to.emit(TOGA, "BondIncreased")
             .withArgs(superToken.address, BOND_AMOUNT_1E18.toString());
 
-        assert.equal(await toga.getCurrentPIC(superToken.address), alice);
+        assert.equal(await TOGA.getCurrentPIC(superToken.address), alice);
         await assertNetFlow(superToken, alice, 0);
         assert.equal(
             (await superToken.balanceOf(alice)).toString(),
             aliceIntermediateBal.sub(toBN(BOND_AMOUNT_1E18)).toString()
         );
         assert.equal(
-            (await toga.getCurrentPICInfo(superToken.address)).bond.toString(),
+            (await TOGA.getCurrentPICInfo(superToken.address)).bond.toString(),
             BOND_AMOUNT_2E18.add(BOND_AMOUNT_1E18).toString()
         );
     });
@@ -392,54 +412,59 @@ describe("TOGA", function () {
         const aliceSigner = await ethers.getSigner(alice);
 
         await expectRevertedWith(
-            toga
-                .connect(await ethers.getSigner(bob))
-                .changeExitRate(superToken.address, EXIT_RATE_1),
+            TOGA.connect(await ethers.getSigner(bob)).changeExitRate(
+                superToken.address,
+                EXIT_RATE_1
+            ),
             "TOGA: only PIC allowed"
         );
 
         // don't allow negative exitRate
         await expectRevertedWith(
-            toga.connect(aliceSigner).changeExitRate(superToken.address, -1),
+            TOGA.connect(aliceSigner).changeExitRate(superToken.address, -1),
             "TOGA: negative exitRate not allowed"
         );
 
         // lower to 1 wad
         await expect(
-            toga
-                .connect(aliceSigner)
-                .changeExitRate(superToken.address, EXIT_RATE_1)
+            TOGA.connect(aliceSigner).changeExitRate(
+                superToken.address,
+                EXIT_RATE_1
+            )
         )
-            .to.emit(toga, "ExitRateChanged")
+            .to.emit(TOGA, "ExitRateChanged")
             .withArgs(superToken.address, EXIT_RATE_1.toString());
         await assertNetFlow(superToken, alice, EXIT_RATE_1);
 
         // increase to 1000 wad
-        await toga
-            .connect(aliceSigner)
-            .changeExitRate(superToken.address, EXIT_RATE_1E3);
+        await TOGA.connect(aliceSigner).changeExitRate(
+            superToken.address,
+            EXIT_RATE_1E3
+        );
         await assertNetFlow(superToken, alice, EXIT_RATE_1E3);
 
         // to 0
-        await toga.connect(aliceSigner).changeExitRate(superToken.address, 0);
+        await TOGA.connect(aliceSigner).changeExitRate(superToken.address, 0);
         await assertNetFlow(superToken, alice, 0);
 
-        const bond = (await toga.getCurrentPICInfo(superToken.address)).bond;
+        const bond = (await TOGA.getCurrentPICInfo(superToken.address)).bond;
 
         // increase to currently allowed max
         const max1 = shouldMaxExitRate(bond);
-        await toga
-            .connect(aliceSigner)
-            .changeExitRate(superToken.address, max1);
+        await TOGA.connect(aliceSigner).changeExitRate(
+            superToken.address,
+            max1
+        );
         await assertNetFlow(superToken, alice, max1);
 
         // due to the exit flow, the remaining bond changes with every new block
         const max2 = shouldMaxExitRate(bond);
         assert.equal(max1.toString(), max2.toString());
         await expectRevertedWith(
-            toga
-                .connect(aliceSigner)
-                .changeExitRate(superToken.address, max2 + 1),
+            TOGA.connect(aliceSigner).changeExitRate(
+                superToken.address,
+                max2 + 1
+            ),
             "TOGA: exitRate too high"
         );
     });
@@ -454,7 +479,7 @@ describe("TOGA", function () {
         await timeTravelOnce(1000);
         await t.sf.cfa.deleteFlow({
             superToken: superToken.address,
-            sender: toga.address,
+            sender: TOGA.address,
             receiver: alice,
             by: alice,
         });
@@ -462,20 +487,21 @@ describe("TOGA", function () {
 
         const aliceSigner = await ethers.getSigner(alice);
         // 0 -> 0 (leave unchanged)
-        await toga.connect(aliceSigner).changeExitRate(superToken.address, 0);
+        await TOGA.connect(aliceSigner).changeExitRate(superToken.address, 0);
         await assertNetFlow(superToken, alice, 0);
 
         // trigger re-opening
-        await toga
-            .connect(aliceSigner)
-            .changeExitRate(superToken.address, EXIT_RATE_1);
+        await TOGA.connect(aliceSigner).changeExitRate(
+            superToken.address,
+            EXIT_RATE_1
+        );
         await assertNetFlow(superToken, alice, EXIT_RATE_1);
 
         // stop again and let bob make a bid
         await timeTravelOnce(1000);
         await t.sf.cfa.deleteFlow({
             superToken: superToken.address,
-            sender: toga.address,
+            sender: TOGA.address,
             receiver: alice,
             by: alice,
         });
@@ -493,7 +519,7 @@ describe("TOGA", function () {
         // 1e6 token/s x 1e6 seconds = ~1e12 tokens collected in the contract
 
         assert.isTrue(
-            (await toga.getCurrentPICInfo(superToken.address)).bond.gte(
+            (await TOGA.getCurrentPICInfo(superToken.address)).bond.gte(
                 BOND_AMOUNT_1E18.add(toBN(1e12))
             )
         );
@@ -509,7 +535,7 @@ describe("TOGA", function () {
     // bond is consumed
     it("#14 bond is consumed by exit flow", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
-        const maxRate = shouldMaxExitRate(Number(BOND_AMOUNT_1E18.toString()));
+        const maxRate = shouldMaxExitRate(BOND_AMOUNT_1E18);
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, maxRate);
         await assertNetFlow(superToken, alice, maxRate);
 
@@ -519,11 +545,11 @@ describe("TOGA", function () {
         await liquidateExitStream(superToken); // a sentinel would do this
 
         await assertNetFlow(superToken, alice, 0);
-        await assertNetFlow(superToken, toga.address, 0);
+        await assertNetFlow(superToken, TOGA.address, 0);
 
         // this assumes the flow deletion was not triggered by the PIC - otherwise rewards would be accrued
         assert.equal(
-            (await toga.getCurrentPICInfo(superToken.address)).bond.toString(),
+            (await TOGA.getCurrentPICInfo(superToken.address)).bond.toString(),
             "0"
         );
 
@@ -531,9 +557,10 @@ describe("TOGA", function () {
 
         // alice tries to re-establish stream - fail because no bond left
         await expectRevertedWith(
-            toga
-                .connect(aliceSigner)
-                .changeExitRate(superToken.address, EXIT_RATE_1),
+            TOGA.connect(aliceSigner).changeExitRate(
+                superToken.address,
+                EXIT_RATE_1
+            ),
             "TOGA: exitRate too high"
         );
 
@@ -541,18 +568,19 @@ describe("TOGA", function () {
         // after some more rewards being collected, alice can re-establish the exit stream
         await collectRewards(superToken, Number(flowRate.toString()), 1e3);
         assert.isTrue(
-            (await toga.getCurrentPICInfo(superToken.address)).bond.gte(
+            (await TOGA.getCurrentPICInfo(superToken.address)).bond.gte(
                 toBN(1e12)
             )
         );
 
-        await toga
-            .connect(aliceSigner)
-            .changeExitRate(superToken.address, EXIT_RATE_1E3);
+        await TOGA.connect(aliceSigner).changeExitRate(
+            superToken.address,
+            EXIT_RATE_1E3
+        );
         await assertNetFlow(superToken, alice, EXIT_RATE_1E3);
 
         const alicePreBal = await superToken.balanceOf(alice);
-        const aliceBondLeft = (await toga.getCurrentPICInfo(superToken.address))
+        const aliceBondLeft = (await TOGA.getCurrentPICInfo(superToken.address))
             .bond;
 
         // bob outbids
@@ -586,19 +614,21 @@ describe("TOGA", function () {
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
         await sendPICBid(bob, superToken2, BOND_AMOUNT_2E18, EXIT_RATE_1);
 
-        assert.equal(await toga.getCurrentPIC(superToken.address), alice);
-        assert.equal(await toga.getCurrentPIC(superToken2.address), bob);
+        assert.equal(await TOGA.getCurrentPIC(superToken.address), alice);
+        assert.equal(await TOGA.getCurrentPIC(superToken2.address), bob);
 
         await expectRevertedWith(
-            toga
-                .connect(await ethers.getSigner(alice))
-                .changeExitRate(superToken2.address, 0),
+            TOGA.connect(await ethers.getSigner(alice)).changeExitRate(
+                superToken2.address,
+                0
+            ),
             "TOGA: only PIC allowed"
         );
         await expectRevertedWith(
-            toga
-                .connect(await ethers.getSigner(bob))
-                .changeExitRate(superToken.address, 0),
+            TOGA.connect(await ethers.getSigner(bob)).changeExitRate(
+                superToken.address,
+                0
+            ),
             "TOGA: only PIC allowed"
         );
 
@@ -607,7 +637,7 @@ describe("TOGA", function () {
 
         // alice takes over superToken2
         const bobPreBal = await superToken2.balanceOf(bob);
-        const bobBondLeft = (await toga.getCurrentPICInfo(superToken2.address))
+        const bobBondLeft = (await TOGA.getCurrentPICInfo(superToken2.address))
             .bond;
 
         await expectRevertedWith(
@@ -626,21 +656,21 @@ describe("TOGA", function () {
     it("#16 reverting send() hook can't prevent a successful bid", async () => {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
 
-        let aliceRecipientHook = await ethers.getContractFactory(
+        const aliceRecipientHookFactory = await ethers.getContractFactory(
             "ERC777RecipientReverting"
         );
-        aliceRecipientHook = await aliceRecipientHook.deploy();
+        const aliceRecipientHook = await aliceRecipientHookFactory.deploy();
         await erc1820
             .connect(await ethers.getSigner(alice))
             .setInterfaceImplementer(
                 alice,
-                web3.utils.soliditySha3("ERC777TokensRecipient"),
+                keccak256("ERC777TokensRecipient"),
                 aliceRecipientHook.address
             );
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
 
         await sendPICBid(bob, superToken, BOND_AMOUNT_2E18, EXIT_RATE_1E3);
-        assert.equal(await toga.getCurrentPIC(superToken.address), bob);
+        assert.equal(await TOGA.getCurrentPIC(superToken.address), bob);
     });
 
     // this ensures an OOG in fallback transfer can't succeed
@@ -649,12 +679,12 @@ describe("TOGA", function () {
         await t.upgradeBalance("carol", t.configs.INIT_BALANCE);
 
         // override to a toga which uses a reverting custodian contract
-        let revertingRecipient = await ethers.getContractFactory(
+        const revertingRecipientFactory = await ethers.getContractFactory(
             "ERC777RecipientReverting"
         );
-        revertingRecipient = await revertingRecipient.deploy();
-        toga = await ethers.getContractFactory("TOGA");
-        toga = await toga.deploy(
+        const revertingRecipient = await revertingRecipientFactory.deploy();
+        const TOGAFactory = await ethers.getContractFactory("TOGA");
+        TOGA = await TOGAFactory.deploy(
             superfluid.address,
             MIN_BOND_DURATION,
             revertingRecipient.address
@@ -662,17 +692,17 @@ describe("TOGA", function () {
 
         // alice becomes first PIC
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
-        assert.equal(await toga.getCurrentPIC(superToken.address), alice);
+        assert.equal(await TOGA.getCurrentPIC(superToken.address), alice);
 
         // bob can outbid
         await sendPICBid(bob, superToken, BOND_AMOUNT_2E18, EXIT_RATE_1E3);
-        assert.equal(await toga.getCurrentPIC(superToken.address), bob);
+        assert.equal(await TOGA.getCurrentPIC(superToken.address), bob);
 
         await erc1820
             .connect(await ethers.getSigner(bob))
             .setInterfaceImplementer(
                 bob,
-                web3.utils.soliditySha3("ERC777TokensRecipient"),
+                keccak256("ERC777TokensRecipient"),
                 revertingRecipient.address
             );
 
@@ -689,16 +719,16 @@ describe("TOGA", function () {
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
 
         // alice becomes malicious and tries to prevent others from outbidding her
-        let aliceRecipientHook = await ethers.getContractFactory(
-            "ERC777RecipientDrainingGas"
-        );
-        aliceRecipientHook = await aliceRecipientHook.deploy();
+        const ERC777RecipientDrainingGasFactory =
+            await ethers.getContractFactory("ERC777RecipientDrainingGas");
+        const AliceRecipientHook =
+            await ERC777RecipientDrainingGasFactory.deploy();
         await erc1820
             .connect(await ethers.getSigner(alice))
             .setInterfaceImplementer(
                 alice,
-                web3.utils.soliditySha3("ERC777TokensRecipient"),
-                aliceRecipientHook.address
+                keccak256("ERC777TokensRecipient"),
+                AliceRecipientHook.address
             );
 
         // send hook has higher allowance than gas limit, causes the tx to fail
@@ -716,7 +746,7 @@ describe("TOGA", function () {
                 EXIT_RATE_1E3,
                 4000000
             )
-        ).to.emit(aliceRecipientHook, "DrainedGas");
+        ).to.emit(AliceRecipientHook, "DrainedGas");
         // @note we need to figure out a way of getting the receipt
         // console.log(`gas used by tx: ${r1.receipt.gasUsed}`);
     });
@@ -725,49 +755,50 @@ describe("TOGA", function () {
         await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
         await t.upgradeBalance("carol", t.configs.INIT_BALANCE);
 
-        let revertingRecipientHook = await ethers.getContractFactory(
+        const RevertingRecipientHookFactory = await ethers.getContractFactory(
             "ERC777RecipientReverting"
         );
-        revertingRecipientHook = await revertingRecipientHook.deploy();
+        const RevertingRecipientHook =
+            await RevertingRecipientHookFactory.deploy();
         await erc1820
             .connect(await ethers.getSigner(alice))
             .setInterfaceImplementer(
                 alice,
-                web3.utils.soliditySha3("ERC777TokensRecipient"),
-                revertingRecipientHook.address
+                keccak256("ERC777TokensRecipient"),
+                RevertingRecipientHook.address
             );
         await erc1820
             .connect(await ethers.getSigner(bob))
             .setInterfaceImplementer(
                 bob,
-                web3.utils.soliditySha3("ERC777TokensRecipient"),
-                revertingRecipientHook.address
+                keccak256("ERC777TokensRecipient"),
+                RevertingRecipientHook.address
             );
 
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, 0);
         const alicePreOutbid1Bal = await superToken.balanceOf(alice);
         const alicePreOutbid1Bond = (
-            await toga.getCurrentPICInfo(superToken.address)
+            await TOGA.getCurrentPICInfo(superToken.address)
         ).bond;
 
         await expect(sendPICBid(bob, superToken, BOND_AMOUNT_2E18, 0))
-            .to.emit(custodian, "CustodianDeposit")
+            .to.emit(TokenCustodian, "CustodianDeposit")
             .withArgs(superToken.address, alice, BOND_AMOUNT_1E18.toString());
         assert.equal(
-            (await superToken.balanceOf(custodian.address)).toString(),
+            (await superToken.balanceOf(TokenCustodian.address)).toString(),
             alicePreOutbid1Bond.toString()
         );
 
         const bobPreOutbid1Bal = await superToken.balanceOf(bob);
         const bobPreOutbid1Bond = (
-            await toga.getCurrentPICInfo(superToken.address)
+            await TOGA.getCurrentPICInfo(superToken.address)
         ).bond;
 
         await expect(sendPICBid(carol, superToken, BOND_AMOUNT_3E18, 0))
-            .to.emit(custodian, "CustodianDeposit")
+            .to.emit(TokenCustodian, "CustodianDeposit")
             .withArgs(superToken.address, bob, BOND_AMOUNT_2E18.toString());
         assert.equal(
-            (await superToken.balanceOf(custodian.address)).toString(),
+            (await superToken.balanceOf(TokenCustodian.address)).toString(),
             alicePreOutbid1Bond.add(bobPreOutbid1Bond).toString()
         );
 
@@ -777,43 +808,43 @@ describe("TOGA", function () {
             .connect(await ethers.getSigner(alice))
             .setInterfaceImplementer(
                 alice,
-                web3.utils.soliditySha3("ERC777TokensRecipient"),
+                keccak256("ERC777TokensRecipient"),
                 ZERO_ADDRESS
             );
         await erc1820
             .connect(await ethers.getSigner(bob))
             .setInterfaceImplementer(
                 bob,
-                web3.utils.soliditySha3("ERC777TokensRecipient"),
+                keccak256("ERC777TokensRecipient"),
                 ZERO_ADDRESS
             );
 
         await expect(
-            toga
-                .connect(await ethers.getSigner(alice))
-                .withdrawFundsInCustody(superToken.address)
+            TOGA.connect(await ethers.getSigner(alice)).withdrawFundsInCustody(
+                superToken.address
+            )
         )
-            .to.emit(custodian, "CustodianWithdrawal")
+            .to.emit(TokenCustodian, "CustodianWithdrawal")
             .withArgs(superToken.address, alice, BOND_AMOUNT_1E18.toString());
         assert.equal(
             (await superToken.balanceOf(alice)).toString(),
             alicePreOutbid1Bal.add(alicePreOutbid1Bond).toString()
         );
         // withdrawing again shall have no effect
-        await toga
-            .connect(await ethers.getSigner(alice))
-            .withdrawFundsInCustody(superToken.address);
+        await TOGA.connect(
+            await ethers.getSigner(alice)
+        ).withdrawFundsInCustody(superToken.address);
         assert.equal(
             (await superToken.balanceOf(alice)).toString(),
             alicePreOutbid1Bal.add(alicePreOutbid1Bond).toString()
         );
 
         await expect(
-            toga
-                .connect(await ethers.getSigner(bob))
-                .withdrawFundsInCustody(superToken.address)
+            TOGA.connect(await ethers.getSigner(bob)).withdrawFundsInCustody(
+                superToken.address
+            )
         )
-            .to.emit(custodian, "CustodianWithdrawal")
+            .to.emit(TokenCustodian, "CustodianWithdrawal")
             .withArgs(superToken.address, bob, BOND_AMOUNT_2E18.toString());
         assert.equal(
             (await superToken.balanceOf(bob)).toString(),
@@ -822,7 +853,7 @@ describe("TOGA", function () {
 
         // no funds left as all was withdrawn
         assert.equal(
-            (await superToken.balanceOf(custodian.address)).toString(),
+            (await superToken.balanceOf(TokenCustodian.address)).toString(),
             "0"
         );
     });

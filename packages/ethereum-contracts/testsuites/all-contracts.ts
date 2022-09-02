@@ -1,25 +1,25 @@
 // Upgradability
-require("../test/contracts/upgradability/UUPS.test.ts");
+require("../test/contracts/upgradability/UUPS.test");
 
 // Libs
-require("../test/contracts/libs/CallUtils.test.ts");
+require("../test/contracts/libs/CallUtils.test");
 
 // Superfluid
-require("./superfluid-core.ts");
-require("./superfluid-governance.ts");
-require("./custom-tokens.ts");
+require("./superfluid-core");
+require("./superfluid-governance");
+require("./custom-tokens");
 
 // App libraries
-require("./apps-contracts.ts");
+require("./apps-contracts");
 
 // Scenarios
-require("../test/contracts/scenarios/scenarios.js");
+require("../test/contracts/scenarios/scenarios");
 
 // Utility contracts
-require("../test/contracts/utils/Resolver.test.js");
-require("../test/contracts/utils/SuperUpgrader.test.js");
-require("../test/contracts/utils/BatchLiquidator.test.js");
+require("../test/contracts/utils/Resolver.test");
+require("../test/contracts/utils/SuperUpgrader.test");
+require("../test/contracts/utils/BatchLiquidator.test");
 require("../test/contracts/utils/TOGA.test");
 
 // Agreement forwarders
-require("../test/contracts/agreements/CFAv1Forwarder.test.js");
+require("../test/contracts/agreements/CFAv1Forwarder.test");

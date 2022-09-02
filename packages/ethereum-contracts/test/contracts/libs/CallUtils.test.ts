@@ -1,79 +1,83 @@
-const {ethers} = require("hardhat");
+import {ethers} from "hardhat";
+import {CallUtilsMock, CallUtilsTester} from "../../../typechain-types";
 const TestEnvironment = require("../../TestEnvironment");
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
 describe("CallUtils", function () {
     const t = TestEnvironment.getSingleton();
 
-    let callUtilsMock;
-    let callUtilsTester;
+    let CallUtilsMock: CallUtilsMock;
+    let CallUtilsTester: CallUtilsTester;
 
     before(async () => {
         await t.beforeTestSuite({
             isTruffle: true,
             nAccounts: 5,
         });
-        callUtilsMock = await ethers.getContractFactory("CallUtilsMock");
-        callUtilsMock = await callUtilsMock.deploy();
+        const CallUtilsMockFactory = await ethers.getContractFactory(
+            "CallUtilsMock"
+        );
+        CallUtilsMock = await CallUtilsMockFactory.deploy();
 
-        callUtilsTester = await ethers.getContractFactory("CallUtilsTester");
-        callUtilsTester = await callUtilsTester.deploy();
+        const CallUtilsTesterFactory = await ethers.getContractFactory(
+            "CallUtilsTester"
+        );
+        CallUtilsTester = await CallUtilsTesterFactory.deploy();
     });
 
     it("CallUtils.revertFromReturnedData", async () => {
         await expectRevertedWith(
-            callUtilsMock.revertTest("revertEmpty()"),
+            CallUtilsMock.revertTest("revertEmpty()"),
             "CallUtils: target revert()"
         );
 
         await expectRevertedWith(
-            callUtilsMock.revertTest("revertAssert()"),
+            CallUtilsMock.revertTest("revertAssert()"),
             "CallUtils: target panicked: 0x01"
         );
 
         await expectRevertedWith(
-            callUtilsMock.revertTest("revertOverflow()"),
+            CallUtilsMock.revertTest("revertOverflow()"),
             "CallUtils: target panicked: 0x11"
         );
 
         await expectRevertedWith(
-            callUtilsMock.revertTest("revertDivByZero()"),
+            CallUtilsMock.revertTest("revertDivByZero()"),
             "CallUtils: target panicked: 0x12"
         );
 
         await expectRevertedWith(
-            callUtilsMock.revertTest("revertEnum()"),
+            CallUtilsMock.revertTest("revertEnum()"),
             "CallUtils: target panicked: 0x21"
         );
 
         await expectRevertedWith(
-            callUtilsMock.revertTest("revertPop()"),
+            CallUtilsMock.revertTest("revertPop()"),
             "CallUtils: target panicked: 0x31"
         );
 
         await expectRevertedWith(
-            callUtilsMock.revertTest("revertArrayAccess()"),
+            CallUtilsMock.revertTest("revertArrayAccess()"),
             "CallUtils: target panicked: 0x32"
         );
 
         await expectRevertedWith(
-            callUtilsMock.revertTest("revertBigArray()"),
+            CallUtilsMock.revertTest("revertBigArray()"),
             "CallUtils: target panicked: 0x41"
         );
 
         await expectRevertedWith(
-            callUtilsMock.revertTest("revertZeroInitializedFunctionPointer()"),
+            CallUtilsMock.revertTest("revertZeroInitializedFunctionPointer()"),
             "CallUtils: target panicked: 0x51"
         );
 
         await expectRevertedWith(
-            callUtilsMock.revertTest("revertString()"),
+            CallUtilsMock.revertTest("revertString()"),
             "gm"
         );
-        // TODO: Add revert custom error tests
     });
 
     it("CallUtils.isValidAbiEncodedBytes", async () => {
-        await callUtilsTester.testIsValidAbiEncodedBytes();
+        await CallUtilsTester.testIsValidAbiEncodedBytes();
     });
 });

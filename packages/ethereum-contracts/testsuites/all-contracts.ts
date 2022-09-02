@@ -1,8 +1,8 @@
 // Upgradability
-require("../test/contracts/upgradability/UUPS.test.js");
+require("../test/contracts/upgradability/UUPS.test.ts");
 
 // Libs
-require("../test/contracts/libs/CallUtils.test.js");
+require("../test/contracts/libs/CallUtils.test.ts");
 
 // Superfluid
 require("./superfluid-core.ts");

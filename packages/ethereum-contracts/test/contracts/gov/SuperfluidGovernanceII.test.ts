@@ -1,10 +1,13 @@
-const SuperfluidGovernanceII = artifacts.require("SuperfluidGovernanceII");
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {assert, ethers} from "hardhat";
+import {Superfluid, SuperfluidGovernanceII} from "../../../typechain-types";
+
+const {keccak256} = require("../utils/helpers");
 const {
     expectRevertedWith,
     expectCustomError,
 } = require("../../utils/expectRevert");
 const TestEnvironment = require("../../TestEnvironment");
-const {ethers} = require("hardhat");
 
 describe("Superfluid Ownable Governance Contract", function () {
     this.timeout(300e3);
@@ -17,10 +20,10 @@ describe("Superfluid Ownable Governance Contract", function () {
     const FAKE_ADDRESS2 = "0x" + "2".repeat(40);
     const onlyOwnerReason = "SF_GOV_II_ONLY_OWNER";
 
-    let alice;
-    let aliceSigner;
-    let superfluid;
-    let governance;
+    let alice: string;
+    let aliceSigner: SignerWithAddress;
+    let superfluid: Superfluid;
+    let governance: SuperfluidGovernanceII;
 
     before(async () => {
         await t.beforeTestSuite({
@@ -32,14 +35,16 @@ describe("Superfluid Ownable Governance Contract", function () {
         ({superfluid, governance} = t.contracts);
         aliceSigner = await ethers.getSigner(alice);
 
-        let newGovProxy = await ethers.getContractFactory(
+        const newGovProxyFactory = await ethers.getContractFactory(
             "SuperfluidGovernanceIIProxy"
         );
-        newGovProxy = await newGovProxy.connect(aliceSigner).deploy();
-        let newGovLogic = await ethers.getContractFactory(
+        const newGovProxy = await newGovProxyFactory
+            .connect(aliceSigner)
+            .deploy();
+        const newGovLogicFactory = await ethers.getContractFactory(
             "SuperfluidGovernanceII"
         );
-        newGovLogic = await newGovLogic.deploy();
+        const newGovLogic = await newGovLogicFactory.deploy();
         await newGovProxy.initializeProxy(newGovLogic.address);
 
         console.log("governance.replaceGovernance");
@@ -92,24 +97,28 @@ describe("Superfluid Ownable Governance Contract", function () {
 
     describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
-            const T = artifacts.require(
-                "SuperfluidGovernanceIIUpgradabilityTester"
-            );
-            const tester = await T.new();
+            const SuperfluidGovernanceIIUpgradabilityTesterFactory =
+                await ethers.getContractFactory(
+                    "SuperfluidGovernanceIIUpgradabilityTester"
+                );
+            const tester =
+                await SuperfluidGovernanceIIUpgradabilityTesterFactory.deploy();
             await tester.validateStorageLayout();
         });
 
         it("#1.2 proxiable info", async () => {
             assert.equal(
                 await governance.proxiableUUID(),
-                web3.utils.sha3(
+                keccak256(
                     "org.superfluid-finance.contracts.SuperfluidGovernanceII.implementation"
                 )
             );
         });
 
         it("#1.3 update the code", async () => {
-            const newLogic = await SuperfluidGovernanceII.new();
+            const SuperfluidGovernanceIIFactory =
+                await ethers.getContractFactory("SuperfluidGovernanceII");
+            const newLogic = await SuperfluidGovernanceIIFactory.deploy();
 
             console.log("governance.updateCode to new logic contract");
             await governance.connect(aliceSigner).updateCode(newLogic.address);
@@ -121,7 +130,9 @@ describe("Superfluid Ownable Governance Contract", function () {
                 "SuperfluidGovernanceIIProxy",
                 governance.address
             );
-            const newGovLogic = await SuperfluidGovernanceII.new();
+            const SuperfluidGovernanceIIFactory =
+                await ethers.getContractFactory("SuperfluidGovernanceII");
+            const newGovLogic = await SuperfluidGovernanceIIFactory.deploy();
             await expectRevertedWith(
                 govProxy.initializeProxy(newGovLogic.address),
                 "UUPSProxy: already initialized"
@@ -550,7 +561,10 @@ describe("Superfluid Ownable Governance Contract", function () {
                 "test"
             );
             assert.equal(regStatus.validNow, true);
-            assert.equal(regStatus.expirationTs, expirationTs);
+            assert.equal(
+                regStatus.expirationTs.toString(),
+                expirationTs.toString()
+            );
 
             await governance
                 .connect(aliceSigner)
@@ -566,14 +580,14 @@ describe("Superfluid Ownable Governance Contract", function () {
                 "test"
             );
             assert.equal(regStatus2.validNow, false);
-            assert.equal(regStatus2.expirationTs, 0);
+            assert.equal(regStatus2.expirationTs.toString(), "0");
         });
 
         it("#2.6 authorizeAppFactory", async () => {
-            const SuperAppFactoryMock = artifacts.require(
+            const SuperAppFactoryMockFactory = await ethers.getContractFactory(
                 "SuperAppFactoryMock"
             );
-            const appFactory = await SuperAppFactoryMock.new();
+            const appFactory = await SuperAppFactoryMockFactory.deploy();
 
             // checks for authorize
             await expectCustomError(
@@ -631,10 +645,10 @@ describe("Superfluid Ownable Governance Contract", function () {
         });
 
         it("#2.7 external set/clear config", async () => {
-            const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = web3.utils.keccak256(
+            const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = keccak256(
                 "org.superfluid-finance.superfluid.rewardAddress"
             );
-            const SUPERTOKEN_MINIMUM_DEPOSIT_KEY = web3.utils.keccak256(
+            const SUPERTOKEN_MINIMUM_DEPOSIT_KEY = keccak256(
                 "org.superfluid-finance.superfluid.superTokenMinimumDeposit"
             );
 
@@ -754,19 +768,23 @@ describe("Superfluid Ownable Governance Contract", function () {
                 );
 
             assert.equal(
-                await governance.getConfigAsUint256(
-                    superfluid.address,
-                    FAKE_TOKEN_ADDRESS1,
-                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY
-                ),
-                123456
+                (
+                    await governance.getConfigAsUint256(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS1,
+                        SUPERTOKEN_MINIMUM_DEPOSIT_KEY
+                    )
+                ).toString(),
+                "123456"
             );
             assert.equal(
-                await governance.getSuperTokenMinimumDeposit(
-                    superfluid.address,
-                    FAKE_TOKEN_ADDRESS1
-                ),
-                123456
+                (
+                    await governance.getSuperTokenMinimumDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS1
+                    )
+                ).toString(),
+                "123456"
             );
 
             console.log(
@@ -780,19 +798,23 @@ describe("Superfluid Ownable Governance Contract", function () {
                     SUPERTOKEN_MINIMUM_DEPOSIT_KEY
                 );
             assert.equal(
-                await governance.getConfigAsUint256(
-                    superfluid.address,
-                    FAKE_TOKEN_ADDRESS1,
-                    SUPERTOKEN_MINIMUM_DEPOSIT_KEY
-                ),
-                42069
+                (
+                    await governance.getConfigAsUint256(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS1,
+                        SUPERTOKEN_MINIMUM_DEPOSIT_KEY
+                    )
+                ).toString(),
+                "42069"
             );
             assert.equal(
-                await governance.getSuperTokenMinimumDeposit(
-                    superfluid.address,
-                    FAKE_TOKEN_ADDRESS1
-                ),
-                42069
+                (
+                    await governance.getSuperTokenMinimumDeposit(
+                        superfluid.address,
+                        FAKE_TOKEN_ADDRESS1
+                    )
+                ).toString(),
+                "42069"
             );
         });
     });

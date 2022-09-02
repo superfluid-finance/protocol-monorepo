@@ -13,7 +13,7 @@ require("./custom-tokens");
 require("./apps-contracts");
 
 // Scenarios
-require("../test/contracts/scenarios/scenarios");
+require("../test/contracts/scenarios/scenarios.test");
 
 // Utility contracts
 require("../test/contracts/utils/Resolver.test");

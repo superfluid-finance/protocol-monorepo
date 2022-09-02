@@ -77,7 +77,9 @@
 
         /* Type Checking */
         "strict": true /* Enable all strict type-checking options. */,
-        // "noImplicitAny": true,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
+
+        // @note this is turned off for now so tsc screams at me less
+        "noImplicitAny": false,                            /* Enable error reporting for expressions and declarations with an implied 'any' type. */
         // "strictNullChecks": true,                         /* When type checking, take into account 'null' and 'undefined'. */
         // "strictFunctionTypes": true,                      /* When assigning functions, check to ensure parameters and the return values are subtype-compatible. */
         // "strictBindCallApply": true,                      /* Check that the arguments for 'bind', 'call', and 'apply' methods match the original function. */
@@ -101,5 +103,5 @@
         "skipLibCheck": true /* Skip type checking all .d.ts files. */
     },
     "files": ["hardhat.config.ts"],
-    "include": ["testsuites", "test"]
+    "include": ["testsuites", "test", "./typechain-types"]
 }

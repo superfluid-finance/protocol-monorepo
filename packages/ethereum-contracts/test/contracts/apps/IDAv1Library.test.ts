@@ -1,9 +1,18 @@
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {assert, ethers, expect} from "hardhat";
+import {
+    IDAv1LibraryMock,
+    IDAv1LibrarySuperAppMock,
+    InstantDistributionAgreementV1,
+    Superfluid,
+    SuperTokenMock,
+} from "../../../typechain-types";
 const TestEnvironment = require("../../TestEnvironment");
+const {abiCoder} = require("../utils/helpers");
 
 const {
     constants: {ZERO_ADDRESS},
 } = require("@openzeppelin/test-helpers");
-const {ethers} = require("hardhat");
 
 describe("IDAv1Library testing", function () {
     this.timeout(300e3);
@@ -31,16 +40,16 @@ describe("IDAv1Library testing", function () {
         CLAIM_USER_DATA: 15,
     };
 
-    const toBytes = (text) => web3.eth.abi.encodeParameter("string", text);
+    const toBytes = (text: string) => abiCoder.encode(["string"], [text]);
 
     const userData = (
-        functionIndex,
-        indexId,
+        functionIndex: number,
+        indexId: number,
         publisher = ZERO_ADDRESS,
         subscriber = ZERO_ADDRESS,
         units = 0
     ) =>
-        web3.eth.abi.encodeParameters(
+        abiCoder.encode(
             ["uint8", "uint32", "address", "address", "uint128"],
             [functionIndex, indexId, publisher, subscriber, units]
         );
@@ -50,14 +59,14 @@ describe("IDAv1Library testing", function () {
 
     const INDEX_ID = 0;
 
-    let superToken,
-        host,
-        ida,
-        alice,
-        bob,
-        idaV1LibMock,
-        idaV1LibSuperAppMock,
-        aliceSigner;
+    let superToken: SuperTokenMock,
+        host: Superfluid,
+        ida: InstantDistributionAgreementV1,
+        alice: string,
+        bob: string,
+        idaV1LibMock: IDAv1LibraryMock,
+        idaV1LibSuperAppMock: IDAv1LibrarySuperAppMock,
+        aliceSigner: SignerWithAddress;
 
     before(async () => {
         await t.beforeTestSuite({isTruffle: true, nAccounts: 4});
@@ -72,7 +81,7 @@ describe("IDAv1Library testing", function () {
 
         await superToken.mintInternal(
             alice,
-            web3.utils.toWei("100000", "ether"),
+            ethers.utils.parseUnits("100000", "ether"),
             "0x",
             "0x"
         );
@@ -80,24 +89,29 @@ describe("IDAv1Library testing", function () {
     });
 
     beforeEach(async () => {
-        idaV1LibMock = await ethers.getContractFactory("IDAv1LibraryMock");
-        idaV1LibMock = (await idaV1LibMock.deploy(host.address)).connect(
+        const idaV1LibMockFactory = await ethers.getContractFactory(
+            "IDAv1LibraryMock"
+        );
+        idaV1LibMock = (await idaV1LibMockFactory.deploy(host.address)).connect(
             aliceSigner
         );
-        idaV1LibSuperAppMock = await ethers.getContractFactory(
+        const idaV1LibSuperAppMockFactory = await ethers.getContractFactory(
             "IDAv1LibrarySuperAppMock"
         );
         idaV1LibSuperAppMock = (
-            await idaV1LibSuperAppMock.deploy(host.address)
+            await idaV1LibSuperAppMockFactory.deploy(host.address)
         ).connect(aliceSigner);
         await superToken
             .connect(aliceSigner)
-            .transfer(idaV1LibMock.address, web3.utils.toWei("10", "ether"));
+            .transfer(
+                idaV1LibMock.address,
+                ethers.utils.parseUnits("10", "ether")
+            );
         await superToken
             .connect(aliceSigner)
             .transfer(
                 idaV1LibSuperAppMock.address,
-                web3.utils.toWei("10", "ether")
+                ethers.utils.parseUnits("10", "ether")
             );
     });
 
@@ -664,18 +678,20 @@ describe("IDAv1Library testing", function () {
                 units
             );
 
-            const subscriptions = ida.listSubscriptions(
+            const subscriptions = await ida.listSubscriptions(
                 superToken.address,
                 bob
             );
-            const subscriptionsLib = idaV1LibMock.listSubscriptionsTest(
+            const subscriptionsLib = await idaV1LibMock.listSubscriptionsTest(
                 superToken.address,
                 bob
             );
 
-            assert.equal(subscriptions.publishers, subscriptionsLib.publishers);
-            assert.equal(subscriptions.indexIds, subscriptionsLib.indexIds);
-            assert.equal(subscriptions.unitsList, subscriptionsLib.unitsList);
+            expect(subscriptions.publishers).to.eql(
+                subscriptionsLib.publishers
+            );
+            expect(subscriptions.indexIds).to.eql(subscriptionsLib.indexIds);
+            expect(subscriptions.unitsList).to.eql(subscriptionsLib.unitsList);
         });
 
         it("#3.4 - get subscription", async () => {
@@ -691,13 +707,13 @@ describe("IDAv1Library testing", function () {
                 units
             );
 
-            const subscription = ida.getSubscription(
+            const subscription = await ida.getSubscription(
                 superToken.address,
                 idaV1LibMock.address,
                 INDEX_ID,
                 bob
             );
-            const subscriptionLib = idaV1LibMock.getSubscriptionTest(
+            const subscriptionLib = await idaV1LibMock.getSubscriptionTest(
                 superToken.address,
                 idaV1LibMock.address,
                 INDEX_ID,
@@ -706,25 +722,26 @@ describe("IDAv1Library testing", function () {
 
             assert.equal(subscription.exist, subscriptionLib.exist);
             assert.equal(subscription.approved, subscriptionLib.approved);
-            assert.equal(subscription.units, subscriptionLib.units);
             assert.equal(
-                subscription.pendingDistribution,
-                subscriptionLib.pendingDistribution
+                subscription.units.toString(),
+                subscriptionLib.units.toString()
+            );
+            assert.equal(
+                subscription.pendingDistribution.toString(),
+                subscriptionLib.pendingDistribution.toString()
             );
         });
 
-        it("#3.4 - get subscription by id", async () => {
+        it("#3.5 - get subscription by id", async () => {
             const units = 1;
 
-            const publisherId = web3.utils.soliditySha3(
-                {t: "string", v: "publisher"},
-                {t: "address", v: idaV1LibMock.address},
-                {t: "uint32", v: INDEX_ID}
+            const publisherId = ethers.utils.solidityKeccak256(
+                ["string", "address", "uint32"],
+                ["publisher", idaV1LibMock.address, INDEX_ID]
             );
-            const subscriptionId = web3.utils.soliditySha3(
-                {t: "string", v: "subscription"},
-                {t: "address", v: bob},
-                {t: "bytes32", v: publisherId}
+            const subscriptionId = ethers.utils.solidityKeccak256(
+                ["string", "address", "bytes32"],
+                ["subscription", bob, publisherId]
             );
 
             console.log("Alice creates index");
@@ -737,21 +754,23 @@ describe("IDAv1Library testing", function () {
                 units
             );
 
-            const subscription = ida.getSubscriptionByID(
+            const subscription = await ida.getSubscriptionByID(
                 superToken.address,
                 subscriptionId
             );
-            const subscriptionLib = idaV1LibMock.getSubscriptionByIDTest(
+            const subscriptionLib = await idaV1LibMock.getSubscriptionByIDTest(
                 superToken.address,
                 subscriptionId
             );
 
-            assert.equal(subscription.exist, subscriptionLib.exist);
             assert.equal(subscription.approved, subscriptionLib.approved);
-            assert.equal(subscription.units, subscriptionLib.units);
             assert.equal(
-                subscription.pendingDistribution,
-                subscriptionLib.pendingDistribution
+                subscription.units.toString(),
+                subscriptionLib.units.toString()
+            );
+            assert.equal(
+                subscription.pendingDistribution.toString(),
+                subscriptionLib.pendingDistribution.toString()
             );
         });
     });

@@ -1,3 +1,5 @@
+import {SuperToken} from "../../../typechain-types";
+
 const TestEnvironment = require("../../TestEnvironment");
 const {expectCustomError} = require("../../utils/expectRevert");
 
@@ -17,7 +19,7 @@ const {
     shouldUpdateSubscription,
     shouldDeleteSubscription,
 } = require("../agreements/InstantDistributionAgreementV1.behaviour.js");
-const {ethers} = require("hardhat");
+import {assert, ethers} from "hardhat";
 
 const DEFAULT_INDEX_ID = "42";
 
@@ -27,8 +29,8 @@ describe("Superfluid scenarios", function () {
     const t = TestEnvironment.getSingleton();
     const {FLOW_RATE1, INIT_BALANCE} = t.configs;
 
-    let alice, bob, carol, dan;
-    let superToken;
+    let alice: string, bob: string, carol: string, dan: string;
+    let superToken: SuperToken;
 
     before(async function () {
         await t.beforeTestSuite({
@@ -44,9 +46,10 @@ describe("Superfluid scenarios", function () {
         await t.beforeEachTestCase();
     });
 
-    async function verifyAll(opts) {
+    // @note TODO: REPLACE any
+    async function verifyAll(opts?: any) {
         const cfaDataModel = new CFADataModel(t, superToken);
-        const block2 = await web3.eth.getBlock("latest");
+        const block2 = await ethers.provider.getBlock("latest");
         await t.validateExpectedBalances(() => {
             cfaDataModel.syncAccountExpectedBalanceDeltas({
                 testenv: t,
@@ -57,12 +60,14 @@ describe("Superfluid scenarios", function () {
         await t.validateSystemInvariance(opts);
     }
 
-    async function timeTravelOnceAndVerifyAll(opts = {}) {
+    // @note TODO: REPLACE any
+    async function timeTravelOnceAndVerifyAll(opts: any = {}) {
         await t.timeTravelOnce(opts.time);
         await verifyAll(opts);
     }
 
-    async function testExpectedBalances(expectedBalances) {
+    // @note TODO: REPLACE any
+    async function testExpectedBalances(expectedBalances: Array<any>) {
         for (let i = 0; i < expectedBalances.length; ++i) {
             const account = expectedBalances[i][0];
             const expectedBalance = expectedBalances[i][1];

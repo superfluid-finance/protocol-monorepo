@@ -37,7 +37,7 @@
         "testenv:deploy": "yarn run-truffle exec scripts/deploy-test-environment.js : TEST",
         "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
         "test": "run-s test:*:*",
-        "test:contracts:hardhat": "yarn run-hardhat test testsuites/all-contracts.js",
+        "test:contracts:hardhat": "yarn run-hardhat test testsuites/all-contracts.ts",
         "test:contracts:foundry": "yarn run-forge test --hardhat",
         "test:contracts:solc-compatibility": "test/test-solc-compatibility.sh",
         "test:deployment:scripts-js-hardhat": "yarn run-hardhat test test/scripts/deployment.test.js",

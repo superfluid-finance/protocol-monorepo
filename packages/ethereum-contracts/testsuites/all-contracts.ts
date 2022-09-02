@@ -5,12 +5,12 @@ require("../test/contracts/upgradability/UUPS.test.js");
 require("../test/contracts/libs/CallUtils.test.js");
 
 // Superfluid
-require("./superfluid-core.js");
-require("./superfluid-governance.js");
-require("./custom-tokens.js");
+require("./superfluid-core.ts");
+require("./superfluid-governance.ts");
+require("./custom-tokens.ts");
 
 // App libraries
-require("./apps-contracts.js");
+require("./apps-contracts.ts");
 
 // Scenarios
 require("../test/contracts/scenarios/scenarios.js");

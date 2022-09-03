@@ -39,14 +39,31 @@ const {
 
 const MFASupport = require("../utils/MFASupport");
 
-// TODO: when doing the hardhat refactor, make the input of users just addresses
-// not addresses OR aliases - should be consistent throughout - aliases should
-// solely be used for output, but we should be using addresses in the code
-// we should have one file dedicated to different constants/enums as well
+interface CreateLiquidationTestParams {
+    by: string;
+    receiver: string;
+    seconds: number;
+    sender: string;
+    titlePrefix: string;
+}
+interface CreateBailoutTestParams extends CreateLiquidationTestParams {
+    allowCriticalAccount?: boolean;
+}
+interface TestLiquidationParams {
+    allowCriticalAccount?: boolean;
+    by: string;
+    isBailout?: boolean;
+    receiver: string;
+    seconds: number;
+    sender: string;
+    shouldSkipTimeTravel?: boolean;
+    solvencyStatuses: any;
+}
 
 describe("Using ConstantFlowAgreement v1", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
+    // @note TODO replace any
     let agreementHelper: any;
 
     const {ZERO_ADDRESS, MAXIMUM_FLOW_RATE} = t.constants;
@@ -135,13 +152,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         receiver,
         by,
         seconds,
-    }: {
-        titlePrefix: string;
-        sender: string;
-        receiver: string;
-        by: string;
-        seconds: number;
-    }) {
+    }: CreateLiquidationTestParams) {
         it(`${titlePrefix}.a should be liquidated when critical but solvent`, async () => {
             const defaultSolvencyStatus = {
                 preIsCritical: false,
@@ -166,14 +177,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         by,
         allowCriticalAccount,
         seconds,
-    }: {
-        titlePrefix: string;
-        sender: string;
-        receiver: string;
-        by: string;
-        seconds: number;
-        allowCriticalAccount?: boolean;
-    }) {
+    }: CreateBailoutTestParams) {
         it(`${titlePrefix}.b can liquidate and bail out when insolvent`, async () => {
             const defaultSolvencyStatus = {
                 preIsCritical: false,
@@ -202,16 +206,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         solvencyStatuses,
         isBailout,
         shouldSkipTimeTravel,
-    }: {
-        isBailout?: boolean;
-        sender: string;
-        receiver: string;
-        by: string;
-        seconds: number;
-        solvencyStatuses: any;
-        allowCriticalAccount?: boolean;
-        shouldSkipTimeTravel?: boolean;
-    }) {
+    }: TestLiquidationParams) {
         // get initial state
         await t.validateSystemInvariance({
             allowCriticalAccount,

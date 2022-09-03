@@ -50,7 +50,7 @@ describe("IDAv1Library testing", function () {
         subscriber = ZERO_ADDRESS,
         units = 0
     ) =>
-        web3.eth.abi.encodeParameter(
+        web3.eth.abi.encodeParameters(
             ["uint8", "uint32", "address", "address", "uint128"],
             [functionIndex, indexId, publisher, subscriber, units]
         );

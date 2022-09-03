@@ -5,7 +5,6 @@ import {
     TestGovernance,
     TestToken,
 } from "../../../typechain-types";
-import { keccak256 } from "../utils/helpers";
 
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const {

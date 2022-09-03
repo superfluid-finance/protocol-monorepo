@@ -12,7 +12,7 @@ import {
 const {expectRevertedWith} = require("../../utils/expectRevert");
 const TestEnvironment = require("../../TestEnvironment");
 const traveler = require("ganache-time-traveler");
-const {keccak256, toBN, toWad} = require("./helpers");
+const {toBN, toWad} = require("./helpers");
 
 describe("TOGA", function () {
     this.timeout(300e3);
@@ -254,7 +254,7 @@ describe("TOGA", function () {
         assert.equal(
             await erc1820.getInterfaceImplementer(
                 toga.address,
-                keccak256("TOGAv1")
+                web3.utils.soliditySha3("TOGAv1")!
             ),
             toga.address
         );
@@ -262,7 +262,7 @@ describe("TOGA", function () {
         assert.equal(
             await erc1820.getInterfaceImplementer(
                 toga.address,
-                keccak256("TOGAv2")
+                web3.utils.soliditySha3("TOGAv2")!
             ),
             toga.address
         );
@@ -653,7 +653,7 @@ describe("TOGA", function () {
             .connect(await ethers.getSigner(alice))
             .setInterfaceImplementer(
                 alice,
-                keccak256("ERC777TokensRecipient"),
+                web3.utils.soliditySha3("ERC777TokensRecipient")!,
                 aliceRecipientHook.address
             );
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
@@ -691,7 +691,7 @@ describe("TOGA", function () {
             .connect(await ethers.getSigner(bob))
             .setInterfaceImplementer(
                 bob,
-                keccak256("ERC777TokensRecipient"),
+                web3.utils.soliditySha3("ERC777TokensRecipient")!,
                 revertingRecipient.address
             );
 
@@ -710,14 +710,14 @@ describe("TOGA", function () {
         // alice becomes malicious and tries to prevent others from outbidding her
         const ERC777RecipientDrainingGasFactory =
             await ethers.getContractFactory("ERC777RecipientDrainingGas");
-        const AliceRecipientHook =
+        const aliceRecipientHook =
             await ERC777RecipientDrainingGasFactory.deploy();
         await erc1820
             .connect(await ethers.getSigner(alice))
             .setInterfaceImplementer(
                 alice,
-                keccak256("ERC777TokensRecipient"),
-                AliceRecipientHook.address
+                web3.utils.soliditySha3("ERC777TokensRecipient")!,
+                aliceRecipientHook.address
             );
 
         // send hook has higher allowance than gas limit, causes the tx to fail
@@ -735,7 +735,7 @@ describe("TOGA", function () {
                 EXIT_RATE_1E3,
                 4000000
             )
-        ).to.emit(AliceRecipientHook, "DrainedGas");
+        ).to.emit(aliceRecipientHook, "DrainedGas");
         // @note we need to figure out a way of getting the receipt
         // console.log(`gas used by tx: ${r1.receipt.gasUsed}`);
     });
@@ -747,21 +747,21 @@ describe("TOGA", function () {
         const RevertingRecipientHookFactory = await ethers.getContractFactory(
             "ERC777RecipientReverting"
         );
-        const RevertingRecipientHook =
+        const revertingRecipientHook =
             await RevertingRecipientHookFactory.deploy();
         await erc1820
             .connect(await ethers.getSigner(alice))
             .setInterfaceImplementer(
                 alice,
-                keccak256("ERC777TokensRecipient"),
-                RevertingRecipientHook.address
+                web3.utils.soliditySha3("ERC777TokensRecipient")!,
+                revertingRecipientHook.address
             );
         await erc1820
             .connect(await ethers.getSigner(bob))
             .setInterfaceImplementer(
                 bob,
-                keccak256("ERC777TokensRecipient"),
-                RevertingRecipientHook.address
+                web3.utils.soliditySha3("ERC777TokensRecipient")!,
+                revertingRecipientHook.address
             );
 
         await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, 0);
@@ -797,14 +797,14 @@ describe("TOGA", function () {
             .connect(await ethers.getSigner(alice))
             .setInterfaceImplementer(
                 alice,
-                keccak256("ERC777TokensRecipient"),
+                web3.utils.soliditySha3("ERC777TokensRecipient")!,
                 ZERO_ADDRESS
             );
         await erc1820
             .connect(await ethers.getSigner(bob))
             .setInterfaceImplementer(
                 bob,
-                keccak256("ERC777TokensRecipient"),
+                web3.utils.soliditySha3("ERC777TokensRecipient")!,
                 ZERO_ADDRESS
             );
 

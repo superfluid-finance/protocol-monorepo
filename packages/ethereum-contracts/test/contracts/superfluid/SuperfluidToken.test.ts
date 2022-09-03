@@ -46,7 +46,7 @@ describe("SuperfluidToken implementation", function () {
         });
 
         ({admin, alice, bob} = t.aliases);
-        ({superfluid: superfluid, governance: governance} = t.contracts);
+        ({superfluid, governance} = t.contracts);
         superToken = t.sf.tokens.TESTx;
         superToken = await ethers.getContractAt(
             "SuperToken",

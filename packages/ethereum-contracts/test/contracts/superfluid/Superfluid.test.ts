@@ -2132,7 +2132,7 @@ describe("Superfluid Host Contract", function () {
                     {
                         operationType: 101, // upgrade
                         target: superToken.address,
-                        data: web3.eth.abi.encodeParameter(
+                        data: web3.eth.abi.encodeParameters(
                             ["uint256"],
                             [toWad("10").toString()]
                         ),
@@ -2140,7 +2140,7 @@ describe("Superfluid Host Contract", function () {
                     {
                         operationType: 1, // approve
                         target: superToken.address,
-                        data: web3.eth.abi.encodeParameter(
+                        data: web3.eth.abi.encodeParameters(
                             ["address", "uint256"],
                             [bob, toWad("1").toString()]
                         ),
@@ -2148,7 +2148,7 @@ describe("Superfluid Host Contract", function () {
                     {
                         operationType: 2, // transferFrom own funds
                         target: superToken.address,
-                        data: web3.eth.abi.encodeParameter(
+                        data: web3.eth.abi.encodeParameters(
                             ["address", "address", "uint256"],
                             [admin, bob, toWad("2").toString()]
                         ),
@@ -2156,7 +2156,7 @@ describe("Superfluid Host Contract", function () {
                     {
                         operationType: 2, // transferFrom other's funds
                         target: superToken.address,
-                        data: web3.eth.abi.encodeParameter(
+                        data: web3.eth.abi.encodeParameters(
                             ["address", "address", "uint256"],
                             [alice, bob, toWad("3").toString()]
                         ),
@@ -2164,7 +2164,7 @@ describe("Superfluid Host Contract", function () {
                     {
                         operationType: 102, // downgrade
                         target: superToken.address,
-                        data: web3.eth.abi.encodeParameter(
+                        data: web3.eth.abi.encodeParameters(
                             ["uint256"],
                             [toWad("5").toString()]
                         ),
@@ -2216,7 +2216,7 @@ describe("Superfluid Host Contract", function () {
                         {
                             operationType: 201, // call agreement
                             target: agreement.address,
-                            data: web3.eth.abi.encodeParameter(
+                            data: web3.eth.abi.encodeParameters(
                                 ["bytes", "bytes"],
                                 [
                                     agreementMockInterface.encodeFunctionData(
@@ -2230,7 +2230,7 @@ describe("Superfluid Host Contract", function () {
                         {
                             operationType: 201, // call agreement
                             target: agreement.address,
-                            data: web3.eth.abi.encodeParameter(
+                            data: web3.eth.abi.encodeParameters(
                                 ["bytes", "bytes"],
                                 [
                                     agreementMockInterface.encodeFunctionData(
@@ -2279,7 +2279,7 @@ describe("Superfluid Host Contract", function () {
                         {
                             operationType: 201, // call agreement
                             target: agreement.address,
-                            data: web3.eth.abi.encodeParameter(
+                            data: web3.eth.abi.encodeParameters(
                                 ["bytes", "bytes"],
                                 [
                                     agreementMockInterface.encodeFunctionData(
@@ -2384,7 +2384,7 @@ describe("Superfluid Host Contract", function () {
                                 {
                                     operationType: 2,
                                     target: superToken.address,
-                                    data: web3.eth.abi.encodeParameter(
+                                    data: web3.eth.abi.encodeParameters(
                                         ["address", "address", "uint256"],
                                         [alice, bob, toWad(1).toString()]
                                     ),
@@ -2458,15 +2458,12 @@ describe("Superfluid Host Contract", function () {
                 const TestGovernanceFactory = await ethers.getContractFactory(
                     "TestGovernance"
                 );
-                const TestGovernance = await TestGovernanceFactory.deploy();
+                const newGov = await TestGovernanceFactory.deploy();
                 await governance.replaceGovernance(
                     superfluid.address,
-                    TestGovernance.address
+                    newGov.address
                 );
-                assert.equal(
-                    await superfluid.getGovernance(),
-                    TestGovernance.address
-                );
+                assert.equal(await superfluid.getGovernance(), newGov.address);
             });
         });
     });
@@ -2497,7 +2494,7 @@ describe("Superfluid Host Contract", function () {
             });
 
             ({admin, alice, bob} = t.aliases);
-            ({superfluid: superfluid, governance: governance} = t.contracts);
+            ({superfluid, governance} = t.contracts);
         });
 
         after(async function () {

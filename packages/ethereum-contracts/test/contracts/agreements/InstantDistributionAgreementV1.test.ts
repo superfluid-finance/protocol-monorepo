@@ -1634,7 +1634,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                             [
                                 superToken.address,
                                 DEFAULT_INDEX_ID,
-                                web3.eth.abi.encodeParameter(
+                                web3.eth.abi.encodeParameters(
                                     ["bytes", "bytes"],
                                     ["0xdeadbeef", "0x"]
                                 ),

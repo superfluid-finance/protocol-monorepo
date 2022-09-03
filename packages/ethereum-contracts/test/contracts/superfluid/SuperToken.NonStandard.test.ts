@@ -8,7 +8,6 @@ import {
     SuperTokenMock,
     TestToken,
 } from "../../../typechain-types";
-import {keccak256} from "../utils/helpers";
 
 const TestEnvironment = require("../../TestEnvironment");
 

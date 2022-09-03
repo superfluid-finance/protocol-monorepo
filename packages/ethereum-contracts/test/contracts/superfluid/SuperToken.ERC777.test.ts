@@ -135,10 +135,7 @@ describe("SuperToken's ERC777 implementation", function () {
                 expect(
                     await erc1820.getInterfaceImplementer(
                         this.token.address,
-                        ethers.utils.solidityKeccak256(
-                            ["string"],
-                            ["ERC777Token"]
-                        )
+                        web3.utils.soliditySha3("ERC777Token")!
                     )
                 ).to.equal(this.token.address);
             });
@@ -147,10 +144,7 @@ describe("SuperToken's ERC777 implementation", function () {
                 expect(
                     await erc1820.getInterfaceImplementer(
                         this.token.address,
-                        ethers.utils.solidityKeccak256(
-                            ["string"],
-                            ["ERC20Token"]
-                        )
+                        web3.utils.soliditySha3("ERC20Token")!
                     )
                 ).to.equal(this.token.address);
             });
@@ -613,10 +607,9 @@ describe("SuperToken's ERC777 implementation", function () {
                                 .connect(signer)
                                 .setInterfaceImplementer(
                                     recipient,
-                                    ethers.utils.solidityKeccak256(
-                                        ["string"],
-                                        ["ERC777TokensRecipient"]
-                                    ),
+                                    web3.utils.soliditySha3(
+                                        "ERC777TokensRecipient"
+                                    )!,
                                     this.tokensRecipientImplementer.address
                                 );
                         });
@@ -697,10 +690,7 @@ describe("SuperToken's ERC777 implementation", function () {
                             .connect(signer)
                             .setInterfaceImplementer(
                                 sender,
-                                ethers.utils.solidityKeccak256(
-                                    ["string"],
-                                    ["ERC777TokensSender"]
-                                ),
+                                web3.utils.soliditySha3("ERC777TokensSender")!,
                                 this.tokensSenderImplementer.address
                             );
                     });

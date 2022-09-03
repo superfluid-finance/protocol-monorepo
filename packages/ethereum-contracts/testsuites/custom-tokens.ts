@@ -1,2 +1,2 @@
-require("../test/contracts/tokens/SETH.test");
-require("../test/contracts/tokens/PureSuperToken.test");
+import "../test/contracts/tokens/SETH.test";
+import "../test/contracts/tokens/PureSuperToken.test";

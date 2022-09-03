@@ -1,28 +1,28 @@
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {ethers, expect} from "hardhat";
+import {BigNumber} from "ethers";
 const TestEnvironment = require("../../TestEnvironment");
 
 const {
     expectRevertedWith,
     expectCustomError,
 } = require("../../utils/expectRevert");
-const {expect} = require("chai");
 
 const {
     shouldBehaveLikeERC20,
     shouldBehaveLikeERC20Transfer,
     shouldBehaveLikeERC20Approve,
 } = require("./ERC20.behavior");
-const {ethers} = require("hardhat");
 const {toBN} = require("../utils/helpers");
 
 describe("SuperToken's ERC20 compliance", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
-
     const {ZERO_ADDRESS} = t.constants;
     const initialSupply = toBN(100);
 
-    let alice, bob, carol;
-    let aliceSigner;
+    let alice: string, bob: string, carol: string;
+    let aliceSigner: SignerWithAddress;
 
     before(async function () {
         await t.beforeTestSuite({
@@ -65,19 +65,13 @@ describe("SuperToken's ERC20 compliance", function () {
 
     describe("decrease allowance", function () {
         describe("when the spender is not the zero address", function () {
-            let spender;
-
-            before(() => {
-                spender = bob;
-            });
-
-            function shouldDecreaseApproval(amount) {
+            function shouldDecreaseApproval(amount: BigNumber) {
                 describe("when there was no approved amount before", function () {
                     it("reverts", async function () {
                         await expectRevertedWith(
                             this.token
                                 .connect(aliceSigner)
-                                .decreaseAllowance(spender, amount),
+                                .decreaseAllowance(bob, amount),
                             "SuperToken: decreased allowance below zero"
                         );
                     });
@@ -89,14 +83,14 @@ describe("SuperToken's ERC20 compliance", function () {
                     beforeEach(async function () {
                         ({logs: this.logs} = await this.token
                             .connect(aliceSigner)
-                            .approve(spender, approvedAmount));
+                            .approve(bob, approvedAmount));
                     });
 
                     it("emits an approval event", async function () {
                         await expect(
                             this.token
                                 .connect(aliceSigner)
-                                .decreaseAllowance(spender, approvedAmount)
+                                .decreaseAllowance(bob, approvedAmount)
                         )
                             .to.emit(this.token, "Approval")
                             .withArgs(alice, bob, toBN(0));
@@ -105,32 +99,23 @@ describe("SuperToken's ERC20 compliance", function () {
                     it("decreases the spender allowance subtracting the requested amount", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .decreaseAllowance(spender, approvedAmount.sub(1));
+                            .decreaseAllowance(bob, approvedAmount.sub(1));
 
-                        expect(
-                            await this.token.allowance(alice, spender),
-                            toBN(1)
-                        );
+                        expect(await this.token.allowance(alice, bob), toBN(1));
                     });
 
                     it("sets the allowance to zero when all allowance is removed", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .decreaseAllowance(spender, approvedAmount);
-                        expect(
-                            await this.token.allowance(alice, spender),
-                            toBN(0)
-                        );
+                            .decreaseAllowance(bob, approvedAmount);
+                        expect(await this.token.allowance(alice, bob), toBN(0));
                     });
 
                     it("reverts when more than the full allowance is removed", async function () {
                         await expectRevertedWith(
                             this.token
                                 .connect(aliceSigner)
-                                .decreaseAllowance(
-                                    spender,
-                                    approvedAmount.add(1)
-                                ),
+                                .decreaseAllowance(bob, approvedAmount.add(1)),
                             "SuperToken: decreased allowance below zero"
                         );
                     });
@@ -169,30 +154,25 @@ describe("SuperToken's ERC20 compliance", function () {
         const amount = initialSupply;
 
         describe("when the spender is not the zero address", function () {
-            let spender;
-            before(() => {
-                spender = bob;
-            });
-
             describe("when the sender has enough balance", function () {
                 it("emits an approval event", async function () {
                     await expect(
                         this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(spender, amount)
+                            .increaseAllowance(bob, amount)
                     )
                         .to.emit(this.token, "Approval")
-                        .withArgs(alice, spender, amount);
+                        .withArgs(alice, bob, amount);
                 });
 
                 describe("when there was no approved amount before", function () {
                     it("approves the requested amount", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(spender, amount);
+                            .increaseAllowance(bob, amount);
 
                         expect(
-                            await this.token.allowance(alice, spender),
+                            await this.token.allowance(alice, bob),
                             toBN(amount)
                         );
                     });
@@ -202,16 +182,16 @@ describe("SuperToken's ERC20 compliance", function () {
                     beforeEach(async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .approve(spender, toBN(1));
+                            .approve(bob, toBN(1));
                     });
 
                     it("increases the spender allowance adding the requested amount", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(spender, amount);
+                            .increaseAllowance(bob, amount);
 
                         expect(
-                            await this.token.allowance(alice, spender),
+                            await this.token.allowance(alice, bob),
                             toBN(amount.add(1))
                         );
                     });
@@ -225,20 +205,20 @@ describe("SuperToken's ERC20 compliance", function () {
                     await expect(
                         this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(spender, amount)
+                            .increaseAllowance(bob, amount)
                     )
                         .to.emit(this.token, "Approval")
-                        .withArgs(alice, spender, amount);
+                        .withArgs(alice, bob, amount);
                 });
 
                 describe("when there was no approved amount before", function () {
                     it("approves the requested amount", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(spender, amount);
+                            .increaseAllowance(bob, amount);
 
                         expect(
-                            await this.token.allowance(alice, spender),
+                            await this.token.allowance(alice, bob),
                             toBN(amount)
                         );
                     });
@@ -248,16 +228,16 @@ describe("SuperToken's ERC20 compliance", function () {
                     beforeEach(async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .approve(spender, toBN(1));
+                            .approve(bob, toBN(1));
                     });
 
                     it("increases the spender allowance adding the requested amount", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(spender, amount);
+                            .increaseAllowance(bob, amount);
 
                         expect(
-                            await this.token.allowance(alice, spender),
+                            await this.token.allowance(alice, bob),
                             toBN(amount.add(1))
                         );
                     });
@@ -289,7 +269,7 @@ describe("SuperToken's ERC20 compliance", function () {
                 from: alice,
                 to: bob,
             }),
-            function (from, to, amount) {
+            function (this: any, from: string, to: string, amount: BigNumber) {
                 return this.token.transferInternal(from, to, amount);
             },
             t
@@ -310,7 +290,20 @@ describe("SuperToken's ERC20 compliance", function () {
             });
         });
     });
+    const person = {
+        firstName: "John",
+        lastName: "Doe",
+        fullName: function () {
+            return this.firstName + " " + this.lastName;
+        },
+    };
 
+    const member = {
+        firstName: "Hege",
+        lastName: "Nilsen",
+    };
+
+    let fullName = person.fullName.bind(member);
     describe("_approve", function () {
         shouldBehaveLikeERC20Approve(
             "ERC20",
@@ -319,7 +312,12 @@ describe("SuperToken's ERC20 compliance", function () {
                 owner: alice,
                 spender: bob,
             }),
-            function (owner, spender, amount) {
+            function (
+                this: any,
+                owner: string,
+                spender: string,
+                amount: BigNumber
+            ) {
                 return this.token.approveInternal(owner, spender, amount);
             },
             t

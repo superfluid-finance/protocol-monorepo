@@ -1,3 +1,7 @@
+import {artifacts, assert, ethers, expect} from "hardhat";
+import {IERC1820Registry, SuperTokenMock} from "../../../typechain-types";
+import {keccak256} from "../utils/helpers";
+
 const TestEnvironment = require("../../TestEnvironment");
 
 const {expectEvent} = require("@openzeppelin/test-helpers");
@@ -5,7 +9,6 @@ const {
     expectRevertedWith,
     expectCustomError,
 } = require("../../utils/expectRevert");
-const {expect} = require("chai");
 
 const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
 
@@ -16,7 +19,6 @@ const {
     shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook,
     shouldBehaveLikeERC777SendBurnWithSendHook,
 } = require("./ERC777.behavior");
-const {ethers} = require("hardhat");
 
 const ERC777SenderRecipientMock = artifacts.require(
     "ERC777SenderRecipientMock"
@@ -29,12 +31,16 @@ describe("SuperToken's ERC777 implementation", function () {
 
     const {ZERO_ADDRESS} = t.constants;
     const initialSupply = toWad(50);
-    const testData = web3.utils.sha3("OZ777TestData");
-    const operatorData = web3.utils.sha3("OZ777TestOperatorData");
+    const testData = keccak256("OZ777TestData");
+    const operatorData = keccak256("OZ777TestOperatorData");
 
-    let holder, defaultOperatorA, defaultOperatorB, newOperator, anyone;
-    let erc1820;
-    let tokenContract;
+    let holder: string,
+        defaultOperatorA: string,
+        defaultOperatorB: string,
+        newOperator: string,
+        anyone: string;
+    let erc1820: IERC1820Registry;
+    let tokenContract: SuperTokenMock;
 
     before(async function () {
         await t.beforeTestSuite({
@@ -75,7 +81,7 @@ describe("SuperToken's ERC777 implementation", function () {
     });
 
     context("with default operators", async () => {
-        let defaultOperators;
+        let defaultOperators: string[];
 
         before(() => {
             defaultOperators = [defaultOperatorA, defaultOperatorB];
@@ -101,7 +107,7 @@ describe("SuperToken's ERC777 implementation", function () {
             });
 
             it("returns a granularity of 1", async function () {
-                expect(await this.token.granularity(), 1);
+                expect(await this.token.granularity()).to.equal("1");
             });
 
             it("returns the default operators", async function () {
@@ -123,14 +129,17 @@ describe("SuperToken's ERC777 implementation", function () {
             });
 
             it("returns 18 when decimals is called", async function () {
-                expect(await this.token.decimals(), 18);
+                expect((await this.token.decimals()).toString(), "18");
             });
 
             it("the ERC777Token interface is registered in the registry", async function () {
                 expect(
                     await erc1820.getInterfaceImplementer(
                         this.token.address,
-                        web3.utils.soliditySha3("ERC777Token")
+                        ethers.utils.solidityKeccak256(
+                            ["string"],
+                            ["ERC777Token"]
+                        )
                     )
                 ).to.equal(this.token.address);
             });
@@ -139,7 +148,10 @@ describe("SuperToken's ERC777 implementation", function () {
                 expect(
                     await erc1820.getInterfaceImplementer(
                         this.token.address,
-                        web3.utils.soliditySha3("ERC20Token")
+                        ethers.utils.solidityKeccak256(
+                            ["string"],
+                            ["ERC20Token"]
+                        )
                     )
                 ).to.equal(this.token.address);
             });
@@ -459,7 +471,7 @@ describe("SuperToken's ERC777 implementation", function () {
 
         describe("send and receive hooks", function () {
             const amount = toWad(1);
-            let sender, operator;
+            let sender: string, operator: string;
 
             before(function () {
                 sender = holder;
@@ -469,7 +481,7 @@ describe("SuperToken's ERC777 implementation", function () {
             describe("tokensReceived", function () {
                 describe("with no ERC777TokensRecipient implementer", function () {
                     describe("with contract recipient", function () {
-                        let recipient;
+                        let recipient: string;
 
                         beforeEach(async function () {
                             this.tokensRecipientImplementer =
@@ -584,7 +596,7 @@ describe("SuperToken's ERC777 implementation", function () {
 
                 describe("with ERC777TokensRecipient implementer", function () {
                     describe("with contract as implementer for an externally owned account", function () {
-                        let recipient;
+                        let recipient: string;
 
                         beforeEach(async function () {
                             recipient = anyone;
@@ -602,8 +614,9 @@ describe("SuperToken's ERC777 implementation", function () {
                                 .connect(signer)
                                 .setInterfaceImplementer(
                                     recipient,
-                                    web3.utils.soliditySha3(
-                                        "ERC777TokensRecipient"
+                                    ethers.utils.solidityKeccak256(
+                                        ["string"],
+                                        ["ERC777TokensRecipient"]
                                     ),
                                     this.tokensRecipientImplementer.address
                                 );
@@ -618,7 +631,7 @@ describe("SuperToken's ERC777 implementation", function () {
                     });
 
                     describe("with contract as implementer for another contract", function () {
-                        let recipient;
+                        let recipient: string;
 
                         beforeEach(async function () {
                             this.recipientContract =
@@ -644,7 +657,7 @@ describe("SuperToken's ERC777 implementation", function () {
                     });
 
                     describe("with contract as implementer for itself", function () {
-                        let recipient;
+                        let recipient: string;
 
                         beforeEach(async function () {
                             this.tokensRecipientImplementer =
@@ -667,7 +680,7 @@ describe("SuperToken's ERC777 implementation", function () {
             });
 
             describe("tokensToSend", function () {
-                let recipient;
+                let recipient: string;
 
                 before(() => {
                     recipient = anyone;
@@ -685,7 +698,10 @@ describe("SuperToken's ERC777 implementation", function () {
                             .connect(signer)
                             .setInterfaceImplementer(
                                 sender,
-                                web3.utils.soliditySha3("ERC777TokensSender"),
+                                ethers.utils.solidityKeccak256(
+                                    ["string"],
+                                    ["ERC777TokensSender"]
+                                ),
                                 this.tokensSenderImplementer.address
                             );
                     });

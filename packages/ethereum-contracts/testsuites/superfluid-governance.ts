@@ -1,1 +1,1 @@
-require("../test/contracts/gov/SuperfluidGovernanceII.test");
+import "../test/contracts/gov/SuperfluidGovernanceII.test";

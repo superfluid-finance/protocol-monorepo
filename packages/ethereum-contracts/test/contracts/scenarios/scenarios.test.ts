@@ -1,3 +1,4 @@
+import {assert, ethers} from "hardhat";
 import {SuperToken} from "../../../typechain-types";
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -19,7 +20,6 @@ const {
     shouldUpdateSubscription,
     shouldDeleteSubscription,
 } = require("../agreements/InstantDistributionAgreementV1.behaviour.js");
-import {assert, ethers} from "hardhat";
 
 const DEFAULT_INDEX_ID = "42";
 

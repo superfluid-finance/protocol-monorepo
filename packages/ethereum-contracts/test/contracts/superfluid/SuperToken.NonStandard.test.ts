@@ -1,3 +1,15 @@
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {artifacts, assert, ethers, expect} from "hardhat";
+import {
+    CustomSuperTokenMock,
+    MockSmartWallet,
+    SuperfluidMock,
+    SuperToken,
+    SuperTokenMock,
+    TestToken,
+} from "../../../typechain-types";
+import { keccak256 } from "../utils/helpers";
+
 const TestEnvironment = require("../../TestEnvironment");
 
 const {
@@ -6,9 +18,7 @@ const {
 } = require("../../utils/expectRevert");
 
 const {web3tx, toDecimals} = require("@decentral.ee/web3-helpers");
-const {ethers} = require("hardhat");
 const {toWad, toBN} = require("../utils/helpers");
-const {expect} = require("chai");
 const SuperTokenArtifact = require("../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json");
 
 const TestToken = artifacts.require("TestToken");
@@ -19,15 +29,15 @@ describe("SuperToken's Non Standard Functions", function () {
 
     const {MAX_UINT256, ZERO_ADDRESS} = t.constants;
 
-    let admin, alice, bob;
-    let aliceSigner, bobSigner;
-    let superfluid;
-    let testToken;
-    let superToken;
-    let mockWallet;
-    let superTokenContract;
+    let admin: string, alice: string, bob: string;
+    let aliceSigner: SignerWithAddress, bobSigner: SignerWithAddress;
+    let superfluid: SuperfluidMock;
+    let testToken: TestToken;
+    let superToken: SuperTokenMock;
+    let mockWallet: MockSmartWallet;
+    let superTokenContract: SuperToken;
 
-    before(async function () {
+    before(async () => {
         await t.beforeTestSuite({
             isTruffle: true,
             nAccounts: 4,
@@ -51,26 +61,26 @@ describe("SuperToken's Non Standard Functions", function () {
             "SuperToken",
             SuperTokenArtifact.abi,
             aliceSigner
-        );
+        ) as SuperToken;
     });
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
-        mockWallet = await ethers.getContractFactory("MockSmartWallet");
-        mockWallet = await mockWallet.deploy();
+        const mockWalletFactory = await ethers.getContractFactory("MockSmartWallet");
+        mockWallet = await mockWalletFactory.deploy();
     });
 
     describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
             const T = artifacts.require("SuperTokenStorageLayoutTester");
             const tester = await T.new(superfluid.address);
-            await tester.validateStorageLayout.call();
+            await tester.validateStorageLayout();
         });
 
         it("#1.2 proxiable info", async () => {
             assert.equal(
-                await superToken.proxiableUUID.call(),
-                web3.utils.sha3(
+                await superToken.proxiableUUID(),
+                keccak256(
                     "org.superfluid-finance.contracts.SuperToken.implementation"
                 )
             );
@@ -101,7 +111,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await expect(superToken.connect(aliceSigner).upgrade(toWad(2)))
                 .to.emit(superToken, "TokenUpgraded")
                 .withArgs(alice, toWad(2).toString());
-            const {timestamp} = await web3.eth.getBlock("latest");
+            const {timestamp} = await ethers.provider.getBlock("latest");
 
             const finalBalance = await testToken.balanceOf(alice);
             const finalSuperTokenBalance = await superToken.balanceOf(alice);
@@ -155,8 +165,7 @@ describe("SuperToken's Non Standard Functions", function () {
 
             assert.isOk(
                 initialBalance.sub(finalBalance).toString(),
-                toWad(1),
-                "TestToken.balanceOf should recover after downgrade"
+                toWad(1)
             );
             assert.equal(
                 finalSuperTokenBalance.toString(),
@@ -390,7 +399,7 @@ describe("SuperToken's Non Standard Functions", function () {
             )
                 .to.emit(superToken, "TokenUpgraded")
                 .withArgs(bob, toWad(2).toString());
-            const {timestamp} = await web3.eth.getBlock("latest");
+            const {timestamp} = await ethers.provider.getBlock("latest");
 
             const finalBalanceAlice = await testToken.balanceOf(alice);
             const finalSuperTokenBalanceAlice = await superToken.balanceOf(
@@ -444,10 +453,10 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#2.9 - upgradeTo should trigger tokensReceived", async () => {
-            let mock = await ethers.getContractFactory(
+            const mockFactory = await ethers.getContractFactory(
                 "ERC777SenderRecipientMock"
             );
-            mock = await mock.deploy();
+            const mock = await mockFactory.deploy();
             await expectCustomError(
                 superToken
                     .connect(aliceSigner)
@@ -464,10 +473,10 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#2.10 upgrade and self-upgradeTo should not trigger tokenReceived", async () => {
-            let mock = await ethers.getContractFactory(
+            const mockFactory = await ethers.getContractFactory(
                 "ERC777SenderRecipientMock"
             );
-            mock = await mock.deploy();
+            const mock = await mockFactory.deploy();
 
             console.log("send token from alice to mock");
             await testToken
@@ -542,14 +551,14 @@ describe("SuperToken's Non Standard Functions", function () {
     });
 
     describe("#3 SuperToken custom token support", () => {
-        let customToken;
+        let customToken: CustomSuperTokenMock;
 
         beforeEach(async () => {
-            let customSuperTokenProxyMock = await ethers.getContractFactory(
+            const customSuperTokenProxyMockFactory = await ethers.getContractFactory(
                 "CustomSuperTokenProxyMock"
             );
-            customSuperTokenProxyMock =
-                await customSuperTokenProxyMock.deploy();
+            const customSuperTokenProxyMock =
+                await customSuperTokenProxyMockFactory.deploy();
             customToken = await ethers.getContractAt(
                 "CustomSuperTokenMock",
                 customSuperTokenProxyMock.address
@@ -795,7 +804,7 @@ describe("SuperToken's Non Standard Functions", function () {
             );
             console.log("superToken.transferAll alice -> bob");
             await superToken.connect(aliceSigner).transferAll(bob);
-            assert.equal(await superToken.balanceOf(alice), "0");
+            assert.equal((await superToken.balanceOf(alice)).toString(), "0");
             assert.equal(
                 (await superToken.balanceOf(bob)).toString(),
                 toWad(2).toString()

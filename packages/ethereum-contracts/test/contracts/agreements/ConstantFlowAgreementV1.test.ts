@@ -1,8 +1,19 @@
+import {assert, ethers, expect, web3} from "hardhat";
+import {BigNumberish} from "ethers";
+import {
+    ConstantFlowAgreementV1,
+    MultiFlowTesterApp,
+    StreamRedirector__factory,
+    SuperfluidMock,
+    SuperTokenMock,
+    TestGovernance,
+    TestToken,
+} from "../../../typechain-types";
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+
 const TestEnvironment = require("../../TestEnvironment");
 const {expectCustomError} = require("../../utils/expectRevert");
 const {expectEvent} = require("@openzeppelin/test-helpers");
-const {ethers} = require("hardhat");
-const {expect} = require("chai");
 const {toBN, toWad, max} = require("../utils/helpers");
 const {
     shouldCreateFlow,
@@ -36,17 +47,17 @@ const MFASupport = require("../utils/MFASupport");
 describe("Using ConstantFlowAgreement v1", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
-    let agreementHelper;
+    let agreementHelper: any;
 
     const {ZERO_ADDRESS, MAXIMUM_FLOW_RATE} = t.constants;
     const {LIQUIDATION_PERIOD, FLOW_RATE1, MINIMUM_DEPOSIT} = t.configs;
 
-    let admin, alice, bob, dan;
-    let superfluid;
-    let governance;
-    let cfa;
-    let testToken;
-    let superToken;
+    let admin: string, alice: string, bob: string, dan: string;
+    let superfluid: SuperfluidMock;
+    let governance: TestGovernance;
+    let cfa: ConstantFlowAgreementV1;
+    let testToken: TestToken;
+    let superToken: SuperTokenMock;
 
     before(async function () {
         await t.beforeTestSuite({
@@ -73,7 +84,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         if (t.plotData.enabled) {
             // TODO: regex from # until the end
             t.writePlotDataIntoCSVFile(
-                this.ctx.test.title
+                (this.ctx as any).test.title
                     .split("#")[1]
                     // eslint-disable-next-line
                     .split('"')[0]
@@ -84,7 +95,8 @@ describe("Using ConstantFlowAgreement v1", function () {
         }
     });
 
-    async function verifyAll(opts) {
+    // @note TODO: REPLACE any
+    async function verifyAll(opts: any) {
         const cfaDataModel = new CFADataModel(t, superToken);
         const block2 = await web3.eth.getBlock("latest");
         await t.validateExpectedBalances(() => {
@@ -97,17 +109,19 @@ describe("Using ConstantFlowAgreement v1", function () {
         await t.validateSystemInvariance(opts);
     }
 
-    async function timeTravelOnceAndVerifyAll(opts = {}) {
+    // @note TODO: REPLACE any
+    async function timeTravelOnceAndVerifyAll(opts: any = {}) {
         await t.timeTravelOnce(opts.time);
         await verifyAll(opts);
     }
 
-    async function timeTravelOnceAndValidateSystemInvariance(opts = {}) {
+    // @note TODO: REPLACE any
+    async function timeTravelOnceAndValidateSystemInvariance(opts: any = {}) {
         await t.timeTravelOnce(opts.time);
         await t.validateSystemInvariance(opts);
     }
 
-    async function expectJailed(appAddress, reasonCode) {
+    async function expectJailed(appAddress: string, reasonCode: number) {
         assert.isTrue(await t.contracts.superfluid.isAppJailed(appAddress));
         const eventsFilter = superfluid.filters.Jail(appAddress);
         const events = await superfluid.queryFilter(eventsFilter, 0, "latest");
@@ -121,6 +135,12 @@ describe("Using ConstantFlowAgreement v1", function () {
         receiver,
         by,
         seconds,
+    }: {
+        titlePrefix: string;
+        sender: string;
+        receiver: string;
+        by: string;
+        seconds: number;
     }) {
         it(`${titlePrefix}.a should be liquidated when critical but solvent`, async () => {
             const defaultSolvencyStatus = {
@@ -146,6 +166,13 @@ describe("Using ConstantFlowAgreement v1", function () {
         by,
         allowCriticalAccount,
         seconds,
+    }: {
+        titlePrefix: string;
+        sender: string;
+        receiver: string;
+        by: string;
+        seconds: number;
+        allowCriticalAccount?: boolean;
     }) {
         it(`${titlePrefix}.b can liquidate and bail out when insolvent`, async () => {
             const defaultSolvencyStatus = {
@@ -175,6 +202,15 @@ describe("Using ConstantFlowAgreement v1", function () {
         solvencyStatuses,
         isBailout,
         shouldSkipTimeTravel,
+    }: {
+        isBailout?: boolean;
+        sender: string;
+        receiver: string;
+        by: string;
+        seconds: number;
+        solvencyStatuses: any;
+        allowCriticalAccount?: boolean;
+        shouldSkipTimeTravel?: boolean;
     }) {
         // get initial state
         await t.validateSystemInvariance({
@@ -726,7 +762,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateSolventLiquidationTest({
                         titlePrefix: "#1.4.4",
-                        superToken,
                         sender,
                         receiver,
                         by: agent,
@@ -734,7 +769,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateBailoutTest({
                         titlePrefix: "#1.4.4",
-                        superToken,
                         sender,
                         receiver,
                         by: agent,
@@ -756,7 +790,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateSolventLiquidationTest({
                         titlePrefix: "#1.4.5",
-                        superToken,
                         sender,
                         receiver,
                         by: agent,
@@ -764,7 +797,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateBailoutTest({
                         titlePrefix: "#1.4.5",
-                        superToken,
                         sender,
                         receiver,
                         by: agent,
@@ -788,7 +820,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateSolventLiquidationTest({
                         titlePrefix: "#1.4.6",
-                        superToken,
                         sender,
                         receiver,
                         by: sender,
@@ -796,7 +827,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateBailoutTest({
                         titlePrefix: "#1.4.6",
-                        superToken,
                         sender,
                         receiver,
                         by: sender,
@@ -819,7 +849,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateSolventLiquidationTest({
                         titlePrefix: "#1.4.7",
-                        superToken,
                         sender,
                         receiver,
                         by: sender,
@@ -827,7 +856,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateBailoutTest({
                         titlePrefix: "#1.4.7",
-                        superToken,
                         sender,
                         receiver,
                         by: sender,
@@ -851,7 +879,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateSolventLiquidationTest({
                         titlePrefix: "#1.4.8",
-                        superToken,
                         sender,
                         receiver,
                         by: agent,
@@ -859,7 +886,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateBailoutTest({
                         titlePrefix: "#1.4.8",
-                        superToken,
                         sender,
                         receiver,
                         by: agent,
@@ -883,7 +909,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateSolventLiquidationTest({
                         titlePrefix: "#1.4.9",
-                        superToken,
                         sender,
                         receiver,
                         by: sender,
@@ -891,7 +916,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateBailoutTest({
                         titlePrefix: "#1.4.9",
-                        superToken,
                         sender,
                         receiver,
                         by: sender,
@@ -915,7 +939,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateSolventLiquidationTest({
                         titlePrefix: "#1.4.10",
-                        superToken,
                         sender,
                         receiver,
                         by: agent,
@@ -923,7 +946,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateBailoutTest({
                         titlePrefix: "#1.4.10",
-                        superToken,
                         sender,
                         receiver,
                         by: agent,
@@ -947,7 +969,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateSolventLiquidationTest({
                         titlePrefix: "#1.4.11",
-                        superToken,
                         sender,
                         receiver,
                         by: agent,
@@ -955,7 +976,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateBailoutTest({
                         titlePrefix: "#1.4.11",
-                        superToken,
                         sender,
                         receiver,
                         by: agent,
@@ -981,7 +1001,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateSolventLiquidationTest({
                         titlePrefix: "#1.4.12",
-                        superToken,
                         sender,
                         receiver,
                         by: receiver,
@@ -989,7 +1008,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                     });
                     shouldCreateBailoutTest({
                         titlePrefix: "#1.4.12",
-                        superToken,
                         sender,
                         receiver,
                         by: receiver,
@@ -1468,7 +1486,6 @@ describe("Using ConstantFlowAgreement v1", function () {
             it("#1.4.17 Patrician period updates when user is not solvent", async () => {
                 shouldCreateSolventLiquidationTest({
                     titlePrefix: "#1.4.10",
-                    superToken,
                     sender,
                     receiver,
                     by: agent,
@@ -2172,7 +2189,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.8.2 getMaximumFlowRateFromDeposit", async () => {
-                const test = async (deposit) => {
+                const test = async (deposit: BigNumberish) => {
                     const flowRate = await cfa.getMaximumFlowRateFromDeposit(
                         superToken.address,
                         deposit.toString()
@@ -2203,7 +2220,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             it("#1.8.3 getDepositRequiredForFlowRate", async () => {
-                const test = async (flowRate) => {
+                const test = async (flowRate: BigNumberish) => {
                     const deposit = await cfa.getDepositRequiredForFlowRate(
                         superToken.address,
                         flowRate.toString()
@@ -2582,7 +2599,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         const receiver2 = "carol";
         const lowFlowRate = FLOW_RATE1.mul(toBN(9)).div(toBN(10));
         const highFlowRate = FLOW_RATE1.mul(toBN(11)).div(toBN(10));
-        let app;
+        let app: MultiFlowTesterApp;
 
         beforeEach(async () => {
             const mfaFactory = await ethers.getContractFactory(
@@ -2594,7 +2611,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         // due to clipping of flow rate, mfa outgoing flow rate is always equal or less
         // then the sender's rate
-        function mfaFlowRate(flowRate, pct = 100) {
+        function mfaFlowRate(flowRate: BigNumberish, pct = 100) {
             return CFADataModel.clipDepositNumber(
                 toBN(flowRate).mul(toBN(LIQUIDATION_PERIOD)).mul(pct).div(100),
                 true
@@ -3731,7 +3748,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
             await timeTravelOnceAndVerifyAll();
             t.writePlotDataIntoCSVFile(
-                this.ctx.test.title.split(" ").join("_"),
+                (this.ctx as any).test.title.split(" ").join("_"),
                 superToken.address
             );
         });
@@ -3856,7 +3873,9 @@ describe("Using ConstantFlowAgreement v1", function () {
 
             // try to rescue the app, but it's already in jail
             await t.transferBalance(sender, "mfa", toWad(10));
-            assert.isTrue((await superToken.balanceOf(app.address)) > 0);
+            assert.isTrue(
+                (await superToken.balanceOf(app.address)).gt(toBN(0))
+            );
 
             console.log("liquidate the mfa receiver2 flow");
             await agreementHelper.modifyFlow({
@@ -3933,7 +3952,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
             await t.validateSystemInvariance();
             t.writePlotDataIntoCSVFile(
-                this.ctx.test.title.split(" ").join("_"),
+                (this.ctx as any).test.title.split(" ").join("_"),
                 superToken.address
             );
         });
@@ -4505,10 +4524,11 @@ describe("Using ConstantFlowAgreement v1", function () {
         const ALLOW_UPDATE = 1 << 1;
         const ALLOW_DELETE = 1 << 2;
 
-        let aliceSenderBaseData;
-        let aliceSenderAdminFlowOperator;
-        let streamRedirectorFactory;
-        let signer;
+        // @note TODO: REPLACE any// @note TODO: REPLACE any
+        let aliceSenderBaseData: any;
+        let aliceSenderAdminFlowOperatorData: any;
+        let streamRedirectorFactory: StreamRedirector__factory;
+        let signer: SignerWithAddress;
 
         before(async () => {
             streamRedirectorFactory = await ethers.getContractFactory(
@@ -4528,7 +4548,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 sender: alice,
                 ctx: "0x",
             };
-            aliceSenderAdminFlowOperator = {
+            aliceSenderAdminFlowOperatorData = {
                 ...aliceSenderBaseData,
                 flowOperator: admin,
                 from: alice,
@@ -4539,14 +4559,14 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.1 should revert if attempting to encode unclean permissions", async () => {
             /// anything greater than 7 (1 1 1)
             await shouldRevertUpdateFlowOperatorPermissions({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: "69",
                 flowRateAllowance: "42069",
                 expectedCustomError: "CFA_ACL_UNCLEAN_PERMISSIONS",
                 signer,
             });
             await shouldRevertUpdateFlowOperatorPermissions({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: "8",
                 flowRateAllowance: "42069",
                 expectedCustomError: "CFA_ACL_UNCLEAN_PERMISSIONS",
@@ -4570,7 +4590,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             let permissions = ALLOW_CREATE;
             // allow create
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
                 signer,
@@ -4579,7 +4599,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             // allow update
             permissions = ALLOW_UPDATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
                 signer,
@@ -4589,7 +4609,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             // can set flowRateAllowance with just delete as well
             permissions = ALLOW_DELETE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
                 signer,
@@ -4599,14 +4619,14 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.4 should properly update one flow operator permission with different flowRateAllowance", async () => {
             let permissions = ALLOW_CREATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
                 signer,
             });
 
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "3388",
                 signer,
@@ -4617,7 +4637,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             // stack the permissions
             let permissions = ALLOW_CREATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
                 signer,
@@ -4625,7 +4645,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
             permissions = permissions | ALLOW_UPDATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "3388",
                 signer,
@@ -4633,7 +4653,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
             permissions = permissions | ALLOW_DELETE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "123456",
                 signer,
@@ -4643,13 +4663,13 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.6 should properly update one flow operator permission with same flowRateAllowance", async () => {
             let permissions = ALLOW_CREATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
                 signer,
             });
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
                 signer,
@@ -4659,7 +4679,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.7 should be able to set permissions whilst setting flowRateAllowance as 0", async () => {
             let permissions = ALLOW_CREATE;
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions.toString(),
                 flowRateAllowance: "0",
                 signer,
@@ -4668,7 +4688,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.8 should be able to set flowRateAllowance whilst not settings permissions", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: "0",
                 flowRateAllowance: "42069",
                 signer,
@@ -4678,7 +4698,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.9 should be able to authorize flow operator with full control", async () => {
             // authorize a flow operator with full control from scratch
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: "0",
                 flowRateAllowance: "0",
                 isFullControl: true,
@@ -4829,7 +4849,7 @@ describe("Using ConstantFlowAgreement v1", function () {
         it("#4.13 should revert if create/update with flow rate exceeding flowRateAllowance", async () => {
             const flowRateAllowance = FLOW_RATE1.mul(toBN(3));
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: flowRateAllowance.toString(),
                 signer,
@@ -4890,7 +4910,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.14 should allow creating/updating/deleting flow rate as approved flow operator", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: ALLOW_CREATE.toString(),
                 flowRateAllowance: FLOW_RATE1.mul(toBN(5)),
                 signer,
@@ -4925,7 +4945,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1.mul(toBN(2)),
                 signer,
@@ -4950,7 +4970,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             });
 
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (
                     ALLOW_CREATE |
                     ALLOW_UPDATE |
@@ -4972,7 +4992,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.15 should allow creating/updating/deleting flow rate as full control flow operator", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 isFullControl: true,
                 signer,
             });
@@ -5038,7 +5058,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.17 shouldn't decrease flowRateAllowance if the user updates to an equal or lower flowRate", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1,
                 signer,
@@ -5114,7 +5134,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.18 should reset flowRateAllowance properly if the user updates the flowOperatorData", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1,
                 signer,
@@ -5143,7 +5163,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
             // we validate that the flowRateAllowance is FLOW_RATE1 in this function
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1,
                 signer,
@@ -5152,7 +5172,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.19 flowRateAllowance should remain unchanged if operator deletes a flow", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (ALLOW_CREATE | ALLOW_DELETE).toString(),
                 flowRateAllowance: FLOW_RATE1,
                 signer,
@@ -5205,7 +5225,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.20 should decrease flowRateAllowance if operator updates to a higher flowRate", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1.toString(),
                 signer,
@@ -5259,7 +5279,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.21 flowRateAllowance should remain unchanged if sender creates/updates/deletes flow", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (ALLOW_CREATE | ALLOW_DELETE).toString(),
                 flowRateAllowance: FLOW_RATE1,
                 signer,
@@ -5310,7 +5330,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.22 should be able to set multiple flow operators", async () => {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (ALLOW_CREATE | ALLOW_UPDATE).toString(),
                 flowRateAllowance: FLOW_RATE1,
                 signer,
@@ -5404,7 +5424,7 @@ describe("Using ConstantFlowAgreement v1", function () {
             };
 
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (
                     ALLOW_CREATE |
                     ALLOW_UPDATE |
@@ -5441,7 +5461,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 ALLOW_DELETE
             ).toString();
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: permissions,
                 flowRateAllowance: FLOW_RATE1,
                 signer,
@@ -5467,7 +5487,7 @@ describe("Using ConstantFlowAgreement v1", function () {
                 sender: "alice",
             };
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: (
                     ALLOW_CREATE |
                     ALLOW_UPDATE |
@@ -5567,7 +5587,7 @@ describe("Using ConstantFlowAgreement v1", function () {
 
         it("#4.27 Should revert when trying to upate flow operator permissions with negative allowance", async () => {
             await shouldRevertUpdateFlowOperatorPermissions({
-                ...aliceSenderAdminFlowOperator,
+                ...aliceSenderAdminFlowOperatorData,
                 permissions: ALLOW_CREATE.toString(),
                 flowRateAllowance: "-1",
                 expectedCustomError: "CFA_ACL_NO_NEGATIVE_ALLOWANCE",

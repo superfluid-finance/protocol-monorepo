@@ -1,3 +1,12 @@
+import {artifacts, assert, ethers, expect} from "hardhat";
+import {
+    SuperfluidMock,
+    SuperTokenFactory,
+    TestGovernance,
+    TestToken,
+} from "../../../typechain-types";
+import { keccak256 } from "../utils/helpers";
+
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const {
     expectRevertedWith,
@@ -13,8 +22,6 @@ const SuperTokenMock = artifacts.require("SuperTokenMock");
 const TestEnvironment = require("../../TestEnvironment");
 
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {ethers} = require("hardhat");
-const {expect} = require("chai");
 
 describe("SuperTokenFactory Contract", function () {
     this.timeout(300e3);
@@ -22,10 +29,10 @@ describe("SuperTokenFactory Contract", function () {
 
     const {ZERO_ADDRESS} = t.constants;
 
-    let superfluid;
-    let governance;
-    let factory;
-    let token1;
+    let superfluid: SuperfluidMock;
+    let governance: TestGovernance;
+    let factory: SuperTokenFactory;
+    let token1: TestToken;
 
     before(async () => {
         await t.beforeTestSuite({
@@ -59,21 +66,21 @@ describe("SuperTokenFactory Contract", function () {
         it("#1.1 storage layout", async () => {
             const T = artifacts.require("SuperTokenFactoryStorageLayoutTester");
             const tester = await T.new(superfluid.address);
-            await tester.validateStorageLayout.call();
+            await tester.validateStorageLayout();
         });
 
         it("#1.2 proxiable info", async () => {
             const proxiable = await UUPSProxiable.at(factory.address);
             assert.equal(
-                await proxiable.proxiableUUID.call(),
-                web3.utils.sha3(
+                await proxiable.proxiableUUID(),
+                keccak256(
                     "org.superfluid-finance.contracts.SuperTokenFactory.implementation"
                 )
             );
         });
 
         it("#1.3 only host can update the code", async () => {
-            assert.equal(await factory.getHost.call(), superfluid.address);
+            assert.equal(await factory.getHost(), superfluid.address);
             await expectCustomError(
                 factory.updateCode(ZERO_ADDRESS),
                 factory,
@@ -144,7 +151,7 @@ describe("SuperTokenFactory Contract", function () {
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 await updateSuperTokenFactory();
                 assert.equal(
-                    (await superToken1.waterMark.call()).toString(),
+                    (await superToken1.waterMark()).toString(),
                     "0"
                 );
                 await expectRevertedWith(
@@ -154,7 +161,7 @@ describe("SuperTokenFactory Contract", function () {
                     "UUPSProxiable: not upgradable"
                 );
                 assert.equal(
-                    (await superToken1.waterMark.call()).toString(),
+                    (await superToken1.waterMark()).toString(),
                     "0"
                 );
             });
@@ -168,12 +175,12 @@ describe("SuperTokenFactory Contract", function () {
                 });
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 assert.equal(
-                    (await superToken1.waterMark.call()).toString(),
+                    (await superToken1.waterMark()).toString(),
                     "0"
                 );
                 await updateSuperTokenFactory();
                 assert.equal(
-                    (await superToken1.waterMark.call()).toString(),
+                    (await superToken1.waterMark()).toString(),
                     "0"
                 );
                 await web3tx(
@@ -181,7 +188,7 @@ describe("SuperTokenFactory Contract", function () {
                     "governance.batchUpdateSuperTokenLogic"
                 )(superfluid.address, [superToken1.address]);
                 assert.equal(
-                    (await superToken1.waterMark.call()).toString(),
+                    (await superToken1.waterMark()).toString(),
                     "42"
                 );
             });
@@ -200,7 +207,7 @@ describe("SuperTokenFactory Contract", function () {
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 await updateSuperTokenFactory();
                 assert.equal(
-                    (await superToken1.waterMark.call()).toString(),
+                    (await superToken1.waterMark()).toString(),
                     "42"
                 );
                 await expectRevertedWith(
@@ -259,7 +266,7 @@ describe("SuperTokenFactory Contract", function () {
                     token: superToken0.address,
                 });
                 assert.equal(
-                    await superToken0.getUnderlyingToken.call(),
+                    await superToken0.getUnderlyingToken(),
                     token1.address
                 );
 
@@ -270,7 +277,7 @@ describe("SuperTokenFactory Contract", function () {
                     token: superToken1.address,
                 });
                 assert.equal(
-                    await superToken1.getUnderlyingToken.call(),
+                    await superToken1.getUnderlyingToken(),
                     token1.address
                 );
 
@@ -281,7 +288,7 @@ describe("SuperTokenFactory Contract", function () {
                     token: superToken2.address,
                 });
                 assert.equal(
-                    await superToken2.getUnderlyingToken.call(),
+                    await superToken2.getUnderlyingToken(),
                     token1.address
                 );
             });

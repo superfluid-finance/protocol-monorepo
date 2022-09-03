@@ -57,6 +57,7 @@ describe("Using InstantDistributionAgreement v1", function () {
         await t.beforeEachTestCase();
     });
 
+    // @note TODO replace any
     async function testExpectedBalances(expectedBalances: any[]) {
         for (let i = 0; i < expectedBalances.length; ++i) {
             const account = expectedBalances[i][0];

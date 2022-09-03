@@ -1,6 +1,5 @@
-import {artifacts, assert, ethers, expect} from "hardhat";
+import {artifacts, assert, ethers, expect, web3} from "hardhat";
 import {IERC1820Registry, SuperTokenMock} from "../../../typechain-types";
-import {keccak256} from "../utils/helpers";
 
 const TestEnvironment = require("../../TestEnvironment");
 
@@ -31,8 +30,8 @@ describe("SuperToken's ERC777 implementation", function () {
 
     const {ZERO_ADDRESS} = t.constants;
     const initialSupply = toWad(50);
-    const testData = keccak256("OZ777TestData");
-    const operatorData = keccak256("OZ777TestOperatorData");
+    const testData = web3.utils.sha3("OZ777TestData")!;
+    const operatorData = web3.utils.sha3("OZ777TestOperatorData")!;
 
     let holder: string,
         defaultOperatorA: string,

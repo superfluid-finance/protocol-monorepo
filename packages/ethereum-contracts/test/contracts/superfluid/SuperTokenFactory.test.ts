@@ -1,4 +1,4 @@
-import {artifacts, assert, ethers, expect} from "hardhat";
+import {artifacts, assert, ethers, expect, web3} from "hardhat";
 import {
     SuperfluidMock,
     SuperTokenFactory,
@@ -73,7 +73,7 @@ describe("SuperTokenFactory Contract", function () {
             const proxiable = await UUPSProxiable.at(factory.address);
             assert.equal(
                 await proxiable.proxiableUUID(),
-                keccak256(
+                web3.utils.sha3(
                     "org.superfluid-finance.contracts.SuperTokenFactory.implementation"
                 )
             );

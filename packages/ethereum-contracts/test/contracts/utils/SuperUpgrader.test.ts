@@ -1,5 +1,5 @@
 import {assert} from "chai";
-import {ethers} from "hardhat";
+import {ethers, web3} from "hardhat";
 const {web3tx} = require("@decentral.ee/web3-helpers");
 
 const {expectRevertedWith} = require("../../utils/expectRevert");
@@ -15,9 +15,7 @@ import {
 
 const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
-const BACKEND_ROLE = ethers.utils.keccak256(
-    ethers.utils.toUtf8Bytes("BACKEND_ROLE")
-);
+const BACKEND_ROLE = web3.utils.soliditySha3("BACKEND_ROLE")!;
 
 describe("Superfluid Super Upgrader Contract", function () {
     this.timeout(300e3);

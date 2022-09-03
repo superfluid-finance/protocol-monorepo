@@ -41,7 +41,7 @@ describe("IDAv1Library testing", function () {
     };
 
     const toBytes = (text: string) =>
-        web3.eth.abi.encodeParameter(["string"], [text]);
+        web3.eth.abi.encodeParameter("string", text);
 
     const userData = (
         functionIndex: number,

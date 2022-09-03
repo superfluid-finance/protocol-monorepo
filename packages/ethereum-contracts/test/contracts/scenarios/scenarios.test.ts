@@ -1,4 +1,4 @@
-import {assert, ethers} from "hardhat";
+import {assert, ethers, web3} from "hardhat";
 import {SuperToken} from "../../../typechain-types";
 
 const TestEnvironment = require("../../TestEnvironment");
@@ -49,7 +49,7 @@ describe("Superfluid scenarios", function () {
     // @note TODO: REPLACE any
     async function verifyAll(opts?: any) {
         const cfaDataModel = new CFADataModel(t, superToken);
-        const block2 = await ethers.provider.getBlock("latest");
+        const block2 = await web3.eth.getBlock("latest");
         await t.validateExpectedBalances(() => {
             cfaDataModel.syncAccountExpectedBalanceDeltas({
                 testenv: t,

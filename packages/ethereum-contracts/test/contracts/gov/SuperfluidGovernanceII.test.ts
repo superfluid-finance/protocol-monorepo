@@ -1,8 +1,7 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {assert, ethers} from "hardhat";
+import {assert, ethers, web3} from "hardhat";
 import {Superfluid, SuperfluidGovernanceII} from "../../../typechain-types";
 
-const {keccak256} = require("../utils/helpers");
 const {
     expectRevertedWith,
     expectCustomError,
@@ -109,7 +108,7 @@ describe("Superfluid Ownable Governance Contract", function () {
         it("#1.2 proxiable info", async () => {
             assert.equal(
                 await governance.proxiableUUID(),
-                keccak256(
+                web3.utils.sha3(
                     "org.superfluid-finance.contracts.SuperfluidGovernanceII.implementation"
                 )
             );
@@ -645,12 +644,12 @@ describe("Superfluid Ownable Governance Contract", function () {
         });
 
         it("#2.7 external set/clear config", async () => {
-            const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = keccak256(
+            const SUPERFLUID_REWARD_ADDRESS_CONFIG_KEY = web3.utils.sha3(
                 "org.superfluid-finance.superfluid.rewardAddress"
-            );
-            const SUPERTOKEN_MINIMUM_DEPOSIT_KEY = keccak256(
+            )!;
+            const SUPERTOKEN_MINIMUM_DEPOSIT_KEY = web3.utils.sha3(
                 "org.superfluid-finance.superfluid.superTokenMinimumDeposit"
-            );
+            )!;
 
             // only owner can set config
             await expectCustomError(

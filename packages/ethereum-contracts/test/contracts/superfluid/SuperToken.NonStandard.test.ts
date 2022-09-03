@@ -1,5 +1,5 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {artifacts, assert, ethers, expect} from "hardhat";
+import {artifacts, assert, ethers, expect, web3} from "hardhat";
 import {
     CustomSuperTokenMock,
     MockSmartWallet,
@@ -8,7 +8,7 @@ import {
     SuperTokenMock,
     TestToken,
 } from "../../../typechain-types";
-import { keccak256 } from "../utils/helpers";
+import {keccak256} from "../utils/helpers";
 
 const TestEnvironment = require("../../TestEnvironment");
 
@@ -66,7 +66,9 @@ describe("SuperToken's Non Standard Functions", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
-        const mockWalletFactory = await ethers.getContractFactory("MockSmartWallet");
+        const mockWalletFactory = await ethers.getContractFactory(
+            "MockSmartWallet"
+        );
         mockWallet = await mockWalletFactory.deploy();
     });
 
@@ -80,7 +82,7 @@ describe("SuperToken's Non Standard Functions", function () {
         it("#1.2 proxiable info", async () => {
             assert.equal(
                 await superToken.proxiableUUID(),
-                keccak256(
+                web3.utils.sha3(
                     "org.superfluid-finance.contracts.SuperToken.implementation"
                 )
             );
@@ -111,7 +113,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await expect(superToken.connect(aliceSigner).upgrade(toWad(2)))
                 .to.emit(superToken, "TokenUpgraded")
                 .withArgs(alice, toWad(2).toString());
-            const {timestamp} = await ethers.provider.getBlock("latest");
+            const {timestamp} = await web3.eth.getBlock("latest");
 
             const finalBalance = await testToken.balanceOf(alice);
             const finalSuperTokenBalance = await superToken.balanceOf(alice);
@@ -163,10 +165,7 @@ describe("SuperToken's Non Standard Functions", function () {
             const finalBalance = await testToken.balanceOf(alice);
             const finalSuperTokenBalance = await superToken.balanceOf(alice);
 
-            assert.isOk(
-                initialBalance.sub(finalBalance).toString(),
-                toWad(1)
-            );
+            assert.isOk(initialBalance.sub(finalBalance).toString(), toWad(1));
             assert.equal(
                 finalSuperTokenBalance.toString(),
                 toWad("1"),
@@ -399,7 +398,7 @@ describe("SuperToken's Non Standard Functions", function () {
             )
                 .to.emit(superToken, "TokenUpgraded")
                 .withArgs(bob, toWad(2).toString());
-            const {timestamp} = await ethers.provider.getBlock("latest");
+            const {timestamp} = await web3.eth.getBlock("latest");
 
             const finalBalanceAlice = await testToken.balanceOf(alice);
             const finalSuperTokenBalanceAlice = await superToken.balanceOf(
@@ -554,9 +553,8 @@ describe("SuperToken's Non Standard Functions", function () {
         let customToken: CustomSuperTokenMock;
 
         beforeEach(async () => {
-            const customSuperTokenProxyMockFactory = await ethers.getContractFactory(
-                "CustomSuperTokenProxyMock"
-            );
+            const customSuperTokenProxyMockFactory =
+                await ethers.getContractFactory("CustomSuperTokenProxyMock");
             const customSuperTokenProxyMock =
                 await customSuperTokenProxyMockFactory.deploy();
             customToken = await ethers.getContractAt(

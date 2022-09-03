@@ -1,8 +1,7 @@
 import {assert} from "chai";
-import {ethers, expect} from "hardhat";
+import {ethers, expect, web3} from "hardhat";
 const TestEnvironment = require("../../TestEnvironment");
 const {expectRevertedWith} = require("../../utils/expectRevert");
-const {keccak256} = require("../utils/helpers");
 import {
     UUPSProxiableMock__factory,
     UUPSProxy__factory,
@@ -22,10 +21,10 @@ describe("Miscellaneous for test coverages", () => {
 
     describe("UUPS", () => {
         let UUPSProxyFactory: UUPSProxy__factory;
-        let UUPSProxiableMockFactory: UUPSProxiableMock__factory;
+        let UUPSProxiableMock: UUPSProxiableMock__factory;
         before(async () => {
             UUPSProxyFactory = await ethers.getContractFactory("UUPSProxy");
-            UUPSProxiableMockFactory = await ethers.getContractFactory(
+            UUPSProxiableMock = await ethers.getContractFactory(
                 "UUPSProxiableMock"
             );
         });
@@ -36,8 +35,8 @@ describe("Miscellaneous for test coverages", () => {
                 "UUPSProxiableMock",
                 proxy.address
             );
-            const uuid1 = keccak256("UUPSProxiableMock1");
-            const mock = await UUPSProxiableMockFactory.deploy(uuid1, 1);
+            const uuid1 = web3.utils.sha3("UUPSProxiableMock1")!;
+            const mock = await UUPSProxiableMock.deploy(uuid1, 1);
             await expectRevertedWith(
                 proxy.initializeProxy(ZERO_ADDRESS),
                 "UUPSProxy: zero address"
@@ -56,8 +55,8 @@ describe("Miscellaneous for test coverages", () => {
                 "UUPSProxiableMock",
                 proxy.address
             );
-            const uuid1 = keccak256("UUPSProxiableMock1");
-            const uuid2 = keccak256("UUPSProxiableMock2");
+            const uuid1 = web3.utils.sha3("UUPSProxiableMock1")!;
+            const uuid2 = web3.utils.sha3("UUPSProxiableMock2")!;
             const UUPSProxiableMockFactory = await ethers.getContractFactory(
                 "UUPSProxiableMock"
             );
@@ -92,11 +91,11 @@ describe("Miscellaneous for test coverages", () => {
         });
 
         it("Can't initialize castrated UUPSProxiable", async () => {
-            const uuid1 = keccak256("UUPSProxiableMock1");
-            const mock1 = await UUPSProxiableMockFactory.deploy(uuid1, 1);
+            const uuid1 = web3.utils.sha3("UUPSProxiableMock1")!;
+            const mock1 = await UUPSProxiableMock.deploy(uuid1, 1);
 
-            const uuid2 = keccak256("UUPSProxiableMock2");
-            const mock2 = await UUPSProxiableMockFactory.deploy(uuid2, 1);
+            const uuid2 = web3.utils.sha3("UUPSProxiableMock2")!;
+            const mock2 = await UUPSProxiableMock.deploy(uuid2, 1);
 
             // can initialize if not castrated
             await mock1.initialize();

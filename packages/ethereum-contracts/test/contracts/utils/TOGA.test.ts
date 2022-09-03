@@ -71,11 +71,11 @@ describe("TOGA", function () {
 
     // copied over from ConstantFlowAgreementV1.test.js - should probably be a shared fn
     async function timeTravelOnce(time = MIN_BOND_DURATION) {
-        const block1 = await ethers.provider.getBlock("latest");
+        const block1 = await web3.eth.getBlock("latest");
         console.log("current block time", block1.timestamp);
         console.log(`time traveler going to the future +${time}...`);
         await traveler.advanceTimeAndBlock(time);
-        const block2 = await ethers.provider.getBlock("latest");
+        const block2 = await web3.eth.getBlock("latest");
         console.log("new block time", block2.timestamp);
     }
 
@@ -89,7 +89,7 @@ describe("TOGA", function () {
     ) {
         const exitRateEncoded =
             exitRate !== undefined
-                ? web3.eth.abi.encodeParameter(["int96"], [exitRate])
+                ? web3.eth.abi.encodeParameter("int96", exitRate)
                 : "0x";
         const signer = await ethers.getSigner(sender);
         return await token

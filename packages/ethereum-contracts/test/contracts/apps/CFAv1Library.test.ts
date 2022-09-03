@@ -8,7 +8,6 @@ import {
     SuperTokenMock,
 } from "../../../typechain-types";
 const TestEnvironment = require("../../TestEnvironment");
-const {abiCoder} = require("../utils/helpers");
 
 const mintAmount = "1000000000000000000000000000"; // a small loan of a billion dollars
 const flowRate = "1000000000000";
@@ -183,8 +182,8 @@ describe("CFAv1 Library testing", function () {
                         ]
                     ),
                     web3.eth.abi.encodeParameter(
-                        ["uint8"],
-                        [callbackFunctionIndex.CREATE_FLOW]
+                        "uint8",
+                        callbackFunctionIndex.CREATE_FLOW
                     )
                 );
 
@@ -209,8 +208,8 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     createFlowCalldata,
                     web3.eth.abi.encodeParameter(
-                        ["uint8"],
-                        [callbackFunctionIndex.UPDATE_FLOW]
+                        "uint8",
+                        callbackFunctionIndex.UPDATE_FLOW
                     )
                 );
 
@@ -235,8 +234,8 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     createFlowCalldata,
                     web3.eth.abi.encodeParameter(
-                        ["uint8"],
-                        [callbackFunctionIndex.DELETE_FLOW]
+                        "uint8",
+                        callbackFunctionIndex.DELETE_FLOW
                     )
                 );
 
@@ -422,8 +421,8 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     createFlowCalldata,
                     web3.eth.abi.encodeParameter(
-                        ["uint8"],
-                        [callbackFunctionIndex.CREATE_FLOW_BY_OPERATOR]
+                        "uint8",
+                        callbackFunctionIndex.CREATE_FLOW_BY_OPERATOR
                     )
                 );
 
@@ -464,8 +463,8 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     createFlowCalldata,
                     web3.eth.abi.encodeParameter(
-                        ["uint8"],
-                        [callbackFunctionIndex.UPDATE_FLOW_BY_OPERATOR]
+                        "uint8",
+                        callbackFunctionIndex.UPDATE_FLOW_BY_OPERATOR
                     )
                 );
 
@@ -506,8 +505,8 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     createFlowCalldata,
                     web3.eth.abi.encodeParameter(
-                        ["uint8"],
-                        [callbackFunctionIndex.DELETE_FLOW_BY_OPERATOR]
+                        "uint8",
+                        callbackFunctionIndex.DELETE_FLOW_BY_OPERATOR
                     )
                 );
 
@@ -527,8 +526,8 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     createFlowCalldata,
                     web3.eth.abi.encodeParameter(
-                        ["uint8"],
-                        [callbackFunctionIndex.UPDATE_FLOW_OPERATOR_PERMISSIONS]
+                        "uint8",
+                        callbackFunctionIndex.UPDATE_FLOW_OPERATOR_PERMISSIONS
                     )
                 );
 
@@ -552,10 +551,8 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     createFlowCalldata,
                     web3.eth.abi.encodeParameter(
-                        ["uint8"],
-                        [
-                            callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,
-                        ]
+                        "uint8",
+                        callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL
                     )
                 );
 
@@ -584,10 +581,8 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     createFlowCalldata,
                     web3.eth.abi.encodeParameter(
-                        ["uint8"],
-                        [
-                            callbackFunctionIndex.REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL,
-                        ]
+                        "uint8",
+                        callbackFunctionIndex.REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL
                     )
                 );
 

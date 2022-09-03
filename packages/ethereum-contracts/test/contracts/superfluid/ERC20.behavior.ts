@@ -1,16 +1,25 @@
 // NOTE: copied and modified from https://github.com/OpenZeppelin/openzeppelin-contracts/
-const {constants} = require("@openzeppelin/test-helpers");
-const {expect} = require("chai");
-const {ethers} = require("hardhat");
-const {ZERO_ADDRESS} = constants;
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {BigNumber, BigNumberish, ContractTransaction} from "ethers";
+import {ethers, expect} from "hardhat";
 const {
     expectRevertedWith,
     expectCustomError,
 } = require("../../utils/expectRevert");
 const {toBN} = require("../utils/helpers");
 
-function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts, t) {
-    let initialHolder, recipient, anotherAccount;
+export function shouldBehaveLikeERC20(
+    errorPrefix: string,
+    initialSupply: BigNumber,
+    setupAccounts: () => {
+        initialHolder: string;
+        recipient: string;
+        anotherAccount: string;
+    },
+    // @note TODO replace any
+    t: any
+) {
+    let initialHolder: string, recipient: string, anotherAccount: string;
 
     before(() => {
         ({initialHolder, recipient, anotherAccount} = setupAccounts());
@@ -50,7 +59,12 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts, t) {
                 from: initialHolder,
                 to: recipient,
             }),
-            async function (from, to, value) {
+            async function (
+                this: any,
+                from: string,
+                to: string,
+                value: BigNumberish
+            ) {
                 const signer = await ethers.getSigner(from);
                 return this.token.connect(signer).transfer(to, value);
             },
@@ -59,8 +73,9 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts, t) {
     });
 
     describe("transfer from", function () {
-        let spender, tokenOwner, to;
-        let spenderSigner, tokenOwnerSigner;
+        let spender: string, tokenOwner: string, to: string;
+        let spenderSigner: SignerWithAddress,
+            tokenOwnerSigner: SignerWithAddress;
 
         before(async () => {
             spender = recipient;
@@ -198,7 +213,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts, t) {
 
             describe("when the recipient is the zero address", function () {
                 const amount = initialSupply;
-                const to = ZERO_ADDRESS;
+                const to = ethers.constants.AddressZero;
 
                 beforeEach(async function () {
                     await this.token.approve(spender, amount);
@@ -219,8 +234,8 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts, t) {
 
         describe("when the token owner is the zero address", function () {
             const amount = 0;
-            const tokenOwner = ZERO_ADDRESS;
-            let to;
+            const tokenOwner = ethers.constants.AddressZero;
+            let to: string;
 
             before(() => {
                 to = recipient;
@@ -247,7 +262,12 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts, t) {
                 owner: initialHolder,
                 spender: recipient,
             }),
-            async function (owner, spender, amount) {
+            async function (
+                this: any,
+                owner: string,
+                spender: string,
+                amount: BigNumberish
+            ) {
                 const signer = await ethers.getSigner(owner);
                 return this.token.connect(signer).approve(spender, amount);
             },
@@ -256,14 +276,20 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts, t) {
     });
 }
 
-function shouldBehaveLikeERC20Transfer(
-    _errorPrefix,
-    balance,
-    setupAccounts,
-    transfer,
-    t
+export function shouldBehaveLikeERC20Transfer(
+    _errorPrefix: string,
+    balance: BigNumber,
+    setupAccounts: () => {from: string; to: string},
+    transfer: (
+        this: any,
+        from: string,
+        to: string,
+        amount: BigNumber
+    ) => Promise<ContractTransaction>,
+    // @note TODO replace any
+    t: any
 ) {
-    let from, to;
+    let from: string, to: string;
 
     before(() => {
         ({from, to} = setupAccounts());
@@ -330,7 +356,12 @@ function shouldBehaveLikeERC20Transfer(
     describe("when the recipient is the zero address", function () {
         it("reverts", async function () {
             await expectCustomError(
-                transfer.call(this, from, ZERO_ADDRESS, balance),
+                transfer.call(
+                    this,
+                    from,
+                    ethers.constants.AddressZero,
+                    balance
+                ),
                 this.token,
                 "ZERO_ADDRESS",
                 t.customErrorCode.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
@@ -339,14 +370,20 @@ function shouldBehaveLikeERC20Transfer(
     });
 }
 
-function shouldBehaveLikeERC20Approve(
-    errorPrefix,
-    supply,
-    setupAccounts,
-    approve,
-    t
+export function shouldBehaveLikeERC20Approve(
+    errorPrefix: string,
+    supply: BigNumber,
+    setupAccounts: () => {owner: string; spender: string},
+    approve: (
+        this: any,
+        owner: string,
+        spender: string,
+        amount: BigNumber
+    ) => Promise<ContractTransaction>,
+    // @note TODO replace any
+    t: any
 ) {
-    let owner, spender;
+    let owner: string, spender: string;
 
     before(() => {
         ({owner, spender} = setupAccounts());
@@ -425,7 +462,7 @@ function shouldBehaveLikeERC20Approve(
     describe("when the spender is the zero address", function () {
         it("reverts", async function () {
             await expectCustomError(
-                approve.call(this, owner, ZERO_ADDRESS, supply),
+                approve.call(this, owner, ethers.constants.AddressZero, supply),
                 this.token,
                 "ZERO_ADDRESS",
                 t.customErrorCode.SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS
@@ -433,9 +470,3 @@ function shouldBehaveLikeERC20Approve(
         });
     });
 }
-
-module.exports = {
-    shouldBehaveLikeERC20,
-    shouldBehaveLikeERC20Transfer,
-    shouldBehaveLikeERC20Approve,
-};

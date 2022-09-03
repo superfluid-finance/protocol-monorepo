@@ -8,11 +8,11 @@ const {
     expectCustomError,
 } = require("../../utils/expectRevert");
 
-const {
+import {
     shouldBehaveLikeERC20,
     shouldBehaveLikeERC20Transfer,
     shouldBehaveLikeERC20Approve,
-} = require("./ERC20.behavior");
+} from "./ERC20.behavior";
 const {toBN} = require("../utils/helpers");
 
 describe("SuperToken's ERC20 compliance", function () {
@@ -99,7 +99,7 @@ describe("SuperToken's ERC20 compliance", function () {
                                 .decreaseAllowance(spender, approvedAmount)
                         )
                             .to.emit(this.token, "Approval")
-                            .withArgs(alice, spender, toBN(0));
+                            .withArgs(alice, bob, toBN(0));
                     });
 
                     it("decreases the spender allowance subtracting the requested amount", async function () {
@@ -309,20 +309,7 @@ describe("SuperToken's ERC20 compliance", function () {
             });
         });
     });
-    const person = {
-        firstName: "John",
-        lastName: "Doe",
-        fullName: function () {
-            return this.firstName + " " + this.lastName;
-        },
-    };
 
-    const member = {
-        firstName: "Hege",
-        lastName: "Nilsen",
-    };
-
-    let fullName = person.fullName.bind(member);
     describe("_approve", function () {
         shouldBehaveLikeERC20Approve(
             "ERC20",

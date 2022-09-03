@@ -2463,7 +2463,10 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     newGov.address
                 );
-                assert.equal(await superfluid.getGovernance(), newGov.address);
+                assert.equal(
+                    await superfluid.getGovernance(),
+                    newGov.address
+                );
             });
         });
     });

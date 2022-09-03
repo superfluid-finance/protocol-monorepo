@@ -11,13 +11,13 @@ const {
 
 const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
 
-const {
+import {
     shouldBehaveLikeERC777DirectSendBurn,
     shouldBehaveLikeERC777OperatorSendBurn,
     shouldBehaveLikeERC777UnauthorizedOperatorSendBurn,
     shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook,
     shouldBehaveLikeERC777SendBurnWithSendHook,
-} = require("./ERC777.behavior");
+} from "./ERC777.behavior";
 
 const ERC777SenderRecipientMock = artifacts.require(
     "ERC777SenderRecipientMock"

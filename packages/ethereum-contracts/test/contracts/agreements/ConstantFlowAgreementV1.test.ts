@@ -15,7 +15,7 @@ const TestEnvironment = require("../../TestEnvironment");
 const {expectCustomError} = require("../../utils/expectRevert");
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const {toBN, toWad, max} = require("../utils/helpers");
-const {
+import {
     shouldCreateFlow,
     shouldUpdateFlow,
     shouldDeleteFlow,
@@ -29,8 +29,8 @@ const {
     expectDepositAndOwedDeposit,
     expectFlow,
     getDeposit,
-} = require("./ConstantFlowAgreementV1.behavior.js");
-const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
+} from "./ConstantFlowAgreementV1.behavior";
+const CFADataModel = require("./ConstantFlowAgreementV1.data");
 const {
     FLOW_TYPE_CREATE,
     FLOW_TYPE_UPDATE,
@@ -3699,13 +3699,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                 allowCriticalAccount: true,
             });
 
-            const balanceData = await superToken.realtimeBalanceOfNow(
-                t.aliases[sender]
-            );
-            const timeInDeficit = toBN(
-                balanceData.availableBalance.toString()
-            ).div(toBN("0").sub(FLOW_RATE1));
-
             await shouldDeleteFlow({
                 testenv: t,
                 superToken,
@@ -3713,7 +3706,6 @@ describe("Using ConstantFlowAgreement v1", function () {
                 receiver: "mfa",
                 by: "dan",
                 mfa,
-                time: timeInDeficit,
                 accountFlowInfo,
             });
             assert.isFalse(await superfluid.isAppJailed(app.address));
@@ -4704,7 +4696,6 @@ describe("Using ConstantFlowAgreement v1", function () {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
                 testenv: t,
                 token: superToken.address,
-                sender: bob,
                 flowOperator: admin,
                 permissions: permissions.toString(),
                 flowRateAllowance: "42069",
@@ -4714,7 +4705,6 @@ describe("Using ConstantFlowAgreement v1", function () {
             await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
                 testenv: t,
                 token: superToken.address,
-                sender: bob,
                 flowOperator: admin,
                 ctx: "0x",
                 signer: await ethers.getSigner(bob),

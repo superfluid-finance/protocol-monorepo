@@ -1,6 +1,16 @@
+import {assert} from "hardhat";
+import {TestToken} from "../../../typechain-types";
+
 const _ = require("lodash");
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const {web3tx, toBN, wad4human} = require("@decentral.ee/web3-helpers");
+
+interface IDABaseParams {
+    testenv: any;
+    superToken: TestToken;
+    publisher?: string;
+    indexId: string;
+}
 
 function _updateIndexData({
     testenv,
@@ -8,7 +18,7 @@ function _updateIndexData({
     publisher,
     indexId,
     indexData,
-}) {
+}: IDABaseParams & {publisher: string; indexData: any}) {
     _.merge(testenv.data, {
         tokens: {
             [superToken.address]: {
@@ -28,11 +38,16 @@ function _updateIndexData({
     });
 }
 
-function _assertEqualIndexData(idataActual, idataExpected) {
+function _assertEqualIndexData(idataActual: string, idataExpected: string) {
     assert.deepEqual(idataActual, idataExpected);
 }
 
-function getIndexData({testenv, superToken, publisher, indexId}) {
+export function getIndexData({
+    testenv,
+    superToken,
+    publisher,
+    indexId,
+}: IDABaseParams & {publisher: string}) {
     _.defaultsDeep(testenv.data, {
         tokens: {
             [superToken.address]: {
@@ -62,7 +77,12 @@ function getIndexData({testenv, superToken, publisher, indexId}) {
     );
 }
 
-function getSubscribers({testenv, superToken, publisher, indexId}) {
+export function getSubscribers({
+    testenv,
+    superToken,
+    publisher,
+    indexId,
+}: IDABaseParams & {publisher: string}) {
     return testenv.data.tokens[superToken.address].accounts[publisher].ida
         .indicies[indexId].subscribers;
 }
@@ -74,7 +94,7 @@ function _updateSubscriptionData({
     indexId,
     subscriber,
     subscriptionData,
-}) {
+}: IDABaseParams & {subscriber: string; subscriptionData: any}) {
     _.merge(testenv.data, {
         tokens: {
             [superToken.address]: {
@@ -92,7 +112,10 @@ function _updateSubscriptionData({
     });
 }
 
-function _assertEqualSubscriptionData(sdataActual, sdataExpected) {
+function _assertEqualSubscriptionData(
+    sdataActual: string,
+    sdataExpected: string
+) {
     const sdataExpectedClean = _.clone(sdataExpected);
     delete sdataExpectedClean._syncedIndexValue;
     assert.deepEqual(sdataActual, sdataExpectedClean);
@@ -104,18 +127,18 @@ function _deleteSubscription({
     publisher,
     indexId,
     subscriber,
-}) {
+}: IDABaseParams & {subscriber: string}) {
     delete testenv.data.tokens[superToken.address].accounts[subscriber].ida
         .subscriptions[`${publisher}@${indexId}`];
 }
 
-function getSubscriptionData({
+export function getSubscriptionData({
     testenv,
     superToken,
     publisher,
     indexId,
     subscriber,
-}) {
+}: IDABaseParams & {publisher: string; subscriber: string}) {
     _.defaultsDeep(testenv.data, {
         tokens: {
             [superToken.address]: {
@@ -157,12 +180,12 @@ function getSubscriptionData({
     return result;
 }
 
-async function shouldCreateIndex({
+export async function shouldCreateIndex({
     testenv,
     superToken,
     publisherName,
     indexId,
-}) {
+}: IDABaseParams & {publisherName: string}) {
     console.log("======== shouldCreateIndex begins ========");
     const publisher = testenv.getAddress(publisherName);
 
@@ -216,7 +239,7 @@ async function shouldCreateIndex({
     console.log("======== shouldCreateIndex ends ========");
 }
 
-async function shouldDistribute({
+export async function shouldDistribute({
     testenv,
     superToken,
     publisherName,
@@ -224,6 +247,11 @@ async function shouldDistribute({
     indexValue,
     amount,
     fn,
+}: IDABaseParams & {
+    publisherName: string;
+    indexValue?: string;
+    amount?: string;
+    fn?: () => Promise<any>;
 }) {
     console.log("======== shouldDistribute begins ========");
     const publisher = testenv.getAddress(publisherName);
@@ -244,7 +272,7 @@ async function shouldDistribute({
     const totalUnitsZero = toBN(idataBefore.totalUnitsApproved)
         .add(toBN(idataBefore.totalUnitsPending))
         .eq(toBN(0));
-    let tx;
+    let tx: any;
     if (totalUnitsZero) {
         indexValue = idataBefore.indexValue;
         tx = await web3tx(
@@ -303,7 +331,7 @@ async function shouldDistribute({
         publisher,
         indexId,
         indexData: {
-            indexValue: indexValue.toString(),
+            indexValue: (indexValue || "0").toString(),
         },
     });
     const idataExpected = getIndexData({
@@ -414,7 +442,7 @@ function _beforeSubscriptionUpdate({
     publisher,
     indexId,
     subscriber,
-}) {
+}: IDABaseParams & {publisher: string; subscriber: string}) {
     const idataBefore = getIndexData({
         testenv,
         superToken,
@@ -441,6 +469,11 @@ async function _afterSubscriptionUpdate({
     subscriber,
     idataBefore,
     sdataBefore,
+}: IDABaseParams & {
+    publisher: string;
+    subscriber: string;
+    idataBefore: any;
+    sdataBefore: any;
 }) {
     const sdataExpected = getSubscriptionData({
         testenv,
@@ -493,19 +526,23 @@ async function _afterSubscriptionUpdate({
     });
 }
 
-async function shouldApproveSubscription({
+export async function shouldApproveSubscription({
     testenv,
     superToken,
     publisherName,
     indexId,
     subscriberName,
     userData,
+}: IDABaseParams & {
+    publisherName: string;
+    subscriberName: string;
+    userData?: string;
 }) {
     console.log("======== shouldApproveSubscription begins ========");
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
-    const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
+    const {idataBefore, sdataBefore} = _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -608,7 +645,7 @@ async function shouldApproveSubscription({
     return tx;
 }
 
-async function shouldUpdateSubscription({
+export async function shouldUpdateSubscription({
     testenv,
     superToken,
     publisherName,
@@ -617,12 +654,18 @@ async function shouldUpdateSubscription({
     units,
     userData,
     fn,
+}: IDABaseParams & {
+    publisherName: string;
+    subscriberName: string;
+    userData?: string;
+    units: string;
+    fn?: () => Promise<any>;
 }) {
     console.log("======== shouldUpdateSubscription begins ========");
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
-    const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
+    const {idataBefore, sdataBefore} = _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -734,19 +777,23 @@ async function shouldUpdateSubscription({
     return tx;
 }
 
-async function shouldRevokeSubscription({
+export async function shouldRevokeSubscription({
     testenv,
     superToken,
     publisherName,
     indexId,
     subscriberName,
     userData,
+}: IDABaseParams & {
+    publisherName: string;
+    subscriberName: string;
+    userData?: string;
 }) {
     console.log("======== shouldRevokeSubscription begins ========");
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
 
-    const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
+    const {idataBefore, sdataBefore} = _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -842,7 +889,7 @@ async function shouldRevokeSubscription({
     return tx;
 }
 
-async function shouldDeleteSubscription({
+export async function shouldDeleteSubscription({
     testenv,
     superToken,
     publisherName,
@@ -850,13 +897,18 @@ async function shouldDeleteSubscription({
     subscriberName,
     senderName,
     userData,
+}: IDABaseParams & {
+    publisherName: string;
+    senderName: string;
+    subscriberName: string;
+    userData?: string;
 }) {
     console.log("======== shouldDeleteSubscription begins ========");
     const publisher = testenv.getAddress(publisherName);
     const subscriber = testenv.getAddress(subscriberName);
     const sender = testenv.getAddress(senderName);
 
-    const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
+    const {idataBefore, sdataBefore} = _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -979,7 +1031,7 @@ async function shouldDeleteSubscription({
     return tx;
 }
 
-async function shouldClaimPendingDistribution({
+export async function shouldClaimPendingDistribution({
     testenv,
     superToken,
     publisherName,
@@ -987,6 +1039,11 @@ async function shouldClaimPendingDistribution({
     subscriberName,
     senderName,
     userData,
+}: IDABaseParams & {
+    publisherName: string;
+    senderName: string;
+    subscriberName: string;
+    userData?: string;
 }) {
     console.log("======== shouldClaimPendingDistribution begins ========");
 
@@ -994,7 +1051,7 @@ async function shouldClaimPendingDistribution({
     const subscriber = testenv.getAddress(subscriberName);
     const sender = testenv.getAddress(senderName);
 
-    const {idataBefore, sdataBefore} = await _beforeSubscriptionUpdate({
+    const {idataBefore, sdataBefore} = _beforeSubscriptionUpdate({
         testenv,
         superToken,
         publisher,
@@ -1040,16 +1097,3 @@ async function shouldClaimPendingDistribution({
 
     return tx;
 }
-
-module.exports = {
-    getIndexData,
-    getSubscriptionData,
-    getSubscribers,
-    shouldCreateIndex,
-    shouldDistribute,
-    shouldApproveSubscription,
-    shouldUpdateSubscription,
-    shouldRevokeSubscription,
-    shouldDeleteSubscription,
-    shouldClaimPendingDistribution,
-};

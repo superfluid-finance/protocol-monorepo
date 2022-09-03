@@ -10,8 +10,8 @@ const {toBN, toWad} = require("../utils/helpers");
 const {
     shouldCreateFlow,
     expectNetFlow,
-} = require("../agreements/ConstantFlowAgreementV1.behavior.js");
-const CFADataModel = require("../agreements/ConstantFlowAgreementV1.data.js");
+} = require("../agreements/ConstantFlowAgreementV1.behavior");
+const CFADataModel = require("../agreements/ConstantFlowAgreementV1.data");
 
 const {
     shouldCreateIndex,
@@ -19,7 +19,7 @@ const {
     shouldApproveSubscription,
     shouldUpdateSubscription,
     shouldDeleteSubscription,
-} = require("../agreements/InstantDistributionAgreementV1.behaviour.js");
+} = require("../agreements/InstantDistributionAgreementV1.behaviour");
 
 const DEFAULT_INDEX_ID = "42";
 

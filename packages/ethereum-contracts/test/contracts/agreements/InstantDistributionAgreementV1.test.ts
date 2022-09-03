@@ -5,12 +5,11 @@ import {
     InstantDistributionAgreementV1,
     TestToken,
 } from "../../../typechain-types";
-import {abiCoder} from "../utils/helpers";
 
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const {wad4human} = require("@decentral.ee/web3-helpers");
 
-const {
+import {
     shouldCreateIndex,
     shouldDistribute,
     shouldApproveSubscription,
@@ -18,7 +17,7 @@ const {
     shouldRevokeSubscription,
     shouldDeleteSubscription,
     shouldClaimPendingDistribution,
-} = require("./InstantDistributionAgreementV1.behaviour.js");
+} from "./InstantDistributionAgreementV1.behaviour";
 
 const {expectCustomError} = require("../../utils/expectRevert");
 
@@ -1031,14 +1030,14 @@ describe("Using InstantDistributionAgreement v1", function () {
                     testenv: t,
                     superToken,
                     publisherName: "alice",
-                    indexId: maxNumberOfSubs,
+                    indexId: maxNumberOfSubs.toString(),
                 });
 
                 await shouldUpdateSubscription({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
-                    indexId: maxNumberOfSubs,
+                    indexId: maxNumberOfSubs.toString(),
                     subscriberName: "bob",
                     units: toWad(0.01).toString(),
                 });
@@ -1116,7 +1115,6 @@ describe("Using InstantDistributionAgreement v1", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
                     indexValue: "100",
                 });
 

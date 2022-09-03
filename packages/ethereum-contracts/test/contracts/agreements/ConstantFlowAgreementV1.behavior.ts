@@ -1,16 +1,62 @@
+import {Block} from "@ethersproject/providers";
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {BigNumber, BigNumberish} from "ethers";
+import {assert, ethers, expect, web3} from "hardhat";
+import {SuperToken, SuperTokenMock} from "../../../typechain-types";
+
 const {expectCustomError} = require("../../utils/expectRevert");
 const {toBN} = require("../utils/helpers");
 const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
 const MFASupport = require("../utils/MFASupport");
-const {ethers} = require("hardhat");
-const {expect} = require("chai");
 const expectEvent = require("@openzeppelin/test-helpers/src/expectEvent");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 
+interface ChangeFlowBaseParams {
+    // @note TODO replace any
+    testenv: any;
+    superToken: SuperToken;
+    sender: string;
+    receiver: string;
+    flowRate: string;
+
+    // @note TODO replace any
+    mfa?: any;
+}
+
+interface DeleteFlowParams {
+    // @note TODO replace any
+    testenv: any;
+    superToken: SuperToken;
+    sender: string;
+    receiver: string;
+
+    // @note TODO replace any
+    mfa?: any;
+    readonly by: string;
+    readonly accountFlowInfo?: string;
+}
+
+interface OperatorPermissionsParams {
+    // @note TODO replace any
+    testenv: any;
+    token: SuperToken;
+    flowOperator: string;
+    ctx: string;
+    signer: SignerWithAddress;
+}
+
+interface ChangeFlowParams extends ChangeFlowBaseParams {
+    fn: string;
+    userData?: string;
+    by?: string;
+
+    // @note TODO replace any
+    accountFlowInfo?: any;
+}
 //
 // test functions
 //
-async function _shouldChangeFlow({
+export async function _shouldChangeFlow({
     fn,
     testenv,
     superToken,
@@ -21,7 +67,7 @@ async function _shouldChangeFlow({
     userData,
     by,
     accountFlowInfo,
-}) {
+}: ChangeFlowParams) {
     console.log(`======== ${fn} begins ========`);
     console.log(`${sender} -> ${receiver} ${flowRate}`, by ? `by ${by}` : "");
     //console.log("!!! 1", JSON.stringify(testenv.data, null, 4));
@@ -29,16 +75,19 @@ async function _shouldChangeFlow({
 
     const cfaDataModel = new CFADataModel(testenv, superToken);
 
-    let txBlock;
+    let txBlock: Block;
 
-    const updateAccountExpectedBalanceDelta = (role, expectedBalanceDelta) => {
+    const updateAccountExpectedBalanceDelta = (
+        role: string,
+        expectedBalanceDelta: BigNumber
+    ) => {
         testenv.updateAccountExpectedBalanceDelta(
             superToken.address,
             cfaDataModel.roles[role],
             expectedBalanceDelta
         );
     };
-    const getAccountExpectedBalanceDelta = (role) => {
+    const getAccountExpectedBalanceDelta = (role: string) => {
         return testenv.getAccountExpectedBalanceDelta(
             superToken.address,
             cfaDataModel.roles[role]
@@ -150,7 +199,8 @@ async function _shouldChangeFlow({
                 ? mainFlowAppCreditGranted.add(testenv.configs.MINIMUM_DEPOSIT)
                 : mainFlowAppCreditGranted;
         const appCreditUsed = Object.entries(cfaDataModel.expectedFlowInfo)
-            .map((x) => {
+            // @note TODO replace any
+            .map((x: any) => {
                 const depositBefore =
                     cfaDataModel.flows[x[0]].flowInfoBefore.deposit;
                 return x[1].deposit.sub(toBN(depositBefore));
@@ -197,9 +247,9 @@ async function _shouldChangeFlow({
      **************************************************************************/
 
     // change flow
-    let tx;
-    let superfluid;
-    let cfa;
+    let tx: any;
+    let superfluid: any;
+    let cfa: any;
     switch (fn) {
         case "createFlow":
         case "updateFlow":
@@ -230,6 +280,7 @@ async function _shouldChangeFlow({
             superfluid = await testenv.sf.contracts.ISuperfluid.at(
                 testenv.contracts.superfluid.address
             );
+            console.log("HENLO", cfa);
             tx = await superfluid.callAgreement(
                 testenv.contracts.cfa.address,
                 cfa.contract.methods[fn](
@@ -604,14 +655,14 @@ async function _shouldChangeFlow({
     console.log(`======== ${fn} ends ========`);
 }
 
-async function shouldCreateFlow({
+export async function shouldCreateFlow({
     testenv,
     superToken,
     sender,
     receiver,
     flowRate,
     mfa,
-}) {
+}: ChangeFlowBaseParams) {
     await _shouldChangeFlow({
         fn: "createFlow",
         testenv,
@@ -623,14 +674,14 @@ async function shouldCreateFlow({
     });
 }
 
-async function shouldUpdateFlow({
+export async function shouldUpdateFlow({
     testenv,
     superToken,
     sender,
     receiver,
     flowRate,
     mfa,
-}) {
+}: ChangeFlowBaseParams) {
     await _shouldChangeFlow({
         fn: "updateFlow",
         testenv,
@@ -642,7 +693,7 @@ async function shouldUpdateFlow({
     });
 }
 
-async function shouldDeleteFlow({
+export async function shouldDeleteFlow({
     testenv,
     superToken,
     sender,
@@ -650,21 +701,21 @@ async function shouldDeleteFlow({
     mfa,
     by,
     accountFlowInfo,
-}) {
+}: DeleteFlowParams) {
     await _shouldChangeFlow({
         fn: "deleteFlow",
         testenv,
         superToken,
         sender,
         receiver,
-        flowRate: 0,
+        flowRate: "0",
         mfa,
         by,
         accountFlowInfo,
     });
 }
 
-async function shouldCreateFlowByOperator({
+export async function shouldCreateFlowByOperator({
     testenv,
     superToken,
     sender,
@@ -672,7 +723,7 @@ async function shouldCreateFlowByOperator({
     flowRate,
     mfa,
     flowOperator,
-}) {
+}: ChangeFlowBaseParams & {flowOperator: string}) {
     await _shouldChangeFlow({
         fn: "createFlowByOperator",
         testenv,
@@ -685,7 +736,7 @@ async function shouldCreateFlowByOperator({
     });
 }
 
-async function shouldUpdateFlowByOperator({
+export async function shouldUpdateFlowByOperator({
     testenv,
     superToken,
     sender,
@@ -693,7 +744,7 @@ async function shouldUpdateFlowByOperator({
     flowRate,
     mfa,
     flowOperator,
-}) {
+}: ChangeFlowBaseParams & {flowOperator: string}) {
     await _shouldChangeFlow({
         fn: "updateFlowByOperator",
         testenv,
@@ -705,7 +756,7 @@ async function shouldUpdateFlowByOperator({
         by: flowOperator,
     });
 }
-async function shouldDeleteFlowByOperator({
+export async function shouldDeleteFlowByOperator({
     testenv,
     superToken,
     sender,
@@ -713,6 +764,14 @@ async function shouldDeleteFlowByOperator({
     mfa,
     flowOperator,
     accountFlowInfo,
+}: {
+    testenv: any;
+    superToken: SuperTokenMock;
+    sender: string;
+    receiver: string;
+    mfa?: any;
+    flowOperator: string;
+    accountFlowInfo?: any;
 }) {
     await _shouldChangeFlow({
         fn: "deleteFlowByOperator",
@@ -720,7 +779,7 @@ async function shouldDeleteFlowByOperator({
         superToken,
         sender,
         receiver,
-        flowRate: 0,
+        flowRate: "0",
         mfa,
         by: flowOperator,
         accountFlowInfo,
@@ -735,6 +794,14 @@ function getUpdateFlowOperatorPermissionsPromise({
     flowRateAllowance,
     ctx,
     signer,
+}: {
+    testenv: any;
+    token: string;
+    flowOperator: string;
+    ctx: string;
+    signer: SignerWithAddress;
+    permissions?: string;
+    flowRateAllowance?: string;
 }) {
     const {cfa, superfluid} = testenv.contracts;
     return superfluid
@@ -747,7 +814,7 @@ function getUpdateFlowOperatorPermissionsPromise({
                     token,
                     flowOperator,
                     permissions,
-                    flowRateAllowance.toString(),
+                    (flowRateAllowance || "0").toString(),
                     ctx,
                 ]
             ),
@@ -762,6 +829,13 @@ function getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
     ctx,
     isRevokeFullControl,
     signer,
+}: {
+    testenv: any;
+    token: string;
+    flowOperator: string;
+    ctx: string;
+    signer: SignerWithAddress;
+    isRevokeFullControl: boolean;
 }) {
     const {cfa, superfluid} = testenv.contracts;
     const methodSignature = isRevokeFullControl
@@ -779,7 +853,7 @@ function getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
         );
 }
 
-async function getChangeFlowByFlowOperatorPromise({
+export async function getChangeFlowByFlowOperatorPromise({
     testenv,
     methodSignature,
     token,
@@ -787,6 +861,11 @@ async function getChangeFlowByFlowOperatorPromise({
     receiver,
     signer,
     flowRate,
+}: OperatorPermissionsParams & {
+    methodSignature: string;
+    sender: string;
+    receiver: string;
+    flowRate: string;
 }) {
     const {cfa, superfluid} = testenv.contracts;
     if (methodSignature === "deleteFlowByOperator") {
@@ -813,7 +892,7 @@ async function getChangeFlowByFlowOperatorPromise({
         );
 }
 
-async function shouldRevertUpdateFlowOperatorPermissions({
+export async function shouldRevertUpdateFlowOperatorPermissions({
     testenv,
     token,
     flowOperator,
@@ -822,6 +901,15 @@ async function shouldRevertUpdateFlowOperatorPermissions({
     ctx,
     signer,
     expectedCustomError,
+}: {
+    testenv: any;
+    token: string;
+    flowOperator: string;
+    ctx: string;
+    signer: SignerWithAddress;
+    permissions: string;
+    flowRateAllowance: string;
+    expectedCustomError: string;
 }) {
     console.log("\n[EXPECT UPDATE FLOW OPERATOR PERMISSIONS REVERT]");
     console.log(
@@ -847,7 +935,7 @@ async function shouldRevertUpdateFlowOperatorPermissions({
  * event emits the correct values (newly defined values) and that the
  * agreementData was properly updated.
  */
-async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+export async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     testenv,
     token,
     flowOperator,
@@ -857,6 +945,16 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     signer,
     isFullControl,
     isFullControlRevoke,
+}: {
+    testenv: any;
+    token: string;
+    flowOperator: string;
+    ctx: string;
+    signer: SignerWithAddress;
+    permissions?: string;
+    flowRateAllowance?: string;
+    isFullControl?: boolean;
+    isFullControlRevoke?: boolean;
 }) {
     const {cfa} = testenv.contracts;
     const {MAXIMUM_FLOW_RATE} = testenv.constants;
@@ -907,7 +1005,7 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
                 flowOperator,
                 ctx,
                 signer,
-                isRevokeFullControl: isFullControlRevoke,
+                isRevokeFullControl: isFullControlRevoke || false,
             })
         )
             .to.emit(cfa, "FlowOperatorUpdated")
@@ -936,7 +1034,7 @@ async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     assert.equal(data.flowRateAllowance.toString(), expectedFlowRateAllowance);
 }
 
-async function shouldRevertChangeFlowByOperator({
+export async function shouldRevertChangeFlowByOperator({
     testenv,
     methodSignature,
     token,
@@ -946,6 +1044,12 @@ async function shouldRevertChangeFlowByOperator({
     flowRate,
     ctx,
     expectedCustomError,
+}: OperatorPermissionsParams & {
+    methodSignature: string;
+    sender: string;
+    receiver: string;
+    flowRate: string;
+    expectedCustomError: string;
 }) {
     console.log("\n[EXPECT CHANGE FLOW BY OPERATOR REVERT]");
     console.log(
@@ -962,13 +1066,24 @@ async function shouldRevertChangeFlowByOperator({
             signer,
             flowRate,
             ctx,
+            flowOperator: "",
         }),
         testenv.contracts.cfa,
         expectedCustomError
     );
 }
 
-async function expectNetFlow({testenv, account, superToken, value}) {
+export async function expectNetFlow({
+    testenv,
+    account,
+    superToken,
+    value,
+}: {
+    testenv: any;
+    account: string;
+    superToken: SuperTokenMock;
+    value: BigNumberish;
+}) {
     const actualNetFlowRate = await testenv.contracts.cfa.getNetFlow(
         superToken.address,
         testenv.getAddress(account)
@@ -981,7 +1096,7 @@ async function expectNetFlow({testenv, account, superToken, value}) {
     );
 }
 
-async function expectFlow({
+export async function expectFlow({
     testenv,
     sender,
     receiver,
@@ -989,7 +1104,7 @@ async function expectFlow({
     flowRate,
     deposit,
     owedDeposit,
-}) {
+}: ChangeFlowBaseParams & {deposit: string; owedDeposit: string}) {
     const flowData = await testenv.contracts.cfa.getFlow(
         superToken.address,
         testenv.getAddress(sender),
@@ -1021,12 +1136,18 @@ async function expectFlow({
     );
 }
 
-async function expectDepositAndOwedDeposit({
+export async function expectDepositAndOwedDeposit({
     testenv,
     account,
     superToken,
     deposit,
     owedDeposit,
+}: {
+    testenv: any;
+    account: string;
+    superToken: SuperTokenMock;
+    deposit: string;
+    owedDeposit: string;
 }) {
     const flowData = await testenv.contracts.cfa.getAccountFlowInfo(
         superToken.address,
@@ -1054,24 +1175,14 @@ async function expectDepositAndOwedDeposit({
  * Gets the clipped deposit given a flowRate and test environment
  * @returns
  */
-function getDeposit({testenv, flowRate}) {
+export function getDeposit({
+    testenv,
+    flowRate,
+}: {
+    testenv: any;
+    flowRate: BigNumber;
+}) {
     return CFADataModel.clipDepositNumber(
         flowRate.mul(toBN(testenv.configs.LIQUIDATION_PERIOD))
     );
 }
-
-module.exports = {
-    shouldCreateFlow,
-    shouldUpdateFlow,
-    shouldDeleteFlow,
-    shouldCreateFlowByOperator,
-    shouldUpdateFlowByOperator,
-    shouldDeleteFlowByOperator,
-    shouldRevertUpdateFlowOperatorPermissions,
-    shouldUpdateFlowOperatorPermissionsAndValidateEvent,
-    shouldRevertChangeFlowByOperator,
-    expectNetFlow,
-    expectFlow,
-    expectDepositAndOwedDeposit,
-    getDeposit,
-};

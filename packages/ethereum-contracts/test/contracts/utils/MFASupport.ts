@@ -1,8 +1,27 @@
-const {toBN} = require("./helpers");
-const CFADataModel = require("../agreements/ConstantFlowAgreementV1.data.js");
+import {assert, web3} from "hardhat";
+import {SuperToken} from "../../../typechain-types";
 
-module.exports = class MFASupport {
-    static async setup({testenv, mfa, roles}) {
+const {toBN} = require("./helpers");
+import CFADataModel from "../agreements/ConstantFlowAgreementV1.data";
+
+interface MFAParams {
+    ratioPct: number;
+    sender: string;
+    receivers: {
+        [receiver: string]: {proportion: number};
+    };
+}
+
+export default class MFASupport {
+    static async setup({
+        testenv,
+        mfa,
+        roles,
+    }: {
+        testenv: any;
+        mfa: MFAParams;
+        roles: {[role: string]: string};
+    }) {
         roles.mfaSender = testenv.getAddress(mfa.sender);
         roles.mfa = testenv.getAddress("mfa");
 
@@ -36,6 +55,12 @@ module.exports = class MFASupport {
         mfa,
         flowRate,
         cfaDataModel,
+    }: {
+        testenv: any;
+        mfa: MFAParams;
+        superToken: SuperToken;
+        flowRate: string;
+        cfaDataModel: any;
     }) {
         const roles = cfaDataModel.roles;
         let expectedNetFlowDeltas = cfaDataModel.expectedNetFlowDeltas;
@@ -101,10 +126,12 @@ module.exports = class MFASupport {
                             ).flowRate
                         )
                     );
-                    expectedNetFlowDeltas[receiverAddress] = expectedNetFlowDeltas[receiverAddress].add(
-                        mfaFlowRateDelta
-                    );
-                    expectedNetFlowDeltas[roles.mfa] = expectedNetFlowDeltas[roles.mfa].sub(mfaFlowRateDelta);
+                    expectedNetFlowDeltas[receiverAddress] =
+                        expectedNetFlowDeltas[receiverAddress].add(
+                            mfaFlowRateDelta
+                        );
+                    expectedNetFlowDeltas[roles.mfa] =
+                        expectedNetFlowDeltas[roles.mfa].sub(mfaFlowRateDelta);
                 }
 
                 expectedFlowInfo[mfaFlowName] = {
@@ -126,10 +153,12 @@ module.exports = class MFASupport {
                 expectedNetFlowDeltas[roles.mfaSender] = toBN(0);
             if (!(roles.mfa in expectedNetFlowDeltas))
                 expectedNetFlowDeltas[roles.mfa] = toBN(0);
-            expectedNetFlowDeltas[roles.mfaSender] = expectedNetFlowDeltas[roles.mfaSender].add(
-                toBN(mfaSenderFlow.flowRate)
-            );
-            expectedNetFlowDeltas[roles.mfa] = expectedNetFlowDeltas[roles.mfa].sub(toBN(mfaSenderFlow.flowRate));
+            expectedNetFlowDeltas[roles.mfaSender] = expectedNetFlowDeltas[
+                roles.mfaSender
+            ].add(toBN(mfaSenderFlow.flowRate));
+            expectedNetFlowDeltas[roles.mfa] = expectedNetFlowDeltas[
+                roles.mfa
+            ].sub(toBN(mfaSenderFlow.flowRate));
             await cfaDataModel.addFlowInfoBefore("mfa.sender", {
                 sender: roles.mfaSender,
                 receiver: roles.mfa,
@@ -142,10 +171,16 @@ module.exports = class MFASupport {
         }
     }
 
-    static async postCheck({testenv, roles}) {
+    static async postCheck({
+        testenv,
+        roles,
+    }: {
+        testenv: any;
+        roles: {[role: string]: string};
+    }) {
         assert.isFalse(
             await testenv.contracts.superfluid.isAppJailed(roles.mfa),
             "MFA app was jailed"
         );
     }
-};
+}

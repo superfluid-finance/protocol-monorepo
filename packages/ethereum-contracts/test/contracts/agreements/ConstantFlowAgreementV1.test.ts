@@ -30,12 +30,12 @@ import {
     expectFlow,
     getDeposit,
 } from "./ConstantFlowAgreementV1.behavior";
-const CFADataModel = require("./ConstantFlowAgreementV1.data");
-const {
+import CFADataModel from "./ConstantFlowAgreementV1.data";
+import {
     FLOW_TYPE_CREATE,
     FLOW_TYPE_UPDATE,
     FLOW_TYPE_DELETE,
-} = require("./AgreementHelper");
+} from "./AgreementHelper";
 
 const MFASupport = require("../utils/MFASupport");
 
@@ -118,7 +118,6 @@ describe("Using ConstantFlowAgreement v1", function () {
         const block2 = await web3.eth.getBlock("latest");
         await t.validateExpectedBalances(() => {
             cfaDataModel.syncAccountExpectedBalanceDeltas({
-                testenv: t,
                 superToken: superToken.address,
                 timestamp: block2.timestamp,
             });

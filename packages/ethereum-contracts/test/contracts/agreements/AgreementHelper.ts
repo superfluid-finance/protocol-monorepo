@@ -1,4 +1,7 @@
-const {ethers} = require("hardhat");
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {FunctionFragment, Interface} from "ethers/lib/utils";
+
+import {ethers} from "hardhat";
 const basePath = "../../../artifacts/contracts/";
 const IConstantFlowAgreementV1Artifact = require(basePath +
     "interfaces/agreements/IConstantFlowAgreementV1.sol/IConstantFlowAgreementV1.json");
@@ -7,11 +10,36 @@ const IInstantDistributionAgreementV1Artifact = require(basePath +
 const SuperfluidMockArtifact = require(basePath +
     "mocks/SuperfluidMock.sol/SuperfluidMock.json");
 
-const FLOW_TYPE_CREATE = "createFlow";
-const FLOW_TYPE_UPDATE = "updateFlow";
-const FLOW_TYPE_DELETE = "deleteFlow";
-const AgreementHelper = class AgreementHelper {
-    constructor(testEnvironment) {
+interface CallAgreementParams {
+    signer: SignerWithAddress;
+    agreementAddress: string;
+    callData: string;
+    userData?: string;
+}
+
+interface CallAppActionParams {
+    signer: SignerWithAddress;
+    appAddress: string;
+    callData: string;
+}
+
+interface UpdateFlowOperatorPermissionsParams {
+    superToken: SignerWithAddress;
+    flowOperator: string;
+    permissions: string;
+    flowRateAllowance: string;
+}
+
+export const FLOW_TYPE_CREATE = "createFlow";
+export const FLOW_TYPE_UPDATE = "updateFlow";
+export const FLOW_TYPE_DELETE = "deleteFlow";
+
+export default class AgreementHelper {
+    testEnvironment: any;
+    cfaInterface: Interface;
+    hostInterface: Interface;
+    idaInterface: Interface;
+    constructor(testEnvironment: any) {
         this.testEnvironment = testEnvironment;
         this.cfaInterface = new ethers.utils.Interface(
             IConstantFlowAgreementV1Artifact.abi
@@ -24,7 +52,7 @@ const AgreementHelper = class AgreementHelper {
         );
     }
 
-    async callAgreement(params) {
+    async callAgreement(params: CallAgreementParams) {
         return await this.testEnvironment.contracts.superfluid
             .connect(params.signer)
             .callAgreement(
@@ -34,13 +62,15 @@ const AgreementHelper = class AgreementHelper {
             );
     }
 
-    async callAppAction(params) {
+    async callAppAction(params: CallAppActionParams) {
         return await this.testEnvironment.contracts.superfluid
             .connect(params.signer)
             .callAppAction(params.appAddress, params.callData);
     }
 
-    getUpdateFlowOperatorPermissionsCallData(params) {
+    getUpdateFlowOperatorPermissionsCallData(
+        params: UpdateFlowOperatorPermissionsParams
+    ) {
         return this.cfaInterface.encodeFunctionData(
             "updateFlowOperatorPermissions",
             [
@@ -52,17 +82,26 @@ const AgreementHelper = class AgreementHelper {
         );
     }
 
-    getAuthorizeFlowOperatorWithFullControlCallData(params) {
+    getAuthorizeFlowOperatorWithFullControlCallData(params: {
+        superToken: string;
+        flowOperator: string;
+    }) {
         return this.cfaInterface.encodeFunctionData(
             "updateFlowOperatorPermissions",
             [params.superToken, params.flowOperator]
         );
     }
 
-    getIDACallData(fragment, args) {
+    getIDACallData(fragment: string | FunctionFragment, args: readonly any[]) {
         return this.idaInterface.encodeFunctionData(fragment, args);
     }
-    getModifyFlowCallData(params) {
+    getModifyFlowCallData(params: {
+        superToken: string;
+        receiver: string;
+        type: string;
+        flowRate: string;
+        sender: string;
+    }) {
         const normalizedToken = ethers.utils.getAddress(params.superToken);
         const normalizedReceiver = ethers.utils.getAddress(params.receiver);
         const normalizedSender =
@@ -76,7 +115,13 @@ const AgreementHelper = class AgreementHelper {
         return this.cfaInterface.encodeFunctionData(params.type, values);
     }
 
-    getModifyFlowByOperatorCallData(params) {
+    getModifyFlowByOperatorCallData(params: {
+        superToken: string;
+        receiver: string;
+        type: string;
+        flowRate: string;
+        sender: string;
+    }) {
         const normalizedToken = ethers.utils.getAddress(params.superToken);
         const normalizedReceiver = ethers.utils.getAddress(params.receiver);
         const normalizedSender = ethers.utils.getAddress(params.sender);
@@ -93,7 +138,15 @@ const AgreementHelper = class AgreementHelper {
         return this.cfaInterface.encodeFunctionData(params.type, values);
     }
 
-    async modifyFlow(params) {
+    async modifyFlow(params: {
+        superToken: string;
+        receiver: string;
+        type: string;
+        flowRate: string;
+        sender: string;
+        signer: SignerWithAddress;
+        userData: string;
+    }) {
         const signer = params.signer
             ? params.signer
             : await ethers.getSigner(params.sender || "");
@@ -105,7 +158,7 @@ const AgreementHelper = class AgreementHelper {
             signer,
         });
     }
-};
+}
 module.exports = {
     FLOW_TYPE_CREATE,
     FLOW_TYPE_UPDATE,

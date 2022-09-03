@@ -1,5 +1,6 @@
 import {assert, ethers, web3} from "hardhat";
 import {SuperToken} from "../../../typechain-types";
+import CFADataModel from "../agreements/ConstantFlowAgreementV1.data";
 
 const TestEnvironment = require("../../TestEnvironment");
 const {expectCustomError} = require("../../utils/expectRevert");
@@ -11,7 +12,6 @@ const {
     shouldCreateFlow,
     expectNetFlow,
 } = require("../agreements/ConstantFlowAgreementV1.behavior");
-const CFADataModel = require("../agreements/ConstantFlowAgreementV1.data");
 
 const {
     shouldCreateIndex,
@@ -52,7 +52,6 @@ describe("Superfluid scenarios", function () {
         const block2 = await web3.eth.getBlock("latest");
         await t.validateExpectedBalances(() => {
             cfaDataModel.syncAccountExpectedBalanceDeltas({
-                testenv: t,
                 superToken: superToken.address,
                 timestamp: block2.timestamp,
             });

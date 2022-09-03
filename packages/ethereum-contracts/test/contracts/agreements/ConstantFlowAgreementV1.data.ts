@@ -1,13 +1,38 @@
-const _ = require("lodash");
-const {toBN, max, min} = require("../utils/helpers");
+import {BigNumber, BigNumberish} from "ethers";
+import {assert} from "hardhat";
+import _ from "lodash";
+import {SuperToken} from "../../../typechain-types";
+import {toBN, max, min} from "../utils/helpers";
 
+interface FlowInfo {
+    readonly timestamp: Date;
+    readonly flowRate: BigNumber;
+    readonly deposit: BigNumber;
+    readonly owedDeposit: BigNumber;
+}
+interface FlowParams {
+    readonly sender: string;
+    readonly receiver: string;
+    readonly notTouched?: boolean;
+}
 /**
  * @dev CFA Data Model which contains the relevant CFA state,
  * updater functions and also validation functions.
  *
  */
-module.exports = class CFADataModel {
-    constructor(testenv, superToken) {
+const CFADataModel = class CFADataModel {
+    readonly testenv: any;
+    readonly superToken: any;
+    readonly roles: any;
+    readonly _balanceSnapshotsBefore: any;
+    readonly _accountFlowInfoBefore: any;
+    readonly _accountFlowInfoAfter: any;
+    readonly _balancesBefore: any;
+    readonly _balancesAfter: any;
+    readonly flows: any;
+    readonly expectedFlowInfo: any;
+    readonly expectedNetFlowDeltas: any;
+    constructor(testenv: any, superToken: SuperToken) {
         this.testenv = testenv;
         this.superToken = superToken;
         this.roles = {};
@@ -22,12 +47,12 @@ module.exports = class CFADataModel {
     }
 
     /** CFADataModel Class Data Specific Updaters */
-    addRole(role, alias) {
+    addRole(role: string, alias: string) {
         this.roles[role] = this.testenv.getAddress(alias);
         console.log(`${role} account address ${this.roles[role]} (${alias})`);
     }
 
-    addToBalanceSnapshotsBefore(role) {
+    addToBalanceSnapshotsBefore(role: string) {
         this._balanceSnapshotsBefore[this.roles[role]] =
             this.testenv.getAccountBalanceSnapshot(
                 this.superToken.address,
@@ -38,14 +63,13 @@ module.exports = class CFADataModel {
             this.getBalanceSnapshotsBefore(role)
         );
     }
-    getBalanceSnapshotsBefore(role) {
+    getBalanceSnapshotsBefore(role: string) {
         return this._balanceSnapshotsBefore[this.roles[role]];
     }
 
-    addAccountFlowInfoBefore(role) {
+    addAccountFlowInfoBefore(role: string) {
         this._accountFlowInfoBefore[this.roles[role]] = this.getAccountFlowInfo(
             {
-                testenv: this.testenv,
                 superToken: this.superToken.address,
                 account: this.roles[role],
             }
@@ -55,11 +79,11 @@ module.exports = class CFADataModel {
             this.getAccountFlowInfoBefore(role)
         );
     }
-    getAccountFlowInfoBefore(role) {
+    getAccountFlowInfoBefore(role: string) {
         return this._accountFlowInfoBefore[this.roles[role]];
     }
 
-    async addAccountFlowInfoAfter(role) {
+    async addAccountFlowInfoAfter(role: string) {
         this._accountFlowInfoAfter[this.roles[role]] =
             await this.testenv.sf.cfa.getAccountFlowInfo({
                 superToken: this.superToken.address,
@@ -70,11 +94,11 @@ module.exports = class CFADataModel {
             this.getAccountFlowInfoAfter(role)
         );
     }
-    getAccountFlowInfoAfter(role) {
+    getAccountFlowInfoAfter(role: string) {
         return this._accountFlowInfoAfter[this.roles[role]];
     }
 
-    async addToBalancesBefore(role) {
+    async addToBalancesBefore(role: string) {
         this._balancesBefore[this.roles[role]] =
             await this.superToken.realtimeBalanceOfNow(this.roles[role]);
         this.testenv.printRealtimeBalance(
@@ -82,11 +106,11 @@ module.exports = class CFADataModel {
             this.getBalancesBefore(role)
         );
     }
-    getBalancesBefore(role) {
+    getBalancesBefore(role: string) {
         return this._balancesBefore[this.roles[role]];
     }
 
-    async addToBalancesAfter(role) {
+    async addToBalancesAfter(role: string) {
         this._balancesAfter[this.roles[role]] =
             await this.superToken.realtimeBalanceOfNow(this.roles[role]);
         this.testenv.printRealtimeBalance(
@@ -94,11 +118,11 @@ module.exports = class CFADataModel {
             this.getBalancesAfter(role)
         );
     }
-    getBalancesAfter(role) {
+    getBalancesAfter(role: string) {
         return this._balancesAfter[this.roles[role]];
     }
 
-    async addFlowInfoBefore(flowName, flowParams) {
+    async addFlowInfoBefore(flowName: string, flowParams: FlowParams) {
         const flowId = {
             superToken: this.superToken.address,
             sender: flowParams.sender,
@@ -112,7 +136,7 @@ module.exports = class CFADataModel {
         };
         CFADataModel._printFlowInfo(`${flowName} flow info before`, flowInfo);
     }
-    async addFlowInfoAfter(flowName) {
+    async addFlowInfoAfter(flowName: string) {
         const flowData = this.flows[flowName];
         const flowInfo = await this.testenv.sf.cfa.getFlow(flowData.flowId);
         CFADataModel._printFlowInfo(`${flowName} flow info after`, flowInfo);
@@ -120,7 +144,7 @@ module.exports = class CFADataModel {
     }
 
     // function to validate single flow info change
-    validateFlowInfoChange(flowName, txnTimestamp) {
+    validateFlowInfoChange(flowName: string, txnTimestamp: number) {
         console.log(`validating ${flowName} flow change...`);
         const flowData = this.flows[flowName];
 
@@ -170,7 +194,7 @@ module.exports = class CFADataModel {
     }
 
     // function to validate overall account flow info change
-    validateAccountFlowInfoChange(role) {
+    validateAccountFlowInfoChange(role: string) {
         console.log(`validating ${role} account deposit changes...`);
 
         const inFlowNames = Object.keys(this.flows).filter(
@@ -230,7 +254,15 @@ module.exports = class CFADataModel {
     //
     // Account flow info test data operations
     //
-    updateAccountFlowInfo({superToken, account, flowInfo}) {
+    updateAccountFlowInfo({
+        superToken,
+        account,
+        flowInfo,
+    }: {
+        superToken: string;
+        account: string;
+        flowInfo: FlowInfo;
+    }) {
         _.merge(this.testenv.data, {
             tokens: {
                 [superToken]: {
@@ -250,7 +282,13 @@ module.exports = class CFADataModel {
             },
         });
     }
-    getAccountFlowInfo({superToken, account}) {
+    getAccountFlowInfo({
+        superToken,
+        account,
+    }: {
+        superToken: string;
+        account: string;
+    }) {
         _.defaultsDeep(this.testenv.data, {
             tokens: {
                 [superToken]: {
@@ -276,7 +314,17 @@ module.exports = class CFADataModel {
     //
     // Flow info test data operations
     //
-    updateFlowInfo({superToken, sender, receiver, flowInfo}) {
+    updateFlowInfo({
+        superToken,
+        sender,
+        receiver,
+        flowInfo,
+    }: {
+        superToken: string;
+        sender: string;
+        receiver: string;
+        flowInfo: FlowInfo;
+    }) {
         _.merge(this.testenv.data, {
             tokens: {
                 [superToken]: {
@@ -297,7 +345,15 @@ module.exports = class CFADataModel {
         });
     }
 
-    getFlowInfo({superToken, sender, receiver}) {
+    getFlowInfo({
+        superToken,
+        sender,
+        receiver,
+    }: {
+        superToken: string;
+        sender: string;
+        receiver: string;
+    }) {
         _.defaultsDeep(this.testenv.data, {
             tokens: {
                 [superToken]: {
@@ -323,7 +379,13 @@ module.exports = class CFADataModel {
         );
     }
 
-    validateAccountNetFlow({superToken, account}) {
+    validateAccountNetFlow({
+        superToken,
+        account,
+    }: {
+        superToken: string;
+        account: string;
+    }) {
         const alias = this.testenv.toAlias(account);
         console.log(`validating ${alias} account net flow ...`);
 
@@ -366,12 +428,18 @@ module.exports = class CFADataModel {
         );
     }
 
-    syncAccountExpectedBalanceDeltas({superToken, timestamp}) {
+    syncAccountExpectedBalanceDeltas({
+        superToken,
+        timestamp,
+    }: {
+        superToken: string;
+        timestamp: BigNumberish;
+    }) {
         console.log(
             "syncing accounting expected balance deltas due to flows..."
         );
 
-        this.testenv.listAddresses().forEach((account) => {
+        this.testenv.listAddresses().forEach((account: string) => {
             const accountFlowInfo = this.getAccountFlowInfo({
                 superToken,
                 account,
@@ -401,7 +469,7 @@ module.exports = class CFADataModel {
     }
 
     /** Static Functions */
-    static _printFlowInfo(title, flowInfo) {
+    static _printFlowInfo(title: string, flowInfo: FlowInfo) {
         console.log(
             title,
             flowInfo.timestamp.getTime(),
@@ -410,7 +478,7 @@ module.exports = class CFADataModel {
             flowInfo.owedDeposit.toString()
         );
     }
-    static clipDepositNumber(deposit, roundingDown = false) {
+    static clipDepositNumber(deposit: BigNumber, roundingDown = false) {
         // last 32 bites of the deposit (96 bites) is clipped off
         const rounding = roundingDown
             ? 0
@@ -420,8 +488,14 @@ module.exports = class CFADataModel {
         return deposit.shr(32).add(rounding).shl(32);
     }
 
-    static adjustNewAppCreditUsed(appCreditGranted, appCreditUsed) {
+    static adjustNewAppCreditUsed(
+        appCreditGranted: BigNumber,
+        appCreditUsed: BigNumber
+    ) {
         // [appCreditUsed...appCreditGranted];
         return max(toBN(0), min(appCreditGranted, appCreditUsed));
     }
-};
+}
+
+export default CFADataModel;
+module.exports = CFADataModel;

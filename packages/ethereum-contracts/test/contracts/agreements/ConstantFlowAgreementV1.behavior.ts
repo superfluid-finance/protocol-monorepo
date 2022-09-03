@@ -3,11 +3,11 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {BigNumber, BigNumberish} from "ethers";
 import {assert, ethers, expect, web3} from "hardhat";
 import {SuperToken, SuperTokenMock} from "../../../typechain-types";
+import MFASupport from "../utils/MFASupport";
+import CFADataModel from "./ConstantFlowAgreementV1.data";
 
 const {expectCustomError} = require("../../utils/expectRevert");
 const {toBN} = require("../utils/helpers");
-const CFADataModel = require("./ConstantFlowAgreementV1.data.js");
-const MFASupport = require("../utils/MFASupport");
 const expectEvent = require("@openzeppelin/test-helpers/src/expectEvent");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 
@@ -116,7 +116,7 @@ export async function _shouldChangeFlow({
         }
         // agent is the liquidator (executor of deleteFlow)
         // or agent is the flowOperator
-        cfaDataModel.addRole("agent", by);
+        cfaDataModel.addRole("agent", by!);
         cfaDataModel.addRole("reward", testenv.toAlias(rewardAddress));
     }
     if (mfa) {
@@ -1104,7 +1104,7 @@ export async function expectFlow({
     flowRate,
     deposit,
     owedDeposit,
-}: ChangeFlowBaseParams & {deposit: string; owedDeposit: string}) {
+}: ChangeFlowBaseParams & {deposit: BigNumber; owedDeposit: BigNumber}) {
     const flowData = await testenv.contracts.cfa.getFlow(
         superToken.address,
         testenv.getAddress(sender),
@@ -1146,8 +1146,8 @@ export async function expectDepositAndOwedDeposit({
     testenv: any;
     account: string;
     superToken: SuperTokenMock;
-    deposit: string;
-    owedDeposit: string;
+    deposit: BigNumber;
+    owedDeposit: BigNumber;
 }) {
     const flowData = await testenv.contracts.cfa.getAccountFlowInfo(
         superToken.address,

@@ -16,7 +16,7 @@ const TestToken = artifacts.require("TestToken");
 const {toBN, toWad, max} = require("./contracts/utils/helpers");
 const ISuperTokenArtifact = require("../artifacts/contracts/interfaces/superfluid/ISuperToken.sol/ISuperToken.json");
 const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
-const CFADataModel = require("./contracts/agreements/ConstantFlowAgreementV1.data.js");
+const CFADataModel = require("./contracts/agreements/ConstantFlowAgreementV1.data");
 const {AgreementHelper} = require("./contracts/agreements/AgreementHelper");
 
 let _singleton;

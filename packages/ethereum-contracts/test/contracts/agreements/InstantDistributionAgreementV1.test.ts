@@ -1633,7 +1633,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                             [
                                 superToken.address,
                                 DEFAULT_INDEX_ID,
-                                abiCoder.encode(
+                                web3.eth.abi.encodeParameter(
                                     ["bytes", "bytes"],
                                     ["0xdeadbeef", "0x"]
                                 ),
@@ -2174,10 +2174,10 @@ describe("Using InstantDistributionAgreement v1", function () {
             const fakeHostFactory = await ethers.getContractFactory(
                 "FakeSuperfluidMock"
             );
-            const FakeHost = await fakeHostFactory.deploy();
+            const fakeHost = await fakeHostFactory.deploy();
             const ida = t.sf.agreements.ida;
             await expect(
-                FakeHost.callAgreement(
+                fakeHost.callAgreement(
                     ida.address,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "createIndex",
@@ -2186,7 +2186,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 )
             ).to.be.revertedWith("unauthorized host");
             await expect(
-                FakeHost.callAgreement(
+                fakeHost.callAgreement(
                     ida.address,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "updateIndex",
@@ -2195,7 +2195,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 )
             ).to.be.revertedWith("unauthorized host");
             await expect(
-                FakeHost.callAgreement(
+                fakeHost.callAgreement(
                     ida.address,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "distribute",
@@ -2204,7 +2204,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 )
             ).to.be.revertedWith("unauthorized host");
             await expect(
-                FakeHost.callAgreement(
+                fakeHost.callAgreement(
                     ida.address,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "approveSubscription",
@@ -2213,7 +2213,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 )
             ).to.be.revertedWith("unauthorized host");
             await expect(
-                FakeHost.callAgreement(
+                fakeHost.callAgreement(
                     ida.address,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "updateSubscription",

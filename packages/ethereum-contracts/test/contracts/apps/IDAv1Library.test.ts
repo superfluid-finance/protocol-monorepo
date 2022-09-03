@@ -1,5 +1,5 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {assert, ethers, expect} from "hardhat";
+import {assert, ethers, expect, web3} from "hardhat";
 import {
     IDAv1LibraryMock,
     IDAv1LibrarySuperAppMock,
@@ -40,7 +40,8 @@ describe("IDAv1Library testing", function () {
         CLAIM_USER_DATA: 15,
     };
 
-    const toBytes = (text: string) => abiCoder.encode(["string"], [text]);
+    const toBytes = (text: string) =>
+        web3.eth.abi.encodeParameter(["string"], [text]);
 
     const userData = (
         functionIndex: number,
@@ -49,7 +50,7 @@ describe("IDAv1Library testing", function () {
         subscriber = ZERO_ADDRESS,
         units = 0
     ) =>
-        abiCoder.encode(
+        web3.eth.abi.encodeParameter(
             ["uint8", "uint32", "address", "address", "uint128"],
             [functionIndex, indexId, publisher, subscriber, units]
         );

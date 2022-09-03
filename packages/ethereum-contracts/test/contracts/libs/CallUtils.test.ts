@@ -6,8 +6,8 @@ const {expectRevertedWith} = require("../../utils/expectRevert");
 describe("CallUtils", function () {
     const t = TestEnvironment.getSingleton();
 
-    let CallUtilsMock: CallUtilsMock;
-    let CallUtilsTester: CallUtilsTester;
+    let callUtilsMock: CallUtilsMock;
+    let callUtilsTester: CallUtilsTester;
 
     before(async () => {
         await t.beforeTestSuite({
@@ -17,67 +17,67 @@ describe("CallUtils", function () {
         const CallUtilsMockFactory = await ethers.getContractFactory(
             "CallUtilsMock"
         );
-        CallUtilsMock = await CallUtilsMockFactory.deploy();
+        callUtilsMock = await CallUtilsMockFactory.deploy();
 
         const CallUtilsTesterFactory = await ethers.getContractFactory(
             "CallUtilsTester"
         );
-        CallUtilsTester = await CallUtilsTesterFactory.deploy();
+        callUtilsTester = await CallUtilsTesterFactory.deploy();
     });
 
     it("CallUtils.revertFromReturnedData", async () => {
         await expectRevertedWith(
-            CallUtilsMock.revertTest("revertEmpty()"),
+            callUtilsMock.revertTest("revertEmpty()"),
             "CallUtils: target revert()"
         );
 
         await expectRevertedWith(
-            CallUtilsMock.revertTest("revertAssert()"),
+            callUtilsMock.revertTest("revertAssert()"),
             "CallUtils: target panicked: 0x01"
         );
 
         await expectRevertedWith(
-            CallUtilsMock.revertTest("revertOverflow()"),
+            callUtilsMock.revertTest("revertOverflow()"),
             "CallUtils: target panicked: 0x11"
         );
 
         await expectRevertedWith(
-            CallUtilsMock.revertTest("revertDivByZero()"),
+            callUtilsMock.revertTest("revertDivByZero()"),
             "CallUtils: target panicked: 0x12"
         );
 
         await expectRevertedWith(
-            CallUtilsMock.revertTest("revertEnum()"),
+            callUtilsMock.revertTest("revertEnum()"),
             "CallUtils: target panicked: 0x21"
         );
 
         await expectRevertedWith(
-            CallUtilsMock.revertTest("revertPop()"),
+            callUtilsMock.revertTest("revertPop()"),
             "CallUtils: target panicked: 0x31"
         );
 
         await expectRevertedWith(
-            CallUtilsMock.revertTest("revertArrayAccess()"),
+            callUtilsMock.revertTest("revertArrayAccess()"),
             "CallUtils: target panicked: 0x32"
         );
 
         await expectRevertedWith(
-            CallUtilsMock.revertTest("revertBigArray()"),
+            callUtilsMock.revertTest("revertBigArray()"),
             "CallUtils: target panicked: 0x41"
         );
 
         await expectRevertedWith(
-            CallUtilsMock.revertTest("revertZeroInitializedFunctionPointer()"),
+            callUtilsMock.revertTest("revertZeroInitializedFunctionPointer()"),
             "CallUtils: target panicked: 0x51"
         );
 
         await expectRevertedWith(
-            CallUtilsMock.revertTest("revertString()"),
+            callUtilsMock.revertTest("revertString()"),
             "gm"
         );
     });
 
     it("CallUtils.isValidAbiEncodedBytes", async () => {
-        await CallUtilsTester.testIsValidAbiEncodedBytes();
+        await callUtilsTester.testIsValidAbiEncodedBytes();
     });
 });

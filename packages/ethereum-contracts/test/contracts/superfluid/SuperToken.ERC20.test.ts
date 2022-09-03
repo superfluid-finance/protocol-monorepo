@@ -65,13 +65,19 @@ describe("SuperToken's ERC20 compliance", function () {
 
     describe("decrease allowance", function () {
         describe("when the spender is not the zero address", function () {
+            let spender: string;
+
+            before(() => {
+                spender = bob;
+            });
+
             function shouldDecreaseApproval(amount: BigNumber) {
                 describe("when there was no approved amount before", function () {
                     it("reverts", async function () {
                         await expectRevertedWith(
                             this.token
                                 .connect(aliceSigner)
-                                .decreaseAllowance(bob, amount),
+                                .decreaseAllowance(spender, amount),
                             "SuperToken: decreased allowance below zero"
                         );
                     });
@@ -83,39 +89,48 @@ describe("SuperToken's ERC20 compliance", function () {
                     beforeEach(async function () {
                         ({logs: this.logs} = await this.token
                             .connect(aliceSigner)
-                            .approve(bob, approvedAmount));
+                            .approve(spender, approvedAmount));
                     });
 
                     it("emits an approval event", async function () {
                         await expect(
                             this.token
                                 .connect(aliceSigner)
-                                .decreaseAllowance(bob, approvedAmount)
+                                .decreaseAllowance(spender, approvedAmount)
                         )
                             .to.emit(this.token, "Approval")
-                            .withArgs(alice, bob, toBN(0));
+                            .withArgs(alice, spender, toBN(0));
                     });
 
                     it("decreases the spender allowance subtracting the requested amount", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .decreaseAllowance(bob, approvedAmount.sub(1));
+                            .decreaseAllowance(spender, approvedAmount.sub(1));
 
-                        expect(await this.token.allowance(alice, bob), toBN(1));
+                        expect(
+                            await this.token.allowance(alice, spender),
+                            toBN(1)
+                        );
                     });
 
                     it("sets the allowance to zero when all allowance is removed", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .decreaseAllowance(bob, approvedAmount);
-                        expect(await this.token.allowance(alice, bob), toBN(0));
+                            .decreaseAllowance(spender, approvedAmount);
+                        expect(
+                            await this.token.allowance(alice, spender),
+                            toBN(0)
+                        );
                     });
 
                     it("reverts when more than the full allowance is removed", async function () {
                         await expectRevertedWith(
                             this.token
                                 .connect(aliceSigner)
-                                .decreaseAllowance(bob, approvedAmount.add(1)),
+                                .decreaseAllowance(
+                                    spender,
+                                    approvedAmount.add(1)
+                                ),
                             "SuperToken: decreased allowance below zero"
                         );
                     });
@@ -154,25 +169,29 @@ describe("SuperToken's ERC20 compliance", function () {
         const amount = initialSupply;
 
         describe("when the spender is not the zero address", function () {
+            let spender: string;
+            before(() => {
+                spender = bob;
+            });
             describe("when the sender has enough balance", function () {
                 it("emits an approval event", async function () {
                     await expect(
                         this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(bob, amount)
+                            .increaseAllowance(spender, amount)
                     )
                         .to.emit(this.token, "Approval")
-                        .withArgs(alice, bob, amount);
+                        .withArgs(alice, spender, amount);
                 });
 
                 describe("when there was no approved amount before", function () {
                     it("approves the requested amount", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(bob, amount);
+                            .increaseAllowance(spender, amount);
 
                         expect(
-                            await this.token.allowance(alice, bob),
+                            await this.token.allowance(alice, spender),
                             toBN(amount)
                         );
                     });
@@ -182,16 +201,16 @@ describe("SuperToken's ERC20 compliance", function () {
                     beforeEach(async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .approve(bob, toBN(1));
+                            .approve(spender, toBN(1));
                     });
 
                     it("increases the spender allowance adding the requested amount", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(bob, amount);
+                            .increaseAllowance(spender, amount);
 
                         expect(
-                            await this.token.allowance(alice, bob),
+                            await this.token.allowance(alice, spender),
                             toBN(amount.add(1))
                         );
                     });
@@ -205,20 +224,20 @@ describe("SuperToken's ERC20 compliance", function () {
                     await expect(
                         this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(bob, amount)
+                            .increaseAllowance(spender, amount)
                     )
                         .to.emit(this.token, "Approval")
-                        .withArgs(alice, bob, amount);
+                        .withArgs(alice, spender, amount);
                 });
 
                 describe("when there was no approved amount before", function () {
                     it("approves the requested amount", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(bob, amount);
+                            .increaseAllowance(spender, amount);
 
                         expect(
-                            await this.token.allowance(alice, bob),
+                            await this.token.allowance(alice, spender),
                             toBN(amount)
                         );
                     });
@@ -228,16 +247,16 @@ describe("SuperToken's ERC20 compliance", function () {
                     beforeEach(async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .approve(bob, toBN(1));
+                            .approve(spender, toBN(1));
                     });
 
                     it("increases the spender allowance adding the requested amount", async function () {
                         await this.token
                             .connect(aliceSigner)
-                            .increaseAllowance(bob, amount);
+                            .increaseAllowance(spender, amount);
 
                         expect(
-                            await this.token.allowance(alice, bob),
+                            await this.token.allowance(alice, spender),
                             toBN(amount.add(1))
                         );
                     });

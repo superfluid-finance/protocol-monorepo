@@ -1,4 +1,4 @@
-import {assert, ethers} from "hardhat";
+import {assert, ethers, web3} from "hardhat";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {
     CFALibraryMock,
@@ -31,7 +31,7 @@ describe("CFAv1 Library testing", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    let SuperTokenMock: SuperTokenMock,
+    let superToken: SuperTokenMock,
         host: Superfluid,
         cfa: ConstantFlowAgreementV1;
     let alice: string, bob: string;
@@ -61,9 +61,9 @@ describe("CFAv1 Library testing", function () {
         const SuperTokenMockFactory = await ethers.getContractFactory(
             "SuperTokenMock"
         );
-        SuperTokenMock = await SuperTokenMockFactory.deploy(host.address, "69");
-        await SuperTokenMock.mintInternal(alice, mintAmount, "0x", "0x");
-        await SuperTokenMock.mintInternal(bob, mintAmount, "0x", "0x");
+        superToken = await SuperTokenMockFactory.deploy(host.address, "69");
+        await superToken.mintInternal(alice, mintAmount, "0x", "0x");
+        await superToken.mintInternal(bob, mintAmount, "0x", "0x");
 
         // deploy a contract we'll use for testing the library
         const CFALibraryMockFactory = await ethers.getContractFactory(
@@ -81,38 +81,31 @@ describe("CFAv1 Library testing", function () {
             alice // operator
         );
 
-        await SuperTokenMock.mintInternal(alice, mintAmount, "0x", "0x");
-        await SuperTokenMock.connect(aliceSigner).transfer(
-            cfaLibraryMock.address,
-            mintAmount
-        );
+        await superToken.mintInternal(alice, mintAmount, "0x", "0x");
+        await superToken
+            .connect(aliceSigner)
+            .transfer(cfaLibraryMock.address, mintAmount);
 
-        await SuperTokenMock.mintInternal(alice, mintAmount, "0x", "0x");
-        await SuperTokenMock.connect(aliceSigner).transfer(
-            cfaLibrarySuperAppMock.address,
-            mintAmount
-        );
+        await superToken.mintInternal(alice, mintAmount, "0x", "0x");
+        await superToken
+            .connect(aliceSigner)
+            .transfer(cfaLibrarySuperAppMock.address, mintAmount);
 
         createFlowCalldata = t.agreementHelper.cfaInterface.encodeFunctionData(
             "createFlow",
-            [
-                SuperTokenMock.address,
-                cfaLibrarySuperAppMock.address,
-                flowRate,
-                "0x",
-            ]
+            [superToken.address, cfaLibrarySuperAppMock.address, flowRate, "0x"]
         );
         authorizeFullControlCalldata =
             t.agreementHelper.cfaInterface.encodeFunctionData(
                 "authorizeFlowOperatorWithFullControl",
-                [SuperTokenMock.address, cfaLibraryMock.address, "0x"]
+                [superToken.address, cfaLibraryMock.address, "0x"]
             );
     });
 
     describe("1 - Flow Ops", async function () {
         it("1.1 - Create Flow", async () => {
             await cfaLibraryMock.createFlowTest(
-                SuperTokenMock.address,
+                superToken.address,
                 bob,
                 flowRate
             );
@@ -120,7 +113,7 @@ describe("CFAv1 Library testing", function () {
             assert.equal(
                 (
                     await cfa.getFlow(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibraryMock.address,
                         bob
                     )
@@ -131,13 +124,13 @@ describe("CFAv1 Library testing", function () {
 
         it("1.2 - Update Flow", async () => {
             await cfaLibraryMock.createFlowTest(
-                SuperTokenMock.address,
+                superToken.address,
                 bob,
                 flowRate
             );
 
             await cfaLibraryMock.updateFlowTest(
-                SuperTokenMock.address,
+                superToken.address,
                 bob,
                 updatedFlowRate
             );
@@ -145,7 +138,7 @@ describe("CFAv1 Library testing", function () {
             assert.equal(
                 (
                     await cfa.getFlow(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibraryMock.address,
                         bob
                     )
@@ -156,17 +149,17 @@ describe("CFAv1 Library testing", function () {
 
         it("1.3 - Delete Flow", async () => {
             await cfaLibraryMock.createFlowTest(
-                SuperTokenMock.address,
+                superToken.address,
                 bob,
                 flowRate
             );
 
-            await cfaLibraryMock.deleteFlowTest(SuperTokenMock.address, bob);
+            await cfaLibraryMock.deleteFlowTest(superToken.address, bob);
 
             assert.equal(
                 (
                     await cfa.getFlow(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibraryMock.address,
                         bob
                     )
@@ -183,13 +176,13 @@ describe("CFAv1 Library testing", function () {
                     t.agreementHelper.cfaInterface.encodeFunctionData(
                         "createFlow",
                         [
-                            SuperTokenMock.address,
+                            superToken.address,
                             cfaLibrarySuperAppMock.address,
                             flowRate,
                             "0x",
                         ]
                     ),
-                    abiCoder.encode(
+                    web3.eth.abi.encodeParameter(
                         ["uint8"],
                         [callbackFunctionIndex.CREATE_FLOW]
                     )
@@ -198,7 +191,7 @@ describe("CFAv1 Library testing", function () {
             assert.equal(
                 (
                     await cfa.getFlow(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibrarySuperAppMock.address,
                         bob
                     )
@@ -208,14 +201,14 @@ describe("CFAv1 Library testing", function () {
         });
 
         it("1.5 - Update Flow in Callback", async () => {
-            await cfaLibrarySuperAppMock.createFlow(SuperTokenMock.address);
+            await cfaLibrarySuperAppMock.createFlow(superToken.address);
 
             await host
                 .connect(aliceSigner)
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    abiCoder.encode(
+                    web3.eth.abi.encodeParameter(
                         ["uint8"],
                         [callbackFunctionIndex.UPDATE_FLOW]
                     )
@@ -224,7 +217,7 @@ describe("CFAv1 Library testing", function () {
             assert.equal(
                 (
                     await cfa.getFlow(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibrarySuperAppMock.address,
                         bob
                     )
@@ -234,14 +227,14 @@ describe("CFAv1 Library testing", function () {
         });
 
         it("1.6 - Delete Flow in Callback", async () => {
-            await cfaLibrarySuperAppMock.createFlow(SuperTokenMock.address);
+            await cfaLibrarySuperAppMock.createFlow(superToken.address);
 
             await host
                 .connect(aliceSigner)
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    abiCoder.encode(
+                    web3.eth.abi.encodeParameter(
                         ["uint8"],
                         [callbackFunctionIndex.DELETE_FLOW]
                     )
@@ -250,7 +243,7 @@ describe("CFAv1 Library testing", function () {
             assert.equal(
                 (
                     await cfa.getFlow(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibrarySuperAppMock.address,
                         bob
                     )
@@ -265,7 +258,7 @@ describe("CFAv1 Library testing", function () {
         it("2.1 - Can Update Flow Operator Permissions", async () => {
             await cfaLibraryMock.updateFlowOperatorPermissionsTest(
                 alice,
-                SuperTokenMock.address,
+                superToken.address,
                 "7",
                 "1"
             );
@@ -273,7 +266,7 @@ describe("CFAv1 Library testing", function () {
             assert.equal(
                 (
                     await cfa.getFlowOperatorData(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibraryMock.address,
                         alice
                     )
@@ -285,13 +278,13 @@ describe("CFAv1 Library testing", function () {
         it("2.2 - Can Authorize Flow Operator With full Control", async () => {
             await cfaLibraryMock.authorizeFlowOperatorWithFullControlTest(
                 alice,
-                SuperTokenMock.address
+                superToken.address
             );
 
             assert.equal(
                 (
                     await cfa.getFlowOperatorData(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibraryMock.address,
                         alice
                     )
@@ -303,18 +296,18 @@ describe("CFAv1 Library testing", function () {
         it("2.3 - Can Revoke Flow Operator With Full Control", async () => {
             await cfaLibraryMock.authorizeFlowOperatorWithFullControlTest(
                 alice,
-                SuperTokenMock.address
+                superToken.address
             );
 
             await cfaLibraryMock.revokeFlowOperatorWithFullControlTest(
                 alice,
-                SuperTokenMock.address
+                superToken.address
             );
 
             assert.equal(
                 (
                     await cfa.getFlowOperatorData(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibraryMock.address,
                         alice
                     )
@@ -331,13 +324,13 @@ describe("CFAv1 Library testing", function () {
             await cfaLibraryMock.createFlowByOperatorTest(
                 alice,
                 bob,
-                SuperTokenMock.address,
+                superToken.address,
                 flowRate
             );
 
             assert.equal(
                 (
-                    await cfa.getFlow(SuperTokenMock.address, alice, bob)
+                    await cfa.getFlow(superToken.address, alice, bob)
                 ).flowRate.toString(),
                 flowRate
             );
@@ -350,7 +343,7 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     t.agreementHelper.cfaInterface.encodeFunctionData(
                         "authorizeFlowOperatorWithFullControl",
-                        [SuperTokenMock.address, cfaLibraryMock.address, "0x"]
+                        [superToken.address, cfaLibraryMock.address, "0x"]
                     ),
                     "0x"
                 );
@@ -361,7 +354,7 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     t.agreementHelper.cfaInterface.encodeFunctionData(
                         "createFlow",
-                        [SuperTokenMock.address, bob, flowRate, "0x"]
+                        [superToken.address, bob, flowRate, "0x"]
                     ),
                     "0x"
                 );
@@ -369,13 +362,13 @@ describe("CFAv1 Library testing", function () {
             await cfaLibraryMock.updateFlowByOperatorTest(
                 alice,
                 bob,
-                SuperTokenMock.address,
+                superToken.address,
                 updatedFlowRate
             );
 
             assert.equal(
                 (
-                    await cfa.getFlow(SuperTokenMock.address, alice, bob)
+                    await cfa.getFlow(superToken.address, alice, bob)
                 ).flowRate.toString(),
                 updatedFlowRate
             );
@@ -392,7 +385,7 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     t.agreementHelper.cfaInterface.encodeFunctionData(
                         "createFlow",
-                        [SuperTokenMock.address, bob, flowRate, "0x"]
+                        [superToken.address, bob, flowRate, "0x"]
                     ),
                     "0x"
                 );
@@ -400,12 +393,12 @@ describe("CFAv1 Library testing", function () {
             await cfaLibraryMock.deleteFlowByOperator(
                 alice,
                 bob,
-                SuperTokenMock.address
+                superToken.address
             );
 
             assert.equal(
                 (
-                    await cfa.getFlow(SuperTokenMock.address, alice, bob)
+                    await cfa.getFlow(superToken.address, alice, bob)
                 ).flowRate.toString(),
                 "0"
             );
@@ -417,11 +410,7 @@ describe("CFAv1 Library testing", function () {
             authorizeFullControlCalldata =
                 t.agreementHelper.cfaInterface.encodeFunctionData(
                     "authorizeFlowOperatorWithFullControl",
-                    [
-                        SuperTokenMock.address,
-                        cfaLibrarySuperAppMock.address,
-                        "0x",
-                    ]
+                    [superToken.address, cfaLibrarySuperAppMock.address, "0x"]
                 );
             await host
                 .connect(aliceSigner)
@@ -432,7 +421,7 @@ describe("CFAv1 Library testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    abiCoder.encode(
+                    web3.eth.abi.encodeParameter(
                         ["uint8"],
                         [callbackFunctionIndex.CREATE_FLOW_BY_OPERATOR]
                     )
@@ -440,7 +429,7 @@ describe("CFAv1 Library testing", function () {
 
             assert.equal(
                 (
-                    await cfa.getFlow(SuperTokenMock.address, alice, bob)
+                    await cfa.getFlow(superToken.address, alice, bob)
                 ).flowRate.toString(),
                 flowRate
             );
@@ -452,11 +441,7 @@ describe("CFAv1 Library testing", function () {
             authorizeFullControlCalldata =
                 t.agreementHelper.cfaInterface.encodeFunctionData(
                     "authorizeFlowOperatorWithFullControl",
-                    [
-                        SuperTokenMock.address,
-                        cfaLibrarySuperAppMock.address,
-                        "0x",
-                    ]
+                    [superToken.address, cfaLibrarySuperAppMock.address, "0x"]
                 );
             await host
                 .connect(aliceSigner)
@@ -468,7 +453,7 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     t.agreementHelper.cfaInterface.encodeFunctionData(
                         "createFlow",
-                        [SuperTokenMock.address, bob, flowRate, "0x"]
+                        [superToken.address, bob, flowRate, "0x"]
                     ),
                     "0x"
                 );
@@ -478,7 +463,7 @@ describe("CFAv1 Library testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    abiCoder.encode(
+                    web3.eth.abi.encodeParameter(
                         ["uint8"],
                         [callbackFunctionIndex.UPDATE_FLOW_BY_OPERATOR]
                     )
@@ -486,7 +471,7 @@ describe("CFAv1 Library testing", function () {
 
             assert.equal(
                 (
-                    await cfa.getFlow(SuperTokenMock.address, alice, bob)
+                    await cfa.getFlow(superToken.address, alice, bob)
                 ).flowRate.toString(),
                 updatedFlowRate
             );
@@ -498,11 +483,7 @@ describe("CFAv1 Library testing", function () {
             authorizeFullControlCalldata =
                 t.agreementHelper.cfaInterface.encodeFunctionData(
                     "authorizeFlowOperatorWithFullControl",
-                    [
-                        SuperTokenMock.address,
-                        cfaLibrarySuperAppMock.address,
-                        "0x",
-                    ]
+                    [superToken.address, cfaLibrarySuperAppMock.address, "0x"]
                 );
             await host
                 .connect(aliceSigner)
@@ -514,7 +495,7 @@ describe("CFAv1 Library testing", function () {
                     cfa.address,
                     t.agreementHelper.cfaInterface.encodeFunctionData(
                         "createFlow",
-                        [SuperTokenMock.address, bob, flowRate, "0x"]
+                        [superToken.address, bob, flowRate, "0x"]
                     ),
                     "0x"
                 );
@@ -524,7 +505,7 @@ describe("CFAv1 Library testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    abiCoder.encode(
+                    web3.eth.abi.encodeParameter(
                         ["uint8"],
                         [callbackFunctionIndex.DELETE_FLOW_BY_OPERATOR]
                     )
@@ -532,7 +513,7 @@ describe("CFAv1 Library testing", function () {
 
             assert.equal(
                 (
-                    await cfa.getFlow(SuperTokenMock.address, alice, bob)
+                    await cfa.getFlow(superToken.address, alice, bob)
                 ).flowRate.toString(),
                 "0"
             );
@@ -545,7 +526,7 @@ describe("CFAv1 Library testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    abiCoder.encode(
+                    web3.eth.abi.encodeParameter(
                         ["uint8"],
                         [callbackFunctionIndex.UPDATE_FLOW_OPERATOR_PERMISSIONS]
                     )
@@ -554,7 +535,7 @@ describe("CFAv1 Library testing", function () {
             assert.equal(
                 (
                     await cfa.getFlowOperatorData(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibrarySuperAppMock.address,
                         alice
                     )
@@ -570,7 +551,7 @@ describe("CFAv1 Library testing", function () {
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    abiCoder.encode(
+                    web3.eth.abi.encodeParameter(
                         ["uint8"],
                         [
                             callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,
@@ -581,7 +562,7 @@ describe("CFAv1 Library testing", function () {
             assert.equal(
                 (
                     await cfa.getFlowOperatorData(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibrarySuperAppMock.address,
                         alice
                     )
@@ -595,14 +576,14 @@ describe("CFAv1 Library testing", function () {
             // the super app which revokes alice's operator permissions
             await cfaLibrarySuperAppMock
                 .connect(aliceSigner)
-                .authorizeFlowOperatorWithFullControl(SuperTokenMock.address);
+                .authorizeFlowOperatorWithFullControl(superToken.address);
 
             await host
                 .connect(aliceSigner)
                 .callAgreement(
                     cfa.address,
                     createFlowCalldata,
-                    abiCoder.encode(
+                    web3.eth.abi.encodeParameter(
                         ["uint8"],
                         [
                             callbackFunctionIndex.REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL,
@@ -613,7 +594,7 @@ describe("CFAv1 Library testing", function () {
             assert.equal(
                 (
                     await cfa.getFlowOperatorData(
-                        SuperTokenMock.address,
+                        superToken.address,
                         cfaLibrarySuperAppMock.address,
                         alice
                     )

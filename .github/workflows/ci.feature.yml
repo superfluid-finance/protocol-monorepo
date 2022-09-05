@@ -22,7 +22,6 @@ jobs:
 
     outputs:
       build_ethereum_contracts: ${{ env.BUILD_ETHEREUM_CONTRACTS }}
-      build_js_sdk: ${{ env.BUILD_JS_SDK }}
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
       build_sdk_core: ${{ env.BUILD_SDK_CORE }}
       build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
@@ -109,40 +108,6 @@ jobs:
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
-  test-js-sdk:
-    name: Build and test js-sdk (Feature Branch)
-
-    runs-on: ubuntu-latest
-
-    needs: [check]
-    if: needs.check.outputs.build_js_sdk
-
-    strategy:
-      matrix:
-        node-version: [16.x]
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-
-
-      - name: Install, lint and build
-        run: |
-          yarn install --frozen-lockfile
-          yarn lint
-          yarn build
-
-      - name: Test js-sdk
-        run: |
-          yarn workspace @superfluid-finance/js-sdk test
-        env:
-          POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
-
   # subgraph integration test
   test-subgraph:
     uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
@@ -193,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
 
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
-    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-js-sdk, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs]
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs]
 
     steps:
       - name: Test Results
@@ -210,7 +175,6 @@ jobs:
             fi
           }
           check_result ethereum-contracts ${{ needs.test-ethereum-contracts.result }}
-          check_result js-sdk ${{ needs.test-js-sdk.result }}
           check_result subgraph ${{ needs.test-subgraph.result }}
           check_result sdk-core ${{ needs.test-sdk-core.result }}
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}

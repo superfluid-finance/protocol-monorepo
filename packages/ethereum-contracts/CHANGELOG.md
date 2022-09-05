@@ -31,6 +31,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 - Deprecate support for `kovan`, `rinkeby`, `optimism-kovan`, and `optimism-rinkeby` (#1032)
 - Remove MaticBridgedToken from monorepo (#1060)
+- Updating dependencies & dedup dev packages (#1064)
 
 ## [v1.3.1] - 2022-08-05
 

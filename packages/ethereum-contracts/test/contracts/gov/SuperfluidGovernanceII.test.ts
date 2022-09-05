@@ -6,7 +6,7 @@ const {
     expectRevertedWith,
     expectCustomError,
 } = require("../../utils/expectRevert");
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 
 describe("Superfluid Ownable Governance Contract", function () {
     this.timeout(300e3);

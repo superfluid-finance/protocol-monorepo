@@ -22,7 +22,7 @@ import {
 const {expectCustomError} = require("../../utils/expectRevert");
 
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 const {toWad} = require("../utils/helpers");
 

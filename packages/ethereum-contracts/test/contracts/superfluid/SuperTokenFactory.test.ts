@@ -18,7 +18,7 @@ const SuperTokenFactoryHelper = artifacts.require("SuperTokenFactoryHelper");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 
 const {web3tx} = require("@decentral.ee/web3-helpers");
 

@@ -17,7 +17,7 @@ const {
     expectCustomError,
 } = require("../../utils/expectRevert");
 
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 
 const {expect} = require("chai");
 

@@ -1,6 +1,6 @@
 import {assert} from "chai";
 import {ethers, expect, web3} from "hardhat";
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const {expectRevertedWith} = require("../../utils/expectRevert");
 import {
     UUPSProxiableMock__factory,

@@ -1,4 +1,4 @@
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const {expectCustomError} = require("../../utils/expectRevert");
 import {assert, ethers} from "hardhat";
 import {expect} from "chai";

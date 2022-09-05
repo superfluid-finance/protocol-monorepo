@@ -10,7 +10,7 @@ const {expectCustomError} = require("../../utils/expectRevert");
 
 const {web3tx} = require("@decentral.ee/web3-helpers");
 
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 
 describe("SuperfluidToken implementation", function () {
     this.timeout(300e3);

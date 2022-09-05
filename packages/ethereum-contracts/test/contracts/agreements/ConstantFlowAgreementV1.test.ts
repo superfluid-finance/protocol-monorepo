@@ -11,7 +11,7 @@ import {
 } from "../../../typechain-types";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const {expectCustomError} = require("../../utils/expectRevert");
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const {toBN, toWad, max} = require("../utils/helpers");
@@ -37,7 +37,7 @@ import {
     FLOW_TYPE_DELETE,
 } from "./AgreementHelper";
 
-const MFASupport = require("../utils/MFASupport");
+import MFASupport from "../utils/MFASupport";
 
 interface CreateLiquidationTestParams {
     by: string;

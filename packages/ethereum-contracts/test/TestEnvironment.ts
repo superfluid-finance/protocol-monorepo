@@ -1,9 +1,14 @@
-const _ = require("lodash");
-const fs = require("fs");
-const createCsvWriter = require("csv-writer").createObjectCsvWriter;
+import {BigNumber, BigNumberish} from "ethers";
+import {artifacts, assert, ethers, network, web3} from "hardhat";
+import Web3 from "web3";
+import AgreementHelper from "./contracts/agreements/AgreementHelper";
+import {min, toBN, toWad, max} from "./contracts/utils/helpers";
+import _ from "lodash";
+import fs from "fs";
+
+import {createObjectCsvWriter as createCsvWriter} from "csv-writer";
 
 const traveler = require("ganache-time-traveler");
-const {ethers} = require("hardhat");
 
 const deployFramework = require("../scripts/deploy-framework");
 const deployTestToken = require("../scripts/deploy-test-token");
@@ -13,21 +18,39 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 const TestToken = artifacts.require("TestToken");
 
-const {toBN, toWad, max} = require("./contracts/utils/helpers");
 const ISuperTokenArtifact = require("../artifacts/contracts/interfaces/superfluid/ISuperToken.sol/ISuperToken.json");
 const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
 const CFADataModel = require("./contracts/agreements/ConstantFlowAgreementV1.data");
-const {AgreementHelper} = require("./contracts/agreements/AgreementHelper");
 
-let _singleton;
+let _singleton: any;
 
 const DEFAULT_TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
+
+interface RealtimeBalance {
+    availableBalance: BigNumberish;
+    deposit: BigNumberish;
+    owedDeposit: BigNumberish;
+    timestamp: BigNumberish;
+}
 
 /**
  * @dev Test environment for test cases
  *
  */
-module.exports = class TestEnvironment {
+const TestEnvironment = class TestEnvironment {
+    agreementHelper: AgreementHelper;
+    data: any;
+    plotData: any;
+    _evmSnapshots: any;
+    customErrorCode: any;
+    configs: any;
+    constants: any;
+    gasReportType: any;
+    contracts: any;
+    aliases: {[alias: string]: string};
+    accounts: string[];
+    sf: any;
+
     constructor() {
         /**
          * SCHEMA:
@@ -64,8 +87,11 @@ module.exports = class TestEnvironment {
          *        ]
          */
         this.plotData = {};
+        this.aliases = {};
+        this.accounts = [];
         this._evmSnapshots = [];
 
+        this.agreementHelper = new AgreementHelper(this);
         this.customErrorCode = {
             APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR: 1,
             APP_RULE_NO_REGISTRATION_FOR_EOA: 2,
@@ -146,7 +172,7 @@ module.exports = class TestEnvironment {
     }
 
     createErrorHandler() {
-        return (err) => {
+        return (err: any) => {
             if (err) throw err;
         };
     }
@@ -155,7 +181,7 @@ module.exports = class TestEnvironment {
         if (!_singleton) {
             _singleton = new TestEnvironment();
         }
-        return _singleton;
+        return _singleton as TestEnvironment;
     }
 
     /**************************************************************************
@@ -163,43 +189,12 @@ module.exports = class TestEnvironment {
      **************************************************************************/
 
     async _takeEvmSnapshot() {
-        return new Promise((resolve, reject) => {
-            web3.currentProvider.send(
-                {
-                    jsonrpc: "2.0",
-                    method: "evm_snapshot",
-                    params: [],
-                },
-                (err, result) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    return resolve(result.result);
-                }
-            );
-        });
+        return await network.provider.send("evm_snapshot");
     }
 
-    async _revertToEvmSnapShot(evmSnapshotId) {
+    async _revertToEvmSnapShot(evmSnapshotId: string) {
         // NOTE: the evm snapshot is actually deleted
-        return new Promise((resolve, reject) => {
-            web3.currentProvider.send(
-                {
-                    jsonrpc: "2.0",
-                    method: "evm_revert",
-                    params: [evmSnapshotId],
-                },
-                (err, result) => {
-                    if (err) {
-                        return reject(err);
-                    }
-                    if (!result.result) {
-                        reject(new Error("revertToEvmSnapShot failed"));
-                    }
-                    resolve();
-                }
-            );
-        });
+        return await network.provider.send("evm_revert", [evmSnapshotId]);
     }
 
     async pushEvmSnapshot() {
@@ -226,7 +221,9 @@ module.exports = class TestEnvironment {
             this._evmSnapshots.pop());
         await this._revertToEvmSnapShot(oldEvmSnapshotId);
         // move the time to now
-        await traveler.advanceBlockAndSetTime(parseInt(Date.now() / 1000));
+        await traveler.advanceBlockAndSetTime(
+            parseInt((Date.now() / 1000).toString())
+        );
         const newEvmSnapshotId = await this._takeEvmSnapshot();
         this._evmSnapshots.push({
             id: newEvmSnapshotId,
@@ -258,12 +255,24 @@ module.exports = class TestEnvironment {
      * @param nAccounts Number of test accounts to be loaded from web3
      * @param tokens Tokens to be loaded
      */
-    async beforeTestSuite({isTruffle, web3, nAccounts, tokens}) {
+    async beforeTestSuite({
+        isTruffle,
+        nAccounts,
+        tokens,
+        web3,
+    }: {
+        isTruffle: boolean;
+        nAccounts: number;
+        tokens?: string[];
+        web3?: Web3;
+    }) {
         const MAX_TEST_ACCOUNTS = 10;
         nAccounts = nAccounts || 0;
         assert(nAccounts <= MAX_TEST_ACCOUNTS);
         tokens = typeof tokens === "undefined" ? ["TEST"] : tokens;
-        const allAccounts = await (web3 || global.web3).eth.getAccounts();
+        const allAccounts = await (
+            web3 || (global as any).web3
+        ).eth.getAccounts();
         const testAccounts = allAccounts.slice(0, nAccounts);
         this.setupDefaultAliases(testAccounts);
 
@@ -291,7 +300,7 @@ module.exports = class TestEnvironment {
                 await this.useLastEvmSnapshot();
                 await this.mintTestTokensAndApprove("TEST", {
                     isTruffle,
-                    web3,
+                    web3: web3 || (global as any).web3,
                     accounts: allAccounts.slice(0, nAccounts),
                 });
                 await this.pushEvmSnapshot();
@@ -400,7 +409,7 @@ module.exports = class TestEnvironment {
     }
 
     /// deploy framework
-    async deployFramework(deployOpts = {}) {
+    async deployFramework(deployOpts: any) {
         // deploy framework
         await deployFramework(this.createErrorHandler(), {
             newTestResolver: true,
@@ -413,8 +422,18 @@ module.exports = class TestEnvironment {
 
     /// create a new test token (ERC20) and its super token
     async deployNewToken(
-        tokenSymbol,
-        {isTruffle, web3, accounts, doUpgrade} = {}
+        tokenSymbol: string,
+        {
+            isTruffle,
+            web3,
+            accounts,
+            doUpgrade,
+        }: {
+            isTruffle: boolean;
+            web3?: Web3;
+            accounts?: string[];
+            doUpgrade?: boolean;
+        }
     ) {
         accounts = accounts || this.accounts;
 
@@ -471,7 +490,14 @@ module.exports = class TestEnvironment {
         };
     }
 
-    async mintTestTokensAndApprove(tokenSymbol, {isTruffle, web3, accounts}) {
+    async mintTestTokensAndApprove(
+        tokenSymbol: string,
+        {
+            isTruffle,
+            web3,
+            accounts,
+        }: {isTruffle: boolean; web3: Web3; accounts: string[]}
+    ) {
         // load the SDK
         const sf = new SuperfluidSDK.Framework({
             gasReportType: this.gasReportType,
@@ -503,7 +529,7 @@ module.exports = class TestEnvironment {
         }
     }
 
-    async report({title}) {
+    async report({title}: {title: string}) {
         if (this.gasReportType) {
             await this.sf.generateGasReport(title + ".gasReport");
         }
@@ -513,7 +539,7 @@ module.exports = class TestEnvironment {
      * Alias functions
      *************************************************************************/
 
-    setupDefaultAliases(accounts) {
+    setupDefaultAliases(accounts: string[]) {
         this.accounts = accounts;
         this.aliases = {
             admin: accounts[0],
@@ -548,20 +574,20 @@ module.exports = class TestEnvironment {
         );
     }
 
-    addAlias(alias, address) {
+    addAlias(alias: string, address: string) {
         if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         this.data.moreAliases = _.merge(this.data.moreAliases, {
             [alias]: address,
         });
     }
 
-    toAlias(address) {
+    toAlias(address: string) {
         return this.listAliases().find(
             (i) => this.getAddress(i).toLowerCase() === address.toLowerCase()
         );
     }
 
-    getAddress(alias) {
+    getAddress(alias: string) {
         if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         return this.aliases[alias] || this.data.moreAliases[alias];
     }
@@ -570,7 +596,7 @@ module.exports = class TestEnvironment {
      * Agreement Util functions
      *************************************************************************/
 
-    getFlowOperatorId(sender, flowOperator) {
+    getFlowOperatorId(sender: string, flowOperator: string) {
         return web3.utils.keccak256(
             web3.eth.abi.encodeParameters(
                 ["string", "address", "address"],
@@ -583,7 +609,11 @@ module.exports = class TestEnvironment {
      * Test data functions
      *************************************************************************/
 
-    async upgradeBalance(alias, amount, tokenSymbol = "TEST") {
+    async upgradeBalance(
+        alias: string,
+        amount: BigNumber,
+        tokenSymbol = "TEST"
+    ) {
         const testToken = await TestToken.at(
             this.sf.tokens[tokenSymbol].address
         );
@@ -609,7 +639,12 @@ module.exports = class TestEnvironment {
         );
     }
 
-    async transferBalance(from, to, amount, tokenSymbol = "TEST") {
+    async transferBalance(
+        from: string,
+        to: string,
+        amount: BigNumber,
+        tokenSymbol = "TEST"
+    ) {
         const superToken = this.sf.tokens[tokenSymbol + "x"];
         const fromAccount = this.getAddress(from);
         const toAccount = this.getAddress(to);
@@ -628,7 +663,11 @@ module.exports = class TestEnvironment {
         );
     }
 
-    updateAccountBalanceSnapshot(superToken, account, balanceSnapshot) {
+    updateAccountBalanceSnapshot(
+        superToken: string,
+        account: string,
+        balanceSnapshot: RealtimeBalance
+    ) {
         assert.isDefined(account);
         assert.isDefined(balanceSnapshot);
         assert.isDefined(balanceSnapshot.timestamp.toString());
@@ -651,7 +690,7 @@ module.exports = class TestEnvironment {
         });
     }
 
-    getAccountBalanceSnapshot(superToken, account) {
+    getAccountBalanceSnapshot(superToken: string, account: string) {
         _.defaultsDeep(this.data, {
             tokens: {
                 [superToken]: {
@@ -675,9 +714,9 @@ module.exports = class TestEnvironment {
     }
 
     updateAccountExpectedBalanceDelta(
-        superToken,
-        account,
-        expectedBalanceDelta
+        superToken: string,
+        account: string,
+        expectedBalanceDelta: BigNumber
     ) {
         assert.isDefined(account);
         assert.isDefined(expectedBalanceDelta.toString());
@@ -695,7 +734,7 @@ module.exports = class TestEnvironment {
         });
     }
 
-    getAccountExpectedBalanceDelta(superToken, account) {
+    getAccountExpectedBalanceDelta(superToken: string, account: string) {
         _.defaultsDeep(this.data, {
             tokens: {
                 [superToken]: {
@@ -716,7 +755,10 @@ module.exports = class TestEnvironment {
      * Test Plot Data Functions
      **************************************************************************/
 
-    formatRawBalanceSnapshot(rawBalanceSnapshot, description) {
+    formatRawBalanceSnapshot(
+        rawBalanceSnapshot: RealtimeBalance,
+        description: string
+    ) {
         return {
             availableBalance: rawBalanceSnapshot.availableBalance,
             deposit: rawBalanceSnapshot.deposit,
@@ -746,10 +788,10 @@ module.exports = class TestEnvironment {
      * @param description the description to be used to showcase data points in charts
      */
     updatePlotDataAccountBalanceSnapshot(
-        superToken,
-        account,
-        rawBalanceSnapshot,
-        description
+        superToken: string,
+        account: string,
+        rawBalanceSnapshot: RealtimeBalance,
+        description: string
     ) {
         const observedAccounts = this.plotData.observedAccounts;
         if (
@@ -803,7 +845,7 @@ module.exports = class TestEnvironment {
      * @param superToken
      * @returns an easily processable format (for csv)
      */
-    formatPlotDataIntoProcessableFormat(superToken) {
+    formatPlotDataIntoProcessableFormat(superToken: string) {
         if (!this.plotData.tokens) {
             return [];
         }
@@ -814,14 +856,14 @@ module.exports = class TestEnvironment {
                 // TODO: filter out unchanged account balance (for now)
                 // maybe we want to monitor deposit, owedDeposit, etc,
                 .filter(
-                    (x) =>
-                        !_.every(x[1], (y) =>
+                    (x: any) =>
+                        !_.every(x[1], (y: any) =>
                             y.availableBalance.eq(x[1][0].availableBalance)
                         )
                 )
                 // map into new easily processable data
-                .map((x) =>
-                    x[1].map((y) => ({
+                .map((x: any) =>
+                    x[1].map((y: any) => ({
                         alias: this.toAlias(x[0]),
                         address: x[0],
                         availableBalance: wad4human(
@@ -842,7 +884,7 @@ module.exports = class TestEnvironment {
      * @param path the location the file is to be saved
      * @param superToken
      */
-    writePlotDataIntoCSVFile(path, superToken) {
+    writePlotDataIntoCSVFile(path: string, superToken: string) {
         const outputDir = "./build/test_output";
         fs.mkdirSync(outputDir, {recursive: true});
         const csvFormatPlotData =
@@ -870,7 +912,7 @@ module.exports = class TestEnvironment {
      * Logging utilities
      *************************************************************************/
 
-    realtimeBalance(balance) {
+    realtimeBalance(balance: RealtimeBalance) {
         return toBN(balance.availableBalance.toString()).add(
             max(
                 toBN(0),
@@ -881,14 +923,14 @@ module.exports = class TestEnvironment {
         );
     }
 
-    printSingleBalance(title, balance) {
+    printSingleBalance(title: string, balance: BigNumber) {
         console.log(
             `${title}:`,
             `${wad4human(balance)} (${balance.toString()})`
         );
     }
 
-    printRealtimeBalance(title, balance) {
+    printRealtimeBalance(title: string, balance: RealtimeBalance) {
         console.log(
             `${title}: `,
             `${wad4human(
@@ -907,13 +949,13 @@ module.exports = class TestEnvironment {
      *************************************************************************/
 
     async validateExpectedBalances(
-        syncExpectedBalancesFn,
+        syncExpectedBalancesFn: () => void,
         tokenSymbol = "TEST"
     ) {
         const superToken = this.sf.tokens[tokenSymbol + "x"];
 
         const txBlock = await web3.eth.getBlock("latest");
-        const balances2 = {};
+        const balances2: {[address: string]: RealtimeBalance} = {};
 
         // update balance snapshot
         await Promise.all(
@@ -926,7 +968,7 @@ module.exports = class TestEnvironment {
             })
         );
 
-        await syncExpectedBalancesFn();
+        syncExpectedBalancesFn();
 
         await Promise.all(
             this.listAddresses().map(async (address) => {
@@ -969,18 +1011,18 @@ module.exports = class TestEnvironment {
                 this.updateAccountExpectedBalanceDelta(
                     superToken.address,
                     address,
-                    0
+                    toBN(0)
                 );
             })
         );
     }
 
-    async validateSystemInvariance({
-        allowCriticalAccount,
-        tokenSymbol,
-        description,
-    } = {}) {
-        tokenSymbol = tokenSymbol || "TEST";
+    async validateSystemInvariance(data?: {
+        allowCriticalAccount: boolean;
+        tokenSymbol?: string;
+        description: string;
+    }) {
+        const tokenSymbol = data?.tokenSymbol || "TEST";
         const testToken = this.sf.tokens[tokenSymbol];
         const superToken = this.sf.tokens[tokenSymbol + "x"];
         console.log("======== validateSystemInvariance begins ========");
@@ -991,21 +1033,20 @@ module.exports = class TestEnvironment {
         await Promise.all(
             this.listAliases().map(async (alias) => {
                 const userAddress = this.getAddress(alias);
-                const tokenBalance = await testToken.balanceOf.call(
+                const tokenBalance = await testToken.balanceOf(
                     userAddress
                     /* TODO query old block currentBlock.timestamp*/
                 );
-                const superTokenBalance =
-                    await superToken.realtimeBalanceOf.call(
-                        userAddress,
-                        currentBlock.timestamp.toString()
-                    );
+                const superTokenBalance = await superToken.realtimeBalanceOf(
+                    userAddress,
+                    currentBlock.timestamp.toString()
+                );
                 superTokenBalance.timestamp = currentBlock.timestamp;
                 // Available Balance = Realtime Balance - Deposit + Min(Deposit, Owed Deposit)
                 const realtimeBalance = superTokenBalance.availableBalance
                     .add(superTokenBalance.deposit)
                     .sub(
-                        web3.utils.BN.min(
+                        min(
                             superTokenBalance.owedDeposit,
                             superTokenBalance.deposit
                         )
@@ -1016,7 +1057,7 @@ module.exports = class TestEnvironment {
                         superToken.address,
                         userAddress,
                         superTokenBalance,
-                        description
+                        data?.description || ""
                     );
                 }
 
@@ -1033,7 +1074,7 @@ module.exports = class TestEnvironment {
                     superTokenBalance
                 );
 
-                if (!allowCriticalAccount) {
+                if (!data?.allowCriticalAccount) {
                     assert.isTrue(
                         superTokenBalance.availableBalance.gte(toBN(0)),
                         `${alias} account is critical`
@@ -1052,11 +1093,11 @@ module.exports = class TestEnvironment {
         );
 
         const aum = toBN(
-            (await testToken.balanceOf.call(superToken.address)).toString()
+            (await testToken.balanceOf(superToken.address)).toString()
         );
         this.printSingleBalance("AUM of super tokens", aum);
 
-        const totalSupply = await superToken.totalSupply.call();
+        const totalSupply = await superToken.totalSupply();
         this.printSingleBalance("Total supply of super tokens", totalSupply);
 
         assert.isTrue(
@@ -1081,3 +1122,5 @@ module.exports = class TestEnvironment {
         console.log("======== validateSystemInvariance ends ========");
     }
 };
+
+export default TestEnvironment;

@@ -9,7 +9,7 @@ import {
     TestToken,
 } from "../../../typechain-types";
 
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 
 const {
     expectRevertedWith,

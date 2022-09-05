@@ -3,7 +3,7 @@ import {assert} from "chai";
 import {ethers, web3} from "hardhat";
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 import {BatchLiquidator, SuperToken} from "../../../typechain-types";
 
 describe("Superfluid Liquidator Contract", function () {

@@ -1,7 +1,7 @@
 import {artifacts, assert, ethers, expect, web3} from "hardhat";
 import {IERC1820Registry, SuperTokenMock} from "../../../typechain-types";
 
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 
 const {expectEvent} = require("@openzeppelin/test-helpers");
 const {

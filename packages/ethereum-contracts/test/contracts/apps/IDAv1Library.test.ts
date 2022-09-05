@@ -7,7 +7,7 @@ import {
     Superfluid,
     SuperTokenMock,
 } from "../../../typechain-types";
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const {abiCoder} = require("../utils/helpers");
 
 const {

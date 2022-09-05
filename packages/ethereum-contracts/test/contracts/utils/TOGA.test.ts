@@ -10,7 +10,7 @@ import {
 } from "../../../typechain-types";
 
 const {expectRevertedWith} = require("../../utils/expectRevert");
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const traveler = require("ganache-time-traveler");
 const {toBN, toWad} = require("./helpers");
 

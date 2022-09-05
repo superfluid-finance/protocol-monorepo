@@ -7,7 +7,7 @@ const {expectCustomError} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 const SuperTokenArtifact = require("../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json");
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const ISETH = artifacts.require("ISETH");
 const SETHProxy = artifacts.require("SETHProxy");
 

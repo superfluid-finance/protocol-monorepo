@@ -159,9 +159,3 @@ export default class AgreementHelper {
         });
     }
 }
-module.exports = {
-    FLOW_TYPE_CREATE,
-    FLOW_TYPE_UPDATE,
-    FLOW_TYPE_DELETE,
-    AgreementHelper,
-};

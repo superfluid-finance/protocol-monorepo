@@ -7,7 +7,7 @@ import {
     Superfluid,
     SuperTokenMock,
 } from "../../../typechain-types";
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 
 const mintAmount = "1000000000000000000000000000"; // a small loan of a billion dollars
 const flowRate = "1000000000000";

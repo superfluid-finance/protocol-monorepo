@@ -1,6 +1,6 @@
 import {assert} from "chai";
 const {ethers} = require("hardhat");
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const DEFAULT_ADMIN_ROLE =

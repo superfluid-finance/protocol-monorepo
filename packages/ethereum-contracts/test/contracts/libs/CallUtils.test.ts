@@ -1,6 +1,6 @@
 import {ethers} from "hardhat";
 import {CallUtilsMock, CallUtilsTester} from "../../../typechain-types";
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
 describe("CallUtils", function () {

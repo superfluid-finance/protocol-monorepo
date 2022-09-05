@@ -4,7 +4,7 @@ import {ISuperTokenFactory} from "../../../typechain-types";
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const {toWad} = require("../utils/helpers");

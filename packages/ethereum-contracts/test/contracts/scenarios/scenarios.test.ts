@@ -2,7 +2,7 @@ import {assert, ethers, web3} from "hardhat";
 import {SuperToken} from "../../../typechain-types";
 import CFADataModel from "../agreements/ConstantFlowAgreementV1.data";
 
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const {expectCustomError} = require("../../utils/expectRevert");
 
 const {wad4human} = require("@decentral.ee/web3-helpers");

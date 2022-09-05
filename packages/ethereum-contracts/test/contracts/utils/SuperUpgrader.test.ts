@@ -4,7 +4,7 @@ const {web3tx} = require("@decentral.ee/web3-helpers");
 
 const {expectRevertedWith} = require("../../utils/expectRevert");
 
-const TestEnvironment = require("../../TestEnvironment");
+import TestEnvironment from "../../TestEnvironment";
 const {toWad} = require("./helpers");
 
 import {

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Framework, SuperToken, WrapperSuperToken } from "../src/index";
+import { Framework, WrapperSuperToken } from "../src/index";
 import { getPerSecondFlowRateByMonth } from "../src";
 import { SuperToken as SuperTokenType } from "../src/typechain";
 import { setup } from "../scripts/setup";

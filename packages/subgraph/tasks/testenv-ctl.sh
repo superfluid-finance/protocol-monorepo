@@ -17,10 +17,6 @@ if [ "$CMD" == "start" ];then
         cd ../subgraph
         yarn getAbi
         yarn run generate-ethers-types
-        cd ../js-sdk
-        # Get abi.js file for js-sdk to deploy locally
-        chmod +x ./tasks/build-abi-js.sh
-        ./tasks/build-abi-js.sh
         cd ../sdk-core
         # build sdk-core because of auto linking to dependency
         yarn build

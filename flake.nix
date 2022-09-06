@@ -12,6 +12,7 @@
       in {
         devShell = with pkgs; mkShell {
           buildInputs = [
+            nodejs-16_x
             yarn
             haskell.compiler.ghc924
             haskell-language-server

@@ -13,7 +13,7 @@ import AgreementHelper from "./contracts/agreements/AgreementHelper";
 import CFADataModel from "./contracts/agreements/ConstantFlowAgreementV1.data";
 import {max, min, toBN, toWad} from "./contracts/utils/helpers";
 import {
-    CUSTOM_ERROR_CODE,
+    CUSTOM_ERROR_CODES,
     CustomErrorCodeType,
     RealtimeBalance,
     TestEnvironmentConfigs,
@@ -71,7 +71,7 @@ export default class TestEnvironment {
         this._evmSnapshots = [];
 
         this.agreementHelper = new AgreementHelper(this);
-        this.customErrorCode = CUSTOM_ERROR_CODE;
+        this.customErrorCode = CUSTOM_ERROR_CODES;
 
         this.contracts = {} as any;
         this.configs = {

@@ -115,7 +115,7 @@ export interface TestEnvironmentContracts {
     resolver: Resolver;
 }
 
-export const CUSTOM_ERROR_CODE = {
+export const CUSTOM_ERROR_CODES = {
     APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR: 1,
     APP_RULE_NO_REGISTRATION_FOR_EOA: 2,
     APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK: 10,
@@ -170,4 +170,4 @@ export const CUSTOM_ERROR_CODE = {
     AGREEMENT_BASE_ONLY_HOST: 8400,
 };
 
-export type CustomErrorCodeType = typeof CUSTOM_ERROR_CODE;
+export type CustomErrorCodeType = typeof CUSTOM_ERROR_CODES;

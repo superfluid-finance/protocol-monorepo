@@ -75,6 +75,9 @@ const config: HardhatUserConfig = {
         },
     },
     networks: {
+        hardhat: {
+            hardfork: "merge"
+        },
         localhost: {
             ...createNetworkConfig("localhost"),
             url: "http://0.0.0.0:8545/",

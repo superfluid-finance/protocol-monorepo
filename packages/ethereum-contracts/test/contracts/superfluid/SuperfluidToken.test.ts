@@ -1,16 +1,15 @@
 import {assert, ethers, web3} from "hardhat";
+
 import {
     AgreementMock,
     SuperfluidMock,
     SuperToken,
     TestGovernance,
 } from "../../../typechain-types";
-
-const {expectCustomError} = require("../../utils/expectRevert");
+import TestEnvironment from "../../TestEnvironment";
+import {expectCustomError} from "../../utils/expectRevert";
 
 const {web3tx} = require("@decentral.ee/web3-helpers");
-
-import TestEnvironment from "../../TestEnvironment";
 
 describe("SuperfluidToken implementation", function () {
     this.timeout(300e3);

@@ -1,7 +1,7 @@
-import TestEnvironment from "../../TestEnvironment";
-const {expectCustomError} = require("../../utils/expectRevert");
-import {assert, ethers} from "hardhat";
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
+import {assert, ethers} from "hardhat";
+
 import {
     CFAv1Forwarder,
     ConstantFlowAgreementV1,
@@ -9,8 +9,9 @@ import {
     SuperTokenMock,
     TestGovernance,
 } from "../../../typechain-types";
-import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-const {toBN} = require("../utils/helpers");
+import TestEnvironment from "../../TestEnvironment";
+import {expectCustomError} from "../../utils/expectRevert";
+import {toBN} from "../utils/helpers";
 
 const mintAmount = "1000000000000000000000000000"; // a small loan of a billion dollars
 const flowrate = "1000000000000";
@@ -176,12 +177,7 @@ describe("Agreement Forwarder", function () {
             await expectCustomError(
                 cfaFwd
                     .connect(bobSigner)
-                    .setFlowrateFrom(
-                        superToken.address,
-                        alice,
-                        bob,
-                        flowrate
-                    ),
+                    .setFlowrateFrom(superToken.address, alice, bob, flowrate),
                 cfa,
                 "CFA_ACL_OPERATOR_NO_CREATE_PERMISSIONS"
             );
@@ -238,12 +234,7 @@ describe("Agreement Forwarder", function () {
             await expectCustomError(
                 cfaFwd
                     .connect(carolSigner)
-                    .setFlowrateFrom(
-                        superToken.address,
-                        alice,
-                        bob,
-                        flowrate2
-                    ),
+                    .setFlowrateFrom(superToken.address, alice, bob, flowrate2),
                 cfa,
                 "CFA_ACL_OPERATOR_NO_UPDATE_PERMISSIONS"
             );
@@ -274,12 +265,7 @@ describe("Agreement Forwarder", function () {
             await expectCustomError(
                 cfaFwd
                     .connect(carolSigner)
-                    .setFlowrateFrom(
-                        superToken.address,
-                        alice,
-                        bob,
-                        flowrate2
-                    ),
+                    .setFlowrateFrom(superToken.address, alice, bob, flowrate2),
                 cfa,
                 "CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED"
             );
@@ -298,12 +284,7 @@ describe("Agreement Forwarder", function () {
             await expectCustomError(
                 cfaFwd
                     .connect(carolSigner)
-                    .setFlowrateFrom(
-                        superToken.address,
-                        alice,
-                        bob,
-                        flowrate2
-                    ),
+                    .setFlowrateFrom(superToken.address, alice, bob, flowrate2),
                 cfa,
                 "CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED"
             );
@@ -383,13 +364,7 @@ describe("Agreement Forwarder", function () {
 
             await cfaFwd
                 .connect(aliceSigner)
-                .updateFlow(
-                    superToken.address,
-                    alice,
-                    bob,
-                    flowrate2,
-                    "0x"
-                );
+                .updateFlow(superToken.address, alice, bob, flowrate2, "0x");
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)
@@ -425,13 +400,7 @@ describe("Agreement Forwarder", function () {
 
             await cfaFwd
                 .connect(carolSigner)
-                .updateFlow(
-                    superToken.address,
-                    alice,
-                    bob,
-                    flowrate2,
-                    "0x"
-                );
+                .updateFlow(superToken.address, alice, bob, flowrate2, "0x");
             assert.equal(
                 (
                     await cfa.getFlow(superToken.address, alice, bob)

@@ -1,5 +1,7 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {artifacts, assert, ethers, expect, web3} from "hardhat";
+
+import SuperTokenArtifact from "../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json";
 import {
     CustomSuperTokenMock,
     MockSmartWallet,
@@ -8,17 +10,11 @@ import {
     SuperTokenMock,
     TestToken,
 } from "../../../typechain-types";
-
 import TestEnvironment from "../../TestEnvironment";
-
-const {
-    expectRevertedWith,
-    expectCustomError,
-} = require("../../utils/expectRevert");
+import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
+import {toBN, toWad} from "../utils/helpers";
 
 const {web3tx, toDecimals} = require("@decentral.ee/web3-helpers");
-const {toWad, toBN} = require("../utils/helpers");
-const SuperTokenArtifact = require("../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json");
 
 const TestToken = artifacts.require("TestToken");
 
@@ -164,10 +160,13 @@ describe("SuperToken's Non Standard Functions", function () {
             const finalBalance = await testToken.balanceOf(alice);
             const finalSuperTokenBalance = await superToken.balanceOf(alice);
 
-            assert.isOk(initialBalance.sub(finalBalance).toString(), toWad(1));
+            assert.isOk(
+                initialBalance.sub(finalBalance).toString(),
+                toWad(1).toString()
+            );
             assert.equal(
                 finalSuperTokenBalance.toString(),
-                toWad("1"),
+                toWad("1").toString(),
                 "SuperToken.balanceOf is wrong"
             );
 

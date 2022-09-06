@@ -1,38 +1,50 @@
 import {BigNumber, BigNumberish} from "ethers";
 import {assert} from "hardhat";
 import _ from "lodash";
-import {SuperToken} from "../../../typechain-types";
-import {toBN, max, min} from "../utils/helpers";
 
-interface FlowInfo {
-    readonly timestamp: Date;
-    readonly flowRate: BigNumber;
-    readonly deposit: BigNumber;
-    readonly owedDeposit: BigNumber;
-}
-interface FlowParams {
-    readonly sender: string;
-    readonly receiver: string;
-    readonly notTouched?: boolean;
-}
+import {SuperToken} from "../../../typechain-types";
+import TestEnvironment from "../../TestEnvironment";
+import {max, min, toBN} from "../utils/helpers";
+
+import {FlowInfo, FlowParams, RealtimeBalance} from "./Agreement.types";
+
+const INIT_FLOW_INFO = {
+    flowRate: toBN(0),
+    deposit: toBN(0),
+    owedDeposit: toBN(0),
+    timestamp: new Date(),
+};
+
 /**
  * @dev CFA Data Model which contains the relevant CFA state,
  * updater functions and also validation functions.
  *
  */
-const CFADataModel = class CFADataModel {
-    readonly testenv: any;
-    readonly superToken: any;
-    readonly roles: any;
-    readonly _balanceSnapshotsBefore: any;
-    readonly _accountFlowInfoBefore: any;
-    readonly _accountFlowInfoAfter: any;
-    readonly _balancesBefore: any;
-    readonly _balancesAfter: any;
-    readonly flows: any;
-    readonly expectedFlowInfo: any;
-    readonly expectedNetFlowDeltas: any;
-    constructor(testenv: any, superToken: SuperToken) {
+export default class CFADataModel {
+    readonly testenv: TestEnvironment;
+    readonly superToken: SuperToken;
+    readonly roles: {[role: string]: string};
+    readonly _balanceSnapshotsBefore: {[role: string]: RealtimeBalance};
+    readonly _accountFlowInfoBefore: {[flowName: string]: FlowInfo};
+    readonly _accountFlowInfoAfter: {[flowName: string]: FlowInfo};
+    readonly _balancesBefore: {[role: string]: RealtimeBalance};
+    readonly _balancesAfter: {[role: string]: RealtimeBalance};
+    readonly flows: {
+        [role: string]: {
+            flowInfoBefore: FlowInfo;
+            flowInfoAfter: FlowInfo;
+            flowId: {
+                superToken: string;
+                sender: string;
+                receiver: string;
+            };
+            notTouched?: boolean;
+        };
+    };
+    readonly expectedFlowInfo: {[flowName: string]: FlowInfo};
+    readonly expectedNetFlowDeltas: {[address: string]: BigNumber};
+
+    constructor(testenv: TestEnvironment, superToken: SuperToken) {
         this.testenv = testenv;
         this.superToken = superToken;
         this.roles = {};
@@ -128,11 +140,12 @@ const CFADataModel = class CFADataModel {
             sender: flowParams.sender,
             receiver: flowParams.receiver,
         };
-        const flowInfo = await this.testenv.sf.cfa.getFlow(flowId);
+        const flowInfo: FlowInfo = await this.testenv.sf.cfa.getFlow(flowId);
         this.flows[flowName] = {
             flowId,
             notTouched: flowParams.notTouched, // only used in MFA test case
             flowInfoBefore: flowInfo,
+            flowInfoAfter: INIT_FLOW_INFO,
         };
         CFADataModel._printFlowInfo(`${flowName} flow info before`, flowInfo);
     }
@@ -161,17 +174,17 @@ const CFADataModel = class CFADataModel {
             }
             assert.equal(
                 flowData.flowInfoAfter.flowRate,
-                this.expectedFlowInfo[flowName].flowRate.toString(),
+                this.expectedFlowInfo[flowName].flowRate,
                 `wrong flow rate of the ${flowName} flow`
             );
             assert.equal(
                 flowData.flowInfoAfter.owedDeposit,
-                this.expectedFlowInfo[flowName].owedDeposit.toString(),
+                this.expectedFlowInfo[flowName].owedDeposit,
                 `wrong owed deposit amount of the ${flowName} flow`
             );
             assert.equal(
                 flowData.flowInfoAfter.deposit,
-                this.expectedFlowInfo[flowName].deposit.toString(),
+                this.expectedFlowInfo[flowName].deposit,
                 `wrong deposit amount of the ${flowName} flow`
             );
         } else {
@@ -496,6 +509,3 @@ const CFADataModel = class CFADataModel {
         return max(toBN(0), min(appCreditGranted, appCreditUsed));
     }
 }
-
-export default CFADataModel;
-module.exports = CFADataModel;

@@ -2,11 +2,10 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {BigNumber, BigNumberish, ContractTransaction} from "ethers";
 import {ethers, expect} from "hardhat";
-const {
-    expectRevertedWith,
-    expectCustomError,
-} = require("../../utils/expectRevert");
-const {toBN} = require("../utils/helpers");
+
+import TestEnvironment from "../../TestEnvironment";
+import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
+import {toBN} from "../utils/helpers";
 
 export function shouldBehaveLikeERC20(
     errorPrefix: string,
@@ -16,8 +15,7 @@ export function shouldBehaveLikeERC20(
         recipient: string;
         anotherAccount: string;
     },
-    // @note TODO replace any
-    t: any
+    t: TestEnvironment
 ) {
     let initialHolder: string, recipient: string, anotherAccount: string;
 
@@ -286,8 +284,7 @@ export function shouldBehaveLikeERC20Transfer(
         to: string,
         amount: BigNumber
     ) => Promise<ContractTransaction>,
-    // @note TODO replace any
-    t: any
+    t: TestEnvironment
 ) {
     let from: string, to: string;
 
@@ -380,8 +377,7 @@ export function shouldBehaveLikeERC20Approve(
         spender: string,
         amount: BigNumber
     ) => Promise<ContractTransaction>,
-    // @note TODO replace any
-    t: any
+    t: TestEnvironment
 ) {
     let owner: string, spender: string;
 

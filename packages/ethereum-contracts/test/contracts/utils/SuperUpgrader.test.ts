@@ -1,11 +1,10 @@
 import {assert} from "chai";
 import {ethers, web3} from "hardhat";
-const {web3tx} = require("@decentral.ee/web3-helpers");
-
-const {expectRevertedWith} = require("../../utils/expectRevert");
-
+import {expectRevertedWith} from "../../utils/expectRevert";
 import TestEnvironment from "../../TestEnvironment";
-const {toWad} = require("./helpers");
+import {toWad} from "./helpers";
+
+const {web3tx} = require("@decentral.ee/web3-helpers");
 
 import {
     SuperToken,
@@ -135,7 +134,7 @@ describe("Superfluid Super Upgrader Contract", function () {
             const aliceSuperTokenBalance = await superToken.balanceOf(alice);
             assert.equal(
                 aliceSuperTokenBalance.toString(),
-                toWad("3"),
+                toWad("3").toString(),
                 "Alice should receive the correct amount"
             );
         });
@@ -238,7 +237,7 @@ describe("Superfluid Super Upgrader Contract", function () {
             const aliceSuperTokenBalance = await superToken.balanceOf(alice);
             assert.equal(
                 aliceSuperTokenBalance.toString(),
-                toWad("3"),
+                toWad("3").toString(),
                 "Alice should receive the correct amount"
             );
         });
@@ -274,7 +273,7 @@ describe("Superfluid Super Upgrader Contract", function () {
             const aliceSuperTokenBalance = await superToken.balanceOf(alice);
             assert.equal(
                 aliceSuperTokenBalance.toString(),
-                toWad("100"),
+                toWad("100").toString(),
                 "Alice should receive the correct amount"
             );
         });

@@ -1,12 +1,9 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {assert, ethers, web3} from "hardhat";
-import {Superfluid, SuperfluidGovernanceII} from "../../../typechain-types";
 
-const {
-    expectRevertedWith,
-    expectCustomError,
-} = require("../../utils/expectRevert");
+import {Superfluid, SuperfluidGovernanceII} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
+import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 
 describe("Superfluid Ownable Governance Contract", function () {
     this.timeout(300e3);

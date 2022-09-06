@@ -1,7 +1,7 @@
 import {assert} from "chai";
-const {ethers} = require("hardhat");
+import {ethers} from "hardhat";
 import TestEnvironment from "../../TestEnvironment";
-const {expectRevertedWith} = require("../../utils/expectRevert");
+import {expectRevertedWith} from "../../utils/expectRevert";
 
 const DEFAULT_ADMIN_ROLE =
     "0x0000000000000000000000000000000000000000000000000000000000000000";
@@ -22,8 +22,8 @@ describe("Resolver", function () {
     it("Resolver.set should only be called by admin", async () => {
         const adminSigner = await ethers.getSigner(admin);
         const aliceSigner = await ethers.getSigner(alice);
-        let resolver = await ethers.getContractFactory("Resolver");
-        resolver = await resolver.connect(adminSigner).deploy();
+        const resolverFactory = await ethers.getContractFactory("Resolver");
+        const resolver = await resolverFactory.connect(adminSigner).deploy();
         await expectRevertedWith(
             resolver.connect(aliceSigner).set("alice", alice),
             "Caller is not an admin"

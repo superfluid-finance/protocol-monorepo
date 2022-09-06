@@ -1,27 +1,32 @@
+import {BigNumber} from "ethers";
 import {assert, ethers, web3} from "hardhat";
-import {SuperToken} from "../../../typechain-types";
-import CFADataModel from "../agreements/ConstantFlowAgreementV1.data";
 
+import {SuperToken} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-const {expectCustomError} = require("../../utils/expectRevert");
+import {expectCustomError} from "../../utils/expectRevert";
+import {VerifyOptions} from "../agreements/Agreement.types";
+import {
+    expectNetFlow,
+    shouldCreateFlow,
+} from "../agreements/ConstantFlowAgreementV1.behavior";
+import CFADataModel from "../agreements/ConstantFlowAgreementV1.data";
+import {
+    shouldApproveSubscription,
+    shouldCreateIndex,
+    shouldDeleteSubscription,
+    shouldDistribute,
+    shouldUpdateSubscription,
+} from "../agreements/InstantDistributionAgreementV1.behaviour";
+import {toBN, toWad} from "../utils/helpers";
 
 const {wad4human} = require("@decentral.ee/web3-helpers");
-const {toBN, toWad} = require("../utils/helpers");
-
-const {
-    shouldCreateFlow,
-    expectNetFlow,
-} = require("../agreements/ConstantFlowAgreementV1.behavior");
-
-const {
-    shouldCreateIndex,
-    shouldDistribute,
-    shouldApproveSubscription,
-    shouldUpdateSubscription,
-    shouldDeleteSubscription,
-} = require("../agreements/InstantDistributionAgreementV1.behaviour");
 
 const DEFAULT_INDEX_ID = "42";
+
+interface ExpectedBalance {
+    readonly address: string;
+    readonly expectedBalance: BigNumber;
+}
 
 describe("Superfluid scenarios", function () {
     this.timeout(300e3);
@@ -46,8 +51,7 @@ describe("Superfluid scenarios", function () {
         await t.beforeEachTestCase();
     });
 
-    // @note TODO: REPLACE any
-    async function verifyAll(opts?: any) {
+    async function verifyAll(opts?: VerifyOptions) {
         const cfaDataModel = new CFADataModel(t, superToken);
         const block2 = await web3.eth.getBlock("latest");
         await t.validateExpectedBalances(() => {
@@ -59,17 +63,17 @@ describe("Superfluid scenarios", function () {
         await t.validateSystemInvariance(opts);
     }
 
-    // @note TODO: REPLACE any
-    async function timeTravelOnceAndVerifyAll(opts: any = {}) {
+    async function timeTravelOnceAndVerifyAll(opts: VerifyOptions = {}) {
         await t.timeTravelOnce(opts.time);
         await verifyAll(opts);
     }
 
-    // @note TODO: REPLACE any
-    async function testExpectedBalances(expectedBalances: Array<any>) {
+    async function testExpectedBalances(
+        expectedBalances: Array<ExpectedBalance>
+    ) {
         for (let i = 0; i < expectedBalances.length; ++i) {
-            const account = expectedBalances[i][0];
-            const expectedBalance = expectedBalances[i][1];
+            const account = expectedBalances[i].address;
+            const expectedBalance = expectedBalances[i].expectedBalance;
             //const expectedDeposit = expectedBalances[i][2] || "0";
             const balance = await superToken.balanceOf(account);
             console.log(
@@ -344,14 +348,14 @@ describe("Superfluid scenarios", function () {
             });
 
             const subscribers = [
-                [bob, toWad("0.0001"), true],
-                [carol, toWad("0.0002"), true],
-                [dan, toWad("0.0003"), false],
+                {address: bob, units: toWad("0.0001"), approve: true},
+                {address: carol, units: toWad("0.0002"), approve: true},
+                {address: dan, units: toWad("0.0003"), approve: false},
             ];
             for (let i = 0; i < subscribers.length; ++i) {
-                const subscriberAddr = subscribers[i][0];
-                const subscriptionUnits = subscribers[i][1];
-                const doApprove = subscribers[i][2];
+                const subscriberAddr = subscribers[i].address;
+                const subscriptionUnits = subscribers[i].units;
+                const doApprove = subscribers[i].approve;
                 const subscriberName = t.toAlias(subscriberAddr);
 
                 if (doApprove) {
@@ -395,10 +399,10 @@ describe("Superfluid scenarios", function () {
                 indexValue: "100",
             });
             await testExpectedBalances([
-                [alice, toWad("99.94")],
-                [bob, toWad("0.01")],
-                [carol, toWad("0.02")],
-                [dan, toWad("0.00")],
+                {address: alice, expectedBalance: toWad("99.94")},
+                {address: bob, expectedBalance: toWad("0.01")},
+                {address: carol, expectedBalance: toWad("0.02")},
+                {address: dan, expectedBalance: toWad("0.00")},
             ]);
 
             await shouldDistribute({
@@ -409,10 +413,10 @@ describe("Superfluid scenarios", function () {
                 indexValue: "300",
             });
             await testExpectedBalances([
-                [alice, toWad("99.82")],
-                [bob, toWad("0.03")],
-                [carol, toWad("0.06")],
-                [dan, toWad("0.00")],
+                {address: alice, expectedBalance: toWad("99.82")},
+                {address: bob, expectedBalance: toWad("0.03")},
+                {address: carol, expectedBalance: toWad("0.06")},
+                {address: dan, expectedBalance: toWad("0.00")},
             ]);
 
             await shouldDeleteSubscription({
@@ -424,10 +428,10 @@ describe("Superfluid scenarios", function () {
                 senderName: "alice",
             });
             await testExpectedBalances([
-                [alice, toWad("99.82")],
-                [bob, toWad("0.03")],
-                [carol, toWad("0.06")],
-                [dan, toWad("0.09")],
+                {address: alice, expectedBalance: toWad("99.82")},
+                {address: bob, expectedBalance: toWad("0.03")},
+                {address: carol, expectedBalance: toWad("0.06")},
+                {address: dan, expectedBalance: toWad("0.09")},
             ]);
 
             await shouldDistribute({
@@ -438,10 +442,10 @@ describe("Superfluid scenarios", function () {
                 indexValue: "400",
             });
             await testExpectedBalances([
-                [alice, toWad("99.79")],
-                [bob, toWad("0.04")],
-                [carol, toWad("0.08")],
-                [dan, toWad("0.09")],
+                {address: alice, expectedBalance: toWad("99.79")},
+                {address: bob, expectedBalance: toWad("0.04")},
+                {address: carol, expectedBalance: toWad("0.08")},
+                {address: dan, expectedBalance: toWad("0.09")},
             ]);
 
             await verifyAll();
@@ -453,13 +457,13 @@ describe("Superfluid scenarios", function () {
 
             // alice and bob create indices and dan subscribes to them
             const publishers = [
-                [alice, toWad("0.0001"), true],
-                [bob, toWad("0.0002"), false],
+                {address: alice, units: toWad("0.0001"), approve: true},
+                {address: bob, units: toWad("0.0002"), approve: false},
             ];
             for (let i = 0; i < publishers.length; ++i) {
-                let publisherAddr = publishers[i][0];
-                let subscriptionUnits = publishers[i][1];
-                let doApprove = publishers[i][2];
+                const publisherAddr = publishers[i].address;
+                const subscriptionUnits = publishers[i].units;
+                const doApprove = publishers[i].approve;
                 const publisherName = t.toAlias(publisherAddr);
 
                 await shouldCreateIndex({
@@ -507,9 +511,9 @@ describe("Superfluid scenarios", function () {
                 indexValue: "100",
             });
             await testExpectedBalances([
-                [alice, toWad("99.99")],
-                [bob, toWad("100.00")],
-                [dan, toWad("0.01")],
+                {address: alice, expectedBalance: toWad("99.99")},
+                {address: bob, expectedBalance: toWad("100.00")},
+                {address: dan, expectedBalance: toWad("0.01")},
             ]);
 
             // Bob distributes tokens (200 * 0.0002 = 0.04)
@@ -521,9 +525,9 @@ describe("Superfluid scenarios", function () {
                 indexValue: "200",
             });
             await testExpectedBalances([
-                [alice, toWad("99.99")],
-                [bob, toWad("99.96")],
-                [dan, toWad("0.01")],
+                {address: alice, expectedBalance: toWad("99.99")},
+                {address: bob, expectedBalance: toWad("99.96")},
+                {address: dan, expectedBalance: toWad("0.01")},
             ]);
 
             // Alice update Dan's subscription with more units
@@ -545,9 +549,9 @@ describe("Superfluid scenarios", function () {
                 indexValue: "200",
             });
             await testExpectedBalances([
-                [alice, toWad("99.96")],
-                [bob, toWad("99.96")],
-                [dan, toWad("0.04")],
+                {address: alice, expectedBalance: toWad("99.96")},
+                {address: bob, expectedBalance: toWad("99.96")},
+                {address: dan, expectedBalance: toWad("0.04")},
             ]);
 
             await shouldApproveSubscription({
@@ -558,9 +562,9 @@ describe("Superfluid scenarios", function () {
                 subscriberName: "dan",
             });
             await testExpectedBalances([
-                [alice, toWad("99.96")],
-                [bob, toWad("99.96")],
-                [dan, toWad("0.08")],
+                {address: alice, expectedBalance: toWad("99.96")},
+                {address: bob, expectedBalance: toWad("99.96")},
+                {address: dan, expectedBalance: toWad("0.08")},
             ]);
 
             await verifyAll();

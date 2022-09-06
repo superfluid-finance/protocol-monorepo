@@ -1,10 +1,11 @@
+import {BigNumber} from "ethers";
 import {assert, web3} from "hardhat";
 import {SuperToken} from "../../../typechain-types";
-
-const {toBN} = require("./helpers");
+import {toBN} from "./helpers";
 import CFADataModel from "../agreements/ConstantFlowAgreementV1.data";
+import TestEnvironment from "../../TestEnvironment";
 
-interface MFAParams {
+export interface MFAParams {
     ratioPct: number;
     sender: string;
     receivers: {
@@ -12,14 +13,22 @@ interface MFAParams {
     };
 }
 
+interface BaseMFAParams {
+    testenv: TestEnvironment;
+    mfa: MFAParams;
+}
+
+interface UpdateFlowExpectationsParams extends BaseMFAParams {
+    superToken: SuperToken;
+    flowRate: BigNumber;
+    cfaDataModel: CFADataModel;
+}
 export default class MFASupport {
     static async setup({
         testenv,
         mfa,
         roles,
-    }: {
-        testenv: any;
-        mfa: MFAParams;
+    }: BaseMFAParams & {
         roles: {[role: string]: string};
     }) {
         roles.mfaSender = testenv.getAddress(mfa.sender);
@@ -55,13 +64,7 @@ export default class MFASupport {
         mfa,
         flowRate,
         cfaDataModel,
-    }: {
-        testenv: any;
-        mfa: MFAParams;
-        superToken: SuperToken;
-        flowRate: string;
-        cfaDataModel: any;
-    }) {
+    }: UpdateFlowExpectationsParams) {
         const roles = cfaDataModel.roles;
         let expectedNetFlowDeltas = cfaDataModel.expectedNetFlowDeltas;
         const expectedFlowInfo = cfaDataModel.expectedFlowInfo;
@@ -138,6 +141,7 @@ export default class MFASupport {
                     flowRate: mfaFlowRate,
                     deposit: mfaFlowDepositAllowance,
                     owedDeposit: toBN(0),
+                    timestamp: new Date(),
                 };
             })
         );
@@ -164,9 +168,10 @@ export default class MFASupport {
                 receiver: roles.mfa,
             });
             expectedFlowInfo["mfa.sender"] = {
-                flowRate: "0",
+                flowRate: toBN(0),
                 deposit: toBN(0),
                 owedDeposit: toBN(0),
+                timestamp: new Date(),
             };
         }
     }
@@ -175,7 +180,7 @@ export default class MFASupport {
         testenv,
         roles,
     }: {
-        testenv: any;
+        testenv: TestEnvironment;
         roles: {[role: string]: string};
     }) {
         assert.isFalse(

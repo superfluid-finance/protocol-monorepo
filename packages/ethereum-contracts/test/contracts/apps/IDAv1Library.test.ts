@@ -1,18 +1,16 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {assert, ethers, expect, web3} from "hardhat";
+
 import {
     IDAv1LibraryMock,
     IDAv1LibrarySuperAppMock,
     InstantDistributionAgreementV1,
-    Superfluid,
+    SuperfluidMock,
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-const {abiCoder} = require("../utils/helpers");
 
-const {
-    constants: {ZERO_ADDRESS},
-} = require("@openzeppelin/test-helpers");
+const ZERO_ADDRESS = ethers.constants.AddressZero;
 
 describe("IDAv1Library testing", function () {
     this.timeout(300e3);
@@ -61,7 +59,7 @@ describe("IDAv1Library testing", function () {
     const INDEX_ID = 0;
 
     let superToken: SuperTokenMock,
-        host: Superfluid,
+        host: SuperfluidMock,
         ida: InstantDistributionAgreementV1,
         alice: string,
         bob: string,

@@ -1,32 +1,37 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {BigNumber} from "ethers";
 import {artifacts, assert, ethers, expect, web3} from "hardhat";
+
 import {
     IDASuperAppTester,
     InstantDistributionAgreementV1,
-    TestToken,
+    SuperToken,
 } from "../../../typechain-types";
-
-const {expectEvent} = require("@openzeppelin/test-helpers");
-const {wad4human} = require("@decentral.ee/web3-helpers");
+import TestEnvironment from "../../TestEnvironment";
+import {expectCustomError} from "../../utils/expectRevert";
+import {toWad} from "../utils/helpers";
 
 import {
-    shouldCreateIndex,
-    shouldDistribute,
     shouldApproveSubscription,
-    shouldUpdateSubscription,
-    shouldRevokeSubscription,
-    shouldDeleteSubscription,
     shouldClaimPendingDistribution,
+    shouldCreateIndex,
+    shouldDeleteSubscription,
+    shouldDistribute,
+    shouldRevokeSubscription,
+    shouldUpdateSubscription,
 } from "./InstantDistributionAgreementV1.behaviour";
 
-const {expectCustomError} = require("../../utils/expectRevert");
-
+const {wad4human} = require("@decentral.ee/web3-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
-import TestEnvironment from "../../TestEnvironment";
-const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
-const {toWad} = require("../utils/helpers");
 
+const ZERO_ADDRESS = ethers.constants.AddressZero;
 const DEFAULT_INDEX_ID = "42";
+
+interface ExpectedBalance {
+    readonly address: string;
+    readonly expectedBalance: BigNumber;
+}
 
 describe("Using InstantDistributionAgreement v1", function () {
     this.timeout(300e3);
@@ -35,7 +40,7 @@ describe("Using InstantDistributionAgreement v1", function () {
     const {INIT_BALANCE} = t.configs;
 
     let alice: string, bob: string, carol: string;
-    let superToken: TestToken;
+    let superToken: SuperToken;
     let aliceSigner: SignerWithAddress, bobSigner: SignerWithAddress;
     let ida: InstantDistributionAgreementV1;
 
@@ -56,11 +61,11 @@ describe("Using InstantDistributionAgreement v1", function () {
         await t.beforeEachTestCase();
     });
 
-    // @note TODO replace any
-    async function testExpectedBalances(expectedBalances: any[]) {
+    // @note this is duplicated in scenarios.test.ts
+    async function testExpectedBalances(expectedBalances: ExpectedBalance[]) {
         for (let i = 0; i < expectedBalances.length; ++i) {
-            const account = expectedBalances[i][0];
-            const expectedBalance = expectedBalances[i][1];
+            const account = expectedBalances[i].address;
+            const expectedBalance = expectedBalances[i].expectedBalance;
             //const expectedDeposit = expectedBalances[i][2] || "0";
             const balance = await superToken.balanceOf(account);
             console.log(
@@ -146,8 +151,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexValue: "200",
                 });
                 await testExpectedBalances([
-                    [alice, toWad("99.80")],
-                    [bob, toWad("0.00")],
+                    {address: alice, expectedBalance: toWad("99.80")},
+                    {address: bob, expectedBalance: toWad("0.00")},
                 ]);
 
                 await verifyAll();
@@ -220,8 +225,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexValue: "200",
                 });
                 await testExpectedBalances([
-                    [alice, toWad("99.80")],
-                    [bob, toWad("0.00")],
+                    {address: alice, expectedBalance: toWad("99.80")},
+                    {address: bob, expectedBalance: toWad("0.00")},
                 ]);
 
                 await shouldDistribute({
@@ -232,8 +237,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexValue: "200",
                 });
                 await testExpectedBalances([
-                    [alice, toWad("99.80")],
-                    [bob, toWad("0.00")],
+                    {address: alice, expectedBalance: toWad("99.80")},
+                    {address: bob, expectedBalance: toWad("0.00")},
                 ]);
 
                 await expectCustomError(
@@ -277,8 +282,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                     amount: toWad(1).toString(),
                 });
                 await testExpectedBalances([
-                    [alice, toWad("99.00")],
-                    [bob, toWad("0.00")],
+                    {address: alice, expectedBalance: toWad("99.00")},
+                    {address: bob, expectedBalance: toWad("0.00")},
                 ]);
 
                 await shouldDistribute({
@@ -289,8 +294,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                     amount: toWad(1).toString(),
                 });
                 await testExpectedBalances([
-                    [alice, toWad("98.00")],
-                    [bob, toWad("0.00")],
+                    {address: alice, expectedBalance: toWad("98.00")},
+                    {address: bob, expectedBalance: toWad("0.00")},
                 ]);
             });
 
@@ -512,7 +517,6 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.2.4 publisher can delete a subscription", async () => {
-                let subs;
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
                 await shouldCreateIndex({
@@ -547,7 +551,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     subscriberName: "bob",
                     senderName: "alice",
                 });
-                subs = await t.sf.ida.listSubscriptions({
+                const subs = await t.sf.ida.listSubscriptions({
                     superToken: superToken.address,
                     subscriber: bob,
                 });
@@ -847,8 +851,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexValue: "200",
                 });
                 await testExpectedBalances([
-                    [alice, toWad("99.8")],
-                    [bob, toWad("0.2")],
+                    {address: alice, expectedBalance: toWad("99.8")},
+                    {address: bob, expectedBalance: toWad("0.2")},
                 ]);
 
                 await shouldRevokeSubscription({
@@ -872,8 +876,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexValue: "500",
                 });
                 await testExpectedBalances([
-                    [alice, toWad("99.5")],
-                    [bob, toWad("0.2")],
+                    {address: alice, expectedBalance: toWad("99.5")},
+                    {address: bob, expectedBalance: toWad("0.2")},
                 ]);
 
                 await verifyAll();
@@ -1353,7 +1357,6 @@ describe("Using InstantDistributionAgreement v1", function () {
 
         describe("#1.4 claim workflows", () => {
             it("#1.4.1 subscriber can claim distribution from its pending subscription", async () => {
-                let subs;
                 await t.upgradeBalance("alice", INIT_BALANCE);
 
                 await shouldCreateIndex({
@@ -1380,11 +1383,11 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexValue: "100",
                 });
                 await testExpectedBalances([
-                    [alice, toWad("99.7")],
-                    [bob, toWad("0.0")],
+                    {address: alice, expectedBalance: toWad("99.7")},
+                    {address: bob, expectedBalance: toWad("0.0")},
                 ]);
 
-                subs = await t.sf.ida.listSubscriptions({
+                const subs = await t.sf.ida.listSubscriptions({
                     superToken: superToken.address,
                     subscriber: bob,
                 });
@@ -1399,8 +1402,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                     senderName: "bob",
                 });
                 await testExpectedBalances([
-                    [alice, toWad("99.7")],
-                    [bob, toWad("0.3")],
+                    {address: alice, expectedBalance: toWad("99.7")},
+                    {address: bob, expectedBalance: toWad("0.3")},
                 ]);
 
                 await shouldClaimPendingDistribution({
@@ -1412,8 +1415,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                     senderName: "bob",
                 });
                 await testExpectedBalances([
-                    [alice, toWad("99.7")],
-                    [bob, toWad("0.3")],
+                    {address: alice, expectedBalance: toWad("99.7")},
+                    {address: bob, expectedBalance: toWad("0.3")},
                 ]);
 
                 await shouldApproveSubscription({
@@ -1609,9 +1612,11 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
 
                 assert.equal(
-                    await superToken.balanceOf(
-                        t.getAddress("alice").toString()
-                    ),
+                    (
+                        await superToken.balanceOf(
+                            t.getAddress("alice").toString()
+                        )
+                    ).toString(),
                     toWad("50").toString()
                 );
                 assert.equal(
@@ -1677,7 +1682,9 @@ describe("Using InstantDistributionAgreement v1", function () {
                     amount: toWad(30).toString(),
                 });
 
-                await testExpectedBalances([[alice, INIT_BALANCE]]);
+                await testExpectedBalances([
+                    {address: alice, expectedBalance: INIT_BALANCE},
+                ]);
             });
 
             it("#1.5.4 subscribe -> distribute -> unsubscribe -> distribute -> subscribe -> distribute", async () => {
@@ -1716,8 +1723,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
 
                 await testExpectedBalances([
-                    [alice, toWad("50.00")],
-                    [bob, toWad("50.00")],
+                    {address: alice, expectedBalance: toWad("50.00")},
+                    {address: bob, expectedBalance: toWad("50.00")},
                 ]);
                 await shouldRevokeSubscription({
                     testenv: t,
@@ -1726,7 +1733,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                let subs = await t.sf.ida.listSubscriptions({
+                const subs = await t.sf.ida.listSubscriptions({
                     superToken: superToken.address,
                     subscriber: bob,
                 });
@@ -1741,8 +1748,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
 
                 await testExpectedBalances([
-                    [alice, toWad("25.00")],
-                    [bob, toWad("50.00")],
+                    {address: alice, expectedBalance: toWad("25.00")},
+                    {address: bob, expectedBalance: toWad("50.00")},
                 ]);
 
                 await shouldClaimPendingDistribution({
@@ -1755,8 +1762,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
 
                 await testExpectedBalances([
-                    [alice, toWad("25.00")],
-                    [bob, toWad("75.00")],
+                    {address: alice, expectedBalance: toWad("25.00")},
+                    {address: bob, expectedBalance: toWad("75.00")},
                 ]);
 
                 await shouldDistribute({
@@ -1777,8 +1784,8 @@ describe("Using InstantDistributionAgreement v1", function () {
                 });
 
                 await testExpectedBalances([
-                    [alice, toWad("0")],
-                    [bob, toWad("100.00")],
+                    {address: alice, expectedBalance: toWad("0")},
+                    {address: bob, expectedBalance: toWad("100.00")},
                 ]);
             });
         });
@@ -1789,7 +1796,7 @@ describe("Using InstantDistributionAgreement v1", function () {
 
         function idaSelector(functionName: string) {
             return t.sf.agreements.ida.abi.filter(
-                (i: any) => i.name === functionName
+                (i: {name: string}) => i.name === functionName
             )[0].signature;
         }
 

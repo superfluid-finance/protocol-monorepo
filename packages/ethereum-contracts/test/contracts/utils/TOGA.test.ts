@@ -3,16 +3,16 @@ import {BigNumber, BigNumberish} from "ethers";
 import {
     ConstantFlowAgreementV1,
     IERC1820Registry,
-    Superfluid,
+    SuperfluidMock,
     SuperToken,
     TOGA,
     TokenCustodian,
 } from "../../../typechain-types";
 
-const {expectRevertedWith} = require("../../utils/expectRevert");
+import {expectRevertedWith} from "../../utils/expectRevert";
+import {toBN, toWad} from "./helpers";
 import TestEnvironment from "../../TestEnvironment";
 const traveler = require("ganache-time-traveler");
-const {toBN, toWad} = require("./helpers");
 
 describe("TOGA", function () {
     this.timeout(300e3);
@@ -21,7 +21,7 @@ describe("TOGA", function () {
 
     let admin: string, alice: string, bob: string, carol: string;
 
-    let superfluid: Superfluid,
+    let superfluid: SuperfluidMock,
         erc1820: IERC1820Registry,
         cfa: ConstantFlowAgreementV1;
     let toga: TOGA, custodian: TokenCustodian;
@@ -302,14 +302,22 @@ describe("TOGA", function () {
             await toga.getMaxExitRateFor(superToken.address, BOND_AMOUNT_2E18)
         );
 
-        expect(shouldDefaultExitRate(BOND_AMOUNT_1E18).toString()).to.equal(
+        expect(
+            shouldDefaultExitRate(
+                Number(BOND_AMOUNT_1E18.toString())
+            ).toString()
+        ).to.equal(
             await toga.getDefaultExitRateFor(
                 superToken.address,
                 BOND_AMOUNT_1E18
             )
         );
 
-        expect(shouldDefaultExitRate(BOND_AMOUNT_2E18).toString()).to.equal(
+        expect(
+            shouldDefaultExitRate(
+                Number(BOND_AMOUNT_2E18.toString())
+            ).toString()
+        ).to.equal(
             await toga.getDefaultExitRateFor(
                 superToken.address,
                 BOND_AMOUNT_2E18

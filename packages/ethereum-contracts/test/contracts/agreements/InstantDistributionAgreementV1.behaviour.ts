@@ -1,16 +1,14 @@
 import {assert} from "hardhat";
-import {TestToken} from "../../../typechain-types";
+import _ from "lodash";
 
-const _ = require("lodash");
-const {expectEvent} = require("@openzeppelin/test-helpers");
+import {
+    IDABaseParams,
+    IDAIndexData,
+    IDASubscriptionData,
+} from "./Agreement.types";
+
 const {web3tx, toBN, wad4human} = require("@decentral.ee/web3-helpers");
-
-interface IDABaseParams {
-    testenv: any;
-    superToken: TestToken;
-    publisher?: string;
-    indexId: string;
-}
+const {expectEvent} = require("@openzeppelin/test-helpers");
 
 function _updateIndexData({
     testenv,
@@ -25,7 +23,7 @@ function _updateIndexData({
                 accounts: {
                     [publisher]: {
                         ida: {
-                            indicies: {
+                            indices: {
                                 [indexId]: {
                                     data: indexData,
                                 },
@@ -38,7 +36,10 @@ function _updateIndexData({
     });
 }
 
-function _assertEqualIndexData(idataActual: string, idataExpected: string) {
+function _assertEqualIndexData(
+    idataActual: IDAIndexData,
+    idataExpected: IDAIndexData
+) {
     assert.deepEqual(idataActual, idataExpected);
 }
 
@@ -54,7 +55,7 @@ export function getIndexData({
                 accounts: {
                     [publisher]: {
                         ida: {
-                            indicies: {
+                            indices: {
                                 [indexId]: {
                                     data: {
                                         exist: true,
@@ -72,8 +73,9 @@ export function getIndexData({
         },
     });
     return _.clone(
-        testenv.data.tokens[superToken.address].accounts[publisher].ida
-            .indicies[indexId].data
+        testenv.data.tokens[superToken.address].accounts[publisher].ida.indices[
+            indexId
+        ].data
     );
 }
 
@@ -84,7 +86,7 @@ export function getSubscribers({
     indexId,
 }: IDABaseParams & {publisher: string}) {
     return testenv.data.tokens[superToken.address].accounts[publisher].ida
-        .indicies[indexId].subscribers;
+        .indices[indexId].subscribers;
 }
 
 function _updateSubscriptionData({
@@ -94,7 +96,10 @@ function _updateSubscriptionData({
     indexId,
     subscriber,
     subscriptionData,
-}: IDABaseParams & {subscriber: string; subscriptionData: any}) {
+}: IDABaseParams & {
+    subscriber: string;
+    subscriptionData: IDASubscriptionData;
+}) {
     _.merge(testenv.data, {
         tokens: {
             [superToken.address]: {
@@ -113,8 +118,8 @@ function _updateSubscriptionData({
 }
 
 function _assertEqualSubscriptionData(
-    sdataActual: string,
-    sdataExpected: string
+    sdataActual: IDASubscriptionData,
+    sdataExpected: IDASubscriptionData
 ) {
     const sdataExpectedClean = _.clone(sdataExpected);
     delete sdataExpectedClean._syncedIndexValue;
@@ -382,7 +387,6 @@ export async function shouldDistribute({
                 .mul(toBN(idataActual.totalUnitsApproved))
                 .mul(toBN(-1))
                 .toString()
-            // TODO test deposit delta
         );
 
         // subscribers
@@ -472,8 +476,8 @@ async function _afterSubscriptionUpdate({
 }: IDABaseParams & {
     publisher: string;
     subscriber: string;
-    idataBefore: any;
-    sdataBefore: any;
+    idataBefore: IDAIndexData;
+    sdataBefore: IDASubscriptionData;
 }) {
     const sdataExpected = getSubscriptionData({
         testenv,

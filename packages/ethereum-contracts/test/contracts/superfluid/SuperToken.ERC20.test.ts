@@ -1,19 +1,16 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {ethers, expect} from "hardhat";
 import {BigNumber} from "ethers";
-import TestEnvironment from "../../TestEnvironment";
+import {ethers, expect} from "hardhat";
 
-const {
-    expectRevertedWith,
-    expectCustomError,
-} = require("../../utils/expectRevert");
+import TestEnvironment from "../../TestEnvironment";
+import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
+import {toBN} from "../utils/helpers";
 
 import {
     shouldBehaveLikeERC20,
-    shouldBehaveLikeERC20Transfer,
     shouldBehaveLikeERC20Approve,
+    shouldBehaveLikeERC20Transfer,
 } from "./ERC20.behavior";
-const {toBN} = require("../utils/helpers");
 
 describe("SuperToken's ERC20 compliance", function () {
     this.timeout(300e3);
@@ -108,9 +105,8 @@ describe("SuperToken's ERC20 compliance", function () {
                             .decreaseAllowance(spender, approvedAmount.sub(1));
 
                         expect(
-                            await this.token.allowance(alice, spender),
-                            toBN(1)
-                        );
+                            await this.token.allowance(alice, spender)
+                        ).to.equal(toBN(1));
                     });
 
                     it("sets the allowance to zero when all allowance is removed", async function () {
@@ -118,9 +114,8 @@ describe("SuperToken's ERC20 compliance", function () {
                             .connect(aliceSigner)
                             .decreaseAllowance(spender, approvedAmount);
                         expect(
-                            await this.token.allowance(alice, spender),
-                            toBN(0)
-                        );
+                            await this.token.allowance(alice, spender)
+                        ).to.equal(toBN(0));
                     });
 
                     it("reverts when more than the full allowance is removed", async function () {
@@ -191,9 +186,8 @@ describe("SuperToken's ERC20 compliance", function () {
                             .increaseAllowance(spender, amount);
 
                         expect(
-                            await this.token.allowance(alice, spender),
-                            toBN(amount)
-                        );
+                            await this.token.allowance(alice, spender)
+                        ).to.equal(toBN(amount));
                     });
                 });
 
@@ -210,9 +204,8 @@ describe("SuperToken's ERC20 compliance", function () {
                             .increaseAllowance(spender, amount);
 
                         expect(
-                            await this.token.allowance(alice, spender),
-                            toBN(amount.add(1))
-                        );
+                            await this.token.allowance(alice, spender)
+                        ).to.equal(toBN(amount.add(1)));
                     });
                 });
             });
@@ -237,9 +230,8 @@ describe("SuperToken's ERC20 compliance", function () {
                             .increaseAllowance(spender, amount);
 
                         expect(
-                            await this.token.allowance(alice, spender),
-                            toBN(amount)
-                        );
+                            await this.token.allowance(alice, spender)
+                        ).to.equal(toBN(amount));
                     });
                 });
 
@@ -256,9 +248,8 @@ describe("SuperToken's ERC20 compliance", function () {
                             .increaseAllowance(spender, amount);
 
                         expect(
-                            await this.token.allowance(alice, spender),
-                            toBN(amount.add(1))
-                        );
+                            await this.token.allowance(alice, spender)
+                        ).to.equal(toBN(amount.add(1)));
                     });
                 });
             });

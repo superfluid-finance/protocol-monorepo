@@ -1,23 +1,19 @@
 import {artifacts, assert, ethers, expect, web3} from "hardhat";
+
 import {IERC1820Registry, SuperTokenMock} from "../../../typechain-types";
-
 import TestEnvironment from "../../TestEnvironment";
-
-const {expectEvent} = require("@openzeppelin/test-helpers");
-const {
-    expectRevertedWith,
-    expectCustomError,
-} = require("../../utils/expectRevert");
-
-const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
+import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 
 import {
     shouldBehaveLikeERC777DirectSendBurn,
     shouldBehaveLikeERC777OperatorSendBurn,
-    shouldBehaveLikeERC777UnauthorizedOperatorSendBurn,
     shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook,
     shouldBehaveLikeERC777SendBurnWithSendHook,
+    shouldBehaveLikeERC777UnauthorizedOperatorSendBurn,
 } from "./ERC777.behavior";
+
+const {web3tx, toWad} = require("@decentral.ee/web3-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
 
 const ERC777SenderRecipientMock = artifacts.require(
     "ERC777SenderRecipientMock"

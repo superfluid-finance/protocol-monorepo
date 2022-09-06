@@ -1,25 +1,24 @@
+import {expect} from "chai";
 import {Interface} from "ethers/lib/utils";
 import {artifacts, assert, ethers, web3} from "hardhat";
-import {toBN, toWad} from "../utils/helpers";
+
 import {
     AgreementMock,
     AgreementMock__factory,
     ForwarderMock,
     SuperAppMock,
-    SuperAppMockWithRegistrationKey__factory,
     SuperAppMock__factory,
+    SuperAppMockWithRegistrationKey__factory,
     SuperfluidMock,
     TestGovernance,
 } from "../../../typechain-types";
-const {
-    expectRevertedWith,
-    expectReverted,
-    expectCustomError,
-} = require("../../utils/expectRevert");
-
 import TestEnvironment from "../../TestEnvironment";
-
-const {expect} = require("chai");
+import {
+    expectCustomError,
+    expectReverted,
+    expectRevertedWith,
+} from "../../utils/expectRevert";
+import {toBN, toWad} from "../utils/helpers";
 
 describe("Superfluid Host Contract", function () {
     this.timeout(300e3);
@@ -289,7 +288,7 @@ describe("Superfluid Host Contract", function () {
                             typeA
                         )
                     ).toString(),
-                    MAX_UINT256
+                    MAX_UINT256.toString()
                 );
             });
 
@@ -336,7 +335,7 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#2.5 cannot register more than 256 agreements", async function () {
-                const mocks: any[] = [];
+                const mocks: string[] = [];
                 mocks.push(t.contracts.cfa.address);
                 mocks.push(t.contracts.ida.address);
                 for (let i = 0; i < 254; ++i) {
@@ -435,11 +434,11 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                let SuperTokenFactoryHelperFactory =
+                const SuperTokenFactoryHelperFactory =
                     await ethers.getContractFactory("SuperTokenFactoryHelper");
                 const superTokenFactoryHelper =
                     await SuperTokenFactoryHelperFactory.deploy();
-                let factory2LogicFactory = await ethers.getContractFactory(
+                const factory2LogicFactory = await ethers.getContractFactory(
                     "SuperTokenFactory"
                 );
                 const factory2Logic = await factory2LogicFactory.deploy(
@@ -1449,7 +1448,7 @@ describe("Superfluid Host Contract", function () {
                         "0x"
                     );
                     let receipt = await tx.wait();
-                    console.debug("Gas used", receipt.gasUsed);
+                    console.debug("Gas used", receipt.gasUsed.toString());
                     let gasLowerBound = Number(receipt.gasUsed.toString());
                     let gasUpperBound = gasLowerBound + 300000;
                     console.debug(
@@ -1484,7 +1483,10 @@ describe("Superfluid Host Contract", function () {
                                 }
                             );
                             receipt = await tx.wait();
-                            console.debug("Gas used", receipt.gasUsed);
+                            console.debug(
+                                "Gas used",
+                                receipt.gasUsed.toString()
+                            );
                             console.debug(
                                 "No error, decreasing gas with gap",
                                 gasLowerBound,
@@ -2116,7 +2118,7 @@ describe("Superfluid Host Contract", function () {
 
         describe("#10 batchCall", () => {
             it("#10.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
-                let superToken = t.sf.tokens.TESTx;
+                const superToken = t.sf.tokens.TESTx;
 
                 console.log("Alice upgrades 10 tokens");
                 await superToken.upgrade(toWad("10"), {from: alice});
@@ -2265,7 +2267,7 @@ describe("Superfluid Host Contract", function () {
                         web3.utils.sha3("MockAgreement")!
                     )
                 );
-                let SuperAppMockFactory = await ethers.getContractFactory(
+                const SuperAppMockFactory = await ethers.getContractFactory(
                     "SuperAppMock"
                 );
                 const app = await SuperAppMockFactory.deploy(
@@ -2463,10 +2465,7 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     newGov.address
                 );
-                assert.equal(
-                    await superfluid.getGovernance(),
-                    newGov.address
-                );
+                assert.equal(await superfluid.getGovernance(), newGov.address);
             });
         });
     });

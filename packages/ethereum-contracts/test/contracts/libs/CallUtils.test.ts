@@ -1,7 +1,8 @@
 import {ethers} from "hardhat";
+
 import {CallUtilsMock, CallUtilsTester} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
-const {expectRevertedWith} = require("../../utils/expectRevert");
+import {expectRevertedWith} from "../../utils/expectRevert";
 
 describe("CallUtils", function () {
     const t = TestEnvironment.getSingleton();

@@ -1,17 +1,16 @@
 import {assert} from "chai";
 import {artifacts, ethers, web3} from "hardhat";
+
+import SuperTokenArtifact from "../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json";
 import {ISETH} from "../../../typechain-types";
-
-const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectCustomError} = require("../../utils/expectRevert");
-
-const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
-const SuperTokenArtifact = require("../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json");
 import TestEnvironment from "../../TestEnvironment";
-const ISETH = artifacts.require("ISETH");
-const SETHProxy = artifacts.require("SETHProxy");
+import {expectCustomError} from "../../utils/expectRevert";
 
 const {web3tx, toBN, toWad} = require("@decentral.ee/web3-helpers");
+const {expectEvent} = require("@openzeppelin/test-helpers");
+const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
+const ISETH = artifacts.require("ISETH");
+const SETHProxy = artifacts.require("SETHProxy");
 
 describe("Super ETH (SETH) Contract", function () {
     this.timeout(300e3);

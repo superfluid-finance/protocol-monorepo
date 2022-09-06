@@ -1,58 +1,25 @@
-import {Block} from "@ethersproject/providers";
-import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {BigNumber, BigNumberish} from "ethers";
 import {assert, ethers, expect, web3} from "hardhat";
+
 import {SuperToken, SuperTokenMock} from "../../../typechain-types";
-import MFASupport from "../utils/MFASupport";
+import TestEnvironment from "../../TestEnvironment";
+import {expectCustomError} from "../../utils/expectRevert";
+import MFASupport, {MFAParams} from "../utils/MFASupport";
+import {toBN} from "../utils/helpers";
+
+import {
+    AccountFlowInfo,
+    ChangeFlowBaseParams,
+    ChangeFlowParams,
+    DeleteFlowParams,
+    OperatorChangeFlowParams,
+    OperatorPermissionsBaseParams,
+} from "./Agreement.types";
 import CFADataModel from "./ConstantFlowAgreementV1.data";
 
-const {expectCustomError} = require("../../utils/expectRevert");
-const {toBN} = require("../utils/helpers");
-const expectEvent = require("@openzeppelin/test-helpers/src/expectEvent");
 const {web3tx} = require("@decentral.ee/web3-helpers");
+const expectEvent = require("@openzeppelin/test-helpers/src/expectEvent");
 
-interface ChangeFlowBaseParams {
-    // @note TODO replace any
-    testenv: any;
-    superToken: SuperToken;
-    sender: string;
-    receiver: string;
-    flowRate: string;
-
-    // @note TODO replace any
-    mfa?: any;
-}
-
-interface DeleteFlowParams {
-    // @note TODO replace any
-    testenv: any;
-    superToken: SuperToken;
-    sender: string;
-    receiver: string;
-
-    // @note TODO replace any
-    mfa?: any;
-    readonly by: string;
-    readonly accountFlowInfo?: string;
-}
-
-interface OperatorPermissionsParams {
-    // @note TODO replace any
-    testenv: any;
-    token: SuperToken;
-    flowOperator: string;
-    ctx: string;
-    signer: SignerWithAddress;
-}
-
-interface ChangeFlowParams extends ChangeFlowBaseParams {
-    fn: string;
-    userData?: string;
-    by?: string;
-
-    // @note TODO replace any
-    accountFlowInfo?: any;
-}
 //
 // test functions
 //
@@ -74,8 +41,6 @@ export async function _shouldChangeFlow({
     const {governance} = testenv.contracts;
 
     const cfaDataModel = new CFADataModel(testenv, superToken);
-
-    let txBlock: Block;
 
     const updateAccountExpectedBalanceDelta = (
         role: string,
@@ -199,8 +164,7 @@ export async function _shouldChangeFlow({
                 ? mainFlowAppCreditGranted.add(testenv.configs.MINIMUM_DEPOSIT)
                 : mainFlowAppCreditGranted;
         const appCreditUsed = Object.entries(cfaDataModel.expectedFlowInfo)
-            // @note TODO replace any
-            .map((x: any) => {
+            .map((x) => {
                 const depositBefore =
                     cfaDataModel.flows[x[0]].flowInfoBefore.deposit;
                 return x[1].deposit.sub(toBN(depositBefore));
@@ -223,6 +187,7 @@ export async function _shouldChangeFlow({
                     ? testenv.configs.MINIMUM_DEPOSIT
                     : mainFlowDeposit.add(mainFlowCreditUsed),
             owedDeposit: mfa ? mainFlowCreditUsed : toBN(0),
+            timestamp: new Date(),
         };
     }
 
@@ -316,7 +281,7 @@ export async function _shouldChangeFlow({
         default:
             assert(false);
     }
-    txBlock = await ethers.provider.getBlock(tx.blockNumber);
+    const txBlock = await ethers.provider.getBlock(tx.blockNumber);
     console.log("--------");
 
     /**************************************************************************
@@ -336,7 +301,7 @@ export async function _shouldChangeFlow({
             // the time between the realtimeBalanceOfNow call
             // and the liquidation is time that the available
             // balance continues to decrease
-            const netFlowRate = toBN(accountFlowInfo.flowRate);
+            const netFlowRate = toBN(accountFlowInfo?.flowRate);
             const adjustedRewardAmount = toBN(netFlowRate).mul(
                 toBN(txBlock.timestamp).sub(
                     toBN(
@@ -358,15 +323,15 @@ export async function _shouldChangeFlow({
                         .getBalancesBefore("sender")
                         .availableBalance.toString()
                 )
-                    .add(toBN(accountFlowInfo.deposit.toString()))
+                    .add(toBN(accountFlowInfo?.deposit.toString()))
                     .add(adjustedRewardAmount);
                 const expectedRewardAmount = toBN(
                     cfaDataModel.flows.main.flowInfoBefore.deposit.toString()
                 )
                     .mul(totalRewardLeft)
-                    .div(toBN(accountFlowInfo.deposit.toString()));
+                    .div(toBN(accountFlowInfo?.deposit.toString()));
                 const totalCFAOutflowRate = toBN(
-                    accountFlowInfo.deposit.toString()
+                    accountFlowInfo?.deposit.toString()
                 ).div(toBN(testenv.configs.LIQUIDATION_PERIOD));
                 const isPatricianPeriod = totalRewardLeft
                     .div(totalCFAOutflowRate)
@@ -441,7 +406,7 @@ export async function _shouldChangeFlow({
                         .getBalancesBefore("sender")
                         .availableBalance.toString() /* is negative */
                 )
-                    .add(toBN(accountFlowInfo.deposit))
+                    .add(toBN(accountFlowInfo?.deposit))
                     .mul(toBN(-1))
                     // adjustedRewardAmount is negative, we want to add it
                     // to the overall amount
@@ -524,9 +489,8 @@ export async function _shouldChangeFlow({
     await Promise.all(
         Object.keys(cfaDataModel.roles).map(async (role) => {
             await cfaDataModel.addToBalancesAfter(role);
-            assert.equal(
-                cfaDataModel.getBalancesAfter(role).timestamp,
-                txBlock.timestamp
+            expect(cfaDataModel.getBalancesAfter(role).timestamp).to.equal(
+                toBN(txBlock.timestamp)
             );
         })
     );
@@ -708,7 +672,7 @@ export async function shouldDeleteFlow({
         superToken,
         sender,
         receiver,
-        flowRate: "0",
+        flowRate: toBN(0),
         mfa,
         by,
         accountFlowInfo,
@@ -723,7 +687,7 @@ export async function shouldCreateFlowByOperator({
     flowRate,
     mfa,
     flowOperator,
-}: ChangeFlowBaseParams & {flowOperator: string}) {
+}: OperatorChangeFlowParams) {
     await _shouldChangeFlow({
         fn: "createFlowByOperator",
         testenv,
@@ -744,7 +708,7 @@ export async function shouldUpdateFlowByOperator({
     flowRate,
     mfa,
     flowOperator,
-}: ChangeFlowBaseParams & {flowOperator: string}) {
+}: OperatorChangeFlowParams) {
     await _shouldChangeFlow({
         fn: "updateFlowByOperator",
         testenv,
@@ -765,13 +729,14 @@ export async function shouldDeleteFlowByOperator({
     flowOperator,
     accountFlowInfo,
 }: {
-    testenv: any;
+    flowRate?: BigNumber;
+    testenv: TestEnvironment;
     superToken: SuperTokenMock;
     sender: string;
     receiver: string;
-    mfa?: any;
+    mfa?: MFAParams;
     flowOperator: string;
-    accountFlowInfo?: any;
+    accountFlowInfo?: AccountFlowInfo;
 }) {
     await _shouldChangeFlow({
         fn: "deleteFlowByOperator",
@@ -779,7 +744,7 @@ export async function shouldDeleteFlowByOperator({
         superToken,
         sender,
         receiver,
-        flowRate: "0",
+        flowRate: toBN(0),
         mfa,
         by: flowOperator,
         accountFlowInfo,
@@ -788,20 +753,15 @@ export async function shouldDeleteFlowByOperator({
 
 function getUpdateFlowOperatorPermissionsPromise({
     testenv,
-    token,
+    superToken,
     flowOperator,
     permissions,
     flowRateAllowance,
     ctx,
     signer,
-}: {
-    testenv: any;
-    token: string;
-    flowOperator: string;
-    ctx: string;
-    signer: SignerWithAddress;
+}: OperatorPermissionsBaseParams & {
     permissions?: string;
-    flowRateAllowance?: string;
+    flowRateAllowance?: BigNumber;
 }) {
     const {cfa, superfluid} = testenv.contracts;
     return superfluid
@@ -811,7 +771,7 @@ function getUpdateFlowOperatorPermissionsPromise({
             testenv.agreementHelper.cfaInterface.encodeFunctionData(
                 "updateFlowOperatorPermissions",
                 [
-                    token,
+                    superToken,
                     flowOperator,
                     permissions,
                     (flowRateAllowance || "0").toString(),
@@ -824,17 +784,12 @@ function getUpdateFlowOperatorPermissionsPromise({
 
 function getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
     testenv,
-    token,
+    superToken,
     flowOperator,
     ctx,
     isRevokeFullControl,
     signer,
-}: {
-    testenv: any;
-    token: string;
-    flowOperator: string;
-    ctx: string;
-    signer: SignerWithAddress;
+}: OperatorPermissionsBaseParams & {
     isRevokeFullControl: boolean;
 }) {
     const {cfa, superfluid} = testenv.contracts;
@@ -847,7 +802,7 @@ function getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
             cfa.address,
             testenv.agreementHelper.cfaInterface.encodeFunctionData(
                 methodSignature,
-                [token, flowOperator, ctx]
+                [superToken, flowOperator, ctx]
             ),
             "0x"
         );
@@ -856,16 +811,16 @@ function getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
 export async function getChangeFlowByFlowOperatorPromise({
     testenv,
     methodSignature,
-    token,
+    superToken: token,
     sender,
     receiver,
     signer,
     flowRate,
-}: OperatorPermissionsParams & {
+}: OperatorPermissionsBaseParams & {
     methodSignature: string;
     sender: string;
     receiver: string;
-    flowRate: string;
+    flowRate: BigNumber;
 }) {
     const {cfa, superfluid} = testenv.contracts;
     if (methodSignature === "deleteFlowByOperator") {
@@ -894,21 +849,16 @@ export async function getChangeFlowByFlowOperatorPromise({
 
 export async function shouldRevertUpdateFlowOperatorPermissions({
     testenv,
-    token,
+    superToken,
     flowOperator,
     permissions,
     flowRateAllowance,
     ctx,
     signer,
     expectedCustomError,
-}: {
-    testenv: any;
-    token: string;
-    flowOperator: string;
-    ctx: string;
-    signer: SignerWithAddress;
+}: OperatorPermissionsBaseParams & {
     permissions: string;
-    flowRateAllowance: string;
+    flowRateAllowance: BigNumber;
     expectedCustomError: string;
 }) {
     console.log("\n[EXPECT UPDATE FLOW OPERATOR PERMISSIONS REVERT]");
@@ -918,7 +868,7 @@ export async function shouldRevertUpdateFlowOperatorPermissions({
     await expectCustomError(
         getUpdateFlowOperatorPermissionsPromise({
             testenv,
-            token,
+            superToken,
             flowOperator,
             permissions,
             flowRateAllowance,
@@ -937,7 +887,7 @@ export async function shouldRevertUpdateFlowOperatorPermissions({
  */
 export async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     testenv,
-    token,
+    superToken: token,
     flowOperator,
     permissions,
     flowRateAllowance,
@@ -945,14 +895,9 @@ export async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
     signer,
     isFullControl,
     isFullControlRevoke,
-}: {
-    testenv: any;
-    token: string;
-    flowOperator: string;
-    ctx: string;
-    signer: SignerWithAddress;
+}: OperatorPermissionsBaseParams & {
     permissions?: string;
-    flowRateAllowance?: string;
+    flowRateAllowance?: BigNumber;
     isFullControl?: boolean;
     isFullControlRevoke?: boolean;
 }) {
@@ -979,7 +924,7 @@ export async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
         await expect(
             getUpdateFlowOperatorPermissionsPromise({
                 testenv,
-                token,
+                superToken: token,
                 flowOperator,
                 permissions,
                 flowRateAllowance,
@@ -1001,7 +946,7 @@ export async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
         await expect(
             getAuthorizeOrRevokeFlowOperatorWithFullControlPromise({
                 testenv,
-                token,
+                superToken: token,
                 flowOperator,
                 ctx,
                 signer,
@@ -1030,25 +975,25 @@ export async function shouldUpdateFlowOperatorPermissionsAndValidateEvent({
         flowOperator
     );
     assert.equal(data.flowOperatorId, expectedFlowOperatorId);
-    assert.equal(data.permissions.toString(), expectedPermissions);
+    assert.equal(data.permissions.toString(), expectedPermissions.toString());
     assert.equal(data.flowRateAllowance.toString(), expectedFlowRateAllowance);
 }
 
 export async function shouldRevertChangeFlowByOperator({
     testenv,
     methodSignature,
-    token,
+    superToken: token,
     sender,
     receiver,
     flowOperator,
     flowRate,
     ctx,
     expectedCustomError,
-}: OperatorPermissionsParams & {
+}: OperatorPermissionsBaseParams & {
     methodSignature: string;
     sender: string;
     receiver: string;
-    flowRate: string;
+    flowRate: BigNumber;
     expectedCustomError: string;
 }) {
     console.log("\n[EXPECT CHANGE FLOW BY OPERATOR REVERT]");
@@ -1060,7 +1005,7 @@ export async function shouldRevertChangeFlowByOperator({
         getChangeFlowByFlowOperatorPromise({
             testenv,
             methodSignature,
-            token,
+            superToken: token,
             sender,
             receiver,
             signer,
@@ -1079,9 +1024,9 @@ export async function expectNetFlow({
     superToken,
     value,
 }: {
-    testenv: any;
+    testenv: TestEnvironment;
     account: string;
-    superToken: SuperTokenMock;
+    superToken: SuperToken;
     value: BigNumberish;
 }) {
     const actualNetFlowRate = await testenv.contracts.cfa.getNetFlow(
@@ -1143,7 +1088,7 @@ export async function expectDepositAndOwedDeposit({
     deposit,
     owedDeposit,
 }: {
-    testenv: any;
+    testenv: TestEnvironment;
     account: string;
     superToken: SuperTokenMock;
     deposit: BigNumber;
@@ -1179,7 +1124,7 @@ export function getDeposit({
     testenv,
     flowRate,
 }: {
-    testenv: any;
+    testenv: TestEnvironment;
     flowRate: BigNumber;
 }) {
     return CFADataModel.clipDepositNumber(

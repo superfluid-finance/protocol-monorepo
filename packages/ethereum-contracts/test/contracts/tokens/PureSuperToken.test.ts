@@ -1,13 +1,13 @@
 import {artifacts, assert, ethers} from "hardhat";
-import {ISuperTokenFactory} from "../../../typechain-types";
 
-const {expectRevertedWith} = require("../../utils/expectRevert");
+import {ISuperTokenFactory} from "../../../typechain-types";
+import TestEnvironment from "../../TestEnvironment";
+import {expectRevertedWith} from "../../utils/expectRevert";
+import {toWad} from "../utils/helpers";
 
 const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
-import TestEnvironment from "../../TestEnvironment";
 
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {toWad} = require("../utils/helpers");
 
 describe("PureSuperToken Contract", function () {
     this.timeout(300e3);

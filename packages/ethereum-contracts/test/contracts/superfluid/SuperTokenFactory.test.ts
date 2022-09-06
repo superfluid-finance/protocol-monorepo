@@ -1,26 +1,22 @@
 import {artifacts, assert, ethers, expect, web3} from "hardhat";
+
 import {
     SuperfluidMock,
     SuperTokenFactory,
     TestGovernance,
     TestToken,
 } from "../../../typechain-types";
+import TestEnvironment from "../../TestEnvironment";
+import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 
+const {web3tx} = require("@decentral.ee/web3-helpers");
 const {expectEvent} = require("@openzeppelin/test-helpers");
-const {
-    expectRevertedWith,
-    expectCustomError,
-} = require("../../utils/expectRevert");
 
 const UUPSProxiable = artifacts.require("UUPSProxiable");
 const TestToken = artifacts.require("TestToken");
 const SuperTokenFactoryHelper = artifacts.require("SuperTokenFactoryHelper");
 const SuperTokenFactory = artifacts.require("SuperTokenFactory");
 const SuperTokenMock = artifacts.require("SuperTokenMock");
-
-import TestEnvironment from "../../TestEnvironment";
-
-const {web3tx} = require("@decentral.ee/web3-helpers");
 
 describe("SuperTokenFactory Contract", function () {
     this.timeout(300e3);
@@ -149,20 +145,14 @@ describe("SuperTokenFactory Contract", function () {
                 });
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 await updateSuperTokenFactory();
-                assert.equal(
-                    (await superToken1.waterMark()).toString(),
-                    "0"
-                );
+                assert.equal((await superToken1.waterMark()).toString(), "0");
                 await expectRevertedWith(
                     governance.batchUpdateSuperTokenLogic(superfluid.address, [
                         superToken1.address,
                     ]),
                     "UUPSProxiable: not upgradable"
                 );
-                assert.equal(
-                    (await superToken1.waterMark()).toString(),
-                    "0"
-                );
+                assert.equal((await superToken1.waterMark()).toString(), "0");
             });
 
             it("#2.a.2 semi upgradable", async () => {
@@ -173,30 +163,21 @@ describe("SuperTokenFactory Contract", function () {
                     token: superToken1.address,
                 });
                 superToken1 = await SuperTokenMock.at(superToken1.address);
-                assert.equal(
-                    (await superToken1.waterMark()).toString(),
-                    "0"
-                );
+                assert.equal((await superToken1.waterMark()).toString(), "0");
                 await updateSuperTokenFactory();
-                assert.equal(
-                    (await superToken1.waterMark()).toString(),
-                    "0"
-                );
+                assert.equal((await superToken1.waterMark()).toString(), "0");
                 await web3tx(
                     governance.batchUpdateSuperTokenLogic,
                     "governance.batchUpdateSuperTokenLogic"
                 )(superfluid.address, [superToken1.address]);
-                assert.equal(
-                    (await superToken1.waterMark()).toString(),
-                    "42"
-                );
+                assert.equal((await superToken1.waterMark()).toString(), "42");
             });
 
             it("#2.a.3 full upgradable", async () => {
                 let superToken1 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 2,
                 });
-                let proxy = await ethers.getContractAt(
+                const proxy = await ethers.getContractAt(
                     "FullUpgradableSuperTokenProxy",
                     superToken1.address
                 );
@@ -205,10 +186,7 @@ describe("SuperTokenFactory Contract", function () {
                 });
                 superToken1 = await SuperTokenMock.at(superToken1.address);
                 await updateSuperTokenFactory();
-                assert.equal(
-                    (await superToken1.waterMark()).toString(),
-                    "42"
-                );
+                assert.equal((await superToken1.waterMark()).toString(), "42");
                 await expectRevertedWith(
                     governance.batchUpdateSuperTokenLogic(superfluid.address, [
                         superToken1.address,
@@ -258,7 +236,7 @@ describe("SuperTokenFactory Contract", function () {
                     "governance.updateContracts"
                 )(superfluid.address, ZERO_ADDRESS, [], factory2Logic.address);
 
-                let superToken0 = await t.sf.createERC20Wrapper(token1, {
+                const superToken0 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 0,
                 });
                 await expectEvent(superToken0.tx.receipt, "SuperTokenCreated", {
@@ -269,7 +247,7 @@ describe("SuperTokenFactory Contract", function () {
                     token1.address
                 );
 
-                let superToken1 = await t.sf.createERC20Wrapper(token1, {
+                const superToken1 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 1,
                 });
                 await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
@@ -280,7 +258,7 @@ describe("SuperTokenFactory Contract", function () {
                     token1.address
                 );
 
-                let superToken2 = await t.sf.createERC20Wrapper(token1, {
+                const superToken2 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 2,
                 });
                 await expectEvent(superToken2.tx.receipt, "SuperTokenCreated", {

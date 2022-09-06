@@ -1,23 +1,19 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {artifacts, ethers, expect, web3} from "hardhat";
 import {Contract} from "ethers";
+import {artifacts, ethers, expect, web3} from "hardhat";
+
 import {SuperTokenMock} from "../../../typechain-types";
-const {toBN} = require("../utils/helpers");
+import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 
 // NOTE: copied and modified from https://github.com/OpenZeppelin/openzeppelin-contracts/
-const {BN, constants, expectEvent} = require("@openzeppelin/test-helpers");
-const {ZERO_ADDRESS} = constants;
-const {
-    expectRevertedWith,
-    expectCustomError,
-} = require("../../utils/expectRevert");
-
+const {BN, expectEvent} = require("@openzeppelin/test-helpers");
+const ZERO_ADDRESS = ethers.constants.AddressZero;
 const ERC777SenderRecipientMock = artifacts.require(
     "ERC777SenderRecipientMock"
 );
 
 export function shouldBehaveLikeERC777DirectSendBurn(
-    setupAccounts: any,
+    setupAccounts: () => {holder: string; recipient: string},
     data: string
 ) {
     _shouldBehaveLikeERC777DirectSend(setupAccounts, data);
@@ -25,7 +21,7 @@ export function shouldBehaveLikeERC777DirectSendBurn(
 }
 
 export function shouldBehaveLikeERC777OperatorSendBurn(
-    setupAccounts: any,
+    setupAccounts: () => {holder: string; recipient: string; operator: string},
     data: string,
     operatorData: string,
     isDefaultOperator?: boolean
@@ -45,7 +41,7 @@ export function shouldBehaveLikeERC777OperatorSendBurn(
 }
 
 export function shouldBehaveLikeERC777UnauthorizedOperatorSendBurn(
-    setupAccounts: any,
+    setupAccounts: () => {holder: string; recipient: string; operator: string},
     data: string,
     operatorData: string
 ) {
@@ -61,7 +57,10 @@ export function shouldBehaveLikeERC777UnauthorizedOperatorSendBurn(
     );
 }
 
-function _shouldBehaveLikeERC777DirectSend(setupAccounts: any, data: string) {
+function _shouldBehaveLikeERC777DirectSend(
+    setupAccounts: () => {holder: string; recipient: string},
+    data: string
+) {
     let holder: string, recipient: string;
     let holderSigner: SignerWithAddress;
     let tokenContract: SuperTokenMock;
@@ -150,7 +149,7 @@ function _shouldBehaveLikeERC777DirectSend(setupAccounts: any, data: string) {
 }
 
 function _shouldBehaveLikeERC777OperatorSend(
-    setupAccounts: any,
+    setupAccounts: () => {holder: string; recipient: string; operator: string},
     data: string,
     operatorData: string,
     isDefaultOperator?: boolean
@@ -292,7 +291,7 @@ function _shouldBehaveLikeERC777OperatorSend(
 }
 
 function _shouldBehaveLikeERC777UnauthorizedOperatorSend(
-    setupAccounts: any,
+    setupAccounts: () => {holder: string; recipient: string; operator: string},
     data: string,
     operatorData: string
 ) {
@@ -326,7 +325,10 @@ function _shouldBehaveLikeERC777UnauthorizedOperatorSend(
     });
 }
 
-function _shouldBehaveLikeERC777DirectBurn(setupAccounts: any, data: string) {
+function _shouldBehaveLikeERC777DirectBurn(
+    setupAccounts: () => {holder: string; recipient: string},
+    data: string
+) {
     let holder: string;
 
     before(function () {
@@ -404,7 +406,7 @@ function _shouldBehaveLikeERC777DirectBurn(setupAccounts: any, data: string) {
 }
 
 function _shouldBehaveLikeERC777OperatorBurn(
-    setupAccounts: any,
+    setupAccounts: () => {holder: string; recipient: string; operator: string},
     data: string,
     operatorData: string,
     isDefaultOperator?: boolean
@@ -528,7 +530,7 @@ function _shouldBehaveLikeERC777OperatorBurn(
 }
 
 function _shouldBehaveLikeERC777UnauthorizedOperatorBurn(
-    setupAccounts: any,
+    setupAccounts: () => {holder: string; recipient: string; operator: string},
     data: string,
     operatorData: string
 ) {
@@ -562,7 +564,7 @@ function _shouldBehaveLikeERC777UnauthorizedOperatorBurn(
 }
 
 function _shouldDirectSendTokens(
-    setupAccounts: any,
+    setupAccounts: () => {from: string; to: string},
     amount: string,
     data: string
 ) {
@@ -585,7 +587,7 @@ function _shouldDirectSendTokens(
 }
 
 function _shouldOperatorSendTokens(
-    setupAccounts: any,
+    setupAccounts: () => {from: string; to: string; operator: string},
     amount: string,
     data: string,
     operatorData: string
@@ -609,12 +611,12 @@ function _shouldOperatorSendTokens(
 }
 
 function _shouldSendTokens(
-    setupAccounts: any,
+    setupAccounts: () => {from: string; to: string; operator: string | null},
     amount: string,
     data: string,
     operatorData: string | null
 ) {
-    let from: string, operator: string, to: string;
+    let from: string, operator: string | null, to: string;
     let operatorCall = false;
 
     before(function () {
@@ -678,7 +680,7 @@ function _shouldSendTokens(
 }
 
 function _shouldDirectBurnTokens(
-    setupAccounts: any,
+    setupAccounts: () => {from: string},
     amount: string,
     data: string
 ) {
@@ -700,7 +702,7 @@ function _shouldDirectBurnTokens(
 }
 
 function _shouldOperatorBurnTokens(
-    setupAccounts: any,
+    setupAccounts: () => {from: string; operator: string},
     amount: string,
     data: string,
     operatorData: string
@@ -723,12 +725,12 @@ function _shouldOperatorBurnTokens(
 }
 
 function _shouldBurnTokens(
-    setupAccounts: any,
+    setupAccounts: () => {from: string; operator: string | null},
     amount: string,
     data: string,
     operatorData: string | null
 ) {
-    let from: string, operator: string;
+    let from: string, operator: string | null;
     let operatorCall = false;
 
     before(() => {
@@ -788,7 +790,7 @@ function _shouldBurnTokens(
 }
 
 export function shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook(
-    setupAccounts: any,
+    setupAccounts: () => {sender: string; recipient: string; operator: string},
     amount: string,
     data: string,
     operatorData: string
@@ -945,7 +947,7 @@ export function shouldBehaveLikeERC777SendBurnMintInternalWithReceiveHook(
 }
 
 export function shouldBehaveLikeERC777SendBurnWithSendHook(
-    setupAccounts: any,
+    setupAccounts: () => {sender: string; recipient: string; operator: string},
     amount: string,
     data: string,
     operatorData: string

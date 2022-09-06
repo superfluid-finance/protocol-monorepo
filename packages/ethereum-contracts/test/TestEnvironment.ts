@@ -1,157 +1,84 @@
-import {BigNumber, BigNumberish} from "ethers";
-import {artifacts, assert, ethers, network, web3} from "hardhat";
-import Web3 from "web3";
-import AgreementHelper from "./contracts/agreements/AgreementHelper";
-import {min, toBN, toWad, max} from "./contracts/utils/helpers";
-import _ from "lodash";
 import fs from "fs";
 
 import {createObjectCsvWriter as createCsvWriter} from "csv-writer";
+import {BigNumber} from "ethers";
+import {artifacts, assert, ethers, network, web3} from "hardhat";
+import _ from "lodash";
+import Web3 from "web3";
 
+import {ISuperToken} from "../typechain-types";
+
+import {VerifyOptions} from "./contracts/agreements/Agreement.types";
+import AgreementHelper from "./contracts/agreements/AgreementHelper";
+import CFADataModel from "./contracts/agreements/ConstantFlowAgreementV1.data";
+import {max, min, toBN, toWad} from "./contracts/utils/helpers";
+import {
+    CUSTOM_ERROR_CODE,
+    CustomErrorCodeType,
+    RealtimeBalance,
+    TestEnvironmentConfigs,
+    TestEnvironmentConstants,
+    TestEnvironmentContracts,
+    TestEnvironmentData,
+    TestEnvironmentPlotData,
+} from "./types";
+
+const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const traveler = require("ganache-time-traveler");
 
+const ISuperTokenArtifact = require("../artifacts/contracts/interfaces/superfluid/ISuperToken.sol/ISuperToken.json");
 const deployFramework = require("../scripts/deploy-framework");
-const deployTestToken = require("../scripts/deploy-test-token");
 const deploySuperToken = require("../scripts/deploy-super-token");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const deployTestToken = require("../scripts/deploy-test-token");
 
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 const TestToken = artifacts.require("TestToken");
 
-const ISuperTokenArtifact = require("../artifacts/contracts/interfaces/superfluid/ISuperToken.sol/ISuperToken.json");
-const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
-const CFADataModel = require("./contracts/agreements/ConstantFlowAgreementV1.data");
-
 let _singleton: any;
 
-const DEFAULT_TEST_TRAVEL_TIME = 3600 * 24; // 24 hours
-
-interface RealtimeBalance {
-    availableBalance: BigNumberish;
-    deposit: BigNumberish;
-    owedDeposit: BigNumberish;
-    timestamp: BigNumberish;
-}
+const DEFAULT_TEST_TRAVEL_TIME = toBN(3600 * 24); // 24 hours
 
 /**
  * @dev Test environment for test cases
- *
  */
-const TestEnvironment = class TestEnvironment {
+export default class TestEnvironment {
     agreementHelper: AgreementHelper;
-    data: any;
-    plotData: any;
-    _evmSnapshots: any;
-    customErrorCode: any;
-    configs: any;
-    constants: any;
-    gasReportType: any;
-    contracts: any;
+    data: TestEnvironmentData;
+    plotData: TestEnvironmentPlotData;
+    _evmSnapshots: {id: string; resolverAddress?: string}[];
+    customErrorCode: CustomErrorCodeType;
+    configs: TestEnvironmentConfigs;
+    constants: TestEnvironmentConstants;
+    gasReportType: string | undefined;
+    contracts: TestEnvironmentContracts;
     aliases: {[alias: string]: string};
     accounts: string[];
     sf: any;
 
     constructor() {
-        /**
-         * SCHEMA:
-         *
-         * tokens:
-         *   [superTokenAddress]:
-         *     accounts:
-         *       [accountAddress]:
-         *         balanceSnapshot:
-         *           - availableBalance: BN
-         *           - deposit: BN
-         *           - owedDeposit: BN
-         *           - timestamp: BN
-         *         expectedBalanceDelta # for available balance
-         *         cfa:
-         *           # see ConstantFlowAgreementV1.behaviour.js
-         *         ida:
-         *           # see InstantDistributionAgreementV1.behaviour.js
-         */
-        this.data = {};
-        /**
-         * SCHEMA:
-         *
-         *  enabled: boolean
-         *  observedAccounts: string[]
-         *  tokens:
-         *    [superTokenAddress]:
-         *      accountBalanceSnapshots:
-         *        [accountAddress]: [
-         *          availableBalance: number
-         *          deposit: number
-         *          owedDeposit: number
-         *          timestamp: number
-         *        ]
-         */
-        this.plotData = {};
+        this.data = {
+            moreAliases: {},
+            tokens: {},
+        };
+        this.plotData = {
+            enabled: false,
+            observedAccounts: [],
+            tokens: {},
+        };
         this.aliases = {};
         this.accounts = [];
         this._evmSnapshots = [];
 
         this.agreementHelper = new AgreementHelper(this);
-        this.customErrorCode = {
-            APP_RULE_REGISTRATION_ONLY_IN_CONSTRUCTOR: 1,
-            APP_RULE_NO_REGISTRATION_FOR_EOA: 2,
-            APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK: 10,
-            APP_RULE_NO_CRITICAL_SENDER_ACCOUNT: 11,
-            APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT: 12,
-            APP_RULE_CTX_IS_READONLY: 20,
-            APP_RULE_CTX_IS_NOT_CLEAN: 21,
-            APP_RULE_CTX_IS_MALFORMATED: 22,
-            APP_RULE_COMPOSITE_APP_IS_NOT_WHITELISTED: 30,
-            APP_RULE_COMPOSITE_APP_IS_JAILED: 31,
-            APP_RULE_MAX_APP_LEVEL_REACHED: 40,
+        this.customErrorCode = CUSTOM_ERROR_CODE;
 
-            CFA_FLOW_ALREADY_EXISTS: 1000,
-            CFA_FLOW_DOES_NOT_EXIST: 1001,
-            CFA_INSUFFICIENT_BALANCE: 1100,
-            CFA_ZERO_ADDRESS_SENDER: 1500,
-            CFA_ZERO_ADDRESS_RECEIVER: 1501,
-
-            IDA_INDEX_ALREADY_EXISTS: 2000,
-            IDA_INDEX_DOES_NOT_EXIST: 2001,
-            IDA_SUBSCRIPTION_DOES_NOT_EXIST: 2002,
-            IDA_SUBSCRIPTION_ALREADY_APPROVED: 2003,
-            IDA_SUBSCRIPTION_IS_NOT_APPROVED: 2004,
-            IDA_INSUFFICIENT_BALANCE: 2100,
-            IDA_ZERO_ADDRESS_SUBSCRIBER: 2500,
-
-            HOST_AGREEMENT_ALREADY_REGISTERED: 3000,
-            HOST_AGREEMENT_IS_NOT_REGISTERED: 3001,
-            HOST_SUPER_APP_ALREADY_REGISTERED: 3002,
-            HOST_MUST_BE_CONTRACT: 3200,
-            HOST_ONLY_LISTED_AGREEMENT: 3300,
-
-            SF_GOV_MUST_BE_CONTRACT: 4200,
-
-            SF_TOKEN_AGREEMENT_ALREADY_EXISTS: 5000,
-            SF_TOKEN_AGREEMENT_DOES_NOT_EXIST: 5001,
-            SF_TOKEN_BURN_INSUFFICIENT_BALANCE: 5100,
-            SF_TOKEN_MOVE_INSUFFICIENT_BALANCE: 5101,
-            SF_TOKEN_ONLY_LISTED_AGREEMENT: 5300,
-            SF_TOKEN_ONLY_HOST: 5400,
-
-            SUPER_TOKEN_ONLY_HOST: 6400,
-            SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS: 6500,
-            SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS: 6501,
-            SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS: 6502,
-            SUPER_TOKEN_MINT_TO_ZERO_ADDRESS: 6503,
-            SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS: 6504,
-            SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS: 6505,
-            SUPER_TOKEN_FACTORY_ONLY_HOST: 7400,
-            SUPER_TOKEN_FACTORY_ZERO_ADDRESS: 7500,
-
-            AGREEMENT_BASE_ONLY_HOST: 8400,
-        };
-
+        this.contracts = {} as any;
         this.configs = {
             INIT_BALANCE: toWad(100),
             AUM_DUST_AMOUNT: toBN(0),
-            LIQUIDATION_PERIOD: 3600,
-            PATRICIAN_PERIOD: 900,
+            LIQUIDATION_PERIOD: toBN(3600),
+            PATRICIAN_PERIOD: toBN(900),
             FLOW_RATE1: toWad(1).div(toBN(3600)), // 1 per hour
             MINIMUM_DEPOSIT: CFADataModel.clipDepositNumber(toWad(0.25), false),
         };
@@ -198,7 +125,7 @@ const TestEnvironment = class TestEnvironment {
     }
 
     async pushEvmSnapshot() {
-        let evmSnapshotId = await this._takeEvmSnapshot();
+        const evmSnapshotId = await this._takeEvmSnapshot();
         this._evmSnapshots.push({
             id: evmSnapshotId,
             resolverAddress: process.env.RESOLVER_ADDRESS,
@@ -216,9 +143,14 @@ const TestEnvironment = class TestEnvironment {
     }
 
     async useLastEvmSnapshot() {
-        let oldEvmSnapshotId;
-        ({id: oldEvmSnapshotId, resolverAddress: process.env.RESOLVER_ADDRESS} =
-            this._evmSnapshots.pop());
+        let oldEvmSnapshotId = "";
+        const popped = this._evmSnapshots.pop();
+        if (popped) {
+            ({
+                id: oldEvmSnapshotId,
+                resolverAddress: process.env.RESOLVER_ADDRESS,
+            } = popped);
+        }
         await this._revertToEvmSnapShot(oldEvmSnapshotId);
         // move the time to now
         await traveler.advanceBlockAndSetTime(
@@ -237,10 +169,11 @@ const TestEnvironment = class TestEnvironment {
     }
 
     async timeTravelOnce(time = DEFAULT_TEST_TRAVEL_TIME) {
+        const jsNumTime = time.toNumber();
         const block1 = await web3.eth.getBlock("latest");
         console.log("current block time", block1.timestamp);
-        console.log(`time traveler going to the future +${time}...`);
-        await traveler.advanceTimeAndBlock(time);
+        console.log(`time traveler going to the future +${jsNumTime}...`);
+        await traveler.advanceTimeAndBlock(jsNumTime);
         const block2 = await web3.eth.getBlock("latest");
         console.log("new block time", block2.timestamp);
     }
@@ -293,8 +226,8 @@ const TestEnvironment = class TestEnvironment {
                 require("dotenv").config({
                     path: process.env.TESTENV_SNAPSHOT_VARS,
                 });
-                await this._evmSnapshots.push({
-                    id: process.env.TESTENV_EVM_SNAPSHOT_ID,
+                this._evmSnapshots.push({
+                    id: process.env.TESTENV_EVM_SNAPSHOT_ID || "",
                     resolverAddress: process.env.RESOLVER_ADDRESS,
                 });
                 await this.useLastEvmSnapshot();
@@ -326,7 +259,6 @@ const TestEnvironment = class TestEnvironment {
         const signer = await ethers.getSigner(this.accounts[0]);
 
         // load contracts with testing/mocking interfaces
-        this.contracts = {};
         await Promise.all([
             // load singletons
             (this.contracts.erc1820 = await ethers.getContractAt(
@@ -356,7 +288,7 @@ const TestEnvironment = class TestEnvironment {
                 "ISuperToken",
                 ISuperTokenArtifact.abi,
                 signer
-            )),
+            ) as ISuperToken),
             (this.contracts.resolver = await ethers.getContractAt(
                 "Resolver",
                 this.sf.resolver.address
@@ -373,10 +305,17 @@ const TestEnvironment = class TestEnvironment {
         await this.useLastEvmSnapshot();
 
         // test data can be persisted over a test case here
-        this.data = {};
+        this.data = {
+            moreAliases: {},
+            tokens: {},
+        };
 
         // plot data can be persisted over a test case here
-        this.plotData = {};
+        this.plotData = {
+            enabled: false,
+            observedAccounts: [],
+            tokens: {},
+        };
 
         // reset governance parameters
         await Promise.all([
@@ -496,7 +435,7 @@ const TestEnvironment = class TestEnvironment {
             isTruffle,
             web3,
             accounts,
-        }: {isTruffle: boolean; web3: Web3; accounts: string[]}
+        }: {isTruffle: boolean; web3?: Web3; accounts: string[]}
     ) {
         // load the SDK
         const sf = new SuperfluidSDK.Framework({
@@ -582,12 +521,16 @@ const TestEnvironment = class TestEnvironment {
     }
 
     toAlias(address: string) {
-        return this.listAliases().find(
-            (i) => this.getAddress(i).toLowerCase() === address.toLowerCase()
+        return (
+            this.listAliases().find(
+                (i) =>
+                    this.getAddress(i).toLowerCase() === address.toLowerCase()
+            ) || ""
         );
     }
 
-    getAddress(alias: string) {
+    getAddress(alias?: string) {
+        if (!alias) return "";
         if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         return this.aliases[alias] || this.data.moreAliases[alias];
     }
@@ -850,20 +793,20 @@ const TestEnvironment = class TestEnvironment {
             return [];
         }
         const accountBalanceSnapshots =
-            this.plotData.tokens[superToken].accountBalanceSnapshots;
+            this.plotData.tokens[superToken]?.accountBalanceSnapshots || {};
         return (
             Object.entries(accountBalanceSnapshots)
                 // TODO: filter out unchanged account balance (for now)
                 // maybe we want to monitor deposit, owedDeposit, etc,
                 .filter(
-                    (x: any) =>
-                        !_.every(x[1], (y: any) =>
+                    (x) =>
+                        !_.every(x[1], (y) =>
                             y.availableBalance.eq(x[1][0].availableBalance)
                         )
                 )
                 // map into new easily processable data
-                .map((x: any) =>
-                    x[1].map((y: any) => ({
+                .map((x) =>
+                    x[1].map((y) => ({
                         alias: this.toAlias(x[0]),
                         address: x[0],
                         availableBalance: wad4human(
@@ -964,7 +907,7 @@ const TestEnvironment = class TestEnvironment {
                     address,
                     txBlock.timestamp
                 );
-                balances2[address].timestamp = txBlock.timestamp;
+                balances2[address].timestamp = toBN(txBlock.timestamp);
             })
         );
 
@@ -1017,11 +960,7 @@ const TestEnvironment = class TestEnvironment {
         );
     }
 
-    async validateSystemInvariance(data?: {
-        allowCriticalAccount: boolean;
-        tokenSymbol?: string;
-        description: string;
-    }) {
+    async validateSystemInvariance(data?: VerifyOptions) {
         const tokenSymbol = data?.tokenSymbol || "TEST";
         const testToken = this.sf.tokens[tokenSymbol];
         const superToken = this.sf.tokens[tokenSymbol + "x"];
@@ -1121,6 +1060,4 @@ const TestEnvironment = class TestEnvironment {
 
         console.log("======== validateSystemInvariance ends ========");
     }
-};
-
-export default TestEnvironment;
+}

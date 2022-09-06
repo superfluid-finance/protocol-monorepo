@@ -1,11 +1,12 @@
 import {assert} from "chai";
 import {ethers, expect, web3} from "hardhat";
-import TestEnvironment from "../../TestEnvironment";
-const {expectRevertedWith} = require("../../utils/expectRevert");
+
 import {
     UUPSProxiableMock__factory,
     UUPSProxy__factory,
 } from "../../../typechain-types";
+import TestEnvironment from "../../TestEnvironment";
+import {expectRevertedWith} from "../../utils/expectRevert";
 
 describe("Miscellaneous for test coverages", () => {
     const t = TestEnvironment.getSingleton();

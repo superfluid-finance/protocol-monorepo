@@ -1,14 +1,12 @@
 {
-  description = "The minimum development environment for working with the Superfluid protocol monorepo";
-
-
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flakeUtils.url = "github:numtide/flake-utils";
-    foundry.url = "github:shazow/foundry.nix";
+    foundry.url = "github:shazow/foundry.nix";  
+    echidna.url = "github:crytic/echidna";
   };
 
-  outputs = { self, nixpkgs, flakeUtils, foundry } :
+  outputs = { self, nixpkgs, flakeUtils, foundry, echidna }:
   flakeUtils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs { inherit system; };
@@ -20,6 +18,8 @@
         nodejs-16_x
         # for solidity development
         foundry.defaultPackage.${system}
+        slither-analyzer
+        echidna.defaultPackage.${system}
         # for haskell spec
         haskell.compiler.ghc924
         haskell-language-server

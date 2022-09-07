@@ -5,7 +5,6 @@ export type ErrorType =
     | "SUPERTOKEN_INITIALIZATION"
     | "CREATE_SIGNER"
     | "SUPERTOKEN_READ"
-    | "SUBGRAPH_ERROR"
     | "CFAV1_READ"
     | "IDAV1_READ"
     | "INVALID_ADDRESS"
@@ -22,7 +21,6 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["SUPERTOKEN_INITIALIZATION", "SuperToken Initialization"],
     ["CREATE_SIGNER", "Create Signer"],
     ["SUPERTOKEN_READ", "SuperToken Read"],
-    ["SUBGRAPH_ERROR", "Subgraph"],
     ["CFAV1_READ", "ConstantFlowAgreementV1 Read"],
     ["IDAV1_READ", "InstantDistributionAgreementV1 Read"],
     ["INVALID_ADDRESS", "Invalid Address"],

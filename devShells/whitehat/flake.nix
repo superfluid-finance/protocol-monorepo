@@ -20,9 +20,6 @@
         foundry.defaultPackage.${system}
         slither-analyzer
         echidna.defaultPackage.${system}
-        # for haskell spec
-        haskell.compiler.ghc924
-        haskell-language-server
       ];
     };
   });

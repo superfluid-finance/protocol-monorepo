@@ -38,10 +38,11 @@ describe("Subgraph Tests", () => {
             await testListenerInitialization(query);
         });
 
-        it("Should have the correct subgraph endpoints", async () => {
+        it.only("Should have the correct subgraph endpoints", async () => {
             const resolverDataArray = Array.from(
                 chainIdToResolverDataMap.values()
             );
+            console.log(resolverDataArray);
             await Promise.all(
                 resolverDataArray.map(async (x) => {
                     // @note this handles arbitrum-goerli not being ready
@@ -54,13 +55,16 @@ describe("Subgraph Tests", () => {
                                     x.networkName === "polygon-mainnet")) ||
                             process.env.SUBGRAPH_RELEASE_ENDPOINT !== "feature"
                         ) {
+                            const query = new Query({
+                                customSubgraphQueriesEndpoint:
+                                    x.subgraphAPIEndpoint,
+                            });
+                            const event = await query.listEvents(
+                                {},
+                                { take: 1 }
+                            );
+                            expect(event.data.length).to.be.greaterThan(0);
                         }
-                        const query = new Query({
-                            customSubgraphQueriesEndpoint:
-                                x.subgraphAPIEndpoint,
-                        });
-                        const event = await query.listEvents({}, { take: 1 });
-                        expect(event.data.length).to.be.greaterThan(0);
                     }
                 })
             );

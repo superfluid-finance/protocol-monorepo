@@ -1,9 +1,6 @@
 import { TypedDocumentNode } from "@graphql-typed-document-node/core";
-import { DocumentNode, print } from "graphql";
+import { DocumentNode } from "graphql";
 import { request } from "graphql-request";
-import { isString } from "lodash";
-
-import { SFError } from "../SFError";
 
 type RequestDocument = string | DocumentNode;
 
@@ -23,23 +20,11 @@ export class SubgraphClient {
         document: RequestDocument | TypedDocumentNode<T, V>,
         variables?: V
     ): Promise<T> {
-        try {
-            return await request<T, V>(
-                this.subgraphUrl,
-                document,
-                cleanVariables(variables)
-            );
-        } catch (err) {
-            const queryString: string = isString(document)
-                ? document
-                : print(document);
-            throw new SFError({
-                type: "SUBGRAPH_ERROR",
-                message: `Failed call to subgraph with: 
-${queryString}`,
-                cause: err,
-            });
-        }
+        return await request<T, V>(
+            this.subgraphUrl,
+            document,
+            cleanVariables(variables)
+        );
     }
 }
 

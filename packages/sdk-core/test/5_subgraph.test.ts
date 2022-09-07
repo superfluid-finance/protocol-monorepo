@@ -38,22 +38,20 @@ describe("Subgraph Tests", () => {
             await testListenerInitialization(query);
         });
 
-        it.only("Should have the correct subgraph endpoints", async () => {
+        it("Should have the correct subgraph endpoints", async () => {
             const resolverDataArray = Array.from(
                 chainIdToResolverDataMap.values()
             );
-            console.log(resolverDataArray);
             await Promise.all(
                 resolverDataArray.map(async (x) => {
                     // @note this handles arbitrum-goerli not being ready
                     if (!x.subgraphAPIEndpoint.includes("arbitrum-goerli")) {
                         if (
                             // @note this handles feature endpoint only having goerli/matic endpoints
-                            (process.env.SUBGRAPH_RELEASE_ENDPOINT ===
-                                "feature" &&
+                            (process.env.SUBGRAPH_RELEASE_TAG === "feature" &&
                                 (x.networkName === "eth-goerli" ||
                                     x.networkName === "polygon-mainnet")) ||
-                            process.env.SUBGRAPH_RELEASE_ENDPOINT !== "feature"
+                            process.env.SUBGRAPH_RELEASE_TAG !== "feature"
                         ) {
                             const query = new Query({
                                 customSubgraphQueriesEndpoint:

@@ -225,7 +225,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
 [Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.6...HEAD
-[0.5.6]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.4...sdk-core%40v0.5.6
+[0.5.6]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.5...sdk-core%40v0.5.6
 [0.5.5]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.4...sdk-core%40v0.5.5
 [0.5.4]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.3...sdk-core%40v0.5.4
 [0.5.3]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.2...sdk-core%40v0.5.3

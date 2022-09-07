@@ -46,13 +46,14 @@ describe("Subgraph Tests", () => {
                 resolverDataArray.map(async (x) => {
                     // @note this handles arbitrum-goerli not being ready
                     if (!x.subgraphAPIEndpoint.includes("arbitrum-goerli")) {
-                        if (
-                            // @note this handles feature endpoint only having goerli/matic endpoints
-                            (process.env.SUBGRAPH_RELEASE_TAG === "feature" &&
-                                (x.networkName === "eth-goerli" ||
-                                    x.networkName === "polygon-mainnet")) ||
-                            process.env.SUBGRAPH_RELEASE_TAG !== "feature"
-                        ) {
+                        const isValidFeatureEndpoint =
+                            process.env.SUBGRAPH_RELEASE_TAG === "feature" &&
+                            (x.networkName === "eth-goerli" ||
+                                x.networkName === "polygon-mainnet");
+                        const isNotFeatureEndpoint =
+                            process.env.SUBGRAPH_RELEASE_TAG !== "feature";
+                        // @note this handles feature endpoint only having goerli/matic endpoints
+                        if (isValidFeatureEndpoint || isNotFeatureEndpoint) {
                             const query = new Query({
                                 customSubgraphQueriesEndpoint:
                                     x.subgraphAPIEndpoint,

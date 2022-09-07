@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Breaking
+- Don't wrap `SubgraphClient` with `SFError`
+
 ## [0.5.5] - 2022-08-31
 ### Added
 - Support for: `optimism-goerli` and `arbitrum-goerli` added

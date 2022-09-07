@@ -5,5 +5,5 @@ import "../test/contracts/superfluid/SuperToken.ERC777.test";
 import "../test/contracts/superfluid/SuperToken.NonStandard.test";
 import "../test/contracts/superfluid/SuperTokenFactory.test";
 
-import "../test/contracts/agreements/ConstantFlowAgreementV1.test";
-import "../test/contracts/agreements/InstantDistributionAgreementV1.test";
+import "./cfav1-tests";
+import "./idav1-tests";

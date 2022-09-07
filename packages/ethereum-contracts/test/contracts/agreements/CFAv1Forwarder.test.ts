@@ -5,7 +5,7 @@ import {assert, ethers} from "hardhat";
 import {
     CFAv1Forwarder,
     ConstantFlowAgreementV1,
-    Superfluid,
+    SuperfluidMock,
     SuperTokenMock,
     TestGovernance,
 } from "../../../typechain-types";
@@ -21,7 +21,7 @@ describe("Agreement Forwarder", function () {
     const t = TestEnvironment.getSingleton();
     const {ZERO_ADDRESS} = t.constants;
     let superToken: SuperTokenMock,
-        host: Superfluid,
+        host: SuperfluidMock,
         cfa: ConstantFlowAgreementV1,
         governance: TestGovernance,
         cfaFwd: CFAv1Forwarder;

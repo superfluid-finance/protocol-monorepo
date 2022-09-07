@@ -28,11 +28,9 @@ export const AUTHORIZE_FULL_CONTROL =
     AUTHORIZE_FLOW_OPERATOR_UPDATE |
     AUTHORIZE_FLOW_OPERATOR_DELETE;
 
-const envReleaseTag =
-    globalThis.process && globalThis.process.env.SUBGRAPH_RELEASE_TAG;
-const subgraphReleaseTag = envReleaseTag || DefaultSubgraphReleaseTag.value;
-
-const baseUrl = `https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-${subgraphReleaseTag}`;
+const subgraphReleaseTag =
+    (globalThis.process && globalThis.process.env.SUBGRAPH_RELEASE_TAG) ||
+    DefaultSubgraphReleaseTag.value;
 
 const getResolverData = (chainId: number): IResolverData => {
     const networkData = metadata.networks.find((x) => x.chainId === chainId);
@@ -43,10 +41,12 @@ const getResolverData = (chainId: number): IResolverData => {
             resolverAddress: "",
             nativeTokenSymbol: "",
         };
+    const hostedEndpoint = networkData.subgraphV1.hostedEndpoint;
+    const subgraphAPIEndpoint = subgraphReleaseTag
+        ? hostedEndpoint.replace("v1", subgraphReleaseTag)
+        : hostedEndpoint;
     return {
-        subgraphAPIEndpoint: envReleaseTag
-            ? `${baseUrl}-${networkData?.name}`
-            : networkData.subgraphV1.hostedEndpoint,
+        subgraphAPIEndpoint,
         networkName: networkData.name,
         resolverAddress: networkData.contractsV1.resolver,
         nativeTokenSymbol: networkData.nativeTokenSymbol,

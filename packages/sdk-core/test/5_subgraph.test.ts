@@ -1,4 +1,4 @@
-import { Query } from "../src";
+import { chainIdToResolverDataMap, Query } from "../src";
 import {
     getChainId,
     testExpectListenerThrow,
@@ -7,6 +7,7 @@ import {
     testQueryClassFunctions,
 } from "../previous-versions-testing/queryTests";
 import { getSubgraphEndpoint } from "../previous-versions-testing/runQueryTests";
+import { expect } from "chai";
 
 describe("Subgraph Tests", () => {
     let query: Query;
@@ -36,5 +37,16 @@ describe("Subgraph Tests", () => {
         it("Should be able to use the listener", async () => {
             await testListenerInitialization(query);
         });
+
+        it("Should have the correct subgraph endpoints", async () => {
+            const resolverDataArray = Array.from(chainIdToResolverDataMap.values());
+            await Promise.all(resolverDataArray.map(async x => {
+                if (!x.subgraphAPIEndpoint.includes("arbitrum-goerli")) {
+                    const query = new Query({ customSubgraphQueriesEndpoint:  x.subgraphAPIEndpoint});
+                    const event = await query.listEvents({}, {take: 1 });
+                    expect(event.data.length).to.be.greaterThan(0);
+                }
+            }))
+        })
     });
 });

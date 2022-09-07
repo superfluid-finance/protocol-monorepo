@@ -39,14 +39,31 @@ describe("Subgraph Tests", () => {
         });
 
         it("Should have the correct subgraph endpoints", async () => {
-            const resolverDataArray = Array.from(chainIdToResolverDataMap.values());
-            await Promise.all(resolverDataArray.map(async x => {
-                if (!x.subgraphAPIEndpoint.includes("arbitrum-goerli")) {
-                    const query = new Query({ customSubgraphQueriesEndpoint:  x.subgraphAPIEndpoint});
-                    const event = await query.listEvents({}, {take: 1 });
-                    expect(event.data.length).to.be.greaterThan(0);
-                }
-            }))
-        })
+            const resolverDataArray = Array.from(
+                chainIdToResolverDataMap.values()
+            );
+            await Promise.all(
+                resolverDataArray.map(async (x) => {
+                    // @note this handles arbitrum-goerli not being ready
+                    if (!x.subgraphAPIEndpoint.includes("arbitrum-goerli")) {
+                        if (
+                            // @note this handles feature endpoint only having goerli/matic endpoints
+                            (process.env.SUBGRAPH_RELEASE_ENDPOINT ===
+                                "feature" &&
+                                (x.networkName === "eth-goerli" ||
+                                    x.networkName === "polygon-mainnet")) ||
+                            process.env.SUBGRAPH_RELEASE_ENDPOINT !== "feature"
+                        ) {
+                        }
+                        const query = new Query({
+                            customSubgraphQueriesEndpoint:
+                                x.subgraphAPIEndpoint,
+                        });
+                        const event = await query.listEvents({}, { take: 1 });
+                        expect(event.data.length).to.be.greaterThan(0);
+                    }
+                })
+            );
+        });
     });
 });

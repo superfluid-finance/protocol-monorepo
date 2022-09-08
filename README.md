@@ -50,6 +50,7 @@ For technical document, references and tutorials, etc, refer to the
 ## Packages
 
 #### [`@superfluid-finance/ethereum-contracts`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts)
+
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
@@ -65,34 +66,6 @@ For technical document, references and tutorials, etc, refer to the
 EVM contracts implementation for the Superfluid Protocol.
 
 If you're interest in peeking under the hood, then check out the contracts package.
-
-#### [`@superfluid-finance/subgraph`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph)
-
-<p>
-  <a href="#" target="_blank">
-    <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />
-  </a>
-</p>
-
-Official subgraph for the Superfluid Protocol.
-
-#### [`@superfluid-finance/js-sdk`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk)
-
-<p>
-  <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
-    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk.svg">
-  </a>
-  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk">
-    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=js-sdk"/>
-  </a>
-  <a href="#" target="_blank">
-    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
-  </a>
-</p>
-
-:warning: This repo is deprecated, use sdk-core instead :warning:
-
-Javascript SDK for building with Superfluid Protocol.
 
 #### [`@superfluid-finance/sdk-core`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core)
 
@@ -134,7 +107,38 @@ SDK-Redux is an application framework for building front-end applications that i
 Hot-fuzz is a wrapper of [Echidna](https://github.com/crytic/echidna/) with additional helper for fuzzing
 your Superfluid smart contracts applications, including [Super Apps](https://docs.superfluid.finance/superfluid/protocol-developers/super-apps).
 
+#### [`@superfluid-finance/subgraph`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph)
+
+<p>
+  <a href="#" target="_blank">
+    <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />
+  </a>
+</p>
+
+Official subgraph for the Superfluid Protocol.
+
+#### [`@superfluid-finance/js-sdk`](https://github.com/superfluid-finance/protocol-monorepo/tree/release-js-sdk-stable/packages/js-sdk)
+
+<p>
+  <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
+    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk.svg">
+  </a>
+  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk">
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=js-sdk"/>
+  </a>
+  <a href="#" target="_blank">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+  </a>
+</p>
+
+:warning: This repo is fully deprecated, use sdk-core instead :warning:
+
+You can get the last release of js-sdk at the branch [here](https://github.com/superfluid-finance/protocol-monorepo/tree/release-js-sdk-stable/packages/js-sdk).
+
+Javascript SDK for building with Superfluid Protocol.
+
 ## Bug Bounty
+
 Click [here](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts/bug-bounty.md) for more information regarding our Bug Bounty.
 
 ## Examples

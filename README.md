@@ -116,7 +116,7 @@ your Superfluid smart contracts applications, including [Super Apps](https://doc
 
 Official subgraph for the Superfluid Protocol.
 
-#### [`@superfluid-finance/js-sdk`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk)
+#### [`@superfluid-finance/js-sdk`](https://github.com/superfluid-finance/protocol-monorepo/tree/release-js-sdk-stable/packages/js-sdk)
 
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
@@ -132,7 +132,7 @@ Official subgraph for the Superfluid Protocol.
 
 :warning: This repo is fully deprecated, use sdk-core instead :warning:
 
-You can get the last release of js-sdk at the branch [here](https://github.com/superfluid-finance/protocol-monorepo/tree/release-js-sdk-stable).
+You can get the last release of js-sdk at the branch [here](https://github.com/superfluid-finance/protocol-monorepo/tree/release-js-sdk-stable/packages/js-sdk).
 
 Javascript SDK for building with Superfluid Protocol.
 

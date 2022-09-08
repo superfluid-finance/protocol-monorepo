@@ -50,7 +50,7 @@
         "eslint-plugin-import": "^2.26.0",
         "eslint-plugin-prettier": "^4.2.1",
         "ethers": "^5.7.0",
-        "hardhat": "^2.9.9",
+        "hardhat": "^2.11.0",
         "husky": "^8.0.1",
         "lerna": "^5.4.3",
         "node-jq": "^2.3.3",

@@ -27,7 +27,7 @@ To use them:
 
 - `nix develop path:flakes/minimum` or `npm run shell`
 - `nix develop path:flakes/whitehat` or `npm run shell:whitehat`
-- ` nix develop path:flakes/spec` or `npm run shell:spec`
+- `nix develop path:flakes/spec` or `npm run shell:spec`
 
 ### Installing Dependencies
 

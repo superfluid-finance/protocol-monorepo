@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import {
     ISuperfluid,
@@ -597,7 +597,7 @@ contract SuperAppMock2ndLevel {
 }
 
 // An Super App that uses registerAppWithKey
-contract SuperAppMockWithRegistrationkey {
+contract SuperAppMockWithRegistrationKey {
     constructor(ISuperfluid host, uint256 configWord, string memory registrationKey) {
         host.registerAppWithKey(configWord, registrationKey);
     }

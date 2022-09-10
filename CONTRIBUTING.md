@@ -6,6 +6,29 @@ Before interacting with the Superfluid community, please read and understand our
 
 ## Local Development
 
+### Setup Tooling
+
+At minimum, you will need to have these available in your development environment:
+
+- yarn, sufficiently recent version, the actual yarn version is locked in yarnc.
+- nodejs 16.x.
+
+**More Options Using Nix**
+
+You may also use [nix package manager](https://nixos.org/download.html) to get a reproducible, declarative and reliable development environment.
+
+Development shells options are available under `devShells` folder ([nix flakes](https://nixos.wiki/wiki/Flakes) required):
+
+- minimum, minimum development environment for building monorepo.
+- whitehat, additional ethereum development toolings including slither, echidna, etc.
+- spec, for developing of Superfluid haskell spec.
+
+To use them:
+
+- `nix develop path:flakes/minimum` or `npm run shell`
+- `nix develop path:flakes/whitehat` or `npm run shell:whitehat`
+- `nix develop path:flakes/spec` or `npm run shell:spec`
+
 ### Installing Dependencies
 
 Before you do anything, you should run `yarn install && yarn build` in the root directory of your local-copy of the protocol-monorepo to install and build the necessary dependencies.
@@ -19,7 +42,7 @@ You'll also want to upgrade your Superfluid App to the canary, so you have the m
 
 ```bash
 cd superfluid-app # wherever your superfluid-app happens to be
-yarn upgrade @superfluid-finance/ethereum-contracts@dev @superfluid-finance/js-sdk@dev
+yarn upgrade @superfluid-finance/ethereum-contracts@dev @superfluid-finance/sdk-core@dev
 ```
 
 ### Copy and Watch

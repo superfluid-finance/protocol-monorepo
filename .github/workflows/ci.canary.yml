@@ -108,33 +108,6 @@ jobs:
           path: |
             packages/ethereum-contracts/coverage/
 
-  js-sdk-coverage:
-    name: Run coverage test of js-sdk on dev branch
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: "yarn"
-
-      - name: Run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-          yarn workspace @superfluid-finance/js-sdk test-coverage
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: js-sdk-coverage
-          path: |
-            packages/js-sdk/coverage/
-
   sdk-core-coverage:
     name: Run coverage test of sdk-core on dev branch
 
@@ -165,36 +138,9 @@ jobs:
           path: |
             packages/sdk-core/coverage/
 
-  hardhat-deployer-coverage:
-    name: Run coverage test of hardhat-deployer on dev branch
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: "yarn"
-
-      - name: Run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-          yarn workspace @superfluid-finance/hardhat-deployer test-coverage
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: hardhat-deployer-coverage
-          path: |
-            packages/hardhat-deployer/coverage/
-
   publish-coverage-reports:
     name: Publish coverage reports
-    needs: [ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage, hardhat-deployer-coverage]
+    needs: [ethereum-contracts-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
     env:
@@ -216,19 +162,6 @@ jobs:
           flags: ethereum-contracts
           fail_ci_if_error: true
 
-      - name: Download js-sdk-coverage
-        uses: actions/download-artifact@v3
-        with:
-          name: js-sdk-coverage
-          path: packages/js-sdk/coverage
-      - name: Upload js-sdk-coverage to codecov
-        uses: codecov/codecov-action@v2
-        with:
-          files: packages/js-sdk/coverage/lcov.info
-          name: js-sdk-coverage
-          flags: js-sdk
-          fail_ci_if_error: true
-
       - name: Download sdk-core-coverage
         uses: actions/download-artifact@v3
         with:
@@ -242,23 +175,10 @@ jobs:
           flags: sdk-core
           fail_ci_if_error: true
 
-      - name: Download hardhat-deployer-coverage
-        uses: actions/download-artifact@v3
-        with:
-          name: hardhat-deployer-coverage
-          path: packages/hardhat-deployer/coverage
-      - name: Upload hardhat-deployer-coverage to codecov
-        uses: codecov/codecov-action@v2
-        with:
-          files: packages/hardhat-deployer/coverage/lcov.info
-          name: hardhat-deployer-coverage
-          flags: hardhat-deployer
-          fail_ci_if_error: true
-
   publish-npm-packages:
     name: Publish canary packages to registries
 
-    needs: [essential-build-and-test, test-subgraph, test-spec-haskell, ethereum-contracts-coverage, js-sdk-coverage, sdk-core-coverage, hardhat-deployer-coverage]
+    needs: [essential-build-and-test, test-subgraph, test-spec-haskell, ethereum-contracts-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
 
@@ -297,7 +217,6 @@ jobs:
       - name: Publish to npm
         run: |
           tasks/npm-publish.sh packages/ethereum-contracts/ dev --verbose
-          tasks/npm-publish.sh packages/js-sdk/ dev --verbose
           tasks/npm-publish.sh packages/sdk-core/ dev --verbose
           tasks/npm-publish.sh packages/sdk-redux/ dev --verbose
         env:

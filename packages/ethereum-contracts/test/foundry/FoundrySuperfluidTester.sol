@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import "forge-std/Test.sol";
 
@@ -39,7 +39,7 @@ contract FoundrySuperfluidTester is Test {
     ERC20PresetMinterPauser internal token;
     SuperToken internal superToken;
 
-    uint256 private _expectedTotalSupply = 0;
+    uint256 private _expectedTotalSupply;
 
     constructor (uint8 nTesters) {
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");

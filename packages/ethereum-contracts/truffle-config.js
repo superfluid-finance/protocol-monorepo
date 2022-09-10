@@ -284,7 +284,7 @@ const E = (module.exports = {
 
         "arbitrum-rinkeby": {
             ...createNetworkDefaultConfiguration("arbitrum-rinkeby"),
-            network_id: 42162,
+            network_id: 421611,
             gas: 250e6, // arbgas is different and estimation fails for expensive txs
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -387,7 +387,7 @@ const E = (module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.8.14", // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.8.16", // Fetch exact version from solc-bin (default: truffle's version)
             settings: {
                 // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {
@@ -406,6 +406,7 @@ const E = (module.exports = {
         optimistic_etherscan: process.env.OPTIMISTIC_API_KEY,
         bscscan: process.env.BSCSCAN_API_KEY,
         arbiscan: process.env.ARBISCAN_API_KEY,
+        gnosisscan: process.env.GNOSISSCAN_API_KEY,
     },
 });
 

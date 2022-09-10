@@ -22,13 +22,7 @@
         haskellPackages.lhs2tex
         python39Packages.pygments
         (texlive.combine {
-          inherit (texlive) scheme-basic
-          collection-latex
-          collection-latexextra
-          collection-bibtexextra;
-          #  fvextra etoolbox fancyvrb upquote lineno
-          #  csquotes xcolor minted catchfile xstring
-          #  framed;
+          inherit (texlive) scheme-basic collection-latex collection-latexextra collection-bibtexextra;
         })
       ];
     };

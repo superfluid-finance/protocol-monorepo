@@ -22,7 +22,8 @@
         haskellPackages.lhs2tex
         python39Packages.pygments
         (texlive.combine {
-          inherit (texlive) scheme-basic collection-latex collection-latexextra collection-bibtexextra;
+          inherit (texlive)
+          scheme-basic collection-latex collection-latexextra collection-bibtexextra;
         })
       ];
     };

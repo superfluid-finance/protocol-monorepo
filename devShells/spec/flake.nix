@@ -18,6 +18,8 @@
         # for haskell spec
         haskell.compiler.ghc924
         haskell-language-server
+        # sage math
+        sage
         # yellow-paper pipeline
         haskellPackages.lhs2tex
         python39Packages.pygments

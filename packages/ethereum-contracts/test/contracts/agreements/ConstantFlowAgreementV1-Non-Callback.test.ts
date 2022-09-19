@@ -1391,7 +1391,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
 
         it("#1.4.17 Patrician period updates when user is not solvent", async () => {
             shouldCreateSolventLiquidationTest({
-                titlePrefix: "#1.4.10",
+                titlePrefix: "#1.4.17",
                 sender,
                 receiver,
                 by: agent,
@@ -1413,6 +1413,52 @@ describe("CFAv1 | Non-Callback Tests", function () {
             );
 
             assert.isFalse(period[0]);
+        });
+
+        it("#1.4.18 isPatricianPeriod should handle case when user deposit is 0 (no flow)", async () => {
+            // @note comment out the `if (signedTotalCFADeposit == 0)` check in
+            // _isPatricianPeriod to see this revert.
+
+            // set Alice as the reward address
+            await governance.setRewardAddress(
+                superfluid.address,
+                ZERO_ADDRESS,
+                t.aliases[sender]
+            );
+
+            // create a flow from sender -> receiver
+            shouldCreateSolventLiquidationTest({
+                titlePrefix: "#1.4.18",
+                sender,
+                receiver,
+                by: agent,
+                seconds: t.configs.PATRICIAN_PERIOD.add(toBN(1)),
+            });
+
+            // drain account
+            await t.timeTravelOnce(t.configs.INIT_BALANCE.div(FLOW_RATE1));
+
+            // liquidate flow (receiver)
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_DELETE,
+                superToken: superToken.address,
+                sender: t.aliases[sender],
+                receiver: t.aliases[receiver],
+                signer: await ethers.getSigner(t.aliases[receiver]),
+            });
+
+            // user balance is less than 0 to skip the first check
+            const balance = await superToken.realtimeBalanceOfNow(
+                t.aliases[sender]
+            );
+            expect(balance.availableBalance).to.be.lessThan(toBN(0));
+
+            // expect the patrician period to be false (new logic)
+            const period = await cfa.isPatricianPeriodNow(
+                superToken.address,
+                t.aliases[sender]
+            );
+            expect(period.isCurrentlyPatricianPeriod).to.be.false;
         });
     });
 

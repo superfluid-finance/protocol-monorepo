@@ -2118,13 +2118,17 @@ describe("Superfluid Host Contract", function () {
 
         describe("#10 batchCall", () => {
             it("#10.1 batchCall upgrade/approve/transfer/downgrade in one", async () => {
-                const superToken = t.sf.tokens.TESTx;
+                const superToken = t.tokens.SuperToken;
+
+                const aliceSigner = await ethers.getSigner(alice);
 
                 console.log("Alice upgrades 10 tokens");
-                await superToken.upgrade(toWad("10"), {from: alice});
+                await superToken.connect(aliceSigner).upgrade(toWad("10"));
 
                 console.log("SuperToken.approve - from alice to admin");
-                await superToken.approve(admin, toWad("3"), {from: alice});
+                await superToken
+                    .connect(aliceSigner)
+                    .approve(admin, toWad("3"));
                 assert.equal(
                     (await superToken.allowance(alice, admin)).toString(),
                     toWad("3").toString()
@@ -2372,7 +2376,7 @@ describe("Superfluid Host Contract", function () {
                         from: admin,
                     }
                 );
-                const superToken = t.sf.tokens.TESTx;
+                const superToken = t.tokens.SuperToken;
                 await t.upgradeBalance("alice", toWad(1));
                 await forwarder.execute({
                     from: alice, // mocked transaction signer

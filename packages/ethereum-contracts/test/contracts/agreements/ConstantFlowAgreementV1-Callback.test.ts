@@ -1,5 +1,5 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {assert, ethers} from "hardhat";
+import {assert, ethers, expect} from "hardhat";
 
 import {
     ConstantFlowAgreementV1,
@@ -45,12 +45,8 @@ describe("CFAv1 | Callback Tests", function () {
         ({alice, bob} = t.aliases);
 
         ({superfluid, cfa} = t.contracts);
-        superToken = t.sf.tokens.TESTx;
+        superToken = t.tokens.SuperToken;
         agreementHelper = t.agreementHelper;
-    });
-
-    after(async () => {
-        await t.report({title: "CFAv1.Callback.test"});
     });
 
     beforeEach(async () => {
@@ -178,16 +174,9 @@ describe("CFAv1 | Callback Tests", function () {
             alice,
             FLOW_RATE1.toString()
         );
-        assert.equal(
-            (
-                await t.sf.cfa.getFlow({
-                    superToken: superToken.address,
-                    sender: app.address,
-                    receiver: alice,
-                })
-            ).flowRate,
-            FLOW_RATE1.toString()
-        );
+        expect(
+            (await cfa.getFlow(superToken.address, app.address, alice)).flowRate
+        ).to.equal(FLOW_RATE1.toString());
         await expectNetFlow({
             testenv: t,
             superToken,
@@ -210,16 +199,9 @@ describe("CFAv1 | Callback Tests", function () {
             receiver: alice,
             signer: await ethers.getSigner(alice),
         });
-        assert.equal(
-            (
-                await t.sf.cfa.getFlow({
-                    superToken: superToken.address,
-                    sender: app.address,
-                    receiver: alice,
-                })
-            ).flowRate,
-            FLOW_RATE1.toString()
-        );
+        expect(
+            (await cfa.getFlow(superToken.address, app.address, alice)).flowRate
+        ).to.equal(FLOW_RATE1.toString());
         await expectNetFlow({
             testenv: t,
             superToken,
@@ -255,16 +237,9 @@ describe("CFAv1 | Callback Tests", function () {
             receiver: app.address,
             flowRate: FLOW_RATE1,
         });
-        assert.equal(
-            (
-                await t.sf.cfa.getFlow({
-                    superToken: superToken.address,
-                    sender: alice,
-                    receiver: app.address,
-                })
-            ).flowRate,
-            "0"
-        );
+        expect(
+            (await cfa.getFlow(superToken.address, alice, app.address)).flowRate
+        ).to.equal("0");
         await expectNetFlow({
             testenv: t,
             superToken,
@@ -327,16 +302,9 @@ describe("CFAv1 | Callback Tests", function () {
             receiver: app.address,
             flowRate: FLOW_RATE1.mul(2),
         });
-        assert.equal(
-            (
-                await t.sf.cfa.getFlow({
-                    superToken: superToken.address,
-                    sender: alice,
-                    receiver: app.address,
-                })
-            ).flowRate,
-            "0"
-        );
+        expect(
+            (await cfa.getFlow(superToken.address, alice, app.address)).flowRate
+        ).to.equal("0");
         await expectNetFlow({
             testenv: t,
             superToken,
@@ -384,9 +352,9 @@ describe("CFAv1 | Callback Tests", function () {
         );
 
         // fund the app with
-        await superToken2.transfer(app.address, t.configs.INIT_BALANCE, {
-            from: alice,
-        });
+        await superToken2
+            .connect(await ethers.getSigner(alice))
+            .transfer(app.address, t.configs.INIT_BALANCE);
 
         console.log("alice -> app");
         await agreementHelper.modifyFlow({
@@ -399,9 +367,8 @@ describe("CFAv1 | Callback Tests", function () {
         let flow1, flow2;
         flow1 = await cfa.getFlow(superToken.address, alice, app.address);
         flow2 = await cfa.getFlow(superToken2.address, app.address, alice);
-        const deposit = CFADataModel.clipDepositNumber(
-            FLOW_RATE1.mul(LIQUIDATION_PERIOD)
-        ).toString();
+        const cfaDataModel = new CFADataModel(t, superToken);
+        const deposit = cfaDataModel.getDeposit(FLOW_RATE1, LIQUIDATION_PERIOD);
         console.log(
             "Flow: alice -> app (token1)",
             flow1.flowRate.toString(),
@@ -409,7 +376,7 @@ describe("CFAv1 | Callback Tests", function () {
             flow1.owedDeposit.toString()
         );
         assert.equal(flow1.flowRate.toString(), FLOW_RATE1.toString());
-        assert.equal(flow1.deposit.toString(), deposit);
+        assert.equal(flow1.deposit.toString(), deposit.toString());
         assert.equal(flow1.owedDeposit.toString(), "0");
         console.log(
             "Flow: app -> alice (token2)",
@@ -418,7 +385,7 @@ describe("CFAv1 | Callback Tests", function () {
             flow2.owedDeposit.toString()
         );
         assert.equal(flow2.flowRate.toString(), FLOW_RATE1.toString());
-        assert.equal(flow2.deposit.toString(), deposit);
+        assert.equal(flow2.deposit.toString(), deposit.toString());
         assert.equal(flow2.owedDeposit.toString(), "0");
         console.log(
             "App balances",
@@ -453,7 +420,7 @@ describe("CFAv1 | Callback Tests", function () {
             flow2.owedDeposit.toString()
         );
         assert.equal(flow2.flowRate.toString(), FLOW_RATE1.toString());
-        assert.equal(flow2.deposit.toString(), deposit);
+        assert.equal(flow2.deposit.toString(), deposit.toString());
         assert.equal(flow2.owedDeposit.toString(), "0");
         console.log(
             "App balances",
@@ -590,11 +557,11 @@ describe("CFAv1 | Callback Tests", function () {
             });
 
             // State: Alice -> Redirector -> Bob
-
-            await t.sf.cfa.deleteFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_DELETE,
                 superToken: superToken.address,
-                sender: t.getAddress("alice"),
-                receiver: t.getAddress("redirector"),
+                sender: alice,
+                receiver: app.address,
             });
 
             // Validate net flows
@@ -719,10 +686,11 @@ describe("CFAv1 | Callback Tests", function () {
 
             // State: Alice -> Redirector -> Alice
 
-            await t.sf.cfa.deleteFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_DELETE,
                 superToken: superToken.address,
-                sender: t.getAddress("alice"),
-                receiver: t.getAddress("redirector"),
+                sender: alice,
+                receiver: app.address,
             });
 
             // Validate net flows
@@ -900,11 +868,12 @@ describe("CFAv1 | Callback Tests", function () {
             });
 
             // State: RedirectorB -> RedirectorA -> Alice
-            await t.sf.cfa.deleteFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_DELETE,
                 superToken: superToken.address,
-                sender: t.getAddress("redirectorA"),
-                receiver: t.getAddress("alice"),
-                by: t.getAddress("alice"),
+                sender: redirectorA.address,
+                receiver: alice,
+                signer: await ethers.getSigner(alice),
             });
 
             // Validate net flows

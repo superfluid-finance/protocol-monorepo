@@ -75,7 +75,7 @@ describe("IDAv1Library testing", function () {
         ({alice, bob} = t.aliases);
         superToken = await ethers.getContractAt(
             "SuperTokenMock",
-            t.sf.tokens.TESTx.address
+            t.tokens.SuperToken.address
         );
 
         await superToken.mintInternal(

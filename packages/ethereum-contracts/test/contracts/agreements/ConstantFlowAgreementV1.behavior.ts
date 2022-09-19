@@ -73,7 +73,7 @@ export async function _shouldChangeFlow({
         assert.isDefined(by);
         const agentAddress = testenv.getAddress(by);
         let rewardAddress = await governance.getRewardAddress(
-            testenv.sf.host.address,
+            testenv.contracts.superfluid.address,
             testenv.constants.ZERO_ADDRESS
         );
         if (rewardAddress === testenv.constants.ZERO_ADDRESS) {
@@ -146,17 +146,11 @@ export async function _shouldChangeFlow({
 
     // calculate main flow expectations
     {
-        const mainFlowDepositUnclipped = toBN(flowRate).mul(
-            toBN(testenv.configs.LIQUIDATION_PERIOD)
+        const mainFlowDeposit = cfaDataModel.getDeposit(
+            flowRate,
+            testenv.configs.LIQUIDATION_PERIOD
         );
-        const mainFlowDeposit = CFADataModel.clipDepositNumber(
-            mainFlowDepositUnclipped,
-            false /* rounding up */
-        );
-        let mainFlowAppCreditGranted = CFADataModel.clipDepositNumber(
-            mainFlowDepositUnclipped,
-            false /* rounding up */
-        );
+        let mainFlowAppCreditGranted = mainFlowDeposit;
         // @note - add minimum deposit amount to appCreditGranted when
         // sending to an app (mfa)
         mainFlowAppCreditGranted =
@@ -187,7 +181,7 @@ export async function _shouldChangeFlow({
                     ? testenv.configs.MINIMUM_DEPOSIT
                     : mainFlowDeposit.add(mainFlowCreditUsed),
             owedDeposit: mfa ? mainFlowCreditUsed : toBN(0),
-            timestamp: new Date(),
+            timestamp: toBN(0),
         };
     }
 
@@ -369,7 +363,7 @@ export async function _shouldChangeFlow({
                     testenv.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
                     {
-                        agreementClass: testenv.sf.agreements.cfa.address,
+                        agreementClass: testenv.contracts.cfa.address,
                         liquidatorAccount: cfaDataModel.roles.agent,
                         targetAccount: cfaDataModel.roles.sender,
                         rewardAmountReceiver: isPatricianPeriod
@@ -446,7 +440,7 @@ export async function _shouldChangeFlow({
                     testenv.sf.contracts.ISuperToken,
                     "AgreementLiquidatedV2",
                     {
-                        agreementClass: testenv.sf.agreements.cfa.address,
+                        agreementClass: testenv.contracts.cfa.address,
                         liquidatorAccount: cfaDataModel.roles.agent,
                         targetAccount: cfaDataModel.roles.sender,
                         rewardAmountReceiver: cfaDataModel.roles.agent,

@@ -8,7 +8,7 @@ import {
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError} from "../../utils/expectRevert";
-import {toWad} from "../utils/helpers";
+import {toBN, toWad} from "../utils/helpers";
 
 import {
     shouldApproveSubscription,
@@ -49,7 +49,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
         ({alice, bob, carol} = t.aliases);
         ({ida} = t.contracts);
 
-        superToken = t.sf.tokens.TESTx;
+        superToken = t.tokens.SuperToken;
         aliceSigner = await ethers.getSigner(alice);
         bobSigner = await ethers.getSigner(bob);
     });
@@ -114,11 +114,11 @@ describe("IDAv1 | Non-Callback Tests", function () {
             });
 
             it("#1.1.3 publisher should fail to query non-existant index", async () => {
-                const idata = await t.sf.ida.getIndex({
-                    superToken: superToken.address,
-                    publisher: alice,
-                    indexId: DEFAULT_INDEX_ID,
-                });
+                const idata = await t.contracts.ida.getIndex(
+                    superToken.address,
+                    alice,
+                    DEFAULT_INDEX_ID
+                );
                 assert.isFalse(idata.exist);
             });
 
@@ -137,7 +137,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
 
                 await shouldDistribute({
@@ -145,7 +145,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
+                    indexValue: toBN("200"),
                 });
                 await testExpectedBalances([
                     {address: alice, expectedBalance: toWad("99.80")},
@@ -211,7 +211,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
 
                 await shouldDistribute({
@@ -219,7 +219,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
+                    indexValue: toBN("200"),
                 });
                 await testExpectedBalances([
                     {address: alice, expectedBalance: toWad("99.80")},
@@ -231,7 +231,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
+                    indexValue: toBN("200"),
                 });
                 await testExpectedBalances([
                     {address: alice, expectedBalance: toWad("99.80")},
@@ -268,7 +268,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
 
                 await shouldDistribute({
@@ -276,7 +276,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(1).toString(),
+                    amount: toWad(1),
                 });
                 await testExpectedBalances([
                     {address: alice, expectedBalance: toWad("99.00")},
@@ -288,7 +288,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(1).toString(),
+                    amount: toWad(1),
                 });
                 await testExpectedBalances([
                     {address: alice, expectedBalance: toWad("98.00")},
@@ -310,7 +310,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
 
                 await expectCustomError(
@@ -403,7 +403,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(1).toString(),
+                    amount: toWad(1),
                 });
             });
         });
@@ -474,11 +474,11 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 1);
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -486,7 +486,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
 
                 await shouldDistribute({
@@ -494,7 +494,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
+                    indexValue: toBN("200"),
                 });
 
                 await shouldRevokeSubscription({
@@ -504,11 +504,11 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await verifyAll();
             });
@@ -529,7 +529,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
 
                 await shouldDistribute({
@@ -537,7 +537,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
+                    indexValue: toBN("200"),
                 });
 
                 await shouldDeleteSubscription({
@@ -548,11 +548,11 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     subscriberName: "bob",
                     senderName: "alice",
                 });
-                const subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                const subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await verifyAll();
             });
@@ -637,11 +637,11 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 1);
 
                 await verifyAll();
 
@@ -652,11 +652,11 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await verifyAll();
 
@@ -667,11 +667,11 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 1);
 
                 await verifyAll();
 
@@ -682,11 +682,11 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await verifyAll();
             });
@@ -704,7 +704,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
 
                 await shouldCreateIndex({
@@ -719,7 +719,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "carol",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.002").toString(),
+                    units: toWad("0.002"),
                 });
 
                 await shouldApproveSubscription({
@@ -736,13 +736,13 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                let subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 2);
-                assert.equal(subs[0].publisher, alice);
-                assert.equal(subs[1].publisher, carol);
+                let subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 2);
+                assert.equal(subs.publishers[0], alice);
+                assert.equal(subs.publishers[1], carol);
                 await verifyAll();
 
                 await shouldRevokeSubscription({
@@ -752,12 +752,12 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
-                assert.equal(subs[0].publisher, carol);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 1);
+                assert.equal(subs.publishers[0], carol);
                 await verifyAll();
             });
 
@@ -824,7 +824,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
 
                 await shouldApproveSubscription({
@@ -834,18 +834,18 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 1);
 
                 await shouldDistribute({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
+                    indexValue: toBN("200"),
                 });
                 await testExpectedBalances([
                     {address: alice, expectedBalance: toWad("99.8")},
@@ -859,18 +859,18 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await shouldDistribute({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "500",
+                    indexValue: toBN(500),
                 });
                 await testExpectedBalances([
                     {address: alice, expectedBalance: toWad("99.5")},
@@ -893,7 +893,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
                 await expectCustomError(
                     t.agreementHelper.callAgreement({
@@ -964,7 +964,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
 
                 await shouldDistribute({
@@ -972,7 +972,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "500",
+                    indexValue: toBN(500),
                 });
 
                 await shouldApproveSubscription({
@@ -995,37 +995,50 @@ describe("IDAv1 | Non-Callback Tests", function () {
 
             it("#1.2.16 Max number of subscriptions a subscriber can have", async () => {
                 const maxNumberOfSubs = 256;
+                const aliceSigner = await ethers.getSigner(alice);
 
                 for (let i = 0; i < maxNumberOfSubs; i++) {
                     console.log(`Creating subscription ${i}`);
-                    await t.sf.ida.createIndex({
-                        superToken: superToken.address,
-                        publisher: t.getAddress("alice"),
-                        indexId: i,
+                    await t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "createIndex",
+                            [superToken.address, i, "0x"]
+                        ),
+                        signer: aliceSigner,
                     });
 
-                    await t.sf.ida.updateSubscription({
-                        superToken: superToken.address,
-                        publisher: t.getAddress("alice"),
-                        indexId: i,
-                        subscriber: t.getAddress("bob"),
-                        units: toWad(0.01).toString(),
+                    await t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "updateSubscription",
+                            [
+                                superToken.address,
+                                i,
+                                bob,
+                                toWad(0.01).toString(),
+                                "0x",
+                            ]
+                        ),
+                        signer: aliceSigner,
                     });
 
-                    await t.sf.ida.approveSubscription({
-                        superToken: superToken.address,
-                        publisher: t.getAddress("alice"),
-                        indexId: i,
-                        subscriber: t.getAddress("bob"),
+                    await t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "approveSubscription",
+                            [superToken.address, alice, i, "0x"]
+                        ),
+                        signer: await ethers.getSigner(bob),
                     });
                 }
 
-                const subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
+                const subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
 
-                assert.equal(subs.length, maxNumberOfSubs);
+                assert.equal(subs.indexIds.length, maxNumberOfSubs);
 
                 await shouldCreateIndex({
                     testenv: t,
@@ -1040,26 +1053,19 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: maxNumberOfSubs.toString(),
                     subscriberName: "bob",
-                    units: toWad(0.01).toString(),
+                    units: toWad(0.01),
                 });
 
                 // @note still unsure about how to catch library custom errors
                 await expect(
-                    t.contracts.superfluid
-                        .connect(await ethers.getSigner(bob))
-                        .callAgreement(
-                            ida.address,
-                            t.agreementHelper.idaInterface.encodeFunctionData(
-                                "approveSubscription",
-                                [
-                                    superToken.address,
-                                    alice,
-                                    maxNumberOfSubs,
-                                    "0x",
-                                ]
-                            ),
-                            "0x"
-                        )
+                    t.agreementHelper.callAgreement({
+                        agreementAddress: ida.address,
+                        callData: t.agreementHelper.getIDACallData(
+                            "approveSubscription",
+                            [superToken.address, alice, maxNumberOfSubs, "0x"]
+                        ),
+                        signer: bobSigner,
+                    })
                 ).to.be.revertedWith("SlotBitmap out of bound");
             });
         });
@@ -1084,14 +1090,14 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     subscriberName: "bob",
                 });
 
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
-                assert.equal(subs[0].publisher, alice);
-                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
-                assert.equal(subs[0].units, "0");
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                expect(subs.indexIds.length).to.equal(1);
+                expect(subs.publishers[0]).to.equal(alice);
+                expect(subs.indexIds[0]).to.equal(Number(DEFAULT_INDEX_ID));
+                expect(subs.unitsList[0]).to.equal(toBN(0));
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -1099,24 +1105,24 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
 
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
-                assert.equal(subs[0].publisher, alice);
-                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
-                assert.equal(subs[0].units, toWad("0.001").toString());
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                expect(subs.indexIds.length).to.equal(1);
+                expect(subs.publishers[0]).to.equal(alice);
+                expect(subs.indexIds[0]).to.equal(Number(DEFAULT_INDEX_ID));
+                expect(subs.unitsList[0]).to.equal(toWad("0.001"));
 
                 await shouldDistribute({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "100",
+                    indexValue: toBN("100"),
                 });
 
                 await verifyAll();
@@ -1139,13 +1145,13 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -1153,26 +1159,26 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.003").toString(),
+                    units: toWad("0.003"),
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await shouldDistribute({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "100",
+                    indexValue: toBN("100"),
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await verifyAll();
 
@@ -1183,15 +1189,15 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
-                assert.equal(subs[0].publisher, alice);
-                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 1);
+                assert.equal(subs.publishers[0], alice);
+                assert.equal(subs.indexIds[0], Number(DEFAULT_INDEX_ID));
                 assert.equal(
-                    subs[0].units.toString(),
+                    subs.unitsList[0].toString(),
                     toWad("0.003").toString()
                 );
 
@@ -1215,13 +1221,13 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.001").toString(),
+                    units: toWad("0.001"),
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await shouldApproveSubscription({
                     testenv: t,
@@ -1230,15 +1236,15 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
-                assert.equal(subs[0].publisher, alice);
-                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 1);
+                assert.equal(subs.publishers[0], alice);
+                assert.equal(subs.indexIds[0], Number(DEFAULT_INDEX_ID));
                 assert.equal(
-                    subs[0].units.toString(),
+                    subs.unitsList[0].toString(),
                     toWad("0.001").toString()
                 );
 
@@ -1247,17 +1253,17 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "100",
+                    indexValue: toBN("100"),
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
-                assert.equal(subs[0].publisher, alice);
-                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 1);
+                assert.equal(subs.publishers[0], alice);
+                assert.equal(subs.indexIds[0], Number(DEFAULT_INDEX_ID));
                 assert.equal(
-                    subs[0].units.toString(),
+                    subs.unitsList[0].toString(),
                     toWad("0.001").toString()
                 );
 
@@ -1281,26 +1287,26 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.003").toString(),
+                    units: toWad("0.003"),
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await shouldDistribute({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "100",
+                    indexValue: toBN("100"),
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await shouldUpdateSubscription({
                     testenv: t,
@@ -1308,26 +1314,26 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.005").toString(),
+                    units: toWad("0.005"),
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await shouldDistribute({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "200",
+                    indexValue: toBN("200"),
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await shouldApproveSubscription({
                     testenv: t,
@@ -1336,15 +1342,15 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 1);
-                assert.equal(subs[0].publisher, alice);
-                assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
+                subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 1);
+                assert.equal(subs.publishers[0], alice);
+                assert.equal(subs.indexIds[0], Number(DEFAULT_INDEX_ID));
                 assert.equal(
-                    subs[0].units.toString(),
+                    subs.unitsList[0].toString(),
                     toWad("0.005").toString()
                 );
 
@@ -1369,7 +1375,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.003").toString(),
+                    units: toWad("0.003"),
                 });
 
                 await shouldDistribute({
@@ -1377,18 +1383,18 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "100",
+                    indexValue: toBN("100"),
                 });
                 await testExpectedBalances([
                     {address: alice, expectedBalance: toWad("99.7")},
                     {address: bob, expectedBalance: toWad("0.0")},
                 ]);
 
-                const subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                const subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await shouldClaimPendingDistribution({
                     testenv: t,
@@ -1428,7 +1434,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "300",
+                    indexValue: toBN("300"),
                 });
 
                 await verifyAll();
@@ -1448,14 +1454,14 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad("0.003").toString(),
+                    units: toWad("0.003"),
                 });
                 await shouldDistribute({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    indexValue: "100",
+                    indexValue: toBN("100"),
                 });
                 await shouldClaimPendingDistribution({
                     testenv: t,
@@ -1597,7 +1603,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad(0.01).toString(),
+                    units: toWad(0.01),
                 });
 
                 await shouldDistribute({
@@ -1605,23 +1611,15 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(50).toString(),
+                    amount: toWad(50),
                 });
 
-                assert.equal(
-                    (
-                        await superToken.balanceOf(
-                            t.getAddress("alice").toString()
-                        )
-                    ).toString(),
-                    toWad("50").toString()
-                );
-                assert.equal(
-                    await superToken2.balanceOf(
-                        t.getAddress("alice").toString()
-                    ),
-                    INIT_BALANCE.toString()
-                );
+                expect(
+                    await superToken.balanceOf(t.getAddress("alice"))
+                ).to.equal(toWad("50"));
+                expect(
+                    await superToken2.balanceOf(t.getAddress("alice"))
+                ).to.equal(INIT_BALANCE);
             });
 
             it("#1.5.2 context should not be exploited", async () => {
@@ -1661,7 +1659,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "alice",
-                    units: toWad(0.01).toString(),
+                    units: toWad(0.01),
                 });
 
                 await shouldApproveSubscription({
@@ -1672,11 +1670,15 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     subscriberName: "alice",
                 });
 
-                await t.sf.ida.distribute({
-                    superToken: superToken.address,
-                    publisher: alice,
-                    indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(30).toString(),
+                await t.agreementHelper.callAgreement({
+                    agreementAddress: ida.address,
+                    callData: t.agreementHelper.getIDACallData("distribute", [
+                        superToken.address,
+                        DEFAULT_INDEX_ID,
+                        toWad(30).toString(),
+                        "0x",
+                    ]),
+                    signer: await ethers.getSigner(alice),
                 });
 
                 await testExpectedBalances([
@@ -1700,7 +1702,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
-                    units: toWad(0.01).toString(),
+                    units: toWad(0.01),
                 });
 
                 await shouldApproveSubscription({
@@ -1716,7 +1718,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(50).toString(),
+                    amount: toWad(50),
                 });
 
                 await testExpectedBalances([
@@ -1730,18 +1732,18 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                const subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
+                const subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    bob
+                );
+                assert.equal(subs.indexIds.length, 0);
 
                 await shouldDistribute({
                     testenv: t,
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(25).toString(),
+                    amount: toWad(25),
                 });
 
                 await testExpectedBalances([
@@ -1768,7 +1770,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     superToken,
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(25).toString(),
+                    amount: toWad(25),
                 });
 
                 await shouldClaimPendingDistribution({
@@ -1794,10 +1796,10 @@ describe("IDAv1 | Non-Callback Tests", function () {
                 "FakeSuperfluidMock"
             );
             const fakeHost = await fakeHostFactory.deploy();
-            const ida = t.sf.agreements.ida;
+            const idaAddress = t.contracts.ida.address;
             await expect(
                 fakeHost.callAgreement(
-                    ida.address,
+                    idaAddress,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "createIndex",
                         [superToken.address, 42, "0x"]
@@ -1806,7 +1808,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
             ).to.be.revertedWith("unauthorized host");
             await expect(
                 fakeHost.callAgreement(
-                    ida.address,
+                    idaAddress,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "updateIndex",
                         [superToken.address, 42, 9000, "0x"]
@@ -1815,7 +1817,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
             ).to.be.revertedWith("unauthorized host");
             await expect(
                 fakeHost.callAgreement(
-                    ida.address,
+                    idaAddress,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "distribute",
                         [superToken.address, 42, 9000, "0x"]
@@ -1824,7 +1826,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
             ).to.be.revertedWith("unauthorized host");
             await expect(
                 fakeHost.callAgreement(
-                    ida.address,
+                    idaAddress,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "approveSubscription",
                         [superToken.address, bob, 42, "0x"]
@@ -1833,7 +1835,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
             ).to.be.revertedWith("unauthorized host");
             await expect(
                 fakeHost.callAgreement(
-                    ida.address,
+                    idaAddress,
                     t.agreementHelper.idaInterface.encodeFunctionData(
                         "updateSubscription",
                         [superToken.address, 42, alice, 1000, "0x"]

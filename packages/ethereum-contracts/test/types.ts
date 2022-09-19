@@ -37,9 +37,9 @@ export interface TestEnvironmentData {
                             [indexId: string]: {
                                 data: {
                                     exist: boolean;
-                                    indexValue: string;
-                                    totalUnitsApproved: string;
-                                    totalUnitsPending: string;
+                                    indexValue: BigNumber;
+                                    totalUnitsApproved: BigNumber;
+                                    totalUnitsPending: BigNumber;
                                 };
                                 subscribers: {
                                     [subId: string]: {
@@ -52,9 +52,9 @@ export interface TestEnvironmentData {
                             [subId: string]: {
                                 exist: boolean;
                                 approved: boolean;
-                                units: string;
-                                _syncedIndexValue: string;
-                                pendingDistribution: string;
+                                units: BigNumber;
+                                _syncedIndexValue: BigNumber;
+                                pendingDistribution: BigNumber;
                             };
                         };
                     };
@@ -65,7 +65,7 @@ export interface TestEnvironmentData {
                     [id: string]: {
                         sender: string;
                         receiver: string;
-                        flowRate: string;
+                        flowRate: BigNumber;
                     };
                 };
             };

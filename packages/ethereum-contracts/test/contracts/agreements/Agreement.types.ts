@@ -40,12 +40,12 @@ export interface ModifyFlowCallDataParams {
 // CFAv1 //
 ///////////
 export interface AccountFlowInfo {
-    readonly flowRate: string;
-    readonly deposit: string;
+    readonly flowRate: BigNumber;
+    readonly deposit: BigNumber;
 }
 
 export interface FlowInfo {
-    readonly timestamp: Date;
+    readonly timestamp: BigNumber;
     readonly flowRate: BigNumber;
     readonly deposit: BigNumber;
     readonly owedDeposit: BigNumber;
@@ -143,17 +143,24 @@ export interface VerifyOptions {
 ///////////
 export interface IDAIndexData {
     exist: boolean;
-    indexValue: string;
-    totalUnitsApproved: string;
-    totalUnitsPending: string;
+    indexValue: BigNumber;
+    totalUnitsApproved: BigNumber;
+    totalUnitsPending: BigNumber;
+}
+
+export interface PartialIDAIndexData {
+    exist?: boolean;
+    indexValue?: BigNumber;
+    totalUnitsApproved?: BigNumber;
+    totalUnitsPending?: BigNumber;
 }
 
 export interface IDASubscriptionData {
     exist: boolean;
     approved?: boolean;
-    units?: string;
-    _syncedIndexValue?: string;
-    pendingDistribution?: string;
+    units?: BigNumber;
+    _syncedIndexValue?: BigNumber;
+    pendingDistribution?: BigNumber;
 }
 
 export interface IDABaseParams {

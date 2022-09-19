@@ -1,0 +1,3 @@
+{
+    "ignore": ["typechain-types", "artifacts", "cache", "build"]
+}

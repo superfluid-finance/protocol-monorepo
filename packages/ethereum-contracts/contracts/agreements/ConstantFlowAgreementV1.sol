@@ -1432,6 +1432,10 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns (bool)
     {
+        if (signedTotalCFADeposit == 0) {
+            return false;
+        }
+
         int256 totalRewardLeft = availableBalance + signedTotalCFADeposit;
         int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
         // divisor cannot be zero with existing outflow

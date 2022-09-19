@@ -43,7 +43,7 @@ describe("IDAv1 | Callback Tests", function () {
         ({alice} = t.aliases);
         ({ida} = t.contracts);
 
-        superToken = t.sf.tokens.TESTx;
+        superToken = t.tokens.SuperToken;
         aliceSigner = await ethers.getSigner(alice);
     });
 
@@ -61,9 +61,9 @@ describe("IDAv1 | Callback Tests", function () {
 
     beforeEach(async () => {
         app = await IDASuperAppTester.new(
-            t.sf.host.address,
+            t.contracts.superfluid.address,
             1 /* APP_TYPE_FINAL_LEVEL */,
-            t.sf.agreements.ida.address,
+            t.contracts.ida.address,
             superToken.address,
             DEFAULT_INDEX_ID
         );
@@ -72,7 +72,7 @@ describe("IDAv1 | Callback Tests", function () {
 
     afterEach(async () => {
         assert.isFalse(
-            await t.sf.host.isAppJailed(app.address),
+            await t.contracts.superfluid.isAppJailed(app.address),
             "App got jailed"
         );
     });
@@ -113,7 +113,7 @@ describe("IDAv1 | Callback Tests", function () {
     });
 
     it("#1.2 approveSubscription AgreementUpdated callbacks", async () => {
-        const units = toWad("0.003").toString();
+        const units = toWad("0.003");
         await shouldUpdateSubscription({
             testenv: t,
             superToken,
@@ -168,7 +168,7 @@ describe("IDAv1 | Callback Tests", function () {
     });
 
     it("#1.3 updateSubscription AgreementCreated callbacks", async () => {
-        const units = toWad("0.003").toString();
+        const units = toWad("0.003");
         await shouldCreateIndex({
             testenv: t,
             superToken,
@@ -211,8 +211,8 @@ describe("IDAv1 | Callback Tests", function () {
     });
 
     it("#1.4 updateSubscription AgreementUpdated callbacks", async () => {
-        const units1 = toWad("0.003").toString();
-        const units2 = toWad("0.004").toString();
+        const units1 = toWad("0.003");
+        const units2 = toWad("0.004");
         await shouldCreateIndex({
             testenv: t,
             superToken,
@@ -278,7 +278,7 @@ describe("IDAv1 | Callback Tests", function () {
     });
 
     it("#1.6 publisher deleteSubscription callbacks", async () => {
-        const units = toWad("0.003").toString();
+        const units = toWad("0.003");
         await shouldCreateIndex({
             testenv: t,
             superToken,
@@ -340,8 +340,8 @@ describe("IDAv1 | Callback Tests", function () {
         await t.upgradeBalance("alice", INIT_BALANCE);
         await t.transferBalance("alice", "app", INIT_BALANCE);
 
-        const units = toWad("0.005").toString();
-        const distributionAmount = toWad(1).toString();
+        const units = toWad("0.005");
+        const distributionAmount = toWad(1);
         await shouldUpdateSubscription({
             testenv: t,
             superToken,

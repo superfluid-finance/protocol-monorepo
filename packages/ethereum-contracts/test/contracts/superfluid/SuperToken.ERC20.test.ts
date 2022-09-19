@@ -30,10 +30,7 @@ describe("SuperToken's ERC20 compliance", function () {
         ({alice, bob, carol} = t.aliases);
         aliceSigner = await ethers.getSigner(alice);
 
-        this.token = await ethers.getContractAt(
-            "SuperTokenMock",
-            t.sf.tokens.TESTx.address
-        );
+        this.token = t.tokens.SuperToken;
         await this.token.connect(aliceSigner).upgrade(initialSupply);
 
         await t.pushEvmSnapshot();

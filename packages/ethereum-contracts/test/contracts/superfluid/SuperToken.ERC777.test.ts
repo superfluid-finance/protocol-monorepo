@@ -50,11 +50,8 @@ describe("SuperToken's ERC777 implementation", function () {
             dan: newOperator,
             eve: anyone,
         } = t.aliases);
-        this.token = await SuperTokenMock.at(t.sf.tokens.TESTx.address);
-        tokenContract = await ethers.getContractAt(
-            "SuperTokenMock",
-            t.sf.tokens.TESTx.address
-        );
+        this.token = await SuperTokenMock.at(t.tokens.SuperToken.address);
+        tokenContract = t.tokens.SuperToken;
         ({erc1820} = t.contracts);
 
         await web3tx(

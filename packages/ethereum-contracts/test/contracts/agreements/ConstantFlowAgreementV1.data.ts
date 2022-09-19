@@ -1,5 +1,5 @@
 import {BigNumber, BigNumberish} from "ethers";
-import {assert} from "hardhat";
+import {assert, expect} from "hardhat";
 import _ from "lodash";
 
 import {SuperToken} from "../../../typechain-types";
@@ -12,7 +12,7 @@ const INIT_FLOW_INFO = {
     flowRate: toBN(0),
     deposit: toBN(0),
     owedDeposit: toBN(0),
-    timestamp: new Date(),
+    timestamp: toBN(0),
 };
 
 /**
@@ -64,6 +64,10 @@ export default class CFADataModel {
         console.log(`${role} account address ${this.roles[role]} (${alias})`);
     }
 
+    toRole(address: string) {
+        return Object.values(this.roles).find((i) => i === address) || "";
+    }
+
     addToBalanceSnapshotsBefore(role: string) {
         this._balanceSnapshotsBefore[this.roles[role]] =
             this.testenv.getAccountBalanceSnapshot(
@@ -96,11 +100,12 @@ export default class CFADataModel {
     }
 
     async addAccountFlowInfoAfter(role: string) {
-        this._accountFlowInfoAfter[this.roles[role]] =
-            await this.testenv.sf.cfa.getAccountFlowInfo({
-                superToken: this.superToken.address,
-                account: this.roles[role],
-            });
+        const accountFlowInfo =
+            await this.testenv.contracts.cfa.getAccountFlowInfo(
+                this.superToken.address,
+                this.roles[role]
+            );
+        this._accountFlowInfoAfter[this.roles[role]] = accountFlowInfo;
         CFADataModel._printFlowInfo(
             `${role} account flow info after`,
             this.getAccountFlowInfoAfter(role)
@@ -140,7 +145,11 @@ export default class CFADataModel {
             sender: flowParams.sender,
             receiver: flowParams.receiver,
         };
-        const flowInfo: FlowInfo = await this.testenv.sf.cfa.getFlow(flowId);
+        const flowInfo: FlowInfo = await this.testenv.contracts.cfa.getFlow(
+            flowId.superToken,
+            flowId.sender,
+            flowId.receiver
+        );
         this.flows[flowName] = {
             flowId,
             notTouched: flowParams.notTouched, // only used in MFA test case
@@ -151,7 +160,12 @@ export default class CFADataModel {
     }
     async addFlowInfoAfter(flowName: string) {
         const flowData = this.flows[flowName];
-        const flowInfo = await this.testenv.sf.cfa.getFlow(flowData.flowId);
+        const {flowId} = flowData;
+        const flowInfo = await this.testenv.contracts.cfa.getFlow(
+            flowId.superToken,
+            flowId.sender,
+            flowId.receiver
+        );
         CFADataModel._printFlowInfo(`${flowName} flow info after`, flowInfo);
         flowData.flowInfoAfter = flowInfo;
     }
@@ -164,45 +178,44 @@ export default class CFADataModel {
         if (!flowData.notTouched) {
             // validate flow info
             if (flowData.flowInfoAfter.flowRate.toString() !== "0") {
-                assert.equal(
-                    flowData.flowInfoAfter.timestamp.getTime() / 1000,
-                    txnTimestamp,
+                console.log(flowData.flowInfoAfter);
+                console.log(txnTimestamp);
+                expect(
+                    flowData.flowInfoAfter.timestamp,
                     `wrong flow timestamp of the ${flowName} flow`
-                );
+                ).to.equal(toBN(txnTimestamp));
             } else {
-                assert.equal(flowData.flowInfoAfter.timestamp.getTime(), 0);
+                expect(flowData.flowInfoAfter.timestamp).to.equal(toBN(0));
             }
-            assert.equal(
+            expect(
                 flowData.flowInfoAfter.flowRate,
-                this.expectedFlowInfo[flowName].flowRate,
                 `wrong flow rate of the ${flowName} flow`
-            );
-            assert.equal(
+            ).to.equal(this.expectedFlowInfo[flowName].flowRate);
+
+            expect(
                 flowData.flowInfoAfter.owedDeposit,
-                this.expectedFlowInfo[flowName].owedDeposit,
                 `wrong owed deposit amount of the ${flowName} flow`
-            );
-            assert.equal(
+            ).to.equal(this.expectedFlowInfo[flowName].owedDeposit);
+
+            expect(
                 flowData.flowInfoAfter.deposit,
-                this.expectedFlowInfo[flowName].deposit,
                 `wrong deposit amount of the ${flowName} flow`
-            );
+            ).to.equal(this.expectedFlowInfo[flowName].deposit);
         } else {
-            assert.equal(
+            expect(
                 flowData.flowInfoAfter.flowRate,
-                flowData.flowInfoBefore.flowRate,
                 `flow rate of the ${flowName} flow should not change`
-            );
-            assert.equal(
+            ).to.equal(flowData.flowInfoBefore.flowRate);
+
+            expect(
                 flowData.flowInfoAfter.owedDeposit,
-                flowData.flowInfoBefore.owedDeposit,
                 `owed deposit amount of the ${flowName} flow should not change`
-            );
-            assert.equal(
+            ).to.equal(flowData.flowInfoBefore.owedDeposit);
+
+            expect(
                 flowData.flowInfoAfter.deposit,
-                flowData.flowInfoBefore.deposit,
                 `deposit amount of the ${flowName} flow should not change`
-            );
+            ).to.equal(flowData.flowInfoBefore.deposit);
         }
     }
 
@@ -309,10 +322,10 @@ export default class CFADataModel {
                         [account]: {
                             cfa: {
                                 flowInfo: {
-                                    timestamp: new Date(),
-                                    flowRate: 0,
-                                    deposit: 0,
-                                    owedDeposit: 0,
+                                    timestamp: toBN(0),
+                                    flowRate: toBN(0),
+                                    deposit: toBN(0),
+                                    owedDeposit: toBN(0),
                                 },
                             },
                         },
@@ -375,10 +388,10 @@ export default class CFADataModel {
                             [`${sender}:${receiver}`]: {
                                 sender,
                                 receiver,
-                                timestamp: 0,
-                                flowRate: 0,
-                                deposit: 0,
-                                owedDeposit: 0,
+                                timestamp: toBN(0),
+                                flowRate: toBN(0),
+                                deposit: toBN(0),
+                                owedDeposit: toBN(0),
                             },
                         },
                     },
@@ -485,7 +498,7 @@ export default class CFADataModel {
     static _printFlowInfo(title: string, flowInfo: FlowInfo) {
         console.log(
             title,
-            flowInfo.timestamp.getTime(),
+            flowInfo.timestamp.toString(),
             flowInfo.flowRate.toString(),
             flowInfo.deposit.toString(),
             flowInfo.owedDeposit.toString()
@@ -499,6 +512,16 @@ export default class CFADataModel {
             ? 0
             : 1;
         return deposit.shr(32).add(rounding).shl(32);
+    }
+
+    getDeposit(flowRate: BigNumber, liquidationPeriod: BigNumber) {
+        const deposit = CFADataModel.clipDepositNumber(
+            flowRate.mul(liquidationPeriod)
+        );
+        return deposit.lt(this.testenv.configs.MINIMUM_DEPOSIT) &&
+            toBN(flowRate).gt(toBN(0))
+            ? this.testenv.configs.MINIMUM_DEPOSIT
+            : deposit;
     }
 
     static adjustNewAppCreditUsed(

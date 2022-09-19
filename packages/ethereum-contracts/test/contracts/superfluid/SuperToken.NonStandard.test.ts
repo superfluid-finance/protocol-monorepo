@@ -38,16 +38,8 @@ describe("SuperToken's Non Standard Functions", function () {
             nAccounts: 4,
         });
 
-        testToken = t.sf.tokens.TEST;
-        superToken = t.sf.tokens.TESTx;
-        testToken = await ethers.getContractAt(
-            "TestToken",
-            t.sf.tokens.TEST.address
-        );
-        superToken = await ethers.getContractAt(
-            "SuperTokenMock",
-            t.sf.tokens.TESTx.address
-        );
+        testToken = t.tokens.TestToken;
+        superToken = t.tokens.SuperToken;
         ({admin, alice, bob} = t.aliases);
         ({superfluid} = t.contracts);
         aliceSigner = await ethers.getSigner(alice);
@@ -108,7 +100,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await expect(superToken.connect(aliceSigner).upgrade(toWad(2)))
                 .to.emit(superToken, "TokenUpgraded")
                 .withArgs(alice, toWad(2).toString());
-            const {timestamp} = await web3.eth.getBlock("latest");
+            const {timestamp} = await ethers.provider.getBlock("latest");
 
             const finalBalance = await testToken.balanceOf(alice);
             const finalSuperTokenBalance = await superToken.balanceOf(alice);
@@ -396,7 +388,7 @@ describe("SuperToken's Non Standard Functions", function () {
             )
                 .to.emit(superToken, "TokenUpgraded")
                 .withArgs(bob, toWad(2).toString());
-            const {timestamp} = await web3.eth.getBlock("latest");
+            const {timestamp} = await ethers.provider.getBlock("latest");
 
             const finalBalanceAlice = await testToken.balanceOf(alice);
             const finalSuperTokenBalanceAlice = await superToken.balanceOf(

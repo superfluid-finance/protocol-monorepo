@@ -1,10 +1,11 @@
 import {BigNumber} from "ethers";
-import {assert, ethers, web3} from "hardhat";
+import {assert, ethers, expect} from "hardhat";
 
 import {SuperToken} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError} from "../../utils/expectRevert";
 import {VerifyOptions} from "../agreements/Agreement.types";
+import AgreementHelper, {FLOW_TYPE_CREATE} from "../agreements/AgreementHelper";
 import {
     expectNetFlow,
     shouldCreateFlow,
@@ -30,6 +31,7 @@ interface ExpectedBalance {
 
 describe("Superfluid scenarios", function () {
     this.timeout(300e3);
+    let agreementHelper: AgreementHelper;
 
     const t = TestEnvironment.getSingleton();
     const {FLOW_RATE1, INIT_BALANCE} = t.configs;
@@ -44,7 +46,8 @@ describe("Superfluid scenarios", function () {
         });
         ({alice, bob, carol, dan} = t.aliases);
 
-        superToken = t.sf.tokens.TESTx;
+        superToken = t.tokens.SuperToken;
+        agreementHelper = t.agreementHelper;
     });
 
     beforeEach(async function () {
@@ -53,7 +56,7 @@ describe("Superfluid scenarios", function () {
 
     async function verifyAll(opts?: VerifyOptions) {
         const cfaDataModel = new CFADataModel(t, superToken);
-        const block2 = await web3.eth.getBlock("latest");
+        const block2 = await ethers.provider.getBlock("latest");
         await t.validateExpectedBalances(() => {
             cfaDataModel.syncAccountExpectedBalanceDeltas({
                 superToken: superToken.address,
@@ -374,20 +377,20 @@ describe("Superfluid scenarios", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: subscriberName,
-                    units: subscriptionUnits.toString(),
+                    units: subscriptionUnits,
                 });
 
-                const subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: subscriberAddr,
-                });
+                const subs = await t.contracts.ida.listSubscriptions(
+                    superToken.address,
+                    subscriberAddr
+                );
                 if (doApprove) {
-                    assert.equal(subs.length, 1);
-                    assert.equal(subs[0].publisher, alice);
-                    assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
-                    assert.equal(subs[0].units, subscriptionUnits.toString());
+                    expect(subs.indexIds.length).to.equal(1);
+                    expect(subs.publishers[0]).to.equal(alice);
+                    expect(subs.indexIds[0]).to.equal(Number(DEFAULT_INDEX_ID));
+                    expect(subs.unitsList[0]).to.equal(subscriptionUnits);
                 } else {
-                    assert.equal(subs.length, 0);
+                    expect(subs.indexIds.length).to.equal(0);
                 }
             }
 
@@ -396,7 +399,7 @@ describe("Superfluid scenarios", function () {
                 superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
-                indexValue: "100",
+                indexValue: toBN(100),
             });
             await testExpectedBalances([
                 {address: alice, expectedBalance: toWad("99.94")},
@@ -410,7 +413,7 @@ describe("Superfluid scenarios", function () {
                 superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
-                indexValue: "300",
+                indexValue: toBN(300),
             });
             await testExpectedBalances([
                 {address: alice, expectedBalance: toWad("99.82")},
@@ -439,7 +442,7 @@ describe("Superfluid scenarios", function () {
                 superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
-                indexValue: "400",
+                indexValue: toBN(400),
             });
             await testExpectedBalances([
                 {address: alice, expectedBalance: toWad("99.79")},
@@ -489,18 +492,18 @@ describe("Superfluid scenarios", function () {
                     publisherName,
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "dan",
-                    units: subscriptionUnits.toString(),
+                    units: subscriptionUnits,
                 });
             }
 
-            const subs = await t.sf.ida.listSubscriptions({
-                superToken: superToken.address,
-                subscriber: dan,
-            });
-            assert.equal(subs.length, 1);
-            assert.equal(subs[0].publisher, alice);
-            assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
-            assert.equal(wad4human(subs[0].units), "0.00010");
+            const subs = await t.contracts.ida.listSubscriptions(
+                superToken.address,
+                dan
+            );
+            assert.equal(subs.indexIds.length, 1);
+            assert.equal(subs.publishers[0], alice);
+            assert.equal(subs.indexIds[0], Number(DEFAULT_INDEX_ID));
+            assert.equal(wad4human(subs.unitsList[0]), "0.00010");
 
             // Alice distributes tokens (100 * 0.0001 = 0.01)
             await shouldDistribute({
@@ -508,7 +511,7 @@ describe("Superfluid scenarios", function () {
                 superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
-                indexValue: "100",
+                indexValue: toBN(100),
             });
             await testExpectedBalances([
                 {address: alice, expectedBalance: toWad("99.99")},
@@ -522,7 +525,7 @@ describe("Superfluid scenarios", function () {
                 superToken,
                 publisherName: "bob",
                 indexId: DEFAULT_INDEX_ID,
-                indexValue: "200",
+                indexValue: toBN(200),
             });
             await testExpectedBalances([
                 {address: alice, expectedBalance: toWad("99.99")},
@@ -537,7 +540,7 @@ describe("Superfluid scenarios", function () {
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "dan",
-                units: toWad("0.0003").toString(),
+                units: toWad("0.0003"),
             });
 
             // Alice distributes tokens again (100 * 0.0003 = 0.03)
@@ -546,7 +549,7 @@ describe("Superfluid scenarios", function () {
                 superToken,
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
-                indexValue: "200",
+                indexValue: toBN(200),
             });
             await testExpectedBalances([
                 {address: alice, expectedBalance: toWad("99.96")},
@@ -587,14 +590,15 @@ describe("Superfluid scenarios", function () {
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "bob",
-                units: toWad("0.001").toString(),
+                units: toWad("0.001"),
             });
 
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
-                flowRate: FLOW_RATE1.toString(),
+                flowRate: FLOW_RATE1,
             });
 
             await t.timeTravelOnce();
@@ -633,7 +637,7 @@ describe("Superfluid scenarios", function () {
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "bob",
-                units: toWad("0.001").toString(),
+                units: toWad("0.001"),
             });
 
             await shouldApproveSubscription({
@@ -654,11 +658,15 @@ describe("Superfluid scenarios", function () {
             await t.timeTravelOnce();
             await t.validateSystemInvariance();
 
-            await t.sf.ida.distribute({
-                superToken: superToken.address,
-                publisher: alice,
-                indexId: DEFAULT_INDEX_ID,
-                amount: toWad(20).toString(),
+            await t.agreementHelper.callAgreement({
+                agreementAddress: t.contracts.ida.address,
+                callData: t.agreementHelper.getIDACallData("distribute", [
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    toWad(20).toString(),
+                    "0x",
+                ]),
+                signer: await ethers.getSigner(alice),
             });
             await t.timeTravelOnce();
             await t.validateSystemInvariance();
@@ -680,7 +688,7 @@ describe("Superfluid scenarios", function () {
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "bob",
-                units: toWad("0.001").toString(),
+                units: toWad("0.001"),
             });
 
             await shouldApproveSubscription({
@@ -691,22 +699,27 @@ describe("Superfluid scenarios", function () {
                 subscriberName: "bob",
             });
 
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
                 superToken: superToken.address,
                 sender: bob,
                 receiver: alice,
-                flowRate: FLOW_RATE1.toString(),
+                flowRate: FLOW_RATE1,
             });
 
             await t.timeTravelOnce();
 
             assert.isTrue(await superToken.isAccountCriticalNow(bob));
 
-            await t.sf.ida.distribute({
-                superToken: superToken.address,
-                publisher: alice,
-                indexId: DEFAULT_INDEX_ID,
-                amount: toWad(20).toString(),
+            await t.agreementHelper.callAgreement({
+                agreementAddress: t.contracts.ida.address,
+                callData: t.agreementHelper.getIDACallData("distribute", [
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    toWad(20).toString(),
+                    "0x",
+                ]),
+                signer: await ethers.getSigner(alice),
             });
 
             assert.isFalse(await superToken.isAccountCriticalNow(bob));
@@ -727,7 +740,7 @@ describe("Superfluid scenarios", function () {
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "bob",
-                units: toWad("0.001").toString(),
+                units: toWad("0.001"),
             });
 
             await expectCustomError(
@@ -746,20 +759,25 @@ describe("Superfluid scenarios", function () {
                 t.customErrorCode.IDA_INSUFFICIENT_BALANCE
             );
 
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
                 superToken: superToken.address,
                 sender: bob,
                 receiver: alice,
-                flowRate: FLOW_RATE1.toString(),
+                flowRate: FLOW_RATE1,
             });
 
             await t.timeTravelOnce();
 
-            await t.sf.ida.distribute({
-                superToken: superToken.address,
-                publisher: alice,
-                indexId: DEFAULT_INDEX_ID,
-                amount: toWad(20).toString(),
+            await t.agreementHelper.callAgreement({
+                agreementAddress: t.contracts.ida.address,
+                callData: t.agreementHelper.getIDACallData("distribute", [
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    toWad(20).toString(),
+                    "0x",
+                ]),
+                signer: await ethers.getSigner(alice),
             });
         });
 
@@ -778,7 +796,7 @@ describe("Superfluid scenarios", function () {
                 publisherName: "alice",
                 indexId: DEFAULT_INDEX_ID,
                 subscriberName: "bob",
-                units: toWad("0.001").toString(),
+                units: toWad("0.001"),
             });
 
             await shouldApproveSubscription({
@@ -789,20 +807,25 @@ describe("Superfluid scenarios", function () {
                 subscriberName: "bob",
             });
 
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
                 superToken: superToken.address,
                 sender: alice,
                 receiver: bob,
-                flowRate: FLOW_RATE1.toString(),
+                flowRate: FLOW_RATE1,
             });
             await t.timeTravelOnce();
             await t.validateSystemInvariance();
 
-            await t.sf.ida.distribute({
-                superToken: superToken.address,
-                publisher: alice,
-                indexId: DEFAULT_INDEX_ID,
-                amount: toWad(20).toString(),
+            await t.agreementHelper.callAgreement({
+                agreementAddress: t.contracts.ida.address,
+                callData: t.agreementHelper.getIDACallData("distribute", [
+                    superToken.address,
+                    DEFAULT_INDEX_ID,
+                    toWad(20).toString(),
+                    "0x",
+                ]),
+                signer: await ethers.getSigner(alice),
             });
             await t.timeTravelOnce();
             await t.validateSystemInvariance();

@@ -57,7 +57,7 @@ describe("Batch Call Tests", () => {
                 .exec(alpha);
         } catch (err: any) {
             expect(err.message).to.contain(
-                "Cannot read properties of undefined"
+                "undefined"
             );
         }
     });

@@ -1,13 +1,17 @@
-import {assert} from "hardhat";
+import {BigNumber} from "ethers";
+import {expect} from "hardhat";
 import _ from "lodash";
+
+import {toBN} from "../utils/helpers";
 
 import {
     IDABaseParams,
     IDAIndexData,
     IDASubscriptionData,
+    PartialIDAIndexData,
 } from "./Agreement.types";
 
-const {web3tx, toBN, wad4human} = require("@decentral.ee/web3-helpers");
+const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
 const {expectEvent} = require("@openzeppelin/test-helpers");
 
 function _updateIndexData({
@@ -16,7 +20,7 @@ function _updateIndexData({
     publisher,
     indexId,
     indexData,
-}: IDABaseParams & {publisher: string; indexData: any}) {
+}: IDABaseParams & {publisher: string; indexData: PartialIDAIndexData}) {
     _.merge(testenv.data, {
         tokens: {
             [superToken.address]: {
@@ -40,7 +44,14 @@ function _assertEqualIndexData(
     idataActual: IDAIndexData,
     idataExpected: IDAIndexData
 ) {
-    assert.deepEqual(idataActual, idataExpected);
+    expect(idataActual.exist).to.equal(idataExpected.exist);
+    expect(idataActual.indexValue).to.equal(idataExpected.indexValue);
+    expect(idataActual.totalUnitsApproved).to.equal(
+        idataExpected.totalUnitsApproved
+    );
+    expect(idataActual.totalUnitsPending).to.equal(
+        idataExpected.totalUnitsPending
+    );
 }
 
 export function getIndexData({
@@ -59,9 +70,9 @@ export function getIndexData({
                                 [indexId]: {
                                     data: {
                                         exist: true,
-                                        indexValue: "0",
-                                        totalUnitsApproved: "0",
-                                        totalUnitsPending: "0",
+                                        indexValue: toBN(0),
+                                        totalUnitsApproved: toBN(0),
+                                        totalUnitsPending: toBN(0),
                                     },
                                     subscribers: {},
                                 },
@@ -121,9 +132,12 @@ function _assertEqualSubscriptionData(
     sdataActual: IDASubscriptionData,
     sdataExpected: IDASubscriptionData
 ) {
-    const sdataExpectedClean = _.clone(sdataExpected);
-    delete sdataExpectedClean._syncedIndexValue;
-    assert.deepEqual(sdataActual, sdataExpectedClean);
+    expect(sdataActual.exist).to.equal(sdataExpected.exist);
+    expect(sdataActual.approved).to.equal(sdataExpected.approved);
+    expect(sdataActual.units).to.equal(sdataExpected.units);
+    expect(sdataActual.pendingDistribution).to.equal(
+        sdataExpected.pendingDistribution
+    );
 }
 
 function _deleteSubscription({
@@ -154,8 +168,8 @@ export function getSubscriptionData({
                                 [`${publisher}@${indexId}`]: {
                                     exist: false,
                                     approved: false,
-                                    units: "0",
-                                    _syncedIndexValue: "0",
+                                    units: toBN(0),
+                                    _syncedIndexValue: toBN(0),
                                 },
                             },
                         },
@@ -176,11 +190,11 @@ export function getSubscriptionData({
         indexId,
     });
     if (!result.approved) {
-        result.pendingDistribution = toBN(result.units)
-            .mul(toBN(idata.indexValue).sub(toBN(result._syncedIndexValue)))
-            .toString();
+        result.pendingDistribution = toBN(result.units).mul(
+            toBN(idata.indexValue).sub(toBN(result._syncedIndexValue))
+        );
     } else {
-        result.pendingDistribution = "0";
+        result.pendingDistribution = toBN(0);
     }
     return result;
 }
@@ -210,9 +224,9 @@ export async function shouldCreateIndex({
         publisher,
         indexId,
         indexData: {
-            indexValue: "0",
-            totalUnitsApproved: "0",
-            totalUnitsPending: "0",
+            indexValue: toBN(0),
+            totalUnitsApproved: toBN(0),
+            totalUnitsPending: toBN(0),
         },
     });
     const idataExpected = getIndexData({
@@ -221,11 +235,11 @@ export async function shouldCreateIndex({
         publisher,
         indexId,
     });
-    const idataActual = await testenv.sf.ida.getIndex({
-        superToken: superToken.address,
+    const idataActual = await testenv.contracts.ida.getIndex(
+        superToken.address,
         publisher,
-        indexId,
-    });
+        indexId
+    );
     _assertEqualIndexData(idataActual, idataExpected);
 
     // expect events
@@ -254,8 +268,8 @@ export async function shouldDistribute({
     fn,
 }: IDABaseParams & {
     publisherName: string;
-    indexValue?: string;
-    amount?: string;
+    indexValue?: BigNumber;
+    amount?: BigNumber;
     fn?: () => Promise<any>;
 }) {
     console.log("======== shouldDistribute begins ========");
@@ -274,8 +288,8 @@ export async function shouldDistribute({
         indexId,
     });
     const subscriberAddresses = Object.keys(subscribers);
-    const totalUnitsZero = toBN(idataBefore.totalUnitsApproved)
-        .add(toBN(idataBefore.totalUnitsPending))
+    const totalUnitsZero = idataBefore.totalUnitsApproved
+        .add(idataBefore.totalUnitsPending)
         .eq(toBN(0));
     let tx: any;
     if (totalUnitsZero) {
@@ -291,13 +305,13 @@ export async function shouldDistribute({
         });
     } else if (fn) {
         indexValue = (
-            await testenv.sf.agreements.ida.calculateDistribution(
+            await testenv.contracts.ida.calculateDistribution(
                 superToken.address,
                 publisher,
                 indexId,
-                amount
+                toBN(amount)
             )
-        ).newIndexValue.toString();
+        ).newIndexValue;
         tx = await fn();
     } else if (indexValue) {
         tx = await web3tx(
@@ -311,13 +325,13 @@ export async function shouldDistribute({
         });
     } else if (amount) {
         indexValue = (
-            await testenv.sf.agreements.ida.calculateDistribution(
+            await testenv.contracts.ida.calculateDistribution(
                 superToken.address,
                 publisher,
                 indexId,
                 amount
             )
-        ).newIndexValue.toString();
+        ).newIndexValue;
         tx = await web3tx(
             testenv.sf.ida.distribute,
             `${publisherName} distributes tokens to index @${indexId} with amount ${amount}`
@@ -336,8 +350,8 @@ export async function shouldDistribute({
         publisher,
         indexId,
         indexData: {
-            indexValue: (indexValue || "0").toString(),
-        },
+            indexValue: toBN(indexValue),
+        } as any,
     });
     const idataExpected = getIndexData({
         testenv,
@@ -345,12 +359,20 @@ export async function shouldDistribute({
         publisher,
         indexId,
     });
-    const idataActual = await testenv.sf.ida.getIndex({
-        superToken: superToken.address,
+    const idataActual = await testenv.contracts.ida.getIndex(
+        superToken.address,
         publisher,
-        indexId,
-    });
-    _assertEqualIndexData(idataActual, idataExpected);
+        indexId
+    );
+    _assertEqualIndexData(
+        {
+            exist: idataActual.exist,
+            indexValue: idataActual.indexValue,
+            totalUnitsApproved: idataActual.totalUnitsApproved,
+            totalUnitsPending: idataActual.totalUnitsPending,
+        },
+        idataExpected
+    );
 
     // if we are distributing where the totalUnits is zero
     // _updateIndex is not called and there will be no emitted event
@@ -386,7 +408,6 @@ export async function shouldDistribute({
             toBN(indexDelta)
                 .mul(toBN(idataActual.totalUnitsApproved))
                 .mul(toBN(-1))
-                .toString()
         );
 
         // subscribers
@@ -398,9 +419,7 @@ export async function shouldDistribute({
                 indexId,
                 subscriber,
             });
-            const expectedBalanceDelta = toBN(sdata.units)
-                .mul(indexDelta)
-                .toString();
+            const expectedBalanceDelta = toBN(sdata.units).mul(indexDelta);
             if (subscribers[subscriber].approved) {
                 testenv.updateAccountExpectedBalanceDelta(
                     superToken.address,
@@ -421,12 +440,12 @@ export async function shouldDistribute({
             indexId,
             subscriber,
         });
-        const sdataActual = await testenv.sf.ida.getSubscription({
-            superToken: superToken.address,
+        const sdataActual = await testenv.contracts.ida.getSubscription(
+            superToken.address,
             publisher,
             indexId,
-            subscriber,
-        });
+            subscriber
+        );
         console.log(
             `${testenv.toAlias(
                 subscriber
@@ -486,12 +505,12 @@ async function _afterSubscriptionUpdate({
         indexId,
         subscriber,
     });
-    const sdataActual = await testenv.sf.ida.getSubscription({
-        superToken: superToken.address,
+    const sdataActual = await testenv.contracts.ida.getSubscription(
+        superToken.address,
         publisher,
         indexId,
-        subscriber,
-    });
+        subscriber
+    );
     _assertEqualSubscriptionData(sdataActual, sdataExpected);
 
     const idataExpected = getIndexData({
@@ -500,11 +519,11 @@ async function _afterSubscriptionUpdate({
         publisher,
         indexId,
     });
-    const idataActual = await testenv.sf.ida.getIndex({
-        superToken: superToken.address,
+    const idataActual = await testenv.contracts.ida.getIndex(
+        superToken.address,
         publisher,
-        indexId,
-    });
+        indexId
+    );
     _assertEqualIndexData(idataActual, idataExpected);
 
     // expect balances
@@ -599,12 +618,12 @@ export async function shouldApproveSubscription({
         publisher,
         indexId,
         indexData: {
-            totalUnitsApproved: toBN(idataBefore.totalUnitsApproved)
-                .add(toBN(sdataBefore.units))
-                .toString(),
-            totalUnitsPending: toBN(idataBefore.totalUnitsPending)
-                .sub(toBN(sdataBefore.units))
-                .toString(),
+            totalUnitsApproved: toBN(idataBefore.totalUnitsApproved).add(
+                toBN(sdataBefore.units)
+            ),
+            totalUnitsPending: toBN(idataBefore.totalUnitsPending).sub(
+                toBN(sdataBefore.units)
+            ),
         },
     });
 
@@ -662,7 +681,7 @@ export async function shouldUpdateSubscription({
     publisherName: string;
     subscriberName: string;
     userData?: string;
-    units: string;
+    units: BigNumber;
     fn?: () => Promise<any>;
 }) {
     console.log("======== shouldUpdateSubscription begins ========");
@@ -712,7 +731,7 @@ export async function shouldUpdateSubscription({
         subscriber,
         subscriptionData: {
             exist: true,
-            units: units.toString(),
+            units,
             _syncedIndexValue: idataBefore.indexValue,
         },
     });
@@ -726,14 +745,14 @@ export async function shouldUpdateSubscription({
         indexData: {
             ...(sdataBefore.approved
                 ? {
-                      totalUnitsApproved: toBN(idataBefore.totalUnitsApproved)
-                          .add(unitsDiff)
-                          .toString(),
+                      totalUnitsApproved: toBN(
+                          idataBefore.totalUnitsApproved
+                      ).add(unitsDiff),
                   }
                 : {
-                      totalUnitsPending: toBN(idataBefore.totalUnitsPending)
-                          .add(unitsDiff)
-                          .toString(),
+                      totalUnitsPending: toBN(
+                          idataBefore.totalUnitsPending
+                      ).add(unitsDiff),
                   }),
         },
     });
@@ -843,12 +862,12 @@ export async function shouldRevokeSubscription({
         publisher,
         indexId,
         indexData: {
-            totalUnitsApproved: toBN(idataBefore.totalUnitsApproved)
-                .sub(toBN(sdataBefore.units))
-                .toString(),
-            totalUnitsPending: toBN(idataBefore.totalUnitsPending)
-                .add(toBN(sdataBefore.units))
-                .toString(),
+            totalUnitsApproved: toBN(idataBefore.totalUnitsApproved).sub(
+                toBN(sdataBefore.units)
+            ),
+            totalUnitsPending: toBN(idataBefore.totalUnitsPending).add(
+                toBN(sdataBefore.units)
+            ),
         },
     });
 
@@ -956,14 +975,14 @@ export async function shouldDeleteSubscription({
         indexData: {
             ...(sdataBefore.approved
                 ? {
-                      totalUnitsApproved: toBN(idataBefore.totalUnitsApproved)
-                          .sub(toBN(sdataBefore.units))
-                          .toString(),
+                      totalUnitsApproved: toBN(
+                          idataBefore.totalUnitsApproved
+                      ).sub(toBN(sdataBefore.units)),
                   }
                 : {
-                      totalUnitsPending: toBN(idataBefore.totalUnitsPending)
-                          .sub(toBN(sdataBefore.units))
-                          .toString(),
+                      totalUnitsPending: toBN(
+                          idataBefore.totalUnitsPending
+                      ).sub(toBN(sdataBefore.units)),
                   }),
         },
     });

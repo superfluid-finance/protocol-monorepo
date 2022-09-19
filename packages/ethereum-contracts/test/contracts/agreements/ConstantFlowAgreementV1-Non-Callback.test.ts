@@ -63,13 +63,9 @@ describe("CFAv1 | Non-Callback Tests", function () {
         ({admin, alice, bob, dan} = t.aliases);
 
         ({superfluid, governance, cfa} = t.contracts);
-        testToken = await t.sf.contracts.TestToken.at(t.sf.tokens.TEST.address);
-        superToken = t.sf.tokens.TESTx;
+        testToken = t.tokens.TestToken;
+        superToken = t.tokens.SuperToken;
         agreementHelper = t.agreementHelper;
-    });
-
-    after(async () => {
-        await t.report({title: "CFAv1.NonCallback.test"});
     });
 
     beforeEach(async () => {
@@ -91,7 +87,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
 
     async function verifyAll(opts?: VerifyOptions) {
         const cfaDataModel = new CFADataModel(t, superToken);
-        const block2 = await web3.eth.getBlock("latest");
+        const block2 = await ethers.provider.getBlock("latest");
         await t.validateExpectedBalances(() => {
             cfaDataModel.syncAccountExpectedBalanceDeltas({
                 superToken: superToken.address,
@@ -173,11 +169,11 @@ describe("CFAv1 | Non-Callback Tests", function () {
             description: "STR:" + receiver,
         });
 
-        const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
-            superToken: superToken.address,
-            account: t.aliases[sender],
-        });
-        const netFlowRate = toBN(accountFlowInfo.flowRate).mul(toBN(-1)); // convert net flow rate to positive
+        const accountFlowInfo = await cfa.getAccountFlowInfo(
+            superToken.address,
+            t.aliases[sender]
+        );
+        const netFlowRate = accountFlowInfo.flowRate.mul(toBN(-1)); // convert net flow rate to positive
 
         if (solvencyStatuses.preIsCritical) {
             assert.isTrue(
@@ -973,13 +969,13 @@ describe("CFAv1 | Non-Callback Tests", function () {
             );
 
             // start a reverse flow leading to a slightly positive sender net flowrate
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
+                flowRate: FLOW_RATE1.add(toBN(1)),
                 superToken: superToken.address,
                 sender: t.aliases[receiver],
                 receiver: t.aliases[sender],
-                flowRate: FLOW_RATE1.add(toBN(1)).toString(),
             });
-
             assert.isTrue(
                 (
                     await cfa.getNetFlow(superToken.address, t.aliases[sender])
@@ -990,11 +986,12 @@ describe("CFAv1 | Non-Callback Tests", function () {
             );
 
             // account still critical, should be possible to liquidate
-            await t.sf.cfa.deleteFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_DELETE,
                 superToken: superToken.address,
                 sender: t.aliases[sender],
                 receiver: t.aliases[receiver],
-                by: t.aliases[agent],
+                signer: await ethers.getSigner(t.aliases[agent]),
             });
         });
 
@@ -1054,11 +1051,12 @@ describe("CFAv1 | Non-Callback Tests", function () {
             );
 
             // start a reverse flow leading to a near-zero negative sender net flowrate
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
                 superToken: superToken.address,
                 sender: t.aliases[receiver],
                 receiver: t.aliases[sender],
-                flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                flowRate: FLOW_RATE1.sub(toBN(1)),
             });
 
             // agent liquidates
@@ -1090,11 +1088,12 @@ describe("CFAv1 | Non-Callback Tests", function () {
 
         it("#1.4.14c correct reward attribution for patrician period with multiple outflows", async () => {
             // start another, larger, outflow
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
                 superToken: superToken.address,
                 sender: t.aliases[sender],
                 receiver: t.aliases.carol,
-                flowRate: FLOW_RATE1.mul(toBN(5)).toString(),
+                flowRate: FLOW_RATE1.mul(toBN(5)),
             });
 
             const adminInitBal = (await superToken.realtimeBalanceOfNow(admin))
@@ -1111,11 +1110,12 @@ describe("CFAv1 | Non-Callback Tests", function () {
             );
 
             // start a reverse flow leading to a near-zero negative sender net flowrate
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
                 superToken: superToken.address,
                 sender: t.aliases[receiver],
                 receiver: t.aliases[sender],
-                flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                flowRate: FLOW_RATE1.sub(toBN(1)),
             });
 
             // agent liquidates
@@ -1216,11 +1216,12 @@ describe("CFAv1 | Non-Callback Tests", function () {
             );
 
             // start a reverse flow leading to a near-zero negative sender net flowrate
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
                 superToken: superToken.address,
                 sender: t.aliases[receiver],
                 receiver: t.aliases[sender],
-                flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                flowRate: FLOW_RATE1.sub(toBN(1)),
             });
 
             // agent liquidates
@@ -1251,11 +1252,12 @@ describe("CFAv1 | Non-Callback Tests", function () {
 
         it("#1.4.15c correct reward attribution for plebs period with multiple outflows", async () => {
             // start another, larger, outflow
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
                 superToken: superToken.address,
                 sender: t.aliases[sender],
                 receiver: t.aliases.carol,
-                flowRate: FLOW_RATE1.mul(toBN(5)).toString(),
+                flowRate: FLOW_RATE1.mul(toBN(5)),
             });
 
             const adminInitBal = (await superToken.realtimeBalanceOfNow(admin))
@@ -1362,11 +1364,12 @@ describe("CFAv1 | Non-Callback Tests", function () {
             );
 
             // start a reverse flow leading to a near-zero negative sender net flowrate
-            await t.sf.cfa.createFlow({
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
                 superToken: superToken.address,
                 sender: t.aliases[receiver],
                 receiver: t.aliases[sender],
-                flowRate: FLOW_RATE1.sub(toBN(1)).toString(),
+                flowRate: FLOW_RATE1.sub(toBN(1)),
             });
 
             // agent liquidates
@@ -1946,11 +1949,11 @@ describe("CFAv1 | Non-Callback Tests", function () {
                 flowRate: FLOW_RATE1.mul(toBN(2)),
             });
 
-            const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
-                superToken: superToken.address,
-                account: t.aliases[sender],
-            });
-            const netFlowRate = toBN(accountFlowInfo.flowRate);
+            const accountFlowInfo = await cfa.getAccountFlowInfo(
+                superToken.address,
+                t.aliases[sender]
+            );
+            const netFlowRate = accountFlowInfo.flowRate;
             const balanceData = await superToken.realtimeBalanceOfNow(
                 t.aliases[sender]
             );
@@ -2000,11 +2003,11 @@ describe("CFAv1 | Non-Callback Tests", function () {
                 flowRate: FLOW_RATE1.mul(toBN(2)),
             });
 
-            const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
-                superToken: superToken.address,
-                account: t.aliases[sender],
-            });
-            const netFlowRate = toBN(accountFlowInfo.flowRate);
+            const accountFlowInfo = await cfa.getAccountFlowInfo(
+                superToken.address,
+                t.aliases[sender]
+            );
+            const netFlowRate = accountFlowInfo.flowRate;
             const balanceData = await superToken.realtimeBalanceOfNow(
                 t.aliases[sender]
             );
@@ -2120,14 +2123,11 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     superToken.address,
                     flowRate.toString()
                 );
-                let expectedDeposit = CFADataModel.clipDepositNumber(
-                    toBN(flowRate).mul(toBN(LIQUIDATION_PERIOD))
+                const cfaDataModel = new CFADataModel(t, superToken);
+                const expectedDeposit = cfaDataModel.getDeposit(
+                    toBN(flowRate),
+                    LIQUIDATION_PERIOD
                 );
-                expectedDeposit =
-                    expectedDeposit.lt(t.configs.MINIMUM_DEPOSIT) &&
-                    toBN(flowRate).gt(toBN(0))
-                        ? t.configs.MINIMUM_DEPOSIT
-                        : expectedDeposit;
                 console.log(
                     `f(${flowRate.toString()}) = ${expectedDeposit.toString()} ?`
                 );
@@ -2289,9 +2289,10 @@ describe("CFAv1 | Non-Callback Tests", function () {
                         .mul(toBN(LIQUIDATION_PERIOD))
                         .add(marginalLiquidity)
                 );
-                await testToken.mint(t.aliases.alice, sufficientLiquidity, {
-                    from: t.aliases.alice,
-                });
+                const aliceSigner = await ethers.getSigner(t.aliases.alice);
+                await testToken
+                    .connect(aliceSigner)
+                    .mint(t.aliases.alice, sufficientLiquidity);
                 await t.upgradeBalance(sender, sufficientLiquidity);
 
                 await shouldCreateFlow({

@@ -45,12 +45,8 @@ describe("CFAv1 | Multi Flow Super App Tests", function () {
         ({bob, dan} = t.aliases);
 
         ({superfluid, cfa} = t.contracts);
-        superToken = t.sf.tokens.TESTx;
+        superToken = t.tokens.SuperToken;
         agreementHelper = t.agreementHelper;
-    });
-
-    after(async () => {
-        await t.report({title: "ConstantFlowAgreement.test"});
     });
 
     beforeEach(async () => {
@@ -72,7 +68,7 @@ describe("CFAv1 | Multi Flow Super App Tests", function () {
 
     async function verifyAll(opts?: VerifyOptions) {
         const cfaDataModel = new CFADataModel(t, superToken);
-        const block2 = await web3.eth.getBlock("latest");
+        const block2 = await ethers.provider.getBlock("latest");
         await t.validateExpectedBalances(() => {
             cfaDataModel.syncAccountExpectedBalanceDeltas({
                 superToken: superToken.address,
@@ -1191,10 +1187,10 @@ describe("CFAv1 | Multi Flow Super App Tests", function () {
             "CFA_NON_CRITICAL_SENDER"
         );
 
-        const accountFlowInfo = await t.sf.cfa.getAccountFlowInfo({
-            superToken: superToken.address,
-            account: t.aliases[sender],
-        });
+        const accountFlowInfo = await cfa.getAccountFlowInfo(
+            superToken.address,
+            t.aliases[sender]
+        );
         await timeTravelOnceAndVerifyAll({
             time: t.configs.INIT_BALANCE.div(FLOW_RATE1)
                 .sub(LIQUIDATION_PERIOD)

@@ -141,7 +141,7 @@ export default class MFASupport {
                     flowRate: mfaFlowRate,
                     deposit: mfaFlowDepositAllowance,
                     owedDeposit: toBN(0),
-                    timestamp: new Date(),
+                    timestamp: toBN(0),
                 };
             })
         );
@@ -171,7 +171,7 @@ export default class MFASupport {
                 flowRate: toBN(0),
                 deposit: toBN(0),
                 owedDeposit: toBN(0),
-                timestamp: new Date(),
+                timestamp: toBN(0),
             };
         }
     }

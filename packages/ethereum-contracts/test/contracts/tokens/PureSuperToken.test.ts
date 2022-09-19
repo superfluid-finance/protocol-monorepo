@@ -46,11 +46,12 @@ describe("PureSuperToken Contract", function () {
             "DD",
             toWad(42).toString()
         );
-        const token = await t.sf.contracts.ISuperToken.at(
+        const token = await ethers.getContractAt(
+            "ISuperToken",
             PureSuperToken.address
         );
         assert.equal(
-            (await token.balanceOf.call(admin)).toString(),
+            (await token.balanceOf(admin)).toString(),
             toWad(42).toString()
         );
         await expectRevertedWith(

@@ -12,6 +12,10 @@ import {
 import {expectRevertedWith} from "../../utils/expectRevert";
 import {toBN, toWad} from "./helpers";
 import TestEnvironment from "../../TestEnvironment";
+import AgreementHelper, {
+    FLOW_TYPE_CREATE,
+    FLOW_TYPE_DELETE,
+} from "../agreements/AgreementHelper";
 const traveler = require("ganache-time-traveler");
 
 describe("TOGA", function () {
@@ -20,6 +24,7 @@ describe("TOGA", function () {
     const {ZERO_ADDRESS} = t.constants;
 
     let admin: string, alice: string, bob: string, carol: string;
+    let agreementHelper: AgreementHelper;
 
     let superfluid: SuperfluidMock,
         erc1820: IERC1820Registry,
@@ -42,14 +47,8 @@ describe("TOGA", function () {
         });
         ({admin, alice, bob, carol} = t.aliases);
         ({superfluid, erc1820, cfa} = t.contracts);
-        superToken = await ethers.getContractAt(
-            "SuperToken",
-            t.sf.tokens.TESTx.address
-        );
-    });
-
-    after(async function () {
-        await t.report({title: "TOGA.test"});
+        superToken = t.tokens.SuperToken;
+        agreementHelper = t.agreementHelper;
     });
 
     beforeEach(async function () {
@@ -71,11 +70,11 @@ describe("TOGA", function () {
 
     // copied over from ConstantFlowAgreementV1.test.js - should probably be a shared fn
     async function timeTravelOnce(time = MIN_BOND_DURATION) {
-        const block1 = await web3.eth.getBlock("latest");
+        const block1 = await ethers.provider.getBlock("latest");
         console.log("current block time", block1.timestamp);
         console.log(`time traveler going to the future +${time}...`);
         await traveler.advanceTimeAndBlock(time);
-        const block2 = await web3.eth.getBlock("latest");
+        const block2 = await ethers.provider.getBlock("latest");
         console.log("new block time", block2.timestamp);
     }
 
@@ -131,20 +130,22 @@ describe("TOGA", function () {
     ) {
         await t.upgradeBalance("admin", t.configs.INIT_BALANCE);
 
-        await t.sf.cfa.createFlow({
+        await agreementHelper.modifyFlow({
+            type: FLOW_TYPE_CREATE,
             superToken: token.address,
             sender: admin,
             receiver: toga.address,
-            flowRate: flowrate.toString(),
+            flowRate: toBN(flowrate),
         });
 
         await timeTravelOnce(time);
 
-        await t.sf.cfa.deleteFlow({
+        await agreementHelper.modifyFlow({
+            type: FLOW_TYPE_DELETE,
             superToken: token.address,
             sender: admin,
             receiver: toga.address,
-            by: admin,
+            signer: await ethers.getSigner(admin),
         });
 
         console.log(
@@ -156,11 +157,12 @@ describe("TOGA", function () {
 
     // requires the exit stream to be in a critical state - will fail otherwise
     async function liquidateExitStream(token: SuperToken) {
-        await t.sf.cfa.deleteFlow({
+        await agreementHelper.modifyFlow({
+            type: FLOW_TYPE_DELETE,
             superToken: token.address,
             sender: toga.address,
             receiver: await toga.getCurrentPIC(token.address),
-            by: admin,
+            signer: await ethers.getSigner(admin),
         });
     }
 
@@ -479,11 +481,12 @@ describe("TOGA", function () {
         await assertNetFlow(superToken, alice, EXIT_RATE_1E3);
 
         await timeTravelOnce(1000);
-        await t.sf.cfa.deleteFlow({
+        await agreementHelper.modifyFlow({
+            type: FLOW_TYPE_DELETE,
             superToken: superToken.address,
             sender: toga.address,
             receiver: alice,
-            by: alice,
+            signer: await ethers.getSigner(alice),
         });
         await assertNetFlow(superToken, alice, 0);
 
@@ -500,11 +503,12 @@ describe("TOGA", function () {
 
         // stop again and let bob make a bid
         await timeTravelOnce(1000);
-        await t.sf.cfa.deleteFlow({
+        await agreementHelper.modifyFlow({
+            type: FLOW_TYPE_DELETE,
             superToken: superToken.address,
             sender: toga.address,
             receiver: alice,
-            by: alice,
+            signer: await ethers.getSigner(alice),
         });
         await assertNetFlow(superToken, alice, 0);
 
@@ -606,7 +610,7 @@ describe("TOGA", function () {
             })
         ).superToken;
         superToken2 = await ethers.getContractAt(
-            "SuperToken",
+            "SuperTokenMock",
             superToken2.address
         );
 

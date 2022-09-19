@@ -42,8 +42,8 @@ describe("Superfluid Super Upgrader Contract", function () {
         SuperUpgraderFactory = await ethers.getContractFactory("SuperUpgrader");
         ({admin, alice, bob, carol, dan, eve} = t.aliases);
         backend = new Array(bob, carol, dan);
-        testToken = await t.sf.contracts.TestToken.at(t.sf.tokens.TEST.address);
-        superToken = t.sf.tokens.TESTx;
+        testToken = t.tokens.TestToken;
+        superToken = t.tokens.SuperToken;
     });
 
     beforeEach(async function () {
@@ -102,12 +102,11 @@ describe("Superfluid Super Upgrader Contract", function () {
     describe("#2 Upgrades to SuperToken", async () => {
         it("#2.1 Should revert if not in role", async () => {
             const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
-            await web3tx(
-                testToken.approve,
-                "testToken.approve - from alice to admin"
-            )(upgrader.address, toWad("3"), {
-                from: alice,
-            });
+            const aliceSigner = await ethers.getSigner(alice);
+            console.log("testToken.approve - from alice to admin");
+            await testToken
+                .connect(aliceSigner)
+                .approve(upgrader.address, toWad("3"));
             const eveSigner = await ethers.getSigner(eve);
             await expectRevertedWith(
                 upgrader
@@ -119,18 +118,15 @@ describe("Superfluid Super Upgrader Contract", function () {
 
         it("#2.2 Should upgrade amount and give it back to user", async () => {
             const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
-            await web3tx(
-                testToken.approve,
-                "testToken.approve - from alice to admin"
-            )(upgrader.address, toWad("3"), {
-                from: alice,
-            });
+            const aliceSigner = await ethers.getSigner(alice);
+            console.log("testToken.approve - from alice to admin");
+            await testToken
+                .connect(aliceSigner)
+                .approve(upgrader.address, toWad("3"));
             const signer = await ethers.getSigner(backend[0]);
-            await web3tx(upgrader.connect(signer).upgrade, "upgrader.upgrade")(
-                superToken.address,
-                alice,
-                toWad("3")
-            );
+            await upgrader
+                .connect(signer)
+                .upgrade(superToken.address, alice, toWad("3"));
             const aliceSuperTokenBalance = await superToken.balanceOf(alice);
             assert.equal(
                 aliceSuperTokenBalance.toString(),
@@ -141,12 +137,11 @@ describe("Superfluid Super Upgrader Contract", function () {
 
         it("#2.3 Should upgrade small amount", async () => {
             const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
-            await web3tx(
-                testToken.approve,
-                "testToken.approve - from alice to backend"
-            )(upgrader.address, toWad("3"), {
-                from: alice,
-            });
+            const aliceSigner = await ethers.getSigner(alice);
+            console.log("testToken.approve - from alice to backend");
+            await testToken
+                .connect(aliceSigner)
+                .approve(upgrader.address, toWad("3"));
 
             const signer = await ethers.getSigner(backend[1]);
             await web3tx(upgrader.connect(signer).upgrade, "upgrader.upgrade")(
@@ -165,16 +160,16 @@ describe("Superfluid Super Upgrader Contract", function () {
 
         it("#2.4 Should upgrade large amount", async () => {
             const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
-            await testToken.mint(alice, toWad("100000000000"), {
-                from: admin,
-            });
+            const adminSigner = await ethers.getSigner(admin);
+            const aliceSigner = await ethers.getSigner(alice);
+            await testToken
+                .connect(adminSigner)
+                .mint(alice, toWad("100000000000"));
 
-            await web3tx(
-                testToken.approve,
-                "testToken.approve - from alice to backend"
-            )(upgrader.address, toWad("100000000000"), {
-                from: alice,
-            });
+            console.log("testToken.approve - from alice to backend");
+            await testToken
+                .connect(aliceSigner)
+                .approve(upgrader.address, toWad("100000000000"));
             const signer = await ethers.getSigner(backend[2]);
             await web3tx(upgrader.connect(signer).upgrade, "upgrader.upgrade")(
                 superToken.address,
@@ -206,12 +201,11 @@ describe("Superfluid Super Upgrader Contract", function () {
         it("#2.6 Should revert approval is less than need it", async () => {
             const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             const backendSigner = await ethers.getSigner(backend[0]);
-            await web3tx(
-                testToken.approve,
-                "testToken.approve - from alice to backend"
-            )(upgrader.address, toWad("1"), {
-                from: alice,
-            });
+            const aliceSigner = await ethers.getSigner(alice);
+            console.log("testToken.approve - from alice to backend");
+            await testToken
+                .connect(aliceSigner)
+                .approve(upgrader.address, toWad("1"));
 
             await expectRevertedWith(
                 upgrader
@@ -223,17 +217,15 @@ describe("Superfluid Super Upgrader Contract", function () {
 
         it("#2.7 Owner of tokens can use SuperUpgrader directly", async () => {
             const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
-            await web3tx(
-                testToken.approve,
-                "testToken.approve - from alice to admin"
-            )(upgrader.address, toWad("1000000"), {
-                from: alice,
-            });
             const aliceSigner = await ethers.getSigner(alice);
-            await web3tx(
-                upgrader.connect(aliceSigner).upgrade,
-                "upgrader.upgrade"
-            )(superToken.address, alice, toWad("3"));
+            console.log("testToken.approve - from alice to admin");
+            await testToken
+                .connect(aliceSigner)
+                .approve(upgrader.address, toWad("1000000"));
+            console.log("upgrader.upgrade");
+            await upgrader
+                .connect(aliceSigner)
+                .upgrade(superToken.address, alice, toWad("3"));
             const aliceSuperTokenBalance = await superToken.balanceOf(alice);
             assert.equal(
                 aliceSuperTokenBalance.toString(),
@@ -246,12 +238,10 @@ describe("Superfluid Super Upgrader Contract", function () {
             const upgrader = await SuperUpgraderFactory.deploy(admin, backend);
             const backendSigner = await ethers.getSigner(backend[0]);
             const aliceSigner = await ethers.getSigner(alice);
-            await web3tx(
-                testToken.approve,
-                "testToken.approve - from alice to backend"
-            )(upgrader.address, toWad("1000000"), {
-                from: alice,
-            });
+            console.log("testToken.approve - from alice to backend");
+            await testToken
+                .connect(aliceSigner)
+                .approve(upgrader.address, toWad("1000000"));
             console.log("Alice opt-out");
 
             await upgrader.connect(aliceSigner).optoutAutoUpgrades();

@@ -22,4 +22,4 @@ require("../test/contracts/utils/BatchLiquidator.test.js");
 require("../test/contracts/utils/TOGA.test");
 
 // Agreement forwarders
-require("../test/contracts/agreements/CFAv1Forwarder.test.js");
+require("../test/contracts/utils/CFAv1Forwarder.test.js");

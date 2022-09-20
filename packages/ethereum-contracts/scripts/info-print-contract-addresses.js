@@ -15,7 +15,7 @@ const {
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  *
- * Usage: npx truffle exec scripts/info-print-contract-addresses : output_file
+ * Usage: npx truffle exec scripts/info-print-contract-addresses : {OUTPUT_FILE}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,

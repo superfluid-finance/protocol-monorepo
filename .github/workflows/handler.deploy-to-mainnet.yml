@@ -1,4 +1,4 @@
-name: Deploy to Network
+name: Deploy to Mainnet
 
 on:
   workflow_dispatch:
@@ -8,31 +8,23 @@ on:
         required: true
         default: 'v1'
       network:
-        description: 'Network on which to deploy/upgrade'
+        description: 'Mainnet on which to deploy/upgrade'
         required: true
-      provider_url:
-        description: 'HTTP or WS RPC provider (overrides the one preset in GH env)'
-        required: false
       environments:
         description: 'Additional env vars, separated by semicolons'
         required: false
 
 jobs:
 
-  deploy-to-network:
-    name: Deploy to network
+  deploy-to-mainnet:
+    name: Deploy to mainnet
 
     runs-on: ubuntu-latest
 
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
       DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
-      OVERRIDE_PROVIDER_URL: ${{ github.event.inputs.provider_url }}
-      # testnet web3 providers
-      ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
-      POLYGON_MUMBAI_PROVIDER_URL: ${{ secrets.POLYGON_MUMBAI_PROVIDER_URL }}
-      OPTIMISM_GOERLI_PROVIDER_URL: ${{ secrets.OPTIMISM_GOERLI_PROVIDER_URL }}
-      ARBITRUM_GOERLI_PROVIDER_URL: ${{ secrets.ARBITRUM_GOERLI_PROVIDER_URL }}
+      # testnet web3 providers (leaving for testing)
       AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
       # mainnet web3 providers
       XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
@@ -45,6 +37,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - uses: actions/checkout@v3
+        with:
+          repository: superfluid-finance/build-scripts
+          path: build-scripts
+
       - name: Use Node.js 16.x
         uses: actions/setup-node@v3
         with:
@@ -56,10 +53,22 @@ jobs:
           yarn install --frozen-lockfile
           yarn build-for-contracts-dev
 
-      - name: Build and deploy to ${{ github.event.inputs.network }}
+      - name: Deploy to ${{ github.event.inputs.network }}
         run: |
           cd packages/ethereum-contracts
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
+          mkdir tmp
           npx truffle exec --network ${{ github.event.inputs.network }} scripts/deploy-framework.js
         env:
           GOVERNANCE_ADMIN_TYPE: MULTISIG
+          OUTPUT_FILE: tmp/contract-addresses.txt
+
+      - name: Upload new contract addresses
+        uses: ./build-scripts/s3cloudfront-hosting/actions/sync
+        with:
+          local_build_dir: packages/ethereum-contracts/tmp
+          aws_region: eu-west-2
+          aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
+          s3_uri: ${{ format('{0}{1}-contract-addrs@{2}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, github.event.inputs.network, github.run_id) }}
+          cloudfront_distribution_id: E3SV855CTC9UJO

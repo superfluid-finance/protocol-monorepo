@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Document Preamble
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass{article}
+\documentclass[a4paper]{article}
 
 %% Base Folder for Inputs
 \makeatletter
@@ -13,6 +13,8 @@
 \usepackage{csquotes}
 \usepackage{xcolor}
 \usepackage{minted}
+\usepackage{amsmath}
+\usepackage{enumitem}
 
 %% Literate Haskell Macros
 
@@ -25,27 +27,29 @@
 
 %% Document Meta Data
 
-\title{Superfluid Money: Enabling Generalized Schemes For Monetary Units}
+\title{Denotational Semantics of General Payment Primitives, and Its Payment System}
 
-\author{
-    Miao, ZhiCheng (hellwolf)\\
+\author{\\
+    Miao, ZhiCheng\\
     Co-Founder, Superfluid Finance\\
     miao@superfluid.finance
 }
 
-\usepackage{biblatex}
+\usepackage[
+    backend=biber,
+    style=alphabetic,
+]{biblatex}
 \addbibresource{../tex/Biblio.bib}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Document Body
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
-
 \maketitle
 
 \begin{abstract}
     \begin{center}
-        (Some Distant Lyric as Placeholder)
+        (Some distant lyrics as the placeholder of the actual abstract)
 
         Money, money, money
 
@@ -73,39 +77,47 @@
 
 \section{Introduction}
 
-It should be fair to say, every aspects of money are controversial: the nature of money, the value of money, money and
-banking, and monetary reconstruction. \cite{von2013theory}
+It should be fair to say, every aspect of money are controversial: the nature of money, the value of money, money and
+banking, and monetary reconstruction. Two major schools of thoughts about theory of money are the \textit{Austrian
+    school} \cite{von2013theory} and the \textit{Chicago school} \cite{friedman1989quantity}. That is before the
+appearance of Internet-era version of monetary reconstruction, broadly defined as cryptocurrency, which challenges
+theories of money further and demands their updates \cite{ammous2018can} \cite{hardle2020understanding}.
 
-But less has been challenged is the underlying theory of money schemes, or often called payment systems.
+But when it comes to the function of money, it is less controversial. According to Von Mises,
 
-This yellow paper aims to add a new controversy, by introducing the concept of context into the money schemes and
-generalizing existing theory for a new unifying theory of money schemes in Part 1.
+\begin{quotation}
+The function of money is to facilitate the business of the market by acting as a common medium of
+exchange. \footfullcite[][Part One, Chapter I, § 1, p1]{von2013theory}
+\end{quotation}
 
-In Part 2, we also put forth a realization and specification of a version of contextual money scheme known enabled by a
-system called Superfluid money.
+How do different forms of money perform this function, especially in the information age, when electronic forms of money
+are increasingly used?
 
-The yellow paper also uses literate Haskell as a technique to embed concepts and specifications as compilable code for
-better verifiability and reusability.
+This yellow paper adds a new controversy to money, that is to present a survey challenging the preconceived notion of
+how money can perform its function of medium of exchange using computer science.
 
-(STILL WIP)
+In Part I, we shall first explore the foundation for the survey. Here we present a formal definitions of payment system,
+and various models in the system. We then select a few relevant approaches used in computer science useful for defining
+formal specification of payment system.
+
+One of the approaches is denotational semantics, which is used in Part II of the paper to define the general payment
+primitives. Along with the denotational semantics, a restatement of it in \textit{Haskell programming language} is also
+included.
+
+In Part III, a reference implementation of the general payment primitives and its payment system called
+\textit{Superfluid Money} is introduced.
+
+In Part IV, some possible further investigations are included for future study purpose.
 
 \newpage
-\part{Philosophy of Money}
+\part{Foundation}
 \newpage
 
 \section{Nature of Money}
 
-\section{Money Schemes}
+Nature of money.
 
-\subsection{A New Unifying Theory}
-
-\input{MoneyDistributionConcepts.tex}
-
-\subsection{Communism}
-
-\input{Communism.tex}
-
-\subsection{Context free Schemes}
+\section{Money Distribution}
 
 Most of the existing money schemes are of this category, where a money unit completely disregards its context and hence
 its liquidity value and bearer are static until the next money redistribution occurs.
@@ -114,12 +126,115 @@ Here are the type definitions of these money schemes defined in \cite{buldas2021
 
 TODO...
 
-\subsection{Contextual Schemes}
+\subsection{A New Unifying Theory}
+
+\input{MoneyDistributionConcepts.tex}
+
+\section{Forms of Medium}
+
+\section{Payment Models}
+
+\subsection{Discrete Payments}
+
+\subsection{Continuous Payments}
 
 In contract, under the contextual money schemes, the liquidity value and maybe even bearer of a money unit can be a
 function of context too.
 
 TODO...
+
+\section{Related Paradigms}
+
+\subsection{Constraint Programming}
+
+\subsection{Functional Reactive Programming}
+
+\subsection{Denotational Semantics}
+
+\section{Generalized Denotational Payment Semantics}
+
+Here is the specification of denotational semantics that support both discrete and continous payments.
+
+Here is the list of acronyms used:
+
+\begin{itemize}
+    \item \textbf{MD} is \textit{Money Distribution}.
+    \item \textbf{MU} is \textit{Monetary Unit}.
+    \item \textbf{RTB} is \textit{Real Time Balance}.
+\end{itemize}
+
+\subsection{Generalized Payment Model}
+
+\begin{equation}\label{sem_transfer}
+    \begin{split}
+        [\![MD\ mu\ t\ rtb]\!] = mu \rightarrow t \rightarrow rtb
+    \end{split}
+\end{equation}
+
+\subsection{Monoidial Payment Model}
+
+\begin{equation}\label{sem_mzero}
+    [\![\emptyset]\!] = \lambda\ mu\ t\ \rightarrow 0
+\end{equation}
+
+\begin{equation}\label{sem_mappend}
+    [\![mda \oplus\ mdb]\!] = \lambda\ mu\ t\ \rightarrow
+    [\![mda]\!]\ mu\ t\ +\ [\![mdb]\!]\ mu\ t
+\end{equation}
+
+\subsection{Payment Premitives}
+
+\begin{equation}\label{sem_transfer}
+    \begin{split}
+        [\![&transfer\ from\ to\ amount\ md]\!] = [\![md]\!]\ \oplus \\
+        (\lambda\ case&\ mu\ t \\
+        &|\ from = mu \rightarrow -amount \\
+        &|\ to   = mu \rightarrow amount \\
+        &|\ otherwise \rightarrow 0 \\
+        )
+    \end{split}
+\end{equation}
+
+\begin{equation}\label{sem_updateConstantFlow}
+    \begin{split}
+        [\![&updateConstantFlow\ from\ to\ flowRate\ t'\ md]\!] = [\![md]\!]\ \oplus \\
+        (\lambda\ case&\ mu\ t \\
+        &|\ from = mu \rightarrow -flowRate * (t - t') \\
+        &|\ to   = mu \rightarrow flowRate  * (t - t') \\
+        &|\ otherwise \rightarrow 0 \\
+        )
+    \end{split}
+\end{equation}
+
+\begin{equation}
+    unit :: sub \rightarrow subs \rightarrow Int
+\end{equation}
+
+\begin{equation}
+    proportion\ sub\ subs = {{ unit\ sub\ subs } \over { \displaystyle \sum_{x \in subs} unit\ x\ subs }}
+\end{equation}
+
+\begin{equation}\label{sem_distributeProportionally}
+    \begin{split}
+        [\![&distributeProportionally\ pub\ subs\ amount\ md]\!] = [\![md]\!]\ \oplus \\
+        (\lambda\ case&\ mu\ t \\
+        &|\ pub = mu \rightarrow -amount \\
+        &|\ \exists sub \in subs\ { sub = mu } \rightarrow amount * (proportion\ mu\ subs) \\
+        &|\ otherwise \rightarrow 0 \\
+        )
+    \end{split}
+\end{equation}
+
+\begin{equation}\label{sem_distributeProportionally}
+    \begin{split}
+        [\![&updateProportionalDistributionConstantFlow\ pub\ subs\ flowRate\ t'\ md]\!] = [\![md]\!]\ \oplus \\
+        (\lambda\ case&\ mu\ t \\
+        &|\ pub = mu \rightarrow -flowRate * (t - t') \\
+        &|\ \exists sub \in subs\ { sub = mu } \rightarrow flowRate * (t - t') * (proportion\ mu\ subs) \\
+        &|\ otherwise \rightarrow 0 \\
+        )
+    \end{split}
+\end{equation}
 
 \newpage
 \part{Superfluid Money}

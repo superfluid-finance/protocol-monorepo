@@ -76,8 +76,6 @@ $(YELLOWPAPER_ROOT)/tex:
 	mkdir -p "$@"
 $(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex: packages/core/src/Money/Theory/Distribution.lhs
 	./utils/lhs2tex.sh "$<" > "$@"
-$(YELLOWPAPER_ROOT)/tex/Communism.tex: packages/core/src/Money/Systems/Communism.lhs
-	./utils/lhs2tex.sh "$<" > "$@"
 $(YELLOWPAPER_ROOT)/tex/lhsfmt.tex:
 	echo '%include lhs2TeX.fmt' | lhs2TeX > "$@"
 
@@ -87,7 +85,6 @@ $(YELLOWPAPER_ROOT)/tex/%: yellowpaper/$$(notdir $$*)
 
 YELLOWPAPER_INPUTS = $(YELLOWPAPER_ROOT)/tex \
 	$(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex \
-	$(YELLOWPAPER_ROOT)/tex/Communism.tex \
 	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
 	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
 	$(YELLOWPAPER_ROOT)/tex/Biblio.bib \
@@ -97,8 +94,8 @@ $(YELLOWPAPER_ROOT)/pdflatex/superfluid-yellowpaper.pdf: $(YELLOWPAPER_INPUTS)
 	rm -rf $(YELLOWPAPER_ROOT)/pdflatex
 	mkdir -p $(YELLOWPAPER_ROOT)/pdflatex
 	cd $(YELLOWPAPER_ROOT)/pdflatex; { \
-		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/Paper.tex; \
-		biber superfluid-yellowpaper.bcf; \
+		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/Paper.tex && \
+		biber superfluid-yellowpaper.bcf && \
 		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/Paper.tex; \
 	}
 

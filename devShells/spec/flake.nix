@@ -25,7 +25,8 @@
         python39Packages.pygments
         (texlive.combine {
           inherit (texlive)
-          scheme-basic collection-latex collection-latexextra collection-bibtexextra;
+          scheme-basic metafont
+          collection-latex collection-latexextra collection-bibtexextra;
         })
       ];
     };

@@ -1,8 +1,10 @@
 {
     "extends": "./tsconfig",
     "compilerOptions": {
-        "target": "es2018",
+        "target": "ES2019",
+        "lib": ["ESNext"],
         "module": "commonjs",
+        "moduleResolution": "node",
         "declaration": false,
         "declarationMap": false,
         "strict": true,
@@ -11,11 +13,6 @@
         "outDir": "dist/test",
         "sourceMap": false
     },
-    "files": [
-        "hardhat.config.ts"
-    ],
-    "include": [
-        "test",
-        "scripts"
-    ]
+    "files": ["hardhat.config.ts"],
+    "include": ["test", "scripts"]
 }

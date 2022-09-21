@@ -406,9 +406,7 @@ describe("SuperToken Tests", () => {
             await framework.loadSuperToken("ETHx");
 
             // load PureSuperToken
-            await framework.loadSuperToken(
-                "0x67d269191c92Caf3cD7723F116c85e6E9bf55933"
-            );
+            await framework.loadSuperToken("MRx");
         });
 
         it("Should be able to create a WrapperSuperToken", async () => {
@@ -444,11 +442,7 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to create a PureSuperToken", async () => {
-            // TODO: SCRIPTS ARE A BLOCKER - FIX LATER SO THAT WE DON'T NEED TO HARDCODE HERE
-            // 0x67d269191c92Caf3cD7723F116c85e6E9bf55933 is MR address
-            await framework.loadPureSuperToken(
-                "0x67d269191c92Caf3cD7723F116c85e6E9bf55933"
-            );
+            await framework.loadPureSuperToken("MRx");
         });
 
         it("Should throw if trying to load a non-PureSuperToken", async () => {

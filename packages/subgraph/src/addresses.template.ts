@@ -25,6 +25,8 @@ export function getHostAddress(): Address {
 export function getResolverAddress(): Address {
     const network = "{{network}}";
     const addresses: TypedMap<string, string> = new TypedMap<string, string>();
+    // @note this is not great, but OK for now - should probably programmatically set the address
+    // for "mainnet" => testing
     addresses.set("mainnet", "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512");
     addresses.set("goerli", "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E");
     addresses.set("matic", "0xE0cc76334405EE8b39213E620587d815967af39C");
@@ -43,7 +45,9 @@ export function getResolverAddress(): Address {
 export function getNativeAssetSuperTokenAddress(): Address {
     const network = "{{network}}";
     const addresses: TypedMap<string, string> = new TypedMap<string, string>();
-    addresses.set("mainnet", "0x4a679253410272dd5232b3ff7cf5dbb88f295319");
+    // @note this is not great, but OK for now - should probably programmatically set the address
+    // for "mainnet" => testing
+    addresses.set("mainnet", "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f");
     addresses.set("goerli", "0x5943f705abb6834cad767e6e4bb258bc48d9c947");
     addresses.set("matic", "0x3ad736904e9e65189c3000c7dd2c8ac8bb7cd4e3");
     addresses.set("mumbai", "0x96b82b65acf7072efeb00502f45757f254c2a0d4");

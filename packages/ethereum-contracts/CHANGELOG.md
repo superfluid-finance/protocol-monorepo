@@ -5,9 +5,20 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+## [v.1.4.1] - 2022-09-20
+
+### Added
+
+- CFA Agreement forwarder: deployed on all networks at 0xCfA1E187C9141B8bA90a436CB789017FA573d051
+
+### Fixes
+
+- [SECURITY] CFA: check flow sender instead of msg sender in order to cover ACL use
+
 ## [v.1.4.0] - 2022-09-05
 
 ### Added
+
 - CFA Agreement Forwarder (#982)
 - Gov: Convenience method for app registration keys and some cleanup (#1049)
 - App Credit Rule CFA-2 (#899)
@@ -19,7 +30,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Initialize logic contracts on deployment (using "castrate") (#841)
 - add tokenDecimals option to deploy-test-token.js (#1025)
 
-### Fixed
+### Fixes
 
 - [TOGA] Added missing awaits (#1044)
 - New TestSuperApp: stream redirector wip, for testing when `appCallbackLevel` starting at 0 (#1008)
@@ -29,6 +40,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Queue up FAILED_VERIFICATIONS (#900)
 
 ### Changed
+
 - Deprecate support for `kovan`, `rinkeby`, `optimism-kovan`, and `optimism-rinkeby` (#1032)
 - Remove MaticBridgedToken from monorepo (#1060)
 - Updating dependencies & dedup dev packages (#1064)
@@ -81,7 +93,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - App registration keys with expiration date instead of one-time use.
-
 
 ## [v1.2.1] - 2022-04-28
 

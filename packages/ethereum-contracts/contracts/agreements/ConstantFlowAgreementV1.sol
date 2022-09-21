@@ -446,7 +446,7 @@ contract ConstantFlowAgreementV1 is
                 ctx, currentContext);
         }
 
-        _requireAvailableBalance(flowVars.token, currentContext);
+        _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
     }
 
     function _updateFlow(
@@ -474,7 +474,7 @@ contract ConstantFlowAgreementV1 is
                 ctx, currentContext);
         }
 
-        _requireAvailableBalance(flowVars.token, currentContext);
+        _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
     }
 
     function _deleteFlow(
@@ -1221,6 +1221,7 @@ contract ConstantFlowAgreementV1 is
     }
     function _requireAvailableBalance(
         ISuperfluidToken token,
+        address flowSender,
         ISuperfluid.Context memory currentContext
     )
         private view
@@ -1228,7 +1229,7 @@ contract ConstantFlowAgreementV1 is
         // do not enforce balance checks during callbacks for the appCreditToken
         if (currentContext.callType != ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK ||
             currentContext.appCreditToken != token) {
-            (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
+            (int256 availableBalance,,) = token.realtimeBalanceOf(flowSender, currentContext.timestamp);
             if (availableBalance < 0) {
                 revert SuperfluidErrors.INSUFFICIENT_BALANCE(SuperfluidErrors.CFA_INSUFFICIENT_BALANCE);
             }

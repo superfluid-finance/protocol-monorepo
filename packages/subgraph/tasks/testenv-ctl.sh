@@ -22,8 +22,6 @@ if [ "$CMD" == "start" ];then
         yarn build
     fi
     cd ../subgraph
-    # Deploy contracts and token locally
-    yarn deploy-contracts-local
     # Prepare, set network, build and deploy subgraph locally
     yarn build-and-deploy-local
 elif [ "$CMD" == "stop" ];then

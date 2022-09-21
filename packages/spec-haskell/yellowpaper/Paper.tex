@@ -13,6 +13,7 @@
 \usepackage{csquotes}
 \usepackage{xcolor}
 \usepackage{minted}
+\usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{enumitem}
 \usepackage{graphicx}
@@ -99,19 +100,19 @@ are increasingly used?
 This yellow paper adds a new controversy to money, that is to present a survey challenging the preconceived notion of
 how money can perform its function of medium of exchange using computer science.
 
-In Chapter I, we shall first explore the foundation for the survey. Here we present a formal definition of payment system,
+In Chapter 2, we shall first explore the foundation for the survey. Here we present a formal definition of payment system,
 and various models used in the system. We then select a few relevant approaches used in computer science useful for
 modeling and defining formal specification for the payment system.
 
-One of the approaches is \textit{denotational semantics}, which is used in Chapter II of the paper to define the general
+One of the approaches is \textit{denotational semantics}, which is used in Chapter 3 of the paper to define the general
 payment primitives. Along with the denotational semantics, a restatement\footnote{It is a borrowed term from common law:
 "restatement of the law". In our case, the denotative mathematical "laws".} of it in \textit{Haskell programming
     language} (\cite{hudak1992report} \cite{jones2003haskell} \cite{marlow2010haskell}) is also included.
 
-In Chapter III, a reference implementation of the general payment primitives and its payment system called
+In Chapter 4, a reference implementation of the general payment primitives and its payment system called
 \textit{Superfluid Money} is introduced.
 
-In Chapter IV, some possible further investigations are included for future study purpose.
+In Chapter 5, some possible further investigations are included for future study purpose.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Foundation}
@@ -119,7 +120,7 @@ In Chapter IV, some possible further investigations are included for future stud
 
 \section{Payment System}
 
-We shall define a payment system, whereby:
+We first define a payment system, whereby:
 
 \begin{itemize}
 \item \textit{money distribution} models how monetary value is distributed amongst bearers\footnote{(Banking \& Finance)
@@ -129,17 +130,35 @@ a person who presents a note or bill for payment. - Collins English Dictionary},
 \item and \textit{forms of money medium} are the "user interfaces" of money for the bearers.
 \end{itemize}
 
+For its modern upgrade, the system should also have these properties:
+
+\begin{itemize}
+\item Money can be distributed continuously over time, as opposed to be discrete.
+\item Payment primitives can involve more than two parties, as opposed to be only for a sender and a receiver.
+\item Financial system should be compositional.
+\end{itemize}
+
 \subsection{Money Distribution Models}
 
-Most of the existing money schemes are of this category, where a money unit completely disregards its context and hence
-its liquidity value and bearer are static until the next money redistribution occurs.
+A representation of money and its distribution proposed in \cite{buldas2021unifying} involves the following components:
 
-Here are the type definitions of these money schemes defined in \cite{buldas2021unifying}:
+\begin{itemize}
+\item U is the set of monetary units
+\item $\nu : U \rightarrow \mathbb{N}$ is the value function defining the value $\nu(u)$ of every value unit u. The set
+    $\mathbb{N}$ is the set of all natural numbers, but instead, we can use any set of numerals that is totally ordered
+    (e.g.\ integers, real numbers).
+\item $\beta : U \rightarrow \mathfrak{B}$ is the bearer function defining the bearer $\beta(u)$ of a unit. The set
+    $\mathfrak{B}$ is the set of possible bearers. The bearer is usually a legal construction defining any type of legal
+    entity, such as a person, a family, a company, a state institution, etc.
+\end{itemize}
 
-\begin{figure}
-  \includegraphics[width=\linewidth]{assets/discrete-money-distribution.png}
-  \caption{Schematic representation of discrete money distribution}
-  \label{fig:discrete-md}
+This discrete nature of money distribution is schematically depicted in {\ref{fig:discrete-md}}:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../assets/discrete-money-distribution.png}
+    \caption{Schematic representation of discrete money distribution}
+    \label{fig:discrete-md}
 \end{figure}
 
 \subsubsection{A New Unifying Model}

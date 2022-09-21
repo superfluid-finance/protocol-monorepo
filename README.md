@@ -123,9 +123,6 @@ Official subgraph for the Superfluid Protocol.
   <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk.svg">
   </a>
-  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk">
-    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=js-sdk"/>
-  </a>
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
   </a>

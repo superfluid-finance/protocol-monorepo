@@ -22,4 +22,4 @@ import "../test/contracts/utils/BatchLiquidator.test";
 import "../test/contracts/utils/TOGA.test";
 
 // Agreement forwarders
-import "../test/contracts/agreements/CFAv1Forwarder.test";
+import "../test/contracts/utils/CFAv1Forwarder.test";

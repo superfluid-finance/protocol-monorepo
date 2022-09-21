@@ -1,7 +1,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Document Preamble
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[a4paper]{article}
+\documentclass[a4paper]{report}
 
 %% Base Folder for Inputs
 \makeatletter
@@ -15,6 +15,7 @@
 \usepackage{minted}
 \usepackage{amsmath}
 \usepackage{enumitem}
+\usepackage{graphicx}
 
 %% Literate Haskell Macros
 
@@ -75,19 +76,21 @@
     \end{center}
 \end{abstract}
 
-\section{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 It should be fair to say, every aspect of money are controversial: the nature of money, the value of money, money and
 banking, and monetary reconstruction. Two major schools of thoughts about theory of money are the \textit{Austrian
-    school} \cite{von2013theory} and the \textit{Chicago school} \cite{friedman1989quantity}. That is before the
+    school} (\cite{von2013theory}) and the \textit{Chicago school} (\cite{friedman1989quantity}). That is before the
 appearance of Internet-era version of monetary reconstruction, broadly defined as cryptocurrency, which challenges
-theories of money further and demands their updates \cite{ammous2018can} \cite{hardle2020understanding}.
+theories of money further and demands their updates (\cite{ammous2018can} \cite{hardle2020understanding}).
 
 But when it comes to the function of money, it is less controversial. According to Von Mises,
 
 \begin{quotation}
 The function of money is to facilitate the business of the market by acting as a common medium of
-exchange. \footfullcite[][Part One, Chapter I, § 1, p1]{von2013theory}
+exchange. \footfullcite[][Chapter One, Chapter I, § 1, p1]{von2013theory}
 \end{quotation}
 
 How do different forms of money perform this function, especially in the information age, when electronic forms of money
@@ -96,54 +99,64 @@ are increasingly used?
 This yellow paper adds a new controversy to money, that is to present a survey challenging the preconceived notion of
 how money can perform its function of medium of exchange using computer science.
 
-In Part I, we shall first explore the foundation for the survey. Here we present a formal definitions of payment system,
-and various models in the system. We then select a few relevant approaches used in computer science useful for defining
-formal specification of payment system.
+In Chapter I, we shall first explore the foundation for the survey. Here we present a formal definition of payment system,
+and various models used in the system. We then select a few relevant approaches used in computer science useful for
+modeling and defining formal specification for the payment system.
 
-One of the approaches is denotational semantics, which is used in Part II of the paper to define the general payment
-primitives. Along with the denotational semantics, a restatement of it in \textit{Haskell programming language} is also
-included.
+One of the approaches is \textit{denotational semantics}, which is used in Chapter II of the paper to define the general
+payment primitives. Along with the denotational semantics, a restatement\footnote{It is a borrowed term from common law:
+"restatement of the law". In our case, the denotative mathematical "laws".} of it in \textit{Haskell programming
+    language} (\cite{hudak1992report} \cite{jones2003haskell} \cite{marlow2010haskell}) is also included.
 
-In Part III, a reference implementation of the general payment primitives and its payment system called
+In Chapter III, a reference implementation of the general payment primitives and its payment system called
 \textit{Superfluid Money} is introduced.
 
-In Part IV, some possible further investigations are included for future study purpose.
+In Chapter IV, some possible further investigations are included for future study purpose.
 
-\newpage
-\part{Foundation}
-\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Foundation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Nature of Money}
+\section{Payment System}
 
-Nature of money.
+We shall define a payment system, whereby:
 
-\section{Money Distribution}
+\begin{itemize}
+\item \textit{money distribution} models how monetary value is distributed amongst bearers\footnote{(Banking \& Finance)
+a person who presents a note or bill for payment. - Collins English Dictionary},
+\item \textit{payment primitives} updates money distribution,
+\item \textit{financial system} provides the execution environment for the payment primitives,
+\item and \textit{forms of money medium} are the "user interfaces" of money for the bearers.
+\end{itemize}
+
+\subsection{Money Distribution Models}
 
 Most of the existing money schemes are of this category, where a money unit completely disregards its context and hence
 its liquidity value and bearer are static until the next money redistribution occurs.
 
 Here are the type definitions of these money schemes defined in \cite{buldas2021unifying}:
 
-TODO...
+\begin{figure}
+  \includegraphics[width=\linewidth]{assets/discrete-money-distribution.png}
+  \caption{Schematic representation of discrete money distribution}
+  \label{fig:discrete-md}
+\end{figure}
 
-\subsection{A New Unifying Theory}
+\subsubsection{A New Unifying Model}
 
 \input{MoneyDistributionConcepts.tex}
 
-\section{Forms of Medium}
+\subsection{Payment Primitives}
 
-\section{Payment Models}
+\subsection{Payment System Models}
 
-\subsection{Discrete Payments}
+\subsubsection{Discrete Payments}
 
-\subsection{Continuous Payments}
+\subsubsection{Continuous Payments}
 
-In contract, under the contextual money schemes, the liquidity value and maybe even bearer of a money unit can be a
-function of context too.
+\subsection{Money Medium Models}
 
-TODO...
-
-\section{Related Paradigms}
+\section{Relevant Approaches}
 
 \subsection{Constraint Programming}
 
@@ -151,7 +164,11 @@ TODO...
 
 \subsection{Denotational Semantics}
 
-\section{Generalized Denotational Payment Semantics}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{General Payment Primitives}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Denotational Semantics}
 
 Here is the specification of denotational semantics that support both discrete and continous payments.
 
@@ -236,9 +253,11 @@ Here is the list of acronyms used:
     \end{split}
 \end{equation}
 
-\newpage
-\part{Superfluid Money}
-\newpage
+\section{Restatement in Haskell}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Superfluid Money - A Reference Implementation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Real Time Balance}
 
@@ -262,8 +281,19 @@ Here is the list of acronyms used:
 
 \section{Type Of Money Units}
 
-\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Future Investigations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\section{Restatement in Agda and Correctness Proof}
+
+\section{Constraint in Consensus}
+
+\section{Payment in General Accounting Domains}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newpage
 \printbibliography{}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \end{document}

@@ -11,7 +11,7 @@ import {
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError} from "../../utils/expectRevert";
-import {toBN} from "../utils/helpers";
+import {toBN} from "./helpers";
 
 const mintAmount = "1000000000000000000000000000"; // a small loan of a billion dollars
 const flowrate = "1000000000000";

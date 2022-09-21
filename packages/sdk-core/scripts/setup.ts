@@ -5,15 +5,12 @@ import {
     IInstantDistributionAgreementV1,
     TestToken,
 } from "../src/typechain";
+import { deployContractsAndToken } from "../../subgraph/scripts/deployContractsAndToken";
 import { Framework, WrapperSuperToken } from "../src";
 
-// NOTE: This assumes you are testing with the generic hardhat mnemonic as the deployer:
-// test test test test test test test test test test test junk
-export const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
 // private key derived from the mnemonic above
 export const HARDHAT_PRIVATE_KEY =
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
-
 interface ISetupProps {
     readonly amount?: string;
     readonly subgraphEndpoint?: string;
@@ -23,6 +20,8 @@ interface ISetupProps {
 // This is because when we are testing the emit, the passed in contract expects a
 // provider and will throw an error if this doesn't exist.
 export const setup = async (props: ISetupProps) => {
+    process.env.RESOLVER_ADDRESS = await deployContractsAndToken();
+
     const [Deployer, Alpha, Bravo, Charlie] = await ethers.getSigners();
     if (!Deployer || !Alpha || !Bravo || !Charlie) {
         throw new Error("Empty signer not allowed!");
@@ -36,7 +35,7 @@ export const setup = async (props: ISetupProps) => {
     const chainId = (await provider.getNetwork()).chainId;
     const frameworkClass = await Framework.create({
         chainId,
-        resolverAddress: RESOLVER_ADDRESS,
+        resolverAddress: process.env.RESOLVER_ADDRESS,
         provider,
         customSubgraphQueriesEndpoint: props.subgraphEndpoint,
         protocolReleaseVersion: "test",

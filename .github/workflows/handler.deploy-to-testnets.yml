@@ -10,6 +10,9 @@ on:
       only_network:
         description: 'Only a specific network is to be deployed'
         required: false
+      environments:
+        description: 'Additional env vars, separated by semicolons'
+        required: false
 
 jobs:
 
@@ -54,16 +57,18 @@ jobs:
           yarn install --frozen-lockfile
           yarn build-for-contracts-dev
 
-      - name: Build and deploy to ${{ matrix.network }}
+      - name: Deploy to ${{ matrix.network }}
         if: env.DO_SKIP != 1
         run: |
           cd packages/ethereum-contracts
+          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
           npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
 
       - name: Etherscan verification of ${{ matrix.network }} deployment
         if: env.DO_SKIP != 1
         run: |
           cd packages/ethereum-contracts
+          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
           npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
           tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:

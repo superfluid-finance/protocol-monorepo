@@ -4,7 +4,7 @@ import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken } from "../src/typechain";
 import { networkNameToChainIdMap } from "../src/constants";
-import { HARDHAT_PRIVATE_KEY, RESOLVER_ADDRESS, setup } from "../scripts/setup";
+import { HARDHAT_PRIVATE_KEY, setup } from "../scripts/setup";
 import hre from "hardhat";
 
 export const ROPSTEN_SUBGRAPH_ENDPOINT =
@@ -145,7 +145,7 @@ describe("Framework Tests", async () => {
             await Framework.create({
                 chainId,
                 provider,
-                resolverAddress: RESOLVER_ADDRESS,
+                resolverAddress: process.env.RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",
             });
         });
@@ -155,7 +155,7 @@ describe("Framework Tests", async () => {
             await Framework.create({
                 chainId,
                 provider: (global as any).web3,
-                resolverAddress: RESOLVER_ADDRESS,
+                resolverAddress: process.env.RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",
             });
         });
@@ -165,7 +165,7 @@ describe("Framework Tests", async () => {
             await Framework.create({
                 chainId,
                 provider: hre.ethers,
-                resolverAddress: RESOLVER_ADDRESS,
+                resolverAddress: process.env.RESOLVER_ADDRESS,
                 protocolReleaseVersion: "test",
             });
         });

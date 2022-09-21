@@ -298,7 +298,7 @@ describe("Subgraph Tests", () => {
         });
 
         it("Should properly set native asset as listed SuperToken", async () => {
-            const [deployer, alice] = await ethers.getSigners();
+            const [deployer] = await ethers.getSigners();
             const ETHx = await framework.loadNativeAssetSuperToken("ETHx");
 
             // NOTE: we execute a transaction here with ETHx to get the name/symbol indexed on the subgraph

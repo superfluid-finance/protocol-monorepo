@@ -15,6 +15,7 @@ import {
 import { CallUtils } from "../libs/CallUtils.sol";
 
 /**
+ * Contract address: 0xCfA1E187C9141B8bA90a436CB789017FA573d051
  * The CFAv1Forwarder contract provides an easy to use interface to
  * ConstantFlowAgreementV1 specific functionality of Super Tokens.
  * Instances of this contract can operate on the protocol only if configured as "trusted forwarder"
@@ -376,7 +377,7 @@ contract CFAv1Forwarder {
                 )
             );
 
-        _forwardBatchCall(address(_cfa), cfaCallData);
+        _forwardBatchCall(address(_cfa), cfaCallData, new bytes(0));
     }
 
     // compiles the calldata of a single operation for the host invocation and executes it
@@ -404,10 +405,5 @@ contract CFAv1Forwarder {
         if (!success) {
             CallUtils.revertFromReturnedData(returnedData);
         }
-    }
-
-    // invokes_forwardBatchCall with empty userData
-    function _forwardBatchCall(address target, bytes memory callData) internal {
-        _forwardBatchCall(target, callData, new bytes(0));
     }
 }

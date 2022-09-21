@@ -3687,5 +3687,94 @@ describe("CFAv1 | Non-Callback Tests", function () {
                 "invalid ctx"
             ).to.be.revertedWith("invalid ctx");
         });
+
+        it("#1.12.29 Should not allow ACL flow to be created if flow sender balance < 0", async () => {
+            // @note comment out the `if (signedTotalCFADeposit == 0)` check in
+            // _isPatricianPeriod to see this test fail.
+
+            await shouldCreateFlow({
+                testenv: t,
+                superToken,
+                sender,
+                receiver,
+                flowRate: FLOW_RATE1,
+            });
+
+            // set Alice as the reward address
+            await governance.setRewardAddress(
+                superfluid.address,
+                ZERO_ADDRESS,
+                t.aliases[sender]
+            );
+
+            // create a flow from sender -> receiver
+            shouldCreateSolventLiquidationTest({
+                titlePrefix: "#1.4.18",
+                sender,
+                receiver,
+                by: agent,
+                seconds: t.configs.PATRICIAN_PERIOD.add(toBN(1)),
+            });
+
+            // drain account
+            await t.timeTravelOnce(t.configs.INIT_BALANCE.div(FLOW_RATE1));
+
+            // liquidate flow (receiver)
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_DELETE,
+                superToken: superToken.address,
+                sender: t.aliases[sender],
+                receiver: t.aliases[receiver],
+                signer: await ethers.getSigner(t.aliases[receiver]),
+            });
+
+            // user balance is less than 0 to skip the first check
+            const balance = await superToken.realtimeBalanceOfNow(
+                t.aliases[sender]
+            );
+            expect(balance.availableBalance).to.be.lessThan(toBN(0));
+
+            // expect the patrician period to be false (new logic)
+            const period = await cfa.isPatricianPeriodNow(
+                superToken.address,
+                t.aliases[sender]
+            );
+            expect(period.isCurrentlyPatricianPeriod).to.be.false;
+
+            // give admin flow operator create permissions
+            await shouldUpdateFlowOperatorPermissionsAndValidateEvent({
+                ...aliceSenderBaseData,
+                flowOperator: admin,
+                permissions: ALLOW_CREATE.toString(),
+                flowRateAllowance: MAXIMUM_FLOW_RATE,
+                signer,
+            });
+
+            console.log("BALANCE", balance.availableBalance.toString());
+            // this is still negative: -1000555557041894178
+
+            // createFlowByOperator (as admin)
+            await expectCustomError(
+                superfluid
+                    .connect(await ethers.getSigner(admin))
+                    .callAgreement(
+                        cfa.address,
+                        agreementHelper.cfaInterface.encodeFunctionData(
+                            "createFlowByOperator",
+                            [
+                                superToken.address,
+                                t.aliases[sender],
+                                t.aliases[receiver],
+                                1,
+                                "0x",
+                            ]
+                        ),
+                        "0x"
+                    ),
+                cfa,
+                "INSUFFICIENT_BALANCE",
+                t.customErrorCode.CFA_INSUFFICIENT_BALANCE
+            );
+        });
     });
 });

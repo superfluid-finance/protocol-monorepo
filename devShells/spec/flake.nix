@@ -27,7 +27,9 @@
         (texlive.combine {
           inherit (texlive)
           scheme-basic metafont
-          collection-latex collection-latexextra collection-bibtexextra;
+          collection-latex collection-latexextra
+          collection-bibtexextra collection-mathscience
+          collection-fontsrecommended collection-fontsextra;
         })
       ];
     };

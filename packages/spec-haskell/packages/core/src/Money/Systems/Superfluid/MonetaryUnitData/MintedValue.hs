@@ -18,8 +18,8 @@ import           Money.Systems.Superfluid.SystemTypes
 --
 
 newtype MintedValue v = MkMintedValue v
-    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Value)
-instance (Typeable v, Value v) => TypedValue (MintedValue v) v where typedValueTag _ = "b"
+    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, MonetaryValue)
+instance (Typeable v, MonetaryValue v) => TypedValue (MintedValue v) v where typedValueTag _ = "b"
 
 -- * Monetary unit data
 --

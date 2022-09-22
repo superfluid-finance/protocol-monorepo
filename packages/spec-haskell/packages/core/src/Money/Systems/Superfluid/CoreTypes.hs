@@ -36,7 +36,7 @@ class (Default ts, Integral ts) => Timestamp ts
 -- Note:
 -- - Note the "6.4.9.7.1. Syntax of injectivity annotation"
 class ( SFTFloat (SFT_FLOAT sft)
-      , Typeable (SFT_MVAL sft), Value (SFT_MVAL sft)
+      , Typeable (SFT_MVAL sft), MonetaryValue (SFT_MVAL sft)
       , Timestamp (SFT_TS sft)
       , RealTimeBalance (SFT_RTB_F sft) (SFT_MVAL sft)
       ) => SuperfluidCoreTypes (sft :: Type) where

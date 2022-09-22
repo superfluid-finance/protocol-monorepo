@@ -16,7 +16,8 @@ build-type:    Simple
 library
     exposed-modules:
         Data.Type.Any
-        Money.Theory.Distribution
+        Money.Theory.MoneyDistribution
+        Money.Theory.FinancialContract
         Money.Systems.Superfluid.CoreTypes.TypedValue
         Money.Systems.Superfluid.CoreTypes.RealTimeBalance
         Money.Systems.Superfluid.CoreTypes

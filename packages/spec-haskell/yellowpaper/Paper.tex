@@ -135,7 +135,7 @@ A payment system can be solely defined by these components:
 \item \textit{money distribution} models how monetary value is distributed amongst bearers\footnote{(Banking \& Finance)
 a person who presents a note or bill for payment. - Collins English Dictionary},
 \item \textit{payment primitives} updates money distribution,
-\item \textit{financial system} provides the execution environment for the payment primitives,
+\item \textit{payment execution environment} performs payment primitives,
 \item and \textit{forms of money medium} are the "user interfaces" of money for the bearers.
 \end{itemize}
 
@@ -148,6 +148,7 @@ For its modern upgrade, the system should also have these properties:
 \item Payment primitives can involve more than two parties, as opposed to be only for a sender and a receiver.
 \item Financial system should be compositional.
 \end{itemize}
+
 
 \subsection{Money Distribution Models}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -198,7 +199,7 @@ Here are some examples how that could work:
     context. This could enable payment primitives that involve many parties.
 \end{itemize}
 
-\subsubsection{Haskell Definitions}
+\subsubsection{Haskell Definition Of Money Distribution}
 
 \input{MoneyDistribution.lhs.tex}
 
@@ -206,38 +207,66 @@ Here are some examples how that could work:
 \subsection{Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Payment primitives are functions that takes a money distribution, shared context and some arbitrary arguments as inputs
+Payment primitives are functions that takes a money distribution, shared context and some payment instruction as inputs
 and an updated money distribution and shared context as outputs:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
     somePaymentPrimitive :: MoneyDistribution |$\otimes$| SharedContext
-                         -> Args
+                         -> PaymentInstruction
                          -> MoneyDistribution |$\otimes$| SharedContext
 \end{minted}
 
 Loosely speaking, it is considered a primitive, if it can not be broken down into other existing primitives which result
-in the same money distribution.
+in the same money distribution; additionally primitives should be the only constructs in a payment system that can
+update money distribution.
 
 The best known primitive is instant transfer of monetary value between one monetary unit to another. Shared context
 enables more primitives to be defined, which will be introduced in later chapters.
 
-\subsection{Payment System Models}
+
+\subsection{Payment Execution Environment Models}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsubsection{Discrete Payments}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The purpose of a payment execution environment is to perform the actual payment primitives taking into account their
+conditions, timing and order.
 
-\subsubsection{Continuous Payments}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsubsection{Composing Financial Contracts}
+
+Inspired by the \textit{technique of composing financial contracts} demonstrated in \cite{peyton2000composing}, we first
+define a type class for financial contract:
+
+\input{FinancialContract.lhs.tex}
+
+And let $fcSet$ be the set of all financial contracts in the payment system.
+
+\subsubsection{Sequential Model of Execution Environment}
+
+A sequential execution environment model that can support conditional payment primitives\footnote{Timing is a type of
+condition of which current system time is a factor} then can be defined as follows:
+
+\begin{equation}
+    \begin{split}
+        [\![& \text{FS md fcSet t}]\!] = \sum_{x \in fcSet} ( \\
+        & \text{if fcPred md x t} \\
+        & \text{then fcExec x t} \\
+        & \text{else }\emptyset \\
+        )
+    \end{split}
+\end{equation}
+
+\subsubsection{Deterministic Execution Order}
+
+\subsubsection{Concurrency}
 
 \subsection{Money Medium Models}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-An attempt of creating a unifying theory for money and its distribution was made by Buldas, Saarepera et al.\cite{buldas2021unifying}
+An attempt of creating a unifying theory for money and its distribution was made by Buldas, Saarepera et
+al.\cite{buldas2021unifying}
 
 \begin{displayquote}
 A useful observation about existing money schemes is that they all have some kind of monetary units that are physical or
-digital representations of money. Examples are bills, coins, bank accounts, Bitcoin UTXOs, etc.
+digital representations of money. Examples are bills, coins, bank accounts, Bitcoin UTXOs, etc. \cite{buldas2021unifying}
 \end{displayquote}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -89,7 +89,7 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        
 --   - Name is a monicker of MakerDAO v1 WAD type.
 
 newtype Wad = Wad Integer
-    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Binary, Value)
+    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Binary, MonetaryValue)
 
 toWad :: (RealFrac a) => a -> Wad
 toWad x = Wad (round $ x * (10 ^ (18::Integer)))

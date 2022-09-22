@@ -10,6 +10,6 @@ TEX_FILE="$(basename $LHS_FILE)"
 {
     cat $1
 } | \
-    sed -e '/\s*--.*/d' | # quirk: fix for haskell comments
-    sed -e 's/\\begin{code}/\\begin{minted}{haskell}/g' -e 's/\\end{code}/\\end{minted}/g' | # quirk: fix for haskell code blocks
+    sed -e 's/\\begin{code}/\\begin{minted}{haskell}/g' \
+        -e 's/\\end{code}/\\end{minted}/g' | # quirk: fix for haskell code blocks
     cat

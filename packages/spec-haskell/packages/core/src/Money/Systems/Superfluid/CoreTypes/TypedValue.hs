@@ -14,7 +14,7 @@
 --   readily to be used by any 'sub-system'.
 --
 module Money.Systems.Superfluid.CoreTypes.TypedValue
-    ( Value
+    ( MonetaryValue
     , TypedValue (..)
     , UntappedValue (..)
     , AnyTypedValue (..)
@@ -26,14 +26,14 @@ import           Data.Coerce               (Coercible, coerce)
 import           Data.Default              (Default (..))
 import           Data.Typeable             (Proxy (..), Typeable)
 
-import           Money.Theory.Distribution (Value)
+import           Money.Theory.MoneyDistribution (MonetaryValue)
 
 
 -- | Typed value is an otherwise unaccounted value ~v~ with a type.
 --
 -- Notional conventions:
 --  * Type name: tv
-class (Typeable tv, Value v, Coercible tv v) => TypedValue tv v | tv -> v where
+class (Typeable tv, MonetaryValue mv, Coercible tv mv) => TypedValue tv mv | tv -> mv where
     -- | Get string representation of typed value tag.
     typedValueTag :: Proxy tv -> String
 
@@ -43,8 +43,8 @@ class (Typeable tv, Value v, Coercible tv v) => TypedValue tv v | tv -> v where
 -- Notional conventions:
 --  * Term name: uval
 newtype UntappedValue v = MkUntappedValue v
-    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Value)
-instance (Typeable v, Value v) => TypedValue (UntappedValue v) v where typedValueTag _ = "_"
+    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, MonetaryValue)
+instance (Typeable v, MonetaryValue v) => TypedValue (UntappedValue v) v where typedValueTag _ = "_"
 
 -- | Any typed value.
 --

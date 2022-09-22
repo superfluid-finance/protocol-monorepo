@@ -21,12 +21,8 @@ import           Test.QuickCheck
 import           Money.Systems.Superfluid.SystemTypes
 --
 import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement as CFDA
--- import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.InstantDistributionAgreement      as IDA
 import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex                              as PDIDX
 import qualified Money.Systems.Superfluid.Agreements.Universal.ConstantFlowAgreement                            as CFA
--- import qualified Money.Systems.Superfluid.Agreements.Universal.DecayingFlowAgreement                            as DFA
--- import qualified Money.Systems.Superfluid.Agreements.Universal.InstantTransferAgreement                         as ITA
--- import qualified Money.Systems.Superfluid.Agreements.Universal.MinterAgreement                                  as MINTA
 import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                                         as CFMUD
 import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                                          as MVMUD
 import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                                        as BBS
@@ -43,7 +39,7 @@ instance Arbitrary T_Timestamp where
 -- * Value
 
 newtype T_MVal = T_MVal Integer
-    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Value, Show, Arbitrary)
+    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, MonetaryValue, Show, Arbitrary)
 
 deriving instance Show (UntappedValue T_MVal)
 

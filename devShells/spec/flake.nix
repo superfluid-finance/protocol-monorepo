@@ -18,6 +18,7 @@
         # for haskell spec
         haskell.compiler.ghc924
         haskell-language-server
+        gnuplot
         # sage math
         sage
         # yellow-paper pipeline

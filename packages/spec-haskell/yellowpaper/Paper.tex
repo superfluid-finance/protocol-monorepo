@@ -87,7 +87,8 @@ banking, and monetary reconstruction. Two major schools of thoughts about theory
 appearance of Internet-era version of monetary reconstruction, broadly defined as cryptocurrency, which challenges
 theories of money further and demands their updates (\cite{ammous2018can} \cite{hardle2020understanding}).
 
-But when it comes to the function of money, it is less controversial. According to Von Mises,
+This yellow paper does not intend to address these controversies, but to focus on the function of money. According to
+Von Mises:
 
 \begin{quotation}
 The function of money is to facilitate the business of the market by acting as a common medium of
@@ -97,12 +98,12 @@ exchange. \footfullcite[][Chapter One, Chapter I, § 1, p1]{von2013theory}
 How do different forms of money perform this function, especially in the information age, when electronic forms of money
 are increasingly used?
 
-This yellow paper adds a new controversy to money, that is to present a survey challenging the preconceived notion of
-how money can perform its function of medium of exchange using computer science.
+This paper adds a new controversy to money, that is to present a survey challenging the preconceived notion of how money
+can perform its function of medium of exchange using computer science.
 
-In Chapter 2, we shall first explore the foundation for the survey. Here we present a formal definition of payment system,
-and various models used in the system. We then select a few relevant approaches used in computer science useful for
-modeling and defining formal specification for the payment system.
+In Chapter 2, we shall first explore the foundation for the survey. Here we present a formal definition of payment
+system and its components. We then select a few relevant approaches used in computer science useful for modeling and
+defining formal specification for the payment system.
 
 One of the approaches is \textit{denotational semantics}, which is used in Chapter 3 of the paper to define the general
 payment primitives. Along with the denotational semantics, a restatement\footnote{It is a borrowed term from common law:
@@ -120,7 +121,11 @@ In Chapter 5, some possible further investigations are included for future study
 
 \section{Payment System}
 
-We first define a payment system, whereby:
+Here we present a formal definition of payment system and its components.
+
+\paragraph{}
+
+A payment system can be solely defined by these components:
 
 \begin{itemize}
 \item \textit{money distribution} models how monetary value is distributed amongst bearers\footnote{(Banking \& Finance)
@@ -129,6 +134,8 @@ a person who presents a note or bill for payment. - Collins English Dictionary},
 \item \textit{financial system} provides the execution environment for the payment primitives,
 \item and \textit{forms of money medium} are the "user interfaces" of money for the bearers.
 \end{itemize}
+
+\paragraph{}
 
 For its modern upgrade, the system should also have these properties:
 
@@ -143,7 +150,7 @@ For its modern upgrade, the system should also have these properties:
 A representation of money and its distribution proposed in \cite{buldas2021unifying} involves the following components:
 
 \begin{itemize}
-\item U is the set of monetary units
+\item U is the set of monetary units.
 \item $\nu : U \rightarrow \mathbb{N}$ is the value function defining the value $\nu(u)$ of every value unit u. The set
     $\mathbb{N}$ is the set of all natural numbers, but instead, we can use any set of numerals that is totally ordered
     (e.g.\ integers, real numbers).
@@ -152,7 +159,7 @@ A representation of money and its distribution proposed in \cite{buldas2021unify
     entity, such as a person, a family, a company, a state institution, etc.
 \end{itemize}
 
-This discrete nature of money distribution is schematically depicted in {\ref{fig:discrete-md}}:
+This discrete nature of this money distribution model is schematically depicted in {\ref{fig:discrete-md}}:
 
 \begin{figure}[h]
     \centering
@@ -161,11 +168,38 @@ This discrete nature of money distribution is schematically depicted in {\ref{fi
     \label{fig:discrete-md}
 \end{figure}
 
-\subsubsection{A New Unifying Model}
+\subsubsection{Using Shared Context}
+
+But the discrete nature of the model does not provide the necessary element for us to add the desired properties to the
+payment system. Here we propose a modification that involves the usage of \textit{shared context (ctx for short)}:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.5\textwidth]{../assets/money-distribution-with-ctx.png}
+    \caption{Schematic representation of money distribution with shared context}
+    \label{fig:md-with-ctx}
+\end{figure}
+
+Note that in this model, shared context can be updated independently while value functions of the same money
+distribution can produce different monetary values.
+
+\paragraph{}
+
+Here are some examples how that could work:
+
+\begin{itemize}
+\item If time is included the shared context, then monetary value of each money unit can be continuous over time.
+\item A subset of money units can also have their value functions depending on the same information in shared
+    context. This could enable payment primitives that involve many parties.
+\end{itemize}
+
+\subsubsection{Haskell Definitions}
 
 \input{MoneyDistributionConcepts.tex}
 
 \subsection{Payment Primitives}
+
+
 
 \subsection{Payment System Models}
 
@@ -174,6 +208,13 @@ This discrete nature of money distribution is schematically depicted in {\ref{fi
 \subsubsection{Continuous Payments}
 
 \subsection{Money Medium Models}
+
+An attempt of creating a unifying theory for money and its distribution was made by Buldas, Saarepera et al.\cite{buldas2021unifying}
+
+\begin{displayquote}
+A useful observation about existing money schemes is that they all have some kind of monetary units that are physical or
+digital representations of money. Examples are bills, coins, bank accounts, Bitcoin UTXOs, etc.
+\end{displayquote}
 
 \section{Relevant Approaches}
 

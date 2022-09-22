@@ -1,10 +1,3 @@
-An attempt of creating a unifying theory for money and its distribution was made by Buldas, Saarepera et al.\cite{buldas2021unifying}
-
-\begin{displayquote}
-A useful observation about existing money schemes is that they all have some kind of monetary units that are physical or
-digital representations of money. Examples are bills, coins, bank accounts, Bitcoin UTXOs, etc.
-\end{displayquote}
-
 \ignore{
 \begin{code}
 {-# LANGUAGE TypeFamilies #-}
@@ -38,7 +31,7 @@ class MonetaryUnit mu
 
 \begin{code}
 -- | Value Distribution
-class Distribution d where
+class MoneyDistribution d where
     -- type DistributionValueType        d :: Type
     -- type DistributionMonetaryUnitType d :: Type
     -- type DistributionBearerType       d :: Type
@@ -50,5 +43,3 @@ class Distribution d where
 
     bearerOf :: (MonetaryUnit mu, Bearer brr) => d -> mu -> brr
 \end{code}
-
-(WIP)

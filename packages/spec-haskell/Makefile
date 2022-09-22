@@ -74,7 +74,7 @@ YELLOWPAPER_ROOT = $(DOCS_BUILDDIR)/yellowpaper
 
 $(YELLOWPAPER_ROOT)/tex:
 	mkdir -p "$@"
-$(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex: packages/core/src/Money/Theory/Distribution.lhs
+$(YELLOWPAPER_ROOT)/tex/MoneyDistribution.lhs.tex: packages/core/src/Money/Theory/Distribution.lhs
 	./utils/lhs2tex.sh "$<" > "$@"
 $(YELLOWPAPER_ROOT)/tex/lhsfmt.tex:
 	echo '%include lhs2TeX.fmt' | lhs2TeX > "$@"
@@ -84,7 +84,7 @@ $(YELLOWPAPER_ROOT)/tex/%: yellowpaper/$$(notdir $$*)
 	cp "$<" "$@"
 
 YELLOWPAPER_INPUTS = $(YELLOWPAPER_ROOT)/tex \
-	$(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex \
+	$(YELLOWPAPER_ROOT)/tex/MoneyDistribution.lhs.tex \
 	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
 	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
 	$(YELLOWPAPER_ROOT)/tex/Biblio.bib \

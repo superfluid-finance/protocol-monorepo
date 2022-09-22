@@ -18,7 +18,7 @@ class (Integral v, Default v) => Value v
 \end{code}
 
 \begin{code}
-class Context ctx
+class SharedContext ctx
 \end{code}
 
 \begin{code}
@@ -37,9 +37,10 @@ class MoneyDistribution d where
     -- type DistributionBearerType       d :: Type
     -- type DistributionContextType      d :: Type
 
-    monetaryUnits :: MonetaryUnit mu => d -> [mu]
+    monetaryUnits ::  mu => d -> [mu]
 
-    valueOf :: (Context ctx, MonetaryUnit mu, Value v) => d -> (mu, ctx) -> v
+    monetaryValue :: (SharedContext ctx, MonetaryUnit mu, Value v)
+                  => d -> (mu, ctx) -> v
 
-    bearerOf :: (MonetaryUnit mu, Bearer brr) => d -> mu -> brr
+    bearer :: (MonetaryUnit mu, Bearer brr) => d -> mu -> brr
 \end{code}

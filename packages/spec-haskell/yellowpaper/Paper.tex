@@ -1,7 +1,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Document Preamble
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\documentclass[a4paper]{report}
+\documentclass[a4paper,10pt]{report}
+
+%% \usepackage[margin=0.5in,nomarginpar]{geometry}
 
 %% Base Folder for Inputs
 \makeatletter
@@ -119,7 +121,9 @@ In Chapter 5, some possible further investigations are included for future study
 \chapter{Foundation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Payment System}
+%%%%%%%%%%%%%%%%%%%%%%%%
 
 Here we present a formal definition of payment system and its components.
 
@@ -146,6 +150,7 @@ For its modern upgrade, the system should also have these properties:
 \end{itemize}
 
 \subsection{Money Distribution Models}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 A representation of money and its distribution proposed in \cite{buldas2021unifying} involves the following components:
 
@@ -188,26 +193,45 @@ distribution can produce different monetary values.
 Here are some examples how that could work:
 
 \begin{itemize}
-\item If time is included the shared context, then monetary value of each money unit can be continuous over time.
-\item A subset of money units can also have their value functions depending on the same information in shared
+\item If time is included the shared context, then monetary value of each monetary unit can be continuous over time.
+\item A subset of monetary units can also have their value functions depending on the same information in shared
     context. This could enable payment primitives that involve many parties.
 \end{itemize}
 
 \subsubsection{Haskell Definitions}
 
-\input{MoneyDistributionConcepts.tex}
+\input{MoneyDistribution.lhs.tex}
+
 
 \subsection{Payment Primitives}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Payment primitives are functions that takes a money distribution, shared context and some arbitrary arguments as inputs
+and an updated money distribution and shared context as outputs:
 
+\begin{minted}[escapeinside=||,mathescape=true]{haskell}
+    somePaymentPrimitive :: MoneyDistribution |$\otimes$| SharedContext
+                         -> Args
+                         -> MoneyDistribution |$\otimes$| SharedContext
+\end{minted}
+
+Loosely speaking, it is considered a primitive, if it can not be broken down into other existing primitives which result
+in the same money distribution.
+
+The best known primitive is instant transfer of monetary value between one monetary unit to another. Shared context
+enables more primitives to be defined, which will be introduced in later chapters.
 
 \subsection{Payment System Models}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsubsection{Discrete Payments}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsubsection{Continuous Payments}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Money Medium Models}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 An attempt of creating a unifying theory for money and its distribution was made by Buldas, Saarepera et al.\cite{buldas2021unifying}
 
@@ -216,19 +240,26 @@ A useful observation about existing money schemes is that they all have some kin
 digital representations of money. Examples are bills, coins, bank accounts, Bitcoin UTXOs, etc.
 \end{displayquote}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Relevant Approaches}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Constraint Programming}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Functional Reactive Programming}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \subsection{Denotational Semantics}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{General Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Denotational Semantics}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Here is the specification of denotational semantics that support both discrete and continous payments.
 
@@ -249,6 +280,7 @@ Here is the list of acronyms used:
 \end{equation}
 
 \subsection{Monoidial Payment Model}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{equation}\label{sem_mzero}
     [\![\emptyset]\!] = \lambda\ mu\ t\ \rightarrow 0
@@ -259,7 +291,8 @@ Here is the list of acronyms used:
     [\![mda]\!]\ mu\ t\ +\ [\![mdb]\!]\ mu\ t
 \end{equation}
 
-\subsection{Payment Premitives}
+\subsection{Payment Primitives}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{equation}\label{sem_transfer}
     \begin{split}
@@ -313,7 +346,9 @@ Here is the list of acronyms used:
     \end{split}
 \end{equation}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Restatement in Haskell}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Superfluid Money - A Reference Implementation}
@@ -339,7 +374,7 @@ Here is the list of acronyms used:
 
 \subsection{Buffer Based Solvency Systems}
 
-\section{Type Of Money Units}
+\section{Type Of Monetary Units}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Future Investigations}

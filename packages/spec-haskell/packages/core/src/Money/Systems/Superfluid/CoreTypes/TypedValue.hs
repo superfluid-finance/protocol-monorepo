@@ -14,7 +14,8 @@
 --   readily to be used by any 'sub-system'.
 --
 module Money.Systems.Superfluid.CoreTypes.TypedValue
-    ( MonetaryValue
+    ( Timestamp
+    , MonetaryValue
     , TypedValue (..)
     , UntappedValue (..)
     , AnyTypedValue (..)
@@ -26,7 +27,7 @@ import           Data.Coerce               (Coercible, coerce)
 import           Data.Default              (Default (..))
 import           Data.Typeable             (Proxy (..), Typeable)
 
-import           Money.Theory.MoneyDistribution (MonetaryValue)
+import           Money.Theory.MoneyDistribution (Timestamp, MonetaryValue)
 
 
 -- | Typed value is an otherwise unaccounted value ~v~ with a type.

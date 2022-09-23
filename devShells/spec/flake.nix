@@ -18,6 +18,7 @@
         # for haskell spec
         haskell.compiler.ghc924
         haskell-language-server
+        hlint
         gnuplot
         # sage math
         sage

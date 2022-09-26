@@ -6,6 +6,7 @@ import { SFError } from "./SFError";
 import IConstantFlowAgreementV1ABI from "./abi/IConstantFlowAgreementV1.json";
 import {
     IAgreementV1Options,
+    ICreateFlowByOperatorParams,
     ICreateFlowParams,
     IDeleteFlowParams,
     IFullControlParams,
@@ -21,7 +22,11 @@ import {
     IWeb3FlowOperatorData,
     IWeb3FlowOperatorDataParams,
 } from "./interfaces";
-import { IConstantFlowAgreementV1 } from "./typechain";
+import {
+    CFAv1Forwarder,
+    CFAv1Forwarder__factory,
+    IConstantFlowAgreementV1,
+} from "./typechain";
 import {
     getSanitizedTimestamp,
     isPermissionsClean,
@@ -31,7 +36,6 @@ import {
 const cfaInterface = new ethers.utils.Interface(
     IConstantFlowAgreementV1ABI.abi
 );
-
 /**
  * Constant Flow Agreement V1 Helper Class
  * @description A helper class to interact with the CFAV1 contract.
@@ -39,11 +43,16 @@ const cfaInterface = new ethers.utils.Interface(
 export default class ConstantFlowAgreementV1 {
     readonly options: IAgreementV1Options;
     readonly host: Host;
+    readonly forwarder: CFAv1Forwarder;
     readonly contract: IConstantFlowAgreementV1;
 
     constructor(options: IAgreementV1Options) {
         this.options = options;
         this.host = new Host(options.config.hostAddress);
+        this.forwarder = new ethers.Contract(
+            this.options.config.cfaV1ForwarderAddress,
+            CFAv1Forwarder__factory.abi
+        ) as CFAv1Forwarder;
         this.contract = new ethers.Contract(
             this.options.config.cfaV1Address,
             IConstantFlowAgreementV1ABI.abi
@@ -202,6 +211,7 @@ export default class ConstantFlowAgreementV1 {
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
+     * @param shouldUseCallAgreement Whether to use callAgreement, or the CFAv1Forwarder
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     createFlow = (params: ICreateFlowParams): Operation => {
@@ -215,12 +225,27 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return this.host.callAgreement(
-            this.options.config.cfaV1Address,
-            callData,
-            params.userData,
-            params.overrides
+        if (params.shouldUseCallAgreement) {
+            return this.host.callAgreement(
+                this.options.config.cfaV1Address,
+                callData,
+                params.userData,
+                params.overrides
+            );
+        }
+
+        const { superToken, sender, receiver, flowRate, userData } =
+            params as ICreateFlowByOperatorParams;
+
+        const txn = this.forwarder.populateTransaction.createFlow(
+            superToken,
+            sender,
+            receiver,
+            flowRate,
+            userData ?? ""
         );
+
+        return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
     };
 
     /**

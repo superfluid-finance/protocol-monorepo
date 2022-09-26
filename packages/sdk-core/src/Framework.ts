@@ -199,6 +199,9 @@ export default class Framework {
                     resolverAddress,
                     hostAddress: framework.superfluid,
                     cfaV1Address: framework.agreementCFAv1,
+                    cfaV1ForwarderAddress:
+                        // Temporary, until it's added to metadata
+                        "0xCfA1E187C9141B8bA90a436CB789017FA573d051",
                     idaV1Address: framework.agreementIDAv1,
                     governanceAddress,
                 },

@@ -1,20 +1,23 @@
-import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Framework } from "../src/index";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import chai, { expect } from "chai"
+import spies from 'chai-spies'
+import { ethers } from "ethers"
+import hre from "hardhat"
+import { abi as SuperAppTesterABI } from "../artifacts/contracts/SuperAppTester.sol/SuperAppTester.json"
+import { HARDHAT_PRIVATE_KEY, setup } from "../scripts/setup"
+import { getPerSecondFlowRateByMonth } from "../src"
+import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json"
+import { Framework } from "../src/index"
+import Operation from "../src/Operation"
 import {
     IConstantFlowAgreementV1,
-    SuperToken as SuperTokenType,
-} from "../src/typechain";
-import { getPerSecondFlowRateByMonth } from "../src";
-import { HARDHAT_PRIVATE_KEY, setup } from "../scripts/setup";
-import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
-import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
-import { ethers } from "ethers";
-import Operation from "../src/Operation";
-import hre from "hardhat";
-import { SuperAppTester } from "../typechain-types";
-import { abi as SuperAppTesterABI } from "../artifacts/contracts/SuperAppTester.sol/SuperAppTester.json";
+    SuperToken as SuperTokenType
+} from "../src/typechain"
+import { SuperAppTester } from "../typechain-types"
+import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test"
 const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
+
+chai.use(spies)
 
 /**
  * Create a simple call app action (setVal) operation with the SuperAppTester contract.
@@ -100,6 +103,32 @@ describe("Operation Tests", () => {
         expect(opTxnHash).to.equal(receipt.transactionHash);
     });
 
+    it("Should call host.callAgreement when shouldUseCallAgreement is true while calling createFlow", () => {
+        const callAgreementSpy = chai.spy.on(framework.cfaV1.host, 'callAgreement');
+        const forwarderCreateFlowSpy = chai.spy.on(framework.cfaV1.forwarder.populateTransaction, 'createFlow');
+        framework.cfaV1.createFlow({
+            flowRate: getPerSecondFlowRateByMonth("100"),
+            receiver: bravo.address,
+            superToken: superToken.address,
+            shouldUseCallAgreement: true
+        });
+        expect(callAgreementSpy).to.have.been.called()
+        expect(forwarderCreateFlowSpy).to.have.been.not.called()
+    });
+
+    // There is some context issue here
+    it.skip("Should call forwarder.createFlow by default while calling createFlow", () => {
+        const callAgreementSpy = chai.spy.on(framework.cfaV1.host, 'callAgreement');
+        const forwarderCreateFlowSpy = chai.spy.on(framework.cfaV1.forwarder.populateTransaction, 'createFlow');
+        framework.cfaV1.createFlow({
+            flowRate: getPerSecondFlowRateByMonth("100"),
+            receiver: bravo.address,
+            superToken: superToken.address,
+        });
+        expect(callAgreementSpy).to.have.been.not.called()
+        expect(forwarderCreateFlowSpy).to.have.been.called()
+    });
+    
     it("Should be able to create an operation from framework.", async () => {
         const callData = cfaInterface.encodeFunctionData("createFlow", [
             superToken.address,

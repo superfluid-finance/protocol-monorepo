@@ -4158,6 +4158,13 @@
   dependencies:
     "@types/chai" "*"
 
+"@types/chai-spies@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@types/chai-spies/-/chai-spies-1.0.3.tgz#a52dc61af3853ec9b80965040811d15dfd401542"
+  integrity sha512-RBZjhVuK7vrg4rWMt04UF5zHYwfHnpk5mIWu3nQvU3AKGDixXzSjZ6v0zke6pBcaJqMv3IBZ5ibLWPMRDL0sLw==
+  dependencies:
+    "@types/chai" "*"
+
 "@types/chai@*", "@types/chai@^4.2.0":
   version "4.3.1"
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.3.1.tgz#e2c6e73e0bdeb2521d00756d099218e9f5d90a04"
@@ -6107,6 +6114,11 @@ chai-ethers@^0.0.1:
   integrity sha512-yajwk1BSf+lO2LzV+vra/iKukiUJcfD2aEVBZRWmaIJr0kI0eI1s6VF47qoXNolYxg0bf/SAlHSfwaPZWKBVyQ==
   dependencies:
     ethers "^5.0.0"
+
+chai-spies@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/chai-spies/-/chai-spies-1.0.0.tgz#d16b39336fb316d03abf8c375feb23c0c8bb163d"
+  integrity sha512-elF2ZUczBsFoP07qCfMO/zeggs8pqCf3fZGyK5+2X4AndS8jycZYID91ztD9oQ7d/0tnS963dPkd0frQEThDsg==
 
 chai@^4.2.0, chai@^4.3.6:
   version "4.3.6"

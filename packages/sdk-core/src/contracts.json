@@ -1,5 +1,6 @@
 [
     "IConstantFlowAgreementV1",
+    "CFAv1Forwarder",
     "ERC20WithTokenInfo",
     "IInstantDistributionAgreementV1",
     "IResolver",

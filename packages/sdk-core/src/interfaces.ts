@@ -128,6 +128,7 @@ export interface IModifyFlowParams extends ISuperTokenModifyFlowParams {
 }
 export interface ICreateFlowParams extends IModifyFlowParams {
     readonly flowRate: string;
+    readonly shouldUseCallAgreement?: boolean;
 }
 export interface ICreateFlowByOperatorParams extends ICreateFlowParams {
     readonly sender: string;
@@ -442,6 +443,7 @@ export interface IConfig {
     readonly resolverAddress: string;
     readonly hostAddress: string;
     readonly cfaV1Address: string;
+    readonly cfaV1ForwarderAddress: string;
     readonly idaV1Address: string;
     readonly governanceAddress: string;
 }

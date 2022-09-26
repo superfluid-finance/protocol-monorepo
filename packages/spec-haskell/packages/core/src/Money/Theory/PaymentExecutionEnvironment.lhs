@@ -2,37 +2,31 @@
 \begin{code}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
-module Money.Theory.PaymentExecutionEnvironment where
+module Money.Theory.PaymentExecutionEnvironment
+    -- $intro
+    --
+    ( FinancialContract (..)
+    , FinancialContractSet (..)
+    , stepNextPaymentNonDetSeq
+    ) where
 
 import Money.Theory.MoneyDistribution
+import Money.Theory.FinancialContract
 import Data.Kind (Type)
 \end{code}
 }
 
-The purpose of a payment execution environment is to perform the actual payment primitives taking into account their
-conditions, timing and order.
-
-\subsubsection{Composing Financial Contracts}
-
-Inspired by the \textit{technique of composing financial contracts} demonstrated in \cite{peyton2000composing}, we first
-define a type class for financial contract:
-
+\begin{haddock}
 \begin{code}
-class MoneyDistribution md => FinancialContract fc md | fc -> md where
-    -- | Predicate of the execution condition of a financial contract.
-    fcPred :: ( ctx ~ MD_CTX md
-              , Timestamp t
-              )
-           => fc -> (md, ctx) -> t -> Bool
+{- $intro
 
-    -- | Execute the payment primitives encoded in the financial contract.
-    fcExec :: ( ctx ~ MD_CTX md
-              , Timestamp t
-              )
-           => fc -> (md, ctx) -> t -> (md, ctx)
+Here are some simplified models for payment execution environment.
+
+-}
 \end{code}
+\end{haddock}
 
-Additionally, let's define \textit{FinancialContractSet} be the set of all financial contracts in the payment system.
+Let's first define \textit{FinancialContractSet} be the set of all financial contracts in the payment system.
 
 \begin{code}
 class ( MoneyDistribution md
@@ -43,35 +37,44 @@ class ( MoneyDistribution md
     selectFc :: m ~ FCSET_MONAD fcSet
              => fcSet -> m fc
 
-    -- | Indexed monad type for the set. It could provide the side effect for
-    --   ~fcSelect~ if it is necessary (such as randomly or depending on the environment).
+    -- | Indexed monad type for the set. It encodes the type of
+    --   side effect used in ~selectFc~.
     type family FCSET_MONAD fcSet = (m :: Type -> Type) | m -> fcSet
 \end{code}
 
-\subsubsection{Non-Deterministic Sequential Model}
+Here the associated type synonym \textit{FCSET\_MONAD fcSet} is a Monad, where diferent side effects for
+\textit{fcSelect} can be encoded, for instances:
 
-A non-deterministic sequential execution environment model that can support conditional payment
-primitives\footnote{Timing is a type of condition of which current system time is a factor} then can be defined as
-follows:
+\begin{itemize}
+\item \textit{Idendity monad} - there is no side effect, \textit{selectFc} then must be deterministic.
+\item \textit{IO monad} - a computation that involve input/output with the world.
+\end{itemize}
+
+For more generalized interface to computation, arrows could be used instead \cite{hughes2000generalising}.
+
+\paragraph{Sequential Model}
+
+A naive sequential execution environment model that supports conditional payment primitives\footnote{Timing is a type of
+condition of which current system time is a factor} then can be defined as follows:
 
 \begin{code}
--- | Non-deterministically and sequentially execute payment in the payment system.
-execPaymentNonDetSeq :: ( MoneyDistribution md
-                        , FinancialContract fc md
-                        , FinancialContractSet fcSet fc md
-                        , Timestamp t
-                        , ctx ~ MD_CTX md
-                        , m ~ FCSET_MONAD fcSet
-                        )
-                     => md -> (fcSet, ctx) -> t -> m (md, ctx)
-execPaymentNonDetSeq md (fcSet, ctx) t = selectFc fcSet >>= \fc -> return $
+-- | Naive version of step function in a sequential payment system.
+stepNextPaymentNonDetSeq :: ( MoneyDistribution md
+                            , FinancialContract fc md
+                            , FinancialContractSet fcSet fc md
+                            , Timestamp t
+                            , ctx ~ MD_CTX md
+                            , m ~ FCSET_MONAD fcSet
+                            )
+                         =>  (md, ctx) -> fcSet -> t -> m (md, ctx)
+stepNextPaymentNonDetSeq (md, ctx) fcSet t = selectFc fcSet >>= \fc -> return $
     if fcPred fc (md, ctx) t
-    then fcExec fc (md, ctx) t
-    else (mempty, ctx)
+    then (md, ctx) <> fcExec fc (md, ctx) t
+    else (md, ctx)
 \end{code}
 
-\subsubsection{Deterministic Execution Order}
+\paragraph{Non-deterministic Concurrent Model}
 
-\subsubsection{Concurrency}
+\paragraph{Deterministic Concurrent Model}
 
-\subsubsection{Risks & Solvency}
+\paragraph{Payment System Solvency}

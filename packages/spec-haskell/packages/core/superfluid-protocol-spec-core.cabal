@@ -17,6 +17,7 @@ library
     exposed-modules:
         Data.Type.Any
         Money.Theory.MoneyDistribution
+        Money.Theory.FinancialContract
         Money.Theory.PaymentExecutionEnvironment
         Money.Systems.Superfluid.CoreTypes.TypedValue
         Money.Systems.Superfluid.CoreTypes.RealTimeBalance

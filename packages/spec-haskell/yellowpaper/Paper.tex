@@ -11,6 +11,7 @@
 \makeatother
 
 %% Import Packages
+\usepackage{hyperref}
 \usepackage{fvextra}
 \usepackage{csquotes}
 \usepackage{xcolor}
@@ -26,8 +27,9 @@
 \input{lhsfmt.tex}
 %%% for ignoring some code
 \long\def\ignore#1{}
-%%% for creating a paragraph
-\newcommand{\lhsparagraph}[1]{\paragraph{#1}\mbox{}\\}
+%%% for code
+\newminted[code]{haskell}{}
+\newminted[spec]{haskell}{}
 
 %% Document Meta Data
 
@@ -150,8 +152,8 @@ For its modern upgrade, the system should also have these properties:
 \end{itemize}
 
 
-\subsection{Money Distribution Models}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Money Distribution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 A representation of money and its distribution proposed in \cite{buldas2021unifying} involves the following components:
 
@@ -165,7 +167,7 @@ A representation of money and its distribution proposed in \cite{buldas2021unify
     entity, such as a person, a family, a company, a state institution, etc.
 \end{itemize}
 
-This discrete nature of this money distribution model is schematically depicted in {\ref{fig:discrete-md}}:
+This discrete nature of this money distribution model is schematically depicted in \ref{fig:discrete-md}:
 
 \begin{figure}[h]
     \centering
@@ -213,7 +215,7 @@ For the purpose of this paper, the model of context is: $\gamma = (t :: Timestam
 
 Payment primitives are functions that takes a money distribution, shared context, some payment instruction (args) and
 timestamp as inputs and incremental updates\footnote{Specifically being monoidal, that is in short a set that has
-associative binary operation and an identity element. See \url{https://ncatlab.org/nlab/show/monoid}.} of money
+associative binary operation and an identity element. See https://ncatlab.org/nlab/show/monoid. } of money
 distribution and shared context as outputs:
 
 \begin{minted}[escapeinside=||,mathescape=true]{haskell}
@@ -236,11 +238,22 @@ The best known primitive is instant transfer of monetary value between one monet
 context enables more primitives to be defined, and this will be discussed in later chapters.
 
 
-\subsection{Payment Execution Environment Models}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Payment Execution Environment}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The purpose of a payment execution environment is to perform the actual payment primitives taking into account their
+conditions, timing and order.
+
+It is out of scope for this paper to survey in-depth the problem space of the operation semantics of payment execution
+environments. Nonetheless, a simplified model and some potential extensions to it is discussed briefly.
+
+\subsubsection{Composing Financial Contracts}
 
 \input{FinancialContract.lhs.tex}
 
+\subsubsection{Simplified Execution Environment Models}
+
+\input{PaymentExecutionEnvironment.lhs.tex}
 
 \subsection{Money Medium Models}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -21,6 +21,10 @@
 \usepackage{enumitem}
 \usepackage{graphicx}
 
+%% Formattings
+
+\renewcommand{\mkbegdispquote}[2]{\itshape}
+
 %% Literate Haskell Macros
 
 %%% include common formatting
@@ -55,7 +59,7 @@
 
 \begin{abstract}
     \begin{center}
-        (Some distant lyrics as the placeholder of the actual abstract)
+        (Some distant lyrics as the placeholder for the actual abstract)
 
         Money, money, money
 
@@ -94,16 +98,16 @@ theories of money further and demands their updates (\cite{ammous2018can} \cite{
 This yellow paper does not intend to address these controversies, but to focus on the function of money. According to
 Von Mises:
 
-\begin{quotation}
+\begin{displayquote}
 The function of money is to facilitate the business of the market by acting as a common medium of
 exchange. \footfullcite[][Chapter One, Chapter I, § 1, p1]{von2013theory}
-\end{quotation}
+\end{displayquote}
 
 How do different forms of money perform this function, especially in the information age, when electronic forms of money
 are increasingly used?
 
 This paper adds a new controversy to money, that is to present a survey challenging the preconceived notion of how money
-can perform its function of medium of exchange using computer science.
+can perform its function of medium of exchange.
 
 In Chapter 2, we shall first explore the foundation for the survey. Here we present a formal definition of payment
 system and its components. We then select a few relevant approaches used in computer science useful for modeling and
@@ -290,10 +294,10 @@ digital representations of money. Examples are bills, coins, bank accounts, Bitc
 etc. \footfullcite[][P3]{buldas2021unifying}
 \end{displayquote}
 
-We call these money mediums. And we further separate them into two big groups:
+We call them money mediums, and we further separate them into two big groups:
 
 \begin{itemize}
-\item \textit{Token and Its Accounts} - E.g. bank currency accounts. Each token is its own centralized execution
+\item \textit{Token and its Accounts} - E.g. bank currency accounts. Each token is its own centralized execution
     environment, bearers access their monetary value through their accounts, and execute financial contracts through the
     token.
 \item \textit{Note} - E.g. federal reserve notes, bills, coins and Bitcoin UTXOs, etc. The execution environment is
@@ -315,14 +319,36 @@ centralized. Some also argue note-like model is better for complex concurrent an
 \section{Relevant Approaches}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Constraint Programming}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+The focus of this paper is to formally define a set of payment primitives that modernize our payment systems. To prevent
+reinventing wheels, it is relevant to discuss first some approaches in computer science that are believed to help
+solving this challenge.
 
 \subsection{Functional Reactive Programming}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Recall that we want our modernized payment system to handle money distribution continuously over time, and its financial
+contracts compositional. A very closely related software design paradigm best known to address those needs is
+\textit{functional reactive programming (FRP)}. It was first introduced by Conal Elliott \& Paul Hudak in solving multimedia
+animations \cite{elliott1997functional}. Later on, Hudak also worked on \cite{hudak2002arrows} and
+\cite{wan2000functional} making FRP a more general framework for programming hybrid system with continuous behaviors in
+a high-level, declarative manner.
+
+After FRP got more adoption, it evolved to some variations that support discrete semantics, and some variations better
+suited more for interactive systems. In this paper we will stick to and revisit the original formulation use in
+\cite{elliott1997functional} where we will draw inspirations from.
+
+... TODO
+
 \subsection{Denotational Semantics}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+We also want a formal and precise specification of payment primitives. The title of the paper mentions denotational
+semantics, it is a \textit{compositional} style for precisely specifying the meanings of languages, invented by
+Christopher Strachey and Dana Scott in the 1960s (\cite{scott1971toward}). Conal Elliott proposed that denotational
+semantics can also be applied to \textit{data types} in programming \footfullcite[][section 2, denotational semantics
+    and data types]{Elliott2009-type-class-morphisms-TR}. We will revisit this formulation too.
+
+... TODO
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{General Payment Primitives}

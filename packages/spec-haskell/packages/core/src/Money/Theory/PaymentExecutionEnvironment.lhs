@@ -1,7 +1,7 @@
 \ignore{
 \begin{code}
 {-# LANGUAGE FunctionalDependencies #-}
-{-# LANGUAGE TypeFamilyDependencies #-}
+{-# LANGUAGE GADTs #-}
 module Money.Theory.PaymentExecutionEnvironment
     -- $intro
     --
@@ -37,8 +37,8 @@ class ( MoneyDistribution md
       , FinancialContract fc md
       , Monad env
       ) => NondetSeqPaymentExecEnv env md fc | env -> md, env -> fc where
-    -- | Monadically delete a financial contract from the execution environment.
-    fcMDelete :: fc -> env ()
+    -- | Monadically update a financial contract in the execution environment.
+    fcMUpdate :: fc -> env ()
 
     -- | Monadically select one financial contract from the execution environment.
     fcMSelect :: ( ctx ~ MD_CTX md
@@ -56,9 +56,10 @@ class ( MoneyDistribution md
         (md, ctx, fc) <- fcMSelect t
         if fcPred fc (md, ctx) t
             then do
-                fcMDelete fc
+                let ((md', ctx'), fc') = fcExec fc (md, ctx) t
+                fcMUpdate fc'
                 -- (<>) operator is the binary operator for monoidal types.
-                return ((md, ctx) <> fcExec fc (md, ctx) t)
+                return ((md, ctx) <> (md', ctx'))
             else return (md, ctx)
 \end{code}
 
@@ -109,11 +110,8 @@ Total ordered financial contract could be used to model deterministic sequential
 class ( MoneyDistribution md
       , TotallyOrderedFinancialContract tofc md
       ) => DetSeqPaymentExecEnv env md tofc | env -> md, env -> tofc where
-    -- | Insert a financial contract to the execution environment.
-    fcInsert :: fc -> env -> env
-
-    -- | Delete a financial contract from the execution environment.
-    fcDelete :: fc -> env -> env
+    -- | Update a financial contract in the execution environment.
+    fcUpdate :: fc -> env -> env
 
     -- | Deterministically get the next financial contract
     --   executable at a specific time.
@@ -134,10 +132,11 @@ class ( MoneyDistribution md
     -- Default implementation for the step through function.
     penvDetStepThrough env = let
         (md, ctx, fc, t) = fcNext env
+        ((md', ctx'), fc') = fcExec fc (md, ctx) t
         -- assert: fcPred fc (md, ctx) t
         in (penvUpdate
-            (fcDelete fc env)
-            ((md, ctx) <> fcExec fc (md, ctx) t)
+            (fcUpdate fc' env)
+            ((md, ctx) <> (md', ctx'))
            , t)
 \end{code}
 

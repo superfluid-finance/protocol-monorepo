@@ -127,7 +127,7 @@ In Chapter 5, some possible further investigations are included for future study
 \section{Payment System}
 %%%%%%%%%%%%%%%%%%%%%%%%
 
-Here we present a formal definition of payment system and its components.
+Here we present a definition of payment system and its components.
 
 \paragraph{Payment system}
 
@@ -281,17 +281,35 @@ But it introduces a different type of systemic risk, that is denial-of-service, 
 system time until all next executable contracts are executed.
 
 
-\subsection{Money Medium Models}
+\subsection{Money Mediums}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-An attempt of creating a unifying theory for money and its distribution was made by Buldas, Saarepera et
-al.\cite{buldas2021unifying}
 
 \begin{displayquote}
 A useful observation about existing money schemes is that they all have some kind of monetary units that are physical or
 digital representations of money. Examples are bills, coins, bank accounts, Bitcoin UTXOs,
-etc. \cite{buldas2021unifying}
+etc. \footfullcite[][P3]{buldas2021unifying}
 \end{displayquote}
+
+We call these money mediums. And we further separate them into two big groups:
+
+\begin{itemize}
+\item \textit{Token and Its Accounts} - E.g. bank currency accounts. Each token is its own centralized execution
+    environment, bearers access their monetary value through their accounts, and execute financial contracts through the
+    token.
+\item \textit{Note} - E.g. federal reserve notes, bills, coins and Bitcoin UTXOs, etc. The execution environment is
+    independent of the notes, but it needs notes to complete the execution of financial contracts.
+\end{itemize}
+
+One of the main differences is from the ``user interface'' perspective. A bearer expects to keep many notes at hand,
+while maybe only needs a few accounts for each token. Also it is up to bearers to keep track of all their notes, while
+token can keep track of most of the states for bearers; hence notes are more decentralized and tokens are more
+centralized. Some also argue note-like model is better for complex concurrent and distributed computing environment
+\footfullcite[][P2]{chakravarty2020extended}.
+
+\subsubsection{Haskell Definition Of Money Mediums}
+
+\input{MoneyMedium.lhs.tex}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Relevant Approaches}
@@ -432,6 +450,8 @@ Here is the list of acronyms used:
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Future Investigations}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Complexity Argument}
 
 \section{Restatement in Agda and Correctness Proof}
 

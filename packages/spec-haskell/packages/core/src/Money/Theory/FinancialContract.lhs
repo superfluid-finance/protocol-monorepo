@@ -39,7 +39,7 @@ class MoneyDistribution md => FinancialContract fc md | fc -> md where
     fcExec :: ( ctx ~ MD_CTX md
               , Timestamp t
               )
-           => fc -> (md, ctx) -> t -> (md, ctx)
+           => fc -> (md, ctx) -> t -> ((md, ctx), fc)
 \end{code}
 
 Because \textit{(md, ctx)} is monoidal too, itt is then possible to build a combinatorial libary of financial contracts

@@ -94,6 +94,7 @@ YELLOWPAPER_INPUTS = $(YELLOWPAPER_ROOT)/tex \
 	$(YELLOWPAPER_ROOT)/tex/MoneyDistribution.lhs.tex \
 	$(YELLOWPAPER_ROOT)/tex/FinancialContract.lhs.tex \
 	$(YELLOWPAPER_ROOT)/tex/PaymentExecutionEnvironment.lhs.tex \
+	$(YELLOWPAPER_ROOT)/tex/MoneyMedium.lhs.tex \
 	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
 	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
 	$(YELLOWPAPER_ROOT)/tex/Biblio.bib \

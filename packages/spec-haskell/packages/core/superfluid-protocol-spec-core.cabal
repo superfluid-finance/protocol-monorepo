@@ -19,6 +19,7 @@ library
         Money.Theory.MoneyDistribution
         Money.Theory.FinancialContract
         Money.Theory.PaymentExecutionEnvironment
+        Money.Theory.MoneyMedium
         Money.Systems.Superfluid.CoreTypes.TypedValue
         Money.Systems.Superfluid.CoreTypes.RealTimeBalance
         Money.Systems.Superfluid.CoreTypes

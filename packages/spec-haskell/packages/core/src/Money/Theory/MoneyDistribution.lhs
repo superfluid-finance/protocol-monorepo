@@ -29,7 +29,7 @@ class MonetaryUnit mu
 \end{code}
 
 \begin{code}
-class ( MonetaryValue (MD_MV md)
+class ( MonetaryValue (MD_MVAL md)
       , MonetaryUnit (MD_MU md)
       , Bearer (MD_BRR md)
       , SharedContext (MD_CTX md)
@@ -38,7 +38,7 @@ class ( MonetaryValue (MD_MV md)
     monetaryUnits :: mu ~ MD_MU md
                   => md -> [mu]
 
-    monetaryValue :: ( mv  ~ MD_MV md
+    monetaryValue :: ( mv  ~ MD_MVAL md
                      , mu  ~ MD_MU md
                      , ctx ~ MD_CTX md
                      )
@@ -48,8 +48,8 @@ class ( MonetaryValue (MD_MV md)
               , brr ~ MD_BRR md
               ) => md -> mu -> brr
 
-    type family MD_MV  md = (mv  :: Type) | mv  -> md
-    type family MD_MU  md = (mu  :: Type) | mu  -> md
-    type family MD_BRR md = (brr :: Type) | brr -> md
-    type family MD_CTX md = (ctx :: Type) | ctx -> md
+    type family MD_MVAL md = (mval :: Type) | mval -> md
+    type family MD_MU   md = (mu   :: Type) | mu   -> md
+    type family MD_BRR  md = (brr  :: Type) | brr  -> md
+    type family MD_CTX  md = (ctx  :: Type) | ctx  -> md
 \end{code}

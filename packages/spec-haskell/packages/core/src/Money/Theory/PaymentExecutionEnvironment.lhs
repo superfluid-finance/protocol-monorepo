@@ -28,8 +28,8 @@ Here are some models for different payment execution environment.
 
 \paragraph{Nondeterministic Sequential Execution Environment}
 
-Here is a model for nondeterministic sequential payment execution environment, which includes a set of all financial
-contracts and a step through function:
+First we define a model for nondeterministic sequential payment execution environment, which includes a set of all
+financial contracts and a step through function:
 
 \begin{code}
 -- | Nondeterministic sequential payment execution environment.
@@ -40,7 +40,7 @@ class ( MoneyDistribution md
     -- | Monadically delete a financial contract from the execution environment.
     fcMDelete :: fc -> env ()
 
-    -- | Monadically select one financial contract from the execution environment, at a given time.
+    -- | Monadically select one financial contract from the execution environment.
     fcMSelect :: ( ctx ~ MD_CTX md
                  , Timestamp t
                  )
@@ -115,7 +115,8 @@ class ( MoneyDistribution md
     -- | Delete a financial contract from the execution environment.
     fcDelete :: fc -> env -> env
 
-    -- | Deterministically get the next financial contract ready to be executed.
+    -- | Deterministically get the next financial contract
+    --   executable at a specific time.
     fcNext :: ( ctx ~ MD_CTX md
               , Timestamp t
               )
@@ -144,4 +145,4 @@ The environment is no longer monad, and it is equivalent to say it is now fully 
 interations with external world should use \textit{fcInsert} for adding new financial contracts to the environment.
 
 A weaker condition, namely a poset (partially ordered) of financial contracts, may enable deterministic parallel
-executions of payments.
+executions of payments. Its model in Haskell will also not be provided for now.

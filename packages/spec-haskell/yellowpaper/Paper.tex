@@ -258,6 +258,28 @@ environments. Nonetheless, a simplified model and some potential extensions to i
 
 \subsection{Payment System Solvency}
 
+While money distribution does not assign meaning to the range of monetary values, in real world applications, negative
+values can have special meanings. In the following analysis, we call any money unit that has a negative monetary value
+insolvent.
+
+The detailed analysis of these solvency models are out of scope for this paper.
+
+\paragraph{Buffer Based Solvency Treatment}
+
+In a nondeterministic execution environment, we cannot determine when any financial contract will actually be
+executed. That means, there is always a chance a monetary unit could reach negative monetary value.
+
+To mitigate this uncertainty, a concept called buffer is introduced. A buffer has a monetary value which is set aside in a solvency conditional financial contract, such that if a solvency
+condition arises, the buffer maybe drawn to cover the loss introduced by the nondeterministic timing of the execution.
+
+\paragraph{Deterministic Solvency Treatment}
+
+Since \textit{fcNext} returns what is the next financial contract executable at a specific time, this deterministic
+property eliminates the need for the buffer.
+
+But it introduces a different type of systemic risk, that is denial-of-service, since the system cannot advance the
+system time until all next executable contracts are executed.
+
 
 \subsection{Money Medium Models}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

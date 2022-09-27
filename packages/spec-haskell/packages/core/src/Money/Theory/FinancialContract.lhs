@@ -41,3 +41,6 @@ class MoneyDistribution md => FinancialContract fc md | fc -> md where
               )
            => fc -> (md, ctx) -> t -> (md, ctx)
 \end{code}
+
+Because \textit{(md, ctx)} is monoidal too, itt is then possible to build a combinatorial libary of financial contracts
+that can be used to construct larger and more complex financial contracts.

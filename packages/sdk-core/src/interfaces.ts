@@ -45,13 +45,14 @@ export interface ISuperTokenRequestFilter {
 // CFA/IDA inherits and tacks on superToken property
 
 // write request interfaces
-export interface ISuperTokenModifyFlowParams {
+export interface ISuperTokenModifyFlowParams extends IShouldUseCallAgreement {
     readonly flowRate?: string;
     readonly receiver: string;
     readonly sender?: string;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
+
 export interface ISuperTokenCreateFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly flowRate: string;
@@ -123,12 +124,15 @@ export interface ISuperTokenUpdateSubscriptionUnitsParams {
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
+export interface IShouldUseCallAgreement {
+    readonly shouldUseCallAgreement?: boolean;
+}
+
 export interface IModifyFlowParams extends ISuperTokenModifyFlowParams {
     readonly superToken: string;
 }
 export interface ICreateFlowParams extends IModifyFlowParams {
     readonly flowRate: string;
-    readonly shouldUseCallAgreement?: boolean;
 }
 export interface ICreateFlowByOperatorParams extends ICreateFlowParams {
     readonly sender: string;
@@ -156,11 +160,14 @@ export interface ISuperTokenFullControlParams {
 }
 
 export interface IUpdateFlowOperatorPermissionsParams
-    extends ISuperTokenUpdateFlowOperatorPermissionsParams {
+    extends ISuperTokenUpdateFlowOperatorPermissionsParams,
+        IShouldUseCallAgreement {
     readonly superToken: string;
 }
 
-export interface IFullControlParams extends ISuperTokenFullControlParams {
+export interface IFullControlParams
+    extends ISuperTokenFullControlParams,
+        IShouldUseCallAgreement {
     readonly superToken: string;
 }
 

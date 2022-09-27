@@ -218,14 +218,14 @@ export default class ConstantFlowAgreementV1 {
         const normalizedReceiver = normalizeAddress(params.receiver);
         const normalizedSender = normalizeAddress(params.sender);
 
-        const callData = cfaInterface.encodeFunctionData("createFlow", [
-            normalizedToken,
-            normalizedReceiver,
-            params.flowRate,
-            "0x",
-        ]);
-
         if (params.shouldUseCallAgreement) {
+            const callData = cfaInterface.encodeFunctionData("createFlow", [
+                normalizedToken,
+                normalizedReceiver,
+                params.flowRate,
+                "0x",
+            ]);
+
             return this.host.callAgreement(
                 this.options.config.cfaV1Address,
                 callData,
@@ -252,25 +252,39 @@ export default class ConstantFlowAgreementV1 {
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
+     * @param shouldUseCallAgreement Whether to use callAgreement, or the CFAv1Forwarder
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     updateFlow = (params: IUpdateFlowParams): Operation => {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedReceiver = normalizeAddress(params.receiver);
+        const normalizedSender = normalizeAddress(params.sender);
 
-        const callData = cfaInterface.encodeFunctionData("updateFlow", [
+        if (params.shouldUseCallAgreement) {
+            const callData = cfaInterface.encodeFunctionData("updateFlow", [
+                normalizedToken,
+                normalizedReceiver,
+                params.flowRate,
+                "0x",
+            ]);
+
+            return this.host.callAgreement(
+                this.options.config.cfaV1Address,
+                callData,
+                params.userData,
+                params.overrides
+            );
+        }
+
+        const txn = this.forwarder.populateTransaction.updateFlow(
             normalizedToken,
+            normalizedSender,
             normalizedReceiver,
             params.flowRate,
-            "0x",
-        ]);
-
-        return this.host.callAgreement(
-            this.options.config.cfaV1Address,
-            callData,
-            params.userData,
-            params.overrides
+            params.userData ?? ""
         );
+
+        return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
     };
 
     /**
@@ -280,6 +294,7 @@ export default class ConstantFlowAgreementV1 {
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
+     * @param shouldUseCallAgreement Whether to use callAgreement, or the CFAv1Forwarder
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     deleteFlow = (params: IDeleteFlowParams): Operation => {
@@ -287,19 +302,30 @@ export default class ConstantFlowAgreementV1 {
         const normalizedSender = normalizeAddress(params.sender);
         const normalizedReceiver = normalizeAddress(params.receiver);
 
-        const callData = cfaInterface.encodeFunctionData("deleteFlow", [
+        if (params.shouldUseCallAgreement) {
+            const callData = cfaInterface.encodeFunctionData("deleteFlow", [
+                normalizedToken,
+                normalizedSender,
+                normalizedReceiver,
+                "0x",
+            ]);
+
+            return this.host.callAgreement(
+                this.options.config.cfaV1Address,
+                callData,
+                params.userData,
+                params.overrides
+            );
+        }
+
+        const txn = this.forwarder.populateTransaction.deleteFlow(
             normalizedToken,
             normalizedSender,
             normalizedReceiver,
-            "0x",
-        ]);
-
-        return this.host.callAgreement(
-            this.options.config.cfaV1Address,
-            callData,
-            params.userData,
-            params.overrides
+            params.userData ?? ""
         );
+
+        return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
     };
 
     /** ### CFA ACL Write Functions (byOperator) ### */
@@ -312,6 +338,7 @@ export default class ConstantFlowAgreementV1 {
      * @param flowRateAllowance The flowRateAllowance granted to the flow operator.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
+     * @param shouldUseCallAgreement Whether to use callAgreement, or the CFAv1Forwarder
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     updateFlowOperatorPermissions(
@@ -333,23 +360,34 @@ export default class ConstantFlowAgreementV1 {
             });
         }
 
-        const callData = cfaInterface.encodeFunctionData(
-            "updateFlowOperatorPermissions",
-            [
+        if (params.shouldUseCallAgreement) {
+            const callData = cfaInterface.encodeFunctionData(
+                "updateFlowOperatorPermissions",
+                [
+                    normalizedToken,
+                    normalizedFlowOperator,
+                    params.permissions,
+                    params.flowRateAllowance,
+                    "0x",
+                ]
+            );
+            return this.host.callAgreement(
+                this.options.config.cfaV1Address,
+                callData,
+                params.userData,
+                params.overrides
+            );
+        }
+
+        const txn =
+            this.forwarder.populateTransaction.updateFlowOperatorPermissions(
                 normalizedToken,
                 normalizedFlowOperator,
                 params.permissions,
-                params.flowRateAllowance,
-                "0x",
-            ]
-        );
+                params.userData ?? ""
+            );
 
-        return this.host.callAgreement(
-            this.options.config.cfaV1Address,
-            callData,
-            params.userData,
-            params.overrides
-        );
+        return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
     }
 
     /**
@@ -358,6 +396,7 @@ export default class ConstantFlowAgreementV1 {
      * @param flowOperator The permission grantee address
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
+     * @param shouldUseCallAgreement Whether to use callAgreement, or the CFAv1Forwarder
      */
     authorizeFlowOperatorWithFullControl(
         params: IFullControlParams
@@ -365,17 +404,25 @@ export default class ConstantFlowAgreementV1 {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedFlowOperator = normalizeAddress(params.flowOperator);
 
-        const callData = cfaInterface.encodeFunctionData(
-            "authorizeFlowOperatorWithFullControl",
-            [normalizedToken, normalizedFlowOperator, "0x"]
+        if (params.shouldUseCallAgreement) {
+            const callData = cfaInterface.encodeFunctionData(
+                "authorizeFlowOperatorWithFullControl",
+                [normalizedToken, normalizedFlowOperator, "0x"]
+            );
+            return this.host.callAgreement(
+                this.options.config.cfaV1Address,
+                callData,
+                params.userData,
+                params.overrides
+            );
+        }
+
+        const txn = this.forwarder.populateTransaction.grantPermissions(
+            normalizedToken,
+            normalizedFlowOperator
         );
 
-        return this.host.callAgreement(
-            this.options.config.cfaV1Address,
-            callData,
-            params.userData,
-            params.overrides
-        );
+        return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
     }
 
     /**
@@ -389,17 +436,26 @@ export default class ConstantFlowAgreementV1 {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedFlowOperator = normalizeAddress(params.flowOperator);
 
-        const callData = cfaInterface.encodeFunctionData(
-            "revokeFlowOperatorWithFullControl",
-            [normalizedToken, normalizedFlowOperator, "0x"]
+        if (params.shouldUseCallAgreement) {
+            const callData = cfaInterface.encodeFunctionData(
+                "revokeFlowOperatorWithFullControl",
+                [normalizedToken, normalizedFlowOperator, "0x"]
+            );
+
+            return this.host.callAgreement(
+                this.options.config.cfaV1Address,
+                callData,
+                params.userData,
+                params.overrides
+            );
+        }
+
+        const txn = this.forwarder.populateTransaction.revokePermissions(
+            normalizedToken,
+            normalizedFlowOperator
         );
 
-        return this.host.callAgreement(
-            this.options.config.cfaV1Address,
-            callData,
-            params.userData,
-            params.overrides
-        );
+        return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
     }
 
     /**
@@ -410,6 +466,7 @@ export default class ConstantFlowAgreementV1 {
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
+     * @param shouldUseCallAgreement Whether to use callAgreement, or the CFAv1Forwarder
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     createFlowByOperator = (params: ICreateFlowParams): Operation => {
@@ -417,23 +474,27 @@ export default class ConstantFlowAgreementV1 {
         const normalizedReceiver = normalizeAddress(params.receiver);
         const normalizedSender = normalizeAddress(params.sender);
 
-        const callData = cfaInterface.encodeFunctionData(
-            "createFlowByOperator",
-            [
-                normalizedToken,
-                normalizedSender,
-                normalizedReceiver,
-                params.flowRate,
-                "0x",
-            ]
-        );
+        if (params.shouldUseCallAgreement) {
+            const callData = cfaInterface.encodeFunctionData(
+                "createFlowByOperator",
+                [
+                    normalizedToken,
+                    normalizedSender,
+                    normalizedReceiver,
+                    params.flowRate,
+                    "0x",
+                ]
+            );
 
-        return this.host.callAgreement(
-            this.options.config.cfaV1Address,
-            callData,
-            params.userData,
-            params.overrides
-        );
+            return this.host.callAgreement(
+                this.options.config.cfaV1Address,
+                callData,
+                params.userData,
+                params.overrides
+            );
+        }
+
+        return this.createFlow(params);
     };
 
     /**
@@ -451,23 +512,27 @@ export default class ConstantFlowAgreementV1 {
         const normalizedSender = normalizeAddress(params.sender);
         const normalizedReceiver = normalizeAddress(params.receiver);
 
-        const callData = cfaInterface.encodeFunctionData(
-            "updateFlowByOperator",
-            [
-                normalizedToken,
-                normalizedSender,
-                normalizedReceiver,
-                params.flowRate,
-                "0x",
-            ]
-        );
+        if (params.shouldUseCallAgreement) {
+            const callData = cfaInterface.encodeFunctionData(
+                "updateFlowByOperator",
+                [
+                    normalizedToken,
+                    normalizedSender,
+                    normalizedReceiver,
+                    params.flowRate,
+                    "0x",
+                ]
+            );
 
-        return this.host.callAgreement(
-            this.options.config.cfaV1Address,
-            callData,
-            params.userData,
-            params.overrides
-        );
+            return this.host.callAgreement(
+                this.options.config.cfaV1Address,
+                callData,
+                params.userData,
+                params.overrides
+            );
+        }
+
+        return this.updateFlow(params);
     };
 
     /**
@@ -484,17 +549,21 @@ export default class ConstantFlowAgreementV1 {
         const normalizedSender = normalizeAddress(params.sender);
         const normalizedReceiver = normalizeAddress(params.receiver);
 
-        const callData = cfaInterface.encodeFunctionData(
-            "deleteFlowByOperator",
-            [normalizedToken, normalizedSender, normalizedReceiver, "0x"]
-        );
+        if (params.shouldUseCallAgreement) {
+            const callData = cfaInterface.encodeFunctionData(
+                "deleteFlowByOperator",
+                [normalizedToken, normalizedSender, normalizedReceiver, "0x"]
+            );
 
-        return this.host.callAgreement(
-            this.options.config.cfaV1Address,
-            callData,
-            params.userData,
-            params.overrides
-        );
+            return this.host.callAgreement(
+                this.options.config.cfaV1Address,
+                callData,
+                params.userData,
+                params.overrides
+            );
+        }
+
+        return this.deleteFlow(params);
     };
 
     /** ### Private Functions ### */

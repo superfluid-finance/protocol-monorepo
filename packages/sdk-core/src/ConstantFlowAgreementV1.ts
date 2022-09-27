@@ -6,7 +6,6 @@ import { SFError } from "./SFError";
 import IConstantFlowAgreementV1ABI from "./abi/IConstantFlowAgreementV1.json";
 import {
     IAgreementV1Options,
-    ICreateFlowByOperatorParams,
     ICreateFlowParams,
     IDeleteFlowParams,
     IFullControlParams,
@@ -217,6 +216,7 @@ export default class ConstantFlowAgreementV1 {
     createFlow = (params: ICreateFlowParams): Operation => {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedReceiver = normalizeAddress(params.receiver);
+        const normalizedSender = normalizeAddress(params.sender);
 
         const callData = cfaInterface.encodeFunctionData("createFlow", [
             normalizedToken,
@@ -234,15 +234,12 @@ export default class ConstantFlowAgreementV1 {
             );
         }
 
-        const { superToken, sender, receiver, flowRate, userData } =
-            params as ICreateFlowByOperatorParams;
-
         const txn = this.forwarder.populateTransaction.createFlow(
-            superToken,
-            sender,
-            receiver,
-            flowRate,
-            userData ?? ""
+            normalizedToken,
+            normalizedSender,
+            normalizedReceiver,
+            params.flowRate,
+            params.userData ?? ""
         );
 
         return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");

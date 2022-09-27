@@ -129,9 +129,9 @@ In Chapter 5, some possible further investigations are included for future study
 
 Here we present a formal definition of payment system and its components.
 
-\paragraph{}
+\paragraph{Payment system}
 
-A payment system can be solely defined by these components:
+It can be solely defined by these components:
 
 \begin{itemize}
 \item \textit{money distribution} models how monetary value is distributed amongst bearers\footnote{(Banking \& Finance)
@@ -141,7 +141,7 @@ a person who presents a note or bill for payment. - Collins English Dictionary},
 \item and \textit{forms of money medium} are the "user interfaces" of money for the bearers.
 \end{itemize}
 
-\paragraph{}
+\paragraph{Modernization}
 
 For its modern upgrade, the system should also have these properties:
 
@@ -191,9 +191,9 @@ payment system. Here we propose a modification that involves the usage of \texti
 Note that in this model, context can be updated independently while value functions of the same money distribution can
 produce different monetary values.
 
-\paragraph{}
+\paragraph{Components of Context}
 
-Here are some examples how that could work:
+Here are some possible components of context, and how they work:
 
 \begin{itemize}
 \item If time (t) is included the context, then monetary value of each monetary unit can be continuous over time. Time
@@ -241,8 +241,8 @@ context enables more primitives to be defined, and this will be discussed in lat
 \subsection{Payment Execution Environment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The purpose of a payment execution environment is to perform the actual payment primitives taking into account their
-conditions, timing and order.
+The purpose of a payment execution environment is to perform the actual payment primitives, where their computation
+interface, parallel evaluation strategies and payment system solvency are defined.
 
 It is out of scope for this paper to survey in-depth the problem space of the operation semantics of payment execution
 environments. Nonetheless, a simplified model and some potential extensions to it is discussed briefly.
@@ -255,6 +255,10 @@ environments. Nonetheless, a simplified model and some potential extensions to i
 
 \input{PaymentExecutionEnvironment.lhs.tex}
 
+
+\subsection{Payment System Solvency}
+
+
 \subsection{Money Medium Models}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -263,7 +267,8 @@ al.\cite{buldas2021unifying}
 
 \begin{displayquote}
 A useful observation about existing money schemes is that they all have some kind of monetary units that are physical or
-digital representations of money. Examples are bills, coins, bank accounts, Bitcoin UTXOs, etc. \cite{buldas2021unifying}
+digital representations of money. Examples are bills, coins, bank accounts, Bitcoin UTXOs,
+etc. \cite{buldas2021unifying}
 \end{displayquote}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%

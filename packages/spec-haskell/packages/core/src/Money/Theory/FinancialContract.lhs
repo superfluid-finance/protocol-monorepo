@@ -16,8 +16,11 @@ import Money.Theory.MoneyDistribution
 \begin{code}
 {- $intro
 
-Inspired by the \textit{technique of composing financial contracts} demonstrated in \cite{peyton2000composing}, we first
-define a type class for financial contract:
+Financial contract is the execution context for payment primitives, including their execution conditions,
+timing\footnote{Timing is a type of condition of which current system time is a factor} and execution order.
+
+Inspired by the \textit{technique of composing financial contracts} demonstrated in \cite{peyton2000composing}, we
+define the type class for financial contract as follows:
 
 -}
 \end{code}

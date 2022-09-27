@@ -5,14 +5,14 @@
 module Money.Theory.PaymentExecutionEnvironment
     -- $intro
     --
-    ( FinancialContract (..)
-    , FinancialContractSet (..)
-    , stepNextPaymentNonDetSeq
+    ( NondetSeqPaymentExecEnv (..)
+    , TotallyOrderedFinancialContract
+    , PartiallyOrderedFinancialContract
+    , DetSeqPaymentExecEnv (..)
     ) where
 
 import Money.Theory.MoneyDistribution
 import Money.Theory.FinancialContract
-import Data.Kind (Type)
 \end{code}
 }
 
@@ -20,61 +20,128 @@ import Data.Kind (Type)
 \begin{code}
 {- $intro
 
-Here are some simplified models for payment execution environment.
+Here are some models for different payment execution environment.
 
 -}
 \end{code}
 \end{haddock}
 
-Let's first define \textit{FinancialContractSet} be the set of all financial contracts in the payment system.
+\paragraph{Nondeterministic Sequential Execution Environment}
+
+Here is a model for nondeterministic sequential payment execution environment, which includes a set of all financial
+contracts and a step through function:
 
 \begin{code}
+-- | Nondeterministic sequential payment execution environment.
 class ( MoneyDistribution md
       , FinancialContract fc md
-      , Monad (FCSET_MONAD fcSet)
-      ) => FinancialContractSet fcSet fc md | fcSet -> fc where
-    -- | Monadically select a financial contract from the set.
-    selectFc :: m ~ FCSET_MONAD fcSet
-             => fcSet -> m fc
+      , Monad env
+      ) => NondetSeqPaymentExecEnv env md fc | env -> md, env -> fc where
+    -- | Monadically delete a financial contract from the execution environment.
+    fcMDelete :: fc -> env ()
 
-    -- | Indexed monad type for the set. It encodes the type of
-    --   side effect used in ~selectFc~.
-    type family FCSET_MONAD fcSet = (m :: Type -> Type) | m -> fcSet
+    -- | Monadically select one financial contract from the execution environment, at a given time.
+    fcMSelect :: ( ctx ~ MD_CTX md
+                 , Timestamp t
+                 )
+              => t -> env (md, ctx, fc)
+
+    -- | Step through the execution environment.
+    penvStepThrough :: ( ctx ~ MD_CTX md
+                      , Timestamp t
+                      )
+                  => t -> env (md, ctx)
+    -- Default implementation for the step through function.
+    penvStepThrough t = do
+        (md, ctx, fc) <- fcMSelect t
+        if fcPred fc (md, ctx) t
+            then do
+                fcMDelete fc
+                -- (<>) operator is the binary operator for monoidal types.
+                return ((md, ctx) <> fcExec fc (md, ctx) t)
+            else return (md, ctx)
 \end{code}
 
-Here the associated type synonym \textit{FCSET\_MONAD fcSet} is a Monad, where diferent side effects for
-\textit{fcSelect} can be encoded, for instances:
+We do not assume that \textit{fcMSelect} yields a predicate that evalutes to true; since it could be an input from the
+external world. This won't work with deterministic financial contract set.
 
-\begin{itemize}
-\item \textit{Idendity monad} - there is no side effect, \textit{selectFc} then must be deterministic.
-\item \textit{IO monad} - a computation that involve input/output with the world.
-\end{itemize}
+The environment is a Monad, where diferent side effects for \textit{fcMSelect} can be encoded. For more generalized
+interface to computation, arrows could be used instead \cite{hughes2000generalising}.
 
-For more generalized interface to computation, arrows could be used instead \cite{hughes2000generalising}.
+\paragraph{Parallel Execution}
 
-\paragraph{Sequential Model}
+When the executions of payment primitives can be in parallel, the shared resource problem of updating money
+distribution, context and financial contract set arrises in data storage.
 
-A naive sequential execution environment model that supports conditional payment primitives\footnote{Timing is a type of
-condition of which current system time is a factor} then can be defined as follows:
+To model the parallel execution, ones must first study the concurrency control of the data storage system used
+\cite{bernstein1981concurrency}; while formalism of parallel execution can be best done using Petri Nets
+(\cite{petri1962kommunikation}, \cite{reisig2012petri})\footnote{Petri Nets World,
+https://www.informatik.uni-hamburg.de/TGI/PetriNets/index.php}.
+
+But a model in Haskell will not be provided for now.
+
+\paragraph{Deterministic Execution}
+
+To make the execution environment deterministic, stronger ordering conditions must be provided to the financial contract
+type:
 
 \begin{code}
--- | Naive version of step function in a sequential payment system.
-stepNextPaymentNonDetSeq :: ( MoneyDistribution md
-                            , FinancialContract fc md
-                            , FinancialContractSet fcSet fc md
-                            , Timestamp t
-                            , ctx ~ MD_CTX md
-                            , m ~ FCSET_MONAD fcSet
-                            )
-                         =>  (md, ctx) -> fcSet -> t -> m (md, ctx)
-stepNextPaymentNonDetSeq (md, ctx) fcSet t = selectFc fcSet >>= \fc -> return $
-    if fcPred fc (md, ctx) t
-    then (md, ctx) <> fcExec fc (md, ctx) t
-    else (md, ctx)
+-- | Financial contract that can be totally ordered.
+class ( MoneyDistribution md
+      , FinancialContract tofc md
+      , Ord tofc)
+      => TotallyOrderedFinancialContract tofc md
+
+-- | A partially ordered data type (incomplete definition).
+class Poset a
+
+-- | Financial contract that can be partially ordered.
+class ( MoneyDistribution md
+      , FinancialContract tofc md
+      , Poset tofc)
+      => PartiallyOrderedFinancialContract tofc md
 \end{code}
 
-\paragraph{Non-deterministic Concurrent Model}
+Total ordered financial contract could be used to model deterministic sequential execution environment:
 
-\paragraph{Deterministic Concurrent Model}
+\begin{code}
+-- | Deterministic sequential payment execution environment.
+class ( MoneyDistribution md
+      , TotallyOrderedFinancialContract tofc md
+      ) => DetSeqPaymentExecEnv env md tofc | env -> md, env -> tofc where
+    -- | Insert a financial contract to the execution environment.
+    fcInsert :: fc -> env -> env
 
-\paragraph{Payment System Solvency}
+    -- | Delete a financial contract from the execution environment.
+    fcDelete :: fc -> env -> env
+
+    -- | Deterministically get the next financial contract ready to be executed.
+    fcNext :: ( ctx ~ MD_CTX md
+              , Timestamp t
+              )
+           => env -> (md, ctx, tofc, t)
+
+    -- | Update execution environment with new money distribution and context.
+    penvUpdate :: ctx ~ MD_CTX md
+               => env -> (md, ctx) -> env
+
+    -- | Deterministically step through the execution environment
+    penvDetStepThrough :: ( ctx ~ MD_CTX md
+                          , Timestamp t
+                          )
+                       => env -> (env, t)
+    -- Default implementation for the step through function.
+    penvDetStepThrough env = let
+        (md, ctx, fc, t) = fcNext env
+        -- assert: fcPred fc (md, ctx) t
+        in (penvUpdate
+            (fcDelete fc env)
+            ((md, ctx) <> fcExec fc (md, ctx) t)
+           , t)
+\end{code}
+
+The environment is no longer monad, and it is equivalent to say it is now fully deterministic. Instead the monadic
+interations with external world should use \textit{fcInsert} for adding new financial contracts to the environment.
+
+A weaker condition, namely a poset (partially ordered) of financial contracts, may enable deterministic parallel
+executions of payments.

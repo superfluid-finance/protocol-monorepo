@@ -1,0 +1,26 @@
+\documentclass[a4paper,10pt]{report}
+
+%% Page Settings
+%%% \usepackage[margin=0.5in,nomarginpar]{geometry}
+
+%% Packages
+\usepackage{hyperref}
+\usepackage{fvextra}
+\usepackage{csquotes}
+\usepackage{xcolor}
+\usepackage{minted}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{enumitem}
+
+%% Formatting
+
+\renewcommand{\mkbegdispquote}[2]{\itshape}
+
+%% Literate Haskell (lhs) Macros
+%%% include common lhs formatting
+\input{lhsfmt.tex}
+%%% for code
+\newminted[code]{haskell}{}
+\newminted[spec]{haskell}{}

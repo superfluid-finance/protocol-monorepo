@@ -96,7 +96,7 @@ YELLOWPAPER_INPUTS = $(YELLOWPAPER_ROOT)/tex \
 	$(YELLOWPAPER_ROOT)/tex/PaymentExecutionEnvironment.lhs.tex \
 	$(YELLOWPAPER_ROOT)/tex/MoneyMedium.lhs.tex \
 	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
-	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
+	$(YELLOWPAPER_ROOT)/tex/preamble.tex \
 	$(YELLOWPAPER_ROOT)/tex/Biblio.bib \
 	$(YELLOWPAPER_ROOT)/tex/Paper.tex
 $(YELLOWPAPER_ROOT)/pdflatex/superfluid-yellowpaper.pdf: $(YELLOWPAPER_INPUTS)

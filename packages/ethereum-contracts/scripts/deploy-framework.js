@@ -1,9 +1,34 @@
 const fs = require("fs");
 const util = require("util");
 const getConfig = require("./libs/getConfig");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
+const {artifacts} = require("hardhat");
+
+const Ownable = artifacts.require("Ownable");
+const IMultiSigWallet = artifacts.require("IMultiSigWallet");
+const SuperfluidGovernanceBase = artifacts.require("SuperfluidGovernanceBase");
+const Resolver = artifacts.require("Resolver");
+const SuperfluidLoader = artifacts.require("SuperfluidLoader");
+const Superfluid = artifacts.require("Superfluid");
+const SuperfluidMock = artifacts.require("SuperfluidMock");
+const SuperTokenFactory = artifacts.require("SuperTokenFactory");
+const SuperTokenFactoryHelper = artifacts.require("SuperTokenFactoryHelper");
+const SuperTokenFactoryMock = artifacts.require("SuperTokenFactoryMock");
+const SuperTokenFactoryMockHelper = artifacts.require(
+    "SuperTokenFactoryMockHelper"
+);
+const SuperToken = artifacts.require("SuperToken");
+const SuperTokenMock = artifacts.require("SuperTokenMock");
+const TestGovernance = artifacts.require("TestGovernance");
+const ISuperfluidGovernance = artifacts.require("ISuperfluidGovernance");
+const UUPSProxy = artifacts.require("UUPSProxy");
+const UUPSProxiable = artifacts.require("UUPSProxiable");
+const SlotsBitmapLibrary = artifacts.require("SlotsBitmapLibrary");
+const ConstantFlowAgreementV1 = artifacts.require("ConstantFlowAgreementV1");
+const InstantDistributionAgreementV1 = artifacts.require(
+    "InstantDistributionAgreementV1"
+);
 
 const {
     getScriptRunnerFactory: S,
@@ -11,13 +36,12 @@ const {
     hasCode,
     codeChanged,
     isProxiable,
-    extractWeb3Options,
-    builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./libs/common");
 
 let resetSuperfluidFramework;
 let resolver;
+let IDAv1Linked = false;
 
 /// @param deployFunc must return a contract object
 /// @returns the newly deployed or existing loaded contract
@@ -167,58 +191,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         if (err) throw err;
     }, options);
 
-    const contracts = [
-        "Ownable",
-        "IMultiSigWallet",
-        "SuperfluidGovernanceBase",
-        "Resolver",
-        "SuperfluidLoader",
-        "Superfluid",
-        "SuperTokenFactory",
-        "SuperTokenFactoryHelper",
-        "SuperToken",
-        "TestGovernance",
-        "ISuperfluidGovernance",
-        "UUPSProxy",
-        "UUPSProxiable",
-        "SlotsBitmapLibrary",
-        "ConstantFlowAgreementV1",
-        "InstantDistributionAgreementV1",
-    ];
-    const mockContracts = [
-        "SuperfluidMock",
-        "SuperTokenFactoryMock",
-        "SuperTokenFactoryMockHelper",
-        "SuperTokenMock",
-    ];
-    const {
-        Ownable,
-        IMultiSigWallet,
-        SuperfluidGovernanceBase,
-        Resolver,
-        SuperfluidLoader,
-        Superfluid,
-        SuperfluidMock,
-        SuperTokenFactory,
-        SuperTokenFactoryHelper,
-        SuperTokenFactoryMock,
-        SuperTokenFactoryMockHelper,
-        SuperToken,
-        SuperTokenMock,
-        TestGovernance,
-        ISuperfluidGovernance,
-        UUPSProxy,
-        UUPSProxiable,
-        SlotsBitmapLibrary,
-        ConstantFlowAgreementV1,
-        InstantDistributionAgreementV1,
-    } = await SuperfluidSDK.loadContracts({
-        ...extractWeb3Options(options),
-        additionalContracts: contracts.concat(useMocks ? mockContracts : []),
-        contractLoader: builtTruffleContractLoader,
-        networkId,
-    });
-
     if (!newTestResolver && config.resolverAddress) {
         resolver = await Resolver.at(config.resolverAddress);
     } else {
@@ -236,7 +208,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             TestGovernance,
             `TestGovernance.${protocolReleaseVersion}`,
             async (contractAddress) =>
-                await codeChanged(web3, TestGovernance, contractAddress),
+                contractAddress === ZERO_ADDRESS ||
+                (await codeChanged(web3, TestGovernance, contractAddress)),
             async () => {
                 governanceInitializationRequired = true;
                 const c = await web3tx(
@@ -380,13 +353,20 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             )();
             output += `SLOTS_BITMAP_LIBRARY_ADDRESS=${slotsBmpLib.address}\n`;
             if (process.env.IS_HARDHAT) {
-                InstantDistributionAgreementV1.link(slotsBmpLib);
+                // @note when we try to link after the first time, an error
+                // is thrown complaining that SlotsBitmap is already linked
+                // This is only an issue in testing and shouldn't be a problem
+                // when doing a live deployment as this would only be run one time
+                if (IDAv1Linked === false) {
+                    InstantDistributionAgreementV1.link(slotsBmpLib);
+                }
             } else {
                 InstantDistributionAgreementV1.link(
                     "SlotsBitmapLibrary",
                     slotsBmpLib.address
                 );
             }
+            IDAv1Linked = true;
             return slotsBmpLib;
         };
         // small inefficiency: this may be re-deployed even if not changed

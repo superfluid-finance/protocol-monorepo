@@ -4,6 +4,7 @@ const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
+const {artifacts} = require("hardhat");
 const CFAv1Forwarder = artifacts.require("CFAv1Forwarder");
 
 const {

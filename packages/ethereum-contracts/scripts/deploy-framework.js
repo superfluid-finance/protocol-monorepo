@@ -4,6 +4,7 @@ const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
+const CFAv1Forwarder = artifacts.require("CFAv1Forwarder");
 
 const {
     getScriptRunnerFactory: S,
@@ -435,6 +436,18 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             console.warn("Cannot get slotsBitmapLibrary address", e.toString());
         }
     }
+
+    // deploy CFAv1Forwarder
+    await deployAndRegisterContractIf(
+        CFAv1Forwarder,
+        `CFAv1Forwarder.${protocolReleaseVersion}`,
+        async (contractAddress) => contractAddress === ZERO_ADDRESS,
+        async () => {
+            const forwarder = await CFAv1Forwarder.new(superfluid.address);
+            output += `CFA_V1_FORWARDER=${forwarder.address}\n`;
+            return forwarder;
+        }
+    );
 
     let superfluidNewLogicAddress = ZERO_ADDRESS;
     const agreementsToUpdate = [];

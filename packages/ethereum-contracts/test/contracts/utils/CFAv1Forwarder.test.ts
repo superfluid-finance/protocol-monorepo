@@ -45,10 +45,13 @@ describe("Agreement Forwarder", function () {
         host = t.contracts.superfluid;
         governance = t.contracts.governance;
 
-        const CFAv1ForwarderFactory = await ethers.getContractFactory(
-            "CFAv1Forwarder"
+        const cfaV1ForwarderAddress = t.contracts.resolver.get(
+            "CFAv1Forwarder.test"
         );
-        cfaFwd = await CFAv1ForwarderFactory.deploy(host.address);
+        cfaFwd = await ethers.getContractAt(
+            "CFAv1Forwarder",
+            cfaV1ForwarderAddress
+        );
 
         await governance.enableTrustedForwarder(
             host.address,
@@ -165,6 +168,23 @@ describe("Agreement Forwarder", function () {
                     await cfa.getFlow(superToken.address, alice, bob)
                 ).flowRate.toString(),
                 flowrate
+            );
+        });
+
+        it("Set flowrateFrom to 0 with pre-existing flow (delete) as receiver", async () => {
+            await cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, flowrate);
+
+            await cfaFwd
+                .connect(bobSigner)
+                .setFlowrateFrom(superToken.address, alice, bob, 0);
+
+            assert.equal(
+                (
+                    await cfa.getFlow(superToken.address, alice, bob)
+                ).flowRate.toString(),
+                "0"
             );
         });
 
@@ -342,6 +362,23 @@ describe("Agreement Forwarder", function () {
             await cfaFwd
                 .connect(carolSigner)
                 .setFlowrateFrom(superToken.address, alice, bob, 0);
+
+            assert.equal(
+                (
+                    await cfa.getFlow(superToken.address, alice, bob)
+                ).flowRate.toString(),
+                "0"
+            );
+        });
+
+        it("delete flow as receiver", async () => {
+            await cfaFwd
+                .connect(aliceSigner)
+                .setFlowrate(superToken.address, bob, flowrate);
+
+            await cfaFwd
+                .connect(bobSigner)
+                .deleteFlow(superToken.address, alice, bob, "0x");
 
             assert.equal(
                 (

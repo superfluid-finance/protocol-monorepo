@@ -1,20 +1,28 @@
-import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Framework } from "../src/index";
+import "@nomiclabs/hardhat-ethers"
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import { expect } from "chai"
+import "chai-ethers"
+import { BigNumber, BigNumberish } from "ethers"
+import hre, { ethers } from "hardhat"
+import { setup } from "../scripts/setup"
 import {
+    AUTHORIZE_FLOW_OPERATOR_CREATE,
+    AUTHORIZE_FULL_CONTROL,
+    getFlowOperatorId,
+    getPerSecondFlowRateByMonth,
+    NativeAssetSuperToken,
+    SuperToken,
+    WrapperSuperToken
+} from "../src"
+import { Framework } from "../src/index"
+import {
+    CFAv1Forwarder,
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
     SuperToken as SuperTokenType,
-    TestToken,
-} from "../src/typechain";
-import { SuperToken } from "../src";
-import { getFlowOperatorId, getPerSecondFlowRateByMonth } from "../src";
-import { setup } from "../scripts/setup";
-import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
-import { BigNumber, BigNumberish, ethers } from "ethers";
-import { NativeAssetSuperToken, WrapperSuperToken } from "../src";
-import { AUTHORIZE_FLOW_OPERATOR_CREATE, AUTHORIZE_FULL_CONTROL } from "../src";
-import hre from "hardhat";
+    TestToken
+} from "../src/typechain"
+import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test"
 
 const INITIAL_AMOUNT_PER_USER = "10000000000";
 const toBN = (x: BigNumberish) => ethers.BigNumber.from(x);
@@ -33,6 +41,7 @@ export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
 let evmSnapshotId: string;
 let framework: Framework;
 let cfaV1: IConstantFlowAgreementV1;
+let cfaV1Forwarder: CFAv1Forwarder;
 let idaV1: IInstantDistributionAgreementV1;
 let deployer: SignerWithAddress;
 let alpha: SignerWithAddress;
@@ -131,6 +140,7 @@ describe("SuperToken Tests", () => {
                         resolverAddress: "",
                         hostAddress: "",
                         cfaV1Address: "",
+                        cfaV1ForwarderAddress: "",
                         idaV1Address: "",
                         governanceAddress: "",
                     },
@@ -151,6 +161,7 @@ describe("SuperToken Tests", () => {
                         resolverAddress: "",
                         hostAddress: "",
                         cfaV1Address: "",
+                        cfaV1ForwarderAddress: "",
                         idaV1Address: "",
                         governanceAddress: "",
                     },
@@ -589,12 +600,14 @@ describe("SuperToken Tests", () => {
 
         it("Should be able to create flow", async () => {
             const flowRate = getPerSecondFlowRateByMonth("1000");
+
             await expect(
                 daix
                     .createFlow({
                         sender: deployer.address,
                         receiver: alpha.address,
                         flowRate,
+                        shouldUseCallAgreement: false,
                     })
                     .exec(deployer)
             )
@@ -722,6 +735,7 @@ describe("SuperToken Tests", () => {
                     .deleteFlow({
                         sender: deployer.address,
                         receiver: alpha.address,
+                        shouldUseCallAgreement: true
                     })
                     .exec(alpha)
             )
@@ -1147,8 +1161,7 @@ describe("SuperToken Tests", () => {
                     units,
                 })
                 .exec(alpha);
-            
-            
+
             await daix
                 .updateSubscriptionUnits({
                     indexId: "0",

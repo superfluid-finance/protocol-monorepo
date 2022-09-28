@@ -437,6 +437,7 @@ export interface IResolverData {
     readonly networkName: string;
     readonly resolverAddress: string;
     readonly nativeTokenSymbol: string;
+    readonly cfaV1ForwarderAddress: string;
 }
 
 export interface ISignerConstructorOptions {

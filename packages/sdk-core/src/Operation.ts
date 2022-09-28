@@ -38,6 +38,7 @@ export default class Operation {
         const populatedTransaction = await this.getPopulatedTransactionRequest(
             signer
         );
+
         return await signer.sendTransaction(populatedTransaction);
     };
 

@@ -40,6 +40,7 @@ const getResolverData = (chainId: number): IResolverData => {
             networkName: "",
             resolverAddress: "",
             nativeTokenSymbol: "",
+            cfaV1ForwarderAddress: "",
         };
     const hostedEndpoint = networkData.subgraphV1.hostedEndpoint;
     const subgraphAPIEndpoint = subgraphReleaseTag
@@ -49,6 +50,7 @@ const getResolverData = (chainId: number): IResolverData => {
         subgraphAPIEndpoint,
         networkName: networkData.name,
         resolverAddress: networkData.contractsV1.resolver,
+        cfaV1ForwarderAddress: networkData.contractsV1.cfaV1Forwarder,
         nativeTokenSymbol: networkData.nativeTokenSymbol,
     };
 };

@@ -1,12 +1,12 @@
-import { ethers } from "hardhat";
-import { abi as TestTokenABI } from "../src/abi/TestToken.json";
+import { ethers } from "hardhat"
+import { deployContractsAndToken } from "../../subgraph/scripts/deployContractsAndToken"
+import { Framework, WrapperSuperToken } from "../src"
+import { abi as TestTokenABI } from "../src/abi/TestToken.json"
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
-    TestToken,
-} from "../src/typechain";
-import { deployContractsAndToken } from "../../subgraph/scripts/deployContractsAndToken";
-import { Framework, WrapperSuperToken } from "../src";
+    TestToken
+} from "../src/typechain"
 
 // private key derived from the mnemonic above
 export const HARDHAT_PRIVATE_KEY =

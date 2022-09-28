@@ -239,7 +239,7 @@ export default class ConstantFlowAgreementV1 {
             normalizedSender,
             normalizedReceiver,
             params.flowRate,
-            params.userData ?? ""
+            params.userData ?? "0x"
         );
 
         return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
@@ -281,7 +281,7 @@ export default class ConstantFlowAgreementV1 {
             normalizedSender,
             normalizedReceiver,
             params.flowRate,
-            params.userData ?? ""
+            params.userData ?? "0x"
         );
 
         return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
@@ -322,7 +322,7 @@ export default class ConstantFlowAgreementV1 {
             normalizedToken,
             normalizedSender,
             normalizedReceiver,
-            params.userData ?? ""
+            params.userData ?? "0x"
         );
 
         return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
@@ -384,7 +384,7 @@ export default class ConstantFlowAgreementV1 {
                 normalizedToken,
                 normalizedFlowOperator,
                 params.permissions,
-                params.userData ?? ""
+                params.flowRateAllowance
             );
 
         return new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");

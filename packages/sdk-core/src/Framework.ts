@@ -81,6 +81,7 @@ export default class Framework {
         this.cfaV1 = new ConstantFlowAgreementV1({
             config: this.settings.config,
         });
+
         this.governance = new Governance(
             this.settings.config.governanceAddress,
             this.settings.config.hostAddress
@@ -161,7 +162,9 @@ export default class Framework {
                 resolverAddress: "",
                 networkName: "",
                 nativeTokenSymbol: "",
+                cfaV1ForwarderAddress: process.env.CFA_V1_FORWARDER ?? "",
             };
+            const cfaV1ForwarderAddress = resolverData.cfaV1ForwarderAddress;
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
                 : resolverData.resolverAddress;
@@ -199,9 +202,7 @@ export default class Framework {
                     resolverAddress,
                     hostAddress: framework.superfluid,
                     cfaV1Address: framework.agreementCFAv1,
-                    cfaV1ForwarderAddress:
-                        // Temporary, until it's added to metadata
-                        "0xCfA1E187C9141B8bA90a436CB789017FA573d051",
+                    cfaV1ForwarderAddress,
                     idaV1Address: framework.agreementIDAv1,
                     governanceAddress,
                 },

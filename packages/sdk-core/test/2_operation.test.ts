@@ -196,6 +196,7 @@ describe("Operation Tests", () => {
             flowRate: getPerSecondFlowRateByMonth("100"),
             receiver: bravo.address,
             superToken: superToken.address,
+            shouldUseCallAgreement: true
         });
         try {
             await operation.getSignedTransaction(alpha);
@@ -219,6 +220,7 @@ describe("Operation Tests", () => {
             sender: deployer.address,
             receiver: alpha.address,
             flowRate,
+            shouldUseCallAgreement: true
         });
         const signedTxn = await createFlowOp.getSignedTransaction(signer);
         await expect(deployer.provider!.sendTransaction(signedTxn))

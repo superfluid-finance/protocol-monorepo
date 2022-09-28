@@ -30,6 +30,7 @@ async function deployAndRegisterContractIf(
     let contractDeployed;
     const contractName = Contract.contractName;
     const contractAddress = await resolver.get.call(resolverKey);
+    console.log({contractAddress});
     console.log(`${resolverKey} address`, contractAddress);
     if (resetSuperfluidFramework || (await cond(contractAddress))) {
         console.log(`${contractName} needs new deployment.`);
@@ -139,6 +140,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const CFAv1_TYPE = web3.utils.sha3(
         "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
     );
+
     const IDAv1_TYPE = web3.utils.sha3(
         "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
     );
@@ -183,6 +185,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "UUPSProxiable",
         "SlotsBitmapLibrary",
         "ConstantFlowAgreementV1",
+        "CFAv1Forwarder",
         "InstantDistributionAgreementV1",
     ];
     const mockContracts = [
@@ -211,6 +214,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         UUPSProxiable,
         SlotsBitmapLibrary,
         ConstantFlowAgreementV1,
+        CFAv1Forwarder,
         InstantDistributionAgreementV1,
     } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
@@ -369,6 +373,29 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             governance.registerAgreementClass,
             "Governance registers CFA"
         )(superfluid.address, cfa.address);
+    }
+
+    // list CFA v1 Forwarder
+
+    const deployCFAv1Forwarder = async () => {
+        const forwarder = await web3tx(
+            CFAv1Forwarder.new,
+            "CFAv1Forwarder.new"
+        )(superfluid.address);
+        console.log("New CFAv1Forwarder address", forwarder.address);
+        process.env.CFA_V1_FORWARDER = forwarder.address;
+        output += `CFA_FORWARDER=${forwarder.address}\n`;
+        return forwarder;
+    };
+
+    if (protocolReleaseVersion === "test") {
+        const forwarder = await deployCFAv1Forwarder();
+
+        await governance.enableTrustedForwarder(
+            superfluid.address,
+            ZERO_ADDRESS,
+            forwarder.address
+        );
     }
 
     // list IDA v1

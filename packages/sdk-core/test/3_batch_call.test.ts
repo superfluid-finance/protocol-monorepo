@@ -1,13 +1,13 @@
-import { expect } from "chai";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Framework, WrapperSuperToken } from "../src/index";
-import { getPerSecondFlowRateByMonth } from "../src";
-import { SuperToken as SuperTokenType } from "../src/typechain";
-import { setup } from "../scripts/setup";
-import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test";
-import { ethers } from "ethers";
-import hre from "hardhat";
-import { createCallAppActionOperation } from "./2_operation.test";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
+import { expect } from "chai"
+import { ethers } from "ethers"
+import hre from "hardhat"
+import { setup } from "../scripts/setup"
+import { getPerSecondFlowRateByMonth } from "../src"
+import { Framework, WrapperSuperToken } from "../src/index"
+import { SuperToken as SuperTokenType } from "../src/typechain"
+import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test"
+import { createCallAppActionOperation } from "./2_operation.test"
 
 describe("Batch Call Tests", () => {
     let evmSnapshotId: string;
@@ -131,6 +131,7 @@ describe("Batch Call Tests", () => {
             sender: alpha.address,
             receiver: deployer.address,
             flowRate: getPerSecondFlowRateByMonth("10000"),
+            shouldUseCallAgreement: true
         });
         try {
             await framework.batchCall([createFlowOp]).exec(deployer);
@@ -168,11 +169,13 @@ describe("Batch Call Tests", () => {
             sender: charlie.address,
             receiver: alpha.address,
             flowRate,
+            shouldUseCallAgreement: true
         });
         const createFlow2 = daix.createFlow({
             sender: charlie.address,
             receiver: bravo.address,
             flowRate,
+            shouldUseCallAgreement: true
         });
         await framework.batchCall([createFlow1, createFlow2]).exec(charlie);
 
@@ -182,20 +185,27 @@ describe("Batch Call Tests", () => {
             sender: charlie.address,
             receiver: alpha.address,
             flowRate,
+            shouldUseCallAgreement: true
         });
         const updateFlow2 = daix.updateFlow({
             sender: charlie.address,
             receiver: bravo.address,
             flowRate,
+            shouldUseCallAgreement: true
+
         });
         await framework.batchCall([updateFlow1, updateFlow2]).exec(charlie);
         const deleteFlow1 = daix.deleteFlow({
             sender: charlie.address,
             receiver: alpha.address,
+            shouldUseCallAgreement: true
+
         });
         const deleteFlow2 = daix.deleteFlow({
             sender: charlie.address,
             receiver: bravo.address,
+            shouldUseCallAgreement: true
+
         });
         await framework.batchCall([deleteFlow1, deleteFlow2]).exec(charlie);
     });

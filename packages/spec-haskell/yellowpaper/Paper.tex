@@ -146,8 +146,8 @@ A representation of money and its distribution proposed in \cite{buldas2021unify
 \item $\nu : U \rightarrow \mathbb{N}$ is the value function defining the value $\nu(u)$ of every value unit u. The set
     $\mathbb{N}$ is the set of all natural numbers, but instead, we can use any set of numerals that is totally ordered
     (\eg\ integers, real numbers).
-\item $\beta : U \rightarrow \mathfrak{B}$ is the bearer function defining the bearer $\beta(u)$ of a unit. The set
-    $\mathfrak{B}$ is the set of possible bearers. The bearer is usually a legal construction defining any type of legal
+\item $\beta : U \rightarrow \mathcal{B}$ is the bearer function defining the bearer $\beta(u)$ of a unit. The set
+    $\mathcal{B}$ is the set of possible bearers. The bearer is usually a legal construction defining any type of legal
     entity, such as a person, a family, a company, a state institution, etc.
 \end{itemize}
 
@@ -306,7 +306,7 @@ solving this challenge.
 \subsection{Functional Reactive Programming}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Recall that we want our modernized payment system to handle money distribution continuously over time, and its financial
+Recall that we want our modernized payment systems to handle money distribution continuously over time, and its financial
 contracts compositional. A very closely related software design paradigm best known to address those needs is
 \textit{functional reactive programming (FRP)}. It was first introduced by Conal Elliott \& Paul Hudak in solving
 multimedia animations \cite{elliott1997functional}. Later on, Hudak also worked on \cite{hudak2002arrows} and
@@ -320,7 +320,7 @@ formulation used in \cite{elliott1997functional} where we will draw inspirations
 \paragraph{Temporal Modeling and Behaviors}
 
 Values that vary over continuous time are called \textit{behaviors}. They are first-class values, and are built up
-compositionally. In modern payment systems, we should want the monetary values of monetary units capable of varying over
+compositionally. In modernized payment systems, we should want the monetary values of monetary units capable of varying over
 continuous time. The semantic function of $\alpha$-behaviors produces the value of type $\alpha$ of a behavior at a given
 time:
 
@@ -337,7 +337,7 @@ information associated with an \textit{occurrence} of the event:
     occ : Event_{\alpha} \rightarrow Time \times \alpha
 \end{equation}
 
-In modern payment systems, the payment primitives executed in payment execution environments are one type of
+In modernized payment systems, the payment primitives executed in payment execution environments are one type of
 events. More types of events can be read from the original paper \footfullcite[][section 2.3 Semantics of
     Events]{elliott1997functional}.
 
@@ -357,21 +357,35 @@ to a new behavior encoded in \textit{e}:
 
 Note that $[\![.]\!]$ is the denotational semantics notation to be introduced later.
 
-In the context of modern payment systems, the occurrences of payment primitives (events) change the behaviors of
+In the context of modernized payment systems, the occurrences of payment primitives (events) change the behaviors of
 monetary units in how much monetary values it has over continuous. The building blocks of the financial contracts should
 be about modeling these events and their reactivity declaratively.
 
 \subsection{Denotational Semantics}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-We also want a formal and precise specification of payment primitives. The title of the paper contains
+We also want a formal and precise specification of payment primitives. The title of the paper includes
 \textit{denotational semantics}: ``it is a \textit{compositional} style for precisely specifying the meanings of
 languages, invented by Christopher Strachey and Dana Scott in the 1960s (\cite{scott1971toward})'', and Conal Elliott
-proposed that denotational semantics can also be applied to \textit{data types} in programming \footfullcite[][section
-    2, denotational semantics and data types]{Elliott2009-type-class-morphisms-TR}. We will revisit this formulation
-too.
+proposed that denotational semantics can also be applied to \textit{data types within a programming language}
+\footfullcite[][section 2, denotational semantics and data types]{Elliott2009-type-class-morphisms-TR}.
 
-... TODO
+To create denotational semantics for each syntactic category $\mathcal{C}$, we should specify:
+
+\begin{itemize}
+\item a mathematical model $[\![\mathcal{C}]\!]$ of meanings, and
+\item a semantic function $[\![.]\!]_{\mathcal{C}} :: \mathcal{C} \rightarrow [\![\mathcal{C}]\!]$.
+\end{itemize}
+
+The syntactic category we are interested in is \textit{payment primitives}, which we should treat them as FRP-style
+\textit{Behavior} data types. In the following chapters, it is also unambiguously referred to in short as
+$[\![.]\!]$. Various $[\![.]\!]$ must be compositional, \ie must be defined by structural recursion.
+
+It is important to note that our purpose of using the denotational semantics is to give precise meaning to payment
+primitives, independent of its implementation (which deals with performance, optimization, side effects, etc.). We will
+spend the next chapter exploring the denotational semantics for general payment primitives in modernized payment
+systems.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{General Payment Primitives}

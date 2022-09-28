@@ -5,7 +5,7 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
 const TruffleContract = require("@truffle/contract");
-const CFAv1ForwarderABI = require("../artifacts/contracts/utils/CFAv1Forwarder.sol/CFAv1Forwarder.json");
+const CFAv1ForwarderABI = require("../build/contracts/CFAv1Forwarder.json");
 const CFAv1Forwarder = TruffleContract(CFAv1ForwarderABI);
 CFAv1Forwarder.setProvider(web3.currentProvider);
 

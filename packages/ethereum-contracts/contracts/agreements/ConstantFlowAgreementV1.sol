@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.16;
 
+import { IConstantFlowAgreementHook } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import {
     IConstantFlowAgreementV1,
     SuperfluidErrors,
@@ -64,6 +65,8 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
+    IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
+
     using SafeCast for uint256;
     using SafeCast for int256;
 
@@ -89,7 +92,9 @@ contract ConstantFlowAgreementV1 is
     }
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(ISuperfluid host) AgreementBase(address(host)) {}
+    constructor(ISuperfluid host, IConstantFlowAgreementHook _hookAddress) AgreementBase(address(host)) {
+        constantFlowAgreementHook = _hookAddress;
+    }
 
     /**************************************************************************
      * ISuperAgreement interface
@@ -447,6 +452,11 @@ contract ConstantFlowAgreementV1 is
         }
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
+
+        if (address(constantFlowAgreementHook) != address(0))  {
+            // solhint-disable-next-line no-empty-blocks
+            try constantFlowAgreementHook.onCreate(flowParams, flowVars.token, oldFlowData.flowRate) {} catch {}
+        }
     }
 
     function _updateFlow(
@@ -475,6 +485,11 @@ contract ConstantFlowAgreementV1 is
         }
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
+
+        if (address(constantFlowAgreementHook) != address(0))  {
+            // solhint-disable-next-line no-empty-blocks
+            try constantFlowAgreementHook.onUpdate(flowParams, flowVars.token, oldFlowData.flowRate) {} catch {}
+        }
     }
 
     function _deleteFlow(
@@ -584,6 +599,11 @@ contract ConstantFlowAgreementV1 is
                     flowVars.token, flowParams, oldFlowData,
                     newCtx, currentContext);
             }
+        }
+
+        if (address(constantFlowAgreementHook) != address(0))  {
+            // solhint-disable-next-line no-empty-blocks
+            try constantFlowAgreementHook.onDelete(flowParams, flowVars.token, oldFlowData.flowRate) {} catch {}
         }
     }
 

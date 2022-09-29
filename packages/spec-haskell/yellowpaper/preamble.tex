@@ -1,14 +1,14 @@
 \documentclass[a4paper,10pt]{report}
 
-%%% This document is processed in an isolated clean folder at the same level.
+%% This document is processed in an isolated clean folder at the same level
 \makeatletter
 \def\input@path{{../tex/}}
 \makeatother
 
-%% Page Settings
+%% Page settings
 %%% \usepackage[margin=0.5in,nomarginpar]{geometry}
 
-%%% Bibliography system setup using biblatex.
+%%% Bibliography system setup using biblatex
 \usepackage[
     backend=biber,
     style=alphabetic,
@@ -30,15 +30,15 @@
 
 \renewcommand{\mkbegdispquote}[2]{\itshape}
 
-%% Literate Haskell (lhs) Macros
+%% Required Literate Haskell (lhs) macros (code, spec)
 %%% include common lhs formatting
 \input{lhsfmt.tex}
 %%% for code
 \newminted[code]{haskell}{}
 \newminted[spec]{haskell}{}
 
-%%% Other Macros.
-\long\def\ignore#1{} % for ignoring some code
+%% Other macros
+\long\def\ignore#1{} % for ignoring code
 \newcommand{\eg}{\textit{e}.\textit{g}.}
 \newcommand{\ie}{\textit{i}.\textit{e}.}
 \newcommand{\etal}{\textit{et al}.}

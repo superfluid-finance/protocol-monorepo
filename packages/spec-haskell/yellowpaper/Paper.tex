@@ -370,14 +370,16 @@ systems.
 \chapter{General Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The set of payment primitives supported in a payment system is general, if monetary value of each monetary unit can vary
-continuously over time and monetary values can logically be shifted between two or more monetary units. The extent of
-the generality of each payment system may vary. We introduce a set of payment primitives that is general and serves as a
-starting point for the readers to explore the space of modern payment system. The specifications will be formally
-defined using denotational semantics, and its restatement in Haskell is also applied as a constructive artifact friendly
-to computer environment\footnote{One may argue for a restatement in \textit{Agda} instead, for it has a richer
-dependently-type system for needed constructive proofs. This matter will be dealt in the ``future investigations'' chapter
-of this paper.}.
+The set of payment primitives supported in a payment system is general, if (a) monetary value of each monetary unit can
+vary continuously over time (b) monetary values can logically be shifted between two or more monetary units.
+
+The extent of the generality of each payment system may vary. This paper introduces a set of payment primitives that is
+general and serves as a starting point for the readers to explore the space of modern payment system.
+
+The specifications will be formally defined using denotational semantics, along with a restatement in Haskell also
+applied as a constructive artifact friendly to computer environment\footnote{One may argue for a restatement in
+\textit{Agda} instead, for it has a richer dependently-type system for desirable constructive proofs. This matter will
+be dealt in the ``future investigations'' chapter of this paper.}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Denotational Semantics}
@@ -386,11 +388,12 @@ of this paper.}.
 Here is the convention for symbols used in the formulas:
 
 \begin{itemize}
-    \item \textbf{M} is \textit{money distribution}.
-    \item \textbf{U} is for \textit{the set of all money units in M}.
-    \item $\boldsymbol{\nu}$ is for \textit{monetary value}.
-    \item \textbf{t} is for \textit{time}.
-    \item \textbf{mu, ma, mb, etc.} are for \textit{monetary units}.
+\item \textbf{M} is the \textit{model for money distribution}.
+\item \textbf{m} is for \textit{money distributions}.
+\item \textbf{U} is the \textit{set of all money units} in money distribution.
+\item \textbf{u} is for \textit{monetary units}.
+\item $\boldsymbol{\nu}$ is for \textit{monetary values}.
+\item \textbf{t} is for \textit{time}.
 \end{itemize}
 
 \subsection{Money Distribution}
@@ -410,8 +413,8 @@ This is the model for money distribution.
 
 \begin{equation}\label{md_model}
     \begin{split}
-        [\![M\ mu\ t\ \nu]\!] &= mu \rightarrow t \rightarrow \nu \\
-        [\![.]\!] &= M\ mu\ t\ \nu \rightarrow (mu \rightarrow t \rightarrow \nu) \\
+        [\![M\ u\ t\ \nu]\!] &= u \rightarrow t \rightarrow \nu \\
+        [\![.]\!] &= M\ u\ t\ \nu \rightarrow (u \rightarrow t \rightarrow \nu) \\
     \end{split}
 \end{equation}
 
@@ -421,8 +424,8 @@ With this model, $\mathcal{M}$ is also monoidal, hence compositional.
 
 \begin{equation}
     \begin{split}
-        [\![\emptyset]\!] &= \lambda mu \times t\ \rightarrow 0 \\
-        [\![ma \oplus mb]\!] &= \lambda mu \times t\ \rightarrow [\![ma]\!]\ mu\ t\ +\ [\![mb]\!]\ mu\ t \\
+        [\![\emptyset]\!] &= \lambda u \rightarrow \lambda t\ \rightarrow \emptyset \\
+        [\![m_a \oplus m_b]\!] &= \lambda u \rightarrow \lambda t\ \rightarrow [\![m_a]\!]\ u\ t\ +\ [\![m_b]\!]\ u\ t \\
     \end{split}
 \end{equation}
 
@@ -440,7 +443,7 @@ With some substitutions, we get the desired \textit{monoid homomorphism} propert
 \begin{equation}
     \begin{split}
         [\![\emptyset]\!] &= \emptyset \\
-        [\![ma \oplus mb]\!] &= [\![ma]\!] \oplus [\![mb]\!] \\
+        [\![m_a \oplus m_b]\!] &= [\![m_a]\!] \oplus [\![m_b]\!] \\
     \end{split}
 \end{equation}
 
@@ -451,7 +454,7 @@ A payment primitive \textit{prim} is a semantic function that produces a monoida
 representing an ``update'' to a money distribution:
 
 \begin{equation}
-    [\![prim\ args]\!] = [\![M\ mu\ t\ \nu]\!]
+    [\![prim\ args]\!] = [\![\Delta\ m]\!]
 \end{equation}
 
 \paragraph{Law of Conservation of Value}
@@ -459,58 +462,64 @@ representing an ``update'' to a money distribution:
 First of all, money distribution must obey the \textit{law of conservation of value}:
 
 \begin{equation}
-    \forall t \in \mathbb{R} {\displaystyle \sum_{mu \in U} [\![M\ mu\ t\ \nu]\!]\ mu\ t = 0}
+    \forall t \in \mathbb{R} {\displaystyle \sum_{u \in U} [\![m]\!]\ u\ t = 0}
 \end{equation}
 
-That is to say, for any given time, the sum of monetary value of all monetary units shall always equal to zero. Zero is
+That is to say, at any given time, the sum of monetary value of all monetary units shall always equal to zero. Zero is
 used to keep the semantical meaning of payment system simple and elegant. In its applications, a payment system may use
 some special monetary unit accounting negative monetary values to accommodate concepts such as mining, minting, money
 printing, etc.
 
-Further more, in a payment system, we restrict that only payment primitives can provide ``updates'' to its money
-distribution. So a money distribution is a result of a sequence of payment primitive updates:
+\paragraph{Restricted Money Distribution}
+
+To come up with such lawful money distribution, we can divide and conquer. In a payment system, if we restrict that only
+payment primitives can provide ``updates'' to its money distribution, so that a money distribution is only a result of a
+sequence of payment primitive updates; then we can have these axioms as the basis for the proof:
+
+\centerline{\textbf{Axioms of restricted money distributions}}
 
 \begin{equation}
     \begin{split}
-        &\textbf{Axioms A:\ }
+        &\textbf{Axiom A:\ }
         \textit{law of conservation of value for payment primitives} \\
-        &\forall t \in \mathbb{R} ({\displaystyle \sum_{mu \in U} [\![prim\ args]\!]\ mu\ t = 0}) \\
+        &\forall t \in \mathbb{R} ({\displaystyle \sum_{u \in U} [\![prim\ args]\!]\ u\ t = 0}) \\
         \\
-        &\textbf{Axioms B:\ }
+        &\textbf{Axiom B:\ }
         \textit{money distribution consists of updates from payment primitives} \\
-        &[\![M\ mu\ t\ \nu]\!] =
-          [\![prim_1\ args_1]\!] \oplus [\![prim_2\ args_2]\!] \oplus [\![prim_3\ args_3]\!] \oplus \dotsb
+        &[\![m]\!] = [\![prim_1\ args_1]\!] \oplus [\![prim_2\ args_2]\!] \oplus [\![prim_3\ args_3]\!] \oplus \dotsb
     \end{split}
 \end{equation}
 
-This allows us impose the law of conservation of value on payment primitives, then prove the law for money
-distribution inductively using monoid homomorphism:
+This allows us to impose the law of conservation of value on payment primitives, then prove inductively that such
+restricted money distribution obey the law of conservation of value too.
+
+\centerline{\textbf{Proof of restricted money distributions satisfying the law of conservation of value}}
 
 \begin{equation}
     \begin{split}
         &\textbf{In addition to the axioms, given:} \\
         \\
         &\textit{(base case with empty money distribution is trivial)} \\
-        &\forall t \in \mathbb{R} {\displaystyle \sum_{mu \in U} [\![\emptyset]\!]\ mu\ t = 0} \\
+        &\forall t \in \mathbb{R} {\displaystyle \sum_{u \in U} [\![\emptyset]\!]\ u\ t = 0} \\
         \\
         &\textit{(monoid homomorphism)} \\
-        &{\displaystyle \sum_{mu \in U} [\![prim_1\ args_1\oplus prim_2\ args_2]\!]\ mu\ t} = \\
-        &\qquad {\displaystyle \sum_{mu \in U} [\![prim_2\ args_2]\!]\ mu\ t} \oplus
-          {\displaystyle \sum_{mu \in U} [\![prim_2\ args_2]\!]\ mu\ t} \\
+        &{\displaystyle \sum_{u \in U} [\![prim_1\ args_1\oplus prim_2\ args_2]\!]\ u\ t} = \\
+        &\qquad {\displaystyle \sum_{u \in U} [\![prim_2\ args_2]\!]\ u\ t} \oplus
+          {\displaystyle \sum_{u \in U} [\![prim_2\ args_2]\!]\ u\ t} \\
         \\
         &\textbf{We have:} \\
         &\forall t \in \mathbb{R}. \\
-        &{\displaystyle \sum_{mu \in U} [\![M\ mu\ t\ \nu]\!]\ mu\ t} \\
+        &{\displaystyle \sum_{u \in U} [\![m]\!]\ u\ t} \\
         &\textit{(applying Axioms B)} \\
-        = &{\displaystyle \sum_{mu \in U}
+        = &{\displaystyle \sum_{u \in U}
             ([\![prim_1\ args_1]\!] \oplus
             [\![prim_2\ args_2]\!] \oplus
             [\![prim_3\ args_3]\!]\oplus \dotsb)
-        }\ mu\ t\\
+        }\ u\ t\\
         &\textit{(applying monoid homomorphism)} \\
-        = &{\displaystyle \sum_{mu \in U} [\![prim_1\ args_1]\!]\ mu\ t} \oplus
-        {\displaystyle \sum_{mu \in U} [\![prim_2\ args_2]\!]\ mu\ t} \oplus
-        {\displaystyle \sum_{mu \in U} [\![prim_3\ args_3]\!]\ mu\ t} \oplus \dotsb
+        = &{\displaystyle \sum_{u \in U} [\![prim_1\ args_1]\!]\ u\ t} \oplus
+        {\displaystyle \sum_{u \in U} [\![prim_2\ args_2]\!]\ u\ t} \oplus
+        {\displaystyle \sum_{u \in U} [\![prim_3\ args_3]\!]\ u\ t} \oplus \dotsb
         )\\
         &\textit{(applying Axioms A)} \\
         =&\ 0
@@ -522,33 +531,92 @@ distribution inductively using monoid homomorphism:
 \subsection{One to One Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-???
+Here are the primitives involving a sender ($u_a$) and a receiver ($u_b$) (one to one payments).
 
-\begin{equation}\label{sem_transfer}
+\paragraph{Transfer}
+
+Instant transferring of a fixed amount of monetary value $x$:
+
+\begin{equation}
     \begin{split}
-        [\![&transfer\ from\ to\ amount\ md]\!] = [\![md]\!]\ \oplus \\
-        (\lambda\ case&\ mu\ t \\
-        &|\ from = mu \rightarrow -amount \\
-        &|\ to   = mu \rightarrow amount \\
-        &|\ otherwise \rightarrow 0 \\
-        )
+        [\![transfer\ u_a\ u_b\ x]\!] &=
+        \lambda u \rightarrow \lambda t \rightarrow \\
+        &\begin{cases}
+            -x & (u_a = u) \\
+             x & (u_b = u) \\
+             0 & (otherwise)
+        \end{cases}
     \end{split}
 \end{equation}
 
-\begin{equation}\label{sem_updateConstantFlow}
+\paragraph{(Constant) Flow}
+
+Flowing of monetary value at a constant rate of $r$ at time $t'$:
+
+\begin{equation}
     \begin{split}
-        [\![&updateConstantFlow\ from\ to\ flowRate\ t'\ md]\!] = [\![md]\!]\ \oplus \\
-        (\lambda\ case&\ mu\ t \\
-        &|\ from = mu \rightarrow -flowRate * (t - t') \\
-        &|\ to   = mu \rightarrow flowRate  * (t - t') \\
-        &|\ otherwise \rightarrow 0 \\
-        )
+        [\![flow\ u_a\ u_b\ r\ t']\!] &=
+        \lambda u \rightarrow \lambda t \rightarrow \\
+        &\begin{cases}
+            -r \cdot (t - t') & (u_a = u) \\
+             r \cdot (t - t') & (u_b = u) \\
+                            0 & (otherwise)
+        \end{cases}
     \end{split}
 \end{equation}
 
 \subsection{Index Abstraction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+To make primitives support more than two parties, we introduce an abstraction called \textit{index}.
+
+A \textit{index} has a function $\rho$ which produces a real number for each monetary unit:
+
+\begin{equation}
+    \rho :: k \rightarrow u \rightarrow \mathbb{R}
+\end{equation}
+
+And it must satisfy the following law:
+
+\begin{equation}
+    \displaystyle \sum_{u \in U} \rho\ u = 1
+\end{equation}
+
+Semantically, it represents a proportion of each money unit, and they must add up to 1.
+
+Now let's generalize the one to one payment primitives using index abstraction. We use symbol $k$ for the indexes, and
+$I$ subscript for the indexed versions of the primitives.
+
+\paragraph{Indexed Transfer}
+
+\begin{equation}
+    \begin{split}
+        [\![transfer_I\ k_a\ k_b\ x]\!] &=
+        \lambda u \rightarrow \lambda t \rightarrow \\
+        &-x \cdot \rho\ k_a\ u + x \cdot \rho\ k_b\ u
+    \end{split}
+\end{equation}
+
+\paragraph{Indexed (Constant) Flow}
+
+\begin{equation}
+    \begin{split}
+        [\![flow_I\ k_a\ k_b\ r\ t']\!] &=
+        \lambda u \rightarrow \lambda t \rightarrow \\
+        &-r \cdot (t - t') \cdot \rho\ k_a\ u + r \cdot (t - t') \cdot \rho\ k_b\ u
+    \end{split}
+\end{equation}
+
+\paragraph{Universal Index}
+
+Now one to one payment primitives can be redefined using \textit{universal index} ($ku_{any}$) define as such:
+
+\begin{equation}
+    \rho\ ku_{a} = \lambda u \rightarrow if\ u\ =\ u_a\ then\ 1\ else\ 0
+\end{equation}
+
+It means that it's an index universally available for any monetary unit, and its proportion is always 1 for that
+monetary unit.
 
 \subsection{Proportional Distribution Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -558,7 +626,7 @@ distribution inductively using monoid homomorphism:
 \end{equation}
 
 \begin{equation}
-    proportion\ sub\ subs = {{ unit\ sub\ subs } \over { \displaystyle \sum_{x \in subs} unit\ x\ subs }}
+    proportion\ sub\ subs = {{unit\ sub\ subs } \over {\displaystyle \sum_{x \in subs} unit\ x\ subs}}
 \end{equation}
 
 \begin{equation}\label{sem_distributeProportionally}
@@ -566,7 +634,7 @@ distribution inductively using monoid homomorphism:
         [\![&distributeProportionally\ pub\ subs\ amount\ md]\!] = [\![md]\!]\ \oplus \\
         (\lambda\ case&\ mu\ t \\
         &|\ pub = mu \rightarrow -amount \\
-        &|\ \exists sub \in subs\ { sub = mu } \rightarrow amount * (proportion\ mu\ subs) \\
+        &|\ \exists sub \in subs\ {sub = mu } \rightarrow amount * (proportion\ mu\ subs) \\
         &|\ otherwise \rightarrow 0 \\
         )
     \end{split}
@@ -577,7 +645,7 @@ distribution inductively using monoid homomorphism:
         [\![&updateProportionalDistributionConstantFlow\ pub\ subs\ flowRate\ t'\ md]\!] = [\![md]\!]\ \oplus \\
         (\lambda\ case&\ mu\ t \\
         &|\ pub = mu \rightarrow -flowRate * (t - t') \\
-        &|\ \exists sub \in subs\ { sub = mu } \rightarrow flowRate * (t - t') * (proportion\ mu\ subs) \\
+        &|\ \exists sub \in subs\ {sub = mu } \rightarrow flowRate * (t - t') * (proportion\ mu\ subs) \\
         &|\ otherwise \rightarrow 0 \\
         )
     \end{split}

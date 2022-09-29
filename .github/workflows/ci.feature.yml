@@ -22,7 +22,6 @@ jobs:
 
     outputs:
       build_ethereum_contracts: ${{ env.BUILD_ETHEREUM_CONTRACTS }}
-      build_js_sdk: ${{ env.BUILD_JS_SDK }}
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
       build_sdk_core: ${{ env.BUILD_SDK_CORE }}
       build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}

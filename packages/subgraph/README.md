@@ -156,7 +156,15 @@ Open another terminal window and navigate to `packages/ethereum-contracts` and r
 yarn build
 ```
 
-Now come back to `packages/subgraph` and run the following command to deploy contracts:
+This is also a good time to generate the typechain folder used throughout the tests, go into the `packages/ethereum-contracts` directory and call:
+
+```bash
+yarn install
+yarn run generate-ethers-types
+mv typechain ../subgraph
+```
+
+Now come back here in `packages/subgraph` and run the following command to deploy contracts:
 
 ```bash
 npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost

@@ -159,7 +159,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Initialization Error: There was an error initializing the SuperToken"
                 );
-                expect(err.cause).to.be.instanceOf(Error);
+                expect(err.cause).to.be.instanceOf(Error)
             }
         });
 
@@ -174,7 +174,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting realtimeBalanceOf"
                 );
-                expect(err.cause).to.be.instanceOf(Error);
+                expect(err.cause).to.be.instanceOf(Error)
             }
         });
 
@@ -190,7 +190,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting allowance"
                 );
-                expect(err.cause).to.be.instanceOf(Error);
+                expect(err.cause).to.be.instanceOf(Error)
             }
 
             try {
@@ -202,7 +202,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting balanceOf"
                 );
-                expect(err.cause).to.be.instanceOf(Error);
+                expect(err.cause).to.be.instanceOf(Error)
             }
 
             try {
@@ -211,7 +211,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting name"
                 );
-                expect(err.cause).to.be.instanceOf(Error);
+                expect(err.cause).to.be.instanceOf(Error)
             }
 
             try {
@@ -220,7 +220,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting symbol"
                 );
-                expect(err.cause).to.be.instanceOf(Error);
+                expect(err.cause).to.be.instanceOf(Error)
             }
 
             try {
@@ -229,7 +229,7 @@ describe("SuperToken Tests", () => {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting totalSupply"
                 );
-                expect(err.cause).to.be.instanceOf(Error);
+                expect(err.cause).to.be.instanceOf(Error)
             }
         });
 
@@ -515,7 +515,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "ConstantFlowAgreementV1 Read Error: There was an error getting the flow"
                     );
-                    expect(err.cause).to.be.instanceOf(Error);
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
 
                 // get account flow info throw
@@ -528,7 +528,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "ConstantFlowAgreementV1 Read Error: There was an error getting the account flow information"
                     );
-                    expect(err.cause).to.be.instanceOf(Error);
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
 
                 // get net flow throw
@@ -541,7 +541,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "ConstantFlowAgreementV1 Read Error: There was an error getting net flow"
                     );
-                    expect(err.cause).to.be.instanceOf(Error);
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
             });
 
@@ -558,7 +558,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "ConstantFlowAgreementV1 Read Error: There was an error getting flow operator data"
                     );
-                    expect(err.cause).to.be.instanceOf(Error);
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
                 try {
                     await daix.getFlowOperatorDataByID({
@@ -569,24 +569,12 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "ConstantFlowAgreementV1 Read Error: There was an error getting flow operator data"
                     );
-                    expect(err.cause).to.be.instanceOf(Error);
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
             });
         });
 
         // CFA Functions
-        it("Should have eip155 protection check", async () => {
-            const flowRate = getPerSecondFlowRateByMonth("1000");
-            const txnResponse = await daix
-                .createFlow({
-                    sender: deployer.address,
-                    receiver: alpha.address,
-                    flowRate,
-                })
-                .exec(deployer);
-            expect(txnResponse.v).to.not.be.undefined;
-        });
-
         it("Should be able to create flow", async () => {
             const flowRate = getPerSecondFlowRateByMonth("1000");
             await expect(
@@ -677,7 +665,7 @@ describe("SuperToken Tests", () => {
                 );
         });
 
-        it("Should be able to delete flow (by sender)", async () => {
+        it("Should be able to delete flow", async () => {
             let flowRate = getPerSecondFlowRateByMonth("1000");
             await daix
                 .createFlow({
@@ -705,57 +693,6 @@ describe("SuperToken Tests", () => {
                     0,
                     "0x"
                 );
-        });
-
-        it("Should be able to delete flow (by receiver)", async () => {
-            let flowRate = getPerSecondFlowRateByMonth("1000");
-            await daix
-                .createFlow({
-                    sender: deployer.address,
-                    receiver: alpha.address,
-                    flowRate,
-                })
-                .exec(deployer);
-
-            await expect(
-                daix
-                    .deleteFlow({
-                        sender: deployer.address,
-                        receiver: alpha.address,
-                    })
-                    .exec(alpha)
-            )
-                .to.emit(cfaV1, "FlowUpdated")
-                .withArgs(
-                    superToken.address,
-                    deployer.address,
-                    alpha.address,
-                    0,
-                    0,
-                    0,
-                    "0x"
-                );
-        });
-
-        it("Should not be able to delete flow (by wrong person)", async () => {
-            let flowRate = getPerSecondFlowRateByMonth("1000");
-            await daix
-                .createFlow({
-                    sender: deployer.address,
-                    receiver: alpha.address,
-                    flowRate,
-                })
-                .exec(deployer);
-            try {
-                await daix
-                    .deleteFlow({
-                        sender: deployer.address,
-                        receiver: alpha.address,
-                    })
-                    .exec(bravo);
-            } catch (err: any) {
-                expect(err.message).to.include("cannot estimate gas;");
-            }
         });
     });
 
@@ -980,7 +917,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "InstantDistributionAgreementV1 Read Error: There was an error getting the index"
                     );
-                    expect(err.cause).to.be.instanceOf(Error);
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
 
                 try {
@@ -995,7 +932,7 @@ describe("SuperToken Tests", () => {
                     expect(err.message).to.contain(
                         "InstantDistributionAgreementV1 Read Error: There was an error getting the subscription"
                     );
-                    expect(err.cause).to.be.instanceOf(Error);
+                    expect(err.cause).to.be.instanceOf(Error)
                 }
             });
         });
@@ -1093,7 +1030,7 @@ describe("SuperToken Tests", () => {
             expect(bravoSubscription.pendingDistribution).to.equal("0");
         });
 
-        it("Should be able to distribute (simple case)", async () => {
+        it("Should be able to distribute", async () => {
             const units = ethers.utils.parseUnits("0.001").toString();
 
             await daix
@@ -1131,52 +1068,6 @@ describe("SuperToken Tests", () => {
                 );
         });
 
-        it("Should be able to distribute (multiple subs)", async () => {
-            const units = ethers.utils.parseUnits("0.001").toString();
-
-            await daix
-                .createIndex({
-                    indexId: "0",
-                })
-                .exec(alpha);
-
-            await daix
-                .updateSubscriptionUnits({
-                    indexId: "0",
-                    subscriber: deployer.address,
-                    units,
-                })
-                .exec(alpha);
-            
-            
-            await daix
-                .updateSubscriptionUnits({
-                    indexId: "0",
-                    subscriber: bravo.address,
-                    units,
-                })
-                .exec(alpha);
-
-            await expect(
-                daix
-                    .distribute({
-                        indexId: "0",
-                        amount: ethers.utils.parseUnits("1").toString(),
-                    })
-                    .exec(alpha)
-            )
-                .to.emit(idaV1, "IndexUpdated")
-                .withArgs(
-                    superToken.address,
-                    alpha.address,
-                    0,
-                    "0",
-                    "500",
-                    ethers.utils.parseUnits("0.002").toString(),
-                    ethers.utils.parseUnits("0").toString(),
-                    "0x"
-                );
-        });
         it("Should be able to approve subscription", async () => {
             const units = ethers.utils.parseUnits("0.001").toString();
 

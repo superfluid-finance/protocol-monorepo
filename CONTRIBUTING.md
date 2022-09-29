@@ -42,7 +42,7 @@ You'll also want to upgrade your Superfluid App to the canary, so you have the m
 
 ```bash
 cd superfluid-app # wherever your superfluid-app happens to be
-yarn upgrade @superfluid-finance/ethereum-contracts@dev @superfluid-finance/sdk-core@dev
+yarn upgrade @superfluid-finance/ethereum-contracts@dev @superfluid-finance/js-sdk@dev
 ```
 
 ### Copy and Watch

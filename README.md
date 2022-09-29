@@ -67,6 +67,34 @@ EVM contracts implementation for the Superfluid Protocol.
 
 If you're interest in peeking under the hood, then check out the contracts package.
 
+#### [`@superfluid-finance/subgraph`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph)
+
+<p>
+  <a href="#" target="_blank">
+    <img alt="License: AGPLv3" src="https://img.shields.io/badge/License-AGPL%20v3-blue.svg" />
+  </a>
+</p>
+
+Official subgraph for the Superfluid Protocol.
+
+#### [`@superfluid-finance/js-sdk`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk)
+
+<p>
+  <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
+    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk.svg">
+  </a>
+  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk">
+    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=js-sdk"/>
+  </a>
+  <a href="#" target="_blank">
+    <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
+  </a>
+</p>
+
+:warning: This repo is deprecated, use sdk-core instead :warning:
+
+Javascript SDK for building with Superfluid Protocol.
+
 #### [`@superfluid-finance/sdk-core`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core)
 
 <p>

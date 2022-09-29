@@ -80,6 +80,7 @@ jobs:
             Install this PR (you need to setup Github packages):
 
             ```bash
+            yarn add @superfluid-finance/js-sdk@PR${{ steps.pr.outputs.pr_number }}
             yarn add @superfluid-finance/ethereum-contracts@PR${{ steps.pr.outputs.pr_number }}
             yarn add @superfluid-finance/sdk-core@PR${{ steps.pr.outputs.pr_number }}
             yarn add @superfluid-finance/sdk-redux@PR${{ steps.pr.outputs.pr_number }}

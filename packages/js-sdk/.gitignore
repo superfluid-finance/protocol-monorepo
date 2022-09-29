@@ -1,0 +1,6 @@
+/src/abi.js
+/reports
+/coverage
+/.nyc_output
+.idea
+stats.json

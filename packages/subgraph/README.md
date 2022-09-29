@@ -3,6 +3,9 @@
 <div align="center">
 <img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-finance/protocol-monorepo/raw/dev/sf-logo.png" />
 <p>
+  <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
+    <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk.svg">
+  </a>
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
   </a>
@@ -276,6 +279,24 @@ Try running
 
 ```
 sudo killall containerd-shim
+```
+
+### Contracts
+
+Poke around at the contracts using truffle console. See our docs [Using Superfluid with truffle console](https://docs.superfluid.finance/superfluid/docs/setup-truffle-console) for more help.
+
+```bash
+truffle console --network ganache
+
+const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+# For ganache
+sf = new SuperfluidSDK.Framework({web3, version: "test"});
+# For xDAI / testnets / etc
+sf = new SuperfluidSDK.Framework({web3, resolver: "0xD2009765189164b495c110D61e4D301729079911"});
+
+await sf.initialize();
+
+const [admin, bob, carol, dan] = accounts;
 ```
 
 ### Subgraph

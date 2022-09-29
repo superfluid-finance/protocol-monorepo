@@ -63,7 +63,7 @@ jobs:
           prNumber=${{ github.event.number }}
           dirName="bin/${prNumber}"
           mkdir -p $dirName
-          for d in packages/ethereum-contracts packages/sdk-core packages/sdk-redux; do (
+          for d in packages/ethereum-contracts packages/js-sdk packages/sdk-core packages/sdk-redux; do (
             cd "$d"
             tgz=$(npm pack)
             cp $tgz "../../$dirName/"

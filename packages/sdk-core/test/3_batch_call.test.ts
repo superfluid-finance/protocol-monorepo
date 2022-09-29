@@ -56,9 +56,7 @@ describe("Batch Call Tests", () => {
                 .batchCall([{ type: "ERC20_APPROVE" } as any])
                 .exec(alpha);
         } catch (err: any) {
-            expect(err.message).to.contain(
-                "undefined"
-            );
+            expect(err.message).to.contain("undefined");
         }
     });
 

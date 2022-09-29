@@ -1,0 +1,61 @@
+{
+    "name": "@superfluid-finance/js-sdk",
+    "version": "0.6.3",
+    "description": "Javascript SDK for building with Superfluid Protocol",
+    "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk#readme",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
+        "directory": "packages/js-sdk"
+    },
+    "license": "MIT",
+    "main": "src/index.js",
+    "types": "src/index.d.ts",
+    "files": [
+        "src/**/*.md",
+        "src/**/*.d.ts",
+        "src/**/*.json",
+        "src/**/*.js",
+        "dist/index.js"
+    ],
+    "browser": {
+        "fs": false,
+        "path": false
+    },
+    "scripts": {
+        "dev": "nodemon -e js,ts -i build -x 'truffle test 2>&1'",
+        "build": "tasks/build-abi-js.sh && webpack",
+        "testenv:start": "../ethereum-contracts/test/testenv-ctl.sh start",
+        "testenv:stop": "../ethereum-contracts/test/testenv-ctl.sh stop",
+        "pretest": "{ run-s testenv:start > /dev/null& } && sleep 5",
+        "test": "truffle test",
+        "test-coverage": "nyc --reporter=html --reporter=lcov --reporter=json yarn test",
+        "posttest": "yarn testenv:stop",
+        "watch": "webpack --watch",
+        "stats": "webpack --profile --json > stats.json && webpack-bundle-analyzer ./stats.json",
+        "lint": "run-s lint:*",
+        "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
+        "check-no-focused-tests": "grep -FR .only test || { echo '✔  No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
+        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
+        "pre-commit:lint": "yarn lint",
+        "pre-commit:check-no-focused-tests": "yarn check-no-focused-tests",
+        "check-updates": "ncu --target minor --dep prod,dev",
+        "cloc": "sh tasks/cloc.sh"
+    },
+    "dependencies": {
+        "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
+        "@truffle/contract": "4.5.23",
+        "auto-bind": "^4.0.0",
+        "node-fetch": "^2.6.7"
+    },
+    "peerDependencies": {
+        "@truffle/contract": "^4.0.0"
+    },
+    "devDependencies": {
+        "@superfluid-finance/ethereum-contracts": "1.4.0",
+        "chai-as-promised": "^7.1.1",
+        "webpack": "^5.74.0",
+        "webpack-bundle-analyzer": "^4.6.1",
+        "webpack-cli": "^4.10.0"
+    }
+}

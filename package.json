@@ -13,8 +13,8 @@
         "git:submodule:cleanup": "git submodule deinit --all --force",
         "lint": "yarn workspaces run lint",
         "build": "yarn build-essentials #synonym of build-essentials",
-        "build-essentials": "set -e;for i in ethereum-contracts sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",
-        "build-for-contracts-dev": "set -e;for i in ethereum-contracts;do yarn workspace @superfluid-finance/$i build;done",
+        "build-essentials": "set -e;for i in ethereum-contracts js-sdk sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",
+        "build-for-contracts-dev": "set -e;for i in ethereum-contracts js-sdk;do yarn workspace @superfluid-finance/$i build;done",
         "clean": "rm -rf node_modules; rm -rf packages/*/node_modules",
         "test": "set -e;for i in ethereum-contracts sdk-core;do yarn workspace @superfluid-finance/$i test;done",
         "manage-versions": "lerna version --exact --no-git-tag-version --preid rc",
@@ -70,6 +70,7 @@
     "workspaces": {
         "packages": [
             "packages/ethereum-contracts",
+            "packages/js-sdk",
             "packages/sdk-core",
             "packages/sdk-redux",
             "packages/subgraph",

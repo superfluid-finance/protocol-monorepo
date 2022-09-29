@@ -1,40 +1,19 @@
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Document Setup
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%% This document is processed in an isolated clean folder at the same level.
-\makeatletter
-\def\input@path{{../tex/}}
-\makeatother
-%%% Include the preamble at choice during processing.
+%% Include a preamble at choice during processing.
 \input{preamble.tex}
-%%% Bibliography system setup using biblatex.
-\usepackage[
-    backend=biber,
-    style=alphabetic,
-]{biblatex}
-\addbibresource{../tex/Biblio.bib}
-%%% Macros used.
-\long\def\ignore#1{} % for ignoring some code
-\newcommand{\eg}{\textit{e}.\textit{g}.}
-\newcommand{\ie}{\textit{i}.\textit{e}.}
-\newcommand{\etal}{\textit{et al}.}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Document Meta Data
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
 
 \title{Denotational Semantics of General Payment Primitives, and Its Payment System}
 
 \author{\\
     Miao, ZhiCheng\\
-    Co-Founder, Superfluid Finance\\
+    Co-founder, Superfluid Finance\\
     miao@superfluid.finance
 }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Document Body
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\begin{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% Title Page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \maketitle
 
 \begin{abstract}
@@ -151,7 +130,7 @@ A representation of money and its distribution proposed in \cite{buldas2021unify
     entity, such as a person, a family, a company, a state institution, etc.
 \end{itemize}
 
-This discrete nature of this money distribution model is schematically depicted in \ref{fig:discrete-md}:
+This discrete nature of this money distribution model is schematically depicted in~\ref{fig:discrete-md}:
 
 \begin{figure}[h]
     \centering
@@ -180,8 +159,8 @@ produce different monetary values.
 Here are some possible components of context, and how they work:
 
 \begin{itemize}
-\item If time (t) is included the context, then monetary value of each monetary unit can be continuous over time. Time
-    is part of the physical reality, hence not changeable by the actors in the payment system.
+\item If time (t) is included the context, then monetary value of each monetary unit can vary continuously over
+    time. Time is part of the physical reality, hence not changeable by the actors in the payment system.
 \item Any subset of monetary units can also have their value functions depending on the same information in
     context. This could enable payment primitives that involve many parties. This set of information in context is
     referred to as \textit{ctx :: SharedContext}, they can be changed over time by the actors in the payment system.
@@ -391,42 +370,159 @@ systems.
 \chapter{General Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+The set of payment primitives supported in a payment system is general, if monetary value of each monetary unit can vary
+continuously over time and monetary values can logically be shifted between two or more monetary units. The extent of
+the generality of each payment system may vary. We introduce a set of payment primitives that is general and serves as a
+starting point for the readers to explore the space of modern payment system. The specifications will be formally
+defined using denotational semantics, and its restatement in Haskell is also applied as a constructive artifact friendly
+to computer environment\footnote{One may argue for a restatement in \textit{Agda} instead, for it has a richer
+dependently-type system for needed constructive proofs. This matter will be dealt in the ``future investigations'' chapter
+of this paper.}.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Denotational Semantics}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Here is the specification of denotational semantics that support both discrete and continous payments.
-
-Here is the list of acronyms used:
+Here is the convention for symbols used in the formulas:
 
 \begin{itemize}
-    \item \textbf{MD} is \textit{Money Distribution}.
-    \item \textbf{MU} is \textit{Monetary Unit}.
-    \item \textbf{RTB} is \textit{Real Time Balance}.
+    \item \textbf{M} is \textit{money distribution}.
+    \item \textbf{U} is for \textit{the set of all money units in M}.
+    \item $\boldsymbol{\nu}$ is for \textit{monetary value}.
+    \item \textbf{t} is for \textit{time}.
+    \item \textbf{mu, ma, mb, etc.} are for \textit{monetary units}.
 \end{itemize}
 
-\subsection{Generalized Payment Model}
+\subsection{Money Distribution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{equation}\label{sem_transfer}
+Recall the definition of payment system previously, money distribution sits in the core of the system, and that is the
+syntactic category $\mathcal{M}$ we will be dealing with:
+
+\begin{itemize}
+\item The meaning of $[\![\mathcal{M}]\!]$ is money distribution.
+\item Semantic function $[\![.]\!] :: \mathcal{M} \rightarrow [\![\mathcal{M}]\!] $ include payment primitives.
+\end{itemize}
+
+\paragraph{Model}
+
+This is the model for money distribution.
+
+\begin{equation}\label{md_model}
     \begin{split}
-        [\![MD\ mu\ t\ rtb]\!] = mu \rightarrow t \rightarrow rtb
+        [\![M\ mu\ t\ \nu]\!] &= mu \rightarrow t \rightarrow \nu \\
+        [\![.]\!] &= M\ mu\ t\ \nu \rightarrow (mu \rightarrow t \rightarrow \nu) \\
     \end{split}
 \end{equation}
 
-\subsection{Monoidial Payment Model}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Monoidal}
 
-\begin{equation}\label{sem_mzero}
-    [\![\emptyset]\!] = \lambda\ mu\ t\ \rightarrow 0
+With this model, $\mathcal{M}$ is also monoidal, hence compositional.
+
+\begin{equation}
+    \begin{split}
+        [\![\emptyset]\!] &= \lambda mu \times t\ \rightarrow 0 \\
+        [\![ma \oplus mb]\!] &= \lambda mu \times t\ \rightarrow [\![ma]\!]\ mu\ t\ +\ [\![mb]\!]\ mu\ t \\
+    \end{split}
 \end{equation}
 
-\begin{equation}\label{sem_mappend}
-    [\![mda \oplus\ mdb]\!] = \lambda\ mu\ t\ \rightarrow
-    [\![mda]\!]\ mu\ t\ +\ [\![mdb]\!]\ mu\ t
+Knowing that function application category $a \rightarrow b$ is also monoidal:
+
+\begin{equation}
+    \begin{split}
+        \emptyset &= \lambda a \rightarrow \emptyset \\
+        f \oplus g &= \lambda a \rightarrow f\ a \oplus g\ a \\
+    \end{split}
+\end{equation}
+
+With some substitutions, we get the desired \textit{monoid homomorphism} property for $\mathcal{M}$.
+
+\begin{equation}
+    \begin{split}
+        [\![\emptyset]\!] &= \emptyset \\
+        [\![ma \oplus mb]\!] &= [\![ma]\!] \oplus [\![mb]\!] \\
+    \end{split}
 \end{equation}
 
 \subsection{Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+A payment primitive \textit{prim} is a semantic function that produces a monoidal money distribution, semantically
+representing an ``update'' to a money distribution:
+
+\begin{equation}
+    [\![prim\ args]\!] = [\![M\ mu\ t\ \nu]\!]
+\end{equation}
+
+\paragraph{Law of Conservation of Value}
+
+First of all, money distribution must obey the \textit{law of conservation of value}:
+
+\begin{equation}
+    \forall t \in \mathbb{R} {\displaystyle \sum_{mu \in U} [\![M\ mu\ t\ \nu]\!]\ mu\ t = 0}
+\end{equation}
+
+That is to say, for any given time, the sum of monetary value of all monetary units shall always equal to zero. Zero is
+used to keep the semantical meaning of payment system simple and elegant. In its applications, a payment system may use
+some special monetary unit accounting negative monetary values to accommodate concepts such as mining, minting, money
+printing, etc.
+
+Further more, in a payment system, we restrict that only payment primitives can provide ``updates'' to its money
+distribution. So a money distribution is a result of a sequence of payment primitive updates:
+
+\begin{equation}
+    \begin{split}
+        &\textbf{Axioms A:\ }
+        \textit{law of conservation of value for payment primitives} \\
+        &\forall t \in \mathbb{R} ({\displaystyle \sum_{mu \in U} [\![prim\ args]\!]\ mu\ t = 0}) \\
+        \\
+        &\textbf{Axioms B:\ }
+        \textit{money distribution consists of updates from payment primitives} \\
+        &[\![M\ mu\ t\ \nu]\!] =
+          [\![prim_1\ args_1]\!] \oplus [\![prim_2\ args_2]\!] \oplus [\![prim_3\ args_3]\!] \oplus \dotsb
+    \end{split}
+\end{equation}
+
+This allows us impose the law of conservation of value on payment primitives, then prove the law for money
+distribution inductively using monoid homomorphism:
+
+\begin{equation}
+    \begin{split}
+        &\textbf{In addition to the axioms, given:} \\
+        \\
+        &\textit{(base case with empty money distribution is trivial)} \\
+        &\forall t \in \mathbb{R} {\displaystyle \sum_{mu \in U} [\![\emptyset]\!]\ mu\ t = 0} \\
+        \\
+        &\textit{(monoid homomorphism)} \\
+        &{\displaystyle \sum_{mu \in U} [\![prim_1\ args_1\oplus prim_2\ args_2]\!]\ mu\ t} = \\
+        &\qquad {\displaystyle \sum_{mu \in U} [\![prim_2\ args_2]\!]\ mu\ t} \oplus
+          {\displaystyle \sum_{mu \in U} [\![prim_2\ args_2]\!]\ mu\ t} \\
+        \\
+        &\textbf{We have:} \\
+        &\forall t \in \mathbb{R}. \\
+        &{\displaystyle \sum_{mu \in U} [\![M\ mu\ t\ \nu]\!]\ mu\ t} \\
+        &\textit{(applying Axioms B)} \\
+        = &{\displaystyle \sum_{mu \in U}
+            ([\![prim_1\ args_1]\!] \oplus
+            [\![prim_2\ args_2]\!] \oplus
+            [\![prim_3\ args_3]\!]\oplus \dotsb)
+        }\ mu\ t\\
+        &\textit{(applying monoid homomorphism)} \\
+        = &{\displaystyle \sum_{mu \in U} [\![prim_1\ args_1]\!]\ mu\ t} \oplus
+        {\displaystyle \sum_{mu \in U} [\![prim_2\ args_2]\!]\ mu\ t} \oplus
+        {\displaystyle \sum_{mu \in U} [\![prim_3\ args_3]\!]\ mu\ t} \oplus \dotsb
+        )\\
+        &\textit{(applying Axioms A)} \\
+        =&\ 0
+        \\
+        \blacksquare
+    \end{split}
+\end{equation}
+
+\subsection{One to One Payment Primitives}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+???
 
 \begin{equation}\label{sem_transfer}
     \begin{split}
@@ -449,6 +545,13 @@ Here is the list of acronyms used:
         )
     \end{split}
 \end{equation}
+
+\subsection{Index Abstraction}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\subsection{Proportional Distribution Primitives}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{equation}
     unit :: sub \rightarrow subs \rightarrow Int
@@ -514,7 +617,7 @@ Here is the list of acronyms used:
 \chapter{Future Investigations}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Restatement in Agda and Correctness Proof}
+\section{Restatement in Agda, Correctness and Equivalence Proofs}
 
 \section{Payment in General Accounting Domains}
 

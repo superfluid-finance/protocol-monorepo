@@ -105,6 +105,7 @@ $(YELLOWPAPER_ROOT)/pdflatex/superfluid-yellowpaper.pdf: $(YELLOWPAPER_INPUTS)
 	mkdir -p $(YELLOWPAPER_ROOT)/pdflatex
 	rm -rf $(YELLOWPAPER_ROOT)/assets
 	cp -r yellowpaper/assets $(YELLOWPAPER_ROOT)/assets
+	cp $(YELLOWPAPER_ROOT)/tex/preamble.tex $(YELLOWPAPER_ROOT)/pdflatex/
 	cd $(YELLOWPAPER_ROOT)/pdflatex; { \
 		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/Paper.tex && \
 		biber superfluid-yellowpaper.bcf && \

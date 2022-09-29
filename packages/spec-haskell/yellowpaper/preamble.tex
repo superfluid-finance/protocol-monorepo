@@ -1,7 +1,19 @@
 \documentclass[a4paper,10pt]{report}
 
+%%% This document is processed in an isolated clean folder at the same level.
+\makeatletter
+\def\input@path{{../tex/}}
+\makeatother
+
 %% Page Settings
 %%% \usepackage[margin=0.5in,nomarginpar]{geometry}
+
+%%% Bibliography system setup using biblatex.
+\usepackage[
+    backend=biber,
+    style=alphabetic,
+]{biblatex}
+\addbibresource{../tex/Biblio.bib}
 
 %% Packages
 \usepackage{hyperref}
@@ -24,3 +36,9 @@
 %%% for code
 \newminted[code]{haskell}{}
 \newminted[spec]{haskell}{}
+
+%%% Other Macros.
+\long\def\ignore#1{} % for ignoring some code
+\newcommand{\eg}{\textit{e}.\textit{g}.}
+\newcommand{\ie}{\textit{i}.\textit{e}.}
+\newcommand{\etal}{\textit{et al}.}

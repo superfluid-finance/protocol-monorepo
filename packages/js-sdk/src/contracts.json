@@ -1,6 +1,7 @@
 [
     "Ownable",
     "AccessControl",
+    "CFAv1Forwarder",
     "UUPSProxiable",
     "IERC20",
     "TokenInfo",

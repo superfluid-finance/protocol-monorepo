@@ -4,10 +4,6 @@ const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
-const TruffleContract = require("@truffle/contract");
-const CFAv1ForwarderABI = require("../build/contracts/CFAv1Forwarder.json");
-const CFAv1Forwarder = TruffleContract(CFAv1ForwarderABI);
-CFAv1Forwarder.setProvider(web3.currentProvider);
 
 const {
     getScriptRunnerFactory: S,
@@ -173,6 +169,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     const contracts = [
         "Ownable",
+        "CFAv1Forwarder",
         "IMultiSigWallet",
         "SuperfluidGovernanceBase",
         "Resolver",
@@ -198,6 +195,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const {
         Ownable,
         IMultiSigWallet,
+        CFAv1Forwarder,
         SuperfluidGovernanceBase,
         Resolver,
         SuperfluidLoader,
@@ -222,10 +220,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         contractLoader: builtTruffleContractLoader,
         networkId,
     });
-    CFAv1Forwarder.defaults = {from: options.from};
-    CFAv1Forwarder.setNetwork(networkId);
-    CFAv1Forwarder.autoGas = true;
-    CFAv1Forwarder.estimateGas = 1.25;
 
     if (!newTestResolver && config.resolverAddress) {
         resolver = await Resolver.at(config.resolverAddress);

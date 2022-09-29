@@ -1147,8 +1147,7 @@ describe("SuperToken Tests", () => {
                     units,
                 })
                 .exec(alpha);
-            
-            
+
             await daix
                 .updateSubscriptionUnits({
                     indexId: "0",
@@ -1177,6 +1176,7 @@ describe("SuperToken Tests", () => {
                     "0x"
                 );
         });
+
         it("Should be able to approve subscription", async () => {
             const units = ethers.utils.parseUnits("0.001").toString();
 

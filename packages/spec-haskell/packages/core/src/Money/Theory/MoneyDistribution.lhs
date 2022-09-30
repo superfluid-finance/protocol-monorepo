@@ -30,7 +30,7 @@ class MonetaryUnit mu
 
 \begin{code}
 class ( MonetaryValue (MD_MVAL md)
-      , MonetaryUnit (MD_MU md)
+      , MonetaryUnit (MD_MU md), Eq (MD_MU md)
       , Bearer (MD_BRR md)
       , SharedContext (MD_CTX md)
       , Monoid md, Monoid (MD_CTX md)

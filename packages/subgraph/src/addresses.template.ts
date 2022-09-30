@@ -47,7 +47,7 @@ export function getNativeAssetSuperTokenAddress(): Address {
     const addresses: TypedMap<string, string> = new TypedMap<string, string>();
     // @note this is not great, but OK for now - should probably programmatically set the address
     // for "mainnet" => testing
-    addresses.set("mainnet", "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f");
+    addresses.set("mainnet", "0x7a2088a1bFc9d81c55368AE168C2C02570cB814F");
     addresses.set("goerli", "0x5943f705abb6834cad767e6e4bb258bc48d9c947");
     addresses.set("matic", "0x3ad736904e9e65189c3000c7dd2c8ac8bb7cd4e3");
     addresses.set("mumbai", "0x96b82b65acf7072efeb00502f45757f254c2a0d4");

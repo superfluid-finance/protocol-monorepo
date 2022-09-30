@@ -452,7 +452,6 @@ contract ConstantFlowAgreementV1 is
         }
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
-
         if (address(constantFlowAgreementHook) != address(0))  {
             // solhint-disable-next-line no-empty-blocks
             try constantFlowAgreementHook.onCreate(flowParams, flowVars.token, oldFlowData.flowRate) {} catch {}

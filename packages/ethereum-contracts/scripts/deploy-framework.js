@@ -190,6 +190,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "SuperTokenFactoryMock",
         "SuperTokenFactoryMockHelper",
         "SuperTokenMock",
+        "GoodCFAHookMock",
+        "BadCFAHookMock",
     ];
     const {
         Ownable,
@@ -212,6 +214,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         SlotsBitmapLibrary,
         ConstantFlowAgreementV1,
         InstantDistributionAgreementV1,
+        GoodCFAHookMock,
+        BadCFAHookMock,
     } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
@@ -354,12 +358,38 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     // list CFA v1
     const deployCFAv1 = async () => {
+        let mockHookToDeploy;
+        let mockHookContract;
+        if (useMocks) {
+            mockHookToDeploy = process.env.USE_GOOD_HOOK
+                ? GoodCFAHookMock
+                : BadCFAHookMock;
+            mockHookContract = await deployAndRegisterContractIf(
+                mockHookToDeploy,
+                "CFAMockHook",
+                async (contractAddress) => contractAddress === ZERO_ADDRESS,
+                async () => {
+                    mockHookContract = await web3tx(
+                        mockHookToDeploy.new,
+                        "CFAMockHook.new"
+                    )();
+                    output += `CFA_MOCK_HOOK=${mockHookContract.address}\n`;
+                    return mockHookContract;
+                }
+            );
+        }
+
+        // @note Once we have the actual implementation for the hook contract,
+        // we will need to deploy it and put it here instead of ZERO_ADDRESS
+        const hookContractAddress =
+            useMocks === false ? ZERO_ADDRESS : mockHookContract.address;
+        console.log("CFA Hook Contract Address:", hookContractAddress);
+
         const agreement = await web3tx(
             ConstantFlowAgreementV1.new,
             "ConstantFlowAgreementV1.new"
-            // @note Once we have the actual implementation for the hook contract,
-            // we will need to deploy it and put it here
-        )(superfluid.address, ZERO_ADDRESS);
+        )(superfluid.address, hookContractAddress);
+
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
         output += `CFA_LOGIC=${agreement.address}\n`;
         return agreement;

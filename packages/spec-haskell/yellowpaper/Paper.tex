@@ -474,26 +474,32 @@ printing, etc.
 
 To come up with such lawful money distribution, we can divide and conquer. In a payment system, if we restrict that only
 payment primitives can provide ``updates'' to its money distribution, so that a money distribution is only a result of a
-sequence of payment primitive updates; then we can have these axioms as the basis for the proof:
+sequence of payment primitive updates; then we can have these axioms as the basis for the proof.
 
-\centerline{\textbf{Axioms of restricted money distributions}}
+\paragraph{Axiom A of Restricted Money Distributions}
+
+First we must impose the law of conservation of value on payment primitives as an axiom, in order to prove inductively
+that such restricted money distribution satisfies the law of conservation of value too.
 
 \begin{equation}
     \begin{split}
-        &\textbf{Axiom A:\ }
-        \textit{law of conservation of value for payment primitives} \\
+        &\textit{law of conservation of value for payment primitives} \\
         &\forall t \in \mathbb{R} ({\displaystyle \sum_{u \in U} [\![prim\ args]\!]\ u\ t = 0}) \\
-        \\
-        &\textbf{Axiom B:\ }
-        \textit{money distribution consists of updates from payment primitives} \\
+    \end{split}
+\end{equation}
+
+\paragraph{Axiom B of Restricted Money Distributions}
+
+\begin{equation}
+    \begin{split}
+        &\textit{money distribution consists of updates from payment primitives} \\
         &[\![m]\!] = [\![prim_1\ args_1]\!] \oplus [\![prim_2\ args_2]\!] \oplus [\![prim_3\ args_3]\!] \oplus \dotsb
     \end{split}
 \end{equation}
 
-This allows us to impose the law of conservation of value on payment primitives, then prove inductively that such
-restricted money distribution obey the law of conservation of value too.
+\paragraph{Proof of Restricted Money Distributions}
 
-\centerline{\textbf{Proof of restricted money distributions satisfying the law of conservation of value}}
+satisfying the law of conservation of value.
 
 \begin{equation}
     \begin{split}
@@ -510,7 +516,7 @@ restricted money distribution obey the law of conservation of value too.
         &\textbf{We have:} \\
         &\forall t \in \mathbb{R}. \\
         &{\displaystyle \sum_{u \in U} [\![m]\!]\ u\ t} \\
-        &\textit{(applying Axioms B)} \\
+        &\textit{(applying Axiom B)} \\
         = &{\displaystyle \sum_{u \in U}
             ([\![prim_1\ args_1]\!] \oplus
             [\![prim_2\ args_2]\!] \oplus
@@ -521,7 +527,7 @@ restricted money distribution obey the law of conservation of value too.
         {\displaystyle \sum_{u \in U} [\![prim_2\ args_2]\!]\ u\ t} \oplus
         {\displaystyle \sum_{u \in U} [\![prim_3\ args_3]\!]\ u\ t} \oplus \dotsb
         )\\
-        &\textit{(applying Axioms A)} \\
+        &\textit{(applying Axiom A)} \\
         =&\ 0
         \\
         \blacksquare
@@ -565,27 +571,31 @@ Flowing of monetary value at a constant rate of $r$ at time $t'$:
     \end{split}
 \end{equation}
 
+It should be easy to prove that they satisfy the \textit{axioms A of restricted money distribution}.
+
 \subsection{Index Abstraction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 To make primitives support more than two parties, we introduce an abstraction called \textit{index}.
 
-A \textit{index} has a function $\rho$ which produces a real number for each monetary unit:
+A \textit{index} (we use symbol $k$ for them) has a function $\rho$ which produces a real number for each monetary unit:
 
 \begin{equation}
-    \rho :: k \rightarrow u \rightarrow \mathbb{R}
+    \rho\ k :: u \rightarrow \mathbb{R}
 \end{equation}
 
 And it must satisfy the following law:
 
 \begin{equation}
-    \displaystyle \sum_{u \in U} \rho\ u = 1
+    \displaystyle \sum_{u \in U} \rho\ k\ u = 1
 \end{equation}
 
 Semantically, it represents a proportion of each money unit, and they must add up to 1.
 
-Now let's generalize the one to one payment primitives using index abstraction. We use symbol $k$ for the indexes, and
-$I$ subscript for the indexed versions of the primitives.
+\subsection{Indexed Primitives}
+
+Let's generalize the one to one payment primitives using index abstraction. We use $I$ subscript for the indexed
+versions of the primitives.
 
 \paragraph{Indexed Transfer}
 
@@ -607,49 +617,76 @@ $I$ subscript for the indexed versions of the primitives.
     \end{split}
 \end{equation}
 
+It should be straightforward to prove that they also satisfy the \textit{axiom A of restricted money distribution}
+thanks to the law of the index.
+
 \paragraph{Universal Index}
 
-Now one to one payment primitives can be redefined using \textit{universal index} ($ku_{any}$) define as such:
+Now one to one payment primitives can be redefined using \textit{universal index} ($ku_{any}$):
 
 \begin{equation}
     \rho\ ku_{a} = \lambda u \rightarrow if\ u\ =\ u_a\ then\ 1\ else\ 0
 \end{equation}
 
-It means that it's an index universally available for any monetary unit, and its proportion is always 1 for that
-monetary unit.
+It means that it is an index \textit{universally} available for each monetary unit, and its proportion is always 1 for
+that monetary unit and 0 for all others.
 
 \subsection{Proportional Distribution Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\begin{equation}
-    unit :: sub \rightarrow subs \rightarrow Int
-\end{equation}
+A special case of the indexed primitives is to fix the sender side to be an \textit{universal index}.
+
+The semantics of these primitives resembles dividend pay out (distribution) in the security market\footnote{What Is a
+Dividend?  https://www.investopedia.com/terms/d/dividend.asp}. And flow semantics enables a whole new type of dividend
+pay out that is continuous over time.
+
+\subsection{Network Abstraction}
+
+An even more powerful abstraction is to model participants involved a payment primitive a \textit{network} (we use
+symbol $w$ for them).
+
+It has the function $\rho$ as in \textit{index}, bnd it satisfies a different law:
 
 \begin{equation}
-    proportion\ sub\ subs = {{unit\ sub\ subs } \over {\displaystyle \sum_{x \in subs} unit\ x\ subs}}
+    \displaystyle \sum_{u \in U} \rho\ w\ u = 0
 \end{equation}
 
-\begin{equation}\label{sem_distributeProportionally}
+\subsection{Networked Primitives}
+
+Let's generalize the basic payment primitives using network abstraction. We use $N$ subscript for the indexed versions
+of the primitives.
+
+\paragraph{Shift}
+
+We rename $transfer$ to $shift$ for networked instant payment primitive:
+
+\begin{equation}
     \begin{split}
-        [\![&distributeProportionally\ pub\ subs\ amount\ md]\!] = [\![md]\!]\ \oplus \\
-        (\lambda\ case&\ mu\ t \\
-        &|\ pub = mu \rightarrow -amount \\
-        &|\ \exists sub \in subs\ {sub = mu } \rightarrow amount * (proportion\ mu\ subs) \\
-        &|\ otherwise \rightarrow 0 \\
-        )
+        [\![shift_N\ w\ x]\!] &=
+        \lambda u \rightarrow \lambda t \rightarrow x \cdot \rho\ w\ u
     \end{split}
 \end{equation}
 
-\begin{equation}\label{sem_distributeProportionally}
+\paragraph{Networked (Constant) Flow}
+
+\begin{equation}
     \begin{split}
-        [\![&updateProportionalDistributionConstantFlow\ pub\ subs\ flowRate\ t'\ md]\!] = [\![md]\!]\ \oplus \\
-        (\lambda\ case&\ mu\ t \\
-        &|\ pub = mu \rightarrow -flowRate * (t - t') \\
-        &|\ \exists sub \in subs\ {sub = mu } \rightarrow flowRate * (t - t') * (proportion\ mu\ subs) \\
-        &|\ otherwise \rightarrow 0 \\
-        )
+        [\![flow_N\ w\ r\ t']\!] &=
+        \lambda u \rightarrow \lambda t \rightarrow r \cdot (t - t') \cdot \rho\ w\ u
     \end{split}
 \end{equation}
+
+\subsection{Generality vs. Optimization}
+
+The question now is, should we use the most general form of the semantics to guide implementation?
+
+The answer is most likely a no. Not because it is not useful, after all mathematical formula is about truth and perhaps
+also elegance in it, but because of we may miss optimization opportunities needed in implementation when more
+specialized versions are used instead\footnote{We will not though discuss the subjective aspects, including in software
+engineering principles such as YAGNI (\url{https://en.wikipedia.org/wiki/You_aren't_gonna_need_it}), or user experience
+perspective of the payment primitives.}.
+
+In the next chapter, we will look into a reference implementation where these optimizations are applied.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Restatement in Haskell}

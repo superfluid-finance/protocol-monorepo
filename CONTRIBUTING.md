@@ -72,7 +72,7 @@ cd superfluid-app
 nodemon --watch ../protocol-monorepo/packages --ext js,ts,tsx,sol --exec rsync --archive --delete ../protocol-monorepo/packages/ ./node_modules/@superfluid-finance/
 ```
 
-See [examples/](examples/) if you want to see more examples of this method.
+See our [examples repo](https://github.com/superfluid-finance/super-examples) if you want to see more examples of this method.
 
 ## Code Coverage
 

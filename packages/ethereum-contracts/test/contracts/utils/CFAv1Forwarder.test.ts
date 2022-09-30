@@ -45,8 +45,8 @@ describe("Agreement Forwarder", function () {
         host = t.contracts.superfluid;
         governance = t.contracts.governance;
 
-        const cfaV1ForwarderAddress = t.contracts.resolver.get(
-            "CFAv1Forwarder.test"
+        const cfaV1ForwarderAddress = await t.contracts.resolver.get(
+            "CFAv1Forwarder"
         );
         cfaFwd = await ethers.getContractAt(
             "CFAv1Forwarder",

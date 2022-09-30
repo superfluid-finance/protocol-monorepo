@@ -441,7 +441,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     // deploy CFAv1Forwarder
     await deployAndRegisterContractIf(
         CFAv1Forwarder,
-        `CFAv1Forwarder.${protocolReleaseVersion}`,
+        "CFAv1Forwarder",
         async (contractAddress) => contractAddress === ZERO_ADDRESS,
         async () => {
             const forwarder = await CFAv1Forwarder.new(superfluid.address);

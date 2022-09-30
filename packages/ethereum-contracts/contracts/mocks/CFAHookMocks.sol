@@ -68,7 +68,7 @@ contract GoodCFAHookMock is BaseCFAHookMock {
     );
 
     function onCreate(
-        ConstantFlowAgreementV1.FlowParams memory newFlowData,
+        IConstantFlowAgreementHook.CFAHookParams memory newFlowData,
         ISuperfluidToken token
     ) external onlyCFA returns (bool) {
         emit OnCreateEvent(
@@ -83,7 +83,7 @@ contract GoodCFAHookMock is BaseCFAHookMock {
     }
 
     function onUpdate(
-        ConstantFlowAgreementV1.FlowParams memory newFlowData,
+        IConstantFlowAgreementHook.CFAHookParams memory newFlowData,
         ISuperfluidToken token,
         int96 oldFlowRate
     ) external onlyCFA returns (bool) {
@@ -100,7 +100,7 @@ contract GoodCFAHookMock is BaseCFAHookMock {
     }
 
     function onDelete(
-        ConstantFlowAgreementV1.FlowParams memory newFlowData,
+        IConstantFlowAgreementHook.CFAHookParams memory newFlowData,
         ISuperfluidToken token,
         int96 oldFlowRate
     ) external onlyCFA returns (bool) {
@@ -124,14 +124,14 @@ contract BadCFAHookMock is BaseCFAHookMock {
     error BAD_HOOK();
 
     function onCreate(
-        ConstantFlowAgreementV1.FlowParams memory, // newFlowData,
+        IConstantFlowAgreementHook.CFAHookParams memory, // newFlowData,
         ISuperfluidToken // token
     ) external view onlyCFA returns (bool) {
         revert BAD_HOOK();
     }
 
     function onUpdate(
-        ConstantFlowAgreementV1.FlowParams memory, // newFlowData,
+        IConstantFlowAgreementHook.CFAHookParams memory, // newFlowData,
         ISuperfluidToken, // token,
         int96 // oldFlowRate
     ) external view onlyCFA returns (bool) {
@@ -139,7 +139,7 @@ contract BadCFAHookMock is BaseCFAHookMock {
     }
 
     function onDelete(
-        ConstantFlowAgreementV1.FlowParams memory, // newFlowData,
+        IConstantFlowAgreementHook.CFAHookParams memory, // newFlowData,
         ISuperfluidToken, // token,
         int96 // oldFlowRate
     ) external view onlyCFA returns (bool) {

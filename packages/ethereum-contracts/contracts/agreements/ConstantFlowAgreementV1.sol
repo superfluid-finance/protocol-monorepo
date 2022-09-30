@@ -457,8 +457,17 @@ contract ConstantFlowAgreementV1 is
         // still be able to recreate the hook behavior. This logic should exist in the NFT contract though.
         // This should be safe as we don't have any behavior/state changes in the catch block.
         if (address(constantFlowAgreementHook) != address(0))  {
+            try constantFlowAgreementHook.onCreate(
+                IConstantFlowAgreementHook.CFAHookParams({
+                    sender: flowParams.sender,
+                    receiver: flowParams.receiver,
+                    flowOperator: flowParams.flowOperator,
+                    flowRate: flowParams.flowRate
+                }),
+                flowVars.token
+            )
             // solhint-disable-next-line no-empty-blocks
-            try constantFlowAgreementHook.onCreate(flowParams, flowVars.token) {} catch {}
+            {} catch {}
         }
     }
 
@@ -492,7 +501,17 @@ contract ConstantFlowAgreementV1 is
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {
             // solhint-disable-next-line no-empty-blocks
-            try constantFlowAgreementHook.onUpdate(flowParams, flowVars.token, oldFlowData.flowRate) {} catch {}
+            try constantFlowAgreementHook.onUpdate(
+                IConstantFlowAgreementHook.CFAHookParams({
+                    sender: flowParams.sender,
+                    receiver: flowParams.receiver,
+                    flowOperator: flowParams.flowOperator,
+                    flowRate: flowParams.flowRate
+                }),
+                flowVars.token,
+                oldFlowData.flowRate
+            // solhint-disable-next-line no-empty-blocks
+            ) {} catch {}
         }
     }
 
@@ -607,8 +626,17 @@ contract ConstantFlowAgreementV1 is
 
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {
+            try constantFlowAgreementHook.onDelete(
+                IConstantFlowAgreementHook.CFAHookParams({
+                    sender: flowParams.sender,
+                    receiver: flowParams.receiver,
+                    flowOperator: flowParams.flowOperator,
+                    flowRate: flowParams.flowRate
+                }),
+                flowVars.token,
+                oldFlowData.flowRate
             // solhint-disable-next-line no-empty-blocks
-            try constantFlowAgreementHook.onDelete(flowParams, flowVars.token, oldFlowData.flowRate) {} catch {}
+            ) {} catch {}
         }
     }
 

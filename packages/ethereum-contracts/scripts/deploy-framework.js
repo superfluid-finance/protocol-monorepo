@@ -169,6 +169,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     const contracts = [
         "Ownable",
+        "CFAv1Forwarder",
         "IMultiSigWallet",
         "SuperfluidGovernanceBase",
         "Resolver",
@@ -196,6 +197,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const {
         Ownable,
         IMultiSigWallet,
+        CFAv1Forwarder,
         SuperfluidGovernanceBase,
         Resolver,
         SuperfluidLoader,
@@ -467,6 +469,18 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             console.warn("Cannot get slotsBitmapLibrary address", e.toString());
         }
     }
+
+    // deploy CFAv1Forwarder
+    await deployAndRegisterContractIf(
+        CFAv1Forwarder,
+        "CFAv1Forwarder",
+        async (contractAddress) => contractAddress === ZERO_ADDRESS,
+        async () => {
+            const forwarder = await CFAv1Forwarder.new(superfluid.address);
+            output += `CFA_V1_FORWARDER=${forwarder.address}\n`;
+            return forwarder;
+        }
+    );
 
     let superfluidNewLogicAddress = ZERO_ADDRESS;
     const agreementsToUpdate = [];

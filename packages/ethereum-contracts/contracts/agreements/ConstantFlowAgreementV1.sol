@@ -458,7 +458,7 @@ contract ConstantFlowAgreementV1 is
         // This should be safe as we don't have any behavior/state changes in the catch block.
         if (address(constantFlowAgreementHook) != address(0))  {
             // solhint-disable-next-line no-empty-blocks
-            try constantFlowAgreementHook.onCreate(flowParams, flowVars.token, oldFlowData.flowRate) {} catch {}
+            try constantFlowAgreementHook.onCreate(flowParams, flowVars.token) {} catch {}
         }
     }
 

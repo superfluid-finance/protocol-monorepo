@@ -1,11 +1,13 @@
 import {ethers, expect} from "hardhat";
 
-import GoodCFAHookMockArtifact from "../../../artifacts/contracts/mocks/CFAHookMocks.sol/GoodCFAHookMock.json";
-import {GoodCFAHookMock, SuperTokenMock} from "../../../typechain-types";
 import {
-    BaseCFAHookMock,
-    ConstantFlowAgreementV1 as HookMockCFAv1,
-} from "../../../typechain-types/contracts/mocks/CFAHookMocks.sol/BaseCFAHookMock";
+    BadCFAHookMock,
+    ConstantFlowAgreementV1,
+    ConstantFlowAgreementV1__factory,
+    GoodCFAHookMock,
+    SuperTokenMock,
+} from "../../../typechain-types";
+import {ConstantFlowAgreementV1 as HookMockCFAv1} from "../../../typechain-types/contracts/mocks/CFAHookMocks.sol/BaseCFAHookMock";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError} from "../../utils/expectRevert";
 import {toBN} from "../utils/helpers";
@@ -34,21 +36,10 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
 
     let alice: string, bob: string;
     let superToken: SuperTokenMock;
-    let MockHookContract: BaseCFAHookMock;
+    let CFAFactory: ConstantFlowAgreementV1__factory;
+    let CFAWithLogicHook: ConstantFlowAgreementV1;
     let GoodCFAHookMock: GoodCFAHookMock;
-
-    beforeEach(async () => {
-        const mockHookAddress = await t.contracts.resolver.get("CFAMockHook");
-        MockHookContract = await ethers.getContractAt(
-            "BaseCFAHookMock",
-            mockHookAddress
-        );
-        GoodCFAHookMock = new ethers.Contract(
-            MockHookContract.address,
-            GoodCFAHookMockArtifact.abi,
-            ethers.provider
-        ) as GoodCFAHookMock;
-    });
+    let BadCFAHookMock: BadCFAHookMock;
 
     describe("#1 GoodCFAHookMock Tests", () => {
         before(async () => {
@@ -61,65 +52,81 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
 
             superToken = t.tokens.SuperToken;
             agreementHelper = t.agreementHelper;
+            CFAFactory = await ethers.getContractFactory(
+                "ConstantFlowAgreementV1"
+            );
         });
 
         beforeEach(async () => {
             await t.beforeEachTestCase();
+            const GoodCFAHookMockFactory = await ethers.getContractFactory(
+                "GoodCFAHookMock"
+            );
+            GoodCFAHookMock = await GoodCFAHookMockFactory.deploy();
+            CFAWithLogicHook = await CFAFactory.deploy(
+                t.contracts.superfluid.address,
+                GoodCFAHookMock.address
+            );
+            await t.contracts.governance.updateContracts(
+                t.contracts.superfluid.address,
+                ethers.constants.AddressZero,
+                [CFAWithLogicHook.address],
+                ethers.constants.AddressZero
+            );
         });
 
         // The final Hook contract should test this and adhere to the onlyCFA and onlyOwner rule.
         describe("#1.1 Only CFA", () => {
             it("#1.1.1 Should revert if non-CFA address tries to call the create hook", async () => {
                 await expectCustomError(
-                    MockHookContract.onCreate(
+                    GoodCFAHookMock.onCreate(
                         EMPTY_MOCK_FLOW_PARAMS,
-                        superToken.address,
-                        toBN(0)
+                        superToken.address
                     ),
-                    MockHookContract,
+                    GoodCFAHookMock,
                     "NOT_CFA"
                 );
             });
 
             it("#1.1.2 Should revert if non-CFA address tries to call the update hook", async () => {
                 await expectCustomError(
-                    MockHookContract.onUpdate(
+                    GoodCFAHookMock.onUpdate(
                         EMPTY_MOCK_FLOW_PARAMS,
                         superToken.address,
                         toBN(0)
                     ),
-                    MockHookContract,
+                    GoodCFAHookMock,
                     "NOT_CFA"
                 );
             });
 
             it("#1.1.3 Should revert if non-CFA address tries to call the delete hook", async () => {
                 await expectCustomError(
-                    MockHookContract.onDelete(
+                    GoodCFAHookMock.onDelete(
                         EMPTY_MOCK_FLOW_PARAMS,
                         superToken.address,
                         toBN(0)
                     ),
-                    MockHookContract,
+                    GoodCFAHookMock,
                     "NOT_CFA"
                 );
             });
 
             it("#1.1.4 Should revert if non owner attempts to set CFA on hook mock", async () => {
                 await expectCustomError(
-                    MockHookContract.connect(
-                        await ethers.getSigner(bob)
-                    ).setCFA(bob),
-                    MockHookContract,
+                    GoodCFAHookMock.connect(await ethers.getSigner(bob)).setCFA(
+                        bob
+                    ),
+                    GoodCFAHookMock,
                     "NOT_OWNER"
                 );
             });
         });
 
-        describe("#1.2 Hook should execute as expected otherwise", () => {
+        describe("#1.2 Hook should execute as expected", () => {
             beforeEach(async () => {
                 // set the CFA so that onlyCFA will be allowed
-                await MockHookContract.setCFA(t.contracts.cfa.address);
+                await GoodCFAHookMock.setCFA(t.contracts.cfa.address);
 
                 await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
             });
@@ -140,8 +147,7 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
                         alice,
                         bob,
                         alice,
-                        FLOW_RATE1,
-                        "0"
+                        FLOW_RATE1
                     );
             });
             it("#1.2.2 Should execute update hook when flow is updated", async () => {
@@ -220,16 +226,29 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
             await t.beforeEachTestCase();
             await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
 
+            const BadCFAHookMockFactory = await ethers.getContractFactory(
+                "BadCFAHookMock"
+            );
+            BadCFAHookMock = await BadCFAHookMockFactory.deploy();
+            CFAWithLogicHook = await CFAFactory.deploy(
+                t.contracts.superfluid.address,
+                BadCFAHookMock.address
+            );
+            await t.contracts.governance.updateContracts(
+                t.contracts.superfluid.address,
+                ethers.constants.AddressZero,
+                [CFAWithLogicHook.address],
+                ethers.constants.AddressZero
+            );
+
             // Create flow before each and we should be using BadCFAHookMock here
-            await expect(
-                agreementHelper.modifyFlow({
-                    type: FLOW_TYPE_CREATE,
-                    superToken: superToken.address,
-                    sender: alice,
-                    receiver: bob,
-                    flowRate: FLOW_RATE1,
-                })
-            ).to.not.emit(GoodCFAHookMock, "OnCreateEvent");
+            await agreementHelper.modifyFlow({
+                type: FLOW_TYPE_CREATE,
+                superToken: superToken.address,
+                sender: alice,
+                receiver: bob,
+                flowRate: FLOW_RATE1,
+            });
         });
 
         it("#2.1 Should still create flow despite revert in hook contract", async () => {

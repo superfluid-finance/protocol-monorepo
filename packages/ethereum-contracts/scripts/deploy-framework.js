@@ -191,8 +191,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "SuperTokenFactoryMock",
         "SuperTokenFactoryMockHelper",
         "SuperTokenMock",
-        "GoodCFAHookMock",
-        "BadCFAHookMock",
     ];
     const {
         Ownable,
@@ -216,8 +214,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         SlotsBitmapLibrary,
         ConstantFlowAgreementV1,
         InstantDistributionAgreementV1,
-        GoodCFAHookMock,
-        BadCFAHookMock,
     } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
@@ -360,31 +356,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     // list CFA v1
     const deployCFAv1 = async () => {
-        let mockHookToDeploy;
-        let mockHookContract;
-        if (useMocks) {
-            mockHookToDeploy = process.env.USE_GOOD_HOOK
-                ? GoodCFAHookMock
-                : BadCFAHookMock;
-            mockHookContract = await deployAndRegisterContractIf(
-                mockHookToDeploy,
-                "CFAMockHook",
-                async (contractAddress) => contractAddress === ZERO_ADDRESS,
-                async () => {
-                    mockHookContract = await web3tx(
-                        mockHookToDeploy.new,
-                        "CFAMockHook.new"
-                    )();
-                    output += `CFA_MOCK_HOOK=${mockHookContract.address}\n`;
-                    return mockHookContract;
-                }
-            );
-        }
-
         // @note Once we have the actual implementation for the hook contract,
         // we will need to deploy it and put it here instead of ZERO_ADDRESS
-        const hookContractAddress =
-            useMocks === false ? ZERO_ADDRESS : mockHookContract.address;
+        const hookContractAddress = ZERO_ADDRESS;
         console.log("CFA Hook Contract Address:", hookContractAddress);
 
         const agreement = await web3tx(

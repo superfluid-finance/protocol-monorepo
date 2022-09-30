@@ -13,12 +13,10 @@ interface IConstantFlowAgreementHook {
     /// @dev This should be implemented with an onlyCFA modifier, so that only the CFA can call the function
     /// @param newFlowData new flow data, see ConstantFlowAgreementV1 to see properties on FlowParams struct
     /// @param token the streamed super token
-    /// @param oldFlowRate previous flowrate
     /// @return bool
     function onCreate(
         ConstantFlowAgreementV1.FlowParams memory newFlowData,
-        ISuperfluidToken token,
-        int96 oldFlowRate
+        ISuperfluidToken token
     ) external returns (bool);
 
     /// @notice A hook which executes on stream update if the hook contract is set in the CFA

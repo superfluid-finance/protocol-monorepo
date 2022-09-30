@@ -48,8 +48,7 @@ contract GoodCFAHookMock is BaseCFAHookMock {
         address sender,
         address receiver,
         address flowOperator,
-        int96 flowRate,
-        int96 oldFlowRate
+        int96 flowRate
     );
     event OnUpdateEvent(
         ISuperfluidToken token,
@@ -70,16 +69,14 @@ contract GoodCFAHookMock is BaseCFAHookMock {
 
     function onCreate(
         ConstantFlowAgreementV1.FlowParams memory newFlowData,
-        ISuperfluidToken token,
-        int96 oldFlowRate
+        ISuperfluidToken token
     ) external onlyCFA returns (bool) {
         emit OnCreateEvent(
             token,
             newFlowData.sender,
             newFlowData.receiver,
             newFlowData.flowOperator,
-            newFlowData.flowRate,
-            oldFlowRate
+            newFlowData.flowRate
         );
 
         return true;
@@ -128,8 +125,7 @@ contract BadCFAHookMock is BaseCFAHookMock {
 
     function onCreate(
         ConstantFlowAgreementV1.FlowParams memory, // newFlowData,
-        ISuperfluidToken, // token,
-        int96 // oldFlowRate
+        ISuperfluidToken // token
     ) external view onlyCFA returns (bool) {
         revert BAD_HOOK();
     }

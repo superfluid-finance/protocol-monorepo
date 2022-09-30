@@ -9,15 +9,16 @@ module Money.Theory.PaymentPrimitives
     ( PaymentPrimitive (..)
     ) where
 
+import Data.Coerce ( coerce )
+
 import Money.Theory.MoneyDistribution
 \end{code}
 }
 
 \begin{code}
 data MoneyDistributionModel md = forall u t v.
-    ( MoneyDistribution md
+    ( t ~ MD_TS md
     , u ~ MD_MU md
-    , t ~ MD_CTX md -- we assume it is time
     , v ~ MD_MVAL md
     ) => MkMoneyDistributionModel (u -> t -> v)
 
@@ -51,17 +52,17 @@ instance ( MoneyDistribution md
             | otherwise -> 0
         )
 
--- data Flow md = forall u t v.
---     ( u ~ MD_MU md
---     , v ~ MD_MVAL md
---     , t ~ MD_CTX md
---     ) => Flow u u v t
--- instance ( MoneyDistribution md
---          ) => PaymentPrimitive (Flow md) md where
---     runPrim (Flow from to r t') = MkMoneyDistributionModel (
---         \u -> \t -> if
---             | from == u -> -r * (t - t')
---             | to   == u -> r * (t - t')
---             | otherwise -> 0
---         )
+data Flow md = forall u t v.
+    ( u ~ MD_MU md
+    , v ~ MD_MVAL md
+    , t ~ MD_TS md
+    ) => Flow u u v t
+instance ( MoneyDistribution md
+         ) => PaymentPrimitive (Flow md) md where
+    runPrim (Flow from to r t') = MkMoneyDistributionModel (
+        \u -> \t -> if
+            | from == u -> -r * coerce (t - t')
+            | to   == u ->  r * coerce (t - t')
+            | otherwise -> 0
+        )
 \end{code}

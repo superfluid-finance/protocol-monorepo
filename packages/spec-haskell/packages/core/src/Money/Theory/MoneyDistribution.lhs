@@ -5,6 +5,7 @@ module Money.Theory.MoneyDistribution where
 
 import Data.Default (Default)
 import Data.Kind (Type)
+import Data.Coerce ( Coercible )
 \end{code}
 }
 
@@ -13,7 +14,7 @@ class (Integral mv, Default mv) => MonetaryValue mv
 \end{code}
 
 \begin{code}
-class (Default ts, Integral ts) => Timestamp ts
+class (Default t, Integral t) => Timestamp t
 \end{code}
 
 \begin{code}
@@ -30,6 +31,7 @@ class MonetaryUnit mu
 
 \begin{code}
 class ( MonetaryValue (MD_MVAL md)
+      , Timestamp (MD_TS md), Coercible (MD_TS md) (MD_MVAL md)
       , MonetaryUnit (MD_MU md), Eq (MD_MU md)
       , Bearer (MD_BRR md)
       , SharedContext (MD_CTX md)
@@ -49,6 +51,7 @@ class ( MonetaryValue (MD_MVAL md)
               ) => md -> mu -> brr
 
     type family MD_MVAL md = (mval :: Type) | mval -> md
+    type family MD_TS   md = (t    :: Type) | t    -> md
     type family MD_MU   md = (mu   :: Type) | mu   -> md
     type family MD_BRR  md = (brr  :: Type) | brr  -> md
     type family MD_CTX  md = (ctx  :: Type) | ctx  -> md

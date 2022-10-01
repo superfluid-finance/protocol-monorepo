@@ -54,8 +54,8 @@ instance ( MoneyDistribution md
 
 data Flow md = forall u t v.
     ( u ~ MD_MU md
-    , v ~ MD_MVAL md
     , t ~ MD_TS md
+    , v ~ MD_MVAL md
     ) => Flow u u v t
 instance ( MoneyDistribution md
          ) => PaymentPrimitive (Flow md) md where

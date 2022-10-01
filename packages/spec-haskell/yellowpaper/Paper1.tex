@@ -1,3 +1,5 @@
+%%% -- -*- fill-column: 100; -*-
+
 %% Include a preamble at choice during processing.
 \input{preamble.tex}
 \begin{document}
@@ -10,9 +12,9 @@
     miao@superfluid.finance
 }
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Title Page
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \maketitle
 
@@ -44,47 +46,50 @@
     \end{center}
 \end{abstract}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-It should be fair to say, every aspect of money are controversial: the nature of money, the value of money, money and
-banking, and monetary reconstruction. Two major schools of thoughts about theory of money are the \textit{Austrian
-    school} (\cite{von2013theory}) and the \textit{Chicago school} (\cite{friedman1989quantity}). That is before the
-appearance of Internet-era version of monetary reconstruction, broadly defined as cryptocurrency, which challenges
-theories of money further and demands their updates (\cite{ammous2018can} \cite{hardle2020understanding}).
+It should be fair to say, every aspect of money are controversial: the nature of money, the value of
+money, money and banking, and monetary reconstruction. Two major schools of thoughts about theory of
+money are the \textit{Austrian school} (\cite{von2013theory}) and the \textit{Chicago school}
+(\cite{friedman1989quantity}). That is before the appearance of Internet-era version of monetary
+reconstruction, broadly defined as cryptocurrency, which challenges theories of money further and
+demands their updates (\cite{ammous2018can} \cite{hardle2020understanding}).
 
-This yellow paper does not intend to address these controversies, but to focus on the function of money. According to
-Von Mises:
+This yellow paper does not intend to address these controversies, but to focus on the function of
+money. According to Von Mises:
 
 \begin{displayquote}
 The function of money is to facilitate the business of the market by acting as a common medium of
 exchange. \footfullcite[][Chapter One, Chapter I, § 1, p1]{von2013theory}
 \end{displayquote}
 
-How do different forms of money perform this function, especially in the information age, when electronic forms of money
-are increasingly used?
+How do different forms of money perform this function, especially in the information age, when
+electronic forms of money are increasingly used?
 
-This paper adds a new controversy to money, that is to present a survey challenging the preconceived notion of how money
-can perform its function of medium of exchange.
+This paper adds a new controversy to money, that is to present a survey challenging the preconceived
+notion of how money can perform its function of medium of exchange.
 
-In Chapter 2, we shall first explore the foundation for the survey. Here we present a formal definition of payment
-system and its components. We then select a few relevant approaches used in computer science useful for modeling and
-defining formal specification for the payment system.
+In Chapter 2, we shall first explore the foundation for the survey. Here we present a formal
+definition of payment system and its components. We then select a few relevant approaches used in
+computer science useful for modeling and defining formal specification for the payment system.
 
-One of the approaches is \textit{denotational semantics}, which is used in Chapter 3 of the paper to define the general
-payment primitives. Along with the denotational semantics, a restatement\footnote{It is a borrowed term from common law:
-``restatement of the law''. In our case, the denotative mathematical laws.} of it in \textit{Haskell programming
-    language} (\cite{hudak1992report} \cite{jones2003haskell} \cite{marlow2010haskell}) is also included.
+One of the approaches is \textit{denotational semantics}, which is used in Chapter 3 of the paper to
+define the general payment primitives. Along with the denotational semantics, a
+restatement\footnote{It is a borrowed term from common law: ``restatement of the law''. In our case,
+the denotative mathematical laws.} of it in \textit{Haskell programming language}
+(\cite{hudak1992report} \cite{jones2003haskell} \cite{marlow2010haskell}) is also included.
 
-In Chapter 4, a reference implementation of the general payment primitives and its payment system called
+In Chapter 4, a reference implementation of the general payment primitives and its payment system
+called
 \textit{Superfluid Money} is introduced.
 
 In Chapter 5, some possible further investigations are included for future study purpose.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Foundation}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%
 \section{Payment System}
@@ -97,11 +102,15 @@ Here we present a definition of payment system and its components.
 It can be solely defined by these components:
 
 \begin{itemize}
-\item \textit{money distribution} models how monetary value is distributed amongst bearers\footnote{(Banking \& Finance)
-a person who presents a note or bill for payment. - Collins English Dictionary},
-\item \textit{payment primitives} updates money distribution,
-\item \textit{payment execution environment} performs payment primitives,
-\item and \textit{forms of money medium} are the ``user interfaces'' of money for the bearers.
+    \item \textit{money distribution} models how monetary value is distributed amongst
+bearers \footnote{(Banking \& Finance) a person who presents a note or bill for payment. - Collins
+English Dictionary},
+
+    \item \textit{payment primitives} updates money distribution,
+
+    \item \textit{payment execution environment} performs payment primitives,
+
+    \item and \textit{forms of money medium} are the ``user interfaces'' of money for the bearers.
 \end{itemize}
 
 \paragraph{Modernization}
@@ -109,27 +118,35 @@ a person who presents a note or bill for payment. - Collins English Dictionary},
 For its modern upgrade, the system should also have these properties:
 
 \begin{itemize}
-\item Money can be distributed continuously over time, as opposed to be discrete.
-\item Payment primitives can involve more than two parties, as opposed to be only for a sender and a receiver.
-\item Financial system should be compositional.
+    \item Money can be distributed continuously over time, as opposed to be discrete.
+
+    \item Payment primitives can involve more than two parties, as opposed to be only for a sender
+and a receiver.
+
+    \item Financial system should be compositional.
 \end{itemize}
 
 \subsection{Money Distribution}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-A representation of money and its distribution proposed in \cite{buldas2021unifying} involves the following components:
+A representation of money and its distribution proposed in \cite{buldas2021unifying} involves the
+following components:
 
 \begin{itemize}
-\item U is the set of monetary units.
-\item $\nu : U \rightarrow \mathbb{N}$ is the value function defining the value $\nu(u)$ of every value unit u. The set
-    $\mathbb{N}$ is the set of all natural numbers, but instead, we can use any set of numerals that is totally ordered
-    (\eg\ integers, real numbers).
-\item $\beta : U \rightarrow \mathcal{B}$ is the bearer function defining the bearer $\beta(u)$ of a unit. The set
-    $\mathcal{B}$ is the set of possible bearers. The bearer is usually a legal construction defining any type of legal
-    entity, such as a person, a family, a company, a state institution, etc.
+    \item U is the set of monetary units.
+
+    \item $\nu : U \rightarrow \mathbb{N}$ is the value function defining the value $\nu(u)$ of
+every value unit u. The set $\mathbb{N}$ is the set of all natural numbers, but instead, we can use
+any set of numerals that is totally ordered (\eg\ integers, real numbers).
+
+    \item $\beta : U \rightarrow \mathcal{B}$ is the bearer function defining the bearer $\beta(u)$
+of a unit. The set $\mathcal{B}$ is the set of possible bearers. The bearer is usually a legal
+construction defining any type of legal entity, such as a person, a family, a company, a state
+institution, etc.
 \end{itemize}
 
-This discrete nature of this money distribution model is schematically depicted in~\ref{fig:discrete-md}:
+This discrete nature of this money distribution model is schematically depicted
+in~\ref{fig:discrete-md}:
 
 \begin{figure}[h]
     \centering
@@ -140,8 +157,9 @@ This discrete nature of this money distribution model is schematically depicted 
 
 \subsubsection{Using Context}
 
-But the discrete nature of the model does not provide the necessary element for us to add the desired properties to the
-payment system. Here we propose a modification that involves the usage of \textit{context ($\gamma$)}:
+But the discrete nature of the model does not provide the necessary element for us to add the
+desired properties to the payment system. Here we propose a modification that involves the usage
+of \textit{context ($\gamma$)}:
 
 \begin{figure}[h]
     \centering
@@ -150,19 +168,22 @@ payment system. Here we propose a modification that involves the usage of \texti
     \label{fig:md-with-ctx}
 \end{figure}
 
-Note that in this model, context can be updated independently while value functions of the same money distribution can
-produce different monetary values.
+Note that in this model, context can be updated independently while value functions of the same
+money distribution can produce different monetary values.
 
 \paragraph{Components of Context}
 
 Here are some possible components of context, and how they work:
 
 \begin{itemize}
-\item If time (t) is included the context, then monetary value of each monetary unit can vary continuously over
-    time. Time is part of the physical reality, hence not changeable by the actors in the payment system.
-\item Any subset of monetary units can also have their value functions depending on the same information in
-    context. This could enable payment primitives that involve many parties. This set of information in context is
-    referred to as \textit{ctx :: SharedContext}, they can be changed over time by the actors in the payment system.
+    \item If time (t) is included the context, then monetary value of each monetary unit can vary
+continuously over time. Time is part of the physical reality, hence not changeable by the actors in
+the payment system.
+
+    \item Any subset of monetary units can also have their value functions depending on the same
+information in context. This could enable payment primitives that involve many parties. This set of
+information in context is referred to as \textit{ctx :: SharedContext}, they can be changed over
+time by the actors in the payment system.
 \end{itemize}
 
 For the purpose of this paper, the model of context is: $\gamma = t \times ctx$.
@@ -174,39 +195,42 @@ For the purpose of this paper, the model of context is: $\gamma = t \times ctx$.
 \subsection{Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-A payment primitive is a data type with a generator that creates payment primitive data from the shared context $ctx$,
-primitive specific argument $args$ and timestamp, along with an update of the shared context. Here is an example of
-generator for payment primitive \textit{a}:
+A payment primitive is a data type with a generator that creates payment primitive data from the
+shared context $ctx$, primitive specific argument $args$ and timestamp, along with an update of the
+shared context. Here is an example of generator for payment primitive \textit{a}:
 
 \begin{equation}
     genPrim_a :: ctx \rightarrow args_a \rightarrow t \rightarrow prim \times ctx
 \end{equation}
 
-Payment primitive data then can be used to create a delta update of money distribution\footnote{Specifically being
-monoidal, that is in short a set that has associative binary operation and an identity element. See
-https://ncatlab.org/nlab/show/monoid.}
+Payment primitive data then can be used to create a delta update of money
+distribution\footnote{Specifically being monoidal, that is in short a set that has associative
+binary operation and an identity element. See https://ncatlab.org/nlab/show/monoid.}
 
 \begin{equation}
     runPrim :: prim \rightarrow md
 \end{equation}
 
-Loosely speaking, it is considered a primitive, if it can not be broken down into other existing primitives which result
-in the same money distribution; additionally primitives should be the only constructs in a payment system that can
-update money distribution.
+Loosely speaking, it is considered a primitive, if it can not be broken down into other existing
+primitives which result in the same money distribution; additionally primitives should be the only
+constructs in a payment system that can update money distribution.
 
-Updates are \textit{monoidal}, so that they can be incremental and their parallel executions can be modeled.
+Updates are \textit{monoidal}, so that they can be incremental and their parallel executions can be
+modeled.
 
-The best known primitive is instant transfer of monetary value between one monetary unit to another. The introduction of
-context enables more primitives to be defined, and this will be discussed in later chapters.
+The best known primitive is instant transfer of monetary value between one monetary unit to
+another. The introduction of context enables more primitives to be defined, and this will be
+discussed in later chapters.
 
 \subsection{Payment Execution Environment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The purpose of a payment execution environment is to perform the actual payment primitives, where their computation
-interface, parallel evaluation strategies and payment system solvency are defined.
+The purpose of a payment execution environment is to perform the actual payment primitives, where
+their computation interface, parallel evaluation strategies and payment system solvency are defined.
 
-It is out of scope for this paper to survey in-depth the problem space of the operation semantics of payment execution
-environments. Nonetheless, a simplified model and some potential extensions to it is discussed briefly.
+It is out of scope for this paper to survey in-depth the problem space of the operation semantics of
+payment execution environments. Nonetheless, a simplified model and some potential extensions to it
+is discussed briefly.
 
 \subsubsection{Composing Financial Contracts}
 
@@ -218,51 +242,57 @@ environments. Nonetheless, a simplified model and some potential extensions to i
 
 \subsection{Payment System Solvency}
 
-While money distribution does not assign meaning to the range of monetary values, in real world applications, negative
-values can have special meanings. In the following analysis, we call any money unit that has a negative monetary value
-insolvent.
+While money distribution does not assign meaning to the range of monetary values, in real world
+applications, negative values can have special meanings. In the following analysis, we call any
+money unit that has a negative monetary value insolvent.
 
 The detailed analysis of these solvency models are out of scope for this paper.
 
 \paragraph{Buffer Based Solvency Treatment}
 
-In a nondeterministic execution environment, we cannot determine when any financial contract will actually be
-executed. That means, there is always a chance a monetary unit could reach negative monetary value.
+In a nondeterministic execution environment, we cannot determine when any financial contract will
+actually be executed. That means, there is always a chance a monetary unit could reach negative
+monetary value.
 
-To mitigate this uncertainty, a concept called buffer is introduced. A buffer has a monetary value which is set aside in a solvency conditional financial contract, such that if a solvency
-condition arises, the buffer maybe drawn to cover the loss introduced by the nondeterministic timing of the execution.
+To mitigate this uncertainty, a concept called buffer is introduced. A buffer has a monetary value
+which is set aside in a solvency conditional financial contract, such that if a solvency condition
+arises, the buffer maybe drawn to cover the loss introduced by the nondeterministic timing of the
+execution.
 
 \paragraph{Deterministic Solvency Treatment}
 
-Since \textit{fcNext} returns what is the next financial contract executable at a specific time, this deterministic
-property eliminates the need for the buffer.
+Since \textit{fcNext} returns what is the next financial contract executable at a specific time,
+this deterministic property eliminates the need for the buffer.
 
-But it introduces a different type of systemic risk, that is denial-of-service, since the system cannot advance the
-system time until all next executable contracts are executed.
+But it introduces a different type of systemic risk, that is denial-of-service, since the system
+cannot advance the system time until all next executable contracts are executed.
 
 \subsection{Money Mediums}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \begin{displayquote}
-A useful observation about existing money schemes is that they all have some kind of monetary units that are physical or
-digital representations of money. Examples are bills, coins, bank accounts, Bitcoin UTXOs,
-etc. \footfullcite[][P3]{buldas2021unifying}
+A useful observation about existing money schemes is that they all have some kind of monetary units
+that are physical or digital representations of money. Examples are bills, coins, bank accounts,
+Bitcoin UTXOs, etc. \footfullcite[][P3]{buldas2021unifying}
 \end{displayquote}
 
 We call them money mediums, and we further separate them into two big groups:
 
 \begin{itemize}
-\item \textit{Token and its Accounts} - \eg\ bank currency accounts. Each token is its own centralized execution
-    environment, bearers access their monetary value through their accounts, and execute financial contracts through the
-    token.
-\item \textit{Note} - \eg\ federal reserve notes, bills, coins and Bitcoin UTXOs, etc. The execution environment is
-    independent of the notes, but it needs notes to complete the execution of financial contracts.
+    \item \textit{Token and its Accounts} - \eg\ bank currency accounts. Each token is its own
+centralized execution environment, bearers access their monetary value through their accounts, and
+execute financial contracts through the token.
+
+    \item \textit{Note} - \eg\ federal reserve notes, bills, coins and Bitcoin UTXOs, etc. The
+execution environment is independent of the notes, but it needs notes to complete the execution of
+financial contracts.
 \end{itemize}
 
-One of the main differences is from the ``user interface'' perspective. A bearer expects to keep many notes at hand,
-while maybe only needs a few accounts for each token. Also it is up to bearers to keep track of all their notes, while
-token can keep track of most of the states for bearers; hence notes are more decentralized and tokens are more
-centralized. Some also argue note-like model is better for complex concurrent and distributed computing environment
+One of the main differences is from the ``user interface'' perspective. A bearer expects to keep
+many notes at hand, while maybe only needs a few accounts for each token. Also it is up to bearers
+to keep track of all their notes, while token can keep track of most of the states for bearers;
+hence notes are more decentralized and tokens are more centralized. Some also argue note-like model
+is better for complex concurrent and distributed computing environment
 \footfullcite[][P2]{chakravarty2020extended}.
 
 \subsubsection{Haskell Definition Of Money Mediums}
@@ -273,30 +303,32 @@ centralized. Some also argue note-like model is better for complex concurrent an
 \section{Relevant Approaches}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The focus of this paper is to formally define a set of payment primitives that modernize our payment systems. To prevent
-reinventing wheels, it is relevant to discuss first some approaches in computer science that are believed to help
-solving this challenge.
+The focus of this paper is to formally define a set of payment primitives that modernize our payment
+systems. To prevent reinventing wheels, it is relevant to discuss first some approaches in computer
+science that are believed to help solving this challenge.
 
 \subsection{Functional Reactive Programming}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Recall that we want our modernized payment systems to handle money distribution continuously over time, and its financial
-contracts compositional. A very closely related software design paradigm best known to address those needs is
-\textit{functional reactive programming (FRP)}. It was first introduced by Conal Elliott \& Paul Hudak in solving
-multimedia animations \cite{elliott1997functional}. Later on, Hudak also worked on \cite{hudak2002arrows} and
-\cite{wan2000functional} making FRP a more general framework for programming hybrid system with continuous behaviors in
-a high-level, declarative manner.
+Recall that we want our modernized payment systems to handle money distribution continuously over
+time, and its financial contracts compositional. A very closely related software design paradigm
+best known to address those needs is \textit{functional reactive programming (FRP)}.  It was first
+introduced by Conal Elliott \& Paul Hudak in solving multimedia
+animations \cite{elliott1997functional}. Later on, Hudak also worked on \cite{hudak2002arrows} and
+\cite{wan2000functional} making FRP a more general framework for programming hybrid system with
+continuous behaviors in a high-level, declarative manner.
 
-After FRP got more adoption, it evolved to some variations that support discrete semantics, and some variations better
-suited more for interactive systems. In this paper we will stick to and revisit the basic constructions of the original
-formulation used in \cite{elliott1997functional} where we will draw inspirations from.
+After FRP got more adoption, it evolved to some variations that support discrete semantics, and some
+variations better suited more for interactive systems. In this paper we will stick to and revisit
+the basic constructions of the original formulation used in \cite{elliott1997functional} where we
+will draw inspirations from.
 
 \paragraph{Temporal Modeling and Behaviors}
 
-Values that vary over continuous time are called \textit{behaviors}. They are first-class values, and are built up
-compositionally. In modernized payment systems, we should want the monetary values of monetary units capable of varying over
-continuous time. The semantic function of $\alpha$-behaviors produces the value of type $\alpha$ of a behavior at a given
-time:
+Values that vary over continuous time are called \textit{behaviors}. They are first-class values,
+and are built up compositionally. In modernized payment systems, we should want the monetary values
+of monetary units capable of varying over continuous time. The semantic function of
+$\alpha$-behaviors produces the value of type $\alpha$ of a behavior at a given time:
 
 \begin{equation}
     at : Behavior_{\alpha} \rightarrow Time \rightarrow \alpha
@@ -304,22 +336,22 @@ time:
 
 \paragraph{Event Modeling}
 
-Like behaviors, \textit{events} are first-class values too. The semantic function of $\alpha$-event describes the time and
-information associated with an \textit{occurrence} of the event:
+Like behaviors, \textit{events} are first-class values too. The semantic function of $\alpha$-event
+describes the time and information associated with an \textit{occurrence} of the event:
 
 \begin{equation}
     occ : Event_{\alpha} \rightarrow Time \times \alpha
 \end{equation}
 
-In modernized payment systems, the payment primitives executed in payment execution environments are one type of
-events. More types of events can be read from the original paper \footfullcite[][section 2.3 Semantics of
-    Events]{elliott1997functional}.
+In modernized payment systems, the payment primitives executed in payment execution environments are
+one type of events. More types of events can be read from the original paper \footfullcite[][section
+2.3 Semantics of Events]{elliott1997functional}.
 
 \paragraph{Reactivity}
 
-They key to modeling the payment execution environment using FRP is the \textit{reactivity}, which makes behaviors
-reactive. Specifically, the behavior \textit{b untilB e} exhibits b's behavior until \textit{e} occurs, and then swiches
-to a new behavior encoded in \textit{e}:
+They key to modeling the payment execution environment using FRP is the \textit{reactivity}, which
+makes behaviors reactive. Specifically, the behavior \textit{b untilB e} exhibits b's behavior
+until \textit{e} occurs, and then swiches to a new behavior encoded in \textit{e}:
 
 \begin{equation}
     \begin{split}
@@ -331,17 +363,19 @@ to a new behavior encoded in \textit{e}:
 
 Note that $[\![.]\!]$ is the denotational semantics notation to be introduced later.
 
-In the context of modernized payment systems, the occurrences of payment primitives (events) change the behaviors of
-monetary units in how much monetary values it has over continuous. The building blocks of the financial contracts should
-be about modeling these events and their reactivity declaratively.
+In the context of modernized payment systems, the occurrences of payment primitives (events) change
+the behaviors of monetary units in how much monetary values it has over continuous. The building
+blocks of the financial contracts should be about modeling these events and their reactivity
+declaratively.
 
 \subsection{Denotational Semantics}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-We also want a formal and precise specification of payment primitives. The title of the paper includes
-\textit{denotational semantics}: ``it is a \textit{compositional} style for precisely specifying the meanings of
-languages, invented by Christopher Strachey and Dana Scott in the 1960s (\cite{scott1971toward})'', and Conal Elliott
-proposed that denotational semantics can also be applied to \textit{data types within a programming language}
+We also want a formal and precise specification of payment primitives. The title of the paper
+includes \textit{denotational semantics}: ``it is a \textit{compositional} style for precisely
+specifying the meanings of languages, invented by Christopher Strachey and Dana Scott in the 1960s
+(\cite{scott1971toward})'', and Conal Elliott proposed that denotational semantics can also be
+applied to \textit{data types within a programming language}
 \footfullcite[][section 2, denotational semantics and data types]{Elliott2009-type-class-morphisms-TR}.
 
 To create denotational semantics for each syntactic category $\mathcal{C}$, we should specify:
@@ -351,29 +385,33 @@ To create denotational semantics for each syntactic category $\mathcal{C}$, we s
 \item a semantic function $[\![.]\!]_{\mathcal{C}} :: \mathcal{C} \rightarrow [\![\mathcal{C}]\!]$.
 \end{itemize}
 
-The syntactic category we are interested in is \textit{payment primitives}, which we should treat them as FRP-style
-\textit{Behavior} data types. In the following chapters, it is also unambiguously referred to in short as
-$[\![.]\!]$. Various $[\![.]\!]$ must be compositional, \ie must be defined by structural recursion.
+The syntactic category we are interested in is \textit{payment primitives}, which we should treat
+them as FRP-style \textit{Behavior} data types. In the following chapters, it is also unambiguously
+referred to in short as $[\![.]\!]$. Various $[\![.]\!]$ must be compositional, \ie must be defined
+by structural recursion.
 
-It is important to note that our purpose of using the denotational semantics is to give precise meaning to payment
-primitives, independent of its implementation (which deals with performance, optimization, side effects, etc.). We will
-spend the next chapter exploring the denotational semantics for general payment primitives in modernized payment
-systems.
+It is important to note that our purpose of using the denotational semantics is to give precise
+meaning to payment primitives, independent of its implementation (which deals with performance,
+optimization, side effects, etc.). We will spend the next chapter exploring the denotational
+semantics for general payment primitives in modernized payment systems.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{General Payment Primitives}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-The set of payment primitives supported in a payment system is general, if (a) monetary value of each monetary unit can
-vary continuously over time (b) monetary values can logically be shifted between two or more monetary units.
+The set of payment primitives supported in a payment system is general, if (a) monetary value of
+each monetary unit can vary continuously over time (b) monetary values can logically be shifted
+between two or more monetary units.
 
-The extent of the generality of each payment system may vary. This paper introduces a set of payment primitives that is
-general and serves as a starting point for the readers to explore the space of modern payment system.
+The extent of the generality of each payment system may vary. This paper introduces a set of payment
+primitives that is general and serves as a starting point for the readers to explore the space of
+modern payment system.
 
-The specifications will be formally defined using denotational semantics, along with a restatement in Haskell also
-applied as a constructive artifact friendly to computer environment\footnote{One may argue for a restatement
-in \textit{Agda} instead, for it has a richer dependently-type system for desirable constructive proofs. This matter
-will be dealt in the ``future investigations'' chapter of this paper.}.
+The specifications will be formally defined using denotational semantics, along with a restatement
+in Haskell also applied as a constructive artifact friendly to computer environment\footnote{One may
+argue for a restatement in \textit{Agda} instead, for it has a richer dependently-type system for
+desirable constructive proofs. This matter will be dealt in the ``future investigations'' chapter of
+this paper.}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Denotational Semantics}
@@ -392,13 +430,14 @@ Here is the convention for symbols used in the formulas:
 
 \subsection{$\mathcal{M}$ - Category of Money Distribution}
 
-Recall the definition of payment system previously, money distribution sits in the core of the system, and that is the
-syntactic category $\mathcal{M}$ we will be dealing with:
+Recall the definition of payment system previously, money distribution sits in the core of the
+system, and that is the syntactic category $\mathcal{M}$ we will be dealing with:
 
 \begin{itemize}
-\item The meaning of the mathematical \textit{model} $[\![\mathcal{M}]\!]$ is money distribution.
-\item Semantic function $[\![.]\!] :: \mathcal{M} \rightarrow [\![\mathcal{M}]\!] $ evaluates the syntax of money
-      distribution, payment primitives, etc.
+    \item The meaning of the mathematical \textit{model} $[\![\mathcal{M}]\!]$ is money distribution.
+
+    \item Semantic function $[\![.]\!] :: \mathcal{M} \rightarrow [\![\mathcal{M}]\!] $ evaluates
+the syntax of money distribution, payment primitives, etc.
 \end{itemize}
 
 \subsection{Money Distribution}
@@ -422,7 +461,8 @@ With this model, $\mathcal{M}$ is also monoidal, hence compositional.
 \begin{equation}
     \begin{split}
         [\![\emptyset]\!] &= \lambda u \rightarrow \lambda t\ \rightarrow \emptyset \\
-        [\![m_a \oplus m_b]\!] &= \lambda u \rightarrow \lambda t\ \rightarrow [\![m_a]\!]\ u\ t\ +\ [\![m_b]\!]\ u\ t \\
+        [\![m_a \oplus m_b]\!] &= \lambda u \rightarrow \lambda t\ \rightarrow
+            [\![m_a]\!]\ u\ t\ +\ [\![m_b]\!]\ u\ t \\
     \end{split}
 \end{equation}
 
@@ -447,8 +487,8 @@ With some substitutions, we get the desired \textit{monoid homomorphism} propert
 \subsection{Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-A payment primitive \textit{prim} is a model that produces a monoidal money distribution, semantically
-representing an ``update'' to a money distribution:
+A payment primitive \textit{prim} is a model that produces a monoidal money distribution,
+semantically representing an ``update'' to a money distribution:
 
 \begin{equation}
     [\![prim]\!] = [\![\Delta\ m]\!]
@@ -462,21 +502,23 @@ First of all, money distribution must obey the \textit{law of conservation of va
     \forall t \in \mathbb{R} {\displaystyle \sum_{u \in U} [\![m]\!]\ u\ t = 0}
 \end{equation}
 
-That is to say, at any given time, the sum of monetary value of all monetary units shall always equal to zero. Zero is
-used to keep the semantical meaning of payment system simple and elegant. In its applications, a payment system may use
-some special monetary unit accounting negative monetary values to accommodate concepts such as mining, minting, money
-printing, etc.
+That is to say, at any given time, the sum of monetary value of all monetary units shall always
+equal to zero. Zero is used to keep the semantical meaning of payment system simple and elegant. In
+its applications, a payment system may use some special monetary unit accounting negative monetary
+values to accommodate concepts such as mining, minting, money printing, etc.
 
 \paragraph{Restricted Money Distribution}
 
-To come up with such lawful money distribution, we can divide and conquer. In a payment system, if we restrict that only
-payment primitives can provide ``updates'' to its money distribution, so that a money distribution is only a result of a
-sequence of payment primitive updates; then we can have these axioms as the basis for the proof.
+To come up with such lawful money distribution, we can divide and conquer. In a payment system, if
+we restrict that only payment primitives can provide ``updates'' to its money distribution, so that
+a money distribution is only a result of a sequence of payment primitive updates; then we can have
+these axioms as the basis for the proof.
 
 \paragraph{Axiom A of Restricted Money Distributions}
 
-First we must impose the law of conservation of value on payment primitives as an axiom, in order to prove inductively
-that such restricted money distribution satisfies the law of conservation of value too.
+First we must impose the law of conservation of value on payment primitives as an axiom, in order to
+prove inductively that such restricted money distribution satisfies the law of conservation of value
+too.
 
 \begin{equation}
     \begin{split}
@@ -576,7 +618,8 @@ It should be easy to prove that they satisfy the \textit{axioms A of restricted 
 
 To make primitives support more than two parties, we introduce an abstraction called \textit{index}.
 
-A \textit{index} (we use symbol $k$ for them) has a function $\rho$ which produces a real number for each monetary unit:
+A \textit{index} (we use symbol $k$ for them) has a function $\rho$ which produces a real number for
+each monetary unit:
 
 \begin{equation}
     \rho\ k :: u \rightarrow \mathbb{R}
@@ -592,8 +635,8 @@ Semantically, it represents a proportion of each money unit, and they must add u
 
 \subsection{Indexed Primitives}
 
-Let's generalize the one to one payment primitives using index abstraction. We use $I$ subscript for the indexed
-versions of the primitives.
+Let's generalize the one to one payment primitives using index abstraction. We use $I$ subscript for
+the indexed versions of the primitives.
 
 \paragraph{Indexed Transfer}
 
@@ -615,8 +658,8 @@ versions of the primitives.
     \end{split}
 \end{equation}
 
-It should be straightforward to prove that they also satisfy the \textit{axiom A of restricted money distribution}
-thanks to the law of the index.
+It should be straightforward to prove that they also satisfy the \textit{axiom A of restricted money
+distribution} thanks to the law of the index.
 
 \paragraph{Universal Index}
 
@@ -626,8 +669,8 @@ Now one to one payment primitives can be redefined using \textit{universal index
     \rho\ ku_{a} = \lambda u \rightarrow if\ u\ =\ u_a\ then\ 1\ else\ 0
 \end{equation}
 
-It means that it is an index \textit{universally} available for each monetary unit, and its proportion is always 1 for
-that monetary unit and 0 for all others.
+It means that it is an index \textit{universally} available for each monetary unit, and its
+proportion is always 1 for that monetary unit and 0 for all others.
 
 \subsection{Proportional Distribution Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -636,8 +679,8 @@ A special case of the indexed primitives is to fix the sender side to be an \tex
 
 \subsection{Network Abstraction}
 
-An even more powerful abstraction is to model participants involved a payment primitive a \textit{network} (we use
-symbol $w$ for them).
+An even more powerful abstraction is to model participants involved a payment primitive
+a \textit{network} (we use symbol $w$ for them).
 
 It has the function $\rho$ as in \textit{index}, bnd it satisfies a different law:
 
@@ -647,8 +690,8 @@ It has the function $\rho$ as in \textit{index}, bnd it satisfies a different la
 
 \subsection{Networked Primitives}
 
-Let's generalize the basic payment primitives using network abstraction. We use $N$ subscript for the indexed versions
-of the primitives.
+Let's generalize the basic payment primitives using network abstraction. We use $N$ subscript for
+the indexed versions of the primitives.
 
 \paragraph{Shift}
 
@@ -674,13 +717,15 @@ We rename $transfer$ to $shift$ for networked instant payment primitive:
 
 The question now is, should we use the most general form of the semantics to guide implementation?
 
-The answer is most likely a no. Not because it is not useful, after all mathematical formula is about truth and perhaps
-also elegance in it, but because of we may miss optimization opportunities needed in implementation when more
-specialized versions are used instead\footnote{We will not though discuss the subjective aspects, including in software
-engineering principles such as YAGNI (\url{https://en.wikipedia.org/wiki/You_aren't_gonna_need_it}), or user experience
-perspective of the payment primitives.}.
+The answer is most likely a no. Not because it is not useful, after all mathematical formula is
+about truth and perhaps also elegance in it, but because of we may miss optimization opportunities
+needed in implementation when more specialized versions are used instead\footnote{We will not though
+discuss the subjective aspects, including in software engineering principles such as YAGNI
+(\url{https://en.wikipedia.org/wiki/You_aren't_gonna_need_it}), or user experience perspective of
+the payment primitives.}.
 
-In the next chapter, we will look into a reference implementation where these optimizations are applied.
+In the next chapter, we will look into a reference implementation where these optimizations are
+applied.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Restatement in Haskell}
@@ -688,9 +733,9 @@ In the next chapter, we will look into a reference implementation where these op
 
 \input{PaymentPrimitives.lhs.tex}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Superfluid Money - A Reference Implementation}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Real Time Balance}
 
@@ -702,21 +747,23 @@ In the next chapter, we will look into a reference implementation where these op
 
 \subsection{Constant Flow Agreement}
 
-\subsection{Distribution Agreement}
+\subsection{Distribution Agreements}
 
 \subsection{Decaying Flow Agreement}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Future Investigations}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Restatement in Agda, Correctness and Equivalence Proofs}
 
+\section{Combinator Library for Financial Contracts}
+
 \section{Payment in General Accounting Domains}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage
 \printbibliography{}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \end{document}

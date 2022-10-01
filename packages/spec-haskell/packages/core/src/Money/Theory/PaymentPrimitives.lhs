@@ -1,5 +1,8 @@
+> -- -*- fill-column: 70; -*-
+
 \ignore{
 \begin{code}
+
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE MultiWayIf #-}
@@ -22,7 +25,8 @@ import Money.Theory.MoneyDistribution
 \begin{code}
 {- $intro
 
-Here is the denotational semantics of payment primitives of modern payment system.
+Here is the denotational semantics of payment primitives of modern
+payment system.
 
 -}
 \end{code}
@@ -38,8 +42,8 @@ type MoneyDistributionModel' md = forall ν t u.
     ) => u -> t -> ν
 
 -- | ⟦𝓜⟧ - methematical model of meaning in money distribution.
-newtype MoneyDistributionModel md =
-    MkMoneyDistributionModel (MoneyDistributionModel' md)
+data MoneyDistributionModel md = MkMoneyDistributionModel
+    (MoneyDistributionModel' md)
 \end{code}
 
 \begin{code}

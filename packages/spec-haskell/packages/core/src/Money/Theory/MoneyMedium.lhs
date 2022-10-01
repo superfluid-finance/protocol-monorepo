@@ -1,3 +1,5 @@
+> -- -*- fill-column: 70; -*-
+
 \ignore{
 \begin{code}
 {-# LANGUAGE TypeFamilyDependencies #-}
@@ -19,7 +21,8 @@ import Money.Theory.PaymentExecutionEnvironment
 \begin{code}
 {- $intro
 
-Here are some toy models for nondeterministic sequential money tokens and money notes:
+Here are some toy models for nondeterministic sequential money tokens
+and money notes:
 
 -}
 \end{code}
@@ -47,13 +50,14 @@ data MoneyNote md fc = ( MoneyDistribution md
 
 type NoteID = String
 
--- | A toy model for nondeterministic sequential money notes execution environment.
+-- | A toy model for nondeterministic sequential money notes execution
+-- environment.
 class ( MoneyDistribution md
       , FinancialContract fc md
       , NondetSeqPaymentExecEnv env md fc
       ) => NondetSeqMoneyNotes env md fc where
-    -- | Find note by its ID. This should be used by ~fc~ to
-    --   rehydrate the its references to the notes.
+    -- | Find note by its ID. This should be used by ~fc~ to rehydrate
+    --   the its references to the notes.
     findNote :: note ~ MoneyNote md fc
              => NoteID -> env note
 
@@ -64,5 +68,6 @@ class ( MoneyDistribution md
               => note -> env mval
 \end{code}
 
-It may seem very little semantic differences between token and notes execution environment, but that's the point. Their
-main difference lies mainly on the implementations of their user experience.
+It may seem very little semantic differences between token and notes
+execution environment, but that's the point. Their main difference
+lies mainly on the implementations of their user experience.

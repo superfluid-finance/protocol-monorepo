@@ -1,3 +1,5 @@
+> -- -*- fill-column: 70; -*-
+
 \ignore{
 \begin{code}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -16,11 +18,14 @@ import Money.Theory.MoneyDistribution
 \begin{code}
 {- $intro
 
-Financial contract is the execution context for payment primitives, including their execution conditions,
-timing\footnote{Timing is a type of condition of which current system time is a factor} and execution order.
+Financial contract is the execution context for payment primitives,
+including their execution conditions, timing\footnote{Timing is a type
+of condition of which current system time is a factor} and execution
+order.
 
-Inspired by the \textit{technique of composing financial contracts} demonstrated in \cite{peyton2000composing}, we
-define the type class for financial contract as follows:
+Inspired by the \textit{technique of composing financial contracts}
+demonstrated in \cite{peyton2000composing}, we define the type class
+for financial contract as follows:
 
 -}
 \end{code}
@@ -35,12 +40,14 @@ class MoneyDistribution md => FinancialContract fc md | fc -> md where
               )
            => fc -> (md, ctx) -> t -> Bool
 
-    -- | Execute the payment primitives encoded in the financial contract.
+    -- | Execute the payment primitives encoded in the financial
+    -- contract.
     fcExec :: ( ctx ~ MD_CTX md
               , Timestamp t
               )
            => fc -> (md, ctx) -> t -> ((md, ctx), fc)
 \end{code}
 
-Because \textit{(md, ctx)} is monoidal too, itt is then possible to build a combinatorial libary of financial contracts
-that can be used to construct larger and more complex financial contracts.
+Because \textit{(md, ctx)} is monoidal too, itt is then possible to
+build a combinatorial libary of financial contracts that can be used
+to construct larger and more complex financial contracts.

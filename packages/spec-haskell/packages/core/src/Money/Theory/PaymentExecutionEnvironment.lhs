@@ -1,3 +1,5 @@
+> -- -*- fill-column: 70; -*-
+
 \ignore{
 \begin{code}
 {-# LANGUAGE FunctionalDependencies #-}
@@ -28,8 +30,9 @@ Here are some models for different payment execution environment.
 
 \paragraph{Nondeterministic Sequential Execution Environment}
 
-First we define a model for nondeterministic sequential payment execution environment, which includes a set of all
-financial contracts and a step through function:
+First we define a model for nondeterministic sequential payment
+execution environment, which includes a set of all financial contracts
+and a step through function:
 
 \begin{code}
 -- | Nondeterministic sequential payment execution environment.
@@ -37,10 +40,12 @@ class ( MoneyDistribution md
       , FinancialContract fc md
       , Monad env
       ) => NondetSeqPaymentExecEnv env md fc | env -> md, env -> fc where
-    -- | Monadically update a financial contract in the execution environment.
+    -- | Monadically update a financial contract in the execution
+    -- environment.
     fcMUpdate :: fc -> env ()
 
-    -- | Monadically select one financial contract from the execution environment.
+    -- | Monadically select one financial contract from the execution
+    -- environment.
     fcMSelect :: ( ctx ~ MD_CTX md
                  , Timestamp t
                  )
@@ -63,28 +68,34 @@ class ( MoneyDistribution md
             else return (md, ctx)
 \end{code}
 
-We do not assume that \textit{fcMSelect} yields a predicate that evalutes to true; since it could be an input from the
-external world. This won't work with deterministic financial contract set.
+We do not assume that \textit{fcMSelect} yields a predicate that
+evalutes to true; since it could be an input from the external
+world. This won't work with deterministic financial contract set.
 
-The environment is a Monad, where diferent side effects for \textit{fcMSelect} can be encoded. For more generalized
-interface to computation, arrows could be used instead \cite{hughes2000generalising}.
+The environment is a Monad, where diferent side effects for
+\textit{fcMSelect} can be encoded. For more generalized interface to
+computation, arrows could be used instead
+\cite{hughes2000generalising}.
 
 \paragraph{Parallel Execution}
 
-When the executions of payment primitives can be in parallel, the shared resource problem of updating money
-distribution, context and financial contract set arrises in data storage.
+When the executions of payment primitives can be in parallel, the
+shared resource problem of updating money distribution, context and
+financial contract set arrises in data storage.
 
-To model the parallel execution, ones must first study the concurrency control of the data storage system used
-\cite{bernstein1981concurrency}; while formalism of parallel execution can be best done using Petri Nets
-(\cite{petri1962kommunikation}, \cite{reisig2012petri})\footnote{Petri Nets World,
+To model the parallel execution, ones must first study the concurrency
+control of the data storage system used
+\cite{bernstein1981concurrency}; while formalism of parallel execution
+can be best done using Petri Nets (\cite{petri1962kommunikation},
+\cite{reisig2012petri})\footnote{Petri Nets World,
 https://www.informatik.uni-hamburg.de/TGI/PetriNets/index.php}.
 
 But a model in Haskell will not be provided for now.
 
 \paragraph{Deterministic Execution}
 
-To make the execution environment deterministic, stronger ordering conditions must be provided to the financial contract
-type:
+To make the execution environment deterministic, stronger ordering
+conditions must be provided to the financial contract type:
 
 \begin{code}
 -- | Financial contract that can be totally ordered.
@@ -103,7 +114,8 @@ class ( MoneyDistribution md
       => PartiallyOrderedFinancialContract tofc md
 \end{code}
 
-Total ordered financial contract could be used to model deterministic sequential execution environment:
+Total ordered financial contract could be used to model deterministic
+sequential execution environment:
 
 \begin{code}
 -- | Deterministic sequential payment execution environment.
@@ -120,7 +132,8 @@ class ( MoneyDistribution md
               )
            => env -> (md, ctx, tofc, t)
 
-    -- | Update execution environment with new money distribution and context.
+    -- | Update execution environment with new money distribution and
+    -- context.
     penvUpdate :: ctx ~ MD_CTX md
                => env -> (md, ctx) -> env
 
@@ -140,8 +153,11 @@ class ( MoneyDistribution md
            , t)
 \end{code}
 
-The environment is no longer monad, and it is equivalent to say it is now fully deterministic. Instead the monadic
-interations with external world should use \textit{fcInsert} for adding new financial contracts to the environment.
+The environment is no longer monad, and it is equivalent to say it is
+now fully deterministic. Instead the monadic interations with external
+world should use \textit{fcInsert} for adding new financial contracts
+to the environment.
 
-A weaker condition, namely a poset (partially ordered) of financial contracts, may enable deterministic parallel
-executions of payments. Its model in Haskell will also not be provided for now.
+A weaker condition, namely a poset (partially ordered) of financial
+contracts, may enable deterministic parallel executions of
+payments. Its model in Haskell will also not be provided for now.

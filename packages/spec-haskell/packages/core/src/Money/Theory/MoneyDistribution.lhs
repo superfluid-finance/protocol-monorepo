@@ -1,3 +1,5 @@
+> -- -*- fill-column: 70; -*-
+
 \ignore{
 \begin{code}
 {-# LANGUAGE TypeFamilyDependencies #-}

@@ -7,8 +7,8 @@ cd "$(dirname "$0")"/..
 
 {
     cat $1
-} | awk '
-    # process haddock documentation
+} | sed "1 d" | # remove emacs mode-line
+    awk '
     /\\begin{haddock}/ { h = 1; next }
     /\\end{haddock}/   { h = 0; next }
     /\\begin{code}/    { if (h) next }
@@ -16,5 +16,5 @@ cd "$(dirname "$0")"/..
     /^{-/  { if (h) next }
     /^-}/  { if (h) next }
     /^--}/ { if (h) next }
-    { print $0 }
-' | cat
+    { print $0 }' | # process haddock documentation
+    cat # nop, just to rhyme.

@@ -10,7 +10,7 @@ import Data.Coerce ( Coercible )
 }
 
 \begin{code}
-class (Integral mv, Default mv) => MonetaryValue mv
+class (Integral v, Default v) => MonetaryValue v
 \end{code}
 
 \begin{code}
@@ -26,13 +26,14 @@ class Bearer brr
 \end{code}
 
 \begin{code}
-class MonetaryUnit mu
+class Eq u => MonetaryUnit u
 \end{code}
 
 \begin{code}
 class ( MonetaryValue (MD_MVAL md)
-      , Timestamp (MD_TS md), Coercible (MD_TS md) (MD_MVAL md)
-      , MonetaryUnit (MD_MU md), Eq (MD_MU md)
+      , Timestamp (MD_TS md)
+      , Coercible (MD_TS md) (MD_MVAL md)
+      , MonetaryUnit (MD_MU md)
       , Bearer (MD_BRR md)
       , SharedContext (MD_CTX md)
       , Monoid md, Monoid (MD_CTX md)

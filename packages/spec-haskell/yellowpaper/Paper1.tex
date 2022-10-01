@@ -74,7 +74,7 @@ defining formal specification for the payment system.
 
 One of the approaches is \textit{denotational semantics}, which is used in Chapter 3 of the paper to define the general
 payment primitives. Along with the denotational semantics, a restatement\footnote{It is a borrowed term from common law:
-"restatement of the law". In our case, the denotative mathematical "laws".} of it in \textit{Haskell programming
+``restatement of the law''. In our case, the denotative mathematical laws.} of it in \textit{Haskell programming
     language} (\cite{hudak1992report} \cite{jones2003haskell} \cite{marlow2010haskell}) is also included.
 
 In Chapter 4, a reference implementation of the general payment primitives and its payment system called
@@ -101,7 +101,7 @@ It can be solely defined by these components:
 a person who presents a note or bill for payment. - Collins English Dictionary},
 \item \textit{payment primitives} updates money distribution,
 \item \textit{payment execution environment} performs payment primitives,
-\item and \textit{forms of money medium} are the "user interfaces" of money for the bearers.
+\item and \textit{forms of money medium} are the ``user interfaces'' of money for the bearers.
 \end{itemize}
 
 \paragraph{Modernization}
@@ -113,7 +113,6 @@ For its modern upgrade, the system should also have these properties:
 \item Payment primitives can involve more than two parties, as opposed to be only for a sender and a receiver.
 \item Financial system should be compositional.
 \end{itemize}
-
 
 \subsection{Money Distribution}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -166,30 +165,30 @@ Here are some possible components of context, and how they work:
     referred to as \textit{ctx :: SharedContext}, they can be changed over time by the actors in the payment system.
 \end{itemize}
 
-For the purpose of this paper, the model of context is: $\gamma = (t :: Timestamp) \oplus (ctx :: SharedContext)$.
+For the purpose of this paper, the model of context is: $\gamma = t \times ctx$.
 
 \subsubsection{Haskell Definition Of Money Distribution}
 
 \input{MoneyDistribution.lhs.tex}
 
-
 \subsection{Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Payment primitives are functions that takes a money distribution, shared context, some payment instruction (args) and
-timestamp as inputs and incremental updates\footnote{Specifically being monoidal, that is in short a set that has
-associative binary operation and an identity element. See https://ncatlab.org/nlab/show/monoid. } of money
-distribution and shared context as outputs:
+A payment primitive is a data type with a generator that creates payment primitive data from the shared context $ctx$,
+primitive specific argument $args$ and timestamp, along with an update of the shared context. Here is an example of
+generator for payment primitive \textit{a}:
 
-\begin{minted}[escapeinside=||,mathescape=true]{haskell}
-    somePaymentPrimitive :: ( Timestamp t
-                            , MoneyDistribution md
-                            , SharedContext ctx
-                            , PaymentInstruction args
-                            , Monoid md, Monoid ctx
-                            )
-                         => md |$\times$| ctx -> args -> t -> md |$\times$| ctx
-\end{minted}
+\begin{equation}
+    genPrim_a :: ctx \rightarrow args_a \rightarrow t \rightarrow prim \times ctx
+\end{equation}
+
+Payment primitive data then can be used to create a delta update of money distribution\footnote{Specifically being
+monoidal, that is in short a set that has associative binary operation and an identity element. See
+https://ncatlab.org/nlab/show/monoid.}
+
+\begin{equation}
+    runPrim :: prim \rightarrow md
+\end{equation}
 
 Loosely speaking, it is considered a primitive, if it can not be broken down into other existing primitives which result
 in the same money distribution; additionally primitives should be the only constructs in a payment system that can
@@ -199,7 +198,6 @@ Updates are \textit{monoidal}, so that they can be incremental and their paralle
 
 The best known primitive is instant transfer of monetary value between one monetary unit to another. The introduction of
 context enables more primitives to be defined, and this will be discussed in later chapters.
-
 
 \subsection{Payment Execution Environment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -217,7 +215,6 @@ environments. Nonetheless, a simplified model and some potential extensions to i
 \subsubsection{Simplified Execution Environment Models}
 
 \input{PaymentExecutionEnvironment.lhs.tex}
-
 
 \subsection{Payment System Solvency}
 
@@ -242,7 +239,6 @@ property eliminates the need for the buffer.
 
 But it introduces a different type of systemic risk, that is denial-of-service, since the system cannot advance the
 system time until all next executable contracts are executed.
-
 
 \subsection{Money Mediums}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -272,7 +268,6 @@ centralized. Some also argue note-like model is better for complex concurrent an
 \subsubsection{Haskell Definition Of Money Mediums}
 
 \input{MoneyMedium.lhs.tex}
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Relevant Approaches}
@@ -365,7 +360,6 @@ primitives, independent of its implementation (which deals with performance, opt
 spend the next chapter exploring the denotational semantics for general payment primitives in modernized payment
 systems.
 
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{General Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -377,9 +371,9 @@ The extent of the generality of each payment system may vary. This paper introdu
 general and serves as a starting point for the readers to explore the space of modern payment system.
 
 The specifications will be formally defined using denotational semantics, along with a restatement in Haskell also
-applied as a constructive artifact friendly to computer environment\footnote{One may argue for a restatement in
-\textit{Agda} instead, for it has a richer dependently-type system for desirable constructive proofs. This matter will
-be dealt in the ``future investigations'' chapter of this paper.}.
+applied as a constructive artifact friendly to computer environment\footnote{One may argue for a restatement
+in \textit{Agda} instead, for it has a richer dependently-type system for desirable constructive proofs. This matter
+will be dealt in the ``future investigations'' chapter of this paper.}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Denotational Semantics}
@@ -396,16 +390,19 @@ Here is the convention for symbols used in the formulas:
 \item \textbf{t} is for \textit{time}.
 \end{itemize}
 
-\subsection{Money Distribution}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{$\mathcal{M}$ - Category of Money Distribution}
 
 Recall the definition of payment system previously, money distribution sits in the core of the system, and that is the
 syntactic category $\mathcal{M}$ we will be dealing with:
 
 \begin{itemize}
-\item The meaning of $[\![\mathcal{M}]\!]$ is money distribution.
-\item Semantic function $[\![.]\!] :: \mathcal{M} \rightarrow [\![\mathcal{M}]\!] $ include payment primitives.
+\item The meaning of the mathematical \textit{model} $[\![\mathcal{M}]\!]$ is money distribution.
+\item Semantic function $[\![.]\!] :: \mathcal{M} \rightarrow [\![\mathcal{M}]\!] $ evaluates the syntax of money
+      distribution, payment primitives, etc.
 \end{itemize}
+
+\subsection{Money Distribution}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \paragraph{Model}
 
@@ -450,11 +447,11 @@ With some substitutions, we get the desired \textit{monoid homomorphism} propert
 \subsection{Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-A payment primitive \textit{prim} is a semantic function that produces a monoidal money distribution, semantically
+A payment primitive \textit{prim} is a model that produces a monoidal money distribution, semantically
 representing an ``update'' to a money distribution:
 
 \begin{equation}
-    [\![prim\ args]\!] = [\![\Delta\ m]\!]
+    [\![prim]\!] = [\![\Delta\ m]\!]
 \end{equation}
 
 \paragraph{Law of Conservation of Value}
@@ -484,7 +481,7 @@ that such restricted money distribution satisfies the law of conservation of val
 \begin{equation}
     \begin{split}
         &\textit{law of conservation of value for payment primitives} \\
-        &\forall t \in \mathbb{R} ({\displaystyle \sum_{u \in U} [\![prim\ args]\!]\ u\ t = 0}) \\
+        &\forall t \in \mathbb{R} ({\displaystyle \sum_{u \in U} [\![prim]\!]\ u\ t = 0}) \\
     \end{split}
 \end{equation}
 
@@ -493,7 +490,7 @@ that such restricted money distribution satisfies the law of conservation of val
 \begin{equation}
     \begin{split}
         &\textit{money distribution consists of updates from payment primitives} \\
-        &[\![m]\!] = [\![prim_1\ args_1]\!] \oplus [\![prim_2\ args_2]\!] \oplus [\![prim_3\ args_3]\!] \oplus \dotsb
+        &[\![m]\!] = [\![prim_1]\!] \oplus [\![prim_2]\!] \oplus [\![prim_3]\!] \oplus \dotsb
     \end{split}
 \end{equation}
 
@@ -509,24 +506,25 @@ satisfying the law of conservation of value.
         &\forall t \in \mathbb{R} {\displaystyle \sum_{u \in U} [\![\emptyset]\!]\ u\ t = 0} \\
         \\
         &\textit{(monoid homomorphism)} \\
-        &{\displaystyle \sum_{u \in U} [\![prim_1\ args_1\oplus prim_2\ args_2]\!]\ u\ t} = \\
-        &\qquad {\displaystyle \sum_{u \in U} [\![prim_2\ args_2]\!]\ u\ t} \oplus
-          {\displaystyle \sum_{u \in U} [\![prim_2\ args_2]\!]\ u\ t} \\
+        &{\displaystyle \sum_{u \in U} [\![prim_1 \oplus prim_2]\!]\ u\ t} =
+          {\displaystyle \sum_{u \in U} [\![prim_2]\!]\ u\ t} \oplus
+          {\displaystyle \sum_{u \in U} [\![prim_2]\!]\ u\ t} \\
         \\
         &\textbf{We have:} \\
         &\forall t \in \mathbb{R}. \\
         &{\displaystyle \sum_{u \in U} [\![m]\!]\ u\ t} \\
         &\textit{(applying Axiom B)} \\
         = &{\displaystyle \sum_{u \in U}
-            ([\![prim_1\ args_1]\!] \oplus
-            [\![prim_2\ args_2]\!] \oplus
-            [\![prim_3\ args_3]\!]\oplus \dotsb)
-        }\ u\ t\\
+            ([\![prim_1]\!] \oplus
+            [\![prim_2]\!] \oplus
+            [\![prim_3]\!]\oplus \dotsb)
+        }\ u\ t
+        \\
         &\textit{(applying monoid homomorphism)} \\
-        = &{\displaystyle \sum_{u \in U} [\![prim_1\ args_1]\!]\ u\ t} \oplus
-        {\displaystyle \sum_{u \in U} [\![prim_2\ args_2]\!]\ u\ t} \oplus
-        {\displaystyle \sum_{u \in U} [\![prim_3\ args_3]\!]\ u\ t} \oplus \dotsb
-        )\\
+        = &{\displaystyle \sum_{u \in U} [\![prim_1]\!]\ u\ t} \oplus
+        {\displaystyle \sum_{u \in U} [\![prim_2]\!]\ u\ t} \oplus
+        {\displaystyle \sum_{u \in U} [\![prim_3]\!]\ u\ t} \oplus \dotsb
+        \\
         &\textit{(applying Axiom A)} \\
         =&\ 0
         \\
@@ -636,7 +634,6 @@ that monetary unit and 0 for all others.
 
 A special case of the indexed primitives is to fix the sender side to be an \textit{universal index}.
 
-
 \subsection{Network Abstraction}
 
 An even more powerful abstraction is to model participants involved a payment primitive a \textit{network} (we use
@@ -697,25 +694,17 @@ In the next chapter, we will look into a reference implementation where these op
 
 \section{Real Time Balance}
 
-\section{Sub Systems}
+\section{Agreement Framework}
 
-\section{Agreement Sub System}
+\section{Hierarchy of Agreements}
 
-\section{Type of Agreements}
-
-\subsection{Transferable Balance Agreement}
+\subsection{Instant Transferable Agreement}
 
 \subsection{Constant Flow Agreement}
 
 \subsection{Distribution Agreement}
 
 \subsection{Decaying Flow Agreement}
-
-\section{Solvency Sub Systems}
-
-\subsection{Buffer Based Solvency Systems}
-
-\section{Type Of Monetary Units}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Future Investigations}

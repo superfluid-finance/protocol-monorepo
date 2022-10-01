@@ -49,7 +49,7 @@ For technical document, references and tutorials, etc, refer to the
 
 ## Packages
 
-#### [`@superfluid-finance/ethereum-contracts`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts)
+#### [`@superfluid-finance/ethereum-contracts`](/packages/ethereum-contracts)
 
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">

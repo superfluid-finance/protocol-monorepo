@@ -67,7 +67,7 @@ EVM contracts implementation for the Superfluid Protocol.
 
 If you're interest in peeking under the hood, then check out the contracts package.
 
-#### [`@superfluid-finance/sdk-core`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core)
+#### [`@superfluid-finance/sdk-core`](/packages/sdk-core)
 
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/sdk-core" target="_blank">
@@ -83,7 +83,7 @@ If you're interest in peeking under the hood, then check out the contracts packa
 
 SDK-Core is an application framework for interacting with the Superfluid Protocol without Solidity knowledge.
 
-#### [`@superfluid-finance/sdk-redux`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-redux)
+#### [`@superfluid-finance/sdk-redux`](/packages/sdk-redux)
 
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/sdk-redux" target="_blank">
@@ -96,7 +96,7 @@ SDK-Core is an application framework for interacting with the Superfluid Protoco
 
 SDK-Redux is an application framework for building front-end applications that interact with the Superfluid Protocol.
 
-#### [`@superfluid-finance/hot-fuzz`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/hot-fuzz)
+#### [`@superfluid-finance/hot-fuzz`](/packages/hot-fuzz)
 
 <p>
   <a href="#" target="_blank">
@@ -107,7 +107,7 @@ SDK-Redux is an application framework for building front-end applications that i
 Hot-fuzz is a wrapper of [Echidna](https://github.com/crytic/echidna/) with additional helper for fuzzing
 your Superfluid smart contracts applications, including [Super Apps](https://docs.superfluid.finance/superfluid/protocol-developers/super-apps).
 
-#### [`@superfluid-finance/subgraph`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph)
+#### [`@superfluid-finance/subgraph`](/packages/subgraph)
 
 <p>
   <a href="#" target="_blank">
@@ -136,7 +136,7 @@ Javascript SDK for building with Superfluid Protocol.
 
 ## Bug Bounty
 
-Click [here](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts/bug-bounty.md) for more information regarding our Bug Bounty.
+Click [here](/packages/ethereum-contracts/bug-bounty.md) for more information regarding our Bug Bounty.
 
 ## Examples
 

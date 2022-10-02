@@ -3,7 +3,16 @@
 \ignore{
 \begin{code}
 {-# LANGUAGE TypeFamilyDependencies #-}
-module Money.Theory.MoneyDistribution where
+module Money.Theory.MoneyDistribution
+    -- $intro
+    --
+    ( MonetaryValue
+    , Timestamp
+    , SharedContext
+    , Bearer
+    , MonetaryUnit
+    , MoneyDistribution (..)
+    ) where
 
 import Data.Default (Default)
 import Data.Kind (Type)
@@ -11,16 +20,27 @@ import Data.Coerce ( Coercible )
 \end{code}
 }
 
+\begin{haddock}
+\begin{code}
+{- $intro
+
+As the inner most layer of a modern payment system, money distribution
+models how monetary value is distributed amongst bearers.
+
+-}
+\end{code}
+\end{haddock}
+
 \begin{code}
 class (Integral v, Default v) => MonetaryValue v
 \end{code}
 
 \begin{code}
-class (Default t, Integral t) => Timestamp t
+class (Integral t, Default t) => Timestamp t
 \end{code}
 
 \begin{code}
-class SharedContext ctx
+class Monoid ctx => SharedContext ctx
 \end{code}
 
 \begin{code}
@@ -34,11 +54,12 @@ class Eq u => MonetaryUnit u
 \begin{code}
 class ( MonetaryValue (MD_MVAL md)
       , Timestamp (MD_TS md)
+      -- t & mval should have the same representational type
       , Coercible (MD_TS md) (MD_MVAL md)
       , MonetaryUnit (MD_MU md)
       , Bearer (MD_BRR md)
       , SharedContext (MD_CTX md)
-      , Monoid md, Monoid (MD_CTX md)
+      , Monoid md
       ) => MoneyDistribution md where
     monetaryUnits :: mu ~ MD_MU md
                   => md -> [mu]
@@ -46,8 +67,9 @@ class ( MonetaryValue (MD_MVAL md)
     monetaryValue :: ( mv  ~ MD_MVAL md
                      , mu  ~ MD_MU md
                      , ctx ~ MD_CTX md
+                     , t   ~ MD_TS md
                      )
-                  => md -> (mu, ctx) -> mv
+                  => md -> mu -> ctx -> t -> mv
 
     bearer :: ( mu  ~ MD_MU md
               , brr ~ MD_BRR md

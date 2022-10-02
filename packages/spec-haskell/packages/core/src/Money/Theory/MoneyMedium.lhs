@@ -26,7 +26,7 @@ and money notes:
 
 -}
 \end{code}
-\end{haddock}m
+\end{haddock}
 
 \begin{code}
 type Address = String

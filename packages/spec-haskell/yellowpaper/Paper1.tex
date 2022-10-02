@@ -188,6 +188,36 @@ time by the actors in the payment system.
 
 For the purpose of this paper, the model of context is: $\gamma = t \times ctx$.
 
+\subsubsection{Haskell Code Conventions Used}
+
+Before first time in this paper listing specification in Haskell, here are some highlights of
+conventions in the style of the code used.
+
+The specification is written in Haskell with \textit{GHC2021 language set}\footnote{The complete set
+of the extensions is enumerated in
+\url{https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/control.html\#extension-GHC2021}.}.
+
+\paragraph{Indexed Types and Type Equality}
+
+In order to make the specification free of specific choices of core data types in
+implementation, \textit{FunctionalDependencies}, \textit{TypeFamilies}
+and \textit{TypeFamilyDependencies} are extensively used. And in order to make the code less
+cluttered, type quality operator $(\sim)$
+used. Here is an example:
+
+\begin{code}
+    type (~) :: forall k. k -> k -> Constraint
+
+    monetaryValue :: ( mv  ~ MD_MVAL md
+                     , mu  ~ MD_MU md
+                     , ctx ~ MD_CTX md
+                     )
+                  => md -> (mu, ctx) -> mv
+\end{code}
+
+The otherwise tedious type family synonyms ``\mintinline{haskell}{MD_XYZ md}'' are rewritten with $mv$
+$mu$ $ctx$ with the help of $(\sim)$ operator.
+
 \subsubsection{Haskell Definition Of Money Distribution}
 
 \input{MoneyDistribution.lhs.tex}

@@ -36,8 +36,8 @@ class ( SuperfluidCoreTypes sft
     --
     --   1. An updated ~ac'~.
     --
-    --   2. A functorful delta of agreement monetary unit data ~mudsΔ~, which then can be monoid-appended to existing
-    --      ~mudΔ~.  This is what can make an agreement scalable.
+    --   2. A functorful delta of agreement monetary unit data ~mudsΔ~, which then can be appended to existing ~mudΔ~.
+    --      This is what can make an agreement scalable.
     applyAgreementOperation
         :: forall t ao aoo.
            -- indexed type aliases

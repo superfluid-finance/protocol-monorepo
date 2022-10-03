@@ -779,14 +779,14 @@ specifications of (a) denotational semantics of payment primitives (b) compositi
 contracts for the payment primitives (c) token \& note model of money mediums, and their execution
 environment.
 
-This paper covers the implementation of (a).
+This paper covers the overview of the implementation of (a).
 
 \section{Real Time Balance}
 
 For the purpose of compositional financial contracts, it is useful to separate monetary values that
-bearers can use immediately from ones that are set aside for other financial purpose. The concept
-of \textit{real time balance} is thus created. \textit{Real time balance} is a
-functorful\footnote{Bartosz Milewski has an excellent series on these
+bearers can use immediately (called \textit{untappedValue} in code) from ones that are set aside for
+other financial purpose. The concept of \textit{real time balance} is thus created. \textit{Real
+time balance} is a functorful\footnote{Bartosz Milewski has an excellent series on these
 topics: \url{https://bartoszmilewski.com/2015/01/20/functors/}, and he uses the term ``functorful''
 to convey the idea of generalized container.} of monetary values. It can be converted to a single
 monetary value.
@@ -836,7 +836,7 @@ The protocol introduces \textit{agreement framework} to address the optimization
 provide a consistent software interface called ``agreement'' with agreement laws for reasoning about
 the correctness.
 
-\paragraph{Monetary Unit Data}
+\paragraph{Monetary Unit Data (MUD)}
 
 Recall that all monetary units have a monetary value function: $$ \nu :: u \rightarrow \mathbb{N}$$.
 
@@ -887,8 +887,8 @@ class ( SuperfluidCoreTypes sft
     --   1. An updated ~ac'~.
     --
     --   2. A functorful delta of agreement monetary unit data ~mudsΔ~, which
-    --      then can be monoid-appended to existing
-    --      ~mudΔ~.  This is what can make an agreement scalable.
+    --      then can be appended to existing ~mudΔ~.  This is what can make an
+    --      agreement scalable.
     applyAgreementOperation
         :: forall t ao aoo.
            -- indexed type aliases
@@ -899,18 +899,18 @@ class ( SuperfluidCoreTypes sft
         => ac -> ao -> t -> (ac, aoo)
     data family AgreementOperation ac :: Type
     data family AgreementOperationOutputF ac :: Type -> Type
-    type family AgreementOperationOutput ac = (mmuds :: Type) | mmuds -> ac
+    type family AgreementOperationOutput ac = (smuds :: Type) | smuds -> ac
 \end{code}
 
 The $\omega$ function ($applyAgreementOperation$) is the $genPrim$ in the agreement framework. It
 takes in a agreement contract, an operation onto it and the current time; then it spits out an
-update of the agreement contract and a functorful of new monoidal monetary unit data.
+update of the agreement contract and a functorful of new delta of monetary unit data.
 
 Here is a visualization of ``machinery'' of the $\omega$ function:
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\textwidth]{../assets/agreement-contract-omega-function.png}
+    \includegraphics[width=1\textwidth]{../assets/agreement-contract-omega-function.png}
     \caption{Agreement Contract $\omega$ Function}
     \label{fig:ac-omega}
 \end{figure}
@@ -919,23 +919,195 @@ It also illustrates that it is expected the process should respect the \textit{l
 of value} mandated by the \textit{restricted money distribution} model.
 
 It is also important to note that $AgreementContract$ itself is also a $MonetaryUnitDataClass$, but
-it is not a monoid, hence it is used to replace the previous agreement contract data. This has
+it is not a semigroup, hence it is used to replace the previous agreement contract data. This has
 optimization implications, as in that if agreement contracts do not produce zero balance then they
 must be included in the $\nu$ function, that can make the $\nu$ function $O(N)$ to the number of
 agreement contracts a monetary unit is associated with.
 
-It may also have been self evident that agreement contract is a analogy to the fact that it encodes
+It may have been self evident that agreement contract is a analogy to the fact that it encodes
 ``ongoing relationships'' like legal contracts do between bearers.
+
+\subsection{Lens Data Accessors}
+
+In order to support \textit{index abstraction} in the denotational payment primitives, Monetary unit
+data are created with \textit{lens data accessors}\footfullcite{clarke2020profunctor}:
+
+\begin{code}
+-- representation of lenses
+data Lens a b s t = Lens { view :: s -> a, update :: (b, s) -> t }
+-- the pro-functor version of it
+type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
+\end{code}
+
+The pro-functor version of might seem very obscure at first, but its data representation is rather
+self-explanatory: a lens is simply a pair of getter ($view$) and setter ($update$) encoded in the
+data.
+
+With the help of Lens, then we can create the payment primitives independent of the choices between
+1-to-1, 1-to-N, etc. Here are how they are defined for each class of payment primitives:
+
+\paragraph{Instant Value MUD}
+
+This is for agreements where value is instantly transferred.
+
+\begin{code}
+class ( Default amuLs
+      , SuperfluidSystemTypes sft
+      ) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
+    untappedValue :: Lens' amuLs (UntappedValue (SFT_MVAL sft))
+
+type MonetaryUnitData :: Type -> Type -> Type
+newtype MonetaryUnitData amuLs sft =
+    MkMonetaryUnitData { getMonetaryUnitLenses :: amuLs }
+    deriving (Default)
+
+instance MonetaryUnitLenses amuLs sft
+    => Semigroup (MonetaryUnitData amuLs sft) where
+    MkMonetaryUnitData a <> MkMonetaryUnitData b =
+        let c = a & over untappedValue (+ b^.untappedValue)
+        in MkMonetaryUnitData c
+
+instance MonetaryUnitLenses amuLs sft
+    => MonetaryUnitDataClass (MonetaryUnitData amuLs sft) sft where
+    balanceProvided (MkMonetaryUnitData a) _ =
+        typedValuesToRTB [mkAnyTypedValue $ a^.untappedValue]
+\end{code}
+
+Note that (a) $^.$ is the view function (getter) for Lens types. (b) semigroup operator $(<>)$ defines
+how two monetary unit data can be combined into one.
+
+\paragraph{Constant Flow Agreement (CFA) MUD}
+
+A more interesting case is where monetary value is changing continuously over time at a constant
+rate:
+
+\begin{code}
+class ( Default amuLs
+      , SuperfluidSystemTypes sft
+      ) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
+    settledAt    :: Lens' amuLs (SFT_TS sft)
+    settledValue :: Lens' amuLs (UntappedValue (SFT_MVAL sft))
+    netFlowRate  :: Lens' amuLs (SFT_MVAL sft)
+
+type MonetaryUnitData :: Type -> Type -> Type
+newtype MonetaryUnitData amuLs sft =
+    MkMonetaryUnitData { getMonetaryUnitLenses :: amuLs }
+    deriving (Default)
+
+instance MonetaryUnitLenses amuLs sft
+    => Semigroup (MonetaryUnitData amuLs sft) where
+    MkMonetaryUnitData a <> MkMonetaryUnitData b =
+        let t  = a^.settledAt
+            t' = b^.settledAt
+            settledΔ = MkUntappedValue $ a^.netFlowRate * fromIntegral (t' - t)
+            c = a & set  settledAt    t'
+                  & over netFlowRate  (+ b^.netFlowRate)
+                  & over settledValue (+ (b^.settledValue + settledΔ))
+        in MkMonetaryUnitData c
+
+instance MonetaryUnitLenses amuLs sft
+    => MonetaryUnitDataClass (MonetaryUnitData amuLs sft) sft where
+    balanceProvided (MkMonetaryUnitData a) t =
+        let b = uval_s + coerce (fr * fromIntegral (t - t_s))
+        in  typedValuesToRTB [ mkAnyTypedValue b ]
+        where t_s    = a^.settledAt
+              uval_s = a^.settledValue
+              fr     = a^.netFlowRate
+\end{code}
+
+Note the implementation of semigroup binary operator, this is where the optimization occurs: to use
+$netFlowRate$ to fold monetary unit data into a single value.
+
+\paragraph{Decaying Flow Agreement (CFA) MUD}
+
+\begin{code}
+class ( Default amuLs
+      , SuperfluidSystemTypes sft
+      ) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
+    decayingFactor  :: Lens' amuLs (SFT_FLOAT sft)
+    settledAt       :: Lens' amuLs (SFT_TS sft)
+    αVal            :: Lens' amuLs (SFT_FLOAT sft)
+    εVal            :: Lens' amuLs (SFT_FLOAT sft)
+
+type MonetaryUnitData :: Type -> Type -> Type
+newtype MonetaryUnitData amuLs sft =
+    MkMonetaryUnitData { getMonetaryUnitLenses :: amuLs }
+    deriving (Default)
+
+instance MonetaryUnitLenses amuLs sft
+    => Semigroup (MonetaryUnitData amuLs sft) where
+    MkMonetaryUnitData a <> MkMonetaryUnitData b =
+        let c = a & set  settledAt     (b^.settledAt)
+                  & over αVal          (\α -> α * exp (-λ * t_Δ) - ε')
+                  & over εVal          (+ ε')
+        in MkMonetaryUnitData c
+        where ε'  = b^.εVal
+              λ   = b^.decayingFactor
+              t_Δ = fromIntegral (b^.settledAt - a^.settledAt)
+
+instance MonetaryUnitLenses amuLs sft
+    => MonetaryUnitDataClass (MonetaryUnitData amuLs sft) sft where
+    balanceProvided (MkMonetaryUnitData a) t =
+        let b = ceiling $ α * exp (-λ * t_Δ) + ε
+        in  typedValuesToRTB [ (mkAnyTypedValue . MkUntappedValue) b ]
+        where t_s   = a^.settledAt
+              α     = a^.αVal
+              ε     = a^.εVal
+              λ     = a^.decayingFactor
+              t_Δ   = fromIntegral (t - t_s)
+\end{code}
+
+\paragraph{Universal Index (UIDX)}
+
+An universal index then can be implemented trivially by representing lenses using the record syntax
+directly. For example, for constant flow monetary unit data:
+
+\begin{code}
+data MonetaryUnitLenses sft = MonetaryUnitLenses
+    { settled_at    :: SFT_TS sft
+    , settled_value :: UntappedValue (SFT_MVAL sft)
+    , net_flow_rate :: SFT_MVAL sft
+    } deriving (Generic)
+
+deriving instance SuperfluidSystemTypes sft
+    => Default (MonetaryUnitLenses sft)
+
+-- | Monetary unit lenses for the universal index.
+instance SuperfluidSystemTypes sft
+    => CFMUD.MonetaryUnitLenses (MonetaryUnitLenses sft) sft where
+    settledAt          = $(field 'settled_at)
+    settledValue       = $(field 'settled_value)
+    netFlowRate        = $(field 'net_flow_rate)
+\end{code}
+
+The $field$ is a template Haskell function to generate lens from record fields.
+
+\paragraph{Proportional Distribution Index (PDIDX)}
+
+Proportional distribution index describes on-going \textit{subscription} agreement contracts between
+one \textit{publisher} and many \textit{subscribers} to the publisher's \textit{distribution}.
+
+Its instant value variance is called \textit{``Instant Distribution Agreement (IDA)''}.
+
+Its constant flow variance is called \textit{``Constant Flow Distribution Agreement (CFDA)''}.
 
 \subsection{Hierarchy of Agreements}
 
-\subsection{Instant Transferable Agreement}
+To finish, here is the illustration of data structures for the denotational payment primitives
+implemented with agreement framework:
 
-\subsection{Constant Flow Agreement}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{../assets/agreement-data-structures.png}
+    \caption{Agreement Data Structures}
+    \label{fig:ac-omega}
+\end{figure}
 
-\subsection{Distribution Agreements}
+Note that with \textit{Root MUD}, any monetary unit can traverse all its MUDs; and with \textit{Root
+Contract} relations between monetary units can also be searched by a simple algorithm.
 
-\subsection{Decaying Flow Agreement}
+This concludes the overview of the Superfluid protocol implementation. For more details, one should
+refer to the code repository mentioned before.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Future Investigations}
@@ -946,6 +1118,12 @@ It may also have been self evident that agreement contract is a analogy to the f
 \section{Combinator Library for Financial Contracts}
 
 \section{Payment in General Accounting Domains}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Acknowledgments}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage

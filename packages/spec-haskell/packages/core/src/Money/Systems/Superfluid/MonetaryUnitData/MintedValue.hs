@@ -32,7 +32,7 @@ newtype MonetaryUnitData amuLs sft = MkMonetaryUnitData { getMonetaryUnitLenses 
     deriving (Default)
 
 instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) where
-    (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
+    MkMonetaryUnitData a <> MkMonetaryUnitData b =
         let c = a & over untappedValue (+ b^.untappedValue)
                   & over mintedValue   (+ b^.mintedValue)
         in MkMonetaryUnitData c

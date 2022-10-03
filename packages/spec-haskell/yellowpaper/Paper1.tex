@@ -824,7 +824,110 @@ model of money distribution needs.
 
 \section{Agreement Framework}
 
-\section{Hierarchy of Agreements}
+The main tasks of the implementer of \textit{denotational payment primitives} are:
+
+\begin{itemize}
+    \item preserve the program correctness (and if possible, with proof of equivalence),
+    \item optimize for efficient computation,
+    \item and provide a software interface for using it.
+\end{itemize}
+
+The protocol introduces \textit{agreement framework} to address the optimization needs and to
+provide a consistent software interface called ``agreement'' with agreement laws for reasoning about
+the correctness.
+
+\paragraph{Monetary Unit Data}
+
+Recall that all monetary units have a monetary value function: $$ \nu :: u \rightarrow \mathbb{N}$$.
+
+Agreement framework defines a concept called \textit{monetary unit data}, and each monetary unit has
+a set of them:
+
+\begin{code}
+class ( SuperfluidCoreTypes sft
+      ) => MonetaryUnitDataClass mud sft | mud -> sft where
+    -- | π function - balance provided (hear: π) by the monetary unit data.
+    balanceProvided
+        :: forall t rtb.
+           -- indexed type aliases
+           ( t ~ SFT_TS sft
+           , rtb ~ SFT_RTB sft
+           )
+        => mud -> t -> rtb
+\end{code}
+
+The $\pi$ function produces \textit{real time balance} at a particular time for \textit{monetary
+unit data}. How a monetary unit produces monetary value from its set of monetary unit data is
+described in the ``hierarchy of agreements'' section.
+
+\paragraph{Agreement Contract}
+
+Recall how a \textit{payment primitive} generator should look like:
+
+\begin{equation}
+    genPrim_a :: ctx \rightarrow args_a \rightarrow t \rightarrow prim \times ctx
+\end{equation}
+
+Shared context $ctx$ is clearly the only data can be used by optimization, since it is updated each
+time a primitive is generated. In the agreement framework, a data type \textit{agreement contract}
+in the shared context is to fulfill this role:
+
+\begin{code}
+-- | Agreement contract type class.
+class ( SuperfluidCoreTypes sft
+      , Default ac
+      , MonetaryUnitDataClass ac sft
+      , Default (AgreementOperationOutput ac)
+      , Traversable (AgreementOperationOutputF ac) -- <= Foldable Functor
+      ) => AgreementContract ac sft | ac -> sft where
+
+    -- | ω function - apply agreement operation ~ao~ (hear: ω) to the agreement
+    --                operation data ~ac~ to get a tuple of:
+    --
+    --   1. An updated ~ac'~.
+    --
+    --   2. A functorful delta of agreement monetary unit data ~mudsΔ~, which
+    --      then can be monoid-appended to existing
+    --      ~mudΔ~.  This is what can make an agreement scalable.
+    applyAgreementOperation
+        :: forall t ao aoo.
+           -- indexed type aliases
+           ( t ~ SFT_TS sft
+           , ao ~ AgreementOperation ac
+           , aoo ~ AgreementOperationOutput ac
+           )
+        => ac -> ao -> t -> (ac, aoo)
+    data family AgreementOperation ac :: Type
+    data family AgreementOperationOutputF ac :: Type -> Type
+    type family AgreementOperationOutput ac = (mmuds :: Type) | mmuds -> ac
+\end{code}
+
+The $\omega$ function ($applyAgreementOperation$) is the $genPrim$ in the agreement framework. It
+takes in a agreement contract, an operation onto it and the current time; then it spits out an
+update of the agreement contract and a functorful of new monoidal monetary unit data.
+
+Here is a visualization of ``machinery'' of the $\omega$ function:
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.9\textwidth]{../assets/agreement-contract-omega-function.png}
+    \caption{Agreement Contract $\omega$ Function}
+    \label{fig:ac-omega}
+\end{figure}
+
+It also illustrates that it is expected the process should respect the \textit{law of conservation
+of value} mandated by the \textit{restricted money distribution} model.
+
+It is also important to note that $AgreementContract$ itself is also a $MonetaryUnitDataClass$, but
+it is not a monoid, hence it is used to replace the previous agreement contract data. This has
+optimization implications, as in that if agreement contracts do not produce zero balance then they
+must be included in the $\nu$ function, that can make the $\nu$ function $O(N)$ to the number of
+agreement contracts a monetary unit is associated with.
+
+It may also have been self evident that agreement contract is a analogy to the fact that it encodes
+``ongoing relationships'' like legal contracts do between bearers.
+
+\subsection{Hierarchy of Agreements}
 
 \subsection{Instant Transferable Agreement}
 

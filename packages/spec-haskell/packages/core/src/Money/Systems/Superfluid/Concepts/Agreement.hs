@@ -39,14 +39,13 @@ class ( SuperfluidCoreTypes sft
     --   2. A functorful delta of agreement monetary unit data ~mudsΔ~, which then can be monoid-appended to existing
     --      ~mudΔ~.  This is what can make an agreement scalable.
     applyAgreementOperation
-        :: forall t ao aoo acs.
+        :: forall t ao aoo.
            -- indexed type aliases
            ( t ~ SFT_TS sft
            , ao ~ AgreementOperation ac
            , aoo ~ AgreementOperationOutput ac
-           , acs ~ (ac, aoo)
            )
-        => ac -> ao -> t -> acs
+        => ac -> ao -> t -> (ac, aoo)
 
     -- | φ' function - functorize the existential semigroup monetary unit data of agreement operation output
     functorizeAgreementOperationOutput
@@ -73,7 +72,7 @@ class ( SuperfluidCoreTypes sft
     data family AgreementOperationOutputF ac :: Type -> Type
 
     -- Note: since ~ac~ is injected, hence this can be associated type alias.
-    type family AgreementOperationOutput ac = (muds :: Type) | muds -> ac
+    type family AgreementOperationOutput ac = (smuds :: Type) | smuds -> ac
 
 -- * Null Agreement
 

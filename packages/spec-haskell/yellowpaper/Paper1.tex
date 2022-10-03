@@ -20,31 +20,22 @@
 \maketitle
 
 \begin{abstract}
-    \begin{center}
-        (Some distant lyrics as the placeholder for the actual abstract)
+Payment systems in information age are still largely modeled after their analog predecessors. While
+some electronic money payment systems do utilize computing technology and Internet, this paper
+presents a case that a true modernization can still be done by (a) making payments happening
+continuously over time (b) involving more than two parties in a payment if necessary (c) having
+compositional financial contracts.
 
-        Money, money, money
+This paper first explores the foundation of modern payment system, which consists of a money
+distribution model, payment primitives, payment execution systems of financial contracts and
+different forms of money mediums. Then the paper uses \textit{denotational semantics} to formally
+define payment primitives for modern payment system. Lastly, this paper also includes an overview
+of \textit{Superfluid protocol}, a reference implementation of the payment primitives and a its
+payment system.
 
-        Must be funny
+This paper also includes literate Haskell code that compiles as the constructive artifact for the
+formal specifications.
 
-        In the rich man's world
-
-        Money, money, money
-
-        Always sunny
-
-        In the rich man's world
-
-        \
-
-        Ah, all the things I could do
-
-        If I had a little money
-
-        It's a rich man's world
-
-        It's a rich man's world
-    \end{center}
 \end{abstract}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -458,7 +449,7 @@ Here is the convention for symbols used in the formulas:
 \item \textbf{t} is for \textit{time}.
 \end{itemize}
 
-\subsection{$\mathcal{M}$ - Category of Money Distribution}
+\subsection{$\mathcal{M}$ - Syntax for Money Distribution}
 
 Recall the definition of payment system previously, money distribution sits in the core of the
 system, and that is the syntactic category $\mathcal{M}$ we will be dealing with:

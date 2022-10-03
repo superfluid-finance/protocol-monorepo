@@ -80,8 +80,8 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
             it("#1.1.1 Should revert if non-CFA address tries to call the create hook", async () => {
                 await expectCustomError(
                     GoodCFAHookMock.onCreate(
-                        EMPTY_MOCK_FLOW_PARAMS,
-                        superToken.address
+                        superToken.address,
+                        EMPTY_MOCK_FLOW_PARAMS
                     ),
                     GoodCFAHookMock,
                     "NOT_CFA"
@@ -91,8 +91,8 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
             it("#1.1.2 Should revert if non-CFA address tries to call the update hook", async () => {
                 await expectCustomError(
                     GoodCFAHookMock.onUpdate(
-                        EMPTY_MOCK_FLOW_PARAMS,
                         superToken.address,
+                        EMPTY_MOCK_FLOW_PARAMS,
                         toBN(0)
                     ),
                     GoodCFAHookMock,
@@ -103,8 +103,8 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
             it("#1.1.3 Should revert if non-CFA address tries to call the delete hook", async () => {
                 await expectCustomError(
                     GoodCFAHookMock.onDelete(
-                        EMPTY_MOCK_FLOW_PARAMS,
                         superToken.address,
+                        EMPTY_MOCK_FLOW_PARAMS,
                         toBN(0)
                     ),
                     GoodCFAHookMock,

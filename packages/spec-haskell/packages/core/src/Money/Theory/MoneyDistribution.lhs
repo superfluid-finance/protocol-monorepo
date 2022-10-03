@@ -32,7 +32,7 @@ models how monetary value is distributed amongst bearers.
 \end{haddock}
 
 \begin{code}
-class (Integral v, Default v) => MonetaryValue v
+class (Integral ν, Default ν) => MonetaryValue ν
 \end{code}
 
 \begin{code}
@@ -52,6 +52,7 @@ class Eq u => MonetaryUnit u
 \end{code}
 
 \begin{code}
+-- | Money distribution functions and indexed types.
 class ( MonetaryValue (MD_MVAL md)
       , Timestamp (MD_TS md)
       -- t & mval should have the same representational type
@@ -61,19 +62,28 @@ class ( MonetaryValue (MD_MVAL md)
       , SharedContext (MD_CTX md)
       , Monoid md
       ) => MoneyDistribution md where
+    -- | Set of bearers
+    bearers :: ( brr ~ MD_BRR md
+               )
+            => md -> [brr]
+
+    -- | Set of monetary units
     monetaryUnits :: mu ~ MD_MU md
                   => md -> [mu]
 
-    monetaryValue :: ( mv  ~ MD_MVAL md
+    -- | Money distribution β function
+    bearerOf :: ( mu  ~ MD_MU md
+              , brr ~ MD_BRR md
+              )
+             => md -> mu -> brr
+
+    -- | Money distribution ν function
+    monetaryValueOf :: ( mv  ~ MD_MVAL md
                      , mu  ~ MD_MU md
                      , ctx ~ MD_CTX md
                      , t   ~ MD_TS md
                      )
-                  => md -> mu -> ctx -> t -> mv
-
-    bearer :: ( mu  ~ MD_MU md
-              , brr ~ MD_BRR md
-              ) => md -> mu -> brr
+                    => md -> mu -> ctx -> t -> mv
 
     type family MD_MVAL md = (mval :: Type) | mval -> md
     type family MD_TS   md = (t    :: Type) | t    -> md

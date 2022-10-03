@@ -32,7 +32,6 @@ class ( MonetaryValue v
       , Monoid (rtbF v)
       , Eq (rtbF v)
       ) => RealTimeBalance rtbF v | rtbF -> v where
-
     -- | Convert a single monetary value to a RTB value.
     valueToRTB :: Proxy rtbF -> v -> rtbF v
 

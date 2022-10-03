@@ -1,7 +1,8 @@
 %%% -- -*- fill-column: 100; -*-
 
-%% Include a preamble at choice during processing.
+%% Include the preamble at choice during processing.
 \input{preamble.tex}
+
 \begin{document}
 
 \title{Denotational Semantics of General Payment Primitives, and Its Payment System}
@@ -82,8 +83,7 @@ the denotative mathematical laws.} of it in \textit{Haskell programming language
 (\cite{hudak1992report} \cite{jones2003haskell} \cite{marlow2010haskell}) is also included.
 
 In Chapter 4, a reference implementation of the general payment primitives and its payment system
-called
-\textit{Superfluid Money} is introduced.
+called \textit{Superfluid Protocol} is introduced.
 
 In Chapter 5, some possible further investigations are included for future study purpose.
 
@@ -764,10 +764,63 @@ applied.
 \input{PaymentPrimitives.lhs.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Superfluid Money - A Reference Implementation}
+\chapter{Superfluid Protocol - A Reference Implementation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+Superfluid protocol (``the protocol'')\footnote{The code base is available
+at \url{https://github.com/superfluid-finance/protocol-monorepo/}.} is the first implementation of
+the \textit{denotational semantics of payment primitives} (though before it was formalized and named
+so) on \textit{Ethereum Virtual Machine} \cite{wood2014ethereum}. The first version of the protocol
+is written in Solidity programming language \footnote{\url{https://soliditylang.org/}}.
+
+To better serve as a reference implementation of the \textit{modern payment system} formalized by
+this paper and its sequels, an implementation in Haskell was created. It aims to implement the full
+specifications of (a) denotational semantics of payment primitives (b) compositional financial
+contracts for the payment primitives (c) token \& note model of money mediums, and their execution
+environment.
+
+This paper covers the implementation of (a).
+
 \section{Real Time Balance}
+
+For the purpose of compositional financial contracts, it is useful to separate monetary values that
+bearers can use immediately from ones that are set aside for other financial purpose. The concept
+of \textit{real time balance} is thus created. \textit{Real time balance} is a
+functorful\footnote{Bartosz Milewski has an excellent series on these
+topics: \url{https://bartoszmilewski.com/2015/01/20/functors/}, and he uses the term ``functorful''
+to convey the idea of generalized container.} of monetary values. It can be converted to a single
+monetary value.
+
+Although since this is not the subject of this paper, it suffices to just show its definition
+instead:
+
+\begin{code}
+-- Note that we omit the definition of AnyTypedValue here,
+-- since it is not relevant to the idea here.
+
+class ( MonetaryValue v
+      , Foldable rtbF
+      , Monoid (rtbF v)
+      , Eq (rtbF v)
+      ) => RealTimeBalance rtbF v | rtbF -> v where
+
+    -- | Convert a single monetary value to a RTB value.
+    valueToRTB :: Proxy rtbF -> v -> rtbF v
+
+    -- | Net monetary value of a RTB value.
+    netValueOfRTB :: rtbF v -> v
+    netValueOfRTB = foldr (+) def
+
+    -- | Convert typed values to a RTB value.
+    typedValuesToRTB :: [AnyTypedValue v] -> rtbF v
+
+    -- | Get typed values from a RTB value.
+    typedValuesFromRTB :: rtbF v -> [AnyTypedValue v]
+\end{code}
+
+In the paper, we refer to the real time balance values as $rtb$, and its function $netValueOfRTB$ is
+what matters the most here, it converts any $rtb$ to the \textit{monetary value} which is what the
+model of money distribution needs.
 
 \section{Agreement Framework}
 

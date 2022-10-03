@@ -68,8 +68,8 @@ contract GoodCFAHookMock is BaseCFAHookMock {
     );
 
     function onCreate(
-        IConstantFlowAgreementHook.CFAHookParams memory newFlowData,
-        ISuperfluidToken token
+        ISuperfluidToken token,
+        IConstantFlowAgreementHook.CFAHookParams memory newFlowData
     ) external onlyCFA returns (bool) {
         emit OnCreateEvent(
             token,
@@ -83,8 +83,8 @@ contract GoodCFAHookMock is BaseCFAHookMock {
     }
 
     function onUpdate(
-        IConstantFlowAgreementHook.CFAHookParams memory newFlowData,
         ISuperfluidToken token,
+        IConstantFlowAgreementHook.CFAHookParams memory newFlowData,
         int96 oldFlowRate
     ) external onlyCFA returns (bool) {
         emit OnUpdateEvent(
@@ -100,8 +100,8 @@ contract GoodCFAHookMock is BaseCFAHookMock {
     }
 
     function onDelete(
-        IConstantFlowAgreementHook.CFAHookParams memory newFlowData,
         ISuperfluidToken token,
+        IConstantFlowAgreementHook.CFAHookParams memory newFlowData,
         int96 oldFlowRate
     ) external onlyCFA returns (bool) {
         emit OnDeleteEvent(
@@ -124,23 +124,23 @@ contract BadCFAHookMock is BaseCFAHookMock {
     error BAD_HOOK();
 
     function onCreate(
-        IConstantFlowAgreementHook.CFAHookParams memory, // newFlowData,
-        ISuperfluidToken // token
+        ISuperfluidToken, // token
+        IConstantFlowAgreementHook.CFAHookParams memory // newFlowData,
     ) external view onlyCFA returns (bool) {
         revert BAD_HOOK();
     }
 
     function onUpdate(
-        IConstantFlowAgreementHook.CFAHookParams memory, // newFlowData,
         ISuperfluidToken, // token,
+        IConstantFlowAgreementHook.CFAHookParams memory, // newFlowData,
         int96 // oldFlowRate
     ) external view onlyCFA returns (bool) {
         revert BAD_HOOK();
     }
 
     function onDelete(
-        IConstantFlowAgreementHook.CFAHookParams memory, // newFlowData,
         ISuperfluidToken, // token,
+        IConstantFlowAgreementHook.CFAHookParams memory, // newFlowData,
         int96 // oldFlowRate
     ) external view onlyCFA returns (bool) {
         revert BAD_HOOK();

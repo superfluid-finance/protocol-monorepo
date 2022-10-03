@@ -458,13 +458,13 @@ contract ConstantFlowAgreementV1 is
         // This should be safe as we don't have any behavior/state changes in the catch block.
         if (address(constantFlowAgreementHook) != address(0))  {
             try constantFlowAgreementHook.onCreate(
+                flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
                     sender: flowParams.sender,
                     receiver: flowParams.receiver,
                     flowOperator: flowParams.flowOperator,
                     flowRate: flowParams.flowRate
-                }),
-                flowVars.token
+                })
             )
             // solhint-disable-next-line no-empty-blocks
             {} catch {}
@@ -502,13 +502,13 @@ contract ConstantFlowAgreementV1 is
         if (address(constantFlowAgreementHook) != address(0))  {
             // solhint-disable-next-line no-empty-blocks
             try constantFlowAgreementHook.onUpdate(
+                flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
                     sender: flowParams.sender,
                     receiver: flowParams.receiver,
                     flowOperator: flowParams.flowOperator,
                     flowRate: flowParams.flowRate
                 }),
-                flowVars.token,
                 oldFlowData.flowRate
             // solhint-disable-next-line no-empty-blocks
             ) {} catch {}
@@ -627,13 +627,13 @@ contract ConstantFlowAgreementV1 is
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {
             try constantFlowAgreementHook.onDelete(
+                flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
                     sender: flowParams.sender,
                     receiver: flowParams.receiver,
                     flowOperator: flowParams.flowOperator,
                     flowRate: flowParams.flowRate
                 }),
-                flowVars.token,
                 oldFlowData.flowRate
             // solhint-disable-next-line no-empty-blocks
             ) {} catch {}

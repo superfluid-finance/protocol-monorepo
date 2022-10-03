@@ -85,7 +85,7 @@ the denotative mathematical laws.} of it in \textit{Haskell programming language
 In Chapter 4, a reference implementation of the general payment primitives and its payment system
 called \textit{Superfluid Protocol} is introduced.
 
-In Chapter 5, some possible further investigations are included for future study purpose.
+In Chapter 5, some possible further investigations are also included as notes.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Foundation}
@@ -906,7 +906,7 @@ The $\omega$ function ($applyAgreementOperation$) is the $genPrim$ in the agreem
 takes in a agreement contract, an operation onto it and the current time; then it spits out an
 update of the agreement contract and a functorful of new delta of monetary unit data.
 
-Here is a visualization of ``machinery'' of the $\omega$ function:
+Figure \ref{fig:ac-omega} is a visualization of ``machinery'' of the $\omega$ function:
 
 \begin{figure}[h]
     \centering
@@ -1093,14 +1093,14 @@ Its constant flow variance is called \textit{``Constant Flow Distribution Agreem
 
 \subsection{Hierarchy of Agreements}
 
-To finish, here is the illustration of data structures for the denotational payment primitives
-implemented with agreement framework:
+To finish, figure \ref{fig:ac-agreement-data-structures} is the illustration of data structures for
+the denotational payment primitives implemented with agreement framework:
 
-\begin{figure}[h]
+\begin{figure}[p]
     \centering
-    \includegraphics[width=1\textwidth]{../assets/agreement-data-structures.png}
+    \includegraphics[width=0.9\textwidth]{../assets/agreement-data-structures.png}
     \caption{Agreement Data Structures}
-    \label{fig:ac-omega}
+    \label{fig:ac-agreement-data-structures}
 \end{figure}
 
 Note that with \textit{Root MUD}, any monetary unit can traverse all its MUDs; and with \textit{Root
@@ -1110,20 +1110,84 @@ This concludes the overview of the Superfluid protocol implementation. For more 
 refer to the code repository mentioned before.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Future Investigations}
+\chapter{Final Words}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Restatement in Agda, Correctness and Equivalence Proofs}
+\section{Notes on Future Investigations}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Combinator Library for Financial Contracts}
+\subsection{Restatement in Agda, Correctness and Equivalence Proofs}
 
-\section{Payment in General Accounting Domains}
+One of the advantages of using Haskell language was chosen to write the reference implementation is
+that it is a language with industrial strength, and the implementation could be easily integrated
+into a production code base without much performance compromises.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Acknowledgments}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+However, a major disadvantage is that it is not equipped with sufficient apparatus for program
+correctness proofs. The best it can offer without engaging more experimental Haskell features is to
+use \textit{QuickCheck}\footnote{\url{https://wiki.haskell.org/QuickCheck} - Haskell wiki page for
+QuickCheck.} to the necessary laws are not violated using randomized test vector.
 
+To amend this deficiency, \textit{Agda programming language} comes as a great candidate for a
+different constructive restatement of the formal specification.
 
+It is based on the insight of the deep connection (equivalence/isomorphism) between logic and
+dependently typed programming, often called "the Curry–Howard correspondence", as discovered and
+developed during the 20th century (explained in \cite by Phillip Wadler as ``Propositions as
+Types''). Agda being a dependently typed functional programming language fully embodies this
+insight, hence a good candidate for creating provable correct program.
+
+To learn more about Agda, see refer to these footnotes\footnote{\url{https://plfa.github.io/} -
+Programming Language Foundations in
+Agda.} \footnote{\url{https://wiki.portal.chalmers.se/agda/pmwiki.php} - Agda
+Wiki.} \footnote{\url{https://wiki.portal.chalmers.se/agda/Main/Community} - Agda community page.}.
+
+\subsection{Future Papers on Modern Payment System}
+
+The next yellow paper will formalize how the denotational payment primitives can be stitched
+together using a powerful combinator library pattern briefly described
+in \cite{peyton2000composing}.
+
+The execution environments for these financial contracts are also fertile ground for new ideas, from
+deterministic execution to avoid the usage of buffer, to using distributed ledger technology to
+deep-embed these financial contracts in the consensus layer.
+
+\subsection{General Accounting Domains \& Real Time Finance}
+
+\begin{displayquote}
+Accounting, also known as accountancy, is the measurement, processing, and communication of
+financial and non financial information about economic entities such as businesses and
+corporations. \footfullcite{needles2013principles}
+\end{displayquote}
+
+The \textit{real time balance} introduced in this paper can be seen as a instance in
+the \textit{general accounting domain} specifically for financial contracts in dealing with payment
+primitives, a real time version of the cash flow accounting. It is a long with other types,
+including balance sheet accounting, income statement accounting. The conversion between these
+instances of general accounting domains are often called ``reconciliations''.
+
+More work can be done on how to create a simple and elegant automation system for the
+reconciliations.
+
+\section{Conclusions}
+%%%%%%%%%%%%%%%%%%%%%
+
+\emph{
+We define the term \textbf{real time finance} to mean a financial system where its payment system is
+modernized to handle money distribution continuously over time, its financial contracts are
+compositional, and its general accounting domain are automated and processed in real time.
+}
+
+This paper defines the what constitutes a modern payment system formally specified using
+denotational semantics and restated using Haskell programming language.
+
+In future work, we will look into deeper other topics of real time finance, and continue to refine
+the methodology used to achieve \textit{simple and precise} specifications guiding correct and
+efficient engineering.
+
+\section{Acknowledgments}
+%%%%%%%%%%%%%%%%%%%%%%%%%
+
+(To be confirmed.)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \newpage

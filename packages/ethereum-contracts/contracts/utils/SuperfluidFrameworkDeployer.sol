@@ -13,8 +13,6 @@ import {
 import {
     InstantDistributionAgreementV1
 } from "../agreements/InstantDistributionAgreementV1.sol";
-
-import { ERC777Helper } from "../libs/ERC777Helper.sol";
 import {
     ISuperTokenFactory,
     SuperTokenFactory,
@@ -92,7 +90,12 @@ contract SuperfluidFrameworkDeployer {
         );
 
         // Deploy ConstantFlowAgreementV1
-        cfa = new ConstantFlowAgreementV1(host);
+        // TODO @note Once we have the actual implementation for the hook contract,
+        // we will need to deploy it and put it here
+        cfa = new ConstantFlowAgreementV1(
+            host,
+            IConstantFlowAgreementHook(address(0))
+        );
 
         // Register ConstantFlowAgreementV1 TestGovernance
         governance.registerAgreementClass(host, address(cfa));

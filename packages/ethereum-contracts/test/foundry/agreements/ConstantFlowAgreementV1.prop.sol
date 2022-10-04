@@ -5,11 +5,12 @@ import "forge-std/Test.sol";
 
 import {
     ISuperfluid,
-    ConstantFlowAgreementV1
+    ConstantFlowAgreementV1,
+    IConstantFlowAgreementHook
 } from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 
 contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
-    constructor() ConstantFlowAgreementV1(ISuperfluid(address(0))) {}
+    constructor() ConstantFlowAgreementV1(ISuperfluid(address(0)), IConstantFlowAgreementHook(address(0))) {}
 
     function encodeFlowData(FlowData memory flowData) external pure
         returns (uint256 wordA)

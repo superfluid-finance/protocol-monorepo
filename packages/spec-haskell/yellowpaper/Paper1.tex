@@ -38,9 +38,8 @@ formal specifications.
 
 \end{abstract}
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Introduction}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Introduction}
+%%%%%%%%%%%%%%%%%%%%%%
 
 It should be fair to say, every aspect of money are controversial: the nature of money, the value of
 money, money and banking, and monetary reconstruction. Two major schools of thoughts about theory of
@@ -63,23 +62,24 @@ electronic forms of money are increasingly used?
 This paper adds a new controversy to money, that is to present a survey challenging the preconceived
 notion of how money can perform its function of medium of exchange.
 
-In Chapter 2, we shall first explore the foundation for the survey. Here we present a formal
-definition of payment system and its components. We then select a few relevant approaches used in
-computer science useful for modeling and defining formal specification for the payment system.
+In part\ref{part:foundation}, we shall first explore the foundation for the survey. Here we present
+a formal definition of payment system and its components. We then select a few relevant approaches
+used in computer science useful for modeling and defining formal specification for the payment
+system.
 
-One of the approaches is \textit{denotational semantics}, which is used in Chapter 3 of the paper to
-define the general payment primitives. Along with the denotational semantics, a
+One of the approaches is \textit{denotational semantics}, which is used in part \ref{part:gpp} of
+the paper to define the general payment primitives. Along with the denotational semantics, a
 restatement\footnote{It is a borrowed term from common law: ``restatement of the law''. In our case,
 the denotative mathematical laws.} of it in \textit{Haskell programming language}
 (\cite{hudak1992report} \cite{jones2003haskell} \cite{marlow2010haskell}) is also included.
 
-In Chapter 4, a reference implementation of the general payment primitives and its payment system
-called \textit{Superfluid Protocol} is introduced.
+In part \ref{part:sf}, a reference implementation of the general payment primitives and its payment
+system called \textit{Superfluid Protocol} is introduced.
 
-In Chapter 5, some possible further investigations are also included as notes.
+Notes on possible further investigations are also included in the end of the paper.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Foundation}
+\part{Foundation}\label{part:foundation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %%%%%%%%%%%%%%%%%%%%%%%%
@@ -120,8 +120,8 @@ and a receiver.
 \subsection{Money Distribution}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-A representation of money and its distribution proposed in \cite{buldas2021unifying} involves the
-following components:
+A representation of money and its distribution proposed in ``a unifying theory''
+from \citeauthor{buldas2021unifying} involves the following components:
 
 \begin{itemize}
     \item U is the set of monetary units.
@@ -137,7 +137,7 @@ institution, etc.
 \end{itemize}
 
 This discrete nature of this money distribution model is schematically depicted
-in~\ref{fig:discrete-md}:
+in figure \ref{fig:discrete-md}:
 
 \begin{figure}[h]
     \centering
@@ -417,7 +417,7 @@ optimization, side effects, etc.). We will spend the next chapter exploring the 
 semantics for general payment primitives in modernized payment systems.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{General Payment Primitives}
+\part{General Payment Primitives}\label{part:gpp}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 The set of payment primitives supported in a payment system is general, if (a) monetary value of
@@ -755,7 +755,7 @@ applied.
 \input{PaymentPrimitives.lhs.tex}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Superfluid Protocol - A Reference Implementation}
+\part{Superfluid Protocol - A Reference Implementation}\label{part:sf}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 Superfluid protocol (``the protocol'')\footnote{The code base is available
@@ -1087,7 +1087,7 @@ Its constant flow variance is called \textit{``Constant Flow Distribution Agreem
 To finish, figure \ref{fig:ac-agreement-data-structures} is the illustration of data structures for
 the denotational payment primitives implemented with agreement framework:
 
-\begin{figure}[p]
+\begin{figure}[h!]
     \centering
     \includegraphics[width=0.9\textwidth]{../assets/agreement-data-structures.png}
     \caption{Agreement Data Structures}
@@ -1101,13 +1101,10 @@ This concludes the overview of the Superfluid protocol implementation. For more 
 refer to the code repository mentioned before.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Final Words}
+\part*{Notes on Future Investigations}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section{Notes on Future Investigations}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\subsection{Restatement in Agda, Correctness and Equivalence Proofs}
+\section{Restatement in Agda, Correctness and Equivalence Proofs}
 
 One of the advantages of using Haskell language was chosen to write the reference implementation is
 that it is a language with industrial strength, and the implementation could be easily integrated
@@ -1132,7 +1129,7 @@ Programming Language Foundations in
 Agda.} \footnote{\url{https://wiki.portal.chalmers.se/agda/pmwiki.php} - Agda
 Wiki.} \footnote{\url{https://wiki.portal.chalmers.se/agda/Main/Community} - Agda community page.}.
 
-\subsection{Future Papers on Modern Payment System}
+\section{Future Papers on Modern Payment System}
 
 The next yellow paper will formalize how the denotational payment primitives can be stitched
 together using a powerful combinator library pattern briefly described
@@ -1142,7 +1139,7 @@ The execution environments for these financial contracts are also fertile ground
 deterministic execution to avoid the usage of buffer, to using distributed ledger technology to
 deep-embed these financial contracts in the consensus layer.
 
-\subsection{General Accounting Domains \& Real Time Finance}
+\section{General Accounting Domains \& Real Time Finance}
 
 \begin{displayquote}
 Accounting, also known as accountancy, is the measurement, processing, and communication of
@@ -1159,14 +1156,15 @@ instances of general accounting domains are often called ``reconciliations''.
 More work can be done on how to create a simple and elegant automation system for the
 reconciliations.
 
-\section{Conclusions}
-%%%%%%%%%%%%%%%%%%%%%
-
 \emph{
 We define the term \textbf{real time finance} to mean a financial system where its payment system is
 modernized to handle money distribution continuously over time, its financial contracts are
 compositional, and its general accounting domain are automated and processed in real time.
 }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Conclusions}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 This paper defines the what constitutes a modern payment system formally specified using
 denotational semantics and restated using Haskell programming language.
@@ -1175,8 +1173,9 @@ In future work, we will look into deeper other topics of real time finance, and 
 the methodology used to achieve \textit{simple and precise} specifications guiding correct and
 efficient engineering.
 
-\section{Acknowledgments}
-%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\part*{Acknowledgments}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 (To be confirmed.)
 

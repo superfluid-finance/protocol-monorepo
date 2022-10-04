@@ -195,7 +195,7 @@ of the extensions is enumerated in
 \url{https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/control.html\#extension-GHC2021}.}.
 
 Other notable extensions used in the paper are: $FunctionalDependencies$, $TypeFamilies$,
-$TypeFamilyDependencies$, $GADTs$, $MultiWayIf$.
+$TypeFamilyDependencies$, $GADTs$.
 
 \paragraph{Indexed Types and Type Equality}
 
@@ -641,7 +641,41 @@ Flowing of monetary value at a constant rate of $r$ at time $t'$:
     \end{split}
 \end{equation}
 
-It should be easy to prove that they satisfy the \textit{axioms A of restricted money distribution}.
+\paragraph{Decaying Flow}
+
+Another way monetary value could flow is through an exponential decay
+function\footnote{\url{https://en.wikipedia.org/wiki/Exponential_decay}.}.
+
+Symbolically, this process can be expressed by the following differential equation, where N is the
+quantity and $\lambda$ is a positive rate called the exponential decay constant:
+
+\begin{equation}
+    {\displaystyle {\frac {dN}{dt}}=-\lambda N}
+\end{equation}
+
+The solution to this equation (see derivation below) is:
+
+\begin{equation}
+    {\displaystyle N(t)=N_{0}e^{-\lambda t}}
+\end{equation}
+
+But a more convenient semantics of it uses the parameter called ``distribution limit'' ($\theta$)
+instead. In this formulation, a decaying flow distributes $\epsilon$ amount of monetary value at a
+rate started at $\alpha$ and halving every time period of $\displaystyle \frac{ln(2)}{\lambda}$:
+
+\begin{equation}
+    \begin{split}
+        [\![decayingFlow\ u_a\ u_b\ \theta\ \lambda\ t']\!] &=
+        \lambda u \rightarrow \lambda t \rightarrow \\
+        &\begin{cases}
+             {\displaystyle  \alpha \cdot e^{-\lambda (t' - t)} - \theta} & (u_a = u) \\
+             {\displaystyle -\alpha \cdot e^{-\lambda (t' - t)} + \theta} & (u_b = u) \\
+             0 & (otherwise)
+        \end{cases}
+    \end{split}
+\end{equation}
+
+For the simplicity of the later discussion, this form of payment primitive is omitted.
 
 \subsection{Index Abstraction}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -61,8 +61,8 @@ instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft w
         θ_Δ = fromIntegral (θ - distribution_limit ac)
 
         ac' = ContractData { distribution_limit   = θ
-                            , flow_last_updated_at = t'
-                            }
+                           , flow_last_updated_at = t'
+                           }
         mudsΔ = OperationOutputF
                 (def & set DFMUD.settledAt    t'
                      & set DFMUD.αVal        θ_Δ

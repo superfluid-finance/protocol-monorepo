@@ -25,6 +25,9 @@ import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 
 import { SETHProxy } from "../tokens/SETH.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
+import {
+    IConstantFlowAgreementHook
+} from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import { IPureSuperToken } from "../interfaces/tokens/IPureSuperToken.sol";
 import { ISETH } from "../interfaces/tokens/ISETH.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";

@@ -123,9 +123,6 @@ instance SuperfluidSystemTypes sft => AgreementContract (PublisherContract sft) 
                                    , dc_flow_rate      = dcfr
                                    } = dc
 
-    concatAgreementOperationOutput (PublisherOperationOutputF a) (PublisherOperationOutputF a') =
-        PublisherOperationOutputF (a <> a')
-
     functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (PublisherContract sft) = UpdateDistributionFlowRate (SFT_MVAL sft)
@@ -140,6 +137,9 @@ type PublisherOperationOutput sft = AgreementOperationOutputF (PublisherContract
     (PublisherMonetaryUnitData sft)
 
 instance SuperfluidSystemTypes sft => Default (PublisherOperationOutput sft)
+instance SuperfluidSystemTypes sft => Monoid (PublisherOperationOutput sft) where mempty = def
+instance SuperfluidSystemTypes sft => Semigroup (PublisherOperationOutput sft) where
+    PublisherOperationOutputF a <> PublisherOperationOutputF a' = PublisherOperationOutputF (a <> a')
 
 -- * Subscriber Operations
 
@@ -178,9 +178,6 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
 
-    concatAgreementOperationOutput (SubscriberOperationOutputF a) (SubscriberOperationOutputF a') =
-        SubscriberOperationOutputF (a <> a')
-
     functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (SubscriberContract sft) = SettleSubscription
@@ -195,3 +192,6 @@ type SubscriberOperationOutput sft = AgreementOperationOutputF (SubscriberContra
     (PublisherMonetaryUnitData sft)
 
 instance SuperfluidSystemTypes sft => Default (SubscriberOperationOutput sft)
+instance SuperfluidSystemTypes sft => Monoid (SubscriberOperationOutput sft) where mempty = def
+instance SuperfluidSystemTypes sft => Semigroup (SubscriberOperationOutput sft) where
+    SubscriberOperationOutputF a <> SubscriberOperationOutputF a' = SubscriberOperationOutputF (a <> a')

@@ -29,8 +29,7 @@ class ( SuperfluidCoreTypes sft
       , Default ac
       , MonetaryUnitDataClass ac sft
       , Traversable (AgreementOperationOutputF ac) -- <= Foldable Functor
-      -- , Monoid (AgreementOperationOutput ac)
-      , Default (AgreementOperationOutput ac)
+      , Monoid (AgreementOperationOutput ac)
       ) => AgreementContract ac sft | ac -> sft where
 
     -- | ω function - apply agreement operation ~ao~ (hear: ω) to the agreement operation data ~ac~ to get a tuple of:
@@ -60,12 +59,6 @@ class ( SuperfluidCoreTypes sft
         => Proxy any_smud
         -> muds -> f any_smud
 
-    -- | κ function - concatenate agreement operation output, which can be functorized any time.
-    concatAgreementOperationOutput
-        :: forall muds.
-           muds ~ AgreementOperationOutput ac
-        => muds -> muds -> muds
-
     -- Note: though ~ac~ is injected, but it seems natural to have operation as associated data type instead.
     data family AgreementOperation ac :: Type
 
@@ -85,7 +78,6 @@ instance SuperfluidCoreTypes sft => MonetaryUnitDataClass (NullAgreementContract
 instance SuperfluidCoreTypes sft => AgreementContract (NullAgreementContract sft) sft where
     applyAgreementOperation ac _ _ = (ac, NullAgreementOutoutF)
     functorizeAgreementOperationOutput _ _ = NullAgreementOutoutF
-    concatAgreementOperationOutput = const
     data AgreementOperation (NullAgreementContract sft) = NullAgreementOperation
     data AgreementOperationOutputF (NullAgreementContract sft) _ = NullAgreementOutoutF
         deriving stock (Functor, Foldable, Traversable)
@@ -94,6 +86,8 @@ instance SuperfluidCoreTypes sft => AgreementContract (NullAgreementContract sft
 type NullAgreementOutout sft = AgreementOperationOutputF (NullAgreementContract sft) ()
 
 instance SuperfluidCoreTypes sft => Default (NullAgreementOutout sft) where def = def
+instance SuperfluidCoreTypes sft => Monoid (NullAgreementOutout sft) where mempty = def
+instance Semigroup (NullAgreementOutout sft) where (<>) = const
 
 -- * Agreement Contract State
 
@@ -135,10 +129,9 @@ ao_go_single_op :: forall ac sft t ao aoo acs.
                 => acs -> ao -> t -> acs
 ao_go_single_op (ac, muds) ao t' =
     let (ac', mudsΔ) = ω ac ao t'
-        muds'        = κ muds mudsΔ
+        muds'        = muds <> mudsΔ
     in  (ac', muds')
     where ω  = applyAgreementOperation
-          κ  = concatAgreementOperationOutput
 
 ao_go_zero_sum_balance_after_single_op :: forall ac sft any_smud t v ao aoo acs any_acs.
                                           ( SuperfluidCoreTypes sft

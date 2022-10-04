@@ -188,7 +188,7 @@ class ( Monad tk
             setContract (PDIDX.SubscriberOperationOutputF addr) (dc', sc') t = do
                 overProportionalDistributionContract addr indexId (const dc') t
                 overProportionalDistributionSubscription subscriber addr indexId (const sc') t
-        (t, aoAccounts, cfdaMUDΔ)  <- eff_agreement_operation_base
+        (t, aoAccounts, PDIDX.SubscriberOperationOutput cfdaMUDΔ)  <- eff_agreement_operation_base
             (PDIDX.SubscriberOperationOutputF publisher)
             (PDIDX.Subscribe unit)
             viewContract

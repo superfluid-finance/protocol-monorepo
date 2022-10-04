@@ -5,7 +5,6 @@
 
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE GADTs #-}
-{-# LANGUAGE MultiWayIf #-}
 module Money.Theory.PaymentPrimitives
     -- $intro
     --
@@ -62,13 +61,24 @@ instance ( MoneyDistribution md
 \end{code}
 
 \begin{code}
--- | 𝓜' - syntactic category.
+-- | Index abstraction.
+class Eq u => Index k u | k -> u where
+    ρ :: k -> u -> Double
+
+-- | Universal index.
+data UniversalIndex u = MkUniversalIndex u
+instance Eq u => Index (UniversalIndex u) u where
+    ρ (MkUniversalIndex u) u' = if u == u' then 1 else 0
+\end{code}
+
+\begin{code}
+-- | 𝓜' - syntactic category using index abstraction.
 data 𝓜' ν t u =
-    Transfer u u ν |
-    Flow u u ν t
+    forall k1 k2. (Index k1 u, Index k2 u) => TransferI k1 k2 ν |
+    forall k1 k2. (Index k1 u, Index k2 u) => FlowI k1 k2 ν t
 
 -- | Type synonym for 𝓜' using type family.
-type 𝓜 md = forall u t ν.
+type 𝓜 md = forall ν t u.
     ( MoneyDistribution md
     , ν ~ MD_MVAL md
     , t ~ MD_TS md
@@ -78,14 +88,12 @@ type 𝓜 md = forall u t ν.
 -- | ⟦.⟧ - semantic function of 𝓜.
 sem :: MoneyDistribution md
     => 𝓜 md -> MoneyDistributionModel' md
-sem (Transfer from to amount) = \u -> \_ -> if
-    | from == u -> -amount
-    | to   == u ->  amount
-    | otherwise ->  0
-sem (Flow from to r t') = \u -> \t -> if
-    | from == u -> -r * coerce (t - t')
-    | to   == u ->  r * coerce (t - t')
-    | otherwise ->  0
+sem (TransferI ka kb amount) = \u -> \_ ->
+    let x = fromIntegral amount
+    in ceiling $ -x * ρ ka u + x * ρ kb u
+sem (FlowI ka kb r t') = \u -> \t ->
+    let x = fromIntegral $ -r * coerce(t - t')
+    in ceiling $ -x * ρ ka u + x * ρ kb u
 -- GHC 9.4.2 bug re non-exhaustive pattern matching?
 sem _ = error "huh?"
 

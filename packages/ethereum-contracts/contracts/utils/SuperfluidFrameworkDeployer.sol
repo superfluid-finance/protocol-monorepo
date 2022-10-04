@@ -166,12 +166,14 @@ contract SuperfluidFrameworkDeployer {
     function deployWrapperSuperToken(
         string calldata _underlyingName,
         string calldata _underlyingSymbol,
-        uint8 _decimals
+        uint8 _decimals,
+        uint256 _mintLimit
     ) external returns (TestToken underlyingToken, SuperToken superToken) {
         underlyingToken = new TestToken(
             _underlyingName,
             _underlyingSymbol,
-            _decimals
+            _decimals,
+            _mintLimit
         );
         superToken = SuperToken(
             address(

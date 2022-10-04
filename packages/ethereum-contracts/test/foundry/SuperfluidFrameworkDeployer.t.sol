@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.16;
 
-import {
-    ERC20PresetMinterPauser
-} from "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
-
 import "forge-std/Test.sol";
 import {
     SuperfluidFrameworkDeployer,
     Resolver,
-    SuperfluidLoader
+    SuperfluidLoader,
+    TestToken
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 import {
     ERC1820RegistryCompiled
@@ -86,12 +83,12 @@ contract SuperfluidFrameworkDeployerTest is Test {
 
     function testDeployWrapperSuperToken(
         string calldata _name,
-        string calldata _symbol
+        string calldata _symbol,
+        uint8 _decimals,
+        uint256 _mintLimit
     ) public {
-        (
-            ERC20PresetMinterPauser underlyingToken,
-            SuperToken superToken
-        ) = sfDeployer.deployWrapperSuperToken(_name, _symbol);
+        (TestToken underlyingToken, SuperToken superToken) = sfDeployer
+            .deployWrapperSuperToken(_name, _symbol, _decimals, _mintLimit);
 
         // assert underlying erc20 name/symbol properly set
         assertEq(underlyingToken.name(), _name);

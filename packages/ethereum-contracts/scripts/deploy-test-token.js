@@ -66,7 +66,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         const testToken = await web3tx(TestToken.new, "TestToken.new")(
             tokenSymbol + " Fake Token",
             tokenSymbol,
-            tokenDecimals
+            tokenDecimals,
+            "1000000000000000000000000000000" // ethers.utils.parseUnits("1000000000000") 1e12
         );
         testTokenAddress = testToken.address;
         await web3tx(resolver.set, `Resolver set ${name}`)(

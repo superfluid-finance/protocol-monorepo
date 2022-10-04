@@ -80,17 +80,18 @@ computation, arrows could be used instead
 \paragraph{Parallel Execution}
 
 When the executions of payment primitives can be in parallel, the
-shared resource problem of updating money distribution, context and
-financial contract set arrises in data storage.
+resource sharing problem of updating money distribution, context and
+financial contract set arrises in their data storage.
 
 To model the parallel execution, ones must first study the concurrency
 control of the data storage system used
-\cite{bernstein1981concurrency}; while formalism of parallel execution
+(\cite{bernstein1981concurrency}); while formalism of parallel execution
 can be best done using Petri Nets (\cite{petri1962kommunikation},
 \cite{reisig2012petri})\footnote{Petri Nets World,
 https://www.informatik.uni-hamburg.de/TGI/PetriNets/index.php}.
 
-But a model in Haskell will not be provided for now.
+A model in Haskell will not be provided for now since it is out of the
+scope of the paper.
 
 \paragraph{Deterministic Execution}
 
@@ -106,6 +107,7 @@ class ( MoneyDistribution md
 
 -- | A partially ordered data type (incomplete definition).
 class Poset a
+-- omitting detailed interface of it.
 
 -- | Financial contract that can be partially ordered.
 class ( MoneyDistribution md
@@ -123,6 +125,12 @@ class ( MoneyDistribution md
       , TotallyOrderedFinancialContract tofc md
       ) => DetSeqPaymentExecEnv env md tofc | env -> md, env -> tofc where
     -- | Update a financial contract in the execution environment.
+    --
+    --   Note:
+    --
+    --     * In order to keep well-ordering properties, the complexity
+    --       of this function can be at least as bad as updating a
+    --       sorted data structure $O(log(n))$.
     fcUpdate :: fc -> env -> env
 
     -- | Deterministically get the next financial contract
@@ -153,10 +161,10 @@ class ( MoneyDistribution md
            , t)
 \end{code}
 
-The environment is no longer monad, and it is equivalent to say it is
-now fully deterministic. Instead the monadic interations with external
-world should use \textit{fcInsert} for adding new financial contracts
-to the environment.
+The environment is no longer monadic, and it is to say it is now fully
+deterministic. Instead the monadic interations with external world
+should use \textit{fcInsert} for adding new financial contracts to the
+environment.
 
 A weaker condition, namely a poset (partially ordered) of financial
 contracts, may enable deterministic parallel executions of

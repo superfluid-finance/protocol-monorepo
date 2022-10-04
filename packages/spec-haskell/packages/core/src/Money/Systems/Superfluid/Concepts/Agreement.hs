@@ -28,8 +28,9 @@ import           Money.Systems.Superfluid.CoreTypes
 class ( SuperfluidCoreTypes sft
       , Default ac
       , MonetaryUnitDataClass ac sft
-      , Default (AgreementOperationOutput ac)
       , Traversable (AgreementOperationOutputF ac) -- <= Foldable Functor
+      -- , Monoid (AgreementOperationOutput ac)
+      , Default (AgreementOperationOutput ac)
       ) => AgreementContract ac sft | ac -> sft where
 
     -- | ω function - apply agreement operation ~ao~ (hear: ω) to the agreement operation data ~ac~ to get a tuple of:

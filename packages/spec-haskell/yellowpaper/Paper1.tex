@@ -21,35 +21,38 @@
 
 \begin{abstract}
 Payment systems in information age are still largely modeled after their analog predecessors. While
-some electronic money payment systems do utilize computing technology and Internet, this paper
-presents a case that a true modernization can still be done by (a) making payments happening
-continuously over time (b) involving more than two parties in a payment if necessary (c) having
-compositional financial contracts.
+electronic money payment systems do utilize computing technology and Internet, this paper presents a
+case that a true modernization can be reached by (a) making payments happening continuously over
+time, (b) involving more than two parties in a payment if necessary, (c) having compositional
+financial contracts.
 
 This paper first explores the foundation of modern payment system, which consists of a money
 distribution model, payment primitives, payment execution systems of financial contracts and
 different forms of money mediums. Then the paper uses \textit{denotational semantics} to formally
 define payment primitives for modern payment system. Lastly, this paper also includes an overview
-of \textit{Superfluid protocol}, a reference implementation of the payment primitives and a its
+of \textit{Superfluid protocol}, a reference implementation of the payment primitives and its
 payment system.
 
-This paper also includes literate Haskell code that compiles as the constructive artifact for the
-formal specifications.
+This paper includes literate Haskell code that compiles as the constructive artifact for the formal
+specifications.
+
+This paper is the first one of the series yellow papers about modern payment system dubbed
+``semantic money''.
 
 \end{abstract}
 
 \part*{Introduction}
 %%%%%%%%%%%%%%%%%%%%%%
 
-It should be fair to say, every aspect of money are controversial: the nature of money, the value of
+It should be fair to say, every aspect of money is controversial: the nature of money, the value of
 money, money and banking, and monetary reconstruction. Two major schools of thoughts about theory of
 money are the \textit{Austrian school} (\cite{von2013theory}) and the \textit{Chicago school}
 (\cite{friedman1989quantity}). That is before the appearance of Internet-era version of monetary
 reconstruction, broadly defined as cryptocurrency, which challenges theories of money further and
 demands their updates (\cite{ammous2018can} \cite{hardle2020understanding}).
 
-This yellow paper does not intend to address these controversies, but to focus on the function of
-money. According to Von Mises:
+This yellow paper does not intend to address these controversies, instead it focuses on the function
+of money. According to Von Mises:
 
 \begin{displayquote}
 The function of money is to facilitate the business of the market by acting as a common medium of
@@ -59,22 +62,22 @@ exchange. \footfullcite[][Chapter One, Chapter I, § 1, p1]{von2013theory}
 How do different forms of money perform this function, especially in the information age, when
 electronic forms of money are increasingly used?
 
-This paper adds a new controversy to money, that is to present a survey challenging the preconceived
-notion of how money can perform its function of medium of exchange.
+This paper adds a new controversy to money, that is to present a foundation of what constitutes of
+a \textit{modern payment system} and a set of \textit{payment primitives} for the system, in order
+to challenge the preconceived notions of how money can perform its function of medium of exchange.
 
-In part\ref{part:foundation}, we shall first explore the foundation for the survey. Here we present
-a formal definition of payment system and its components. We then select a few relevant approaches
-used in computer science useful for modeling and defining formal specification for the payment
-system.
+In part\ref{part:foundation}, we shall first explore the foundation. Here we present a formal
+definition of payment system and its components. We then select a few relevant approaches used in
+computer science useful for modeling and defining formal specification for the payment system.
 
 One of the approaches is \textit{denotational semantics}, which is used in part \ref{part:gpp} of
-the paper to define the general payment primitives. Along with the denotational semantics, a
-restatement\footnote{It is a borrowed term from common law: ``restatement of the law''. In our case,
-the denotative mathematical laws.} of it in \textit{Haskell programming language}
+the paper to define the \textit{general payment primitives}. Along with the denotational semantics,
+a restatement\footnote{It is a borrowed term from common law: ``restatement of the law''. In our
+case, the denotative mathematical laws.} of it in \textit{Haskell programming language}
 (\cite{hudak1992report} \cite{jones2003haskell} \cite{marlow2010haskell}) is also included.
 
 In part \ref{part:sf}, a reference implementation of the general payment primitives and its payment
-system called \textit{Superfluid Protocol} is introduced.
+system called \textit{Superfluid Protocol} is introduced with an overview of it.
 
 Notes on possible further investigations are also included in the end of the paper.
 
@@ -90,7 +93,7 @@ Here we present a definition of payment system and its components.
 
 \paragraph{Payment system}
 
-It can be solely defined by these components:
+It is solely defined by these components:
 
 \begin{itemize}
     \item \textit{money distribution} models how monetary value is distributed amongst
@@ -99,7 +102,8 @@ English Dictionary},
 
     \item \textit{payment primitives} updates money distribution,
 
-    \item \textit{payment execution environment} performs payment primitives,
+    \item \textit{payment execution environment} performs payment primitives encoded
+    in \textit{financial contracts},
 
     \item and \textit{forms of money medium} are the ``user interfaces'' of money for the bearers.
 \end{itemize}
@@ -109,7 +113,7 @@ English Dictionary},
 For its modern upgrade, the system should also have these properties:
 
 \begin{itemize}
-    \item Money can be distributed continuously over time, as opposed to be discrete.
+    \item Money can be distributed continuously over time, as opposed to be in discrete chunks.
 
     \item Payment primitives can involve more than two parties, as opposed to be only for a sender
 and a receiver.
@@ -137,7 +141,7 @@ institution, etc.
 \end{itemize}
 
 This discrete nature of this money distribution model is schematically depicted
-in figure \ref{fig:discrete-md}:
+in figure \ref{fig:discrete-md}.
 
 \begin{figure}[h]
     \centering
@@ -146,7 +150,7 @@ in figure \ref{fig:discrete-md}:
     \label{fig:discrete-md}
 \end{figure}
 
-\subsubsection{Using Context}
+\subsubsection{Adding Context $\gamma$}
 
 But the discrete nature of the model does not provide the necessary element for us to add the
 desired properties to the payment system. Here we propose a modification that involves the usage
@@ -181,20 +185,25 @@ For the purpose of this paper, the model of context is: $\gamma = t \times ctx$.
 
 \subsubsection{Haskell Code Conventions Used}
 
-Before first time in this paper listing specification in Haskell, here are some highlights of
+Before the first time in this paper listing specification in Haskell, here are some highlights of
 conventions in the style of the code used.
+
+\paragraph{Language Extensions}
 
 The specification is written in Haskell with \textit{GHC2021 language set}\footnote{The complete set
 of the extensions is enumerated in
 \url{https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/control.html\#extension-GHC2021}.}.
 
+Other notable extensions used in the paper are: $FunctionalDependencies$, $TypeFamilies$,
+$TypeFamilyDependencies$, $GADTs$, $MultiWayIf$.
+
 \paragraph{Indexed Types and Type Equality}
 
 In order to make the specification free of specific choices of core data types in
 implementation, \textit{FunctionalDependencies}, \textit{TypeFamilies}
-and \textit{TypeFamilyDependencies} are extensively used. And in order to make the code less
-cluttered, type quality operator $(\sim)$
-used. Here is an example:
+and \textit{TypeFamilyDependencies} are extensively used. As a consequence, the type signature can
+look very cluttered. In order to address that, type quality operator $(\sim)$ is also used. Here is
+an example snippets:
 
 \begin{code}
     type (~) :: forall k. k -> k -> Constraint
@@ -216,17 +225,18 @@ $mu$ $ctx$ with the help of $(\sim)$ operator.
 \subsection{Payment Primitives}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-A payment primitive is a data type with a generator that creates payment primitive data from the
-shared context $ctx$, primitive specific argument $args$ and timestamp, along with an update of the
-shared context. Here is an example of generator for payment primitive \textit{a}:
+A payment primitive is a data type with a generator function that produces payment primitive from
+the shared context $ctx$, primitive specific argument $args$ and timestamp $t$, along with an update
+of the shared context. Type signature \ref{eq:genPrim} is for the generator of payment
+primitive \textit{a}:
 
-\begin{equation}
+\begin{equation}\label{eq:genPrim}
     genPrim_a :: ctx \rightarrow args_a \rightarrow t \rightarrow prim \times ctx
 \end{equation}
 
 Payment primitive data then can be used to create a delta update of money
 distribution\footnote{Specifically being monoidal, that is in short a set that has associative
-binary operation and an identity element. See https://ncatlab.org/nlab/show/monoid.}
+binary operation and an identity element. See https://ncatlab.org/nlab/show/monoid.}:
 
 \begin{equation}
     runPrim :: prim \rightarrow md
@@ -239,9 +249,9 @@ constructs in a payment system that can update money distribution.
 Updates are \textit{monoidal}, so that they can be incremental and their parallel executions can be
 modeled.
 
-The best known primitive is instant transfer of monetary value between one monetary unit to
+The most known primitive is instant transfer of monetary value between one monetary unit to
 another. The introduction of context enables more primitives to be defined, and this will be
-discussed in later chapters.
+discussed in part \ref{part:gpp}.
 
 \subsection{Payment Execution Environment}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -249,9 +259,9 @@ discussed in later chapters.
 The purpose of a payment execution environment is to perform the actual payment primitives, where
 their computation interface, parallel evaluation strategies and payment system solvency are defined.
 
-It is out of scope for this paper to survey in-depth the problem space of the operation semantics of
-payment execution environments. Nonetheless, a simplified model and some potential extensions to it
-is discussed briefly.
+It is out of scope for this paper to survey in-depth the problem space of the operational semantics
+of payment execution environments. Nonetheless, a simplified model and some potential extensions to
+it is discussed briefly to place payment primitives in the big picture.
 
 \subsubsection{Composing Financial Contracts}
 
@@ -265,7 +275,7 @@ is discussed briefly.
 
 While money distribution does not assign meaning to the range of monetary values, in real world
 applications, negative values can have special meanings. In the following analysis, we call any
-money unit that has a negative monetary value insolvent.
+money unit that has a negative monetary value \textit{insolvent}.
 
 The detailed analysis of these solvency models are out of scope for this paper.
 
@@ -275,18 +285,19 @@ In a nondeterministic execution environment, we cannot determine when any financ
 actually be executed. That means, there is always a chance a monetary unit could reach negative
 monetary value.
 
-To mitigate this uncertainty, a concept called buffer is introduced. A buffer has a monetary value
-which is set aside in a solvency conditional financial contract, such that if a solvency condition
-arises, the buffer maybe drawn to cover the loss introduced by the nondeterministic timing of the
-execution.
+To mitigate this uncertainty, a concept called \textit{buffer} is introduced. A buffer has a
+monetary value which is set aside in a solvency conditional financial contract, such that if a
+solvency condition arises, the buffer maybe drawn to cover the loss introduced by the
+nondeterministic timing of the execution.
 
 \paragraph{Deterministic Solvency Treatment}
 
 Since \textit{fcNext} returns what is the next financial contract executable at a specific time,
 this deterministic property eliminates the need for the buffer.
 
-But it introduces a different type of systemic risk, that is denial-of-service, since the system
-cannot advance the system time until all next executable contracts are executed.
+On the other hand, it introduces a different type of systemic risk, that is a kind of
+denial-of-service. It is due to that the complexity of $fcUpdate$ is $O(log(n))$, the system may not
+be able to advance its system time until all next executable contracts are executed.
 
 \subsection{Money Mediums}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -326,30 +337,29 @@ is better for complex concurrent and distributed computing environment
 
 The focus of this paper is to formally define a set of payment primitives that modernize our payment
 systems. To prevent reinventing wheels, it is relevant to discuss first some approaches in computer
-science that are believed to help solving this challenge.
+science that are believed to help tackling this challenge.
 
 \subsection{Functional Reactive Programming}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Recall that we want our modernized payment systems to handle money distribution continuously over
-time, and its financial contracts compositional. A very closely related software design paradigm
-best known to address those needs is \textit{functional reactive programming (FRP)}.  It was first
-introduced by Conal Elliott \& Paul Hudak in solving multimedia
-animations \cite{elliott1997functional}. Later on, Hudak also worked on \cite{hudak2002arrows} and
+Recall that we want our modern payment system to handle money distribution continuously over time,
+and its financial contracts compositional. A very closely related software design paradigm best
+known to address those needs is \textit{functional reactive programming (FRP)}.  It was first
+introduced by Conal Elliott \& Paul Hudak in solving multimedia animations
+(\cite{elliott1997functional}). Later on, Hudak also worked on \cite{hudak2002arrows} and
 \cite{wan2000functional} making FRP a more general framework for programming hybrid system with
 continuous behaviors in a high-level, declarative manner.
 
 After FRP got more adoption, it evolved to some variations that support discrete semantics, and some
-variations better suited more for interactive systems. In this paper we will stick to and revisit
-the basic constructions of the original formulation used in \cite{elliott1997functional} where we
-will draw inspirations from.
+variations better suited for interactive systems. In this paper we will stick to and revisit the
+basic constructs of the original formulation used in \cite{elliott1997functional} where we will draw
+inspirations from.
 
 \paragraph{Temporal Modeling and Behaviors}
 
 Values that vary over continuous time are called \textit{behaviors}. They are first-class values,
-and are built up compositionally. In modernized payment systems, we should want the monetary values
-of monetary units capable of varying over continuous time. The semantic function of
-$\alpha$-behaviors produces the value of type $\alpha$ of a behavior at a given time:
+and are built up compositionally. That is what we want in modern payment system also. The semantic
+function of $\alpha$-behaviors produces the value of type $\alpha$ of a behavior at a given time:
 
 \begin{equation}
     at : Behavior_{\alpha} \rightarrow Time \rightarrow \alpha
@@ -364,7 +374,7 @@ describes the time and information associated with an \textit{occurrence} of the
     occ : Event_{\alpha} \rightarrow Time \times \alpha
 \end{equation}
 
-In modernized payment systems, the payment primitives executed in payment execution environments are
+In modern payment system, the payment primitives executed in payment execution environments are
 one type of events. More types of events can be read from the original paper \footfullcite[][section
 2.3 Semantics of Events]{elliott1997functional}.
 
@@ -384,10 +394,9 @@ until \textit{e} occurs, and then swiches to a new behavior encoded in \textit{e
 
 Note that $[\![.]\!]$ is the denotational semantics notation to be introduced later.
 
-In the context of modernized payment systems, the occurrences of payment primitives (events) change
-the behaviors of monetary units in how much monetary values it has over continuous. The building
-blocks of the financial contracts should be about modeling these events and their reactivity
-declaratively.
+In the context of modern payment system, the occurrences of payment primitives (events) change the
+behaviors of monetary units in how much monetary values it has over continuous. The building blocks
+of the financial contracts should be about modeling these events and their reactivity declaratively.
 
 \subsection{Denotational Semantics}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -408,13 +417,13 @@ To create denotational semantics for each syntactic category $\mathcal{C}$, we s
 
 The syntactic category we are interested in is \textit{payment primitives}, which we should treat
 them as FRP-style \textit{Behavior} data types. In the following chapters, it is also unambiguously
-referred to in short as $[\![.]\!]$. Various $[\![.]\!]$ must be compositional, \ie must be defined
+referred to in short as $[\![.]\!]$. Various $[\![.]\!]$ must be compositional, \ie\ must be defined
 by structural recursion.
 
 It is important to note that our purpose of using the denotational semantics is to give precise
 meaning to payment primitives, independent of its implementation (which deals with performance,
-optimization, side effects, etc.). We will spend the next chapter exploring the denotational
-semantics for general payment primitives in modernized payment systems.
+optimization, side effects, etc.). We will spend the part \ref{part:gpp} exploring the denotational
+semantics for general payment primitives in modern payment system.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \part{General Payment Primitives}\label{part:gpp}
@@ -431,7 +440,7 @@ modern payment system.
 The specifications will be formally defined using denotational semantics, along with a restatement
 in Haskell also applied as a constructive artifact friendly to computer environment\footnote{One may
 argue for a restatement in \textit{Agda} instead, for it has a richer dependently-type system for
-desirable constructive proofs. This matter will be dealt in the ``future investigations'' chapter of
+desirable constructive proofs. This matter will be dealt in the ``future investigations'' section of
 this paper.}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -458,7 +467,7 @@ system, and that is the syntactic category $\mathcal{M}$ we will be dealing with
     \item The meaning of the mathematical \textit{model} $[\![\mathcal{M}]\!]$ is money distribution.
 
     \item Semantic function $[\![.]\!] :: \mathcal{M} \rightarrow [\![\mathcal{M}]\!] $ evaluates
-the syntax of money distribution, payment primitives, etc.
+the expression of money distribution, payment primitives, etc.
 \end{itemize}
 
 \subsection{Money Distribution}
@@ -646,7 +655,7 @@ each monetary unit:
     \rho\ k :: u \rightarrow \mathbb{R}
 \end{equation}
 
-And it must satisfy the following law:
+To make it meaningful, it must satisfy the following law:
 
 \begin{equation}
     \displaystyle \sum_{u \in U} \rho\ k\ u = 1
@@ -693,14 +702,14 @@ Now one to one payment primitives can be redefined using \textit{universal index
 It means that it is an index \textit{universally} available for each monetary unit, and its
 proportion is always 1 for that monetary unit and 0 for all others.
 
-\subsection{Proportional Distribution Primitives}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\paragraph{Proportional Distribution Primitives}
 
-A special case of the indexed primitives is to fix the sender side to be an \textit{universal index}.
+A special case of the indexed primitives is to fix the sender side to be an \textit{universal
+index}.
 
 \subsection{Network Abstraction}
 
-An even more powerful abstraction is to model participants involved a payment primitive
+An even more general abstraction is to model participants involved a payment primitive
 a \textit{network} (we use symbol $w$ for them).
 
 It has the function $\rho$ as in \textit{index}, bnd it satisfies a different law:
@@ -741,12 +750,12 @@ The question now is, should we use the most general form of the semantics to gui
 The answer is most likely a no. Not because it is not useful, after all mathematical formula is
 about truth and perhaps also elegance in it, but because of we may miss optimization opportunities
 needed in implementation when more specialized versions are used instead\footnote{We will not though
-discuss the subjective aspects, including in software engineering principles such as YAGNI
+discuss the subjective aspects, \eg\ in software engineering principles such as YAGNI
 (\url{https://en.wikipedia.org/wiki/You_aren't_gonna_need_it}), or user experience perspective of
 the payment primitives.}.
 
-In the next chapter, we will look into a reference implementation where these optimizations are
-applied.
+In part \ref{part:sf}, we will look into a reference implementation where these optimizations are
+made.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Restatement in Haskell}
@@ -758,32 +767,32 @@ applied.
 \part{Superfluid Protocol - A Reference Implementation}\label{part:sf}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-Superfluid protocol (``the protocol'')\footnote{The code base is available
+\textit{Superfluid protocol} (``the protocol'')\footnote{The code base is available
 at \url{https://github.com/superfluid-finance/protocol-monorepo/}.} is the first implementation of
 the \textit{denotational semantics of payment primitives} (though before it was formalized and named
-so) on \textit{Ethereum Virtual Machine} \cite{wood2014ethereum}. The first version of the protocol
-is written in Solidity programming language \footnote{\url{https://soliditylang.org/}}.
+so) on \textit{Ethereum Virtual Machine} (\cite{wood2014ethereum}). The first version of the protocol
+is written in Solidity programming language \footnote{\url{https://soliditylang.org/} - About
+Solidity programming language.}.
 
 To better serve as a reference implementation of the \textit{modern payment system} formalized by
 this paper and its sequels, an implementation in Haskell was created. It aims to implement the full
-specifications of (a) denotational semantics of payment primitives (b) compositional financial
-contracts for the payment primitives (c) token \& note model of money mediums, and their execution
+specifications of (a) denotational semantics of payment primitives, (b) compositional financial
+contracts for the payment primitives, (c) token \& note model of money mediums, and their execution
 environment.
 
-This paper covers the overview of the implementation of (a).
+This paper covers the overview of the implementation with regards to (a).
 
 \section{Real Time Balance}
 
 For the purpose of compositional financial contracts, it is useful to separate monetary values that
 bearers can use immediately (called \textit{untappedValue} in code) from ones that are set aside for
 other financial purpose. The concept of \textit{real time balance} is thus created. \textit{Real
-time balance} is a functorful\footnote{Bartosz Milewski has an excellent series on these
-topics: \url{https://bartoszmilewski.com/2015/01/20/functors/}, and he uses the term ``functorful''
-to convey the idea of generalized container.} of monetary values. It can be converted to a single
-monetary value.
+time balance} is a functorful\footnote{Bartosz Milewski has an excellent series on
+functors: \url{https://bartoszmilewski.com/2015/01/20/functors/}, where he uses the term
+``functorful'' to convey the idea of generalized container.} of monetary values. It can be converted
+to a single monetary value.
 
-Although since this is not the subject of this paper, it suffices to just show its definition
-instead:
+Since this is not the subject of this paper, it suffices to show its definition instead:
 
 \begin{code}
 -- Note that we omit the definition of AnyTypedValue here,
@@ -819,17 +828,17 @@ The main tasks of the implementer of \textit{denotational payment primitives} ar
 
 \begin{itemize}
     \item preserve the program correctness (and if possible, with proof of equivalence),
-    \item optimize for efficient computation,
-    \item and provide a software interface for using it.
+    \item optimize for efficient computations,
+    \item and provide a software interface for it.
 \end{itemize}
 
 The protocol introduces \textit{agreement framework} to address the optimization needs and to
 provide a consistent software interface called ``agreement'' with agreement laws for reasoning about
 the correctness.
 
-\paragraph{Monetary Unit Data (MUD)}
+\subsection{Monetary Unit Data (MUD)}
 
-Recall that all monetary units have a monetary value function: $$ \nu :: u \rightarrow \mathbb{N}$$.
+Recall that all monetary units have a monetary value function: $ \nu :: u \rightarrow \mathbb{N}$.
 
 Agreement framework defines a concept called \textit{monetary unit data}, and each monetary unit has
 a set of them:
@@ -845,13 +854,27 @@ class ( SuperfluidCoreTypes sft
            , rtb ~ SFT_RTB sft
            )
         => mud -> t -> rtb
+
+-- | A semigroup constrained monetary unit data type class.
+--
+-- Note: a. ~mud~ that doesn't have a binary function may also be referred
+--          to as "non-scalable" ~mud~.
+--
+--       a. What can make a ~mud~ "scalable" then is exactly when it is an
+--          actual semigroup. Since a new state can be merged onto the
+--          previous state to a new single state. It is still worth mentioning
+--          that it is only a sufficient condition, since a monoid could still
+--          "cheat" by linearly grow its data size on each binary operation.
+class ( MonetaryUnitDataClass smud sft
+      , Semigroup smud
+      ) => SemigroupMonetaryUnitData smud sft
 \end{code}
 
 The $\pi$ function produces \textit{real time balance} at a particular time for \textit{monetary
 unit data}. How a monetary unit produces monetary value from its set of monetary unit data is
 described in the ``hierarchy of agreements'' section.
 
-\paragraph{Agreement Contract}
+\subsection{Agreement Contract}
 
 Recall how a \textit{payment primitive} generator should look like:
 
@@ -868,8 +891,8 @@ in the shared context is to fulfill this role:
 class ( SuperfluidCoreTypes sft
       , Default ac
       , MonetaryUnitDataClass ac sft
-      , Default (AgreementOperationOutput ac)
       , Traversable (AgreementOperationOutputF ac) -- <= Foldable Functor
+      , Monoid (AgreementOperationOutput ac)
       ) => AgreementContract ac sft | ac -> sft where
 
     -- | ω function - apply agreement operation ~ao~ (hear: ω) to the agreement
@@ -888,6 +911,20 @@ class ( SuperfluidCoreTypes sft
            , aoo ~ AgreementOperationOutput ac
            )
         => ac -> ao -> t -> (ac, aoo)
+
+    -- | φ' function - functorize the existential semigroup monetary unit data
+    --                 of agreement operation output
+    functorizeAgreementOperationOutput
+        :: forall any_smud muds f.
+           ( any_smud `IsAnyTypeOf` MPTC_Flip SemigroupMonetaryUnitData sft
+           , MonetaryUnitDataClass any_smud sft
+           -- indexed type aliases
+           , muds ~ AgreementOperationOutput ac
+           , f ~ AgreementOperationOutputF ac
+           )
+        => Proxy any_smud
+        -> muds -> f any_smud
+
     data family AgreementOperation ac :: Type
     data family AgreementOperationOutputF ac :: Type -> Type
     type family AgreementOperationOutput ac = (smuds :: Type) | smuds -> ac
@@ -897,9 +934,9 @@ The $\omega$ function ($applyAgreementOperation$) is the $genPrim$ in the agreem
 takes in a agreement contract, an operation onto it and the current time; then it spits out an
 update of the agreement contract and a functorful of new delta of monetary unit data.
 
-Figure \ref{fig:ac-omega} is a visualization of ``machinery'' of the $\omega$ function:
+Figure \ref{fig:ac-omega} is a illustration of the $\omega$ function ``machinery''.
 
-\begin{figure}[h]
+\begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{../assets/agreement-contract-omega-function.png}
     \caption{Agreement Contract $\omega$ Function}
@@ -909,16 +946,17 @@ Figure \ref{fig:ac-omega} is a visualization of ``machinery'' of the $\omega$ fu
 It also illustrates that it is expected the process should respect the \textit{law of conservation
 of value} mandated by the \textit{restricted money distribution} model.
 
-It is also important to note that $AgreementContract$ itself is also a $MonetaryUnitDataClass$, but
-it is not a semigroup, hence it is used to replace the previous agreement contract data. This has
-optimization implications, as in that if agreement contracts do not produce zero balance then they
-must be included in the $\nu$ function, that can make the $\nu$ function $O(N)$ to the number of
-agreement contracts a monetary unit is associated with.
+It is also important to note that \textit{AgreementContract} itself is also
+a \textit{MonetaryUnitDataClass}, but it is not a semigroup, hence it is used to replace the
+previous agreement contract data. This has optimization implications, as in that if agreement
+contracts do not produce zero balance then they must be included in the $\nu$ function, that can
+make the $\nu$ function $O(N)$ to the number of agreement contracts a monetary unit is
+associated with.
 
 It may have been self evident that agreement contract is a analogy to the fact that it encodes
 ``ongoing relationships'' like legal contracts do between bearers.
 
-\subsection{Lens Data Accessors}
+\section{Lens Data Accessors}
 
 In order to support \textit{index abstraction} in the denotational payment primitives, Monetary unit
 data are created with \textit{lens data accessors}\footfullcite{clarke2020profunctor}:
@@ -930,14 +968,16 @@ data Lens a b s t = Lens { view :: s -> a, update :: (b, s) -> t }
 type Lens s t a b = forall f. Functor f => (a -> f b) -> s -> f t
 \end{code}
 
-The pro-functor version of might seem very obscure at first, but its data representation is rather
-self-explanatory: a lens is simply a pair of getter ($view$) and setter ($update$) encoded in the
-data.
+The pro-functor version of lens might seem very obscure at first, but its data representation is
+rather self-explanatory: a lens is simply a pair of getter ($view$) and setter ($update$) encoded in
+the data.
 
 With the help of Lens, then we can create the payment primitives independent of the choices between
 1-to-1, 1-to-N, etc. Here are how they are defined for each class of payment primitives:
 
-\paragraph{Instant Value MUD}
+\section{Useful Agreements}
+
+\subsection{Instant Value MUD}
 
 This is for agreements where value is instantly transferred.
 
@@ -964,10 +1004,10 @@ instance MonetaryUnitLenses amuLs sft
         typedValuesToRTB [mkAnyTypedValue $ a^.untappedValue]
 \end{code}
 
-Note that (a) $^.$ is the view function (getter) for Lens types. (b) semigroup operator $(<>)$ defines
-how two monetary unit data can be combined into one.
+Note that (a) lens \textbf{operator (\string^.)} is the view function (getter) of data, (b)
+semigroup \textbf{operator ($<>$)} defines how two monetary unit data can be combined into one.
 
-\paragraph{Constant Flow Agreement (CFA) MUD}
+\subsection{Constant Flow Agreement (CFA) MUD}
 
 A more interesting case is where monetary value is changing continuously over time at a constant
 rate:
@@ -1009,7 +1049,7 @@ instance MonetaryUnitLenses amuLs sft
 Note the implementation of semigroup binary operator, this is where the optimization occurs: to use
 $netFlowRate$ to fold monetary unit data into a single value.
 
-\paragraph{Decaying Flow Agreement (CFA) MUD}
+\subsection{Decaying Flow Agreement (CFA) MUD}
 
 \begin{code}
 class ( Default amuLs
@@ -1048,7 +1088,7 @@ instance MonetaryUnitLenses amuLs sft
               t_Δ   = fromIntegral (t - t_s)
 \end{code}
 
-\paragraph{Universal Index (UIDX)}
+\subsection{Universal Index (UIDX)}
 
 An universal index then can be implemented trivially by representing lenses using the record syntax
 directly. For example, for constant flow monetary unit data:
@@ -1073,7 +1113,7 @@ instance SuperfluidSystemTypes sft
 
 The $field$ is a template Haskell function to generate lens from record fields.
 
-\paragraph{Proportional Distribution Index (PDIDX)}
+\subsection{Proportional Distribution Index (PDIDX)}
 
 Proportional distribution index describes on-going \textit{subscription} agreement contracts between
 one \textit{publisher} and many \textit{subscribers} to the publisher's \textit{distribution}.
@@ -1082,12 +1122,12 @@ Its instant value variance is called \textit{``Instant Distribution Agreement (I
 
 Its constant flow variance is called \textit{``Constant Flow Distribution Agreement (CFDA)''}.
 
-\subsection{Hierarchy of Agreements}
+\section{Hierarchy of Agreements}
 
 To finish, figure \ref{fig:ac-agreement-data-structures} is the illustration of data structures for
-the denotational payment primitives implemented with agreement framework:
+the denotational payment primitives implemented with agreement framework.
 
-\begin{figure}[h!]
+\begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{../assets/agreement-data-structures.png}
     \caption{Agreement Data Structures}
@@ -1101,33 +1141,33 @@ This concludes the overview of the Superfluid protocol implementation. For more 
 refer to the code repository mentioned before.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\part*{Notes on Future Investigations}
+\part{Notes on Future Investigations}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Restatement in Agda, Correctness and Equivalence Proofs}
 
-One of the advantages of using Haskell language was chosen to write the reference implementation is
-that it is a language with industrial strength, and the implementation could be easily integrated
-into a production code base without much performance compromises.
+One of the advantages of using Haskell language to write the reference implementation was its
+industrial strength. Because of that, the implementation could be easily integrated into a
+production code base without significant performance compromises.
 
-However, a major disadvantage is that it is not equipped with sufficient apparatus for program
-correctness proofs. The best it can offer without engaging more experimental Haskell features is to
+However, one major disadvantage is that it is not equipped with sufficient apparatus for program
+correctness proofs. The best it can offer without using more experimental Haskell features is to
 use \textit{QuickCheck}\footnote{\url{https://wiki.haskell.org/QuickCheck} - Haskell wiki page for
-QuickCheck.} to the necessary laws are not violated using randomized test vector.
+QuickCheck.} to test the necessary laws are not violated using randomized test vector.
 
 To amend this deficiency, \textit{Agda programming language} comes as a great candidate for a
 different constructive restatement of the formal specification.
 
 It is based on the insight of the deep connection (equivalence/isomorphism) between logic and
 dependently typed programming, often called "the Curry–Howard correspondence", as discovered and
-developed during the 20th century (explained in \cite by Phillip Wadler as ``Propositions as
-Types''). Agda being a dependently typed functional programming language fully embodies this
-insight, hence a good candidate for creating provable correct program.
+developed during the 20th century (explained in \cite{wadler2015propositions} by Phillip Wadler as
+``Propositions as Types''). Agda being a dependently typed functional programming language fully
+embodies this insight, hence a good candidate for creating provable correct program.
 
-To learn more about Agda, see refer to these footnotes\footnote{\url{https://plfa.github.io/} -
-Programming Language Foundations in
-Agda.} \footnote{\url{https://wiki.portal.chalmers.se/agda/pmwiki.php} - Agda
-Wiki.} \footnote{\url{https://wiki.portal.chalmers.se/agda/Main/Community} - Agda community page.}.
+To learn more about Agda, refer to these footnotes
+\footnote{\url{https://plfa.github.io/} - Programming Language Foundations in Agda.}
+\footnote{\url{https://wiki.portal.chalmers.se/agda/pmwiki.php} - Agda Wiki.}
+\footnote{\url{https://wiki.portal.chalmers.se/agda/Main/Community} - Agda community page.}.
 
 \section{Future Papers on Modern Payment System}
 
@@ -1136,7 +1176,7 @@ together using a powerful combinator library pattern briefly described
 in \cite{peyton2000composing}.
 
 The execution environments for these financial contracts are also fertile ground for new ideas, from
-deterministic execution to avoid the usage of buffer, to using distributed ledger technology to
+deterministic execution avoiding the usage of buffer, to using distributed ledger technology to
 deep-embed these financial contracts in the consensus layer.
 
 \section{General Accounting Domains \& Real Time Finance}
@@ -1149,25 +1189,34 @@ corporations. \footfullcite{needles2013principles}
 
 The \textit{real time balance} introduced in this paper can be seen as a instance in
 the \textit{general accounting domain} specifically for financial contracts in dealing with payment
-primitives, a real time version of the cash flow accounting. It is a long with other types,
-including balance sheet accounting, income statement accounting. The conversion between these
-instances of general accounting domains are often called ``reconciliations''.
+primitives, which can be seen as a real time version of the cash flow accounting. Along with balance
+sheet accounting, income statement accounting, the conversion between these instances of general
+accounting domains are often called ``reconciliations''.
 
 More work can be done on how to create a simple and elegant automation system for the
 reconciliations.
 
+\paragraph{Real Time Finance}
+
 \emph{
 We define the term \textbf{real time finance} to mean a financial system where its payment system is
 modernized to handle money distribution continuously over time, its financial contracts are
-compositional, and its general accounting domain are automated and processed in real time.
-}
+compositional, and its general accounting domain are automated and processed in real time.  }
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \part*{Conclusions}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-This paper defines the what constitutes a modern payment system formally specified using
-denotational semantics and restated using Haskell programming language.
+This paper defines the what constitutes a modern payment system, with its payment primitives
+formally specified using denotational semantics and restated using Haskell programming
+language. Along with a reference implementation of the specification, we want to make a case that
+marrying with the progress of computer science, the notation of money can perform its function of
+medium of exchange can have a modern upgrade.
+
+Absent of any claim on whether if such modern upgrade is needed, we ask the readers ask
+ourselves a question together: with electronic money increasingly being used, should we keep
+emulating the function money of its traditional quality, or could we rethink what it may be in the
+information age?
 
 In future work, we will look into deeper other topics of real time finance, and continue to refine
 the methodology used to achieve \textit{simple and precise} specifications guiding correct and

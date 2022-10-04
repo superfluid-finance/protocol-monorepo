@@ -69,5 +69,5 @@ class ( MoneyDistribution md
 \end{code}
 
 It may seem very little semantic differences between token and notes
-execution environment, but that's the point. Their main difference
-lies mainly on the implementations of their user experience.
+execution environment, but it is intended. Their main difference lies
+mainly on the implementations of their ``user experience''.

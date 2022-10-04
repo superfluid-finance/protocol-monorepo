@@ -32,7 +32,7 @@ for financial contract as follows:
 \end{haddock}
 
 \begin{code}
--- | Financial contract inspired by \\cite{peyton2000composing}.
+-- | Composable financial contracts.
 class MoneyDistribution md => FinancialContract fc md | fc -> md where
     -- | Predicate of the execution condition of a financial contract.
     fcPred :: ( ctx ~ MD_CTX md
@@ -48,6 +48,8 @@ class MoneyDistribution md => FinancialContract fc md | fc -> md where
            => fc -> (md, ctx) -> t -> ((md, ctx), fc)
 \end{code}
 
-Because \textit{(md, ctx)} is monoidal too, itt is then possible to
-build a combinatorial libary of financial contracts that can be used
-to construct larger and more complex financial contracts.
+We know that both $md$ and $ctx$ are constrained to be monoid, then
+\textit{(md, ctx)} must be monoidal too. With the help of this, it is
+then possible to build a combinatorial libary of financial contracts
+that can be used to construct larger and more complex financial
+contracts.

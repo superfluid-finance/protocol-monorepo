@@ -62,22 +62,22 @@ class ( MonetaryValue (MD_MVAL md)
       , SharedContext (MD_CTX md)
       , Monoid md
       ) => MoneyDistribution md where
-    -- | Set of bearers
+    -- | Set of bearers.
     bearers :: ( brr ~ MD_BRR md
                )
             => md -> [brr]
 
-    -- | Set of monetary units
+    -- | Set of monetary units.
     monetaryUnits :: mu ~ MD_MU md
                   => md -> [mu]
 
-    -- | Money distribution β function
+    -- | Money distribution β function.
     bearerOf :: ( mu  ~ MD_MU md
               , brr ~ MD_BRR md
               )
              => md -> mu -> brr
 
-    -- | Money distribution ν function
+    -- | Money distribution ν function.
     monetaryValueOf :: ( mv  ~ MD_MVAL md
                      , mu  ~ MD_MU md
                      , ctx ~ MD_CTX md

@@ -22,6 +22,7 @@ describe("Batch Call Tests", () => {
     before(async () => {
         const { frameworkClass, Deployer, Alpha, Bravo, Charlie, SuperToken } =
             await setup({
+                amount: "100000",
                 subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
             });
         framework = frameworkClass;

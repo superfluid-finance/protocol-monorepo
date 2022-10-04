@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
-import {
-    ERC20PresetMinterPauser
-} from "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
@@ -32,8 +29,10 @@ import { SETHProxy } from "../tokens/SETH.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
 import { IPureSuperToken } from "../interfaces/tokens/IPureSuperToken.sol";
 import { ISETH } from "../interfaces/tokens/ISETH.sol";
-import "../apps/CFAv1Library.sol";
-import "../apps/IDAv1Library.sol";
+import { CFAv1Library } from "../apps/CFAv1Library.sol";
+import { IDAv1Library } from "../apps/IDAv1Library.sol";
+
+import { TestToken } from "./TestToken.sol";
 
 /// @title Superfluid Framework Deployer
 /// @notice This is NOT for deploying public nets, but rather only for tesing envs
@@ -153,10 +152,6 @@ contract SuperfluidFrameworkDeployer {
         return sf;
     }
 
-    function register(address _ida) external {
-        governance.registerAgreementClass(host, _ida);
-    }
-
     /// @notice Deploys an ERC20 and a Wrapper Super Token for the ERC20 and lists both in the resolver
     /// @dev SuperToken name and symbol format: `Super ${_underlyingSymbol}` and `${_underlyingSymbol}x`, respectively
     /// @param _underlyingName The underlying token name
@@ -164,21 +159,14 @@ contract SuperfluidFrameworkDeployer {
     /// @return underlyingToken and superToken
     function deployWrapperSuperToken(
         string calldata _underlyingName,
-        string calldata _underlyingSymbol
-    )
-        external
-        returns (ERC20PresetMinterPauser underlyingToken, SuperToken superToken)
-    {
-        underlyingToken = new ERC20PresetMinterPauser(
+        string calldata _underlyingSymbol,
+        uint8 _decimals
+    ) external returns (TestToken underlyingToken, SuperToken superToken) {
+        underlyingToken = new TestToken(
             _underlyingName,
-            _underlyingSymbol
+            _underlyingSymbol,
+            _decimals
         );
-        underlyingToken.grantRole(
-            underlyingToken.DEFAULT_ADMIN_ROLE(),
-            msg.sender
-        );
-        underlyingToken.grantRole(underlyingToken.MINTER_ROLE(), msg.sender);
-        underlyingToken.grantRole(underlyingToken.PAUSER_ROLE(), msg.sender);
         superToken = SuperToken(
             address(
                 superTokenFactory.createERC20Wrapper(
@@ -226,10 +214,7 @@ contract SuperfluidFrameworkDeployer {
 
         _handleResolverList(
             true,
-            string.concat(
-                RESOLVER_BASE_SUPER_TOKEN_KEY,
-                nativeAssetSuperToken.symbol()
-            ),
+            string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, _symbol),
             address(nativeAssetSuperToken)
         );
     }
@@ -255,10 +240,7 @@ contract SuperfluidFrameworkDeployer {
 
         _handleResolverList(
             true,
-            string.concat(
-                RESOLVER_BASE_SUPER_TOKEN_KEY,
-                pureSuperToken.symbol()
-            ),
+            string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, _symbol),
             address(pureSuperToken)
         );
     }

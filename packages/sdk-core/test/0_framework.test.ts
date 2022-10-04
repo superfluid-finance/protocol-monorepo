@@ -1,11 +1,12 @@
 import { expect } from "chai";
-import { ethers } from "ethers";
+import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { SuperToken } from "../src/typechain";
 import { networkNameToChainIdMap } from "../src/constants";
-import { HARDHAT_PRIVATE_KEY, setup } from "../scripts/setup";
 import hre from "hardhat";
+import { deployContractsAndToken } from "../../subgraph/scripts/deployContractsAndToken";
+import { HARDHAT_PRIVATE_KEY, setup } from "../scripts/setup";
 
 export const ROPSTEN_SUBGRAPH_ENDPOINT =
     "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-ropsten";
@@ -21,6 +22,7 @@ describe("Framework Tests", async () => {
         INFURA_API_URL,
         "matic"
     );
+    let resolverAddress: string;
 
     before(async () => {
         const { frameworkClass, Deployer, SuperToken, Alpha } = await setup({
@@ -28,6 +30,10 @@ describe("Framework Tests", async () => {
             subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
         });
         framework = frameworkClass;
+        const sfDeployer = await deployContractsAndToken();
+        const frameworkAddresses = await sfDeployer.getFramework();
+        resolverAddress = frameworkAddresses.resolver;
+
         deployer = Deployer;
         alpha = Alpha;
         superToken = SuperToken;
@@ -145,7 +151,7 @@ describe("Framework Tests", async () => {
             await Framework.create({
                 chainId,
                 provider,
-                resolverAddress: process.env.RESOLVER_ADDRESS,
+                resolverAddress,
                 protocolReleaseVersion: "test",
             });
         });
@@ -155,7 +161,7 @@ describe("Framework Tests", async () => {
             await Framework.create({
                 chainId,
                 provider: (global as any).web3,
-                resolverAddress: process.env.RESOLVER_ADDRESS,
+                resolverAddress,
                 protocolReleaseVersion: "test",
             });
         });
@@ -165,7 +171,7 @@ describe("Framework Tests", async () => {
             await Framework.create({
                 chainId,
                 provider: hre.ethers,
-                resolverAddress: process.env.RESOLVER_ADDRESS,
+                resolverAddress,
                 protocolReleaseVersion: "test",
             });
         });

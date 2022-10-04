@@ -68,6 +68,7 @@ describe("Operation Tests", () => {
     before(async () => {
         const { frameworkClass, CFAV1, Deployer, Alpha, Bravo, SuperToken } =
             await setup({
+                amount: "100000",
                 subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
             });
         framework = frameworkClass;
@@ -156,9 +157,7 @@ describe("Operation Tests", () => {
         try {
             await operation.exec(deployer);
         } catch (err: any) {
-            expect(err.message).to.contain(
-                "cannot estimate gas"
-            );
+            expect(err.message).to.contain("cannot estimate gas");
         }
     });
 

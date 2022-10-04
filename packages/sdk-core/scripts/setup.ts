@@ -8,7 +8,6 @@ import {
 import { deployContractsAndToken } from "../../subgraph/scripts/deployContractsAndToken";
 import { Framework, WrapperSuperToken } from "../src";
 
-// private key derived from the mnemonic above
 export const HARDHAT_PRIVATE_KEY =
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 interface ISetupProps {
@@ -20,7 +19,8 @@ interface ISetupProps {
 // This is because when we are testing the emit, the passed in contract expects a
 // provider and will throw an error if this doesn't exist.
 export const setup = async (props: ISetupProps) => {
-    process.env.RESOLVER_ADDRESS = await deployContractsAndToken();
+    const deployer = await deployContractsAndToken();
+    const framework = await deployer.getFramework();
 
     const [Deployer, Alpha, Bravo, Charlie] = await ethers.getSigners();
     if (!Deployer || !Alpha || !Bravo || !Charlie) {
@@ -33,9 +33,10 @@ export const setup = async (props: ISetupProps) => {
         throw new Error("No provider");
     }
     const chainId = (await provider.getNetwork()).chainId;
+
     const frameworkClass = await Framework.create({
         chainId,
-        resolverAddress: process.env.RESOLVER_ADDRESS,
+        resolverAddress: framework.resolver,
         provider,
         customSubgraphQueriesEndpoint: props.subgraphEndpoint,
         protocolReleaseVersion: "test",
@@ -87,5 +88,6 @@ export const setup = async (props: ISetupProps) => {
         SuperToken,
         Token,
         SignerCount: signers.length,
+        ResolverAddress: framework.resolver,
     };
 };

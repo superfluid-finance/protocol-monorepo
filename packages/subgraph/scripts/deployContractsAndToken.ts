@@ -13,7 +13,12 @@ export async function deployContractsAndToken() {
     console.log("Deploying Wrapper Super Token...");
     await deployer
         .connect(Deployer)
-        .deployWrapperSuperToken("Fake DAI", "fDAI", 18);
+        .deployWrapperSuperToken(
+            "Fake DAI",
+            "fDAI",
+            18,
+            ethers.utils.parseUnits("1000000000000")
+        );
 
     console.log("Deploying Native Asset Super Token...");
     await deployer
@@ -23,6 +28,10 @@ export async function deployContractsAndToken() {
     console.log("Deploying Pure Super Token...");
     await deployer
         .connect(Deployer)
-        .deployPureSuperToken("Mr.Token", "MRx", "100000000");
+        .deployPureSuperToken(
+            "Mr.Token",
+            "MRx",
+            ethers.utils.parseUnits("1000000000000")
+        );
     return deployer;
 }

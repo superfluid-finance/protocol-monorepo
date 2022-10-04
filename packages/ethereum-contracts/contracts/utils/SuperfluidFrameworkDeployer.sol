@@ -20,7 +20,7 @@ import {
     ERC20WithTokenInfo
 } from "../superfluid/SuperTokenFactory.sol";
 import { SuperToken } from "../superfluid/SuperToken.sol";
-import { Resolver } from "./Resolver.sol";
+import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 
 import { SETHProxy } from "../tokens/SETH.sol";
@@ -49,7 +49,7 @@ contract SuperfluidFrameworkDeployer {
         InstantDistributionAgreementV1 ida;
         IDAv1Library.InitData idaLib;
         SuperTokenFactory superTokenFactory;
-        Resolver resolver;
+        TestResolver resolver;
         SuperfluidLoader superfluidLoader;
     }
 
@@ -58,7 +58,7 @@ contract SuperfluidFrameworkDeployer {
     ConstantFlowAgreementV1 internal cfa;
     InstantDistributionAgreementV1 internal ida;
     SuperTokenFactory internal superTokenFactory;
-    Resolver internal resolver;
+    TestResolver internal resolver;
     SuperfluidLoader internal superfluidLoader;
 
     /// @notice Deploys everything... probably
@@ -126,8 +126,8 @@ contract SuperfluidFrameworkDeployer {
             address(superTokenFactory)
         );
 
-        // Deploy Resolver
-        resolver = new Resolver();
+        // Deploy Resolver and grant the deployer of SuperfluidFrameworkDeployer admin privileges
+        resolver = new TestResolver(msg.sender);
 
         // Deploy SuperfluidLoader
         superfluidLoader = new SuperfluidLoader(resolver);

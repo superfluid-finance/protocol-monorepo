@@ -238,7 +238,7 @@ describe("Subgraph Tests", () => {
         it("Should return the correct data for the superToken", async () => {
             await fetchTokenAndValidate(
                 daix.address.toLowerCase(),
-                "Super fDAI Fake Token",
+                "Super fDAI",
                 "fDAIx",
                 true,
                 false,
@@ -250,9 +250,9 @@ describe("Subgraph Tests", () => {
         it("Should return the correct data for the regularToken", async () => {
             await fetchTokenAndValidate(
                 dai.address.toLowerCase(),
-                "fDAI Fake Token",
+                "Fake DAI",
                 "fDAI",
-                false,
+                true,
                 false,
                 "",
                 18
@@ -272,7 +272,7 @@ describe("Subgraph Tests", () => {
             await waitUntilBlockIndexed(receipt.blockNumber);
             await fetchTokenAndValidate(
                 daix.address.toLowerCase(),
-                "Super fDAI Fake Token",
+                "Super fDAI",
                 "fDAIx",
                 false,
                 false,
@@ -288,7 +288,7 @@ describe("Subgraph Tests", () => {
             await waitUntilBlockIndexed(receipt.blockNumber);
             await fetchTokenAndValidate(
                 daix.address.toLowerCase(),
-                "Super fDAI Fake Token",
+                "Super fDAI",
                 "fDAIx",
                 true,
                 false,
@@ -494,6 +494,7 @@ describe("Subgraph Tests", () => {
             }
         });
 
+        // @note FIX THIS TEST
         it("Should liquidate a stream", async () => {
             const flowRate = monthlyToSecondRate(5000);
             const sender = userAddresses[0];

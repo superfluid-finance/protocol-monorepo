@@ -29,7 +29,7 @@
         "run-forge": "IS_FOUNDRY=true forge",
         "run-nodemon": "nodemon -e sol,js,ts -x",
         "build": "run-s build:*",
-        "build:contracts": "rm -f build/contracts/*;yarn run-truffle compile",
+        "build:contracts": "rm -f build/contracts/*;yarn run-truffle compile && yarn build:hardhat",
         "build:hardhat": "yarn run-hardhat compile",
         "build:contracts-size": "tasks/print-contract-sizes.sh | tee build/contracts-sizes.txt",
         "testenv:start": "test/testenv-ctl.sh start",

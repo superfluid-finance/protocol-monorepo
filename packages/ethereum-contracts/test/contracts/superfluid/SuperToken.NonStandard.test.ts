@@ -218,7 +218,7 @@ describe("SuperToken's Non Standard Functions", function () {
                 "Test Token 6 Decimals",
                 "TEST6D",
                 6,
-                ethers.utils.parseUnits((1e12).toString()),
+                "1000000000000000000000000000000",
                 {
                     from: bob,
                 }
@@ -325,7 +325,7 @@ describe("SuperToken's Non Standard Functions", function () {
                 "Test Token 20 Decimals",
                 "TEST20D",
                 20,
-                ethers.utils.parseUnits((1e12).toString()),
+                "1000000000000000000000000000000",
                 {
                     from: bob,
                 }

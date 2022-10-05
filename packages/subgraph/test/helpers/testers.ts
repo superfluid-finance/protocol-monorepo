@@ -9,7 +9,7 @@
  * - modifying data to get expected data for comparison
  * - query the graph to get the data to be validated
  * - validate the event based on the expected data
- * - valiate HOL/aggregate entities based on the expected data
+ * - validate HOL/aggregate entities based on the expected data
  *************************************************************************/
 import {
     IExpectedFlowOperatorUpdatedEvent,

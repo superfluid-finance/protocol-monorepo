@@ -27,6 +27,7 @@ jobs:
 
       - name: "Build contracts"
         run: |
+          rm -f build/contracts/*
           yarn build:contracts-truffle
           yarn build:contracts-hardhat
         working-directory: ./packages/ethereum-contracts

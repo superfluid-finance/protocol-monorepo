@@ -27,8 +27,8 @@ jobs:
 
       - name: "Build contracts"
         run: |
-          yarn build:truffle
-          yarn build:hardhat
+          yarn build:contracts-truffle
+          yarn build:contracts-hardhat
         working-directory: ./packages/ethereum-contracts
 
       - name: "Run test suite"

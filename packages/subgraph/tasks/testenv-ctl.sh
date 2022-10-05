@@ -13,9 +13,7 @@ if [ "$CMD" == "start" ];then
         # NOTE: this is already done outside, but it gives time for the subgraph to
         # start syncing
         cd ../ethereum-contracts
-        rm -f build/contracts/*
-        yarn build:contracts-truffle
-        yarn build:contracts-hardhat
+        yarn build:contracts
         # Get ABIs and generate typechain in subgraph folder based on ABIs
         cd ../subgraph
         yarn getAbi

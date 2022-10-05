@@ -4,7 +4,7 @@ pragma solidity 0.8.16;
 import "forge-std/Test.sol";
 import {
     SuperfluidFrameworkDeployer,
-    Resolver,
+    TestResolver,
     SuperfluidLoader,
     TestToken
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
@@ -26,7 +26,7 @@ import {
 contract SuperfluidFrameworkDeployerTest is Test {
     SuperfluidFrameworkDeployer internal sfDeployer;
     SuperfluidFrameworkDeployer.Framework internal sf;
-    Resolver internal resolver;
+    TestResolver internal resolver;
     SuperfluidLoader internal superfluidLoader;
 
     address internal constant admin = address(0x420);

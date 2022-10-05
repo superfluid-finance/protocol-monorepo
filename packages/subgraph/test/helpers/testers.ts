@@ -109,7 +109,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         updatedAtBlockNumber: lastUpdatedBlockNumber,
         data,
     });
-    const newDeposit = clipDepositNumber(newFlowRate.mul(toBN(3600)));
+    const newDeposit = clipDepositNumber(newFlowRate.mul(toBN(14400)));
     if (!newDeposit.eq(toBN(deposit))) {
         throw new Error("DEPOSITS ARE NOT EQUAL");
     }
@@ -187,7 +187,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
                 txnResponse.hash,
                 "TransferEvents"
             );
-        
+
         expectedData.updatedSenderATS = {
             ...expectedData.updatedSenderATS,
             totalAmountTransferredUntilUpdatedAt: toBN(

@@ -3,9 +3,9 @@ import { ethers } from "hardhat";
 import { Framework } from "../src/index";
 import { networkNameToChainIdMap } from "../src/constants";
 import hre from "hardhat";
-import { TestEnvironment, _makeSuite } from "./TestEnvironment";
+import { TestEnvironment, makeSuite } from "./TestEnvironment";
 
-_makeSuite("Framework Tests", (testEnv: TestEnvironment) => {
+makeSuite("Framework Tests", (testEnv: TestEnvironment) => {
     describe("Validate Framework Constructor Options Tests", async () => {
         it("Should throw an error if no networkName or chainId", async () => {
             try {

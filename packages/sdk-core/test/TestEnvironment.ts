@@ -127,7 +127,7 @@ export const initializeTestEnvironment = async () => {
     }
 };
 
-export const _makeSuite = (
+export const makeSuite= (
     name: string,
     tests: (testEnvironment: TestEnvironment) => void
 ) => {

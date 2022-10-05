@@ -9,7 +9,7 @@ import hre from "hardhat";
 import { SuperAppTester } from "../typechain-types";
 import { abi as SuperAppTesterABI } from "../artifacts/contracts/SuperAppTester.sol/SuperAppTester.json";
 const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
-import { TestEnvironment, _makeSuite } from "./TestEnvironment";
+import { TestEnvironment, makeSuite } from "./TestEnvironment";
 
 /**
  * Create a simple call app action (setVal) operation with the SuperAppTester contract.
@@ -51,7 +51,7 @@ export const createCallAppActionOperation = async (
     };
 };
 
-_makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
+makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
     it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
         const revokeControlOp =
             testEnv.sdkFramework.cfaV1.revokeFlowOperatorWithFullControl({

@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { TestEnvironment, _makeSuite } from "./TestEnvironment";
+import { TestEnvironment, makeSuite } from "./TestEnvironment";
 
-_makeSuite("Governance Tests", (testEnv: TestEnvironment) => {
+makeSuite("Governance Tests", (testEnv: TestEnvironment) => {
     it("Should get default governance parameters", async () => {
         const defaultParams =
             await testEnv.sdkFramework.governance.getGovernanceParameters({

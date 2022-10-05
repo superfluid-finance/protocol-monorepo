@@ -2,9 +2,9 @@ import { expect } from "chai";
 import { getPerSecondFlowRateByMonth } from "../src";
 import { ethers } from "ethers";
 import { createCallAppActionOperation } from "./2_operation.test";
-import { TestEnvironment, _makeSuite } from "./TestEnvironment";
+import { TestEnvironment, makeSuite } from "./TestEnvironment";
 
-_makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
+makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
     it("Should throw an error when empty", async () => {
         try {
             await testEnv.sdkFramework.batchCall([{} as any]).exec(testEnv.bob);

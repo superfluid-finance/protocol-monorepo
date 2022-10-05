@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import hre from "hardhat";
 import {
     AUTHORIZE_FLOW_OPERATOR_CREATE,
     getFlowOperatorId,
@@ -11,7 +10,7 @@ import {
 import { getPerSecondFlowRateByMonth } from "../src";
 import { BigNumber, ethers } from "ethers";
 import { AUTHORIZE_FULL_CONTROL } from "../src";
-import { TestEnvironment, _makeSuite } from "./TestEnvironment";
+import { TestEnvironment, makeSuite } from "./TestEnvironment";
 
 export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
     // last 32 bits of the deposit (96 bits) is clipped off
@@ -23,7 +22,7 @@ export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
     return deposit.shr(32).add(toBN(rounding)).shl(32);
 };
 
-_makeSuite("SuperToken Tests", (testEnv: TestEnvironment) => {
+makeSuite("SuperToken Tests", (testEnv: TestEnvironment) => {
     async function createFlowWithOperator(
         flowOperator: SignerWithAddress,
         sender: SignerWithAddress,

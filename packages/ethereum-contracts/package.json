@@ -20,7 +20,8 @@
         "/build/contracts-sizes.txt",
         "/build/abi.js",
         "scripts/**/*",
-        "utils/**/*"
+        "utils/**/*",
+        "typechain-types/**/*"
     ],
     "scripts": {
         "dev": "tasks/dev.sh",

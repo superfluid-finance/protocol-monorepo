@@ -1,9 +1,12 @@
+import {
+    IConstantFlowAgreementV1,
+    IConstantFlowAgreementV1__factory,
+} from "@superfluid-finance/ethereum-contracts/typechain-types";
 import { ethers } from "ethers";
 
 import Host from "./Host";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
-import IConstantFlowAgreementV1ABI from "./abi/IConstantFlowAgreementV1.json";
 import {
     IAgreementV1Options,
     ICreateFlowParams,
@@ -21,16 +24,13 @@ import {
     IWeb3FlowOperatorData,
     IWeb3FlowOperatorDataParams,
 } from "./interfaces";
-import { IConstantFlowAgreementV1 } from "./typechain";
 import {
     getSanitizedTimestamp,
     isPermissionsClean,
     normalizeAddress,
 } from "./utils";
 
-const cfaInterface = new ethers.utils.Interface(
-    IConstantFlowAgreementV1ABI.abi
-);
+const cfaInterface = IConstantFlowAgreementV1__factory.createInterface();
 
 /**
  * Constant Flow Agreement V1 Helper Class
@@ -46,7 +46,7 @@ export default class ConstantFlowAgreementV1 {
         this.host = new Host(options.config.hostAddress);
         this.contract = new ethers.Contract(
             this.options.config.cfaV1Address,
-            IConstantFlowAgreementV1ABI.abi
+            IConstantFlowAgreementV1__factory.abi
         ) as IConstantFlowAgreementV1;
     }
 

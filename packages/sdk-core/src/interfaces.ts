@@ -1,12 +1,12 @@
-import { ethers, Overrides } from "ethers";
-
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
     IResolver,
     Superfluid,
-} from "./typechain";
-import { SuperfluidGovernanceII } from "./typechain/SuperfluidGovernanceII";
+    SuperfluidGovernanceII,
+} from "@superfluid-finance/ethereum-contracts/typechain-types";
+import { ethers, Overrides } from "ethers";
+
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files
 // makes more sense than stuffing them all here
@@ -363,7 +363,7 @@ export interface IIndex extends IHOLUpdateable {
     readonly totalUnitsApproved: string;
     readonly totalUnits: string;
     readonly totalAmountDistributedUntilUpdatedAt: string;
-    readonly token: ISuperToken;
+    readonly token: SuperTokenType;
     readonly publisher: string;
 }
 
@@ -380,20 +380,20 @@ export interface IIndexSubscriptionIndex {
     readonly id: string;
     readonly indexId: string;
     readonly indexValue: string;
-    readonly token: ISuperToken;
+    readonly token: SuperTokenType;
 }
 
 export interface IStream extends IHOLUpdateable {
     readonly currentFlowRate: string;
     readonly streamedUntilUpdatedAt: string;
-    readonly token: ISuperToken;
+    readonly token: SuperTokenType;
     readonly sender: string;
     readonly receiver: string;
     readonly flowUpdatedEvents: IStreamFlowUpdatedEvent[];
 }
 export type IStreamFlowUpdatedEvent = IFlowUpdatedEvent;
 
-export interface ISuperToken extends IHOLEntityBase {
+export interface SuperTokenType extends IHOLEntityBase {
     readonly name: string;
     readonly symbol: string;
     readonly isListed: boolean;
@@ -419,7 +419,7 @@ export interface ILightAccountTokenSnapshot extends IAggregateEntityBase {
     readonly totalAmountStreamedUntilUpdatedAt: string;
     readonly totalAmountTransferredUntilUpdatedAt: string;
     readonly account: string;
-    readonly token: ISuperToken;
+    readonly token: SuperTokenType;
 }
 
 // Internal Interfaces

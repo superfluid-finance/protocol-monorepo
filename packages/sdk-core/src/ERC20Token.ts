@@ -1,10 +1,12 @@
+import {
+    ERC20WithTokenInfo,
+    ERC20WithTokenInfo__factory,
+} from "@superfluid-finance/ethereum-contracts/typechain-types";
 import { ethers } from "ethers";
 
 import Operation from "./Operation";
 import { SFError } from "./SFError";
-import ERC20WithTokenInfoABI from "./abi/ERC20WithTokenInfo.json";
 import { IBaseSuperTokenParams, ITransferFromParams } from "./interfaces";
-import { ERC20WithTokenInfo } from "./typechain/ERC20WithTokenInfo";
 import { normalizeAddress } from "./utils";
 
 export default class ERC20Token {
@@ -13,9 +15,10 @@ export default class ERC20Token {
 
     constructor(address: string) {
         this.address = address;
+
         this.contract = new ethers.Contract(
             this.address,
-            ERC20WithTokenInfoABI.abi
+            ERC20WithTokenInfo__factory.abi
         ) as ERC20WithTokenInfo;
     }
 

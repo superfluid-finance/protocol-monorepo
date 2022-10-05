@@ -1,8 +1,10 @@
+import {
+    Superfluid,
+    Superfluid__factory,
+} from "@superfluid-finance/ethereum-contracts/typechain-types";
 import { ethers, Overrides } from "ethers";
 
 import Operation from "./Operation";
-import SuperfluidABI from "./abi/Superfluid.json";
-import { Superfluid } from "./typechain";
 
 /**
  * Host Helper Class
@@ -14,7 +16,7 @@ export default class Host {
     constructor(hostAddress: string) {
         this.contract = new ethers.Contract(
             hostAddress,
-            SuperfluidABI.abi
+            Superfluid__factory.abi
         ) as Superfluid;
     }
 

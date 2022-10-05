@@ -1,9 +1,12 @@
+import {
+    IInstantDistributionAgreementV1,
+    IInstantDistributionAgreementV1__factory,
+} from "@superfluid-finance/ethereum-contracts/typechain-types";
 import { ethers } from "ethers";
 
 import Host from "./Host";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
-import IInstantDistributionAgreementV1ABI from "./abi/IInstantDistributionAgreementV1.json";
 import {
     IAgreementV1Options,
     IApproveSubscriptionParams,
@@ -19,12 +22,9 @@ import {
     IWeb3Index,
     IWeb3Subscription,
 } from "./interfaces";
-import { IInstantDistributionAgreementV1 } from "./typechain";
 import { normalizeAddress } from "./utils";
 
-const idaInterface = new ethers.utils.Interface(
-    IInstantDistributionAgreementV1ABI.abi
-);
+const idaInterface = IInstantDistributionAgreementV1__factory.createInterface();
 
 /**
  * Instant Distribution Agreement V1 Helper Class
@@ -40,7 +40,7 @@ export default class InstantDistributionAgreementV1 {
         this.host = new Host(options.config.hostAddress);
         this.contract = new ethers.Contract(
             this.options.config.idaV1Address,
-            IInstantDistributionAgreementV1ABI.abi
+            IInstantDistributionAgreementV1__factory.abi
         ) as IInstantDistributionAgreementV1;
     }
 

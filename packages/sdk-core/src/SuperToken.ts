@@ -1,3 +1,9 @@
+import {
+    ISETH,
+    ISETH__factory,
+    ISuperToken,
+    ISuperToken__factory,
+} from "@superfluid-finance/ethereum-contracts/typechain-types";
 import { BytesLike, ethers, Overrides } from "ethers";
 
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -6,8 +12,6 @@ import Governance from "./Governance";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
-import ISETHABI from "./abi/ISETH.json";
-import SuperTokenABI from "./abi/SuperToken.json";
 import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {
@@ -39,8 +43,6 @@ import {
     IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
 } from "./interfaces";
-import { SuperToken as ISuperToken } from "./typechain";
-import { ISETH } from "./typechain/ISETH";
 import {
     getSanitizedTimestamp,
     getStringCurrentTimeInSeconds,
@@ -95,7 +97,7 @@ export default abstract class SuperToken extends ERC20Token {
 
         this.contract = new ethers.Contract(
             this.settings.address,
-            SuperTokenABI.abi
+            ISuperToken__factory.abi
         ) as ISuperToken;
     }
 
@@ -112,7 +114,7 @@ export default abstract class SuperToken extends ERC20Token {
         try {
             const superToken = new ethers.Contract(
                 options.address,
-                SuperTokenABI.abi
+                ISuperToken__factory.abi
             ) as ISuperToken;
             const underlyingTokenAddress = await superToken
                 .connect(options.provider)
@@ -727,7 +729,7 @@ export class NativeAssetSuperToken extends SuperToken {
     get nativeAssetContract() {
         return new ethers.Contract(
             this.settings.address,
-            ISETHABI.abi
+            ISETH__factory.abi
         ) as ISETH;
     }
 

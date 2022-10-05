@@ -10,9 +10,6 @@ CMD=$1
 
 if [ "$CMD" == "start" ];then
     if [ "$BUILT" == "" ];then
-        cd ../ethereum-contracts
-        # Build contracts
-        yarn run build:contracts
         # Get ABIs and generate typechain in subgraph folder based on ABIs
         cd ../subgraph
         yarn getAbi

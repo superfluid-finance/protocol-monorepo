@@ -39,7 +39,7 @@ describe("SuperTokenFactory Contract", function () {
             "Test Token 1",
             "TT1",
             18,
-            "1000000000000000000000000000000"
+            ethers.utils.parseUnits((1e12).toString())
         );
         await t.pushEvmSnapshot();
 

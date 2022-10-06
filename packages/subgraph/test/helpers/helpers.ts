@@ -315,9 +315,9 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         [FlowActionType.Delete, "Delete"],
     ]);
     console.log(
-        `********************** ${actionToTypeStringMap.get(
-            data.actionType
-        )} a flow **********************`
+        `${actionToTypeStringMap.get(data.actionType)} flow from ${
+            data.sender
+        } to ${data.receiver} at ${data.newFlowRate}`
     );
 
     let signer = data.liquidator

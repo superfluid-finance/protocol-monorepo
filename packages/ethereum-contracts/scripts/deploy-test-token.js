@@ -7,6 +7,7 @@ const {
     extractWeb3Options,
     builtTruffleContractLoader,
 } = require("./libs/common");
+const {ethers} = require("ethers");
 
 /**
  * @dev Deploy test token (Mintable ERC20) and register it in the resolver.
@@ -67,7 +68,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             tokenSymbol + " Fake Token",
             tokenSymbol,
             tokenDecimals,
-            "1000000000000000000000000000000"
+            ethers.utils.parseUnits((1e12).toString())
         );
         testTokenAddress = testToken.address;
         await web3tx(resolver.set, `Resolver set ${name}`)(

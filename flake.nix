@@ -33,7 +33,9 @@
       # for haskell spec
       cabal-install
       haskell.compiler.ghc92
-      haskell-language-server
+      (haskell-language-server.override {
+        supportedGhcVersions = [ "924" ];
+      })
       hlint
       gnuplot
       # sage math

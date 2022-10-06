@@ -9,7 +9,7 @@ import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/in
 import { ISuperfluidToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperTokenFactory } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperTokenFactory.sol";
 import {
-    ERC20PresetMinterPauser,
+    TestToken,
     SuperToken,
     SuperTokenFactory,
     SuperfluidFrameworkDeployer
@@ -17,7 +17,7 @@ import {
 
 contract SlotsBitmapLibraryProperties is Test {
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    ERC20PresetMinterPauser private token;
+    TestToken private token;
     ISuperToken private immutable superToken;
     address constant subscriber = address(1);
     bytes32 constant fakeId =
@@ -37,13 +37,8 @@ contract SlotsBitmapLibraryProperties is Test {
         sfDeployer = new SuperfluidFrameworkDeployer();
         SuperfluidFrameworkDeployer.Framework memory sfFramework = sfDeployer
             .getFramework();
-        token = new ERC20PresetMinterPauser("Test Token", "TST");
-        superToken = sfFramework.superTokenFactory.createERC20Wrapper(
-            token,
-            18,
-            ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
-            "Test Token",
-            "TSTx"
+        (token, superToken) = sfDeployer.deployWrapperSuperToken(
+            "Test Token", "TST", 18, type(uint256).max
         );
 
         vm.stopPrank();

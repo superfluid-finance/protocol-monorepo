@@ -31,7 +31,8 @@
       gnumake
       nodePackages.nodemon
       # for haskell spec
-      haskell.compiler.ghc924
+      cabal-install
+      haskell.compiler.ghc92
       haskell-language-server
       hlint
       gnuplot

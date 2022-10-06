@@ -36,11 +36,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1664529375,
-        "narHash": "sha256-fDMy3q0vR7fUQ9V2qL0mENdG/UTcWARmbhtc37DxRL4=",
+        "lastModified": 1664874883,
+        "narHash": "sha256-V5Y3JAH4mziGDoHhrurmxsxc9UJDEGCGOdQMd/ujz44=",
         "owner": "shazow",
         "repo": "foundry.nix",
-        "rev": "e6a7abb3bacc97bc8ecebdc45e3b3ebcde8a2c12",
+        "rev": "aa676560a211b022e9f6126d5954d783a446c1f0",
         "type": "github"
       },
       "original": {
@@ -67,11 +67,11 @@
     },
     "nixpkgs_2": {
       "locked": {
-        "lastModified": 1664497144,
-        "narHash": "sha256-oLTtXSp95umHunc+uFyGxUiZCXQlGFjXMz+w95hGZi4=",
+        "lastModified": 1664847737,
+        "narHash": "sha256-Wxl0CtRH3Vo8+qEZ/PbCcx+9D8wEEi56tJPmROum2ss=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "671fabc93b4d1a3b38499c7b20776477c91b2b15",
+        "rev": "de80d1d04ee691279e1302a1128c082bbda3ab01",
         "type": "github"
       },
       "original": {

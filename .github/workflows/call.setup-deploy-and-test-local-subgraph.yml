@@ -46,6 +46,7 @@ jobs:
         with:
           repository: graphprotocol/graph-node
           path: graph-node
+          ref: v0.27.0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Run setup because linux and docker-compose"

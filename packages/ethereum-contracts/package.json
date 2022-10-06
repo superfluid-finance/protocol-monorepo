@@ -32,6 +32,7 @@
         "build": "run-s build:*",
         "build:contracts": "rm -f build/contracts/*;yarn run-truffle compile",
         "build:hardhat": "yarn run-hardhat compile",
+        "build:typechain": "tsc -p tsconfig.typechain.json",
         "build:contracts-size": "tasks/print-contract-sizes.sh | tee build/contracts-sizes.txt",
         "testenv:start": "test/testenv-ctl.sh start",
         "testenv:stop": "test/testenv-ctl.sh stop",
@@ -80,6 +81,7 @@
         "solidity-coverage": "0.8.0",
         "solidity-docgen": "^0.6.0-beta.25",
         "truffle-flattener": "^1.6.0",
-        "truffle-plugin-verify": "0.5.28"
+        "truffle-plugin-verify": "0.5.28",
+        "tsup": "6.2.3"
     }
 }

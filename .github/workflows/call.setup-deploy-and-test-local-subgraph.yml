@@ -44,9 +44,8 @@ jobs:
       - name: "Checkout graph node repo and set up local graph node"
         uses: actions/checkout@v3
         with:
-          repository: graphprotocol/graph-node
+          repository: 0xdavinchee/graph-node
           path: graph-node
-          ref: v0.27.0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Run setup because linux and docker-compose"

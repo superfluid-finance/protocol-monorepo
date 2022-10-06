@@ -1,8 +1,8 @@
 /**************************************************************************
  * Entity Updaters (For expected values)
  *
- * This file contains all the updater functions for the objects initalized
- * in the intializers.ts file. This file contains the logic for changing
+ * This file contains all the updater functions for the objects initialized
+ * in the initializers.ts file. This file contains the logic for changing
  * the data to what we expect it to be. The output of these functions
  * are what is used to compare against the data obtained from the graph.
  *************************************************************************/

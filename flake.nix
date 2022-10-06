@@ -31,13 +31,14 @@
       gnumake
       nodePackages.nodemon
       # for haskell spec
+      gnuplot
       cabal-install
       haskell.compiler.ghc92
       (haskell-language-server.override {
         supportedGhcVersions = [ "924" ];
       })
       hlint
-      gnuplot
+      stylish-haskell
       # sage math
       sage
       # yellow-paper pipeline

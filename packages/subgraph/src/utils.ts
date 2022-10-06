@@ -7,6 +7,7 @@ import {
     Token,
     TokenStatistic,
 } from "../generated/schema";
+import { getResolverAddress } from "./addresses";
 
 /**************************************************************************
  * Constants
@@ -81,10 +82,8 @@ export function getIsListedToken(
     resolverAddress: Address
 ): Token {
     let resolverContract = Resolver.bind(resolverAddress);
-    let version =
-        resolverAddress.toHex() == "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512"
-            ? "test"
-            : "v1";
+    const RESOLVER_ADDRESS = getResolverAddress();
+    let version = resolverAddress.equals(RESOLVER_ADDRESS) ? "test" : "v1";
     let result = resolverContract.try_get(
         "supertokens." + version + "." + token.symbol
     );

@@ -31,6 +31,7 @@
       gnumake
       nodePackages.nodemon
       # for haskell spec
+      cabal-install
       haskell.compiler.ghc92
       haskell-language-server
       hlint

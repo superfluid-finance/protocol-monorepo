@@ -2,13 +2,14 @@
     "extends": "./tsconfig",
     "compilerOptions": {
         "target": "ES2019",
-        "outDir": "build",
+        "outDir": "build/typechain",
         "moduleResolution": "node",
         "module": "CommonJS",
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true
     },
-    "include": ["typechain-types"]
-    // "exclude": ["node_modules/**", "hardhat-config.ts"]
+    "files": [],
+    "include": ["typechain-types"],
+    "exclude": ["node_modules/**"]
 }

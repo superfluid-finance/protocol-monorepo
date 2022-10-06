@@ -21,9 +21,10 @@
         "check-updates": "ncu --target minor --dep dev",
         "show-versions": "lerna ls --long",
         "postinstall": "husky install",
-        "shell": "nix develop path:devShells/minimum",
-        "shell:spec": "nix develop path:devShells/spec",
-        "shell:whitehat": "nix develop path:devShells/whitehat"
+        "shell": "nix develop",
+        "shell:spec": "nix develop .#spec",
+        "shell:whitehat": "nix develop .#whitehat",
+        "shell:full": "nix develop .#full"
     },
     "devDependencies": {
         "@nomicfoundation/hardhat-chai-matchers": "^1.0.3",
@@ -63,7 +64,7 @@
         "truffle": "^5.5.28",
         "ts-node": "^10.8.2",
         "typechain": "^8.1.0",
-        "typedoc": "^0.23.12",
+        "typedoc": "^0.23.15",
         "typescript": "^4.7.4",
         "web3": "^1.7.5"
     },

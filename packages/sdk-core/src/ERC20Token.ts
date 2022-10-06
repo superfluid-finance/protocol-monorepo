@@ -1,7 +1,7 @@
 import {
     ERC20WithTokenInfo,
     ERC20WithTokenInfo__factory,
-} from "@superfluid-finance/ethereum-contracts/typechain-types";
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
 import Operation from "./Operation";
@@ -17,7 +17,7 @@ export default class ERC20Token {
         this.address = address;
 
         this.contract = new ethers.Contract(
-            this.address,
+            address,
             ERC20WithTokenInfo__factory.abi
         ) as ERC20WithTokenInfo;
     }

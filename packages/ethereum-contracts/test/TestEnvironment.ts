@@ -6,7 +6,12 @@ import {artifacts, assert, ethers, expect, network, web3} from "hardhat";
 import _ from "lodash";
 import Web3 from "web3";
 
-import {ISuperToken, SuperTokenMock, TestToken} from "../typechain-types";
+import {
+    ISuperToken,
+    ISuperToken__factory,
+    SuperTokenMock,
+    TestToken,
+} from "../typechain-types";
 
 import {VerifyOptions} from "./contracts/agreements/Agreement.types";
 import AgreementHelper from "./contracts/agreements/AgreementHelper";
@@ -27,7 +32,6 @@ const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const traveler = require("ganache-time-traveler");
 
-const ISuperTokenArtifact = require("../artifacts/contracts/interfaces/superfluid/ISuperToken.sol/ISuperToken.json");
 const deployFramework = require("../scripts/deploy-framework");
 const deploySuperToken = require("../scripts/deploy-super-token");
 const deployTestToken = require("../scripts/deploy-test-token");
@@ -292,7 +296,7 @@ export default class TestEnvironment {
             )),
             (this.contracts.ISuperToken = new ethers.Contract(
                 "ISuperToken",
-                ISuperTokenArtifact.abi,
+                ISuperToken__factory.abi,
                 signer
             ) as ISuperToken),
             (this.contracts.resolver = await ethers.getContractAt(

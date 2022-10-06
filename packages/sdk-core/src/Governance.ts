@@ -1,7 +1,7 @@
 import {
     SuperfluidGovernanceII,
     SuperfluidGovernanceII__factory,
-} from "@superfluid-finance/ethereum-contracts/typechain-types";
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
 import {
@@ -13,9 +13,9 @@ export default class Governance {
     contract: SuperfluidGovernanceII;
     hostAddress: string;
 
-    constructor(govAddress: string, hostAddress: string) {
+    constructor(hostAddress: string, governanceAddress: string) {
         this.contract = new ethers.Contract(
-            govAddress,
+            governanceAddress,
             SuperfluidGovernanceII__factory.abi
         ) as SuperfluidGovernanceII;
         this.hostAddress = hostAddress;

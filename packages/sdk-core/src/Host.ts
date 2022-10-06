@@ -1,7 +1,7 @@
 import {
     Superfluid,
     Superfluid__factory,
-} from "@superfluid-finance/ethereum-contracts/typechain-types";
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers, Overrides } from "ethers";
 
 import Operation from "./Operation";

@@ -1,9 +1,9 @@
 import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
 import {
-    IResolver,
+    Resolver,
     Resolver__factory,
     SuperfluidLoader__factory,
-} from "@superfluid-finance/ethereum-contracts/typechain-types";
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 import Web3 from "web3";
 
@@ -80,22 +80,24 @@ export default class Framework {
         this.userInputOptions = options;
         this.settings = settings;
 
-        this.cfaV1 = new ConstantFlowAgreementV1({
-            config: this.settings.config,
-        });
-        this.governance = new Governance(
-            this.settings.config.governanceAddress,
-            this.settings.config.hostAddress
+        this.cfaV1 = new ConstantFlowAgreementV1(
+            settings.config.hostAddress,
+            settings.config.cfaV1Address
         );
-        this.host = new Host(this.settings.config.hostAddress);
-        this.idaV1 = new InstantDistributionAgreementV1({
-            config: this.settings.config,
-        });
-        this.query = new Query(this.settings);
+        this.governance = new Governance(
+            settings.config.hostAddress,
+            settings.config.governanceAddress
+        );
+        this.host = new Host(settings.config.hostAddress);
+        this.idaV1 = new InstantDistributionAgreementV1(
+            settings.config.hostAddress,
+            settings.config.idaV1Address
+        );
+        this.query = new Query(settings);
         const resolver = new ethers.Contract(
-            this.settings.config.resolverAddress,
+            settings.config.resolverAddress,
             Resolver__factory.abi
-        ) as IResolver;
+        ) as Resolver;
 
         this.contracts = {
             cfaV1: this.cfaV1.contract,
@@ -269,6 +271,7 @@ export default class Framework {
         return new BatchCall({
             operations,
             hostAddress: this.settings.config.hostAddress,
+            providerOrSigner: this.settings.provider,
         });
     };
 

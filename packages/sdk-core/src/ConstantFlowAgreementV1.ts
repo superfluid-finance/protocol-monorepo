@@ -1,14 +1,13 @@
 import {
     IConstantFlowAgreementV1,
     IConstantFlowAgreementV1__factory,
-} from "@superfluid-finance/ethereum-contracts/typechain-types";
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
 import Host from "./Host";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
 import {
-    IAgreementV1Options,
     ICreateFlowParams,
     IDeleteFlowParams,
     IFullControlParams,
@@ -37,15 +36,13 @@ const cfaInterface = IConstantFlowAgreementV1__factory.createInterface();
  * @description A helper class to interact with the CFAV1 contract.
  */
 export default class ConstantFlowAgreementV1 {
-    readonly options: IAgreementV1Options;
     readonly host: Host;
     readonly contract: IConstantFlowAgreementV1;
 
-    constructor(options: IAgreementV1Options) {
-        this.options = options;
-        this.host = new Host(options.config.hostAddress);
+    constructor(hostAddress: string, cfaV1Address: string) {
+        this.host = new Host(hostAddress);
         this.contract = new ethers.Contract(
-            this.options.config.cfaV1Address,
+            cfaV1Address,
             IConstantFlowAgreementV1__factory.abi
         ) as IConstantFlowAgreementV1;
     }
@@ -216,7 +213,7 @@ export default class ConstantFlowAgreementV1 {
         ]);
 
         return this.host.callAgreement(
-            this.options.config.cfaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -244,7 +241,7 @@ export default class ConstantFlowAgreementV1 {
         ]);
 
         return this.host.callAgreement(
-            this.options.config.cfaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -273,7 +270,7 @@ export default class ConstantFlowAgreementV1 {
         ]);
 
         return this.host.callAgreement(
-            this.options.config.cfaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -323,7 +320,7 @@ export default class ConstantFlowAgreementV1 {
         );
 
         return this.host.callAgreement(
-            this.options.config.cfaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -349,7 +346,7 @@ export default class ConstantFlowAgreementV1 {
         );
 
         return this.host.callAgreement(
-            this.options.config.cfaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -373,7 +370,7 @@ export default class ConstantFlowAgreementV1 {
         );
 
         return this.host.callAgreement(
-            this.options.config.cfaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -407,7 +404,7 @@ export default class ConstantFlowAgreementV1 {
         );
 
         return this.host.callAgreement(
-            this.options.config.cfaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -441,7 +438,7 @@ export default class ConstantFlowAgreementV1 {
         );
 
         return this.host.callAgreement(
-            this.options.config.cfaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -468,7 +465,7 @@ export default class ConstantFlowAgreementV1 {
         );
 
         return this.host.callAgreement(
-            this.options.config.cfaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides

@@ -4,7 +4,7 @@ import {
     IResolver,
     Superfluid,
     SuperfluidGovernanceII,
-} from "@superfluid-finance/ethereum-contracts/typechain-types";
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers, Overrides } from "ethers";
 
 // TODO (0xdavinchee): reorganize this
@@ -452,10 +452,6 @@ export interface IContracts {
     readonly host: Superfluid;
     readonly idaV1: IInstantDistributionAgreementV1;
     readonly resolver: IResolver;
-}
-
-export interface IAgreementV1Options {
-    readonly config: IConfig;
 }
 
 // Web3 Return Data

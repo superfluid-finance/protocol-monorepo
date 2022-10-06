@@ -9,7 +9,7 @@
  * - modifying data to get expected data for comparison
  * - query the graph to get the data to be validated
  * - validate the event based on the expected data
- * - valiate HOL/aggregate entities based on the expected data
+ * - validate HOL/aggregate entities based on the expected data
  *************************************************************************/
 import {
     IExpectedFlowOperatorUpdatedEvent,
@@ -109,7 +109,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
         updatedAtBlockNumber: lastUpdatedBlockNumber,
         data,
     });
-    const newDeposit = clipDepositNumber(newFlowRate.mul(toBN(3600)));
+    const newDeposit = clipDepositNumber(newFlowRate.mul(toBN(14400)));
     if (!newDeposit.eq(toBN(deposit))) {
         throw new Error("DEPOSITS ARE NOT EQUAL");
     }
@@ -187,7 +187,7 @@ export async function testFlowUpdated(data: ITestModifyFlowData) {
                 txnResponse.hash,
                 "TransferEvents"
             );
-        
+
         expectedData.updatedSenderATS = {
             ...expectedData.updatedSenderATS,
             totalAmountTransferredUntilUpdatedAt: toBN(

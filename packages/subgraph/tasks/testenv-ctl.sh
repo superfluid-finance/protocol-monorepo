@@ -10,17 +10,8 @@ CMD=$1
 
 if [ "$CMD" == "start" ];then
     if [ "$BUILT" == "" ];then
-        cd ../ethereum-contracts
-        # Build contracts
-        yarn run build:contracts
         # Get ABIs and generate typechain in subgraph folder based on ABIs
-        cd ../subgraph
         yarn getAbi
-        yarn run generate-ethers-types
-        cd ../js-sdk
-        # Get abi.js file for js-sdk to deploy locally
-        chmod +x ./tasks/build-abi-js.sh
-        ./tasks/build-abi-js.sh
         cd ../sdk-core
         # build sdk-core because of auto linking to dependency
         yarn build

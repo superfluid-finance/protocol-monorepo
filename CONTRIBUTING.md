@@ -25,9 +25,10 @@ Development shells options are available under `devShells` folder ([nix flakes](
 
 To use them:
 
-- `nix develop path:flakes/minimum` or `npm run shell`
-- `nix develop path:flakes/whitehat` or `npm run shell:whitehat`
-- `nix develop path:flakes/spec` or `npm run shell:spec`
+- `nix develop .` or `npm run shell`
+- `nix develop .#whitehat` or `npm run shell:whitehat`
+- `nix develop .#spec` or `npm run shell:spec`
+- `nix develop .#full` or `npm run shell:full`
 
 ### Installing Dependencies
 

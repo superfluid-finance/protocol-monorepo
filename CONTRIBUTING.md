@@ -17,17 +17,19 @@ At minimum, you will need to have these available in your development environmen
 
 You may also use [nix package manager](https://nixos.org/download.html) to get a reproducible, declarative and reliable development environment.
 
-Development shells options are available under `devShells` folder ([nix flakes](https://nixos.wiki/wiki/Flakes) required):
+Development shells options are available as different devShells commands in ([nix flakes](https://nixos.wiki/wiki/Flakes) required):
 
 - minimum, minimum development environment for building monorepo.
 - whitehat, additional ethereum development toolings including slither, echidna, etc.
-- spec, for developing of Superfluid haskell spec.
+- spec, for developing of Superfluid haskell spec,
+- full, everything included.
 
 To use them:
 
-- `nix develop path:flakes/minimum` or `npm run shell`
-- `nix develop path:flakes/whitehat` or `npm run shell:whitehat`
-- `nix develop path:flakes/spec` or `npm run shell:spec`
+- `nix develop .` or `npm run shell`
+- `nix develop .#whitehat` or `npm run shell:whitehat`
+- `nix develop .#spec` or `npm run shell:spec`
+- `nix develop .#full` or `npm run shell:full`
 
 ### Installing Dependencies
 

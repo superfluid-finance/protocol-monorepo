@@ -1,32 +1,16 @@
-import "@nomiclabs/hardhat-ethers"
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers"
-import { expect } from "chai"
-import "chai-ethers"
-import { BigNumber, BigNumberish } from "ethers"
-import hre, { ethers } from "hardhat"
-import { setup } from "../scripts/setup"
+import { expect } from "chai";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import {
     AUTHORIZE_FLOW_OPERATOR_CREATE,
-    AUTHORIZE_FULL_CONTROL,
     getFlowOperatorId,
-    getPerSecondFlowRateByMonth,
     NativeAssetSuperToken,
     SuperToken,
-    WrapperSuperToken
-} from "../src"
-import { Framework } from "../src/index"
-import {
-    CFAv1Forwarder,
-    IConstantFlowAgreementV1,
-    IInstantDistributionAgreementV1,
-    SuperToken as SuperTokenType,
-    TestToken
-} from "../src/typechain"
-import { ROPSTEN_SUBGRAPH_ENDPOINT } from "./0_framework.test"
-
-const INITIAL_AMOUNT_PER_USER = "10000000000";
-const toBN = (x: BigNumberish) => ethers.BigNumber.from(x);
-const MAX_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1)).toString();
+    toBN,
+} from "../src";
+import { getPerSecondFlowRateByMonth } from "../src";
+import { BigNumber, ethers } from "ethers";
+import { AUTHORIZE_FULL_CONTROL } from "../src";
+import { TestEnvironment, makeSuite } from "./TestEnvironment";
 
 export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
     // last 32 bits of the deposit (96 bits) is clipped off
@@ -38,104 +22,75 @@ export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
     return deposit.shr(32).add(toBN(rounding)).shl(32);
 };
 
-let evmSnapshotId: string;
-let framework: Framework;
-let cfaV1: IConstantFlowAgreementV1;
-let cfaV1Forwarder: CFAv1Forwarder;
-let idaV1: IInstantDistributionAgreementV1;
-let deployer: SignerWithAddress;
-let alpha: SignerWithAddress;
-let superToken: SuperTokenType;
-let token: TestToken;
-let daix: WrapperSuperToken;
-let bravo: SignerWithAddress;
-let charlie: SignerWithAddress;
-let signerCount: number;
+makeSuite("SuperToken Tests", (testEnv: TestEnvironment) => {
+    async function createFlowWithOperator(
+        flowOperator: SignerWithAddress,
+        sender: SignerWithAddress,
+        receiver: SignerWithAddress
+    ) {
+        const flowRateAllowance = getPerSecondFlowRateByMonth("100");
+        let permissions = AUTHORIZE_FULL_CONTROL;
 
-before(async () => {
-    const {
-        frameworkClass,
-        CFAV1,
-        IDAV1,
-        Deployer,
-        Alpha,
-        Bravo,
-        Charlie,
-        SuperToken,
-        Token,
-        SignerCount,
-    } = await setup({
-        amount: "10000000000",
-        subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
-    });
-    framework = frameworkClass;
-    cfaV1 = CFAV1;
-    idaV1 = IDAV1;
-    deployer = Deployer;
-    alpha = Alpha;
-    bravo = Bravo;
-    superToken = SuperToken;
-    daix = await framework.loadWrapperSuperToken(superToken.address);
-    token = Token;
-    charlie = Charlie;
-    signerCount = SignerCount;
+        const updateFlowOperatorPermissionsOperation =
+            testEnv.wrapperSuperToken.updateFlowOperatorPermissions({
+                flowRateAllowance,
+                flowOperator: flowOperator.address,
+                permissions,
+            });
+        await updateFlowOperatorPermissionsOperation.exec(sender);
 
-    evmSnapshotId = await hre.network.provider.send("evm_snapshot");
-});
+        let flowRate = getPerSecondFlowRateByMonth("100");
 
-beforeEach(async () => {
-    await hre.network.provider.send("evm_revert", [evmSnapshotId]);
-    evmSnapshotId = await hre.network.provider.send("evm_snapshot");
-});
+        await testEnv.wrapperSuperToken
+            .createFlowByOperator({
+                flowRate,
+                sender: sender.address,
+                receiver: receiver.address,
+            })
+            .exec(flowOperator);
+    }
+    async function approveAndDowngrade(
+        signer: SignerWithAddress,
+        amount: string = "2000"
+    ) {
+        amount = ethers.utils.parseUnits(amount).toString();
+        await expect(
+            testEnv.wrapperSuperToken
+                .approve({
+                    receiver: testEnv.wrapperSuperToken.address,
+                    amount,
+                })
+                .exec(signer)
+        )
+            .to.emit(
+                testEnv.wrapperSuperToken.contract.connect(
+                    testEnv.alice.provider!
+                ),
+                "Approval"
+            )
+            .withArgs(
+                signer.address,
+                testEnv.wrapperSuperToken.address,
+                amount
+            );
+        await expect(
+            testEnv.wrapperSuperToken.downgrade({ amount }).exec(signer)
+        )
+            .to.emit(
+                testEnv.wrapperSuperToken.contract.connect(
+                    testEnv.alice.provider!
+                ),
+                "TokenDowngraded"
+            )
+            .withArgs(signer.address, amount);
+    }
 
-async function createFlowWithOperator(
-    flowOperator: SignerWithAddress,
-    sender: SignerWithAddress,
-    receiver: SignerWithAddress
-) {
-    const flowRateAllowance = getPerSecondFlowRateByMonth("100");
-    let permissions = AUTHORIZE_FULL_CONTROL;
-
-    const updateFlowOperatorPermissionsOperation =
-        daix.updateFlowOperatorPermissions({
-            flowRateAllowance,
-            flowOperator: flowOperator.address,
-            permissions,
-        });
-    await updateFlowOperatorPermissionsOperation.exec(sender);
-
-    let flowRate = getPerSecondFlowRateByMonth("100");
-
-    await daix
-        .createFlowByOperator({
-            flowRate,
-            sender: sender.address,
-            receiver: receiver.address,
-        })
-        .exec(flowOperator);
-}
-async function approveAndDowngrade(
-    signer: SignerWithAddress,
-    amount: string = "2000"
-) {
-    amount = ethers.utils.parseUnits(amount).toString();
-    await expect(
-        daix.approve({ receiver: daix.settings.address, amount }).exec(signer)
-    )
-        .to.emit(superToken, "Approval")
-        .withArgs(signer.address, daix.settings.address, amount);
-    await expect(daix.downgrade({ amount }).exec(signer))
-        .to.emit(superToken, "TokenDowngraded")
-        .withArgs(signer.address, amount);
-}
-
-describe("SuperToken Tests", () => {
-    describe("SuperToken Tests", () => {
+    describe("ERC20 and SuperToken Basic Functionality Tests", () => {
         it("Should throw an error if SuperToken isn't initialized properly.", async () => {
             try {
                 await SuperToken.create({
-                    address: superToken.address,
-                    provider: deployer.provider!,
+                    address: testEnv.wrapperSuperToken.address,
+                    provider: testEnv.alice.provider!,
                     config: {
                         resolverAddress: "",
                         hostAddress: "",
@@ -154,7 +109,7 @@ describe("SuperToken Tests", () => {
 
             try {
                 await SuperToken.create({
-                    address: superToken.address,
+                    address: testEnv.wrapperSuperToken.address,
                     provider: "" as any,
                     networkName: "custom",
                     config: {
@@ -176,9 +131,9 @@ describe("SuperToken Tests", () => {
 
         it("Should throw an error on SuperToken read operations when incorrect input is passed", async () => {
             try {
-                await daix.realtimeBalanceOf({
-                    providerOrSigner: deployer,
-                    account: alpha.address,
+                await testEnv.wrapperSuperToken.realtimeBalanceOf({
+                    providerOrSigner: testEnv.alice,
+                    account: testEnv.bob.address,
                     timestamp: -1,
                 });
             } catch (err: any) {
@@ -190,11 +145,11 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should throw an error on Token read operations when incorrect input is passed", async () => {
-            // NOTE: provider is string as any to get this to throw an error on read
+            // NOTE: testEnv.alice.provider! is string as any to get this to throw an error on read
             try {
-                await daix.allowance({
-                    owner: deployer.address,
-                    spender: alpha.address,
+                await testEnv.wrapperSuperToken.allowance({
+                    owner: testEnv.alice.address,
+                    spender: testEnv.bob.address,
                     providerOrSigner: "" as any,
                 });
             } catch (err: any) {
@@ -205,8 +160,8 @@ describe("SuperToken Tests", () => {
             }
 
             try {
-                await daix.balanceOf({
-                    account: deployer.address,
+                await testEnv.wrapperSuperToken.balanceOf({
+                    account: testEnv.alice.address,
                     providerOrSigner: "" as any,
                 });
             } catch (err: any) {
@@ -217,7 +172,9 @@ describe("SuperToken Tests", () => {
             }
 
             try {
-                await daix.name({ providerOrSigner: "" as any });
+                await testEnv.wrapperSuperToken.name({
+                    providerOrSigner: "" as any,
+                });
             } catch (err: any) {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting name"
@@ -226,7 +183,9 @@ describe("SuperToken Tests", () => {
             }
 
             try {
-                await daix.symbol({ providerOrSigner: "" as any });
+                await testEnv.wrapperSuperToken.symbol({
+                    providerOrSigner: "" as any,
+                });
             } catch (err: any) {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting symbol"
@@ -235,7 +194,9 @@ describe("SuperToken Tests", () => {
             }
 
             try {
-                await daix.totalSupply({ providerOrSigner: "" as any });
+                await testEnv.wrapperSuperToken.totalSupply({
+                    providerOrSigner: "" as any,
+                });
             } catch (err: any) {
                 expect(err.message).to.contain(
                     "SuperToken Read Error: There was an error getting totalSupply"
@@ -245,188 +206,255 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should properly return totalSupply", async () => {
-            const totalSupply = await daix.totalSupply({
-                providerOrSigner: deployer,
+            const totalSupply = await testEnv.wrapperSuperToken.totalSupply({
+                providerOrSigner: testEnv.alice,
             });
             expect(totalSupply).to.equal(
-                ethers.utils
-                    .parseUnits(
-                        (
-                            Number(INITIAL_AMOUNT_PER_USER) * signerCount
-                        ).toString()
-                    )
-                    .toString()
+                testEnv.constants.INITIAL_TOKEN_BALANCE.mul(
+                    toBN(testEnv.users.length)
+                ).toString()
             );
         });
 
         it("Should properly return balanceOf", async () => {
-            const balance = await daix.balanceOf({
-                account: charlie.address,
-                providerOrSigner: deployer,
+            const balance = await testEnv.wrapperSuperToken.balanceOf({
+                account: testEnv.charlie.address,
+                providerOrSigner: testEnv.alice,
             });
             expect(balance).to.equal(
-                ethers.utils.parseUnits(INITIAL_AMOUNT_PER_USER).toString()
+                testEnv.constants.INITIAL_TOKEN_BALANCE.toString()
             );
         });
 
         it("Should properly return allowance", async () => {
-            const initialAllowance = await daix.allowance({
-                owner: deployer.address,
-                spender: alpha.address,
-                providerOrSigner: deployer,
+            const initialAllowance = await testEnv.wrapperSuperToken.allowance({
+                owner: testEnv.alice.address,
+                spender: testEnv.bob.address,
+                providerOrSigner: testEnv.alice,
             });
             expect(initialAllowance).to.equal("0");
             const allowanceAmount = ethers.utils.parseUnits("100").toString();
-            const operation = daix.approve({
-                receiver: alpha.address,
+            const operation = testEnv.wrapperSuperToken.approve({
+                receiver: testEnv.bob.address,
                 amount: allowanceAmount,
             });
-            await operation.exec(deployer);
-            const approvedAllowance = await daix.allowance({
-                owner: deployer.address,
-                spender: alpha.address,
-                providerOrSigner: deployer,
-            });
+            await operation.exec(testEnv.alice);
+            const approvedAllowance = await testEnv.wrapperSuperToken.allowance(
+                {
+                    owner: testEnv.alice.address,
+                    spender: testEnv.bob.address,
+                    providerOrSigner: testEnv.alice,
+                }
+            );
             expect(approvedAllowance).to.equal(allowanceAmount);
         });
 
         it("Should properly return name", async () => {
-            const name = await daix.name({
-                providerOrSigner: deployer,
+            const name = await testEnv.wrapperSuperToken.name({
+                providerOrSigner: testEnv.alice,
             });
-            expect(name).to.equal("Super fDAI Fake Token");
+            expect(name).to.equal("Super fDAI");
         });
 
         it("Should properly return symbol", async () => {
-            const symbol = await daix.symbol({
-                providerOrSigner: deployer,
+            const symbol = await testEnv.wrapperSuperToken.symbol({
+                providerOrSigner: testEnv.alice,
             });
             expect(symbol).to.equal("fDAIx");
         });
 
         it("Should properly initialize SuperToken", async () => {
-            const daixTest = await framework.loadSuperToken(superToken.address);
-            expect(superToken.address).to.equal(daixTest.settings.address);
+            const daixTest = await testEnv.sdkFramework.loadSuperToken(
+                testEnv.wrapperSuperToken.address
+            );
+            expect(testEnv.wrapperSuperToken.address).to.equal(
+                daixTest.settings.address
+            );
         });
 
         it("Should be able to initialize SuperToken with networkName.", () => {
             SuperToken.create({
-                address: superToken.address,
-                provider: deployer.provider!,
-                config: framework.settings.config,
+                address: testEnv.wrapperSuperToken.address,
+                provider: testEnv.alice.provider!,
+                config: testEnv.sdkFramework.settings.config,
                 networkName: "custom",
             });
         });
 
         it("Should be able to get realtimeBalanceOf", async () => {
-            await daix.realtimeBalanceOf({
-                providerOrSigner: deployer,
-                account: deployer.address,
+            await testEnv.wrapperSuperToken.realtimeBalanceOf({
+                providerOrSigner: testEnv.alice,
+                account: testEnv.alice.address,
             });
         });
 
         it("Should be able to approve + downgrade", async () => {
-            await approveAndDowngrade(deployer);
+            await approveAndDowngrade(testEnv.alice);
         });
 
         it("Should be able to transfer downgraded tokens", async () => {
-            await approveAndDowngrade(deployer);
+            await approveAndDowngrade(testEnv.alice);
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
-                daix.underlyingToken
-                    .transfer({ receiver: alpha.address, amount })
-                    .exec(deployer)
+                testEnv.wrapperSuperToken.underlyingToken
+                    .transfer({ receiver: testEnv.bob.address, amount })
+                    .exec(testEnv.alice)
             )
-                .to.emit(token, "Transfer")
-                .withArgs(deployer.address, alpha.address, amount);
+                .to.emit(
+                    testEnv.token.connect(testEnv.alice.provider!),
+                    "Transfer"
+                )
+                .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
         });
 
         it("Should be able to approve + upgrade", async () => {
-            await approveAndDowngrade(deployer);
+            await approveAndDowngrade(testEnv.alice);
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
-                token.connect(deployer).approve(daix.settings.address, amount)
+                testEnv.token
+                    .connect(testEnv.alice)
+                    .approve(testEnv.wrapperSuperToken.address, amount)
             )
-                .to.emit(token, "Approval")
-                .withArgs(deployer.address, daix.settings.address, amount);
-            await expect(daix.upgrade({ amount }).exec(deployer))
-                .to.emit(superToken, "TokenUpgraded")
-                .withArgs(deployer.address, amount);
+                .to.emit(
+                    testEnv.token.connect(testEnv.alice.provider!),
+                    "Approval"
+                )
+                .withArgs(
+                    testEnv.alice.address,
+                    testEnv.wrapperSuperToken.address,
+                    amount
+                );
+            await expect(
+                testEnv.wrapperSuperToken
+                    .upgrade({ amount })
+                    .exec(testEnv.alice)
+            )
+                .to.emit(
+                    testEnv.wrapperSuperToken.contract.connect(
+                        testEnv.alice.provider!
+                    ),
+                    "TokenUpgraded"
+                )
+                .withArgs(testEnv.alice.address, amount);
         });
 
         it("Should be able to approve + upgrade to", async () => {
-            await approveAndDowngrade(alpha);
+            await approveAndDowngrade(testEnv.bob);
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
-                token.connect(alpha).approve(daix.settings.address, amount)
+                testEnv.token
+                    .connect(testEnv.bob)
+                    .approve(testEnv.wrapperSuperToken.address, amount)
             )
-                .to.emit(token, "Approval")
-                .withArgs(alpha.address, daix.settings.address, amount);
+                .to.emit(
+                    testEnv.token.connect(testEnv.alice.provider!),
+                    "Approval"
+                )
+                .withArgs(
+                    testEnv.bob.address,
+                    testEnv.wrapperSuperToken.address,
+                    amount
+                );
 
             await expect(
-                daix.upgradeTo({ amount, to: deployer.address }).exec(alpha)
+                testEnv.wrapperSuperToken
+                    .upgradeTo({ amount, to: testEnv.alice.address })
+                    .exec(testEnv.bob)
             )
-                .to.emit(superToken, "TokenUpgraded")
-                .withArgs(deployer.address, amount);
+                .to.emit(
+                    testEnv.wrapperSuperToken.contract.connect(
+                        testEnv.alice.provider!
+                    ),
+                    "TokenUpgraded"
+                )
+                .withArgs(testEnv.alice.address, amount);
         });
 
         it("Should be able to approve + transfer", async () => {
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
-                daix.approve({ receiver: alpha.address, amount }).exec(deployer)
+                testEnv.wrapperSuperToken
+                    .approve({ receiver: testEnv.bob.address, amount })
+                    .exec(testEnv.alice)
             )
-                .to.emit(superToken, "Approval")
-                .withArgs(deployer.address, alpha.address, amount);
+                .to.emit(
+                    testEnv.wrapperSuperToken.contract.connect(
+                        testEnv.alice.provider!
+                    ),
+                    "Approval"
+                )
+                .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
             await expect(
-                daix
-                    .transfer({ receiver: alpha.address, amount })
-                    .exec(deployer)
+                testEnv.wrapperSuperToken
+                    .transfer({ receiver: testEnv.bob.address, amount })
+                    .exec(testEnv.alice)
             )
-                .to.emit(superToken, "Transfer")
-                .withArgs(deployer.address, alpha.address, amount);
+                .to.emit(
+                    testEnv.wrapperSuperToken.contract.connect(
+                        testEnv.alice.provider!
+                    ),
+                    "Transfer"
+                )
+                .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
         });
 
         it("Should be able to approve + transferFrom", async () => {
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
-                daix.approve({ receiver: alpha.address, amount }).exec(deployer)
+                testEnv.wrapperSuperToken
+                    .approve({ receiver: testEnv.bob.address, amount })
+                    .exec(testEnv.alice)
             )
-                .to.emit(superToken, "Approval")
-                .withArgs(deployer.address, alpha.address, amount);
+                .to.emit(
+                    testEnv.wrapperSuperToken.contract.connect(
+                        testEnv.alice.provider!
+                    ),
+                    "Approval"
+                )
+                .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .transferFrom({
-                        sender: deployer.address,
-                        receiver: alpha.address,
+                        sender: testEnv.alice.address,
+                        receiver: testEnv.bob.address,
                         amount,
                     })
-                    .exec(deployer)
+                    .exec(testEnv.alice)
             )
-                .to.emit(superToken, "Transfer")
-                .withArgs(deployer.address, alpha.address, amount);
+                .to.emit(
+                    testEnv.wrapperSuperToken.contract.connect(
+                        testEnv.alice.provider!
+                    ),
+                    "Transfer"
+                )
+                .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
         });
     });
 
     describe("SuperToken Initialization Tests", () => {
         let nativeAssetSuperToken: NativeAssetSuperToken;
-        it("Should load SuperToken base class for any token type", async () => {
-            // load WrapperSuperToken
-            await framework.loadSuperToken(daix.address);
+        it("Should load SuperToken base class for any testEnv.token type", async () => {
+            // load testEnv.wrapperSuperToken
+            await testEnv.sdkFramework.loadSuperToken(
+                testEnv.wrapperSuperToken.address
+            );
 
             // load NativeAssetSuperToken
-            await framework.loadSuperToken("ETHx");
+            await testEnv.sdkFramework.loadSuperToken("ETHx");
 
             // load PureSuperToken
-            await framework.loadSuperToken("MRx");
+            await testEnv.sdkFramework.loadSuperToken("MRx");
         });
 
         it("Should be able to create a WrapperSuperToken", async () => {
-            await framework.loadWrapperSuperToken(daix.address);
+            await testEnv.sdkFramework.loadWrapperSuperToken(
+                testEnv.wrapperSuperToken.address
+            );
         });
 
         it("Should throw if trying to load a non-WrapperSuperToken", async () => {
             try {
-                await framework.loadWrapperSuperToken("ETHx");
+                await testEnv.sdkFramework.loadWrapperSuperToken("ETHx");
             } catch (err: any) {
                 expect(err.message).to.eql(
                     "SuperToken Initialization Error: The token is not a wrapper supertoken."
@@ -436,14 +464,15 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to create a NativeAssetSuperToken", async () => {
-            nativeAssetSuperToken = await framework.loadNativeAssetSuperToken(
-                "ETHx"
-            );
+            nativeAssetSuperToken =
+                await testEnv.sdkFramework.loadNativeAssetSuperToken("ETHx");
         });
 
         it("Should throw if trying to load a non-NativeAssetSuperToken", async () => {
             try {
-                await framework.loadNativeAssetSuperToken(daix.address);
+                await testEnv.sdkFramework.loadNativeAssetSuperToken(
+                    testEnv.wrapperSuperToken.address
+                );
             } catch (err: any) {
                 expect(err.message).to.eql(
                     "SuperToken Initialization Error: The token is not a native asset supertoken."
@@ -453,12 +482,14 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to create a PureSuperToken", async () => {
-            await framework.loadPureSuperToken("MRx");
+            await testEnv.sdkFramework.loadPureSuperToken("MRx");
         });
 
         it("Should throw if trying to load a non-PureSuperToken", async () => {
             try {
-                await framework.loadPureSuperToken(daix.address);
+                await testEnv.sdkFramework.loadPureSuperToken(
+                    testEnv.wrapperSuperToken.address
+                );
             } catch (err: any) {
                 expect(err.message).to.eql(
                     "SuperToken Initialization Error: The token is not a pure supertoken."
@@ -471,15 +502,15 @@ describe("SuperToken Tests", () => {
             const upgradeOperation = nativeAssetSuperToken.upgrade({
                 amount: ethers.utils.parseUnits("1").toString(),
             });
-            await upgradeOperation.exec(deployer);
+            await upgradeOperation.exec(testEnv.alice);
         });
 
         it("Should be able to upgrade native asset to", async () => {
             const upgradeOperation = nativeAssetSuperToken.upgradeTo({
                 amount: ethers.utils.parseUnits("1").toString(),
-                to: alpha.address,
+                to: testEnv.bob.address,
             });
-            await upgradeOperation.exec(deployer);
+            await upgradeOperation.exec(testEnv.alice);
         });
 
         it("Should be able to downgrade native asset", async () => {
@@ -487,12 +518,12 @@ describe("SuperToken Tests", () => {
                 .upgrade({
                     amount: ethers.utils.parseUnits("1").toString(),
                 })
-                .exec(deployer);
+                .exec(testEnv.alice);
 
             const downgradeOperation = nativeAssetSuperToken.downgrade({
                 amount: ethers.utils.parseUnits("1").toString(),
             });
-            await downgradeOperation.exec(deployer);
+            await downgradeOperation.exec(testEnv.alice);
         });
     });
 
@@ -501,9 +532,9 @@ describe("SuperToken Tests", () => {
             it("Should throw an error if one of the input addresses is invalid", async () => {
                 const flowRate = getPerSecondFlowRateByMonth("100");
                 try {
-                    daix.createFlow({
+                    testEnv.wrapperSuperToken.createFlow({
                         flowRate,
-                        receiver: alpha.address + "0",
+                        receiver: testEnv.bob.address + "0",
                     });
                 } catch (err: any) {
                     expect(err.message).to.eql(
@@ -517,9 +548,9 @@ describe("SuperToken Tests", () => {
                 // NOTE: using casting to pass in wrong input to force error
                 // get flow throw
                 try {
-                    await daix.getFlow({
-                        sender: deployer.address,
-                        receiver: alpha.address,
+                    await testEnv.wrapperSuperToken.getFlow({
+                        sender: testEnv.alice.address,
+                        receiver: testEnv.bob.address,
                         providerOrSigner: "" as any,
                     });
                 } catch (err: any) {
@@ -531,8 +562,8 @@ describe("SuperToken Tests", () => {
 
                 // get account flow info throw
                 try {
-                    await daix.getAccountFlowInfo({
-                        account: deployer.address,
+                    await testEnv.wrapperSuperToken.getAccountFlowInfo({
+                        account: testEnv.alice.address,
                         providerOrSigner: "" as any,
                     });
                 } catch (err: any) {
@@ -544,8 +575,8 @@ describe("SuperToken Tests", () => {
 
                 // get net flow throw
                 try {
-                    await daix.getNetFlow({
-                        account: deployer.address,
+                    await testEnv.wrapperSuperToken.getNetFlow({
+                        account: testEnv.alice.address,
                         providerOrSigner: "" as any,
                     });
                 } catch (err: any) {
@@ -560,9 +591,9 @@ describe("SuperToken Tests", () => {
                 // NOTE: using casting to pass in wrong input to force error
                 // get flowOperatorData throw
                 try {
-                    await daix.getFlowOperatorData({
-                        sender: deployer.address,
-                        flowOperator: alpha.address,
+                    await testEnv.wrapperSuperToken.getFlowOperatorData({
+                        sender: testEnv.alice.address,
+                        flowOperator: testEnv.bob.address,
                         providerOrSigner: "" as any,
                     });
                 } catch (err: any) {
@@ -572,7 +603,7 @@ describe("SuperToken Tests", () => {
                     expect(err.cause).to.be.instanceOf(Error);
                 }
                 try {
-                    await daix.getFlowOperatorDataByID({
+                    await testEnv.wrapperSuperToken.getFlowOperatorDataByID({
                         flowOperatorId: "",
                         providerOrSigner: "" as any,
                     });
@@ -588,13 +619,13 @@ describe("SuperToken Tests", () => {
         // CFA Functions
         it("Should have eip155 protection check", async () => {
             const flowRate = getPerSecondFlowRateByMonth("1000");
-            const txnResponse = await daix
+            const txnResponse = await testEnv.wrapperSuperToken
                 .createFlow({
-                    sender: deployer.address,
-                    receiver: alpha.address,
+                    sender: testEnv.alice.address,
+                    receiver: testEnv.bob.address,
                     flowRate,
                 })
-                .exec(deployer);
+                .exec(testEnv.alice);
             expect(txnResponse.v).to.not.be.undefined;
         });
 
@@ -602,20 +633,20 @@ describe("SuperToken Tests", () => {
             const flowRate = getPerSecondFlowRateByMonth("1000");
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .createFlow({
-                        sender: deployer.address,
-                        receiver: alpha.address,
+                        sender: testEnv.alice.address,
+                        receiver: testEnv.bob.address,
                         flowRate,
                         shouldUseCallAgreement: false,
                     })
-                    .exec(deployer)
+                    .exec(testEnv.alice)
             )
-                .to.emit(cfaV1, "FlowUpdated")
+                .to.emit(testEnv.cfaV1, "FlowUpdated")
                 .withArgs(
-                    superToken.address,
-                    deployer.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.alice.address,
+                    testEnv.bob.address,
                     Number(flowRate),
                     Number(flowRate) * -1,
                     Number(flowRate),
@@ -623,22 +654,24 @@ describe("SuperToken Tests", () => {
                 );
 
             // get flow check
-            const flow = await daix.getFlow({
-                sender: deployer.address,
-                receiver: alpha.address,
-                providerOrSigner: deployer,
+            const flow = await testEnv.wrapperSuperToken.getFlow({
+                sender: testEnv.alice.address,
+                receiver: testEnv.bob.address,
+                providerOrSigner: testEnv.alice,
             });
             expect(flow.flowRate).to.equal(flowRate);
 
             // get account flow info check
-            const deployerAccountFlowInfo = await daix.getAccountFlowInfo({
-                account: deployer.address,
-                providerOrSigner: deployer,
-            });
-            const alphaAccountFlowInfo = await daix.getAccountFlowInfo({
-                account: alpha.address,
-                providerOrSigner: alpha,
-            });
+            const deployerAccountFlowInfo =
+                await testEnv.wrapperSuperToken.getAccountFlowInfo({
+                    account: testEnv.alice.address,
+                    providerOrSigner: testEnv.alice,
+                });
+            const alphaAccountFlowInfo =
+                await testEnv.wrapperSuperToken.getAccountFlowInfo({
+                    account: testEnv.bob.address,
+                    providerOrSigner: testEnv.bob,
+                });
             expect(Number(deployerAccountFlowInfo.flowRate)).to.equal(
                 Number(flowRate) * -1
             );
@@ -647,13 +680,13 @@ describe("SuperToken Tests", () => {
             );
 
             // get net flow check
-            const deployerNetFlow = await daix.getNetFlow({
-                account: deployer.address,
-                providerOrSigner: deployer,
+            const deployerNetFlow = await testEnv.wrapperSuperToken.getNetFlow({
+                account: testEnv.alice.address,
+                providerOrSigner: testEnv.alice,
             });
-            const alphaNetFlow = await daix.getNetFlow({
-                account: alpha.address,
-                providerOrSigner: alpha,
+            const alphaNetFlow = await testEnv.wrapperSuperToken.getNetFlow({
+                account: testEnv.bob.address,
+                providerOrSigner: testEnv.bob,
             });
             expect(Number(deployerNetFlow)).to.equal(Number(flowRate) * -1);
             expect(Number(alphaNetFlow)).to.equal(Number(flowRate));
@@ -661,28 +694,28 @@ describe("SuperToken Tests", () => {
 
         it("Should be able to update flow", async () => {
             let flowRate = getPerSecondFlowRateByMonth("1000");
-            await daix
+            await testEnv.wrapperSuperToken
                 .createFlow({
-                    sender: deployer.address,
-                    receiver: alpha.address,
+                    sender: testEnv.alice.address,
+                    receiver: testEnv.bob.address,
                     flowRate,
                 })
-                .exec(deployer);
+                .exec(testEnv.alice);
             flowRate = getPerSecondFlowRateByMonth("1200");
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .updateFlow({
-                        sender: deployer.address,
-                        receiver: alpha.address,
+                        sender: testEnv.alice.address,
+                        receiver: testEnv.bob.address,
                         flowRate,
                     })
-                    .exec(deployer)
+                    .exec(testEnv.alice)
             )
-                .to.emit(cfaV1, "FlowUpdated")
+                .to.emit(testEnv.cfaV1, "FlowUpdated")
                 .withArgs(
-                    superToken.address,
-                    deployer.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.alice.address,
+                    testEnv.bob.address,
                     Number(flowRate),
                     Number(flowRate) * -1,
                     Number(flowRate),
@@ -692,27 +725,27 @@ describe("SuperToken Tests", () => {
 
         it("Should be able to delete flow (by sender)", async () => {
             let flowRate = getPerSecondFlowRateByMonth("1000");
-            await daix
+            await testEnv.wrapperSuperToken
                 .createFlow({
-                    sender: deployer.address,
-                    receiver: alpha.address,
+                    sender: testEnv.alice.address,
+                    receiver: testEnv.bob.address,
                     flowRate,
                 })
-                .exec(deployer);
+                .exec(testEnv.alice);
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .deleteFlow({
-                        sender: deployer.address,
-                        receiver: alpha.address,
+                        sender: testEnv.alice.address,
+                        receiver: testEnv.bob.address,
                     })
-                    .exec(deployer)
+                    .exec(testEnv.alice)
             )
-                .to.emit(cfaV1, "FlowUpdated")
+                .to.emit(testEnv.cfaV1, "FlowUpdated")
                 .withArgs(
-                    superToken.address,
-                    deployer.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.alice.address,
+                    testEnv.bob.address,
                     0,
                     0,
                     0,
@@ -722,28 +755,28 @@ describe("SuperToken Tests", () => {
 
         it("Should be able to delete flow (by receiver)", async () => {
             let flowRate = getPerSecondFlowRateByMonth("1000");
-            await daix
+            await testEnv.wrapperSuperToken
                 .createFlow({
-                    sender: deployer.address,
-                    receiver: alpha.address,
+                    sender: testEnv.alice.address,
+                    receiver: testEnv.bob.address,
                     flowRate,
                 })
-                .exec(deployer);
+                .exec(testEnv.alice);
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .deleteFlow({
-                        sender: deployer.address,
-                        receiver: alpha.address,
-                        shouldUseCallAgreement: true
+                        sender: testEnv.alice.address,
+                        receiver: testEnv.bob.address,
+                        shouldUseCallAgreement: true,
                     })
-                    .exec(alpha)
+                    .exec(testEnv.bob)
             )
-                .to.emit(cfaV1, "FlowUpdated")
+                .to.emit(testEnv.cfaV1, "FlowUpdated")
                 .withArgs(
-                    superToken.address,
-                    deployer.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.alice.address,
+                    testEnv.bob.address,
                     0,
                     0,
                     0,
@@ -753,20 +786,20 @@ describe("SuperToken Tests", () => {
 
         it("Should not be able to delete flow (by wrong person)", async () => {
             let flowRate = getPerSecondFlowRateByMonth("1000");
-            await daix
+            await testEnv.wrapperSuperToken
                 .createFlow({
-                    sender: deployer.address,
-                    receiver: alpha.address,
+                    sender: testEnv.alice.address,
+                    receiver: testEnv.bob.address,
                     flowRate,
                 })
-                .exec(deployer);
+                .exec(testEnv.alice);
             try {
-                await daix
+                await testEnv.wrapperSuperToken
                     .deleteFlow({
-                        sender: deployer.address,
-                        receiver: alpha.address,
+                        sender: testEnv.alice.address,
+                        receiver: testEnv.bob.address,
                     })
-                    .exec(bravo);
+                    .exec(testEnv.charlie);
             } catch (err: any) {
                 expect(err.message).to.include("cannot estimate gas;");
             }
@@ -779,20 +812,21 @@ describe("SuperToken Tests", () => {
         let receiver: SignerWithAddress;
 
         before(() => {
-            sender = alpha;
-            flowOperator = bravo;
-            receiver = charlie;
+            sender = testEnv.bob;
+            flowOperator = testEnv.charlie;
+            receiver = testEnv.users[5];
         });
 
         it("Should throw when passing in unclean permissions", async () => {
             const flowRateAllowance = getPerSecondFlowRateByMonth("100");
             try {
                 const permissions = AUTHORIZE_FULL_CONTROL + 1;
-                const operation = daix.updateFlowOperatorPermissions({
-                    flowRateAllowance,
-                    flowOperator: flowOperator.address,
-                    permissions,
-                });
+                const operation =
+                    testEnv.wrapperSuperToken.updateFlowOperatorPermissions({
+                        flowRateAllowance,
+                        flowOperator: flowOperator.address,
+                        permissions,
+                    });
                 await operation.exec(sender);
             } catch (err: any) {
                 expect(err.message).to.eql(
@@ -806,11 +840,12 @@ describe("SuperToken Tests", () => {
             const flowRateAllowance = "-1000";
             try {
                 const permissions = AUTHORIZE_FULL_CONTROL;
-                const operation = daix.updateFlowOperatorPermissions({
-                    flowRateAllowance,
-                    flowOperator: flowOperator.address,
-                    permissions,
-                });
+                const operation =
+                    testEnv.wrapperSuperToken.updateFlowOperatorPermissions({
+                        flowRateAllowance,
+                        flowOperator: flowOperator.address,
+                        permissions,
+                    });
                 await operation.exec(sender);
             } catch (err: any) {
                 expect(err.message).to.eql(
@@ -832,15 +867,15 @@ describe("SuperToken Tests", () => {
 
             // Update Flow Operator Permissions
             const updateFlowOperatorPermissionsOperation =
-                daix.updateFlowOperatorPermissions({
+                testEnv.wrapperSuperToken.updateFlowOperatorPermissions({
                     flowRateAllowance,
                     flowOperator: flowOperator.address,
                     permissions,
                 });
             await expect(updateFlowOperatorPermissionsOperation.exec(sender))
-                .to.emit(cfaV1, "FlowOperatorUpdated")
+                .to.emit(testEnv.cfaV1, "FlowOperatorUpdated")
                 .withArgs(
-                    superToken.address,
+                    testEnv.wrapperSuperToken.address,
                     sender.address,
                     flowOperator.address,
                     permissions,
@@ -848,11 +883,12 @@ describe("SuperToken Tests", () => {
                 );
 
             // getFlowOperatorData test
-            let flowOperatorData = await daix.getFlowOperatorData({
-                sender: sender.address,
-                flowOperator: flowOperator.address,
-                providerOrSigner: sender,
-            });
+            let flowOperatorData =
+                await testEnv.wrapperSuperToken.getFlowOperatorData({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    providerOrSigner: sender,
+                });
             expect(flowOperatorData.flowOperatorId).equals(flowOperatorId);
             expect(flowOperatorData.flowRateAllowance).equals(
                 flowRateAllowance
@@ -862,25 +898,26 @@ describe("SuperToken Tests", () => {
             // Revoke Flow Operator With Full Control Permissions
             permissions = 0; // no permissions
             const revokeFlowOperatorWithFullControlOperation =
-                daix.revokeFlowOperatorWithFullControl({
+                testEnv.wrapperSuperToken.revokeFlowOperatorWithFullControl({
                     flowOperator: flowOperator.address,
                 });
             await expect(
                 revokeFlowOperatorWithFullControlOperation.exec(sender)
             )
-                .to.emit(cfaV1, "FlowOperatorUpdated")
+                .to.emit(testEnv.cfaV1, "FlowOperatorUpdated")
                 .withArgs(
-                    superToken.address,
+                    testEnv.wrapperSuperToken.address,
                     sender.address,
                     flowOperator.address,
                     permissions,
                     0
                 );
             // getFlowOperatorDataByID test
-            flowOperatorData = await daix.getFlowOperatorDataByID({
-                flowOperatorId,
-                providerOrSigner: sender,
-            });
+            flowOperatorData =
+                await testEnv.wrapperSuperToken.getFlowOperatorDataByID({
+                    flowOperatorId,
+                    providerOrSigner: sender,
+                });
             expect(flowOperatorData.flowOperatorId).equals(flowOperatorId);
             expect(flowOperatorData.flowRateAllowance).equals("0");
             expect(flowOperatorData.permissions).equals(permissions.toString());
@@ -888,28 +925,31 @@ describe("SuperToken Tests", () => {
             // Authorize Flow Operator With Full Control
             permissions = AUTHORIZE_FULL_CONTROL; // all permissions
             const authorizeFlowOperatorWithFullControlOperation =
-                daix.authorizeFlowOperatorWithFullControl({
+                testEnv.wrapperSuperToken.authorizeFlowOperatorWithFullControl({
                     flowOperator: flowOperator.address,
                 });
             await expect(
                 authorizeFlowOperatorWithFullControlOperation.exec(sender)
             )
-                .to.emit(cfaV1, "FlowOperatorUpdated")
+                .to.emit(testEnv.cfaV1, "FlowOperatorUpdated")
                 .withArgs(
-                    superToken.address,
+                    testEnv.wrapperSuperToken.address,
                     sender.address,
                     flowOperator.address,
                     permissions,
-                    MAX_FLOW_RATE // max flow rate ((2 ** 95) - 1)
+                    testEnv.constants.MAX_FLOW_RATE.toString() // max flow rate ((2 ** 95) - 1)
                 );
 
             // getFlowOperatorDataByID test
-            flowOperatorData = await daix.getFlowOperatorDataByID({
-                flowOperatorId,
-                providerOrSigner: sender,
-            });
+            flowOperatorData =
+                await testEnv.wrapperSuperToken.getFlowOperatorDataByID({
+                    flowOperatorId,
+                    providerOrSigner: sender,
+                });
             expect(flowOperatorData.flowOperatorId).equals(flowOperatorId);
-            expect(flowOperatorData.flowRateAllowance).equals(MAX_FLOW_RATE);
+            expect(flowOperatorData.flowRateAllowance).equals(
+                testEnv.constants.MAX_FLOW_RATE.toString()
+            );
             expect(flowOperatorData.permissions).equals(permissions.toString());
         });
 
@@ -918,7 +958,7 @@ describe("SuperToken Tests", () => {
             let permissions = AUTHORIZE_FLOW_OPERATOR_CREATE; // ALLOW_CREATE
 
             const updateFlowOperatorPermissionsOperation =
-                daix.updateFlowOperatorPermissions({
+                testEnv.wrapperSuperToken.updateFlowOperatorPermissions({
                     flowRateAllowance,
                     flowOperator: flowOperator.address,
                     permissions,
@@ -926,40 +966,40 @@ describe("SuperToken Tests", () => {
 
             await updateFlowOperatorPermissionsOperation.exec(sender);
             const flowRate = getPerSecondFlowRateByMonth("100");
-            const operation = daix.createFlowByOperator({
+            const operation = testEnv.wrapperSuperToken.createFlowByOperator({
                 flowRate,
                 sender: sender.address,
                 receiver: receiver.address,
             });
-            const deposit = clipDepositNumber(toBN(flowRate).mul(toBN(3600)));
+            const deposit = clipDepositNumber(toBN(flowRate).mul(toBN(14400)));
             await expect(operation.exec(flowOperator))
-                .to.emit(cfaV1, "FlowUpdatedExtension")
+                .to.emit(testEnv.cfaV1, "FlowUpdatedExtension")
                 .withArgs(flowOperator.address, deposit.toString());
         });
 
         it("Should be able to update flow by operator", async () => {
             await createFlowWithOperator(flowOperator, sender, receiver);
             const flowRate = getPerSecondFlowRateByMonth("70");
-            const operation = daix.updateFlowByOperator({
+            const operation = testEnv.wrapperSuperToken.updateFlowByOperator({
                 flowRate,
                 sender: sender.address,
                 receiver: receiver.address,
             });
-            const deposit = clipDepositNumber(toBN(flowRate).mul(toBN(3600)));
+            const deposit = clipDepositNumber(toBN(flowRate).mul(toBN(14400)));
             await expect(operation.exec(flowOperator))
-                .to.emit(cfaV1, "FlowUpdatedExtension")
+                .to.emit(testEnv.cfaV1, "FlowUpdatedExtension")
                 .withArgs(flowOperator.address, deposit.toString());
         });
 
         it("Should be able to delete flow by operator", async () => {
             await createFlowWithOperator(flowOperator, sender, receiver);
 
-            const operation = daix.deleteFlowByOperator({
+            const operation = testEnv.wrapperSuperToken.deleteFlowByOperator({
                 sender: sender.address,
                 receiver: receiver.address,
             });
             await expect(operation.exec(flowOperator))
-                .to.emit(cfaV1, "FlowUpdatedExtension")
+                .to.emit(testEnv.cfaV1, "FlowUpdatedExtension")
                 .withArgs(flowOperator.address, "0");
         });
     });
@@ -969,9 +1009,9 @@ describe("SuperToken Tests", () => {
         describe("Revert cases", () => {
             it("Should throw an error if one of the input addresses is invalid", async () => {
                 try {
-                    framework.idaV1.createIndex({
+                    testEnv.sdkFramework.idaV1.createIndex({
                         indexId: "0",
-                        superToken: superToken.address + "z",
+                        superToken: testEnv.wrapperSuperToken.address + "z",
                     });
                 } catch (err: any) {
                     expect(err.message).to.eql(
@@ -984,9 +1024,9 @@ describe("SuperToken Tests", () => {
             it("Should throw an error on the reads as expected", async () => {
                 // NOTE: using casting to pass in wrong input to force error
                 try {
-                    await framework.idaV1.getIndex({
-                        superToken: superToken.address,
-                        publisher: deployer.address,
+                    await testEnv.sdkFramework.idaV1.getIndex({
+                        superToken: testEnv.wrapperSuperToken.address,
+                        publisher: testEnv.alice.address,
                         indexId: "0",
                         providerOrSigner: "" as any,
                     });
@@ -998,11 +1038,11 @@ describe("SuperToken Tests", () => {
                 }
 
                 try {
-                    await framework.idaV1.getSubscription({
-                        superToken: superToken.address,
-                        publisher: deployer.address,
+                    await testEnv.sdkFramework.idaV1.getSubscription({
+                        superToken: testEnv.wrapperSuperToken.address,
+                        publisher: testEnv.alice.address,
                         indexId: "0",
-                        subscriber: alpha.address,
+                        subscriber: testEnv.bob.address,
                         providerOrSigner: "" as any,
                     });
                 } catch (err: any) {
@@ -1016,19 +1056,24 @@ describe("SuperToken Tests", () => {
         // IDA Functions
         it("Should be able to create an index and get the newly created index", async () => {
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .createIndex({
                         indexId: "0",
                     })
-                    .exec(alpha)
+                    .exec(testEnv.bob)
             )
-                .to.emit(idaV1, "IndexCreated")
-                .withArgs(superToken.address, alpha.address, 0, "0x");
+                .to.emit(testEnv.idaV1, "IndexCreated")
+                .withArgs(
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.bob.address,
+                    0,
+                    "0x"
+                );
 
-            const index = await daix.getIndex({
-                publisher: alpha.address,
+            const index = await testEnv.wrapperSuperToken.getIndex({
+                publisher: testEnv.bob.address,
                 indexId: "0",
-                providerOrSigner: alpha,
+                providerOrSigner: testEnv.bob,
             });
             expect(index.exist).to.equal(true);
             expect(index.indexValue).to.equal("0");
@@ -1037,38 +1082,39 @@ describe("SuperToken Tests", () => {
         });
 
         it("Should be able to update subscription units and get newly created subscriptions", async () => {
-            await daix
+            await testEnv.wrapperSuperToken
                 .createIndex({
                     indexId: "0",
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
             const units = ethers.utils.parseUnits("0.001").toString();
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .updateSubscriptionUnits({
                         indexId: "0",
-                        subscriber: deployer.address,
+                        subscriber: testEnv.alice.address,
                         units,
                     })
-                    .exec(alpha)
+                    .exec(testEnv.bob)
             )
-                .to.emit(idaV1, "SubscriptionUnitsUpdated")
+                .to.emit(testEnv.idaV1, "SubscriptionUnitsUpdated")
                 .withArgs(
-                    superToken.address,
-                    deployer.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.alice.address,
+                    testEnv.bob.address,
                     0,
                     units,
                     "0x"
                 );
 
-            const deployerSubscription = await daix.getSubscription({
-                publisher: alpha.address,
-                indexId: "0",
-                subscriber: deployer.address,
-                providerOrSigner: alpha,
-            });
+            const deployerSubscription =
+                await testEnv.wrapperSuperToken.getSubscription({
+                    publisher: testEnv.bob.address,
+                    indexId: "0",
+                    subscriber: testEnv.alice.address,
+                    providerOrSigner: testEnv.bob,
+                });
 
             expect(deployerSubscription.exist).to.equal(true);
             expect(deployerSubscription.approved).to.equal(false);
@@ -1076,30 +1122,31 @@ describe("SuperToken Tests", () => {
             expect(deployerSubscription.pendingDistribution).to.equal("0");
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .updateSubscriptionUnits({
                         indexId: "0",
-                        subscriber: bravo.address,
+                        subscriber: testEnv.charlie.address,
                         units,
                     })
-                    .exec(alpha)
+                    .exec(testEnv.bob)
             )
-                .to.emit(idaV1, "IndexUnitsUpdated")
+                .to.emit(testEnv.idaV1, "IndexUnitsUpdated")
                 .withArgs(
-                    superToken.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.bob.address,
                     0,
-                    bravo.address,
+                    testEnv.charlie.address,
                     units,
                     "0x"
                 );
 
-            const bravoSubscription = await daix.getSubscription({
-                publisher: alpha.address,
-                indexId: "0",
-                subscriber: bravo.address,
-                providerOrSigner: bravo,
-            });
+            const bravoSubscription =
+                await testEnv.wrapperSuperToken.getSubscription({
+                    publisher: testEnv.bob.address,
+                    indexId: "0",
+                    subscriber: testEnv.charlie.address,
+                    providerOrSigner: testEnv.charlie,
+                });
 
             expect(bravoSubscription.exist).to.equal(true);
             expect(bravoSubscription.approved).to.equal(false);
@@ -1110,32 +1157,32 @@ describe("SuperToken Tests", () => {
         it("Should be able to distribute (simple case)", async () => {
             const units = ethers.utils.parseUnits("0.001").toString();
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .createIndex({
                     indexId: "0",
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .updateSubscriptionUnits({
                     indexId: "0",
-                    subscriber: deployer.address,
+                    subscriber: testEnv.alice.address,
                     units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .distribute({
                         indexId: "0",
                         amount: ethers.utils.parseUnits("1").toString(),
                     })
-                    .exec(alpha)
+                    .exec(testEnv.bob)
             )
-                .to.emit(idaV1, "IndexUpdated")
+                .to.emit(testEnv.idaV1, "IndexUpdated")
                 .withArgs(
-                    superToken.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.bob.address,
                     0,
                     "0",
                     "1000",
@@ -1148,40 +1195,40 @@ describe("SuperToken Tests", () => {
         it("Should be able to distribute (multiple subs)", async () => {
             const units = ethers.utils.parseUnits("0.001").toString();
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .createIndex({
                     indexId: "0",
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .updateSubscriptionUnits({
                     indexId: "0",
-                    subscriber: deployer.address,
+                    subscriber: testEnv.alice.address,
                     units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .updateSubscriptionUnits({
                     indexId: "0",
-                    subscriber: bravo.address,
+                    subscriber: testEnv.charlie.address,
                     units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .distribute({
                         indexId: "0",
                         amount: ethers.utils.parseUnits("1").toString(),
                     })
-                    .exec(alpha)
+                    .exec(testEnv.bob)
             )
-                .to.emit(idaV1, "IndexUpdated")
+                .to.emit(testEnv.idaV1, "IndexUpdated")
                 .withArgs(
-                    superToken.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.bob.address,
                     0,
                     "0",
                     "500",
@@ -1190,54 +1237,55 @@ describe("SuperToken Tests", () => {
                     "0x"
                 );
         });
+
         it("Should be able to approve subscription", async () => {
             const units = ethers.utils.parseUnits("0.001").toString();
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .createIndex({
                     indexId: "0",
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .updateSubscriptionUnits({
                     indexId: "0",
-                    subscriber: deployer.address,
+                    subscriber: testEnv.alice.address,
                     units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .approveSubscription({
                         indexId: "0",
-                        publisher: alpha.address,
+                        publisher: testEnv.bob.address,
                     })
-                    .exec(deployer)
+                    .exec(testEnv.alice)
             )
-                .to.emit(idaV1, "SubscriptionApproved")
+                .to.emit(testEnv.idaV1, "SubscriptionApproved")
                 .withArgs(
-                    superToken.address,
-                    deployer.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.alice.address,
+                    testEnv.bob.address,
                     0,
                     "0x"
                 );
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .approveSubscription({
                         indexId: "0",
-                        publisher: alpha.address,
+                        publisher: testEnv.bob.address,
                     })
-                    .exec(bravo)
+                    .exec(testEnv.charlie)
             )
-                .to.emit(idaV1, "IndexSubscribed")
+                .to.emit(testEnv.idaV1, "IndexSubscribed")
                 .withArgs(
-                    superToken.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.bob.address,
                     0,
-                    bravo.address,
+                    testEnv.charlie.address,
                     "0x"
                 );
         });
@@ -1247,32 +1295,32 @@ describe("SuperToken Tests", () => {
             const updatedIndexValue = ethers.utils
                 .parseUnits("0.000000002")
                 .toString();
-            await daix
+            await testEnv.wrapperSuperToken
                 .createIndex({
                     indexId: "0",
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .updateSubscriptionUnits({
                     indexId: "0",
-                    subscriber: deployer.address,
+                    subscriber: testEnv.alice.address,
                     units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .updateIndexValue({
                         indexId: "0",
                         indexValue: updatedIndexValue,
                     })
-                    .exec(alpha)
+                    .exec(testEnv.bob)
             )
-                .to.emit(idaV1, "IndexUpdated")
+                .to.emit(testEnv.idaV1, "IndexUpdated")
                 .withArgs(
-                    superToken.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.bob.address,
                     0,
                     "0",
                     updatedIndexValue,
@@ -1284,184 +1332,184 @@ describe("SuperToken Tests", () => {
 
         it("Should be able to revoke subscription", async () => {
             const units = ethers.utils.parseUnits("0.001").toString();
-            await daix
+            await testEnv.wrapperSuperToken
                 .createIndex({
                     indexId: "0",
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .updateSubscriptionUnits({
                     indexId: "0",
-                    subscriber: deployer.address,
+                    subscriber: testEnv.alice.address,
                     units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .updateSubscriptionUnits({
                     indexId: "0",
-                    subscriber: alpha.address,
+                    subscriber: testEnv.bob.address,
                     units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .approveSubscription({
                     indexId: "0",
-                    publisher: alpha.address,
+                    publisher: testEnv.bob.address,
                 })
-                .exec(deployer);
+                .exec(testEnv.alice);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .approveSubscription({
                     indexId: "0",
-                    publisher: alpha.address,
+                    publisher: testEnv.bob.address,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .revokeSubscription({
                         indexId: "0",
-                        publisher: alpha.address,
+                        publisher: testEnv.bob.address,
                     })
-                    .exec(deployer)
+                    .exec(testEnv.alice)
             )
-                .to.emit(idaV1, "SubscriptionRevoked")
+                .to.emit(testEnv.idaV1, "SubscriptionRevoked")
                 .withArgs(
-                    superToken.address,
-                    deployer.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.alice.address,
+                    testEnv.bob.address,
                     0,
                     "0x"
                 );
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .revokeSubscription({
                         indexId: "0",
-                        publisher: alpha.address,
+                        publisher: testEnv.bob.address,
                     })
-                    .exec(alpha)
+                    .exec(testEnv.bob)
             )
-                .to.emit(idaV1, "IndexUnsubscribed")
+                .to.emit(testEnv.idaV1, "IndexUnsubscribed")
                 .withArgs(
-                    superToken.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.bob.address,
                     0,
-                    alpha.address,
+                    testEnv.bob.address,
                     "0x"
                 );
         });
 
         it("Should be able to claim pending units", async () => {
             const units = ethers.utils.parseUnits("0.002").toString();
-            await daix
+            await testEnv.wrapperSuperToken
                 .createIndex({
                     indexId: "0",
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .updateSubscriptionUnits({
                     indexId: "0",
-                    subscriber: deployer.address,
+                    subscriber: testEnv.alice.address,
                     units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .distribute({
                     indexId: "0",
                     amount: units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .claim({
                         indexId: "0",
-                        subscriber: deployer.address,
-                        publisher: alpha.address,
+                        subscriber: testEnv.alice.address,
+                        publisher: testEnv.bob.address,
                     })
-                    .exec(deployer)
+                    .exec(testEnv.alice)
             )
-                .to.emit(idaV1, "SubscriptionDistributionClaimed")
+                .to.emit(testEnv.idaV1, "SubscriptionDistributionClaimed")
                 .withArgs(
-                    superToken.address,
-                    deployer.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.alice.address,
+                    testEnv.bob.address,
                     0,
                     units
                 )
-                .and.to.emit(idaV1, "IndexDistributionClaimed")
+                .and.to.emit(testEnv.idaV1, "IndexDistributionClaimed")
                 .withArgs(
-                    superToken.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.bob.address,
                     0,
-                    deployer.address,
+                    testEnv.alice.address,
                     units
                 );
         });
 
         it("Should be able to delete subscription", async () => {
             const units = ethers.utils.parseUnits("0.001").toString();
-            await daix
+            await testEnv.wrapperSuperToken
                 .createIndex({
                     indexId: "0",
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .updateSubscriptionUnits({
                     indexId: "0",
-                    subscriber: deployer.address,
+                    subscriber: testEnv.alice.address,
                     units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
-            await daix
+            await testEnv.wrapperSuperToken
                 .updateSubscriptionUnits({
                     indexId: "0",
-                    subscriber: bravo.address,
+                    subscriber: testEnv.charlie.address,
                     units,
                 })
-                .exec(alpha);
+                .exec(testEnv.bob);
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .deleteSubscription({
                         indexId: "0",
-                        subscriber: deployer.address,
-                        publisher: alpha.address,
+                        subscriber: testEnv.alice.address,
+                        publisher: testEnv.bob.address,
                     })
-                    .exec(alpha)
+                    .exec(testEnv.bob)
             )
-                .to.emit(idaV1, "SubscriptionRevoked")
+                .to.emit(testEnv.idaV1, "SubscriptionRevoked")
                 .withArgs(
-                    superToken.address,
-                    deployer.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.alice.address,
+                    testEnv.bob.address,
                     0,
                     "0x"
                 );
 
             await expect(
-                daix
+                testEnv.wrapperSuperToken
                     .deleteSubscription({
                         indexId: "0",
-                        subscriber: bravo.address,
-                        publisher: alpha.address,
+                        subscriber: testEnv.charlie.address,
+                        publisher: testEnv.bob.address,
                     })
-                    .exec(alpha)
+                    .exec(testEnv.bob)
             )
-                .to.emit(idaV1, "IndexUnsubscribed")
+                .to.emit(testEnv.idaV1, "IndexUnsubscribed")
                 .withArgs(
-                    superToken.address,
-                    alpha.address,
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.bob.address,
                     0,
-                    bravo.address,
+                    testEnv.charlie.address,
                     "0x"
                 );
         });

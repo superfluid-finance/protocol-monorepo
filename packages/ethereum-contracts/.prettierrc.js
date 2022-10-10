@@ -7,6 +7,7 @@ module.exports = {
             files: "*.sol",
             options: {
                 bracketSpacing: true,
+                compiler: "0.8.16",
             },
         },
     ],

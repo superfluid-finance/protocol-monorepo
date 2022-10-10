@@ -38,7 +38,8 @@ describe("SuperTokenFactory Contract", function () {
         token1 = await web3tx(TestToken.new, "TestToken.new 1")(
             "Test Token 1",
             "TT1",
-            18
+            18,
+            ethers.utils.parseUnits((1e12).toString())
         );
         await t.pushEvmSnapshot();
 

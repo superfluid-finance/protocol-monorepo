@@ -5,18 +5,12 @@ import {
     SuperTokenFactory,
     TestGovernance,
     TestToken,
+    TestToken__factory,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 
-const {web3tx} = require("@decentral.ee/web3-helpers");
 const {expectEvent} = require("@openzeppelin/test-helpers");
-
-const UUPSProxiable = artifacts.require("UUPSProxiable");
-const TestToken = artifacts.require("TestToken");
-const SuperTokenFactoryHelper = artifacts.require("SuperTokenFactoryHelper");
-const SuperTokenFactory = artifacts.require("SuperTokenFactory");
-const SuperTokenMock = artifacts.require("SuperTokenMock");
 
 describe("SuperTokenFactory Contract", function () {
     this.timeout(300e3);
@@ -27,6 +21,7 @@ describe("SuperTokenFactory Contract", function () {
     let superfluid: SuperfluidMock;
     let governance: TestGovernance;
     let factory: SuperTokenFactory;
+    let testTokenFactory: TestToken__factory;
     let token1: TestToken;
 
     before(async () => {
@@ -35,7 +30,8 @@ describe("SuperTokenFactory Contract", function () {
             nAccounts: 1,
         });
 
-        token1 = await web3tx(TestToken.new, "TestToken.new 1")(
+        testTokenFactory = await ethers.getContractFactory("TestToken");
+        token1 = await testTokenFactory.deploy(
             "Test Token 1",
             "TT1",
             18,
@@ -66,7 +62,10 @@ describe("SuperTokenFactory Contract", function () {
         });
 
         it("#1.2 proxiable info", async () => {
-            const proxiable = await UUPSProxiable.at(factory.address);
+            const proxiable = await ethers.getContractAt(
+                "UUPSProxiable",
+                factory.address
+            );
             assert.equal(
                 await proxiable.proxiableUUID(),
                 web3.utils.sha3(
@@ -144,7 +143,10 @@ describe("SuperTokenFactory Contract", function () {
                 await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
                     token: superToken1.address,
                 });
-                superToken1 = await SuperTokenMock.at(superToken1.address);
+                superToken1 = await ethers.getContractAt(
+                    "SuperTokenMock",
+                    superToken1.address
+                );
                 await updateSuperTokenFactory();
                 assert.equal((await superToken1.waterMark()).toString(), "0");
                 await expectRevertedWith(
@@ -163,14 +165,17 @@ describe("SuperTokenFactory Contract", function () {
                 await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
                     token: superToken1.address,
                 });
-                superToken1 = await SuperTokenMock.at(superToken1.address);
+                superToken1 = await ethers.getContractAt(
+                    "SuperTokenMock",
+                    superToken1.address
+                );
                 assert.equal((await superToken1.waterMark()).toString(), "0");
                 await updateSuperTokenFactory();
                 assert.equal((await superToken1.waterMark()).toString(), "0");
-                await web3tx(
-                    governance.batchUpdateSuperTokenLogic,
-                    "governance.batchUpdateSuperTokenLogic"
-                )(superfluid.address, [superToken1.address]);
+                await governance.batchUpdateSuperTokenLogic(
+                    superfluid.address,
+                    [superToken1.address]
+                );
                 assert.equal((await superToken1.waterMark()).toString(), "42");
             });
 
@@ -185,7 +190,10 @@ describe("SuperTokenFactory Contract", function () {
                 await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
                     token: superToken1.address,
                 });
-                superToken1 = await SuperTokenMock.at(superToken1.address);
+                superToken1 = await ethers.getContractAt(
+                    "SuperTokenMock",
+                    superToken1.address
+                );
                 await updateSuperTokenFactory();
                 assert.equal((await superToken1.waterMark()).toString(), "42");
                 await expectRevertedWith(
@@ -202,18 +210,14 @@ describe("SuperTokenFactory Contract", function () {
             });
 
             it("#2.a.4 Create Custom Token", async () => {
-                const CustomSuperTokenMock = artifacts.require(
-                    "CustomSuperTokenMock"
-                );
-                const CustomSuperTokenProxyMock = artifacts.require(
-                    "CustomSuperTokenProxyMock"
-                );
-                const customToken = await CustomSuperTokenMock.at(
+                const CustomSuperTokenProxyMockFactory =
+                    await ethers.getContractFactory(
+                        "CustomSuperTokenProxyMock"
+                    );
+                const customToken = await ethers.getContractAt(
+                    "CustomSuperTokenMock",
                     (
-                        await web3tx(
-                            CustomSuperTokenProxyMock.new,
-                            "CustomSuperTokenProxyMock.new"
-                        )(superfluid.address)
+                        await CustomSuperTokenProxyMockFactory.deploy()
                     ).address
                 );
                 console.log("initializeCustomSuperToken");
@@ -227,15 +231,18 @@ describe("SuperTokenFactory Contract", function () {
 
         context("#2.b Production Factory", () => {
             it("#2.b.1 use production factory to create different super tokens", async () => {
-                const helper = await SuperTokenFactoryHelper.new();
-                const factory2Logic = await SuperTokenFactory.new(
+                const helper = await (
+                    await ethers.getContractFactory("SuperTokenFactoryHelper")
+                ).deploy();
+                const factory2Logic = await (
+                    await ethers.getContractFactory("SuperTokenFactory")
+                ).deploy(superfluid.address, helper.address);
+                await governance.updateContracts(
                     superfluid.address,
-                    helper.address
+                    ZERO_ADDRESS,
+                    [],
+                    factory2Logic.address
                 );
-                await web3tx(
-                    governance.updateContracts,
-                    "governance.updateContracts"
-                )(superfluid.address, ZERO_ADDRESS, [], factory2Logic.address);
 
                 const superToken0 = await t.sf.createERC20Wrapper(token1, {
                     upgradability: 0,
@@ -281,6 +288,75 @@ describe("SuperTokenFactory Contract", function () {
                 "ZERO_ADDRESS",
                 t.customErrorCode.SUPER_TOKEN_FACTORY_ZERO_ADDRESS
             );
+        });
+
+        context("#2.d Canonical Wrapper Super Token Creation", () => {
+            it("#2.d.1 it should properly compute address and use create2", async () => {
+                const computedTokenAddress =
+                    await factory.computeWrapperSuperTokenAddress(
+                        token1.address
+                    );
+                await expect(
+                    factory.createCanonicalERC20Wrapper(token1.address)
+                )
+                    .to.emit(factory, "SuperTokenCreated")
+                    .withArgs(computedTokenAddress.superTokenAddress);
+                expect(computedTokenAddress.isDeployedAndCanonical).to.equal(
+                    false
+                );
+
+                const deployedToken =
+                    await factory.computeWrapperSuperTokenAddress(
+                        token1.address
+                    );
+                expect(deployedToken.isDeployedAndCanonical).to.equal(true);
+            });
+
+            it("#2.d.2 it should not be able to create token twice in a row", async () => {
+                const computedTokenAddress =
+                    await factory.computeWrapperSuperTokenAddress(
+                        token1.address
+                    );
+                // initial creation should emit event
+                await expect(
+                    factory.createCanonicalERC20Wrapper(token1.address)
+                )
+                    .to.emit(factory, "SuperTokenCreated")
+                    .withArgs(computedTokenAddress.superTokenAddress);
+
+                // subsequent attempt doesn't throw, but does not create AND does not emit event
+                await expect(
+                    factory.createCanonicalERC20Wrapper(token1.address)
+                ).to.not.emit(factory, "SuperTokenCreated");
+            });
+
+            it("#2.d.3 it should be able to create multiple canonical erc20 wrappers", async () => {
+                const computedToken1Address =
+                    await factory.computeWrapperSuperTokenAddress(
+                        token1.address
+                    );
+                await expect(
+                    factory.createCanonicalERC20Wrapper(token1.address)
+                )
+                    .to.emit(factory, "SuperTokenCreated")
+                    .withArgs(computedToken1Address.superTokenAddress);
+
+                const token2 = await testTokenFactory.deploy(
+                    "Test Token 2",
+                    "TT2",
+                    18,
+                    ethers.utils.parseUnits((1e12).toString())
+                );
+                const computedToken2Address =
+                    await factory.computeWrapperSuperTokenAddress(
+                        token2.address
+                    );
+                await expect(
+                    factory.createCanonicalERC20Wrapper(token2.address)
+                )
+                    .to.emit(factory, "SuperTokenCreated")
+                    .withArgs(computedToken2Address.superTokenAddress);
+            });
         });
     });
 });

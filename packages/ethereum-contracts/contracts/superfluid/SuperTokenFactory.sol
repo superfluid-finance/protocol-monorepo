@@ -18,10 +18,6 @@ import { SuperToken } from "../superfluid/SuperToken.sol";
 
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
 
-import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
-
-
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,
     ISuperTokenFactory
@@ -31,13 +27,18 @@ abstract contract SuperTokenFactoryBase is
 
     ISuperToken internal _superTokenLogic;
 
+    /// @notice A mapping from underlying token addresses to canonical wrapper super token addresses
+    /// @dev Reasoning: (1) provide backwards compatibility for existing listed wrapper super tokens
+    /// @dev (2) prevent address retrieval issues if we ever choose to modify the bytecode of the UUPSProxy contract
+    mapping(address => address) internal _canonicalWrapperSuperTokens;
+
     constructor(
         ISuperfluid host
     ) {
         _host = host;
     }
 
-    /// @dev ISuperTokenFactory.getHost implementation
+    /// @inheritdoc ISuperTokenFactory
     function getHost()
        external view
        override(ISuperTokenFactory)
@@ -49,6 +50,7 @@ abstract contract SuperTokenFactoryBase is
     /**************************************************************************
     * UUPSProxiable
     **************************************************************************/
+    /// @inheritdoc ISuperTokenFactory
     function initialize()
         external override
         initializer // OpenZeppelin Initializable
@@ -78,6 +80,7 @@ abstract contract SuperTokenFactoryBase is
     /**************************************************************************
     * ISuperTokenFactory
     **************************************************************************/
+    /// @inheritdoc ISuperTokenFactory
     function getSuperTokenLogic()
         external view override
         returns (ISuperToken)
@@ -87,6 +90,54 @@ abstract contract SuperTokenFactoryBase is
 
     function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
 
+    /// @inheritdoc ISuperTokenFactory
+    function createCanonicalERC20Wrapper(ERC20WithTokenInfo _underlyingToken)
+        external
+        returns (ISuperToken)
+    {
+        address underlyingTokenAddress = address(_underlyingToken);
+        address canonicalSuperTokenAddress = _canonicalWrapperSuperTokens[
+                underlyingTokenAddress
+            ];
+
+        // if the canonical super token address exists, just return
+        if (canonicalSuperTokenAddress != address(0)) {
+            return ISuperToken(canonicalSuperTokenAddress);
+        }
+
+        // use create2 to deterministically create the proxy contract for the wrapper super token
+        bytes32 salt = keccak256(abi.encode(underlyingTokenAddress));
+        UUPSProxy proxy = new UUPSProxy{ salt: salt }();
+
+        // NOTE: address(proxy) is equivalent to address(superToken)
+        _canonicalWrapperSuperTokens[underlyingTokenAddress] = address(
+            proxy
+        );
+
+        // set the implementation/logic contract address for the newly deployed proxy
+        proxy.initializeProxy(address(_superTokenLogic));
+
+        // cast it as the same type as the logic contract
+        ISuperToken superToken = ISuperToken(address(proxy));
+
+        // get underlying token info
+        uint8 underlyingDecimals = _underlyingToken.decimals();
+        string memory underlyingName = _underlyingToken.name();
+        string memory underlyingSymbol = _underlyingToken.symbol();
+        // initialize the contract (proxy constructor)
+        superToken.initialize(
+            _underlyingToken,
+            underlyingDecimals,
+            string.concat("Super ", underlyingName),
+            string.concat(underlyingSymbol, "x")
+        );
+
+        emit SuperTokenCreated(superToken);
+
+        return superToken;
+    }
+
+    /// @inheritdoc ISuperTokenFactory
     function createERC20Wrapper(
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
@@ -125,6 +176,7 @@ abstract contract SuperTokenFactoryBase is
         emit SuperTokenCreated(superToken);
     }
 
+    /// @inheritdoc ISuperTokenFactory
     function createERC20Wrapper(
         ERC20WithTokenInfo underlyingToken,
         Upgradability upgradability,
@@ -143,6 +195,7 @@ abstract contract SuperTokenFactoryBase is
         );
     }
 
+    /// @inheritdoc ISuperTokenFactory
     function initializeCustomSuperToken(
         address customSuperTokenProxy
     )
@@ -156,6 +209,38 @@ abstract contract SuperTokenFactoryBase is
         emit CustomSuperTokenCreated(ISuperToken(customSuperTokenProxy));
     }
 
+    /// @inheritdoc ISuperTokenFactory
+    function computeWrapperSuperTokenAddress(address _underlyingToken)
+        external
+        view
+        returns (address superTokenAddress, bool isDeployedAndCanonical)
+    {
+        address existingAddress = _canonicalWrapperSuperTokens[
+            _underlyingToken
+        ];
+
+        if (existingAddress != address(0)) {
+            superTokenAddress = existingAddress;
+            isDeployedAndCanonical = true;
+        } else {
+            bytes memory bytecode = type(UUPSProxy).creationCode;
+            superTokenAddress = address(
+                uint160(
+                    uint256(
+                        keccak256(
+                            abi.encodePacked(
+                                bytes1(0xff),
+                                address(this),
+                                keccak256(abi.encode(_underlyingToken)),
+                                keccak256(bytecode)
+                            )
+                        )
+                    )
+                )
+            );
+            isDeployedAndCanonical = false;
+        }
+    }
 }
 
 // splitting this off because the contract is getting bigger

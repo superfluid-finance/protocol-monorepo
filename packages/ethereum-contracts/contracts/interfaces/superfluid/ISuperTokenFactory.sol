@@ -40,12 +40,13 @@ interface ISuperTokenFactory {
     }
 
     /**
-     * @dev Create new super token wrapper for the underlying ERC20 token
+     * @notice Create new super token wrapper for the underlying ERC20 token
      * @param underlyingToken Underlying ERC20 token
      * @param underlyingDecimals Underlying token decimals
      * @param upgradability Upgradability mode
      * @param name Super token name
      * @param symbol Super token symbol
+     * @return superToken The deployed and initialized wrapper super token
      */
     function createERC20Wrapper(
         IERC20 underlyingToken,
@@ -58,12 +59,12 @@ interface ISuperTokenFactory {
         returns (ISuperToken superToken);
 
     /**
-     * @dev Create new super token wrapper for the underlying ERC20 token with extra token info
+     * @notice Create new super token wrapper for the underlying ERC20 token with extra token info
      * @param underlyingToken Underlying ERC20 token
      * @param upgradability Upgradability mode
      * @param name Super token name
      * @param symbol Super token symbol
-     *
+     * @return superToken The deployed and initialized wrapper super token
      * NOTE:
      * - It assumes token provide the .decimals() function
      */
@@ -76,6 +77,33 @@ interface ISuperTokenFactory {
         external
         returns (ISuperToken superToken);
 
+    /**
+     * @notice Creates a wrapper super token AND sets it in our canonical list OR returns the deployed canonical one
+     * @dev salt for create2 is the keccak256 hash of abi.encode(address(_underlyingToken))
+     * @param _underlyingToken Underlying ERC20 token
+     * @return ISuperToken the created supertoken
+     */
+    function createCanonicalERC20Wrapper(ERC20WithTokenInfo _underlyingToken)
+        external
+        returns (ISuperToken);
+
+    /**
+     * @notice Computes/Retrieves wrapper super token address based on the underlying token address
+     * @dev we return from our canonical list if it exists there, otherwise we compute
+     * @dev note that this function only computes addresses for SEMI_UPGRADABLE SuperTokens
+     * @param _underlyingToken Underlying ERC20 token address
+     * @return superTokenAddress Super token address
+     * @return isDeployedAndCanonical whether the super token is deployed AND set in our canonical mapping
+     */
+    function computeWrapperSuperTokenAddress(address _underlyingToken)
+        external
+        view
+        returns (address superTokenAddress, bool isDeployedAndCanonical);
+
+    /**
+     * @dev Creates a new custom super token
+     * @param customSuperTokenProxy address of the custom supertoken proxy
+     */
     function initializeCustomSuperToken(
         address customSuperTokenProxy
     )

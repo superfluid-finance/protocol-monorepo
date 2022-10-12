@@ -274,7 +274,6 @@ export default class Framework {
         return new BatchCall({
             operations,
             hostAddress: this.settings.config.hostAddress,
-            providerOrSigner: this.settings.provider,
         });
     };
 

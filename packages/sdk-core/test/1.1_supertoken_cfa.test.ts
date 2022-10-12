@@ -14,6 +14,7 @@ makeSuite("SuperToken-CFA Tests", (testEnv: TestEnvironment) => {
                 testEnv.wrapperSuperToken.createFlow({
                     flowRate,
                     receiver: testEnv.bob.address + "0",
+                    sender: testEnv.alice.address,
                 });
             } catch (err: any) {
                 expect(err.message).to.eql(

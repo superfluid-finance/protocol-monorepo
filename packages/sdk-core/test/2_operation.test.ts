@@ -146,6 +146,7 @@ makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
                 flowRate: getPerSecondFlowRateByMonth("100"),
                 receiver: testEnv.charlie.address,
                 superToken: testEnv.wrapperSuperToken.address,
+                sender: testEnv.alice.address,
             });
             try {
                 await operation.getSignedTransaction(testEnv.bob);

@@ -52,7 +52,7 @@ export interface IShouldUseCallAgreement {
 export interface ISuperTokenModifyFlowParams extends IShouldUseCallAgreement {
     readonly flowRate?: string;
     readonly receiver: string;
-    readonly sender?: string;
+    readonly sender: string;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
@@ -60,19 +60,15 @@ export interface ISuperTokenCreateFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly flowRate: string;
 }
+export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
+export type ISuperTokenDeleteFlowParams = ISuperTokenModifyFlowParams;
 
 export interface ISuperTokenCreateFlowByOperatorParams
     extends ISuperTokenCreateFlowParams {
     readonly sender: string;
 }
-
-export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
 export type ISuperTokenUpdateFlowByOperatorParams =
     ISuperTokenCreateFlowByOperatorParams;
-export interface ISuperTokenDeleteFlowParams
-    extends ISuperTokenModifyFlowParams {
-    readonly sender: string;
-}
 
 export interface ISuperTokenBaseIDAParams {
     readonly indexId: string;

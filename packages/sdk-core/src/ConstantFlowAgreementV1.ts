@@ -10,6 +10,7 @@ import Host from "./Host";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
 import {
+    ICreateFlowByOperatorParams,
     ICreateFlowParams,
     IDeleteFlowParams,
     IFullControlParams,
@@ -206,7 +207,7 @@ export default class ConstantFlowAgreementV1 {
     /**
      * Create a flow.
      * @param flowRate The specified flow rate.
-     * @param sender The sender of the flow (required if shouldUseAgreement is true)
+     * @param sender The sender of the flow
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
@@ -253,7 +254,7 @@ export default class ConstantFlowAgreementV1 {
     /**
      * Update a flow.
      * @param flowRate The specified flow rate.
-     * @param sender The sender of the flow (required if shouldUseAgreement is true)
+     * @param sender The sender of the flow
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
@@ -491,7 +492,7 @@ export default class ConstantFlowAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createFlowByOperator = (params: ICreateFlowParams): Operation => {
+    createFlowByOperator = (params: ICreateFlowByOperatorParams): Operation => {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedReceiver = normalizeAddress(params.receiver);
         const normalizedSender = normalizeAddress(params.sender);

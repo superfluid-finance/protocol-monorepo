@@ -5,6 +5,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Breaking
+
+- Creating `BatchCall` class directly requires `providerOrSigner` property now
+  - Migration: pass a signer or provider object for `providerOrSigner` if creating `BatchCall` class directly
+  > NOTE: This does not impact you if you are creating `BatchCall`'s via the `Framework` class
+
+### Added
+
+-   typechain files consumed from `@superfluid-finance/ethereum-contracts` and exported from SDK-Core
+
 ## [0.5.6] - 2022-09-07
 ### Fixes
 - Correct `subgraphAPIEndpoint` in `getResolverData`

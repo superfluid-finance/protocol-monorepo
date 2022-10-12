@@ -16,7 +16,7 @@ const {
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
  * Usage: npx truffle exec scripts/resolver-set-key-value.js : {KEY} {VALUE}
- * 
+ *
  * ENV vars:
  *    ALLOW_UPDATE: only if set will existing values be overwritten
  *    RESOLVER_ADMIN_TYPE: needs to be set to MULTISIG for networks with multisig owner
@@ -58,8 +58,10 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const prevVal = await resolver.get.call(key);
     if (prevVal !== ZERO_ADDRESS) {
         console.log("Key already has a value", prevVal);
-        if (! process.env.ALLOW_UPDATE) {
-            throw new Error("ALLOW_UPDATE not set, can't override existing value");
+        if (!process.env.ALLOW_UPDATE) {
+            throw new Error(
+                "ALLOW_UPDATE not set, can't override existing value"
+            );
         }
     }
 

@@ -1,15 +1,16 @@
 import { JsonFragment } from "@ethersproject/abi";
+import { Superfluid__factory } from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
 import Host from "./Host";
 import Operation, { OperationType } from "./Operation";
 import { SFError } from "./SFError";
-import SuperfluidABI from "./abi/Superfluid.json";
 import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 
 interface IBatchCallOptions {
     hostAddress: string;
     operations: ReadonlyArray<Operation>;
+    providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
 interface OperationStruct {
@@ -85,7 +86,7 @@ export default class BatchCall {
         // Handles Superfluid.callAgreement
         if (operation.type === "SUPERFLUID_CALL_AGREEMENT") {
             const functionArgs = this.getCallDataFunctionArgs(
-                SuperfluidABI.abi,
+                Superfluid__factory.abi,
                 populatedTransaction.data
             );
             const data = encoder.encode(
@@ -103,7 +104,7 @@ export default class BatchCall {
         // Handles Superfluid.callAppAction
         if (operation.type === "CALL_APP_ACTION") {
             const functionArgs = this.getCallDataFunctionArgs(
-                SuperfluidABI.abi,
+                Superfluid__factory.abi,
                 populatedTransaction.data
             );
 

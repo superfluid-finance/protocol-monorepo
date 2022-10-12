@@ -20,7 +20,8 @@
         "/build/contracts-sizes.txt",
         "/build/abi.js",
         "scripts/**/*",
-        "utils/**/*"
+        "utils/**/*",
+        "/build/typechain/**/*"
     ],
     "scripts": {
         "dev": "tasks/dev.sh",
@@ -32,6 +33,7 @@
         "build:contracts": "rm -f build/contracts/*;yarn build:contracts-truffle",
         "build:contracts-truffle": "yarn run-truffle compile",
         "build:contracts-hardhat": "yarn run-hardhat compile",
+        "build:typechain": "tsc -p tsconfig.typechain.json",
         "build:contracts-size": "tasks/print-contract-sizes.sh | tee build/contracts-sizes.txt",
         "testenv:start": "test/testenv-ctl.sh start",
         "testenv:stop": "test/testenv-ctl.sh stop",
@@ -48,7 +50,8 @@
         "posttest": "yarn testenv:stop",
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
-        "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
+        "lint-js": "eslint test -c .eslintrc.json --ext .js",
+        "lint:js-eslint": "yarn lint-js --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
         "lint-ts": "eslint test -c .eslintrc.ts.json --ext .ts",
         "lint:ts-eslint": "yarn lint-ts --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .ts files look good.'",
         "fix": "run-s fix:*",

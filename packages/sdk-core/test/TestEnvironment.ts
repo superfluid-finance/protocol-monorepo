@@ -1,5 +1,11 @@
 import hre, { ethers } from "hardhat";
-import { abi as TestTokenABI } from "../src/abi/TestToken.json";
+import {
+    IConstantFlowAgreementV1,
+    IInstantDistributionAgreementV1,
+    SuperfluidFrameworkDeployer,
+    TestToken,
+    TestToken__factory,
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import {
     Framework,
     NativeAssetSuperToken,
@@ -7,12 +13,6 @@ import {
     toBN,
     WrapperSuperToken,
 } from "../src";
-import {
-    IConstantFlowAgreementV1,
-    IInstantDistributionAgreementV1,
-    SuperfluidFrameworkDeployer,
-    TestToken,
-} from "../src/typechain";
 import { deployContractsAndToken } from "../../subgraph/scripts/deployContractsAndToken";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { JsonRpcProvider } from "@ethersproject/providers";
@@ -100,11 +100,10 @@ export const initializeTestEnvironment = async () => {
     testEnv.pureSuperToken = await testEnv.sdkFramework.loadPureSuperToken(
         "MRx"
     );
-    testEnv.token = new ethers.Contract(
+    testEnv.token = TestToken__factory.connect(
         testEnv.wrapperSuperToken.underlyingToken.address,
-        TestTokenABI,
         testEnv.alice
-    ) as TestToken;
+    );
 
     for (let i = 0; i < testEnv.users.length; i++) {
         const user = testEnv.users[i];
@@ -127,7 +126,7 @@ export const initializeTestEnvironment = async () => {
     }
 };
 
-export const makeSuite= (
+export const makeSuite = (
     name: string,
     tests: (testEnvironment: TestEnvironment) => void
 ) => {

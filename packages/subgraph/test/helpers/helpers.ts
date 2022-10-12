@@ -2,7 +2,7 @@ import fs from "fs";
 import { ethers } from "hardhat";
 import { TransactionResponse } from "@ethersproject/providers";
 import { gql, request } from "graphql-request";
-import { Framework } from "@superfluid-finance/sdk-core";
+import { Framework, TestToken } from "@superfluid-finance/sdk-core";
 import {
     IIndexSubscription,
     IMeta,
@@ -12,7 +12,6 @@ import {
 } from "../interfaces";
 import { FlowActionType } from "./constants";
 import TestTokenABI from "../../abis/TestToken.json";
-import { TestToken } from "../../typechain";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
 import { deployContractsAndToken } from "../../scripts/deployContractsAndToken";

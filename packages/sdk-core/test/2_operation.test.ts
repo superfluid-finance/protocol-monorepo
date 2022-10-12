@@ -2,13 +2,12 @@ import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { getPerSecondFlowRateByMonth } from "../src";
-import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
-import { ethers } from "ethers";
+import { IConstantFlowAgreementV1__factory } from "@superfluid-finance/ethereum-contracts/build/typechain";
 import Operation from "../src/Operation";
 import hre from "hardhat";
 import { SuperAppTester } from "../typechain-types";
-import { abi as SuperAppTesterABI } from "../artifacts/contracts/SuperAppTester.sol/SuperAppTester.json";
-const cfaInterface = new ethers.utils.Interface(IConstantFlowAgreementV1ABI);
+import { SuperAppTester__factory } from "../typechain-types";
+const cfaInterface = IConstantFlowAgreementV1__factory.createInterface();
 import { TestEnvironment, makeSuite } from "./TestEnvironment";
 
 /**
@@ -30,9 +29,7 @@ export const createCallAppActionOperation = async (
         framework.contracts.host.address
     )) as SuperAppTester;
 
-    const superAppTesterInterface = new ethers.utils.Interface(
-        SuperAppTesterABI
-    );
+    const superAppTesterInterface = SuperAppTester__factory.createInterface();
     superAppTester = (await superAppTester.deployed()).connect(deployer);
 
     // initial val will be 0 when contract is initialized

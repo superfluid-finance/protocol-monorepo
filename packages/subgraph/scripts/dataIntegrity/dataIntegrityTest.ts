@@ -1,9 +1,6 @@
 import { ethers } from "hardhat";
 import _ from "lodash";
 import { toBN } from "../../test/helpers/helpers";
-import cfaABI from "../../abis/IConstantFlowAgreementV1.json";
-import idaABI from "../../abis/IInstantDistributionAgreementV1.json";
-import superTokenABI from "../../abis/ISuperToken.json";
 import {
     getIndexes,
     getCurrentStreams,
@@ -23,9 +20,6 @@ import {
     OnChainIDAEvents,
 } from "./interfaces";
 import { chainIdToData } from "../maps";
-import { ConstantFlowAgreementV1 } from "../../typechain/ConstantFlowAgreementV1";
-import { InstantDistributionAgreementV1 } from "../../typechain/InstantDistributionAgreementV1";
-import { ISuperToken } from "../../typechain";
 import { calculateAvailableBalance } from "../../../sdk-core/src/utils";
 import { IIndexSubscription } from "../../../sdk-core/src/interfaces";
 import {
@@ -37,6 +31,12 @@ import {
     QueryHelper,
     querySubgraphAndValidateEvents,
 } from "../dataIntegrity/helperFunctions";
+import {
+    IConstantFlowAgreementV1__factory,
+    IInstantDistributionAgreementV1__factory,
+    ISuperToken__factory,
+    ISuperToken,
+} from "@superfluid-finance/sdk-core";
 
 // currently set to 1 due to limitation with node-fetch
 // https://github.com/node-fetch/node-fetch/issues/449
@@ -90,14 +90,14 @@ async function main() {
     console.log("Current timestamp: ", currentTimestamp);
     const addresses = chainIdData.addresses;
 
-    const cfaV1 = (await ethers.getContractAt(
-        cfaABI,
-        addresses.cfaAddress
-    )) as ConstantFlowAgreementV1;
-    const idaV1 = (await ethers.getContractAt(
-        idaABI,
-        addresses.idaAddress
-    )) as InstantDistributionAgreementV1;
+    const cfaV1 = IConstantFlowAgreementV1__factory.connect(
+        addresses.cfaAddress,
+        ethers.provider
+    );
+    const idaV1 = IInstantDistributionAgreementV1__factory.connect(
+        addresses.idaAddress,
+        ethers.provider
+    );
 
     //////////////////////// EVENTS INTEGRITY STARTING ////////////////////////
 
@@ -421,11 +421,10 @@ async function main() {
     let tokenContracts: { [tokenAddress: string]: ISuperToken } = {};
     let realtimeBalanceErrors = 0;
     for (let i = 0; i < uniqueTokens.length; i++) {
-        tokenContracts[uniqueTokens[i]] = new ethers.Contract(
+        tokenContracts[uniqueTokens[i]] = ISuperToken__factory.connect(
             uniqueTokens[i],
-            superTokenABI,
             ethers.provider
-        ) as ISuperToken;
+        );
     }
 
     for (let i = 0; i < chunkedUniqueAccountTokenSnapshots.length; i++) {
@@ -695,14 +694,14 @@ async function main() {
         await Promise.all(
             chunkedUniqueTokenStatistics[i].map(async (x) => {
                 try {
-                    const superTokenContract = (await ethers.getContractAt(
-                        superTokenABI,
-                        x.id
-                    )) as ISuperToken;
-                    const tokenContract = (await ethers.getContractAt(
-                        superTokenABI,
-                        x.token.underlyingAddress
-                    )) as ISuperToken;
+                    const superTokenContract = ISuperToken__factory.connect(
+                        x.id,
+                        ethers.provider
+                    );
+                    const tokenContract = ISuperToken__factory.connect(
+                        x.token.underlyingAddress,
+                        ethers.provider
+                    );
                     const totalSupply = await superTokenContract.totalSupply();
                     let aum = await tokenContract.balanceOf(x.id);
                     const superTokenDecimals =

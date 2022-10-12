@@ -3,8 +3,6 @@ import { ILightEntity } from "../../test/interfaces";
 import {
     FlowOperatorUpdatedEvent,
     FlowUpdatedEvent,
-} from "../../typechain/IConstantFlowAgreementV1";
-import {
     IndexCreatedEvent,
     IndexDistributionClaimedEvent,
     IndexSubscribedEvent,
@@ -15,7 +13,7 @@ import {
     SubscriptionDistributionClaimedEvent,
     SubscriptionRevokedEvent,
     SubscriptionUnitsUpdatedEvent,
-} from "../../typechain/IInstantDistributionAgreementV1";
+} from "@superfluid-finance/sdk-core";
 
 export interface BaseEntity {
     readonly id: string;

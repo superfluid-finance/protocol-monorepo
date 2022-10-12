@@ -63,8 +63,7 @@ All subgraphs are available via The Graph's hosted service:
 | Matic | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-feature-matic |
 | Goerli | https://thegraph.com/explorer/subgraph/superfluid-finance/protocol-feature-goerli |
 
-*Note: Development endpoints will include features that are still in progress. Documentation will not reflect new features yet to be released in V1
-
+\*Note: Development endpoints will include features that are still in progress. Documentation will not reflect new features yet to be released in V1
 
 # 🤓 Local development
 
@@ -97,6 +96,7 @@ yarn install
 Start ganache. It's helpful to specify a mnemonic, so you can hard-code the address in `subgraph.yaml` and the test files.
 We utilize the mnemonic from hardhat as all the addresses for the tests are based off this.
 Open one terminal window and run this command, this window will now be running this in the background.
+
 ```bash
 ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk"
 ```
@@ -175,13 +175,6 @@ Open your third terminal window and navigate to the **root of the repo** and run
 
 ```bash
 yarn build
-```
-
-This is also a good time to generate the typechain folder used throughout the tests, go into the `packages/ethereum-contracts` directory and call:
-```bash
-yarn install
-yarn run generate-ethers-types
-mv typechain ../subgraph
 ```
 
 Now come back here in `packages/subgraph` and run the following command to deploy contracts:
@@ -343,15 +336,19 @@ You should get a response like this
 ```
 
 ### Schema Overview
+
 For the V1 Subgraph design, there are three "levels" of entities: event, higher order level (HOL) and aggregate. A brief explanation of each below:
 
 ## Event Entities
+
 These entities are for the most part a 1-to-1 mapping with the raw events from the contract, however for some of them, we have added data, this is noted clearly in the `schema.graphql` file and will be viewable in the playground as well. These entities are created once and never updated.
 
 ## Higher Order Level Entities
+
 The higher order level entities are an abstraction of the events is not ephemeral in the same way the event entities are. They contain data on an entity over its "lifetime" and therefore may be updated over time.
 
 ## Aggregate Entities
+
 Aggregate entities are exactly what the name suggests - they are entities that store aggregate data. More specifically, we do this at an account-token level and also at a global token level.
 
 ### Test Structure
@@ -362,12 +359,13 @@ The idea of this test suite is to ensure that we can be as confident as possible
 The entry point of the tests is the `subgraph.test.ts` file, this is where you specify the parameters and what you want to test. For example, you want to test indexing a newly created flow. There are helper functions for all the different things you may want to do and examples of everything in the test, but you must follow the pattern of modify then update global state as stated above.
 
 The helper functions contain the following:
-- action function: creates a txn and modifies the blockchain state
-- initialize functions: initializes the data or gets the last saved data to be validated
-- updater functions: these functions get what we expect the data to be, this will be compared to the data returned from the subgraph
-- event validator function: this validates the newly created event
-- hol/aggregate validator functions: these functions validate the hol or aggregate entities
-- returns the updated data from the updater functions
+
+-   action function: creates a txn and modifies the blockchain state
+-   initialize functions: initializes the data or gets the last saved data to be validated
+-   updater functions: these functions get what we expect the data to be, this will be compared to the data returned from the subgraph
+-   event validator function: this validates the newly created event
+-   hol/aggregate validator functions: these functions validate the hol or aggregate entities
+-   returns the updated data from the updater functions
 
 Then we are back in `subgraph.test.ts` and the global state is updated with this new data and the tests continue.
 
@@ -391,17 +389,18 @@ If the subgraph has not been created yet, you must create it first using the das
 
 ## Release Process
 
-- Bump minor or patch version for the subgraph package: `yarn manage-versions && git commit packages/subgraph/package.json`.
-- Select the appropriate Subgraph LTS branch: `release-subgraph-v1`.
-- Merge `origin/dev` to the LTS branch.
-- Create a new release in github.
+-   Bump minor or patch version for the subgraph package: `yarn manage-versions && git commit packages/subgraph/package.json`.
+-   Select the appropriate Subgraph LTS branch: `release-subgraph-v1`.
+-   Merge `origin/dev` to the LTS branch.
+-   Create a new release in github.
 
 ## Developer Notes
 
 When adding new networks, we must do the following:
-- NOTE: The `network` field in the `/config/*.json` file must match the official naming of the network name from the [subgraph docs](https://thegraph.com/docs/developer/create-subgraph-hosted#supported-networks). This name can deviate from the name of the file itself. e.g. `avalanche-c.json` must have field: `"network": "avalanche"`.
-- Add a new file to `./config`, the name of the file should be derived from the canonical network name in `packages/ethereum-contracts/truffle-config.js`. e.g. adding network `avalanche-c` to the array in `./networks.json` and then adding `avalanche-c.json` to `/config`. The name of the network specific file in `/config` will dictate our subgraph endpoint, e.g. `protocol-dev-avalanche-c`.
-- We also need to add the host and resolver addresses to the `addresses.template.ts` file. NOTE: the `network` we are comparing in the `addresses.template.test` file should match the `"network"` field in `/config/*.json`.
+
+-   NOTE: The `network` field in the `/config/*.json` file must match the official naming of the network name from the [subgraph docs](https://thegraph.com/docs/developer/create-subgraph-hosted#supported-networks). This name can deviate from the name of the file itself. e.g. `avalanche-c.json` must have field: `"network": "avalanche"`.
+-   Add a new file to `./config`, the name of the file should be derived from the canonical network name in `packages/ethereum-contracts/truffle-config.js`. e.g. adding network `avalanche-c` to the array in `./networks.json` and then adding `avalanche-c.json` to `/config`. The name of the network specific file in `/config` will dictate our subgraph endpoint, e.g. `protocol-dev-avalanche-c`.
+-   We also need to add the host and resolver addresses to the `addresses.template.ts` file. NOTE: the `network` we are comparing in the `addresses.template.test` file should match the `"network"` field in `/config/*.json`.
 
 # Contributing
 

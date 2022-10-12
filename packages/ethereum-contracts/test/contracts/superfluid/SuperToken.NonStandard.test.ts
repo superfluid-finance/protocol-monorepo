@@ -1,12 +1,12 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {artifacts, assert, ethers, expect, web3} from "hardhat";
 
-import SuperTokenArtifact from "../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json";
 import {
     CustomSuperTokenMock,
     MockSmartWallet,
     SuperfluidMock,
     SuperToken,
+    SuperToken__factory,
     SuperTokenMock,
     TestToken,
 } from "../../../typechain-types";
@@ -46,7 +46,7 @@ describe("SuperToken's Non Standard Functions", function () {
         bobSigner = await ethers.getSigner(bob);
         superTokenContract = new ethers.Contract(
             "SuperToken",
-            SuperTokenArtifact.abi,
+            SuperToken__factory.abi,
             aliceSigner
         ) as SuperToken;
     });

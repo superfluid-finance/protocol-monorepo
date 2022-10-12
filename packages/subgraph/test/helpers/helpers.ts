@@ -37,6 +37,7 @@ export const beforeSetup = async (tokenAmount: number) => {
     const superfluidFrameworkDeployer = await deployContractsAndToken();
 
     const frameworkAddresses = await superfluidFrameworkDeployer.getFramework();
+    console.log({ frameworkAddresses });
 
     const JSONOutput = JSON.stringify({
         network: "mainnet",
@@ -65,6 +66,8 @@ export const beforeSetup = async (tokenAmount: number) => {
 
     console.log("\n");
     const fDAIx = await sf.loadWrapperSuperToken("fDAIx");
+    const ETHx = await sf.loadWrapperSuperToken("ETHx");
+    console.log(ETHx.address);
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(

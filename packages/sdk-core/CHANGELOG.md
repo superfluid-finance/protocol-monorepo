@@ -14,6 +14,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 -   typechain files consumed from `@superfluid-finance/ethereum-contracts` and exported from SDK-Core
+-   `CFAv1Forwarder` integrated into SDK-Core 
+  > NOTE: You must pass `shouldUseCallAgreement` explicitly as a property if you want to execute these calls via the Host.
 
 ## [0.5.6] - 2022-09-07
 ### Fixes

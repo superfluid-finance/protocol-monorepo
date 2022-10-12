@@ -356,10 +356,16 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     // list CFA v1
     const deployCFAv1 = async () => {
+        // @note Once we have the actual implementation for the hook contract,
+        // we will need to deploy it and put it here instead of ZERO_ADDRESS
+        const hookContractAddress = ZERO_ADDRESS;
+        console.log("CFA Hook Contract Address:", hookContractAddress);
+
         const agreement = await web3tx(
             ConstantFlowAgreementV1.new,
             "ConstantFlowAgreementV1.new"
-        )(superfluid.address);
+        )(superfluid.address, hookContractAddress);
+
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
         output += `CFA_LOGIC=${agreement.address}\n`;
         return agreement;

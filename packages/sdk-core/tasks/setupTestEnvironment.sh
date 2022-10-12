@@ -8,10 +8,6 @@ cd ../js-sdk
 chmod +x ./tasks/build-abi-js.sh
 ./tasks/build-abi-js.sh
 
-# uses built ABIs for local contract deployment
-cd ../subgraph
-yarn deploy-contracts-local
-
 # Come back to sdk-core after going to subgraph folder
 cd ../sdk-core
 yarn generate:graphql-types

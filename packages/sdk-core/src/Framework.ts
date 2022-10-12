@@ -82,7 +82,8 @@ export default class Framework {
 
         this.cfaV1 = new ConstantFlowAgreementV1(
             settings.config.hostAddress,
-            settings.config.cfaV1Address
+            settings.config.cfaV1Address,
+            settings.config.cfaV1ForwarderAddress
         );
         this.governance = new Governance(
             settings.config.hostAddress,
@@ -177,6 +178,7 @@ export default class Framework {
             const superfluidLoaderAddress = await resolver.get(
                 "SuperfluidLoader-v1"
             );
+            const cfaV1ForwarderAddress = await resolver.get("CFAv1Forwarder");
             const superfluidLoader = SuperfluidLoader__factory.connect(
                 superfluidLoaderAddress,
                 provider
@@ -203,6 +205,7 @@ export default class Framework {
                     cfaV1Address: framework.agreementCFAv1,
                     idaV1Address: framework.agreementIDAv1,
                     governanceAddress,
+                    cfaV1ForwarderAddress,
                 },
             };
 

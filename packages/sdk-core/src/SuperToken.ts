@@ -86,7 +86,8 @@ export default abstract class SuperToken extends ERC20Token {
         this.settings = settings;
         this.cfaV1 = new ConstantFlowAgreementV1(
             settings.config.hostAddress,
-            settings.config.cfaV1Address
+            settings.config.cfaV1Address,
+            settings.config.cfaV1ForwarderAddress
         );
         this.idaV1 = new InstantDistributionAgreementV1(
             settings.config.hostAddress,

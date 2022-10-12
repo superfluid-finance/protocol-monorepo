@@ -49,137 +49,156 @@ export const createCallAppActionOperation = async (
 };
 
 makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
-    it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
-        const revokeControlOp =
-            testEnv.sdkFramework.cfaV1.revokeFlowOperatorWithFullControl({
-                superToken: testEnv.wrapperSuperToken.address,
-                flowOperator: testEnv.bob.address,
+    describe("Happy Path Tests", () => {
+        it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
+            const revokeControlOp =
+                testEnv.sdkFramework.cfaV1.revokeFlowOperatorWithFullControl({
+                    superToken: testEnv.wrapperSuperToken.address,
+                    flowOperator: testEnv.bob.address,
+                });
+            const signer = testEnv.sdkFramework.createSigner({
+                privateKey: testEnv.constants.HARDHAT_PRIVATE_KEY,
+                provider: testEnv.alice.provider,
             });
-        const signer = testEnv.sdkFramework.createSigner({
-            privateKey: testEnv.constants.HARDHAT_PRIVATE_KEY,
-            provider: testEnv.alice.provider,
+            const opTxnHash = await revokeControlOp.getTransactionHash(signer);
+            const executedTxn = await revokeControlOp.exec(signer);
+            const receipt = await executedTxn.wait();
+            expect(opTxnHash).to.equal(receipt.transactionHash);
         });
-        const opTxnHash = await revokeControlOp.getTransactionHash(signer);
-        const executedTxn = await revokeControlOp.exec(signer);
-        const receipt = await executedTxn.wait();
-        expect(opTxnHash).to.equal(receipt.transactionHash);
-    });
 
-    it("Should be able to create an operation from framework.", async () => {
-        const callData = cfaInterface.encodeFunctionData("createFlow", [
-            testEnv.wrapperSuperToken.address,
-            testEnv.bob.address,
-            getPerSecondFlowRateByMonth("100"),
-            "0x",
-        ]);
-        const txn =
-            testEnv.sdkFramework.host.contract.populateTransaction.callAgreement(
-                testEnv.cfaV1.address,
-                callData,
-                "0x"
+        it("Should be able to create an operation from framework.", async () => {
+            const callData = cfaInterface.encodeFunctionData("createFlow", [
+                testEnv.wrapperSuperToken.address,
+                testEnv.bob.address,
+                getPerSecondFlowRateByMonth("100"),
+                "0x",
+            ]);
+            const txn =
+                testEnv.sdkFramework.host.contract.populateTransaction.callAgreement(
+                    testEnv.cfaV1.address,
+                    callData,
+                    "0x"
+                );
+            const operation = testEnv.sdkFramework.operation(
+                txn,
+                "SUPERFLUID_CALL_AGREEMENT"
             );
-        const operation = testEnv.sdkFramework.operation(
-            txn,
-            "SUPERFLUID_CALL_AGREEMENT"
-        );
-        await operation.exec(testEnv.alice);
-    });
-
-    it("Should be able to create an operation from framework and execute from batch call.", async () => {
-        const callData = cfaInterface.encodeFunctionData("createFlow", [
-            testEnv.wrapperSuperToken.address,
-            testEnv.bob.address,
-            getPerSecondFlowRateByMonth("100"),
-            "0x",
-        ]);
-        const txn =
-            testEnv.sdkFramework.host.contract.populateTransaction.callAgreement(
-                testEnv.cfaV1.address,
-                callData,
-                "0x"
-            );
-        const operation = testEnv.sdkFramework.operation(
-            txn,
-            "SUPERFLUID_CALL_AGREEMENT"
-        );
-        await testEnv.sdkFramework.batchCall([operation]).exec(testEnv.alice);
-    });
-
-    it("Should be able to create a call app action operation", async () => {
-        const NEW_VAL = 69;
-        const { superAppTester, operation } =
-            await createCallAppActionOperation(
-                testEnv.alice,
-                testEnv.sdkFramework,
-                NEW_VAL
-            );
-        await operation.exec(testEnv.alice);
-        expect(await superAppTester.val()).to.equal(NEW_VAL.toString());
-    });
-
-    it("Should throw an error when trying to execute a transaction with faulty callData", async () => {
-        const callData = cfaInterface.encodeFunctionData("createFlow", [
-            testEnv.wrapperSuperToken.address,
-            testEnv.alice.address,
-            getPerSecondFlowRateByMonth("-100"),
-            "0x",
-        ]);
-        const txn =
-            testEnv.sdkFramework.host.contract.populateTransaction.callAgreement(
-                testEnv.cfaV1.address,
-                callData,
-                "0x"
-            );
-        const operation = new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
-        try {
             await operation.exec(testEnv.alice);
-        } catch (err: any) {
-            expect(err.message).to.contain("cannot estimate gas");
-        }
-    });
-
-    it("Should throw error when trying to sign a transaction", async () => {
-        const operation = testEnv.sdkFramework.cfaV1.createFlow({
-            flowRate: getPerSecondFlowRateByMonth("100"),
-            receiver: testEnv.charlie.address,
-            superToken: testEnv.wrapperSuperToken.address,
         });
-        try {
-            await operation.getSignedTransaction(testEnv.bob);
-        } catch (err: any) {
-            expect(err.message).to.contain(
-                "signing transactions is unsupported"
+
+        it("Should be able to create an operation from framework and execute from batch call.", async () => {
+            const callData = cfaInterface.encodeFunctionData("createFlow", [
+                testEnv.wrapperSuperToken.address,
+                testEnv.bob.address,
+                getPerSecondFlowRateByMonth("100"),
+                "0x",
+            ]);
+            const txn =
+                testEnv.sdkFramework.host.contract.populateTransaction.callAgreement(
+                    testEnv.cfaV1.address,
+                    callData,
+                    "0x"
+                );
+            const operation = testEnv.sdkFramework.operation(
+                txn,
+                "SUPERFLUID_CALL_AGREEMENT"
             );
-        }
-    });
+            await testEnv.sdkFramework
+                .batchCall([operation])
+                .exec(testEnv.alice);
+        });
 
-    it("Should be able to get signed transaction", async () => {
-        const fDAIx = await testEnv.sdkFramework.loadSuperToken(
-            testEnv.wrapperSuperToken.address
-        );
-        const flowRate = getPerSecondFlowRateByMonth("100");
-        // NOTE: the hardhat signer does not support signing transactions, therefore, we must create
-        // our own signer with a custom private key
-        const signer = testEnv.sdkFramework.createSigner({
-            privateKey: testEnv.constants.HARDHAT_PRIVATE_KEY,
-            provider: testEnv.alice.provider,
+        it("Should be able to create a call app action operation", async () => {
+            const NEW_VAL = 69;
+            const { superAppTester, operation } =
+                await createCallAppActionOperation(
+                    testEnv.alice,
+                    testEnv.sdkFramework,
+                    NEW_VAL
+                );
+            await operation.exec(testEnv.alice);
+            expect(await superAppTester.val()).to.equal(NEW_VAL.toString());
         });
-        const createFlowOp = fDAIx.createFlow({
-            sender: testEnv.alice.address,
-            receiver: testEnv.bob.address,
-            flowRate,
-        });
-        const signedTxn = await createFlowOp.getSignedTransaction(signer);
-        await expect(testEnv.alice.provider!.sendTransaction(signedTxn))
-            .to.emit(testEnv.cfaV1, "FlowUpdated")
-            .withArgs(
+
+        it("Should throw an error when trying to execute a transaction with faulty callData", async () => {
+            const callData = cfaInterface.encodeFunctionData("createFlow", [
                 testEnv.wrapperSuperToken.address,
                 testEnv.alice.address,
-                testEnv.bob.address,
-                Number(flowRate),
-                Number(flowRate) * -1,
-                Number(flowRate),
-                "0x"
-            );
+                getPerSecondFlowRateByMonth("-100"),
+                "0x",
+            ]);
+            const txn =
+                testEnv.sdkFramework.host.contract.populateTransaction.callAgreement(
+                    testEnv.cfaV1.address,
+                    callData,
+                    "0x"
+                );
+            const operation = new Operation(txn, "SUPERFLUID_CALL_AGREEMENT");
+            try {
+                await operation.exec(testEnv.alice);
+            } catch (err: any) {
+                expect(err.message).to.contain("cannot estimate gas");
+            }
+        });
+
+        it("Should throw error when trying to sign a transaction", async () => {
+            const operation = testEnv.sdkFramework.cfaV1.createFlow({
+                flowRate: getPerSecondFlowRateByMonth("100"),
+                receiver: testEnv.charlie.address,
+                superToken: testEnv.wrapperSuperToken.address,
+            });
+            try {
+                await operation.getSignedTransaction(testEnv.bob);
+            } catch (err: any) {
+                expect(err.message).to.not.be.null;
+            }
+        });
+
+        context(
+            "Should be able to get and execute a signed transaction",
+            async () => {
+                async function shouldExecuteSignedTransaction(
+                    shouldUseCallAgreement: boolean
+                ) {
+                    const flowRate = getPerSecondFlowRateByMonth("100");
+                    // NOTE: the hardhat signer does not support signing transactions, therefore, we must create
+                    // our own signer with a custom private key
+                    const signer = testEnv.sdkFramework.createSigner({
+                        privateKey: testEnv.constants.HARDHAT_PRIVATE_KEY,
+                        provider: testEnv.alice.provider,
+                    });
+                    const createFlowOp = testEnv.wrapperSuperToken.createFlow({
+                        sender: testEnv.alice.address,
+                        receiver: testEnv.bob.address,
+                        flowRate,
+                        shouldUseCallAgreement,
+                    });
+                    const signedTxn = await createFlowOp.getSignedTransaction(
+                        signer
+                    );
+                    await expect(
+                        testEnv.alice.provider!.sendTransaction(signedTxn)
+                    )
+                        .to.emit(testEnv.cfaV1, "FlowUpdated")
+                        .withArgs(
+                            testEnv.wrapperSuperToken.address,
+                            testEnv.alice.address,
+                            testEnv.bob.address,
+                            Number(flowRate),
+                            Number(flowRate) * -1,
+                            Number(flowRate),
+                            "0x"
+                        );
+                }
+
+                it("With Call Agreement", async () => {
+                    await shouldExecuteSignedTransaction(true);
+                });
+
+                it("With Forwarder", async () => {
+                    await shouldExecuteSignedTransaction(false);
+                });
+            }
+        );
     });
 });

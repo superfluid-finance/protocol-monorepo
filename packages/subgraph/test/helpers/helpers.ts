@@ -38,8 +38,9 @@ export const beforeSetup = async (tokenAmount: number) => {
 
     const users = signers.map((x) => x.address);
     let totalSupply = 0;
+    const chainId = (await Deployer.provider!.getNetwork()).chainId;
     const sf = await Framework.create({
-        chainId: ethers.provider.network.chainId,
+        chainId,
         protocolReleaseVersion: "test",
         provider: Deployer.provider!,
         resolverAddress: frameworkAddresses.resolverV1Address,

@@ -14,7 +14,6 @@ import { FlowActionType } from "./constants";
 import TestTokenABI from "../../abis/TestToken.json";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { BigNumber } from "ethers";
-import { deployContractsAndToken } from "../../scripts/deployContractsAndToken";
 const ORDER_MULTIPLIER = 10000; // This number is also defined as ORDER_MULTIPLIER in packages/subgraph/src/utils.ts
 const MAX_SAFE_SECONDS = BigNumber.from("8640000000000"); // This number is also defined as MAX_SAFE_SECONDS in packages/subgraph/src/utils.ts
 /**************************************************************************
@@ -33,41 +32,23 @@ export const beforeSetup = async (tokenAmount: number) => {
         (x, y) => ({ ...x, [y.address]: y }),
         {}
     );
+    const readFromDir = __dirname.split("test")[0] + "config/ganache.json";
+    const rawData = fs.readFileSync(readFromDir);
+    const frameworkAddresses = JSON.parse(rawData.toString());
 
-    const superfluidFrameworkDeployer = await deployContractsAndToken();
-
-    const frameworkAddresses = await superfluidFrameworkDeployer.getFramework();
-    console.log({ frameworkAddresses });
-
-    const JSONOutput = JSON.stringify({
-        network: "mainnet",
-        testNetwork: "ganache",
-        hostStartBlock: 0,
-        hostAddress: frameworkAddresses.host,
-        cfaAddress: frameworkAddresses.cfa,
-        idaAddress: frameworkAddresses.ida,
-        superTokenFactoryAddress: frameworkAddresses.superTokenFactory,
-        resolverV1Address: frameworkAddresses.resolver,
-    });
-    const writeToDir = __dirname.split("test/")[0] + "config/ganache.json";
-    fs.writeFile(writeToDir, JSONOutput, (err: any) => console.error(err));
-
-    process.env.RESOLVER_ADDRESS = frameworkAddresses.resolver;
     const users = signers.map((x) => x.address);
     let totalSupply = 0;
     const sf = await Framework.create({
         chainId: ethers.provider.network.chainId,
         protocolReleaseVersion: "test",
         provider: Deployer.provider!,
-        resolverAddress: process.env.RESOLVER_ADDRESS,
+        resolverAddress: frameworkAddresses.resolverV1Address,
     });
 
     const resolver = sf.contracts.resolver.connect(Deployer);
 
     console.log("\n");
     const fDAIx = await sf.loadWrapperSuperToken("fDAIx");
-    const ETHx = await sf.loadWrapperSuperToken("ETHx");
-    console.log(ETHx.address);
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(
@@ -327,6 +308,7 @@ export const modifyFlowAndReturnCreatedFlowData = async (
         : await ethers.getSigner(data.sender);
     const baseData = {
         superToken: data.superToken.address,
+        sender: data.sender,
         receiver: data.receiver,
         userData: "0x",
     };

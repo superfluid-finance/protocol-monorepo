@@ -9,15 +9,17 @@ set -xe
 CMD=$1
 
 if [ "$CMD" == "start" ];then
-    if [ "$BUILT" == "" ];then
-        # Get ABIs and generate typechain in subgraph folder based on ABIs
-        yarn getAbi
-        cd ../sdk-core
-        # build sdk-core because of auto linking to dependency
-        yarn build
-    fi
+    # if [ "$BUILT" == "" ];then
+    #     # Get ABIs and generate typechain in subgraph folder based on ABIs
+    #     yarn getAbi
+    #     cd ../sdk-core
+    #     # build sdk-core because of auto linking to dependency
+    #     yarn build
+    # fi
     cd ../subgraph
-    # Prepare, set network, build and deploy subgraph locally
+    # Deploy SF Contracts and Tokens and generate ganache.json networks file
+    npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost
+    # Prepare the manifest, set networks in addresses, build, create and deploy subgraph locally
     yarn build-and-deploy-local
 elif [ "$CMD" == "stop" ];then
     cd ../sdk-core

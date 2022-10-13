@@ -191,8 +191,8 @@ Once the contracts and token have been deployed, you can run the following one l
 yarn build-and-deploy-local
 
 # Step by step breakdown
-# Generate `subgraph.yaml` using the test-subgraph.template.yaml
-yarn prepare-local
+# Generate `subgraph.yaml` using the subgraph.template.yaml
+yarn prepare-manifest-local
 
 # Generate `addresses.ts` using the addresses.template.ts file
 yarn set-network-local

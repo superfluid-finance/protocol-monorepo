@@ -174,14 +174,6 @@ Open your third terminal window and navigate to the **root of the repo** and run
 yarn build
 ```
 
-This is also a good time to generate the typechain folder used throughout the tests, go into the `packages/ethereum-contracts` directory and call:
-
-```bash
-yarn install
-yarn run generate-ethers-types
-mv typechain ../subgraph
-```
-
 Now come back here in `packages/subgraph` and run the following command to deploy contracts:
 
 ```bash

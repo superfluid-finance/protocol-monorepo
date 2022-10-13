@@ -1,8 +1,7 @@
 import {assert} from "chai";
 import {artifacts, ethers, web3} from "hardhat";
 
-import SuperTokenArtifact from "../../../artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json";
-import {ISETH} from "../../../typechain-types";
+import {ISETH, SuperToken__factory} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError} from "../../utils/expectRevert";
 
@@ -119,7 +118,7 @@ describe("Super ETH (SETH) Contract", function () {
         });
         const superTokenContract = new ethers.Contract(
             "SuperToken",
-            SuperTokenArtifact.abi,
+            SuperToken__factory.abi,
             aliceSigner
         );
         await expectCustomError(

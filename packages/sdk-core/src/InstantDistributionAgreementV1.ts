@@ -1,11 +1,13 @@
+import {
+    IInstantDistributionAgreementV1,
+    IInstantDistributionAgreementV1__factory,
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
 import Host from "./Host";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
-import IInstantDistributionAgreementV1ABI from "./abi/IInstantDistributionAgreementV1.json";
 import {
-    IAgreementV1Options,
     IApproveSubscriptionParams,
     IClaimParams,
     ICreateIndexParams,
@@ -19,28 +21,23 @@ import {
     IWeb3Index,
     IWeb3Subscription,
 } from "./interfaces";
-import { IInstantDistributionAgreementV1 } from "./typechain";
 import { normalizeAddress } from "./utils";
 
-const idaInterface = new ethers.utils.Interface(
-    IInstantDistributionAgreementV1ABI.abi
-);
+const idaInterface = IInstantDistributionAgreementV1__factory.createInterface();
 
 /**
  * Instant Distribution Agreement V1 Helper Class
  * @description A helper class to interact with the IDAV1 contract.
  */
 export default class InstantDistributionAgreementV1 {
-    readonly options: IAgreementV1Options;
     readonly host: Host;
     readonly contract: IInstantDistributionAgreementV1;
 
-    constructor(options: IAgreementV1Options) {
-        this.options = options;
-        this.host = new Host(options.config.hostAddress);
+    constructor(hostAddress: string, idaV1Address: string) {
+        this.host = new Host(hostAddress);
         this.contract = new ethers.Contract(
-            this.options.config.idaV1Address,
-            IInstantDistributionAgreementV1ABI.abi
+            idaV1Address,
+            IInstantDistributionAgreementV1__factory.abi
         ) as IInstantDistributionAgreementV1;
     }
 
@@ -136,7 +133,7 @@ export default class InstantDistributionAgreementV1 {
         ]);
 
         return this.host.callAgreement(
-            this.options.config.idaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -162,7 +159,7 @@ export default class InstantDistributionAgreementV1 {
         ]);
 
         return this.host.callAgreement(
-            this.options.config.idaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -189,7 +186,7 @@ export default class InstantDistributionAgreementV1 {
         ]);
 
         return this.host.callAgreement(
-            this.options.config.idaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -220,7 +217,7 @@ export default class InstantDistributionAgreementV1 {
         ]);
 
         return this.host.callAgreement(
-            this.options.config.idaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -245,7 +242,7 @@ export default class InstantDistributionAgreementV1 {
         );
 
         return this.host.callAgreement(
-            this.options.config.idaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -272,7 +269,7 @@ export default class InstantDistributionAgreementV1 {
         ]);
 
         return this.host.callAgreement(
-            this.options.config.idaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -302,7 +299,7 @@ export default class InstantDistributionAgreementV1 {
         ]);
 
         return this.host.callAgreement(
-            this.options.config.idaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides
@@ -332,7 +329,7 @@ export default class InstantDistributionAgreementV1 {
         ]);
 
         return this.host.callAgreement(
-            this.options.config.idaV1Address,
+            this.contract.address,
             callData,
             params.userData,
             params.overrides

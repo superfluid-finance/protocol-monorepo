@@ -30,6 +30,7 @@ abstract contract SuperTokenFactoryBase is
     /// @notice A mapping from underlying token addresses to canonical wrapper super token addresses
     /// @dev Reasoning: (1) provide backwards compatibility for existing listed wrapper super tokens
     /// @dev (2) prevent address retrieval issues if we ever choose to modify the bytecode of the UUPSProxy contract
+    /// @dev NOTE: address(0) key points to the NativeAssetSuperToken on the network.
     mapping(address => address) internal _canonicalWrapperSuperTokens;
 
     constructor(
@@ -239,6 +240,30 @@ abstract contract SuperTokenFactoryBase is
                 )
             );
             isDeployedAndCanonical = false;
+        }
+    }
+
+    /// @dev This is virtual so that SuperTokenFactoryMock can test it
+    /// @dev Note that this should also be kind of a throwaway function which will be executed only once.
+    /// @inheritdoc ISuperTokenFactory
+    function initializeCanonicalWrapperSuperTokens(
+        InitializeData[] calldata _data
+    ) external virtual {
+        address nativeAssetSuperTokenAddress = _canonicalWrapperSuperTokens[
+            address(0)
+        ];
+
+        // @note hardcoded address has permission to set this list
+        if (msg.sender != address(0)) revert("");
+
+        // once the list has been set, it cannot be reset
+        // @note this means that we must set the 0 address
+        if (nativeAssetSuperTokenAddress != address(0)) revert("");
+
+        // initialize mapping
+        for (uint256 i = 0; i < _data.length; i++) {
+            _canonicalWrapperSuperTokens[_data[i].underlyingToken] = _data[i]
+                .superToken;
         }
     }
 }

@@ -68,6 +68,27 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase
         return _helper.create(host, 0);
     }
 
+    function initializeCanonicalWrapperSuperTokens(
+        InitializeData[] calldata _data
+    ) external override {
+        address nativeAssetSuperTokenAddress = _canonicalWrapperSuperTokens[
+            address(0)
+        ];
+
+        // hardcoded address has permission to set this list
+        // This is the first address in hardhat node
+        if (msg.sender != 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266) revert("");
+
+        // once the list has been set, it cannot be reset
+        // @note this means that we must set the 0 address
+        if (nativeAssetSuperTokenAddress != address(0)) revert("");
+
+        // initialize mapping
+        for (uint256 i = 0; i < _data.length; i++) {
+            _canonicalWrapperSuperTokens[_data[i].underlyingToken] = _data[i]
+                .superToken;
+        }
+    }
 }
 
 contract SuperTokenFactoryMock42 is SuperTokenFactoryBase

@@ -14,6 +14,11 @@ import { SuperfluidErrors } from "./Definitions.sol";
  * @author Superfluid
  */
 interface ISuperTokenFactory {
+    struct InitializeData {
+        address underlyingToken;
+        address superToken;
+    }
+
     /**
      * @dev Get superfluid host contract address
      */
@@ -100,6 +105,12 @@ interface ISuperTokenFactory {
         view
         returns (address superTokenAddress, bool isDeployedAndCanonical);
 
+    /// @notice Initializes list of canonical wrapper super tokens.
+    /// @dev Can only be set once by a hardcoded address
+    /// @param _data an array of canonical wrappper super tokens to be set
+    function initializeCanonicalWrapperSuperTokens(
+        InitializeData[] calldata _data
+    ) external;
     /**
      * @dev Creates a new custom super token
      * @param customSuperTokenProxy address of the custom supertoken proxy

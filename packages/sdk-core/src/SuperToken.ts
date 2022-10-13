@@ -338,7 +338,6 @@ export default abstract class SuperToken extends ERC20Token {
 
     /**
      * Update permissions for a flow operator as a sender.
-     * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
      * @param permission The permissions to set.
      * @param flowRateAllowance The flowRateAllowance granted to the flow operator.
@@ -357,7 +356,6 @@ export default abstract class SuperToken extends ERC20Token {
 
     /**
      * Give flow operator full control - max flow rate and create/update/delete permissions.
-     * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
@@ -373,7 +371,6 @@ export default abstract class SuperToken extends ERC20Token {
 
     /**
      * Revoke flow operator control - set flow rate to 0 with no permissions.
-     * @param sender The sender of the flow.
      * @param flowOperator The permission grantee address
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.

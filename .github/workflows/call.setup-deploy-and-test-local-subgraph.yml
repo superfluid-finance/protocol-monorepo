@@ -40,6 +40,11 @@ jobs:
           ./tasks/startHardhatNode.sh start
         working-directory: ./packages/sdk-core
 
+      - name: "Build SDK-Core"
+        # build sdk-core because of auto linking to dependency
+        run: yarn build
+        working-directory: ./packages/sdk-core
+
       - name: "Deploy Framework and Tokens"
         run: npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost
         working-directory: ./packages/subgraph

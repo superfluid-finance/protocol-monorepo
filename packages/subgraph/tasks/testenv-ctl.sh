@@ -17,7 +17,7 @@ if [ "$CMD" == "start" ];then
     cd ../subgraph
     # Deploy SF Contracts and Tokens and generate ganache.json networks file
     npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost
-    # Prepare the manifest, set networks in addresses, build, create and deploy subgraph locally
+    # Build, create and deploy subgraph locally
     yarn build-and-deploy-local
 elif [ "$CMD" == "stop" ];then
     cd ../sdk-core

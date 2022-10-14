@@ -6,6 +6,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.5.7] - 2022-10-13
+
 ### Breaking
 
 -   `CFAv1Forwarder` integrated into SDK-Core and will be the default way of calling CFA agreements and `sender` is now a required property.
@@ -267,19 +269,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [0.1.0] - 2021-12-01
 
-### Added
-
--   Initial preview version of SDK-Core
--   Features:
-    -   New `Framework` initialization pattern
-    -   Built with `ethers.js` and `TypeScript` from the ground up
-    -   `Query` class which leverages the Subgraph for queries with simple filters
-    -   New `Operation` class for executing transactions/batching transactions
-    -   `ConstantFlowAgreementV1` and `InstantDistributionAgreementV1` helper classes with create, read, update and delete functionality
-    -   New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
-    -   New `BatchCall` class for creating and executing batch calls with supported `Operation's`
-
-[unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.5...HEAD
+[unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.7...HEAD
+[0.5.6]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.6...sdk-core%40v0.5.7
+[0.5.6]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.5...sdk-core%40v0.5.6
 [0.5.5]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.4...sdk-core%40v0.5.5
 [0.5.4]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.3...sdk-core%40v0.5.4
 [0.5.3]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.2...sdk-core%40v0.5.3

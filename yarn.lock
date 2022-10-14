@@ -3682,9 +3682,22 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
+"@superfluid-finance/ethereum-contracts@1.4.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.4.1.tgz#1ce38ca09de4c9fdf82857557d054c3b95e2012f"
+  integrity sha512-44wMl6v3pt+4+Q2zITUIeHFylS6iayM0ibjmtzhqJWrnC7BOuA39hoJWswZBrl0Tq+aESoOOXKR4v9jt5kYEbw==
+  dependencies:
+    "@decentral.ee/web3-helpers" "0.5.3"
+    "@openzeppelin/contracts" "4.7.3"
+    "@superfluid-finance/js-sdk" "0.6.3"
+    "@truffle/contract" "4.5.23"
+    ethereumjs-tx "2.1.2"
+    ethereumjs-util "7.1.5"
+    stack-trace "0.0.10"
+
 "@superfluid-finance/metadata@git+https://github.com/superfluid-finance/metadata.git":
   version "1.1.0"
-  resolved "git+https://github.com/superfluid-finance/metadata.git#b29ec8a5dee367f361327e21cb419411c70a69e9"
+  resolved "git+https://github.com/superfluid-finance/metadata.git#689edf7204836dbbfa8fd0bafce3080bb0271c03"
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"

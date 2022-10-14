@@ -1,11 +1,15 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
+import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 import { Superfluid } from "../superfluid/Superfluid.sol";
+import {
+    ISuperfluidToken
+} from "../interfaces/superfluid/ISuperfluidToken.sol";
 import { TestGovernance } from "./TestGovernance.sol";
 import {
     ConstantFlowAgreementV1
@@ -51,6 +55,7 @@ contract SuperfluidFrameworkDeployer {
         SuperTokenFactory superTokenFactory;
         TestResolver resolver;
         SuperfluidLoader superfluidLoader;
+        CFAv1Forwarder cfaV1Forwarder;
     }
 
     TestGovernance internal governance;
@@ -60,18 +65,10 @@ contract SuperfluidFrameworkDeployer {
     SuperTokenFactory internal superTokenFactory;
     TestResolver internal resolver;
     SuperfluidLoader internal superfluidLoader;
+    CFAv1Forwarder internal cfaV1Forwarder;
 
-    /// @notice Deploys everything... probably
     constructor() {
-        // Make sure ERC1820 is deployed
-        // TODO with foundry etched ERC1820 contract is not available yet during the same transaction while in a
-        // different external call. It could be either an EVM spec behaviour, or it could be a foundry-evm behaviour.
-        /* {
-            uint256 cs;
-            // solhint-disable-next-line no-inline-assembly
-            assembly { cs := extcodesize(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24) }
-            require(cs > 0, "ERC1820 not deployed");
-        } */
+        // @note ERC1820 must be deployed for this to work
 
         // Deploy TestGovernance. Needs initialization later.
         governance = new TestGovernance();
@@ -102,6 +99,16 @@ contract SuperfluidFrameworkDeployer {
 
         // Register ConstantFlowAgreementV1 TestGovernance
         governance.registerAgreementClass(host, address(cfa));
+
+        // Deploy CFAv1Forwarder
+        cfaV1Forwarder = new CFAv1Forwarder(host);
+
+        // Enable CFAv1Forwarder as a Trusted Forwarder
+        governance.enableTrustedForwarder(
+            host,
+            ISuperfluidToken(address(0)),
+            address(cfaV1Forwarder)
+        );
 
         // Deploy InstantDistributionAgreementV1
         ida = new InstantDistributionAgreementV1(host);
@@ -140,6 +147,8 @@ contract SuperfluidFrameworkDeployer {
 
         // Register SuperfluidLoader with Resolver
         resolver.set("SuperfluidLoader-v1", address(superfluidLoader));
+
+        resolver.set("CFAv1Forwarder", address(cfaV1Forwarder));
     }
 
     /// @notice Fetches the framework contracts
@@ -153,7 +162,8 @@ contract SuperfluidFrameworkDeployer {
             idaLib: IDAv1Library.InitData(host, ida),
             superTokenFactory: superTokenFactory,
             resolver: resolver,
-            superfluidLoader: superfluidLoader
+            superfluidLoader: superfluidLoader,
+            cfaV1Forwarder: cfaV1Forwarder
         });
         return sf;
     }

@@ -10,7 +10,6 @@ import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 interface IBatchCallOptions {
     hostAddress: string;
     operations: ReadonlyArray<Operation>;
-    providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
 interface OperationStruct {

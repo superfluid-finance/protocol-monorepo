@@ -40,15 +40,20 @@ jobs:
           ./tasks/startHardhatNode.sh start
         working-directory: ./packages/sdk-core
 
-      # duplicated in call.test-subgraph-on-previous-sdk-core-versions
-      - name: "Checkout graph node repo and set up local graph node"
-        uses: actions/checkout@v3
-        with:
-          repository: graphprotocol/graph-node
-          path: graph-node
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Build SDK-Core"
+        # build sdk-core because of auto linking to dependency
+        run: yarn build
+        working-directory: ./packages/sdk-core
 
-      - name: "Run setup because linux and docker-compose"
+      - name: "Deploy Framework and Tokens"
+        run: npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost
+        working-directory: ./packages/subgraph
+
+      - name: "Prepare files for local testing"
+        run: yarn prepare-local
+        working-directory: ./packages/subgraph
+
+      - name: "Run setup-graph-node"
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose

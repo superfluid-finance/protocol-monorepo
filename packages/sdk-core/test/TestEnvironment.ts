@@ -9,6 +9,7 @@ import {
 import {
     Framework,
     NativeAssetSuperToken,
+    Operation,
     PureSuperToken,
     toBN,
     WrapperSuperToken,
@@ -16,6 +17,7 @@ import {
 import { deployContractsAndToken } from "../../subgraph/scripts/deployContractsAndToken";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { JsonRpcProvider } from "@ethersproject/providers";
+import { expect } from "chai";
 
 export const TEST_ENVIRONMENT_CONSTANTS = {
     DEFAULT_REWARD_ADDRESS: "0x0000000000000000000000000000000000000045", // address(69)
@@ -142,4 +144,32 @@ export const makeSuite = (
             testEnv.snapshot = await hre.network.provider.send("evm_snapshot");
         });
     });
+};
+
+/**
+ * Checks that our Operation object is properly created.
+ * If shouldUseAgreement is true, the operation should not
+ * contain a forwarderPopulatedPromise and will therefore
+ * execute the callAgreement populated transaction.
+ * @note See Operation.getPopulatedTransactionRequest
+ * @param operation the operation
+ * @param shouldUseCallAgreement whether or not we intend to use call agreement
+ */
+export const validateOperationShouldUseCallAgreement = async (
+    testEnv: TestEnvironment,
+    operation: Operation,
+    shouldUseCallAgreement: boolean,
+    forwarderAddress: string
+) => {
+    const populatedTransactionRequest =
+        await operation.getPopulatedTransactionRequest(testEnv.alice);
+    if (shouldUseCallAgreement) {
+        expect(operation.forwarderPopulatedPromise).to.be.undefined;
+        expect(populatedTransactionRequest.to).to.equal(
+            testEnv.sdkFramework.host.contract.address
+        );
+    } else {
+        expect(operation.forwarderPopulatedPromise).to.not.be.undefined;
+        expect(populatedTransactionRequest.to).to.equal(forwarderAddress);
+    }
 };

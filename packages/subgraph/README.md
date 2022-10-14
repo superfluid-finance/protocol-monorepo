@@ -72,7 +72,7 @@ All subgraphs are available via The Graph's hosted service:
 In this section we will cover the following:
 
 0. Deploy the subgraph to a `docker container`.
-1. Deploy the Superfluid contracts to `Ganache`.
+1. Deploy the Superfluid contracts to a local Hardhat node.
 2. Check that your setup is correct by running some `tests`.
 
 If you get stuck, see The Graph [docs](https://thegraph.com/docs/quick-start#local-development).
@@ -87,30 +87,20 @@ First install these dependencies:
 Now install the necessary node packages with the following commands:
 
 ```bash
-npm i -g truffle ganache-cli @graphprotocol/graph-cli
 yarn install
 ```
 
-### Ganache
+### Hardhat node
 
-Start ganache. It's helpful to specify a mnemonic, so you can hard-code the address in `subgraph.yaml` and the test files.
-We utilize the mnemonic from hardhat as all the addresses for the tests are based off this.
-Open one terminal window and run this command, this window will now be running this in the background.
+Start hardhat node.
 
 ```bash
-ganache-cli -h 0.0.0.0 -m "test test test test test test test test test test test junk"
+npx hardhat node --hostname 0.0.0.0
 ```
 
 ### Graph-node
 
-Download the `graph-node` Docker instance.
-
-```bash
-git clone https://github.com/graphprotocol/graph-node/
-cd graph-node/docker
-```
-
-If on Linux, run the following script. You should be already logged into docker
+If on Linux, run the following script. You should be already have docker open.
 
 ```bash
 # For Linux machines
@@ -120,7 +110,7 @@ sudo apt install jq
 
 > Note: If you get a "version" error, update your docker-compose with [these instructions](https://docs.docker.com/compose/install/). If you get an error like `ERROR: could not find an available, non-overlapping IPv4 address...` then try turning off OpenVPN, or follow [this tutorial](https://stackoverflow.com/questions/45692255/how-make-openvpn-work-with-docker).
 
-If you are on a mac, create a `setup_graph.sh` file in `graph-node/docker` and paste the following in it:
+If you are on a mac, create a `setup_graph.sh` file in `graph-node/docker` and paste the following in it if you plan on running tests more than once:
 
 ```bash
 docker-compose down -v;
@@ -142,7 +132,9 @@ Open another terminal window and run `./setup_graph.sh` and your local graph wil
 
 > Another note: If you are using an M1 mac, follow the instructions [here](https://github.com/graphprotocol/graph-node/tree/master/docker#running-graph-node-on-an-macbook-m1) otherwise you will probably run into issues.
 
-You should see ganache logs start coming in:
+Run `docker-compose up` in `packages/subgraph`. There is a `docker-compose.yml` file which sets up a local graph node container.
+
+You should see logs start coming in on the same terminal window once everything is set up:
 
 ```
 Listening on 0.0.0.0:8545
@@ -152,38 +144,44 @@ eth_getBlockByNumber
 eth_getBlockByNumber
 ```
 
-If there is some connection issue between graph-node and ganache, it may be caused by docker network issues.
+If there is some connection issue between graph-node and your local hardhat node, it may be caused by docker network issues.
 
-I had to run the following command to get the correct host IP, instead of the one that `setup.sh` provided.
-
-```bash
-ip a | grep docker | grep inet
-> inet 172.17.0.1/16 brd 172.17.255.255 scope global docker0
-```
-
-Try changing the line in the docker-compose using the output above
-
-```
-ethereum: 'mainnet:http://172.17.0.1:8545'
-```
-
-## Deploy the contracts to Ganache
+## Deploy the contracts
 
 > Note: If you're returning from an earlier work session, skip down to [Testing](#testing).
 
-Open your third terminal window and navigate to the **root of the repo** and run the build command - this compiles the ethereum contracts and creates the artifacts required in the next steps.
+Open another terminal window and navigate to `packages/ethereum-contracts` and run the build command - this compiles the ethereum contracts and creates the artifacts required in the next steps.
 
 ```bash
 yarn build
 ```
 
-Now come back here in `packages/subgraph` and run the following command to deploy contracts:
+Now come back to `packages/subgraph` and run the following command to deploy contracts:
 
 ```bash
-npx hardhat run scripts/deployContractsAndToken.ts --network localhost
+npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost
 ```
 
-> Tip: You must use the mnemonic provided otherwise you will have to update all the test addresses in the relevant parts of the code.
+This deploys the SuperFluid framework and tokens to your local hardhat node.
+
+Then you want to prepare the necessary files for testing using: `yarn prepare-local`.
+
+The breakdown for the different commands which are encapsulated by the above command:
+
+```bash
+# Generate `subgraph.yaml` using the subgraph.template.yaml
+yarn prepare-manifest-local
+
+# Generate `addresses.ts` using the addresses.template.ts file
+yarn set-network-local
+
+# Get the ABIs
+yarn getAbi
+
+# Generate the SFMeta file (this is used internally to generate an internally used entity in prod, but still necessary for building/deploying the subgraph even for testing).
+yarn generate-sf-meta-local
+
+```
 
 ## Deploy the Subgraph
 
@@ -194,25 +192,11 @@ Once the contracts and token have been deployed, you can run the following one l
 yarn build-and-deploy-local
 
 # Step by step breakdown
-# Generate `subgraph.yaml` using the test-subgraph.template.yaml
-yarn prepare-local
-
-# Generate `addresses.ts` using the addresses.template.ts file
-yarn set-network-local
-
-# Get the ABIs
-yarn getAbi
-
-# Generate the SFMeta file (this is used internally for to generate an internally used entity in prod, but still necessary for building/deploying the subgraph)
-yarn generate-sf-meta-local
-
 # Generate the subgraph schema
 yarn codegen
 
-# Check the subgraph will compile
-yarn build
-
 # Create the namespace for the subgraph (only run once)
+# This builds the subgraph as well
 yarn create-local
 
 # Deploy the subgraph
@@ -242,6 +226,8 @@ If you are continuing from the previous steps, you can immediately run the tests
 
 ```bash
 npx hardhat test --network localhost
+or
+yarn test
 ```
 
 > Note: If you get an error complaining about workspaces requiring an array, delete the workspaces property in the subgraph folder's package.json.
@@ -258,7 +244,7 @@ yarn integrity <NETWORK>
 
 ## Re-deployments
 
-To re-deploy the subgraph and contracts (for a clean slate), you need to kill the ganache and graph node processes (`ctrl + c` usually does it) and restart these and run through the previous steps again.
+To re-deploy the subgraph and contracts (for a clean slate), you need to kill the hardhat node and graph node processes (`ctrl + c` usually does it) and restart these and run through the previous steps again.
 
 ## Troubleshooting
 

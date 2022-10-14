@@ -8,9 +8,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Breaking
 
--   Creating `BatchCall` class directly requires `providerOrSigner` property now
-    -   Migration: pass a signer or provider object for `providerOrSigner` if creating `BatchCall` class directly
-        > NOTE: This does not impact you if you are creating `BatchCall`'s via the `Framework` class
+-   `CFAv1Forwarder` integrated into SDK-Core and will be the default way of calling CFA agreements and `sender` is now a required property.
+-   Migration: pass sender into the affected CFAv1 callAgreement functions - `create/update/deleteFlow`.
+    > NOTE: You must pass `shouldUseCallAgreement` explicitly as a property if you want to execute these calls via the Host.
 
 ### Added
 

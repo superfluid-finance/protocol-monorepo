@@ -44,11 +44,15 @@ export interface ISuperTokenRequestFilter {
 // A better thought out inheritance pattern - SuperToken is parent
 // CFA/IDA inherits and tacks on superToken property
 
+export interface IShouldUseCallAgreement {
+    readonly shouldUseCallAgreement?: boolean;
+}
+
 // write request interfaces
-export interface ISuperTokenModifyFlowParams {
+export interface ISuperTokenModifyFlowParams extends IShouldUseCallAgreement {
     readonly flowRate?: string;
     readonly receiver: string;
-    readonly sender?: string;
+    readonly sender: string;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
@@ -56,19 +60,15 @@ export interface ISuperTokenCreateFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly flowRate: string;
 }
+export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
+export type ISuperTokenDeleteFlowParams = ISuperTokenModifyFlowParams;
 
 export interface ISuperTokenCreateFlowByOperatorParams
     extends ISuperTokenCreateFlowParams {
     readonly sender: string;
 }
-
-export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
 export type ISuperTokenUpdateFlowByOperatorParams =
     ISuperTokenCreateFlowByOperatorParams;
-export interface ISuperTokenDeleteFlowParams
-    extends ISuperTokenModifyFlowParams {
-    readonly sender: string;
-}
 
 export interface ISuperTokenBaseIDAParams {
     readonly indexId: string;
@@ -144,22 +144,27 @@ export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
     readonly flowOperator: string;
     readonly permissions: number;
     readonly flowRateAllowance: string;
+    readonly shouldUseCallAgreement?: boolean;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
 export interface ISuperTokenFullControlParams {
     readonly flowOperator: string;
+    readonly shouldUseCallAgreement?: boolean;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
 export interface IUpdateFlowOperatorPermissionsParams
-    extends ISuperTokenUpdateFlowOperatorPermissionsParams {
+    extends ISuperTokenUpdateFlowOperatorPermissionsParams,
+        IShouldUseCallAgreement {
     readonly superToken: string;
 }
 
-export interface IFullControlParams extends ISuperTokenFullControlParams {
+export interface IFullControlParams
+    extends ISuperTokenFullControlParams,
+        IShouldUseCallAgreement {
     readonly superToken: string;
 }
 
@@ -444,6 +449,7 @@ export interface IConfig {
     readonly cfaV1Address: string;
     readonly idaV1Address: string;
     readonly governanceAddress: string;
+    readonly cfaV1ForwarderAddress: string;
 }
 
 export interface IContracts {

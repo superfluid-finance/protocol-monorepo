@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { BigInt, ethereum } from "@graphprotocol/graph-ts";
 import {
     FlowOperatorUpdated,
     FlowUpdated,
@@ -386,13 +386,10 @@ function _createFlowUpdatedEntity(
     deposit: BigInt
 ): FlowUpdatedEvent {
     let ev = new FlowUpdatedEvent(createEventID("FlowUpdated", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.name = "FlowUpdated";
     ev.addresses = [
         event.params.token,
@@ -428,13 +425,10 @@ function _createFlowOperatorUpdatedEventEntity(
     let ev = new FlowOperatorUpdatedEvent(
         createEventID("FlowOperatorUpdated", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.name = "FlowOperatorUpdated";
     ev.addresses = [
         event.params.token,

@@ -8,14 +8,10 @@ import {
     SuperTokenCreatedEvent,
     SuperTokenLogicCreatedEvent,
 } from "../../generated/schema";
-import {
-    BIG_INT_ZERO,
-    createEventID,
-    getOrder,
-    tokenHasValidHost,
-} from "../utils";
+import { createEventID, getOrder, tokenHasValidHost } from "../utils";
 import { getOrInitSuperToken } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
+import { ethereum } from "@graphprotocol/graph-ts";
 
 export function handleSuperTokenCreated(event: SuperTokenCreated): void {
     let hostAddress = getHostAddress();
@@ -27,13 +23,10 @@ export function handleSuperTokenCreated(event: SuperTokenCreated): void {
     let ev = new SuperTokenCreatedEvent(
         createEventID("SuperTokenCreated", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "SuperTokenCreated";
     ev.addresses = [event.params.token];
@@ -58,13 +51,10 @@ export function handleCustomSuperTokenCreated(
     let ev = new CustomSuperTokenCreatedEvent(
         createEventID("CustomSuperTokenCreated", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "CustomSuperTokenCreated";
     ev.addresses = [event.params.token];
@@ -89,13 +79,10 @@ export function handleSuperTokenLogicCreated(
     let ev = new SuperTokenLogicCreatedEvent(
         createEventID("SuperTokenLogicCreated", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "SuperTokenLogicCreated";
     ev.addresses = [];

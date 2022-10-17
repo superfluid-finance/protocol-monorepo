@@ -12,17 +12,15 @@ import {
     PPPConfigurationChangedEvent,
     TrustedForwarderChangedEvent,
 } from "../../generated/schema";
-import { BIG_INT_ZERO, createEventID, getOrder } from "../utils";
+import { createEventID, getOrder } from "../utils";
+import { ethereum } from "@graphprotocol/graph-ts";
 
 export function handleConfigChanged(event: ConfigChanged): void {
     let ev = new ConfigChangedEvent(createEventID("ConfigChanged", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "ConfigChanged";
     ev.addresses = [];
@@ -42,13 +40,10 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
     let ev = new RewardAddressChangedEvent(
         createEventID("RewardAddressChanged", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "RewardAddressChanged";
     ev.addresses = [];
@@ -69,13 +64,10 @@ export function handleCFAv1LiquidationPeriodChanged(
     let ev = new CFAv1LiquidationPeriodChangedEvent(
         createEventID("CFAv1LiquidationPeriodChanged", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "CFAv1LiquidationPeriodChanged";
     ev.addresses = [];
@@ -96,13 +88,10 @@ export function handlePPPConfigurationChanged(
     let ev = new PPPConfigurationChangedEvent(
         createEventID("PPPConfigurationChanged", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "TrustedForwarderChanged";
     ev.addresses = [];
@@ -124,13 +113,10 @@ export function handleTrustedForwarderChanged(
     let ev = new TrustedForwarderChangedEvent(
         createEventID("TrustedForwarderChanged", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.order = getOrder(event.block.number, event.logIndex);
     ev.name = "TrustedForwarderChanged";

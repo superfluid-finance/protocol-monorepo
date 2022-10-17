@@ -13,19 +13,16 @@ import {
     Token,
 } from "../../generated/schema";
 import { getOrInitResolverEntry } from "../mappingHelpers";
-import { BIG_INT_ZERO, createEventID, getOrder, ZERO_ADDRESS } from "../utils";
+import { createEventID, getOrder, ZERO_ADDRESS } from "../utils";
 
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {
     let ev = new RoleAdminChangedEvent(
         createEventID("RoleAdminChanged", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.order = getOrder(event.block.number, event.logIndex);
@@ -40,13 +37,10 @@ export function handleRoleAdminChanged(event: RoleAdminChanged): void {
 
 export function handleRoleGranted(event: RoleGranted): void {
     let ev = new RoleGrantedEvent(createEventID("RoleGranted", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
@@ -60,13 +54,10 @@ export function handleRoleGranted(event: RoleGranted): void {
 }
 export function handleRoleRevoked(event: RoleRevoked): void {
     let ev = new RoleRevokedEvent(createEventID("RoleRevoked", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
@@ -90,6 +81,7 @@ export function handleSet(event: Set): void {
 
     if (resolverEntry.isToken) {
         const token = Token.load(resolverEntry.targetAddress.toHex());
+        let receipt = event.receipt as ethereum.TransactionReceipt;
         if (token) {
             if (event.params.target.equals(ZERO_ADDRESS)) {
                 token.isListed = false;
@@ -107,13 +99,10 @@ function _createSetEvent(
     name: Bytes
 ): void {
     const ev = new SetEvent(createEventID("Set", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;

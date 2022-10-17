@@ -19,7 +19,6 @@ import {
     TransferEvent,
 } from "../../generated/schema";
 import {
-    BIG_INT_ZERO,
     createEventID,
     getOrder,
     tokenHasValidHost,
@@ -289,13 +288,10 @@ function _createAgreementLiquidatedByEventEntity(
     let ev = new AgreementLiquidatedByEvent(
         createEventID("AgreementLiquidatedBy", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "AgreementLiquidatedBy";
     ev.addresses = [
@@ -324,13 +320,10 @@ function _createAgreementLiquidatedV2EventEntity(
     let ev = new AgreementLiquidatedV2Event(
         createEventID("AgreementLiquidatedV2", event)
     );
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "AgreementLiquidatedV2";
     ev.addresses = [
@@ -372,13 +365,10 @@ function _createAgreementLiquidatedV2EventEntity(
 
 function _createBurnedEventEntity(event: Burned): void {
     let ev = new BurnedEvent(createEventID("Burned", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "Burned";
     ev.addresses = [event.address, event.params.from];
@@ -396,13 +386,10 @@ function _createBurnedEventEntity(event: Burned): void {
 
 function _createMintedEventEntity(event: Minted): void {
     let ev = new MintedEvent(createEventID("Minted", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "Minted";
     ev.addresses = [event.address, event.params.operator, event.params.to];
@@ -420,13 +407,10 @@ function _createMintedEventEntity(event: Minted): void {
 
 function _createSentEventEntity(event: Sent): void {
     let ev = new SentEvent(createEventID("Sent", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "Sent";
     ev.addresses = [event.address, event.params.operator, event.params.to];
@@ -445,14 +429,11 @@ function _createSentEventEntity(event: Sent): void {
 
 function _createTokenUpgradedEventEntity(event: TokenUpgraded): void {
     let ev = new TokenUpgradedEvent(createEventID("TokenUpgraded", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.account = event.params.account.toHex();
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "TokenUpgraded";
     ev.addresses = [event.address, event.params.account];
@@ -466,14 +447,11 @@ function _createTokenUpgradedEventEntity(event: TokenUpgraded): void {
 
 function _createTokenDowngradedEventEntity(event: TokenDowngraded): void {
     let ev = new TokenDowngradedEvent(createEventID("TokenDowngraded", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.account = event.params.account.toHex();
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "TokenDowngraded";
     ev.addresses = [event.address, event.params.account];
@@ -487,14 +465,11 @@ function _createTokenDowngradedEventEntity(event: TokenDowngraded): void {
 
 function _createTransferEventEntity(event: Transfer): void {
     let ev = new TransferEvent(createEventID("Transfer", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     let value = event.params.value;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "Transfer";
     ev.addresses = [event.address, event.params.from, event.params.to];

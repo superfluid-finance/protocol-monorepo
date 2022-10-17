@@ -17,7 +17,7 @@ import {
     SuperTokenFactoryUpdated,
     SuperTokenLogicUpdated,
 } from "../../generated/Host/ISuperfluid";
-import { BIG_INT_ZERO, createEventID, getOrder } from "../utils";
+import { createEventID, getOrder } from "../utils";
 import { commitHash, configuration, branch } from "../meta.ignore";
 import { ethereum } from "@graphprotocol/graph-ts";
 import { SuperfluidGovernance } from "../../generated/templates";
@@ -26,13 +26,11 @@ export function handleGovernanceReplaced(event: GovernanceReplaced): void {
     let ev = new GovernanceReplacedEvent(
         createEventID("GovernanceReplaced", event)
     );
+
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "GovernanceReplaced";
     ev.addresses = [];
@@ -56,13 +54,11 @@ export function handleAgreementClassRegistered(
     let ev = new AgreementClassRegisteredEvent(
         createEventID("AgreementClassRegistered", event)
     );
+
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "AgreementClassRegistered";
     ev.addresses = [];
@@ -82,13 +78,11 @@ export function handleAgreementClassUpdated(
     let ev = new AgreementClassUpdatedEvent(
         createEventID("AgreementClassUpdated", event)
     );
+
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "AgreementClassUpdated";
     ev.addresses = [];
@@ -109,13 +103,11 @@ export function handleSuperTokenFactoryUpdated(
     let ev = new SuperTokenFactoryUpdatedEvent(
         createEventID("SuperTokenFactoryUpdated", event)
     );
+
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "SuperTokenFactoryUpdated";
     ev.addresses = [];
@@ -132,13 +124,11 @@ export function handleSuperTokenLogicUpdated(
     let ev = new SuperTokenLogicUpdatedEvent(
         createEventID("SuperTokenLogicUpdated", event)
     );
+
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "SuperTokenLogicUpdated";
     ev.addresses = [];
@@ -152,13 +142,10 @@ export function handleSuperTokenLogicUpdated(
 
 export function handleAppRegistered(event: AppRegistered): void {
     let ev = new AppRegisteredEvent(createEventID("AppRegistered", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "AppRegistered";
     ev.addresses = [];
@@ -171,13 +158,10 @@ export function handleAppRegistered(event: AppRegistered): void {
 
 export function handleJail(event: Jail): void {
     let ev = new JailEvent(createEventID("Jail", event));
+    let receipt = event.receipt as ethereum.TransactionReceipt;
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    if (event.receipt) {
-        ev.gasUsed = event.receipt.gasUsed;
-    } else {
-        ev.gasUsed = BIG_INT_ZERO;
-    }
+    ev.gasUsed = receipt.gasUsed;
     ev.timestamp = event.block.timestamp;
     ev.name = "Jail";
     ev.addresses = [];

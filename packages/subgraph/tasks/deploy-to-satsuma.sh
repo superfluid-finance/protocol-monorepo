@@ -1,7 +1,6 @@
 #!/bin/bash
 # $1 = the version label
 # $2 = the network
-# $3 = satsuma deploy key
 
 # From the Satsuma docs:
 # https://docs.satsuma.xyz/subgraph-deploys

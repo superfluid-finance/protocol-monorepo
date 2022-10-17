@@ -13,7 +13,7 @@ import {
     Token,
 } from "../../generated/schema";
 import { getOrInitResolverEntry } from "../mappingHelpers";
-import { createEventID, getOrder, ZERO_ADDRESS } from "../utils";
+import { BIG_INT_ZERO, createEventID, getOrder, ZERO_ADDRESS } from "../utils";
 
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {
     let ev = new RoleAdminChangedEvent(
@@ -21,6 +21,9 @@ export function handleRoleAdminChanged(event: RoleAdminChanged): void {
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
+    ev.gasUsed = event.receipt
+        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
+        : BIG_INT_ZERO;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.order = getOrder(event.block.number, event.logIndex);
@@ -37,6 +40,9 @@ export function handleRoleGranted(event: RoleGranted): void {
     let ev = new RoleGrantedEvent(createEventID("RoleGranted", event));
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
+    ev.gasUsed = event.receipt
+        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
+        : BIG_INT_ZERO;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
@@ -52,6 +58,9 @@ export function handleRoleRevoked(event: RoleRevoked): void {
     let ev = new RoleRevokedEvent(createEventID("RoleRevoked", event));
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
+    ev.gasUsed = event.receipt
+        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
+        : BIG_INT_ZERO;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
@@ -94,6 +103,9 @@ function _createSetEvent(
     const ev = new SetEvent(createEventID("Set", event));
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
+    ev.gasUsed = event.receipt
+        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
+        : BIG_INT_ZERO;
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;

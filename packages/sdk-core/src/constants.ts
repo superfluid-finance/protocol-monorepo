@@ -1,7 +1,6 @@
 import metadata from "@superfluid-finance/metadata";
 
 import DefaultSubgraphReleaseTag from "./defaultSubgraphReleaseTag.json";
-import { IResolverData } from "./interfaces";
 
 /******* TIME CONSTANTS *******/
 export const MONTHS_PER_YEAR = 12;
@@ -32,15 +31,27 @@ const subgraphReleaseTag =
     (globalThis.process && globalThis.process.env.SUBGRAPH_RELEASE_TAG) ||
     DefaultSubgraphReleaseTag.value;
 
-const getResolverData = (chainId: number): IResolverData => {
+export const EMPTY_NETWORK_DATA = {
+    subgraphAPIEndpoint: "",
+    networkName: "",
+    nativeTokenSymbol: "",
+    addresses: {
+        resolver: "",
+        host: "",
+        governance: "",
+        cfaV1: "",
+        cfaV1Forwarder: "",
+        idaV1: "",
+        superTokenFactory: "",
+        superfluidLoader: "",
+        toga: "",
+    },
+};
+export type NetworkData = typeof EMPTY_NETWORK_DATA;
+
+const getAddressesData = (chainId: number): NetworkData => {
     const networkData = metadata.networks.find((x) => x.chainId === chainId);
-    if (!networkData)
-        return {
-            subgraphAPIEndpoint: "",
-            networkName: "",
-            resolverAddress: "",
-            nativeTokenSymbol: "",
-        };
+    if (!networkData) return EMPTY_NETWORK_DATA;
     const hostedEndpoint = networkData.subgraphV1.hostedEndpoint;
     const subgraphAPIEndpoint = subgraphReleaseTag
         ? hostedEndpoint.replace("v1", subgraphReleaseTag)
@@ -48,13 +59,13 @@ const getResolverData = (chainId: number): IResolverData => {
     return {
         subgraphAPIEndpoint,
         networkName: networkData.name,
-        resolverAddress: networkData.contractsV1.resolver,
         nativeTokenSymbol: networkData.nativeTokenSymbol,
+        addresses: networkData.contractsV1,
     };
 };
 
 export const chainIdToResolverDataMap = new Map(
-    metadata.networks.map((x) => [x.chainId, getResolverData(x.chainId)])
+    metadata.networks.map((x) => [x.chainId, getAddressesData(x.chainId)])
 );
 
 export const networkNameToChainIdMap = new Map(

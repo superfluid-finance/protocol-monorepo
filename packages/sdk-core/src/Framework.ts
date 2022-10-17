@@ -2,6 +2,7 @@ import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
 import {
     Resolver,
     Resolver__factory,
+    Superfluid__factory,
     SuperfluidLoader__factory,
 } from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
@@ -20,18 +21,18 @@ import SuperToken, {
     PureSuperToken,
     WrapperSuperToken,
 } from "./SuperToken";
-import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
+import {
+    chainIdToResolverDataMap,
+    EMPTY_NETWORK_DATA,
+    NetworkData,
+    networkNameToChainIdMap,
+} from "./constants";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
-import {
-    IConfig,
-    IContracts,
-    IResolverData,
-    ISignerConstructorOptions,
-} from "./interfaces";
+import { IConfig, IContracts, ISignerConstructorOptions } from "./interfaces";
 import { isEthersProvider, isInjectedWeb3 } from "./utils";
 
 type SupportedProvider =
@@ -159,57 +160,75 @@ export default class Framework {
         }
 
         try {
-            const resolverData: IResolverData = chainIdToResolverDataMap.get(
-                chainId
-            ) || {
-                subgraphAPIEndpoint: "",
-                resolverAddress: "",
-                networkName: "",
-                nativeTokenSymbol: "",
-            };
+            const rawNetworkData = chainIdToResolverDataMap.get(chainId);
+            const networkData: NetworkData =
+                rawNetworkData || EMPTY_NETWORK_DATA;
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
-                : resolverData.resolverAddress;
+                : networkData.addresses.resolver;
             const resolver = Resolver__factory.connect(
                 resolverAddress,
                 provider
             );
-
-            const superfluidLoaderAddress = await resolver.get(
-                "SuperfluidLoader-v1"
-            );
-            const cfaV1ForwarderAddress = await resolver.get("CFAv1Forwarder");
-            const superfluidLoader = SuperfluidLoader__factory.connect(
-                superfluidLoaderAddress,
-                provider
-            );
-
-            const framework = await superfluidLoader.loadFramework(
-                releaseVersion
-            );
-            const governanceAddress = await new Host(
-                framework.superfluid
-            ).contract
-                .connect(provider)
-                .getGovernance();
-
-            const settings: IFrameworkSettings = {
+            const baseSettings = {
                 chainId,
                 customSubgraphQueriesEndpoint,
                 protocolReleaseVersion: options.protocolReleaseVersion || "v1",
                 provider,
                 networkName,
-                config: {
-                    resolverAddress,
-                    hostAddress: framework.superfluid,
-                    cfaV1Address: framework.agreementCFAv1,
-                    idaV1Address: framework.agreementIDAv1,
-                    governanceAddress,
-                    cfaV1ForwarderAddress,
-                },
             };
 
-            return new Framework(options, settings);
+            // supported networks scenario
+            if (rawNetworkData != null) {
+                const settings: IFrameworkSettings = {
+                    ...baseSettings,
+                    config: {
+                        resolverAddress,
+                        hostAddress: networkData.addresses.host,
+                        cfaV1Address: networkData.addresses.cfaV1,
+                        idaV1Address: networkData.addresses.idaV1,
+                        governanceAddress: networkData.addresses.governance,
+                        cfaV1ForwarderAddress:
+                            networkData.addresses.cfaV1Forwarder,
+                    },
+                };
+
+                return new Framework(options, settings);
+            } else {
+                // unsupported networks scenario (e.g. local testing)
+                const superfluidLoaderAddress = await resolver.get(
+                    "SuperfluidLoader-v1"
+                );
+                const cfaV1ForwarderAddress = await resolver.get(
+                    "CFAv1Forwarder"
+                );
+                const superfluidLoader = SuperfluidLoader__factory.connect(
+                    superfluidLoaderAddress,
+                    provider
+                );
+
+                const framework = await superfluidLoader.loadFramework(
+                    releaseVersion
+                );
+                const governanceAddress = await Superfluid__factory.connect(
+                    framework.superfluid,
+                    provider
+                ).getGovernance();
+
+                const settings: IFrameworkSettings = {
+                    ...baseSettings,
+                    config: {
+                        resolverAddress,
+                        hostAddress: framework.superfluid,
+                        cfaV1Address: framework.agreementCFAv1,
+                        idaV1Address: framework.agreementIDAv1,
+                        governanceAddress,
+                        cfaV1ForwarderAddress,
+                    },
+                };
+
+                return new Framework(options, settings);
+            }
         } catch (err) {
             throw new SFError({
                 type: "FRAMEWORK_INITIALIZATION",

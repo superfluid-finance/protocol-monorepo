@@ -1,20 +1,22 @@
+import {
+    SuperfluidGovernanceII,
+    SuperfluidGovernanceII__factory,
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
-import SuperfluidGovernanceIIABI from "./abi/SuperfluidGovernanceII.json";
 import {
     IGetGovernanceParametersParams,
     IWeb3GovernanceParams,
 } from "./interfaces";
-import { SuperfluidGovernanceII } from "./typechain/SuperfluidGovernanceII";
 
 export default class Governance {
     contract: SuperfluidGovernanceII;
     hostAddress: string;
 
-    constructor(govAddress: string, hostAddress: string) {
+    constructor(hostAddress: string, governanceAddress: string) {
         this.contract = new ethers.Contract(
-            govAddress,
-            SuperfluidGovernanceIIABI.abi
+            governanceAddress,
+            SuperfluidGovernanceII__factory.abi
         ) as SuperfluidGovernanceII;
         this.hostAddress = hostAddress;
     }
@@ -81,7 +83,7 @@ export default class Governance {
         token = ethers.constants.AddressZero,
     }: IGetGovernanceParametersParams): Promise<IWeb3GovernanceParams> => {
         const pppPromise = this.getPPPConfig({ providerOrSigner, token });
-        const rewardPromose = this.getRewardAddress({
+        const rewardPromise = this.getRewardAddress({
             providerOrSigner,
             token,
         });
@@ -91,7 +93,7 @@ export default class Governance {
         });
         const data = await Promise.all([
             pppPromise,
-            rewardPromose,
+            rewardPromise,
             minimumDepositPromise,
         ]);
         return {

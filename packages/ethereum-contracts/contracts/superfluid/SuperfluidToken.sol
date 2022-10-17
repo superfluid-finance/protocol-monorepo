@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluidGovernance } from "../interfaces/superfluid/ISuperfluidGovernance.sol";
-import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperfluidToken, SuperfluidErrors } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { EventsEmitter } from "../libs/EventsEmitter.sol";
@@ -30,8 +30,8 @@ abstract contract SuperfluidToken is ISuperfluidToken
     /// @dev Active agreement bitmap
     mapping(address => uint256) internal _inactiveAgreementBitmap;
 
-    /// @dev Settled balance for the account
-    mapping(address => int256) internal _balances;
+    /// @dev Shared Settled balance for the account
+    mapping(address => int256) internal _sharedSettledBalances;
 
     /// @dev Total supply
     uint256 internal _totalSupply;
@@ -79,9 +79,9 @@ abstract contract SuperfluidToken is ISuperfluidToken
            uint256 deposit,
            uint256 owedDeposit)
     {
-        availableBalance = _balances[account];
+        availableBalance = _sharedSettledBalances[account];
         ISuperAgreement[] memory activeAgreements = getAccountActiveAgreements(account);
-        for (uint256 i = 0; i < activeAgreements.length; i++) {
+        for (uint256 i = 0; i < activeAgreements.length; ++i) {
             (
                 int256 agreementDynamicBalance,
                 uint256 agreementDeposit,
@@ -185,7 +185,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     )
         internal
     {
-        _balances[account] = _balances[account] + amount.toInt256();
+        _sharedSettledBalances[account] = _sharedSettledBalances[account] + amount.toInt256();
         _totalSupply = _totalSupply + amount;
     }
 
@@ -196,8 +196,10 @@ abstract contract SuperfluidToken is ISuperfluidToken
         internal
     {
         (int256 availableBalance,,) = realtimeBalanceOf(account, _host.getNow());
-        require(availableBalance >= amount.toInt256(), "SuperfluidToken: burn amount exceeds balance");
-        _balances[account] = _balances[account] - amount.toInt256();
+        if (availableBalance < amount.toInt256()) {
+            revert SuperfluidErrors.INSUFFICIENT_BALANCE(SuperfluidErrors.SF_TOKEN_BURN_INSUFFICIENT_BALANCE);
+        }
+        _sharedSettledBalances[account] = _sharedSettledBalances[account] - amount.toInt256();
         _totalSupply = _totalSupply - amount;
     }
 
@@ -209,9 +211,11 @@ abstract contract SuperfluidToken is ISuperfluidToken
         internal
     {
         (int256 availableBalance,,) = realtimeBalanceOf(from, _host.getNow());
-        require(availableBalance >= amount, "SuperfluidToken: move amount exceeds balance");
-        _balances[from] = _balances[from] - amount;
-        _balances[to] = _balances[to] + amount;
+        if (availableBalance < amount) {
+            revert SuperfluidErrors.INSUFFICIENT_BALANCE(SuperfluidErrors.SF_TOKEN_MOVE_INSUFFICIENT_BALANCE);
+        }
+        _sharedSettledBalances[from] = _sharedSettledBalances[from] - amount;
+        _sharedSettledBalances[to] = _sharedSettledBalances[to] + amount;
     }
 
     function _getRewardAccount() internal view returns (address rewardAccount) {
@@ -232,7 +236,9 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
-        require(!FixedSizeData.hasData(slot, data.length), "SuperfluidToken: agreement already created");
+        if (FixedSizeData.hasData(slot, data.length)) {
+            revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.SF_TOKEN_AGREEMENT_ALREADY_EXISTS);
+        }
         FixedSizeData.storeData(slot, data);
         emit AgreementCreated(agreementClass, id, data);
     }
@@ -272,7 +278,9 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
-        require(FixedSizeData.hasData(slot,dataLength), "SuperfluidToken: agreement does not exist");
+        if (!FixedSizeData.hasData(slot,dataLength)) {
+            revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.SF_TOKEN_AGREEMENT_DOES_NOT_EXIST);
+        }
         FixedSizeData.eraseData(slot, dataLength);
         emit AgreementTerminated(msg.sender, id);
     }
@@ -311,7 +319,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         external override
         onlyAgreement
     {
-        _balances[account] = _balances[account] + delta;
+        _sharedSettledBalances[account] = _sharedSettledBalances[account] + delta;
     }
 
     /// @dev ISuperfluidToken.makeLiquidationPayoutsV2 implementation
@@ -338,17 +346,17 @@ abstract contract SuperfluidToken is ISuperfluidToken
             // LIKELY BRANCH: target account pays penalty to rewarded account
             assert(rewardAmount.toInt256() == -targetAccountBalanceDelta);
 
-            _balances[rewardAmountReceiver] += rewardAmount.toInt256();
-            _balances[targetAccount] += targetAccountBalanceDelta;
+            _sharedSettledBalances[rewardAmountReceiver] += rewardAmount.toInt256();
+            _sharedSettledBalances[targetAccount] += targetAccountBalanceDelta;
             EventsEmitter.emitTransfer(targetAccount, rewardAmountReceiver, rewardAmount);
         } else {
             // LESS LIKELY BRANCH: target account is bailed out
             // NOTE: useDefaultRewardAccount being true is undefined behavior
             // because the default reward account isn't receiving the rewardAmount by default
             assert(!useDefaultRewardAccount);
-            _balances[rewardAccount] -= (rewardAmount.toInt256() + targetAccountBalanceDelta);
-            _balances[liquidatorAccount] += rewardAmount.toInt256();
-            _balances[targetAccount] += targetAccountBalanceDelta;
+            _sharedSettledBalances[rewardAccount] -= (rewardAmount.toInt256() + targetAccountBalanceDelta);
+            _sharedSettledBalances[liquidatorAccount] += rewardAmount.toInt256();
+            _sharedSettledBalances[targetAccount] += targetAccountBalanceDelta;
             EventsEmitter.emitTransfer(rewardAccount, liquidatorAccount, rewardAmount);
             EventsEmitter.emitTransfer(rewardAccount, targetAccount, uint256(targetAccountBalanceDelta));
         }
@@ -370,14 +378,16 @@ abstract contract SuperfluidToken is ISuperfluidToken
     *************************************************************************/
 
     modifier onlyAgreement() {
-        require(
-            _host.isAgreementClassListed(ISuperAgreement(msg.sender)),
-            "SuperfluidToken: only listed agreeement");
+        if (!_host.isAgreementClassListed(ISuperAgreement(msg.sender))) {
+            revert SuperfluidErrors.ONLY_LISTED_AGREEMENT(SuperfluidErrors.SF_TOKEN_ONLY_LISTED_AGREEMENT);
+        }
         _;
     }
 
     modifier onlyHost() {
-        require(address(_host) == msg.sender, "SuperfluidToken: Only host contract allowed");
+        if (address(_host) != msg.sender) {
+            revert SuperfluidErrors.ONLY_HOST(SuperfluidErrors.SF_TOKEN_ONLY_HOST);
+        }
         _;
     }
 

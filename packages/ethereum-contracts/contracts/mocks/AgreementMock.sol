@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
@@ -193,10 +193,10 @@ contract AgreementMock is AgreementBase {
         return host.appCallbackPop(ctx, 0);
     }
 
-    function tryCtxUseAllowance(ISuperfluid host, bool hackCtx, bytes calldata ctx)
+    function tryCtxUseCredit(ISuperfluid host, bool hackCtx, bytes calldata ctx)
         external returns (bytes memory newCtx)
     {
-        return host.ctxUseAllowance(hackCtx ? new bytes(0) : ctx, 0, 0);
+        return host.ctxUseCredit(hackCtx ? new bytes(0) : ctx, 0);
     }
 
     function tryJailApp(ISuperfluid host, ISuperApp appMock, bool hackCtx, bytes calldata ctx)
@@ -261,7 +261,7 @@ contract AgreementMock is AgreementBase {
         cbStates.noopBit = noopBit;
         bytes memory cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
         emit AppBeforeCallbackResult(
-            context.appLevel,
+            context.appCallbackLevel,
             context.callType,
             context.agreementSelector,
             cbdata);
@@ -298,7 +298,7 @@ contract AgreementMock is AgreementBase {
             require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after callback");
         }
         emit AppAfterCallbackResult(
-            context.appLevel,
+            context.appCallbackLevel,
             context.callType,
             context.agreementSelector);
     }

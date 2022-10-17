@@ -4,7 +4,7 @@ version:       0.0.1.0
 license:       MIT
 maintainer:    miao@superfluid.finance
 author:        Miao ZhiCheng
-tested-with:   ghc ==9.2.2 ghc ==8.10.7
+tested-with:   ghc ==9.2.4
 homepage:      https://www.superfluid.finance/
 synopsis:      Superfluid protocol core specifications in Haskell.
 description:
@@ -15,27 +15,67 @@ build-type:    Simple
 
 library
     exposed-modules:
-        Money.Distribution.Concepts
-        Money.Distribution.Communism
-        Money.Superfluid.Concepts.TaggedTypeable
-        Money.Superfluid.Concepts.Liquidity
-        Money.Superfluid.Concepts.RealtimeBalance
-        Money.Superfluid.Concepts.SuperfluidTypes
-        Money.Superfluid.Concepts.Agreement
-        Money.Superfluid.SubSystems.BufferBasedSolvency
-        Money.Superfluid.Agreements.TransferableBalanceAgreement
-        Money.Superfluid.Agreements.ConstantFlowAgreement
-        Money.Superfluid.Agreements.DistributionAgreement
-        Money.Superfluid.Agreements.DecayingFlowAgreement
-        Money.Superfluid.System.Serialization
-        Money.Superfluid.System.AccountTokenModel
+        Data.Type.Any
+        Money.Theory.Distribution
+        Money.Systems.Communism
+        Money.Systems.Superfluid.CoreTypes.TypedValue
+        Money.Systems.Superfluid.CoreTypes.RealTimeBalance
+        Money.Systems.Superfluid.CoreTypes
+        Money.Systems.Superfluid.Concepts.MonetaryUnitData
+        Money.Systems.Superfluid.Concepts.Agreement
+        Money.Systems.Superfluid.SystemTypes
+        Money.Systems.Superfluid.MonetaryUnitData.MintedValue
+        Money.Systems.Superfluid.MonetaryUnitData.InstantValue
+        Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow
+        Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow
+        Money.Systems.Superfluid.Agreements.MinterAgreement
+        Money.Systems.Superfluid.Agreements.InstantTransferAgreement
+        Money.Systems.Superfluid.Agreements.ConstantFlowAgreement
+        Money.Systems.Superfluid.Agreements.DecayingFlowAgreement
+        Money.Systems.Superfluid.Agreements.InstantDistributionAgreement
+        Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement
+        Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex
+        Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
+        Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex
+        Money.Systems.Superfluid.SubSystems.BufferBasedSolvency
+        Money.Systems.Superfluid.MonetaryUnit
+        Money.Systems.Superfluid.Token
     other-modules:
-        -- Internal.TaggedTypeable
-    hs-source-dirs:   src
-    default-language: Haskell2010
+        Lens.Internal
+    hs-source-dirs:
+        src-internal
+        src
+    default-language: GHC2021
     ghc-options:      -Wall
     build-depends:
-        base >=4.12 && <5,
+        base >=4.15 && <5,
+        template-haskell,
         data-default,
-        containers,
-        transformers
+        transformers >=0.2,
+        microlens >0.4.11
+
+test-suite tests
+    type:             exitcode-stdio-1.0
+    main-is:          Tests.hs
+    hs-source-dirs:
+        src-internal
+        test
+    other-modules:
+        Lens.Internal
+        Money.Systems.Superfluid.TestTypes
+        Money.Systems.Superfluid.RealTimeBalance_prop
+        Money.Systems.Superfluid.ConstantFlowAgreement_prop
+        Money.Systems.Superfluid.ConstantFlowDistributionAgreement_prop
+    default-language: GHC2021
+    ghc-options:      -Wall
+    build-depends:
+        base >=4.15 && <5,
+        template-haskell,
+        data-default,
+        transformers,
+        microlens >0.4.11,
+        QuickCheck >=2.13,
+        hspec >=2.0,
+        HUnit >=1.6.0.0,
+        math-extras,
+        superfluid-protocol-spec-core     ==0.0.1.0

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { ISuperfluid, ISuperAgreement, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
@@ -57,7 +57,7 @@ contract BatchLiquidator {
         // locked in the contract
         {
             uint256 balance = ERC20(superToken).balanceOf(address(this));
-            if(balance > 0) {
+            if (balance > 0) {
                 ERC20(superToken).transferFrom(address(this), msg.sender, balance);
             }
         }

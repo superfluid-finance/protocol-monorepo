@@ -29,7 +29,7 @@ query getIndexSubscriptions($where: IndexSubscription_filter! = {}, $skip: Int! 
                 name
                 symbol
                 isListed
-                # isNativeAssetSuperToken
+                isNativeAssetSuperToken
                 underlyingAddress
             }
         }

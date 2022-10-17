@@ -1264,6 +1264,11 @@ type Token @entity {
     isSuperToken: Boolean!
 
     """
+    This indicates whether the token is a NativeAssetSuperToken.
+    """
+    isNativeAssetSuperToken: Boolean!
+
+    """
     This indicates whether the token is a part of our resolver list.
     """
     isListed: Boolean!

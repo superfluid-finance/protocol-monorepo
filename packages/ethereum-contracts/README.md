@@ -81,13 +81,13 @@ contract("My Test", accounts => {
             from: admin
         });
     });
-}
+})
 ```
 In order to write concise testing code, we further recommend the use of [`@superfluid-finance/sdk-core`](/packages/sdk-core) not only in your UI code, but also in JS contract tests.
 
 ### Examples
 
-You may also want to check out some example dapps in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples) instead of starting from scratch.
+You may also want to check out some example dapps in the [examples repo](https://github.com/superfluid-finance/super-examples) instead of starting from scratch.
 Clone a project, modify and play!
 
 ### Deploying Superfluid Protocol

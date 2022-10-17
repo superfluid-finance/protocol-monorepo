@@ -18,18 +18,24 @@ export default class Operation {
     readonly populateTransactionPromise: Promise<ethers.PopulatedTransaction>;
     readonly type: OperationType;
 
+    // @note This property is used to ensure BatchCall operations still function
+    // when using the agreement forwarder
+    readonly forwarderPopulatedPromise?: Promise<ethers.PopulatedTransaction>;
+
     constructor(
         txn: Promise<ethers.PopulatedTransaction>,
-        type: OperationType
+        type: OperationType,
+        forwarderPopulatedPromise?: Promise<ethers.PopulatedTransaction>
     ) {
         this.populateTransactionPromise = txn;
         this.type = type;
+        this.forwarderPopulatedPromise = forwarderPopulatedPromise;
     }
 
     /**
      * Executes the operation via the provided signer.
      * @description Populates all fields of the transaction, signs it and sends it to the network.
-     * @param signer The signer of the transacation
+     * @param signer The signer of the transaction
      * @returns {ethers.providers.TransactionResponse} A TransactionResponse object which can be awaited
      */
     exec = async (
@@ -44,17 +50,20 @@ export default class Operation {
     /**
      * Get the populated transaction by awaiting `populateTransactionPromise`.
      * @description Note that we need to populate the txn with the signer.
+     * NOTE: we use the forwarder populated promise if this exists
      * @returns {Promise<TransactionRequest>}
      */
     getPopulatedTransactionRequest = async (
         signer: ethers.Signer
     ): Promise<TransactionRequest> => {
-        const prePopulated = await this.populateTransactionPromise;
-        return await signer.populateTransaction(prePopulated);
+        const txnToPopulate = this.forwarderPopulatedPromise
+            ? await this.forwarderPopulatedPromise
+            : await this.populateTransactionPromise;
+        return await signer.populateTransaction(txnToPopulate);
     };
     /**
      * Signs the populated transaction via the provided signer (what you intend on sending to the network).
-     * @param signer The signer of the transacation
+     * @param signer The signer of the transaction
      * @returns {Promise<string>} Fully serialized, signed transaction
      */
     getSignedTransaction = async (signer: ethers.Signer): Promise<string> => {
@@ -68,7 +77,7 @@ export default class Operation {
     /**
      * Gets the transaction hash of the transaction.
      * @description Calculates this by getting the keccak256 hash of the signedTxn.
-     * @param signer The signer of the transacation
+     * @param signer The signer of the transaction
      * @returns {Promise<string>} The transaction hash of the transaction
      */
     getTransactionHash = async (signer: ethers.Signer): Promise<string> => {

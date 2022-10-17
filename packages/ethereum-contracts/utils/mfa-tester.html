@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Multi Flow Block Explorer</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous" />
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.6.0/dist/ethers.umd.min.js"
+        integrity="sha256-I/T7C/qM1p/EIawMnVp+b68aGIgHpiaW5uJm8Xd/WYg=" crossorigin="anonymous"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+        <!-- minify -->
+    <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
+
+    <!-- sdk-core -->
+    <script src="./dist/index.umd.js"></script>
+    <!-- vue.js -->
+    <script type="importmap">
+        {
+            "imports": {
+                "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+            }
+        }
+    </script>
+    <style>
+        html, body, input, select {
+            color: #10BB35;
+            background: #151619 !important;
+            outline: none;
+        }
+        label {
+            display: table-cell;
+        }
+
+        input {
+            display: table-cell;
+        }
+        input, select {
+            border: 1px solid #10BB35;
+        }
+        p {
+            margin-bottom: 0;
+            color: #10BB35;
+        }
+
+        .input-table {
+            display: table;
+        }
+
+        .input-container {
+            display: table-row;
+        }
+
+        .receiver-container {
+            margin-bottom: 1rem;
+        }
+
+        .loading {
+            width: 100vw;
+            height: 100vh;
+            z-index: 2;
+            position: absolute;
+            background-color: black;
+            opacity: 0.3;
+            top: 0;
+            left: 0;
+            color: white;
+        }
+    </style>
+
+</head>
+
+<body>
+    <script type="module">
+        import { computed, createApp, reactive, ref, onMounted, watch } from 'vue';
+
+        const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+        const RESOLVER_ADDRESS = "0xe7f1725e7734ce288f8367e1bb143e90bb3f0512";
+        const MFA_ADDRESS = "0x9E545E3C0baAB3E08CdfD552C960A1050f373042";
+        const EMPTY_RECEIVER = { address: ZERO_ADDRESS, proportion: "0" };
+        const RESET_SNAPSHOT_ID = "RESET_SNAPSHOT";
+
+        createApp({
+            setup() {
+                let framework;
+                let token;
+                let passedSigner;
+                const provider = new ethers.providers.JsonRpcProvider("http://127.0.0.1:8545/");
+                const abiCoder = new ethers.utils.AbiCoder();
+
+                // computed properties
+                const mfaData = reactive({ ratioPct: "", flowRate: "", mfaAddress: MFA_ADDRESS, signerAddress: "" });
+                const receivers = reactive([]); // Array<{ address: string, proportion: string }>
+                const accounts = reactive([]); // Array<string>
+                const tokenData = reactive({
+                    address: "",
+                    balance: 0,
+                    name: "",
+                    underlyingAddress: "",
+                    underlyingBalance: 0,
+                    underlyingName: "",
+                });
+                const balanceData = reactive({
+                    sender: {},
+                    mfa: {},
+                    receivers: []
+                });
+                const agreementData = reactive({
+                    senderToMfa: {},
+                    mfaToReceivers: []
+                });
+                const flowData = reactive({
+                    flowRate: "",
+                    sender: "",
+                    receiver: ""
+                })
+
+                const receiverAddresses = computed(() => receivers.map(x => x.address));
+                const filteredReceivers = computed(() => receivers.filter(x => x.proportion > 0));
+                const signerAddress = computed(() => signer && signer.value ? signer.value._address : "n/a");
+                const providerNetwork = computed(() => provider && provider ? provider._network : "n/a");
+
+                // reactive refs
+                const selected = ref("");
+                const currentToken = ref("ETHx");
+                const currentReceiverAddress = ref("");
+                const currentReceiverProportion = ref("");
+                const impersonatedSignerAddress = ref("");
+                const increaseTimeSeconds = ref("");
+                const signer = ref(null);
+                const loading = ref(true);
+                const balanceSum = ref("");
+                const blockTimestamp = ref("");
+
+                // watchers
+                watch(selected, (receiverAddress) => {
+                    const receiver = receivers.find(x => x.address === receiverAddress);
+                    if (receiver) {
+                        currentReceiverProportion.value = receiver.proportion;
+                        currentReceiverAddress.value = receiverAddress;
+                    }
+                });
+                watch(signer, async (signer) => {
+                    if (token) {
+                        const { superTokenBalanceData, underlyingBalance } = await getBalanceData(signer._address);
+                        tokenData.balance = superTokenBalanceData.availableBalance;
+                        tokenData.underlyingBalance = toBN(underlyingBalance);
+                    }
+                });
+                watch(accounts, async (accounts) => {
+                    try {
+                        if (accounts.length > 0) {
+                            await initialize();
+                            const { superTokenBalanceData } = await getBalanceData(signer.value._address);
+                            const signers = await getSigners();
+                            if (Number(superTokenBalanceData.availableBalance) === 0) {
+                                const upgradePromise = signers.map(x => upgradeToSuperToken(x));
+                                await Promise.all(upgradePromise);
+                            }
+                            await loadToken();
+                            await getAndSetSumBalance(signers.map(x => x._address));
+                        }
+                        if (!sessionStorage.getItem(RESET_SNAPSHOT_ID)) {
+                            const snapshotId = await takeSnapshotAndReturnId();
+                            sessionStorage.setItem(RESET_SNAPSHOT_ID, snapshotId);
+                        }
+                    } catch (err) {
+                        console.error(err);
+                    } finally {
+                        loading.value = false;
+                    }
+                });
+
+                const hasValidMFAInput = () => {
+                    return mfaData.ratioPct !== ""
+                        && mfaData.flowRate !== ""
+                        && isAddress(mfaData.signerAddress)
+                        && filteredReceivers.value.length > 0;
+                }
+                const isAddress = (address) => {
+                    return ethers.utils.isAddress(address);
+                }
+
+                // receivers crud
+                const addReceiver = () => {
+                    let newAddress;
+                    if (currentReceiverAddress.value !== "" || currentReceiverProportion.value !== "") {
+
+                        const currentData = {
+                            address: currentReceiverAddress.value,
+                            proportion: currentReceiverProportion.value
+                        };
+                        receivers.push(currentData);
+                        newAddress = currentReceiverAddress.value;
+                    } else {
+                        receivers.push(EMPTY_RECEIVER);
+                        newAddress = EMPTY_RECEIVER.address;
+                    }
+                    selected.value = newAddress;
+                };
+                const updateReceiver = () => {
+                    const i = receivers.map(x => x.address).indexOf(selected.value);
+                    receivers[i].address = selected.value = currentReceiverAddress.value;
+                    receivers[i].proportion = currentReceiverProportion.value;
+                    selected.value = currentReceiverAddress.value = currentReceiverProportion.value = "";
+                };
+                const removeReceiver = (receiver) => {
+                    const i = receivers.map(x => x.address).indexOf(selected.value);
+                    receivers.splice(i, 1);
+                    selected.value = currentReceiverAddress.value = currentReceiverProportion.value = ""
+                };
+
+                // data formatting
+                const toBN = (num) => ethers.BigNumber.from(num);
+                const getPerSecondFlowRateByDay = (amountPerDay) => {
+                    return Math.round(
+                        (Number(amountPerDay) / 86400) * 10 ** 18
+                    ).toString();
+                };
+                const getMFAUserData = () => {
+                    return abiCoder.encode(
+                        [
+                            "address",
+                            "uint256",
+                            "address[]",
+                            "uint256[]"
+                        ],
+                        [
+                            mfaData.signerAddress,
+                            mfaData.ratioPct || "0",
+                            filteredReceivers.value.map(x => x.address),
+                            filteredReceivers.value.map(x => x.proportion)
+                        ]);
+                }
+
+                // text formatting
+                const formatBalance = (balance) => Number(ethers.utils.formatEther(toBN(balance || "0"))).toFixed(18);
+
+                // async
+                const getBalanceData = async (signerAddress) => {
+                    const isNativeAsset = token.nativeTokenSymbol !== "";
+                    const balanceData = await token.realtimeBalanceOf({
+                        providerOrSigner: provider,
+                        account: signerAddress,
+                        timestamp: blockTimestamp.value || Math.floor(new Date().getTime() / 1000).toString()
+                    })
+
+                    const underlyingBalance = await provider.getBalance(signerAddress);
+                    return { superTokenBalanceData: balanceData, underlyingBalance };
+                }
+                const getFlowData = async (sender, receiver) =>
+                ({
+                    ...await token.getFlow({
+                        sender,
+                        receiver,
+                        providerOrSigner: provider
+                    }),
+                    address: receiver
+                });
+                const getAccountNetFlow = async (account) =>
+                    await token.getNetFlow({
+                        account,
+                        providerOrSigner: provider
+                    });
+                const getFlowAndBalanceData = async (account) => {
+                    const { superTokenBalanceData } = await getBalanceData(account);
+                    const flowRate = await getAccountNetFlow(account);
+                    return {
+                        availableBalance: superTokenBalanceData.availableBalance,
+                        deposit: superTokenBalanceData.deposit,
+                        owedDeposit: superTokenBalanceData.owedDeposit,
+                        flowRate,
+                        address: account
+                    };
+                }
+                const loadToken = async () => {
+                    const superToken = await framework.loadSuperToken(currentToken.value);
+                    token = superToken;
+                    tokenData.address = superToken.address;
+                    if (signer.value) {
+                        const { superTokenBalanceData, underlyingBalance } = await getBalanceData(signer.value._address);
+                        tokenData.balance = superTokenBalanceData.availableBalance;
+                        tokenData.underlyingBalance = underlyingBalance;
+                    }
+                    tokenData.name = await superToken.symbol({
+                        providerOrSigner: provider
+                    });
+                    tokenData.underlyingName = superToken.nativeTokenSymbol
+                        || await superToken.underlyingToken.connect(provider).symbol();
+                }
+                const getAccounts = async () => {
+                    const ethAccounts = await provider.listAccounts();
+                    accounts.push(...ethAccounts);
+                }
+                const getSigners = async () => {
+                    const signersPromise = accounts.map(x => provider.getSigner(x));
+                    return await Promise.all(signersPromise);
+                }
+                const getAndSetSumBalance = async (addresses) => {
+                    const addressBalances = await Promise.all([...addresses, mfaData.mfaAddress].map(x => getBalanceData(x)));
+                    const stbds = addressBalances.map(x => x.superTokenBalanceData);
+                    const abSum = stbds.map(x => x.availableBalance).reduce((a, b) => toBN(a).add(toBN(b)), toBN(0));
+                    const depSum = stbds.map(x => x.deposit).reduce((a, b) => toBN(a).add(toBN(b)), toBN(0));
+                    const odSum = stbds.map(x => x.owedDeposit).reduce((a, b) => toBN(a).add(toBN(b)), toBN(0));
+
+                    balanceSum.value = abSum.add(depSum).sub(odSum);
+                    console.log("BALANCE SUM:", formatBalance(balanceSum.value));
+                    console.log("AVB SUM (+):", formatBalance(abSum));
+                    console.log("DEP SUM (+):", formatBalance(depSum));
+                    console.log("ODE SUM (-):", formatBalance(odSum));
+                }
+                const impersonateAccount = async () => {
+                    await provider.send(
+                        "hardhat_impersonateAccount",
+                        [mfaData.signerAddress]
+                    );
+                    const ethersSigner = await provider.getSigner(mfaData.signerAddress);
+                    signer.value = ethersSigner;
+                    passedSigner = ethersSigner;
+                }
+                const _increaseTime = async (seconds) => {
+                    await provider.send("evm_increaseTime", [seconds]);
+                    await provider.send("evm_mine", []);
+                }
+                const increaseTime = async () => {
+                    await _increaseTime(Number(increaseTimeSeconds.value));
+                    await getAndSetCurrentBlockTimestamp();
+                    await loadToken();
+                    await setupData();
+                    await getAndSetSumBalance(accounts.map(x => x));
+                }
+                const getAndSetCurrentBlockTimestamp = async () => {
+                    const block = await provider.getBlock();
+                    blockTimestamp.value = block.timestamp;
+                }
+                const takeSnapshotAndReturnId = async () => {
+                    return await provider.send(
+                        "evm_snapshot",
+                        []
+                    );
+                }
+                const revertToSnapshot = async (snapshotId) => {
+                    await provider.send(
+                        "evm_revert",
+                        [snapshotId]
+                    );
+                    return await takeSnapshotAndReturnId();
+                }
+                const resetState = async () => {
+                    try {
+                        const snapshotId = sessionStorage.getItem(RESET_SNAPSHOT_ID);
+                        const newId = await revertToSnapshot(snapshotId);
+                        sessionStorage.setItem(RESET_SNAPSHOT_ID, newId);
+                        await setupData();
+                    } catch (err) {
+                        console.error(err);
+                    }
+                }
+                const setupData = async () => {
+                    const senderData = await getFlowAndBalanceData(mfaData.signerAddress);
+                    const mfaFlowData = await getFlowAndBalanceData(mfaData.mfaAddress);
+                    const mfaToReceiversData = await Promise.all(
+                        accounts.map(x => getFlowData(mfaData.mfaAddress, x))
+                    );
+                    const mfaReceivers = mfaToReceiversData.filter(x => x.flowRate > 0).map(x => x.address);
+                    const filteredReceiversData = await Promise.all(mfaReceivers.map(x => getFlowAndBalanceData(x)));
+                    balanceData.sender = senderData;
+                    balanceData.mfa = mfaFlowData;
+                    balanceData.receivers = filteredReceiversData;
+
+                    agreementData.senderToMfa = await getFlowData(mfaData.signerAddress, mfaData.mfaAddress);
+                    agreementData.mfaToReceivers = await Promise.all(mfaReceivers.map(x => getFlowData(mfaData.mfaAddress, x)));
+                    receivers.splice(0, receivers.length);
+                    receivers.push(
+                        ...filteredReceiversData.map(x => ({ address: x.address, proportion: 1 }))
+                    );
+                }
+                /** initialize signer, framework, token */
+                const initialize = async () => {
+                    mfaData.signerAddress = accounts[0];
+                    await impersonateAccount();
+                    const sf = await sdkCore.Framework.create({
+                        chainId: 31337,
+                        provider: provider,
+                        resolverAddress: RESOLVER_ADDRESS,
+                        protocolReleaseVersion: "test",
+                    });
+                    framework = sf;
+                    await getAndSetCurrentBlockTimestamp();
+                    await loadToken();
+                    await setupData();
+                }
+
+                // transaction functions
+                const upgradeToSuperToken = async (signer) => {
+                    const ethBalance = await provider.getBalance(signer._address);
+                    await token.upgrade({ amount: ethers.utils.parseUnits("100") }).exec(signer);
+                }
+                const _modifyStream = async (action, sender, receiver, flowRate, isMfa) => {
+                    loading.value = true;
+                    try {
+                        console.log("modifying stream:", action);
+                        if (signer.value == null) {
+                            await impersonateAccount();
+                        }
+                        const s = await provider.getSigner(signer.value._address);
+                        const userData = isMfa ? getMFAUserData() : "0x";
+                        const txn = action === "create" ?
+                            await token.createFlow({
+                                receiver,
+                                flowRate: getPerSecondFlowRateByDay(flowRate),
+                                userData
+                            }).exec(s)
+                            : action === "update"
+                                ? await token.updateFlow({
+                                    receiver,
+                                    flowRate: getPerSecondFlowRateByDay(flowRate),
+                                    userData
+                                }).exec(s)
+                                : await token.deleteFlow({
+                                    sender,
+                                    receiver,
+                                    userData
+                                }).exec(s);
+                        const receipt = await txn.wait();
+
+                        console.log("RECEIPT", receipt);
+                        const block = await provider.getBlock(receipt.blockNumber);
+                        blockTimestamp.value = block.timestamp;
+                        await setupData();
+                        await getAndSetSumBalance(accounts.map(x => x));
+                    } catch (err) {
+                        console.error(err);
+                    } finally {
+                        loading.value = false;
+                    }
+                }
+                const senderToMfaModifyStream = async (action) => {
+                    _modifyStream(action, signer.value._address, mfaData.mfaAddress || MFA_ADDRESS, mfaData.flowRate, true);
+                }
+                const modifyStream = async (action) => {
+                    _modifyStream(action, flowData.sender, flowData.receiver, flowData.flowRate, false);
+                }
+
+                // initialization
+                getAccounts();
+
+                return {
+                    addReceiver,
+                    formatBalance,
+                    hasValidMFAInput,
+                    impersonateAccount,
+                    increaseTime,
+                    isAddress,
+                    loadToken,
+                    modifyStream,
+                    removeReceiver,
+                    resetState,
+                    senderToMfaModifyStream,
+                    updateReceiver,
+
+                    accounts,
+                    agreementData,
+                    balanceData,
+                    balanceSum,
+                    blockTimestamp,
+                    currentReceiverAddress,
+                    currentReceiverProportion,
+                    currentToken,
+                    filteredReceivers,
+                    flowData,
+                    impersonatedSignerAddress,
+                    increaseTimeSeconds,
+                    loading,
+                    mfaData,
+                    providerNetwork,
+                    receiverAddresses,
+                    receivers,
+                    selected,
+                    signer,
+                    signerAddress,
+                    token,
+                    tokenData,
+                }
+            }
+        }).mount('#app')
+    </script>
+</body>
+<div id="app">
+    <h1 class="loading d-flex justify-content-center align-items-center" v-if="loading">loading...</h1>
+    <div class="p-3">
+        <h2 class="d-flex align-items-center justify-content-center">
+            <i class="nes-icon coin is-large"></i>
+            <i class="nes-mario"></i>
+            Multi Flow Block Explorer
+            <i class="nes-mario"></i>
+            <i class="nes-icon coin is-large"></i>
+        </h2>
+        <div>
+            <div>
+                <div>
+                    <h4>Global Information</h4>
+                    <p>
+                        Balances Sum: {{ formatBalance(balanceSum) }}
+                    </p>
+                    <p>
+                        Current block timestamp: {{ blockTimestamp }}
+                    </p>
+                </div>
+                <div>
+                    <h4>General Information</h4>
+                    <p>
+                        Selected Token: {{ tokenData.name }} | {{
+                        tokenData.address }}
+                    </p>
+                    <p>MFA Address: {{ mfaData.mfaAddress }}</p>
+                    <p>Selected Impersonated Signer: {{ signerAddress }}</p>
+                    <p>
+                        Token Balance: {{ formatBalance(tokenData.balance)
+                        }} {{ tokenData.name }}
+                    </p>
+                    <p>
+                        Underlying Balance: {{
+                        formatBalance(tokenData.underlyingBalance) }} {{
+                        tokenData.underlyingName}}
+                    </p>
+                </div>
+                <div class="input-table mt-3">
+                    <div class="input-container">
+                        <label for="signerAddress">Signer</label>
+                        <input class="ml-2" type="text" v-model="mfaData.signerAddress" name="signerAddress" />
+                        <button type="button" class="nes-btn is-primary" @click="impersonateAccount"
+                            :disabled="!isAddress(mfaData.signerAddress)">
+                            Impersonate
+                        </button>
+                    </div>
+                    <div class="input-container">
+                        <label for="mfaAddress">MFA Address</label>
+                        <input class="ml-2" type="text" v-model="mfaData.mfaAddress" name="mfaAddress" />
+                    </div>
+                    <div class="input-container">
+                        <label for="signerAddress">Token</label>
+                        <input class="ml-2" type="text" v-model="currentToken" name="currentToken" />
+                        <button type="button" class="nes-btn is-primary" @click="loadToken">Load Token</button>
+                    </div>
+                    <div class="input-container">
+                        <label for="ratioPct">Ratio Percent</label>
+                        <input class="ml-2" type="number" v-model="mfaData.ratioPct" name="ratioPct" />
+                    </div>
+                    <div class="input-container">
+                        <label for="flowRate">Flow Rate (/day)</label>
+                        <input class="ml-2" type="number" v-model="mfaData.flowRate" name="flowRate" />
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <h4>Receivers</h4>
+                    <select class="mb-3" style="width: 420px" size="5" v-model="selected">
+                        <option v-for="receiverAddress in receiverAddresses">
+                            {{receiverAddress}}
+                        </option>
+                    </select>
+                    <div class="input-container">
+                        <label for="currentReceiverAddress">Receiver Address</label>
+                        <input class="ml-2" type="text" size="50" v-model="currentReceiverAddress"
+                            name="currentReceiverAddress" />
+                    </div>
+                    <div class="input-container">
+                        <label for="currentReceiverProportion">Receiver Proportion</label>
+                        <input class="ml-2" style="width: 69px" type="number" min="0" max="1"
+                            v-model="currentReceiverProportion" name="currentReceiverProportion" />
+                    </div>
+                    <div class="d-flex justify-content-around mt-3 mb-3">
+                        <button type="button" class="nes-btn is-primary" @click="addReceiver">Add receiver</button>
+                        <button type="button" class="nes-btn is-primary" @click="updateReceiver" :disabled='selected === ""'>
+                            Update receiver
+                        </button>
+                        <button type="button" class="nes-btn is-primary" @click="removeReceiver" :disabled='selected === ""'>
+                            Remove receiver
+                        </button>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-around mb-3">
+                    <button type="button" class="nes-btn is-primary" @click='senderToMfaModifyStream("create")'
+                        :disabled="hasValidMFAInput() === false">
+                        Start Stream
+                    </button>
+                    <button type="button" class="nes-btn is-primary" @click='senderToMfaModifyStream("update")'
+                        :disabled="hasValidMFAInput() === false">
+                        Update Stream
+                    </button>
+                    <button type="button" class="nes-btn is-primary" @click='senderToMfaModifyStream("delete")'>
+                        Delete Stream
+                    </button>
+                </div>
+                <button type="button" class="nes-btn is-error" @click="resetState">
+                    Reset to initial state
+                </button>
+                <div class="input-container">
+                    <label for="increaseTimeSeconds">Seconds</label>
+                    <input class="ml-2" type="text" v-model="increaseTimeSeconds" name="increaseTimeSeconds" />
+                    <button type="button" class="nes-btn is-primary" @click="increaseTime">
+                        Increase time
+                    </button>
+                </div>
+            </div>
+            <div>
+                <h4>Accounts</h4>
+                <ul>
+                    <li v-for="account in accounts">{{ account }}</li>
+                </ul>
+            </div>
+        </div>
+        <h4>Account State</h4>
+        <div class="mfa-flows-container d-flex align-items-center justify-content-around">
+            <div class="account-container">
+                <b>Sender</b>
+                <p>available balance: {{ formatBalance(balanceData.sender.availableBalance) }}</p>
+                <p>deposit: {{ formatBalance(balanceData.sender.deposit) }}</p>
+                <p>owed deposit: {{ formatBalance(balanceData.sender.owedDeposit) }}</p>
+                <p>net flow rate: {{ formatBalance(balanceData.sender.flowRate) }}</p>
+            </div>
+            <div class="account-container">
+                <b>MFA</b>
+                <p>available balance: {{ formatBalance(balanceData.mfa.availableBalance) }}</p>
+                <p>deposit: {{ formatBalance(balanceData.mfa.deposit) }}</p>
+                <p>owed deposit: {{ formatBalance(balanceData.mfa.owedDeposit) }}</p>
+                <p>net flow rate: {{ formatBalance(balanceData.mfa.flowRate) }}</p>
+            </div>
+            <div class="d-flex flex-column">
+                <div class="receiver-container" v-for="(receiver, i) in balanceData.receivers">
+                    <b>Receiver {{ i + 1 }}: {{ receiver.address.substring(0, 6) }}</b>
+                    <p>available balance: {{ formatBalance(receiver.availableBalance) }}</p>
+                    <p>deposit: {{ formatBalance(receiver.deposit) }}</p>
+                    <p>owed deposit: {{ formatBalance(receiver.owedDeposit) }}</p>
+                    <p>net flow rate: {{ formatBalance(receiver.flowRate) }}</p>
+                </div>
+            </div>
+        </div>
+        <h4 class="mt-5">Agreement State</h4>
+        <div class="mfa-flow-agreements-container d-flex align-items-center justify-content-around">
+            <div class="account-container">
+                <b>Sender -> MFA</b>
+                <p>deposit: {{ formatBalance(agreementData.senderToMfa.deposit) }}</p>
+                <p>owed deposit: {{ formatBalance(agreementData.senderToMfa.owedDeposit) }}</p>
+                <p>flow rate: {{ formatBalance(agreementData.senderToMfa.flowRate) }}</p>
+            </div>
+
+            <div class="d-flex flex-column">
+                <div class="receiver-container" v-for="(receiver, i) in agreementData.mfaToReceivers">
+                    <b>MFA -> Receiver {{ i + 1 }}: {{ receiver.address.substring(0, 6) }}</b>
+                    <p>deposit: {{ formatBalance(receiver.deposit) }}</p>
+                    <p>owed deposit: {{ formatBalance(receiver.owedDeposit) }}</p>
+                    <p>net flow rate: {{ formatBalance(receiver.flowRate) }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h4>Arbitrary Stream Modifications</h4>
+            <div class="input-container">
+                <label for="sender">Sender</label>
+                <input class="ml-2" type="string" v-model="flowData.sender" name="sender" />
+            </div>
+            <div class="input-container">
+                <label for="receiver">Receiver</label>
+                <input class="ml-2" type="string" v-model="flowData.receiver" name="receiver" />
+            </div>
+            <div class="input-container">
+                <label for="flowData.flowRate">Flow Rate</label>
+                <input class="ml-2" type="string" v-model="flowData.flowRate" name="flowData.flowRate" />
+            </div>
+            <button type="button" class="nes-btn is-primary" @click='modifyStream("create")'>
+                Create Stream
+            </button>
+            <button type="button" class="nes-btn is-primary" @click='modifyStream("update")'>
+                Update Stream
+            </button>
+            <button type="button" class="nes-btn is-primary" @click='modifyStream("delete")'>
+                Delete Stream
+            </button>
+        </div>
+    </div>
+</div>
+
+</html>

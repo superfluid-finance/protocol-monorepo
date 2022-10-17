@@ -39,4 +39,4 @@ jobs:
     name: Build and Test SDK-Core (Release branch)
     if: github.base_ref == 'release-sdk-core-stable'
     with:
-      subgraph-release: dev
+      subgraph-release: v1

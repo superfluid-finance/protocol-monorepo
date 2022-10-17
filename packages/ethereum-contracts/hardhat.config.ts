@@ -1,13 +1,15 @@
 import {HardhatUserConfig, subtask} from "hardhat/config";
+import "@typechain/hardhat";
 import "@nomiclabs/hardhat-web3";
-import "@nomiclabs/hardhat-waffle";
 import "@nomiclabs/hardhat-truffle5";
+import "@nomicfoundation/hardhat-chai-matchers";
+import "@nomiclabs/hardhat-ethers";
 import {TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS} from "hardhat/builtin-tasks/task-names";
 import "solidity-coverage";
 import {config as dotenvConfig} from "dotenv";
 import {NetworkUserConfig} from "hardhat/types";
 import "solidity-docgen";
-import { resolve, relative } from "path";
+import {relative} from "path";
 
 try {
     dotenvConfig();
@@ -46,7 +48,7 @@ const chainIds = {
 
     "bsc-mainnet": 56,
 
-    localhost: 1337,
+    localhost: 31337,
     hardhat: 31337,
 };
 
@@ -64,7 +66,7 @@ function createNetworkConfig(
 
 const config: HardhatUserConfig = {
     solidity: {
-        version: "0.8.14",
+        version: "0.8.16",
         settings: {
             optimizer: {
                 enabled: true,
@@ -73,6 +75,9 @@ const config: HardhatUserConfig = {
         },
     },
     networks: {
+        hardhat: {
+            hardfork: "merge"
+        },
         localhost: {
             ...createNetworkConfig("localhost"),
             url: "http://0.0.0.0:8545/",
@@ -131,10 +136,15 @@ const config: HardhatUserConfig = {
     docgen: {
         outputDir: "docs/api",
         templates: "./docs/docgen-templates",
-        pages: (item: any, file: any) => file.absolutePath.startsWith('contracts/interfaces/')
-            ? relative('contracts', file.absolutePath).replace('.sol', '.md')
-            : undefined,
+        pages: (item: any, file: any) =>
+            file.absolutePath.startsWith("contracts/interfaces/")
+                ? relative("contracts", file.absolutePath).replace(
+                      ".sol",
+                      ".md"
+                  )
+                : undefined,
     },
+    typechain: {target: "ethers-v5"},
 };
 
 export default config;

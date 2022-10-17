@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import {
     ISuperfluid,
@@ -9,7 +9,6 @@ import {
     SuperAppDefinitions
 } from "../superfluid/Superfluid.sol";
 import { AgreementMock } from "./AgreementMock.sol";
-
 
 contract SuperAppMockAux {
 
@@ -78,7 +77,7 @@ contract SuperAppMock is ISuperApp {
     function actionNoop(bytes calldata ctx) external requireValidCtx(ctx) returns (bytes memory newCtx) {
         ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         emit NoopEvent(
-            context.appLevel,
+            context.appCallbackLevel,
             context.callType,
             context.agreementSelector);
         return ctx;
@@ -92,7 +91,7 @@ contract SuperAppMock is ISuperApp {
         ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         assert(context.msgSender == expectedMsgSender);
         emit NoopEvent(
-            context.appLevel,
+            context.appCallbackLevel,
             context.callType,
             context.agreementSelector);
         return ctx;
@@ -326,7 +325,7 @@ contract SuperAppMock is ISuperApp {
         ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         if (_nextCallbackAction.actionType == NextCallbackActionType.Noop) {
             emit NoopEvent(
-                context.appLevel,
+                context.appCallbackLevel,
                 context.callType,
                 context.agreementSelector);
             return ctx;
@@ -598,7 +597,7 @@ contract SuperAppMock2ndLevel {
 }
 
 // An Super App that uses registerAppWithKey
-contract SuperAppMockWithRegistrationkey {
+contract SuperAppMockWithRegistrationKey {
     constructor(ISuperfluid host, uint256 configWord, string memory registrationKey) {
         host.registerAppWithKey(configWord, registrationKey);
     }

@@ -1,49 +1,16 @@
 import { expect } from "chai";
-import { ethers } from "ethers";
-import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+import { ethers } from "hardhat";
 import { Framework } from "../src/index";
-import { SuperToken } from "../src/typechain";
 import { networkNameToChainIdMap } from "../src/constants";
-import { HARDHAT_PRIVATE_KEY, RESOLVER_ADDRESS, setup } from "../scripts/setup";
 import hre from "hardhat";
+import { TestEnvironment, makeSuite } from "./TestEnvironment";
 
-export const ROPSTEN_SUBGRAPH_ENDPOINT =
-    "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-ropsten";
-
-describe("Framework Tests", async () => {
-    let evmSnapshotId: string;
-    let deployer: SignerWithAddress;
-    let alpha: SignerWithAddress;
-    let superToken: SuperToken;
-    let framework: Framework;
-    let INFURA_API_URL = "https://polygon-rpc.com/";
-    let customProvider = new ethers.providers.JsonRpcProvider(
-        INFURA_API_URL,
-        "matic"
-    );
-
-    before(async () => {
-        const { frameworkClass, Deployer, SuperToken, Alpha } = await setup({
-            amount: "10000000000",
-            subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
-        });
-        framework = frameworkClass;
-        deployer = Deployer;
-        alpha = Alpha;
-        superToken = SuperToken;
-        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
-    });
-
-    beforeEach(async () => {
-        await hre.network.provider.send("evm_revert", [evmSnapshotId]);
-        evmSnapshotId = await hre.network.provider.send("evm_snapshot");
-    });
-
+makeSuite("Framework Tests", (testEnv: TestEnvironment) => {
     describe("Validate Framework Constructor Options Tests", async () => {
         it("Should throw an error if no networkName or chainId", async () => {
             try {
                 await Framework.create({
-                    provider: deployer.provider!,
+                    provider: testEnv.provider,
                     chainId: null as any,
                 });
             } catch (err: any) {
@@ -56,12 +23,12 @@ describe("Framework Tests", async () => {
         });
 
         it("Should throw an error if your provider network and selected chainId/networkName don't match", async () => {
-            const chainId = (await deployer.provider!.getNetwork()).chainId;
+            const chainId = (await testEnv.provider.getNetwork()).chainId;
             try {
                 await Framework.create({
                     // force cast because we know this exists
                     chainId: networkNameToChainIdMap.get("eth-goerli")!,
-                    provider: deployer.provider!,
+                    provider: testEnv.provider,
                 });
             } catch (err: any) {
                 expect(err.name).to.equal("SFError");
@@ -92,11 +59,10 @@ describe("Framework Tests", async () => {
 
         it("Should throw an error if resolver address is null on unsupported network", async () => {
             try {
-                const chainId = (await deployer.provider!.getNetwork()).chainId;
+                const chainId = (await testEnv.provider.getNetwork()).chainId;
                 await Framework.create({
                     chainId,
-                    provider: deployer.provider!,
-                    customSubgraphQueriesEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
+                    provider: testEnv.provider,
                     protocolReleaseVersion: "test",
                 });
             } catch (err: any) {
@@ -112,11 +78,10 @@ describe("Framework Tests", async () => {
     describe("Framework.create Tests", () => {
         it("Should throw an error if loadFramework fails", async () => {
             try {
-                const chainId = (await deployer.provider!.getNetwork()).chainId;
+                const chainId = (await testEnv.provider.getNetwork()).chainId;
                 await Framework.create({
                     chainId,
-                    provider: deployer.provider!,
-                    customSubgraphQueriesEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
+                    provider: testEnv.provider,
                     resolverAddress:
                         "0x0000000000000000000000000000000000000000",
                     protocolReleaseVersion: "test",
@@ -131,6 +96,10 @@ describe("Framework Tests", async () => {
         });
 
         it("Should be able to create a framework with chain id only", async () => {
+            const customProvider = new ethers.providers.JsonRpcProvider(
+                "https://polygon-rpc.com/",
+                "matic"
+            );
             await Framework.create({
                 chainId: networkNameToChainIdMap.get("polygon-mainnet")!,
                 provider: customProvider,
@@ -141,21 +110,21 @@ describe("Framework Tests", async () => {
             const provider = new ethers.providers.Web3Provider(
                 (global as any).web3.currentProvider
             );
-            const chainId = (await deployer.provider!.getNetwork()).chainId;
+            const chainId = (await provider.getNetwork()).chainId;
             await Framework.create({
                 chainId,
                 provider,
-                resolverAddress: RESOLVER_ADDRESS,
+                resolverAddress: testEnv.frameworkAddresses.resolver,
                 protocolReleaseVersion: "test",
             });
         });
 
         it("Should be able to create a framework with injected web3", async () => {
-            const chainId = (await deployer.provider!.getNetwork()).chainId;
+            const chainId = (await testEnv.provider.getNetwork()).chainId;
             await Framework.create({
                 chainId,
                 provider: (global as any).web3,
-                resolverAddress: RESOLVER_ADDRESS,
+                resolverAddress: testEnv.frameworkAddresses.resolver,
                 protocolReleaseVersion: "test",
             });
         });
@@ -165,7 +134,7 @@ describe("Framework Tests", async () => {
             await Framework.create({
                 chainId,
                 provider: hre.ethers,
-                resolverAddress: RESOLVER_ADDRESS,
+                resolverAddress: testEnv.frameworkAddresses.resolver,
                 protocolReleaseVersion: "test",
             });
         });
@@ -174,7 +143,7 @@ describe("Framework Tests", async () => {
     describe("Framework Function Tests", () => {
         it("Should catch error when creating a signer if minimum isn't passed in.", () => {
             try {
-                framework.createSigner({});
+                testEnv.sdkFramework.createSigner({});
             } catch (err: any) {
                 expect(err.message).to.equal(
                     "Create Signer Error: You must pass in a private key, provider or signer."
@@ -185,8 +154,8 @@ describe("Framework Tests", async () => {
 
         it("Should catch error when creating a signer with PK, but no provider.", () => {
             try {
-                framework.createSigner({
-                    privateKey: HARDHAT_PRIVATE_KEY,
+                testEnv.sdkFramework.createSigner({
+                    privateKey: testEnv.constants.HARDHAT_PRIVATE_KEY,
                 });
             } catch (err: any) {
                 expect(err.message).to.equal(
@@ -198,36 +167,48 @@ describe("Framework Tests", async () => {
 
         it("Should be able to create a signer successfully with all different inputs.", () => {
             // create signer with private key
-            framework.createSigner({
-                privateKey: HARDHAT_PRIVATE_KEY,
-                provider: deployer.provider!,
+            testEnv.sdkFramework.createSigner({
+                privateKey: testEnv.constants.HARDHAT_PRIVATE_KEY,
+                provider: testEnv.provider,
             });
 
             // create signer directly
-            framework.createSigner({
-                signer: deployer,
+            testEnv.sdkFramework.createSigner({
+                signer: testEnv.alice,
             });
         });
 
         it("Should be able to create an empty batch call with framework.", () => {
-            framework.batchCall([]);
+            testEnv.sdkFramework.batchCall([]);
         });
 
         it("Should be able to create an instance of a supertoken (with address) with framework.", async () => {
-            const daix = await framework.loadSuperToken(superToken.address);
-            expect(daix.settings.address).to.equal(superToken.address);
+            const fDAIx = await testEnv.sdkFramework.loadSuperToken(
+                testEnv.wrapperSuperToken.address
+            );
+            expect(fDAIx.settings.address).to.equal(
+                testEnv.wrapperSuperToken.address
+            );
         });
 
         it("Should be able to create an instance of a supertoken (with token symbol) with framework.", async () => {
-            const tokenName = await superToken.symbol();
-            const daix = await framework.loadSuperToken(tokenName);
-            expect(daix.settings.address).to.equal(superToken.address);
+            const tokenName = await testEnv.wrapperSuperToken.symbol({
+                providerOrSigner: hre.ethers.provider,
+            });
+            const fDAIx = await testEnv.sdkFramework.loadSuperToken(tokenName);
+            expect(fDAIx.settings.address).to.equal(
+                testEnv.wrapperSuperToken.address
+            );
         });
 
         it("Should be able to use contract object", async () => {
-            const flowData = await framework.contracts.cfaV1
-                .connect(deployer)
-                .getFlow(superToken.address, deployer.address, alpha.address);
+            const flowData = await testEnv.sdkFramework.contracts.cfaV1
+                .connect(testEnv.alice)
+                .getFlow(
+                    testEnv.wrapperSuperToken.address,
+                    testEnv.alice.address,
+                    testEnv.bob.address
+                );
             expect(flowData.timestamp).to.eq("0");
             expect(flowData.flowRate).to.eq("0");
             expect(flowData.deposit).to.eq("0");

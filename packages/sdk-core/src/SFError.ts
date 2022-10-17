@@ -68,7 +68,7 @@ Caused by: ${miniStringifyCause(cause)}`
             fullMessage,
             cause
                 ? {
-                      cause: cause as Error, // Currently "unknown" is not compatible with "cause" (because it expectes "Error" and that's why we cast) but this was recently changed and merged to also allow "unknown": https://github.com/microsoft/TypeScript/pull/49639
+                      cause: cause as Error, // Currently "unknown" is not compatible with "cause" (because it expects "Error" and that's why we cast) but this was recently changed and merged to also allow "unknown": https://github.com/microsoft/TypeScript/pull/49639
                   }
                 : {}
         );

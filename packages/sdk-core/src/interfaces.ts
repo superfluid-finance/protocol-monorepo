@@ -1,12 +1,12 @@
-import { ethers, Overrides } from "ethers";
-
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
     IResolver,
     Superfluid,
-} from "./typechain";
-import { SuperfluidGovernanceII } from "./typechain/SuperfluidGovernanceII";
+    SuperfluidGovernanceII,
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
+import { ethers, Overrides } from "ethers";
+
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files
 // makes more sense than stuffing them all here
@@ -44,11 +44,15 @@ export interface ISuperTokenRequestFilter {
 // A better thought out inheritance pattern - SuperToken is parent
 // CFA/IDA inherits and tacks on superToken property
 
+export interface IShouldUseCallAgreement {
+    readonly shouldUseCallAgreement?: boolean;
+}
+
 // write request interfaces
-export interface ISuperTokenModifyFlowParams {
+export interface ISuperTokenModifyFlowParams extends IShouldUseCallAgreement {
     readonly flowRate?: string;
     readonly receiver: string;
-    readonly sender?: string;
+    readonly sender: string;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
@@ -56,19 +60,15 @@ export interface ISuperTokenCreateFlowParams
     extends ISuperTokenModifyFlowParams {
     readonly flowRate: string;
 }
+export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
+export type ISuperTokenDeleteFlowParams = ISuperTokenModifyFlowParams;
 
 export interface ISuperTokenCreateFlowByOperatorParams
     extends ISuperTokenCreateFlowParams {
     readonly sender: string;
 }
-
-export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
 export type ISuperTokenUpdateFlowByOperatorParams =
     ISuperTokenCreateFlowByOperatorParams;
-export interface ISuperTokenDeleteFlowParams
-    extends ISuperTokenModifyFlowParams {
-    readonly sender: string;
-}
 
 export interface ISuperTokenBaseIDAParams {
     readonly indexId: string;
@@ -144,22 +144,27 @@ export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
     readonly flowOperator: string;
     readonly permissions: number;
     readonly flowRateAllowance: string;
+    readonly shouldUseCallAgreement?: boolean;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
 export interface ISuperTokenFullControlParams {
     readonly flowOperator: string;
+    readonly shouldUseCallAgreement?: boolean;
     readonly userData?: string;
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
 export interface IUpdateFlowOperatorPermissionsParams
-    extends ISuperTokenUpdateFlowOperatorPermissionsParams {
+    extends ISuperTokenUpdateFlowOperatorPermissionsParams,
+        IShouldUseCallAgreement {
     readonly superToken: string;
 }
 
-export interface IFullControlParams extends ISuperTokenFullControlParams {
+export interface IFullControlParams
+    extends ISuperTokenFullControlParams,
+        IShouldUseCallAgreement {
     readonly superToken: string;
 }
 
@@ -363,7 +368,7 @@ export interface IIndex extends IHOLUpdateable {
     readonly totalUnitsApproved: string;
     readonly totalUnits: string;
     readonly totalAmountDistributedUntilUpdatedAt: string;
-    readonly token: ISuperToken;
+    readonly token: SuperTokenType;
     readonly publisher: string;
 }
 
@@ -380,24 +385,24 @@ export interface IIndexSubscriptionIndex {
     readonly id: string;
     readonly indexId: string;
     readonly indexValue: string;
-    readonly token: ISuperToken;
+    readonly token: SuperTokenType;
 }
 
 export interface IStream extends IHOLUpdateable {
     readonly currentFlowRate: string;
     readonly streamedUntilUpdatedAt: string;
-    readonly token: ISuperToken;
+    readonly token: SuperTokenType;
     readonly sender: string;
     readonly receiver: string;
     readonly flowUpdatedEvents: IStreamFlowUpdatedEvent[];
 }
 export type IStreamFlowUpdatedEvent = IFlowUpdatedEvent;
 
-export interface ISuperToken extends IHOLEntityBase {
+export interface SuperTokenType extends IHOLEntityBase {
     readonly name: string;
     readonly symbol: string;
     readonly isListed: boolean;
-    // readonly isNativeAssetSuperToken: boolean;
+    readonly isNativeAssetSuperToken: boolean;
     readonly underlyingAddress: string;
 }
 
@@ -419,7 +424,7 @@ export interface ILightAccountTokenSnapshot extends IAggregateEntityBase {
     readonly totalAmountStreamedUntilUpdatedAt: string;
     readonly totalAmountTransferredUntilUpdatedAt: string;
     readonly account: string;
-    readonly token: ISuperToken;
+    readonly token: SuperTokenType;
 }
 
 // Internal Interfaces
@@ -444,6 +449,7 @@ export interface IConfig {
     readonly cfaV1Address: string;
     readonly idaV1Address: string;
     readonly governanceAddress: string;
+    readonly cfaV1ForwarderAddress: string;
 }
 
 export interface IContracts {
@@ -452,10 +458,6 @@ export interface IContracts {
     readonly host: Superfluid;
     readonly idaV1: IInstantDistributionAgreementV1;
     readonly resolver: IResolver;
-}
-
-export interface IAgreementV1Options {
-    readonly config: IConfig;
 }
 
 // Web3 Return Data

@@ -28,43 +28,45 @@ jobs:
       - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
 
-      - name: "Install contract dependencies"
+      - name: "Install dependencies"
         run: yarn install --frozen-lockfile
-        working-directory: ${{ env.contracts-working-directory }}
 
       - name: "Build contracts"
-        run: yarn build:contracts
+        run: yarn build
         working-directory: ${{ env.contracts-working-directory }}
 
-      - name: "Install packages and start hardhat node"
+      - name: "Start hardhat node"
         run: |
-          yarn install --frozen-lockfile
           ./tasks/startHardhatNode.sh start
         working-directory: ${{ env.sdk-core-working-directory }}
+      
+      - name: "Build SDK-Core"
+        # build sdk-core because of auto linking to dependency
+        run: yarn build
+        working-directory: ${{ env.sdk-core-working-directory }}
 
-      # duplicated in call.setup-deploy-and-test-local-subgraph
-      - name: "Checkout graph node repo and set up local graph node"
-        uses: actions/checkout@v3
-        with:
-          repository: graphprotocol/graph-node
-          path: graph-node
-          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: "Deploy Framework and Tokens"
+        run: npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost
+        working-directory: ./packages/subgraph
 
-      - name: "Run setup because linux and docker-compose"
+      - name: "Prepare files for local testing"
+        run: yarn prepare-local
+        working-directory: ./packages/subgraph
+
+      - name: "Run setup-graph-node"
         run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          chmod +x setup.sh
-          ./setup.sh
-        working-directory: ./graph-node/docker
+          chmod +x ./tasks/setup-graph-node.sh
+          ./tasks/setup-graph-node.sh
+        working-directory: ./packages/subgraph
 
       - name: "Docker compose"
         run: docker-compose up &
-        working-directory: ./graph-node/docker
+        working-directory: ./packages/subgraph
 
       - name: "Prepare and Deploy Local Subgraph"
         run: yarn testenv:start

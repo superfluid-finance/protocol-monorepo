@@ -1,14 +1,14 @@
-import           System.Environment                    (getArgs)
+import           System.Environment                            (getArgs)
 
-import           Money.Superfluid.Validator.Simulation (runSimMonad)
+import           Money.Systems.Superfluid.Validator.Simulation (runSimMonad)
 
-import qualified Money.Superfluid.Validator.Demos.DFA
-import qualified Money.Superfluid.Validator.Demos.Expo
+import qualified Money.Systems.Superfluid.Validator.Demos      as Demos
 
 main :: IO ()
 main = do
     args <- getArgs
     case args of
-        ["--demo", "expo"] -> runSimMonad Money.Superfluid.Validator.Demos.Expo.demo
-        ["--demo", "dfa"]  -> runSimMonad Money.Superfluid.Validator.Demos.DFA.demo
+        ["--demo", "expo"] -> runSimMonad Demos.expo
+        ["--demo", "dfa"]  -> runSimMonad Demos.dfa
+        ["--demo", "cfda"] -> runSimMonad Demos.cfda
         _                  -> putStrLn "---- Welcome to Superfluid Validator ----"

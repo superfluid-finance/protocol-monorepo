@@ -1,7 +1,7 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
-import "@nomiclabs/hardhat-waffle";
+import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-web3";
 import { config as dotenvConfig } from "dotenv";
 dotenvConfig();
@@ -33,9 +33,11 @@ const config: HardhatUserConfig = {
         },
         bsc: {
             url: process.env.BSC_PROVIDER_URL || "",
-            accounts: process.env.TEST_PRIVATE_KEY ? [process.env.TEST_PRIVATE_KEY || ""] : [],
-            chainId: 56
-        }
+            accounts: process.env.TEST_PRIVATE_KEY
+                ? [process.env.TEST_PRIVATE_KEY || ""]
+                : [],
+            chainId: 56,
+        },
     },
     mocha: {
         timeout: 250000,

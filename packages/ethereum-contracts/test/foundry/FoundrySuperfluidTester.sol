@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import "forge-std/Test.sol";
 
@@ -7,7 +7,7 @@ import {
     Superfluid,
     ConstantFlowAgreementV1,
     InstantDistributionAgreementV1,
-    ERC20PresetMinterPauser,
+    TestToken,
     SuperToken,
     SuperfluidFrameworkDeployer,
     CFAv1Library,
@@ -36,10 +36,10 @@ contract FoundrySuperfluidTester is Test {
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
     SuperfluidFrameworkDeployer.Framework internal sf;
 
-    ERC20PresetMinterPauser internal token;
+    TestToken internal token;
     SuperToken internal superToken;
 
-    uint256 private _expectedTotalSupply = 0;
+    uint256 private _expectedTotalSupply;
 
     constructor (uint8 nTesters) {
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
@@ -57,7 +57,7 @@ contract FoundrySuperfluidTester is Test {
     }
 
     function setUp() virtual public {
-        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT");
+        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
 
         for (uint i = 0; i < N_TESTERS; ++i) {
             token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);

@@ -22,6 +22,7 @@ export * from "./pagination";
 export * from "./ordering";
 export * from "./events";
 export * from "./types";
+export * from "@superfluid-finance/ethereum-contracts/build/typechain";
 
 export { Operation, OperationType };
 export { BatchCall };

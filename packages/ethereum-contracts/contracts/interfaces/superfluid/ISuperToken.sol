@@ -1,17 +1,27 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.4;
 
 import { ISuperfluid } from "./ISuperfluid.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SuperfluidErrors } from "./Definitions.sol";
 
 /**
  * @title Super token (Superfluid Token + ERC20 + ERC777) interface
  * @author Superfluid
  */
 interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
+
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
+    error SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT();
+    error SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED();
+    error SUPER_TOKEN_NO_UNDERLYING_TOKEN();
+    error SUPER_TOKEN_ONLY_SELF();
 
     /**
      * @dev Initialize the contract

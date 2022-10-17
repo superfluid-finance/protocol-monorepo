@@ -1,10 +1,1 @@
-{
-    "network": "mainnet",
-    "testNetwork": "ganache",
-    "hostStartBlock": 0,
-    "hostAddress": "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853",
-    "cfaAddress": "0x9bd03768a7DCc129555dE410FF8E85528A4F88b5",
-    "idaAddress": "0x440C0fCDC317D69606eabc35C0F676D1a8251Ee1",
-    "superTokenFactoryAddress": "0x80E2E2367C5E9D070Ae2d6d50bF0cdF6360a7151",
-    "resolverV1Address": "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
-}
+{"network":"mainnet","testNetwork":"ganache","hostStartBlock":0,"hostAddress":"0xE451980132E65465d0a498c53f0b5227326Dd73F","cfaAddress":"0x5392A33F7F677f59e833FEBF4016cDDD88fF9E67","idaAddress":"0xB30dAf0240261Be564Cea33260F01213c47AAa0D","superTokenFactoryAddress":"0xF45bcaDCc83dea176213Ae4E22f5aF918d08647b","resolverV1Address":"0xeCaE6Cc78251a4F3B8d70c9BD4De1B3742338489","nativeAssetSuperTokenAddress":"0x51f9613a79D56528622Bd31a5Fd4b88b78AE4F8A"}

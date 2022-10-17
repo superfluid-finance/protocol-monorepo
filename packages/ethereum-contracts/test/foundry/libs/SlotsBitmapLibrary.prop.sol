@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import "forge-std/Test.sol";
 
@@ -9,7 +9,7 @@ import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/in
 import { ISuperfluidToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperTokenFactory } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperTokenFactory.sol";
 import {
-    ERC20PresetMinterPauser,
+    TestToken,
     SuperToken,
     SuperTokenFactory,
     SuperfluidFrameworkDeployer
@@ -17,7 +17,7 @@ import {
 
 contract SlotsBitmapLibraryProperties is Test {
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    ERC20PresetMinterPauser private token;
+    TestToken private token;
     ISuperToken private immutable superToken;
     address constant subscriber = address(1);
     bytes32 constant fakeId =
@@ -37,13 +37,8 @@ contract SlotsBitmapLibraryProperties is Test {
         sfDeployer = new SuperfluidFrameworkDeployer();
         SuperfluidFrameworkDeployer.Framework memory sfFramework = sfDeployer
             .getFramework();
-        token = new ERC20PresetMinterPauser("Test Token", "TST");
-        superToken = sfFramework.superTokenFactory.createERC20Wrapper(
-            token,
-            18,
-            ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
-            "Test Token",
-            "TSTx"
+        (token, superToken) = sfDeployer.deployWrapperSuperToken(
+            "Test Token", "TST", 18, type(uint256).max
         );
 
         vm.stopPrank();
@@ -126,7 +121,7 @@ contract SlotsBitmapLibraryProperties is Test {
         assertEq(slotIds.length, 0);
 
         // add _numSlots elements
-        for (uint8 i = 0; i < _numSlots; i++) {
+        for (uint8 i = 0; i < _numSlots; ++i) {
             _findEmptySlotAndFill(superToken, subscriber, fakeId);
         }
 
@@ -175,7 +170,7 @@ contract SlotsBitmapLibraryProperties is Test {
     function _createNSlots(uint16 _slots) private {
         (uint32[] memory slotIds, ) = _listData(superToken, subscriber);
         uint256 currentSlotIdsLength = slotIds.length;
-        for (uint16 i = 0; i < _slots; i++) {
+        for (uint16 i = 0; i < _slots; ++i) {
             if (currentSlotIdsLength < uint16(_MAX_NUM_SLOTS)) {
                 currentSlotIdsLength++;
                 _findEmptySlotAndFill(superToken, subscriber, fakeId);
@@ -197,7 +192,7 @@ contract SlotsBitmapLibraryProperties is Test {
         assertEq(slotIds.length, originalSlotIdsLength + _numSlots);
 
         // clear all slots
-        for (uint32 i = 0; i < slotIds.length; i++) {
+        for (uint32 i = 0; i < slotIds.length; ++i) {
             _clearSlot(superToken, subscriber, slotIds[i]);
         }
 
@@ -216,7 +211,7 @@ contract SlotsBitmapLibraryProperties is Test {
         assertEq(slotIds.length, 0);
 
         // _instructions is a random array of int256 numbers
-        for (int256 i = 0; i < int256(_instructions.length); i++) {
+        for (int256 i = 0; i < int256(_instructions.length); ++i) {
             (slotIds, ) = _listData(superToken, subscriber);
             uint256 currentLength = slotIds.length;
 
@@ -267,7 +262,7 @@ contract SlotsBitmapLibraryProperties is Test {
         if (_slotIds.length > 0 && _slotIds[_slotIds.length - 1] < _slotId)
             return false;
 
-        for (uint8 i = 0; i < _slotIds.length; i++) {
+        for (uint8 i = 0; i < _slotIds.length; ++i) {
             if (_slotIds[i] == _slotId) slotExists = true;
         }
     }

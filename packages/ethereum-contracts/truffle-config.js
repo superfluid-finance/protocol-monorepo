@@ -35,23 +35,23 @@ try {
 // - https://github.com/trufflesuite/truffle/issues/3182
 // - https://github.com/openethereum/parity-ethereum/issues/11824
 // - https://github.com/MetaMask/web3-provider-engine/issues/311
-function createProviderWithOEWorkaround(url) {
-    let provider;
-    const Web3WsProvider = require("web3-providers-ws");
-    if (url.startsWith("ws:") || url.startsWith("wss:")) {
-        provider = new Web3WsProvider(url);
-        // apply the skipCache hack
-        const origSend = provider.__proto__.send;
-        provider.__proto__.send = function (payload, callback) {
-            delete payload.skipCache;
-            origSend.call(provider, payload, callback);
-        };
-    } else {
-        // let hdwallet provider handle the url directly
-        provider = url;
-    }
-    return provider;
-}
+// function createProviderWithOEWorkaround(url) {
+//     let provider;
+//     const Web3WsProvider = require("web3-providers-ws");
+//     if (url.startsWith("ws:") || url.startsWith("wss:")) {
+//         provider = new Web3WsProvider(url);
+//         // apply the skipCache hack
+//         const origSend = provider.__proto__.send;
+//         provider.__proto__.send = function (payload, callback) {
+//             delete payload.skipCache;
+//             origSend.call(provider, payload, callback);
+//         };
+//     } else {
+//         // let hdwallet provider handle the url directly
+//         provider = url;
+//     }
+//     return provider;
+// }
 
 const ALIASES = {
     "eth-mainnet": ["mainnet"],
@@ -105,19 +105,22 @@ function getEnvValue(networkName, key) {
 
 /**
  * Create default network configurations
+ *
+ * NOTE: set providerWrapper to createProviderWithOEWorkaround in case this is still needed,
+ *       by default it's an identity function.
  */
-function createNetworkDefaultConfiguration(networkName, chainId) {
+function createNetworkDefaultConfiguration(
+    networkName,
+    providerWrapper = (a) => a
+) {
     return {
         provider: () =>
             new HDWalletProvider({
                 mnemonic: getEnvValue(networkName, "MNEMONIC"),
-                url: createProviderWithOEWorkaround(
-                    getEnvValue(networkName, "PROVIDER_URL")
-                ),
+                url: providerWrapper(getEnvValue(networkName, "PROVIDER_URL")),
                 addressIndex: 0,
                 numberOfAddresses: 10,
                 shareNonce: true,
-                chainId, // optional
             }),
         gasPrice: +getEnvValue(networkName, "GAS_PRICE"),
     };
@@ -220,7 +223,6 @@ const E = (module.exports = {
         "arbitrum-one": {
             ...createNetworkDefaultConfiguration("arbitrum-one"),
             network_id: 42161,
-            gas: 250e6, // arbgas is different and estimation fails for expensive txs
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
@@ -278,7 +280,7 @@ const E = (module.exports = {
 
         "arbitrum-rinkeby": {
             ...createNetworkDefaultConfiguration("arbitrum-rinkeby"),
-            network_id: 42162,
+            network_id: 421611,
             gas: 250e6, // arbgas is different and estimation fails for expensive txs
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
@@ -381,7 +383,7 @@ const E = (module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.8.14", // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.8.16", // Fetch exact version from solc-bin (default: truffle's version)
             settings: {
                 // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {
@@ -400,6 +402,7 @@ const E = (module.exports = {
         optimistic_etherscan: process.env.OPTIMISTIC_API_KEY,
         bscscan: process.env.BSCSCAN_API_KEY,
         arbiscan: process.env.ARBISCAN_API_KEY,
+        gnosisscan: process.env.GNOSISSCAN_API_KEY,
     },
 });
 

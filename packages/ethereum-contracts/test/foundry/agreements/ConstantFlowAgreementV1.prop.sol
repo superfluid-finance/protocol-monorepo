@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import "forge-std/Test.sol";
 
 import {
     ISuperfluid,
-    ConstantFlowAgreementV1
+    ConstantFlowAgreementV1,
+    IConstantFlowAgreementHook
 } from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 
 contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
-    constructor() ConstantFlowAgreementV1(ISuperfluid(address(0))) {}
+    constructor() ConstantFlowAgreementV1(ISuperfluid(address(0)), IConstantFlowAgreementHook(address(0))) {}
 
     function encodeFlowData(FlowData memory flowData) external pure
         returns (uint256 wordA)
@@ -33,6 +34,13 @@ contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
         returns (bool exist, FlowOperatorData memory flowOperatorData)
     {
         return _decodeFlowOperatorData(wordA);
+    }
+
+    function clipDepositNumberRoundingUp(uint256 deposit)
+        external pure
+        returns(uint256)
+    {
+        return _clipDepositNumberRoundingUp(deposit);
     }
 
     function getMaximumFlowRateFromDepositPure(
@@ -91,6 +99,41 @@ contract ConstantFlowAgreementV1Properties is Test {
 
         uint256 deposit = cfa.getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
         assert(deposit >= minimumDeposit);
+    }
+
+    /**
+     * tl;dr testing f(a) + f(b) = f(f(a) + f(b)) where f is clipping
+     * @dev This test was added to provide extra assurance that the sum of two minimum deposits is
+     * equal to the clipped sum of two minimum deposits.
+     * This makes sense intuitively as the last 32 bits are clipped off for both deposits so when
+     * adding, nothing will ever appear in the last 32 bits.
+     * This test was added because we deleted the extra clipping in the _changeFlowToApp function
+     * export FOUNDRY_FUZZ_RUNS=10000 && forge test --match testMinimumDepositClippingSumInvariant
+     */
+    function testMinimumDepositClippingSumInvariant(
+        uint256 depositA,
+        uint256 depositB
+    ) public {
+        vm.assume(type(uint256).max - depositA < depositB);
+        vm.assume(type(uint256).max - depositB < depositA);
+        uint256 clippedDepositA = cfa.clipDepositNumberRoundingUp(depositA);
+        uint256 clippedDepositB = cfa.clipDepositNumberRoundingUp(depositB);
+        uint256 summedDeposit = clippedDepositA + clippedDepositB;
+        uint256 clippedSummedDeposit = cfa.clipDepositNumberRoundingUp(summedDeposit);
+        assertTrue(summedDeposit == clippedSummedDeposit);
+    }
+
+    /**
+     * tl;dr testing f(f(a)) = f(a) where f is clipping
+     * @dev This test was added to provide additional assurances that applying the minimum deposit clipping
+     * multiple times on a value doesn't change it.
+     */
+    function testReapplyMinimumDepositClippingInvariant(
+        uint256 deposit
+    ) public {
+        uint256 initialClipped = cfa.clipDepositNumberRoundingUp(deposit);
+        uint256 reclipped = cfa.clipDepositNumberRoundingUp(initialClipped);
+        assertTrue(initialClipped == reclipped);
     }
 
     function testFlowDataEncoding(uint32 timestamp, int96 flowRate, uint64 depositClipped, uint64 owedDepositClipped)

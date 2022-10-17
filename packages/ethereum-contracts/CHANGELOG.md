@@ -3,6 +3,66 @@ All notable changes to the ethereum-contracts will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## [v.1.4.2] - 2022-10-13
+### Added
+
+- CFA Hooks added (#1099)
+- typechain types are provided to all consumers (#1113)
+- `SuperfluidFrameworkDeployer.sol` create Native Asset and Pure Super Tokens functionality added (#1104)
+- `TestResolver` added to allow `SuperfluidFrameworkDeployer` contract to grant admin permissions to its deployer (#1104)
+
+### Fixes
+
+- CFA Agreement forwarder delete flow fix to allow receivers to delete flow (#1094)
+
+## [v.1.4.1] - 2022-09-20
+
+### Added
+
+- CFA Agreement forwarder: deployed on all networks at 0xCfA1E187C9141B8bA90a436CB789017FA573d051
+
+### Fixes
+
+- [SECURITY] CFA: check flow sender instead of msg sender in order to cover ACL use
+
+## [v.1.4.0] - 2022-09-05
+
+### Added
+
+- CFA Agreement Forwarder (#982)
+- Gov: Convenience method for app registration keys and some cleanup (#1049)
+- App Credit Rule CFA-2 (#899)
+- Custom Errors Support (#1043)
+- yAcademy Gas Savings Applied (#1062)
+- bump solc to 0.8.16 (#1065)
+- Add gnosisscan support (#1050)
+- BNB Chain Support (#925)
+- Initialize logic contracts on deployment (using "castrate") (#841)
+- add tokenDecimals option to deploy-test-token.js (#1025)
+
+### Fixes
+
+- [TOGA] Added missing awaits (#1044)
+- New TestSuperApp: stream redirector wip, for testing when `appCallbackLevel` starting at 0 (#1008)
+- Prod deployment script fix (#971)
+- Adds a missing closing parenthesis to example test (#967)
+- Addresses several shortcomings in current workflows (mainly mainnet related) (#911)
+- Queue up FAILED_VERIFICATIONS (#900)
+
+### Changed
+
+- Deprecate support for `kovan`, `rinkeby`, `optimism-kovan`, and `optimism-rinkeby` (#1032)
+- Remove MaticBridgedToken from monorepo (#1060)
+- Updating dependencies & dedup dev packages (#1064)
+
+## [v1.3.1] - 2022-08-05
+
+### Added
+
+- Add resolver and loader to deployer, add tests (#1011) 
+
 ## [v1.3.0] - 2022-06-16
 
 ### Added
@@ -45,7 +105,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - App registration keys with expiration date instead of one-time use.
-
 
 ## [v1.2.1] - 2022-04-28
 
@@ -135,7 +194,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Add missing event emits (#656)
 - CFALibraryV1: Change solidity pragma in cfa lib to support versions 0.8 & later (#642)
-- Multiple scripts fixes re: do not engage with unitialized super token proxies (#603)
+- Multiple scripts fixes re: do not engage with uninitialized super token proxies (#603)
 
 ### Security
 

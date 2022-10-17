@@ -1,13 +1,13 @@
-import           Test.Framework                        (Test, defaultMain, testGroup)
+import           Test.Hspec
 
-import qualified Money.Superfluid.RealtimeBalance_prop
-import qualified Money.Superfluid.System_unit
+import qualified Money.Systems.Superfluid.ConstantFlowAgreement_test
+import qualified Money.Systems.Superfluid.ConstantFlowDistributionAgreement_test
+import qualified Money.Systems.Superfluid.DecayingFlowAgreement_test
+import qualified Money.Systems.Superfluid.InstantDistributionAgreement_test
 
 main :: IO ()
-main = defaultMain tests
-
-tests :: [Test]
-tests =
-    [ testGroup "RealtimeBalance prop"  Money.Superfluid.RealtimeBalance_prop.tests
-    , testGroup "System unit" Money.Superfluid.System_unit.tests
-    ]
+main = hspec $ do
+    Money.Systems.Superfluid.ConstantFlowAgreement_test.tests
+    Money.Systems.Superfluid.DecayingFlowAgreement_test.tests
+    Money.Systems.Superfluid.InstantDistributionAgreement_test.tests
+    Money.Systems.Superfluid.ConstantFlowDistributionAgreement_test.tests

@@ -6,8 +6,6 @@ const {
     sendGovernanceAction,
 } = require("./libs/common");
 
-const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-
 /**
  * @dev Create a new super app registration key.
  * @param {Array} argv Overriding command line arguments
@@ -43,11 +41,12 @@ module.exports = eval(`(${S.toString()})({
             throw new Error("EXPIRATON_TS not an integer");
         }
         expirationTs = parsedExpTs;
-        console.log("Expiration timestamp", expirationTs);
     }
-    const registrationkey = args.pop();
+    const registrationKey = args.pop();
     const deployer = args.pop();
     console.log("Deployer", deployer);
+    console.log("Registration key", registrationKey);
+    console.log("Expiration timestamp", expirationTs);
 
     console.log("protocol release version:", protocolReleaseVersion);
 
@@ -63,23 +62,14 @@ module.exports = eval(`(${S.toString()})({
     });
     await sf.initialize();
 
-    const appKey = web3.utils.sha3(
-        web3.eth.abi.encodeParameters(
-            ["string", "address", "string"],
-            [
-                "org.superfluid-finance.superfluid.appWhiteListing.registrationKey",
-                deployer,
-                registrationkey,
-            ]
-        )
-    );
-    console.log("App key", appKey);
     console.log("Expiration date", new Date(expirationTs * 1000)); // print human readable
 
-    // Note that we are NOT using gov.whiteListNewApp here, because it doesn't support setting
-    // an expiration date and will eventually be deprecated.
-    // Instead we use the lower level setConfig directly.
     await sendGovernanceAction(sf, (gov) =>
-        gov.setConfig(sf.host.address, ZERO_ADDRESS, appKey, expirationTs)
+        gov.setAppRegistrationKey(
+            sf.host.address,
+            deployer,
+            registrationKey,
+            expirationTs
+        )
     );
 });

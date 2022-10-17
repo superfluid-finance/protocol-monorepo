@@ -4,7 +4,7 @@ version:       0.0.1.0
 license:       MIT
 maintainer:    miao@superfluid.finance
 author:        Miao ZhiCheng
-tested-with:   ghc ==9.2.2 ghc ==8.10.7
+tested-with:   ghc ==9.2.4
 homepage:      https://www.superfluid.finance/
 synopsis:      Superfluid protocol specifications validator.
 description:
@@ -17,16 +17,18 @@ executable superfluid-validator
     main-is:          Main.hs
     hs-source-dirs:   src
     other-modules:
-        Money.Superfluid.Validator.Simulation
-        Money.Superfluid.Validator.Demos.Expo
-        Money.Superfluid.Validator.Demos.DFA
+        Money.Systems.Superfluid.Validator.Simulation
+        Money.Systems.Superfluid.Validator.Demos
 
-    default-language: Haskell2010
+    default-language: GHC2021
     ghc-options:      -Wall
     build-depends:
-        base >=4.12 && <5,
+        base >=4.15 && <5,
         data-default,
         containers,
-        transformers,
+        binary,
         time,
+        transformers >=0.2,
+        microlens >0.4.11,
+        superfluid-protocol-spec-core     ==0.0.1.0,
         superfluid-protocol-system-simple ==0.0.1.0

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.14;
+pragma solidity 0.8.16;
 
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -20,8 +20,9 @@ contract SuperfluidGovernanceII is
     UUPSProxiable,
     SuperfluidGovernanceBase
 {
+    error SF_GOV_II_ONLY_OWNER();
     function _requireAuthorised() private view {
-        require(owner() == _msgSender(), "SFGovII: only owner is authorized");
+        if (owner() != _msgSender()) revert SF_GOV_II_ONLY_OWNER();
     }
 
     /**************************************************************************

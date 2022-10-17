@@ -10,6 +10,9 @@ on:
       only_network:
         description: 'Only a specific network is to be deployed'
         required: false
+      environments:
+        description: 'Additional env vars, separated by semicolons'
+        required: false
 
 jobs:
 
@@ -43,9 +46,10 @@ jobs:
 
       - name: Use Node.js 16.x
         if: env.DO_SKIP != 1
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
 
       - name: Build
         if: env.DO_SKIP != 1
@@ -53,19 +57,22 @@ jobs:
           yarn install --frozen-lockfile
           yarn build-for-contracts-dev
 
-      - name: Build and deploy to ${{ matrix.network }}
+      - name: Deploy to ${{ matrix.network }}
         if: env.DO_SKIP != 1
         run: |
           cd packages/ethereum-contracts
+          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
           npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
 
       - name: Etherscan verification of ${{ matrix.network }} deployment
         if: env.DO_SKIP != 1
         run: |
           cd packages/ethereum-contracts
+          echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
           npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
           tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:
+          SKIP_IF_UNSUPPORTED: 1
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           POLYGONSCAN_API_KEY: ${{ secrets.POLYGONSCAN_API_KEY }}
           SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}

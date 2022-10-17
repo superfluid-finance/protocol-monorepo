@@ -1,6 +1,6 @@
 import { JsonFragment } from "@ethersproject/abi";
 import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import Web3 from "web3";
 
 import { SFError } from "./SFError";
@@ -283,4 +283,20 @@ export const getFlowOperatorId = (sender: string, flowOperator: string) => {
         ["flowOperator", sender, flowOperator]
     );
     return ethers.utils.keccak256(encodedData);
+};
+
+/**
+ * Applies clipping to deposit (based on contracts clipping logic)
+ * @param deposit the deposit to clip
+ * @param roundingDown whether to round up or down
+ * @returns clipped deposit
+ */
+export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
+    // last 32 bits of the deposit (96 bits) is clipped off
+    const rounding = roundingDown
+        ? 0
+        : deposit.and(toBN(0xffffffff)).isZero()
+        ? 0
+        : 1;
+    return deposit.shr(32).add(toBN(rounding)).shl(32);
 };

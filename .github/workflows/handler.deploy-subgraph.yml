@@ -14,7 +14,7 @@ on:
         description: 'Network to deploy to (matic/xdai/kovan...)'
       version_label:
         required: false
-        description: 'Use this input only if you want to deploy to Satsuma (v0.0.1)'
+        description: 'Use this input only if you want to deploy to Satsuma (format: v0.0.1)'
 
 jobs:
   deploy-subgraph:

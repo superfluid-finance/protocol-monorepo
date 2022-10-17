@@ -24,6 +24,7 @@ jobs:
       build_ethereum_contracts: ${{ env.BUILD_ETHEREUM_CONTRACTS }}
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
       build_sdk_core: ${{ env.BUILD_SDK_CORE }}
+      build_hardhat_deployer: ${{ env.BUILD_HARDHAT_DEPLOYER }}
       build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
 
     steps:
@@ -145,6 +146,12 @@ jobs:
     if: needs.check.outputs.build_sdk_core
     with:
       subgraph-release: feature
+
+  test-hardhat-deployer:
+    uses: ./.github/workflows/call.test-hardhat-deployer.yml
+    name: Build and Test Hardhat-Deployer (Feature Branch)
+    needs: [check]
+    if: needs.check.outputs.build_hardhat_deployer
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml

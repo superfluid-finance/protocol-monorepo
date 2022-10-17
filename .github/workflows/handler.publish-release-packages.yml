@@ -36,6 +36,9 @@ jobs:
           if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-redux@";then
             echo "PUBLISH_SDK_REDUX=1" >> $GITHUB_ENV
           fi
+          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/hardhat-deployer@";then
+            echo "PUBLISH_HARDHAT_DEPLOYER=1" >> $GITHUB_ENV
+          fi
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -132,3 +135,10 @@ jobs:
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-redux', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
           cloudfront_distribution_id: E3SV855CTC9UJO
+
+      - name: Publish hardhat-deployer package
+        if: env.PUBLISH_HARDHAT_DEPLOYER == 1
+        run: tasks/npm-publish.sh packages/hardhat-deployer/ latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}

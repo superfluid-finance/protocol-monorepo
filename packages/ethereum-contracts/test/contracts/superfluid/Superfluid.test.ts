@@ -1992,7 +1992,7 @@ describe("Superfluid Host Contract", function () {
                     ].map(async (cbname) => {
                         const sel = Object.entries(
                             app.interface.functions
-                        ).filter((i) => i[1].name === cbname)[0][0];
+                        ).filter((i) => (i[1] as any).name === cbname)[0][0];
                         const signatureHash = app.interface.getSighash(sel);
                         await expectCustomError(
                             superfluid.callAppAction(

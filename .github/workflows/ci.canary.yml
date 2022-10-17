@@ -138,6 +138,34 @@ jobs:
           path: |
             packages/sdk-core/coverage/
 
+  hardhat-deployer-coverage:
+    name: Run coverage test of hardhat-deployer on dev branch
+
+    if: github.repository == 'superfluid-finance/protocol-monorepo'
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v1
+        with:
+          node-version: 16.x
+
+      - name: Run coverage test
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
+          yarn workspace @superfluid-finance/hardhat-deployer test-coverage
+
+      - name: Create coverage artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: hardhat-deployer-coverage
+          path: |
+            packages/hardhat-deployer/coverage/
+
   publish-coverage-reports:
     name: Publish coverage reports
     needs: [ethereum-contracts-coverage, sdk-core-coverage]
@@ -173,6 +201,19 @@ jobs:
           files: packages/sdk-core/coverage/lcov.info
           name: sdk-core-coverage
           flags: sdk-core
+          fail_ci_if_error: true
+
+      - name: Download hardhat-deployer-coverage
+        uses: actions/download-artifact@v3
+        with:
+          name: hardhat-deployer-coverage
+          path: packages/hardhat-deployer/coverage
+      - name: Upload hardhat-deployer-coverage to codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: packages/hardhat-deployer/coverage/lcov.info
+          name: hardhat-deployer-coverage
+          flags: hardhat-deployer
           fail_ci_if_error: true
 
   publish-npm-packages:

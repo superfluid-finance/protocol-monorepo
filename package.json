@@ -74,6 +74,7 @@
             "packages/js-sdk",
             "packages/sdk-core",
             "packages/sdk-redux",
+            "packages/hardhat-deployer",
             "packages/subgraph",
             "packages/hot-fuzz"
         ],

@@ -50,10 +50,10 @@ SDK-Core is in early active development and can have breaking releases without w
 
 # Prerequisites
 
-> NOTE: You need to have graphql installed as a dependency in order to use SDK-Core:
+> NOTE: You need to have graphql and ethers installed as a dependency in order to use SDK-Core:
 
 ```bash
-yarn install --D graphql
+yarn install --D graphql ethers
 ```
 
 

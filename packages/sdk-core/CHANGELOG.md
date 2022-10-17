@@ -5,6 +5,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Changed
+
+- Framework initialization for supported networks utilizes `@superfluid-finance/metadata`, but still uses the resolver for unsupported/local testing environments
+  - > NOTE: This will not create any changes when doing `Framework.create` and is just a minor optimization.
+
 ## [0.5.7] - 2022-10-13
 ### Breaking
 

@@ -119,6 +119,8 @@ contract ConstantFlowAgreementV1Properties is Test {
         vm.assume(type(uint256).max - depositB < depositA);
         uint256 clippedDepositA = cfa.clipDepositNumberRoundingUp(depositA);
         uint256 clippedDepositB = cfa.clipDepositNumberRoundingUp(depositB);
+        clippedDepositA = bound(clippedDepositA, 0, type(uint256).max - clippedDepositB);
+        clippedDepositB = bound(clippedDepositB, 0, type(uint256).max - clippedDepositA);
         uint256 summedDeposit = clippedDepositA + clippedDepositB;
         uint256 clippedSummedDeposit = cfa.clipDepositNumberRoundingUp(summedDeposit);
         assertTrue(summedDeposit == clippedSummedDeposit);

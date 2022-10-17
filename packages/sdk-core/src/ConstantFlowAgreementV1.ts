@@ -1,4 +1,6 @@
 import {
+    CFAv1Forwarder,
+    CFAv1Forwarder__factory,
     IConstantFlowAgreementV1,
     IConstantFlowAgreementV1__factory,
 } from "@superfluid-finance/ethereum-contracts/build/typechain";
@@ -8,6 +10,7 @@ import Host from "./Host";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
 import {
+    ICreateFlowByOperatorParams,
     ICreateFlowParams,
     IDeleteFlowParams,
     IFullControlParams,
@@ -38,13 +41,22 @@ const cfaInterface = IConstantFlowAgreementV1__factory.createInterface();
 export default class ConstantFlowAgreementV1 {
     readonly host: Host;
     readonly contract: IConstantFlowAgreementV1;
+    readonly forwarder: CFAv1Forwarder;
 
-    constructor(hostAddress: string, cfaV1Address: string) {
+    constructor(
+        hostAddress: string,
+        cfaV1Address: string,
+        cfaV1ForwarderAddress: string
+    ) {
         this.host = new Host(hostAddress);
         this.contract = new ethers.Contract(
             cfaV1Address,
             IConstantFlowAgreementV1__factory.abi
         ) as IConstantFlowAgreementV1;
+        this.forwarder = new ethers.Contract(
+            cfaV1ForwarderAddress,
+            CFAv1Forwarder__factory.abi
+        ) as CFAv1Forwarder;
     }
 
     /** ### CFA Read Functions ### */
@@ -195,15 +207,18 @@ export default class ConstantFlowAgreementV1 {
     /**
      * Create a flow.
      * @param flowRate The specified flow rate.
+     * @param sender The sender of the flow
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
+     * @param shouldUseCallAgreement Whether to use callAgreement, or the CFAv1Forwarder
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     createFlow = (params: ICreateFlowParams): Operation => {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedReceiver = normalizeAddress(params.receiver);
+        const normalizedSender = normalizeAddress(params.sender);
 
         const callData = cfaInterface.encodeFunctionData("createFlow", [
             normalizedToken,
@@ -212,17 +227,34 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return this.host.callAgreement(
+        const callAgreementOperation = this.host.callAgreement(
             this.contract.address,
             callData,
             params.userData,
             params.overrides
+        );
+
+        const forwarderPopulatedTxnPromise =
+            this.forwarder.populateTransaction.createFlow(
+                normalizedToken,
+                normalizedSender,
+                normalizedReceiver,
+                params.flowRate,
+                params.userData || "0x",
+                params.overrides || {}
+            );
+
+        return this._getCallAgreementOperation(
+            callAgreementOperation,
+            forwarderPopulatedTxnPromise,
+            params.shouldUseCallAgreement
         );
     };
 
     /**
      * Update a flow.
      * @param flowRate The specified flow rate.
+     * @param sender The sender of the flow
      * @param receiver The receiver of the flow.
      * @param superToken The token to be flowed.
      * @param userData Extra user data provided.
@@ -232,6 +264,7 @@ export default class ConstantFlowAgreementV1 {
     updateFlow = (params: IUpdateFlowParams): Operation => {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedReceiver = normalizeAddress(params.receiver);
+        const normalizedSender = normalizeAddress(params.sender);
 
         const callData = cfaInterface.encodeFunctionData("updateFlow", [
             normalizedToken,
@@ -240,11 +273,27 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return this.host.callAgreement(
+        const callAgreementOperation = this.host.callAgreement(
             this.contract.address,
             callData,
             params.userData,
             params.overrides
+        );
+
+        const forwarderPopulatedTxnPromise =
+            this.forwarder.populateTransaction.updateFlow(
+                normalizedToken,
+                normalizedSender,
+                normalizedReceiver,
+                params.flowRate,
+                params.userData || "0x",
+                params.overrides || {}
+            );
+
+        return this._getCallAgreementOperation(
+            callAgreementOperation,
+            forwarderPopulatedTxnPromise,
+            params.shouldUseCallAgreement
         );
     };
 
@@ -269,11 +318,26 @@ export default class ConstantFlowAgreementV1 {
             "0x",
         ]);
 
-        return this.host.callAgreement(
+        const callAgreementOperation = this.host.callAgreement(
             this.contract.address,
             callData,
             params.userData,
             params.overrides
+        );
+
+        const forwarderPopulatedTxnPromise =
+            this.forwarder.populateTransaction.deleteFlow(
+                normalizedToken,
+                normalizedSender,
+                normalizedReceiver,
+                params.userData || "0x",
+                params.overrides || {}
+            );
+
+        return this._getCallAgreementOperation(
+            callAgreementOperation,
+            forwarderPopulatedTxnPromise,
+            params.shouldUseCallAgreement
         );
     };
 
@@ -319,11 +383,26 @@ export default class ConstantFlowAgreementV1 {
             ]
         );
 
-        return this.host.callAgreement(
+        const callAgreementOperation = this.host.callAgreement(
             this.contract.address,
             callData,
             params.userData,
             params.overrides
+        );
+
+        const forwarderPopulatedTxnPromise =
+            this.forwarder.populateTransaction.updateFlowOperatorPermissions(
+                normalizedToken,
+                normalizedFlowOperator,
+                params.permissions,
+                params.flowRateAllowance,
+                params.overrides || {}
+            );
+
+        return this._getCallAgreementOperation(
+            callAgreementOperation,
+            forwarderPopulatedTxnPromise,
+            params.shouldUseCallAgreement
         );
     }
 
@@ -345,11 +424,24 @@ export default class ConstantFlowAgreementV1 {
             [normalizedToken, normalizedFlowOperator, "0x"]
         );
 
-        return this.host.callAgreement(
+        const callAgreementOperation = this.host.callAgreement(
             this.contract.address,
             callData,
             params.userData,
             params.overrides
+        );
+
+        const forwarderPopulatedTxnPromise =
+            this.forwarder.populateTransaction.grantPermissions(
+                normalizedToken,
+                normalizedFlowOperator,
+                params.overrides || {}
+            );
+
+        return this._getCallAgreementOperation(
+            callAgreementOperation,
+            forwarderPopulatedTxnPromise,
+            params.shouldUseCallAgreement
         );
     }
 
@@ -369,11 +461,24 @@ export default class ConstantFlowAgreementV1 {
             [normalizedToken, normalizedFlowOperator, "0x"]
         );
 
-        return this.host.callAgreement(
+        const callAgreementOperation = this.host.callAgreement(
             this.contract.address,
             callData,
             params.userData,
             params.overrides
+        );
+
+        const forwarderPopulatedTxnPromise =
+            this.forwarder.populateTransaction.revokePermissions(
+                normalizedToken,
+                normalizedFlowOperator,
+                params.overrides || {}
+            );
+
+        return this._getCallAgreementOperation(
+            callAgreementOperation,
+            forwarderPopulatedTxnPromise,
+            params.shouldUseCallAgreement
         );
     }
 
@@ -387,7 +492,7 @@ export default class ConstantFlowAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    createFlowByOperator = (params: ICreateFlowParams): Operation => {
+    createFlowByOperator = (params: ICreateFlowByOperatorParams): Operation => {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedReceiver = normalizeAddress(params.receiver);
         const normalizedSender = normalizeAddress(params.sender);
@@ -403,11 +508,19 @@ export default class ConstantFlowAgreementV1 {
             ]
         );
 
-        return this.host.callAgreement(
+        const callAgreementOperation = this.host.callAgreement(
             this.contract.address,
             callData,
             params.userData,
             params.overrides
+        );
+
+        const createFlowOperation = this.createFlow(params);
+
+        return this._getCallAgreementOperation(
+            callAgreementOperation,
+            createFlowOperation.forwarderPopulatedPromise,
+            params.shouldUseCallAgreement
         );
     };
 
@@ -437,11 +550,19 @@ export default class ConstantFlowAgreementV1 {
             ]
         );
 
-        return this.host.callAgreement(
+        const callAgreementOperation = this.host.callAgreement(
             this.contract.address,
             callData,
             params.userData,
             params.overrides
+        );
+
+        const updateFlowOperation = this.updateFlow(params);
+
+        return this._getCallAgreementOperation(
+            callAgreementOperation,
+            updateFlowOperation.forwarderPopulatedPromise,
+            params.shouldUseCallAgreement
         );
     };
 
@@ -464,15 +585,43 @@ export default class ConstantFlowAgreementV1 {
             [normalizedToken, normalizedSender, normalizedReceiver, "0x"]
         );
 
-        return this.host.callAgreement(
+        const callAgreementOperation = this.host.callAgreement(
             this.contract.address,
             callData,
             params.userData,
             params.overrides
         );
+
+        const deleteFlowOperation = this.deleteFlow(params);
+
+        return this._getCallAgreementOperation(
+            callAgreementOperation,
+            deleteFlowOperation.forwarderPopulatedPromise,
+            params.shouldUseCallAgreement
+        );
     };
 
-    /** ### Private Functions ### */
+    /** ### Internal Helper Functions ### */
+
+    /**
+     * Returns the desired Operation based on shouldUseCallAgreement.
+     * @param shouldUseCallAgreement whether or not to use host.callAgreement
+     * @param callAgreementOperation the host.callAgreement created Operation
+     * @param forwarderPopulatedTransactionPromise the populated forwarder transaction promise
+     */
+    _getCallAgreementOperation = (
+        callAgreementOperation: Operation,
+        forwarderPopulatedTransactionPromise?: Promise<ethers.PopulatedTransaction>,
+        shouldUseCallAgreement?: boolean
+    ) => {
+        return shouldUseCallAgreement
+            ? callAgreementOperation
+            : new Operation(
+                  callAgreementOperation.populateTransactionPromise,
+                  callAgreementOperation.type,
+                  forwarderPopulatedTransactionPromise
+              );
+    };
 
     /**
      * Sanitizes flow info, converting BigNumber to string.

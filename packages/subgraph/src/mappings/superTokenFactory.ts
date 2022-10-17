@@ -16,7 +16,6 @@ import {
 } from "../utils";
 import { getOrInitSuperToken } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
-import { ethereum } from "@graphprotocol/graph-ts";
 
 export function handleSuperTokenCreated(event: SuperTokenCreated): void {
     let hostAddress = getHostAddress();
@@ -30,9 +29,11 @@ export function handleSuperTokenCreated(event: SuperTokenCreated): void {
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "SuperTokenCreated";
     ev.addresses = [event.params.token];
@@ -59,9 +60,11 @@ export function handleCustomSuperTokenCreated(
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "CustomSuperTokenCreated";
     ev.addresses = [event.params.token];
@@ -88,9 +91,11 @@ export function handleSuperTokenLogicCreated(
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "SuperTokenLogicCreated";
     ev.addresses = [];

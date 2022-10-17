@@ -1,4 +1,4 @@
-import { Address, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
     RoleAdminChanged,
     RoleGranted,
@@ -21,9 +21,11 @@ export function handleRoleAdminChanged(event: RoleAdminChanged): void {
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.order = getOrder(event.block.number, event.logIndex);
@@ -40,9 +42,11 @@ export function handleRoleGranted(event: RoleGranted): void {
     let ev = new RoleGrantedEvent(createEventID("RoleGranted", event));
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
@@ -58,9 +62,11 @@ export function handleRoleRevoked(event: RoleRevoked): void {
     let ev = new RoleRevokedEvent(createEventID("RoleRevoked", event));
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;
@@ -103,9 +109,11 @@ function _createSetEvent(
     const ev = new SetEvent(createEventID("Set", event));
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.blockNumber = event.block.number;
     ev.logIndex = event.logIndex;

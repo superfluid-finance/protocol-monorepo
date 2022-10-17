@@ -1,4 +1,4 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
     IndexCreated,
     IndexDistributionClaimed,
@@ -634,9 +634,11 @@ function _createIndexCreatedEventEntity(
     let ev = new IndexCreatedEvent(createEventID("IndexCreated", event));
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexCreated";
     ev.addresses = [event.params.token, event.params.publisher];
@@ -660,9 +662,11 @@ function _createIndexDistributionClaimedEventEntity(
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexDistributionClaimed";
     ev.addresses = [
@@ -689,9 +693,11 @@ function _createIndexUpdatedEventEntity(
     let ev = new IndexUpdatedEvent(createEventID("IndexUpdated", event));
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexUpdated";
     ev.addresses = [event.params.token, event.params.publisher];
@@ -716,9 +722,11 @@ function _createIndexSubscribedEventEntity(
     let ev = new IndexSubscribedEvent(createEventID("IndexSubscribed", event));
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexSubscribed";
     ev.addresses = [
@@ -748,9 +756,11 @@ function _createIndexUnitsUpdatedEventEntity(
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexUnitsUpdated";
     ev.addresses = [
@@ -781,9 +791,11 @@ function _createIndexUnsubscribedEventEntity(
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "IndexUnsubscribed";
     ev.addresses = [
@@ -812,9 +824,11 @@ function _createSubscriptionApprovedEventEntity(
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "SubscriptionApproved";
     ev.addresses = [
@@ -843,9 +857,11 @@ function _createSubscriptionDistributionClaimedEventEntity(
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "SubscriptionDistributionClaimed";
     ev.addresses = [
@@ -874,9 +890,11 @@ function _createSubscriptionRevokedEventEntity(
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "SubscriptionRevoked";
     ev.addresses = [
@@ -906,9 +924,11 @@ function _createSubscriptionUnitsUpdatedEventEntity(
     );
     ev.transactionHash = event.transaction.hash;
     ev.gasPrice = event.transaction.gasPrice;
-    ev.gasUsed = event.receipt
-        ? (event.receipt as ethereum.TransactionReceipt).gasUsed
-        : BIG_INT_ZERO;
+    if (event.receipt) {
+        ev.gasUsed = event.receipt.gasUsed;
+    } else {
+        ev.gasUsed = BIG_INT_ZERO;
+    }
     ev.timestamp = event.block.timestamp;
     ev.name = "SubscriptionUnitsUpdated";
     ev.addresses = [

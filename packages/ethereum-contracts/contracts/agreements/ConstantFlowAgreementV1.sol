@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.16;
 
+import { IConstantFlowAgreementHook } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import {
     IConstantFlowAgreementV1,
     SuperfluidErrors,
@@ -64,6 +65,8 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
+    IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
+
     using SafeCast for uint256;
     using SafeCast for int256;
 
@@ -89,7 +92,9 @@ contract ConstantFlowAgreementV1 is
     }
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(ISuperfluid host) AgreementBase(address(host)) {}
+    constructor(ISuperfluid host, IConstantFlowAgreementHook _hookAddress) AgreementBase(address(host)) {
+        constantFlowAgreementHook = _hookAddress;
+    }
 
     /**************************************************************************
      * ISuperAgreement interface
@@ -447,6 +452,23 @@ contract ConstantFlowAgreementV1 is
         }
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
+
+        // @note It is possible this silently fails due to out of gas reasons, and users should
+        // still be able to recreate the hook behavior. This logic should exist in the NFT contract though.
+        // This should be safe as we don't have any behavior/state changes in the catch block.
+        if (address(constantFlowAgreementHook) != address(0))  {
+            try constantFlowAgreementHook.onCreate(
+                flowVars.token,
+                IConstantFlowAgreementHook.CFAHookParams({
+                    sender: flowParams.sender,
+                    receiver: flowParams.receiver,
+                    flowOperator: flowParams.flowOperator,
+                    flowRate: flowParams.flowRate
+                })
+            )
+            // solhint-disable-next-line no-empty-blocks
+            {} catch {}
+        }
     }
 
     function _updateFlow(
@@ -475,6 +497,22 @@ contract ConstantFlowAgreementV1 is
         }
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
+
+        // @note See comment in _createFlow
+        if (address(constantFlowAgreementHook) != address(0))  {
+            // solhint-disable-next-line no-empty-blocks
+            try constantFlowAgreementHook.onUpdate(
+                flowVars.token,
+                IConstantFlowAgreementHook.CFAHookParams({
+                    sender: flowParams.sender,
+                    receiver: flowParams.receiver,
+                    flowOperator: flowParams.flowOperator,
+                    flowRate: flowParams.flowRate
+                }),
+                oldFlowData.flowRate
+            // solhint-disable-next-line no-empty-blocks
+            ) {} catch {}
+        }
     }
 
     function _deleteFlow(
@@ -584,6 +622,21 @@ contract ConstantFlowAgreementV1 is
                     flowVars.token, flowParams, oldFlowData,
                     newCtx, currentContext);
             }
+        }
+
+        // @note See comment in _createFlow
+        if (address(constantFlowAgreementHook) != address(0))  {
+            try constantFlowAgreementHook.onDelete(
+                flowVars.token,
+                IConstantFlowAgreementHook.CFAHookParams({
+                    sender: flowParams.sender,
+                    receiver: flowParams.receiver,
+                    flowOperator: flowParams.flowOperator,
+                    flowRate: flowParams.flowRate
+                }),
+                oldFlowData.flowRate
+            // solhint-disable-next-line no-empty-blocks
+            ) {} catch {}
         }
     }
 
@@ -1433,6 +1486,10 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns (bool)
     {
+        if (signedTotalCFADeposit == 0) {
+            return false;
+        }
+
         int256 totalRewardLeft = availableBalance + signedTotalCFADeposit;
         int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
         // divisor cannot be zero with existing outflow

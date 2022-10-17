@@ -22,7 +22,5 @@ comment:
 flags:
   ethereum-contracts:
     paths: packages/ethereum-contracts
-  js-sdk:
-    paths: packages/js-sdk
   sdk-core:
     paths: packages/sdk-core

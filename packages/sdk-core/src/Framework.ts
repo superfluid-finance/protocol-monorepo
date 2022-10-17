@@ -1,4 +1,9 @@
 import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
+import {
+    Resolver,
+    Resolver__factory,
+    SuperfluidLoader__factory,
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 import Web3 from "web3";
 
@@ -15,8 +20,6 @@ import SuperToken, {
     PureSuperToken,
     WrapperSuperToken,
 } from "./SuperToken";
-import IResolverABI from "./abi/IResolver.json";
-import SuperfluidLoaderABI from "./abi/SuperfluidLoader.json";
 import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import {
     getNetworkName,
@@ -29,7 +32,6 @@ import {
     IResolverData,
     ISignerConstructorOptions,
 } from "./interfaces";
-import { IResolver, SuperfluidLoader } from "./typechain";
 import { isEthersProvider, isInjectedWeb3 } from "./utils";
 
 type SupportedProvider =
@@ -78,22 +80,25 @@ export default class Framework {
         this.userInputOptions = options;
         this.settings = settings;
 
-        this.cfaV1 = new ConstantFlowAgreementV1({
-            config: this.settings.config,
-        });
-        this.governance = new Governance(
-            this.settings.config.governanceAddress,
-            this.settings.config.hostAddress
+        this.cfaV1 = new ConstantFlowAgreementV1(
+            settings.config.hostAddress,
+            settings.config.cfaV1Address,
+            settings.config.cfaV1ForwarderAddress
         );
-        this.host = new Host(this.settings.config.hostAddress);
-        this.idaV1 = new InstantDistributionAgreementV1({
-            config: this.settings.config,
-        });
-        this.query = new Query(this.settings);
+        this.governance = new Governance(
+            settings.config.hostAddress,
+            settings.config.governanceAddress
+        );
+        this.host = new Host(settings.config.hostAddress);
+        this.idaV1 = new InstantDistributionAgreementV1(
+            settings.config.hostAddress,
+            settings.config.idaV1Address
+        );
+        this.query = new Query(settings);
         const resolver = new ethers.Contract(
-            this.settings.config.resolverAddress,
-            IResolverABI.abi
-        ) as IResolver;
+            settings.config.resolverAddress,
+            Resolver__factory.abi
+        ) as Resolver;
 
         this.contracts = {
             cfaV1: this.cfaV1.contract,
@@ -165,20 +170,19 @@ export default class Framework {
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
                 : resolverData.resolverAddress;
-            const resolver = new ethers.Contract(
+            const resolver = Resolver__factory.connect(
                 resolverAddress,
-                IResolverABI.abi,
                 provider
-            ) as IResolver;
+            );
 
             const superfluidLoaderAddress = await resolver.get(
                 "SuperfluidLoader-v1"
             );
-            const superfluidLoader = new ethers.Contract(
+            const cfaV1ForwarderAddress = await resolver.get("CFAv1Forwarder");
+            const superfluidLoader = SuperfluidLoader__factory.connect(
                 superfluidLoaderAddress,
-                SuperfluidLoaderABI.abi,
                 provider
-            ) as SuperfluidLoader;
+            );
 
             const framework = await superfluidLoader.loadFramework(
                 releaseVersion
@@ -201,6 +205,7 @@ export default class Framework {
                     cfaV1Address: framework.agreementCFAv1,
                     idaV1Address: framework.agreementIDAv1,
                     governanceAddress,
+                    cfaV1ForwarderAddress,
                 },
             };
 
@@ -386,11 +391,10 @@ export default class Framework {
                     "." +
                     tokenAddressOrSymbol;
 
-                const resolver = new ethers.Contract(
+                const resolver = Resolver__factory.connect(
                     this.settings.config.resolverAddress,
-                    IResolverABI.abi,
                     this.settings.provider
-                ) as IResolver;
+                );
                 return await resolver.get(superTokenKey);
             } catch (err) {
                 throw new SFError({

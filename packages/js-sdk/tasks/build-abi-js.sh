@@ -9,6 +9,8 @@ CONTRACTS=( $($JQ -r .[] ./src/contracts.json) )
 
 {
     echo "if (typeof module === \"undefined\") module = {};"
+    echo "// eslint-disable-next-line no-unused-vars"
+    echo "let Superfluid_ABI;"
     echo "Superfluid_ABI = module.exports = {"
     for i in "${CONTRACTS[@]}";do
         ABI="$($JQ '.abi' ../ethereum-contracts/build/contracts/$i.json)"

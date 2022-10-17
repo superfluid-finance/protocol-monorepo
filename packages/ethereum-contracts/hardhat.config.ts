@@ -1,4 +1,5 @@
 import {HardhatUserConfig, subtask} from "hardhat/config";
+import "@typechain/hardhat";
 import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-truffle5";
 import "@nomicfoundation/hardhat-chai-matchers";
@@ -74,6 +75,9 @@ const config: HardhatUserConfig = {
         },
     },
     networks: {
+        hardhat: {
+            hardfork: "merge"
+        },
         localhost: {
             ...createNetworkConfig("localhost"),
             url: "http://0.0.0.0:8545/",
@@ -140,6 +144,7 @@ const config: HardhatUserConfig = {
                   )
                 : undefined,
     },
+    typechain: {target: "ethers-v5"},
 };
 
 export default config;

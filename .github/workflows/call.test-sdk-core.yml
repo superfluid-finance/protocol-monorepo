@@ -26,7 +26,7 @@ jobs:
         run: yarn install --frozen-lockfile
 
       - name: "Build contracts"
-        run: yarn build:contracts
+        run: yarn build
         working-directory: ./packages/ethereum-contracts
 
       - name: "Run test suite"

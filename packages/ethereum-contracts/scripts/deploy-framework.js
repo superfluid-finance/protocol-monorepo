@@ -169,6 +169,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     const contracts = [
         "Ownable",
+        "CFAv1Forwarder",
         "IMultiSigWallet",
         "SuperfluidGovernanceBase",
         "Resolver",
@@ -194,6 +195,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const {
         Ownable,
         IMultiSigWallet,
+        CFAv1Forwarder,
         SuperfluidGovernanceBase,
         Resolver,
         SuperfluidLoader,
@@ -354,10 +356,16 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     // list CFA v1
     const deployCFAv1 = async () => {
+        // @note Once we have the actual implementation for the hook contract,
+        // we will need to deploy it and put it here instead of ZERO_ADDRESS
+        const hookContractAddress = ZERO_ADDRESS;
+        console.log("CFA Hook Contract Address:", hookContractAddress);
+
         const agreement = await web3tx(
             ConstantFlowAgreementV1.new,
             "ConstantFlowAgreementV1.new"
-        )(superfluid.address);
+        )(superfluid.address, hookContractAddress);
+
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
         output += `CFA_LOGIC=${agreement.address}\n`;
         return agreement;
@@ -435,6 +443,18 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             console.warn("Cannot get slotsBitmapLibrary address", e.toString());
         }
     }
+
+    // deploy CFAv1Forwarder
+    await deployAndRegisterContractIf(
+        CFAv1Forwarder,
+        "CFAv1Forwarder",
+        async (contractAddress) => contractAddress === ZERO_ADDRESS,
+        async () => {
+            const forwarder = await CFAv1Forwarder.new(superfluid.address);
+            output += `CFA_V1_FORWARDER=${forwarder.address}\n`;
+            return forwarder;
+        }
+    );
 
     let superfluidNewLogicAddress = ZERO_ADDRESS;
     const agreementsToUpdate = [];

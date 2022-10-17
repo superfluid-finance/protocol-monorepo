@@ -4,10 +4,12 @@ import { Address, TypedMap } from "@graphprotocol/graph-ts";
 // based on the network we set in the set-network package.json file.
 // We add a bit of complexity to the package.json, but remove much
 // more as a result.
+// @note TODO: I am pretty sure we can remove {{network}} and just do
+// return Address.fromString("{{hostAddress}}")
 export function getHostAddress(): Address {
     const network = "{{network}}";
     const addresses: TypedMap<string, string> = new TypedMap<string, string>();
-    addresses.set("mainnet", "0xa513E6E4b8f2a923D98304ec87F64353C4D5C853");
+    addresses.set("mainnet", "{{hostAddress}}");
     addresses.set("goerli", "0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9");
     addresses.set("matic", "0x3E14dC1b13c488a8d5D310918780c983bD5982E7");
     addresses.set("mumbai", "0xEB796bdb90fFA0f28255275e16936D25d3418603");
@@ -25,9 +27,7 @@ export function getHostAddress(): Address {
 export function getResolverAddress(): Address {
     const network = "{{network}}";
     const addresses: TypedMap<string, string> = new TypedMap<string, string>();
-    // @note this is not great, but OK for now - should probably programmatically set the address
-    // for "mainnet" => testing
-    addresses.set("mainnet", "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512");
+    addresses.set("mainnet", "{{resolverV1Address}}");
     addresses.set("goerli", "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E");
     addresses.set("matic", "0xE0cc76334405EE8b39213E620587d815967af39C");
     addresses.set("mumbai", "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3");
@@ -45,9 +45,7 @@ export function getResolverAddress(): Address {
 export function getNativeAssetSuperTokenAddress(): Address {
     const network = "{{network}}";
     const addresses: TypedMap<string, string> = new TypedMap<string, string>();
-    // @note this is not great, but OK for now - should probably programmatically set the address
-    // for "mainnet" => testing
-    addresses.set("mainnet", "0xa85233C63b9Ee964Add6F2cffe00Fd84eb32338f");
+    addresses.set("mainnet", "{{nativeAssetSuperTokenAddress}}");
     addresses.set("goerli", "0x5943f705abb6834cad767e6e4bb258bc48d9c947");
     addresses.set("matic", "0x3ad736904e9e65189c3000c7dd2c8ac8bb7cd4e3");
     addresses.set("mumbai", "0x96b82b65acf7072efeb00502f45757f254c2a0d4");

@@ -12,6 +12,9 @@ on:
       network:
         required: false
         description: 'Network to deploy to (matic/xdai/kovan...)'
+      version_label:
+        required: false
+        description: 'Use this input only if you want to deploy to Satsuma (v0.0.1)'
 
 jobs:
   deploy-subgraph:
@@ -58,8 +61,17 @@ jobs:
         run: "yarn codegen"
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "Deploy to endpoint"
+      - name: "Deploy to Superfluid endpoint"
+        if: inputs.version_label == ""
         run: "yarn deploy ${{ github.event.inputs.release_branch }} ${{ github.event.inputs.network }}"
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THEGRAPH_ACCESS_TOKEN: ${{ secrets.THEGRAPH_ACCESS_TOKEN }}
+
+      - name: "Deploy to Satsuma endpoint"
+        if: inputs.version_label != ""
+        run: "yarn deploy ${{ github.event.inputs.version_label }} ${{ github.event.inputs.network }}"
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          THEGRAPH_ACCESS_TOKEN: ${{ secrets.THEGRAPH_ACCESS_TOKEN }}
+          SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

@@ -11,7 +11,7 @@ import {
 
 contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
     // use 200k as default
-    constructor() ConstantFlowAgreementV1(ISuperfluid(address(0)), IConstantFlowAgreementHook(address(0)), 200000) {}
+    constructor() ConstantFlowAgreementV1(ISuperfluid(address(0)), IConstantFlowAgreementHook(address(0))) {}
 
     function encodeFlowData(FlowData memory flowData) external pure
         returns (uint256 wordA)

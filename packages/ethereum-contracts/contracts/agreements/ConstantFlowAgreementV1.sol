@@ -68,7 +68,7 @@ contract ConstantFlowAgreementV1 is
     IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
 
     // solhint-disable-next-line var-name-mixedcase
-    uint256 public immutable CFA_HOOK_GAS_LIMIT;
+    uint64 constant public CFA_HOOK_GAS_LIMIT = 250000;
 
     using SafeCast for uint256;
     using SafeCast for int256;
@@ -97,11 +97,9 @@ contract ConstantFlowAgreementV1 is
     // solhint-disable-next-line no-empty-blocks
     constructor(
         ISuperfluid host,
-        IConstantFlowAgreementHook _hookAddress,
-        uint256 _hookGasLimit
+        IConstantFlowAgreementHook _hookAddress
     ) AgreementBase(address(host)) {
         constantFlowAgreementHook = _hookAddress;
-        CFA_HOOK_GAS_LIMIT = _hookGasLimit;
     }
 
     /**************************************************************************

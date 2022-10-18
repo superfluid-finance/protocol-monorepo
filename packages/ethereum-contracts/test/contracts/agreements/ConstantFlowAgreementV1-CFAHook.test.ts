@@ -28,8 +28,6 @@ const EMPTY_MOCK_FLOW_PARAMS: HookMockCFAv1.FlowParamsStruct = {
     userData: "0x",
 };
 
-const CFA_HOOK_GAS_LIMIT = ethers.utils.parseUnits("200000");
-
 describe("CFAv1 | CFA Hook Mock Tests", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
@@ -66,8 +64,7 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
             GoodCFAHookMock = await GoodCFAHookMockFactory.deploy();
             CFAWithLogicHook = await CFAFactory.deploy(
                 t.contracts.superfluid.address,
-                GoodCFAHookMock.address,
-                CFA_HOOK_GAS_LIMIT
+                GoodCFAHookMock.address
             );
             await t.contracts.governance.updateContracts(
                 t.contracts.superfluid.address,
@@ -233,8 +230,7 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
             BadCFAHookMock = await BadCFAHookMockFactory.deploy();
             CFAWithLogicHook = await CFAFactory.deploy(
                 t.contracts.superfluid.address,
-                BadCFAHookMock.address,
-                CFA_HOOK_GAS_LIMIT
+                BadCFAHookMock.address
             );
             await t.contracts.governance.updateContracts(
                 t.contracts.superfluid.address,

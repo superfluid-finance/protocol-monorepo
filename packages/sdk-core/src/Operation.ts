@@ -36,15 +36,28 @@ export default class Operation {
      * Executes the operation via the provided signer.
      * @description Populates all fields of the transaction, signs it and sends it to the network.
      * @param signer The signer of the transaction
+     * @param gasLimitMultiplier A multiplier to provide gasLimit buffer on top of the estimated gas limit (1.2x is the default)
      * @returns {ethers.providers.TransactionResponse} A TransactionResponse object which can be awaited
      */
     exec = async (
-        signer: ethers.Signer
+        signer: ethers.Signer,
+        gasLimitMultiplier = 1.2
     ): Promise<ethers.providers.TransactionResponse> => {
         const populatedTransaction = await this.getPopulatedTransactionRequest(
             signer
         );
-        return await signer.sendTransaction(populatedTransaction);
+        const finalTransaction = {
+            ...populatedTransaction,
+            gasLimit:
+                // @note if gasLimit is null, this function will throw
+                // we must round this number otherwise conversion to BigNumber
+                // we can be more conservative by using .ceil instead of .round
+                Math.ceil(
+                    Number(populatedTransaction.gasLimit?.toString()) *
+                        gasLimitMultiplier
+                ),
+        };
+        return await signer.sendTransaction(finalTransaction);
     };
 
     /**

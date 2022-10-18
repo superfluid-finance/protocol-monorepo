@@ -49,6 +49,22 @@ export const createCallAppActionOperation = async (
 };
 
 makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
+    describe("Revert cases", () => {
+        it("Should fail if gas limit used is far below estimation.", async () => {
+            const NEW_VAL = 69;
+            const { operation } = await createCallAppActionOperation(
+                testEnv.alice,
+                testEnv.sdkFramework,
+                NEW_VAL
+            );
+            try {
+                await operation.exec(testEnv.alice, 0.25);
+            } catch (err) {
+                expect(err.message).to.not.be.undefined;
+            }
+        });
+    });
+
     describe("Happy Path Tests", () => {
         it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
             const revokeControlOp =
@@ -117,6 +133,18 @@ makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
                     NEW_VAL
                 );
             await operation.exec(testEnv.alice);
+            expect(await superAppTester.val()).to.equal(NEW_VAL.toString());
+        });
+
+        it("Should be able to use arbitrary gas estimation limit", async () => {
+            const NEW_VAL = 69;
+            const { superAppTester, operation } =
+                await createCallAppActionOperation(
+                    testEnv.alice,
+                    testEnv.sdkFramework,
+                    NEW_VAL
+                );
+            await operation.exec(testEnv.alice, 2);
             expect(await superAppTester.val()).to.equal(NEW_VAL.toString());
         });
 

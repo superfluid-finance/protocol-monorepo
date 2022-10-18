@@ -135,7 +135,7 @@ contract("Embedded deployment scripts", (accounts) => {
             const a1 = await web3tx(
                 ConstantFlowAgreementV1.new,
                 "ConstantFlowAgreementV1.new 1"
-            )(ZERO_ADDRESS, ZERO_ADDRESS);
+            )(ZERO_ADDRESS, ZERO_ADDRESS, "0");
             assert.isFalse(
                 await codeChanged(web3, ConstantFlowAgreementV1, a1.address)
             );

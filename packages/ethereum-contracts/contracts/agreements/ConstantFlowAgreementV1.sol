@@ -465,6 +465,7 @@ contract ConstantFlowAgreementV1 is
         // still be able to recreate the hook behavior. This logic should exist in the NFT contract though.
         // This should be safe as we don't have any behavior/state changes in the catch block.
         if (address(constantFlowAgreementHook) != address(0))  {
+            uint256 gasLeftBefore = gasleft();
             try constantFlowAgreementHook.onCreate{ gas: CFA_HOOK_GAS_LIMIT }(
                 flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
@@ -474,8 +475,13 @@ contract ConstantFlowAgreementV1 is
                     flowRate: flowParams.flowRate
                 })
             )
+            {
+                // See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
+                if (gasleft() <= gasLeftBefore / 63) {
+                    revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
+                }
             // solhint-disable-next-line no-empty-blocks
-            {} catch {}
+            } catch {}
         }
     }
 
@@ -508,6 +514,7 @@ contract ConstantFlowAgreementV1 is
 
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {
+            uint256 gasLeftBefore = gasleft();
             // solhint-disable-next-line no-empty-blocks
             try constantFlowAgreementHook.onUpdate{ gas: CFA_HOOK_GAS_LIMIT }(
                 flowVars.token,
@@ -518,8 +525,13 @@ contract ConstantFlowAgreementV1 is
                     flowRate: flowParams.flowRate
                 }),
                 oldFlowData.flowRate
+            ) {
+                // @note See comment in onCreate
+                if (gasleft() <= gasLeftBefore / 63) {
+                    revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
+                }
             // solhint-disable-next-line no-empty-blocks
-            ) {} catch {}
+            } catch {}
         }
     }
 
@@ -634,6 +646,7 @@ contract ConstantFlowAgreementV1 is
 
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {
+            uint256 gasLeftBefore = gasleft();
             try constantFlowAgreementHook.onDelete{ gas: CFA_HOOK_GAS_LIMIT }(
                 flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
@@ -643,8 +656,13 @@ contract ConstantFlowAgreementV1 is
                     flowRate: flowParams.flowRate
                 }),
                 oldFlowData.flowRate
+            ) {
+                // @note See comment in onCreate
+                if (gasleft() <= gasLeftBefore / 63) {
+                    revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
+                }
             // solhint-disable-next-line no-empty-blocks
-            ) {} catch {}
+            } catch {}
         }
     }
 

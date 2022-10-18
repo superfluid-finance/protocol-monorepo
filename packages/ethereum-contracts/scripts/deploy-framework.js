@@ -101,6 +101,8 @@ async function deployContractIfCodeChanged(
  *                  (overriding env: OUTPUT_FILE)
  * @param {boolean} options.cfaHookContract Address of the contract to be set up as CFA hooks receiver
  *                  (overriding env: CFA_HOOK_CONTRACT)
+ * @param {boolean} options.cfaHookGasLimit The cfa hook gas limit imposed on the external calls made
+ *                  (overriding env: CFA_HOOK_GAS_LIMIT)
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
@@ -118,6 +120,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         protocolReleaseVersion,
         outputFile,
         cfaHookContract,
+        cfaHookGasLimit
     } = options;
     resetSuperfluidFramework = options.resetSuperfluidFramework;
 
@@ -366,13 +369,13 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // @note Once we have the actual implementation for the hook contract,
         // we will need to deploy it and put it here instead of ZERO_ADDRESS
         const hookContractAddress = cfaHookContract || ZERO_ADDRESS;
+        const hookGasLimit = cfaHookGasLimit || "0";
         console.log("CFA Hook Contract Address:", hookContractAddress);
 
         const agreement = await web3tx(
             ConstantFlowAgreementV1.new,
             "ConstantFlowAgreementV1.new"
-        // use 200k as default for CFA_HOOK_GAS_LIMIT
-        )(superfluid.address, hookContractAddress, ethers.utils.parseUnits("200000"));
+        )(superfluid.address, hookContractAddress, hookGasLimit);
 
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
         output += `CFA_LOGIC=${agreement.address}\n`;

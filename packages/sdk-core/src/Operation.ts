@@ -44,20 +44,10 @@ export default class Operation {
         gasLimitMultiplier = 1.2
     ): Promise<ethers.providers.TransactionResponse> => {
         const populatedTransaction = await this.getPopulatedTransactionRequest(
-            signer
+            signer,
+            gasLimitMultiplier
         );
-        const finalTransaction = {
-            ...populatedTransaction,
-            gasLimit:
-                // @note if gasLimit is null, this function will throw
-                // we must round this number otherwise conversion to BigNumber
-                // we can be more conservative by using .ceil instead of .round
-                Math.ceil(
-                    Number(populatedTransaction.gasLimit?.toString()) *
-                        gasLimitMultiplier
-                ),
-        };
-        return await signer.sendTransaction(finalTransaction);
+        return await signer.sendTransaction(populatedTransaction);
     };
 
     /**
@@ -67,12 +57,27 @@ export default class Operation {
      * @returns {Promise<TransactionRequest>}
      */
     getPopulatedTransactionRequest = async (
-        signer: ethers.Signer
+        signer: ethers.Signer,
+        gasLimitMultiplier = 1.2
     ): Promise<TransactionRequest> => {
         const txnToPopulate = this.forwarderPopulatedPromise
             ? await this.forwarderPopulatedPromise
             : await this.populateTransactionPromise;
-        return await signer.populateTransaction(txnToPopulate);
+        const signerPopulatedTransaction = await signer.populateTransaction(
+            txnToPopulate
+        );
+
+        return {
+            ...signerPopulatedTransaction,
+            gasLimit:
+                // @note if gasLimit is null, this function will throw
+                // we must round this number otherwise conversion to BigNumber
+                // we can be more conservative by using .ceil instead of .round
+                Math.ceil(
+                    Number(signerPopulatedTransaction.gasLimit?.toString()) *
+                        gasLimitMultiplier
+                ),
+        };
     };
     /**
      * Signs the populated transaction via the provided signer (what you intend on sending to the network).

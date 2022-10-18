@@ -94,7 +94,9 @@ contract SuperfluidFrameworkDeployer {
         // we will need to deploy it and put it here
         cfa = new ConstantFlowAgreementV1(
             host,
-            IConstantFlowAgreementHook(address(0))
+            IConstantFlowAgreementHook(address(0)),
+            // use 200k as default
+            200000
         );
 
         // Register ConstantFlowAgreementV1 TestGovernance

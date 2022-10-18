@@ -2,6 +2,7 @@ const fs = require("fs");
 const util = require("util");
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const ethers = require("ethers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
 
@@ -364,7 +365,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         const agreement = await web3tx(
             ConstantFlowAgreementV1.new,
             "ConstantFlowAgreementV1.new"
-        )(superfluid.address, hookContractAddress);
+        // use 200k as default for CFA_HOOK_GAS_LIMIT
+        )(superfluid.address, hookContractAddress, ethers.utils.parseUnits("200000"));
 
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
         output += `CFA_LOGIC=${agreement.address}\n`;

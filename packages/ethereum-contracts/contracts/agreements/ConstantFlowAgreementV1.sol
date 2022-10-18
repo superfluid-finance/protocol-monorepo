@@ -67,6 +67,9 @@ contract ConstantFlowAgreementV1 is
 
     IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
 
+    // solhint-disable-next-line var-name-mixedcase
+    uint256 public immutable CFA_HOOK_GAS_LIMIT;
+
     using SafeCast for uint256;
     using SafeCast for int256;
 
@@ -92,8 +95,13 @@ contract ConstantFlowAgreementV1 is
     }
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(ISuperfluid host, IConstantFlowAgreementHook _hookAddress) AgreementBase(address(host)) {
+    constructor(
+        ISuperfluid host,
+        IConstantFlowAgreementHook _hookAddress,
+        uint256 _hookGasLimit
+    ) AgreementBase(address(host)) {
         constantFlowAgreementHook = _hookAddress;
+        CFA_HOOK_GAS_LIMIT = _hookGasLimit;
     }
 
     /**************************************************************************
@@ -457,7 +465,7 @@ contract ConstantFlowAgreementV1 is
         // still be able to recreate the hook behavior. This logic should exist in the NFT contract though.
         // This should be safe as we don't have any behavior/state changes in the catch block.
         if (address(constantFlowAgreementHook) != address(0))  {
-            try constantFlowAgreementHook.onCreate(
+            try constantFlowAgreementHook.onCreate{ gas: CFA_HOOK_GAS_LIMIT }(
                 flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
                     sender: flowParams.sender,
@@ -501,7 +509,7 @@ contract ConstantFlowAgreementV1 is
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {
             // solhint-disable-next-line no-empty-blocks
-            try constantFlowAgreementHook.onUpdate(
+            try constantFlowAgreementHook.onUpdate{ gas: CFA_HOOK_GAS_LIMIT }(
                 flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
                     sender: flowParams.sender,
@@ -626,7 +634,7 @@ contract ConstantFlowAgreementV1 is
 
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {
-            try constantFlowAgreementHook.onDelete(
+            try constantFlowAgreementHook.onDelete{ gas: CFA_HOOK_GAS_LIMIT }(
                 flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
                     sender: flowParams.sender,

@@ -475,13 +475,13 @@ contract ConstantFlowAgreementV1 is
                     flowRate: flowParams.flowRate
                 })
             )
-            {
+            // solhint-disable-next-line no-empty-blocks
+            {} catch {
                 // See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
                 if (gasleft() <= gasLeftBefore / 63) {
                     revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
                 }
-            // solhint-disable-next-line no-empty-blocks
-            } catch {}
+            }
         }
     }
 
@@ -525,13 +525,13 @@ contract ConstantFlowAgreementV1 is
                     flowRate: flowParams.flowRate
                 }),
                 oldFlowData.flowRate
-            ) {
+            // solhint-disable-next-line no-empty-blocks
+            ) {} catch {
                 // @note See comment in onCreate
                 if (gasleft() <= gasLeftBefore / 63) {
                     revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
                 }
-            // solhint-disable-next-line no-empty-blocks
-            } catch {}
+            }
         }
     }
 
@@ -656,13 +656,13 @@ contract ConstantFlowAgreementV1 is
                     flowRate: flowParams.flowRate
                 }),
                 oldFlowData.flowRate
-            ) {
+            // solhint-disable-next-line no-empty-blocks
+            ) {} catch {
                 // @note See comment in onCreate
                 if (gasleft() <= gasLeftBefore / 63) {
                     revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
                 }
-            // solhint-disable-next-line no-empty-blocks
-            } catch {}
+            }
         }
     }
 

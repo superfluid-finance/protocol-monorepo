@@ -250,6 +250,7 @@ library SuperfluidErrors {
     error ONLY_LISTED_AGREEMENT(uint256 _code);  // 300 - 399
     error ONLY_HOST(uint256 _code);              // 400 - 499
     error ZERO_ADDRESS(uint256 _code);           // 500 - 599
+    error OUT_OF_GAS(uint256 _code);             // 600 - 699
 
     /**************************************************************************
     / Error Codes
@@ -262,6 +263,8 @@ library SuperfluidErrors {
 
     uint256 constant internal CFA_ZERO_ADDRESS_SENDER = 1500;
     uint256 constant internal CFA_ZERO_ADDRESS_RECEIVER = 1501;
+
+    uint256 constant internal CFA_HOOK_OUT_OF_GAS = 1600;
 
     // 2000 - 2999 | Instant Distribution Agreement
     uint256 constant internal IDA_INDEX_ALREADY_EXISTS = 2000;

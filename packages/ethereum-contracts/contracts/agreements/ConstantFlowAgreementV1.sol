@@ -67,6 +67,10 @@ contract ConstantFlowAgreementV1 is
 
     IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
 
+    // An arbitrarily chosen safety limit for the external calls to protect against out-of-gas grief exploits.
+    // solhint-disable-next-line var-name-mixedcase
+    uint64 constant public CFA_HOOK_GAS_LIMIT = 250000;
+
     using SafeCast for uint256;
     using SafeCast for int256;
 
@@ -92,7 +96,10 @@ contract ConstantFlowAgreementV1 is
     }
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(ISuperfluid host, IConstantFlowAgreementHook _hookAddress) AgreementBase(address(host)) {
+    constructor(
+        ISuperfluid host,
+        IConstantFlowAgreementHook _hookAddress
+    ) AgreementBase(address(host)) {
         constantFlowAgreementHook = _hookAddress;
     }
 
@@ -453,11 +460,9 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        // @note It is possible this silently fails due to out of gas reasons, and users should
-        // still be able to recreate the hook behavior. This logic should exist in the NFT contract though.
-        // This should be safe as we don't have any behavior/state changes in the catch block.
         if (address(constantFlowAgreementHook) != address(0))  {
-            try constantFlowAgreementHook.onCreate(
+            uint256 gasLeftBefore = gasleft();
+            try constantFlowAgreementHook.onCreate{ gas: CFA_HOOK_GAS_LIMIT }(
                 flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
                     sender: flowParams.sender,
@@ -467,7 +472,14 @@ contract ConstantFlowAgreementV1 is
                 })
             )
             // solhint-disable-next-line no-empty-blocks
-            {} catch {}
+            {} catch {
+// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
+// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
+// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
+                if (gasleft() <= gasLeftBefore / 63) {
+                    revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
+                }
+            }
         }
     }
 
@@ -500,8 +512,9 @@ contract ConstantFlowAgreementV1 is
 
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {
+            uint256 gasLeftBefore = gasleft();
             // solhint-disable-next-line no-empty-blocks
-            try constantFlowAgreementHook.onUpdate(
+            try constantFlowAgreementHook.onUpdate{ gas: CFA_HOOK_GAS_LIMIT }(
                 flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
                     sender: flowParams.sender,
@@ -511,7 +524,12 @@ contract ConstantFlowAgreementV1 is
                 }),
                 oldFlowData.flowRate
             // solhint-disable-next-line no-empty-blocks
-            ) {} catch {}
+            ) {} catch {
+                // @note See comment in onCreate
+                if (gasleft() <= gasLeftBefore / 63) {
+                    revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
+                }
+            }
         }
     }
 
@@ -626,7 +644,8 @@ contract ConstantFlowAgreementV1 is
 
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {
-            try constantFlowAgreementHook.onDelete(
+            uint256 gasLeftBefore = gasleft();
+            try constantFlowAgreementHook.onDelete{ gas: CFA_HOOK_GAS_LIMIT }(
                 flowVars.token,
                 IConstantFlowAgreementHook.CFAHookParams({
                     sender: flowParams.sender,
@@ -636,7 +655,12 @@ contract ConstantFlowAgreementV1 is
                 }),
                 oldFlowData.flowRate
             // solhint-disable-next-line no-empty-blocks
-            ) {} catch {}
+            ) {} catch {
+                // @note See comment in onCreate
+                if (gasleft() <= gasLeftBefore / 63) {
+                    revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
+                }
+            }
         }
     }
 

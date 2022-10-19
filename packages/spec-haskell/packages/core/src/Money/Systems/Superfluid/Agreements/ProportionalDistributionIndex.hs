@@ -3,7 +3,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies    #-}
 
-module Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex where
+module Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex where
 
 import           Data.Default
 import           Data.Type.Any
@@ -12,9 +12,9 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement      as CFDA
-import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
-import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement           as IDA
+import           Money.Systems.Superfluid.Agreements.ProportionalDistribution.Common
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement as CFDA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.InstantDistributionAgreement      as IDA
 
 
 -- * Contracts
@@ -100,21 +100,26 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
                                 , sub_settled_at = t'
                                 }})
 
-        in (ac', cfdaMUDΔ)
+        in (ac', SubscriberOperationOutput cfdaMUDΔ)
 
         where DistributionContract { dc_base = DistributionContractBase { total_unit = tu }} = dc0
               SubscriptionContract { sc_base = SubscriptionContractBase { sub_owned_unit = u }} = sc0
 
-    concatAgreementOperationOutput cfda cfda' = cfda <> cfda'
-
-    functorizeAgreementOperationOutput p cfda = SubscriberOperationOutputF
-        (mkAny p cfda)
+    functorizeAgreementOperationOutput p (SubscriberOperationOutput cfda) =
+        SubscriberOperationOutputF (mkAny p cfda)
 
     data AgreementOperation (SubscriberContract sft) = Subscribe (SFT_FLOAT sft)
 
-    type AgreementOperationOutput (SubscriberContract sft) =
-        (CFDA.PublisherMonetaryUnitData sft)
+    type AgreementOperationOutput (SubscriberContract sft) = SubscriberOperationOutput sft
 
     data AgreementOperationOutputF (SubscriberContract sft) elem = SubscriberOperationOutputF
         { subscription_output_cfda :: elem
         } deriving stock (Functor, Foldable, Traversable)
+
+data SubscriberOperationOutput sft = SubscriberOperationOutput
+    (CFDA.PublisherMonetaryUnitData sft)
+    deriving stock (Generic)
+
+instance SuperfluidSystemTypes sft => Default (SubscriberOperationOutput sft)
+instance SuperfluidSystemTypes sft => Monoid (SubscriberOperationOutput sft) where mempty = def
+instance SuperfluidSystemTypes sft => Semigroup (SubscriberOperationOutput sft) where (<>) = const

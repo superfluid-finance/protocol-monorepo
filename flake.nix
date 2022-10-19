@@ -37,6 +37,7 @@
         supportedGhcVersions = [ "924" ];
       })
       hlint
+      stylish-haskell
       gnuplot
       # sage math
       sage

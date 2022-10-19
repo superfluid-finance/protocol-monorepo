@@ -15,14 +15,16 @@ import           Money.Systems.Superfluid.SystemTypes
 -- * Monetary unit data
 --
 
-class (Default amuLs, SuperfluidSystemTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
+class ( Default amuLs
+      , SuperfluidSystemTypes sft
+      ) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
     untappedValue :: Lens' amuLs (UntappedValue (SFT_MVAL sft))
 
 type MonetaryUnitData :: Type -> Type -> Type
 newtype MonetaryUnitData amuLs sft = MkMonetaryUnitData { getMonetaryUnitLenses :: amuLs } deriving (Default)
 
 instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) where
-    (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
+    MkMonetaryUnitData a <> MkMonetaryUnitData b =
         let c = a & over untappedValue (+ b^.untappedValue)
         in MkMonetaryUnitData c
 

@@ -43,7 +43,6 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
 
     describe("#1 GoodCFAHookMock Tests", () => {
         before(async () => {
-            process.env.USE_GOOD_HOOK = "true";
             await t.beforeTestSuite({
                 isTruffle: true,
                 nAccounts: 5,
@@ -211,7 +210,6 @@ describe("CFAv1 | CFA Hook Mock Tests", function () {
 
     describe("#2 BadCFAHookMock Tests", () => {
         before(async () => {
-            process.env.USE_GOOD_HOOK = "";
             await t.beforeTestSuite({
                 isTruffle: true,
                 nAccounts: 5,

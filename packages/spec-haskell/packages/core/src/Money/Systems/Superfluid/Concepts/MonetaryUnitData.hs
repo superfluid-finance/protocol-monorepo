@@ -1,4 +1,5 @@
 {-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs                  #-}
 
 module Money.Systems.Superfluid.Concepts.MonetaryUnitData
     ( MonetaryUnitDataClass (..)
@@ -15,9 +16,12 @@ class ( SuperfluidCoreTypes sft
       ) => MonetaryUnitDataClass mud sft | mud -> sft where
     -- | π function - balance provided (hear: π) by the monetary unit data.
     balanceProvided
-        :: mud         -- mud
-        -> SFT_TS sft  -- t
-        -> SFT_RTB sft -- rtb
+        :: forall t rtb.
+           -- indexed type aliases
+           ( t ~ SFT_TS sft
+           , rtb ~ SFT_RTB sft
+           )
+        => mud -> t -> rtb
     -- A default implementation that always returns zero rtb
     balanceProvided _ _ = mempty
 
@@ -36,9 +40,12 @@ class ( MonetaryUnitDataClass smud sft
 -- * Semigroup Monetary Unit Data Laws
 
 -- | A semigroup binary operation should settle mud in a way that pi function output stay the same.
-mud_prop_semigroup_settles_pi :: ( SuperfluidCoreTypes sft
+mud_prop_semigroup_settles_pi :: forall sft mud t.
+                                 ( SuperfluidCoreTypes sft
                                  , SemigroupMonetaryUnitData mud sft
+                                 -- indexed type aliases
+                                 , t ~ SFT_TS sft
                                  )
-                              => mud -> mud -> SFT_TS sft -> Bool
+                              => mud -> mud -> t -> Bool
 mud_prop_semigroup_settles_pi m m' t = π m t <> π m' t == π (m <> m') t
     where π = balanceProvided

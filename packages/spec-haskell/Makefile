@@ -74,35 +74,49 @@ YELLOWPAPER_ROOT = $(DOCS_BUILDDIR)/yellowpaper
 
 $(YELLOWPAPER_ROOT)/tex:
 	mkdir -p "$@"
-$(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex: packages/core/src/Money/Distribution/Concepts.lhs
-	./utils/lhs2tex.sh "$<" > "$@"
-$(YELLOWPAPER_ROOT)/tex/Communism.tex: packages/core/src/Money/Distribution/Communism.lhs
-	./utils/lhs2tex.sh "$<" > "$@"
 $(YELLOWPAPER_ROOT)/tex/lhsfmt.tex:
 	echo '%include lhs2TeX.fmt' | lhs2TeX > "$@"
 
+
 .SECONDEXPANSION:
-$(YELLOWPAPER_ROOT)/tex/%: yellowpaper/$$(notdir $$*)
+$(YELLOWPAPER_ROOT)/tex/%.lhs.tex: packages/core/src/Money/Theory/%.lhs
+	./utils/lhs2tex.sh "$<" > "$@"
+
+.SECONDEXPANSION:
+$(YELLOWPAPER_ROOT)/tex/%.tex: yellowpaper/$$(notdir $$*).tex
 	cp "$<" "$@"
 
-YELLOWPAPER_INPUTS = $(YELLOWPAPER_ROOT)/tex \
-	$(YELLOWPAPER_ROOT)/tex/MoneyDistributionConcepts.tex \
-	$(YELLOWPAPER_ROOT)/tex/Communism.tex \
+.SECONDEXPANSION:
+$(YELLOWPAPER_ROOT)/tex/%.bib: yellowpaper/$$(notdir $$*).bib
+	cp "$<" "$@"
+
+YELLOWPAPER1_FILENAME=semantic-money-yellowpaper1
+YELLOWPAPER1_INPUTS = $(YELLOWPAPER_ROOT)/tex \
+	$(YELLOWPAPER_ROOT)/tex/MoneyDistribution.lhs.tex \
+	$(YELLOWPAPER_ROOT)/tex/FinancialContract.lhs.tex \
+	$(YELLOWPAPER_ROOT)/tex/PaymentExecutionEnvironment.lhs.tex \
+	$(YELLOWPAPER_ROOT)/tex/MoneyMedium.lhs.tex \
+	$(YELLOWPAPER_ROOT)/tex/PaymentPrimitives.lhs.tex \
 	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
-	$(YELLOWPAPER_ROOT)/tex/lhsfmt.tex \
+	$(YELLOWPAPER_ROOT)/tex/preamble.tex \
 	$(YELLOWPAPER_ROOT)/tex/Biblio.bib \
-	$(YELLOWPAPER_ROOT)/tex/Paper.tex
-$(YELLOWPAPER_ROOT)/pdflatex/superfluid-yellowpaper.pdf: $(YELLOWPAPER_INPUTS)
+	$(YELLOWPAPER_ROOT)/tex/Paper1.tex
+$(YELLOWPAPER_ROOT)/pdflatex/$(YELLOWPAPER1_FILENAME).pdf: $(YELLOWPAPER1_INPUTS)
 	ls $(YELLOWPAPER_ROOT)/tex
 	rm -rf $(YELLOWPAPER_ROOT)/pdflatex
 	mkdir -p $(YELLOWPAPER_ROOT)/pdflatex
-	cd $(YELLOWPAPER_ROOT)/pdflatex; { \
-		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/Paper.tex; \
-		biber superfluid-yellowpaper.bcf; \
-		pdflatex -shell-escape -jobname=superfluid-yellowpaper ../tex/Paper.tex; \
-	}
+	rm -rf $(YELLOWPAPER_ROOT)/assets
+	cp -r yellowpaper/assets $(YELLOWPAPER_ROOT)/assets
+	cp $(YELLOWPAPER_ROOT)/tex/preamble.tex $(YELLOWPAPER_ROOT)/pdflatex/
+	cd $(YELLOWPAPER_ROOT)/pdflatex; \
+		P=$(YELLOWPAPER1_FILENAME); \
+		{ \
+			pdflatex -shell-escape -jobname=$$P ../tex/Paper1.tex && \
+			biber $$P.bcf && \
+			pdflatex -shell-escape -jobname=$$P ../tex/Paper1.tex; \
+		}
 
-docs-yellowpaper: $(YELLOWPAPER_ROOT)/pdflatex/superfluid-yellowpaper.pdf
+docs-yellowpapers: $(YELLOWPAPER_ROOT)/pdflatex/$(YELLOWPAPER1_FILENAME).pdf
 
 docs: docs-haddock docs-yellowpaper
 

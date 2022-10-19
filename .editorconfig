@@ -42,3 +42,6 @@ indent_size = 2
 
 [*.yaml]
 indent_size = 2
+
+[*.nix]
+indent_style = 2

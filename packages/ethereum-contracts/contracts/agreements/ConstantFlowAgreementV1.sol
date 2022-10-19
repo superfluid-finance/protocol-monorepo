@@ -460,7 +460,7 @@ contract ConstantFlowAgreementV1 is
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
         // @note It is possible this silently fails due to out of gas reasons, and users should
-        // still be able to recreate the hook behavior. This logic should exist in the NFT contract though.
+        // still be able to recreate the hook behavior. This logic should exist in the hook contract though.
         // This should be safe as we don't have any behavior/state changes in the catch block.
         if (address(constantFlowAgreementHook) != address(0))  {
             uint256 gasLeftBefore = gasleft();

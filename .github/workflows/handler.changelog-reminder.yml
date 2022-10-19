@@ -17,8 +17,9 @@ jobs:
       build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
 
     steps:
-      - name: Check changeset
       - uses: actions/checkout@v3
+
+      - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
   
   create-reminder:

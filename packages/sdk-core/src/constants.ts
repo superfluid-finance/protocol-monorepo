@@ -49,9 +49,9 @@ export const EMPTY_NETWORK_DATA = {
 };
 export type NetworkData = typeof EMPTY_NETWORK_DATA;
 
-const getAddressesData = (chainId: number): NetworkData => {
+const getAddressesData = (chainId: number): NetworkData | null => {
     const networkData = metadata.networks.find((x) => x.chainId === chainId);
-    if (!networkData) return EMPTY_NETWORK_DATA;
+    if (!networkData) return null;
     const hostedEndpoint = networkData.subgraphV1.hostedEndpoint;
     const subgraphAPIEndpoint = subgraphReleaseTag
         ? hostedEndpoint.replace("v1", subgraphReleaseTag)

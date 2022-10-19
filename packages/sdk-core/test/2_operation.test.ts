@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Framework } from "../src/index";
+import { Framework, toBN } from "../src/index";
 import { getPerSecondFlowRateByMonth } from "../src";
 import { IConstantFlowAgreementV1__factory } from "@superfluid-finance/ethereum-contracts/build/typechain";
 import Operation from "../src/Operation";
@@ -9,6 +9,7 @@ import { SuperAppTester } from "../typechain-types";
 import { SuperAppTester__factory } from "../typechain-types";
 const cfaInterface = IConstantFlowAgreementV1__factory.createInterface();
 import { TestEnvironment, makeSuite } from "./TestEnvironment";
+import { ethers } from "ethers";
 
 /**
  * Create a simple call app action (setVal) operation with the SuperAppTester contract.
@@ -19,7 +20,8 @@ import { TestEnvironment, makeSuite } from "./TestEnvironment";
 export const createCallAppActionOperation = async (
     deployer: SignerWithAddress,
     framework: Framework,
-    val: number
+    val: number,
+    overrides?: ethers.Overrides
 ) => {
     const SuperAppTesterFactory = await hre.ethers.getContractFactory(
         "SuperAppTester",
@@ -42,13 +44,30 @@ export const createCallAppActionOperation = async (
     return {
         operation: framework.host.callAppAction(
             superAppTester.address,
-            callData
+            callData,
+            overrides
         ),
         superAppTester,
     };
 };
 
 makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
+    describe("Revert cases", () => {
+        it("Should fail if gas limit used is far below estimation.", async () => {
+            const NEW_VAL = 69;
+            const { operation } = await createCallAppActionOperation(
+                testEnv.alice,
+                testEnv.sdkFramework,
+                NEW_VAL
+            );
+            try {
+                await operation.exec(testEnv.alice, 0.25);
+            } catch (err) {
+                expect(err.message).to.not.be.undefined;
+            }
+        });
+    });
+
     describe("Happy Path Tests", () => {
         it("Should be able to get transaction hash and it should be equal to transaction hash once executed", async () => {
             const revokeControlOp =
@@ -116,8 +135,48 @@ makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
                     testEnv.sdkFramework,
                     NEW_VAL
                 );
-            await operation.exec(testEnv.alice);
+            const txn = await operation.exec(testEnv.alice, 1);
             expect(await superAppTester.val()).to.equal(NEW_VAL.toString());
+        });
+
+        it("Should be able to use arbitrary gas estimation limit", async () => {
+            const NEW_VAL = 69;
+            const { operation } = await createCallAppActionOperation(
+                testEnv.alice,
+                testEnv.sdkFramework,
+                NEW_VAL
+            );
+
+            // we compare the two update operations and not the first one
+            // because initial storage creation costs more than subsequent updates
+            const { operation: updateOp1 } = await createCallAppActionOperation(
+                testEnv.alice,
+                testEnv.sdkFramework,
+                420
+            );
+            const { operation: updateOp2 } = await createCallAppActionOperation(
+                testEnv.alice,
+                testEnv.sdkFramework,
+                365
+            );
+            await operation.exec(testEnv.alice);
+            const updateOpTxn1 = await updateOp1.exec(testEnv.alice, 1);
+            const updateOpTxn2 = await updateOp2.exec(testEnv.alice, 2);
+            expect(updateOpTxn1.gasLimit.mul(toBN(2))).to.equal(
+                updateOpTxn2.gasLimit
+            );
+        });
+
+        it("Should not apply multiplier to Overrides gas limit", async () => {
+            const NEW_VAL = 69;
+            const { operation } = await createCallAppActionOperation(
+                testEnv.alice,
+                testEnv.sdkFramework,
+                NEW_VAL,
+                { gasLimit: 500000 }
+            );
+            const txn = await operation.exec(testEnv.alice, 2);
+            expect(txn.gasLimit).to.equal("500000");
         });
 
         it("Should throw an error when trying to execute a transaction with faulty callData", async () => {

@@ -5,6 +5,18 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+## [v.1.4.2] - 2022-10-13
+### Added
+
+- CFA Hooks added (#1099)
+- typechain types are provided to all consumers (#1113)
+- `SuperfluidFrameworkDeployer.sol` create Native Asset and Pure Super Tokens functionality added (#1104)
+- `TestResolver` added to allow `SuperfluidFrameworkDeployer` contract to grant admin permissions to its deployer (#1104)
+
+### Fixes
+
+- CFA Agreement forwarder delete flow fix to allow receivers to delete flow (#1094)
+
 ## [v.1.4.1] - 2022-09-20
 
 ### Added

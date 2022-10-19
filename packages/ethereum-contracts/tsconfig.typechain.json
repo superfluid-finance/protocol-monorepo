@@ -1,0 +1,15 @@
+{
+    "extends": "./tsconfig",
+    "compilerOptions": {
+        "target": "ES2019",
+        "outDir": "build/typechain",
+        "moduleResolution": "node",
+        "module": "CommonJS",
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true
+    },
+    "files": [],
+    "include": ["typechain-types"],
+    "exclude": ["node_modules/**"]
+}

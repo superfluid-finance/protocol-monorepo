@@ -18,25 +18,34 @@ export default class Operation {
     readonly populateTransactionPromise: Promise<ethers.PopulatedTransaction>;
     readonly type: OperationType;
 
+    // @note This property is used to ensure BatchCall operations still function
+    // when using the agreement forwarder
+    readonly forwarderPopulatedPromise?: Promise<ethers.PopulatedTransaction>;
+
     constructor(
         txn: Promise<ethers.PopulatedTransaction>,
-        type: OperationType
+        type: OperationType,
+        forwarderPopulatedPromise?: Promise<ethers.PopulatedTransaction>
     ) {
         this.populateTransactionPromise = txn;
         this.type = type;
+        this.forwarderPopulatedPromise = forwarderPopulatedPromise;
     }
 
     /**
      * Executes the operation via the provided signer.
      * @description Populates all fields of the transaction, signs it and sends it to the network.
      * @param signer The signer of the transaction
+     * @param gasLimitMultiplier A multiplier to provide gasLimit buffer on top of the estimated gas limit (1.2x is the default)
      * @returns {ethers.providers.TransactionResponse} A TransactionResponse object which can be awaited
      */
     exec = async (
-        signer: ethers.Signer
+        signer: ethers.Signer,
+        gasLimitMultiplier = 1.2
     ): Promise<ethers.providers.TransactionResponse> => {
         const populatedTransaction = await this.getPopulatedTransactionRequest(
-            signer
+            signer,
+            gasLimitMultiplier
         );
         return await signer.sendTransaction(populatedTransaction);
     };
@@ -44,13 +53,37 @@ export default class Operation {
     /**
      * Get the populated transaction by awaiting `populateTransactionPromise`.
      * @description Note that we need to populate the txn with the signer.
+     * NOTE: we use the forwarder populated promise if this exists
      * @returns {Promise<TransactionRequest>}
      */
     getPopulatedTransactionRequest = async (
-        signer: ethers.Signer
+        signer: ethers.Signer,
+        gasLimitMultiplier = 1.2
     ): Promise<TransactionRequest> => {
-        const prePopulated = await this.populateTransactionPromise;
-        return await signer.populateTransaction(prePopulated);
+        const txnToPopulate = this.forwarderPopulatedPromise
+            ? await this.forwarderPopulatedPromise
+            : await this.populateTransactionPromise;
+        const signerPopulatedTransaction = await signer.populateTransaction(
+            txnToPopulate
+        );
+
+        // if gasLimit exists, an Overrides object has been passed or the user has explicitly set
+        // a gasLimit for their transaction prior to execution and so we keep it as is else we apply
+        // a specified or the default (1.2) multiplier on the gas limit.
+        return txnToPopulate.gasLimit
+            ? txnToPopulate
+            : {
+                  ...signerPopulatedTransaction,
+                  gasLimit:
+                      // @note if gasLimit is null, this function will throw due to
+                      // conversion to BigNumber, so we must round this number
+                      // we can be more conservative by using Math.ceil instead of Math.round
+                      Math.ceil(
+                          Number(
+                              signerPopulatedTransaction.gasLimit?.toString()
+                          ) * gasLimitMultiplier
+                      ),
+              };
     };
     /**
      * Signs the populated transaction via the provided signer (what you intend on sending to the network).

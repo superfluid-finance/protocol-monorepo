@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-core",
-    "version": "0.5.6",
+    "version": "0.5.7",
     "description": "SDK Core for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
     "repository": {
@@ -29,11 +29,11 @@
         "testenv:stop": "tasks/testenv-ctl.sh stop",
         "pretest": "yarn testenv:start",
         "test": "hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
-        "dev": "nodemon -e ts -i src/typechain -x hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
+        "dev": "nodemon -e ts -x hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
         "test-coverage": "nyc --reporter=html --reporter=lcov --reporter=json yarn test",
         "posttest": "yarn testenv:stop",
         "check-updates": "ncu --target minor --dep prod,dev",
-        "doc:html": "typedoc --out dist/docs --entryPoints ./src/index.ts && copyfiles -f ./sf-logo.png ./dist/docs/",
+        "doc:html": "typedoc --entryPointStrategy expand ./src --options ./typedoc.js && copyfiles -f ./sf-logo.png ./dist/docs/",
         "lint": "run-s lint:*",
         "lint:eslint": "eslint src --ext .ts",
         "fix": "run-s fix:*",
@@ -42,8 +42,6 @@
         "set-default-subgraph-release-tag": "node scripts/setDefaultSubgraphReleaseTag.js",
         "start-node": "hardhat node",
         "generate": "run-s generate:*",
-        "generate:abi-files": "rm -rf src/abi && mkdir -p src/abi && tasks/build-abi-json.sh",
-        "generate:web3-types": "typechain --target=ethers-v5 --out-dir=./src/typechain \"./src/abi/**/*.json\"",
         "generate:ajv-validations": "ts-node scripts/ajv.ts",
         "generate:graphql-types": "graphql-codegen --config subgraph-codegen.yml",
         "generate-graphql-schema": "yarn generate-graphql-schema:v1",
@@ -57,6 +55,7 @@
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
     },
     "dependencies": {
+        "@superfluid-finance/ethereum-contracts": "1.4.2",
         "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
         "browserify": "^17.0.0",
         "graphql-request": "^4.3.0",
@@ -71,7 +70,6 @@
         "@graphql-codegen/typescript": "^2.7.3",
         "@graphql-codegen/typescript-operations": "^2.5.3",
         "@graphql-typed-document-node/core": "^3.1.1",
-        "@superfluid-finance/ethereum-contracts": "1.4.1",
         "ajv": "^8.11.0",
         "get-graphql-schema": "^2.1.2",
         "mocha": "^10.0.0"

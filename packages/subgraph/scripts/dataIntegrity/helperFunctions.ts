@@ -2,7 +2,7 @@ import request, { gql } from "graphql-request";
 import _ from "lodash";
 import { toBN } from "../../test/helpers/helpers";
 import { IMeta } from "../../test/interfaces";
-import { TypedEvent } from "../../typechain/common";
+import { TypedEvent } from "@superfluid-finance/sdk-core";
 import { BaseEntity } from "./interfaces";
 
 /**
@@ -98,7 +98,6 @@ export const validateEvents = <T extends TypedEvent, K>(
 
         // validate the event properties based on the returned subgraph event entity
         for (let j = 0; j < keys.length; j++) {
-
             // skip properties that don't exist on the events
             if (
                 currentOnChainEvent.args[keys[j]] == null ||
@@ -123,7 +122,7 @@ export const validateEvents = <T extends TypedEvent, K>(
                     errors++;
                     throw new Error(`${eventName} Event is not the same.`);
                 }
-            // on-chain data is type number
+                // on-chain data is type number
             } else if (typeof currentOnChainEvent.args[keys[j]] === "number") {
                 if (
                     toBN(currentOnChainEvent.args[keys[j]]).eq(
@@ -140,7 +139,7 @@ export const validateEvents = <T extends TypedEvent, K>(
                     errors++;
                     throw new Error(`${eventName} Event is not the same.`);
                 }
-            // on-chain data is type BigNumber
+                // on-chain data is type BigNumber
             } else {
                 if (
                     currentOnChainEvent.args[keys[j]].eq(

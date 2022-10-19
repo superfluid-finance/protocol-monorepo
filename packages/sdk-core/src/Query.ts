@@ -19,8 +19,8 @@ import {
     ILightEntity,
     IStream,
     IStreamRequestFilter,
-    ISuperToken,
     ISuperTokenRequestFilter,
+    SuperTokenType,
 } from "./interfaces";
 import { mapGetAllEventsQueryEvents } from "./mapGetAllEventsQueryEvents";
 import { Ordering } from "./ordering";
@@ -99,7 +99,7 @@ export default class Query {
             orderBy: "createdAtBlockNumber",
             orderDirection: "desc",
         }
-    ): Promise<PagedResult<ISuperToken>> => {
+    ): Promise<PagedResult<SuperTokenType>> => {
         validateSuperTokenRequest(filter);
 
         const response = await this.subgraphClient.request<
@@ -118,14 +118,14 @@ export default class Query {
         });
 
         const mappedResult = response.result.map((x) =>
-            typeGuard<ISuperToken>({
+            typeGuard<SuperTokenType>({
                 ...x,
                 createdAtTimestamp: Number(x.createdAtTimestamp),
                 createdAtBlockNumber: Number(x.createdAtBlockNumber),
             })
         );
 
-        return createPagedResult<ISuperToken>(mappedResult, paging);
+        return createPagedResult<SuperTokenType>(mappedResult, paging);
     };
 
     listIndexes = async (

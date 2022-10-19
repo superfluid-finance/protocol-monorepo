@@ -1,21 +1,23 @@
 import hre, { ethers } from "hardhat";
-import { abi as TestTokenABI } from "../src/abi/TestToken.json";
-import {
-    Framework,
-    NativeAssetSuperToken,
-    PureSuperToken,
-    toBN,
-    WrapperSuperToken,
-} from "../src";
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
     SuperfluidFrameworkDeployer,
     TestToken,
-} from "../src/typechain";
+    TestToken__factory,
+} from "@superfluid-finance/ethereum-contracts/build/typechain";
+import {
+    Framework,
+    NativeAssetSuperToken,
+    Operation,
+    PureSuperToken,
+    toBN,
+    WrapperSuperToken,
+} from "../src";
 import { deployContractsAndToken } from "../../subgraph/scripts/deployContractsAndToken";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { JsonRpcProvider } from "@ethersproject/providers";
+import { expect } from "chai";
 
 export const TEST_ENVIRONMENT_CONSTANTS = {
     DEFAULT_REWARD_ADDRESS: "0x0000000000000000000000000000000000000045", // address(69)
@@ -100,11 +102,10 @@ export const initializeTestEnvironment = async () => {
     testEnv.pureSuperToken = await testEnv.sdkFramework.loadPureSuperToken(
         "MRx"
     );
-    testEnv.token = new ethers.Contract(
+    testEnv.token = TestToken__factory.connect(
         testEnv.wrapperSuperToken.underlyingToken.address,
-        TestTokenABI,
         testEnv.alice
-    ) as TestToken;
+    );
 
     for (let i = 0; i < testEnv.users.length; i++) {
         const user = testEnv.users[i];
@@ -127,7 +128,7 @@ export const initializeTestEnvironment = async () => {
     }
 };
 
-export const makeSuite= (
+export const makeSuite = (
     name: string,
     tests: (testEnvironment: TestEnvironment) => void
 ) => {
@@ -143,4 +144,32 @@ export const makeSuite= (
             testEnv.snapshot = await hre.network.provider.send("evm_snapshot");
         });
     });
+};
+
+/**
+ * Checks that our Operation object is properly created.
+ * If shouldUseAgreement is true, the operation should not
+ * contain a forwarderPopulatedPromise and will therefore
+ * execute the callAgreement populated transaction.
+ * @note See Operation.getPopulatedTransactionRequest
+ * @param operation the operation
+ * @param shouldUseCallAgreement whether or not we intend to use call agreement
+ */
+export const validateOperationShouldUseCallAgreement = async (
+    testEnv: TestEnvironment,
+    operation: Operation,
+    shouldUseCallAgreement: boolean,
+    forwarderAddress: string
+) => {
+    const populatedTransactionRequest =
+        await operation.getPopulatedTransactionRequest(testEnv.alice);
+    if (shouldUseCallAgreement) {
+        expect(operation.forwarderPopulatedPromise).to.be.undefined;
+        expect(populatedTransactionRequest.to).to.equal(
+            testEnv.sdkFramework.host.contract.address
+        );
+    } else {
+        expect(operation.forwarderPopulatedPromise).to.not.be.undefined;
+        expect(populatedTransactionRequest.to).to.equal(forwarderAddress);
+    }
 };

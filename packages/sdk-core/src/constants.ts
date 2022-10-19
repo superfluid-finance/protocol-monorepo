@@ -1,6 +1,7 @@
 import metadata from "@superfluid-finance/metadata";
 
 import DefaultSubgraphReleaseTag from "./defaultSubgraphReleaseTag.json";
+import { NetworkData } from "./types";
 
 /******* TIME CONSTANTS *******/
 export const MONTHS_PER_YEAR = 12;
@@ -30,24 +31,6 @@ export const AUTHORIZE_FULL_CONTROL =
 const subgraphReleaseTag =
     (globalThis.process && globalThis.process.env.SUBGRAPH_RELEASE_TAG) ||
     DefaultSubgraphReleaseTag.value;
-
-export const EMPTY_NETWORK_DATA = {
-    subgraphAPIEndpoint: "",
-    networkName: "",
-    nativeTokenSymbol: "",
-    addresses: {
-        resolver: "",
-        host: "",
-        governance: "",
-        cfaV1: "",
-        cfaV1Forwarder: "",
-        idaV1: "",
-        superTokenFactory: "",
-        superfluidLoader: "",
-        toga: "",
-    },
-};
-export type NetworkData = typeof EMPTY_NETWORK_DATA;
 
 const getAddressesData = (chainId: number): NetworkData | null => {
     const networkData = metadata.networks.find((x) => x.chainId === chainId);

@@ -21,12 +21,7 @@ import SuperToken, {
     PureSuperToken,
     WrapperSuperToken,
 } from "./SuperToken";
-import {
-    chainIdToResolverDataMap,
-    EMPTY_NETWORK_DATA,
-    NetworkData,
-    networkNameToChainIdMap,
-} from "./constants";
+import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import {
     getNetworkName,
     getSubgraphQueriesEndpoint,
@@ -160,12 +155,12 @@ export default class Framework {
         }
 
         try {
-            const rawNetworkData = chainIdToResolverDataMap.get(chainId);
-            const networkData: NetworkData =
-                rawNetworkData || EMPTY_NETWORK_DATA;
+            const networkData = chainIdToResolverDataMap.get(chainId);
             const resolverAddress = options.resolverAddress
                 ? options.resolverAddress
-                : networkData.addresses.resolver;
+                : networkData
+                ? networkData.addresses.resolver
+                : ethers.constants.AddressZero;
             const resolver = Resolver__factory.connect(
                 resolverAddress,
                 provider
@@ -179,7 +174,7 @@ export default class Framework {
             };
 
             // supported networks scenario
-            if (rawNetworkData != null) {
+            if (networkData != null) {
                 const settings: IFrameworkSettings = {
                     ...baseSettings,
                     config: {

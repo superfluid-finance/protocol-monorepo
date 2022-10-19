@@ -9,6 +9,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Framework initialization for supported networks utilizes `@superfluid-finance/metadata`, but still uses the resolver for unsupported/local testing environments
   - > NOTE: This will not create any changes when doing `Framework.create` and is just a minor optimization.
+- All transactions executed via SDK-Core have a default multiplier (1.2x) applied to the provider estimated gas limit **unless** an ethers `Overrides` object is passed during creation of the `Operation`.
+- There is also the option to pass in an explicit multiplier when executing transactions: `Operation.exec(signer, 1.32)`.
 
 ## [0.5.7] - 2022-10-13
 ### Breaking

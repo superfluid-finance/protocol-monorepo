@@ -54,7 +54,7 @@ if ! [ -z "$GITHUB_ENV" ];then
         echo SDK-REDUX will be tested.
     fi
     # if subgraph package changed
-    if grep -E "^packages/subgraph/(subgraph.template.yaml|schema.graphql|config|scripts|src|test|hardhat.config.ts|package.json)" changed-files.list;then
+    if grep -E "^packages/subgraph/(subgraph.template.yaml|schema.graphql|config|scripts|src|tasks|test|hardhat.config.ts|package.json|docker-compose.yml)" changed-files.list;then
         BUILD_SUBGRAPH=1
         echo Subgraph will be tested.
     fi

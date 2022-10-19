@@ -67,17 +67,23 @@ export default class Operation {
             txnToPopulate
         );
 
-        return {
-            ...signerPopulatedTransaction,
-            gasLimit:
-                // @note if gasLimit is null, this function will throw
-                // we must round this number otherwise conversion to BigNumber
-                // we can be more conservative by using .ceil instead of .round
-                Math.ceil(
-                    Number(signerPopulatedTransaction.gasLimit?.toString()) *
-                        gasLimitMultiplier
-                ),
-        };
+        // if gasLimit exists, an Overrides object has been passed or the user has explicitly set
+        // a gasLimit for their transaction prior to execution and so we keep it as is else we apply
+        // a specified or the default (1.2) multiplier on the gas limit.
+        return txnToPopulate.gasLimit
+            ? txnToPopulate
+            : {
+                  ...signerPopulatedTransaction,
+                  gasLimit:
+                      // @note if gasLimit is null, this function will throw due to
+                      // conversion to BigNumber, so we must round this number
+                      // we can be more conservative by using Math.ceil instead of Math.round
+                      Math.ceil(
+                          Number(
+                              signerPopulatedTransaction.gasLimit?.toString()
+                          ) * gasLimitMultiplier
+                      ),
+              };
     };
     /**
      * Signs the populated transaction via the provided signer (what you intend on sending to the network).

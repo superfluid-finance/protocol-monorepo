@@ -12,6 +12,8 @@
 #
 /packages/spec-haskell/ @hellwolf
 /packages/ethereum-contracts/ @hellwolf @0xdavinchee
+/packages/ethereum-contracts/contracts @hellwolf @0xdavinchee
+/packages/ethereum-contracts/scripts @hellwolf @d10r
 /packages/js-sdk/ @hellwolf @kasparkallas @0xdavinchee
 /packages/subgraph/ @0xdavinchee @kasparkallas @hellwolf
 /packages/sdk-core/ @0xdavinchee @kasparkallas @hellwolf

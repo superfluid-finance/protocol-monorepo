@@ -1,6 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 
-module Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon where
+module Money.Systems.Superfluid.Agreements.ProportionalDistribution.Common where
 
 import           Data.Default
 import           GHC.Generics

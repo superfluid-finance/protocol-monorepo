@@ -2,6 +2,7 @@ const fs = require("fs");
 const util = require("util");
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const ethers = require("ethers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
 
@@ -98,6 +99,8 @@ async function deployContractIfCodeChanged(
  *                  (overriding env: RELEASE_VERSION)
  * @param {boolean} options.outputFile Name of file where to log addresses of newly deployed contracts
  *                  (overriding env: OUTPUT_FILE)
+ * @param {boolean} options.cfaHookContract Address of the contract to be set up as CFA hooks receiver
+ *                  (overriding env: CFA_HOOK_CONTRACT)
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
@@ -114,6 +117,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         appWhiteListing,
         protocolReleaseVersion,
         outputFile,
+        cfaHookContract
     } = options;
     resetSuperfluidFramework = options.resetSuperfluidFramework;
 
@@ -123,6 +127,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     outputFile = outputFile || process.env.OUTPUT_FILE;
     console.log("output file: ", outputFile);
+
+    cfaHookContract = cfaHookContract || process.env.CFA_HOOK_CONTRACT;
+    console.log("CFA hook contract", cfaHookContract);
 
     // string to build a list of newly deployed contracts, written to a file if "outputFile" option set
     let output = "";
@@ -358,7 +365,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const deployCFAv1 = async () => {
         // @note Once we have the actual implementation for the hook contract,
         // we will need to deploy it and put it here instead of ZERO_ADDRESS
-        const hookContractAddress = ZERO_ADDRESS;
+        const hookContractAddress = cfaHookContract || ZERO_ADDRESS;
         console.log("CFA Hook Contract Address:", hookContractAddress);
 
         const agreement = await web3tx(

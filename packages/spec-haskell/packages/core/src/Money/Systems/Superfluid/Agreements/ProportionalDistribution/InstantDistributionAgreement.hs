@@ -8,7 +8,7 @@
 -- It is instant transferring over an proportional distribution index
 --
 -- This module is typically imported using qualified name .
-module Money.Systems.Superfluid.Agreements.InstantDistributionAgreement where
+module Money.Systems.Superfluid.Agreements.ProportionalDistribution.InstantDistributionAgreement where
 
 import           Data.Coerce
 import           Data.Default
@@ -18,8 +18,8 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
-import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue                     as IVMUD
+import           Money.Systems.Superfluid.Agreements.ProportionalDistribution.Common
+import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue              as IVMUD
 
 
 -- * Contracts
@@ -91,23 +91,23 @@ instance SuperfluidSystemTypes sft => AgreementContract (PublisherContract sft) 
         where DistributionContractBase { total_unit = tu} = dcBase
               DistributionContract { dc_value_per_unit = vpu } = dc
 
-    concatAgreementOperationOutput (PublisherOperationOutputF a) (PublisherOperationOutputF a') =
-        PublisherOperationOutputF (a <> a')
-
     functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (PublisherContract sft) = Distribute (SFT_MVAL sft)
 
-    type AgreementOperationOutput (PublisherContract sft) = PublisherOperationOutputF sft
+    type AgreementOperationOutput (PublisherContract sft) = PublisherOperationOutput sft
 
     data AgreementOperationOutputF (PublisherContract sft) elem = PublisherOperationOutputF
         elem -- publisher
         deriving stock (Functor, Foldable, Traversable, Generic)
 
-type PublisherOperationOutputF sft = AgreementOperationOutputF (PublisherContract sft)
+type PublisherOperationOutput sft = AgreementOperationOutputF (PublisherContract sft)
     (PublisherMonetaryUnitData sft)
 
-instance SuperfluidSystemTypes sft => Default (PublisherOperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (PublisherOperationOutput sft)
+instance SuperfluidSystemTypes sft => Monoid (PublisherOperationOutput sft) where mempty = def
+instance SuperfluidSystemTypes sft => Semigroup (PublisherOperationOutput sft) where
+    PublisherOperationOutputF a <> PublisherOperationOutputF a' = PublisherOperationOutputF (a <> a')
 
 -- * Subscriber Operations
 
@@ -133,17 +133,17 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
 
-    concatAgreementOperationOutput _ a = a
-
     functorizeAgreementOperationOutput _ _ = SubscriberOperationOutputF
 
     data AgreementOperation (SubscriberContract sft) = SettleSubscription
 
-    type AgreementOperationOutput (SubscriberContract sft) = SubscriberOperationOutputF sft
+    type AgreementOperationOutput (SubscriberContract sft) = SubscriberOperationOutput sft
 
     data AgreementOperationOutputF (SubscriberContract sft) _ = SubscriberOperationOutputF
         deriving stock (Functor, Foldable, Traversable, Generic)
 
-type SubscriberOperationOutputF sft = AgreementOperationOutputF (SubscriberContract sft) ()
+type SubscriberOperationOutput sft = AgreementOperationOutputF (SubscriberContract sft) ()
 
-instance SuperfluidSystemTypes sft => Default (SubscriberOperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (SubscriberOperationOutput sft)
+instance SuperfluidSystemTypes sft => Monoid (SubscriberOperationOutput sft) where mempty = def
+instance SuperfluidSystemTypes sft => Semigroup (SubscriberOperationOutput sft) where (<>) = const

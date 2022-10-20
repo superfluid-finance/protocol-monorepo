@@ -17,6 +17,7 @@
         "testenv:stop": "tasks/testenv-ctl.sh stop",
         "pretest": "yarn testenv:start",
         "test": "npx hardhat test --network localhost",
+        "matchstick": "graph test",
         "posttest": "yarn testenv:stop",
         "integrity": "npx hardhat run scripts/dataIntegrity/dataIntegrityTest.ts --network",
         "check-indexing-completeness": "ts-node scripts/checkIsDeployedOnAllNetworks.ts",
@@ -56,8 +57,8 @@
         "cloc": "cloc src"
     },
     "dependencies": {
-        "@graphprotocol/graph-cli": "0.29.0",
-        "@graphprotocol/graph-ts": "0.27.0",
+        "@graphprotocol/graph-cli": "0.35.0",
+        "@graphprotocol/graph-ts": "0.28.1",
         "@superfluid-finance/sdk-core": "0.5.7",
         "mustache": "^4.2.0"
     },
@@ -65,8 +66,9 @@
         "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
         "coingecko-api": "^1.0.10",
         "graphql": "^16.6.0",
-        "graphql-request": "^4.3.0",
-        "lodash": "^4.17.21"
+        "graphql-request": "^5.0.0",
+        "lodash": "^4.17.21",
+        "matchstick-as": "^0.5.0"
     },
     "workspaces": {
         "nohoist": [

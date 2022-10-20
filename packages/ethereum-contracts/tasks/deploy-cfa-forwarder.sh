@@ -20,7 +20,7 @@
 # For optimism the gas estimation doesn't work, requires setting EST_TX_COST.
 # For polygon-mainnet, GAS_PRICE usually needs to be set.
 #
-# On some networks you may need to use override ENV vars for the deploymentto succeed
+# On some networks you may need to use override ENV vars for the deployment to succeed
 
 network=$1
 cfaAddr=$2

@@ -6,7 +6,7 @@
 -- | Decaying flow agreement.
 --
 -- This module is typically imported using qualified name .
-module Money.Systems.Superfluid.Agreements.DecayingFlowAgreement where
+module Money.Systems.Superfluid.Agreements.Universal.DecayingFlowAgreement where
 
 import           Data.Default
 import           Data.Proxy
@@ -61,8 +61,8 @@ instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft w
         θ_Δ = fromIntegral (θ - distribution_limit ac)
 
         ac' = ContractData { distribution_limit   = θ
-                            , flow_last_updated_at = t'
-                            }
+                           , flow_last_updated_at = t'
+                           }
         mudsΔ = OperationOutputF
                 (def & set DFMUD.settledAt    t'
                      & set DFMUD.αVal        θ_Δ
@@ -73,21 +73,21 @@ instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft w
 
         in (ac', fmap DFMUD.MkMonetaryUnitData mudsΔ)
 
-    concatAgreementOperationOutput (OperationOutputF a b) (OperationOutputF a' b') =
-        OperationOutputF (a <> a') (b <> b')
-
     functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (ContractData sft) =
         UpdateDecayingFlow (DistributionLimit sft)
 
-    type AgreementOperationOutput (ContractData sft) = OperationOutputF sft
+    type AgreementOperationOutput (ContractData sft) = OperationOutput sft
 
     data AgreementOperationOutputF (ContractData sft) elem = OperationOutputF
         { flow_sender   :: elem
         , flow_receiver :: elem
         } deriving stock (Functor, Foldable, Traversable, Generic)
 
-type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
+type OperationOutput sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
 
-instance SuperfluidSystemTypes sft => Default (OperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (OperationOutput sft)
+instance SuperfluidSystemTypes sft => Monoid (OperationOutput sft) where mempty = def
+instance SuperfluidSystemTypes sft => Semigroup (OperationOutput sft) where
+    OperationOutputF a b <> OperationOutputF a' b' = OperationOutputF (a <> a') (b <> b')

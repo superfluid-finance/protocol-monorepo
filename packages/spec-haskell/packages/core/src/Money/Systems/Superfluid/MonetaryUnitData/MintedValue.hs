@@ -18,8 +18,8 @@ import           Money.Systems.Superfluid.SystemTypes
 --
 
 newtype MintedValue v = MkMintedValue v
-    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, Value)
-instance (Typeable v, Value v) => TypedValue (MintedValue v) v where typedValueTag _ = "b"
+    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, MonetaryValue)
+instance (Typeable v, MonetaryValue v) => TypedValue (MintedValue v) v where typedValueTag _ = "b"
 
 -- * Monetary unit data
 --
@@ -32,7 +32,7 @@ newtype MonetaryUnitData amuLs sft = MkMonetaryUnitData { getMonetaryUnitLenses 
     deriving (Default)
 
 instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) where
-    (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
+    MkMonetaryUnitData a <> MkMonetaryUnitData b =
         let c = a & over untappedValue (+ b^.untappedValue)
                   & over mintedValue   (+ b^.mintedValue)
         in MkMonetaryUnitData c

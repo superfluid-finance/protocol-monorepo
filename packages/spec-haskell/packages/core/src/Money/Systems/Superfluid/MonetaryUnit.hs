@@ -7,15 +7,15 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
-import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement              as ITA
-import qualified Money.Systems.Superfluid.Agreements.MinterAgreement                       as MINTA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement as CFDA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.InstantDistributionAgreement      as IDA
+import qualified Money.Systems.Superfluid.Agreements.Universal.ConstantFlowAgreement                            as CFA
+import qualified Money.Systems.Superfluid.Agreements.Universal.DecayingFlowAgreement                            as DFA
+import qualified Money.Systems.Superfluid.Agreements.Universal.InstantTransferAgreement                         as ITA
+import qualified Money.Systems.Superfluid.Agreements.Universal.MinterAgreement                                  as MINTA
 --
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                as UIDX
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex                              as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                                             as UIDX
 
 
 -- | Monetary unit type class.

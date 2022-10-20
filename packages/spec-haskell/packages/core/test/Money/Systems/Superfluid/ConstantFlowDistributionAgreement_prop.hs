@@ -10,9 +10,9 @@ import           Lens.Internal
 import           Test.Hspec
 import           Test.QuickCheck
 
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                    as CFMUD
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement as CFDA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex                              as PDIDX
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                                         as CFMUD
 import           Money.Systems.Superfluid.SystemTypes
 import           Money.Systems.Superfluid.TestTypes
 
@@ -65,13 +65,13 @@ ao_1pub2subs_zero_sum_balance t0 aos0 = go (getNonEmpty aos0) t0 (def, def) def 
               where t' = t + tΔ
           go ((TO_1Pub2Subs (PubOp2 _), _) :_) _ _ _ _ = error "huh? there is no pub2"
           go ((TO_1Pub2Subs (SubOp1 ao), tΔ):aos) t (dcFull, pubMuds) scFull1 scFull2 =
-              let (isGood, ((dcFull', scFull1'), pubMudsΔ)) = single_op
+              let (isGood, ((dcFull', scFull1'), PDIDX.SubscriberOperationOutput pubMudsΔ)) = single_op
                       t' (dcFull, pubMuds) scFull1 scFull2
                       ((dcFull, scFull1), def) ao
               in  isGood && go aos t' (dcFull', pubMuds <> pubMudsΔ) scFull1' scFull2
               where t' = t + tΔ
           go ((TO_1Pub2Subs (SubOp2 ao), tΔ):aos) t (dcFull, pubMuds) scFull1 scFull2 =
-              let (isGood, ((dcFull', scFull2'), pubMudsΔ)) = single_op
+              let (isGood, ((dcFull', scFull2'), PDIDX.SubscriberOperationOutput pubMudsΔ)) = single_op
                       t' (dcFull, pubMuds) scFull1 scFull2
                       ((dcFull, scFull2), def) ao
               in  isGood && go aos t' (dcFull', pubMuds <> pubMudsΔ) scFull1 scFull2'
@@ -89,10 +89,10 @@ ao_1pub2subs_zero_sum_balance t0 aos0 = go (getNonEmpty aos0) t0 (def, def) def 
 
 newtype TO_2Pubs1Sub = TO_2Pubs1Sub TestOperations deriving Show
 instance Arbitrary TO_2Pubs1Sub where
-    arbitrary = oneof [ -- (arbitrary :: Gen ()) <&> TO_2Pubs1Sub . Nop
-                      -- , (arbitrary :: Gen T_CFDAPublisherOperation) <&> TO_2Pubs1Sub . PubOp1
-                      (arbitrary :: Gen T_CFDAPublisherOperation) <&> TO_2Pubs1Sub . PubOp2
-                      -- , (arbitrary :: Gen T_PDIDXSubscriberOperation) <&> TO_2Pubs1Sub . SubOp1
+    arbitrary = oneof [ (arbitrary :: Gen ()) <&> TO_2Pubs1Sub . Nop
+                      , (arbitrary :: Gen T_CFDAPublisherOperation) <&> TO_2Pubs1Sub . PubOp1
+                      , (arbitrary :: Gen T_CFDAPublisherOperation) <&> TO_2Pubs1Sub . PubOp2
+                      , (arbitrary :: Gen T_PDIDXSubscriberOperation) <&> TO_2Pubs1Sub . SubOp1
                       , (arbitrary :: Gen T_PDIDXSubscriberOperation) <&> TO_2Pubs1Sub . SubOp2
                       ]
 ao_2pubs1sub_zero_sum_balance :: T_Timestamp -> NonEmptyList (TO_2Pubs1Sub, T_Timestamp) -> Bool
@@ -122,13 +122,13 @@ ao_2pubs1sub_zero_sum_balance t0 aos0 = go (getNonEmpty aos0) t0 (def, def) (def
               in  isGood && go aos t' (dcFull1, pubMuds1) (dcFull2', pubMuds2') scFull1 scFull2
               where t' = t + tΔ
           go ((TO_2Pubs1Sub (SubOp1 ao), tΔ):aos) t (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull1 scFull2 =
-              let (isGood, ((dcFull1', scFull1'), pubMuds1Δ)) = single_op
+              let (isGood, ((dcFull1', scFull1'), PDIDX.SubscriberOperationOutput pubMuds1Δ)) = single_op
                       t' (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull1 scFull2
                       ((dcFull1, scFull1), def) ao
               in  isGood && go aos t' (dcFull1', pubMuds1 <> pubMuds1Δ) (dcFull2, pubMuds2) scFull1' scFull2
               where t' = t + tΔ
           go ((TO_2Pubs1Sub (SubOp2 ao), tΔ):aos) t (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull1 scFull2 =
-              let (isGood, ((dcFull2', scFull2'), pubMuds2Δ)) = single_op
+              let (isGood, ((dcFull2', scFull2'), PDIDX.SubscriberOperationOutput pubMuds2Δ)) = single_op
                       t' (dcFull1, pubMuds1) (dcFull2, pubMuds2) scFull1 scFull2
                       ((dcFull2, scFull2), def) ao
               in  isGood && go aos t' (dcFull1, pubMuds1) (dcFull2', pubMuds2 <> pubMuds2Δ) scFull1 scFull2'

@@ -32,24 +32,24 @@ module Money.Systems.Superfluid.Instances.Simple.System
 import           Control.Monad.Trans.Class
 import           Control.Monad.Trans.Reader
 import           Control.Monad.Trans.State
-import           Data.Binary                                                               (Binary)
-import           Data.Char                                                                 (isAlpha)
+import           Data.Binary                                                       (Binary)
+import           Data.Char                                                         (isAlpha)
 import           Data.Default
-import qualified Data.Map                                                                  as M
+import qualified Data.Map                                                          as M
 import           Data.Maybe
 import           Data.String
 import           Data.Type.TaggedTypeable
 import           Lens.Internal
 
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                    as CFMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow                    as DFMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue                    as IVMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                     as MVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow            as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow            as DFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue            as IVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue             as MVMUD
 --
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                as UIDX
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                as UIDX
 --
-import qualified Money.Systems.Superfluid.Token                                            as SF
+import qualified Money.Systems.Superfluid.Token                                    as SF
 --
 import           Money.Systems.Superfluid.Instances.Simple.Types
 

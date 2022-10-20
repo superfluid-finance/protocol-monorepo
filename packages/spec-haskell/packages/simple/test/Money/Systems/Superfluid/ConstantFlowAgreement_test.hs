@@ -5,14 +5,14 @@ module Money.Systems.Superfluid.ConstantFlowAgreement_test (tests) where
 
 import           Control.Monad.IO.Class
 import           Lens.Micro
-import           Test.Hspec                                                        (HasCallStack)
+import           Test.Hspec                                                          (HasCallStack)
 import           Test.HUnit
 
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement         as CFA
-import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex        as UIDX
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow as CFMUD
+import qualified Money.Systems.Superfluid.Agreements.Universal.ConstantFlowAgreement as CFA
+import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                  as UIDX
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow              as CFMUD
 --
-import qualified Money.Systems.Superfluid.Instances.Simple.System                  as SF
+import qualified Money.Systems.Superfluid.Instances.Simple.System                    as SF
 --
 import           Money.Systems.Superfluid.TokenTester
 

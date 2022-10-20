@@ -9,20 +9,20 @@ module Money.Systems.Superfluid.Token
     , Token (..)
     ) where
 
-import           Data.Foldable                                                             (toList)
-import           Data.Kind                                                                 (Type)
+import           Data.Foldable                                                                                  (toList)
+import           Data.Kind                                                                                      (Type)
 import           Lens.Internal
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                 as DFA
-import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement          as IDA
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement              as ITA
-import qualified Money.Systems.Superfluid.Agreements.MinterAgreement                       as MINTA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement as CFDA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.InstantDistributionAgreement      as IDA
+import qualified Money.Systems.Superfluid.Agreements.Universal.ConstantFlowAgreement                            as CFA
+import qualified Money.Systems.Superfluid.Agreements.Universal.DecayingFlowAgreement                            as DFA
+import qualified Money.Systems.Superfluid.Agreements.Universal.InstantTransferAgreement                         as ITA
+import qualified Money.Systems.Superfluid.Agreements.Universal.MinterAgreement                                  as MINTA
 --
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex                              as PDIDX
 --
 import           Money.Systems.Superfluid.MonetaryUnit
 
@@ -188,7 +188,7 @@ class ( Monad tk
             setContract (PDIDX.SubscriberOperationOutputF addr) (dc', sc') t = do
                 overProportionalDistributionContract addr indexId (const dc') t
                 overProportionalDistributionSubscription subscriber addr indexId (const sc') t
-        (t, aoAccounts, cfdaMUDΔ)  <- eff_agreement_operation_base
+        (t, aoAccounts, PDIDX.SubscriberOperationOutput cfdaMUDΔ)  <- eff_agreement_operation_base
             (PDIDX.SubscriberOperationOutputF publisher)
             (PDIDX.Subscribe unit)
             viewContract

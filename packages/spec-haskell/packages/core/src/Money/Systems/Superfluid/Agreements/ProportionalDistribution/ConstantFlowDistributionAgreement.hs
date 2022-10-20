@@ -8,7 +8,7 @@
 -- It is instant transferring over an proportional distribution index
 --
 -- This module is typically imported using qualified name CFDA.
-module Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement where
+module Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement where
 
 import           Data.Default
 import           Data.Type.Any
@@ -18,8 +18,8 @@ import           Lens.Internal
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import           Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                     as CFMUD
+import           Money.Systems.Superfluid.Agreements.ProportionalDistribution.Common
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow              as CFMUD
 
 
 -- * Contracts
@@ -63,9 +63,9 @@ type SubscriberData sft = SubscriberContract sft
 type SubscriberMonetaryUnitData sft = CFMUD.MonetaryUnitData (SubscriberData sft) sft
 
 instance SuperfluidSystemTypes sft => CFMUD.MonetaryUnitLenses (PublisherData sft) sft where
-    settledAt          = $(field 'pub_settled_at)
-    settledValue       = $(field 'pub_settled_value)
-    netFlowRate        = $(field 'pub_total_flow_rate)
+    settledAt    = $(field 'pub_settled_at)
+    settledValue = $(field 'pub_settled_value)
+    netFlowRate  = $(field 'pub_total_flow_rate)
 
 instance SuperfluidSystemTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData sft) sft where
     settledAt     = readOnlyLens
@@ -75,7 +75,7 @@ instance SuperfluidSystemTypes sft => CFMUD.MonetaryUnitLenses (SubscriberData s
 
     netFlowRate   = readOnlyLens
         (\(( DistributionContractBase { total_unit     = tu }
-           , DistributionContract { dc_flow_rate       = dcfr }),
+           , DistributionContract     { dc_flow_rate   = dcfr }),
            ( SubscriptionContractBase { sub_owned_unit = u }
            , _)) -> if tu /= 0 then floor $ fromIntegral dcfr * u / tu else 0)
 
@@ -123,9 +123,6 @@ instance SuperfluidSystemTypes sft => AgreementContract (PublisherContract sft) 
                                    , dc_flow_rate      = dcfr
                                    } = dc
 
-    concatAgreementOperationOutput (PublisherOperationOutputF a) (PublisherOperationOutputF a') =
-        PublisherOperationOutputF (a <> a')
-
     functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (PublisherContract sft) = UpdateDistributionFlowRate (SFT_MVAL sft)
@@ -140,6 +137,9 @@ type PublisherOperationOutput sft = AgreementOperationOutputF (PublisherContract
     (PublisherMonetaryUnitData sft)
 
 instance SuperfluidSystemTypes sft => Default (PublisherOperationOutput sft)
+instance SuperfluidSystemTypes sft => Monoid (PublisherOperationOutput sft) where mempty = def
+instance SuperfluidSystemTypes sft => Semigroup (PublisherOperationOutput sft) where
+    PublisherOperationOutputF a <> PublisherOperationOutputF a' = PublisherOperationOutputF (a <> a')
 
 -- * Subscriber Operations
 
@@ -178,9 +178,6 @@ instance SuperfluidSystemTypes sft => AgreementContract (SubscriberContract sft)
                                    , sc_settled_value_per_unit = svpu
                                    } = sc
 
-    concatAgreementOperationOutput (SubscriberOperationOutputF a) (SubscriberOperationOutputF a') =
-        SubscriberOperationOutputF (a <> a')
-
     functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (SubscriberContract sft) = SettleSubscription
@@ -195,3 +192,6 @@ type SubscriberOperationOutput sft = AgreementOperationOutputF (SubscriberContra
     (PublisherMonetaryUnitData sft)
 
 instance SuperfluidSystemTypes sft => Default (SubscriberOperationOutput sft)
+instance SuperfluidSystemTypes sft => Monoid (SubscriberOperationOutput sft) where mempty = def
+instance SuperfluidSystemTypes sft => Semigroup (SubscriberOperationOutput sft) where
+    SubscriberOperationOutputF a <> SubscriberOperationOutputF a' = SubscriberOperationOutputF (a <> a')

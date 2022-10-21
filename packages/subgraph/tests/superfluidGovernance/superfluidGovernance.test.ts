@@ -14,7 +14,14 @@ import {
     handleTrustedForwarderChanged,
 } from "../../src/mappings/superfluidGovernance";
 import { eventBasePropertyAssertion } from "../assertionHelper";
-import { alice, bob, charlie, LIQUIDATION_PERIOD, PATRICIAN_PERIOD, TRUE } from "../constants";
+import {
+    charlie,
+    hostAddress,
+    LIQUIDATION_PERIOD,
+    maticx,
+    PATRICIAN_PERIOD,
+    TRUE,
+} from "../constants";
 import { keccak256String } from "../converters";
 import {
     createConfigChangedEvent,
@@ -31,8 +38,8 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
         });
 
         test("handleConfigChanged() - Should create a new ConfigChangedEvent entity", () => {
-            const host = alice;
-            const superToken = bob;
+            const host = hostAddress;
+            const superToken = maticx;
             const key = keccak256String(
                 "org.superfluid-finance.superfluid.trustedForwarder"
             );
@@ -61,8 +68,8 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
         });
 
         test("handleRewardAddressChanged() - Should create a new RewardAddressChangedEvent entity", () => {
-            const host = alice;
-            const superToken = bob;
+            const host = hostAddress;
+            const superToken = maticx;
             const isKeySet = true;
             const rewardAddress = charlie;
 
@@ -86,8 +93,8 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
         });
 
         test("handleCFAv1LiquidationPeriodChanged() - Should create a new CFAv1LiquidationPeriodChangedEvent entity", () => {
-            const host = alice;
-            const superToken = bob;
+            const host = hostAddress;
+            const superToken = maticx;
             const isKeySet = true;
 
             const CFAv1LiquidationPeriodChangedEvent = createCFAv1LiquidationPeriodChangedEvent(
@@ -110,8 +117,8 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
         });
 
         test("handlePPPConfigurationChanged() - Should create a new PPPConfigurationChangedEvent entity", () => {
-            const host = alice;
-            const superToken = bob;
+            const host = hostAddress;
+            const superToken = maticx;
             const isKeySet = true;
 
             const PPPConfigurationChangedEvent = createPPPConfigurationChangedEvent(
@@ -135,8 +142,8 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
         });
 
         test("handleTrustedForwarderChanged() - Should create a new TrustedForwarderChangedEvent entity", () => {
-            const host = alice;
-            const superToken = bob;
+            const host = hostAddress;
+            const superToken = maticx;
             const isKeySet = true;
             const forwarder = charlie;
             const enabled = true;

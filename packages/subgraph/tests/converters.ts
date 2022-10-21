@@ -13,8 +13,31 @@ import {
  * @returns Bytes
  */
 export function keccak256String(value: string): Bytes {
-    const bytesString = ByteArray.fromUTF8(value);
-    return Bytes.fromByteArray(crypto.keccak256(bytesString));
+    const byteArrayString = ByteArray.fromUTF8(value);
+    return Bytes.fromByteArray(crypto.keccak256(byteArrayString));
+}
+
+/**
+ * Takes a string and returns it as Bytes type.
+ * @param value string parameter value
+ * @returns Bytes
+ */
+export function stringToBytes(value: string): Bytes {
+    const byteArrayString = ByteArray.fromUTF8(value);
+    return Bytes.fromByteArray(byteArrayString);
+}
+
+/**
+ * Takes a string param and returns a string ethereum.EventParam object
+ * @param name the name of the parameter (must match actual value from contracts)
+ * @param value string parameter value
+ * @returns ethereum.EventParam
+ */
+export function getStringEventParam(
+    name: string,
+    value: string
+): ethereum.EventParam {
+    return new ethereum.EventParam(name, ethereum.Value.fromString(value));
 }
 
 /**

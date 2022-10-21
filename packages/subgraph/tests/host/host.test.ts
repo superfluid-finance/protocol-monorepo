@@ -15,15 +15,15 @@ import {
     handleSuperTokenLogicUpdated,
 } from "../../src/mappings/host";
 import {
-    createNewAgreementClassRegisteredEvent,
-    createNewAppRegisteredEvent,
-    createNewGovernanceReplacedEvent,
-    createNewJailEvent,
-    createNewSuperTokenFactoryUpdatedEvent,
-    createNewSuperTokenLogicUpdatedEvent,
+    createAgreementClassRegisteredEvent,
+    createAppRegisteredEvent,
+    createGovernanceReplacedEvent,
+    createJailEvent,
+    createSuperTokenFactoryUpdatedEvent,
+    createSuperTokenLogicUpdatedEvent,
 } from "./host.helper";
 import { alice, bob } from "../constants";
-import { eventBasePropertyAssertion } from "../assertionHelper";
+import { assertEventBaseProperties } from "../assertionHelper";
 
 describe("Host Mapper Unit Tests", () => {
     describe("Event Entity Mapping Tests", () => {
@@ -34,14 +34,14 @@ describe("Host Mapper Unit Tests", () => {
         test("handleGovernanceReplaced() - Should create a new GovernanceReplacedEvent entity", () => {
             const oldGov = alice;
             const newGov = bob;
-            const governanceReplacedEvent = createNewGovernanceReplacedEvent(
+            const governanceReplacedEvent = createGovernanceReplacedEvent(
                 oldGov,
                 newGov
             );
 
             handleGovernanceReplaced(governanceReplacedEvent);
 
-            const id = eventBasePropertyAssertion(
+            const id = assertEventBaseProperties(
                 governanceReplacedEvent,
                 "GovernanceReplaced"
             );
@@ -68,11 +68,11 @@ describe("Host Mapper Unit Tests", () => {
                 crypto.keccak256(bytesString)
             );
             const agreementClassRegisteredEvent =
-                createNewAgreementClassRegisteredEvent(agreementType, code);
+                createAgreementClassRegisteredEvent(agreementType, code);
 
             handleAgreementClassRegistered(agreementClassRegisteredEvent);
 
-            const id = eventBasePropertyAssertion(
+            const id = assertEventBaseProperties(
                 agreementClassRegisteredEvent,
                 "AgreementClassRegistered"
             );
@@ -93,11 +93,11 @@ describe("Host Mapper Unit Tests", () => {
         test("handleSuperTokenFactoryUpdated() - Should create a new SuperTokenFactoryUpdatedEvent entity", () => {
             const newFactory = alice;
             const SuperTokenFactoryUpdatedEvent =
-                createNewSuperTokenFactoryUpdatedEvent(newFactory);
+                createSuperTokenFactoryUpdatedEvent(newFactory);
 
             handleSuperTokenFactoryUpdated(SuperTokenFactoryUpdatedEvent);
 
-            const id = eventBasePropertyAssertion(
+            const id = assertEventBaseProperties(
                 SuperTokenFactoryUpdatedEvent,
                 "SuperTokenFactoryUpdated"
             );
@@ -113,11 +113,11 @@ describe("Host Mapper Unit Tests", () => {
             const token = alice;
             const code = token;
             const SuperTokenLogicUpdatedEvent =
-                createNewSuperTokenLogicUpdatedEvent(token, code);
+                createSuperTokenLogicUpdatedEvent(token, code);
 
             handleSuperTokenLogicUpdated(SuperTokenLogicUpdatedEvent);
 
-            const id = eventBasePropertyAssertion(
+            const id = assertEventBaseProperties(
                 SuperTokenLogicUpdatedEvent,
                 "SuperTokenLogicUpdated"
             );
@@ -126,11 +126,11 @@ describe("Host Mapper Unit Tests", () => {
 
         test("handleAppRegistered() - Should create a new AppRegisteredEvent entity", () => {
             const app = alice;
-            const AppRegisteredEvent = createNewAppRegisteredEvent(app);
+            const AppRegisteredEvent = createAppRegisteredEvent(app);
 
             handleAppRegistered(AppRegisteredEvent);
 
-            const id = eventBasePropertyAssertion(
+            const id = assertEventBaseProperties(
                 AppRegisteredEvent,
                 "AppRegistered"
             );
@@ -140,11 +140,11 @@ describe("Host Mapper Unit Tests", () => {
         test("handleJail() - Should create a new JailEvent entity", () => {
             const app = alice;
             const reason = BigInt.fromI32(10); // APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK
-            const JailEvent = createNewJailEvent(app, reason);
+            const JailEvent = createJailEvent(app, reason);
 
             handleJail(JailEvent);
 
-            const id = eventBasePropertyAssertion(JailEvent, "Jail");
+            const id = assertEventBaseProperties(JailEvent, "Jail");
             assert.fieldEquals("JailEvent", id, "app", app);
             assert.fieldEquals("JailEvent", id, "reason", reason.toString());
         });

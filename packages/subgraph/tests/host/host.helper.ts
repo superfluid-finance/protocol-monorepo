@@ -14,7 +14,7 @@ import {
     getUintEventParam,
 } from "../converters";
 
-export function createNewGovernanceReplacedEvent(
+export function createGovernanceReplacedEvent(
     oldGovernance: string,
     newGovernance: string
 ): GovernanceReplaced {
@@ -31,7 +31,7 @@ export function createNewGovernanceReplacedEvent(
     return newGovernanceReplacedEvent;
 }
 
-export function createNewAgreementClassRegisteredEvent(
+export function createAgreementClassRegisteredEvent(
     agreementType: Bytes,
     code: string
 ): AgreementClassRegistered {
@@ -50,7 +50,7 @@ export function createNewAgreementClassRegisteredEvent(
     return newAgreementClassRegisteredEvent;
 }
 
-export function createNewSuperTokenFactoryUpdatedEvent(
+export function createSuperTokenFactoryUpdatedEvent(
     newFactory: string
 ): SuperTokenFactoryUpdated {
     const newSuperTokenFactoryUpdatedEvent =
@@ -63,7 +63,7 @@ export function createNewSuperTokenFactoryUpdatedEvent(
     return newSuperTokenFactoryUpdatedEvent;
 }
 
-export function createNewSuperTokenLogicUpdatedEvent(
+export function createSuperTokenLogicUpdatedEvent(
     token: string,
     code: string
 ): SuperTokenLogicUpdated {
@@ -81,7 +81,7 @@ export function createNewSuperTokenLogicUpdatedEvent(
     return newSuperTokenLogicUpdatedEvent;
 }
 
-export function createNewAppRegisteredEvent(app: string): AppRegistered {
+export function createAppRegisteredEvent(app: string): AppRegistered {
     const newAppRegisteredEvent = changetype<AppRegistered>(newMockEvent());
 
     newAppRegisteredEvent.parameters = new Array();
@@ -91,7 +91,7 @@ export function createNewAppRegisteredEvent(app: string): AppRegistered {
     return newAppRegisteredEvent;
 }
 
-export function createNewJailEvent(app: string, reason: BigInt): Jail {
+export function createJailEvent(app: string, reason: BigInt): Jail {
     const newJailEvent = changetype<Jail>(newMockEvent());
 
     newJailEvent.parameters = new Array();

@@ -84,6 +84,8 @@ export function handleSet(event: Set): void {
             token.save();
         }
     }
+    resolverEntry.targetAddress = event.params.target;
+    resolverEntry.save();
 }
 
 function _createSetEvent(

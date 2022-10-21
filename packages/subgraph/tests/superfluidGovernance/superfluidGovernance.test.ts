@@ -13,7 +13,7 @@ import {
     handlePPPConfigurationChanged,
     handleTrustedForwarderChanged,
 } from "../../src/mappings/superfluidGovernance";
-import { eventBasePropertyAssertion } from "../assertionHelper";
+import { assertEventBaseProperties } from "../assertionHelper";
 import {
     charlie,
     hostAddress,
@@ -56,7 +56,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
 
             handleConfigChanged(ConfigChangedEvent);
 
-            const id = eventBasePropertyAssertion(
+            const id = assertEventBaseProperties(
                 ConfigChangedEvent,
                 "ConfigChanged"
             );
@@ -82,7 +82,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
 
             handleRewardAddressChanged(RewardAddressChangedEvent);
 
-            const id = eventBasePropertyAssertion(
+            const id = assertEventBaseProperties(
                 RewardAddressChangedEvent,
                 "RewardAddressChanged"
             );
@@ -106,7 +106,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
 
             handleCFAv1LiquidationPeriodChanged(CFAv1LiquidationPeriodChangedEvent);
 
-            const id = eventBasePropertyAssertion(
+            const id = assertEventBaseProperties(
                 CFAv1LiquidationPeriodChangedEvent,
                 "CFAv1LiquidationPeriodChanged"
             );
@@ -131,7 +131,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
 
             handlePPPConfigurationChanged(PPPConfigurationChangedEvent);
 
-            const id = eventBasePropertyAssertion(
+            const id = assertEventBaseProperties(
                 PPPConfigurationChangedEvent,
                 "PPPConfigurationChanged"
             );
@@ -158,7 +158,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
 
             handleTrustedForwarderChanged(TrustedForwarderChangedEvent);
 
-            const id = eventBasePropertyAssertion(
+            const id = assertEventBaseProperties(
                 TrustedForwarderChangedEvent,
                 "TrustedForwarderChanged"
             );

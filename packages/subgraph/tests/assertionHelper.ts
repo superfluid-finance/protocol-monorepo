@@ -4,6 +4,12 @@ import {
 } from "matchstick-as/assembly/index";
 import { createEventID, getOrder } from "../src/utils";
 
+/**
+ * Asserts that the "base" properties on our Event entity are correct
+ * @param event The event we are checking
+ * @param eventName The name of the event
+ * @returns The id of the event (based on our createEventID function)
+ */
 export function eventBasePropertyAssertion(event: ethereum.Event, eventName: string): string {
     const entityType = eventName + "Event";
     const id = createEventID(

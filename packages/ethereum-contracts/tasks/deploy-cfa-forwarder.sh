@@ -26,7 +26,7 @@ network=$1
 cfaAddr=$2
 
 # deploy
-#npx truffle exec --network $network scripts/deploy-deterministically.js : CFAv1Forwarder
+npx truffle exec --network $network scripts/deploy-deterministically.js : CFAv1Forwarder
 
 # verify (give it a few seconds to pick up the code)
 sleep 5

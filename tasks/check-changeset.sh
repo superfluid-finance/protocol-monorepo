@@ -20,6 +20,7 @@ function setBuildAll() {
     BUILD_ETHEREUM_CONTRACTS=1
     BUILD_SDK_CORE=1
     BUILD_SDK_REDUX=1
+    BUILD_SPEC_HASKELL=1
     BUILD_SUBGRAPH=1
     echo Everything will be tested.
 }
@@ -58,15 +59,10 @@ if ! [ -z "$GITHUB_ENV" ];then
         BUILD_SUBGRAPH=1
         echo Subgraph will be tested.
     fi
-    # if sdk-redux package changed
+    # if haskell spec package changed
     if grep -E "^packages/spec-haskell/(packages/|cabal.project)" changed-files.list;then
         BUILD_SPEC_HASKELL=1
         echo SPEC-HASKELL will be tested.
-    fi
-    # if any exapmle project changed
-    if grep -E "^examples/" changed-files.list;then
-        BUILD_EXAMPLES=1
-        echo Examples will be tested.
     fi
 
     echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}" >> $GITHUB_ENV
@@ -74,7 +70,6 @@ if ! [ -z "$GITHUB_ENV" ];then
     echo "BUILD_SDK_REDUX=${BUILD_SDK_REDUX}" >> $GITHUB_ENV
     echo "BUILD_SUBGRAPH=${BUILD_SUBGRAPH}" >> $GITHUB_ENV
     echo "BUILD_SPEC_HASKELL=${BUILD_SPEC_HASKELL}" >> $GITHUB_ENV
-    echo "BUILD_EXAMPLES=${BUILD_EXAMPLES}" >> $GITHUB_ENV
     if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ];then
         echo PR packages will be published.
         echo "PUBLISH_PR_ARTIFACT=1" >> $GITHUB_ENV

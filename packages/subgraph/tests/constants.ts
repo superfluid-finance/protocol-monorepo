@@ -20,5 +20,6 @@ export const hostAddress = "0x3e14dc1b13c488a8d5d310918780c983bd5982e7";
 export const cfaV1Address = "0x6eee6060f715257b970700bc2656de21dedf074c";
 export const idaV1Address = "0xb0aabba4b2783a72c52956cdef62d438eca2d7a1";
 export const superTokenFactoryAddress = "0x2c90719f25b10fc5646c82da3240c76fa5bccf34";
+export const superTokenLogicAddress = "0xd15c6953c0a7fcc324e835f397496d53751441e2";
 export const resolverAddress = "0xe0cc76334405ee8b39213e620587d815967af39c";
 export const maticx = "0x3ad736904e9e65189c3000c7dd2c8ac8bb7cd4e3";

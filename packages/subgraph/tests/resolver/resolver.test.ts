@@ -64,11 +64,11 @@ describe("Resolver Mapper Unit Tests", () => {
         test("handleSet() - Should create a new SetEvent entity", () => {
             const name = stringToBytes("supertokens.v1.maticx");
             const target = maticx;
-            const SetEvent = createSetEvent(name, target);
+            const setEvent = createSetEvent(name, target);
 
-            handleSet(SetEvent);
+            handleSet(setEvent);
 
-            const id = assertEventBaseProperties(SetEvent, "Set");
+            const id = assertEventBaseProperties(setEvent, "Set");
             assert.fieldEquals(
                 "SetEvent",
                 id,

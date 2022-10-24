@@ -92,13 +92,13 @@ describe("Host Mapper Unit Tests", () => {
 
         test("handleSuperTokenFactoryUpdated() - Should create a new SuperTokenFactoryUpdatedEvent entity", () => {
             const newFactory = alice;
-            const SuperTokenFactoryUpdatedEvent =
+            const superTokenFactoryUpdatedEvent =
                 createSuperTokenFactoryUpdatedEvent(newFactory);
 
-            handleSuperTokenFactoryUpdated(SuperTokenFactoryUpdatedEvent);
+            handleSuperTokenFactoryUpdated(superTokenFactoryUpdatedEvent);
 
             const id = assertEventBaseProperties(
-                SuperTokenFactoryUpdatedEvent,
+                superTokenFactoryUpdatedEvent,
                 "SuperTokenFactoryUpdated"
             );
             assert.fieldEquals(
@@ -112,13 +112,13 @@ describe("Host Mapper Unit Tests", () => {
         test("handleSuperTokenLogicUpdated() - Should create a new SuperTokenLogicUpdatedEvent entity", () => {
             const token = alice;
             const code = token;
-            const SuperTokenLogicUpdatedEvent =
+            const superTokenLogicUpdatedEvent =
                 createSuperTokenLogicUpdatedEvent(token, code);
 
-            handleSuperTokenLogicUpdated(SuperTokenLogicUpdatedEvent);
+            handleSuperTokenLogicUpdated(superTokenLogicUpdatedEvent);
 
             const id = assertEventBaseProperties(
-                SuperTokenLogicUpdatedEvent,
+                superTokenLogicUpdatedEvent,
                 "SuperTokenLogicUpdated"
             );
             assert.fieldEquals("SuperTokenLogicUpdatedEvent", id, "code", code);
@@ -126,12 +126,12 @@ describe("Host Mapper Unit Tests", () => {
 
         test("handleAppRegistered() - Should create a new AppRegisteredEvent entity", () => {
             const app = alice;
-            const AppRegisteredEvent = createAppRegisteredEvent(app);
+            const appRegisteredEvent = createAppRegisteredEvent(app);
 
-            handleAppRegistered(AppRegisteredEvent);
+            handleAppRegistered(appRegisteredEvent);
 
             const id = assertEventBaseProperties(
-                AppRegisteredEvent,
+                appRegisteredEvent,
                 "AppRegistered"
             );
             assert.fieldEquals("AppRegisteredEvent", id, "app", app);

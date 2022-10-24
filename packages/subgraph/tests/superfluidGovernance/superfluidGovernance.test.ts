@@ -46,7 +46,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             const isKeySet = true;
             const value = BigInt.fromI32(1);
 
-            const ConfigChangedEvent = createConfigChangedEvent(
+            const configChangedEvent = createConfigChangedEvent(
                 host,
                 superToken,
                 key,
@@ -54,10 +54,10 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
                 value
             );
 
-            handleConfigChanged(ConfigChangedEvent);
+            handleConfigChanged(configChangedEvent);
 
             const id = assertEventBaseProperties(
-                ConfigChangedEvent,
+                configChangedEvent,
                 "ConfigChanged"
             );
             assert.fieldEquals("ConfigChangedEvent", id, "host", host);
@@ -73,17 +73,17 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             const isKeySet = true;
             const rewardAddress = charlie;
 
-            const RewardAddressChangedEvent = createRewardAddressChangedEvent(
+            const rewardAddressChangedEvent = createRewardAddressChangedEvent(
                 host,
                 superToken,
                 isKeySet,
                 rewardAddress
             );
 
-            handleRewardAddressChanged(RewardAddressChangedEvent);
+            handleRewardAddressChanged(rewardAddressChangedEvent);
 
             const id = assertEventBaseProperties(
-                RewardAddressChangedEvent,
+                rewardAddressChangedEvent,
                 "RewardAddressChanged"
             );
             assert.fieldEquals("RewardAddressChangedEvent", id, "host", host);
@@ -97,17 +97,17 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             const superToken = maticx;
             const isKeySet = true;
 
-            const CFAv1LiquidationPeriodChangedEvent = createCFAv1LiquidationPeriodChangedEvent(
+            const cfaV1LiquidationPeriodChangedEvent = createCFAv1LiquidationPeriodChangedEvent(
                 host,
                 superToken,
                 isKeySet,
                 LIQUIDATION_PERIOD
             );
 
-            handleCFAv1LiquidationPeriodChanged(CFAv1LiquidationPeriodChangedEvent);
+            handleCFAv1LiquidationPeriodChanged(cfaV1LiquidationPeriodChangedEvent);
 
             const id = assertEventBaseProperties(
-                CFAv1LiquidationPeriodChangedEvent,
+                cfaV1LiquidationPeriodChangedEvent,
                 "CFAv1LiquidationPeriodChanged"
             );
             assert.fieldEquals("CFAv1LiquidationPeriodChangedEvent", id, "host", host);
@@ -121,7 +121,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             const superToken = maticx;
             const isKeySet = true;
 
-            const PPPConfigurationChangedEvent = createPPPConfigurationChangedEvent(
+            const pppConfigurationChangedEvent = createPPPConfigurationChangedEvent(
                 host,
                 superToken,
                 isKeySet,
@@ -129,10 +129,10 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
                 PATRICIAN_PERIOD
             );
 
-            handlePPPConfigurationChanged(PPPConfigurationChangedEvent);
+            handlePPPConfigurationChanged(pppConfigurationChangedEvent);
 
             const id = assertEventBaseProperties(
-                PPPConfigurationChangedEvent,
+                pppConfigurationChangedEvent,
                 "PPPConfigurationChanged"
             );
             assert.fieldEquals("PPPConfigurationChangedEvent", id, "host", host);
@@ -148,7 +148,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             const forwarder = charlie;
             const enabled = true;
 
-            const TrustedForwarderChangedEvent = createTrustedForwarderChangedEvent(
+            const trustedForwarderChangedEvent = createTrustedForwarderChangedEvent(
                 host,
                 superToken,
                 isKeySet,
@@ -156,10 +156,10 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
                 enabled
             );
 
-            handleTrustedForwarderChanged(TrustedForwarderChangedEvent);
+            handleTrustedForwarderChanged(trustedForwarderChangedEvent);
 
             const id = assertEventBaseProperties(
-                TrustedForwarderChangedEvent,
+                trustedForwarderChangedEvent,
                 "TrustedForwarderChanged"
             );
             assert.fieldEquals("TrustedForwarderChangedEvent", id, "host", host);

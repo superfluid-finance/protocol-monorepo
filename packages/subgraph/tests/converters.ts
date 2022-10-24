@@ -75,7 +75,7 @@ export function getBytesEventParam(
  * @param value BigInt parameter value
  * @returns ethereum.EventParam
  */
-export function getUintEventParam(
+export function getBigIntEventParam(
     name: string,
     value: BigInt
 ): ethereum.EventParam {
@@ -83,6 +83,19 @@ export function getUintEventParam(
         name,
         ethereum.Value.fromUnsignedBigInt(value)
     );
+}
+
+/**
+ * Takes an i32 value and returns an i32 ethereum.EventParam object
+ * @param name the name of the parameter (must match actual value from contracts)
+ * @param value i32 parameter value
+ * @returns ethereum.EventParam
+ */
+export function getI32EventParam(
+    name: string,
+    value: i32
+): ethereum.EventParam {
+    return new ethereum.EventParam(name, ethereum.Value.fromI32(value));
 }
 
 /**

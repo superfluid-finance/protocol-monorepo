@@ -11,7 +11,7 @@ import {
 import {
     getAddressEventParam,
     getBytesEventParam,
-    getUintEventParam,
+    getBigIntEventParam,
 } from "../converters";
 
 export function createGovernanceReplacedEvent(
@@ -96,7 +96,7 @@ export function createJailEvent(app: string, reason: BigInt): Jail {
 
     newJailEvent.parameters = new Array();
     const appParam = getAddressEventParam("app", app);
-    const reasonParam = getUintEventParam("reason", reason);
+    const reasonParam = getBigIntEventParam("reason", reason);
     newJailEvent.parameters.push(appParam);
     newJailEvent.parameters.push(reasonParam);
 

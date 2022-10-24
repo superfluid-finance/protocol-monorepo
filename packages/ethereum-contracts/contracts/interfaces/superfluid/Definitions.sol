@@ -313,6 +313,8 @@ library SuperfluidErrors {
     uint256 constant internal SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS = 6505;
 
     // 7000 - 7999 | SuperToken Factory
+    uint256 constant internal SUPER_TOKEN_FACTORY_ALREADY_EXISTS = 7000;
+
     uint256 constant internal SUPER_TOKEN_FACTORY_ONLY_HOST = 7400;
 
     uint256 constant internal SUPER_TOKEN_FACTORY_ZERO_ADDRESS = 7500;

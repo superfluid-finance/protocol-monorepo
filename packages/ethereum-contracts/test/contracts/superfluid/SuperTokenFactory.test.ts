@@ -341,12 +341,18 @@ describe("SuperTokenFactory Contract", function () {
                             deployUnderlyingTokenPromises
                         );
 
+                        expect(
+                            await superTokenFactoryMock.getCanonicalERC20Wrapper(
+                                underlyingTokens[0].address
+                            )
+                        ).to.equal(ethers.constants.AddressZero);
+
                         // create compute wrapper super token address promises
                         const addressPromises = underlyingTokens.map(
                             async (x) => ({
                                 underlyingToken: x.address,
                                 superToken: (
-                                    await factory.computeWrapperSuperTokenAddress(
+                                    await factory.computeCanonicalERC20WrapperAddress(
                                         x.address
                                     )
                                 ).superTokenAddress,
@@ -358,11 +364,17 @@ describe("SuperTokenFactory Contract", function () {
                         await superTokenFactoryMock.initializeCanonicalWrapperSuperTokens(
                             addresses
                         );
+
+                        expect(
+                            await superTokenFactoryMock.getCanonicalERC20Wrapper(
+                                addresses[0].underlyingToken
+                            )
+                        ).to.equal(addresses[0].superToken);
                     });
 
                     it("#2.d.1c it should throw if already set", async () => {
                         const computedTokenAddress =
-                            await factory.computeWrapperSuperTokenAddress(
+                            await factory.computeCanonicalERC20WrapperAddress(
                                 token1.address
                             );
                         await factory.createCanonicalERC20Wrapper(
@@ -389,28 +401,35 @@ describe("SuperTokenFactory Contract", function () {
 
             it("#2.d.2 it should properly compute address and use create2", async () => {
                 const computedTokenAddress =
-                    await factory.computeWrapperSuperTokenAddress(
+                    await factory.computeCanonicalERC20WrapperAddress(
                         token1.address
                     );
+
+                expect(
+                    await factory.getCanonicalERC20Wrapper(token1.address)
+                ).to.equal(ethers.constants.AddressZero);
+
                 await expect(
                     factory.createCanonicalERC20Wrapper(token1.address)
                 )
                     .to.emit(factory, "SuperTokenCreated")
                     .withArgs(computedTokenAddress.superTokenAddress);
-                expect(computedTokenAddress.isDeployedAndCanonical).to.equal(
-                    false
-                );
+                expect(computedTokenAddress.isDeployed).to.equal(false);
+
+                expect(
+                    await factory.getCanonicalERC20Wrapper(token1.address)
+                ).to.equal(computedTokenAddress.superTokenAddress);
 
                 const deployedToken =
-                    await factory.computeWrapperSuperTokenAddress(
+                    await factory.computeCanonicalERC20WrapperAddress(
                         token1.address
                     );
-                expect(deployedToken.isDeployedAndCanonical).to.equal(true);
+                expect(deployedToken.isDeployed).to.equal(true);
             });
 
             it("#2.d.3 it should not be able to create token twice in a row", async () => {
                 const computedTokenAddress =
-                    await factory.computeWrapperSuperTokenAddress(
+                    await factory.computeCanonicalERC20WrapperAddress(
                         token1.address
                     );
                 // initial creation should emit event
@@ -420,15 +439,18 @@ describe("SuperTokenFactory Contract", function () {
                     .to.emit(factory, "SuperTokenCreated")
                     .withArgs(computedTokenAddress.superTokenAddress);
 
-                // subsequent attempt doesn't throw, but does not create AND does not emit event
-                await expect(
-                    factory.createCanonicalERC20Wrapper(token1.address)
-                ).to.not.emit(factory, "SuperTokenCreated");
+                // subsequent attempt reverts
+                await expectCustomError(
+                    factory.createCanonicalERC20Wrapper(token1.address),
+                    factory,
+                    "ALREADY_EXISTS",
+                    t.customErrorCode.SUPER_TOKEN_FACTORY_ALREADY_EXISTS
+                );
             });
 
             it("#2.d.4 it should be able to create multiple canonical erc20 wrappers", async () => {
                 const computedToken1Address =
-                    await factory.computeWrapperSuperTokenAddress(
+                    await factory.computeCanonicalERC20WrapperAddress(
                         token1.address
                     );
                 await expect(
@@ -444,7 +466,7 @@ describe("SuperTokenFactory Contract", function () {
                     ethers.utils.parseUnits((1e12).toString())
                 );
                 const computedToken2Address =
-                    await factory.computeWrapperSuperTokenAddress(
+                    await factory.computeCanonicalERC20WrapperAddress(
                         token2.address
                     );
                 await expect(

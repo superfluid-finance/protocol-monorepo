@@ -101,9 +101,9 @@ abstract contract SuperTokenFactoryBase is
                 underlyingTokenAddress
             ];
 
-        // if the canonical super token address exists, just return
+        // if the canonical super token address exists, revert with custom error
         if (canonicalSuperTokenAddress != address(0)) {
-            return ISuperToken(canonicalSuperTokenAddress);
+            revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.SUPER_TOKEN_FACTORY_ALREADY_EXISTS);
         }
 
         // use create2 to deterministically create the proxy contract for the wrapper super token
@@ -211,10 +211,10 @@ abstract contract SuperTokenFactoryBase is
     }
 
     /// @inheritdoc ISuperTokenFactory
-    function computeWrapperSuperTokenAddress(address _underlyingToken)
+    function computeCanonicalERC20WrapperAddress(address _underlyingToken)
         external
         view
-        returns (address superTokenAddress, bool isDeployedAndCanonical)
+        returns (address superTokenAddress, bool isDeployed)
     {
         address existingAddress = _canonicalWrapperSuperTokens[
             _underlyingToken
@@ -222,7 +222,7 @@ abstract contract SuperTokenFactoryBase is
 
         if (existingAddress != address(0)) {
             superTokenAddress = existingAddress;
-            isDeployedAndCanonical = true;
+            isDeployed = true;
         } else {
             bytes memory bytecode = type(UUPSProxy).creationCode;
             superTokenAddress = address(
@@ -239,8 +239,19 @@ abstract contract SuperTokenFactoryBase is
                     )
                 )
             );
-            isDeployedAndCanonical = false;
+            isDeployed = false;
         }
+    }
+
+    /// @inheritdoc ISuperTokenFactory
+    function getCanonicalERC20Wrapper(address _underlyingTokenAddress)
+        external
+        view
+        returns (address superTokenAddress)
+    {
+        superTokenAddress = _canonicalWrapperSuperTokens[
+            _underlyingTokenAddress
+        ];
     }
 
     /// @dev This is virtual so that SuperTokenFactoryMock can test it

@@ -83,6 +83,6 @@
         "solidity-coverage": "0.8.0",
         "solidity-docgen": "^0.6.0-beta.25",
         "truffle-flattener": "^1.6.0",
-        "truffle-plugin-verify": "0.5.28"
+        "truffle-plugin-verify": "0.5.31"
     }
 }

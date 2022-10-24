@@ -129,7 +129,6 @@ function createNetworkDefaultConfiguration(
 const E = (module.exports = {
     plugins: [
         //"truffle-security",
-        "solidity-coverage",
         "truffle-plugin-verify",
     ],
     /**

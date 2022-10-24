@@ -451,17 +451,24 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     }
 
-    // deploy CFAv1Forwarder
-    await deployAndRegisterContractIf(
-        CFAv1Forwarder,
-        "CFAv1Forwarder",
-        async (contractAddress) => contractAddress === ZERO_ADDRESS,
-        async () => {
-            const forwarder = await CFAv1Forwarder.new(superfluid.address);
-            output += `CFA_V1_FORWARDER=${forwarder.address}\n`;
-            return forwarder;
-        }
-    );
+    // deploy CFAv1Forwarder for test deployments
+    // for other (permanent) deployments, it's not handled by this script
+    if (protocolReleaseVersion === "test") {
+        await deployAndRegisterContractIf(
+            CFAv1Forwarder,
+            "CFAv1Forwarder",
+            async (contractAddress) => contractAddress === ZERO_ADDRESS,
+            async () => {
+                const forwarder = await CFAv1Forwarder.new(superfluid.address);
+                output += `CFA_V1_FORWARDER=${forwarder.address}\n`;
+                await web3tx(
+                    governance.enableTrustedForwarder,
+                    "Governance set CFAv1Forwarder"
+                )(superfluid.address, ZERO_ADDRESS, forwarder.address);
+                return forwarder;
+            }
+        );
+    }
 
     let superfluidNewLogicAddress = ZERO_ADDRESS;
     const agreementsToUpdate = [];

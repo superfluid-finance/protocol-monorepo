@@ -18,6 +18,9 @@ const {
  *        use TOKEN ADDRESS 0x0000000000000000000000000000000000000000 to set for all tokens.
  *        If ENABLE is 1, the forwarder is enabled; if ENABLE is 0, the forwarder is disabled.
  *
+ * ENV vars:
+ *     GOVERNANCE_ADMIN_TYPE needs to be set to MULTISIG for networks with multisig owned governance
+ *
  * Make sure to only set forwarders which can be fully trusted!
  */
 module.exports = eval(`(${S.toString()})()`)(async function (

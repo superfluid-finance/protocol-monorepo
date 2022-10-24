@@ -16,7 +16,9 @@ import           Lens.Internal
 import           Money.Systems.Superfluid.SystemTypes
 
 
-class (Default amuLs, SuperfluidSystemTypes sft) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
+class ( Default amuLs
+      , SuperfluidSystemTypes sft
+      ) => MonetaryUnitLenses amuLs sft | amuLs -> sft where
     decayingFactor  :: Lens' amuLs (SFT_FLOAT sft)
     settledAt       :: Lens' amuLs (SFT_TS sft)
     αVal            :: Lens' amuLs (SFT_FLOAT sft)
@@ -34,7 +36,7 @@ instance MonetaryUnitLenses amuLs sft => Semigroup (MonetaryUnitData amuLs sft) 
     --     }
     --     where { t_s = t_s,  αVal = α,  εVal = ε  } = a
     --           { t_s = t_s', αVal = α', εVal = ε' } = b
-    (<>) (MkMonetaryUnitData a) (MkMonetaryUnitData b) =
+    MkMonetaryUnitData a <> MkMonetaryUnitData b =
         let c = a & set  settledAt     (b^.settledAt)
                   & over αVal          (\α -> α * exp (-λ * t_Δ) - ε')
                   & over εVal          (+ ε')

@@ -6,7 +6,7 @@
 -- | Instant transferring agreement.
 --
 -- This module is typically imported using qualified name MINTA.
-module Money.Systems.Superfluid.Agreements.MinterAgreement where
+module Money.Systems.Superfluid.Agreements.Universal.MinterAgreement where
 
 import           Data.Coerce                                           (coerce)
 import           Data.Default
@@ -59,21 +59,21 @@ instance SuperfluidSystemTypes sft => AgreementContract (ContractData sft) sft w
                 (def & set MVMUD.untappedValue (coerce (- amount))))
         in (ac', mudsΔ)
 
-    concatAgreementOperationOutput (OperationOutputF a b) (OperationOutputF a' b') =
-        OperationOutputF (a <> a') (b <> b')
-
     functorizeAgreementOperationOutput p = fmap (mkAny p)
 
     data AgreementOperation (ContractData sft) = Mint (SFT_MVAL sft) |
                                                  Burn (SFT_MVAL sft)
 
-    type AgreementOperationOutput (ContractData sft) = OperationOutputF sft
+    type AgreementOperationOutput (ContractData sft) = OperationOutput sft
 
     data AgreementOperationOutputF (ContractData sft) elem = OperationOutputF
         { mint_from :: elem
         , mint_to   :: elem
         } deriving stock (Functor, Foldable, Traversable, Generic)
 
-type OperationOutputF sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
+type OperationOutput sft = AgreementOperationOutputF (ContractData sft) (MonetaryUnitData sft)
 
-instance SuperfluidSystemTypes sft => Default (OperationOutputF sft)
+instance SuperfluidSystemTypes sft => Default (OperationOutput sft)
+instance SuperfluidSystemTypes sft => Monoid (OperationOutput sft) where mempty = def
+instance SuperfluidSystemTypes sft => Semigroup (OperationOutput sft) where
+    OperationOutputF a b <> OperationOutputF a' b' = OperationOutputF (a <> a') (b <> b')

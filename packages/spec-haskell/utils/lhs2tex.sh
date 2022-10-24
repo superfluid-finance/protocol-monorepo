@@ -1,15 +1,20 @@
 #!/bin/sh
 
-cd "$(dirname "$0")"/..
-
-LHS_FILE=$1
+LHS_FILE=$(readlink -f "$1")
 [ -f "$LHS_FILE" ] || exit 1
 
-TEX_FILE="$(basename $LHS_FILE)"
+cd "$(dirname "$0")"/..
 
 {
     cat $1
-} | \
-    sed -e '/\s*--.*/d' | # quirk: fix for haskell comments
-    sed -e 's/\\begin{code}/\\begin{minted}{haskell}/g' -e 's/\\end{code}/\\end{minted}/g' | # quirk: fix for haskell code blocks
-    cat
+} | sed "1 d" | # remove emacs mode-line
+    awk '
+    /\\begin{haddock}/ { h = 1; next }
+    /\\end{haddock}/   { h = 0; next }
+    /\\begin{code}/    { if (h) next }
+    /\\end{code}/      { if (h) next }
+    /^{-/  { if (h) next }
+    /^-}/  { if (h) next }
+    /^--}/ { if (h) next }
+    { print $0 }' | # process haddock documentation
+    cat # nop, just to rhyme.

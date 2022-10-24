@@ -38,41 +38,46 @@ module Money.Systems.Superfluid.Instances.Simple.Types
     , ProportionalDistributionIndexID
     ) where
 
-import           Control.Applicative                                                        (Applicative (..))
+import           Control.Applicative
+    ( Applicative (..)
+    )
 import           Data.Binary
 import           Data.Coerce
 import           Data.Default
-import           Data.Foldable                                                              (toList)
-import           Data.List                                                                  (intercalate)
+import           Data.Foldable                                                                                  (toList)
+import           Data.List
+    ( intercalate
+    )
 import           Data.Proxy
 import           Data.Type.Any
 import           Data.Type.TaggedTypeable
-import           GHC.Generics                                                               (Generic)
+import           GHC.Generics
+    ( Generic
+    )
 import           Lens.Internal
-import           Text.Printf                                                                (printf)
+import           Text.Printf                                                                                    (printf)
 
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                     as CFMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow                     as DFMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue                     as IVMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                      as MVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                                         as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.DecayingFlow                                         as DFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.InstantValue                                         as IVMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                                          as MVMUD
 --
 
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionCommon as PDCOMMON
-
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                  as CFA
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement      as CFDA
-import qualified Money.Systems.Superfluid.Agreements.DecayingFlowAgreement                  as DFA
-import qualified Money.Systems.Superfluid.Agreements.InstantDistributionAgreement           as IDA
-import qualified Money.Systems.Superfluid.Agreements.InstantTransferAgreement               as ITA
-import qualified Money.Systems.Superfluid.Agreements.MinterAgreement                        as MINTA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.Common                            as PDCOMMON
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement as CFDA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.InstantDistributionAgreement      as IDA
+import qualified Money.Systems.Superfluid.Agreements.Universal.ConstantFlowAgreement                            as CFA
+import qualified Money.Systems.Superfluid.Agreements.Universal.DecayingFlowAgreement                            as DFA
+import qualified Money.Systems.Superfluid.Agreements.Universal.InstantTransferAgreement                         as ITA
+import qualified Money.Systems.Superfluid.Agreements.Universal.MinterAgreement                                  as MINTA
 --
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex  as PDIDX
-import qualified Money.Systems.Superfluid.Agreements.Indexes.UniversalIndex                 as UIDX
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex                              as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.UniversalIndex                                             as UIDX
 --
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                    as BBS
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                                        as BBS
 
 
 -- =====================================================================================================================
@@ -84,7 +89,7 @@ import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency        
 --   - Name is a monicker of MakerDAO v1 WAD type.
 
 newtype Wad = Wad Integer
-    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Binary, Value)
+    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Binary, MonetaryValue)
 
 toWad :: (RealFrac a) => a -> Wad
 toWad x = Wad (round $ x * (10 ^ (18::Integer)))

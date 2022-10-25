@@ -19,8 +19,7 @@ import {
     TransferEvent,
 } from "../../generated/schema";
 import {
-    createEventID,
-    getOrder,
+    initializeEventEntity,
     tokenHasValidHost,
     ZERO_ADDRESS,
 } from "../utils";
@@ -285,22 +284,13 @@ function updateHOLEntitiesForLiquidation(
 function _createAgreementLiquidatedByEventEntity(
     event: AgreementLiquidatedBy
 ): void {
-    let ev = new AgreementLiquidatedByEvent(
-        createEventID("AgreementLiquidatedBy", event)
-    );
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "AgreementLiquidatedBy";
-    ev.addresses = [
+    const ev = initializeEventEntity("AgreementLiquidatedBy", event, [
         event.address,
         event.params.liquidatorAccount,
         event.params.penaltyAccount,
         event.params.bondAccount,
-    ];
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
+    ]) as AgreementLiquidatedByEvent;
+
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
@@ -315,22 +305,13 @@ function _createAgreementLiquidatedByEventEntity(
 function _createAgreementLiquidatedV2EventEntity(
     event: AgreementLiquidatedV2
 ): void {
-    let ev = new AgreementLiquidatedV2Event(
-        createEventID("AgreementLiquidatedV2", event)
-    );
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "AgreementLiquidatedV2";
-    ev.addresses = [
+    const ev = initializeEventEntity("AgreementLiquidatedV2", event, [
         event.address,
         event.params.liquidatorAccount,
         event.params.targetAccount,
         event.params.rewardAmountReceiver,
-    ];
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
+    ]) as AgreementLiquidatedV2Event;
+
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
@@ -360,15 +341,11 @@ function _createAgreementLiquidatedV2EventEntity(
 }
 
 function _createBurnedEventEntity(event: Burned): void {
-    let ev = new BurnedEvent(createEventID("Burned", event));
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "Burned";
-    ev.addresses = [event.address, event.params.from];
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
+    const ev = initializeEventEntity("Burned", event, [
+        event.address,
+        event.params.from,
+    ]) as BurnedEvent;
+
     ev.token = event.address;
     ev.operator = event.params.operator;
     ev.from = event.params.from;
@@ -379,15 +356,12 @@ function _createBurnedEventEntity(event: Burned): void {
 }
 
 function _createMintedEventEntity(event: Minted): void {
-    let ev = new MintedEvent(createEventID("Minted", event));
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "Minted";
-    ev.addresses = [event.address, event.params.operator, event.params.to];
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
+    const ev = initializeEventEntity("Minted", event, [
+        event.address,
+        event.params.operator,
+        event.params.to,
+    ]) as MintedEvent;
+
     ev.token = event.address;
     ev.operator = event.params.operator;
     ev.to = event.params.to;
@@ -398,15 +372,11 @@ function _createMintedEventEntity(event: Minted): void {
 }
 
 function _createSentEventEntity(event: Sent): void {
-    let ev = new SentEvent(createEventID("Sent", event));
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "Sent";
-    ev.addresses = [event.address, event.params.operator, event.params.to];
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
+    const ev = initializeEventEntity("Sent", event, [
+        event.address,
+        event.params.operator,
+        event.params.to,
+    ]) as SentEvent;
     ev.amount = event.params.amount;
     ev.data = event.params.data;
     ev.token = event.address;
@@ -418,51 +388,35 @@ function _createSentEventEntity(event: Sent): void {
 }
 
 function _createTokenUpgradedEventEntity(event: TokenUpgraded): void {
-    let ev = new TokenUpgradedEvent(createEventID("TokenUpgraded", event));
-    ev.account = event.params.account.toHex();
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "TokenUpgraded";
-    ev.addresses = [event.address, event.params.account];
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
+    const ev = initializeEventEntity("TokenUpgraded", event, [
+        event.address,
+        event.params.account,
+    ]) as TokenUpgradedEvent;
+
     ev.token = event.address;
     ev.amount = event.params.amount;
     ev.save();
 }
 
 function _createTokenDowngradedEventEntity(event: TokenDowngraded): void {
-    let ev = new TokenDowngradedEvent(createEventID("TokenDowngraded", event));
-    ev.account = event.params.account.toHex();
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "TokenDowngraded";
-    ev.addresses = [event.address, event.params.account];
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
+    const ev = initializeEventEntity("TokenDowngraded", event, [
+        event.address,
+        event.params.account,
+    ]) as TokenDowngradedEvent;
     ev.token = event.address;
     ev.amount = event.params.amount;
     ev.save();
 }
 
 function _createTransferEventEntity(event: Transfer): void {
-    let ev = new TransferEvent(createEventID("Transfer", event));
-    let value = event.params.value;
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "Transfer";
-    ev.addresses = [event.address, event.params.from, event.params.to];
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
+    const ev = initializeEventEntity("Transfer", event, [
+        event.address,
+        event.params.from,
+        event.params.to,
+    ]) as TransferEvent;
     ev.from = event.params.from.toHex();
     ev.to = event.params.to.toHex();
-    ev.value = value;
+    ev.value = event.params.value;
     ev.token = event.address;
     ev.save();
 }

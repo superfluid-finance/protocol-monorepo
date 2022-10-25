@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, ethereum, log } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, Entity, ethereum, log, Value } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { Resolver } from "../generated/ResolverV1/Resolver";
 import {
@@ -41,6 +41,31 @@ export function createEventID(
         event.logIndex.toString()
     );
 }
+
+/**
+ * Initialize event and its base properties on Event interface.
+ * @param name the name of the event
+ * @param event the ethereum.Event object
+ * @param addresses the addresses array
+ * @returns Entity to be casted as original Event type
+ */
+export function initializeEventEntity(
+    name: string,
+    event: ethereum.Event,
+    addresses: Bytes[]
+  ): Entity {
+    const entity = new Entity();
+    entity.set("id", Value.fromString(createEventID(name, event)));
+    entity.set("blockNumber", Value.fromBigInt(event.block.number));
+    entity.set("logIndex", Value.fromBigInt(event.logIndex));
+    entity.set("order", Value.fromBigInt(getOrder(event.block.number, event.logIndex)));
+    entity.set("name", Value.fromString(name));
+    entity.set("addresses", Value.fromBytesArray(addresses));
+    entity.set("timestamp", Value.fromBigInt(event.block.timestamp));
+    entity.set("transactionHash", Value.fromBytes(event.transaction.hash));
+    entity.set("gasPrice", Value.fromBigInt(event.block.number));
+    return entity;
+  }
 
 /**************************************************************************
  * HOL entities util functions

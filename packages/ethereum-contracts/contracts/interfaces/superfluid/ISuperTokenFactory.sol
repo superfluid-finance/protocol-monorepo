@@ -41,7 +41,7 @@ interface ISuperTokenFactory {
         /// Upgradable through `host.updateSuperTokenLogic` operation
         SEMI_UPGRADABLE,
         /// Always using the latest super token logic
-        FULL_UPGRADABE
+        FULL_UPGRADABLE
     }
 
     /**

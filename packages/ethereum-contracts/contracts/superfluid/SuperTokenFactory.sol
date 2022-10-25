@@ -183,7 +183,7 @@ abstract contract SuperTokenFactoryBase is
             // initialize the wrapper
             proxy.initializeProxy(address(_superTokenLogic));
             superToken = ISuperToken(address(proxy));
-        } else /* if (type == Upgradability.FULL_UPGRADABE) */ {
+        } else /* if (type == Upgradability.FULL_UPGRADABLE) */ {
             FullUpgradableSuperTokenProxy proxy = new FullUpgradableSuperTokenProxy();
             proxy.initialize();
             superToken = ISuperToken(address(proxy));

@@ -9,7 +9,8 @@ import {
     SuperfluidErrors
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
 
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperfluid, ISuperfluidGovernance } from "../interfaces/superfluid/ISuperfluid.sol";
+import { SuperfluidGovernanceII } from "../gov/SuperfluidGovernanceII.sol";
 
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
@@ -23,6 +24,11 @@ abstract contract SuperTokenFactoryBase is
     ISuperTokenFactory
 {
 
+    /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
+        Always double-check that new
+        variables are added APPEND-ONLY. Re-ordering variables can
+        permanently BREAK the deployed proxy contract. */
+
     ISuperfluid immutable internal _host;
 
     ISuperToken internal _superTokenLogic;
@@ -32,11 +38,22 @@ abstract contract SuperTokenFactoryBase is
     /// @dev (2) prevent address retrieval issues if we ever choose to modify the bytecode of the UUPSProxy contract
     /// @dev NOTE: address(0) key points to the NativeAssetSuperToken on the network.
     mapping(address => address) internal _canonicalWrapperSuperTokens;
+    
+    /// NOTE: Whenever modifying the storage layout here it is important to update the validateStorageLayout
+    /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
+    /// behaviors/layout when upgrading
 
     constructor(
         ISuperfluid host
     ) {
         _host = host;
+    }
+
+    modifier onlyGovernanceOwner() {
+        SuperfluidGovernanceII gov = SuperfluidGovernanceII(address(_host.getGovernance()));
+        address owner = gov.owner();
+        if (msg.sender != owner) revert SuperfluidGovernanceII.SF_GOV_II_ONLY_OWNER();
+        _;
     }
 
     /// @inheritdoc ISuperTokenFactory
@@ -96,6 +113,12 @@ abstract contract SuperTokenFactoryBase is
         external
         returns (ISuperToken)
     {
+        // we use this to check if we have initialized our _canonicalWrapperSuperTokens mapping
+        // @note we must set this in our initialization
+        if (_canonicalWrapperSuperTokens[address(0)] == address(0)) {
+            revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.SUPER_TOKEN_FACTORY_DOES_NOT_EXIST);
+        }
+
         address underlyingTokenAddress = address(_underlyingToken);
         address canonicalSuperTokenAddress = _canonicalWrapperSuperTokens[
                 underlyingTokenAddress
@@ -259,17 +282,13 @@ abstract contract SuperTokenFactoryBase is
     /// @inheritdoc ISuperTokenFactory
     function initializeCanonicalWrapperSuperTokens(
         InitializeData[] calldata _data
-    ) external virtual {
-        address nativeAssetSuperTokenAddress = _canonicalWrapperSuperTokens[
-            address(0)
-        ];
-
-        // @note hardcoded address has permission to set this list
-        if (msg.sender != address(0)) revert("");
+    ) external virtual onlyGovernanceOwner {
 
         // once the list has been set, it cannot be reset
-        // @note this means that we must set the 0 address
-        if (nativeAssetSuperTokenAddress != address(0)) revert("");
+        // @note this means that we must set the 0 address (Native Asset Super Token) when we call this the first time
+        if (_canonicalWrapperSuperTokens[address(0)] != address(0)) {
+            revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.SUPER_TOKEN_FACTORY_DOES_NOT_EXIST);
+        }
 
         // initialize mapping
         for (uint256 i = 0; i < _data.length; i++) {
@@ -291,6 +310,11 @@ contract SuperTokenFactoryHelper {
 
 contract SuperTokenFactory is SuperTokenFactoryBase
 {
+    /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
+        Always double-check that new
+        variables are added APPEND-ONLY. Re-ordering variables can
+        permanently BREAK the deployed proxy contract. */
+
     SuperTokenFactoryHelper immutable private _helper;
 
     constructor(

@@ -314,6 +314,7 @@ library SuperfluidErrors {
 
     // 7000 - 7999 | SuperToken Factory
     uint256 constant internal SUPER_TOKEN_FACTORY_ALREADY_EXISTS = 7000;
+    uint256 constant internal SUPER_TOKEN_FACTORY_DOES_NOT_EXIST = 7001;
 
     uint256 constant internal SUPER_TOKEN_FACTORY_ONLY_HOST = 7400;
 

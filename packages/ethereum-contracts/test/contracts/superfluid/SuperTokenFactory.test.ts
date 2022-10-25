@@ -3,7 +3,6 @@ import {artifacts, assert, ethers, expect, web3} from "hardhat";
 import {
     SuperfluidMock,
     SuperTokenFactory,
-    SuperTokenFactoryMock,
     TestGovernance,
     TestToken,
     TestToken__factory,
@@ -28,7 +27,7 @@ describe("SuperTokenFactory Contract", function () {
     before(async () => {
         await t.beforeTestSuite({
             isTruffle: true,
-            nAccounts: 1,
+            nAccounts: 5,
         });
 
         testTokenFactory = await ethers.getContractFactory("TestToken");
@@ -295,34 +294,16 @@ describe("SuperTokenFactory Contract", function () {
             context(
                 "#2.d.1 Initialize Canonical Wrapper Super Token Function Tests",
                 () => {
-                    let superTokenFactoryMock: SuperTokenFactoryMock;
-
-                    beforeEach(async () => {
-                        const superTokenFactoryMockFactory =
-                            await ethers.getContractFactory(
-                                "SuperTokenFactoryMock"
-                            );
-                        const superTokenFactoryMockHelperFactory =
-                            await ethers.getContractFactory(
-                                "SuperTokenFactoryMockHelper"
-                            );
-                        const superTokenFactoryMockHelper =
-                            await superTokenFactoryMockHelperFactory.deploy();
-                        superTokenFactoryMock =
-                            await superTokenFactoryMockFactory.deploy(
-                                superfluid.address,
-                                superTokenFactoryMockHelper.address
-                            );
-                    });
-
                     it("#2.d.1a it should throw if not permitted", async () => {
                         const signers = await ethers.getSigners();
                         // only signers[0] is allowed to initialize
-                        await expect(
-                            superTokenFactoryMock
+                        await expectCustomError(
+                            factory
                                 .connect(signers[1])
-                                .initializeCanonicalWrapperSuperTokens([])
-                        ).to.be.reverted;
+                                .initializeCanonicalWrapperSuperTokens([]),
+                            factory,
+                            "SF_GOV_II_ONLY_OWNER"
+                        );
                     });
 
                     it("#2.d.1b it should be able to call initialize canonical wrapper super tokens", async () => {
@@ -342,7 +323,7 @@ describe("SuperTokenFactory Contract", function () {
                         );
 
                         expect(
-                            await superTokenFactoryMock.getCanonicalERC20Wrapper(
+                            await factory.getCanonicalERC20Wrapper(
                                 underlyingTokens[0].address
                             )
                         ).to.equal(ethers.constants.AddressZero);
@@ -361,12 +342,12 @@ describe("SuperTokenFactory Contract", function () {
                         const addresses = await Promise.all(addressPromises);
 
                         // initialize list of canonical wrappers
-                        await superTokenFactoryMock.initializeCanonicalWrapperSuperTokens(
+                        await factory.initializeCanonicalWrapperSuperTokens(
                             addresses
                         );
 
                         expect(
-                            await superTokenFactoryMock.getCanonicalERC20Wrapper(
+                            await factory.getCanonicalERC20Wrapper(
                                 addresses[0].underlyingToken
                             )
                         ).to.equal(addresses[0].superToken);
@@ -377,57 +358,84 @@ describe("SuperTokenFactory Contract", function () {
                             await factory.computeCanonicalERC20WrapperAddress(
                                 token1.address
                             );
-                        await factory.createCanonicalERC20Wrapper(
-                            token1.address
-                        );
-                        await superTokenFactoryMock.initializeCanonicalWrapperSuperTokens(
-                            [
-                                {
-                                    underlyingToken:
-                                        ethers.constants.AddressZero,
-                                    superToken:
-                                        computedTokenAddress.superTokenAddress,
-                                },
-                            ]
-                        );
+                        await factory.initializeCanonicalWrapperSuperTokens([
+                            {
+                                underlyingToken: ethers.constants.AddressZero,
+                                superToken:
+                                    computedTokenAddress.superTokenAddress,
+                            },
+                        ]);
                         await expect(
-                            superTokenFactoryMock.initializeCanonicalWrapperSuperTokens(
-                                []
-                            )
+                            factory.initializeCanonicalWrapperSuperTokens([])
                         ).to.be.reverted;
                     });
                 }
             );
 
-            it("#2.d.2 it should properly compute address and use create2", async () => {
+            it("#2.d.2 it should throw if attempting to create before initialize", async () => {
+                expect(
+                    await factory.getCanonicalERC20Wrapper(token1.address)
+                ).to.equal(ethers.constants.AddressZero);
+
+                await expectCustomError(
+                    factory.createCanonicalERC20Wrapper(token1.address),
+                    factory,
+                    "DOES_NOT_EXIST",
+                    t.customErrorCode.SUPER_TOKEN_FACTORY_DOES_NOT_EXIST
+                );
+            });
+
+            it("#2.d.3 it should properly compute address and use create2", async () => {
                 const computedTokenAddress =
                     await factory.computeCanonicalERC20WrapperAddress(
                         token1.address
                     );
+                // Initialize arbitrary address as Native Asset SuperToken address
+                // Required before using createCanonicalERC20Wrapper
+                await factory.initializeCanonicalWrapperSuperTokens([
+                    {
+                        underlyingToken: ethers.constants.AddressZero,
+                        superToken: t.accounts[1],
+                    },
+                ]);
 
+                // token1 is not deployed yet, so get should return 0 address
                 expect(
                     await factory.getCanonicalERC20Wrapper(token1.address)
                 ).to.equal(ethers.constants.AddressZero);
+                // and isDeployed should equal false
+                expect(computedTokenAddress.isDeployed).to.equal(false);
 
                 await expect(
                     factory.createCanonicalERC20Wrapper(token1.address)
                 )
                     .to.emit(factory, "SuperTokenCreated")
                     .withArgs(computedTokenAddress.superTokenAddress);
-                expect(computedTokenAddress.isDeployed).to.equal(false);
 
+                // erc20 wrapper created canonically, so it should return originally computed address
                 expect(
                     await factory.getCanonicalERC20Wrapper(token1.address)
                 ).to.equal(computedTokenAddress.superTokenAddress);
 
+                // computed isDeployed should return true now
                 const deployedToken =
                     await factory.computeCanonicalERC20WrapperAddress(
                         token1.address
                     );
+                // and isDeployed should equal true
                 expect(deployedToken.isDeployed).to.equal(true);
             });
 
-            it("#2.d.3 it should not be able to create token twice in a row", async () => {
+            it("#2.d.4 it should not be able to create token twice in a row", async () => {
+                // Initialize arbitrary address as Native Asset SuperToken address
+                // Required before using createCanonicalERC20Wrapper
+                await factory.initializeCanonicalWrapperSuperTokens([
+                    {
+                        underlyingToken: ethers.constants.AddressZero,
+                        superToken: t.accounts[1],
+                    },
+                ]);
+
                 const computedTokenAddress =
                     await factory.computeCanonicalERC20WrapperAddress(
                         token1.address
@@ -448,7 +456,16 @@ describe("SuperTokenFactory Contract", function () {
                 );
             });
 
-            it("#2.d.4 it should be able to create multiple canonical erc20 wrappers", async () => {
+            it("#2.d.5 it should be able to create multiple canonical erc20 wrappers", async () => {
+                // Initialize arbitrary address as Native Asset SuperToken address
+                // Required before using createCanonicalERC20Wrapper
+                await factory.initializeCanonicalWrapperSuperTokens([
+                    {
+                        underlyingToken: ethers.constants.AddressZero,
+                        superToken: t.accounts[1],
+                    },
+                ]);
+
                 const computedToken1Address =
                     await factory.computeCanonicalERC20WrapperAddress(
                         token1.address

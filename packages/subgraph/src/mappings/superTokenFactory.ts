@@ -8,7 +8,11 @@ import {
     SuperTokenCreatedEvent,
     SuperTokenLogicCreatedEvent,
 } from "../../generated/schema";
-import { initializeEventEntity, tokenHasValidHost } from "../utils";
+import {
+    createEventID,
+    initializeEventEntity,
+    tokenHasValidHost,
+} from "../utils";
 import { getOrInitSuperToken } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
 
@@ -18,12 +22,12 @@ export function handleSuperTokenCreated(event: SuperTokenCreated): void {
     if (!hasValidHost) {
         return;
     }
-    const ev = initializeEventEntity(
-        "SuperTokenCreated",
-        event,
-        [event.params.token]
-    ) as SuperTokenCreatedEvent;
-    
+    const eventId = createEventID("SuperTokenCreated", event);
+    let ev = new SuperTokenCreatedEvent(eventId);
+    ev = initializeEventEntity(ev, "SuperTokenCreated", event, [
+        event.params.token,
+    ]) as SuperTokenCreatedEvent;
+
     ev.token = event.params.token;
     ev.save();
 
@@ -38,11 +42,11 @@ export function handleCustomSuperTokenCreated(
     if (!hasValidHost) {
         return;
     }
-    const ev = initializeEventEntity(
-        "CustomSuperTokenCreated",
-        event,
-        [event.params.token]
-    ) as CustomSuperTokenCreatedEvent;
+    const eventId = createEventID("CustomSuperTokenCreated", event);
+    let ev = new CustomSuperTokenCreatedEvent(eventId);
+    ev = initializeEventEntity(ev, "CustomSuperTokenCreated", event, [
+        event.params.token,
+    ]) as CustomSuperTokenCreatedEvent;
     ev.token = event.params.token;
     ev.save();
 
@@ -57,12 +61,15 @@ export function handleSuperTokenLogicCreated(
     if (!hasValidHost) {
         return;
     }
-    const ev = initializeEventEntity(
+    const eventId = createEventID("SuperTokenLogicCreated", event);
+    let ev = new SuperTokenLogicCreatedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "SuperTokenLogicCreated",
         event,
         []
     ) as SuperTokenLogicCreatedEvent;
-    
+
     ev.tokenLogic = event.params.tokenLogic;
     ev.save();
 }

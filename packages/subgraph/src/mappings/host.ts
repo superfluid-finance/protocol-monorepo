@@ -17,13 +17,16 @@ import {
     SuperTokenFactoryUpdated,
     SuperTokenLogicUpdated,
 } from "../../generated/Host/ISuperfluid";
-import { initializeEventEntity } from "../utils";
+import { createEventID, initializeEventEntity } from "../utils";
 import { commitHash, configuration, branch } from "../meta.ignore";
 import { ethereum } from "@graphprotocol/graph-ts";
 import { SuperfluidGovernance } from "../../generated/templates";
 
 export function handleGovernanceReplaced(event: GovernanceReplaced): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("GovernanceReplaced", event);
+    let ev = new GovernanceReplacedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "GovernanceReplaced",
         event,
         []
@@ -43,7 +46,10 @@ export function handleGovernanceReplaced(event: GovernanceReplaced): void {
 export function handleAgreementClassRegistered(
     event: AgreementClassRegistered
 ): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("AgreementClassRegistered", event);
+    let ev = new AgreementClassRegisteredEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "AgreementClassRegistered",
         event,
         []
@@ -58,7 +64,10 @@ export function handleAgreementClassRegistered(
 export function handleAgreementClassUpdated(
     event: AgreementClassUpdated
 ): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("AgreementClassUpdated", event);
+    let ev = new AgreementClassUpdatedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "AgreementClassUpdated",
         event,
         []
@@ -75,7 +84,10 @@ export function handleAgreementClassUpdated(
 export function handleSuperTokenFactoryUpdated(
     event: SuperTokenFactoryUpdated
 ): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("SuperTokenFactoryUpdated", event);
+    let ev = new SuperTokenFactoryUpdatedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "SuperTokenFactoryUpdated",
         event,
         []
@@ -88,7 +100,10 @@ export function handleSuperTokenFactoryUpdated(
 export function handleSuperTokenLogicUpdated(
     event: SuperTokenLogicUpdated
 ): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("SuperTokenLogicUpdated", event);
+    let ev = new SuperTokenLogicUpdatedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "SuperTokenLogicUpdated",
         event,
         []
@@ -100,7 +115,9 @@ export function handleSuperTokenLogicUpdated(
 }
 
 export function handleAppRegistered(event: AppRegistered): void {
-    const ev = initializeEventEntity(
+    let ev = new AppRegisteredEvent(createEventID("AppRegistered", event));
+    ev = initializeEventEntity(
+        ev,
         "AppRegistered",
         event,
         []
@@ -111,11 +128,8 @@ export function handleAppRegistered(event: AppRegistered): void {
 }
 
 export function handleJail(event: Jail): void {
-    const ev = initializeEventEntity(
-        "Jail",
-        event,
-        []
-    ) as JailEvent;
+    let ev = new JailEvent(createEventID("Jail", event));
+    ev = initializeEventEntity(ev, "Jail", event, []) as JailEvent;
 
     ev.app = event.params.app;
     ev.reason = event.params.reason;

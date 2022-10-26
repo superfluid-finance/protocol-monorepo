@@ -19,6 +19,7 @@ import {
     TransferEvent,
 } from "../../generated/schema";
 import {
+    createEventID,
     initializeEventEntity,
     tokenHasValidHost,
     ZERO_ADDRESS,
@@ -284,7 +285,9 @@ function updateHOLEntitiesForLiquidation(
 function _createAgreementLiquidatedByEventEntity(
     event: AgreementLiquidatedBy
 ): void {
-    const ev = initializeEventEntity("AgreementLiquidatedBy", event, [
+    const eventId = createEventID("AgreementLiquidatedBy", event);
+    let ev = new AgreementLiquidatedByEvent(eventId);
+    ev = initializeEventEntity(ev, "AgreementLiquidatedBy", event, [
         event.address,
         event.params.liquidatorAccount,
         event.params.penaltyAccount,
@@ -305,7 +308,9 @@ function _createAgreementLiquidatedByEventEntity(
 function _createAgreementLiquidatedV2EventEntity(
     event: AgreementLiquidatedV2
 ): void {
-    const ev = initializeEventEntity("AgreementLiquidatedV2", event, [
+    const eventId = createEventID("AgreementLiquidatedV2", event);
+    let ev = new AgreementLiquidatedV2Event(eventId);
+    ev = initializeEventEntity(ev, "AgreementLiquidatedV2", event, [
         event.address,
         event.params.liquidatorAccount,
         event.params.targetAccount,
@@ -341,7 +346,9 @@ function _createAgreementLiquidatedV2EventEntity(
 }
 
 function _createBurnedEventEntity(event: Burned): void {
-    const ev = initializeEventEntity("Burned", event, [
+    const eventId = createEventID("Burned", event);
+    let ev = new BurnedEvent(eventId);
+    ev = initializeEventEntity(ev, "Burned", event, [
         event.address,
         event.params.from,
     ]) as BurnedEvent;
@@ -356,7 +363,9 @@ function _createBurnedEventEntity(event: Burned): void {
 }
 
 function _createMintedEventEntity(event: Minted): void {
-    const ev = initializeEventEntity("Minted", event, [
+    const eventId = createEventID("Minted", event);
+    let ev = new MintedEvent(eventId);
+    ev = initializeEventEntity(ev, "Minted", event, [
         event.address,
         event.params.operator,
         event.params.to,
@@ -372,7 +381,9 @@ function _createMintedEventEntity(event: Minted): void {
 }
 
 function _createSentEventEntity(event: Sent): void {
-    const ev = initializeEventEntity("Sent", event, [
+    const eventId = createEventID("Sent", event);
+    let ev = new SentEvent(eventId);
+    ev = initializeEventEntity(ev, "Sent", event, [
         event.address,
         event.params.operator,
         event.params.to,
@@ -388,7 +399,9 @@ function _createSentEventEntity(event: Sent): void {
 }
 
 function _createTokenUpgradedEventEntity(event: TokenUpgraded): void {
-    const ev = initializeEventEntity("TokenUpgraded", event, [
+    const eventId = createEventID("TokenUpgraded", event);
+    let ev = new TokenUpgradedEvent(eventId);
+    ev = initializeEventEntity(ev, "TokenUpgraded", event, [
         event.address,
         event.params.account,
     ]) as TokenUpgradedEvent;
@@ -399,7 +412,9 @@ function _createTokenUpgradedEventEntity(event: TokenUpgraded): void {
 }
 
 function _createTokenDowngradedEventEntity(event: TokenDowngraded): void {
-    const ev = initializeEventEntity("TokenDowngraded", event, [
+    const eventId = createEventID("TokenDowngraded", event);
+    let ev = new TokenDowngradedEvent(eventId);
+    ev = initializeEventEntity(ev, "TokenDowngraded", event, [
         event.address,
         event.params.account,
     ]) as TokenDowngradedEvent;
@@ -409,7 +424,9 @@ function _createTokenDowngradedEventEntity(event: TokenDowngraded): void {
 }
 
 function _createTransferEventEntity(event: Transfer): void {
-    const ev = initializeEventEntity("Transfer", event, [
+    const eventId = createEventID("Transfer", event);
+    let ev = new TransferEvent(eventId);
+    ev = initializeEventEntity(ev, "Transfer", event, [
         event.address,
         event.params.from,
         event.params.to,

@@ -13,10 +13,13 @@ import {
     Token,
 } from "../../generated/schema";
 import { getOrInitResolverEntry } from "../mappingHelpers";
-import { initializeEventEntity, ZERO_ADDRESS } from "../utils";
+import { createEventID, initializeEventEntity, ZERO_ADDRESS } from "../utils";
 
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("RoleAdminChanged", event);
+    let ev = new RoleAdminChangedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "RoleAdminChanged",
         event,
         []
@@ -29,7 +32,10 @@ export function handleRoleAdminChanged(event: RoleAdminChanged): void {
 }
 
 export function handleRoleGranted(event: RoleGranted): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("RoleGranted", event);
+    let ev = new RoleGrantedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "RoleGranted",
         event,
         []
@@ -41,12 +47,15 @@ export function handleRoleGranted(event: RoleGranted): void {
     ev.save();
 }
 export function handleRoleRevoked(event: RoleRevoked): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("RoleRevoked", event);
+    let ev = new RoleRevokedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "RoleRevoked",
         event,
         []
     ) as RoleRevokedEvent;
-    
+
     ev.role = event.params.role;
     ev.account = event.params.account;
     ev.sender = event.params.sender;
@@ -80,11 +89,9 @@ function _createSetEvent(
     target: Bytes,
     name: Bytes
 ): void {
-    const ev = initializeEventEntity(
-        "Set",
-        event,
-        [target]
-    ) as SetEvent;
+    const eventId = createEventID("Set", event);
+    let ev = new SetEvent(eventId);
+    ev = initializeEventEntity(ev, "Set", event, [target]) as SetEvent;
 
     ev.hashedName = name;
     ev.target = target;

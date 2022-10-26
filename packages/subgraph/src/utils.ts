@@ -50,12 +50,11 @@ export function createEventID(
  * @returns Entity to be casted as original Event type
  */
 export function initializeEventEntity(
+    entity: Entity,
     name: string,
     event: ethereum.Event,
     addresses: Bytes[]
   ): Entity {
-    const entity = new Entity();
-    entity.set("id", Value.fromString(createEventID(name, event)));
     entity.set("blockNumber", Value.fromBigInt(event.block.number));
     entity.set("logIndex", Value.fromBigInt(event.logIndex));
     entity.set("order", Value.fromBigInt(getOrder(event.block.number, event.logIndex)));

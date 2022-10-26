@@ -21,6 +21,7 @@ import {
     initializeEventEntity,
     tokenHasValidHost,
     ZERO_ADDRESS,
+    createEventID,
 } from "../utils";
 import {
     _createAccountTokenSnapshotLogEntity,
@@ -384,7 +385,8 @@ function _createFlowUpdatedEntity(
     totalAmountStreamedUntilTimestamp: BigInt,
     deposit: BigInt
 ): FlowUpdatedEvent {
-    const ev = initializeEventEntity("FlowUpdated", event, [
+    let ev = new FlowUpdatedEvent(createEventID("FlowUpdated", event));
+    ev = initializeEventEntity(ev, "FlowUpdated", event, [
         event.params.token,
         event.params.sender,
         event.params.receiver,
@@ -412,7 +414,10 @@ function _createFlowUpdatedEntity(
 function _createFlowOperatorUpdatedEventEntity(
     event: FlowOperatorUpdated
 ): FlowOperatorUpdatedEvent {
-    const ev = initializeEventEntity("FlowOperatorUpdated", event, [
+    let ev = new FlowOperatorUpdatedEvent(
+        createEventID("FlowOperatorUpdated", event)
+    );
+    ev = initializeEventEntity(ev, "FlowOperatorUpdated", event, [
         event.params.token,
         event.params.sender,
         event.params.flowOperator,

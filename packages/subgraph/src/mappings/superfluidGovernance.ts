@@ -12,10 +12,13 @@ import {
     PPPConfigurationChangedEvent,
     TrustedForwarderChangedEvent,
 } from "../../generated/schema";
-import { initializeEventEntity } from "../utils";
+import { createEventID, initializeEventEntity } from "../utils";
 
 export function handleConfigChanged(event: ConfigChanged): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("ConfigChanged", event);
+    let ev = new ConfigChangedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "ConfigChanged",
         event,
         []
@@ -30,7 +33,10 @@ export function handleConfigChanged(event: ConfigChanged): void {
 }
 
 export function handleRewardAddressChanged(event: RewardAddressChanged): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("RewardAddressChanged", event);
+    let ev = new RewardAddressChangedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "RewardAddressChanged",
         event,
         []
@@ -46,7 +52,10 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
 export function handleCFAv1LiquidationPeriodChanged(
     event: CFAv1LiquidationPeriodChanged
 ): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("CFAv1LiquidationPeriodChanged", event);
+    let ev = new CFAv1LiquidationPeriodChangedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "CFAv1LiquidationPeriodChanged",
         event,
         []
@@ -62,7 +71,10 @@ export function handleCFAv1LiquidationPeriodChanged(
 export function handlePPPConfigurationChanged(
     event: PPPConfigurationChanged
 ): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("PPPConfigurationChanged", event);
+    let ev = new PPPConfigurationChangedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "PPPConfigurationChanged",
         event,
         []
@@ -79,7 +91,10 @@ export function handlePPPConfigurationChanged(
 export function handleTrustedForwarderChanged(
     event: TrustedForwarderChanged
 ): void {
-    const ev = initializeEventEntity(
+    const eventId = createEventID("TrustedForwarderChanged", event);
+    let ev = new TrustedForwarderChangedEvent(eventId);
+    ev = initializeEventEntity(
+        ev,
         "TrustedForwarderChanged",
         event,
         []

@@ -79,8 +79,7 @@ describe("SuperTokenFactory Contract", function () {
             await expectCustomError(
                 factory.updateCode(ZERO_ADDRESS),
                 factory,
-                "ONLY_HOST",
-                t.customErrorCode.SUPER_TOKEN_FACTORY_ONLY_HOST
+                "SUPER_TOKEN_FACTORY_ONLY_HOST"
             );
         });
 
@@ -285,8 +284,7 @@ describe("SuperTokenFactory Contract", function () {
                     "createERC20Wrapper(address,uint8,uint8,string,string)"
                 ](ZERO_ADDRESS, 18, 0, "name", "symbol"),
                 factory,
-                "ZERO_ADDRESS",
-                t.customErrorCode.SUPER_TOKEN_FACTORY_ZERO_ADDRESS
+                "SUPER_TOKEN_FACTORY_ZERO_ADDRESS"
             );
         });
 
@@ -365,9 +363,11 @@ describe("SuperTokenFactory Contract", function () {
                                     computedTokenAddress.superTokenAddress,
                             },
                         ]);
-                        await expect(
-                            factory.initializeCanonicalWrapperSuperTokens([])
-                        ).to.be.reverted;
+                        await expectCustomError(
+                            factory.initializeCanonicalWrapperSuperTokens([]),
+                            factory,
+                            "SUPER_TOKEN_FACTORY_ALREADY_EXISTS"
+                        );
                     });
                 }
             );
@@ -380,8 +380,7 @@ describe("SuperTokenFactory Contract", function () {
                 await expectCustomError(
                     factory.createCanonicalERC20Wrapper(token1.address),
                     factory,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.SUPER_TOKEN_FACTORY_DOES_NOT_EXIST
+                    "SUPER_TOKEN_FACTORY_UNINITIALIZED"
                 );
             });
 
@@ -451,8 +450,7 @@ describe("SuperTokenFactory Contract", function () {
                 await expectCustomError(
                     factory.createCanonicalERC20Wrapper(token1.address),
                     factory,
-                    "ALREADY_EXISTS",
-                    t.customErrorCode.SUPER_TOKEN_FACTORY_ALREADY_EXISTS
+                    "SUPER_TOKEN_FACTORY_ALREADY_EXISTS"
                 );
             });
 

@@ -8,7 +8,6 @@ import {
     ISuperToken,
     ISuperTokenFactory,
     ISuperfluidGovernance,
-    SuperfluidErrors,
     SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
@@ -523,7 +522,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly
             assembly { cs := extcodesize(factory) }
-            if (cs == 0) revert SuperfluidErrors.MUST_BE_CONTRACT(SuperfluidErrors.SF_GOV_MUST_BE_CONTRACT);
+            if (cs == 0) revert SF_GOV_MUST_BE_CONTRACT();
         }
         _setConfig(
             host, ISuperfluidToken(address(0)),

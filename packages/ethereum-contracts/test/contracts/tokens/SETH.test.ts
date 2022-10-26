@@ -126,8 +126,7 @@ describe("Super ETH (SETH) Contract", function () {
                 .connect(aliceSigner)
                 .downgradeToETH(toWad(1).addn(1).toString()),
             superTokenContract,
-            "INSUFFICIENT_BALANCE",
-            t.customErrorCode.SF_TOKEN_BURN_INSUFFICIENT_BALANCE
+            "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
         );
 
         const aliceBalance1 = await web3.eth.getBalance(alice);

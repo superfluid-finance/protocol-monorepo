@@ -600,8 +600,7 @@ describe("Superfluid Ownable Governance Contract", function () {
                     .connect(aliceSigner)
                     .authorizeAppFactory(superfluid.address, FAKE_ADDRESS1),
                 governance,
-                "MUST_BE_CONTRACT",
-                t.customErrorCode.SF_GOV_MUST_BE_CONTRACT
+                "SF_GOV_MUST_BE_CONTRACT"
             );
 
             assert.isFalse(

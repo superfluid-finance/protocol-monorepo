@@ -615,8 +615,7 @@ describe("Superfluid scenarios", function () {
                     signer: await ethers.getSigner(alice),
                 }),
                 t.contracts.ida,
-                "INSUFFICIENT_BALANCE",
-                t.customErrorCode.IDA_INSUFFICIENT_BALANCE
+                "IDA_INSUFFICIENT_BALANCE"
             );
         });
 
@@ -755,8 +754,7 @@ describe("Superfluid scenarios", function () {
                     signer: await ethers.getSigner(alice),
                 }),
                 t.contracts.ida,
-                "INSUFFICIENT_BALANCE",
-                t.customErrorCode.IDA_INSUFFICIENT_BALANCE
+                "IDA_INSUFFICIENT_BALANCE"
             );
 
             await agreementHelper.modifyFlow({

@@ -6,5 +6,6 @@
     "idaAddress": "0x594ed9Cd773584B645aC1F5B11020d3b32cDF07d",
     "superTokenFactoryAddress": "0x8bde47397301F0Cd31b9000032fD517a39c946Eb",
     "superfluidGovernanceAddress": "0xee07D9fce4Cf2a891BC979E9d365929506C2982f",
-    "resolverV1Address": "0x69604aA4e9e8BF44A73C680997205Edb03A92E41"
+    "resolverV1Address": "0x69604aA4e9e8BF44A73C680997205Edb03A92E41",
+    "nativeAssetSuperTokenAddress": "0x529a4116f160c833c61311569d6b33dff41fd657"
 }

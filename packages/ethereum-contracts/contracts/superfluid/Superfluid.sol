@@ -90,6 +90,10 @@ contract Superfluid is
     /// @dev if app whitelisting is enabled, this is to make sure the keys are used only once
     mapping(bytes32 => bool) internal _appKeysUsedDeprecated;
 
+    /// NOTE: Whenever modifying the storage layout here it is important to update the validateStorageLayout
+    /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
+    /// behaviors/layout when upgrading
+
     constructor(bool nonUpgradable, bool appWhiteListingEnabled) {
         NON_UPGRADABLE_DEPLOYMENT = nonUpgradable;
         APP_WHITE_LISTING_ENABLED = appWhiteListingEnabled;

@@ -62,7 +62,7 @@ export function initializeEventEntity(
     entity.set("addresses", Value.fromBytesArray(addresses));
     entity.set("timestamp", Value.fromBigInt(event.block.timestamp));
     entity.set("transactionHash", Value.fromBytes(event.transaction.hash));
-    entity.set("gasPrice", Value.fromBigInt(event.block.number));
+    entity.set("gasPrice", Value.fromBigInt(event.transaction.gasPrice));
     return entity;
   }
 

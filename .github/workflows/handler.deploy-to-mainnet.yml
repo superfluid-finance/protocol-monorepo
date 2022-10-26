@@ -27,6 +27,7 @@ jobs:
       # testnet web3 providers (leaving for testing)
       AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
       # mainnet web3 providers
+      ETH_MAINNET_PROVIDER_URL: ${{ secrets.ETH_MAINNET_PROVIDER_URL }}
       XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
       POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
       OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}

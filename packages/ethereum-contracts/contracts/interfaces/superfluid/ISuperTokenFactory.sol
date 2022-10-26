@@ -14,10 +14,6 @@ import { SuperfluidErrors } from "./Definitions.sol";
  * @author Superfluid
  */
 interface ISuperTokenFactory {
-    struct InitializeData {
-        address underlyingToken;
-        address superToken;
-    }
 
     /**
      * @dev Get superfluid host contract address

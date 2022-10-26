@@ -23,6 +23,10 @@ abstract contract SuperTokenFactoryBase is
     UUPSProxiable,
     ISuperTokenFactory
 {
+    struct InitializeData {
+        address underlyingToken;
+        address superToken;
+    }
 
     /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
         Always double-check that new

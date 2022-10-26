@@ -406,6 +406,7 @@ function _createTokenUpgradedEventEntity(event: TokenUpgraded): void {
         event.params.account,
     ]) as TokenUpgradedEvent;
 
+    ev.account = event.params.account.toHex();
     ev.token = event.address;
     ev.amount = event.params.amount;
     ev.save();
@@ -418,6 +419,7 @@ function _createTokenDowngradedEventEntity(event: TokenDowngraded): void {
         event.address,
         event.params.account,
     ]) as TokenDowngradedEvent;
+    ev.account = event.params.account.toHex();
     ev.token = event.address;
     ev.amount = event.params.amount;
     ev.save();

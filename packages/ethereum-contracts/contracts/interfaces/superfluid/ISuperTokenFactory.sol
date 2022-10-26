@@ -83,7 +83,7 @@ interface ISuperTokenFactory {
         returns (ISuperToken superToken);
 
     /**
-     * @notice Creates a wrapper super token AND sets it in our canonical list OR reverts if it already exists
+     * @notice Creates a wrapper super token AND sets it in the canonical list OR reverts if it already exists
      * @dev salt for create2 is the keccak256 hash of abi.encode(address(_underlyingToken))
      * @param _underlyingToken Underlying ERC20 token
      * @return ISuperToken the created supertoken
@@ -98,7 +98,7 @@ interface ISuperTokenFactory {
      * @dev note that this function only computes addresses for SEMI_UPGRADABLE SuperTokens
      * @param _underlyingToken Underlying ERC20 token address
      * @return superTokenAddress Super token address
-     * @return isDeployed whether the super token is deployed AND set in our canonical mapping
+     * @return isDeployed whether the super token is deployed AND set in the canonical mapping
      */
     function computeCanonicalERC20WrapperAddress(address _underlyingToken)
         external
@@ -116,14 +116,6 @@ interface ISuperTokenFactory {
         view
         returns (address superTokenAddress);
 
-    /**
-     * @notice Initializes list of canonical wrapper super tokens.
-     * @dev Can only be set once by a hardcoded address
-     * @param _data an array of canonical wrappper super tokens to be set
-     */
-    function initializeCanonicalWrapperSuperTokens(
-        InitializeData[] calldata _data
-    ) external;
     /**
      * @dev Creates a new custom super token
      * @param customSuperTokenProxy address of the custom supertoken proxy

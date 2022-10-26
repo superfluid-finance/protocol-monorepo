@@ -9,8 +9,8 @@ import {
     SuperfluidErrors
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
 
-import { ISuperfluid, ISuperfluidGovernance } from "../interfaces/superfluid/ISuperfluid.sol";
-import { SuperfluidGovernanceII } from "../gov/SuperfluidGovernanceII.sol";
+import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
@@ -43,17 +43,12 @@ abstract contract SuperTokenFactoryBase is
     /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     /// behaviors/layout when upgrading
 
+    error SUPER_TOKEN_FACTORY_ONLY_GOVERNANCE_OWNER();
+
     constructor(
         ISuperfluid host
     ) {
         _host = host;
-    }
-
-    modifier onlyGovernanceOwner() {
-        SuperfluidGovernanceII gov = SuperfluidGovernanceII(address(_host.getGovernance()));
-        address owner = gov.owner();
-        if (msg.sender != owner) revert SuperfluidGovernanceII.SF_GOV_II_ONLY_OWNER();
-        _;
     }
 
     /// @inheritdoc ISuperTokenFactory
@@ -113,8 +108,8 @@ abstract contract SuperTokenFactoryBase is
         external
         returns (ISuperToken)
     {
-        // we use this to check if we have initialized our _canonicalWrapperSuperTokens mapping
-        // @note we must set this in our initialization
+        // we use this to check if we have initialized the _canonicalWrapperSuperTokens mapping
+        // @note we must set this during initialization
         if (_canonicalWrapperSuperTokens[address(0)] == address(0)) {
             revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.SUPER_TOKEN_FACTORY_DOES_NOT_EXIST);
         }
@@ -277,12 +272,14 @@ abstract contract SuperTokenFactoryBase is
         ];
     }
 
-    /// @dev This is virtual so that SuperTokenFactoryMock can test it
+    /// @notice Initializes list of canonical wrapper super tokens.
     /// @dev Note that this should also be kind of a throwaway function which will be executed only once.
-    /// @inheritdoc ISuperTokenFactory
+    /// @param _data an array of canonical wrappper super tokens to be set
     function initializeCanonicalWrapperSuperTokens(
         InitializeData[] calldata _data
-    ) external virtual onlyGovernanceOwner {
+    ) external virtual  {
+        Ownable gov = Ownable(address(_host.getGovernance()));
+        if (msg.sender != gov.owner()) revert SUPER_TOKEN_FACTORY_ONLY_GOVERNANCE_OWNER();
 
         // once the list has been set, it cannot be reset
         // @note this means that we must set the 0 address (Native Asset Super Token) when we call this the first time

@@ -302,7 +302,7 @@ describe("SuperTokenFactory Contract", function () {
                                 .connect(signers[1])
                                 .initializeCanonicalWrapperSuperTokens([]),
                             factory,
-                            "SF_GOV_II_ONLY_OWNER"
+                            "SUPER_TOKEN_FACTORY_ONLY_GOVERNANCE_OWNER"
                         );
                     });
 

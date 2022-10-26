@@ -26,8 +26,16 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         uint256 value;
     }
 
+    /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
+       Always double-check that new
+       variables are added APPEND-ONLY. Re-ordering variables can
+       permanently BREAK the deployed proxy contract. */
+
     // host => superToken => config
     mapping (address => mapping (address => mapping (bytes32 => Value))) internal _configs;
+    /// NOTE: Whenever modifying the storage layout here it is important to update the validateStorageLayout
+    /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
+    /// behaviors/layout when upgrading
 
     /**************************************************************************
     /* ISuperfluidGovernance interface

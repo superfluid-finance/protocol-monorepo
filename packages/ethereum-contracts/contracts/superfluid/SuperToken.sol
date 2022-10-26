@@ -68,6 +68,11 @@ contract SuperToken is
 
     // NOTE: for future compatibility, these are reserved solidity slots
     // The sub-class of SuperToken solidity slot will start after _reserve22
+
+    // NOTE: Whenever modifying the storage layout here it is important to update the validateStorageLayout
+    // function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
+    // behaviors/layout when upgrading
+
     uint256 internal _reserve22;
     uint256 private _reserve23;
     uint256 private _reserve24;

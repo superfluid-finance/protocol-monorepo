@@ -12,7 +12,7 @@ const ERC1820_PAYLOAD =
     ERC1820_BIN +
     "1ba01820182018201820182018201820182018201820182018201820182018201820a01820182018201820182018201820182018201820182018201820182018201820";
 
-export async function deployERC1820(provider) {
+async function deployERC1820(provider) {
     console.log("Deploying ERC1820...");
     const code = await provider.send("eth_getCode", [
         ERC1820_ADDRESS,
@@ -42,7 +42,7 @@ const _getFactoryAndReturnDeployedContract = async (
     return contract;
 };
 
-export const deployTestFramework = async () => {
+const deployTestFramework = async () => {
     const signer = (await ethers.getSigners())[0];
     await deployERC1820(ethers.provider);
     const SlotsBitmapLibrary = await _getFactoryAndReturnDeployedContract(
@@ -61,4 +61,8 @@ export const deployTestFramework = async () => {
         }
     );
     return frameworkDeployer;
+};
+
+module.exports = {
+    deployTestFramework,
 };

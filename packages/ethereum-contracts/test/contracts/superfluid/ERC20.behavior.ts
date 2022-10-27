@@ -3,7 +3,6 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {BigNumber, BigNumberish, ContractTransaction} from "ethers";
 import {ethers, expect} from "hardhat";
 
-import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 import {toBN} from "../utils/helpers";
 
@@ -14,8 +13,7 @@ export function shouldBehaveLikeERC20(
         initialHolder: string;
         recipient: string;
         anotherAccount: string;
-    },
-    t: TestEnvironment
+    }
 ) {
     let initialHolder: string, recipient: string, anotherAccount: string;
 
@@ -65,8 +63,7 @@ export function shouldBehaveLikeERC20(
             ) {
                 const signer = await ethers.getSigner(from);
                 return this.token.connect(signer).transfer(to, value);
-            },
-            t
+            }
         );
     });
 
@@ -163,9 +160,7 @@ export function shouldBehaveLikeERC20(
                                     .connect(spenderSigner)
                                     .transferFrom(tokenOwner, to, amount),
                                 this.token,
-                                "INSUFFICIENT_BALANCE",
-                                t.customErrorCode
-                                    .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
+                                "SF_TOKEN_MOVE_INSUFFICIENT_BALANCE"
                             );
                         });
                     });
@@ -200,9 +195,7 @@ export function shouldBehaveLikeERC20(
                                     .connect(spenderSigner)
                                     .transferFrom(tokenOwner, to, amount),
                                 this.token,
-                                "INSUFFICIENT_BALANCE",
-                                t.customErrorCode
-                                    .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
+                                "SF_TOKEN_MOVE_INSUFFICIENT_BALANCE"
                             );
                         });
                     });
@@ -223,8 +216,7 @@ export function shouldBehaveLikeERC20(
                             .connect(spenderSigner)
                             .transferFrom(tokenOwner, to, amount),
                         this.token,
-                        "ZERO_ADDRESS",
-                        t.customErrorCode.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
+                        "SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS"
                     );
                 });
             });
@@ -245,8 +237,7 @@ export function shouldBehaveLikeERC20(
                         .connect(spenderSigner)
                         .transferFrom(tokenOwner, to, amount),
                     this.token,
-                    "ZERO_ADDRESS",
-                    t.customErrorCode.SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS
+                    "SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS"
                 );
             });
         });
@@ -268,8 +259,7 @@ export function shouldBehaveLikeERC20(
             ) {
                 const signer = await ethers.getSigner(owner);
                 return this.token.connect(signer).approve(spender, amount);
-            },
-            t
+            }
         );
     });
 }
@@ -283,8 +273,7 @@ export function shouldBehaveLikeERC20Transfer(
         from: string,
         to: string,
         amount: BigNumber
-    ) => Promise<ContractTransaction>,
-    t: TestEnvironment
+    ) => Promise<ContractTransaction>
 ) {
     let from: string, to: string;
 
@@ -299,8 +288,7 @@ export function shouldBehaveLikeERC20Transfer(
                 await expectCustomError(
                     transfer.call(this, from, to, amount),
                     this.token,
-                    "INSUFFICIENT_BALANCE",
-                    t.customErrorCode.SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
+                    "SF_TOKEN_MOVE_INSUFFICIENT_BALANCE"
                 );
             });
         });
@@ -360,8 +348,7 @@ export function shouldBehaveLikeERC20Transfer(
                     balance
                 ),
                 this.token,
-                "ZERO_ADDRESS",
-                t.customErrorCode.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
+                "SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS"
             );
         });
     });
@@ -376,8 +363,7 @@ export function shouldBehaveLikeERC20Approve(
         owner: string,
         spender: string,
         amount: BigNumber
-    ) => Promise<ContractTransaction>,
-    t: TestEnvironment
+    ) => Promise<ContractTransaction>
 ) {
     let owner: string, spender: string;
 
@@ -460,8 +446,7 @@ export function shouldBehaveLikeERC20Approve(
             await expectCustomError(
                 approve.call(this, owner, ethers.constants.AddressZero, supply),
                 this.token,
-                "ZERO_ADDRESS",
-                t.customErrorCode.SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS
+                "SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS"
             );
         });
     });

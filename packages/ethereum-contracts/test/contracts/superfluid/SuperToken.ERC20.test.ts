@@ -261,8 +261,7 @@ describe("SuperToken's ERC20 compliance", function () {
                         .connect(aliceSigner)
                         .increaseAllowance(spender, amount),
                     this.token,
-                    "ZERO_ADDRESS",
-                    t.customErrorCode.SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS
+                    "SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS"
                 );
             });
         });
@@ -291,8 +290,7 @@ describe("SuperToken's ERC20 compliance", function () {
                         initialSupply
                     ),
                     this.token,
-                    "ZERO_ADDRESS",
-                    t.customErrorCode.SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS
+                    "SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS"
                 );
             });
         });
@@ -326,8 +324,7 @@ describe("SuperToken's ERC20 compliance", function () {
                         initialSupply
                     ),
                     this.token,
-                    "ZERO_ADDRESS",
-                    t.customErrorCode.SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS
+                    "SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS"
                 );
             });
         });

@@ -22,7 +22,6 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { SuperfluidErrors } from "../interfaces/superfluid/Definitions.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -119,7 +118,7 @@ contract SuperToken is
     }
 
     function updateCode(address newAddress) external override {
-        if (msg.sender != address(_host)) revert SuperfluidErrors.ONLY_HOST(SuperfluidErrors.SUPER_TOKEN_ONLY_HOST);
+        if (msg.sender != address(_host)) revert SUPER_TOKEN_ONLY_HOST();
         UUPSProxiable._updateCodeAddress(newAddress);
     }
 
@@ -155,10 +154,10 @@ contract SuperToken is
         internal returns (bool)
     {
         if (holder == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS);
+            revert SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS();
         }
         if (recipient == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS);
+            revert SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS();
         }
         address operator = msg.sender;
 
@@ -196,10 +195,10 @@ contract SuperToken is
         private
     {
         if (from == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS);
+            revert SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS();
         }
         if (to == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS);
+            revert SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS();
         }
 
         _callTokensToSend(operator, from, to, amount, userData, operatorData);
@@ -253,7 +252,7 @@ contract SuperToken is
         internal
     {
         if (account == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_MINT_TO_ZERO_ADDRESS);
+            revert SUPER_TOKEN_MINT_TO_ZERO_ADDRESS();
         }
 
         SuperfluidToken._mint(account, amount);
@@ -281,7 +280,7 @@ contract SuperToken is
         internal
     {
         if (from == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS);
+            revert SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS();
         }
 
         _callTokensToSend(operator, from, address(0), amount, userData, operatorData);
@@ -309,10 +308,10 @@ contract SuperToken is
         internal
     {
         if (account == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS);
+            revert SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS();
         }
         if (spender == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS);
+            revert SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS();
         }
 
         _allowances[account][spender] = amount;

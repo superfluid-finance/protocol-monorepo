@@ -298,8 +298,7 @@ describe("SuperfluidToken implementation", function () {
                         testData
                     ),
                     superToken,
-                    "ALREADY_EXISTS",
-                    t.customErrorCode.SF_TOKEN_AGREEMENT_ALREADY_EXISTS
+                    "SF_TOKEN_AGREEMENT_ALREADY_EXISTS"
                 );
                 // try overlapping data
                 await expectCustomError(
@@ -307,8 +306,7 @@ describe("SuperfluidToken implementation", function () {
                         testData[0],
                     ]),
                     superToken,
-                    "ALREADY_EXISTS",
-                    t.customErrorCode.SF_TOKEN_AGREEMENT_ALREADY_EXISTS
+                    "SF_TOKEN_AGREEMENT_ALREADY_EXISTS"
                 );
                 await expectCustomError(
                     acA.createAgreementFor(superToken.address, formattedData, [
@@ -316,8 +314,7 @@ describe("SuperfluidToken implementation", function () {
                         ...testData,
                     ]),
                     superToken,
-                    "ALREADY_EXISTS",
-                    t.customErrorCode.SF_TOKEN_AGREEMENT_ALREADY_EXISTS
+                    "SF_TOKEN_AGREEMENT_ALREADY_EXISTS"
                 );
             });
 
@@ -394,8 +391,7 @@ describe("SuperfluidToken implementation", function () {
                         2
                     ),
                     superToken,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.SF_TOKEN_AGREEMENT_DOES_NOT_EXIST
+                    "SF_TOKEN_AGREEMENT_DOES_NOT_EXIST"
                 );
             });
         });
@@ -495,8 +491,7 @@ describe("SuperfluidToken implementation", function () {
                 await expectCustomError(
                     acBad.settleBalanceFor(superToken.address, bob, "1"),
                     superToken,
-                    "ONLY_LISTED_AGREEMENT",
-                    t.customErrorCode.SF_TOKEN_ONLY_LISTED_AGREEMENT
+                    "SF_TOKEN_ONLY_LISTED_AGREEMENT"
                 );
             });
 
@@ -544,8 +539,7 @@ describe("SuperfluidToken implementation", function () {
                     0
                 ),
                 superToken,
-                "ONLY_LISTED_AGREEMENT",
-                t.customErrorCode.SF_TOKEN_ONLY_LISTED_AGREEMENT
+                "SF_TOKEN_ONLY_LISTED_AGREEMENT"
             );
         });
 

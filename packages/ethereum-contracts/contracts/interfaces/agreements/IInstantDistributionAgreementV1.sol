@@ -3,7 +3,6 @@ pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
-import { SuperfluidErrors } from "../superfluid/Definitions.sol";
 
 
 /**
@@ -39,8 +38,15 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     /**************************************************************************
      * Errors
      *************************************************************************/
-    error IDA_INDEX_SHOULD_GROW();             // index value should grow
-    error IDA_OPERATION_NOT_ALLOWED();         // operation not allowed
+    error IDA_INDEX_SHOULD_GROW();             // 0xcfdca725
+    error IDA_OPERATION_NOT_ALLOWED();         // 0x92da6d17
+    error IDA_INDEX_ALREADY_EXISTS();          // 0x5c02a517
+    error IDA_INDEX_DOES_NOT_EXIST();          // 0xedeaa63b
+    error IDA_SUBSCRIPTION_DOES_NOT_EXIST();   // 0xb6c8c980
+    error IDA_SUBSCRIPTION_ALREADY_APPROVED(); // 0x3eb2f849
+    error IDA_SUBSCRIPTION_IS_NOT_APPROVED();  // 0x37412573
+    error IDA_INSUFFICIENT_BALANCE();          // 0x16e759bb
+    error IDA_ZERO_ADDRESS_SUBSCRIBER();       // 0xc90a4674
 
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override pure returns (bytes32) {

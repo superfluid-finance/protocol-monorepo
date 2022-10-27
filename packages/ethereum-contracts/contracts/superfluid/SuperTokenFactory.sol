@@ -5,8 +5,7 @@ import {
     ISuperTokenFactory,
     ISuperToken,
     IERC20,
-    ERC20WithTokenInfo,
-    SuperfluidErrors
+    ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
 
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
@@ -81,7 +80,7 @@ abstract contract SuperTokenFactoryBase is
 
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host)) {
-            revert SuperfluidErrors.ONLY_HOST(SuperfluidErrors.SUPER_TOKEN_FACTORY_ONLY_HOST);
+            revert SUPER_TOKEN_FACTORY_ONLY_HOST();
         }
         _updateCodeAddress(newAddress);
         _updateSuperTokenLogic();
@@ -115,7 +114,7 @@ abstract contract SuperTokenFactoryBase is
         // we use this to check if we have initialized the _canonicalWrapperSuperTokens mapping
         // @note we must set this during initialization
         if (_canonicalWrapperSuperTokens[address(0)] == address(0)) {
-            revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.SUPER_TOKEN_FACTORY_DOES_NOT_EXIST);
+            revert SUPER_TOKEN_FACTORY_UNINITIALIZED();
         }
 
         address underlyingTokenAddress = address(_underlyingToken);
@@ -125,7 +124,7 @@ abstract contract SuperTokenFactoryBase is
 
         // if the canonical super token address exists, revert with custom error
         if (canonicalSuperTokenAddress != address(0)) {
-            revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.SUPER_TOKEN_FACTORY_ALREADY_EXISTS);
+            revert SUPER_TOKEN_FACTORY_ALREADY_EXISTS();
         }
 
         // use create2 to deterministically create the proxy contract for the wrapper super token
@@ -172,7 +171,7 @@ abstract contract SuperTokenFactoryBase is
         returns (ISuperToken superToken)
     {
         if (address(underlyingToken) == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.SUPER_TOKEN_FACTORY_ZERO_ADDRESS);
+            revert SUPER_TOKEN_FACTORY_ZERO_ADDRESS();
         }
 
         if (upgradability == Upgradability.NON_UPGRADABLE) {
@@ -288,7 +287,7 @@ abstract contract SuperTokenFactoryBase is
         // once the list has been set, it cannot be reset
         // @note this means that we must set the 0 address (Native Asset Super Token) when we call this the first time
         if (_canonicalWrapperSuperTokens[address(0)] != address(0)) {
-            revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.SUPER_TOKEN_FACTORY_DOES_NOT_EXIST);
+            revert SUPER_TOKEN_FACTORY_ALREADY_EXISTS();
         }
 
         // initialize mapping

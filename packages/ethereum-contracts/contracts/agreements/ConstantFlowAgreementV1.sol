@@ -4,7 +4,6 @@ pragma solidity 0.8.16;
 import { IConstantFlowAgreementHook } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import {
     IConstantFlowAgreementV1,
-    SuperfluidErrors,
     ISuperfluidToken
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {
@@ -420,7 +419,7 @@ contract ConstantFlowAgreementV1 is
         returns(bytes32 flowId, FlowParams memory flowParams)
     {
         if (flowVars.receiver == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.CFA_ZERO_ADDRESS_RECEIVER);
+            revert CFA_ZERO_ADDRESS_RECEIVER();
         }
 
         flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
@@ -445,7 +444,7 @@ contract ConstantFlowAgreementV1 is
         (bytes32 flowId, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
 
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowId);
-        if (exist) revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.CFA_FLOW_ALREADY_EXISTS);
+        if (exist) revert CFA_FLOW_ALREADY_EXISTS();
 
         if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
             newCtx = _changeFlowToApp(
@@ -477,7 +476,7 @@ contract ConstantFlowAgreementV1 is
 // This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
 // See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
                 if (gasleft() <= gasLeftBefore / 63) {
-                    revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
+                    revert CFA_HOOK_OUT_OF_GAS();
                 }
             }
         }
@@ -495,7 +494,7 @@ contract ConstantFlowAgreementV1 is
     {
         (, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
 
-        if (!exist) revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.CFA_FLOW_DOES_NOT_EXIST);
+        if (!exist) revert CFA_FLOW_DOES_NOT_EXIST();
 
         if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
             newCtx = _changeFlowToApp(
@@ -527,7 +526,7 @@ contract ConstantFlowAgreementV1 is
             ) {} catch {
                 // @note See comment in onCreate
                 if (gasleft() <= gasLeftBefore / 63) {
-                    revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
+                    revert CFA_HOOK_OUT_OF_GAS();
                 }
             }
         }
@@ -544,10 +543,10 @@ contract ConstantFlowAgreementV1 is
     {
         FlowParams memory flowParams;
         if (flowVars.sender == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.CFA_ZERO_ADDRESS_SENDER);
+            revert CFA_ZERO_ADDRESS_SENDER();
         }
         if (flowVars.receiver == address(0)) {
-            revert SuperfluidErrors.ZERO_ADDRESS(SuperfluidErrors.CFA_ZERO_ADDRESS_RECEIVER);
+            revert CFA_ZERO_ADDRESS_RECEIVER();
         }
         flowParams.flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
         flowParams.sender = flowVars.sender;
@@ -556,7 +555,7 @@ contract ConstantFlowAgreementV1 is
         flowParams.flowRate = 0;
         flowParams.userData = currentContext.userData;
         (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowParams.flowId);
-        if (!exist) revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.CFA_FLOW_DOES_NOT_EXIST);
+        if (!exist) revert CFA_FLOW_DOES_NOT_EXIST();
 
         (int256 availableBalance,,) = flowVars.token.realtimeBalanceOf(flowVars.sender, currentContext.timestamp);
 
@@ -658,7 +657,7 @@ contract ConstantFlowAgreementV1 is
             ) {} catch {
                 // @note See comment in onCreate
                 if (gasleft() <= gasLeftBefore / 63) {
-                    revert SuperfluidErrors.OUT_OF_GAS(SuperfluidErrors.CFA_HOOK_OUT_OF_GAS);
+                    revert CFA_HOOK_OUT_OF_GAS();
                 }
             }
         }
@@ -1164,7 +1163,7 @@ contract ConstantFlowAgreementV1 is
                             userDamageAmount
                         );
                     } else {
-                        revert SuperfluidErrors.APP_RULE(SuperAppDefinitions.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT);
+                        revert ISuperfluid.APP_RULE(SuperAppDefinitions.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT);
                     }
                 }
             }
@@ -1308,7 +1307,7 @@ contract ConstantFlowAgreementV1 is
             currentContext.appCreditToken != token) {
             (int256 availableBalance,,) = token.realtimeBalanceOf(flowSender, currentContext.timestamp);
             if (availableBalance < 0) {
-                revert SuperfluidErrors.INSUFFICIENT_BALANCE(SuperfluidErrors.CFA_INSUFFICIENT_BALANCE);
+                revert CFA_INSUFFICIENT_BALANCE();
             }
         }
     }

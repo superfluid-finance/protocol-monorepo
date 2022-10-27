@@ -541,9 +541,7 @@ describe("SuperToken's ERC777 implementation", function () {
                                         operatorData
                                     ),
                                 tokenContract,
-                                "ZERO_ADDRESS",
-                                t.customErrorCode
-                                    .SUPER_TOKEN_MINT_TO_ZERO_ADDRESS
+                                "SUPER_TOKEN_MINT_TO_ZERO_ADDRESS"
                             );
                         });
 

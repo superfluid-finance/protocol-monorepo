@@ -2,13 +2,23 @@
 pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "./ISuperAgreement.sol";
-import { SuperfluidErrors } from "./Definitions.sol";
 
 /**
  * @title Superfluid token interface
  * @author Superfluid
  */
 interface ISuperfluidToken {
+
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error SF_TOKEN_AGREEMENT_ALREADY_EXISTS();  // 0xf05521f6
+    error SF_TOKEN_AGREEMENT_DOES_NOT_EXIST();  // 0xdae18809
+    error SF_TOKEN_BURN_INSUFFICIENT_BALANCE(); // 0x10ecdf44
+    error SF_TOKEN_MOVE_INSUFFICIENT_BALANCE(); // 0x2f4cb941
+    error SF_TOKEN_ONLY_LISTED_AGREEMENT();     // 0xc9ff6644
+    error SF_TOKEN_ONLY_HOST();                 // 0xc51efddd
+
     /**************************************************************************
      * Basic information
      *************************************************************************/

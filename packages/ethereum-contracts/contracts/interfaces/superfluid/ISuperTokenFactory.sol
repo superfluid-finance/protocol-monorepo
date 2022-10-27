@@ -7,13 +7,21 @@ import {
     IERC20,
     ERC20WithTokenInfo
 } from "../tokens/ERC20WithTokenInfo.sol";
-import { SuperfluidErrors } from "./Definitions.sol";
 
 /**
  * @title Super token factory interface
  * @author Superfluid
  */
 interface ISuperTokenFactory {
+
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error SUPER_TOKEN_FACTORY_ALREADY_EXISTS(); // 0x91d67972
+    error SUPER_TOKEN_FACTORY_DOES_NOT_EXIST(); // 0x872cac48
+    error SUPER_TOKEN_FACTORY_UNINITIALIZED();  // 0x1b39b9b4
+    error SUPER_TOKEN_FACTORY_ONLY_HOST();      // 0x478b8e83
+    error SUPER_TOKEN_FACTORY_ZERO_ADDRESS();   // 0x305c9e82
 
     /**
      * @dev Get superfluid host contract address

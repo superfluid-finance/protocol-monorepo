@@ -23,8 +23,7 @@
         "!/**/*.dbg.json",
         "scripts/**/*",
         "utils/**/*",
-        "/build/typechain/**/*",
-        "types/**/*"
+        "/build/typechain/**/*"
     ],
     "main": "./scripts/index.js",
     "typings": "./types/index.d.ts",

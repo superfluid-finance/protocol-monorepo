@@ -15,13 +15,13 @@ import {
     BIG_INT_ONE,
     BIG_INT_ZERO,
     bytesToAddress,
-    createEventID,
     getFlowOperatorID,
-    getOrder,
     getStreamPeriodID,
     MAX_FLOW_RATE,
+    initializeEventEntity,
     tokenHasValidHost,
     ZERO_ADDRESS,
+    createEventID,
 } from "../utils";
 import {
     _createAccountTokenSnapshotLogEntity,
@@ -385,19 +385,13 @@ function _createFlowUpdatedEntity(
     totalAmountStreamedUntilTimestamp: BigInt,
     deposit: BigInt
 ): FlowUpdatedEvent {
-    let ev = new FlowUpdatedEvent(createEventID("FlowUpdated", event));
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.name = "FlowUpdated";
-    ev.addresses = [
+    const ev = new FlowUpdatedEvent(createEventID("FlowUpdated", event));
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.sender,
         event.params.receiver,
-    ];
-    ev.timestamp = event.block.timestamp;
-    ev.order = getOrder(event.block.number, event.logIndex);
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
+    ]);
+
     ev.token = event.params.token;
     ev.sender = event.params.sender;
     ev.receiver = event.params.receiver;
@@ -420,21 +414,15 @@ function _createFlowUpdatedEntity(
 function _createFlowOperatorUpdatedEventEntity(
     event: FlowOperatorUpdated
 ): FlowOperatorUpdatedEvent {
-    let ev = new FlowOperatorUpdatedEvent(
+    const ev = new FlowOperatorUpdatedEvent(
         createEventID("FlowOperatorUpdated", event)
     );
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.name = "FlowOperatorUpdated";
-    ev.addresses = [
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.sender,
         event.params.flowOperator,
-    ];
-    ev.timestamp = event.block.timestamp;
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
+    ]);
+
     ev.token = event.params.token;
     ev.sender = event.params.sender;
     ev.permissions = event.params.permissions;

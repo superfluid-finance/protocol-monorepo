@@ -1,4 +1,4 @@
-import { Address, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
     RoleAdminChanged,
     RoleGranted,
@@ -13,20 +13,13 @@ import {
     Token,
 } from "../../generated/schema";
 import { getOrInitResolverEntry } from "../mappingHelpers";
-import { createEventID, getOrder, ZERO_ADDRESS } from "../utils";
+import { createEventID, initializeEventEntity, ZERO_ADDRESS } from "../utils";
 
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {
-    let ev = new RoleAdminChangedEvent(
-        createEventID("RoleAdminChanged", event)
-    );
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.blockNumber = event.block.number;
-    ev.order = getOrder(event.block.number, event.logIndex);
-    ev.logIndex = event.logIndex;
-    ev.name = "RoleAdminChanged";
-    ev.addresses = [];
+    const eventId = createEventID("RoleAdminChanged", event);
+    const ev = new RoleAdminChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
+
     ev.role = event.params.role;
     ev.previousAdminRole = event.params.previousAdminRole;
     ev.newAdminRole = event.params.newAdminRole;
@@ -34,30 +27,20 @@ export function handleRoleAdminChanged(event: RoleAdminChanged): void {
 }
 
 export function handleRoleGranted(event: RoleGranted): void {
-    let ev = new RoleGrantedEvent(createEventID("RoleGranted", event));
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
-    ev.name = "RoleGranted";
-    ev.addresses = [];
+    const eventId = createEventID("RoleGranted", event);
+    const ev = new RoleGrantedEvent(eventId);
+    initializeEventEntity(ev, event, []);
+
     ev.role = event.params.role;
     ev.account = event.params.account;
     ev.sender = event.params.sender;
     ev.save();
 }
 export function handleRoleRevoked(event: RoleRevoked): void {
-    let ev = new RoleRevokedEvent(createEventID("RoleRevoked", event));
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
-    ev.name = "RoleRevoked";
-    ev.addresses = [];
+    const eventId = createEventID("RoleRevoked", event);
+    const ev = new RoleRevokedEvent(eventId);
+    initializeEventEntity(ev, event, []);
+
     ev.role = event.params.role;
     ev.account = event.params.account;
     ev.sender = event.params.sender;
@@ -91,15 +74,9 @@ function _createSetEvent(
     target: Bytes,
     name: Bytes
 ): void {
-    const ev = new SetEvent(createEventID("Set", event));
-    ev.transactionHash = event.transaction.hash;
-    ev.gasPrice = event.transaction.gasPrice;
-    ev.timestamp = event.block.timestamp;
-    ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
-    ev.name = "Set";
-    ev.addresses = [target];
+    const eventId = createEventID("Set", event);
+    const ev = new SetEvent(eventId);
+    initializeEventEntity(ev, event, [target]);
 
     ev.hashedName = name;
     ev.target = target;

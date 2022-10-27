@@ -16,13 +16,8 @@ import { createEventID, initializeEventEntity } from "../utils";
 
 export function handleConfigChanged(event: ConfigChanged): void {
     const eventId = createEventID("ConfigChanged", event);
-    let ev = new ConfigChangedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "ConfigChanged",
-        event,
-        []
-    ) as ConfigChangedEvent;
+    const ev = new ConfigChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
@@ -34,13 +29,8 @@ export function handleConfigChanged(event: ConfigChanged): void {
 
 export function handleRewardAddressChanged(event: RewardAddressChanged): void {
     const eventId = createEventID("RewardAddressChanged", event);
-    let ev = new RewardAddressChangedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "RewardAddressChanged",
-        event,
-        []
-    ) as RewardAddressChangedEvent;
+    const ev = new RewardAddressChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
@@ -53,13 +43,8 @@ export function handleCFAv1LiquidationPeriodChanged(
     event: CFAv1LiquidationPeriodChanged
 ): void {
     const eventId = createEventID("CFAv1LiquidationPeriodChanged", event);
-    let ev = new CFAv1LiquidationPeriodChangedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "CFAv1LiquidationPeriodChanged",
-        event,
-        []
-    ) as CFAv1LiquidationPeriodChangedEvent;
+    const ev = new CFAv1LiquidationPeriodChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
@@ -72,13 +57,8 @@ export function handlePPPConfigurationChanged(
     event: PPPConfigurationChanged
 ): void {
     const eventId = createEventID("PPPConfigurationChanged", event);
-    let ev = new PPPConfigurationChangedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "PPPConfigurationChanged",
-        event,
-        []
-    ) as PPPConfigurationChangedEvent;
+    const ev = new PPPConfigurationChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
@@ -92,13 +72,8 @@ export function handleTrustedForwarderChanged(
     event: TrustedForwarderChanged
 ): void {
     const eventId = createEventID("TrustedForwarderChanged", event);
-    let ev = new TrustedForwarderChangedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "TrustedForwarderChanged",
-        event,
-        []
-    ) as TrustedForwarderChangedEvent;
+    const ev = new TrustedForwarderChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;

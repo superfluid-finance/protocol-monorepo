@@ -385,12 +385,12 @@ function _createFlowUpdatedEntity(
     totalAmountStreamedUntilTimestamp: BigInt,
     deposit: BigInt
 ): FlowUpdatedEvent {
-    let ev = new FlowUpdatedEvent(createEventID("FlowUpdated", event));
-    ev = initializeEventEntity(ev, "FlowUpdated", event, [
+    const ev = new FlowUpdatedEvent(createEventID("FlowUpdated", event));
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.sender,
         event.params.receiver,
-    ]) as FlowUpdatedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.sender = event.params.sender;
@@ -414,14 +414,14 @@ function _createFlowUpdatedEntity(
 function _createFlowOperatorUpdatedEventEntity(
     event: FlowOperatorUpdated
 ): FlowOperatorUpdatedEvent {
-    let ev = new FlowOperatorUpdatedEvent(
+    const ev = new FlowOperatorUpdatedEvent(
         createEventID("FlowOperatorUpdated", event)
     );
-    ev = initializeEventEntity(ev, "FlowOperatorUpdated", event, [
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.sender,
         event.params.flowOperator,
-    ]) as FlowOperatorUpdatedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.sender = event.params.sender;

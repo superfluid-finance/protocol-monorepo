@@ -44,17 +44,21 @@ export function createEventID(
 
 /**
  * Initialize event and its base properties on Event interface.
- * @param name the name of the event
  * @param event the ethereum.Event object
  * @param addresses the addresses array
  * @returns Entity to be casted as original Event type
  */
 export function initializeEventEntity(
     entity: Entity,
-    name: string,
     event: ethereum.Event,
     addresses: Bytes[]
   ): Entity {
+    const idValue = entity.get("id");
+    if (!idValue) return entity;
+
+    const stringId = idValue.toString();
+    const name = stringId.split("-")[0];
+
     entity.set("blockNumber", Value.fromBigInt(event.block.number));
     entity.set("logIndex", Value.fromBigInt(event.logIndex));
     entity.set("order", Value.fromBigInt(getOrder(event.block.number, event.logIndex)));

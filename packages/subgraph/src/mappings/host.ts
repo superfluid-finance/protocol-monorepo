@@ -24,16 +24,10 @@ import { SuperfluidGovernance } from "../../generated/templates";
 
 export function handleGovernanceReplaced(event: GovernanceReplaced): void {
     const eventId = createEventID("GovernanceReplaced", event);
-    let ev = new GovernanceReplacedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "GovernanceReplaced",
-        event,
-        []
-    ) as GovernanceReplacedEvent;
+    const ev = new GovernanceReplacedEvent(eventId);
+    initializeEventEntity(ev, event, []);
     ev.oldGovernance = event.params.oldGov;
     ev.newGovernance = event.params.newGov;
-    ev.logIndex = event.logIndex;
     ev.save();
 
     // Create data source template for new Governance contract
@@ -47,13 +41,8 @@ export function handleAgreementClassRegistered(
     event: AgreementClassRegistered
 ): void {
     const eventId = createEventID("AgreementClassRegistered", event);
-    let ev = new AgreementClassRegisteredEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "AgreementClassRegistered",
-        event,
-        []
-    ) as AgreementClassRegisteredEvent;
+    const ev = new AgreementClassRegisteredEvent(eventId);
+    initializeEventEntity(ev, event, []);
     ev.agreementType = event.params.agreementType;
     ev.code = event.params.code;
     ev.save();
@@ -65,13 +54,8 @@ export function handleAgreementClassUpdated(
     event: AgreementClassUpdated
 ): void {
     const eventId = createEventID("AgreementClassUpdated", event);
-    let ev = new AgreementClassUpdatedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "AgreementClassUpdated",
-        event,
-        []
-    ) as AgreementClassUpdatedEvent;
+    const ev = new AgreementClassUpdatedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.agreementType = event.params.agreementType;
     ev.code = event.params.code;
@@ -85,13 +69,8 @@ export function handleSuperTokenFactoryUpdated(
     event: SuperTokenFactoryUpdated
 ): void {
     const eventId = createEventID("SuperTokenFactoryUpdated", event);
-    let ev = new SuperTokenFactoryUpdatedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "SuperTokenFactoryUpdated",
-        event,
-        []
-    ) as SuperTokenFactoryUpdatedEvent;
+    const ev = new SuperTokenFactoryUpdatedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.newFactory = event.params.newFactory;
     ev.save();
@@ -101,13 +80,8 @@ export function handleSuperTokenLogicUpdated(
     event: SuperTokenLogicUpdated
 ): void {
     const eventId = createEventID("SuperTokenLogicUpdated", event);
-    let ev = new SuperTokenLogicUpdatedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "SuperTokenLogicUpdated",
-        event,
-        []
-    ) as SuperTokenLogicUpdatedEvent;
+    const ev = new SuperTokenLogicUpdatedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.token = event.params.token;
     ev.code = event.params.code;
@@ -115,21 +89,16 @@ export function handleSuperTokenLogicUpdated(
 }
 
 export function handleAppRegistered(event: AppRegistered): void {
-    let ev = new AppRegisteredEvent(createEventID("AppRegistered", event));
-    ev = initializeEventEntity(
-        ev,
-        "AppRegistered",
-        event,
-        []
-    ) as AppRegisteredEvent;
+    const ev = new AppRegisteredEvent(createEventID("AppRegistered", event));
+    initializeEventEntity(ev, event, []);
 
     ev.app = event.params.app;
     ev.save();
 }
 
 export function handleJail(event: Jail): void {
-    let ev = new JailEvent(createEventID("Jail", event));
-    ev = initializeEventEntity(ev, "Jail", event, []) as JailEvent;
+    const ev = new JailEvent(createEventID("Jail", event));
+    initializeEventEntity(ev, event, []);
 
     ev.app = event.params.app;
     ev.reason = event.params.reason;

@@ -17,13 +17,8 @@ import { createEventID, initializeEventEntity, ZERO_ADDRESS } from "../utils";
 
 export function handleRoleAdminChanged(event: RoleAdminChanged): void {
     const eventId = createEventID("RoleAdminChanged", event);
-    let ev = new RoleAdminChangedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "RoleAdminChanged",
-        event,
-        []
-    ) as RoleAdminChangedEvent;
+    const ev = new RoleAdminChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.role = event.params.role;
     ev.previousAdminRole = event.params.previousAdminRole;
@@ -33,13 +28,8 @@ export function handleRoleAdminChanged(event: RoleAdminChanged): void {
 
 export function handleRoleGranted(event: RoleGranted): void {
     const eventId = createEventID("RoleGranted", event);
-    let ev = new RoleGrantedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "RoleGranted",
-        event,
-        []
-    ) as RoleGrantedEvent;
+    const ev = new RoleGrantedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.role = event.params.role;
     ev.account = event.params.account;
@@ -48,13 +38,8 @@ export function handleRoleGranted(event: RoleGranted): void {
 }
 export function handleRoleRevoked(event: RoleRevoked): void {
     const eventId = createEventID("RoleRevoked", event);
-    let ev = new RoleRevokedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "RoleRevoked",
-        event,
-        []
-    ) as RoleRevokedEvent;
+    const ev = new RoleRevokedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.role = event.params.role;
     ev.account = event.params.account;
@@ -90,8 +75,8 @@ function _createSetEvent(
     name: Bytes
 ): void {
     const eventId = createEventID("Set", event);
-    let ev = new SetEvent(eventId);
-    ev = initializeEventEntity(ev, "Set", event, [target]) as SetEvent;
+    const ev = new SetEvent(eventId);
+    initializeEventEntity(ev, event, [target]);
 
     ev.hashedName = name;
     ev.target = target;

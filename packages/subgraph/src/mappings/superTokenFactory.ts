@@ -23,10 +23,8 @@ export function handleSuperTokenCreated(event: SuperTokenCreated): void {
         return;
     }
     const eventId = createEventID("SuperTokenCreated", event);
-    let ev = new SuperTokenCreatedEvent(eventId);
-    ev = initializeEventEntity(ev, "SuperTokenCreated", event, [
-        event.params.token,
-    ]) as SuperTokenCreatedEvent;
+    const ev = new SuperTokenCreatedEvent(eventId);
+    initializeEventEntity(ev, event, [event.params.token]);
 
     ev.token = event.params.token;
     ev.save();
@@ -43,10 +41,8 @@ export function handleCustomSuperTokenCreated(
         return;
     }
     const eventId = createEventID("CustomSuperTokenCreated", event);
-    let ev = new CustomSuperTokenCreatedEvent(eventId);
-    ev = initializeEventEntity(ev, "CustomSuperTokenCreated", event, [
-        event.params.token,
-    ]) as CustomSuperTokenCreatedEvent;
+    const ev = new CustomSuperTokenCreatedEvent(eventId);
+    initializeEventEntity(ev, event, [event.params.token]);
     ev.token = event.params.token;
     ev.save();
 
@@ -62,13 +58,8 @@ export function handleSuperTokenLogicCreated(
         return;
     }
     const eventId = createEventID("SuperTokenLogicCreated", event);
-    let ev = new SuperTokenLogicCreatedEvent(eventId);
-    ev = initializeEventEntity(
-        ev,
-        "SuperTokenLogicCreated",
-        event,
-        []
-    ) as SuperTokenLogicCreatedEvent;
+    const ev = new SuperTokenLogicCreatedEvent(eventId);
+    initializeEventEntity(ev, event, []);
 
     ev.tokenLogic = event.params.tokenLogic;
     ev.save();

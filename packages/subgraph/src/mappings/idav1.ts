@@ -632,11 +632,11 @@ function _createIndexCreatedEventEntity(
     indexId: string
 ): void {
     const eventId = createEventID("IndexCreated", event);
-    let ev = new IndexCreatedEvent(eventId);
-    ev = initializeEventEntity(ev, "IndexCreated", event, [
+    const ev = new IndexCreatedEvent(eventId);
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.publisher,
-    ]) as IndexCreatedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
@@ -651,12 +651,12 @@ function _createIndexDistributionClaimedEventEntity(
     indexId: string
 ): void {
     const eventId = createEventID("IndexDistributionClaimed", event);
-    let ev = new IndexDistributionClaimedEvent(eventId);
-    ev = initializeEventEntity(ev, "IndexDistributionClaimed", event, [
+    const ev = new IndexDistributionClaimedEvent(eventId);
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.publisher,
         event.params.subscriber,
-    ]) as IndexDistributionClaimedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
@@ -672,11 +672,11 @@ function _createIndexUpdatedEventEntity(
     indexId: string
 ): void {
     const eventId = createEventID("IndexUpdated", event);
-    let ev = new IndexUpdatedEvent(eventId);
-    ev = initializeEventEntity(ev, "IndexUpdated", event, [
+    const ev = new IndexUpdatedEvent(eventId);
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.publisher,
-    ]) as IndexUpdatedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
@@ -694,12 +694,12 @@ function _createIndexSubscribedEventEntity(
     indexId: string
 ): void {
     const eventId = createEventID("IndexSubscribed", event);
-    let ev = new IndexSubscribedEvent(eventId);
-    ev = initializeEventEntity(ev, "IndexSubscribed", event, [
+    const ev = new IndexSubscribedEvent(eventId);
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.publisher,
         event.params.subscriber,
-    ]) as IndexSubscribedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
@@ -716,12 +716,12 @@ function _createIndexUnitsUpdatedEventEntity(
     oldUnits: BigInt
 ): void {
     const eventId = createEventID("IndexUnitsUpdated", event);
-    let ev = new IndexUnitsUpdatedEvent(eventId);
-    ev = initializeEventEntity(ev, "IndexUnitsUpdated", event, [
+    const ev = new IndexUnitsUpdatedEvent(eventId);
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.publisher,
         event.params.subscriber,
-    ]) as IndexUnitsUpdatedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
@@ -739,12 +739,12 @@ function _createIndexUnsubscribedEventEntity(
     indexId: string
 ): void {
     const eventId = createEventID("IndexUnsubscribed", event);
-    let ev = new IndexUnsubscribedEvent(eventId);
-    ev = initializeEventEntity(ev, "IndexUnsubscribed", event, [
+    const ev = new IndexUnsubscribedEvent(eventId);
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.publisher,
         event.params.subscriber,
-    ]) as IndexUnsubscribedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
@@ -760,12 +760,12 @@ function _createSubscriptionApprovedEventEntity(
     subscriptionId: string
 ): void {
     const eventId = createEventID("SubscriptionApproved", event);
-    let ev = new SubscriptionApprovedEvent(eventId);
-    ev = initializeEventEntity(ev, "SubscriptionApproved", event, [
+    const ev = new SubscriptionApprovedEvent(eventId);
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.publisher,
         event.params.subscriber,
-    ]) as SubscriptionApprovedEvent;
+    ]);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -780,12 +780,12 @@ function _createSubscriptionDistributionClaimedEventEntity(
     subscriptionId: string
 ): void {
     const eventId = createEventID("SubscriptionDistributionClaimed", event);
-    let ev = new SubscriptionDistributionClaimedEvent(eventId);
-    ev = initializeEventEntity(ev, "SubscriptionDistributionClaimed", event, [
+    const ev = new SubscriptionDistributionClaimedEvent(eventId);
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.publisher,
         event.params.subscriber,
-    ]) as SubscriptionDistributionClaimedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
@@ -801,12 +801,12 @@ function _createSubscriptionRevokedEventEntity(
     subscriptionId: string
 ): void {
     const eventId = createEventID("SubscriptionRevoked", event);
-    let ev = new SubscriptionRevokedEvent(eventId);
-    ev = initializeEventEntity(ev, "SubscriptionRevoked", event, [
+    const ev = new SubscriptionRevokedEvent(eventId);
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.publisher,
         event.params.subscriber,
-    ]) as SubscriptionRevokedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
@@ -823,12 +823,12 @@ function _createSubscriptionUnitsUpdatedEventEntity(
     oldUnits: BigInt
 ): void {
     const eventId = createEventID("SubscriptionUnitsUpdated", event);
-    let ev = new SubscriptionUnitsUpdatedEvent(eventId);
-    ev = initializeEventEntity(ev, "SubscriptionUnitsUpdated", event, [
+    const ev = new SubscriptionUnitsUpdatedEvent(eventId);
+    initializeEventEntity(ev, event, [
         event.params.token,
         event.params.publisher,
         event.params.subscriber,
-    ]) as SubscriptionUnitsUpdatedEvent;
+    ]);
 
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;

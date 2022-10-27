@@ -19,10 +19,15 @@
         "!/build/contracts/*Properties.json",
         "/build/contracts-sizes.txt",
         "/build/abi.js",
+        "artifacts/contracts/**/*.json",
+        "!/**/*.dbg.json",
         "scripts/**/*",
         "utils/**/*",
-        "/build/typechain/**/*"
+        "/build/typechain/**/*",
+        "types/**/*"
     ],
+    "main": "./scripts/index.js",
+    "typings": "./types/index.d.ts",
     "scripts": {
         "dev": "tasks/dev.sh",
         "run-hardhat": "IS_HARDHAT=true hardhat",
@@ -34,6 +39,7 @@
         "build:contracts-truffle": "yarn run-truffle compile",
         "build:contracts-hardhat": "yarn run-hardhat compile",
         "build:typechain": "tsc -p tsconfig.typechain.json",
+        "build:scripts": "tsc -p tsconfig.scripts.json",
         "build:contracts-size": "tasks/print-contract-sizes.sh | tee build/contracts-sizes.txt",
         "testenv:start": "test/testenv-ctl.sh start",
         "testenv:stop": "test/testenv-ctl.sh stop",

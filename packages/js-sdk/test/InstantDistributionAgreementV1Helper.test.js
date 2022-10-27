@@ -413,7 +413,7 @@ describe("InstantDistributionAgreementV1Helper class", function () {
             );
         });
 
-        it("listSubcribers", async () => {
+        it("listSubscribers", async () => {
             const units = toWad(100).toString();
             const publisher = alice;
             await sf.ida.createIndex({
@@ -443,7 +443,7 @@ describe("InstantDistributionAgreementV1Helper class", function () {
             });
 
             assert.deepEqual(
-                await sf.ida.listSubcribers({
+                await sf.ida.listSubscribers({
                     superToken: superToken.address,
                     publisher,
                     indexId: 1,
@@ -469,7 +469,7 @@ describe("InstantDistributionAgreementV1Helper class", function () {
             });
 
             assert.deepEqual(
-                await sf.ida.listSubcribers({
+                await sf.ida.listSubscribers({
                     superToken: superToken.address,
                     publisher,
                     indexId: 1,
@@ -483,7 +483,7 @@ describe("InstantDistributionAgreementV1Helper class", function () {
             );
 
             assert.deepEqual(
-                await sf.ida.listSubcribers({
+                await sf.ida.listSubscribers({
                     superToken: superToken.address,
                     publisher,
                     indexId: 2,

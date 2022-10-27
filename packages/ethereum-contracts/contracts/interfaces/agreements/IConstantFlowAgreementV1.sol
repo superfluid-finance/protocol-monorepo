@@ -3,7 +3,6 @@ pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
-import { SuperfluidErrors } from "../superfluid/Definitions.sol";
 
 /**
  * @title Constant Flow Agreement interface
@@ -14,21 +13,26 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     /**************************************************************************
      * Errors
      *************************************************************************/
-    error CFA_ACL_NO_SENDER_CREATE();
-    error CFA_ACL_NO_SENDER_UPDATE();
-    error CFA_ACL_OPERATOR_NO_CREATE_PERMISSIONS();
-    error CFA_ACL_OPERATOR_NO_UPDATE_PERMISSIONS();
-    error CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS();
-    error CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED();
-    error CFA_ACL_UNCLEAN_PERMISSIONS();
-    error CFA_ACL_NO_SENDER_FLOW_OPERATOR();
-    error CFA_ACL_NO_NEGATIVE_ALLOWANCE();
-
-    error CFA_DEPOSIT_TOO_BIG();
-    error CFA_FLOW_RATE_TOO_BIG();
-    error CFA_NON_CRITICAL_SENDER();
-    error CFA_INVALID_FLOW_RATE();
-    error CFA_NO_SELF_FLOW();
+    error CFA_ACL_NO_SENDER_CREATE();               // 0x4b993136
+    error CFA_ACL_NO_SENDER_UPDATE();               // 0xedfa0d3b
+    error CFA_ACL_OPERATOR_NO_CREATE_PERMISSIONS(); // 0xa3eab6ac
+    error CFA_ACL_OPERATOR_NO_UPDATE_PERMISSIONS(); // 0xac434b5f
+    error CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS(); // 0xe30f1bff
+    error CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED();   // 0xa0645c1f
+    error CFA_ACL_UNCLEAN_PERMISSIONS();            // 0x7939d66c
+    error CFA_ACL_NO_SENDER_FLOW_OPERATOR();        // 0xb0ed394d
+    error CFA_ACL_NO_NEGATIVE_ALLOWANCE();          // 0x86e0377d
+    error CFA_FLOW_ALREADY_EXISTS();                // 0x801b6863
+    error CFA_FLOW_DOES_NOT_EXIST();                // 0x5a32bf24
+    error CFA_INSUFFICIENT_BALANCE();               // 0xea76c9b3
+    error CFA_ZERO_ADDRESS_SENDER();                // 0x1ce9b067
+    error CFA_ZERO_ADDRESS_RECEIVER();              // 0x78e02b2a
+    error CFA_HOOK_OUT_OF_GAS();                    // 0x9f76430b
+    error CFA_DEPOSIT_TOO_BIG();                    // 0x752c2b9c
+    error CFA_FLOW_RATE_TOO_BIG();                  // 0x0c9c55c1
+    error CFA_NON_CRITICAL_SENDER();                // 0xce11b5d1
+    error CFA_INVALID_FLOW_RATE();                  // 0x91acad16
+    error CFA_NO_SELF_FLOW();                       // 0xa47338ef
 
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override pure returns (bytes32) {

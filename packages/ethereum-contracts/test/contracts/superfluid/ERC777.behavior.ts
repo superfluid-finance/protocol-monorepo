@@ -100,9 +100,7 @@ function _shouldBehaveLikeERC777DirectSend(
                         .connect(holderSigner)
                         .send(recipient, balance.addn(1).toString(), data),
                     tokenContract,
-                    "INSUFFICIENT_BALANCE",
-                    this.testenv.customErrorCode
-                        .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
+                    "SF_TOKEN_MOVE_INSUFFICIENT_BALANCE"
                 );
             });
 
@@ -112,9 +110,7 @@ function _shouldBehaveLikeERC777DirectSend(
                         .connect(holderSigner)
                         .send(ZERO_ADDRESS, new BN("1").toString(), data),
                     tokenContract,
-                    "ZERO_ADDRESS",
-                    this.testenv.customErrorCode
-                        .SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
+                    "SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS"
                 );
             });
         });
@@ -139,9 +135,7 @@ function _shouldBehaveLikeERC777DirectSend(
                         .connect(holderSigner)
                         .send(recipient, new BN("1").toString(), data),
                     tokenContract,
-                    "INSUFFICIENT_BALANCE",
-                    this.testenv.customErrorCode
-                        .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
+                    "SF_TOKEN_MOVE_INSUFFICIENT_BALANCE"
                 );
             });
         });
@@ -202,9 +196,7 @@ function _shouldBehaveLikeERC777OperatorSend(
                             operatorData
                         ),
                     tokenContract,
-                    "INSUFFICIENT_BALANCE",
-                    this.testenv.customErrorCode
-                        .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
+                    "SF_TOKEN_MOVE_INSUFFICIENT_BALANCE"
                 );
             });
 
@@ -221,9 +213,7 @@ function _shouldBehaveLikeERC777OperatorSend(
                             operatorData
                         ),
                     tokenContract,
-                    "ZERO_ADDRESS",
-                    this.testenv.customErrorCode
-                        .SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
+                    "SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS"
                 );
             });
         });
@@ -257,9 +247,7 @@ function _shouldBehaveLikeERC777OperatorSend(
                             operatorData
                         ),
                     tokenContract,
-                    "INSUFFICIENT_BALANCE",
-                    this.testenv.customErrorCode
-                        .SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
+                    "SF_TOKEN_MOVE_INSUFFICIENT_BALANCE"
                 );
             });
 
@@ -278,12 +266,8 @@ function _shouldBehaveLikeERC777OperatorSend(
                         ),
                     tokenContract,
                     isDefaultOperator
-                        ? "ZERO_ADDRESS"
-                        : "SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER",
-                    isDefaultOperator
-                        ? this.testenv.customErrorCode
-                              .SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS
-                        : undefined
+                        ? "SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS"
+                        : "SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER"
                 );
             });
         });
@@ -365,9 +349,7 @@ function _shouldBehaveLikeERC777DirectBurn(
                         .connect(holderSigner)
                         .burn(balance.addn(1).toString(), data),
                     tokenContract,
-                    "INSUFFICIENT_BALANCE",
-                    this.testenv.customErrorCode
-                        .SF_TOKEN_BURN_INSUFFICIENT_BALANCE
+                    "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
                 );
             });
         });
@@ -396,9 +378,7 @@ function _shouldBehaveLikeERC777DirectBurn(
                         .connect(holderSigner)
                         .burn(new BN("1").toString(), data),
                     tokenContract,
-                    "INSUFFICIENT_BALANCE",
-                    this.testenv.customErrorCode
-                        .SF_TOKEN_BURN_INSUFFICIENT_BALANCE
+                    "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
                 );
             });
         });
@@ -455,9 +435,7 @@ function _shouldBehaveLikeERC777OperatorBurn(
                             operatorData
                         ),
                     tokenContract,
-                    "INSUFFICIENT_BALANCE",
-                    this.testenv.customErrorCode
-                        .SF_TOKEN_BURN_INSUFFICIENT_BALANCE
+                    "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
                 );
             });
         });
@@ -493,9 +471,7 @@ function _shouldBehaveLikeERC777OperatorBurn(
                             operatorData
                         ),
                     tokenContract,
-                    "INSUFFICIENT_BALANCE",
-                    this.testenv.customErrorCode
-                        .SF_TOKEN_BURN_INSUFFICIENT_BALANCE
+                    "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
                 );
             });
 
@@ -517,12 +493,8 @@ function _shouldBehaveLikeERC777OperatorBurn(
                         ),
                     tokenContract,
                     isDefaultOperator
-                        ? "ZERO_ADDRESS"
-                        : "SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER",
-                    isDefaultOperator
-                        ? this.testenv.customErrorCode
-                              .SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS
-                        : undefined
+                        ? "SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS"
+                        : "SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER"
                 );
             });
         });

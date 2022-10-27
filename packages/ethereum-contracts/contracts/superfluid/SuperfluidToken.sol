@@ -4,7 +4,7 @@ pragma solidity 0.8.16;
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
 import { ISuperfluidGovernance } from "../interfaces/superfluid/ISuperfluidGovernance.sol";
-import { ISuperfluidToken, SuperfluidErrors } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { EventsEmitter } from "../libs/EventsEmitter.sol";
@@ -197,7 +197,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         (int256 availableBalance,,) = realtimeBalanceOf(account, _host.getNow());
         if (availableBalance < amount.toInt256()) {
-            revert SuperfluidErrors.INSUFFICIENT_BALANCE(SuperfluidErrors.SF_TOKEN_BURN_INSUFFICIENT_BALANCE);
+            revert SF_TOKEN_BURN_INSUFFICIENT_BALANCE();
         }
         _sharedSettledBalances[account] = _sharedSettledBalances[account] - amount.toInt256();
         _totalSupply = _totalSupply - amount;
@@ -212,7 +212,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     {
         (int256 availableBalance,,) = realtimeBalanceOf(from, _host.getNow());
         if (availableBalance < amount) {
-            revert SuperfluidErrors.INSUFFICIENT_BALANCE(SuperfluidErrors.SF_TOKEN_MOVE_INSUFFICIENT_BALANCE);
+            revert SF_TOKEN_MOVE_INSUFFICIENT_BALANCE();
         }
         _sharedSettledBalances[from] = _sharedSettledBalances[from] - amount;
         _sharedSettledBalances[to] = _sharedSettledBalances[to] + amount;
@@ -237,7 +237,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
         if (FixedSizeData.hasData(slot, data.length)) {
-            revert SuperfluidErrors.ALREADY_EXISTS(SuperfluidErrors.SF_TOKEN_AGREEMENT_ALREADY_EXISTS);
+            revert SF_TOKEN_AGREEMENT_ALREADY_EXISTS();
         }
         FixedSizeData.storeData(slot, data);
         emit AgreementCreated(agreementClass, id, data);
@@ -279,7 +279,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
         if (!FixedSizeData.hasData(slot,dataLength)) {
-            revert SuperfluidErrors.DOES_NOT_EXIST(SuperfluidErrors.SF_TOKEN_AGREEMENT_DOES_NOT_EXIST);
+            revert SF_TOKEN_AGREEMENT_DOES_NOT_EXIST();
         }
         FixedSizeData.eraseData(slot, dataLength);
         emit AgreementTerminated(msg.sender, id);
@@ -379,14 +379,14 @@ abstract contract SuperfluidToken is ISuperfluidToken
 
     modifier onlyAgreement() {
         if (!_host.isAgreementClassListed(ISuperAgreement(msg.sender))) {
-            revert SuperfluidErrors.ONLY_LISTED_AGREEMENT(SuperfluidErrors.SF_TOKEN_ONLY_LISTED_AGREEMENT);
+            revert SF_TOKEN_ONLY_LISTED_AGREEMENT();
         }
         _;
     }
 
     modifier onlyHost() {
         if (address(_host) != msg.sender) {
-            revert SuperfluidErrors.ONLY_HOST(SuperfluidErrors.SF_TOKEN_ONLY_HOST);
+            revert SF_TOKEN_ONLY_HOST();
         }
         _;
     }

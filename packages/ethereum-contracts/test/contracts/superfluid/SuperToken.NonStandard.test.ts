@@ -79,8 +79,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 superToken.updateCode(ZERO_ADDRESS),
                 superToken,
-                "ONLY_HOST",
-                t.customErrorCode.SUPER_TOKEN_ONLY_HOST
+                "SUPER_TOKEN_ONLY_HOST"
             );
         });
 
@@ -208,8 +207,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 superToken.connect(aliceSigner).downgrade(toBN(1)),
                 superToken,
-                "INSUFFICIENT_BALANCE",
-                t.customErrorCode.SF_TOKEN_BURN_INSUFFICIENT_BALANCE
+                "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
             );
         });
 
@@ -621,8 +619,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 customToken.callSelfBurn(alice, 101, "0x"),
                 superTokenContract,
-                "INSUFFICIENT_BALANCE",
-                t.customErrorCode.SF_TOKEN_BURN_INSUFFICIENT_BALANCE
+                "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
             );
 
             await web3tx(customToken.callSelfBurn, "customToken.callSelfBurn")(
@@ -660,8 +657,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 customToken.callSelfTransferFrom(bob, alice, alice, 100),
                 superTokenContract,
-                "INSUFFICIENT_BALANCE",
-                t.customErrorCode.SF_TOKEN_MOVE_INSUFFICIENT_BALANCE
+                "SF_TOKEN_MOVE_INSUFFICIENT_BALANCE"
             );
 
             // holder cannot be zero address
@@ -673,16 +669,14 @@ describe("SuperToken's Non Standard Functions", function () {
                     100
                 ),
                 superTokenContract,
-                "ZERO_ADDRESS",
-                t.customErrorCode.SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS
+                "SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS"
             );
 
             // recipient cannot be zero address
             await expectCustomError(
                 customToken.callSelfTransferFrom(alice, bob, ZERO_ADDRESS, 100),
                 superTokenContract,
-                "ZERO_ADDRESS",
-                t.customErrorCode.SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS
+                "SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS"
             );
 
             // alice approves bob to spend her tokens
@@ -738,16 +732,14 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 customToken.callSelfApproveFor(ZERO_ADDRESS, bob, 100),
                 superTokenContract,
-                "ZERO_ADDRESS",
-                t.customErrorCode.SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS
+                "SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS"
             );
 
             // spender cannot be zero address
             await expectCustomError(
                 customToken.callSelfApproveFor(alice, ZERO_ADDRESS, 100),
                 superTokenContract,
-                "ZERO_ADDRESS",
-                t.customErrorCode.SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS
+                "SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS"
             );
 
             // should be able to call selfApprove at will + make a selfTransferFrom
@@ -805,26 +797,22 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 superToken.operationApprove(alice, bob, "0"),
                 superToken,
-                "ONLY_HOST",
-                t.customErrorCode.SF_TOKEN_ONLY_HOST
+                "SF_TOKEN_ONLY_HOST"
             );
             await expectCustomError(
                 superToken.operationTransferFrom(alice, bob, admin, "0"),
                 superToken,
-                "ONLY_HOST",
-                t.customErrorCode.SF_TOKEN_ONLY_HOST
+                "SF_TOKEN_ONLY_HOST"
             );
             await expectCustomError(
                 superToken.operationUpgrade(alice, "0"),
                 superToken,
-                "ONLY_HOST",
-                t.customErrorCode.SF_TOKEN_ONLY_HOST
+                "SF_TOKEN_ONLY_HOST"
             );
             await expectCustomError(
                 superToken.operationDowngrade(alice, "0"),
                 superToken,
-                "ONLY_HOST",
-                t.customErrorCode.SF_TOKEN_ONLY_HOST
+                "SF_TOKEN_ONLY_HOST"
             );
         });
     });

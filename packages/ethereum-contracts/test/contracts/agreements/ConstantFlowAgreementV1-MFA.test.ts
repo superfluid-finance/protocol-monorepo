@@ -867,8 +867,7 @@ describe("CFAv1 | Multi Flow Super App Tests", function () {
                 userData,
             }),
             cfa,
-            "INSUFFICIENT_BALANCE",
-            t.customErrorCode.CFA_INSUFFICIENT_BALANCE
+            "CFA_INSUFFICIENT_BALANCE"
         );
 
         await timeTravelOnceAndVerifyAll();
@@ -1550,8 +1549,7 @@ describe("CFAv1 | Multi Flow Super App Tests", function () {
                 signer: await ethers.getSigner(t.accounts[0]),
             }),
             cfa,
-            "INSUFFICIENT_BALANCE",
-            t.customErrorCode.CFA_INSUFFICIENT_BALANCE
+            "CFA_INSUFFICIENT_BALANCE"
         );
     });
 

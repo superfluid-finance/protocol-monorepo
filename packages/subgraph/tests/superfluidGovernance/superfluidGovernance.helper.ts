@@ -11,7 +11,7 @@ import {
     getAddressEventParam,
     getBooleanEventParam,
     getBytesEventParam,
-    getUintEventParam,
+    getBigIntEventParam,
 } from "../converters";
 
 export function createConfigChangedEvent(
@@ -28,7 +28,7 @@ export function createConfigChangedEvent(
     const superTokenParam = getAddressEventParam("superToken", superToken);
     const keyParam = getBytesEventParam("key", key);
     const isKeySetParam = getBooleanEventParam("isKeySet", isKeySet);
-    const valueParam = getUintEventParam("value", value);
+    const valueParam = getBigIntEventParam("value", value);
     newConfigChangedEvent.parameters.push(hostParam);
     newConfigChangedEvent.parameters.push(superTokenParam);
     newConfigChangedEvent.parameters.push(keyParam);
@@ -77,7 +77,7 @@ export function createCFAv1LiquidationPeriodChangedEvent(
     const hostParam = getAddressEventParam("host", host);
     const superTokenParam = getAddressEventParam("superToken", superToken);
     const isKeySetParam = getBooleanEventParam("isKeySet", isKeySet);
-    const liquidationPeriodParam = getUintEventParam(
+    const liquidationPeriodParam = getBigIntEventParam(
         "liquidationPeriod",
         liquidationPeriod
     );
@@ -106,11 +106,11 @@ export function createPPPConfigurationChangedEvent(
     const hostParam = getAddressEventParam("host", host);
     const superTokenParam = getAddressEventParam("superToken", superToken);
     const isKeySetParam = getBooleanEventParam("isKeySet", isKeySet);
-    const liquidationPeriodParam = getUintEventParam(
+    const liquidationPeriodParam = getBigIntEventParam(
         "liquidationPeriod",
         liquidationPeriod
     );
-    const patricianPeriodParam = getUintEventParam(
+    const patricianPeriodParam = getBigIntEventParam(
         "patricianPeriod",
         patricianPeriod
     );

@@ -6,3 +6,5 @@
 /cache
 /docs/api
 /typechain-types
+/scripts/**/*.d.ts
+/scripts/**/*.d.ts.map

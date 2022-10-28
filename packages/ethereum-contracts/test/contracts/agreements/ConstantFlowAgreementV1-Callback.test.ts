@@ -347,8 +347,7 @@ describe("CFAv1 | Callback Tests", function () {
                 flowRate: FLOW_RATE1,
             }),
             cfa,
-            "INSUFFICIENT_BALANCE",
-            t.customErrorCode.CFA_INSUFFICIENT_BALANCE
+            "CFA_INSUFFICIENT_BALANCE"
         );
 
         // fund the app with

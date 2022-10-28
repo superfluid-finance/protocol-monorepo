@@ -12,7 +12,6 @@ import {
     ContextDefinitions,
     FlowOperatorDefinitions,
     SuperAppDefinitions,
-    SuperfluidErrors,
     SuperfluidGovernanceConfigs
 } from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
@@ -35,27 +34,34 @@ interface ISuperfluid {
      * Errors
      *************************************************************************/
     // Superfluid Custom Errors
-    error HOST_AGREEMENT_CALLBACK_IS_NOT_ACTION();
-    error HOST_CANNOT_DOWNGRADE_TO_NON_UPGRADEABLE();
-    error HOST_CALL_AGREEMENT_WITH_CTX_FROM_WRONG_ADDRESS();
-    error HOST_CALL_APP_ACTION_WITH_CTX_FROM_WRONG_ADDRESS();
-    error HOST_INVALID_CONFIG_WORD();
-    error HOST_MAX_256_AGREEMENTS();
-    error HOST_NON_UPGRADEABLE();
-    error HOST_NON_ZERO_LENGTH_PLACEHOLDER_CTX();
-    error HOST_ONLY_GOVERNANCE();
-    error HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
+    error HOST_AGREEMENT_CALLBACK_IS_NOT_ACTION();              // 0xef4295f6
+    error HOST_CANNOT_DOWNGRADE_TO_NON_UPGRADEABLE();           // 0x474e7641
+    error HOST_CALL_AGREEMENT_WITH_CTX_FROM_WRONG_ADDRESS();    // 0x0cd0ebc2
+    error HOST_CALL_APP_ACTION_WITH_CTX_FROM_WRONG_ADDRESS();   // 0x473f7bd4
+    error HOST_INVALID_CONFIG_WORD();                           // 0xf4c802a4
+    error HOST_MAX_256_AGREEMENTS();                            // 0x7c281a78
+    error HOST_NON_UPGRADEABLE();                               // 0x14f72c9f
+    error HOST_NON_ZERO_LENGTH_PLACEHOLDER_CTX();               // 0x67e9985b
+    error HOST_ONLY_GOVERNANCE();                               // 0xc5d22a4e
+    error HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();             // 0xb4770115
+    error HOST_AGREEMENT_ALREADY_REGISTERED();                  // 0xdc9ddba8
+    error HOST_AGREEMENT_IS_NOT_REGISTERED();                   // 0x1c9e9bea
+    error HOST_MUST_BE_CONTRACT();                              // 0xd4f6b30c
+    error HOST_ONLY_LISTED_AGREEMENT();                         // 0x619c5359
 
     // App Related Custom Errors
-    error HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY();
-    error HOST_NOT_A_SUPER_APP();
-    error HOST_NO_APP_REGISTRATION_PERMISSIONS();
-    error HOST_RECEIVER_IS_NOT_SUPER_APP();
-    error HOST_SENDER_IS_NOT_SUPER_APP();
-    error HOST_SOURCE_APP_NEEDS_HIGHER_APP_LEVEL();
-    error HOST_SUPER_APP_IS_JAILED();
-    error HOST_SUPER_APP_ALREADY_REGISTERED();
-    error HOST_UNAUTHORIZED_SUPER_APP_FACTORY();
+    // uses SuperAppDefinitions' App Jail Reasons as _code
+    error APP_RULE(uint256 _code);                              // 0xa85ba64f
+
+    error HOST_INVALID_OR_EXPIRED_SUPER_APP_REGISTRATION_KEY(); // 0x19ab84d1
+    error HOST_NOT_A_SUPER_APP();                               // 0x163cbe43
+    error HOST_NO_APP_REGISTRATION_PERMISSIONS();               // 0x5b93ebf0
+    error HOST_RECEIVER_IS_NOT_SUPER_APP();                     // 0x96aa315e
+    error HOST_SENDER_IS_NOT_SUPER_APP();                       // 0xbacfdc40
+    error HOST_SOURCE_APP_NEEDS_HIGHER_APP_LEVEL();             // 0x44725270
+    error HOST_SUPER_APP_IS_JAILED();                           // 0x02384b64
+    error HOST_SUPER_APP_ALREADY_REGISTERED();                  // 0x01b0a935
+    error HOST_UNAUTHORIZED_SUPER_APP_FACTORY();                // 0x289533c5
 
     /**************************************************************************
      * Time

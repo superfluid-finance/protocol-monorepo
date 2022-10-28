@@ -26,6 +26,9 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
 
         assembly { slot:= _superTokenLogic.slot offset := _superTokenLogic.offset }
         require (slot == 0 && offset == 2, "_superTokenLogic changed location");
+
+        assembly { slot := _canonicalWrapperSuperTokens.slot offset := _canonicalWrapperSuperTokens.offset }
+        require(slot == 1 && offset == 0, "_canonicalWrapperSuperTokens changed location");
     }
 
     // dummy impl
@@ -67,7 +70,6 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase
     {
         return _helper.create(host, 0);
     }
-
 }
 
 contract SuperTokenFactoryMock42 is SuperTokenFactoryBase

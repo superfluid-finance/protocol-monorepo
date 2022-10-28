@@ -54,7 +54,7 @@ type IDAMethodType =
     'claim' |
     'getIndex' |
     'listIndices' |
-    'listSubcribers' |
+    'listSubscribers' |
     'listSubscriptions';
 
 interface SuperTokenIDAData {

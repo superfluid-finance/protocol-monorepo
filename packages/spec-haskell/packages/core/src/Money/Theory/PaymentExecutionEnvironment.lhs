@@ -28,14 +28,14 @@ Here are some models for the different payment execution environments.
 \end{code}
 \end{haddock}
 
-\paragraph{Nondeterministic Sequential Execution Environment}
+\paragraph{Non-deterministic Sequential Execution Environment}
 
-First, we define a model for a nondeterministic sequential payment
+First, we define a model for a non-deterministic sequential payment
 execution environment, which includes a set of all financial contracts
 and a step-through function:
 
 \begin{code}
--- | Nondeterministic sequential payment execution environment.
+-- | Non-deterministic sequential payment execution environment.
 class ( MoneyDistribution md
       , FinancialContract fc md
       , Monad env

@@ -68,6 +68,6 @@ class ( MoneyDistribution md
               => note -> env mval
 \end{code}
 
-It may seem very little semantic differences between token and notes
-execution environment, but it is intended. Their main difference lies
-mainly on the implementations of their ``user experience''.
+It may seem tiny semantic differences between tokens and notes
+execution environment, but it is on purpose. Their main difference lies
+mainly in their ``user experience'' implementations.

@@ -245,7 +245,7 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-core@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.SDK_CORE_VERSION) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
+          cloudfront_distribution_id: E3JEO5R14CT8IH
 
       - name: Upload sdk-redux HTML documentation
         uses: ./build-scripts/s3cloudfront-hosting/actions/sync
@@ -255,7 +255,7 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.sdk-versions.outputs.SDK_REDUX_VERSION) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
+          cloudfront_distribution_id: E3JEO5R14CT8IH
 
   upgrade-contracts:
     name: Upgrade ethereum-contracts on goerli testnet (protocol release version "test")

@@ -30,6 +30,7 @@ export interface Stream {
     sender: Address;
     token: Address;
     tokenSymbol: string;
+    deposit: BigNumber;
 }
 
 export type StreamListQuery = SubgraphListQuery<Stream_Filter, Stream_OrderBy>;
@@ -66,6 +67,7 @@ export class StreamQueryHandler extends SubgraphQueryHandler<
             token: x.token.id,
             tokenSymbol: x.token.symbol,
             sender: x.sender.id,
+            deposit: x.deposit,
         }));
 
     requestDocument = StreamsDocument;

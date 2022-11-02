@@ -1,5 +1,6 @@
 import type { Contract as Web3Contract } from "web3-eth-contract";
 import TruffleContract from "@truffle/contract";
+import ethers, { Contract, ContractInterface } from "ethers";
 import type Web3 from "web3";
 
 type SuperfluidContractNames =
@@ -27,7 +28,7 @@ export type SuperfluidContractObject = {
 
 export type SuperfluidContracts = Record<SuperfluidContractNames, SuperfluidContractObject>
 export type LoadedContract = Web3Contract | TruffleContract.Contract
-export type AbiContainer = Pick<utils.Interface, "abi">;
+export type AbiContainer = Pick<ethers.utils.Interface, "fragments">;
 export type ContractLoader = (name: string) => AbiContainer;
 
 declare function setTruffleContractDefaults(c: TruffleContract.Contract, networkId: number, from: string): void;

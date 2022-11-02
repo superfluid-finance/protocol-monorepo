@@ -519,7 +519,7 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @param {int} indexId ID of the index
      * @return {Promise<Subscription>} Subscription data
      */
-    async listSubcribers({superToken, publisher, indexId}) {
+    async listSubscribers({superToken, publisher, indexId}) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
             superToken
         );

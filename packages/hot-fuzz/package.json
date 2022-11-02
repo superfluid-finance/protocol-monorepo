@@ -24,7 +24,7 @@
         "@superfluid-finance/ethereum-contracts": "1.2.2"
     },
     "devDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.4.2"
+        "@superfluid-finance/ethereum-contracts": "1.4.3"
     },
     "license": "AGPL-3.0",
     "bugs": {

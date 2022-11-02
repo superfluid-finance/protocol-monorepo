@@ -79,7 +79,7 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-core@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.publish-sdk-core.outputs.PUBLISHED_VERSION) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
+          cloudfront_distribution_id: E3JEO5R14CT8IH
 
       - name: Upload sdk-core latest documentation redirect
         if: env.PUBLISH_SDK_CORE == 1
@@ -90,7 +90,7 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-core', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
+          cloudfront_distribution_id: E3JEO5R14CT8IH
 
       - name: Publish sdk-redux package
         id: publish-sdk-redux
@@ -120,7 +120,7 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.publish-sdk-redux.outputs.PUBLISHED_VERSION) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
+          cloudfront_distribution_id: E3JEO5R14CT8IH
 
       - name: Upload sdk-redux latest documentation redirect
         if: env.PUBLISH_SDK_REDUX == 1
@@ -131,4 +131,4 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-redux', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
+          cloudfront_distribution_id: E3JEO5R14CT8IH

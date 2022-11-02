@@ -151,7 +151,7 @@ export declare class ConstantFlowAgreementV1Helper {
    * @param {tokenParam} superToken superToken for the flow
    * @param {addressParam} sender sender of the flow
    * @param {addressParam} receiver receiver of the flow
-   * @return {Promise<object>} Informationo about the flow:
+   * @return {Promise<object>} Information about the flow:
    *         - <Date> timestamp, time when the flow was last updated
    *         - <string> flowRate, flow rate of the flow
    *         - <string> deposit, deposit of the flow
@@ -176,7 +176,7 @@ export declare class ConstantFlowAgreementV1Helper {
    * @dev Get information of the net flow of an account
    * @param {tokenParam} superToken superToken for the flow
    * @param {addressParam} account the account for the query
-   * @return {Promise<string>} Net flow rate of the account
+   * @return {Promise<FlowInfo>} Flow info of the account
    */
   getAccountFlowInfo({
     superToken,
@@ -196,7 +196,7 @@ export declare class ConstantFlowAgreementV1Helper {
    * @dev List flows of the account
    * @param {tokenParam} superToken superToken for the flow
    * @param {addressParam} account the account for the query
-   * @return {Promise<[]>}
+   * @return {Promise<FlowList>}
    */
   listFlows({
     superToken,

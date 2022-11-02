@@ -18,14 +18,14 @@ import Money.Theory.MoneyDistribution
 \begin{code}
 {- $intro
 
-Financial contract is the execution context for payment primitives,
+A financial contract is the execution context for payment primitives,
 including their execution conditions, timing\footnote{Timing is a type
-of condition of which current system time is a factor} and execution
+of condition of which current system time is a factor}, and execution
 order.
 
 Inspired by the \textit{technique of composing financial contracts}
 demonstrated in \cite{peyton2000composing}, we define the type class
-for financial contract as follows:
+for financial contracts as follows:
 
 -}
 \end{code}
@@ -49,7 +49,6 @@ class MoneyDistribution md => FinancialContract fc md | fc -> md where
 \end{code}
 
 We know that both $md$ and $ctx$ are constrained to be monoid, then
-\textit{(md, ctx)} must be monoidal too. With the help of this, it is
-then possible to build a combinatorial libary of financial contracts
-that can be used to construct larger and more complex financial
-contracts.
+\textit{(md, ctx)} must be monoidal too. With this, it is possible to
+build a combinatorial library of financial contracts that can be used
+to construct more complex financial contracts.

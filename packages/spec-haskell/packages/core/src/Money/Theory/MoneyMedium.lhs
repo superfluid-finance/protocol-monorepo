@@ -21,7 +21,7 @@ import Money.Theory.PaymentExecutionEnvironment
 \begin{code}
 {- $intro
 
-Here are some toy models for nondeterministic sequential money tokens
+Here are some toy models for non-deterministic sequential money tokens
 and money notes:
 
 -}
@@ -31,7 +31,7 @@ and money notes:
 \begin{code}
 type Address = String
 
--- | Toy model for nondeterministic sequential money token.
+-- | Toy model for non-deterministic sequential money token.
 class ( MoneyDistribution md
       , FinancialContract fc md
       , NondetSeqPaymentExecEnv tk md fc
@@ -50,7 +50,7 @@ data MoneyNote md fc = ( MoneyDistribution md
 
 type NoteID = String
 
--- | A toy model for nondeterministic sequential money notes execution
+-- | A toy model for non-deterministic sequential money notes execution
 -- environment.
 class ( MoneyDistribution md
       , FinancialContract fc md
@@ -68,6 +68,6 @@ class ( MoneyDistribution md
               => note -> env mval
 \end{code}
 
-It may seem very little semantic differences between token and notes
-execution environment, but it is intended. Their main difference lies
-mainly on the implementations of their ``user experience''.
+It may seem tiny semantic differences between tokens and notes
+execution environment, but it is on purpose. Their main difference lies
+mainly in their ``user experience'' implementations.

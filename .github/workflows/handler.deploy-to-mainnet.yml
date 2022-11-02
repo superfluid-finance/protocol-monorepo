@@ -71,4 +71,4 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}{1}-contract-addrs@{2}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, github.event.inputs.network, github.run_id) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
+          cloudfront_distribution_id: E3JEO5R14CT8IH

@@ -141,7 +141,7 @@ export interface ListIndicesOptions {
     publisher: string;
 }
 
-export interface ListSubcribersOptions {
+export interface ListSubscribersOptions {
     superToken: string;
     publisher: string;
     indexId: number;
@@ -333,14 +333,14 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {addressParam} publisher Publisher of the index
      * @param {int} indexId ID of the index
      * @param {addressParam} subscriber Subscriber of the index
-     * @return {Promise<Subscription>} Subscription data
+     * @return {Promise<SubscriptionData>} Subscription data
      */
     getSubscription({
         superToken,
         publisher,
         indexId,
         subscriber
-    }: GetSubscriptionOptions): Promise<Subscription>;
+    }: GetSubscriptionOptions): Promise<SubscriptionData>;
 /**
  * @dev Claim distributions to a subscriber of the index by anyone.
  * @param {tokenParam} superToken SuperToken for the index
@@ -370,7 +370,7 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {tokenParam} superToken SuperToken for the index
      * @param {addressParam} publisher Publisher of the index
      * @param {int} indexId ID of the index
-     * @return {Promise<Subscription>} Subscription data
+     * @return {Promise<IndexData>} Subscription data
      */
     getIndex({
         superToken,
@@ -381,7 +381,7 @@ export declare class InstantDistributionAgreementV1Helper {
      * @dev List indices of a publisher
      * @param {tokenParam} superToken SuperToken for the index
      * @param {addressParam} publisher Publisher of the index
-     * @return {Promise<Subscription>} Subscription data
+     * @return {Promise<number[]>} Subscription data
      */
     listIndices({
         superToken,
@@ -392,19 +392,19 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {tokenParam} superToken SuperToken for the index
      * @param {addressParam} publisher Publisher of the index
      * @param {int} indexId ID of the index
-     * @return {Promise<Subscription>} Subscription data
+     * @return {Promise<SubscriberList>} Subscription data
      */
-    listSubcribers({
+    listSubscribers({
         superToken,
         publisher,
         indexId
-    }: ListSubcribersOptions): Promise<SubscriberList>;
+    }: ListSubscribersOptions): Promise<SubscriberList>;
     /**
      * @dev List subscriptions of an account
      * @param {tokenParam} superToken SuperToken for the index
      * @param {addressParam} publisher Publisher of the index
      * @param {int} indexId ID of the index
-     * @return {Promise<Subscription>} Subscription data
+     * @return {Promise<SubscriptionInfoList>} Subscription data
      */
     listSubscriptions({
         superToken,

@@ -5,11 +5,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### [v1.4.3] - 2022-10-27
 ### Added
 
 - `createCanonicalERC20Wrapper` added for creating ERC20 Wrapper Super tokens which will be added to a canonical wrapper super token list based on naming convention and semi-upgradeability. This will be the recommended way of creating ERC20 Wrapper moving forward.
   - `name` naming convention: Super Token `name` will be `"Super ${underlyingToken.name}"`
   - `symbol` naming convention: Super Token `symbol` will be `"${underlyingToken.symbol}x"`
+- Hardhat `artifacts` included in npm package
+- Include declaration files in `types` folder for files in `scripts` in npm package
 
 ## [v.1.4.2] - 2022-10-13
 ### Added

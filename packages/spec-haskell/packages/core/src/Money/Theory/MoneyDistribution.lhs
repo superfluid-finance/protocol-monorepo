@@ -24,7 +24,7 @@ import Data.Coerce ( Coercible )
 \begin{code}
 {- $intro
 
-As the inner most layer of a modern payment system, money distribution
+As the innermost layer of a modern payment system, money distribution
 models how monetary value is distributed amongst bearers.
 
 -}

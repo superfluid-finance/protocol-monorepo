@@ -22,20 +22,20 @@ import Money.Theory.FinancialContract
 \begin{code}
 {- $intro
 
-Here are some models for different payment execution environment.
+Here are some models for the different payment execution environments.
 
 -}
 \end{code}
 \end{haddock}
 
-\paragraph{Nondeterministic Sequential Execution Environment}
+\paragraph{Non-deterministic Sequential Execution Environment}
 
-First we define a model for nondeterministic sequential payment
+First, we define a model for a non-deterministic sequential payment
 execution environment, which includes a set of all financial contracts
-and a step through function:
+and a step-through function:
 
 \begin{code}
--- | Nondeterministic sequential payment execution environment.
+-- | Non-deterministic sequential payment execution environment.
 class ( MoneyDistribution md
       , FinancialContract fc md
       , Monad env
@@ -69,25 +69,26 @@ class ( MoneyDistribution md
 \end{code}
 
 We do not assume that \textit{fcMSelect} yields a predicate that
-evalutes to true; since it could be an input from the external
-world. This won't work with deterministic financial contract set.
+evaluates to true; since it could be an input from the external
+world. This won't work with any deterministic financial contract set.
 
-The environment is a Monad, where diferent side effects for
-\textit{fcMSelect} can be encoded. For more generalized interface to
-computation, arrows could be used instead
-\cite{hughes2000generalising}.
+The environment is a Monad, where different side effects for
+\textit{fcMSelect} can be encoded. However, arrows could be used
+instead for a more generalized interface to
+computation\cite{hughes2000generalising}.
 
 \paragraph{Parallel Execution}
 
-When the executions of payment primitives can be in parallel, the
-resource sharing problem of updating money distribution, context and
-financial contract set arrises in their data storage.
+When the executions of payment primitives can be parallel,
+resource-sharing problems arise in their data storage when updating
+money distribution, context, and financial contract sets.
 
-To model the parallel execution, ones must first study the concurrency
+To model the parallel execution, ones must first study the concurrent
 control of the data storage system used
-(\cite{bernstein1981concurrency}); while formalism of parallel execution
-can be best done using Petri Nets (\cite{petri1962kommunikation},
-\cite{reisig2012petri})\footnote{Petri Nets World,
+(\cite{bernstein1981concurrency}), while formalism of parallel
+execution can be best done using Petri Nets
+(\cite{petri1962kommunikation}, \cite{reisig2012petri})\footnote{Petri
+Nets World,
 https://www.informatik.uni-hamburg.de/TGI/PetriNets/index.php}.
 
 A model in Haskell will not be provided for now since it is out of the
@@ -161,11 +162,11 @@ class ( MoneyDistribution md
            , t)
 \end{code}
 
-The environment is no longer monadic, and it is to say it is now fully
-deterministic. Instead the monadic interations with external world
-should use \textit{fcInsert} for adding new financial contracts to the
-environment.
+The environment is no longer monadic; that is to say, it is now fully
+deterministic. Instead, the monadic interactions with the external
+world should use \textit{fcInsert} for adding new financial contracts
+to the environment.
 
 A weaker condition, namely a poset (partially ordered) of financial
 contracts, may enable deterministic parallel executions of
-payments. Its model in Haskell will also not be provided for now.
+payments. However, model in Haskell will also not be provided for now.

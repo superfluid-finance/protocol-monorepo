@@ -24,6 +24,7 @@ case $TRUFFLE_NETWORK in
         echo "$TRUFFLE_NETWORK is testnet"
         IS_TESTNET=1
         ;;
+    eth-mainnet | \
     polygon-mainnet | \
     optimism-mainnet | \
     arbitrum-one | \

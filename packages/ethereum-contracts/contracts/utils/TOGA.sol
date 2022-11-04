@@ -13,8 +13,6 @@ import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlow
 import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 
-import { TokenCustodian } from "./TokenCustodian.sol";
-
 /**
  * @title TOGA: Transparent Ongoing Auction
  * @author Superfluid
@@ -32,6 +30,10 @@ import { TokenCustodian } from "./TokenCustodian.sol";
  *      In case that send() fails (e.g. due to a reverting hook), the bond is transferred to a custodian contract.
  *      Funds accumulated there can be withdrawn from there at any time.
  *      The current PIC can increase its bond by sending more funds using ERC777.send().
+ *
+ *      changes in v3:
+ *      Use ERC20.transfer() instead of ERC777.send() when outbid.
+ *      This allows us to eliminate the custodian contract and related complexity.
  *
  */
 interface ITOGAv1 {
@@ -116,7 +118,15 @@ interface ITOGAv2 is ITOGAv1 {
     event BondIncreased(ISuperToken indexed token, uint256 additionalBond);
 }
 
-contract TOGA is ITOGAv2, IERC777Recipient {
+interface ITOGAv3 is ITOGAv1 {
+    /**
+     * @dev Emitted if a PIC increases its bond
+     * @param additionalBond The additional amount added to the bond
+     */
+    event BondIncreased(ISuperToken indexed token, uint256 additionalBond);
+}
+
+contract TOGA is ITOGAv3, IERC777Recipient {
 
     using SafeCast for uint256;
     // lightweight struct packing an address and a bool (reentrancy guard) into 1 word
@@ -129,12 +139,8 @@ contract TOGA is ITOGAv2, IERC777Recipient {
     IConstantFlowAgreementV1 internal immutable _cfa;
     uint256 public immutable minBondDuration;
     IERC1820Registry constant internal _ERC1820_REG = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
-    // solhint-disable-next-line var-name-mixedcase
-    uint64 constant internal ERC777_SEND_GAS_LIMIT = 3000000;
-    // takes custody of bonds which the TOGA fails to send back to an outbid PIC
-    TokenCustodian public custodian;
 
-    constructor(ISuperfluid host_, uint256 minBondDuration_, TokenCustodian custodian_) {
+    constructor(ISuperfluid host_, uint256 minBondDuration_) {
         _host = ISuperfluid(host_);
         minBondDuration = minBondDuration_;
         _cfa = IConstantFlowAgreementV1(
@@ -144,12 +150,6 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         _ERC1820_REG.setInterfaceImplementer(address(this), erc777TokensRecipientHash, address(this));
         _ERC1820_REG.setInterfaceImplementer(address(this), keccak256("TOGAv1"), address(this));
         _ERC1820_REG.setInterfaceImplementer(address(this), keccak256("TOGAv2"), address(this));
-
-        require(
-            _ERC1820_REG.getInterfaceImplementer(address(custodian_), erc777TokensRecipientHash) == address(custodian_),
-            "TOGA: invalid custodian"
-        );
-        custodian = custodian_;
     }
 
     function getCurrentPIC(ISuperToken token) external view override returns(address pic) {
@@ -243,10 +243,6 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         emit ExitRateChanged(token, newExitRate);
     }
 
-    function withdrawFundsInCustody(ISuperToken token) external override {
-        custodian.flush(token, msg.sender);
-    }
-
     // ============ internal ============
 
     function _getCurrentPICBond(ISuperToken token) internal view returns(uint256 bond) {
@@ -288,16 +284,8 @@ contract TOGA is ITOGAv2, IERC777Recipient {
 
         // if no PIC was set yet, rewards already accumulated become part of the bond of the first PIC
         if (currentPICAddr != address(0)) {
-            // send remaining bond to current PIC
-            // solhint-disable-next-line check-send-result
-            try token.send{gas: ERC777_SEND_GAS_LIMIT}(currentPICAddr, currentPICBond, "0x")
-            // solhint-disable-next-line no-empty-blocks
-            {} catch {
-                // if sending failed, move the remaining bond to a custody contract
-                // the current PIC can withdraw it in a separate tx anytime later
-                // solhint-disable-next-line check-send-result, multiple-sends
-                token.send(address(custodian), currentPICBond, abi.encode(currentPICAddr));
-            }
+            // transfer remaining bond to current PIC
+            token.transfer(currentPICAddr, currentPICBond);
         }
 
         // set new PIC

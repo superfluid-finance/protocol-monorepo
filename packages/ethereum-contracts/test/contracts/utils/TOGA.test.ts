@@ -6,7 +6,6 @@ import {
     SuperfluidMock,
     SuperToken,
     TOGA,
-    TokenCustodian,
 } from "../../../typechain-types";
 
 import {expectRevertedWith} from "../../utils/expectRevert";
@@ -29,7 +28,7 @@ describe("TOGA", function () {
     let superfluid: SuperfluidMock,
         erc1820: IERC1820Registry,
         cfa: ConstantFlowAgreementV1;
-    let toga: TOGA, custodian: TokenCustodian;
+    let toga: TOGA;
     let superToken: SuperToken;
     const MIN_BOND_DURATION = 3600 * 24 * 7; // 604800 s | 7 days
     const EXIT_RATE_1 = 1; // 1 wad per second
@@ -53,16 +52,10 @@ describe("TOGA", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
-        const CustodianFactory = await ethers.getContractFactory(
-            "TokenCustodian"
-        );
-        custodian = await CustodianFactory.deploy();
-        console.log(`custodian deployed at: ${custodian.address}`);
         const TOGAFactory = await ethers.getContractFactory("TOGA");
         toga = await TOGAFactory.deploy(
             superfluid.address,
-            MIN_BOND_DURATION,
-            custodian.address
+            MIN_BOND_DURATION
         );
         console.log(`TOGA deployed at: ${toga.address}`);
         await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
@@ -169,9 +162,6 @@ describe("TOGA", function () {
     // ================================================================================
 
     it("#0 contract setup", async () => {
-        const custodianAddr = await toga.custodian();
-        assert.equal(custodianAddr, custodian.address);
-
         const minBondDuration = await toga.minBondDuration();
         assert.equal(minBondDuration.toNumber(), MIN_BOND_DURATION);
     });
@@ -651,211 +641,6 @@ describe("TOGA", function () {
         assert.equal(
             bobPreBal.add(bobBondLeft).toString(),
             (await superToken2.balanceOf(bob)).toString()
-        );
-    });
-
-    it("#16 reverting send() hook can't prevent a successful bid", async () => {
-        await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
-
-        const aliceRecipientHookFactory = await ethers.getContractFactory(
-            "ERC777RecipientReverting"
-        );
-        const aliceRecipientHook = await aliceRecipientHookFactory.deploy();
-        await erc1820
-            .connect(await ethers.getSigner(alice))
-            .setInterfaceImplementer(
-                alice,
-                web3.utils.soliditySha3("ERC777TokensRecipient")!,
-                aliceRecipientHook.address
-            );
-        await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
-
-        await sendPICBid(bob, superToken, BOND_AMOUNT_2E18, EXIT_RATE_1E3);
-        assert.equal(await toga.getCurrentPIC(superToken.address), bob);
-    });
-
-    // this ensures an OOG in fallback transfer can't succeed
-    it("#17 reverting transfer to custodian reverts whole tx", async () => {
-        await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
-        await t.upgradeBalance("carol", t.configs.INIT_BALANCE);
-
-        // override to a toga which uses a reverting custodian contract
-        const revertingRecipientFactory = await ethers.getContractFactory(
-            "ERC777RecipientReverting"
-        );
-        const revertingRecipient = await revertingRecipientFactory.deploy();
-        const TOGAFactory = await ethers.getContractFactory("TOGA");
-        toga = await TOGAFactory.deploy(
-            superfluid.address,
-            MIN_BOND_DURATION,
-            revertingRecipient.address
-        );
-
-        // alice becomes first PIC
-        await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
-        assert.equal(await toga.getCurrentPIC(superToken.address), alice);
-
-        // bob can outbid
-        await sendPICBid(bob, superToken, BOND_AMOUNT_2E18, EXIT_RATE_1E3);
-        assert.equal(await toga.getCurrentPIC(superToken.address), bob);
-
-        await erc1820
-            .connect(await ethers.getSigner(bob))
-            .setInterfaceImplementer(
-                bob,
-                web3.utils.soliditySha3("ERC777TokensRecipient")!,
-                revertingRecipient.address
-            );
-
-        // now both the send() in the try and the send() in the catch fail
-        await expectRevertedWith(
-            sendPICBid(carol, superToken, BOND_AMOUNT_3E18, EXIT_RATE_1E3),
-            "they shall not pass"
-        );
-    });
-
-    it("#18 previous PIC can't grief new bidder with gas draining send() hook [ @skip-on-coverage ]", async () => {
-        await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
-
-        await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
-
-        // alice becomes malicious and tries to prevent others from outbidding her
-        const ERC777RecipientDrainingGasFactory =
-            await ethers.getContractFactory("ERC777RecipientDrainingGas");
-        const aliceRecipientHook =
-            await ERC777RecipientDrainingGasFactory.deploy();
-        await erc1820
-            .connect(await ethers.getSigner(alice))
-            .setInterfaceImplementer(
-                alice,
-                web3.utils.soliditySha3("ERC777TokensRecipient")!,
-                aliceRecipientHook.address
-            );
-
-        // send hook has higher allowance than gas limit, causes the tx to fail
-        await expectRevertedWith(
-            sendPICBid(bob, superToken, BOND_AMOUNT_2E18, EXIT_RATE_1E3),
-            "CallUtils: target revert()"
-        );
-
-        // tx gets high enough gas limit for the send allowance not to make it fail
-        await expect(
-            sendPICBid(
-                bob,
-                superToken,
-                BOND_AMOUNT_2E18,
-                EXIT_RATE_1E3,
-                4000000
-            )
-        ).to.emit(aliceRecipientHook, "DrainedGas");
-        // @note we need to figure out a way of getting the receipt
-        // console.log(`gas used by tx: ${r1.receipt.gasUsed}`);
-    });
-
-    it("#19 funds in custody can be withdrawn by legitimate owner", async () => {
-        await t.upgradeBalance("bob", t.configs.INIT_BALANCE);
-        await t.upgradeBalance("carol", t.configs.INIT_BALANCE);
-
-        const RevertingRecipientHookFactory = await ethers.getContractFactory(
-            "ERC777RecipientReverting"
-        );
-        const revertingRecipientHook =
-            await RevertingRecipientHookFactory.deploy();
-        await erc1820
-            .connect(await ethers.getSigner(alice))
-            .setInterfaceImplementer(
-                alice,
-                web3.utils.soliditySha3("ERC777TokensRecipient")!,
-                revertingRecipientHook.address
-            );
-        await erc1820
-            .connect(await ethers.getSigner(bob))
-            .setInterfaceImplementer(
-                bob,
-                web3.utils.soliditySha3("ERC777TokensRecipient")!,
-                revertingRecipientHook.address
-            );
-
-        await sendPICBid(alice, superToken, BOND_AMOUNT_1E18, 0);
-        const alicePreOutbid1Bal = await superToken.balanceOf(alice);
-        const alicePreOutbid1Bond = (
-            await toga.getCurrentPICInfo(superToken.address)
-        ).bond;
-
-        await expect(sendPICBid(bob, superToken, BOND_AMOUNT_2E18, 0))
-            .to.emit(custodian, "CustodianDeposit")
-            .withArgs(superToken.address, alice, BOND_AMOUNT_1E18.toString());
-        assert.equal(
-            (await superToken.balanceOf(custodian.address)).toString(),
-            alicePreOutbid1Bond.toString()
-        );
-
-        const bobPreOutbid1Bal = await superToken.balanceOf(bob);
-        const bobPreOutbid1Bond = (
-            await toga.getCurrentPICInfo(superToken.address)
-        ).bond;
-
-        await expect(sendPICBid(carol, superToken, BOND_AMOUNT_3E18, 0))
-            .to.emit(custodian, "CustodianDeposit")
-            .withArgs(superToken.address, bob, BOND_AMOUNT_2E18.toString());
-        assert.equal(
-            (await superToken.balanceOf(custodian.address)).toString(),
-            alicePreOutbid1Bond.add(bobPreOutbid1Bond).toString()
-        );
-
-        // remove the reverting hook from both alice and bob,
-        // otherwise withdrawal from the custodian fails too
-        await erc1820
-            .connect(await ethers.getSigner(alice))
-            .setInterfaceImplementer(
-                alice,
-                web3.utils.soliditySha3("ERC777TokensRecipient")!,
-                ZERO_ADDRESS
-            );
-        await erc1820
-            .connect(await ethers.getSigner(bob))
-            .setInterfaceImplementer(
-                bob,
-                web3.utils.soliditySha3("ERC777TokensRecipient")!,
-                ZERO_ADDRESS
-            );
-
-        await expect(
-            toga
-                .connect(await ethers.getSigner(alice))
-                .withdrawFundsInCustody(superToken.address)
-        )
-            .to.emit(custodian, "CustodianWithdrawal")
-            .withArgs(superToken.address, alice, BOND_AMOUNT_1E18.toString());
-        assert.equal(
-            (await superToken.balanceOf(alice)).toString(),
-            alicePreOutbid1Bal.add(alicePreOutbid1Bond).toString()
-        );
-        // withdrawing again shall have no effect
-        await toga
-            .connect(await ethers.getSigner(alice))
-            .withdrawFundsInCustody(superToken.address);
-        assert.equal(
-            (await superToken.balanceOf(alice)).toString(),
-            alicePreOutbid1Bal.add(alicePreOutbid1Bond).toString()
-        );
-
-        await expect(
-            toga
-                .connect(await ethers.getSigner(bob))
-                .withdrawFundsInCustody(superToken.address)
-        )
-            .to.emit(custodian, "CustodianWithdrawal")
-            .withArgs(superToken.address, bob, BOND_AMOUNT_2E18.toString());
-        assert.equal(
-            (await superToken.balanceOf(bob)).toString(),
-            bobPreOutbid1Bal.add(bobPreOutbid1Bond).toString()
-        );
-
-        // no funds left as all was withdrawn
-        assert.equal(
-            (await superToken.balanceOf(custodian.address)).toString(),
-            "0"
         );
     });
 });

@@ -9,7 +9,6 @@ const SuperfluidGovernanceIIProxy = artifacts.require(
     "SuperfluidGovernanceIIProxy"
 );
 const SuperfluidGovernanceII = artifacts.require("SuperfluidGovernanceII");
-const TokenCustodian = artifacts.require("TokenCustodian");
 const TOGA = artifacts.require("TOGA");
 
 const BatchLiquidator = artifacts.require("BatchLiquidator");
@@ -74,13 +73,10 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     );
 
     console.log("deploying solvency related contracts");
-    const tokenCustodian = await TokenCustodian.new();
-    console.log("TokenCustodian deployed at: ", tokenCustodian.address);
     const minBondDuration = process.env.TOGA_MIN_BOND_DURATION || 604800;
     const toga = await TOGA.new(
         sf.host.address,
-        minBondDuration,
-        tokenCustodian.address
+        minBondDuration
     );
     console.log("TOGA deployed at:", toga.address);
 

@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/ethereum-contracts",
-    "version": "1.4.2",
+    "version": "1.4.3",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts#readme",
     "repository": {
@@ -19,10 +19,14 @@
         "!/build/contracts/*Properties.json",
         "/build/contracts-sizes.txt",
         "/build/abi.js",
+        "artifacts/contracts/**/*.json",
+        "!/**/*.dbg.json",
         "scripts/**/*",
         "utils/**/*",
         "/build/typechain/**/*"
     ],
+    "main": "./scripts/index.js",
+    "typings": "./types/index.d.ts",
     "scripts": {
         "dev": "tasks/dev.sh",
         "run-hardhat": "IS_HARDHAT=true hardhat",
@@ -34,6 +38,7 @@
         "build:contracts-truffle": "yarn run-truffle compile",
         "build:contracts-hardhat": "yarn run-hardhat compile",
         "build:typechain": "tsc -p tsconfig.typechain.json",
+        "build:scripts": "tsc -p tsconfig.scripts.json",
         "build:contracts-size": "tasks/print-contract-sizes.sh | tee build/contracts-sizes.txt",
         "testenv:start": "test/testenv-ctl.sh start",
         "testenv:stop": "test/testenv-ctl.sh stop",
@@ -83,6 +88,6 @@
         "solidity-coverage": "0.8.0",
         "solidity-docgen": "^0.6.0-beta.25",
         "truffle-flattener": "^1.6.0",
-        "truffle-plugin-verify": "0.5.28"
+        "truffle-plugin-verify": "0.5.31"
     }
 }

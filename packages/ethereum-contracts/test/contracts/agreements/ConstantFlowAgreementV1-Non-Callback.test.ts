@@ -282,8 +282,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     flowRate: FLOW_RATE1,
                 }),
                 cfa,
-                "INSUFFICIENT_BALANCE",
-                t.customErrorCode.CFA_INSUFFICIENT_BALANCE
+                "CFA_INSUFFICIENT_BALANCE"
             );
         });
 
@@ -348,8 +347,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     flowRate: FLOW_RATE1,
                 }),
                 cfa,
-                "ALREADY_EXISTS",
-                t.customErrorCode.CFA_FLOW_ALREADY_EXISTS
+                "CFA_FLOW_ALREADY_EXISTS"
             );
         });
 
@@ -376,8 +374,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     flowRate: FLOW_RATE1,
                 }),
                 cfa,
-                "ZERO_ADDRESS",
-                t.customErrorCode.CFA_ZERO_ADDRESS_RECEIVER
+                "CFA_ZERO_ADDRESS_RECEIVER"
             );
         });
     });
@@ -469,8 +466,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     flowRate: FLOW_RATE1,
                 }),
                 cfa,
-                "DOES_NOT_EXIST",
-                t.customErrorCode.CFA_FLOW_DOES_NOT_EXIST
+                "CFA_FLOW_DOES_NOT_EXIST"
             );
         });
 
@@ -500,8 +496,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     ),
                 }),
                 cfa,
-                "INSUFFICIENT_BALANCE",
-                t.customErrorCode.CFA_INSUFFICIENT_BALANCE
+                "CFA_INSUFFICIENT_BALANCE"
             );
         });
 
@@ -528,8 +523,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     flowRate: FLOW_RATE1,
                 }),
                 cfa,
-                "ZERO_ADDRESS",
-                t.customErrorCode.CFA_ZERO_ADDRESS_RECEIVER
+                "CFA_ZERO_ADDRESS_RECEIVER"
             );
         });
     });
@@ -601,8 +595,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     receiver: t.aliases[agent],
                 }),
                 cfa,
-                "DOES_NOT_EXIST",
-                t.customErrorCode.CFA_FLOW_DOES_NOT_EXIST
+                "CFA_FLOW_DOES_NOT_EXIST"
             );
         });
 
@@ -615,8 +608,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     receiver: ZERO_ADDRESS,
                 }),
                 cfa,
-                "ZERO_ADDRESS",
-                t.customErrorCode.CFA_ZERO_ADDRESS_RECEIVER
+                "CFA_ZERO_ADDRESS_RECEIVER"
             );
         });
 
@@ -630,8 +622,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     signer: await ethers.getSigner(t.aliases[sender]),
                 }),
                 cfa,
-                "ZERO_ADDRESS",
-                t.customErrorCode.CFA_ZERO_ADDRESS_SENDER
+                "CFA_ZERO_ADDRESS_SENDER"
             );
         });
     });
@@ -678,8 +669,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     signer,
                 }),
                 cfa,
-                "ZERO_ADDRESS",
-                t.customErrorCode.CFA_ZERO_ADDRESS_SENDER
+                "CFA_ZERO_ADDRESS_SENDER"
             );
         });
 
@@ -2528,8 +2518,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                     receiver: t.aliases[receiver],
                 }),
                 cfa,
-                "INSUFFICIENT_BALANCE",
-                t.customErrorCode.CFA_INSUFFICIENT_BALANCE
+                "CFA_INSUFFICIENT_BALANCE"
             );
         });
     });
@@ -3772,8 +3761,7 @@ describe("CFAv1 | Non-Callback Tests", function () {
                         "0x"
                     ),
                 cfa,
-                "INSUFFICIENT_BALANCE",
-                t.customErrorCode.CFA_INSUFFICIENT_BALANCE
+                "CFA_INSUFFICIENT_BALANCE"
             );
         });
     });

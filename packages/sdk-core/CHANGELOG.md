@@ -4,9 +4,15 @@ All notable changes to the SDK-core will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Map `deposit` to Stream when querying from Subgraph
+
+## [0.6.0] - 2022-11-02
+
+### Added
+- Support for mainnet
 
 ### Changed
-
 - Framework initialization for supported networks utilizes `@superfluid-finance/metadata`, but still uses the resolver for unsupported/local testing environments
   - > NOTE: This will not create any changes when doing `Framework.create` and is just a minor optimization.
 - All transactions executed via SDK-Core have a default multiplier (1.2x) applied to the provider estimated gas limit **unless** an ethers `Overrides` object is passed during creation of the `Operation`.
@@ -14,13 +20,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [0.5.7] - 2022-10-13
 ### Breaking
-
 -   `CFAv1Forwarder` integrated into SDK-Core and will be the default way of calling CFA agreements and `sender` is now a required property.
   - Migration: pass sender into the affected CFAv1 callAgreement functions - `create/update/deleteFlow`.
   > NOTE: You must pass `shouldUseCallAgreement` explicitly as a property if you want to execute these calls via the Host.
 
 ### Added
-
 -   typechain files consumed from `@superfluid-finance/ethereum-contracts` and exported from SDK-Core
 
 ## [0.5.6] - 2022-09-07
@@ -242,8 +246,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.7...HEAD
-[0.5.6]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.6...sdk-core%40v0.5.7
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.0...HEAD
+[0.6.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.7...sdk-core%40v0.6.0
+[0.5.7]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.6...sdk-core%40v0.5.7
 [0.5.6]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.5...sdk-core%40v0.5.6
 [0.5.5]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.4...sdk-core%40v0.5.5
 [0.5.4]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.3...sdk-core%40v0.5.4

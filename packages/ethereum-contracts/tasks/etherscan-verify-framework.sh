@@ -24,6 +24,7 @@ case $TRUFFLE_NETWORK in
         echo "$TRUFFLE_NETWORK is testnet"
         IS_TESTNET=1
         ;;
+    eth-mainnet | \
     polygon-mainnet | \
     optimism-mainnet | \
     arbitrum-one | \
@@ -64,10 +65,10 @@ if [ ! -z "$SUPERFLUID_HOST_PROXY" ]; then
 fi
 
 echo SUPERFLUID_GOVERNANCE
-if [ ! -z "$IS_TESTNET" ];then
-    try_verify TestGovernance@${SUPERFLUID_GOVERNANCE}
-else
-    if [ ! -z "$SUPERFLUID_GOVERNANCE" ]; then
+if [ ! -z "$SUPERFLUID_GOVERNANCE" ]; then
+    if [ ! -z "$IS_TESTNET" ];then
+        try_verify TestGovernance@${SUPERFLUID_GOVERNANCE}
+    else
         try_verify SuperfluidGovernanceII@${SUPERFLUID_GOVERNANCE} --custom-proxy SuperfluidGovernanceIIProxy
     fi
 fi

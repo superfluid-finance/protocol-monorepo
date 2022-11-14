@@ -79,8 +79,8 @@ describe("Framework subgraph (matic) support", function () {
         assert.equal(indexes[0], 0);
     });
 
-    it("ida.listSubcribers", async () => {
-        const subscribers = await sf.ida.listSubcribers({
+    it("ida.listSubscribers", async () => {
+        const subscribers = await sf.ida.listSubscribers({
             superToken: sf.tokens.ETHx.address,
             publisher: "0x9BEf427fa1fF5269b824eeD9415F7622b81244f5",
             indexId: 0,

@@ -166,7 +166,7 @@ export function handleFlowUpdated(event: FlowUpdated): void {
 // event is emitted right after the FlowUpdated event in the contract. We update the
 // FlowUpdated event to include the flowOperator and deposit properties.
 // Given that we know that the events occur right after each other in the same transaction
-// we have the neccesary information to load the FlowUpdated entity to update it.
+// we have the necessary information to load the FlowUpdated entity to update it.
 export function handleFlowUpdatedExtension(event: FlowUpdatedExtension): void {
     let previousLogIndex = event.logIndex.minus(BIG_INT_ONE);
     let flowUpdatedEvent = FlowUpdatedEvent.load(

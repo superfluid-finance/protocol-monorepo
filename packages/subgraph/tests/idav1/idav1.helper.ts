@@ -35,7 +35,7 @@ export function createIndexDistributionClaimedEvent(
     publisher: string,
     indexId: BigInt,
     subscriber: string,
-    userData: Bytes
+    amount: BigInt
 ): IndexDistributionClaimed {
     const newIndexDistributionClaimedEvent =
         changetype<IndexDistributionClaimed>(newMockEvent());
@@ -44,7 +44,7 @@ export function createIndexDistributionClaimedEvent(
     newIndexDistributionClaimedEvent.parameters.push(getAddressEventParam("publisher", publisher));
     newIndexDistributionClaimedEvent.parameters.push(getBigIntEventParam("indexId", indexId));
     newIndexDistributionClaimedEvent.parameters.push(getAddressEventParam("subscriber", subscriber));
-    newIndexDistributionClaimedEvent.parameters.push(getBytesEventParam("userData", userData));
+    newIndexDistributionClaimedEvent.parameters.push(getBigIntEventParam("amount", amount));
 
     return newIndexDistributionClaimedEvent;
 }

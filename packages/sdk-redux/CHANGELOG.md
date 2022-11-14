@@ -5,6 +5,9 @@ All notable changes to the SDK-redux will be documented in this file.
 
 ## [0.4.0] - 2022-10-31
 
+### Changes
+- Allow RTK-query `^1.7.0 || ^1.8.0 || ^1.9.0`
+
 ### Breaking
 - Pass in `signer` through mutation payload
 - Remove `setSignerForSdkRedux`
@@ -15,7 +18,8 @@ All notable changes to the SDK-redux will be documented in this file.
 - Query for transfer events
 - Make it possible to pass in Ether's `Overrides` object through mutations
 - Add `accountTokenSnapshotLog` & `tokenStatisticLog` endpoints
-- Add `isSubgraphInSync` to a tracked transaction 
+- Add `isSubgraphInSync` & `blockTransactionSucceededIn` to a tracked transaction 
+- Export `getSerializeQueryArgs` & `CacheTagTypes`
 
 ## [0.3.0] - 2022-04-13
 

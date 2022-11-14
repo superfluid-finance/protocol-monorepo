@@ -40,3 +40,6 @@ export * from './reduxSlices/rtkQuery/subgraphApiSlice/endpoints/entityArgs';
 export * from './reduxSlices/rtkQuery/subgraphApiSlice/endpoints/entityEndpoints';
 export * from './reduxSlices/rtkQuery/subgraphApiSlice/endpoints/eventArgs';
 export * from './reduxSlices/rtkQuery/subgraphApiSlice/endpoints/eventEndpoints';
+
+export * from './reduxSlices/rtkQuery/cacheTags/CacheTagTypes';
+export * from './reduxSlices/rtkQuery/getSerializeQueryArgs';

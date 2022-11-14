@@ -3740,10 +3740,10 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
-"@superfluid-finance/ethereum-contracts@1.4.1":
-  version "1.4.1"
-  resolved "https://npm.pkg.github.com/download/@superfluid-finance/ethereum-contracts/1.4.1/1ce38ca09de4c9fdf82857557d054c3b95e2012f#1ce38ca09de4c9fdf82857557d054c3b95e2012f"
-  integrity sha512-44wMl6v3pt+4+Q2zITUIeHFylS6iayM0ibjmtzhqJWrnC7BOuA39hoJWswZBrl0Tq+aESoOOXKR4v9jt5kYEbw==
+"@superfluid-finance/ethereum-contracts@1.4.0":
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.4.0.tgz#942747bbb8b5ab752092553973285bb42bc47352"
+  integrity sha512-j552IAThuzdgnxsyQ9ujqsOUZl48PIv51wLARhiSv6l78RwdEnZd7U1/3UXyZuN8i0JARKExOetd9+SDaSRW8Q==
   dependencies:
     "@decentral.ee/web3-helpers" "0.5.3"
     "@openzeppelin/contracts" "4.7.3"

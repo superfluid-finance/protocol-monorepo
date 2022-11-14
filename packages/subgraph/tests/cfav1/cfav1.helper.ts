@@ -1,4 +1,4 @@
-import { BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
 import { newMockEvent } from "matchstick-as";
 import {
     FlowUpdated,
@@ -7,7 +7,15 @@ import {
 } from "../../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
 import { getAddressEventParam, getBigIntEventParam, getBytesEventParam, getI32EventParam } from "../converters";
 
-export function createNewFlowUpdatedEvent(
+export function getFlowOperatorId(
+    flowOperatorAddress: string,
+    tokenAddress: string,
+    senderAddress: string
+): string {
+    return flowOperatorAddress + "-" + tokenAddress + "-" + senderAddress;
+}
+
+export function createFlowUpdatedEvent(
     token: string,
     sender: string,
     receiver: string,
@@ -28,7 +36,8 @@ export function createNewFlowUpdatedEvent(
 
     return newFlowUpdatedEvent;
 }
-export function createNewFlowUpdatedExtensionEvent(
+
+export function createFlowUpdatedExtensionEvent(
     flowOperator: string,
     deposit: BigInt
 ): FlowUpdatedExtension {
@@ -41,7 +50,8 @@ export function createNewFlowUpdatedExtensionEvent(
 
     return newFlowUpdatedExtensionEvent;
 }
-export function createNewFlowOperatorUpdatedEvent(
+
+export function createFlowOperatorUpdatedEvent(
     token: string,
     sender: string,
     flowOperator: string,

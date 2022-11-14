@@ -91,14 +91,14 @@ export function createTokenDowngradedEvent(
 export function createTransferEvent(
     from: string,
     to: string,
-    amount: BigInt
+    value: BigInt
 ): Transfer {
     const newTransferEvent = changetype<Transfer>(newMockEvent());
     newTransferEvent.parameters = new Array();
 
     newTransferEvent.parameters.push(getAddressEventParam("from", from));
     newTransferEvent.parameters.push(getAddressEventParam("to", to));
-    newTransferEvent.parameters.push(getBigIntEventParam("amount", amount));
+    newTransferEvent.parameters.push(getBigIntEventParam("value", value));
 
     return newTransferEvent;
 }
@@ -107,7 +107,9 @@ export function createSentEvent(
     operator: string,
     from: string,
     to: string,
-    amount: BigInt
+    amount: BigInt,
+    data: Bytes,
+    operatorData: Bytes
 ): Sent {
     const newSentEvent = changetype<Sent>(newMockEvent());
     newSentEvent.parameters = new Array();
@@ -116,6 +118,8 @@ export function createSentEvent(
     newSentEvent.parameters.push(getAddressEventParam("from", from));
     newSentEvent.parameters.push(getAddressEventParam("to", to));
     newSentEvent.parameters.push(getBigIntEventParam("amount", amount));
+    newSentEvent.parameters.push(getBytesEventParam("data", data));
+    newSentEvent.parameters.push(getBytesEventParam("operatorData", operatorData));
 
     return newSentEvent;
 }
@@ -123,7 +127,6 @@ export function createSentEvent(
 export function createBurnedEvent(
     operator: string,
     from: string,
-    to: string,
     amount: BigInt,
     data: Bytes,
     operatorData: Bytes
@@ -132,7 +135,6 @@ export function createBurnedEvent(
     newBurnedEvent.parameters = new Array();
     newBurnedEvent.parameters.push(getAddressEventParam("operator", operator));
     newBurnedEvent.parameters.push(getAddressEventParam("from", from));
-    newBurnedEvent.parameters.push(getAddressEventParam("to", to));
     newBurnedEvent.parameters.push(getBigIntEventParam("amount", amount));
     newBurnedEvent.parameters.push(getBytesEventParam("data", data));
     newBurnedEvent.parameters.push(getBytesEventParam("operatorData", operatorData));
@@ -142,7 +144,7 @@ export function createBurnedEvent(
 
 export function createMintedEvent(
     operator: string,
-    from: string,
+    to: string,
     amount: BigInt,
     data: Bytes,
     operatorData: Bytes
@@ -150,7 +152,7 @@ export function createMintedEvent(
     const newMintedEvent = changetype<Minted>(newMockEvent());
     newMintedEvent.parameters = new Array();
     newMintedEvent.parameters.push(getAddressEventParam("operator", operator));
-    newMintedEvent.parameters.push(getAddressEventParam("from", from));
+    newMintedEvent.parameters.push(getAddressEventParam("to", to));
     newMintedEvent.parameters.push(getBigIntEventParam("amount", amount));
     newMintedEvent.parameters.push(getBytesEventParam("data", data));
     newMintedEvent.parameters.push(getBytesEventParam("operatorData", operatorData));

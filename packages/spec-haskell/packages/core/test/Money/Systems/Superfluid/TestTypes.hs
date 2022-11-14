@@ -7,22 +7,25 @@ module Money.Systems.Superfluid.TestTypes where
 import           Control.Applicative
 import           Data.Coerce
 import           Data.Default
-import           Data.Functor                                                              ((<&>))
+import           Data.Functor                                                                                   ((<&>))
 import           Data.Type.Any
 import           Data.Typeable
 import           GHC.Generics
-import           Math.Extras.Double                                                        (Tolerance, fuzzyEq)
+import           Math.Extras.Double
+    ( Tolerance
+    , fuzzyEq
+    )
 
 import           Test.QuickCheck
 
 import           Money.Systems.Superfluid.SystemTypes
 --
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowAgreement                 as CFA
-import qualified Money.Systems.Superfluid.Agreements.ConstantFlowDistributionAgreement     as CFDA
-import qualified Money.Systems.Superfluid.Agreements.Indexes.ProportionalDistributionIndex as PDIDX
-import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                    as CFMUD
-import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                     as MVMUD
-import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                   as BBS
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistribution.ConstantFlowDistributionAgreement as CFDA
+import qualified Money.Systems.Superfluid.Agreements.ProportionalDistributionIndex                              as PDIDX
+import qualified Money.Systems.Superfluid.Agreements.Universal.ConstantFlowAgreement                            as CFA
+import qualified Money.Systems.Superfluid.MonetaryUnitData.ConstantFlow                                         as CFMUD
+import qualified Money.Systems.Superfluid.MonetaryUnitData.MintedValue                                          as MVMUD
+import qualified Money.Systems.Superfluid.SubSystems.BufferBasedSolvency                                        as BBS
 
 
 -- * Timestamp
@@ -31,12 +34,12 @@ newtype T_Timestamp = T_Timestamp Integer
     deriving newtype (Enum, Eq, Ord, Num, Real, Integral, Default, Timestamp, Show)
 
 instance Arbitrary T_Timestamp where
-    arbitrary = arbitrary <&> abs <&> T_Timestamp
+    arbitrary = arbitrary <&> id <&> T_Timestamp
 
 -- * Value
 
 newtype T_MVal = T_MVal Integer
-    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, Value, Show, Arbitrary)
+    deriving newtype (Default, Eq, Enum, Real, Ord, Num, Integral, MonetaryValue, Show, Arbitrary)
 
 deriving instance Show (UntappedValue T_MVal)
 
@@ -50,7 +53,7 @@ test_flowrate_per_mon_max :: Int
 test_flowrate_per_mon_max = floor (100e6 :: Double)
 
 fuzzy_tolerance :: Tolerance
-fuzzy_tolerance = fromIntegral flowrate_base / 1e4 -- accurate to 4 decimals of $1 / month
+fuzzy_tolerance = fromIntegral flowrate_base / 1e4 -- accurate to 4 decimals of $1
 
 fuzzyEqMVal :: T_MVal -> T_MVal -> Bool
 fuzzyEqMVal a b = fuzzyEq fuzzy_tolerance (fromIntegral a) (fromIntegral b)

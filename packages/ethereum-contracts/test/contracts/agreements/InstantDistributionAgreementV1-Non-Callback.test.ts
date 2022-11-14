@@ -108,8 +108,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "ALREADY_EXISTS",
-                    t.customErrorCode.IDA_INDEX_ALREADY_EXISTS
+                    "IDA_INDEX_ALREADY_EXISTS"
                 );
             });
 
@@ -166,8 +165,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
+                    "IDA_INDEX_DOES_NOT_EXIST"
                 );
                 await expectCustomError(
                     t.agreementHelper.callAgreement({
@@ -179,8 +177,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
+                    "IDA_INDEX_DOES_NOT_EXIST"
                 );
                 await expectCustomError(
                     ida.calculateDistribution(
@@ -190,8 +187,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         "42"
                     ),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
+                    "IDA_INDEX_DOES_NOT_EXIST"
                 );
             });
 
@@ -328,8 +324,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "INSUFFICIENT_BALANCE",
-                    t.customErrorCode.IDA_INSUFFICIENT_BALANCE
+                    "IDA_INSUFFICIENT_BALANCE"
                 );
             });
 
@@ -356,8 +351,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "ZERO_ADDRESS",
-                    t.customErrorCode.IDA_ZERO_ADDRESS_SUBSCRIBER
+                    "IDA_ZERO_ADDRESS_SUBSCRIBER"
                 );
             });
 
@@ -385,8 +379,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "ZERO_ADDRESS",
-                    t.customErrorCode.IDA_ZERO_ADDRESS_SUBSCRIBER
+                    "IDA_ZERO_ADDRESS_SUBSCRIBER"
                 );
             });
 
@@ -451,8 +444,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "ALREADY_EXISTS",
-                    t.customErrorCode.IDA_SUBSCRIPTION_ALREADY_APPROVED
+                    "IDA_SUBSCRIPTION_ALREADY_APPROVED"
                 );
             });
 
@@ -580,8 +572,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: aliceSigner,
                     }),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_SUBSCRIPTION_DOES_NOT_EXIST
+                    "IDA_SUBSCRIPTION_DOES_NOT_EXIST"
                 );
             });
 
@@ -772,8 +763,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
+                    "IDA_INDEX_DOES_NOT_EXIST"
                 );
                 await expectCustomError(
                     t.agreementHelper.callAgreement({
@@ -791,8 +781,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
+                    "IDA_INDEX_DOES_NOT_EXIST"
                 );
                 await expectCustomError(
                     ida.getSubscription(
@@ -802,8 +791,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         bob
                     ),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
+                    "IDA_INDEX_DOES_NOT_EXIST"
                 );
             });
 
@@ -905,8 +893,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_SUBSCRIPTION_IS_NOT_APPROVED
+                    "IDA_SUBSCRIPTION_IS_NOT_APPROVED"
                 );
             });
 
@@ -927,8 +914,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_SUBSCRIPTION_DOES_NOT_EXIST
+                    "IDA_SUBSCRIPTION_DOES_NOT_EXIST"
                 );
             });
 
@@ -943,8 +929,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
+                    "IDA_INDEX_DOES_NOT_EXIST"
                 );
             });
 
@@ -1494,8 +1479,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_SUBSCRIPTION_DOES_NOT_EXIST
+                    "IDA_SUBSCRIPTION_DOES_NOT_EXIST"
                 );
             });
 
@@ -1513,8 +1497,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.IDA_INDEX_DOES_NOT_EXIST
+                    "IDA_INDEX_DOES_NOT_EXIST"
                 );
             });
 
@@ -1547,8 +1530,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "ALREADY_EXISTS",
-                    t.customErrorCode.IDA_SUBSCRIPTION_ALREADY_APPROVED
+                    "IDA_SUBSCRIPTION_ALREADY_APPROVED"
                 );
             });
 
@@ -1573,8 +1555,7 @@ describe("IDAv1 | Non-Callback Tests", function () {
                         signer: bobSigner,
                     }),
                     ida,
-                    "ZERO_ADDRESS",
-                    t.customErrorCode.IDA_ZERO_ADDRESS_SUBSCRIBER
+                    "IDA_ZERO_ADDRESS_SUBSCRIBER"
                 );
             });
         });

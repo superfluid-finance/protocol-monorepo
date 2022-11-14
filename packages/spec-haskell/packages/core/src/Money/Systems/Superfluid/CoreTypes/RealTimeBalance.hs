@@ -27,12 +27,11 @@ import           Money.Systems.Superfluid.CoreTypes.TypedValue
 -- [RTB's mappend commutativity] @x <> y@ = @y <> x@
 -- [RTB's identity to and from typed values] @(typedValuesToRTB . typedValuesFromRTB) x@ = @x@
 -- [RTB's conservation of net value] @(netValueOfRTB . valueToRTB . netValueOfRTB) v@ = @netValueOfRTB v@
-class ( Value v
+class ( MonetaryValue v
       , Foldable rtbF
       , Monoid (rtbF v)
       , Eq (rtbF v)
       ) => RealTimeBalance rtbF v | rtbF -> v where
-
     -- | Convert a single monetary value to a RTB value.
     valueToRTB :: Proxy rtbF -> v -> rtbF v
 

@@ -429,13 +429,6 @@ export interface ILightAccountTokenSnapshot extends IAggregateEntityBase {
 
 // Internal Interfaces
 
-export interface IResolverData {
-    readonly subgraphAPIEndpoint: string;
-    readonly networkName: string;
-    readonly resolverAddress: string;
-    readonly nativeTokenSymbol: string;
-}
-
 export interface ISignerConstructorOptions {
     readonly web3Provider?: ethers.providers.Web3Provider; // Web3Provider (client side - metamask, web3modal)
     readonly provider?: ethers.providers.Provider; // Provider

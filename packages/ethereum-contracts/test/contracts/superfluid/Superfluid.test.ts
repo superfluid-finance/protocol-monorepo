@@ -309,8 +309,7 @@ describe("Superfluid Host Contract", function () {
                 await expectCustomError(
                     t.contracts.ida.updateCode(ZERO_ADDRESS),
                     t.contracts.ida,
-                    "ONLY_HOST",
-                    t.customErrorCode.AGREEMENT_BASE_ONLY_HOST
+                    "AGREEMENT_BASE_ONLY_HOST"
                 );
             });
 
@@ -329,8 +328,7 @@ describe("Superfluid Host Contract", function () {
                         mockA2.address
                     ),
                     superfluid,
-                    "ALREADY_EXISTS",
-                    t.customErrorCode.HOST_AGREEMENT_ALREADY_REGISTERED
+                    "HOST_AGREEMENT_ALREADY_REGISTERED"
                 );
             });
 
@@ -387,27 +385,23 @@ describe("Superfluid Host Contract", function () {
                         ZERO_ADDRESS
                     ),
                     superfluid,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.HOST_AGREEMENT_IS_NOT_REGISTERED
+                    "HOST_AGREEMENT_IS_NOT_REGISTERED"
                 );
 
                 await expectCustomError(
                     superfluid.getAgreementClass(typeA),
                     superfluid,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.HOST_AGREEMENT_IS_NOT_REGISTERED
+                    "HOST_AGREEMENT_IS_NOT_REGISTERED"
                 );
                 await expectCustomError(
                     superfluid.addToAgreementClassesBitmap(0, typeA),
                     superfluid,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.HOST_AGREEMENT_IS_NOT_REGISTERED
+                    "HOST_AGREEMENT_IS_NOT_REGISTERED"
                 );
                 await expectCustomError(
                     superfluid.removeFromAgreementClassesBitmap(0, typeA),
                     superfluid,
-                    "DOES_NOT_EXIST",
-                    t.customErrorCode.HOST_AGREEMENT_IS_NOT_REGISTERED
+                    "HOST_AGREEMENT_IS_NOT_REGISTERED"
                 );
             });
 
@@ -596,8 +590,7 @@ describe("Superfluid Host Contract", function () {
                 await expectCustomError(
                     superfluid.registerAppByFactory(ZERO_ADDRESS, 1),
                     superfluid,
-                    "MUST_BE_CONTRACT",
-                    t.customErrorCode.HOST_MUST_BE_CONTRACT
+                    "HOST_MUST_BE_CONTRACT"
                 );
             });
 
@@ -764,7 +757,7 @@ describe("Superfluid Host Contract", function () {
                 });
 
                 it("#6.2 use agreement framework as an unregistered agreement", async () => {
-                    const reason = "ONLY_LISTED_AGREEMENT";
+                    const reason = "HOST_ONLY_LISTED_AGREEMENT";
 
                     // call from an unregistered mock agreement
                     const mock = await createAgreementMock(
@@ -779,8 +772,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                     await expectCustomError(
                         mock.tryCallAppAfterCallback(
@@ -790,8 +782,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                     await expectCustomError(
                         mock.tryAppCallbackPush(
@@ -801,14 +792,12 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                     await expectCustomError(
                         mock.tryAppCallbackPop(superfluid.address, "0x"),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                     await expectCustomError(
                         mock.tryCtxUseCredit(
@@ -817,8 +806,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                     await expectCustomError(
                         mock.tryJailApp(
@@ -828,13 +816,12 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                 });
 
                 it("#6.3 use agreement framework as an impersonating agreement", async () => {
-                    const reason = "ONLY_LISTED_AGREEMENT";
+                    const reason = "HOST_ONLY_LISTED_AGREEMENT";
 
                     const mock = await createAgreementMock(
                         await t.contracts.cfa.agreementType(),
@@ -848,8 +835,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                     await expectCustomError(
                         mock.tryCallAppAfterCallback(
@@ -859,8 +845,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                     await expectCustomError(
                         mock.tryAppCallbackPush(
@@ -870,14 +855,12 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                     await expectCustomError(
                         mock.tryAppCallbackPop(superfluid.address, "0x"),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                     await expectCustomError(
                         mock.tryCtxUseCredit(
@@ -886,8 +869,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                     await expectCustomError(
                         mock.tryJailApp(
@@ -897,8 +879,7 @@ describe("Superfluid Host Contract", function () {
                             "0x"
                         ),
                         superfluid,
-                        reason,
-                        t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                        reason
                     );
                 });
 
@@ -1715,7 +1696,7 @@ describe("Superfluid Host Contract", function () {
 
         describe("#7 callAgreement", () => {
             it("#7.1 only listed agreement allowed", async () => {
-                const reason = "ONLY_LISTED_AGREEMENT";
+                const reason = "HOST_ONLY_LISTED_AGREEMENT";
                 // call to an non agreement
                 await expect(superfluid.callAgreement(alice, "0x", "0x")).to.be
                     .reverted;
@@ -1727,8 +1708,7 @@ describe("Superfluid Host Contract", function () {
                 await expectCustomError(
                     superfluid.callAgreement(mock.address, "0x", "0x"),
                     superfluid,
-                    reason,
-                    t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                    reason
                 );
                 // call to an in personating mock agreement
                 mock = await createAgreementMock(
@@ -1738,8 +1718,7 @@ describe("Superfluid Host Contract", function () {
                 await expectCustomError(
                     superfluid.callAgreement(mock.address, "0x", "0x"),
                     superfluid,
-                    reason,
-                    t.customErrorCode.HOST_ONLY_LISTED_AGREEMENT
+                    reason
                 );
             });
 

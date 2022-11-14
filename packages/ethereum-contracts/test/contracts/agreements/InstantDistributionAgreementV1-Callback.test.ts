@@ -423,8 +423,7 @@ describe("IDAv1 | Callback Tests", function () {
                 signer: aliceSigner,
             }),
             ida,
-            "DOES_NOT_EXIST",
-            t.customErrorCode.IDA_SUBSCRIPTION_DOES_NOT_EXIST
+            "IDA_SUBSCRIPTION_DOES_NOT_EXIST"
         );
     });
 });

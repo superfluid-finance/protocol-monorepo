@@ -52,7 +52,7 @@
         "@truffle/contract": "^4.0.0"
     },
     "devDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.4.0",
+        "@superfluid-finance/ethereum-contracts": "1.4.1",
         "chai-as-promised": "^7.1.1",
         "webpack": "^5.74.0",
         "webpack-bundle-analyzer": "^4.6.1",

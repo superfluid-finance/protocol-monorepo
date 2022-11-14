@@ -4,6 +4,8 @@ import { Address, TypedMap } from "@graphprotocol/graph-ts";
 // based on the network we set in the set-network package.json file.
 // We add a bit of complexity to the package.json, but remove much
 // more as a result.
+// @note TODO: I am pretty sure we can remove {{network}} and just do
+// return Address.fromString("{{hostAddress}}")
 export function getHostAddress(): Address {
     return Address.fromString("{{hostAddress}}");
 }

@@ -45,6 +45,7 @@ export const trackPendingTransactionThunk = createAsyncThunk<
                     changes: {
                         status: 'Succeeded',
                         transactionReceipt: trySerializeTransaction(transactionReceipt),
+                        blockTransactionSucceededIn: transactionReceipt.blockNumber,
                     },
                 })
             );

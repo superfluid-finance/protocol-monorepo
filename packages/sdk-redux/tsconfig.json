@@ -6,16 +6,16 @@
         "rootDir": "src",
         "moduleResolution": "node",
         "module": "commonjs",
-        "lib": [ "ESNext" ],
+        "lib": [ "DOM", "ESNext" ],
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,
         "inlineSourceMap": false,
-        "esModuleInterop": true
-        /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */,
-        "resolveJsonModule": true
-        /* Include modules imported with .json extension. */,
-        "skipLibCheck": true,
+        /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
+        "esModuleInterop": true,
+        /* Include modules imported with .json extension. */
+        "resolveJsonModule": true,
+        "skipLibCheck": false,
         "strict": true
         /* Enable all strict type-checking options. */,
         /* Strict Type-Checking Options */

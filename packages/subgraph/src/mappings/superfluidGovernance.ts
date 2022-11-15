@@ -19,6 +19,7 @@ export function handleConfigChanged(event: ConfigChanged): void {
     const ev = new ConfigChangedEvent(eventId);
     initializeEventEntity(ev, event, []);
 
+    ev.governanceAddress = event.address;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.key = event.params.key;
@@ -32,6 +33,7 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
     const ev = new RewardAddressChangedEvent(eventId);
     initializeEventEntity(ev, event, []);
 
+    ev.governanceAddress = event.address;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.isKeySet = event.params.isKeySet;
@@ -46,6 +48,7 @@ export function handleCFAv1LiquidationPeriodChanged(
     const ev = new CFAv1LiquidationPeriodChangedEvent(eventId);
     initializeEventEntity(ev, event, []);
 
+    ev.governanceAddress = event.address;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.isKeySet = event.params.isKeySet;
@@ -60,6 +63,7 @@ export function handlePPPConfigurationChanged(
     const ev = new PPPConfigurationChangedEvent(eventId);
     initializeEventEntity(ev, event, []);
 
+    ev.governanceAddress = event.address;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.isKeySet = event.params.isKeySet;
@@ -75,6 +79,7 @@ export function handleTrustedForwarderChanged(
     const ev = new TrustedForwarderChangedEvent(eventId);
     initializeEventEntity(ev, event, []);
 
+    ev.governanceAddress = event.address;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.isKeySet = event.params.isKeySet;

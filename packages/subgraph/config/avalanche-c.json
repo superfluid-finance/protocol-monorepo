@@ -5,5 +5,6 @@
     "cfaAddress": "0x6946c5B38Ffea373b0a2340b4AEf0De8F6782e58",
     "idaAddress": "0x1fA9fFe8Db73F701454B195151Db4Abb18423cf2",
     "superTokenFactoryAddress": "0x464AADdBB2B80f3Cb666522EB7381bE610F638b4",
-    "resolverV1Address": "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1"
+    "resolverV1Address": "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1",
+    "nativeAssetSuperTokenAddress": "0xbe916845d8678b5d2f7ad79525a62d7c08abba7e"
 }

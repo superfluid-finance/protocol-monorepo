@@ -9,4 +9,9 @@ interface IMultiSigWallet {
     function submitTransaction(address destination, uint value, bytes calldata data)
         external
         returns (uint transactionId);
+
+    // used for interface probing
+    function required()
+        external view
+        returns (uint256);
 }

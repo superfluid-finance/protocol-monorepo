@@ -187,14 +187,21 @@ async function setResolver(sf, key, value) {
  *
  * process.env.GOVERNANCE_ADMIN_TYPE:
  * - MULTISIG
- * - (default) ownable
+ * - OWNABLE
+ * - (default) auto-detect
  */
 async function sendGovernanceAction(sf, actionFn) {
     const gov = await sf.contracts.SuperfluidGovernanceBase.at(
         await sf.host.getGovernance.call()
     );
     console.log("Governance address:", gov.address);
-    switch (process.env.GOVERNANCE_ADMIN_TYPE) {
+    const govOwner = await (await sf.contracts.Ownable.at(gov.address)).owner();
+    console.log("Governance owner:", govOwner);
+
+    const adminType = process.env.GOVERNANCE_ADMIN_TYPE
+        || await autodetectGovAdminType(sf, govOwner);
+
+    switch (adminType) {
         case "MULTISIG": {
             console.log("Governance Admin Type: MultiSig");
             const multis = await sf.contracts.IMultiSigWallet.at(
@@ -210,13 +217,31 @@ async function sendGovernanceAction(sf, actionFn) {
             );
             break;
         }
-        default: {
+        case "OWNABLE": {
             console.log("Governance Admin Type: Direct Ownership (default)");
             console.log("Executing governance action...");
             await actionFn(gov);
             console.log("Governance action executed.");
+            break;
+        }
+        default: {
+            throw new Error("No known admin type specified and autodetect failed");
         }
     }
+}
+
+// Probes the given account to see what kind of admin it is.
+// Possible return values: "MULTISIG", "OWNABLE".
+// Throws when encountering an unknown contract.
+async function autodetectGovAdminType(sf, account) {
+    if (! await hasCode(web3, account)) {
+        console.log("account has no code");
+        return "OWNABLE";
+    }
+    const multis = await sf.contracts.IMultiSigWallet.at(account);
+    // this will throw if not exists
+    const moc = await multis.required();
+    return "MULTISIG";
 }
 
 /****************************************************************

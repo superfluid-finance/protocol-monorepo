@@ -8,7 +8,6 @@ import { ISuperAgreement } from "./ISuperAgreement.sol";
  * @author Superfluid
  */
 interface ISuperfluidToken {
-
     /**************************************************************************
      * Errors
      *************************************************************************/

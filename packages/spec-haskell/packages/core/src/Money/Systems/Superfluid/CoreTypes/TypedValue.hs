@@ -44,13 +44,8 @@ class (Typeable tv, MonetaryValue mv, Coercible tv mv) => TypedValue tv mv | tv 
 -- Notional conventions:
 --  * Term name: uval
 newtype UntappedValue v = MkUntappedValue v
-    deriving newtype (Default, Enum, Num, Eq, Ord, Real, Integral, MonetaryValue)
 instance (Typeable v, MonetaryValue v) => TypedValue (UntappedValue v) v where typedValueTag _ = "_"
 
--- | Any typed value.
---
--- Notional conventions:
---  * Term name: anyv
 data AnyTypedValue v = forall tv. TypedValue tv v => AnyTypedValue (Proxy tv, tv)
 
 -- | Create an existential typed value with proxy attached.

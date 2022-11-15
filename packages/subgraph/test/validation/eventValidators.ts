@@ -12,17 +12,17 @@ export const fetchEventAndValidate = async <
     txnResponse: TransactionResponse,
     expectedData: ExpectedDataType,
     query: string,
-    queryName: string
+    eventName: string
 ) => {
     const event = await fetchEventAndEnsureExistence<EventType>(
         query,
         txnResponse.hash,
-        queryName
+        eventName
     );
 
     // Note: we parse the name of the query (e.g. FlowUpdatedEvent)
     // and use this to validate that the name property has been set properly.
-    const parsedQueryName = queryName.split("Event")[0];
+    const parsedQueryName = eventName.split("Event")[0];
     validateEventData(event, expectedData, txnResponse, parsedQueryName);
 
     return event;
@@ -34,8 +34,8 @@ export const validateData = <T>(
 ) => {
     const propertiesToValidate = Object.keys(expectedData);
     for (let i = 0; i < propertiesToValidate.length; i++) {
-        expect((queriedData as any)[propertiesToValidate[i]]).to.eql(
-            expectedData[propertiesToValidate[i]],
+        expect(String((queriedData as any)[propertiesToValidate[i]])).to.eql(
+            String(expectedData[propertiesToValidate[i]]),
             propertiesToValidate[i] + " expect error for event"
         );
     }
@@ -46,10 +46,9 @@ export const validateBaseEventData = (
     txnResponse: TransactionResponse,
     queryName: string
 ) => {
-    expect(txnResponse.hash.toLowerCase()).to.eq(
-        queriedEvent.transactionHash
-    );
+    expect(txnResponse.hash.toLowerCase()).to.eq(queriedEvent.transactionHash);
     expect(txnResponse.blockNumber!.toString()).to.eq(queriedEvent.blockNumber);
+    expect(txnResponse.gasPrice!.toString()).to.eq(queriedEvent.gasPrice);
     expect(queriedEvent.name).to.eq(queryName);
 };
 

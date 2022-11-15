@@ -3,7 +3,8 @@ const assert = require("assert").strict;
 
 const Transaction = require("ethereumjs-tx").Transaction;
 const ethUtils = require("ethereumjs-util");
-const ERC1820Registry = require("../artifacts/ERC1820Registry.json");
+// TODO: this is a weird dependency, should probably get this from elsewhere
+const ERC1820Registry = require("./artifacts/ERC1820Registry.json");
 const {getScriptRunnerFactory: S, hasCode} = require("./libs/common");
 
 /**
@@ -56,11 +57,23 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         console.log("Deploying...");
         const account = options.from || (await web3.eth.getAccounts())[0];
         console.log("Step 1: send ETH");
-        await web3.eth.sendTransaction({
+        // NOTE: we estimate gas when running test coverage w/ hardhat
+        // otherwise there is a weird bug which requires the user to have
+        // over 2k ETH to send the transaction
+        const estimatedGasObject = {
             from: account,
             to: res.sender,
             value: "100000000000000000", //web3.utils.toWei(0.1)
-        });
+        };
+        if (process.env.IS_HARDHAT) {
+            const estimatedGas = await web3.eth.estimateGas(estimatedGasObject);
+            await web3.eth.sendTransaction({
+                ...estimatedGasObject,
+                gas: estimatedGas,
+            });
+        } else {
+            await web3.eth.sendTransaction(estimatedGasObject);
+        }
         console.log("Step 2: send signed transaction");
         await web3.eth.sendSignedTransaction(res.rawTx);
         console.log("Deployment done.");

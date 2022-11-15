@@ -1,11 +1,14 @@
-import { RequestDocument } from "graphql-request";
+import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import _ from "lodash";
 
+import { listAllResults } from "../Query";
 import { ILightEntity } from "../interfaces";
 import { Ordering } from "../ordering";
 import {
     createPagedResult,
     createSkipPaging,
+    isAllPaging,
+    isPageNumberPaging,
     PagedResult,
     Paging,
     takePlusOne,
@@ -15,7 +18,13 @@ import { typeGuard } from "../utils";
 import { SubgraphClient } from "./SubgraphClient";
 import { Address, SubgraphId } from "./mappedSubgraphTypes";
 import { normalizeSubgraphFilter } from "./normalizeSubgraphFilter";
-import { Exact, InputMaybe, OrderDirection, Scalars } from "./schema.generated";
+import {
+    Block_Height,
+    Exact,
+    InputMaybe,
+    OrderDirection,
+    Scalars,
+} from "./schema.generated";
 
 /**
  * An argument object type that is used for paginated Subgraph queries.
@@ -30,6 +39,7 @@ export interface SubgraphListQuery<
     filter?: TFilter;
     pagination?: Paging;
     order?: Ordering<TOrderBy>;
+    block?: Block_Height;
 }
 
 /**
@@ -37,6 +47,7 @@ export interface SubgraphListQuery<
  */
 export interface SubgraphGetQuery {
     id: SubgraphId;
+    block?: Block_Height;
 }
 
 /**
@@ -108,6 +119,7 @@ export abstract class SubgraphQueryHandler<
         orderDirection?: InputMaybe<OrderDirection>;
         skip?: InputMaybe<Scalars["Int"]>;
         where?: InputMaybe<TFilter>;
+        block?: InputMaybe<Block_Height>;
     }>,
     TFilter extends {
         id?: InputMaybe<Scalars["ID"]>;
@@ -166,9 +178,9 @@ export abstract class SubgraphQueryHandler<
                 (key) =>
                     [
                         filter[key],
-                        filter[`${key}_in` as keyof TFilter],
-                        filter[`${key}_not` as keyof TFilter],
-                        filter[`${key}_not_in` as keyof TFilter],
+                        filter[`${String(key)}_in` as keyof TFilter],
+                        filter[`${String(key)}_not` as keyof TFilter],
+                        filter[`${String(key)}_not_in` as keyof TFilter],
                     ]
                         .filter((x) => typeof x !== "undefined")
                         .flat()
@@ -215,6 +227,7 @@ export abstract class SubgraphQueryHandler<
             },
             skip: 0,
             take: 1,
+            block: query.block,
         } as unknown as TSubgraphQueryVariables);
 
         return this.mapFromSubgraphResponse(response)[0] ?? null;
@@ -224,41 +237,55 @@ export abstract class SubgraphQueryHandler<
         subgraphClient: SubgraphClient,
         query: SubgraphListQuery<TFilter, TOrderBy>
     ): Promise<PagedResult<TResult>> {
-        const pagination: Paging = query.pagination ?? createSkipPaging();
+        // Note: Could possibly optimize here to not create a new internal function every time.
+        const queryFunction = async (paging: Paging) => {
+            const subgraphFilter = typeGuard<TFilter>(
+                normalizeSubgraphFilter({
+                    ...(query.filter ?? ({} as TFilter)),
+                    id_gt: paging.lastId,
+                })
+            );
 
-        const subgraphFilter = typeGuard<TFilter>(
-            normalizeSubgraphFilter({
-                ...(query.filter ?? ({} as TFilter)),
-                id_gt: pagination.lastId,
-            })
-        );
+            const subgraphQueryVariables = typeGuard<TSubgraphQueryVariables>({
+                where: normalizeSubgraphFilter(subgraphFilter),
+                orderBy: query.order?.orderBy,
+                orderDirection: query.order?.orderDirection,
+                first: takePlusOne(paging),
+                skip: isPageNumberPaging(paging)
+                    ? (paging.pageNumber - 1) * paging.take
+                    : paging.skip,
+                block: query.block,
+            } as unknown as TSubgraphQueryVariables);
 
-        const subgraphQueryVariables = typeGuard<TSubgraphQueryVariables>({
-            where: normalizeSubgraphFilter(subgraphFilter),
-            orderBy: query.order?.orderBy,
-            orderDirection: query.order?.orderDirection,
-            first: takePlusOne(pagination),
-            skip: pagination.skip,
-        } as unknown as TSubgraphQueryVariables);
+            const subgraphResponse = await this.querySubgraph(
+                subgraphClient,
+                subgraphQueryVariables
+            );
 
-        const subgraphResponse = await this.querySubgraph(
-            subgraphClient,
-            subgraphQueryVariables
-        );
-        const mappedResult = this.mapFromSubgraphResponse(subgraphResponse);
+            const mappedResult = this.mapFromSubgraphResponse(subgraphResponse);
 
-        return createPagedResult<TResult>(mappedResult, pagination);
+            return createPagedResult<TResult>(mappedResult, paging);
+        };
+
+        if (isAllPaging(query.pagination)) {
+            return createPagedResult(
+                await listAllResults(queryFunction),
+                query.pagination
+            );
+        } else {
+            return queryFunction(query.pagination ?? createSkipPaging());
+        }
     }
 
     protected async querySubgraph(
         subgraphClient: SubgraphClient,
         variables: TSubgraphQueryVariables
     ) {
-        return await subgraphClient.request<
-            TSubgraphQuery,
-            TSubgraphQueryVariables
-        >(this.requestDocument, variables);
+        return await subgraphClient.request(this.requestDocument, variables);
     }
 
-    abstract requestDocument: RequestDocument;
+    abstract requestDocument: TypedDocumentNode<
+        TSubgraphQuery,
+        TSubgraphQueryVariables
+    >;
 }

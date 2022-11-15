@@ -34,7 +34,9 @@ export interface IndexSubscription {
     units: BigNumber;
     indexTotalUnits: BigNumber;
     index: SubgraphId;
+    indexId: string;
     token: Address;
+    tokenSymbol: string;
     subscriber: Address;
     publisher: Address;
 }
@@ -76,9 +78,11 @@ export class IndexSubscriptionQueryHandler extends SubgraphQueryHandler<
             updatedAtTimestamp: Number(x.updatedAtTimestamp),
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
             index: x.index.id,
+            indexId: x.index.indexId,
             indexValueCurrent: x.index.indexValue,
             indexTotalUnits: x.index.totalUnits,
             token: x.index.token.id,
+            tokenSymbol: x.index.token.symbol,
             publisher: x.index.publisher.id,
         }));
 

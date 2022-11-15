@@ -3,7 +3,7 @@ const Web3 = require("web3");
 const HDWalletProvider = require("@truffle/hdwallet-provider");
 const SuperfluidSDK = require("../src");
 
-describe("Framework subgraph (goerli) support", function () {
+describe("Framework subgraph (matic) support", function () {
     this.timeout(300e3);
 
     let sf;
@@ -79,8 +79,8 @@ describe("Framework subgraph (goerli) support", function () {
         assert.equal(indexes[0], 0);
     });
 
-    it("ida.listSubcribers", async () => {
-        const subscribers = await sf.ida.listSubcribers({
+    it("ida.listSubscribers", async () => {
+        const subscribers = await sf.ida.listSubscribers({
             superToken: sf.tokens.ETHx.address,
             publisher: "0x9BEf427fa1fF5269b824eeD9415F7622b81244f5",
             indexId: 0,

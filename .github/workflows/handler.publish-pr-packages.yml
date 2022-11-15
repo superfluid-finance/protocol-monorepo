@@ -4,7 +4,7 @@ env:
 
 on:
   workflow_run:
-    workflows: ["Create PR Artifact"]
+    workflows: ["CD | Create PR Artifact"]
     types:
       - completed
 
@@ -17,10 +17,10 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
 
@@ -80,7 +80,6 @@ jobs:
             Install this PR (you need to setup Github packages):
 
             ```bash
-            yarn add @superfluid-finance/js-sdk@PR${{ steps.pr.outputs.pr_number }}
             yarn add @superfluid-finance/ethereum-contracts@PR${{ steps.pr.outputs.pr_number }}
             yarn add @superfluid-finance/sdk-core@PR${{ steps.pr.outputs.pr_number }}
             yarn add @superfluid-finance/sdk-redux@PR${{ steps.pr.outputs.pr_number }}

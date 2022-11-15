@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.16;
 
 import {
     Superfluid,
@@ -44,19 +44,19 @@ contract SuperfluidUpgradabilityTester is Superfluid {
         assembly { slot:= _ctxStamp.slot offset := _ctxStamp.offset }
         require(slot == 6 && offset == 0, "_ctxStamp changed location");
 
-        assembly { slot:= _appKeysUsed.slot offset := _appKeysUsed.offset }
-        require(slot == 7 && offset == 0, "_appKeysUsed changed location");
+        assembly { slot:= _appKeysUsedDeprecated.slot offset := _appKeysUsedDeprecated.offset }
+        require(slot == 7 && offset == 0, "_appKeysUsedDeprecated changed location");
     }
 
     // @dev Make sure the context struct layout never change over the course of the development
     function validateContextStructLayout()
         external pure
     {
-        // context.appLevel
+        // context.appCallbackLevel
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 0)), 42) }
-            require(context.appLevel == 42, "appLevel changed location");
+            require(context.appCallbackLevel == 42, "appLevel changed location");
         }
         // context.callType
         {
@@ -94,35 +94,35 @@ contract SuperfluidUpgradabilityTester is Superfluid {
             assembly { dataLen := mload(dataOffset) }
             require(dataLen == 42, "userData changed location");
         }
-        // context.appAllowanceGranted
+        // context.appCreditGranted
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 6)), 42) }
-            require(context.appAllowanceGranted == 42, "appAllowanceGranted changed location");
+            require(context.appCreditGranted == 42, "appCreditGranted changed location");
         }
-        // context.appAllowanceGranted
+        // context.appCreditWantedDeprecated
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 7)), 42) }
-            require(context.appAllowanceWanted == 42, "appAllowanceWanted changed location");
+            require(context.appCreditWantedDeprecated == 42, "appCreditWantedDeprecated changed location");
         }
-        // context.appAllowanceGranted
+        // context.appCreditUsed
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 8)), 42) }
-            require(context.appAllowanceUsed == 42, "appAllowanceUsed changed location");
+            require(context.appCreditUsed == 42, "appCreditUsed changed location");
         }
-        // context.appAllowanceGranted
+        // context.appAddress
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 9)), 42) }
             require(context.appAddress == address(42), "appAddress changed location");
         }
-        // context.appAllowanceToken
+        // context.appCreditToken
         {
             Context memory context;
             assembly { mstore(add(context, mul(32, 10)), 42) }
-            require(address(context.appAllowanceToken) == address(42), "appAllowanceToken changed location");
+            require(address(context.appCreditToken) == address(42), "appCreditToken changed location");
         }
     }
 }
@@ -168,18 +168,10 @@ contract SuperfluidMock is Superfluid {
         else CallUtils.revertFromReturnedData(returnedData);
     }
 
-    function testIsValidAbiEncodedBytes() external pure {
-        require(!CallUtils.isValidAbiEncodedBytes(abi.encode(1, 2, 3)), "bad data");
-        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(0))), "0");
-        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(1))), "1");
-        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(32))), "32");
-        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(33))), "33");
-    }
-
     function jailApp(ISuperApp app)
         external
     {
-        _jailApp(app, 0);
+        _jailApp(app, 6942);
     }
 
 }

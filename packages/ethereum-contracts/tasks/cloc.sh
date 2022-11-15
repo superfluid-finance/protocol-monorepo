@@ -1,15 +1,20 @@
-#!/bin/sh
+#!/bin/bash
 
 cd "$(dirname "$0")"/..
 
 CLOC="cloc --by-file-by-lang"
 
+echo "========================================================="
 echo "# Interfaces"
 $CLOC contracts/interfaces
 
 echo "========================================================="
-
-echo "# Excluding Interfaces and Test Code"
+echo "# Libs and Test Code"
 $CLOC \
-    --exclude-dir interfaces,test,mocks \
+    contracts/{ux,apps}
+
+echo "========================================================="
+echo "# Excluding Interfaces, Libs and Test Code"
+$CLOC \
+    --exclude-dir interfaces,ux,apps,test,mocks \
     contracts

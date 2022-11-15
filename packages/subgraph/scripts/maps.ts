@@ -1,58 +1,20 @@
-export const chainIdToData = new Map([
-    [
-        3,
+import sfMetaData from "@superfluid-finance/metadata";
+
+export const chainIdToData = new Map(
+    sfMetaData.networks.map((x) => [
+        x.chainId,
         {
-            subgraphAPIEndpoint:
-                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-ropsten",
-            name: "ropsten",
+            subgraphAPIEndpoint: x.subgraphV1.hostedEndpoint,
+            name: x.shortName,
+            addresses: {
+                network: x.shortName,
+                hostStartBlock: x.startBlockV1,
+                hostAddress: x.contractsV1.host,
+                cfaAddress: x.contractsV1.cfaV1,
+                idaAddress: x.contractsV1.idaV1,
+                superTokenFactoryAddress: x.contractsV1.superTokenFactory,
+                resolverV1Address: x.contractsV1.resolver,
+            },
         },
-    ],
-	[
-        4,
-        {
-            subgraphAPIEndpoint:
-                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-rinkeby",
-            name: "rinkeby",
-        },
-    ],
-	[
-        5,
-        {
-            subgraphAPIEndpoint:
-                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-goerli",
-            name: "goerli",
-        },
-    ],
-	[
-        42,
-        {
-            subgraphAPIEndpoint:
-                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-kovan",
-            name: "kovan",
-        },
-    ],
-	[
-        100,
-        {
-            subgraphAPIEndpoint:
-                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-xdai",
-            name: "xdai",
-        },
-    ],
-	[
-        137,
-        {
-            subgraphAPIEndpoint:
-                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-matic",
-            name: "matic",
-        },
-    ],
-	[
-        80001,
-        {
-            subgraphAPIEndpoint:
-                "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-dev-mumbai",
-            name: "mumbai",
-        },
-    ],
-]);
+    ])
+);

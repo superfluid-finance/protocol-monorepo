@@ -9,7 +9,7 @@ const {
 } = require("./libs/common");
 
 /**
- * @dev Deploy a listed super token (ERC20 wrapper type) to the network.
+ * @dev Deploy a listed super token (wrapper for ERC20 or native token) to the network.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
@@ -19,13 +19,15 @@ const {
  * Usage: npx truffle exec scripts/deploy-super-token.js : {UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS}
  *
  * NOTE:
- * - If the `UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS` is the same as the nativeTokenSymbol defined in
- *   the js-sdk, then the SETH contract will be deployed.
- * - Otherwise an ERC20 super token wrapper will be created, the underlying token address
- *   has to be registered in the resolver as `tokens.${UNDERLYING_TOKEN_SYMBOL}` unless it is
- *   already a `${UNDERLYING_TOKEN_ADDRESS}`
- * - An entry in `supertokens.${protocolReleaseVersion}.${UNDERLYING_TOKEN_SYMBOL}x` will be created
+ * - If the `UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS` is the ZERO_ADDRESS or the (known) native token symbol
+ *   of the network, then the SETH contract will be deployed.
+ *   If the name of the network's native token isn't known by the framework, it can be provided
+ *   via ENV var NATIVE_TOKEN_SYMBOL.
+ * - Otherwise an ERC20 super token wrapper will be created for the underlying ERC20 token specified in
+ *   UNDERLYING_TOKEN_SYMBOL_OR_ADDRESS. This underlying token needs to already be registered in the resolver.
+ * - A resolver entry `supertokens.${protocolReleaseVersion}.${UNDERLYING_TOKEN_SYMBOL}x` will be created
  *   for the super token address.
+ * - The caller needs to have permission to set resolver entries.
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
@@ -67,36 +69,31 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         SETHProxy,
     } = sf.contracts;
 
-    let tokenSymbol;
-    let tokenAddress;
-    if (web3.utils.isAddress(tokenSymbolOrAddress)) {
-        tokenAddress = tokenSymbolOrAddress;
-        tokenSymbol = await (
-            await ERC20WithTokenInfo.at(tokenAddress)
-        ).symbol.call();
-    } else {
-        tokenSymbol = tokenSymbolOrAddress;
-        tokenAddress = await sf.resolver.get(`tokens.${tokenSymbol}`);
-    }
-
-    console.log("Underlying token symbol", tokenSymbol);
-    console.log("Underlying token address", tokenAddress);
-
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
         await sf.host.getSuperTokenFactory.call()
     );
 
+    let tokenSymbol;
+    let tokenAddress;
     let superTokenKey;
     let deploymentFn;
-    if (tokenSymbol == sf.config.nativeTokenSymbol) {
+    if (
+        tokenSymbolOrAddress === ZERO_ADDRESS ||
+        tokenSymbolOrAddress === sf.config.nativeTokenSymbol
+    ) {
+        // deploy wrapper for the native token
+        tokenSymbol =
+            sf.config.nativeTokenSymbol || process.env.NATIVE_TOKEN_SYMBOL;
+        if (tokenSymbol === undefined) {
+            throw new Error(
+                "Native token symbol unknown. You can set it with ENV var NATIVE_TOKEN_SYMBOL"
+            );
+        }
+
         superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}x`;
         deploymentFn = async () => {
             console.log("Creating SETH Proxy...");
-            const weth =
-                options.weth || process.env.WETH_ADDRESS || ZERO_ADDRESS;
-            console.log("WETH address", weth);
-            const sethProxy = await SETHProxy.new(weth);
-            console.log("WETH Address: ", weth);
+            const sethProxy = await SETHProxy.new();
             const seth = await ISETH.at(sethProxy.address);
             console.log("Intialize SETH as a custom super token...");
             await superTokenFactory.initializeCustomSuperToken(seth.address);
@@ -104,12 +101,26 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             await seth.initialize(
                 ZERO_ADDRESS,
                 18,
-                `Super ${sf.config.nativeTokenSymbol}`,
-                `${sf.config.nativeTokenSymbol}x`
+                `Super ${tokenSymbol}`,
+                `${tokenSymbol}x`
             );
             return seth;
         };
     } else {
+        // deploy wrapper for an ERC20 token
+        if (web3.utils.isAddress(tokenSymbolOrAddress)) {
+            tokenAddress = tokenSymbolOrAddress;
+            tokenSymbol = await (
+                await ERC20WithTokenInfo.at(tokenAddress)
+            ).symbol.call();
+        } else {
+            tokenSymbol = tokenSymbolOrAddress;
+            tokenAddress = await sf.resolver.get(`tokens.${tokenSymbol}`);
+        }
+
+        console.log("Underlying token symbol", tokenSymbol);
+        console.log("Underlying token address", tokenAddress);
+
         superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}`;
         if ((await sf.resolver.get(superTokenKey)) === ZERO_ADDRESS) {
             const tokenAddress = await sf.resolver.get(`tokens.${tokenSymbol}`);
@@ -139,7 +150,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     console.log("SuperToken address: ", superTokenAddress);
     let doDeploy = false;
-    if (resetToken || superTokenAddress == ZERO_ADDRESS) {
+    if (resetToken || superTokenAddress === ZERO_ADDRESS) {
         doDeploy = true;
     } else {
         console.log("The superToken already registered.");
@@ -188,6 +199,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         const resolver = await Resolver.at(sf.resolver.address);
         await resolver.set(superTokenKey, superToken.address);
         console.log("Resolver set done.");
+        return superToken.address;
     }
 
     console.log("======== Super token deployed ========");

@@ -1,14 +1,15 @@
-name: Create ethereum-contracts Stable Release Draft
+name: CD | Create ethereum-contracts Stable Release Draft
 env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - "release-ethereum-contracts-stable"
     paths:
-      - 'packages/ethereum-contracts'
-      - '.github/workflows/cd.ethereum-contracts-stable.create-release-drafts.yml'
+      - "packages/ethereum-contracts/**"
+      - ".github/workflows/cd.ethereum-contracts-stable.create-release-drafts.yml"
 
 jobs:
 
@@ -18,10 +19,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
           registry-url: https://registry.npmjs.org/

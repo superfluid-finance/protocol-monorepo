@@ -44,11 +44,11 @@ describe("InstantDistributionAgreementV1Helper class", function () {
                 indexId,
             });
 
-            const index = await sf.agreements.ida.getIndex(
-                superToken.address,
-                alice,
-                indexId
-            );
+            const index = await sf.ida.getIndex({
+                superToken: superToken.address,
+                publisher: alice,
+                indexId,
+            });
             assert.equal(index.exist, true);
         });
 
@@ -68,11 +68,11 @@ describe("InstantDistributionAgreementV1Helper class", function () {
                 indexValue,
             });
 
-            const index = await sf.agreements.ida.getIndex(
-                superToken.address,
-                alice,
-                indexId
-            );
+            const index = await sf.ida.getIndex({
+                superToken: superToken.address,
+                publisher: alice,
+                indexId,
+            });
             assert.equal(index.indexValue, indexValue);
         });
 
@@ -145,12 +145,15 @@ describe("InstantDistributionAgreementV1Helper class", function () {
                 units,
             });
 
-            const index = await sf.agreements.ida.getIndex(
-                superToken.address,
-                alice,
-                indexId
-            );
-            assert.equal(index.totalUnitsPending, units);
+            const subscription = await sf.ida.getSubscription({
+                superToken: superToken.address,
+                publisher,
+                indexId,
+                subscriber,
+            });
+            assert.equal(subscription.exist, true);
+            assert.equal(subscription.units, units);
+            assert.equal(subscription.approved, false);
         });
 
         it("approveSubscription", async () => {
@@ -170,12 +173,48 @@ describe("InstantDistributionAgreementV1Helper class", function () {
                 subscriber,
             });
 
-            const index = await sf.agreements.ida.getIndex(
-                superToken.address,
-                alice,
-                indexId
-            );
-            assert.equal(index.totalUnitsApproved, units);
+            const subscription = await sf.ida.getSubscription({
+                superToken: superToken.address,
+                publisher,
+                indexId,
+                subscriber,
+            });
+            assert.equal(subscription.exist, true);
+            assert.equal(subscription.approved, true);
+        });
+
+        it("revokeSubscription", async () => {
+            const units = 100;
+            await sf.ida.updateSubscription({
+                superToken: superToken.address,
+                publisher,
+                indexId,
+                subscriber,
+                units,
+            });
+
+            await sf.ida.approveSubscription({
+                superToken: superToken.address,
+                indexId,
+                publisher,
+                subscriber,
+            });
+
+            await sf.ida.revokeSubscription({
+                superToken: superToken.address,
+                indexId,
+                publisher,
+                subscriber,
+            });
+
+            const subscription = await sf.ida.getSubscription({
+                superToken: superToken.address,
+                publisher,
+                indexId,
+                subscriber,
+            });
+            assert.equal(subscription.exist, true);
+            assert.equal(subscription.approved, false);
         });
 
         it("deleteSubscription from publisher", async () => {
@@ -196,12 +235,13 @@ describe("InstantDistributionAgreementV1Helper class", function () {
                 sender: publisher,
             });
 
-            const index = await sf.agreements.ida.getIndex(
-                superToken.address,
-                alice,
-                indexId
-            );
-            assert.equal(index.totalUnitsApproved, 0);
+            const subscription = await sf.ida.getSubscription({
+                superToken: superToken.address,
+                publisher,
+                indexId,
+                subscriber,
+            });
+            assert.equal(subscription.exist, false);
         });
     });
 
@@ -373,7 +413,7 @@ describe("InstantDistributionAgreementV1Helper class", function () {
             );
         });
 
-        it("listSubcribers", async () => {
+        it("listSubscribers", async () => {
             const units = toWad(100).toString();
             const publisher = alice;
             await sf.ida.createIndex({
@@ -403,7 +443,7 @@ describe("InstantDistributionAgreementV1Helper class", function () {
             });
 
             assert.deepEqual(
-                await sf.ida.listSubcribers({
+                await sf.ida.listSubscribers({
                     superToken: superToken.address,
                     publisher,
                     indexId: 1,
@@ -429,7 +469,7 @@ describe("InstantDistributionAgreementV1Helper class", function () {
             });
 
             assert.deepEqual(
-                await sf.ida.listSubcribers({
+                await sf.ida.listSubscribers({
                     superToken: superToken.address,
                     publisher,
                     indexId: 1,
@@ -443,7 +483,7 @@ describe("InstantDistributionAgreementV1Helper class", function () {
             );
 
             assert.deepEqual(
-                await sf.ida.listSubcribers({
+                await sf.ida.listSubscribers({
                     superToken: superToken.address,
                     publisher,
                     indexId: 2,

@@ -1,10 +1,13 @@
 import { JsonFragment } from "@ethersproject/abi";
 import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import Web3 from "web3";
 
 import { SFError } from "./SFError";
 import {
+    AUTHORIZE_FLOW_OPERATOR_CREATE,
+    AUTHORIZE_FLOW_OPERATOR_DELETE,
+    AUTHORIZE_FLOW_OPERATOR_UPDATE,
     BASE_18,
     DAY_IN_SECONDS,
     MONTH_IN_SECONDS,
@@ -16,7 +19,7 @@ import { IIndexSubscription } from "./interfaces";
 const EMPTY = "0x";
 
 /**
- * @dev Checks if address is a valid ethereum address and normalizes so it can be used by both subgraph and web3.
+ * Checks if address is a valid ethereum address and normalizes so it can be used by both subgraph and web3.
  * @param address
  * @returns The normalized address.
  */
@@ -25,20 +28,36 @@ export const normalizeAddress = (address?: string): string => {
     if (ethers.utils.isAddress(address) === false) {
         throw new SFError({
             type: "INVALID_ADDRESS",
-            customMessage:
-                "The address you have entered is not a valid ethereum address.",
+            message:
+                "The address you have entered is not a valid ethereum address",
         });
     }
 
     return address.toLowerCase();
 };
 
+export const isPermissionsClean = (permissions: number): boolean => {
+    return (
+        (permissions &
+            ~(
+                AUTHORIZE_FLOW_OPERATOR_CREATE |
+                AUTHORIZE_FLOW_OPERATOR_UPDATE |
+                AUTHORIZE_FLOW_OPERATOR_DELETE
+            )) ===
+        0
+    );
+};
+
 export const isNullOrEmpty = (str: string | null | undefined) => {
     return str == null || str === "";
 };
 
+export function toBN(num: any) {
+    return ethers.BigNumber.from(num);
+}
+
 /**
- * @dev Removes the 8-character signature hash from `callData`.
+ * Removes the 8-character signature hash from `callData`.
  * @param callData
  * @returns function parameters
  */
@@ -46,7 +65,7 @@ export const removeSigHashFromCallData = (callData: string) =>
     EMPTY.concat(callData.slice(10));
 
 /**
- * @dev A wrapper function for getting the ethers TransactionDescription object given fragments (e.g. ABI), callData and the value amount sent.
+ * A wrapper function for getting the ethers TransactionDescription object given fragments (e.g. ABI), callData and the value amount sent.
  * @param fragments ABI
  * @param data callData of a function
  * @param value amount of ether sent
@@ -65,7 +84,7 @@ export const getTransactionDescription = (
 };
 
 /**
- * @dev Gets the per second flow rate given an `amountPerYear` value.
+ * Gets the per second flow rate given an `amountPerYear` value.
  * @param amountPerYear the amount you want to stream per year
  * @returns flow rate per second
  */
@@ -76,7 +95,7 @@ export const getPerSecondFlowRateByYear = (amountPerYear: string) => {
 };
 
 /**
- * @dev Gets the per second flow rate given an `amountPerMonth` value.
+ * Gets the per second flow rate given an `amountPerMonth` value.
  * @param amountPerMonth the amount you want to stream per month
  * @returns flow rate per second
  */
@@ -87,7 +106,7 @@ export const getPerSecondFlowRateByMonth = (amountPerMonth: string) => {
 };
 
 /**
- * @dev Gets the per second flow rate given an `amountPerWeek` value.
+ * Gets the per second flow rate given an `amountPerWeek` value.
  * @param amountPerWeek the amount you want to stream per Week
  * @returns flow rate per second
  */
@@ -98,7 +117,7 @@ export const getPerSecondFlowRateByWeek = (amountPerWeek: string) => {
 };
 
 /**
- * @dev Gets the per second flow rate given an `amountPerDay` value.
+ * Gets the per second flow rate given an `amountPerDay` value.
  * @param amountPerDay the amount you want to stream per day
  * @returns flow rate per second
  */
@@ -109,7 +128,7 @@ export const getPerSecondFlowRateByDay = (amountPerDay: string) => {
 };
 
 /**
- * @dev Gets daily, weekly, monthly and yearly flowed amounts given a per second flow rate.
+ * Gets daily, weekly, monthly and yearly flowed amounts given a per second flow rate.
  * @param perSecondFlowRate
  * @returns
  */
@@ -124,7 +143,7 @@ export const getFlowAmountByPerSecondFlowRate = (perSecondFlowRate: string) => {
 };
 
 /**
- * @dev The formula for calculating the flowed amount since updated using Subgraph data.
+ * The formula for calculating the flowed amount since updated using Subgraph data.
  * @param netFlowRate the net flow rate of the user
  * @param currentTimestamp the current timestamp
  * @param updatedAtTimestamp the updated at timestamp of the `AccountTokenSnapshot` entity
@@ -139,14 +158,13 @@ export const flowedAmountSinceUpdatedAt = ({
     currentTimestamp: string;
     updatedAtTimestamp: string;
 }) => {
-    return (
-        (Number(currentTimestamp) - Number(updatedAtTimestamp)) *
-        Number(netFlowRate)
-    );
+    return toBN(currentTimestamp)
+        .sub(toBN(updatedAtTimestamp))
+        .mul(toBN(netFlowRate));
 };
 
 /**
- * @dev The formula for calculating the total amount distributed to the subscriber (pending or received).
+ * The formula for calculating the total amount distributed to the subscriber (pending or received).
  * @param indexSubscriptions the index subscriptions of a single token from an account.
  * @returns the total amount received since updated at (both pending and actually distributed)
  */
@@ -155,15 +173,19 @@ export const subscriptionTotalAmountDistributedSinceUpdated = (
 ) => {
     return indexSubscriptions.reduce(
         (x, y) =>
-            x +
-            (Number(y.index.indexValue) - Number(y.indexValueUntilUpdatedAt)) *
-                Number(y.units),
-        0
+            toBN(x)
+                .add(
+                    toBN(y.index.indexValue).sub(
+                        toBN(y.indexValueUntilUpdatedAt)
+                    )
+                )
+                .mul(toBN(y.units)),
+        toBN(0)
     );
 };
 
 /**
- * @dev The formula for calculating the total amount received (approved subscriptions).
+ * The formula for calculating the total amount received (approved subscriptions).
  * @param indexSubscriptions the index subscriptions of a single token from an account.
  * @returns the total amount received since updated at (actually distributed into wallet)
  */
@@ -174,26 +196,28 @@ export const subscriptionTotalAmountReceivedSinceUpdated = (
         .filter((x) => x.approved)
         .reduce(
             (x, y) =>
-                x +
-                (Number(y.index.indexValue) -
-                    Number(y.indexValueUntilUpdatedAt)) *
-                    Number(y.units),
-            0
+                toBN(x)
+                    .add(
+                        toBN(y.index.indexValue).sub(
+                            toBN(y.indexValueUntilUpdatedAt)
+                        )
+                    )
+                    .mul(toBN(y.units)),
+            toBN(0)
         );
 };
 
 /**
- * @dev The formula for calculating the total amount that is claimable.
+ * The formula for calculating the total amount that is claimable.
  * @param indexSubscriptions the index subscriptions of a single token from an account.
  * @returns the total amount that can be claimed since updated at
  */
 export const subscriptionTotalAmountClaimableSinceUpdatedAt = (
     indexSubscriptions: IIndexSubscription[]
 ) => {
-    return (
-        subscriptionTotalAmountDistributedSinceUpdated(indexSubscriptions) -
-        subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions)
-    );
+    return subscriptionTotalAmountDistributedSinceUpdated(
+        indexSubscriptions
+    ).sub(subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions));
 };
 
 export const getStringCurrentTimeInSeconds = () =>
@@ -203,14 +227,14 @@ export const getSanitizedTimestamp = (timestamp: ethers.BigNumberish) =>
     new Date(Number(timestamp.toString()) * 1000);
 
 /**
- * @dev The formula for calculating the balance until updated at of a user (claimable + received tokens from index)
+ * The formula for calculating the balance until updated at of a user (claimable + received tokens from index)
  * @param currentBalance the current balance until updated at from the `AccountTokenSnapshot` entity
  * @param netFlowRate the net flow rate of the user
  * @param currentTimestamp the current timestamp
  * @param updatedAtTimestamp the updated at timestamp of the `AccountTokenSnapshot` entity
  * @returns the balance since the updated at timestamp
  */
-export const getBalance = ({
+export const calculateAvailableBalance = ({
     currentBalance,
     netFlowRate,
     currentTimestamp,
@@ -223,15 +247,15 @@ export const getBalance = ({
     updatedAtTimestamp: string;
     indexSubscriptions: IIndexSubscription[];
 }) => {
-    return (
-        Number(currentBalance) +
-        flowedAmountSinceUpdatedAt({
-            netFlowRate,
-            currentTimestamp,
-            updatedAtTimestamp,
-        }) +
-        subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions)
-    );
+    return toBN(currentBalance)
+        .add(
+            flowedAmountSinceUpdatedAt({
+                netFlowRate,
+                currentTimestamp,
+                updatedAtTimestamp,
+            })
+        )
+        .add(subscriptionTotalAmountReceivedSinceUpdated(indexSubscriptions));
 };
 
 // NOTE: This is the only places we are allowed to use explicit any in the
@@ -251,3 +275,28 @@ export const isInjectedEthers = (
  * Why? Because `return obj as T` and `return <T>obj` are not safe type casts.
  */
 export const typeGuard = <T>(obj: T) => obj;
+
+export const getFlowOperatorId = (sender: string, flowOperator: string) => {
+    const encoder = ethers.utils.defaultAbiCoder;
+    const encodedData = encoder.encode(
+        ["string", "address", "address"],
+        ["flowOperator", sender, flowOperator]
+    );
+    return ethers.utils.keccak256(encodedData);
+};
+
+/**
+ * Applies clipping to deposit (based on contracts clipping logic)
+ * @param deposit the deposit to clip
+ * @param roundingDown whether to round up or down
+ * @returns clipped deposit
+ */
+export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
+    // last 32 bits of the deposit (96 bits) is clipped off
+    const rounding = roundingDown
+        ? 0
+        : deposit.and(toBN(0xffffffff)).isZero()
+        ? 0
+        : 1;
+    return deposit.shr(32).add(toBN(rounding)).shl(32);
+};

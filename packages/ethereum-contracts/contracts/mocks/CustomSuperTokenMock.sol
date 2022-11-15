@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.16;
 
 import {
     CustomSuperTokenBase,
@@ -60,9 +60,16 @@ contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
     ) external {
         address logic = _implementation();
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, ) = logic.delegatecall(abi.encodeWithSelector(
-            ISuperToken.selfMint.selector,
-            to, amount, userData));
+        (bool success, ) = logic.delegatecall(
+            abi.encodeCall(
+                ISuperToken(address(this)).selfMint,
+                (
+                    to,
+                    amount,
+                    userData
+                )
+            )
+        );
         assert(success);
     }
 
@@ -75,7 +82,7 @@ contract CustomSuperTokenProxyMock is CustomSuperTokenBaseMock {
         // this makes msg.sender to self
         ISuperToken(address(this)).selfBurn(to, amount, userData);
     }
-    
+
     // this function self calls transferFrom
     function callSelfTransferFrom(
         address holder,

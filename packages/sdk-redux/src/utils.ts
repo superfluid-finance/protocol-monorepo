@@ -10,8 +10,8 @@ export const typeGuard = <T>(obj: T) => obj;
  * The reasoning for such a helper is to conditionally add items to an array in a nice syntax.
  * @private
  */
-export function insertIf<T>(condition: boolean | unknown, ...elements: T[]): T[] {
-    return condition ? elements : [];
+export function insertIf<T>(condition: boolean | unknown, getElements: () => T[]): T[] {
+    return condition ? getElements() : [];
 }
 
 /**
@@ -27,3 +27,13 @@ export enum MillisecondTimes {
     ThreeMinutes = 180000,
     FiveMinutes = 300000,
 }
+
+/**
+ * @private
+ */
+export const mutationOverridesKey = 'overrides' as const;
+
+/**
+ * @private
+ */
+export const mutationSignerKey = 'signer' as const;

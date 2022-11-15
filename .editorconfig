@@ -30,5 +30,18 @@ charset = utf-8
 trim_trailing_whitespace = true
 insert_final_newline = true
 
-[.github/workflows/*.yml]
+[*.cabal]
+indent_size = 4
+
+[Makefile]
+indent_style = tab
+indent_size = 4
+
+[*.yml]
 indent_size = 2
+
+[*.yaml]
+indent_size = 2
+
+[*.nix]
+indent_style = 2

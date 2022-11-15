@@ -1,0 +1,62 @@
+cabal-version: 3.0
+name:          superfluid-protocol-system-simple
+version:       0.0.1.0
+license:       MIT
+maintainer:    miao@superfluid.finance
+author:        Miao ZhiCheng
+tested-with:   ghc ==9.2.4
+homepage:      https://www.superfluid.finance/
+synopsis:      Superfluid protocol simple system instances.
+description:
+    Part of the monorepo of https://github.com/superfluid-finance/protocol-monorepo/.
+
+category:      Money
+build-type:    Simple
+
+library
+    exposed-modules:
+        Data.Type.TaggedTypeable
+        Money.Systems.Superfluid.Instances.Simple.Types
+        Money.Systems.Superfluid.Instances.Simple.System
+    other-modules:
+        Lens.Internal
+    hs-source-dirs:
+        src-internal
+        src
+    default-language: GHC2021
+    ghc-options:      -Wall
+    build-depends:
+        base >=4.15 && <5,
+        template-haskell,
+        data-default,
+        containers,
+        transformers >=0.2,
+        microlens >0.4.11,
+        binary,
+        bytestring,
+        superfluid-protocol-spec-core ==0.0.1.0
+
+test-suite tests
+    type:             exitcode-stdio-1.0
+    main-is:          Tests.hs
+    hs-source-dirs:   test
+    other-modules:
+        Money.Systems.Superfluid.TokenTester
+        Money.Systems.Superfluid.ConstantFlowAgreement_test
+        Money.Systems.Superfluid.DecayingFlowAgreement_test
+        Money.Systems.Superfluid.InstantDistributionAgreement_test
+        Money.Systems.Superfluid.ConstantFlowDistributionAgreement_test
+    default-language: GHC2021
+    ghc-options:      -Wall -Wno-incomplete-uni-patterns
+    build-depends:
+        base >=4.15 && <5,
+        data-default,
+        transformers,
+        microlens >0.4.11,
+        QuickCheck >=2.13,
+        hspec >=2.0,
+        HUnit >=1.6.0.0,
+        math-extras,
+        time,
+        superfluid-protocol-spec-core     ==0.0.1.0,
+        superfluid-protocol-system-simple ==0.0.1.0

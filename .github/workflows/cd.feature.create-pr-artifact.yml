@@ -1,4 +1,4 @@
-name: Create PR Artifact
+name: CD | Create PR Artifact
 env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
@@ -15,12 +15,13 @@ jobs:
     if: ${{ !github.event.pull_request.draft }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
 
       - name: Show context
         run: |
@@ -62,7 +63,7 @@ jobs:
           prNumber=${{ github.event.number }}
           dirName="bin/${prNumber}"
           mkdir -p $dirName
-          for d in packages/ethereum-contracts packages/js-sdk packages/sdk-core packages/sdk-redux; do (
+          for d in packages/ethereum-contracts packages/sdk-core packages/sdk-redux; do (
             cd "$d"
             tgz=$(npm pack)
             cp $tgz "../../$dirName/"

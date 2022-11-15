@@ -7,16 +7,17 @@ const {
     extractWeb3Options,
     builtTruffleContractLoader,
 } = require("./libs/common");
+const {ethers} = require("ethers");
 
 /**
- * @dev Deploy test token (Mintable ERC20) to the network.
+ * @dev Deploy test token (Mintable ERC20) and register it in the resolver.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.resetToken Reset the token deployment
  *
- * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_SYMBOL}
+ * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_DECIMALS} {TOKEN_SYMBOL}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
@@ -25,11 +26,15 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("======== Deploying test token ========");
     let {resetToken} = options;
 
-    if (args.length !== 1) {
+    // > 2 because decimals is an optional field
+    // symbol should be required though
+    if (args.length > 2 || args.length < 1) {
         throw new Error("Wrong number of arguments");
     }
     const tokenSymbol = args.pop();
     console.log("Token symbol", tokenSymbol);
+    const tokenDecimals = args.pop() || 18;
+    console.log("Token decimals", tokenDecimals);
 
     resetToken = resetToken || !!process.env.RESET_TOKEN;
     console.log("reset token: ", resetToken);
@@ -52,7 +57,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const resolver = await Resolver.at(config.resolverAddress);
     console.log("Resolver address", resolver.address);
 
-    // deploy test token and its super token
+    // deploy test token
     const name = `tokens.${tokenSymbol}`;
     let testTokenAddress = await resolver.get(name);
     if (
@@ -62,7 +67,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         const testToken = await web3tx(TestToken.new, "TestToken.new")(
             tokenSymbol + " Fake Token",
             tokenSymbol,
-            18
+            tokenDecimals,
+            ethers.utils.parseUnits((1e12).toString())
         );
         testTokenAddress = testToken.address;
         await web3tx(resolver.set, `Resolver set ${name}`)(
@@ -75,4 +81,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log(`Token ${tokenSymbol} address`, testTokenAddress);
 
     console.log("======== Test token deployed ========");
+
+    return testTokenAddress;
 });

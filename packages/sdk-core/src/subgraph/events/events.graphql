@@ -1,427 +1,768 @@
-query flowUpdatedEvents($first: Int, $skip: Int, $where: FlowUpdatedEvent_filter, $orderBy: FlowUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+query flowUpdatedEvents(
+    $first: Int
+    $skip: Int
+    $where: FlowUpdatedEvent_filter
+    $orderBy: FlowUpdatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     flowUpdatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...flowUpdatedEvent
     }
 }
 
-query indexCreatedEvents($first: Int, $skip: Int, $where: IndexCreatedEvent_filter, $orderBy: IndexCreatedEvent_orderBy, $orderDirection: OrderDirection) {
+query flowOperatorUpdatedEvents(
+    $first: Int
+    $skip: Int
+    $where: FlowOperatorUpdatedEvent_filter
+    $orderBy: FlowOperatorUpdatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
+    flowOperatorUpdatedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        ...flowOperatorUpdatedEvent
+    }
+}
+
+query indexCreatedEvents(
+    $first: Int
+    $skip: Int
+    $where: IndexCreatedEvent_filter
+    $orderBy: IndexCreatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     indexCreatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...indexCreatedEvent
     }
 }
 
-query indexDistributionClaimedEvents($first: Int, $skip: Int, $where: IndexDistributionClaimedEvent_filter, $orderBy: IndexDistributionClaimedEvent_orderBy, $orderDirection: OrderDirection) {
+query indexDistributionClaimedEvents(
+    $first: Int
+    $skip: Int
+    $where: IndexDistributionClaimedEvent_filter
+    $orderBy: IndexDistributionClaimedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     indexDistributionClaimedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...indexDistributionClaimedEvent
     }
 }
 
-query indexUpdatedEvents($first: Int, $skip: Int, $where: IndexUpdatedEvent_filter, $orderBy: IndexUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+query indexUpdatedEvents(
+    $first: Int
+    $skip: Int
+    $where: IndexUpdatedEvent_filter
+    $orderBy: IndexUpdatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     indexUpdatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...indexUpdatedEvent
     }
 }
 
-query indexSubscribedEvents($first: Int, $skip: Int, $where: IndexSubscribedEvent_filter, $orderBy: IndexSubscribedEvent_orderBy, $orderDirection: OrderDirection) {
+query indexSubscribedEvents(
+    $first: Int
+    $skip: Int
+    $where: IndexSubscribedEvent_filter
+    $orderBy: IndexSubscribedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     indexSubscribedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...indexSubscribedEvent
     }
 }
 
-query indexUnitsUpdatedEvents($first: Int, $skip: Int, $where: IndexUnitsUpdatedEvent_filter, $orderBy: IndexUnitsUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+query indexUnitsUpdatedEvents(
+    $first: Int
+    $skip: Int
+    $where: IndexUnitsUpdatedEvent_filter
+    $orderBy: IndexUnitsUpdatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     indexUnitsUpdatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...indexUnitsUpdatedEvent
     }
 }
 
-query indexUnsubscribedEvents($first: Int, $skip: Int, $where: IndexUnsubscribedEvent_filter, $orderBy: IndexUnsubscribedEvent_orderBy, $orderDirection: OrderDirection) {
+query indexUnsubscribedEvents(
+    $first: Int
+    $skip: Int
+    $where: IndexUnsubscribedEvent_filter
+    $orderBy: IndexUnsubscribedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     indexUnsubscribedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...indexUnsubscribedEvent
     }
 }
 
-query subscriptionApprovedEvents($first: Int, $skip: Int, $where: SubscriptionApprovedEvent_filter, $orderBy: SubscriptionApprovedEvent_orderBy, $orderDirection: OrderDirection) {
+query subscriptionApprovedEvents(
+    $first: Int
+    $skip: Int
+    $where: SubscriptionApprovedEvent_filter
+    $orderBy: SubscriptionApprovedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     subscriptionApprovedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...subscriptionApprovedEvent
     }
 }
 
-query subscriptionDistributionClaimedEvents($first: Int, $skip: Int, $where: SubscriptionDistributionClaimedEvent_filter, $orderBy: SubscriptionDistributionClaimedEvent_orderBy, $orderDirection: OrderDirection) {
+query subscriptionDistributionClaimedEvents(
+    $first: Int
+    $skip: Int
+    $where: SubscriptionDistributionClaimedEvent_filter
+    $orderBy: SubscriptionDistributionClaimedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     subscriptionDistributionClaimedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...subscriptionDistributionClaimedEvent
     }
 }
 
-query subscriptionRevokedEvents($first: Int, $skip: Int, $where: SubscriptionRevokedEvent_filter, $orderBy: SubscriptionRevokedEvent_orderBy, $orderDirection: OrderDirection) {
+query subscriptionRevokedEvents(
+    $first: Int
+    $skip: Int
+    $where: SubscriptionRevokedEvent_filter
+    $orderBy: SubscriptionRevokedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     subscriptionRevokedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...subscriptionRevokedEvent
     }
 }
 
-query subscriptionUnitsUpdatedEvents($first: Int, $skip: Int, $where: SubscriptionUnitsUpdatedEvent_filter, $orderBy: SubscriptionUnitsUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+query subscriptionUnitsUpdatedEvents(
+    $first: Int
+    $skip: Int
+    $where: SubscriptionUnitsUpdatedEvent_filter
+    $orderBy: SubscriptionUnitsUpdatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     subscriptionUnitsUpdatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...subscriptionUnitsUpdatedEvent
     }
 }
 
-query transferEvents($first: Int, $skip: Int, $where: TransferEvent_filter, $orderBy: TransferEvent_orderBy, $orderDirection: OrderDirection) {
+query transferEvents(
+    $first: Int
+    $skip: Int
+    $where: TransferEvent_filter
+    $orderBy: TransferEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     transferEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...transferEvent
     }
 }
 
-query tokenUpgradedEvents($first: Int, $skip: Int, $where: TokenUpgradedEvent_filter, $orderBy: TokenUpgradedEvent_orderBy, $orderDirection: OrderDirection) {
+query tokenUpgradedEvents(
+    $first: Int
+    $skip: Int
+    $where: TokenUpgradedEvent_filter
+    $orderBy: TokenUpgradedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     tokenUpgradedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...tokenUpgradedEvent
     }
 }
 
-query tokenDowngradedEvents($first: Int, $skip: Int, $where: TokenDowngradedEvent_filter, $orderBy: TokenDowngradedEvent_orderBy, $orderDirection: OrderDirection) {
+query tokenDowngradedEvents(
+    $first: Int
+    $skip: Int
+    $where: TokenDowngradedEvent_filter
+    $orderBy: TokenDowngradedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     tokenDowngradedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...tokenDowngradedEvent
     }
 }
 
-query agreementClassRegisteredEvents($first: Int, $skip: Int, $where: AgreementClassRegisteredEvent_filter, $orderBy: AgreementClassRegisteredEvent_orderBy, $orderDirection: OrderDirection) {
+query agreementClassRegisteredEvents(
+    $first: Int
+    $skip: Int
+    $where: AgreementClassRegisteredEvent_filter
+    $orderBy: AgreementClassRegisteredEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     agreementClassRegisteredEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...agreementClassRegisteredEvent
     }
 }
 
-query agreementClassUpdatedEvents($first: Int, $skip: Int, $where: AgreementClassUpdatedEvent_filter, $orderBy: AgreementClassUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+query agreementClassUpdatedEvents(
+    $first: Int
+    $skip: Int
+    $where: AgreementClassUpdatedEvent_filter
+    $orderBy: AgreementClassUpdatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     agreementClassUpdatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...agreementClassUpdatedEvent
     }
 }
 
-query appRegisteredEvents($first: Int, $skip: Int, $where: AppRegisteredEvent_filter, $orderBy: AppRegisteredEvent_orderBy, $orderDirection: OrderDirection) {
+query appRegisteredEvents(
+    $first: Int
+    $skip: Int
+    $where: AppRegisteredEvent_filter
+    $orderBy: AppRegisteredEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     appRegisteredEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...appRegisteredEvent
     }
 }
 
-query governanceReplacedEvents($first: Int, $skip: Int, $where: GovernanceReplacedEvent_filter, $orderBy: GovernanceReplacedEvent_orderBy, $orderDirection: OrderDirection) {
+query governanceReplacedEvents(
+    $first: Int
+    $skip: Int
+    $where: GovernanceReplacedEvent_filter
+    $orderBy: GovernanceReplacedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     governanceReplacedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...governanceReplacedEvent
     }
 }
 
-query jailEvents($first: Int, $skip: Int, $where: JailEvent_filter, $orderBy: JailEvent_orderBy, $orderDirection: OrderDirection) {
+query jailEvents(
+    $first: Int
+    $skip: Int
+    $where: JailEvent_filter
+    $orderBy: JailEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     jailEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...jailEvent
     }
 }
 
-query superTokenFactoryUpdatedEvents($first: Int, $skip: Int, $where: SuperTokenFactoryUpdatedEvent_filter, $orderBy: SuperTokenFactoryUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+query superTokenFactoryUpdatedEvents(
+    $first: Int
+    $skip: Int
+    $where: SuperTokenFactoryUpdatedEvent_filter
+    $orderBy: SuperTokenFactoryUpdatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     superTokenFactoryUpdatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...superTokenFactoryUpdatedEvent
     }
 }
 
-query superTokenLogicUpdatedEvents($first: Int, $skip: Int, $where: SuperTokenLogicUpdatedEvent_filter, $orderBy: SuperTokenLogicUpdatedEvent_orderBy, $orderDirection: OrderDirection) {
+query superTokenLogicUpdatedEvents(
+    $first: Int
+    $skip: Int
+    $where: SuperTokenLogicUpdatedEvent_filter
+    $orderBy: SuperTokenLogicUpdatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     superTokenLogicUpdatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...superTokenLogicUpdatedEvent
     }
 }
 
-query roleAdminChangedEvents($first: Int, $skip: Int, $where: RoleAdminChangedEvent_filter, $orderBy: RoleAdminChangedEvent_orderBy, $orderDirection: OrderDirection) {
+query roleAdminChangedEvents(
+    $first: Int
+    $skip: Int
+    $where: RoleAdminChangedEvent_filter
+    $orderBy: RoleAdminChangedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     roleAdminChangedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...roleAdminChangedEvent
     }
 }
 
-query roleGrantedEvents($first: Int, $skip: Int, $where: RoleGrantedEvent_filter, $orderBy: RoleGrantedEvent_orderBy, $orderDirection: OrderDirection) {
+query roleGrantedEvents(
+    $first: Int
+    $skip: Int
+    $where: RoleGrantedEvent_filter
+    $orderBy: RoleGrantedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     roleGrantedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...roleGrantedEvent
     }
 }
 
-query roleRevokedEvents($first: Int, $skip: Int, $where: RoleRevokedEvent_filter, $orderBy: RoleRevokedEvent_orderBy, $orderDirection: OrderDirection) {
+query roleRevokedEvents(
+    $first: Int
+    $skip: Int
+    $where: RoleRevokedEvent_filter
+    $orderBy: RoleRevokedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     roleRevokedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...roleRevokedEvent
     }
 }
 
-query cfaV1LiquidationPeriodChangedEvents($first: Int, $skip: Int, $where: CFAv1LiquidationPeriodChangedEvent_filter, $orderBy: CFAv1LiquidationPeriodChangedEvent_orderBy, $orderDirection: OrderDirection) {
+query setEvents(
+    $first: Int
+    $skip: Int
+    $where: SetEvent_filter
+    $orderBy: SetEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
+    setEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        ...setEvent
+    }
+}
+
+query cfaV1LiquidationPeriodChangedEvents(
+    $first: Int
+    $skip: Int
+    $where: CFAv1LiquidationPeriodChangedEvent_filter
+    $orderBy: CFAv1LiquidationPeriodChangedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     cfav1LiquidationPeriodChangedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...cfaV1LiquidationPeriodChangedEvent
     }
 }
 
-query configChangedEvents($first: Int, $skip: Int, $where: ConfigChangedEvent_filter, $orderBy: ConfigChangedEvent_orderBy, $orderDirection: OrderDirection) {
+query configChangedEvents(
+    $first: Int
+    $skip: Int
+    $where: ConfigChangedEvent_filter
+    $orderBy: ConfigChangedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     configChangedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...configChangedEvent
     }
 }
 
-query rewardAddressChangedEvents($first: Int, $skip: Int, $where: RewardAddressChangedEvent_filter, $orderBy: RewardAddressChangedEvent_orderBy, $orderDirection: OrderDirection) {
+query rewardAddressChangedEvents(
+    $first: Int
+    $skip: Int
+    $where: RewardAddressChangedEvent_filter
+    $orderBy: RewardAddressChangedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     rewardAddressChangedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...rewardAddressChangedEvent
     }
 }
 
-query trustedForwarderChangedEvents($first: Int, $skip: Int, $where: TrustedForwarderChangedEvent_filter, $orderBy: TrustedForwarderChangedEvent_orderBy, $orderDirection: OrderDirection) {
+query trustedForwarderChangedEvents(
+    $first: Int
+    $skip: Int
+    $where: TrustedForwarderChangedEvent_filter
+    $orderBy: TrustedForwarderChangedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     trustedForwarderChangedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...trustedForwarderChangedEvent
     }
 }
 
-query agreementLiquidatedByEvents($first: Int, $skip: Int, $where: AgreementLiquidatedByEvent_filter, $orderBy: AgreementLiquidatedByEvent_orderBy, $orderDirection: OrderDirection) {
+query agreementLiquidatedByEvents(
+    $first: Int
+    $skip: Int
+    $where: AgreementLiquidatedByEvent_filter
+    $orderBy: AgreementLiquidatedByEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     agreementLiquidatedByEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...agreementLiquidatedByEvent
     }
 }
 
-query burnedEvents($first: Int, $skip: Int, $where: BurnedEvent_filter, $orderBy: BurnedEvent_orderBy, $orderDirection: OrderDirection) {
+query burnedEvents(
+    $first: Int
+    $skip: Int
+    $where: BurnedEvent_filter
+    $orderBy: BurnedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     burnedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...burnedEvent
     }
 }
 
-query mintedEvents($first: Int, $skip: Int, $where: MintedEvent_filter, $orderBy: MintedEvent_orderBy, $orderDirection: OrderDirection) {
+query mintedEvents(
+    $first: Int
+    $skip: Int
+    $where: MintedEvent_filter
+    $orderBy: MintedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     mintedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...mintedEvent
     }
 }
 
-query sentEvents($first: Int, $skip: Int, $where: SentEvent_filter, $orderBy: SentEvent_orderBy, $orderDirection: OrderDirection) {
+query sentEvents(
+    $first: Int
+    $skip: Int
+    $where: SentEvent_filter
+    $orderBy: SentEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     sentEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...sentEvent
     }
 }
 
-query customSuperTokenCreatedEvents($first: Int, $skip: Int, $where: CustomSuperTokenCreatedEvent_filter, $orderBy: CustomSuperTokenCreatedEvent_orderBy, $orderDirection: OrderDirection) {
+query customSuperTokenCreatedEvents(
+    $first: Int
+    $skip: Int
+    $where: CustomSuperTokenCreatedEvent_filter
+    $orderBy: CustomSuperTokenCreatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     customSuperTokenCreatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...customSuperTokenCreatedEvent
     }
 }
 
-query superTokenCreatedEvents($first: Int, $skip: Int, $where: SuperTokenCreatedEvent_filter, $orderBy: SuperTokenCreatedEvent_orderBy, $orderDirection: OrderDirection) {
+query superTokenCreatedEvents(
+    $first: Int
+    $skip: Int
+    $where: SuperTokenCreatedEvent_filter
+    $orderBy: SuperTokenCreatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     superTokenCreatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...superTokenCreatedEvent
     }
 }
 
-query superTokenLogicCreatedEvents($first: Int, $skip: Int, $where: SuperTokenLogicCreatedEvent_filter, $orderBy: SuperTokenLogicCreatedEvent_orderBy, $orderDirection: OrderDirection) {
+query superTokenLogicCreatedEvents(
+    $first: Int
+    $skip: Int
+    $where: SuperTokenLogicCreatedEvent_filter
+    $orderBy: SuperTokenLogicCreatedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
     superTokenLogicCreatedEvents(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         ...superTokenLogicCreatedEvent
     }
 }
 
-query events($where: Event_filter! = {}, $skip: Int! = 0, $first: Int! = 10, $orderBy: Event_orderBy! = id, $orderDirection: OrderDirection! = asc) {
-    events(where: $where, skip: $skip, first: $first, orderBy: $orderBy, orderDirection: $orderDirection) {
+query events(
+    $where: Event_filter! = {}
+    $skip: Int! = 0
+    $first: Int! = 10
+    $orderBy: Event_orderBy! = id
+    $orderDirection: OrderDirection! = asc
+    $block: Block_height
+) {
+    events(
+        where: $where
+        block: $block
+        skip: $skip
+        first: $first
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+    ) {
+        id
+        blockNumber
+        transactionHash
+        timestamp
         ... on FlowUpdatedEvent {
             ...flowUpdatedEvent
+        }
+        ... on FlowOperatorUpdatedEvent {
+            ...flowOperatorUpdatedEvent
         }
         ... on IndexCreatedEvent {
             ...indexCreatedEvent
@@ -492,6 +833,9 @@ query events($where: Event_filter! = {}, $skip: Int! = 0, $first: Int! = 10, $or
         ... on RoleRevokedEvent {
             ...roleRevokedEvent
         }
+        ... on SetEvent {
+            ...setEvent
+        }
         ... on CFAv1LiquidationPeriodChangedEvent {
             ...cfaV1LiquidationPeriodChangedEvent
         }
@@ -539,7 +883,10 @@ fragment eventFields on Event {
     id
     blockNumber
     transactionHash
+    gasPrice
+    order
     timestamp
+    logIndex
 }
 
 fragment flowUpdatedEvent on FlowUpdatedEvent {
@@ -550,6 +897,16 @@ fragment flowUpdatedEvent on FlowUpdatedEvent {
     sender
     receiver
     flowRate
+    flowOperator
+    deposit
+}
+
+fragment flowOperatorUpdatedEvent on FlowOperatorUpdatedEvent {
+    ...eventFields
+    token
+    sender
+    permissions
+    flowRateAllowance
 }
 
 fragment indexCreatedEvent on IndexCreatedEvent {
@@ -772,10 +1129,20 @@ fragment roleRevokedEvent on RoleRevokedEvent {
     account
 }
 
+fragment setEvent on SetEvent {
+    ...eventFields
+    hashedName
+    target
+    resolverEntry {
+        id
+    }
+}
+
 fragment cfaV1LiquidationPeriodChangedEvent on CFAv1LiquidationPeriodChangedEvent {
     ...eventFields
     superToken
     host
+    governanceAddress
     liquidationPeriod
     isKeySet
 }
@@ -787,6 +1154,7 @@ fragment configChangedEvent on ConfigChangedEvent {
     key
     isKeySet
     host
+    governanceAddress
 }
 
 fragment rewardAddressChangedEvent on RewardAddressChangedEvent {
@@ -795,12 +1163,14 @@ fragment rewardAddressChangedEvent on RewardAddressChangedEvent {
     rewardAddress
     isKeySet
     host
+    governanceAddress
 }
 
 fragment trustedForwarderChangedEvent on TrustedForwarderChangedEvent {
     ...eventFields
     isKeySet
     host
+    governanceAddress
     forwarder
     enabled
     superToken
@@ -825,16 +1195,20 @@ fragment agreementLiquidatedV2Event on AgreementLiquidatedV2Event {
     agreementClass
     agreementId
     targetAccount
-    rewardAccount
+    rewardAmountReceiver
     rewardAmount
     targetAccountBalanceDelta
     version
     liquidationType
+
+    # TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
+    rewardAccount
 }
 
 fragment pppConfigurationChangedEvent on PPPConfigurationChangedEvent {
     ...eventFields
     host
+    governanceAddress
     superToken
     isKeySet
     liquidationPeriod
@@ -844,6 +1218,7 @@ fragment pppConfigurationChangedEvent on PPPConfigurationChangedEvent {
 fragment burnedEvent on BurnedEvent {
     ...eventFields
     operatorData
+    token
     operator
     from
     data
@@ -853,6 +1228,7 @@ fragment burnedEvent on BurnedEvent {
 fragment mintedEvent on MintedEvent {
     ...eventFields
     operatorData
+    token
     operator
     data
     amount
@@ -863,6 +1239,7 @@ fragment sentEvent on SentEvent {
     ...eventFields
     to
     operatorData
+    token
     operator
     data
     amount

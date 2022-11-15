@@ -1,11 +1,8 @@
 name: Publish Release Package
-env:
-  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   release:
     types: [published]
-
 
 jobs:
   publish-release:
@@ -14,30 +11,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           repository: superfluid-finance/build-scripts
           path: build-scripts
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
           registry-url: https://registry.npmjs.org/
 
       - name: Parse Tag
         run: |
           if echo -n "${{ github.ref }}" | grep -qE "refs/tags/ethereum-contracts@";then
             echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
-          fi
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/js-sdk@";then
-            if echo -n "${{ github.ref }}" | grep -qE "refs/tags/js-sdk@v0.6";then
-              echo "PUBLISH_JS_SDK_V0_6=1" >> $GITHUB_ENV
-            else
-              echo "PUBLISH_JS_SDK=1" >> $GITHUB_ENV
-            fi
           fi
           if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-core@";then
             echo "PUBLISH_SDK_CORE=1" >> $GITHUB_ENV
@@ -46,38 +37,25 @@ jobs:
             echo "PUBLISH_SDK_REDUX=1" >> $GITHUB_ENV
           fi
 
-      - name: Build package
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
       - name: Publish ethereum-contracts package
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1
-        run: tasks/npm-publish.sh packages/ethereum-contracts/ latest
+        run: |
+          yarn --cwd packages/ethereum-contracts build
+          tasks/npm-publish.sh packages/ethereum-contracts/ latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
-      - name: Publish js-sdk package
-        if: env.PUBLISH_JS_SDK == 1
-        run: tasks/npm-publish.sh packages/js-sdk/ latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
-      - name: Publish js-sdk package
-        if: env.PUBLISH_JS_SDK_V0_6 == 1
-        run: tasks/npm-publish.sh packages/js-sdk/ v0.6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-
-
 
       - name: Publish sdk-core package
         id: publish-sdk-core
         if: env.PUBLISH_SDK_CORE == 1
         run: |
+          yarn --cwd packages/sdk-core generate-graphql-schema:v1
+          yarn --cwd packages/ethereum-contracts build
+          yarn --cwd packages/sdk-core build
           tasks/npm-publish.sh packages/sdk-core/ latest
 
           PUBLISHED_VERSION=`jq -r .version packages/sdk-core/package.json`
@@ -101,7 +79,7 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-core@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.publish-sdk-core.outputs.PUBLISHED_VERSION) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
+          cloudfront_distribution_id: E3JEO5R14CT8IH
 
       - name: Upload sdk-core latest documentation redirect
         if: env.PUBLISH_SDK_CORE == 1
@@ -112,14 +90,13 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-core', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
-
-
+          cloudfront_distribution_id: E3JEO5R14CT8IH
 
       - name: Publish sdk-redux package
         id: publish-sdk-redux
         if: env.PUBLISH_SDK_REDUX == 1
         run: |
+          yarn --cwd packages/sdk-redux build
           tasks/npm-publish.sh packages/sdk-redux/ latest
 
           PUBLISHED_VERSION=`jq -r .version packages/sdk-redux/package.json`
@@ -133,7 +110,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
-          
+
       - name: Upload sdk-redux HTML documentation
         if: env.PUBLISH_SDK_REDUX == 1
         uses: ./build-scripts/s3cloudfront-hosting/actions/sync
@@ -143,7 +120,7 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-redux@{1}', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI, steps.publish-sdk-redux.outputs.PUBLISHED_VERSION) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
+          cloudfront_distribution_id: E3JEO5R14CT8IH
 
       - name: Upload sdk-redux latest documentation redirect
         if: env.PUBLISH_SDK_REDUX == 1
@@ -154,4 +131,4 @@ jobs:
           aws_access_key_id: ${{ secrets.SITE_DEPLOYER_AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.SITE_DEPLOYER_AWS_SECRET_ACCESS_KEY }}
           s3_uri: ${{ format('{0}sdk-redux', secrets.SITE_DEPLOYER_AWS_S3_DOCS_URI) }}
-          cloudfront_distribution_id: E3SV855CTC9UJO
+          cloudfront_distribution_id: E3JEO5R14CT8IH

@@ -1,3 +1,4 @@
 dist
 build
 src/typings/global.d.ts
+src/reduxSlices/transactionTrackerSlice/transactionTitle.ts

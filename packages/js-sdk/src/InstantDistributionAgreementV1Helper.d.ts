@@ -2,6 +2,7 @@ import type { Transaction } from "web3-core";
 import type { Framework } from "./Framework";
 import type { LoadedContract } from "./loadContracts";
 import type BN from 'bn.js';
+import { GasOptions } from "./types/gasOptions";
 
 // comes from getIndex in IDAv1 contract,
 // then passed into _sanitizeIndexData
@@ -45,7 +46,8 @@ export interface CreateIndexOptions {
     publisher: string;
     indexId: number;
     userData?: string;
-    onTransaction?: ()=>any;
+    onTransaction?: () => any;
+    gasOptions?: GasOptions;
 }
 
 export interface DistributeOptions {
@@ -54,7 +56,8 @@ export interface DistributeOptions {
     indexId: number;
     amount: string;
     userData?: string;
-    onTransaction?: ()=>any;
+    onTransaction?: () => any;
+    gasOptions?: GasOptions;
 }
 
 export interface UpdateIndexOptions {
@@ -63,7 +66,8 @@ export interface UpdateIndexOptions {
     indexId: number;
     indexValue: string;
     userData?: string;
-    onTransaction?: ()=>any;
+    onTransaction?: () => any;
+    gasOptions?: GasOptions;
 }
 
 export interface UpdateSubscriptionOptions {
@@ -73,7 +77,8 @@ export interface UpdateSubscriptionOptions {
     subscriber: string;
     units: string;
     userData?: string;
-    onTransaction?: ()=>any;
+    onTransaction?: () => any;
+    gasOptions?: GasOptions;
 }
 
 export interface ApproveSubscriptionOptions {
@@ -82,7 +87,8 @@ export interface ApproveSubscriptionOptions {
     indexId: number;
     subscriber: string;
     userData?: string;
-    onTransaction?: ()=>any;
+    onTransaction?: () => any;
+    gasOptions?: GasOptions;
 }
 
 export interface RevokeSubscriptionOptions {
@@ -91,7 +97,8 @@ export interface RevokeSubscriptionOptions {
     publisher: string;
     subscriber: string;
     userData?: string;
-    onTransaction?: ()=>any;
+    onTransaction?: () => any;
+    gasOptions?: GasOptions;
 }
 
 export interface DeleteSubscriptionOptions {
@@ -101,7 +108,8 @@ export interface DeleteSubscriptionOptions {
     subscriber: string;
     sender: string;
     userData?: string;
-    onTransaction?: ()=>any;
+    onTransaction?: () => any;
+    gasOptions?: GasOptions;
 }
 
 export interface GetSubscriptionOptions {
@@ -118,7 +126,8 @@ export interface ClaimOptions {
     subscriber: string;
     sender: string;
     userData?: string;
-    onTransaction?: ()=>any;
+    onTransaction?: () => any;
+    gasOptions?: GasOptions;
 }
 
 export interface GetIndexOptions {
@@ -132,7 +141,7 @@ export interface ListIndicesOptions {
     publisher: string;
 }
 
-export interface ListSubcribersOptions {
+export interface ListSubscribersOptions {
     superToken: string;
     publisher: string;
     indexId: number;
@@ -158,7 +167,7 @@ export declare class InstantDistributionAgreementV1Helper {
     }): SubscriptionData;
     static _sanitizeSubscriptionInfo({ publishers, indexIds, unitsList }: {
         publishers: any[];
-        indexIds: number; // the contract returns uint32, the SDK wraps it in Number(), 
+        indexIds: number; // the contract returns uint32, the SDK wraps it in Number(),
         unitsList: number[] | BN[];
     }): SubscriptionInfoList;
     /**
@@ -176,6 +185,7 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {addressParam} publisher Publisher of the index
      * @param {int} indexId ID of the index
      * @param {Function} onTransaction function to be called when transaction hash has been generated
+     * @param {GasOptions} gasOptions pass network gas parameters
      * @return {Promise<Transaction>} web3 transaction object
      */
     createIndex({
@@ -183,55 +193,61 @@ export declare class InstantDistributionAgreementV1Helper {
         publisher,
         indexId,
         userData,
-        onTransaction
+        onTransaction,
+        gasOptions,
     }: CreateIndexOptions): Promise<Transaction>;
-    /**
-     * @dev Distribute tokens to an index
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @param {int} indexId ID of the index
-     * @param {BN} amount Amount to be distributed
-     * @param {Function} onTransaction function to be called when transaction hash has been generated
-     * @return {Promise<Transaction>} web3 transaction object
-     */
+/**
+ * @dev Distribute tokens to an index
+ * @param {tokenParam} superToken SuperToken for the index
+ * @param {addressParam} publisher Publisher of the index
+ * @param {int} indexId ID of the index
+ * @param {BN} amount Amount to be distributed
+ * @param {Function} onTransaction function to be called when transaction hash has been generated
+ * @return {Promise<Transaction>} web3 transaction object
+ * @param {GasOptions} gasOptions pass network gas parameters
+ */
     distribute({
         superToken,
         publisher,
         indexId,
         amount,
         userData,
-        onTransaction
+        onTransaction,
+        gasOptions,
     }: DistributeOptions): Promise<Transaction>;
-    /**
-     * @dev Update the value of a index
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @param {int} indexId ID of the index
-     * @param {Function} onTransaction function to be called when transaction hash has been generated
-     * @return {Promise<Transaction>} web3 transaction object
-     *
-     * NOTE:
-     * it has the same effect as doing distribute, but closer to the low level data structure
-     * of the index.
-     */
+/**
+ * @dev Update the value of a index
+ * @param {tokenParam} superToken SuperToken for the index
+ * @param {addressParam} publisher Publisher of the index
+ * @param {int} indexId ID of the index
+ * @param {Function} onTransaction function to be called when transaction hash has been generated
+ * @param {GasOptions} gasOptions pass network gas parameters
+ * @return {Promise<Transaction>} web3 transaction object
+ *
+ * NOTE:
+ * it has the same effect as doing distribute, but closer to the low level data structure
+ * of the index.
+ */
     updateIndex({
         superToken,
         publisher,
         indexId,
         indexValue,
         userData,
-        onTransaction
+        onTransaction,
+        gasOptions,
     }: UpdateIndexOptions): Promise<Transaction>;
-    /**
-     * @dev Update number of units of a subscription by the publisher of the index
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @param {int} indexId ID of the index
-     * @param {addressParam} subscriber Subscriber of the index
-     * @param {BN} units Units of the subscription
-     * @param {Function} onTransaction function to be called when transaction hash has been generated
-     * @return {Promise<Transaction>} web3 transaction object
-     */
+/**
+ * @dev Update number of units of a subscription by the publisher of the index
+ * @param {tokenParam} superToken SuperToken for the index
+ * @param {addressParam} publisher Publisher of the index
+ * @param {int} indexId ID of the index
+ * @param {addressParam} subscriber Subscriber of the index
+ * @param {BN} units Units of the subscription
+ * @param {Function} onTransaction function to be called when transaction hash has been generated
+ * @param {GasOptions} gasOptions pass network gas parameters
+ * @return {Promise<Transaction>} web3 transaction object
+ */
     updateSubscription({
         superToken,
         publisher,
@@ -239,62 +255,68 @@ export declare class InstantDistributionAgreementV1Helper {
         subscriber,
         units,
         userData,
-        onTransaction
+        onTransaction,
+        gasOptions,
     }: UpdateSubscriptionOptions): Promise<Transaction>;
-    /**
-     * @dev Approve the subscription by a subscriber of the index
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @param {int} indexId ID of the index
-     * @param {addressParam} subscriber Subscriber of the index
-     * @param {Function} onTransaction function to be called when transaction hash has been generated
-     * @return {Promise<Transaction>} web3 transaction object
-     *
-     * NOTE:
-     * By approving, the subscriber can use the balance the moment the publishder distributes
-     * tokens without doing the extra claim step.
-     */
+/**
+ * @dev Approve the subscription by a subscriber of the index
+ * @param {tokenParam} superToken SuperToken for the index
+ * @param {addressParam} publisher Publisher of the index
+ * @param {int} indexId ID of the index
+ * @param {addressParam} subscriber Subscriber of the index
+ * @param {Function} onTransaction function to be called when transaction hash has been generated
+ * @param {GasOptions} gasOptions pass network gas parameters
+ * @return {Promise<Transaction>} web3 transaction object
+ *
+ * NOTE:
+ * By approving, the subscriber can use the balance the moment the publishder distributes
+ * tokens without doing the extra claim step.
+ */
     approveSubscription({
         superToken,
         publisher,
         indexId,
         subscriber,
         userData,
-        onTransaction
+        onTransaction,
+        gasOptions,
     }: ApproveSubscriptionOptions): Promise<Transaction>;
-    /**
-     * @dev Revoke the subscription by a subscriber of the index
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @param {int} indexId ID of the index
-     * @param {addressParam} subscriber Subscriber of the index
-     * @param {Function} onTransaction function to be called when transaction hash has been generated
-     * @return {Promise<Transaction>} web3 transaction object
-     *
-     * NOTE:
-     * By revoking, the subscriber will need to do claim step in order to get the tokens.
-     */
+/**
+ * @dev Revoke the subscription by a subscriber of the index
+ * @param {tokenParam} superToken SuperToken for the index
+ * @param {addressParam} publisher Publisher of the index
+ * @param {int} indexId ID of the index
+ * @param {addressParam} subscriber Subscriber of the index
+ * @param {Function} onTransaction function to be called when transaction hash has been generated
+ * @param {GasOptions} gasOptions pass network gas parameters
+ * @return {Promise<Transaction>} web3 transaction object
+ *
+ * NOTE:
+ * By revoking, the subscriber will need to do claim step in order to get the tokens.
+ */
     revokeSubscription({
         superToken,
         indexId,
         publisher,
         subscriber,
         userData,
-        onTransaction
+        onTransaction,
+        gasOptions,
     }: RevokeSubscriptionOptions): Promise<Transaction>;
-    /**
-     * @dev Delete the subscription by the publisher or a subscriber of the index
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @param {int} indexId ID of the index
-     * @param {addressParam} subscriber Subscriber of the index
-     * @param {addressParam} sender Publisher or subscriber of the index
-     * @param {Function} onTransaction function to be called when transaction hash has been generated
-     * @return {Promise<Transaction>} web3 transaction object
-     *
-     * NOTE:
-     * It means both revoking and clear the units of a subscription.
-     */
+/**
+ * @dev Delete the subscription by the publisher or a subscriber of the index
+ * @param {tokenParam} superToken SuperToken for the index
+ * @param {addressParam} publisher Publisher of the index
+ * @param {int} indexId ID of the index
+ * @param {addressParam} subscriber Subscriber of the index
+ * @param {addressParam} sender Publisher or subscriber of the index
+ * @param {Function} onTransaction function to be called when transaction hash has been generated
+ * @param {GasOptions} gasOptions pass network gas parameters
+ * @return {Promise<Transaction>} web3 transaction object
+ *
+ * NOTE:
+ * It means both revoking and clear the units of a subscription.
+ */
     deleteSubscription({
         superToken,
         indexId,
@@ -302,7 +324,8 @@ export declare class InstantDistributionAgreementV1Helper {
         subscriber,
         sender,
         userData,
-        onTransaction
+        onTransaction,
+        gasOptions,
     }: DeleteSubscriptionOptions): Promise<Transaction>;
     /**
      * @dev Get details of a subscription
@@ -310,27 +333,28 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {addressParam} publisher Publisher of the index
      * @param {int} indexId ID of the index
      * @param {addressParam} subscriber Subscriber of the index
-     * @return {Promise<Subscription>} Subscription data
+     * @return {Promise<SubscriptionData>} Subscription data
      */
     getSubscription({
         superToken,
         publisher,
         indexId,
         subscriber
-    }: GetSubscriptionOptions): Promise<Subscription>;
-    /**
-     * @dev Claim distributions to a subscriber of the index by anyone.
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @param {int} indexId ID of the index
-     * @param {addressParam} subscriber Subscriber of the index
-     * @param {addressParam} sender Any account to claim the distribution for the subscriber
-     * @param {Function} onTransaction function to be called when transaction hash has been generated
-     * @return {Promise<Transaction>} web3 transaction object
-     *
-     * NOTE:
-     * If the subscriber has not approved the subscription, anyone can claim the distribution for him.
-     */
+    }: GetSubscriptionOptions): Promise<SubscriptionData>;
+/**
+ * @dev Claim distributions to a subscriber of the index by anyone.
+ * @param {tokenParam} superToken SuperToken for the index
+ * @param {addressParam} publisher Publisher of the index
+ * @param {int} indexId ID of the index
+ * @param {addressParam} subscriber Subscriber of the index
+ * @param {addressParam} sender Any account to claim the distribution for the subscriber
+ * @param {Function} onTransaction function to be called when transaction hash has been generated
+ * @param {GasOptions} gasOptions pass network gas parameters
+ * @return {Promise<Transaction>} web3 transaction object
+ *
+ * NOTE:
+ * If the subscriber has not approved the subscription, anyone can claim the distribution for him.
+ */
     claim({
         superToken,
         publisher,
@@ -338,14 +362,15 @@ export declare class InstantDistributionAgreementV1Helper {
         subscriber,
         sender,
         userData,
-        onTransaction
+        onTransaction,
+        gasOptions,
     }: ClaimOptions): Promise<Transaction>;
     /**
      * @dev Get details of an index
      * @param {tokenParam} superToken SuperToken for the index
      * @param {addressParam} publisher Publisher of the index
      * @param {int} indexId ID of the index
-     * @return {Promise<Subscription>} Subscription data
+     * @return {Promise<IndexData>} Subscription data
      */
     getIndex({
         superToken,
@@ -356,7 +381,7 @@ export declare class InstantDistributionAgreementV1Helper {
      * @dev List indices of a publisher
      * @param {tokenParam} superToken SuperToken for the index
      * @param {addressParam} publisher Publisher of the index
-     * @return {Promise<Subscription>} Subscription data
+     * @return {Promise<number[]>} Subscription data
      */
     listIndices({
         superToken,
@@ -367,19 +392,19 @@ export declare class InstantDistributionAgreementV1Helper {
      * @param {tokenParam} superToken SuperToken for the index
      * @param {addressParam} publisher Publisher of the index
      * @param {int} indexId ID of the index
-     * @return {Promise<Subscription>} Subscription data
+     * @return {Promise<SubscriberList>} Subscription data
      */
-    listSubcribers({
+    listSubscribers({
         superToken,
         publisher,
         indexId
-    }: ListSubcribersOptions): Promise<SubscriberList>;
+    }: ListSubscribersOptions): Promise<SubscriberList>;
     /**
      * @dev List subscriptions of an account
      * @param {tokenParam} superToken SuperToken for the index
      * @param {addressParam} publisher Publisher of the index
      * @param {int} indexId ID of the index
-     * @return {Promise<Subscription>} Subscription data
+     * @return {Promise<SubscriptionInfoList>} Subscription data
      */
     listSubscriptions({
         superToken,

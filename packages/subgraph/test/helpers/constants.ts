@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { IEventQueryData } from "../interfaces";
 import {
     getIndexCreatedEvents,
@@ -11,6 +12,7 @@ import {
     getSubscriptionRevokedEvents,
     getSubscriptionUnitsUpdatedEvents,
 } from "../queries/eventQueries";
+import { toBN } from "./helpers";
 
 export const enum FlowActionType {
     Create,
@@ -136,3 +138,10 @@ export const idaEventTypeToEventQueryDataMap = new Map<
         },
     ],
 ]);
+
+export const ALLOW_CREATE = 1 << 0;
+export const ALLOW_UPDATE = 1 << 1;
+export const ALLOW_DELETE = 1 << 2;
+export const FULL_CONTROL = ALLOW_CREATE | ALLOW_UPDATE | ALLOW_DELETE;
+
+export const MAX_FLOW_RATE = toBN(2).pow(toBN(95)).sub(toBN(1));

@@ -1,10 +1,11 @@
-query accountTokenSnapshots($first: Int = 10, $skip: Int = 0, $orderBy: AccountTokenSnapshot_orderBy = id, $orderDirection: OrderDirection = asc, $where: AccountTokenSnapshot_filter = {}) {
+query accountTokenSnapshots($first: Int = 10, $skip: Int = 0, $orderBy: AccountTokenSnapshot_orderBy = id, $orderDirection: OrderDirection = asc, $where: AccountTokenSnapshot_filter = {}, $block: Block_height) {
     accountTokenSnapshots(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
+        block: $block
     ) {
         account {
             id
@@ -13,8 +14,11 @@ query accountTokenSnapshots($first: Int = 10, $skip: Int = 0, $orderBy: AccountT
         id
         token {
             id
+            symbol
         }
         totalAmountStreamedUntilUpdatedAt
+        totalAmountStreamedInUntilUpdatedAt
+        totalAmountStreamedOutUntilUpdatedAt
         totalAmountTransferredUntilUpdatedAt
         totalInflowRate
         totalApprovedSubscriptions
@@ -25,5 +29,7 @@ query accountTokenSnapshots($first: Int = 10, $skip: Int = 0, $orderBy: AccountT
         totalSubscriptionsWithUnits
         updatedAtBlockNumber
         updatedAtTimestamp
+        maybeCriticalAtTimestamp
+        isLiquidationEstimateOptimistic
     }
 }

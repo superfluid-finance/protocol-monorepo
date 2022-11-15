@@ -4,7 +4,7 @@ import {
     CFAv1LiquidationPeriodChanged,
     TrustedForwarderChanged,
     PPPConfigurationChanged,
-} from "../../generated/SuperfluidGovernance/SuperfluidGovernanceBase";
+} from "../../generated/templates/SuperfluidGovernance/SuperfluidGovernanceBase";
 import {
     CFAv1LiquidationPeriodChangedEvent,
     ConfigChangedEvent,
@@ -12,15 +12,14 @@ import {
     PPPConfigurationChangedEvent,
     TrustedForwarderChangedEvent,
 } from "../../generated/schema";
-import { createEventID } from "../utils";
+import { createEventID, initializeEventEntity } from "../utils";
 
 export function handleConfigChanged(event: ConfigChanged): void {
-    let ev = new ConfigChangedEvent(createEventID("ConfigChanged", event));
-    ev.transactionHash = event.transaction.hash;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "ConfigChanged";
-    ev.addresses = [];
-    ev.blockNumber = event.block.number;
+    const eventId = createEventID("ConfigChanged", event);
+    const ev = new ConfigChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
+
+    ev.governanceAddress = event.address;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.key = event.params.key;
@@ -30,14 +29,11 @@ export function handleConfigChanged(event: ConfigChanged): void {
 }
 
 export function handleRewardAddressChanged(event: RewardAddressChanged): void {
-    let ev = new RewardAddressChangedEvent(
-        createEventID("RewardAddressChanged", event)
-    );
-    ev.transactionHash = event.transaction.hash;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "RewardAddressChanged";
-    ev.addresses = [];
-    ev.blockNumber = event.block.number;
+    const eventId = createEventID("RewardAddressChanged", event);
+    const ev = new RewardAddressChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
+
+    ev.governanceAddress = event.address;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.isKeySet = event.params.isKeySet;
@@ -48,14 +44,11 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
 export function handleCFAv1LiquidationPeriodChanged(
     event: CFAv1LiquidationPeriodChanged
 ): void {
-    let ev = new CFAv1LiquidationPeriodChangedEvent(
-        createEventID("CFAv1LiquidationPeriodChanged", event)
-    );
-    ev.transactionHash = event.transaction.hash;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "CFAv1LiquidationPeriodChanged";
-    ev.addresses = [];
-    ev.blockNumber = event.block.number;
+    const eventId = createEventID("CFAv1LiquidationPeriodChanged", event);
+    const ev = new CFAv1LiquidationPeriodChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
+
+    ev.governanceAddress = event.address;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.isKeySet = event.params.isKeySet;
@@ -66,14 +59,11 @@ export function handleCFAv1LiquidationPeriodChanged(
 export function handlePPPConfigurationChanged(
     event: PPPConfigurationChanged
 ): void {
-    let ev = new PPPConfigurationChangedEvent(
-        createEventID("PPPConfigurationChanged", event)
-    );
-    ev.transactionHash = event.transaction.hash;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "TrustedForwarderChanged";
-    ev.addresses = [];
-    ev.blockNumber = event.block.number;
+    const eventId = createEventID("PPPConfigurationChanged", event);
+    const ev = new PPPConfigurationChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
+
+    ev.governanceAddress = event.address;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.isKeySet = event.params.isKeySet;
@@ -85,14 +75,11 @@ export function handlePPPConfigurationChanged(
 export function handleTrustedForwarderChanged(
     event: TrustedForwarderChanged
 ): void {
-    let ev = new TrustedForwarderChangedEvent(
-        createEventID("TrustedForwarderChanged", event)
-    );
-    ev.transactionHash = event.transaction.hash;
-    ev.timestamp = event.block.timestamp;
-    ev.name = "TrustedForwarderChanged";
-    ev.addresses = [];
-    ev.blockNumber = event.block.number;
+    const eventId = createEventID("TrustedForwarderChanged", event);
+    const ev = new TrustedForwarderChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
+
+    ev.governanceAddress = event.address;
     ev.host = event.params.host;
     ev.superToken = event.params.superToken;
     ev.isKeySet = event.params.isKeySet;

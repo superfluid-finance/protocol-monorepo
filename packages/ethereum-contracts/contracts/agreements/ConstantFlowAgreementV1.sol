@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.16;
 
+import { IConstantFlowAgreementHook } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import {
     IConstantFlowAgreementV1,
     ISuperfluidToken
@@ -9,6 +10,7 @@ import {
     ISuperfluid,
     ISuperfluidGovernance,
     ISuperApp,
+    FlowOperatorDefinitions,
     SuperAppDefinitions,
     ContextDefinitions,
     SuperfluidGovernanceConfigs
@@ -16,9 +18,7 @@ import {
 import { AgreementBase } from "./AgreementBase.sol";
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { Int96SafeMath } from "../libs/Int96SafeMath.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
-
 
 /**
  * @title ConstantFlowAgreementV1 contract
@@ -31,15 +31,47 @@ contract ConstantFlowAgreementV1 is
     IConstantFlowAgreementV1
 {
 
+    /**
+     * E_NO_SENDER_CREATE - sender cannot create as flowOperator
+     * E_NO_SENDER_UPDATE - sender cannot update as flowOperator
+     * E_NO_SENDER_DELETE - sender cannot delete as flowOperator
+     * E_EXCEED_FLOW_RATE_ALLOWANCE - flowRateAllowance exceeeded
+     * E_NO_OPERATOR_CREATE_FLOW - operator does not have permissions to create flow
+     * E_NO_OPERATOR_UPDATE_FLOW - operator does not have permissions to update flow
+     * E_NO_OPERATOR_DELETE_FLOW - operator does not have permissions to delete flow
+     * E_NO_SENDER_FLOW_OPERATOR - sender cannot set themselves as the flow operator
+     * E_NO_NEGATIVE_ALLOWANCE - sender cannot set a negative allowance
+     */
+
+    /**
+     * @dev Default minimum deposit value
+     *
+     * NOTE:
+     * - It may come as a surprise that it is not 0, this is the minimum friction we have in the system for the
+     *   imperfect blockchain system we live in.
+     * - It is related to deposit clipping, and it is always rounded-up when clipping.
+     */
+    uint256 public constant DEFAULT_MINIMUM_DEPOSIT = uint256(uint96(1 << 32));
+    /// @dev Maximum deposit value
+    uint256 public constant MAXIMUM_DEPOSIT = uint256(uint96(type(int96).max));
+
+    /// @dev Maximum flow rate
+    uint256 public constant MAXIMUM_FLOW_RATE = uint256(uint96(type(int96).max));
+
     bytes32 private constant CFAV1_PPP_CONFIG_KEY =
         keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration");
 
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
+    IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
+
+    // An arbitrarily chosen safety limit for the external calls to protect against out-of-gas grief exploits.
+    // solhint-disable-next-line var-name-mixedcase
+    uint64 constant public CFA_HOOK_GAS_LIMIT = 250000;
+
     using SafeCast for uint256;
     using SafeCast for int256;
-    using Int96SafeMath for int96;
 
     struct FlowData {
         uint256 timestamp; // stored as uint32
@@ -52,12 +84,23 @@ contract ConstantFlowAgreementV1 is
         bytes32 flowId;
         address sender;
         address receiver;
+        address flowOperator;
         int96 flowRate;
         bytes userData;
     }
 
+    struct FlowOperatorData {
+        uint8 permissions;
+        int96 flowRateAllowance;
+    }
+
     // solhint-disable-next-line no-empty-blocks
-    constructor(ISuperfluid host) AgreementBase(address(host)) {}
+    constructor(
+        ISuperfluid host,
+        IConstantFlowAgreementHook _hookAddress
+    ) AgreementBase(address(host)) {
+        constantFlowAgreementHook = _hookAddress;
+    }
 
     /**************************************************************************
      * ISuperAgreement interface
@@ -86,54 +129,79 @@ contract ConstantFlowAgreementV1 is
      * IConstantFlowAgreementV1 interface
      *************************************************************************/
 
-    /// @dev IConstantFlowAgreementV1.createFlow implementation
-    function getMaximumFlowRateFromDeposit(
-        ISuperfluidToken token,
-        uint256 deposit)
-        external view override
-        returns (int96 flowRate)
-    {
-        require(deposit < 2**95, "CFA: deposit number too big");
-        deposit = _clipDepositNumberRoundingDown(deposit);
-        (uint256 liquidationPeriod, ) = _decode3PsData(token);
-        uint256 flowrate1 = deposit / liquidationPeriod;
+     function _getMaximumFlowRateFromDepositPure(
+         uint256 liquidationPeriod,
+         uint256 deposit)
+         internal pure
+         returns (int96 flowRate)
+     {
+        if (deposit > MAXIMUM_DEPOSIT) revert CFA_DEPOSIT_TOO_BIG();
+         deposit = _clipDepositNumberRoundingDown(deposit);
 
-        // NOTE downcasting is safe as we constrain deposit to less than
-        // 2 ** 95 so the resulting value flowRate1 will fit into int96
-        return int96(int256(flowrate1));
-    }
+         uint256 flowrate1 = deposit / liquidationPeriod;
 
-    function getDepositRequiredForFlowRate(
-        ISuperfluidToken token,
-        int96 flowRate)
-        external view override
-        returns (uint256 deposit)
-    {
-        require(flowRate >= 0, "CFA: not for negative flow rate");
-        ISuperfluid host = ISuperfluid(token.getHost());
-        ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-        uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
-        (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
-        require(uint256(int256(flowRate))
-            * liquidationPeriod <= uint256(int256(type(int96).max)), "CFA: flow rate too big");
-        uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
-        return calculatedDeposit < minimumDeposit && flowRate > 0 ? minimumDeposit : calculatedDeposit;
-    }
+         // NOTE downcasting is safe as we constrain deposit to less than
+         // 2 ** 95 (MAXIMUM_DEPOSIT) so the resulting value flowRate1 will fit into int96
+         return int96(int256(flowrate1));
+     }
+
+     function _getDepositRequiredForFlowRatePure(
+         uint256 minimumDeposit,
+         uint256 liquidationPeriod,
+         int96 flowRate)
+         internal pure
+         returns (uint256 deposit)
+     {
+        if (flowRate < 0) revert CFA_INVALID_FLOW_RATE();
+        if (uint256(int256(flowRate)) * liquidationPeriod > uint256(int256(type(int96).max))) {
+            revert CFA_FLOW_RATE_TOO_BIG();
+        }
+         uint256 calculatedDeposit = _calculateDeposit(flowRate, liquidationPeriod);
+         return AgreementLibrary.max(minimumDeposit, calculatedDeposit);
+     }
+
+     /// @dev IConstantFlowAgreementV1.getMaximumFlowRateFromDeposit implementation
+     function getMaximumFlowRateFromDeposit(
+         ISuperfluidToken token,
+         uint256 deposit)
+         external view override
+         returns (int96 flowRate)
+     {
+         (uint256 liquidationPeriod, ) = _decode3PsData(token);
+         flowRate = _getMaximumFlowRateFromDepositPure(liquidationPeriod, deposit);
+     }
+
+     /// @dev IConstantFlowAgreementV1.getDepositRequiredForFlowRate implementation
+     function getDepositRequiredForFlowRate(
+         ISuperfluidToken token,
+         int96 flowRate)
+         external view override
+         returns (uint256 deposit)
+     {
+        // base case: 0 flow rate
+        if (flowRate == 0) return 0;
+
+         ISuperfluid host = ISuperfluid(token.getHost());
+         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
+         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+         uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
+         (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
+         return _getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
+     }
 
     function isPatricianPeriodNow(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         address account)
-        public view override
+        external view override
         returns (bool isCurrentlyPatricianPeriod, uint256 timestamp)
     {
-        // solhint-disable-next-line not-rely-on-time
-        timestamp = block.timestamp;
+        ISuperfluid host = ISuperfluid(token.getHost());
+        timestamp = host.getNow();
         isCurrentlyPatricianPeriod = isPatricianPeriod(token, account, timestamp);
     }
 
     function isPatricianPeriod(
-        ISuperfluidToken token, 
+        ISuperfluidToken token,
         address account,
         uint256 timestamp)
         public view override
@@ -149,9 +217,9 @@ contract ConstantFlowAgreementV1 is
         int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
 
         return _isPatricianPeriod(
-            availableBalance, 
-            signedTotalCFADeposit, 
-            liquidationPeriod, 
+            availableBalance,
+            signedTotalCFADeposit,
+            liquidationPeriod,
             patricianPeriod
         );
     }
@@ -167,32 +235,19 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        FlowParams memory flowParams;
-        require(receiver != address(0), "CFA: receiver is zero");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
-        flowParams.sender = currentContext.msgSender;
-        flowParams.receiver = receiver;
-        flowParams.flowRate = flowRate;
-        flowParams.userData = currentContext.userData;
-        require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
-        require(flowParams.flowRate > 0, "CFA: invalid flow rate");
-        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
-        require(!exist, "CFA: flow already exist");
 
-        if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver)))
-        {
-            newCtx = _changeFlowToApp(
-                receiver,
-                token, flowParams, oldFlowData,
-                ctx, currentContext, FlowChangeType.CREATE_FLOW);
-        } else {
-            newCtx = _changeFlowToNonApp(
-                token, flowParams, oldFlowData,
-                ctx, currentContext);
-        }
+        _StackVars_createOrUpdateFlow memory flowVars;
+        flowVars.token = token;
+        flowVars.sender = currentContext.msgSender;
+        flowVars.receiver = receiver;
+        flowVars.flowRate = flowRate;
 
-        _requireAvailableBalance(token, currentContext);
+        newCtx = _createFlow(
+            flowVars,
+            ctx,
+            currentContext
+        );
     }
 
     /// @dev IConstantFlowAgreementV1.updateFlow implementation
@@ -206,31 +261,24 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        FlowParams memory flowParams;
-        require(receiver != address(0), "CFA: receiver is zero");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        flowParams.flowId = _generateFlowId(currentContext.msgSender, receiver);
-        flowParams.sender = currentContext.msgSender;
-        flowParams.receiver = receiver;
-        flowParams.flowRate = flowRate;
-        flowParams.userData = currentContext.userData;
-        require(flowParams.sender != flowParams.receiver, "CFA: no self flow");
-        require(flowParams.flowRate > 0, "CFA: invalid flow rate");
-        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
-        require(exist, "CFA: flow does not exist");
 
-        if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-            newCtx = _changeFlowToApp(
-                receiver,
-                token, flowParams, oldFlowData,
-                ctx, currentContext, FlowChangeType.UPDATE_FLOW);
-        } else {
-            newCtx = _changeFlowToNonApp(
-                token, flowParams, oldFlowData,
-                ctx, currentContext);
-        }
+        _StackVars_createOrUpdateFlow memory flowVars;
+        flowVars.token = token;
+        flowVars.sender = currentContext.msgSender;
+        flowVars.receiver = receiver;
+        flowVars.flowRate = flowRate;
 
-        _requireAvailableBalance(token, currentContext);
+        bytes32 flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowId);
+
+        newCtx = _updateFlow(
+            flowVars,
+            oldFlowData,
+            exist,
+            ctx,
+            currentContext
+        );
     }
 
     /// @dev IConstantFlowAgreementV1.deleteFlow implementation
@@ -244,88 +292,17 @@ contract ConstantFlowAgreementV1 is
         override
         returns(bytes memory newCtx)
     {
-        FlowParams memory flowParams;
-        require(sender != address(0), "CFA: sender is zero");
-        require(receiver != address(0), "CFA: receiver is zero");
         ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        flowParams.flowId = _generateFlowId(sender, receiver);
-        flowParams.sender = sender;
-        flowParams.receiver = receiver;
-        flowParams.flowRate = 0;
-        flowParams.userData = currentContext.userData;
-        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, flowParams.flowId);
-        require(exist, "CFA: flow does not exist");
+        (,uint8 permissions,) = getFlowOperatorData(token, sender, currentContext.msgSender);
+        bool hasPermissions = _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.DELETE_FLOW);
 
-        int256 availableBalance;
-        (availableBalance,,) = token.realtimeBalanceOf(sender, currentContext.timestamp);
+        _StackVars_createOrUpdateFlow memory flowVars;
+        flowVars.token = token;
+        flowVars.sender = sender;
+        flowVars.receiver = receiver;
+        flowVars.flowRate = 0;
 
-        // delete should only be called by sender or receiver
-        // unless it is a liquidation (availale balance < 0)
-        if (currentContext.msgSender != sender && currentContext.msgSender != receiver) {
-            // liquidation should only for sender that is critical, unless sender or receiver is a jailed app
-            if (!ISuperfluid(msg.sender).isAppJailed(ISuperApp(sender)) &&
-                !ISuperfluid(msg.sender).isAppJailed(ISuperApp(receiver))) {
-                require(availableBalance < 0, "CFA: sender account is not critical");
-            }
-        }
-
-        if (availableBalance < 0) {
-            _makeLiquidationPayouts(
-                token,
-                availableBalance,
-                flowParams,
-                oldFlowData,
-                currentContext.msgSender);
-        }
-
-        newCtx = ctx;
-        if (currentContext.msgSender == sender) {
-            if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-                newCtx = _changeFlowToApp(
-                    receiver,
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
-            } else {
-                newCtx = _changeFlowToNonApp(
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext);
-            }
-        } else if (currentContext.msgSender == receiver) {
-            if (ISuperfluid(msg.sender).isApp(ISuperApp(sender))) {
-                newCtx = _changeFlowToApp(
-                    sender,
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
-            } else if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-                newCtx = _changeFlowToApp(
-                    address(0),
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
-            } else {
-                newCtx = _changeFlowToNonApp(
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext);
-            }
-        } else /* liquidations */ {
-            // if the sender is an app, and becomes critical
-            if (ISuperfluid(msg.sender).isApp(ISuperApp(sender))) {
-                newCtx = ISuperfluid(msg.sender).jailApp(
-                    newCtx,
-                    ISuperApp(sender),
-                    SuperAppDefinitions.APP_RULE_NO_CRITICAL_SENDER_ACCOUNT);
-            }
-            // always attempt to call receiver callback
-            if (ISuperfluid(msg.sender).isApp(ISuperApp(receiver))) {
-                newCtx = _changeFlowToApp(
-                    receiver,
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
-            } else {
-                newCtx = _changeFlowToNonApp(
-                    token, flowParams, oldFlowData,
-                    newCtx, currentContext);
-            }
-        }
+        newCtx = _deleteFlow(flowVars, hasPermissions, ctx, currentContext);
     }
 
     /// @dev IConstantFlowAgreementV1.getFlow implementation
@@ -418,6 +395,484 @@ contract ConstantFlowAgreementV1 is
     }
 
     /**************************************************************************
+     * Internal Helper Functions
+     *************************************************************************/
+
+    // Stack variables for _createOrUpdateFlow function, to avoid stack too deep issue
+    // solhint-disable-next-line contract-name-camelcase
+    struct _StackVars_createOrUpdateFlow {
+        ISuperfluidToken token;
+        address sender;
+        address receiver;
+        int96 flowRate;
+    }
+
+    /**
+     * @dev Checks conditions for both create/update flow
+     * returns the flowId and flowParams
+     */
+    function _createOrUpdateFlowCheck(
+        _StackVars_createOrUpdateFlow memory flowVars,
+        ISuperfluid.Context memory currentContext
+    )
+        internal pure
+        returns(bytes32 flowId, FlowParams memory flowParams)
+    {
+        if (flowVars.receiver == address(0)) {
+            revert CFA_ZERO_ADDRESS_RECEIVER();
+        }
+
+        flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
+        flowParams.flowId = flowId;
+        flowParams.sender = flowVars.sender;
+        flowParams.receiver = flowVars.receiver;
+        flowParams.flowOperator = currentContext.msgSender;
+        flowParams.flowRate = flowVars.flowRate;
+        flowParams.userData = currentContext.userData;
+        if (flowParams.sender == flowParams.receiver) revert CFA_NO_SELF_FLOW();
+        if (flowParams.flowRate <= 0) revert CFA_INVALID_FLOW_RATE();
+    }
+
+    function _createFlow(
+        _StackVars_createOrUpdateFlow memory flowVars,
+        bytes calldata ctx,
+        ISuperfluid.Context memory currentContext
+    )
+        internal
+        returns(bytes memory newCtx)
+    {
+        (bytes32 flowId, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
+
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowId);
+        if (exist) revert CFA_FLOW_ALREADY_EXISTS();
+
+        if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+            newCtx = _changeFlowToApp(
+                flowVars.receiver,
+                flowVars.token, flowParams, oldFlowData,
+                ctx, currentContext, FlowChangeType.CREATE_FLOW);
+        } else {
+            newCtx = _changeFlowToNonApp(
+                flowVars.token, flowParams, oldFlowData,
+                ctx, currentContext);
+        }
+
+        _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
+
+        if (address(constantFlowAgreementHook) != address(0))  {
+            uint256 gasLeftBefore = gasleft();
+            try constantFlowAgreementHook.onCreate{ gas: CFA_HOOK_GAS_LIMIT }(
+                flowVars.token,
+                IConstantFlowAgreementHook.CFAHookParams({
+                    sender: flowParams.sender,
+                    receiver: flowParams.receiver,
+                    flowOperator: flowParams.flowOperator,
+                    flowRate: flowParams.flowRate
+                })
+            )
+            // solhint-disable-next-line no-empty-blocks
+            {} catch {
+// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
+// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
+// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
+                if (gasleft() <= gasLeftBefore / 63) {
+                    revert CFA_HOOK_OUT_OF_GAS();
+                }
+            }
+        }
+    }
+
+    function _updateFlow(
+        _StackVars_createOrUpdateFlow memory flowVars,
+        FlowData memory oldFlowData,
+        bool exist,
+        bytes calldata ctx,
+        ISuperfluid.Context memory currentContext
+    )
+        internal
+        returns(bytes memory newCtx)
+    {
+        (, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
+
+        if (!exist) revert CFA_FLOW_DOES_NOT_EXIST();
+
+        if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+            newCtx = _changeFlowToApp(
+                flowVars.receiver,
+                flowVars.token, flowParams, oldFlowData,
+                ctx, currentContext, FlowChangeType.UPDATE_FLOW);
+        } else {
+            newCtx = _changeFlowToNonApp(
+                flowVars.token, flowParams, oldFlowData,
+                ctx, currentContext);
+        }
+
+        _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
+
+        // @note See comment in _createFlow
+        if (address(constantFlowAgreementHook) != address(0))  {
+            uint256 gasLeftBefore = gasleft();
+            // solhint-disable-next-line no-empty-blocks
+            try constantFlowAgreementHook.onUpdate{ gas: CFA_HOOK_GAS_LIMIT }(
+                flowVars.token,
+                IConstantFlowAgreementHook.CFAHookParams({
+                    sender: flowParams.sender,
+                    receiver: flowParams.receiver,
+                    flowOperator: flowParams.flowOperator,
+                    flowRate: flowParams.flowRate
+                }),
+                oldFlowData.flowRate
+            // solhint-disable-next-line no-empty-blocks
+            ) {} catch {
+                // @note See comment in onCreate
+                if (gasleft() <= gasLeftBefore / 63) {
+                    revert CFA_HOOK_OUT_OF_GAS();
+                }
+            }
+        }
+    }
+
+    function _deleteFlow(
+        _StackVars_createOrUpdateFlow memory flowVars,
+        bool hasPermissions,
+        bytes calldata ctx,
+        ISuperfluid.Context memory currentContext
+    )
+        internal
+        returns(bytes memory newCtx)
+    {
+        FlowParams memory flowParams;
+        if (flowVars.sender == address(0)) {
+            revert CFA_ZERO_ADDRESS_SENDER();
+        }
+        if (flowVars.receiver == address(0)) {
+            revert CFA_ZERO_ADDRESS_RECEIVER();
+        }
+        flowParams.flowId = _generateFlowId(flowVars.sender, flowVars.receiver);
+        flowParams.sender = flowVars.sender;
+        flowParams.receiver = flowVars.receiver;
+        flowParams.flowOperator = currentContext.msgSender;
+        flowParams.flowRate = 0;
+        flowParams.userData = currentContext.userData;
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(flowVars.token, flowParams.flowId);
+        if (!exist) revert CFA_FLOW_DOES_NOT_EXIST();
+
+        (int256 availableBalance,,) = flowVars.token.realtimeBalanceOf(flowVars.sender, currentContext.timestamp);
+
+        // delete should only be called by sender, receiver or flowOperator
+        // unless it is a liquidation (availale balance < 0)
+        if (currentContext.msgSender != flowVars.sender &&
+            currentContext.msgSender != flowVars.receiver &&
+            !hasPermissions)
+        {
+            if (!ISuperfluid(msg.sender).isAppJailed(ISuperApp(flowVars.sender)) &&
+                !ISuperfluid(msg.sender).isAppJailed(ISuperApp(flowVars.receiver))) {
+                if (availableBalance >= 0) revert CFA_NON_CRITICAL_SENDER();
+            }
+        }
+
+        if (availableBalance < 0) {
+            _makeLiquidationPayouts(
+                flowVars.token,
+                availableBalance,
+                flowParams,
+                oldFlowData,
+                currentContext.msgSender);
+        }
+
+        newCtx = ctx;
+        // if the sender of the flow is deleting the flow
+        if (currentContext.msgSender == flowVars.sender) {
+            // if the sender is deleting a flow to a super app receiver
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+                newCtx = _changeFlowToApp(
+                    flowVars.receiver,
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            } else {
+                // if the receiver is not a super app (sender may be a super app or non super app)
+                newCtx = _changeFlowToNonApp(
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext);
+            }
+        // if the receiver of the flow is deleting the flow
+        } else if (currentContext.msgSender == flowVars.receiver) {
+            // if the flow being deleted by the receiver has a super app sender
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.sender))) {
+                newCtx = _changeFlowToApp(
+                    flowVars.sender,
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            // if the receiver of the flow deleting the flow is a super app
+            } else if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+                newCtx = _changeFlowToApp(
+                    address(0),
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            // if the sender is not a super app (the stream is not coming to or from a super app)
+            } else {
+                newCtx = _changeFlowToNonApp(
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext);
+            }
+        // flowOperator case OR liquidation case (when the msgSender isn't the sender or receiver)
+        } else /* liquidations or flowOperator deleting a flow */ {
+            // if the sender is an app and is critical
+            // we jail the app
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.sender)) && availableBalance < 0) {
+                newCtx = ISuperfluid(msg.sender).jailApp(
+                    newCtx,
+                    ISuperApp(flowVars.sender),
+                    SuperAppDefinitions.APP_RULE_NO_CRITICAL_SENDER_ACCOUNT);
+            }
+            // if the stream we're deleting (possibly liquidating) has a receiver that is a super app
+            // always attempt to call receiver callback
+            if (ISuperfluid(msg.sender).isApp(ISuperApp(flowVars.receiver))) {
+                newCtx = _changeFlowToApp(
+                    flowVars.receiver,
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext, FlowChangeType.DELETE_FLOW);
+            // if the stream we're deleting (possibly liquidating) has a receiver that is not a super app
+            // or the sender is a super app or the sender is not a super app
+            } else {
+                newCtx = _changeFlowToNonApp(
+                    flowVars.token, flowParams, oldFlowData,
+                    newCtx, currentContext);
+            }
+        }
+
+        // @note See comment in _createFlow
+        if (address(constantFlowAgreementHook) != address(0))  {
+            uint256 gasLeftBefore = gasleft();
+            try constantFlowAgreementHook.onDelete{ gas: CFA_HOOK_GAS_LIMIT }(
+                flowVars.token,
+                IConstantFlowAgreementHook.CFAHookParams({
+                    sender: flowParams.sender,
+                    receiver: flowParams.receiver,
+                    flowOperator: flowParams.flowOperator,
+                    flowRate: flowParams.flowRate
+                }),
+                oldFlowData.flowRate
+            // solhint-disable-next-line no-empty-blocks
+            ) {} catch {
+                // @note See comment in onCreate
+                if (gasleft() <= gasLeftBefore / 63) {
+                    revert CFA_HOOK_OUT_OF_GAS();
+                }
+            }
+        }
+    }
+
+    /**************************************************************************
+     * ACL Functions
+     *************************************************************************/
+
+    /// @dev IConstantFlowAgreementV1.createFlowByOperator implementation
+    function createFlowByOperator(
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        if (currentContext.msgSender == sender) revert CFA_ACL_NO_SENDER_CREATE();
+
+        {
+            // check if flow operator has create permissions
+            (
+                bytes32 flowOperatorId,
+                uint8 permissions,
+                int96 flowRateAllowance
+            ) = getFlowOperatorData(token, sender, currentContext.msgSender);
+            if (!_getBooleanFlowOperatorPermissions(permissions, FlowChangeType.CREATE_FLOW)) {
+                revert CFA_ACL_OPERATOR_NO_CREATE_PERMISSIONS();
+            }
+
+            // check if desired flow rate is allowed and update flow rate allowance
+            int96 updatedFlowRateAllowance = flowRateAllowance == type(int96).max
+                ? flowRateAllowance
+                : flowRateAllowance - flowRate;
+            if (updatedFlowRateAllowance < 0) revert CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED();
+            _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
+        }
+        {
+            _StackVars_createOrUpdateFlow memory flowVars;
+            flowVars.token = token;
+            flowVars.sender = sender;
+            flowVars.receiver = receiver;
+            flowVars.flowRate = flowRate;
+            newCtx = _createFlow(
+                flowVars,
+                ctx,
+                currentContext
+            );
+        }
+    }
+
+    /// @dev IConstantFlowAgreementV1.updateFlowByOperator implementation
+    function updateFlowByOperator(
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        if (currentContext.msgSender == sender) revert CFA_ACL_NO_SENDER_UPDATE();
+
+        // check if flow exists
+        (bool exist, FlowData memory oldFlowData) = _getAgreementData(token, _generateFlowId(sender, receiver));
+
+        {
+            // check if flow operator has create permissions
+            (
+                bytes32 flowOperatorId,
+                uint8 permissions,
+                int96 flowRateAllowance
+            ) = getFlowOperatorData(token, sender, currentContext.msgSender);
+            if (!_getBooleanFlowOperatorPermissions(permissions, FlowChangeType.UPDATE_FLOW)) {
+                revert CFA_ACL_OPERATOR_NO_UPDATE_PERMISSIONS();
+            }
+
+            // check if desired flow rate is allowed and update flow rate allowance
+            int96 updatedFlowRateAllowance = flowRateAllowance == type(int96).max || oldFlowData.flowRate >= flowRate
+                ? flowRateAllowance
+                : flowRateAllowance - (flowRate - oldFlowData.flowRate);
+            if (updatedFlowRateAllowance < 0) revert CFA_ACL_FLOW_RATE_ALLOWANCE_EXCEEDED();
+            _updateFlowRateAllowance(token, flowOperatorId, permissions, updatedFlowRateAllowance);
+        }
+
+        {
+            _StackVars_createOrUpdateFlow memory flowVars;
+            flowVars.token = token;
+            flowVars.sender = sender;
+            flowVars.receiver = receiver;
+            flowVars.flowRate = flowRate;
+            newCtx = _updateFlow(
+                flowVars,
+                oldFlowData,
+                exist,
+                ctx,
+                currentContext
+            );
+        }
+    }
+
+    /// @dev IConstantFlowAgreementV1.deleteFlowByOperator implementation
+    function deleteFlowByOperator(
+        ISuperfluidToken token,
+        address sender,
+        address receiver,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        (,uint8 permissions,) = getFlowOperatorData(token, sender, currentContext.msgSender);
+        bool hasPermissions = _getBooleanFlowOperatorPermissions(permissions, FlowChangeType.DELETE_FLOW);
+        if (!hasPermissions) revert CFA_ACL_OPERATOR_NO_DELETE_PERMISSIONS();
+
+        _StackVars_createOrUpdateFlow memory flowVars;
+        flowVars.token = token;
+        flowVars.sender = sender;
+        flowVars.receiver = receiver;
+        flowVars.flowRate = 0;
+
+        newCtx = _deleteFlow(flowVars, hasPermissions, ctx, currentContext);
+    }
+
+    /// @dev IConstantFlowAgreementV1.updateFlowOperatorPermissions implementation
+    function updateFlowOperatorPermissions(
+        ISuperfluidToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 flowRateAllowance, // flowRateBudget
+        bytes calldata ctx
+    ) public override returns(bytes memory newCtx) {
+        newCtx = ctx;
+        if (!FlowOperatorDefinitions.isPermissionsClean(permissions)) revert CFA_ACL_UNCLEAN_PERMISSIONS();
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
+        // authorizeTokenAccess:
+        if (currentContext.msgSender == flowOperator) revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+        if (flowRateAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
+        FlowOperatorData memory flowOperatorData;
+        flowOperatorData.permissions = permissions;
+        flowOperatorData.flowRateAllowance = flowRateAllowance;
+        bytes32 flowOperatorId = _generateFlowOperatorId(currentContext.msgSender, flowOperator);
+        token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
+
+        emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, flowRateAllowance);
+    }
+
+    /// @dev IConstantFlowAgreementV1.authorizeFlowOperatorWithFullControl implementation
+    function authorizeFlowOperatorWithFullControl(
+        ISuperfluidToken token,
+        address flowOperator,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        newCtx = updateFlowOperatorPermissions(
+            token,
+            flowOperator,
+            FlowOperatorDefinitions.AUTHORIZE_FULL_CONTROL,
+            type(int96).max,
+            ctx
+        );
+    }
+
+    /// @dev IConstantFlowAgreementV1.revokeFlowOperatorWithFullControl implementation
+    function revokeFlowOperatorWithFullControl(
+        ISuperfluidToken token,
+        address flowOperator,
+        bytes calldata ctx
+    )
+        external override
+        returns(bytes memory newCtx)
+    {
+        // NOTE: REVOKE_FULL_CONTROL = 0
+        newCtx = updateFlowOperatorPermissions(token, flowOperator, 0, 0, ctx);
+    }
+
+    /// @dev IConstantFlowAgreementV1.getFlowOperatorData implementation
+    function getFlowOperatorData(
+        ISuperfluidToken token,
+        address sender,
+        address flowOperator
+    )
+        public view override
+        returns(bytes32 flowOperatorId, uint8 permissions, int96 flowRateAllowance)
+    {
+        flowOperatorId = _generateFlowOperatorId(sender, flowOperator);
+        (, FlowOperatorData memory flowOperatorData) = _getFlowOperatorData(token, flowOperatorId);
+        permissions = flowOperatorData.permissions;
+        flowRateAllowance = flowOperatorData.flowRateAllowance;
+    }
+
+    /// @dev IConstantFlowAgreementV1.getFlowOperatorDataByID implementation
+    function getFlowOperatorDataByID(
+        ISuperfluidToken token,
+        bytes32 flowOperatorId
+    )
+        external view override
+        returns(uint8 permissions, int96 flowRateAllowance)
+    {
+        (, FlowOperatorData memory flowOperatorData) = _getFlowOperatorData(token, flowOperatorId);
+        permissions = flowOperatorData.permissions;
+        flowRateAllowance = flowOperatorData.flowRateAllowance;
+    }
+
+    /**************************************************************************
      * Internal State Functions
      *************************************************************************/
 
@@ -451,6 +906,34 @@ contract ConstantFlowAgreementV1 is
         return _decodeFlowData(uint256(data[0]));
     }
 
+    function _getFlowOperatorData
+    (
+        ISuperfluidToken token,
+        bytes32 flowOperatorId
+    )
+        private view
+        returns (bool exist, FlowOperatorData memory)
+    {
+        // 1 because we are storing the flowOperator data in one word
+        bytes32[] memory data = token.getAgreementData(address(this), flowOperatorId, 1);
+        return _decodeFlowOperatorData(uint256(data[0]));
+    }
+
+    function _updateFlowRateAllowance
+    (
+        ISuperfluidToken token,
+        bytes32 flowOperatorId,
+        uint8 existingPermissions,
+        int96 updatedFlowRateAllowance
+    )
+        private
+    {
+        FlowOperatorData memory flowOperatorData;
+        flowOperatorData.permissions = existingPermissions;
+        flowOperatorData.flowRateAllowance = updatedFlowRateAllowance;
+        token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
+    }
+
     function _updateAccountFlowState(
         ISuperfluidToken token,
         address account,
@@ -468,7 +951,7 @@ contract ConstantFlowAgreementV1 is
         if (dynamicBalance != 0) {
             token.settleBalance(account, dynamicBalance);
         }
-        state.flowRate = state.flowRate.add(flowRateDelta, "CFA: flowrate overflow");
+        state.flowRate = state.flowRate + flowRateDelta;
         state.timestamp = currentTimestamp;
         state.deposit = (state.deposit.toInt256() + depositDelta).toUint256();
         state.owedDeposit = (state.owedDeposit.toInt256() + owedDepositDelta).toUint256();
@@ -499,15 +982,14 @@ contract ConstantFlowAgreementV1 is
         FlowData memory newFlowData;
         (depositDelta,,newFlowData) = _changeFlow(
             currentContext.timestamp,
-            currentContext.appAllowanceToken,
+            currentContext.appCreditToken,
             token, flowParams, oldFlowData);
 
-        // STEP 2: update app allowance used
-        if (currentContext.appAllowanceToken == token) {
-            newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
+        // STEP 2: update app credit used
+        if (currentContext.appCreditToken == token) {
+            newCtx = ISuperfluid(msg.sender).ctxUseCredit(
                 ctx,
-                newFlowData.deposit, // allowanceWantedMore
-                depositDelta // allowanceUsedDelta
+                depositDelta
             );
         } else {
             newCtx = ctx;
@@ -518,7 +1000,7 @@ contract ConstantFlowAgreementV1 is
      * @dev change a flow to a app receiver
      */
 
-    // Stack variables for updateFlowApp function, to avoid stack too deep issue
+    // Stack variables for _changeFlowToApp function, to avoid stack too deep issue
     // solhint-disable-next-line contract-name-camelcase
     struct _StackVars_changeFlowToApp {
         bytes cbdata;
@@ -560,14 +1042,34 @@ contract ConstantFlowAgreementV1 is
             }
             vars.cbdata = AgreementLibrary.callAppBeforeCallback(cbStates, ctx);
 
-            (,cbStates.appAllowanceGranted,) = _changeFlow(
+            ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
+
+            (,cbStates.appCreditGranted,) = _changeFlow(
                     currentContext.timestamp,
-                    currentContext.appAllowanceToken,
+                    currentContext.appCreditToken,
                     token, flowParams, oldFlowData);
-            cbStates.appAllowanceGranted = cbStates.appAllowanceGranted * uint256(currentContext.appLevel + 1);
-            cbStates.appAllowanceUsed = oldFlowData.owedDeposit.toInt256();
+
+
+            // Rule CFA-2
+            // https://github.com/superfluid-finance/protocol-monorepo/wiki/About-App-Credit
+            // Allow apps to take an additional amount of app credit (minimum deposit)
+            uint256 minimumDeposit = gov.getConfigAsUint256(
+                ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+
+            // NOTE: we do not provide additionalAppCreditAmount when cbStates.appCreditGranted is 0
+            // (closing streams)
+            uint256 additionalAppCreditAmount = cbStates.appCreditGranted == 0
+                ? 0
+                : AgreementLibrary.max(
+                    DEFAULT_MINIMUM_DEPOSIT,
+                    minimumDeposit
+                );
+            cbStates.appCreditGranted = cbStates.appCreditGranted + additionalAppCreditAmount;
+
+            cbStates.appCreditUsed = oldFlowData.owedDeposit.toInt256();
+
             // - each app level can at least "relay" the same amount of input flow rate to others
-            // - each app level get a same amount of allowance
+            // - each app level gets the same amount of credit
 
             if (optype == FlowChangeType.CREATE_FLOW) {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
@@ -576,7 +1078,7 @@ contract ConstantFlowAgreementV1 is
             } else /* if (optype == FlowChangeType.DELETE_FLOW) */ {
                 cbStates.noopBit = SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
             }
-            (vars.appContext,) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
+            (vars.appContext, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, vars.cbdata, newCtx);
 
             // NB: the callback might update the same flow!!
             // reload the flow data
@@ -584,38 +1086,31 @@ contract ConstantFlowAgreementV1 is
         } else {
             (,,vars.newFlowData) = _changeFlow(
                     currentContext.timestamp,
-                    currentContext.appAllowanceToken,
+                    currentContext.appCreditToken,
                     token, flowParams, oldFlowData);
         }
 
         // REVIEW the re-entrace assumptions from this point on
 
-        // NOTE: vars.appContext.appAllowanceUsed will be adjusted by callAppAfterCallback
-        // and its range will be [0, currentContext.appAllowance]
+        // NOTE: vars.appContext.appCreditUsed will be adjusted by callAppAfterCallback
+        // and its range will be [0, currentContext.appCreditGranted]
         {
-            // clipping the allowance used amount before storing
-            if (vars.appContext.appAllowanceUsed > 0) {
-                // give more to the app
-                vars.appContext.appAllowanceUsed =
-                    _clipDepositNumber(vars.appContext.appAllowanceUsed.toUint256()).toInt256();
-            }
-
-            int256 appAllowanceDelta = vars.appContext.appAllowanceUsed
+            int256 appCreditDelta = vars.appContext.appCreditUsed
                 - oldFlowData.owedDeposit.toInt256();
 
-            // update flow data and account state with the allowance delta
+            // update flow data and account state with the credit delta
             {
                 vars.newFlowData.deposit = (vars.newFlowData.deposit.toInt256()
-                    + appAllowanceDelta).toUint256();
+                    + appCreditDelta).toUint256();
                 vars.newFlowData.owedDeposit = (vars.newFlowData.owedDeposit.toInt256()
-                    + appAllowanceDelta).toUint256();
+                    + appCreditDelta).toUint256();
                 token.updateAgreementData(flowParams.flowId, _encodeFlowData(vars.newFlowData));
                 // update sender and receiver deposit (for sender) and owed deposit (for receiver)
                 _updateAccountFlowState(
                     token,
                     flowParams.sender,
                     0, // flow rate delta
-                    appAllowanceDelta, // deposit delta
+                    appCreditDelta, // deposit delta
                     0, // owed deposit delta
                     currentContext.timestamp
                 );
@@ -624,22 +1119,21 @@ contract ConstantFlowAgreementV1 is
                     flowParams.receiver,
                     0, // flow rate delta
                     0, // deposit delta
-                    appAllowanceDelta, // owed deposit delta
+                    appCreditDelta, // owed deposit delta
                     currentContext.timestamp
                 );
             }
 
-            if (address(currentContext.appAllowanceToken) == address(0) ||
-                currentContext.appAllowanceToken == token)
+            if (address(currentContext.appCreditToken) == address(0) ||
+                currentContext.appCreditToken == token)
             {
-                newCtx = ISuperfluid(msg.sender).ctxUseAllowance(
-                    ctx,
-                    vars.newFlowData.deposit, // allowanceWantedMore
-                    appAllowanceDelta // allowanceUsedDelta
+                newCtx = ISuperfluid(msg.sender).ctxUseCredit(
+                    newCtx,
+                    appCreditDelta
                 );
             }
 
-            // if receiver super app doesn't have enough available balance to give back app allowance
+            // if receiver super app doesn't have enough available balance to give back app credit
             // revert (non termination callbacks),
             // or take it from the sender and jail the app
             if (ISuperfluid(msg.sender).isApp(ISuperApp(flowParams.receiver))) {
@@ -656,8 +1150,10 @@ contract ConstantFlowAgreementV1 is
                         int256 userDamageAmount = AgreementLibrary.min(
                             // user will take the damage if the app is broke,
                             -availableBalance,
-                            // but user's damage is limited to the amount of app allowance it gives to the app
-                            AgreementLibrary.max(0, -appAllowanceDelta));
+                            // but user's damage is limited to the amount of app credit it gives to the app
+                            // appCreditDelta should ALWAYS be negative because we are closing an agreement
+                            // therefore the value will be positive due to the '-' sign in front of it
+                            -appCreditDelta);
                         token.settleBalance(
                             flowParams.sender,
                             -userDamageAmount
@@ -667,11 +1163,18 @@ contract ConstantFlowAgreementV1 is
                             userDamageAmount
                         );
                     } else {
-                        revert("CFA: APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT");
+                        revert ISuperfluid.APP_RULE(SuperAppDefinitions.APP_RULE_NO_CRITICAL_RECEIVER_ACCOUNT);
                     }
                 }
             }
         }
+    }
+
+    // Stack variables for _changeFlow function, to avoid stack too deep issue
+    // solhint-disable-next-line contract-name-camelcase
+    struct _StackVars_changeFlow {
+        int96 totalSenderFlowRate;
+        int96 totalReceiverFlowRate;
     }
 
     /**
@@ -679,11 +1182,11 @@ contract ConstantFlowAgreementV1 is
      *
      * NOTE:
      * - leaving owed deposit unchanged for later adjustment
-     * - depositDelta output is always clipped (see _clipDepositNumber)
+     * - depositDelta output is always clipped (see _clipDepositNumberRoundingUp)
      */
     function _changeFlow(
         uint256 currentTimestamp,
-        ISuperfluidToken appAllowanceToken,
+        ISuperfluidToken appCreditToken,
         ISuperfluidToken token,
         FlowParams memory flowParams,
         FlowData memory oldFlowData
@@ -691,38 +1194,38 @@ contract ConstantFlowAgreementV1 is
         private
         returns (
             int256 depositDelta,
-            uint256 appAllowanceBase,
+            uint256 appCreditBase,
             FlowData memory newFlowData
         )
     {
+        uint256 newDeposit;
         { // enclosed block to avoid stack too deep error
             uint256 minimumDeposit;
-            uint256 newDeposit;
             // STEP 1: calculate deposit required for the flow
             {
                 (uint256 liquidationPeriod, ) = _decode3PsData(token);
                 ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
                 minimumDeposit = gov.getConfigAsUint256(
                     ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-                // rounding up the number for app allowance too
+                // rounding up the number for app credit too
                 // CAVEAT:
                 // - Now app could create a flow rate that is slightly higher than the incoming flow rate.
                 // - The app may be jailed due to negative balance if it does this without its own balance.
                 // Rule of thumbs:
-                // - App can use app allowance to create a flow that has the same incoming flow rate
+                // - App can use app credit to create a flow that has the same incoming flow rate
                 // - But due to deposit clipping, there is no guarantee that the sum of the out going flow
-                //   deposit can be covered by the allowance always.
-                // - It is advisable for the app to check the allowance usages carefully, and if possible
+                //   deposit can be covered by the credit always.
+                // - It is advisable for the app to check the credit usages carefully, and if possible
                 //   Always have some its own balances to cover the deposits.
 
                 // preliminary calc of new deposit required, may be changed later in step 2.
                 // used as a variable holding the new deposit amount in the meantime
-                appAllowanceBase = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
+                appCreditBase = _calculateDeposit(flowParams.flowRate, liquidationPeriod);
             }
 
             // STEP 2: apply minimum deposit rule and calculate deposit delta
             // preliminary calc depositDelta (minimum deposit rule not yet applied)
-            depositDelta = appAllowanceBase.toInt256()
+            depositDelta = appCreditBase.toInt256()
                 - oldFlowData.deposit.toInt256()
                 + oldFlowData.owedDeposit.toInt256();
 
@@ -737,11 +1240,11 @@ contract ConstantFlowAgreementV1 is
                 newDeposit = minimumDeposit;
             }
 
-            // allowance should be of the same token
-            if (address(appAllowanceToken) != address(0) &&
-                appAllowanceToken != token)
+            // credit should be of the same token
+            if (address(appCreditToken) != address(0) &&
+                appCreditToken != token)
             {
-                appAllowanceBase = 0;
+                appCreditBase = 0;
             }
 
             // STEP 3: update current flow info
@@ -753,46 +1256,59 @@ contract ConstantFlowAgreementV1 is
             );
             token.updateAgreementData(flowParams.flowId, _encodeFlowData(newFlowData));
         }
+        {
+            _StackVars_changeFlow memory vars;
+            // STEP 4: update sender and receiver account flow state with the deltas
+            vars.totalSenderFlowRate = _updateAccountFlowState(
+                token,
+                flowParams.sender,
+                oldFlowData.flowRate - flowParams.flowRate,
+                depositDelta,
+                0,
+                currentTimestamp
+            );
+            vars.totalReceiverFlowRate = _updateAccountFlowState(
+                token,
+                flowParams.receiver,
+                flowParams.flowRate - oldFlowData.flowRate,
+                0,
+                0, // leaving owed deposit unchanged for later adjustment
+                currentTimestamp
+            );
 
-        // STEP 4: update sender and receiver account flow state with the deltas
-        int96 totalSenderFlowRate = _updateAccountFlowState(
-            token,
-            flowParams.sender,
-            oldFlowData.flowRate.sub(flowParams.flowRate, "CFA: flowrate overflow"),
-            depositDelta,
-            0,
-            currentTimestamp
-        );
-        int96 totalReceiverFlowRate = _updateAccountFlowState(
-            token,
-            flowParams.receiver,
-            flowParams.flowRate.sub(oldFlowData.flowRate, "CFA: flowrate overflow"),
-            0,
-            0, // leaving owed deposit unchanged for later adjustment
-            currentTimestamp
-        );
-
-        // STEP 5: emit the FlowUpdated Event
-        emit FlowUpdated(
-            token,
-            flowParams.sender,
-            flowParams.receiver,
-            flowParams.flowRate,
-            totalSenderFlowRate,
-            totalReceiverFlowRate,
-            flowParams.userData);
+            // STEP 5: emit the FlowUpdated Event
+            // NOTE we emit these two events one after the other
+            // so the subgraph can properly handle this in the
+            // mapping function
+            emit FlowUpdated(
+                token,
+                flowParams.sender,
+                flowParams.receiver,
+                flowParams.flowRate,
+                vars.totalSenderFlowRate,
+                vars.totalReceiverFlowRate,
+                flowParams.userData
+            );
+            emit FlowUpdatedExtension(
+                flowParams.flowOperator,
+                newDeposit
+            );
+        }
     }
     function _requireAvailableBalance(
         ISuperfluidToken token,
+        address flowSender,
         ISuperfluid.Context memory currentContext
     )
         private view
     {
-        // do not enforce balance checks during callbacks for the appAllowanceToken
+        // do not enforce balance checks during callbacks for the appCreditToken
         if (currentContext.callType != ContextDefinitions.CALL_INFO_CALL_TYPE_APP_CALLBACK ||
-            currentContext.appAllowanceToken != token) {
-            (int256 availableBalance,,) = token.realtimeBalanceOf(currentContext.msgSender, currentContext.timestamp);
-            require(availableBalance >= 0, "CFA: not enough available balance");
+            currentContext.appCreditToken != token) {
+            (int256 availableBalance,,) = token.realtimeBalanceOf(flowSender, currentContext.timestamp);
+            if (availableBalance < 0) {
+                revert CFA_INSUFFICIENT_BALANCE();
+            }
         }
     }
 
@@ -820,7 +1336,7 @@ contract ConstantFlowAgreementV1 is
         //    -     Total Reward Left = RL = AB + TD
         // #1 Can the total account deposit still cover the available balance deficit?
         int256 totalRewardLeft = availableBalance + signedTotalCFADeposit;
-        
+
         // To retrieve patrician period
         // Note: curly brackets are to handle stack too deep overflow issue
         {
@@ -844,7 +1360,7 @@ contract ConstantFlowAgreementV1 is
                 flowParams.flowId, // id
                 liquidationTypeData, // (1 means "v1" of this encoding schema) - 0 or 1 for patrician or pleb
                 liquidator, // liquidatorAddress
-                
+
                 // useDefaultRewardAccount: true in patrician period, else liquidator gets reward
                 isCurrentlyPatricianPeriod,
 
@@ -880,7 +1396,7 @@ contract ConstantFlowAgreementV1 is
         return ((deposit >> 32)) << 32;
     }
 
-    function _clipDepositNumber(uint256 deposit)
+    function _clipDepositNumberRoundingUp(uint256 deposit)
         internal pure
         returns(uint256)
     {
@@ -897,10 +1413,11 @@ contract ConstantFlowAgreementV1 is
         returns(uint256 deposit)
     {
         if (flowRate == 0) return 0;
-        
+
+        // NOTE: safecast for int96 with extra assertion
         assert(liquidationPeriod <= uint256(int256(type(int96).max)));
-        deposit = uint256(int256(flowRate.mul(int96(uint96(liquidationPeriod)), "CFA: deposit overflow")));
-        return _clipDepositNumber(deposit);
+        deposit = uint256(int256(flowRate * int96(uint96(liquidationPeriod))));
+        return _clipDepositNumberRoundingUp(deposit);
     }
 
     /**************************************************************************
@@ -988,13 +1505,83 @@ contract ConstantFlowAgreementV1 is
         int256 signedTotalCFADeposit,
         uint256 liquidationPeriod,
         uint256 patricianPeriod
-    ) 
-        internal pure 
-        returns (bool) 
+    )
+        internal pure
+        returns (bool)
     {
+        if (signedTotalCFADeposit == 0) {
+            return false;
+        }
+
         int256 totalRewardLeft = availableBalance + signedTotalCFADeposit;
         int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
         // divisor cannot be zero with existing outflow
         return totalRewardLeft / totalCFAOutFlowrate > int256(liquidationPeriod - patricianPeriod);
+    }
+
+    /**************************************************************************
+     * ACL Pure Functions
+     *************************************************************************/
+
+    function _generateFlowOperatorId(address sender, address flowOperator) private pure returns(bytes32 id) {
+        return keccak256(abi.encode("flowOperator", sender, flowOperator));
+    }
+
+    //
+    // Data packing:
+    //
+    // WORD A: | reserved  | permissions | reserved | flowRateAllowance |
+    //         | 120       | 8           | 32       | 96                |
+    //
+    // NOTE:
+    // - flowRateAllowance has 96 bits length
+    // - permissions is an 8-bit octo bitmask
+    // - ...0 0 0 (...delete update create)
+
+    function _encodeFlowOperatorData
+    (
+        FlowOperatorData memory flowOperatorData
+    )
+        internal pure
+        returns(bytes32[] memory data)
+    {
+        assert(flowOperatorData.flowRateAllowance >= 0); // flowRateAllowance must not be less than 0
+        data = new bytes32[](1);
+        data[0] = bytes32(
+            uint256(flowOperatorData.permissions) << 128 |
+            uint256(int256(flowOperatorData.flowRateAllowance))
+        );
+    }
+
+    function _decodeFlowOperatorData
+    (
+        uint256 wordA
+    )
+        internal pure
+        returns(bool exist, FlowOperatorData memory flowOperatorData)
+    {
+        exist = wordA > 0;
+        if (exist) {
+            // NOTE: For safecast, doing extra bitmasking to not to have any trust assumption of token storage
+            flowOperatorData.flowRateAllowance = int96(int256(wordA & uint256(int256(type(int96).max))));
+            flowOperatorData.permissions = uint8(wordA >> 128) & type(uint8).max;
+        }
+    }
+
+    function _getBooleanFlowOperatorPermissions
+    (
+        uint8 permissions,
+        FlowChangeType flowChangeType
+    )
+        internal pure
+        returns (bool flowchangeTypeAllowed)
+    {
+        if (flowChangeType == FlowChangeType.CREATE_FLOW) {
+            flowchangeTypeAllowed = permissions & uint8(1) == 1;
+        } else if (flowChangeType == FlowChangeType.UPDATE_FLOW) {
+            flowchangeTypeAllowed = (permissions >> 1) & uint8(1) == 1;
+        } else { /** flowChangeType === FlowChangeType.DELETE_FLOW */
+            flowchangeTypeAllowed = (permissions >> 2) & uint8(1) == 1;
+        }
     }
 }

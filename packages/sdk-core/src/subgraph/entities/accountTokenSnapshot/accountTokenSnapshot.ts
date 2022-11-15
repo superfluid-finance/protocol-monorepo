@@ -25,18 +25,23 @@ export interface AccountTokenSnapshot {
     balanceUntilUpdatedAt: BigNumber;
     id: SubgraphId;
     totalAmountStreamedUntilUpdatedAt: BigNumber;
+    totalAmountStreamedInUntilUpdatedAt: BigNumber;
+    totalAmountStreamedOutUntilUpdatedAt: BigNumber;
     totalAmountTransferredUntilUpdatedAt: BigNumber;
     totalInflowRate: BigNumber;
     totalApprovedSubscriptions: number;
     totalNetFlowRate: BigNumber;
     totalNumberOfActiveStreams: number;
     totalOutflowRate: BigNumber;
+    maybeCriticalAtTimestamp: Timestamp | null;
+    isLiquidationEstimateOptimistic: boolean;
     totalNumberOfClosedStreams: number;
     totalSubscriptionsWithUnits: number;
     updatedAtBlockNumber: BlockNumber;
     updatedAtTimestamp: Timestamp;
     account: Address;
     token: Address;
+    tokenSymbol: string;
 }
 
 export type AccountTokenSnapshotListQuery = SubgraphListQuery<
@@ -72,6 +77,11 @@ export class AccountTokenSnapshotQueryHandler extends SubgraphQueryHandler<
             ...x,
             account: x.account.id,
             token: x.token.id,
+            tokenSymbol: x.token.symbol,
+            maybeCriticalAtTimestamp:
+                x.maybeCriticalAtTimestamp != null
+                    ? Number(x.maybeCriticalAtTimestamp)
+                    : null,
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
             updatedAtTimestamp: Number(x.updatedAtTimestamp),
         }));

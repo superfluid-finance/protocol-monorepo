@@ -1,7 +1,7 @@
-<h1 align="center">Welcome to @superfluid-finance/ethereum-contracts 👋
+<h1 align="center">Welcome to Superfluid EVM Contracts (v1) 👋
 </h1>
 <div align="center">
-<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="/sf-logo.png" />
+<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-finance/protocol-monorepo/raw/dev/sf-logo.png" />
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/ethereum-contracts" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/ethereum-contracts.svg">
@@ -28,7 +28,7 @@
 
 ## Usage
 
-If you're building a dapp using existing protocol or Super Token contracts, then you should use [`@superfluid-finance/js-sdk`](/packages/js-sdk). [Here](https://docs.superfluid.finance/superfluid/networks/networks) you can find a list of networks where the Superfluid protocol is already deployed.
+If you're building a dapp using existing protocol or Super Token contracts, then you should use [`@superfluid-finance/sdk-core`](/packages/sdk-core). [Here](https://docs.superfluid.finance/superfluid/networks/networks) you can find a list of networks where the Superfluid protocol is already deployed.
 
 If you're building a smart contract that uses Superfluid protocol, or even your own [SuperApp](https://docs.superfluid.finance/), then great! This is definitely the place to be.
 
@@ -81,12 +81,13 @@ contract("My Test", accounts => {
             from: admin
         });
     });
+})
 ```
-In order to write concise testing code, we further recommend the use of [`@superfluid-finance/js-sdk`](/packages/js-sdk) not only in your UI code, but also in JS contract tests.
+In order to write concise testing code, we further recommend the use of [`@superfluid-finance/sdk-core`](/packages/sdk-core) not only in your UI code, but also in JS contract tests.
 
 ### Examples
 
-You may also want to check out some example dapps in the [examples folder](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/examples) instead of starting from scratch.
+You may also want to check out some example dapps in the [examples repo](https://github.com/superfluid-finance/super-examples) instead of starting from scratch.
 Clone a project, modify and play!
 
 ### Deploying Superfluid Protocol
@@ -162,54 +163,23 @@ yarn test
 
 Run a specific test using the [exclusive tests](https://mochajs.org/#exclusive-tests) feature of MochaJS:
 ```sh
-yarn pretest
-npx truffle test test/contracts/agreements/ConstantFlowAgreementV1.test.js
-yarn posttest
+yarn run-hardhat test test/contracts/agreements/ConstantFlowAgreementV1.test.js
 ```
 
 Run the test suite for core contracts:
 ```sh
-yarn pretest
-npx truffle test testsuites/superfluid-core.js
-yarn posttest
+yarn run-hardhat test testsuites/superfluid-core.js
 ```
 
 The `pretest` script starts a ganache instance with deterministic accounts in the background, the `posttest` script stops it.
 When running tests with `yarn test`, those get executed automatically (see [npm docs](https://docs.npmjs.com/cli/v7/using-npm/scripts#pre--post-scripts)).
+> NOTE: You don't need to run the `pretest` and `posttest` scripts when running hardhat tests, but you do when running tests with truffle.
 
 ### TDD Session
 
 When working on the contracts, a test driven approach is recommended.
-In order to facilitate that, you can easily set up a test environment which uses ganache with snapshots for much faster test executions and thus iterations:
-
-First, start ganache configured as needed in a terminal window:
-```sh
-yarn testenv:start
-```
-
-Then open another terminal window and continue there.
-If you're not planning to modify core contracts, set an environment variable:
-```sh
-export TESTENV_SNAPSHOT_VARS=testenv.ignore.vars
-```
-This env variable will be used by the deploy script executed in the next step to persist a resolver address and a ganache snapshot id to the configured file.
-Without this variable set, the protocol contracts will be re-deployed for every new test run, making the process considerably slower.
-Note: if you want to modify core contracts, you **need** to have them re-deployed after every change, thus should **not** set this env variable.
-
-Next, deploy a test environment:
-```sh
-yarn testenv:deploy
-```
-This will deploy the protocol contracts and a Super Token named _TEST_ (which is needed by many test cases).
-If you have set the env `TESTENV_SNAPSHOT_VARS` before, the file it's set to should now exist and look something like this:
-```sh
-$ cat testenv.ignore.vars
-RESOLVER_ADDRESS=0xF12b5dd4EAD5F743C6BaA640B0216200e89B60Da
-TESTENV_EVM_SNAPSHOT_ID=0x1
-```
-
-Next, you should choose the tests relevant for what you're working on using the [only keyword](https://mochajs.org/#exclusive-tests).
-You can put the `only` keyword at any level between whole test suites (`only` appended to a top level `describe`) and individual testcases (`it`).
+You should choose the tests relevant for what you're working on using the [only keyword](https://mochajs.org/#exclusive-tests).
+You can put the `only` keyword at any level between whole test suites (`only` appended to a top level `describe`, e.g. `describe.only`) and individual testcases (`it`, e.g. `it.only`).
 With the testing scope defined, run:
 ```
 yarn dev
@@ -217,16 +187,31 @@ yarn dev
 This has [testsuites/all-contracts.js](testsuites/all-contracts.js) as its entrypoint, but if there's an `only` keyword at any nesting level in any of the tests traversed, only that selected subset of tests will be executed.
 The selected test(s) will run once when starting the session and re-run everytime you save changes in a relevant file.
 
-After finishing the session, you can stop the ganache instance you started in the first step (Ctrl-C).
+You may also focus on a specific testsuite with yarn dev:
+```
+yarn dev test/contracts/libs/CallUtils.test.js
+```
+
+After finishing the session, you can stop the hardhat instance you started in the first step (Ctrl-C).
 Also, don't forget to remove `only` keywords from test files before making git commits.
 
-To generate jpeg image charts from the test output run first install these dependencies: numpy , pandas , plotly and kaleido by running:
+To generate jpeg image charts from the test output run first install these dependencies: numpy, pandas, plotly and kaleido by running:
 ```
 python3 -m pip install -U libraryName
 ```
-After that is done , just simply run the testDataToCharts script and put the folder containing the csv files as the first argument e.g
+
+After that is done, just simply run the testDataToCharts script and put the folder containing the csv files as the first argument e.g
 ```
 python3 testDataToCharts.py output
+```
+
+### Other Useful Commands
+
+```
+yarn run-hardhat # run hardhat
+yarn run-truffle # run truffle
+yarn run-forge # run foundry forge
+yarn run-nodemon forge test # use nodemon to run forge test
 ```
 
 ### Troubleshooting

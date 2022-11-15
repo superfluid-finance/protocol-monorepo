@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
@@ -9,7 +9,7 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  * @title Instant Distribution Agreement interface
  * @author Superfluid
  *
- * Notes:
+ * @notice 
  *   - A publisher can create as many as indices as possibly identifiable with `indexId`.
  *     - `indexId` is deliberately limited to 32 bits, to avoid the chance for sha-3 collision.
  *       Despite knowing sha-3 collision is only theoretical.
@@ -35,6 +35,19 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  */
 abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
 
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error IDA_INDEX_SHOULD_GROW();             // 0xcfdca725
+    error IDA_OPERATION_NOT_ALLOWED();         // 0x92da6d17
+    error IDA_INDEX_ALREADY_EXISTS();          // 0x5c02a517
+    error IDA_INDEX_DOES_NOT_EXIST();          // 0xedeaa63b
+    error IDA_SUBSCRIPTION_DOES_NOT_EXIST();   // 0xb6c8c980
+    error IDA_SUBSCRIPTION_ALREADY_APPROVED(); // 0x3eb2f849
+    error IDA_SUBSCRIPTION_IS_NOT_APPROVED();  // 0x37412573
+    error IDA_INSUFFICIENT_BALANCE();          // 0x16e759bb
+    error IDA_ZERO_ADDRESS_SUBSCRIBER();       // 0xc90a4674
+
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override pure returns (bytes32) {
         return keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1");
@@ -50,8 +63,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param indexId Id of the index
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
-     * # App callbacks
-     *
+     * @custom:callbacks 
      * None
      */
     function createIndex(
@@ -124,8 +136,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param indexValue Value of the index
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
-     * # App callbacks
-     *
+     * @custom:callbacks 
      * None
      */
     function updateIndex(
@@ -164,15 +175,14 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param amount The amount of tokens desired to be distributed
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
-     * NOTE:
+     * @custom:note 
      * - This is a convenient version of updateIndex. It adds to the index
      *   a delta that equals to `amount / totalUnits`
      * - The actual amount distributed could be obtained via
      *   `calculateDistribution`. This is due to precision error with index
      *   value and units data range
      *
-     * # App callbacks
-     *
+     * @custom:callbacks 
      * None
      */
     function distribute(
@@ -196,8 +206,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param indexId Id of the index
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
-     * # App callbacks
-     *
+     * @custom:callbacks 
      * - if subscription exist
      *   - AgreementCreated callback to the publisher:
      *      - agreementId is for the subscription
@@ -251,7 +260,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     * @param indexId Id of the index
     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
     *
-    * # App callbacks
+    * @custom:callbacks 
     * - AgreementUpdated callback to the publisher:
     *    - agreementId is for the subscription
     */
@@ -301,8 +310,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param units Number of units of the subscription
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
-     * # App callbacks
-     *
+     * @custom:callbacks 
      * - if subscription exist
      *   - AgreementCreated callback to the subscriber:
      *      - agreementId is for the subscription
@@ -432,8 +440,7 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
      * @param subscriber The subscriber's address
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
-     * # App callbacks
-     *
+     * @custom:callbacks 
      * - if the subscriber called it
      *   - AgreementTerminated callback to the publsiher:
      *      - agreementId is for the subscription
@@ -459,10 +466,9 @@ abstract contract IInstantDistributionAgreementV1 is ISuperAgreement {
     * @param subscriber The subscriber's address
     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
     *
-    * The subscription should not be approved yet
+    * @custom:note The subscription should not be approved yet
     *
-    * # App callbacks
-    *
+    * @custom:callbacks 
     * - AgreementUpdated callback to the publisher:
     *    - agreementId is for the subscription
     */

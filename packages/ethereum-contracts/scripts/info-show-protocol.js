@@ -137,22 +137,38 @@ async function printGovernanceInformation({sf}) {
     {
         console.log("## TrustedForwarders");
         try {
-            const latests = await fetchLatestGovernanceUpdate(
-                gov,
-                "TrustedForwarderChanged",
-                {
+            // here we don't want to merge by same token addr, thus not using fetchLatestGovernanceUpdate()
+            const enabledEvents = (
+                await sf.getPastEvents(gov, "TrustedForwarderChanged", {
                     host: sf.host.address,
-                }
-            );
-            latests
-                .filter((i) => !!i.enabled)
-                .forEach((i) =>
+                })
+            ).filter((i) => !!i.enabled);
+            const enabledEventsUnique = [
+                ...new Set(
+                    enabledEvents.map((i) => ({
+                        superToken: i.superToken,
+                        forwarder: i.forwarder,
+                    }))
+                ),
+            ];
+            for (const i of enabledEventsUnique) {
+                // checking if currently enabled. This avoids false positives (disabled in a later event)
+                if (
+                    await gov.isTrustedForwarder.call(
+                        sf.host.address,
+                        i.superToken,
+                        i.forwarder
+                    )
+                ) {
                     console.log(
-                        "SuperToken: " + i.superToken,
+                        i.superToken === ZERO_ADDRESS
+                            ? "DEFAULT"
+                            : "SuperToken: " + i.superToken,
                         "\nForwarder: " + i.forwarder,
                         "\n---"
-                    )
-                );
+                    );
+                }
+            }
         } catch (e) {
             console.warn(
                 "There was an error fetching TrustedForwarderChanged past events.",
@@ -320,7 +336,7 @@ async function printSuperTokensInformation({
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  *
- * Usage: npx truffle exec scripts/show-protocol-info.js
+ * Usage: npx truffle exec scripts/info-show-protocol-info.js
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,

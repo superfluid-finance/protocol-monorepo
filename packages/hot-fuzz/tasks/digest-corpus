@@ -1,0 +1,38 @@
+#!/bin/perl
+use strict;
+use warnings;
+
+my $num_args = $#ARGV + 1;
+if ($num_args != 1) {
+    print "\nUsage: digest-corpus corpus-covered.xyz.txt\n";
+    exit;
+}
+
+my $file = $ARGV[0];
+open my $corpus, $file or die "Could not open $file: $!";
+
+# nRo - number of reverts (only / without stopped)
+my ($n, $nS, $nR, $nO, $nE, $nRo, $nOo, $nEo) = (0,0,0,0,0,0,0,0);
+while (my $line = <$corpus>) {
+    next unless ($line =~ /^....\|/);
+    my $s = substr($line, 0, 4);
+    if (index($s, "*") != -1) {
+        $nS++;
+        $nR++ if (index($s, "r") != -1);
+        $nO++ if (index($s, "o") != -1);
+        $nE++ if (index($s, "e") != -1);
+    } else {
+        $nRo++ if (index($s, "r") != -1);
+        $nOo++ if (index($s, "o") != -1);
+        $nEo++ if (index($s, "e") != -1);
+    }
+    ++$n;
+}
+
+printf "LoC:        %7d stopped / not-stopped\n", $n;
+printf "Stopped:    %7d %5.2f%%\n", $nS, 100 * $nS / $n;
+printf "Reverted:   %7d %5.2f%% / %5.2f%%\n", $nR, 100 * $nR / $n, 100 * $nRo / $n;
+printf "Out-of-gas: %7d %5.2f%% / %5.2f%%\n", $nO, 100 * $nO / $n, 100 * $nOo / $n;
+printf "Error:      %7d %5.2f%% / %5.2f%%\n", $nO, 100 * $nE / $n, 100 * $nEo / $n;
+
+close $corpus;

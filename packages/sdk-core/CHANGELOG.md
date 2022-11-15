@@ -4,12 +4,179 @@ All notable changes to the SDK-core will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- Map `deposit` to Stream when querying from Subgraph
+
+## [0.6.0] - 2022-11-02
+
+### Added
+- Support for mainnet
+
+### Changed
+- Framework initialization for supported networks utilizes `@superfluid-finance/metadata`, but still uses the resolver for unsupported/local testing environments
+  - > NOTE: This will not create any changes when doing `Framework.create` and is just a minor optimization.
+- All transactions executed via SDK-Core have a default multiplier (1.2x) applied to the provider estimated gas limit **unless** an ethers `Overrides` object is passed during creation of the `Operation`.
+- There is also the option to pass in an explicit multiplier when executing transactions: `Operation.exec(signer, 1.32)`.
+
+## [0.5.7] - 2022-10-13
+### Breaking
+-   `CFAv1Forwarder` integrated into SDK-Core and will be the default way of calling CFA agreements and `sender` is now a required property.
+  - Migration: pass sender into the affected CFAv1 callAgreement functions - `create/update/deleteFlow`.
+  > NOTE: You must pass `shouldUseCallAgreement` explicitly as a property if you want to execute these calls via the Host.
+
+### Added
+-   typechain files consumed from `@superfluid-finance/ethereum-contracts` and exported from SDK-Core
+
+## [0.5.6] - 2022-09-07
+### Fixes
+- Correct `subgraphAPIEndpoint` in `getResolverData`
+
+### Breaking
+- Don't wrap `SubgraphClient` with `SFError`
+
+## [0.5.5] - 2022-08-31
+### Added
+- Support for: `optimism-goerli` and `arbitrum-goerli` added
+
+### Breaking
+- Support for: `rinkeby`, `ropsten`, `kovan`, `optimism-kovan` and `arbitrum-rinkeby` removed
+- Don't throw `SFError` when executing `Operation` or `BatchCall`; let the original error bubble up
+
+### Fixes
+- Serialize a much smaller version of the cause in `SFError` (only `name`, `message`, `code`)
+- Change `SFError.name` from "Error" to "SFError"
+
+# [0.5.4] - 2022-08-19
+
+### Fixes
+- Properly console the cause, not the caught serialization error
+
+## [0.5.3] - 2022-08-15
+
+### Added
+- Map `indexId` to `IndexSubscription` when querying from Subgraph
+
+### Fixes
+- Catch and handle serialization error
+
+## [0.5.2] - 2022-07-26
+
+### Added
+- Support for `isNativeAssetSuperToken` property on SuperToken entity queries
+- `callAppAction` Operation creator added to `Host` class
+
+### Breaking
+- `BatchCall.getCallDataFunctionArgs` deprecates the old `BatchCall.getCallAgreementFunctionArgs`
+  - Migration:
+      - Replace `getCallAgreementFunctionArgs` with `getCallDataFunctionArgs` and pass in the fragment/ABI as the first argument, whilst keeping the same `callData` argument.
+- `Host.populateCallAgreementTxnAndReturnOperation` is replaced by `Host.callAgreement`
+  - Migration:
+      - Replace instances of `populateCallAgreementTxnAndReturnOperation` with `callAgreement`
+
+### Fixes
+- Handle `CALL_APP_ACTION` operation type correctly in SDK-Core when doing a batch call
+- Undefined `process` in `constants.ts` in React and client-side apps using SDK-Core directly
+
+## [0.5.1] - 2022-07-26
+
+### Fixes
+- Patch fix serializeError strange serialization
+
+## [0.5.0] - 2022-07-14
+
+### Added
+- Support for SetEvent and Subgraph v1.4.4
+- `Framework.operation` method for easily creating `Operation` instances
+
+### Fixes
+- Compile AJV validations to prevent unsafe-eval and did not allow SDK-Core usage inside Google Chrome extension due to unsafe-eval CSP
+
+### Changed
+- `SFError` refactor to be more conventional. It inherits `Error` and uses `cause` to wrap internal errors.
+- Use `serialize-error` for serializing error object inside the message.
+- Export Operation & OperationType
+
+### Breaking
+- `SFError.errorObject` renamed to `SFError.cause`
+
+## [0.4.4] - 2022-06-30
+
+### Added
+- Support for new event properties for Subgraph v1.4.1
+
+### Breaking
+- Subgraph Query: `rewardAccount` renamed to `rewardAmountReceiver` on `AgreementLiquidatedV2Event` entity
+- `chainId` is a required property for framework initialization
+- `networkId` and `dataMode` no longer exist as properties for framework initialization
+
+## [0.4.3] - 2022-06-29
+
+### Added
+- BNB Chain support added
+
+### Changed
+- `maybeCriticalAtTimestamp` is a nullable property now
+
+## [0.4.2] - 2022-05-17
+
+### Added
+- `QueryHandler` for transfer events
+
+## [0.4.2] - 2022-05-17
+
+### Fixed
+- Patched SDK-Core Subgraph files to be in sync with V1 Subgraph endpoint
+
+## [0.4.1] - 2022-05-14
+
+### Added
+- Avalanche Network Support
+
+### Changed
+- Network constants consistent with canonical Superfluid name
+
+## [0.4.0] - 2022-05-06
+
+### Added
+- Added option to specify block details when querying through a `SubgraphQueryHandler`
+- Added Subgraph's `_meta` table query
+- Added `tokenSymbol` for `SubgraphQueryHandler` entity queries where `token` (token ID) was previously included
+- Added `PageNumberPaging` for UI development friendly pagination API
+- Added `AllPaging` to recursively query all results from Subgraph
+- Added support for `TypedDocumentNode` for `SubgraphClient`
+- Expose underlying ethers.js contracts for each class: CFAv1, Host, IDAv1 and `contracts` property in `Framework` class
+- Added new ACL function support: authorizing flow operator permissions and create/update/delete flow by operator
+- Added `nativeTokenSymbol` property to `constants.ts`
+- Split `SuperToken` class into: `WrapperSuperToken`, `PureSuperToken` and `NativeAssetSuperToken` classes
+- Added `loadWrapperSuperToken`, `loadNativeAssetSuperToken`, and `loadPureSuperToken` super token initialization functions
+- Support `upgrade`, `upgradeTo` and `downgrade` functions via `NativeAssetSuperToken`
+- Added `upgradeTo` to `WrapperSuperToken` class as this was missing as well
+
+### Changed
+- Renamed `Token` to `ERC20Token`
+- Exported `ERC20Token`
+- Renamed `PagedResult.data` to `PagedResult.items`
+- Moved `listAllResults` into separate function from `Query` object
+- Removed `SubgraphClient.batchRequests` because Subgraph Node didn't support it
+
+### Internal
+- Use `eslint-plugin-prettier` over separate `prettier` instance
+
+### Breaking
+- The `SuperToken` class is now an abstract base class and no longer contains the functions `upgrade` and `downgrade`.
+- `underlyingToken` is possibly undefined on `SuperToken`: `WrapperSuperToken` has `underlyingToken`, but `PureSuperToken` and `NativeAssetSuperToken` do not.
+> NOTE: These changes are due to the split of `SuperToken` into `WrapperSuperToken`, `PureSuperToken` and `NativeAssetSuperToken` classes.
+  - Migration:
+      - if you are unsure of the type of the super token, you can use: `await framework.loadSuperToken("0x...");`
+      - if you want to load a wrapper super token, use: `await framework.loadWrapperSuperToken("DAIx");`
+      - if you want to load a native asset super token, use: `await framework.loadNativeAssetSuperToken("ETHx");`
+      - if you want to load a pure super token, use: `await framework.loadPureSuperToken("0x...");`
 
 ## [0.3.2] - 2022-03-16
 
 ### Added
 
-- Added "optimism-mainnet" and "arbitrum-one" support.
+- Added "optimism-mainnet" and "arbitrum-one" support
 
 ## [0.3.1] - 2022-02-16
 
@@ -21,7 +188,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Typo for `networkName: "arbitrum-rinkeby"` fixed (was expecting `"arbitrium-rinkeby"`) in `Framework.create` ([#637])
 
 ### Breaking
-- Using `"xdai"` as the `networkName` will no longer work. Updated to `"gnosis"` 
+- Using `"xdai"` as the `networkName` will no longer work. Updated to `"gnosis"`
   - Migration: change `networkName` from `"xdai"` to `"gnosis"`
 
 ## [0.3.0] - 2022-02-02
@@ -79,7 +246,22 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.1...HEAD
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.0...HEAD
+[0.6.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.7...sdk-core%40v0.6.0
+[0.5.7]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.6...sdk-core%40v0.5.7
+[0.5.6]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.5...sdk-core%40v0.5.6
+[0.5.5]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.4...sdk-core%40v0.5.5
+[0.5.4]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.3...sdk-core%40v0.5.4
+[0.5.3]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.2...sdk-core%40v0.5.3
+[0.5.2]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.1...sdk-core%40v0.5.2
+[0.5.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.0...sdk-core%40v0.5.1
+[0.5.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.4...sdk-core%40v0.5.0
+[0.4.4]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.3...sdk-core%40v0.4.4
+[0.4.3]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.2...sdk-core%40v0.4.3
+[0.4.2]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.1...sdk-core%40v0.4.2
+[0.4.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.0...sdk-core%40v0.4.1
+[0.4.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.2...sdk-core%40v0.4.0
+[0.3.2]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.1...sdk-core%40v0.3.2
 [0.3.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.0...sdk-core%40v0.3.1
 [0.3.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.1...sdk-core%40v0.3.0
 [0.2.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.0...sdk-core%40v0.2.1

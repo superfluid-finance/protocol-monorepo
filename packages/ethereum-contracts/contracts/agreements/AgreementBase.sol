@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.16;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
-
 
 /**
  * @title Superfluid agreement base boilerplate contract
@@ -14,6 +13,9 @@ abstract contract AgreementBase is
     ISuperAgreement
 {
     address immutable internal _host;
+
+    // Custom Erorrs
+    error AGREEMENT_BASE_ONLY_HOST(); // 0x1601d91e
 
     constructor(address host)
     {
@@ -30,7 +32,7 @@ abstract contract AgreementBase is
     function updateCode(address newAddress)
         external override
     {
-        require(msg.sender == _host, "only host can update code");
+        if (msg.sender != _host) revert AGREEMENT_BASE_ONLY_HOST();
         return _updateCodeAddress(newAddress);
     }
 

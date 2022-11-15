@@ -1,0 +1,11 @@
+{
+    "network": "bsc",
+    "hostStartBlock": 18803461,
+    "hostAddress": "0xd1e2cFb6441680002Eb7A44223160aB9B67d7E6E",
+    "cfaAddress": "0x49c38108870e74Cb9420C0991a85D3edd6363F75",
+    "idaAddress": "0x594ed9Cd773584B645aC1F5B11020d3b32cDF07d",
+    "superTokenFactoryAddress": "0x8bde47397301F0Cd31b9000032fD517a39c946Eb",
+    "superfluidGovernanceAddress": "0xee07D9fce4Cf2a891BC979E9d365929506C2982f",
+    "resolverV1Address": "0x69604aA4e9e8BF44A73C680997205Edb03A92E41",
+    "nativeAssetSuperTokenAddress": "0x529a4116f160c833c61311569d6b33dff41fd657"
+}

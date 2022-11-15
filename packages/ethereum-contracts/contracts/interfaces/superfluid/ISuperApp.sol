@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.4;
 
 import { ISuperToken } from "./ISuperToken.sol";
 
@@ -7,7 +7,6 @@ import { ISuperToken } from "./ISuperToken.sol";
  * @title SuperApp interface
  * @author Superfluid
  * @dev Be aware of the app being jailed, when the word permitted is used.
- *
  */
 interface ISuperApp {
 
@@ -21,7 +20,7 @@ interface ISuperApp {
      * @return cbdata A free format in memory data the app can use to pass
      *          arbitary information to the after-hook callback.
      *
-     * NOTE:
+     * @custom:note 
      * - It will be invoked with `staticcall`, no state changes are permitted.
      * - Only revert with a "reason" is permitted.
      */
@@ -46,7 +45,7 @@ interface ISuperApp {
      * @param ctx The context data.
      * @return newCtx The current context of the transaction.
      *
-     * NOTE:
+     * @custom:note 
      * - State changes is permitted.
      * - Only revert with a "reason" is permitted.
      */
@@ -71,7 +70,7 @@ interface ISuperApp {
      * @return cbdata A free format in memory data the app can use to pass
      *          arbitary information to the after-hook callback.
      *
-     * NOTE:
+     * @custom:note 
      * - It will be invoked with `staticcall`, no state changes are permitted.
      * - Only revert with a "reason" is permitted.
      */
@@ -97,7 +96,7 @@ interface ISuperApp {
     * @param ctx The context data.
     * @return newCtx The current context of the transaction.
     *
-    * NOTE:
+    * @custom:note 
     * - State changes is permitted.
     * - Only revert with a "reason" is permitted.
     */
@@ -119,10 +118,9 @@ interface ISuperApp {
     * @param agreementId The agreementId
     * @param agreementData The agreement data (non-compressed)
     * @param ctx The context data.
-    * @return cbdata A free format in memory data the app can use to pass
-    *          arbitary information to the after-hook callback.
+    * @return cbdata A free format in memory data the app can use to pass arbitary information to the after-hook callback.
     *
-    * NOTE:
+    * @custom:note 
     * - It will be invoked with `staticcall`, no state changes are permitted.
     * - Revert is not permitted.
     */
@@ -147,7 +145,7 @@ interface ISuperApp {
     * @param ctx The context data.
     * @return newCtx The current context of the transaction.
     *
-    * NOTE:
+    * @custom:note 
     * - State changes is permitted.
     * - Revert is not permitted.
     */

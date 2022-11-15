@@ -14,7 +14,8 @@
     ],
     "plugins": [
         "import",
-        "eslint-comments"
+        "eslint-comments",
+        "prettier"
     ],
     "extends": [
         "eslint:recommended",
@@ -54,6 +55,7 @@
                 "ignoreDeclarationSort": true,
                 "ignoreCase": true
             }
-        ]
+        ],
+        "prettier/prettier": "error"
     }
 }

@@ -1,5 +1,8 @@
+const fs = require("fs");
+const util = require("util");
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const ethers = require("ethers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../scripts/deploy-erc1820");
 
@@ -17,6 +20,8 @@ const {
 let resetSuperfluidFramework;
 let resolver;
 
+/// @param deployFunc must return a contract object
+/// @returns the newly deployed or existing loaded contract
 async function deployAndRegisterContractIf(
     Contract,
     resolverKey,
@@ -42,6 +47,8 @@ async function deployAndRegisterContractIf(
     return contractDeployed;
 }
 
+/// @param deployFunc must return a contract address
+/// @returns the address of the newly deployed contract or ZERO_ADDRESS if not deployed
 async function deployContractIf(web3, Contract, cond, deployFunc) {
     let newCodeAddress = ZERO_ADDRESS;
     const contractName = Contract.contractName;
@@ -57,6 +64,8 @@ async function deployContractIf(web3, Contract, cond, deployFunc) {
     return newCodeAddress;
 }
 
+/// @param deployFunc must return a contract address
+/// @returns the address of the newly deployed contract or ZERO_ADDRESS if not deployed
 async function deployContractIfCodeChanged(
     web3,
     Contract,
@@ -78,16 +87,20 @@ async function deployContractIfCodeChanged(
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
- * @param {boolean} options.newTestResolver Force to create a new resolver (overridng env: CREATE_NEW_RESOLVER)
- * @param {boolean} options.useMocks Use mock contracts instead (overridng env: USE_MOCKS)
+ * @param {boolean} options.newTestResolver Force to create a new resolver (overriding env: CREATE_NEW_RESOLVER)
+ * @param {boolean} options.useMocks Use mock contracts instead (overriding env: USE_MOCKS)
  * @param {boolean} options.nonUpgradable Deploy contracts configured to be non-upgradable
- *                  (overridng env: NON_UPGRADABLE)
+ *                  (overriding env: NON_UPGRADABLE)
  * @param {boolean} options.appWhiteListing Deploy contracts configured to require app white listing
- *                  (overridng env: ENABLE_APP_WHITELISTING)
+ *                  (overriding env: ENABLE_APP_WHITELISTING)
  * @param {boolean} options.resetSuperfluidFramework Reset the superfluid framework deployment
- *                  (overridng env: RESET_SUPERFLUID_FRAMEWORK)
+ *                  (overriding env: RESET_SUPERFLUID_FRAMEWORK)
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *                  (overriding env: RELEASE_VERSION)
+ * @param {boolean} options.outputFile Name of file where to log addresses of newly deployed contracts
+ *                  (overriding env: OUTPUT_FILE)
+ * @param {boolean} options.cfaHookContract Address of the contract to be set up as CFA hooks receiver
+ *                  (overriding env: CFA_HOOK_CONTRACT)
  *
  * Usage: npx truffle exec scripts/deploy-framework.js
  */
@@ -103,12 +116,23 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         nonUpgradable,
         appWhiteListing,
         protocolReleaseVersion,
+        outputFile,
+        cfaHookContract
     } = options;
     resetSuperfluidFramework = options.resetSuperfluidFramework;
 
     resetSuperfluidFramework =
         resetSuperfluidFramework || !!process.env.RESET_SUPERFLUID_FRAMEWORK;
     console.log("reset superfluid framework: ", resetSuperfluidFramework);
+
+    outputFile = outputFile || process.env.OUTPUT_FILE;
+    console.log("output file: ", outputFile);
+
+    cfaHookContract = cfaHookContract || process.env.CFA_HOOK_CONTRACT;
+    console.log("CFA hook contract", cfaHookContract);
+
+    // string to build a list of newly deployed contracts, written to a file if "outputFile" option set
+    let output = "";
 
     const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
@@ -117,6 +141,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     console.log("network ID: ", networkId);
     console.log("chain ID: ", chainId);
     const config = getConfig(chainId);
+    output += `NETWORK_ID=${networkId}\n`;
 
     const CFAv1_TYPE = web3.utils.sha3(
         "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
@@ -151,6 +176,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     const contracts = [
         "Ownable",
+        "CFAv1Forwarder",
         "IMultiSigWallet",
         "SuperfluidGovernanceBase",
         "Resolver",
@@ -176,6 +202,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const {
         Ownable,
         IMultiSigWallet,
+        CFAv1Forwarder,
         SuperfluidGovernanceBase,
         Resolver,
         SuperfluidLoader,
@@ -221,7 +248,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 await codeChanged(web3, TestGovernance, contractAddress),
             async () => {
                 governanceInitializationRequired = true;
-                return await web3tx(TestGovernance.new, "TestGovernance.new")();
+                const c = await web3tx(
+                    TestGovernance.new,
+                    "TestGovernance.new"
+                )();
+                output += `SUPERFLUID_GOVERNANCE=${c.address}\n`;
+                return c;
             }
         );
     }
@@ -232,10 +264,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "SuperfluidLoader-v1",
         async (contractAddress) => contractAddress === ZERO_ADDRESS,
         async () => {
-            return await web3tx(
+            const c = await web3tx(
                 SuperfluidLoader.new,
                 "SuperfluidLoader.new"
             )(resolver.address);
+            output += `SUPERFLUID_LOADER=${c.address}\n`;
+            return c;
         }
     );
 
@@ -255,11 +289,13 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             console.log(
                 `Superfluid new code address ${superfluidLogic.address}`
             );
+            output += `SUPERFLUID_HOST_LOGIC=${superfluidLogic.address}\n`;
             if (!nonUpgradable) {
                 const proxy = await web3tx(
                     UUPSProxy.new,
                     "Create Superfluid proxy"
                 )();
+                output += `SUPERFLUID_HOST_PROXY=${proxy.address}\n`;
                 await web3tx(
                     proxy.initializeProxy,
                     "proxy.initializeProxy"
@@ -327,13 +363,21 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     // list CFA v1
     const deployCFAv1 = async () => {
+        // @note Once we have the actual implementation for the hook contract,
+        // we will need to deploy it and put it here instead of ZERO_ADDRESS
+        const hookContractAddress = cfaHookContract || ZERO_ADDRESS;
+        console.log("CFA Hook Contract Address:", hookContractAddress);
+
         const agreement = await web3tx(
             ConstantFlowAgreementV1.new,
             "ConstantFlowAgreementV1.new"
-        )(superfluid.address);
+        )(superfluid.address, hookContractAddress);
+
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
+        output += `CFA_LOGIC=${agreement.address}\n`;
         return agreement;
     };
+
     if (!(await superfluid.isAgreementTypeListed.call(CFAv1_TYPE))) {
         const cfa = await deployCFAv1();
         await web3tx(
@@ -343,15 +387,24 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
 
     // list IDA v1
-    const deploySlotsBitmapLibrary = async () => {
-        const lib = await web3tx(
-            SlotsBitmapLibrary.new,
-            "SlotsBitmapLibrary.new"
-        )();
-        InstantDistributionAgreementV1.link("SlotsBitmapLibrary", lib.address);
-        return lib.address;
-    };
     const deployIDAv1 = async () => {
+        const deploySlotsBitmapLibrary = async () => {
+            const slotsBmpLib = await web3tx(
+                SlotsBitmapLibrary.new,
+                "SlotsBitmapLibrary.new"
+            )();
+            output += `SLOTS_BITMAP_LIBRARY_ADDRESS=${slotsBmpLib.address}\n`;
+            if (process.env.IS_HARDHAT) {
+                InstantDistributionAgreementV1.link(slotsBmpLib);
+            } else {
+                InstantDistributionAgreementV1.link(
+                    "SlotsBitmapLibrary",
+                    slotsBmpLib.address
+                );
+            }
+            return slotsBmpLib;
+        };
+        // small inefficiency: this may be re-deployed even if not changed
         await deploySlotsBitmapLibrary();
         const agreement = await web3tx(
             InstantDistributionAgreementV1.new,
@@ -361,16 +414,18 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             "New InstantDistributionAgreementV1 address",
             agreement.address
         );
+        output += `IDA_LOGIC=${agreement.address}\n`;
         return agreement;
     };
+
     if (!(await superfluid.isAgreementTypeListed.call(IDAv1_TYPE))) {
-        await deploySlotsBitmapLibrary();
         const ida = await deployIDAv1();
         await web3tx(
             governance.registerAgreementClass,
             "Governance registers IDA"
         )(superfluid.address, ida.address);
     } else {
+        // link library in order to avoid spurious code change detections
         let slotsBitmapLibraryAddress = ZERO_ADDRESS;
         try {
             slotsBitmapLibraryAddress = await (
@@ -378,23 +433,41 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     await superfluid.getAgreementClass.call(IDAv1_TYPE)
                 )
             ).SLOTS_BITMAP_LIBRARY_ADDRESS.call();
+            if (process.env.IS_HARDHAT) {
+                if (slotsBitmapLibraryAddress !== ZERO_ADDRESS) {
+                    const lib = await SlotsBitmapLibrary.at(
+                        slotsBitmapLibraryAddress
+                    );
+                    InstantDistributionAgreementV1.link(lib);
+                }
+            } else {
+                InstantDistributionAgreementV1.link(
+                    "SlotsBitmapLibrary",
+                    slotsBitmapLibraryAddress
+                );
+            }
         } catch (e) {
             console.warn("Cannot get slotsBitmapLibrary address", e.toString());
         }
-        if (
-            (await deployContractIfCodeChanged(
-                web3,
-                SlotsBitmapLibrary,
-                slotsBitmapLibraryAddress,
-                deploySlotsBitmapLibrary
-            )) == ZERO_ADDRESS
-        ) {
-            // code not changed, link with existing library
-            InstantDistributionAgreementV1.link(
-                "SlotsBitmapLibrary",
-                slotsBitmapLibraryAddress
-            );
-        }
+    }
+
+    // deploy CFAv1Forwarder for test deployments
+    // for other (permanent) deployments, it's not handled by this script
+    if (protocolReleaseVersion === "test") {
+        await deployAndRegisterContractIf(
+            CFAv1Forwarder,
+            "CFAv1Forwarder",
+            async (contractAddress) => contractAddress === ZERO_ADDRESS,
+            async () => {
+                const forwarder = await CFAv1Forwarder.new(superfluid.address);
+                output += `CFA_V1_FORWARDER=${forwarder.address}\n`;
+                await web3tx(
+                    governance.enableTrustedForwarder,
+                    "Governance set CFAv1Forwarder"
+                )(superfluid.address, ZERO_ADDRESS, forwarder.address);
+                return forwarder;
+            }
+        );
     }
 
     let superfluidNewLogicAddress = ZERO_ADDRESS;
@@ -417,6 +490,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     SuperfluidLogic.new,
                     "SuperfluidLogic.new"
                 )(nonUpgradable, appWhiteListing);
+                output += `SUPERFLUID_HOST_LOGIC=${superfluidLogic.address}\n`;
                 return superfluidLogic.address;
             }
         );
@@ -512,6 +586,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 SuperTokenFactoryLogic.new,
                 "SuperTokenFactoryLogic.new"
             )(superfluid.address, helper.address);
+            output += `SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC=${superTokenFactoryLogic.address}\n`;
             return superTokenFactoryLogic.address;
         }
     );
@@ -547,5 +622,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             "=============== TEST ENVIRONMENT RESOLVER ======================"
         );
         console.log(`export RESOLVER_ADDRESS=${process.env.RESOLVER_ADDRESS}`);
+    }
+
+    if (outputFile !== undefined) {
+        await util.promisify(fs.writeFile)(outputFile, output);
+        console.log(
+            `List of newly deployed contracts written to ${outputFile}`
+        );
     }
 });

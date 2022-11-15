@@ -1,14 +1,23 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "./ISuperAgreement.sol";
-
 
 /**
  * @title Superfluid token interface
  * @author Superfluid
  */
 interface ISuperfluidToken {
+
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error SF_TOKEN_AGREEMENT_ALREADY_EXISTS();  // 0xf05521f6
+    error SF_TOKEN_AGREEMENT_DOES_NOT_EXIST();  // 0xdae18809
+    error SF_TOKEN_BURN_INSUFFICIENT_BALANCE(); // 0x10ecdf44
+    error SF_TOKEN_MOVE_INSUFFICIENT_BALANCE(); // 0x2f4cb941
+    error SF_TOKEN_ONLY_LISTED_AGREEMENT();     // 0xc9ff6644
+    error SF_TOKEN_ONLY_HOST();                 // 0xc51efddd
 
     /**************************************************************************
      * Basic information
@@ -22,7 +31,7 @@ interface ISuperfluidToken {
     /**
      * @dev Encoded liquidation type data mainly used for handling stack to deep errors
      *
-     * Note:
+     * @custom:note 
      * - version: 1
      * - liquidationType key:
      *    - 0 = reward account receives reward (PIC period)
@@ -57,13 +66,13 @@ interface ISuperfluidToken {
             uint256 owedDeposit);
 
     /**
-     * @notice Calculate the realtime balance given the current block.timestamp value
+     * @notice Calculate the realtime balance given the current host.getNow() value
      * @dev realtimeBalanceOf with timestamp equals to block timestamp
      * @param account for the query
      * @return availableBalance Real-time balance
      * @return deposit Account deposit
      * @return owedDeposit Account owed Deposit
-     */ 
+     */
     function realtimeBalanceOfNow(
        address account
     )
@@ -79,7 +88,7 @@ interface ISuperfluidToken {
     * @dev A critical account is when availableBalance < 0
     * @param account The account to check
     * @param timestamp The time we'd like to check if the account is critical (should use future)
-    * @return isCritical Whether the account is critical 
+    * @return isCritical Whether the account is critical
     */
     function isAccountCritical(
         address account,
@@ -89,7 +98,7 @@ interface ISuperfluidToken {
         returns(bool isCritical);
 
     /**
-    * @notice Check if account is critical now (current block.timestamp)
+    * @notice Check if account is critical now (current host.getNow())
     * @dev A critical account is when availableBalance < 0
     * @param account The account to check
     * @return isCritical Whether the account is critical
@@ -105,7 +114,7 @@ interface ISuperfluidToken {
      * @dev An account is insolvent when the sum of deposits for a token can't cover the negative availableBalance
      * @param account The account to check
      * @param timestamp The time we'd like to check if the account is solvent (should use future)
-     * @return isSolvent
+     * @return isSolvent True if the account is solvent, false otherwise
      */
     function isAccountSolvent(
         address account,
@@ -118,7 +127,7 @@ interface ISuperfluidToken {
      * @notice Check if account is solvent now
      * @dev An account is insolvent when the sum of deposits for a token can't cover the negative availableBalance
      * @param account The account to check
-     * @return isSolvent
+     * @return isSolvent True if the account is solvent, false otherwise
      */
     function isAccountSolventNow(
         address account
@@ -222,7 +231,7 @@ interface ISuperfluidToken {
      * @dev Update agreement state slot
      * @param account Account to be updated
      *
-     * NOTE
+     * @custom:note 
      * - To clear the storage out, provide zero-ed array of intended length
      */
     function updateAgreementStateSlot(
@@ -265,7 +274,7 @@ interface ISuperfluidToken {
      * @param account Account to query.
      * @param delta Amount of balance delta to be settled
      *
-     * Modifiers:
+     * @custom:modifiers 
      *  - onlyAgreement
      */
     function settleBalance(
@@ -280,10 +289,11 @@ interface ISuperfluidToken {
      * @param liquidationTypeData Data regarding the version of the liquidation schema and the type
      * @param liquidatorAccount Address of the executor of the liquidation
      * @param useDefaultRewardAccount Whether or not the default reward account receives the rewardAmount
-     * @param targetAccount Account of the stream sender
-     * @param rewardAmount The amount the reward recepient account will receive
-     * @param targetAccountBalanceDelta The amount the sender account balance should change by
+     * @param targetAccount Account to be liquidated
+     * @param rewardAmount The amount the rewarded account will receive
+     * @param targetAccountBalanceDelta The delta amount the target account balance should change by
      *
+     * @custom:note 
      * - If a bailout is required (bailoutAmount > 0)
      *   - the actual reward (single deposit) goes to the executor,
      *   - while the reward account becomes the bailout account
@@ -293,7 +303,7 @@ interface ISuperfluidToken {
      *   - the targetAccount will pay the rewardAmount
      *   - the liquidator (reward account in PIC period) will receive the rewardAmount
      *
-     * Modifiers:
+     * @custom:modifiers 
      *  - onlyAgreement
      */
     function makeLiquidationPayoutsV2
@@ -312,22 +322,22 @@ interface ISuperfluidToken {
      * @param id Agreement ID
      * @param liquidatorAccount Address of the executor of the liquidation
      * @param targetAccount Account of the stream sender
-     * @param rewardAccount Account that collects the reward or bails out insolvent accounts
+     * @param rewardAmountReceiver Account that collects the reward or bails out insolvent accounts
      * @param rewardAmount The amount the reward recipient account balance should change by
      * @param targetAccountBalanceDelta The amount the sender account balance should change by
      * @param liquidationTypeData The encoded liquidation type data including the version (how to decode)
      *
-     * NOTE:
+     * @custom:note 
      * Reward account rule:
      * - if the agreement is liquidated during the PIC period
-     *   - the rewardAccount will get the rewardAmount (remaining deposit), regardless of the liquidatorAccount
+     *   - the rewardAmountReceiver will get the rewardAmount (remaining deposit), regardless of the liquidatorAccount
      *   - the targetAccount will pay for the rewardAmount
      * - if the agreement is liquidated after the PIC period AND the targetAccount is solvent
-     *   - the liquidatorAccount will get the rewardAmount (remaining deposit)
+     *   - the rewardAmountReceiver will get the rewardAmount (remaining deposit)
      *   - the targetAccount will pay for the rewardAmount
      * - if the targetAccount is insolvent
      *   - the liquidatorAccount will get the rewardAmount (single deposit)
-     *   - the rewardAccount will pay for both the rewardAmount and bailoutAmount
+     *   - the default reward account (governance) will pay for both the rewardAmount and bailoutAmount
      *   - the targetAccount will receive the bailoutAmount
      */
     event AgreementLiquidatedV2(
@@ -335,7 +345,7 @@ interface ISuperfluidToken {
         bytes32 id,
         address indexed liquidatorAccount,
         address indexed targetAccount,
-        address rewardAccount,
+        address rewardAmountReceiver,
         uint256 rewardAmount,
         int256 targetAccountBalanceDelta,
         bytes liquidationTypeData
@@ -368,9 +378,7 @@ interface ISuperfluidToken {
      * @param rewardAccount Account that collect the reward
      * @param rewardAmount Amount of liquidation reward
      *
-     * NOTE:
-     *
-     * [DEPRECATED] Use AgreementLiquidatedV2 instead
+     * @custom:deprecated Use AgreementLiquidatedV2 instead
      */
     event AgreementLiquidated(
         address indexed agreementClass,
@@ -385,9 +393,7 @@ interface ISuperfluidToken {
      * @param bailoutAccount Account that bailout the penalty account
      * @param bailoutAmount Amount of account bailout
      *
-     * NOTE:
-     *
-     * [DEPRECATED] Use AgreementLiquidatedV2 instead
+     * @custom:deprecated Use AgreementLiquidatedV2 instead
      */
     event Bailout(
         address indexed bailoutAccount,
@@ -404,7 +410,9 @@ interface ISuperfluidToken {
      * @param rewardAmount Amount of liquidation reward
      * @param bailoutAmount Amount of liquidation bailouot
      *
-     * NOTE:
+     * @custom:deprecated Use AgreementLiquidatedV2 instead
+     *
+     * @custom:note 
      * Reward account rule:
      * - if bailout is equal to 0, then
      *   - the bondAccount will get the rewardAmount,

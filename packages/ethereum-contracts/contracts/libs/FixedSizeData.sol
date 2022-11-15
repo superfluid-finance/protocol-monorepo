@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.16;
 
 /**
  * @title Utilities for fixed size data in storage
  * @author Superfluid
- * 
+ *
  * When using solidity dynamic array, first word is used to store the length
  * of the array. For use cases that the length doesn't change, it is better
  * to use a fixed size data premitive.

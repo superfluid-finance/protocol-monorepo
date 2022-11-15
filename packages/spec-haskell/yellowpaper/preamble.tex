@@ -1,0 +1,67 @@
+\documentclass[a4paper,10pt]{article}
+
+%% This document is processed in an isolated clean folder at the same level
+\makeatletter
+\def\input@path{{../tex/}}
+\makeatother
+
+%% Page settings
+%%% \usepackage[margin=0.5in,nomarginpar]{geometry}
+
+%%% Bibliography system setup using biblatex
+\usepackage[
+    backend=biber,
+    style=ieee,
+]{biblatex}
+\addbibresource{../tex/Biblio.bib}
+
+%% Packages
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{fvextra}
+\usepackage{csquotes}
+\usepackage{xcolor}
+\usepackage{minted}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{vhistory}
+
+%% Formatting
+
+\renewcommand{\mkbegdispquote}[2]{\itshape}
+
+%% Required Literate Haskell (lhs) macros (code, spec)
+%%% include common lhs formatting
+\input{lhsfmt.tex}
+%%% for code
+\newminted[code]{haskell}{}
+\newminted[spec]{haskell}{}
+
+%% Other macros
+\long\def\ignore#1{} % for ignoring code
+\newcommand{\eg}{\textit{e}.\textit{g}.}
+\newcommand{\ie}{\textit{i}.\textit{e}.}
+\newcommand{\etal}{\textit{et al}.}
+
+%% Used Unicodes in code
+\DeclareUnicodeCharacter{03B1}{$\alpha$}
+\DeclareUnicodeCharacter{03B2}{$\beta$}
+\DeclareUnicodeCharacter{03B5}{$\epsilon$}
+\DeclareUnicodeCharacter{03BB}{$\lambda$}
+\DeclareUnicodeCharacter{03BD}{$\nu$}
+\DeclareUnicodeCharacter{03C0}{$\pi$}
+\DeclareUnicodeCharacter{03C1}{$\rho$}
+\DeclareUnicodeCharacter{03C6}{$\phi$}
+\DeclareUnicodeCharacter{03C9}{$\omega$}
+\DeclareUnicodeCharacter{0394}{$\Delta$}
+
+\DeclareUnicodeCharacter{2205}{$\emptyset$}
+\DeclareUnicodeCharacter{2295}{$\oplus$}
+
+\DeclareUnicodeCharacter{27E6}{$[\![$}
+\DeclareUnicodeCharacter{27E7}{$]\!]$}
+
+\DeclareUnicodeCharacter{1D4DC}{$\mathcal{M}$}

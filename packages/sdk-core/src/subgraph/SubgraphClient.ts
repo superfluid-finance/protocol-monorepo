@@ -1,7 +1,6 @@
+import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { DocumentNode } from "graphql";
-import { batchRequests, request } from "graphql-request";
-
-import { SFError } from "../SFError";
+import { request } from "graphql-request";
 
 type RequestDocument = string | DocumentNode;
 
@@ -18,36 +17,14 @@ export class SubgraphClient {
     constructor(readonly subgraphUrl: string) {}
 
     async request<T = unknown, V = Variables>(
-        document: RequestDocument,
+        document: RequestDocument | TypedDocumentNode<T, V>,
         variables?: V
     ): Promise<T> {
-        try {
-            return await request<T, V>(
-                this.subgraphUrl,
-                document,
-                cleanVariables(variables)
-            );
-        } catch (err) {
-            throw new SFError({
-                type: "SUBGRAPH_ERROR",
-                customMessage: `Failed call to subgraph with query ${document}`,
-                errorObject: err,
-            });
-        }
-    }
-
-    async batchRequests<T = unknown, V = Variables>(
-        documents: BatchRequestDocument<V>[]
-    ): Promise<T> {
-        try {
-            return await batchRequests<T, V>(this.subgraphUrl, documents);
-        } catch (err) {
-            throw new SFError({
-                type: "SUBGRAPH_ERROR",
-                customMessage: "Failed call to subgraph with query...", // TODO(KK): Better error message
-                errorObject: err,
-            });
-        }
+        return await request<T, V>(
+            this.subgraphUrl,
+            document,
+            cleanVariables(variables)
+        );
     }
 }
 

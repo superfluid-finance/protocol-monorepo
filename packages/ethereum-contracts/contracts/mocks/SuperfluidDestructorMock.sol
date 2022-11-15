@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable
-pragma solidity 0.8.12;
+pragma solidity 0.8.16;
 
 contract SuperfluidDestructorMock {
 

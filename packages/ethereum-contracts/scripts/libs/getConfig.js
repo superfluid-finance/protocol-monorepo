@@ -104,8 +104,15 @@ module.exports = function getConfig(chainId) {
             // misc
             disableTestGovernance: true,
             data: {
-                initialBlockNumber: 5000000,
+                initialBlockNumber: 18800000,
                 getLogsRange: 5000,
+            },
+        },
+        97: {
+            // BSC chapel testnet
+            data: {
+                initialBlockNumber: 19437500,
+                getLogsRange: 10000,
             },
         },
 
@@ -116,6 +123,7 @@ module.exports = function getConfig(chainId) {
             // optimism mainnet
             liquidationPeriod: 3600 * 4,
             patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: ["DAIx", "USDCx"],
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
@@ -132,6 +140,13 @@ module.exports = function getConfig(chainId) {
                 getLogsRange: 50000,
             },
         },
+        420: {
+            // optimism testnet (goerli)
+            data: {
+                initialBlockNumber: 340000,
+                getLogsRange: 50000,
+            },
+        },
 
         //
         // Arbitrum: https://developer.offchainlabs.com
@@ -140,7 +155,7 @@ module.exports = function getConfig(chainId) {
             // arbitrum one mainnet
             liquidationPeriod: 3600 * 4,
             patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["ETHx"],
+            tokenList: ["DAIx", "USDCx"],
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
@@ -154,6 +169,13 @@ module.exports = function getConfig(chainId) {
             // arbitrum testnet (rinkeby)
             data: {
                 initialBlockNumber: 7300000,
+                getLogsRange: 50000,
+            },
+        },
+        421613: {
+            // arbitrum testnet (goerli)
+            data: {
+                initialBlockNumber: 93000,
                 getLogsRange: 50000,
             },
         },
@@ -172,13 +194,13 @@ module.exports = function getConfig(chainId) {
             // avalanche mainnet
             liquidationPeriod: 3600 * 4,
             patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["AVAXx"],
+            tokenList: [],
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
             disableTestGovernance: true,
             data: {
-                initialBlockNumber: 11950000,
+                initialBlockNumber: 14700000,
                 getLogsRange: 50000,
             },
         },
@@ -197,11 +219,22 @@ module.exports = function getConfig(chainId) {
             // celo mainnet
             liquidationPeriod: 3600 * 4,
             patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["CELOx"],
+            tokenList: [],
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
-            disableTestGovernance: true,
+            // disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 13075000,
+                getLogsRange: 50000,
+            },
+        },
+        44787: {
+            // Celo alfajores testnet
+            data: {
+                initialBlockNumber: 11519000,
+                getLogsRange: 50000,
+            },
         },
     };
 

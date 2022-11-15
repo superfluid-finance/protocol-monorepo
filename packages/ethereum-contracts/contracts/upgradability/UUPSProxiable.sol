@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.16;
 
 import { UUPSUtils } from "./UUPSUtils.sol";
 import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
@@ -18,6 +18,10 @@ abstract contract UUPSProxiable is Initializable {
     }
 
     function updateCode(address newAddress) external virtual;
+
+    // allows to mark logic contracts as initialized in order to reduce the attack surface
+    // solhint-disable-next-line no-empty-blocks
+    function castrate() external initializer { }
 
     /**
      * @dev Proxiable UUID marker function, this would help to avoid wrong logic

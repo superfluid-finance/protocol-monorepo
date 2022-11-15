@@ -12,4 +12,4 @@ graph deploy \
     superfluid-finance/protocol-$1-$2 \
     --node https://api.thegraph.com/deploy/ \
     --ipfs https://api.thegraph.com/ipfs \
-    --access-token $THEGRAPH_ACCESS_TOKEN
+    --access-token $THE_GRAPH_ACCESS_TOKEN

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.0;
+pragma solidity >= 0.8.4;
 
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperToken } from "./ISuperToken.sol";
@@ -12,6 +12,13 @@ import { ISuperfluid } from "./ISuperfluid.sol";
  * @author Superfluid
  */
 interface ISuperfluidGovernance {
+    
+    /**************************************************************************
+     * Errors
+     *************************************************************************/
+    error SF_GOV_ARRAYS_NOT_SAME_LENGTH();                  // 0x27743aa6
+    error SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD(); // 0xe171980a
+    error SF_GOV_MUST_BE_CONTRACT();                        // 0x80dddd73
 
     /**
      * @dev Replace the current governance with a new governance
@@ -30,7 +37,7 @@ interface ISuperfluidGovernance {
     /**
      * @dev Update logics of the contracts
      *
-     * NOTE:
+     * @custom:note 
      * - Because they might have inter-dependencies, it is good to have one single function to update them all
      */
     function updateContracts(

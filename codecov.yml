@@ -22,7 +22,5 @@ comment:
 flags:
   ethereum-contracts:
     paths: packages/ethereum-contracts
-    carryforward: true
   sdk-core:
     paths: packages/sdk-core
-    carryforward: true

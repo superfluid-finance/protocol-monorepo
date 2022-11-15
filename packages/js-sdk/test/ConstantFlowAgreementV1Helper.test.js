@@ -1,6 +1,6 @@
 const {toBN} = require("@decentral.ee/web3-helpers");
-const {expectRevert} = require("@openzeppelin/test-helpers");
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
+const {expect} = require("chai");
 
 describe("ConstantFlowAgreementV1Helper class", function () {
     this.timeout(300e3);
@@ -86,6 +86,20 @@ describe("ConstantFlowAgreementV1Helper class", function () {
                 })
             ).toString(),
             "38580246913580"
+        );
+        const aliceFlows = await sf.cfa.getAccountFlowInfo({
+            superToken: superToken.address,
+            account: alice,
+        });
+        assert.equal(aliceFlows.flowRate, "-38580246913580");
+        const bobFlows = await sf.cfa.getAccountFlowInfo({
+            superToken: superToken.address,
+            account: bob,
+        });
+        assert.equal(bobFlows.flowRate, "38580246913580");
+        assert.equal(
+            aliceFlows.timestamp.toString(),
+            bobFlows.timestamp.toString()
         );
     });
 
@@ -227,15 +241,16 @@ describe("ConstantFlowAgreementV1Helper class", function () {
         });
 
         it("by wrong person", async () => {
-            await expectRevert(
-                sf.cfa.deleteFlow({
+            try {
+                await sf.cfa.deleteFlow({
                     superToken: superToken.address,
                     sender: alice,
                     receiver: bob,
                     by: admin,
-                }),
-                "CFA: sender account is not critical"
-            );
+                });
+            } catch (err) {
+                expect(err.message).to.not.be.null;
+            }
         });
 
         it("by sender with onTransaction", async () => {

@@ -2,6 +2,12 @@ const _ = require("lodash");
 const getConfig = require("./libs/getConfig");
 const {getScriptRunnerFactory: S, getPastEvents} = require("./libs/common");
 
+/**
+ * @dev Scans the network for a protocol deployment by looking for AgreementClassRegistered events
+ *
+ * Usage: npx truffle exec scripts/info-scan-deployments.js
+ */
+
 module.exports = eval(`(${S.toString()})()`)(async function () {
     const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();

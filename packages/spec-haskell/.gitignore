@@ -1,0 +1,7 @@
+/maths/FlowSwap.py
+/dist
+/dist-*
+/.ghc.environment.*
+/cabal.project.local
+*.bbl
+*.blg

@@ -1,0 +1,86 @@
+name: Reusable Workflow | Setup, Deploy and Test Local Subgraph
+
+on:
+  workflow_call:
+    inputs:
+      subgraph-release:
+        required: true
+        type: string
+      run-sdk-core-tests:
+        required: true
+        type: boolean
+
+jobs:
+  setup-and-test-subgraph:
+    name: Build and Test subgraph
+
+    runs-on: ubuntu-latest
+
+    env:
+      subgraph-working-directory: ./packages/subgraph
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "yarn"
+
+      - name: "Install dependencies"
+        run: yarn install --frozen-lockfile
+
+      - name: "Build contracts"
+        run: yarn build
+        working-directory: ./packages/ethereum-contracts
+
+      - name: "Start hardhat node"
+        run: |
+          ./tasks/startHardhatNode.sh start
+        working-directory: ./packages/sdk-core
+
+      - name: "Build SDK-Core"
+        # build sdk-core because of auto linking to dependency
+        run: yarn build
+        working-directory: ./packages/sdk-core
+
+      - name: "Deploy Framework and Tokens"
+        run: npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost
+        working-directory: ./packages/subgraph
+
+      - name: "Prepare files for local testing"
+        run: yarn prepare-local
+        working-directory: ./packages/subgraph
+
+      - name: "Run setup-graph-node"
+        run: |
+          chmod +x ./tasks/setup-graph-node.sh
+          ./tasks/setup-graph-node.sh
+        working-directory: ./packages/subgraph
+
+      - name: "Docker compose"
+        run: docker-compose up &
+        working-directory: ./packages/subgraph
+
+      - name: "Run subgraph integration test suite"
+        if: inputs.run-sdk-core-tests == false
+        run: yarn test
+        working-directory: ${{ env.subgraph-working-directory }}
+      #
+
+      # test local subgraph w/ SDK-core
+      - name: "Setup subgraph test environment"
+        if: inputs.run-sdk-core-tests == true
+        run: ./tasks/testenv-ctl.sh start
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Run SDK-Core tests and test subgraph query with local subgraph"
+        if: inputs.run-sdk-core-tests == true
+        run: |
+          yarn generate-graphql-schema:${{ inputs.subgraph-release }}
+          yarn generate
+          npx hardhat test --network localhost
+        working-directory: ./packages/sdk-core
+        env:
+          SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.12;
+pragma solidity 0.8.16;
 
-import { ISuperfluid, ISuperAgreement } from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperfluid, ISuperAgreement, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
@@ -33,17 +33,21 @@ contract BatchLiquidator {
             // It could be due to flow had been liquidated by others.
             // solhint-disable-next-line avoid-low-level-calls
             (success, ) = address(host).call(
-                abi.encodeWithSelector(
-                    ISuperfluid.callAgreement.selector,
-                    cfa,
-                    abi.encodeWithSelector(
-                        IConstantFlowAgreementV1.deleteFlow.selector,
-                        superToken,
-                        senders[i],
-                        receivers[i],
+                abi.encodeCall(
+                    ISuperfluid(host).callAgreement,
+                    (
+                        ISuperAgreement(cfa),
+                        abi.encodeCall(
+                            IConstantFlowAgreementV1(cfa).deleteFlow,
+                            (
+                                ISuperToken(superToken),
+                                senders[i],
+                                receivers[i],
+                                new bytes(0)
+                            )
+                        ),
                         new bytes(0)
-                    ),
-                    new bytes(0)
+                    )
                 )
             );
         }
@@ -53,7 +57,7 @@ contract BatchLiquidator {
         // locked in the contract
         {
             uint256 balance = ERC20(superToken).balanceOf(address(this));
-            if(balance > 0) {
+            if (balance > 0) {
                 ERC20(superToken).transferFrom(address(this), msg.sender, balance);
             }
         }

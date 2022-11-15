@@ -1,0 +1,94 @@
+{
+  "nodes": {
+    "flake-utils": {
+      "locked": {
+        "lastModified": 1644229661,
+        "narHash": "sha256-1YdnJAsNy69bpcjuoKdOYQX0YxZBiCYZo4Twxerqv7k=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "3cecb5b042f7f209c56ffd8371b2711a290ec797",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flakeUtils": {
+      "locked": {
+        "lastModified": 1659877975,
+        "narHash": "sha256-zllb8aq3YO3h8B/U0/J1WBgAL8EX5yWf5pMj3G0NAmc=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "c0e246b9b83f637f4681389ecabcb2681b4f3af0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "foundry": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1666171006,
+        "narHash": "sha256-gFoOk0AXWFbRps4SPlbnWMyizc1H9RJqo4n9sq0CME0=",
+        "owner": "shazow",
+        "repo": "foundry.nix",
+        "rev": "9d22e1f9c97e36a173535093c46417ed532234de",
+        "type": "github"
+      },
+      "original": {
+        "owner": "shazow",
+        "repo": "foundry.nix",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1643805626,
+        "narHash": "sha256-AXLDVMG+UaAGsGSpOtQHPIKB+IZ0KSd9WS77aanGzgc=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "554d2d8aa25b6e583575459c297ec23750adb6cb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixos-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_2": {
+      "locked": {
+        "lastModified": 1666154393,
+        "narHash": "sha256-G4jctSMlliZvG4zUrcas0O+t3qJHzM0moBpG93lcl44=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7b38cb118ce4ad36d19a8b021068633b57ce0d3f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "root": {
+      "inputs": {
+        "flakeUtils": "flakeUtils",
+        "foundry": "foundry",
+        "nixpkgs": "nixpkgs_2"
+      }
+    }
+  },
+  "root": "root",
+  "version": 7
+}

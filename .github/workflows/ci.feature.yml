@@ -1,31 +1,30 @@
-name: CI Feature Branches
+name: CI | Feature Branches
 env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
+  # TODO We no longer do these, instead you always need to create a pull request
   # Triggered by internal pushes
-  push:
-    branches-ignore: ["dev", "release-*"]
-  # Triggered by external PRs (filtered in the `check` job)
-  # Notes:
-  # -  https://github.com/superfluid-finance/protocol-monorepo/settings/actions
-  #    Here we can configure approval requirements for external collaborators. Read more:
-  #    https://docs.github.com/en/actions/managing-workflow-runs/approving-workflow-runs-from-public-forks
+  # push:
+  #   branches-ignore: ["dev", "release-*"]
+  #
+  # NOTE To continue the old behaviour, these code snipeets is needed in the check job
+  ## triggered by internal pushes or external PRs
+  ## if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo'
+
   pull_request:
 
 jobs:
   check:
+    name: Checking what packages need to be built
 
     runs-on: ubuntu-latest
 
     outputs:
       build_ethereum_contracts: ${{ env.BUILD_ETHEREUM_CONTRACTS }}
-      build_js_sdk: ${{ env.BUILD_JS_SDK }}
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
       build_sdk_core: ${{ env.BUILD_SDK_CORE }}
-
-    # triggered by internal pushes or external PRs
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo'
+      build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
 
     steps:
       - name: Show contexts
@@ -37,7 +36,7 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
@@ -55,21 +54,29 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
+          cache: "yarn"
 
       - name: Install, lint and build
         run: |
           yarn install --frozen-lockfile
           yarn lint
           yarn build
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
       - name: Test ethereum-contracts
         run: |
@@ -84,12 +91,13 @@ jobs:
     if: needs.check.outputs.build_ethereum_contracts
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Use Node.js 16.x
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
           node-version: 16.x
+          cache: "yarn"
 
       - name: Install and build
         run: |
@@ -100,133 +108,49 @@ jobs:
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
-  test-js-sdk:
-    name: Build and test js-sdk (Feature Branch)
-
-    runs-on: ubuntu-latest
-
-    needs: [check]
-    if: needs.check.outputs.build_js_sdk
-
-    strategy:
-      matrix:
-        node-version: [16.x]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Install, lint and build
-        run: |
-          yarn install --frozen-lockfile
-          yarn lint
-          yarn build
-
-      - name: Test js-sdk
-        run: |
-          yarn workspace @superfluid-finance/js-sdk test
-        env:
-          POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
-
+  # subgraph integration test
   test-subgraph:
-    name: Build and test subgraph (Feature Branch)
-
-    runs-on: ubuntu-latest
-
-    env:
-      subgraph-working-directory: ./packages/subgraph
-      contracts-working-directory: ./packages/ethereum-contracts
-      js-sdk-working-directory: ./packages/js-sdk
-
+    uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
+    name: Build and Test Subgraph (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_subgraph
+    with:
+      subgraph-release: ''
+      run-sdk-core-tests: false
 
-    strategy:
-      matrix:
-        node-version: [16.x]
-
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: "Checkout graph node repo and set up local graph node"
-        uses: actions/checkout@v2
-        with:
-          repository: graphprotocol/graph-node
-          path: graph-node
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: "Run setup because linux and docker-compose"
-        run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-          sudo chmod +x /usr/local/bin/docker-compose
-          chmod +x setup.sh
-          ./setup.sh
-        working-directory: ./graph-node/docker
-
-      - name: "Docker compose"
-        run: docker-compose up &
-        working-directory: ./graph-node/docker
-
-      - name: "Install yarn and ganache-cli"
-        run: npm install -g yarn ganache-cli
-
-      - name: "Run ganache-cli node"
-        run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
-
-      - name: "Run integration test suite"
-        run: yarn test
-        working-directory: ${{ env.subgraph-working-directory }}
-
+  # sdk-core integration test + feature subgraph w/ feature sdk-core
   test-sdk-core:
-    name: Test sdk-core (feature branch)
-
-    runs-on: ubuntu-latest
-
-    env:
-      subgraph-working-directory: ./packages/subgraph
-      contracts-working-directory: ./packages/ethereum-contracts
-      js-sdk-working-directory: ./packages/js-sdk
-      sdk-core-working-directory: ./packages/sdk-core
-
+    uses: ./.github/workflows/call.test-sdk-core.yml
+    name: Build and Test SDK-Core (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_sdk_core
+    with:
+      subgraph-release: feature
 
-    strategy:
-      matrix:
-        node-version: [16.x]
+  # test latest and previous version of sdk-core with current subgraph
+  test-subgraph-on-previous-sdk-core-versions:
+    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+    name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs with Previous SDK-Core Versions
+    needs: [check]
+    if: needs.check.outputs.build_subgraph || needs.check.outputs.build_sdk_core
+    with:
+      subgraph-release: feature
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
-    steps:
-      - uses: actions/checkout@v2
+  # test query and local/deployed subgraph schemas in sync and query works
+  test-query-schema-against-deployed-feature-subgraphs:
+    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
+    name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs
+    needs: [check]
+    if: needs.check.outputs.build_sdk_core
+    with:
+      subgraph-release: feature
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: "Install yarn and ganache-cli"
-        run: npm install -g yarn ganache-cli
-
-      - name: "Install contract dependencies"
-        run: yarn install
-        working-directory: ${{ env.contracts-working-directory }}
-
-      - name: "Build contracts"
-        run: yarn run build:contracts
-        working-directory: ${{ env.contracts-working-directory }}
-
-      - name: "Run test suite"
-        run:
-          yarn test
-        working-directory: ${{ env.sdk-core-working-directory }}
+  test-spec-haskell:
+    uses: ./.github/workflows/call.test-spec-haskell.yml
+    name: Build and Test Spec Haskell (Feature Branch)
+    needs: [check]
+    if: needs.check.outputs.build_spec_haskell
 
   all-packages-tested:
     name: All packages tested (Feature Branch)
@@ -234,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
 
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
-    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-js-sdk, test-subgraph, test-sdk-core]
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs]
 
     steps:
       - name: Test Results
@@ -251,6 +175,8 @@ jobs:
             fi
           }
           check_result ethereum-contracts ${{ needs.test-ethereum-contracts.result }}
-          check_result js-sdk ${{ needs.test-js-sdk.result }}
           check_result subgraph ${{ needs.test-subgraph.result }}
           check_result sdk-core ${{ needs.test-sdk-core.result }}
+          check_result spec-haskell ${{ needs.test-spec-haskell.result }}
+          check_result subgraph-on-previous-sdk-core-versions ${{ needs.test-subgraph-on-previous-sdk-core-versions.result }}
+          check_result query-schema-against-deployed-feature-subgraph ${{ needs.test-query-schema-against-deployed-feature-subgraphs.result }}

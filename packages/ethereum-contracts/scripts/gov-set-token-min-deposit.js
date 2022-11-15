@@ -26,8 +26,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     if (args.length !== 2) {
         throw new Error("Wrong number of arguments");
     }
-    const tokenAddr = args.pop();
     const minimumDeposit = args.pop();
+    const tokenAddr = args.pop();
     console.log("token address", tokenAddr);
     console.log("minimum deposit", minimumDeposit);
 

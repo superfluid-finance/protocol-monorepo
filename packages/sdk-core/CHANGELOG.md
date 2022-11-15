@@ -8,7 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.5.8] - 2022-11-15
 
 ### Added
-- Support for mainnet
+- Support for eth-mainnet
 - Map `deposit` to Stream when querying from Subgraph
 
 ### Changed

@@ -79,10 +79,7 @@
         ],
         "nohoist": [
             "**/webpack",
-            "**/webpack/**",
-            "**/react",
-            "**/react-redux",
-            "**/@reduxjs/toolkit"
+            "**/webpack/**"
         ]
     },
     "version": "0.0.0"

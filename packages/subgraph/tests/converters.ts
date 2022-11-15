@@ -28,6 +28,69 @@ export function stringToBytes(value: string): Bytes {
 }
 
 /**
+ * Creates a string ethereum.Value object given a string
+ * @param value string value
+ * @returns string ethereum.Value
+ */
+export function getETHString(value: string): ethereum.Value {
+    return ethereum.Value.fromString(value);
+}
+
+/**
+ * Creates an address ethereum.Value object given an address string
+ * @param value string address value
+ * @returns address ethereum.Value
+ */
+export function getETHAddress(value: string): ethereum.Value {
+    return ethereum.Value.fromAddress(Address.fromString(value));
+}
+
+/**
+ * Creates a bytes ethereum.Value object given Bytes
+ * @param value bytes value
+ * @returns bytes ethereum.Value
+ */
+export function getETHBytes(value: Bytes): ethereum.Value {
+    return ethereum.Value.fromBytes(value);
+}
+
+/**
+ * Creates a unsigned BigInt ethereum.Value object given a BigInt
+ * @param value BigInt value
+ * @returns Unsigned BigInt ethereum.Value
+ */
+export function getETHUnsignedBigInt(value: BigInt): ethereum.Value {
+    return ethereum.Value.fromUnsignedBigInt(value);
+}
+
+/**
+ * Creates a signed BigInt ethereum.Value object given a BigInt
+ * @param value BigInt value
+ * @returns Signed BigInt ethereum.Value
+ */
+export function getETHSignedBigInt(value: BigInt): ethereum.Value {
+    return ethereum.Value.fromSignedBigInt(value);
+}
+
+/**
+ * Creates a i32 ethereum.Value object given an i32
+ * @param value i32 value
+ * @returns i32 ethereum.Value
+ */
+export function getETHInt32(value: i32): ethereum.Value {
+    return ethereum.Value.fromI32(value);
+}
+
+/**
+ * Creates a boolean ethereum.Value object given a boolean
+ * @param value boolean value
+ * @returns bool ethereum.Value
+ */
+export function getETHBoolean(value: boolean): ethereum.Value {
+    return ethereum.Value.fromBoolean(value);
+}
+
+/**
  * Takes a string param and returns a string ethereum.EventParam object
  * @param name the name of the parameter (must match actual value from contracts)
  * @param value string parameter value

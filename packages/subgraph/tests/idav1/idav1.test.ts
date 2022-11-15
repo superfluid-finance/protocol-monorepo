@@ -6,12 +6,12 @@ import {
     describe,
     test,
 } from "matchstick-as";
-import { handleIndexDistributionClaimed, handleIndexSubscribed, handleIndexUnitsUpdated, handleIndexUnsubscribed } from "../../src/mappings/idav1";
+import { handleIndexDistributionClaimed, handleIndexSubscribed, handleIndexUnsubscribed } from "../../src/mappings/idav1";
 import { getIndexID } from "../../src/utils";
 import { assertEventBaseProperties } from "../assertionHelper";
 import { alice, bob, maticx } from "../constants";
 import { stringToBytes } from "../converters";
-import { createIndexDistributionClaimedEvent, createIndexSubscribedEvent, createIndexUnitsUpdatedEvent, createIndexUnsubscribedEvent } from "./idav1.helper";
+import { createIndexDistributionClaimedEvent, createIndexSubscribedEvent, createIndexUnsubscribedEvent } from "./idav1.helper";
 
 describe("Instant Distribution V1 Mapper Unit Tests", () => {
     describe("Event Entity Mapping Tests", () => {

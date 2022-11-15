@@ -1,22 +1,19 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { BigInt } from "@graphprotocol/graph-ts";
 import {
     assert,
     beforeEach,
     clearStore,
-    log,
-    createMockedFunction,
     describe,
     test,
 } from "matchstick-as/assembly/index";
 import { handleBurned, handleMinted, handleSent } from "../../src/mappings/superToken";
-import { assertAggregateBaseProperties, assertEventBaseProperties, assertTokenStatisticProperties } from "../assertionHelper";
+import { assertEventBaseProperties, assertTokenStatisticProperties } from "../assertionHelper";
 import {
     alice,
-    bob,
-    hostAddress,
-    maticx,
+    bob
 } from "../constants";
 import { stringToBytes } from "../converters";
+import { mockedGetHost } from "../mockedFunctions";
 import { createBurnedEvent, createMintedEvent, createSentEvent } from "./superToken.helper";
 
 describe("SuperToken Mapper Unit Tests", () => {
@@ -42,15 +39,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 operatorData
             );
 
-            createMockedFunction(
-                Address.fromString(sentEvent.address.toHex()),
-                "getHost",
-                "getHost():(address)"
-            )
-                .withArgs([])
-                .returns([
-                    ethereum.Value.fromAddress(Address.fromString(hostAddress)),
-                ]);
+            mockedGetHost(sentEvent.address.toHex());
 
             handleSent(sentEvent);
 

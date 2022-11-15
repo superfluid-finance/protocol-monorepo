@@ -101,6 +101,8 @@ export function getOrInitSuperToken(
         token.createdAtTimestamp = currentTimestamp;
         token.createdAtBlockNumber = block.number;
         token.isSuperToken = true;
+        token.name = "";
+        token.symbol = "";
 
         const nativeAssetSuperTokenAddress = getNativeAssetSuperTokenAddress();
         token.isNativeAssetSuperToken = tokenAddress.equals(
@@ -235,6 +237,7 @@ export function getOrInitStream(event: FlowUpdated): Stream {
         stream.sender = event.params.sender.toHex();
         stream.receiver = event.params.receiver.toHex();
         stream.currentFlowRate = BigInt.fromI32(0);
+        stream.deposit = BigInt.fromI32(0);
         stream.streamedUntilUpdatedAt = BigInt.fromI32(0);
         stream.updatedAtTimestamp = currentTimestamp;
         stream.updatedAtBlockNumber = event.block.number;

@@ -2,8 +2,11 @@ import { BigInt } from "@graphprotocol/graph-ts";
 
 export const TRUE = "true";
 export const FALSE = "false";
+export const DEFAULT_DECIMALS = 18;
 export const LIQUIDATION_PERIOD = BigInt.fromI32(14400);
 export const PATRICIAN_PERIOD = BigInt.fromI32(1800);
+export const FAKE_INITIAL_BALANCE = BigInt.fromI32(1000);
+export const FAKE_SUPER_TOKEN_TOTAL_SUPPLY = BigInt.fromI32(1000000);
 
 // @note these addresses are lowercased and not checksummed
 // because the graph normalizes addresses to lowercase prior

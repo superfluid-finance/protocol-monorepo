@@ -78,13 +78,14 @@ export function handleTokenRPCCalls(
     token: Token,
     resolverAddress: Address
 ): Token {
-    token = getIsListedToken(token, resolverAddress);
-
     // we must handle the case when the native token hasn't been initialized
     // there is no name/symbol, but this may occur later
     if (token.name.length == 0 || token.symbol.length == 0) {
         token = getTokenInfoAndReturn(token);
     }
+    
+    // we do getIsListedToken after getTokenInfoAndReturn because it requires the token symbol
+    token = getIsListedToken(token, resolverAddress);
     return token;
 }
 

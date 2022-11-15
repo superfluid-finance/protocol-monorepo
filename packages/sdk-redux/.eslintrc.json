@@ -14,8 +14,7 @@
     ],
     "plugins": [
         "import",
-        "eslint-comments",
-        "prettier"
+        "eslint-comments"
     ],
     "extends": [
         "eslint:recommended",

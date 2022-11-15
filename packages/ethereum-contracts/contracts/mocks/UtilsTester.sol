@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.12;
 
 import { Int96SafeMath } from "../libs/Int96SafeMath.sol";
 import { UInt128SafeMath } from "../libs/UInt128SafeMath.sol";
@@ -24,20 +24,20 @@ contract UtilsTester {
         return c1;
     }
 
-    function doInt96SafeMathMul(int96 a, int96 b) external pure returns (int96 c) {
-        return Int96SafeMath.mul(a, b, "doInt96SafeMathMul overflow");
+    function testInt96SafeMathMul(int96 a, int96 b) external pure returns (int96 c) {
+        return Int96SafeMath.mul(a, b, "testInt96SafeMathMul overflow");
     }
 
-    function doInt96SafeMathAdd(int96 a, int96 b) external pure returns (int96 c) {
-        return Int96SafeMath.add(a, b, "doInt96SafeMathAdd overflow");
+    function testInt96SafeMathAdd(int96 a, int96 b) external pure returns (int96 c) {
+        return Int96SafeMath.add(a, b, "testInt96SafeMathAdd overflow");
     }
 
-    function doInt96SafeMathSub(int96 a, int96 b) external pure returns (int96 c) {
-        return Int96SafeMath.sub(a, b, "doInt96SafeMathSub overflow");
+    function testInt96SafeMathSub(int96 a, int96 b) external pure returns (int96 c) {
+        return Int96SafeMath.sub(a, b, "testInt96SafeMathSub overflow");
     }
 
-    function doInt96SafeMathDiv(int96 a, int96 b) external pure returns (int96 c) {
-        return Int96SafeMath.div(a, b, "doInt96SafeMathDiv overflow");
+    function testInt96SafeMathDiv(int96 a, int96 b) external pure returns (int96 c) {
+        return Int96SafeMath.div(a, b, "testInt96SafeMathDiv overflow");
     }
 
     /// UInt128SafeMath
@@ -46,12 +46,12 @@ contract UtilsTester {
         return type(uint128).max;
     }
 
-    function doUInt128SafeMathAdd(uint128 a, uint128 b) external pure returns (uint128 c) {
-        return UInt128SafeMath.add(a, b, "doUInt128SafeMathAdd overflow");
+    function testUInt128SafeMathAdd(uint128 a, uint128 b) external pure returns (uint128 c) {
+        return UInt128SafeMath.add(a, b, "testUInt128SafeMathAdd overflow");
     }
 
-    function doInt128SafeMathSub(uint128 a, uint128 b) external pure returns (uint128 c) {
-        return UInt128SafeMath.sub(a, b, "doInt96SafeMathSub overflow");
+    function testInt128SafeMathSub(uint128 a, uint128 b) external pure returns (uint128 c) {
+        return UInt128SafeMath.sub(a, b, "testInt96SafeMathSub overflow");
     }
 
 }

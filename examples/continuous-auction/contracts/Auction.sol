@@ -1,5 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity ^0.7.4;
+pragma abicoder v2;
+
 
 import {
     ISuperfluid,
@@ -13,10 +15,6 @@ import {
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 import {
-    CFAv1Library
-} from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
-
-import {
     SuperAppBase
 } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 
@@ -25,10 +23,6 @@ contract Auction is SuperAppBase {
     ISuperfluid private host;
     IConstantFlowAgreementV1 private cfa;
     ISuperToken private superToken;
-    
-    using CFAv1Library for CFAv1Library.InitData;
-    CFAv1Library.InitData public cfaV1; //initialize cfaV1 variable
-
     int96 public minStep = 1;
     int96 private markup;
     int96 private precision = 100000; // this is the maximum precision of the minStep
@@ -65,17 +59,6 @@ contract Auction is SuperAppBase {
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
         host.registerApp(configWord);
-
-        //initialize InitData struct, and set equal to cfaV1
-        cfaV1 = CFAv1Library.InitData(
-        host,
-        //here, we are deriving the address of the CFA using the host contract
-        IConstantFlowAgreementV1(
-            address(host.getAgreementClass(
-                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                ))
-            )
-        );
     }
 
     function _placeBid(bytes calldata _ctx, bytes32 agreementId)
@@ -151,22 +134,55 @@ contract Auction is SuperAppBase {
         private
         returns (bytes memory newCtx)
     {
-        newCtx = cfaV1.createFlowWithCtx(ctx, bidder, superToken, bidders[bidder].flowRate);
+          (newCtx, ) = host.callAgreementWithContext(
+              cfa,
+              abi.encodeWithSelector(
+                  cfa.createFlow.selector,
+                  superToken,
+                  bidder,
+                  bidders[bidder].flowRate,
+                  new bytes(0) // placeholder
+              ),
+              "0x",
+              ctx
+          );
     }
 
     function _updateCancelBack(bytes memory ctx, address bidder)
         private
         returns (bytes memory newCtx)
     {
-        newCtx = cfaV1.updateFlowWithCtx(ctx, bidder, superToken, bidders[bidder].flowRate);
+          (newCtx, ) = host.callAgreementWithContext(
+              cfa,
+              abi.encodeWithSelector(
+                  cfa.updateFlow.selector,
+                  superToken,
+                  bidder,
+                  bidders[bidder].flowRate,
+                  new bytes(0) // placeholder
+              ),
+              "0x",
+              ctx
+          );
     }
 
-    function _stopCancelBack(bytes memory ctx, address bidder)
+    function _stopCancelBack(bytes memory _ctx, address bidder)
         private
         returns (bytes memory newCtx)
     {
-        if(bidder == address(0)) return newCtx = ctx;
-        newCtx = cfaV1.deleteFlowWithCtx(ctx, address(this), bidder, superToken);
+        if(bidder == address(0)) return newCtx = _ctx;
+        (newCtx, ) = host.callAgreementWithContext(
+            cfa,
+            abi.encodeWithSelector(
+                cfa.deleteFlow.selector,
+                superToken,
+                address(this),
+                bidder,
+                new bytes(0)
+            ),
+            "0x",
+            _ctx
+        );
     }
 
     function _placeInList(address user, int96 flowRate)

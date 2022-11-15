@@ -1,4 +1,4 @@
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {expectRevert} = require("@openzeppelin/test-helpers");
 
 const TestEnvironment = require("../../TestEnvironment");
 const BatchLiquidator = artifacts.require("BatchLiquidator");
@@ -149,7 +149,7 @@ describe("Superfluid Liquidator Contract", function () {
         });
 
         it("#1.4 Revert if size of senders and receivers don't match", async () => {
-            await expectRevertedWith(
+            await expectRevert(
                 batch.deleteFlows(
                     t.sf.host.address,
                     t.sf.agreements.cfa.address,

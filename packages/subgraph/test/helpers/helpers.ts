@@ -1,25 +1,19 @@
-import {ethers} from "hardhat";
-import {TransactionResponse} from "@ethersproject/providers";
-import {gql, request} from "graphql-request";
-import {Framework, WrapperSuperToken} from "@superfluid-finance/sdk-core";
-import {
-    IIndexSubscription,
-    IMeta,
-    ISubgraphErrors,
-    ITestModifyFlowData,
-    ITestUpdateFlowOperatorData,
-} from "../interfaces";
-import {FlowActionType} from "./constants";
+import { ethers } from "hardhat";
+import { BaseProvider } from "@ethersproject/providers";
+import { request, gql } from "graphql-request";
+import { Framework } from "@superfluid-finance/sdk-core";
+import { IMeta, IIndexSubscription } from "../interfaces";
+import { FlowActionType } from "./constants";
+import IResolverABI from "../../abis/IResolver.json";
 import TestTokenABI from "../../abis/TestToken.json";
-import {TestToken} from "../../typechain";
-import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {BigNumber} from "ethers";
+import { Resolver, TestToken } from "../../typechain";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 // the resolver address should be consistent as long as you use the
 // first account retrieved by hardhat's ethers.getSigners():
 // 0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266 and the nonce is 0
 const RESOLVER_ADDRESS = "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512";
-const ORDER_MULTIPLIER = 10000; // This number is also defined as ORDER_MULTIPLIER in packages/subgraph/src/utils.ts
+
 /**************************************************************************
  * Test Helper Functions
  *************************************************************************/
@@ -32,8 +26,8 @@ const ORDER_MULTIPLIER = 10000; // This number is also defined as ORDER_MULTIPLI
 export const beforeSetup = async (tokenAmount: number) => {
     const [Deployer, Alpha, Bravo, Charlie] = await ethers.getSigners();
     const signers = [Deployer, Alpha, Bravo, Charlie];
-    const signerDict: { [address: string]: SignerWithAddress } = signers.reduce(
-        (x, y) => ({ ...x, [y.address]: y }),
+    const signerDict: {[address: string]: SignerWithAddress} = signers.reduce(
+        (x, y) => ({...x, [y.address]: y}),
         {}
     );
     const users = signers.map((x) => x.address);
@@ -47,14 +41,18 @@ export const beforeSetup = async (tokenAmount: number) => {
         resolverAddress: RESOLVER_ADDRESS,
     });
 
-    const resolver = sf.contracts.resolver.connect(Deployer);
+    const resolver = (await ethers.getContractAt(
+        IResolverABI,
+        RESOLVER_ADDRESS
+    )) as Resolver;
 
     console.log("\n");
-    const fDAIx = (await sf.loadSuperToken("fDAIx")) as WrapperSuperToken;
+    const fDAIxAddress = await resolver.get("supertokens.test.fDAIx");
+    const fDAIx = await sf.loadSuperToken(fDAIxAddress);
 
     // types not properly handling this case
     const fDAI = new ethers.Contract(
-        fDAIx.underlyingToken!.address,
+        fDAIx.underlyingToken.address,
         TestTokenABI
     ) as TestToken;
 
@@ -137,20 +135,11 @@ export const subgraphRequest = async <T>(
     variables?: { [key: string]: any }
 ): Promise<T> => {
     try {
-        const response = await request<T & ISubgraphErrors>(
+        const response = await request<T>(
             "http://localhost:8000/subgraphs/name/superfluid-test",
             query,
             variables
         );
-
-        if (response.errors) {
-            throw new Error(
-                `Failed call to subgraph with query ${query}, error thrown: ${JSON.stringify(
-                    response.errors
-                )}`
-            );
-        }
-
         return response;
     } catch (err) {
         throw new Error(
@@ -167,10 +156,8 @@ export const fetchEntityAndEnsureExistence = async <T>(
     const vars = {
         id,
     };
-    const data = await subgraphRequest<{ response: T } & ISubgraphErrors>(
-        query,
-        vars
-    );
+    const data = await subgraphRequest<{ response: T }>(query, vars);
+
     if (data.response == null) {
         throw new Error(entityName + " entity not found.");
     }
@@ -186,11 +173,9 @@ export const fetchEventAndEnsureExistence = async <T>(
     const vars = {
         transactionHash,
     };
-    const data = await subgraphRequest<
-        {
-            response: T[];
-        } & ISubgraphErrors
-    >(query, vars);
+    const data = await subgraphRequest<{
+        response: T[];
+    }>(query, vars);
     const event = data.response[0];
 
     if (!event) {
@@ -237,28 +222,26 @@ export const getStreamId = (
     token: string,
     revisionIndex: string
 ) =>
-    [sender, receiver, token, revisionIndex + ".0"]
-        .map((x) => x.toLowerCase())
-        .join("-");
-
-export const getFlowOperatorId = ({
-    flowOperator,
-    token,
-    sender,
-}: {
-    flowOperator: string;
-    token: string;
-    sender: string;
-}) => [flowOperator, token, sender].map((x) => x.toLowerCase()).join("-");
+    [
+        sender.toLowerCase(),
+        receiver.toLowerCase(),
+        token.toLowerCase(),
+        revisionIndex + ".0",
+    ].join("-");
 
 export const getRevisionIndexId = (
     sender: string,
     receiver: string,
     token: string
-) => [sender, receiver, token].map((x) => x.toLowerCase()).join("-");
+) =>
+    [sender.toLowerCase(), receiver.toLowerCase(), token.toLowerCase()].join(
+        "-"
+    );
 
 export const getIndexId = (publisher: string, token: string, indexId: string) =>
-    [publisher, token, indexId].map((x) => x.toLowerCase()).join("-");
+    [publisher.toLowerCase(), token.toLowerCase(), indexId.toLowerCase()].join(
+        "-"
+    );
 
 export const getSubscriptionId = (
     subscriber: string,
@@ -266,13 +249,12 @@ export const getSubscriptionId = (
     token: string,
     indexId: string
 ) =>
-    [subscriber, publisher, token, indexId]
-        .map((x) => x.toLowerCase())
-        .join("-");
-
-export const getATSId = (accountId: string, tokenId: string) => {
-    return accountId + "-" + tokenId;
-};
+    [
+        subscriber.toLowerCase(),
+        publisher.toLowerCase(),
+        token.toLowerCase(),
+        indexId.toLowerCase(),
+    ].join("-");
 
 /**************************************************************************
  * Modifier Functions
@@ -292,7 +274,13 @@ export const getATSId = (accountId: string, tokenId: string) => {
  * @returns txnReceipt, flow updatedAt (on-chain), flowRate (current on-chain)
  */
 export const modifyFlowAndReturnCreatedFlowData = async (
-    data: ITestModifyFlowData
+    provider: BaseProvider,
+    sf: Framework,
+    actionType: FlowActionType,
+    superToken: string,
+    sender: string,
+    receiver: string,
+    newFlowRate: number
 ) => {
     const actionToTypeStringMap = new Map([
         [FlowActionType.Create, "Create"],
@@ -301,139 +289,63 @@ export const modifyFlowAndReturnCreatedFlowData = async (
     ]);
     console.log(
         `********************** ${actionToTypeStringMap.get(
-            data.actionType
+            actionType
         )} a flow **********************`
     );
 
-    let signer = data.liquidator
-        ? await ethers.getSigner(data.liquidator)
-        : await ethers.getSigner(data.sender);
-    const baseData = {
-        superToken: data.superToken.address,
-        receiver: data.receiver,
-        userData: "0x",
-    };
-    let txnResponse: TransactionResponse;
-    if (data.sender === data.flowOperator || data.liquidator) {
-        txnResponse =
-            data.actionType === FlowActionType.Create
-                ? await data.framework.cfaV1
-                      .createFlow({
-                          ...baseData,
-                          flowRate: data.newFlowRate.toString(),
-                      })
-                      .exec(signer)
-                : data.actionType === FlowActionType.Update
-                ? await data.framework.cfaV1
-                      .updateFlow({
-                          ...baseData,
-                          flowRate: data.newFlowRate.toString(),
-                      })
-                      .exec(signer)
-                : await data.framework.cfaV1
-                      .deleteFlow({
-                          ...baseData,
-                          sender: data.sender,
-                      })
-                      .exec(signer);
-    } else {
-        // flowOperator is the signer here
-        signer = await ethers.getSigner(data.flowOperator);
-        txnResponse =
-            data.actionType === FlowActionType.Create
-                ? await data.framework.cfaV1
-                    .createFlowByOperator({
-                        ...baseData,
-                        flowRate: data.newFlowRate.toString(),
-                        sender: data.sender,
-                    })
-                    .exec(signer)
-                : data.actionType === FlowActionType.Update
-                    ? await data.framework.cfaV1
-                        .updateFlowByOperator({
-                            ...baseData,
-                            flowRate: data.newFlowRate.toString(),
-                            sender: data.sender,
-                        })
-                        .exec(signer)
-                    : await data.framework.cfaV1
-                        .deleteFlowByOperator({
-                            ...baseData,
-                            sender: data.sender,
-                        })
-                        .exec(signer);
-    }
+    const signer = await ethers.getSigner(sender);
+    // any because it the txn.receipt doesn't exist on
+    // Transaction
+    const txnResponse =
+        actionType === FlowActionType.Create
+            ? await sf.cfaV1
+                  .createFlow({
+                      superToken,
+                      sender,
+                      receiver,
+                      flowRate: newFlowRate.toString(),
+                      userData: "0x",
+                  })
+                  .exec(signer)
+            : actionType === FlowActionType.Update
+            ? await sf.cfaV1
+                  .updateFlow({
+                      superToken,
+                      sender,
+                      receiver,
+                      flowRate: newFlowRate.toString(),
+                      userData: "0x",
+                  })
+                  .exec(signer)
+            : await sf.cfaV1
+                  .deleteFlow({
+                      superToken,
+                      sender,
+                      receiver,
+                      userData: "0x",
+                  })
+                  .exec(signer);
 
     if (!txnResponse.blockNumber) {
         throw new Error("No block number");
     }
 
-    const block = await data.provider.getBlock(txnResponse.blockNumber);
+    const block = await provider.getBlock(txnResponse.blockNumber);
     const timestamp = block.timestamp;
     await waitUntilBlockIndexed(txnResponse.blockNumber);
-    const transactionReceipt = await txnResponse.wait();
-    const methodFilter = data.framework.cfaV1.contract.filters.FlowUpdated();
-    const methodSignature = methodFilter?.topics?.pop();
-    const transactionLog = transactionReceipt.logs.find(log => log.topics[0] === methodSignature)
-    const {flowRate, deposit} = await data.framework.cfaV1.getFlow({
-        superToken: data.superToken.address,
-        sender: data.sender,
-        receiver: data.receiver,
-        providerOrSigner: data.provider,
+
+    const {flowRate} = await sf.cfaV1.getFlow({
+        superToken,
+        sender,
+        receiver,
+        providerOrSigner: provider,
     });
+
     return {
         txnResponse,
         timestamp,
         flowRate: toBN(flowRate),
-        deposit,
-        logIndex: transactionLog?.logIndex,
     };
-};
-
-export const updateFlowOperatorPermissions = async (
-    data: ITestUpdateFlowOperatorData
-) => {
-    const signer = await ethers.getSigner(data.sender);
-    let txnResponse: TransactionResponse;
-
-    const baseData = {
-        superToken: data.superToken.address,
-        sender: data.sender,
-        flowOperator: data.flowOperator,
-        userData: "0x",
-    };
-
-    // update flowOperator data
-    if (data.isFullControl) {
-        txnResponse = await data.framework.cfaV1
-            .authorizeFlowOperatorWithFullControl(baseData)
-            .exec(signer);
-    } else if (data.isFullControlRevoke) {
-        txnResponse = await data.framework.cfaV1
-            .revokeFlowOperatorWithFullControl(baseData)
-            .exec(signer);
-    } else {
-        txnResponse = await data.framework.cfaV1
-            .updateFlowOperatorPermissions({
-                ...baseData,
-                permissions: data.permissions,
-                flowRateAllowance: data.flowRateAllowance,
-            })
-            .exec(signer);
-    }
-
-    if (!txnResponse.blockNumber) {
-        throw new Error("No block number");
-    }
-
-    const block = await data.provider.getBlock(txnResponse.blockNumber);
-    const timestamp = block.timestamp;
-    await waitUntilBlockIndexed(txnResponse.blockNumber);
-    const transactionReceipt = await txnResponse.wait();
-    const methodFilter = data.framework.cfaV1.contract.filters.FlowOperatorUpdated();
-    const methodSignature = methodFilter?.topics?.pop();
-    const transactionLog = transactionReceipt.logs.find(log => log.topics[0] === methodSignature)
-    return {timestamp, txnResponse, logIndex: transactionLog?.logIndex,};
 };
 
 export const hasSubscriptionWithUnits = (
@@ -443,23 +355,3 @@ export const hasSubscriptionWithUnits = (
     const subscription = subscriptions[id];
     return subscription != null && toBN(subscription.units).gt(toBN(0));
 };
-
-/**
- * See ConstantFlowAgreementV1.sol for more details about deposit clipping.
- * @param deposit
- * @param roundingDown
- * @returns
- */
-export const clipDepositNumber = (deposit: BigNumber, roundingDown = false) => {
-    // last 32 bits of the deposit (96 bits) is clipped off
-    const rounding = roundingDown
-        ? 0
-        : deposit.and(toBN(0xffffffff)).isZero()
-            ? 0
-            : 1;
-    return deposit.shr(32).add(toBN(rounding)).shl(32);
-};
-
-export const getOrder = (blockNumber?: number, logIndex?: number) => {
-    return blockNumber! * ORDER_MULTIPLIER + logIndex!
-}

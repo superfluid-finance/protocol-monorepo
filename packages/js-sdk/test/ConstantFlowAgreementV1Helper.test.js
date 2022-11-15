@@ -87,20 +87,6 @@ describe("ConstantFlowAgreementV1Helper class", function () {
             ).toString(),
             "38580246913580"
         );
-        const aliceFlows = await sf.cfa.getAccountFlowInfo({
-            superToken: superToken.address,
-            account: alice,
-        });
-        assert.equal(aliceFlows.flowRate, "-38580246913580");
-        const bobFlows = await sf.cfa.getAccountFlowInfo({
-            superToken: superToken.address,
-            account: bob,
-        });
-        assert.equal(bobFlows.flowRate, "38580246913580");
-        assert.equal(
-            aliceFlows.timestamp.toString(),
-            bobFlows.timestamp.toString()
-        );
     });
 
     it("createFlow with onTransaction", async () => {

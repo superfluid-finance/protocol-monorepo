@@ -36,21 +36,24 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
-        additionalContracts: ["PureSuperToken", "IPureSuperToken"],
+        additionalContracts: ["NativeSuperTokenProxy", "INativeSuperToken"],
         contractLoader: builtTruffleContractLoader,
     });
     await sf.initialize();
 
-    const {PureSuperToken, IPureSuperToken} = sf.contracts;
+    const {NativeSuperTokenProxy, INativeSuperToken} = sf.contracts;
 
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
         await sf.host.getSuperTokenFactory.call()
     );
 
-    console.log("Deploying PureSuperToken...");
-    const proxy = await PureSuperToken.new();
+    console.log("Deploying NativeSuperTokenProxy...");
+    const proxy = await NativeSuperTokenProxy.new();
 
-    const token = await IPureSuperToken.at(proxy.address);
+    const token = await INativeSuperToken.at(proxy.address);
+
+    console.log("Invoking initializeCustomSuperToken...");
+    await superTokenFactory.initializeCustomSuperToken(token.address);
 
     console.log("Invoking initialize...");
     await token.initialize(
@@ -59,10 +62,5 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         web3.utils.toWei(String(initialSupply))
     );
 
-    console.log("Invoking initializeCustomSuperToken...");
-    await superTokenFactory.initializeCustomSuperToken(token.address);
-
     console.log(`Native SuperToken deployed at ${token.address}`);
-
-    return token.address;
 });

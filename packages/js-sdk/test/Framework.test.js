@@ -256,19 +256,6 @@ describe("Framework class", function () {
                 assert.equal(await sf.superTokens.ETHx.symbol(), "ETHx");
             });
 
-            it("use loadSuperNativeToken option", async () => {
-                const sf = new SuperfluidSDK.Framework({
-                    isTruffle: true,
-                    loadSuperNativeToken: true,
-                    version: "test",
-                });
-                await sf.initialize();
-
-                assert.equal(sf.superTokens.ETHx, sf.tokens.ETHx);
-                assert.equal(sf.superTokens.ETHx.superTokenCustomType, "SETH");
-                assert.equal(await sf.superTokens.ETHx.symbol(), "ETHx");
-            });
-
             it("load by native token symbol plus x", async () => {
                 const sf = new SuperfluidSDK.Framework({
                     isTruffle: true,

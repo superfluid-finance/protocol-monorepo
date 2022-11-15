@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.12;
 
 import {
     ISuperfluid,
@@ -73,7 +73,7 @@ contract SuperAppMock is ISuperApp {
         uint8 callType,
         bytes4 agreementSelector);
 
-    function actionNoop(bytes calldata ctx) external requireValidCtx(ctx) returns (bytes memory newCtx) {
+    function actionNoop(bytes calldata ctx) external validCtx(ctx) returns (bytes memory newCtx) {
         ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
         emit NoopEvent(
             context.appLevel,
@@ -84,7 +84,7 @@ contract SuperAppMock is ISuperApp {
 
     function actionExpectMsgSender(address expectedMsgSender, bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
@@ -96,32 +96,32 @@ contract SuperAppMock is ISuperApp {
         return ctx;
     }
 
-    function actionAssert(bytes calldata ctx) external view requireValidCtx(ctx) {
+    function actionAssert(bytes calldata ctx) external view validCtx(ctx) {
         assert(false);
     }
 
-    function actionRevert(bytes calldata ctx) external view requireValidCtx(ctx) {
+    function actionRevert(bytes calldata ctx) external view validCtx(ctx) {
         // solhint-disable-next-line reason-string
         revert();
     }
 
-    function actionRevertWithReason(string calldata reason, bytes calldata ctx) external view requireValidCtx(ctx) {
+    function actionRevertWithReason(string calldata reason, bytes calldata ctx) external view validCtx(ctx) {
         revert(reason);
     }
 
-    function actionCallAgreementWithoutCtx(bytes calldata ctx) external requireValidCtx(ctx) {
+    function actionCallAgreementWithoutCtx(bytes calldata ctx) external validCtx(ctx) {
         // this should fail, action should call agreement with ctx
         _host.callAgreement(ISuperAgreement(address(0)), new bytes(0), new bytes(0));
     }
 
-    function actionCallAppActionWithoutCtx(bytes calldata ctx) external requireValidCtx(ctx) {
+    function actionCallAppActionWithoutCtx(bytes calldata ctx) external validCtx(ctx) {
         // this should fail, action should call agreement with ctx
         _host.callAppAction(ISuperApp(address(0)), new bytes(0));
     }
 
     function actionAlteringCtx(bytes calldata ctx)
         external view
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         return abi.encode(42);
@@ -129,14 +129,14 @@ contract SuperAppMock is ISuperApp {
 
     function actionReturnEmptyCtx(bytes calldata ctx)
         external view
-        requireValidCtx(ctx)
+        validCtx(ctx)
     // solhint-disable-next-line no-empty-blocks
     {
     }
 
     function actionPingAgreementThroughAux(AgreementMock agreement, uint256 ping, bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
     {
         // this should fail
         _aux.actionPingAgreement(_host, agreement, ping, ctx);
@@ -144,7 +144,7 @@ contract SuperAppMock is ISuperApp {
 
     function actionCallActionNoopThroughAux(bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
     {
         // this should fail
         _aux.actionCallActionNoop(_host, this, ctx);
@@ -152,7 +152,7 @@ contract SuperAppMock is ISuperApp {
 
     function actionPingAgreement(AgreementMock agreement, uint256 ping, bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         (newCtx, ) = _host.callAgreementWithContext(
@@ -169,7 +169,7 @@ contract SuperAppMock is ISuperApp {
 
     function actionAgreementRevert(AgreementMock agreement, string calldata reason, bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         (newCtx, ) = _host.callAgreementWithContext(
@@ -185,7 +185,7 @@ contract SuperAppMock is ISuperApp {
 
     function actionCallActionNoop(bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         newCtx = _host.callAppActionWithContext(
@@ -199,7 +199,7 @@ contract SuperAppMock is ISuperApp {
 
     function actionCallActionRevert(string calldata reason, bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         newCtx = _host.callAppActionWithContext(
@@ -214,7 +214,7 @@ contract SuperAppMock is ISuperApp {
 
     function actionCallAgreementWithInvalidCtx(AgreementMock agreement, bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         (newCtx, ) = _host.callAgreementWithContext(
@@ -231,7 +231,7 @@ contract SuperAppMock is ISuperApp {
 
     function actionCallActionWithInvalidCtx(string calldata reason, bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         newCtx = _host.callAppActionWithContext(
@@ -246,7 +246,7 @@ contract SuperAppMock is ISuperApp {
 
     function actionCallBadAction(bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
     {
         _host.callAppActionWithContext(
             this,
@@ -343,7 +343,7 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     )
         external view
-        requireValidCtx(ctx)
+        validCtx(ctx)
         virtual override
         returns (bytes memory /*cbdata*/)
     {
@@ -359,7 +359,7 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     )
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         virtual override
         returns (bytes memory newCtx)
     {
@@ -374,7 +374,7 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     )
         external view
-        requireValidCtx(ctx)
+        validCtx(ctx)
         virtual override
         returns (bytes memory /*cbdata*/)
     {
@@ -390,7 +390,7 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     )
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         virtual override
         returns (bytes memory newCtx)
     {
@@ -405,7 +405,7 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     )
         external view
-        requireValidCtx(ctx)
+        validCtx(ctx)
         virtual override
         returns (bytes memory /*cbdata*/)
     {
@@ -421,7 +421,7 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     )
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         virtual override
         returns (bytes memory newCtx)
     {
@@ -436,7 +436,7 @@ contract SuperAppMock is ISuperApp {
         }
     }
 
-    modifier requireValidCtx(bytes calldata ctx) {
+    modifier validCtx(bytes calldata ctx) {
         require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid before");
         _;
     }

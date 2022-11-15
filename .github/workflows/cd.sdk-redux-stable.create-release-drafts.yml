@@ -3,12 +3,11 @@ env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - "release-sdk-redux-stable"
     paths:
-      - 'packages/sdk-redux/**'
+      - 'packages/sdk-redux'
       - '.github/workflows/cd.sdk-redux-stable.create-release-drafts.yml'
 
 jobs:
@@ -19,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1

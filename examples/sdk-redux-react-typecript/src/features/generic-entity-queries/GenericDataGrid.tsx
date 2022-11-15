@@ -2,10 +2,10 @@ import { Loader } from "../../Loader";
 import { Error } from "../../Error";
 import { Pagination } from "@mui/material";
 import { PagedResult } from "@superfluid-finance/sdk-core";
+import { PossibleErrors } from "@superfluid-finance/sdk-redux/dist/main";
 import { DataGrid, GridColDef, GridSortModel } from "@mui/x-data-grid";
 import { FC, ReactElement } from "react";
 import _ from "lodash";
-import { SerializedError } from "@reduxjs/toolkit";
 
 function CustomPagination(
     count: number,
@@ -26,7 +26,7 @@ export interface GenericDataGridProps {
     data?: PagedResult<any>;
     isLoading: boolean;
     isFetching: boolean;
-    error?: SerializedError;
+    error?: PossibleErrors;
     refetch?: () => void;
     pageSize: number;
     pageUseState: [number, React.Dispatch<number>];
@@ -71,7 +71,7 @@ export const GenericDataGrid: FC<GenericDataGridProps> = ({
                     <DataGrid
                         disableColumnFilter={true}
                         pagination={true}
-                        rows={data.items}
+                        rows={data.data}
                         columns={columns}
                         sortingMode="server"
                         sortModel={sortModel}

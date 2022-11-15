@@ -17,7 +17,7 @@ import {
     SuperTokenFactoryUpdated,
     SuperTokenLogicUpdated,
 } from "../../generated/Host/ISuperfluid";
-import {createEventID, getOrder} from "../utils";
+import { createEventID } from "../utils";
 import { commitHash, configuration, branch } from "../meta.ignore";
 import { ethereum } from "@graphprotocol/graph-ts";
 
@@ -30,10 +30,8 @@ export function handleGovernanceReplaced(event: GovernanceReplaced): void {
     ev.name = "GovernanceReplaced";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.oldGovernance = event.params.oldGov;
     ev.newGovernance = event.params.newGov;
-    ev.logIndex = event.logIndex;
     ev.save();
 }
 
@@ -48,8 +46,6 @@ export function handleAgreementClassRegistered(
     ev.name = "AgreementClassRegistered";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.agreementType = event.params.agreementType;
     ev.code = event.params.code;
     ev.save();
@@ -68,8 +64,6 @@ export function handleAgreementClassUpdated(
     ev.name = "AgreementClassUpdated";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.agreementType = event.params.agreementType;
     ev.code = event.params.code;
     ev.save();
@@ -89,8 +83,6 @@ export function handleSuperTokenFactoryUpdated(
     ev.name = "SuperTokenFactoryUpdated";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.newFactory = event.params.newFactory;
     ev.save();
 }
@@ -106,8 +98,6 @@ export function handleSuperTokenLogicUpdated(
     ev.name = "SuperTokenLogicUpdated";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.code = event.params.code;
     ev.save();
@@ -120,8 +110,6 @@ export function handleAppRegistered(event: AppRegistered): void {
     ev.name = "AppRegistered";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.app = event.params.app;
     ev.save();
 }
@@ -133,8 +121,6 @@ export function handleJail(event: Jail): void {
     ev.name = "Jail";
     ev.addresses = [];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.app = event.params.app;
     ev.reason = event.params.reason;
     ev.save();

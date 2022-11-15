@@ -27,7 +27,7 @@ require('hardhat-deploy');
     // },
  
      solidity: {
-      version: "0.8.13",
+      version: "0.7.6",
       settings: {
         optimizer: {
           enabled: true

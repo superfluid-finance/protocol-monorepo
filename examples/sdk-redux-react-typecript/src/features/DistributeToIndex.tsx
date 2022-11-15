@@ -6,7 +6,7 @@ import { Error } from "../Error";
 import { sfApi } from "../redux/store";
 
 export const DistributeToIndex: FC = (): ReactElement => {
-    const [distribute, { isLoading, error }] = sfApi.useIndexDistributeMutation();
+    const [distribute, { isLoading, error }] = sfApi.useDistributeToIndexMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
     const [superToken, setSuperToken] = useState<string>("");

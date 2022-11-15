@@ -2,11 +2,11 @@ import { SignerContext } from "../SignerContext";
 import { FC, ReactElement, SyntheticEvent, useContext, useState } from "react";
 import { Alert, Button, FormGroup, TextField } from "@mui/material";
 import { Error } from "../Error";
-import { sfSubgraph } from "../redux/store";
+import { sfApi } from "../redux/store";
 
 export const MonitorForEventsToInvalidateCache: FC = (): ReactElement => {
     const [trigger, { error, isSuccess }] =
-        sfSubgraph.useMonitorForEventsToInvalidateCacheMutation();
+        sfApi.useMonitorForEventsToInvalidateCacheMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
     const [address, setAddress] = useState<string>(signerAddress);

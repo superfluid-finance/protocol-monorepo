@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.12;
 
 import {
     ISuperfluid,
@@ -111,7 +111,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluidToken superToken,
         bytes32 key,
         address value
-    )
+    ) 
         external override
     {
         _setConfig(host, superToken, key, value);
@@ -122,7 +122,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluidToken superToken,
         bytes32 key,
         uint256 value
-    )
+    ) 
         external override
     {
         _setConfig(host, superToken, key, value);
@@ -132,7 +132,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluid host,
         ISuperfluidToken superToken,
         bytes32 key
-    )
+    ) 
         external override
     {
         _clearConfig(host, superToken, key);
@@ -278,8 +278,8 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         returns (uint256 liquidationPeriod, uint256 patricianPeriod)
         {
             uint256 pppConfig = getConfigAsUint256(
-                host,
-                superToken,
+                host, 
+                superToken, 
                 SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY
             );
             (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
@@ -290,7 +290,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         ISuperfluidToken superToken,
         uint256 liquidationPeriod,
         uint256 patricianPeriod
-    )
+    ) 
         public
     {
         require(liquidationPeriod > patricianPeriod
@@ -325,8 +325,8 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     function getSuperTokenMinimumDeposit(
         ISuperfluid host,
         ISuperfluidToken superToken
-    ) public view
-    returns (uint256 value)
+    ) public view 
+    returns (uint256 value) 
     {
         return getConfigAsUint256(host, superToken,
             SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
@@ -344,7 +344,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     function clearSuperTokenMinimumDeposit(
         ISuperfluid host,
         ISuperToken superToken
-    ) public
+    ) public 
     {
         emit SuperTokenMinimumDepositChanged(host, superToken, false, 0);
         return _clearConfig(host, superToken, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
@@ -410,6 +410,23 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         return _clearConfig(
             host, superToken,
             SuperfluidGovernanceConfigs.getTrustedForwarderConfigKey(forwarder));
+    }
+
+    /**
+     * @dev Whitelist a new app using a onetime key
+     * @param key is a deployer specific hash key which can be used once to register an app
+     *
+     * NOTE:
+     * To generate the key, use the SuperfluidGovernanceConfigs.getAppRegistrationConfigKey
+     * offchain.
+     */
+    function whiteListNewApp(
+        ISuperfluid host,
+        bytes32 key
+    )
+        external
+    {
+        _setConfig(host, ISuperfluidToken(address(0)), key, 1);
     }
 
     /**

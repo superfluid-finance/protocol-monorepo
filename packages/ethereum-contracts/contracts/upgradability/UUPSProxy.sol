@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.12;
 
 import { UUPSUtils } from "./UUPSUtils.sol";
 import { Proxy } from "@openzeppelin/contracts/proxy/Proxy.sol";

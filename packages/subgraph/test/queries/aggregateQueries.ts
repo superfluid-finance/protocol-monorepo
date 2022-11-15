@@ -15,10 +15,6 @@ export const getAccountTokenSnapshot = gql`
             totalOutflowRate
             totalAmountStreamedUntilUpdatedAt
             totalAmountTransferredUntilUpdatedAt
-            totalDeposit
-            flowOperators(orderBy: createdAtTimestamp, orderDirection: asc) {
-                id
-            }
             account {
                 id
             }
@@ -42,7 +38,6 @@ export const getTokenStatistic = gql`
             totalSubscriptionsWithUnits
             totalApprovedSubscriptions
             totalOutflowRate
-            totalDeposit
             totalSupply
             totalAmountStreamedUntilUpdatedAt
             totalAmountTransferredUntilUpdatedAt

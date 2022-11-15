@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.12;
 
 import {
     ISuperTokenFactory,
@@ -15,7 +15,7 @@ import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 import { SuperToken } from "../superfluid/SuperToken.sol";
 
-import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
+import { FullUpgradableSuperTokenProxy } from "../tokens/FullUpgradableSuperTokenProxy.sol";
 
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";

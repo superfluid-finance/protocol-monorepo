@@ -1,11 +1,10 @@
-query streams($first: Int = 10, $orderBy: Stream_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: Stream_filter = {}, $block: Block_height) {
+query streams($first: Int = 10, $orderBy: Stream_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: Stream_filter = {}) {
     streams(
         orderBy: $orderBy
         orderDirection: $orderDirection
         first: $first
         skip: $skip
         where: $where
-        block: $block
     ) {
         createdAtBlockNumber
         createdAtTimestamp
@@ -20,7 +19,6 @@ query streams($first: Int = 10, $orderBy: Stream_orderBy = id, $orderDirection: 
         streamedUntilUpdatedAt
         token {
             id
-            symbol
         }
         updatedAtBlockNumber
         updatedAtTimestamp

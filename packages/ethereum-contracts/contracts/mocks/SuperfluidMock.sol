@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.12;
 
 import {
     Superfluid,
@@ -44,8 +44,8 @@ contract SuperfluidUpgradabilityTester is Superfluid {
         assembly { slot:= _ctxStamp.slot offset := _ctxStamp.offset }
         require(slot == 6 && offset == 0, "_ctxStamp changed location");
 
-        assembly { slot:= _appKeysUsedDeprecated.slot offset := _appKeysUsedDeprecated.offset }
-        require(slot == 7 && offset == 0, "_appKeysUsedDeprecated changed location");
+        assembly { slot:= _appKeysUsed.slot offset := _appKeysUsed.offset }
+        require(slot == 7 && offset == 0, "_appKeysUsed changed location");
     }
 
     // @dev Make sure the context struct layout never change over the course of the development
@@ -166,6 +166,14 @@ contract SuperfluidMock is Superfluid {
         (success, returnedData) = address(this).staticcall(data);
         if (success) return returnedData;
         else CallUtils.revertFromReturnedData(returnedData);
+    }
+
+    function testIsValidAbiEncodedBytes() external pure {
+        require(!CallUtils.isValidAbiEncodedBytes(abi.encode(1, 2, 3)), "bad data");
+        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(0))), "0");
+        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(1))), "1");
+        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(32))), "32");
+        require(CallUtils.isValidAbiEncodedBytes(abi.encode(new bytes(33))), "33");
     }
 
     function jailApp(ISuperApp app)

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.12;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
@@ -27,7 +27,7 @@ import { TokenCustodian } from "./TokenCustodian.sol";
  *      The exitRate is the flowrate at which the bond is streamed back to the PIC.
  *      Any rewards accrued by this contract (in general the whole token balance) become part of the bond.
  *      When a PIC is outbid, the current bond is transferred to it with ERC777.send().
- *
+ *      
  *      changes in v2:
  *      In case that send() fails (e.g. due to a reverting hook), the bond is transferred to a custodian contract.
  *      Funds accumulated there can be withdrawn from there at any time.
@@ -168,22 +168,18 @@ contract TOGA is ITOGAv2, IERC777Recipient {
         );
     }
 
-    function capToInt96(int256 value) internal pure returns(int96) {
-        return value < type(int96).max ? int96(value) : type(int96).max;
-    }
-
     function getDefaultExitRateFor(ISuperToken /*token*/, uint256 bondAmount)
         public view override
         returns(int96 exitRate)
     {
-        return capToInt96((bondAmount / (minBondDuration * 4)).toInt256());
+        return int96((bondAmount / (minBondDuration * 4)).toInt256());
     }
 
     function getMaxExitRateFor(ISuperToken /*token*/, uint256 bondAmount)
         external view override
         returns(int96 exitRate)
     {
-        return capToInt96((bondAmount / minBondDuration).toInt256());
+        return int96((bondAmount / minBondDuration).toInt256());
     }
 
     function changeExitRate(ISuperToken token, int96 newExitRate) external override {

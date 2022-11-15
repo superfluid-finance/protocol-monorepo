@@ -34,7 +34,6 @@ export interface Index {
     indexCreatedEvent: SubgraphId;
     publisher: Address;
     token: Address;
-    tokenSymbol: string;
 }
 
 export type IndexListQuery = SubgraphListQuery<Index_Filter, Index_OrderBy>;
@@ -70,7 +69,6 @@ export class IndexQueryHandler extends SubgraphQueryHandler<
             indexCreatedEvent: x.indexCreatedEvent.id,
             publisher: x.publisher.id,
             token: x.token.id,
-            tokenSymbol: x.token.symbol,
         }));
 
     requestDocument = IndexesDocument;

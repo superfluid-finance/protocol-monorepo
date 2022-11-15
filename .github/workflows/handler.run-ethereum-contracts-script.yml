@@ -36,7 +36,7 @@ jobs:
       GOVERNANCE_ADMIN_TYPE: ${{ github.event.inputs.admin_type }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -73,6 +73,3 @@ jobs:
           OPTIMISM_KOVAN_PROVIDER_URL: ${{ secrets.OPTIMISM_KOVAN_PROVIDER_URL }}
           ARBITRUM_RINKEBY_PROVIDER_URL: ${{ secrets.ARBITRUM_RINKEBY_PROVIDER_URL }}
           AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
-          OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}
-          ARBITRUM_ONE_PROVIDER_URL: ${{ secrets.ARBITRUM_ONE_PROVIDER_URL }}
-          AVALANCHE_C_PROVIDER_URL: ${{ secrets.AVALANCHE_C_PROVIDER_URL }}

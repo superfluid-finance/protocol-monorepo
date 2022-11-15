@@ -57,7 +57,6 @@ const parseERC20Operation = ({index, operationType, data}) => {
      *     abi.decode(data, (address sender, address recipient, uint256 amount)
      * )
      */
-    //assert(operationType === OPERATION_TYPES.ERC20_TRANSFER_FROM);
     if (!sender)
         throw new Error(
             getMissingArgumentError("sender", getBatchCallHelpText(index))

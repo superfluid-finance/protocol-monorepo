@@ -1,0 +1,10 @@
+{
+    "network": "avalanche",
+    "hostStartBlock": 0,
+    "hostAddress": "",
+    "cfaAddress": "",
+    "idaAddress": "",
+    "superTokenFactoryAddress": "",
+    "superfluidGovernanceAddress": "",
+    "resolverV1Address": ""
+}

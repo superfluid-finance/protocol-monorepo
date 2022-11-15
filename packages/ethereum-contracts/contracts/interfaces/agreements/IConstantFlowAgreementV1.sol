@@ -33,7 +33,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @dev Calculates the deposit based on the liquidationPeriod and flowRate
      * @param flowRate Flow rate to be tested
      * @return deposit The deposit amount based on flowRate and liquidationPeriod
-     * NOTE:
+     * NOTE: 
      * - if calculated deposit (flowRate * liquidationPeriod) is less
      *   than the minimum deposit, we use the minimum deposit otherwise
      *   we use the calculated deposit
@@ -45,115 +45,29 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns (uint256 deposit);
 
     /**
-     * @dev Returns whether it is the patrician period based on host.getNow()
+     * @dev Returns whether it is the patrician period based on block.timestamp
      * @param account The account we are interested in
-     * @return isCurrentlyPatricianPeriod Whether it is currently the patrician period dictated by governance
-     * @return timestamp The value of host.getNow()
+     * @return isPatricianPeriod Whether it is currently the patrician period dictated by governance
+     * @return timestamp The value of block.timestamp
      */
     function isPatricianPeriodNow(
-        ISuperfluidToken token,
+        ISuperfluidToken token, 
         address account)
         public view virtual
-        returns (bool isCurrentlyPatricianPeriod, uint256 timestamp);
+        returns (bool isPatricianPeriod, uint256 timestamp);
 
     /**
      * @dev Returns whether it is the patrician period based on timestamp
      * @param account The account we are interested in
      * @param timestamp The timestamp we are interested in observing the result of isPatricianPeriod
-     * @return bool Whether it is currently the patrician period dictated by governance
+     * @return isPatricianPeriod Whether it is currently the patrician period dictated by governance
      */
     function isPatricianPeriod(
-        ISuperfluidToken token,
+        ISuperfluidToken token, 
         address account,
-        uint256 timestamp
-    )
+        uint256 timestamp)
         public view virtual
-        returns (bool);
-
-    /**
-     * @dev msgSender from `ctx` updates permissions for the `flowOperator` with `flowRateAllowance`
-     * @param token Super token address
-     * @param flowOperator The permission grantee address
-     * @param permissions A bitmask representation of the granted permissions
-     * @param flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
-     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-     */
-    function updateFlowOperatorPermissions(
-        ISuperfluidToken token,
-        address flowOperator,
-        uint8 permissions,
-        int96 flowRateAllowance,
-        bytes calldata ctx
-    ) 
-        external virtual
-        returns(bytes memory newCtx);
-
-    /**
-     * @dev msgSender from `ctx` grants `flowOperator` all permissions with flowRateAllowance as type(int96).max
-     * @param token Super token address
-     * @param flowOperator The permission grantee address
-     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-     */
-    function authorizeFlowOperatorWithFullControl(
-        ISuperfluidToken token,
-        address flowOperator,
-        bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
-
-     /**
-     * @notice msgSender from `ctx` revokes `flowOperator` create/update/delete permissions
-     * @dev `permissions` and `flowRateAllowance` will both be set to 0
-     * @param token Super token address
-     * @param flowOperator The permission grantee address
-     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-     */
-    function revokeFlowOperatorWithFullControl(
-        ISuperfluidToken token,
-        address flowOperator,
-        bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
-
-    /**
-     * @notice Get the permissions of a flow operator between `sender` and `flowOperator` for `token`
-     * @param token Super token address
-     * @param sender The permission granter address
-     * @param flowOperator The permission grantee address
-     * @return flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
-     * @return permissions A bitmask representation of the granted permissions
-     * @return flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
-     */
-    function getFlowOperatorData(
-       ISuperfluidToken token,
-       address sender,
-       address flowOperator
-    )
-        public view virtual
-        returns (
-            bytes32 flowOperatorId,
-            uint8 permissions,
-            int96 flowRateAllowance
-        );
-
-    /**
-     * @notice Get flow operator using flowOperatorId
-     * @param token Super token address
-     * @param flowOperatorId The keccak256 hash of encoded string "flowOperator", sender and flowOperator
-     * @return permissions A bitmask representation of the granted permissions
-     * @return flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
-     */
-    function getFlowOperatorDataByID(
-       ISuperfluidToken token,
-       bytes32 flowOperatorId
-    )
-        external view virtual
-        returns (
-            uint8 permissions,
-            int96 flowRateAllowance
-        );
+        returns (bool isPatricianPeriod);
 
     /**
      * @notice Create a flow betwen ctx.msgSender and receiver
@@ -175,25 +89,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      */
     function createFlow(
         ISuperfluidToken token,
-        address receiver,
-        int96 flowRate,
-        bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
-
-    /**
-    * @notice Create a flow between sender and receiver
-    * @dev A flow created by an approved flow operator (see above for details on callbacks)
-    * @param token Super token address
-    * @param sender Flow sender address (has granted permissions)
-    * @param receiver Flow receiver address
-    * @param flowRate New flow rate in amount per second
-    * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-    */
-    function createFlowByOperator(
-        ISuperfluidToken token,
-        address sender,
         address receiver,
         int96 flowRate,
         bytes calldata ctx
@@ -231,24 +126,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external virtual
         returns(bytes memory newCtx);
 
-    /**
-    * @notice Update a flow between sender and receiver
-    * @dev A flow updated by an approved flow operator (see above for details on callbacks)
-    * @param token Super token address
-    * @param sender Flow sender address (has granted permissions)
-    * @param receiver Flow receiver address
-    * @param flowRate New flow rate in amount per second
-    * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-    */
-    function updateFlowByOperator(
-        ISuperfluidToken token,
-        address sender,
-        address receiver,
-        int96 flowRate,
-        bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
 
     /**
      * @dev Get the flow data between `sender` and `receiver` of `token`
@@ -356,66 +233,24 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external virtual
         returns(bytes memory newCtx);
 
-    /**
-     * @notice Delete the flow between sender and receiver
-     * @dev A flow deleted by an approved flow operator (see above for details on callbacks)
-     * @param token Super token address
-     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
-     * @param receiver Flow receiver address
-     */
-    function deleteFlowByOperator(
-        ISuperfluidToken token,
-        address sender,
-        address receiver,
-        bytes calldata ctx
-    )
-        external virtual
-        returns(bytes memory newCtx);
-     
-    /**
-     * @dev Flow operator updated event
-     * @param token Super token address
-     * @param sender Flow sender address
-     * @param flowOperator Flow operator address
-     * @param permissions Octo bitmask representation of permissions
-     * @param flowRateAllowance The flow rate allowance the `flowOperator` is granted (only goes down)
-     */
-    event FlowOperatorUpdated(
-        ISuperfluidToken indexed token,
-        address indexed sender,
-        address indexed flowOperator,
-        uint8 permissions,
-        int96 flowRateAllowance
-    );
+     /**
+      * @dev Flow updated event
+      * @param token Super token address
+      * @param sender Flow sender address
+      * @param receiver Flow recipient address
+      * @param flowRate Flow rate in amount per second for this flow
+      * @param totalSenderFlowRate Total flow rate in amount per second for the sender
+      * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver
+      * @param userData The user provided data
+      */
+     event FlowUpdated(
+         ISuperfluidToken indexed token,
+         address indexed sender,
+         address indexed receiver,
+         int96 flowRate,
+         int256 totalSenderFlowRate,
+         int256 totalReceiverFlowRate,
+         bytes userData
+     );
 
-    /**
-     * @dev Flow updated event
-     * @param token Super token address
-     * @param sender Flow sender address
-     * @param receiver Flow recipient address
-     * @param flowRate Flow rate in amount per second for this flow
-     * @param totalSenderFlowRate Total flow rate in amount per second for the sender
-     * @param totalReceiverFlowRate Total flow rate in amount per second for the receiver
-     * @param userData The user provided data
-     *
-     */
-    event FlowUpdated(
-        ISuperfluidToken indexed token,
-        address indexed sender,
-        address indexed receiver,
-        int96 flowRate,
-        int256 totalSenderFlowRate,
-        int256 totalReceiverFlowRate,
-        bytes userData
-    );
-
-    /**
-     * @dev Flow updated extension event
-     * @param flowOperator Flow operator address - the Context.msgSender
-     * @param deposit The deposit amount for the stream
-     */
-    event FlowUpdatedExtension(
-        address indexed flowOperator,
-        uint256 deposit
-    );
 }

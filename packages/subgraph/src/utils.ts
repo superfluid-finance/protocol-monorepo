@@ -1,23 +1,22 @@
-import {Address, BigInt, Bytes, ethereum, log,} from "@graphprotocol/graph-ts";
-import {ISuperToken as SuperToken} from "../generated/templates/SuperToken/ISuperToken";
-import {Resolver} from "../generated/ResolverV1/Resolver";
-import {IndexSubscription, StreamRevision, Token, TokenStatistic,} from "../generated/schema";
+import { BigInt, Bytes, ethereum, Address, log } from "@graphprotocol/graph-ts";
+import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
+import { Resolver } from "../generated/ResolverV1/Resolver";
+import {
+    StreamRevision,
+    IndexSubscription,
+    Token,
+    TokenStatistic,
+} from "../generated/schema";
 
 /**************************************************************************
  * Constants
  *************************************************************************/
-export const BIG_INT_ZERO = BigInt.fromI32(0);
-export const BIG_INT_ONE = BigInt.fromI32(1);
-export const ZERO_ADDRESS = Address.zero();
-export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
-export const ORDER_MULTIPLIER = BigInt.fromI32(10000);
 
-/**************************************************************************
- * Convenience Conversions
- *************************************************************************/
-export function bytesToAddress(bytes: Bytes): Address {
-    return Address.fromBytes(bytes);
-}
+export let BIG_INT_ZERO = BigInt.fromI32(0);
+export let BIG_INT_ONE = BigInt.fromI32(1);
+export let ZERO_ADDRESS = Address.fromString(
+    "0x0000000000000000000000000000000000000000"
+);
 
 /**************************************************************************
  * Event entities util functions
@@ -27,13 +26,11 @@ export function createEventID(
     eventName: string,
     event: ethereum.Event
 ): string {
-    return (
-        eventName +
-        "-" +
-        event.transaction.hash.toHexString() +
-        "-" +
-        event.logIndex.toString()
-    );
+    return eventName
+        .concat("-")
+        .concat(event.transaction.hash.toHexString())
+        .concat("-")
+        .concat(event.logIndex.toString());
 }
 
 /**************************************************************************
@@ -50,7 +47,7 @@ export function getTokenInfoAndReturn(
     let symbolResult = tokenContract.try_symbol();
     let decimalsResult = tokenContract.try_decimals();
     token.underlyingAddress = underlyingAddressResult.reverted
-        ? ZERO_ADDRESS
+        ? new Address(0)
         : underlyingAddressResult.value;
     token.name = nameResult.reverted ? "" : nameResult.value;
     token.symbol = symbolResult.reverted ? "" : symbolResult.value;
@@ -69,9 +66,9 @@ export function getIsListedToken(
             ? "test"
             : "v1";
     let result = resolverContract.try_get(
-        "supertokens." + version + "." + token.symbol
+        "supertokens.".concat(version).concat(".").concat(token.symbol)
     );
-    let superTokenAddress = result.reverted ? ZERO_ADDRESS : result.value;
+    let superTokenAddress = result.reverted ? new Address(0) : result.value;
     token.isListed = tokenAddress.toHex() == superTokenAddress.toHex();
     return token as Token;
 }
@@ -81,8 +78,7 @@ export function updateTotalSupplyForNativeSuperToken(
     tokenStatistic: TokenStatistic,
     tokenAddress: Address
 ): TokenStatistic {
-    if (
-        Address.fromBytes(token.underlyingAddress).equals(ZERO_ADDRESS) &&
+    if (token.underlyingAddress.toHex() == "0x0000000000000000000000000000000000000000" &&
         tokenStatistic.totalSupply.equals(BIG_INT_ZERO)
     ) {
         let tokenContract = SuperToken.bind(tokenAddress);
@@ -123,61 +119,37 @@ export function tokenHasValidHost(
     return true;
 }
 
-// Get Higher Order Entity ID functions
-// CFA Higher Order Entity
-export function getStreamRevisionID(
-    senderAddress: Address,
-    receiverAddress: Address,
-    tokenAddress: Address
+// Get HOL ID functions
+export function getStreamRevisionPrefix(
+    senderId: string,
+    receiverId: string,
+    tokenId: string
 ): string {
-    return (
-        senderAddress.toHex() +
-        "-" +
-        receiverAddress.toHex() +
-        "-" +
-        tokenAddress.toHex()
-    );
+    return senderId.concat("-").concat(receiverId).concat("-").concat(tokenId);
 }
 
 export function getStreamID(
-    senderAddress: Address,
-    receiverAddress: Address,
-    tokenAddress: Address,
+    senderId: string,
+    receiverId: string,
+    tokenId: string,
     revisionIndex: number
 ): string {
-    return (
-        getStreamRevisionID(senderAddress, receiverAddress, tokenAddress) +
-        "-" +
-        revisionIndex.toString()
-    );
+    return getStreamRevisionPrefix(senderId, receiverId, tokenId)
+        .concat("-")
+        .concat(revisionIndex.toString());
 }
 
 export function getStreamPeriodID(
     streamId: string,
     periodRevisionIndex: number
 ): string {
-    return streamId + "-" + periodRevisionIndex.toString();
+    return streamId.concat("-").concat(periodRevisionIndex.toString());
 }
 
-export function getFlowOperatorID(
-    flowOperatorAddress: Address,
-    tokenAddress: Address,
-    senderAddress: Address
-): string {
-    return (
-        flowOperatorAddress.toHex() +
-        "-" +
-        tokenAddress.toHex() +
-        "-" +
-        senderAddress.toHex()
-    );
-}
-
-// IDA Higher Order Entity
 export function getSubscriptionID(
-    subscriberAddress: Address,
-    publisherAddress: Address,
-    tokenAddress: Address,
+    subscriberAddress: Bytes,
+    publisherAddress: Bytes,
+    tokenAddress: Bytes,
     indexId: BigInt
 ): string {
     return (
@@ -192,8 +164,8 @@ export function getSubscriptionID(
 }
 
 export function getIndexID(
-    publisherAddress: Address,
-    tokenAddress: Address,
+    publisherAddress: Bytes,
+    tokenAddress: Bytes,
     indexId: BigInt
 ): string {
     return (
@@ -203,14 +175,6 @@ export function getIndexID(
         "-" +
         indexId.toString()
     );
-}
-
-// Get Aggregate ID functions
-export function getAccountTokenSnapshotID(
-    accountAddress: Address,
-    tokenAddress: Address
-): string {
-    return accountAddress.toHex() + "-" + tokenAddress.toHex();
 }
 
 // Get HOL Exists Functions
@@ -241,15 +205,10 @@ export function getAmountStreamedSinceLastUpdatedAt(
     return timeDelta.times(previousTotalOutflowRate);
 }
 
-/**
- * getOrder calculate order based on {blockNumber.times(10000).plus(logIndex)}.
- * @param blockNumber
- * @param logIndex
- */
-export function getOrder(
-    blockNumber: BigInt,
-    logIndex: BigInt,
-): BigInt {
-    return blockNumber.times(ORDER_MULTIPLIER).plus(logIndex);
+// Get Aggregate ID functions
+export function getAccountTokenSnapshotID(
+    accountId: string,
+    tokenId: string
+): string {
+    return accountId.concat("-").concat(tokenId);
 }
-

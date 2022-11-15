@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="WEB_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$/examples/continuous-auction">
+      <sourceFolder url="file://$MODULE_DIR$/examples/continuous-auction/test" isTestSource="true" />
+    </content>
+    <content url="file://$MODULE_DIR$/examples/flowlottery">
+      <sourceFolder url="file://$MODULE_DIR$/examples/flowlottery/test" isTestSource="true" />
+    </content>
+    <content url="file://$MODULE_DIR$/examples/react-ts-sdk" />
+    <content url="file://$MODULE_DIR$/examples/rewards-distribution-token">
+      <sourceFolder url="file://$MODULE_DIR$/examples/rewards-distribution-token/test" isTestSource="true" />
+    </content>
+    <content url="file://$MODULE_DIR$/examples/sdk-redux-nextjs-typescript" />
+    <content url="file://$MODULE_DIR$/examples/sdk-redux-react-typecript" />
+    <content url="file://$MODULE_DIR$/examples/tradeable-cashflow">
+      <sourceFolder url="file://$MODULE_DIR$/examples/tradeable-cashflow/test" isTestSource="true" />
+    </content>
+    <content url="file://$MODULE_DIR$/packages/ethereum-contracts">
+      <sourceFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/test" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/ethereum-contracts/build" />
+    </content>
+    <content url="file://$MODULE_DIR$/packages/js-sdk">
+      <sourceFolder url="file://$MODULE_DIR$/packages/js-sdk/test" isTestSource="true" />
+    </content>
+    <content url="file://$MODULE_DIR$/packages/sdk-core">
+      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-core/dist" />
+    </content>
+    <content url="file://$MODULE_DIR$/packages/sdk-redux">
+      <sourceFolder url="file://$MODULE_DIR$/packages/sdk-redux/test" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-redux/.nyc_output" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-redux/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/sdk-redux/dist" />
+    </content>
+    <content url="file://$MODULE_DIR$/packages/subgraph">
+      <sourceFolder url="file://$MODULE_DIR$/packages/subgraph/test" isTestSource="true" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

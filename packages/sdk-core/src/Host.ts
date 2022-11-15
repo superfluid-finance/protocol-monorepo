@@ -5,21 +5,21 @@ import SuperfluidABI from "./abi/Superfluid.json";
 import { Superfluid } from "./typechain";
 
 /**
- * Host Helper Class
+ * @dev Host Helper Class
  * @description A helper class which can be used as a standalone class to populate call agreement transactions.
  */
 export default class Host {
-    contract: Superfluid;
+    hostContract: Superfluid;
 
     constructor(hostAddress: string) {
-        this.contract = new ethers.Contract(
+        this.hostContract = new ethers.Contract(
             hostAddress,
             SuperfluidABI.abi
         ) as Superfluid;
     }
 
     /**
-     * Creates an Operation of the `callAgreement` function on the host contract.
+     * @dev Creates an Operation of the `callAgreement` function on the host contract.
      * @param agreementAddress the agreement address (cfa or ida address)
      * @param callData the encoded callData for the function
      * @param userData any additional user data
@@ -32,7 +32,7 @@ export default class Host {
         userData: string | undefined,
         overrides?: Overrides & { from?: string | Promise<string> }
     ): Operation => {
-        const txn = this.contract.populateTransaction.callAgreement(
+        const txn = this.hostContract.populateTransaction.callAgreement(
             agreementAddress,
             callData,
             userData || "0x",

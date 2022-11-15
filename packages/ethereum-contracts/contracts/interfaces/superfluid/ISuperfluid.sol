@@ -8,10 +8,9 @@ import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
 import {
-    BatchOperation,
-    ContextDefinitions,
-    FlowOperatorDefinitions,
     SuperAppDefinitions,
+    ContextDefinitions,
+    BatchOperation,
     SuperfluidGovernanceConfigs
 } from "./Definitions.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
@@ -30,17 +29,6 @@ import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
  *
  */
 interface ISuperfluid {
-
-    /**************************************************************************
-     * Time
-     *
-     * > The Oracle: You have the sight now, Neo. You are looking at the world without time.
-     * > Neo: Then why can't I see what happens to her?
-     * > The Oracle: We can never see past the choices we don't understand.
-     * >       - The Oracle and Neo conversing about the future of Trinity and the effects of Neo's choices
-     *************************************************************************/
-
-    function getNow() external view returns (uint256);
 
     /**************************************************************************
      * Governance
@@ -78,7 +66,7 @@ interface ISuperfluid {
      * @notice Agreement class registered event
      * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
      * @param agreementType The agreement type registered
-     * @param code Address of the new agreement
+     * @param code Address of the new agreement 
      */
     event AgreementClassRegistered(bytes32 agreementType, address code);
 
@@ -94,7 +82,7 @@ interface ISuperfluid {
      * @notice Agreement class updated event
      * @dev agreementType is the keccak256 hash of: "org.superfluid-finance.agreements.<AGREEMENT_NAME>.<VERSION>"
      * @param agreementType The agreement type updated
-     * @param code Address of the new agreement
+     * @param code Address of the new agreement 
      */
     event AgreementClassUpdated(bytes32 agreementType, address code);
 
@@ -270,14 +258,6 @@ interface ISuperfluid {
      * These functions can only be called by registered agreements.
      *************************************************************************/
 
-    /**
-     * @dev (For agreements) StaticCall the app before callback
-     * @param  app               The super app.
-     * @param  callData          The call data sending to the super app.
-     * @param  isTermination     Is it a termination callback?
-     * @param  ctx               Current ctx, it will be validated.
-     * @return cbdata            Data returned from the callback.
-     */
     function callAppBeforeCallback(
         ISuperApp app,
         bytes calldata callData,
@@ -286,17 +266,9 @@ interface ISuperfluid {
     )
         external
         // onlyAgreement
-        // assertValidCtx(ctx)
+        // isAppActive(app)
         returns(bytes memory cbdata);
 
-    /**
-     * @dev (For agreements) Call the app after callback
-     * @param  app               The super app.
-     * @param  callData          The call data sending to the super app.
-     * @param  isTermination     Is it a termination callback?
-     * @param  ctx               Current ctx, it will be validated.
-     * @return newCtx
-     */
     function callAppAfterCallback(
         ISuperApp app,
         bytes calldata callData,
@@ -305,17 +277,9 @@ interface ISuperfluid {
     )
         external
         // onlyAgreement
-        // assertValidCtx(ctx)
-        returns(bytes memory newCtx);
+        // isAppActive(app)
+        returns(bytes memory appCtx);
 
-    /**
-     * @dev (For agreements) Create a new callback stack
-     * @param  ctx                     The current ctx, it will be validated.
-     * @param  app                     The super app.
-     * @param  appAllowanceGranted     App allowance granted so far.
-     * @param  appAllowanceUsed        App allowance used so far.
-     * @return newCtx
-     */
     function appCallbackPush(
         bytes calldata ctx,
         ISuperApp app,
@@ -325,19 +289,8 @@ interface ISuperfluid {
     )
         external
         // onlyAgreement
-        // assertValidCtx(ctx)
-        returns (bytes memory newCtx);
+        returns (bytes memory appCtx);
 
-    /**
-     * @dev (For agreements) Pop from the current app callback stack
-     * @param  ctx                     The ctx that was pushed before the callback stack.
-     * @param  appAllowanceUsedDelta   App allowance used by the app.
-     * @return newCtx
-     *
-     * [SECURITY] NOTE:
-     * - Here we cannot do assertValidCtx(ctx), since we do not really save the stack in memory.
-     * - Hence there is still implicit trust that the agreement handles the callback push/pop pair correctly.
-     */
     function appCallbackPop(
         bytes calldata ctx,
         int256 appAllowanceUsedDelta
@@ -346,13 +299,6 @@ interface ISuperfluid {
         // onlyAgreement
         returns (bytes memory newCtx);
 
-    /**
-     * @dev (For agreements) Use app allowance.
-     * @param  ctx                      The current ctx, it will be validated.
-     * @param  appAllowanceWantedMore   See app allowance for more details.
-     * @param  appAllowanceUsedDelta    See app allowance for more details.
-     * @return newCtx
-     */
     function ctxUseAllowance(
         bytes calldata ctx,
         uint256 appAllowanceWantedMore,
@@ -360,15 +306,8 @@ interface ISuperfluid {
     )
         external
         // onlyAgreement
-        // assertValidCtx(ctx)
         returns (bytes memory newCtx);
 
-    /**
-     * @dev (For agreements) Jail the app.
-     * @param  app                     The super app.
-     * @param  reason                  Jail reason code.
-     * @return newCtx
-     */
     function jailApp(
         bytes calldata ctx,
         ISuperApp app,
@@ -376,9 +315,7 @@ interface ISuperfluid {
     )
         external
         // onlyAgreement
-        // assertValidCtx(ctx)
         returns (bytes memory newCtx);
-
     /**
      * @dev Jail event for the app
      * @param app Address of jailed app
@@ -411,7 +348,6 @@ interface ISuperfluid {
      )
         external
         //cleanCtx
-        //isAgreement(agreementClass)
         returns(bytes memory returnedData);
 
     /**
@@ -428,7 +364,6 @@ interface ISuperfluid {
         external
         //cleanCtx
         //isAppActive(app)
-        //isValidAppAction(callData)
         returns(bytes memory returnedData);
 
     /**************************************************************************
@@ -495,7 +430,7 @@ interface ISuperfluid {
         bytes calldata ctx
     )
         external
-        // requireValidCtx(ctx)
+        // validCtx(ctx)
         // onlyAgreement(agreementClass)
         returns (bytes memory newCtx, bytes memory returnedData);
 
@@ -505,7 +440,7 @@ interface ISuperfluid {
         bytes calldata ctx
     )
         external
-        // requireValidCtx(ctx)
+        // validCtx(ctx)
         // isAppActive(app)
         returns (bytes memory newCtx);
 
@@ -554,11 +489,8 @@ interface ISuperfluid {
      /* /// @dev The current superfluid context is clean.
      modifier cleanCtx() virtual;
 
-     /// @dev Require the ctx being valid.
-     modifier requireValidCtx(bytes memory ctx) virtual;
-
-     /// @dev Assert the ctx being valid.
-     modifier assertValidCtx(bytes memory ctx) virtual;
+     /// @dev The superfluid context is valid.
+     modifier validCtx(bytes memory ctx) virtual;
 
      /// @dev The agreement is a listed agreement.
      modifier isAgreement(ISuperAgreement agreementClass) virtual;

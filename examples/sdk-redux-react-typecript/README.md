@@ -1,14 +1,10 @@
 Hi! Welcome to the example project which demonstrated the capabilities of SDK-Redux & SDK-Core.
 
-Run `yarn install` to install all the necessary packages.
-If you want to do symlinks (`yarn link`) locally then do it manually or _temporarily_ include this example project in root package.json's "workspaces".
-`yarn link-sdks` tries to set up symlinks to `sdk-core` and `sdk-redux` automatically.
-
+If it's your first time in the monorepo, go to the root directory and run `yarn first-time-after-git-clone`.
+It should install all the required packages, create symlinks between Superfluid packages/projects and build all of them.
+After that, you should be able to start this project.
 
 ## Available Scripts
-
-### `yarn link-sdks`
-Tries to set up symlinks to `sdk-core` and `sdk-redux` automatically. Good when developing SDK-s and the example project at the same time.
 
 ### `yarn start`
 

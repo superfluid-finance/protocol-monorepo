@@ -30,7 +30,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         publisher,
         indexId,
         userData = "0x",
-        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -50,57 +49,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: publisherNorm,
             method: this._sf.host.callAgreement,
-            gasOptions: {
-                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
-                maxFeePerGas: gasOptions.maxFeePerGas,
-            },
             onTransaction,
         });
         console.debug("Index created.");
         return tx;
-    }
-
-    /**
-     * @dev Get details of an index
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @param {int} indexId ID of the index
-     * @return {Promise<Subscription>} Subscription data
-     */
-    async getIndex({superToken, publisher, indexId}) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
-        const result = await this._ida.getIndex(
-            superTokenNorm,
-            publisherNorm,
-            indexId
-        );
-        return this.constructor._sanitizeIndexData(result);
-    }
-
-    /**
-     * @dev List indices of a publisher
-     * @param {tokenParam} superToken SuperToken for the index
-     * @param {addressParam} publisher Publisher of the index
-     * @return {Promise<Subscription>} Subscription data
-     */
-    async listIndices({superToken, publisher}) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
-        return (
-            await this._sf.getPastEvents(this._ida, "IndexCreated", {
-                token: superTokenNorm,
-                publisher: publisherNorm,
-            })
-        ).map((e) => Number(e.indexId.toString()));
     }
 
     /**
@@ -118,7 +70,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         indexId,
         amount,
         userData = "0x",
-        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -138,10 +89,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: publisherNorm,
             method: this._sf.host.callAgreement,
-            gasOptions: {
-                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
-                maxFeePerGas: gasOptions.maxFeePerGas,
-            },
             onTransaction,
         });
         console.debug("Distribution complete.");
@@ -166,7 +113,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         indexId,
         indexValue,
         userData = "0x",
-        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -186,10 +132,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: publisherNorm,
             method: this._sf.host.callAgreement,
-            gasOptions: {
-                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
-                maxFeePerGas: gasOptions.maxFeePerGas,
-            },
             onTransaction,
         });
         console.debug("Index updated.");
@@ -213,7 +155,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         subscriber,
         units,
         userData = "0x",
-        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -242,10 +183,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: publisherNorm,
             method: this._sf.host.callAgreement,
-            gasOptions: {
-                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
-                maxFeePerGas: gasOptions.maxFeePerGas,
-            },
             onTransaction,
         });
         console.debug("Subscription updated.");
@@ -271,7 +208,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         indexId,
         subscriber,
         userData = "0x",
-        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -299,10 +235,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: subscriberNorm,
             method: this._sf.host.callAgreement,
-            gasOptions: {
-                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
-                maxFeePerGas: gasOptions.maxFeePerGas,
-            },
             onTransaction,
         });
         console.debug("Subscription approved.");
@@ -327,7 +259,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         publisher,
         subscriber,
         userData = "0x",
-        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -355,10 +286,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: subscriberNorm,
             method: this._sf.host.callAgreement,
-            gasOptions: {
-                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
-                maxFeePerGas: gasOptions.maxFeePerGas,
-            },
             onTransaction,
         });
         console.debug("Subscription revoked.");
@@ -385,7 +312,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         subscriber,
         sender,
         userData = "0x",
-        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -415,10 +341,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: senderNorm,
             method: this._sf.host.callAgreement,
-            gasOptions: {
-                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
-                maxFeePerGas: gasOptions.maxFeePerGas,
-            },
             onTransaction,
         });
         console.debug("Subscription deleted.");
@@ -472,7 +394,6 @@ module.exports = class InstantDistributionAgreementV1Helper {
         subscriber,
         sender,
         userData = "0x",
-        gasOptions = {},
         onTransaction = () => null,
     }) {
         const superTokenNorm = await this._sf.utils.normalizeTokenParam(
@@ -502,14 +423,53 @@ module.exports = class InstantDistributionAgreementV1Helper {
             ],
             sender: senderNorm,
             method: this._sf.host.callAgreement,
-            gasOptions: {
-                maxPriorityFeePerGas: gasOptions.maxPriorityFeePerGas,
-                maxFeePerGas: gasOptions.maxFeePerGas,
-            },
             onTransaction,
         });
         console.debug("Claim complete.");
         return tx;
+    }
+
+    /**
+     * @dev Get details of an index
+     * @param {tokenParam} superToken SuperToken for the index
+     * @param {addressParam} publisher Publisher of the index
+     * @param {int} indexId ID of the index
+     * @return {Promise<Subscription>} Subscription data
+     */
+    async getIndex({superToken, publisher, indexId}) {
+        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
+            superToken
+        );
+        const publisherNorm = await this._sf.utils.normalizeAddressParam(
+            publisher
+        );
+        const result = await this._ida.getIndex(
+            superTokenNorm,
+            publisherNorm,
+            indexId
+        );
+        return this.constructor._sanitizeIndexData(result);
+    }
+
+    /**
+     * @dev List indices of a publisher
+     * @param {tokenParam} superToken SuperToken for the index
+     * @param {addressParam} publisher Publisher of the index
+     * @return {Promise<Subscription>} Subscription data
+     */
+    async listIndices({superToken, publisher}) {
+        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
+            superToken
+        );
+        const publisherNorm = await this._sf.utils.normalizeAddressParam(
+            publisher
+        );
+        return (
+            await this._sf.getPastEvents(this._ida, "IndexCreated", {
+                token: superTokenNorm,
+                publisher: publisherNorm,
+            })
+        ).map((e) => Number(e.indexId.toString()));
     }
 
     /**

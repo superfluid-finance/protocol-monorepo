@@ -9,7 +9,7 @@ const {
 } = require("./libs/common");
 
 /**
- * @dev Deploy test token (Mintable ERC20) and register it in the resolver.
+ * @dev Deploy test token (Mintable ERC20) to the network.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
@@ -52,7 +52,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const resolver = await Resolver.at(config.resolverAddress);
     console.log("Resolver address", resolver.address);
 
-    // deploy test token
+    // deploy test token and its super token
     const name = `tokens.${tokenSymbol}`;
     let testTokenAddress = await resolver.get(name);
     if (
@@ -75,6 +75,4 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log(`Token ${tokenSymbol} address`, testTokenAddress);
 
     console.log("======== Test token deployed ========");
-
-    return testTokenAddress;
 });

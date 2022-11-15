@@ -6,13 +6,12 @@ import { Error } from "../Error";
 import { sfApi } from "../redux/store";
 
 export const DeleteStream: FC = (): ReactElement => {
-    const [deleteFlow, { isLoading, error }] = sfApi.useFlowDeleteMutation();
+    const [deleteFlow, { isLoading, error }] = sfApi.useDeleteFlowMutation();
 
     const [chainId, signerAddress] = useContext(SignerContext);
 
     const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
-    const [userDataBytes, setUserDataBytes] = useState<string>("");
     const [waitForConfirmation, setWaitForConfirmation] =
         useState<boolean>(false);
 
@@ -23,7 +22,6 @@ export const DeleteStream: FC = (): ReactElement => {
             chainId,
             superTokenAddress: superToken,
             waitForConfirmation,
-            userDataBytes
         });
     };
 
@@ -48,13 +46,6 @@ export const DeleteStream: FC = (): ReactElement => {
                                 label="SuperToken"
                                 onChange={(e) =>
                                     setSuperToken(e.currentTarget.value)
-                                }
-                            />
-                            <TextField
-                                sx={{ m: 1 }}
-                                label="User Data"
-                                onChange={(e) =>
-                                    setUserDataBytes(e.currentTarget.value)
                                 }
                             />
                             <Switch

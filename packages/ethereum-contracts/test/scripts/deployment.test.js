@@ -1,6 +1,6 @@
 const Web3 = require("web3");
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {expectRevertedWith} = require("../utils/expectRevert");
+const {expectRevert} = require("@openzeppelin/test-helpers");
 const {codeChanged} = require("../../scripts/libs/common");
 const deployFramework = require("../../scripts/deploy-framework");
 const deployTestToken = require("../../scripts/deploy-test-token");
@@ -158,18 +158,13 @@ contract("Embeded deployment scripts", (accounts) => {
                 assert.isFalse(
                     await codeChanged(web3, Superfluid, s.superfluidCode)
                 );
-
-                // .detectNetwork().then() was added due to hardhat truffle complaining
-                // that no network was set
-                SuperTokenFactory.detectNetwork().then(async () => {
-                    assert.isFalse(
-                        await codeChanged(
-                            web3,
-                            SuperTokenFactory,
-                            s.superTokenFactoryLogic
-                        )
-                    );
-                });
+                assert.isFalse(
+                    await codeChanged(
+                        web3,
+                        SuperTokenFactory,
+                        s.superTokenFactoryLogic
+                    )
+                );
             });
 
             it("fresh deployment (useMocks=true)", async () => {
@@ -179,24 +174,16 @@ contract("Embeded deployment scripts", (accounts) => {
                 });
                 const s = await getSuperfluidAddresses();
                 // check if it useMocks=true
-                SuperfluidMock.detectNetwork().then(async () => {
-                    assert.isFalse(
-                        await codeChanged(
-                            web3,
-                            SuperfluidMock,
-                            s.superfluidCode
-                        )
-                    );
-                });
-                SuperTokenFactoryMock.detectNetwork().then(async () => {
-                    assert.isFalse(
-                        await codeChanged(
-                            web3,
-                            SuperTokenFactoryMock,
-                            s.superTokenFactoryLogic
-                        )
-                    );
-                });
+                assert.isFalse(
+                    await codeChanged(web3, SuperfluidMock, s.superfluidCode)
+                );
+                assert.isFalse(
+                    await codeChanged(
+                        web3,
+                        SuperTokenFactoryMock,
+                        s.superTokenFactoryLogic
+                    )
+                );
             });
 
             it("nonUpgradable deployment", async () => {
@@ -209,7 +196,7 @@ contract("Embeded deployment scripts", (accounts) => {
                     nonUpgradable: true,
                     useMocks: false,
                 });
-                await expectRevertedWith(
+                await expectRevert(
                     deployFramework(errorHandler, {
                         ...deploymentOptions,
                         nonUpgradable: true,
@@ -219,143 +206,132 @@ contract("Embeded deployment scripts", (accounts) => {
                 );
             });
 
-            // TODO deployment script upgrades detection only works for truffle
-            if (process.env.IS_TRUFFLE) {
-                it("upgrades", async () => {
-                    // use the same resolver for the entire test
-                    const resolver = await web3tx(
-                        Resolver.new,
-                        "Resolver.new"
-                    )();
-                    process.env.RESOLVER_ADDRESS = resolver.address;
+            it("upgrades", async () => {
+                // use the same resolver for the entire test
+                const resolver = await web3tx(Resolver.new, "Resolver.new")();
+                process.env.RESOLVER_ADDRESS = resolver.address;
 
-                    console.log("==== First deployment");
-                    await deployFramework(errorHandler, deploymentOptions);
-                    const s1 = await getSuperfluidAddresses();
+                console.log("==== First deployment");
+                await deployFramework(errorHandler, deploymentOptions);
+                const s1 = await getSuperfluidAddresses();
 
-                    console.log(
-                        "==== Deploy again without logic contract changes"
-                    );
-                    await deployFramework(errorHandler, deploymentOptions);
-                    const s2 = await getSuperfluidAddresses();
-                    assert.equal(
-                        s1.superfluidLoader,
-                        s2.superfluidLoader,
-                        "SuperfluidLoader should stay the same address"
-                    );
-                    assert.equal(
-                        s1.superfluid.address,
-                        s2.superfluid.address,
-                        "Superfluid proxy should stay the same address"
-                    );
-                    assert.equal(
-                        s1.superfluidCode,
-                        s2.superfluidCode,
-                        "superfluid logic deployment not required"
-                    );
-                    assert.equal(
-                        s1.gov,
-                        s2.gov,
-                        "Governance deployment not required"
-                    );
-                    assert.equal(
-                        s1.superTokenFactory,
-                        s2.superTokenFactory,
-                        "superTokenFactory deployment not required"
-                    );
-                    assert.equal(
-                        s1.superTokenFactoryLogic,
-                        s2.superTokenFactoryLogic,
-                        "superTokenFactoryLogic deployment not required"
-                    );
-                    assert.equal(
-                        s1.superTokenLogic,
-                        s2.superTokenLogic,
-                        "superTokenLogic deployment not required"
-                    );
-                    assert.equal(s1.cfa, s2.cfa, "cfa deployment not required");
-                    assert.equal(s1.ida, s2.ida, "ida deployment not required");
+                console.log("==== Deploy again without logic contract changes");
+                await deployFramework(errorHandler, deploymentOptions);
+                const s2 = await getSuperfluidAddresses();
+                assert.equal(
+                    s1.superfluidLoader,
+                    s2.superfluidLoader,
+                    "SuperfluidLoader should stay the same address"
+                );
+                assert.equal(
+                    s1.superfluid.address,
+                    s2.superfluid.address,
+                    "Superfluid proxy should stay the same address"
+                );
+                assert.equal(
+                    s1.superfluidCode,
+                    s2.superfluidCode,
+                    "superfluid logic deployment not required"
+                );
+                assert.equal(
+                    s1.gov,
+                    s2.gov,
+                    "Governance deployment not required"
+                );
+                assert.equal(
+                    s1.superTokenFactory,
+                    s2.superTokenFactory,
+                    "superTokenFactory deployment not required"
+                );
+                assert.equal(
+                    s1.superTokenFactoryLogic,
+                    s2.superTokenFactoryLogic,
+                    "superTokenFactoryLogic deployment not required"
+                );
+                assert.equal(
+                    s1.superTokenLogic,
+                    s2.superTokenLogic,
+                    "superTokenLogic deployment not required"
+                );
+                assert.equal(s1.cfa, s2.cfa, "cfa deployment not required");
+                assert.equal(s1.ida, s2.ida, "ida deployment not required");
 
-                    console.log("==== Reset all");
-                    await deployFramework(errorHandler, {
-                        ...deploymentOptions,
-                        resetSuperfluidFramework: true,
-                    });
-                    const s3 = await getSuperfluidAddresses();
-                    assert.notEqual(
-                        s3.superfluidCode,
-                        ZERO_ADDRESS,
-                        "superfluidCode not set"
-                    );
-                    assert.notEqual(s3.gov, ZERO_ADDRESS, "gov not set");
-                    assert.notEqual(
-                        s3.superTokenFactory,
-                        ZERO_ADDRESS,
-                        "superTokenFactory not set"
-                    );
-                    assert.notEqual(
-                        s3.superTokenFactoryLogic,
-                        ZERO_ADDRESS,
-                        "superTokenFactoryLogic not set"
-                    );
-                    assert.notEqual(
-                        s3.superTokenLogic,
-                        ZERO_ADDRESS,
-                        "superTokenLogic not set"
-                    );
-                    assert.notEqual(s3.cfa, ZERO_ADDRESS, "cfa not registered");
-                    assert.notEqual(s3.ida, ZERO_ADDRESS, "ida not registered");
-                    assert.notEqual(
-                        s1.superfluid.address,
-                        s3.superfluid.address
-                    );
-                    assert.notEqual(s1.superfluidCode, s3.superfluidCode);
-                    assert.notEqual(s1.gov, s3.gov);
-                    assert.notEqual(s1.superTokenFactory, s3.superTokenFactory);
-                    assert.notEqual(s1.superTokenLogic, s3.superTokenLogic);
-                    assert.notEqual(s1.cfa, s3.cfa);
-                    assert.notEqual(s1.ida, s3.ida);
-
-                    console.log("==== Deploy again with mock logic contract");
-                    await deployFramework(errorHandler, {
-                        ...deploymentOptions,
-                        useMocks: true,
-                    });
-                    const s4 = await getSuperfluidAddresses();
-                    assert.equal(
-                        s3.superfluid.address,
-                        s4.superfluid.address,
-                        "Superfluid proxy should stay the same address"
-                    );
-                    assert.notEqual(
-                        s3.superfluidCode,
-                        s4.superfluidCode,
-                        "superfluid logic deployment required"
-                    );
-                    assert.equal(
-                        s3.gov,
-                        s4.gov,
-                        "Governance deployment not required"
-                    );
-                    assert.equal(
-                        s3.superTokenFactory,
-                        s4.superTokenFactory,
-                        "superTokenFactory proxy should stay the same address"
-                    );
-                    assert.notEqual(
-                        s3.superTokenFactoryLogic,
-                        s4.superTokenFactoryLogic,
-                        "superTokenFactoryLogic deployment required"
-                    );
-                    assert.notEqual(
-                        s3.superTokenLogic,
-                        s4.superTokenLogic,
-                        "superTokenLogic update required"
-                    );
-                    assert.equal(s3.cfa, s4.cfa, "cfa deployment not required");
-                    assert.equal(s3.ida, s4.ida, "cfa deployment not required");
+                console.log("==== Reset all");
+                await deployFramework(errorHandler, {
+                    ...deploymentOptions,
+                    resetSuperfluidFramework: true,
                 });
-            }
+                const s3 = await getSuperfluidAddresses();
+                assert.notEqual(
+                    s3.superfluidCode,
+                    ZERO_ADDRESS,
+                    "superfluidCode not set"
+                );
+                assert.notEqual(s3.gov, ZERO_ADDRESS, "gov not set");
+                assert.notEqual(
+                    s3.superTokenFactory,
+                    ZERO_ADDRESS,
+                    "superTokenFactory not set"
+                );
+                assert.notEqual(
+                    s3.superTokenFactoryLogic,
+                    ZERO_ADDRESS,
+                    "superTokenFactoryLogic not set"
+                );
+                assert.notEqual(
+                    s3.superTokenLogic,
+                    ZERO_ADDRESS,
+                    "superTokenLogic not set"
+                );
+                assert.notEqual(s3.cfa, ZERO_ADDRESS, "cfa not registered");
+                assert.notEqual(s3.ida, ZERO_ADDRESS, "ida not registered");
+                assert.notEqual(s1.superfluid.address, s3.superfluid.address);
+                assert.notEqual(s1.superfluidCode, s3.superfluidCode);
+                assert.notEqual(s1.gov, s3.gov);
+                assert.notEqual(s1.superTokenFactory, s3.superTokenFactory);
+                assert.notEqual(s1.superTokenLogic, s3.superTokenLogic);
+                assert.notEqual(s1.cfa, s3.cfa);
+                assert.notEqual(s1.ida, s3.ida);
+
+                console.log("==== Deploy again with mock logic contract");
+                await deployFramework(errorHandler, {
+                    ...deploymentOptions,
+                    useMocks: true,
+                });
+                const s4 = await getSuperfluidAddresses();
+                assert.equal(
+                    s3.superfluid.address,
+                    s4.superfluid.address,
+                    "Superfluid proxy should stay the same address"
+                );
+                assert.notEqual(
+                    s3.superfluidCode,
+                    s4.superfluidCode,
+                    "superfluid logic deployment required"
+                );
+                assert.equal(
+                    s3.gov,
+                    s4.gov,
+                    "Governance deployment not required"
+                );
+                assert.equal(
+                    s3.superTokenFactory,
+                    s4.superTokenFactory,
+                    "superTokenFactory proxy should stay the same address"
+                );
+                assert.notEqual(
+                    s3.superTokenFactoryLogic,
+                    s4.superTokenFactoryLogic,
+                    "superTokenFactoryLogic deployment required"
+                );
+                assert.notEqual(
+                    s3.superTokenLogic,
+                    s4.superTokenLogic,
+                    "superTokenLogic update required"
+                );
+                assert.equal(s3.cfa, s4.cfa, "cfa deployment not required");
+                assert.equal(s3.ida, s4.ida, "cfa deployment not required");
+            });
         });
 
         it("scripts/deploy-test-token.js", async () => {
@@ -494,41 +470,37 @@ contract("Embeded deployment scripts", (accounts) => {
         });
     });
 
-    context("UUPS security", () => {
-        it("UUPSProxiable should not be a proxy", async () => {
-            const attacker = accounts[0];
-            const Destructor = artifacts.require("SuperfluidDestructorMock");
-            const destructor = await Destructor.new();
-            await deployFramework(errorHandler, {isTruffle: true});
-            const s = await getSuperfluidAddresses();
-            const superfluidLogic = await Superfluid.at(s.superfluidCode);
-            await superfluidLogic.initialize(attacker, {from: attacker});
-            console.log("superfluid(proxy)", s.superfluid.address);
-            console.log("*superfluid(logic)", superfluidLogic.address);
-            console.log("**superfluid", await superfluidLogic.getCodeAddress());
-            await expectRevertedWith(
-                superfluidLogic.updateCode(destructor.address, {
-                    from: attacker,
-                }),
-                "UUPSProxiable: not upgradable"
-            );
-        });
+    it("[SECURITY-DestructableProxiable] proxiable should not be a proxy", async () => {
+        const attacker = accounts[0];
+        const Destructor = artifacts.require("SuperfluidDestructorMock");
+        const destructor = await Destructor.new();
+        await deployFramework(errorHandler, {isTruffle: true});
+        const s = await getSuperfluidAddresses();
+        const superfluidLogic = await Superfluid.at(s.superfluidCode);
+        await superfluidLogic.initialize(attacker, {from: attacker});
+        console.log("superfluid(proxy)", s.superfluid.address);
+        console.log("*superfluid(logic)", superfluidLogic.address);
+        console.log("**superfluid", await superfluidLogic.getCodeAddress());
+        await expectRevert(
+            superfluidLogic.updateCode(destructor.address, {from: attacker}),
+            "UUPSProxiable: not upgradable"
+        );
+    });
 
-        it("UUPSProxy should not be a proxiable", async () => {
-            const TestGovernance = artifacts.require("TestGovernance");
-            await deployFramework(errorHandler, {isTruffle: true});
-            const s = await getSuperfluidAddresses();
-            const gov = await TestGovernance.at(s.gov);
-            assert.equal(gov.address, await s.superfluid.getGovernance());
-            await expectRevertedWith(
-                gov.updateContracts(
-                    s.superfluid.address,
-                    s.superfluid.address, // a dead loop proxy
-                    [],
-                    ZERO_ADDRESS
-                ),
-                "UUPSProxiable: proxy loop"
-            );
-        });
+    it("[SECURITY-DeadloopProxiable] proxy should not be a proxiable", async () => {
+        const TestGovernance = artifacts.require("TestGovernance");
+        await deployFramework(errorHandler, {isTruffle: true});
+        const s = await getSuperfluidAddresses();
+        const gov = await TestGovernance.at(s.gov);
+        assert.equal(gov.address, await s.superfluid.getGovernance());
+        await expectRevert(
+            gov.updateContracts(
+                s.superfluid.address,
+                s.superfluid.address, // a dead loop proxy
+                [],
+                ZERO_ADDRESS
+            ),
+            "UUPSProxiable: proxy loop"
+        );
     });
 });

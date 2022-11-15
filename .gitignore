@@ -1,5 +1,3 @@
-/cache
-**/cache
 out
 **/out
 /data
@@ -8,6 +6,8 @@ out
 **/node_modules
 /build
 **/build
+/reports
+**/reports
 /dist
 **/dist
 **/dist-newstyle
@@ -15,13 +15,14 @@ out
 **/.env
 *.env
 lerna-debug.log
+/coverage.json
+/coverage
 
 *.ignore.*
 yarn-error.log
 package-lock.json
 .DS_Store
-.idea
-foundry.toml
+
 
 .vscode/
 *-workspace

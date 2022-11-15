@@ -1,11 +1,10 @@
-query streamPeriods($first: Int = 10, $skip: Int = 0, $where: StreamPeriod_filter = {}, $orderBy: StreamPeriod_orderBy = id, $orderDirection: OrderDirection = asc, $block: Block_height) {
+query streamPeriods($first: Int = 10, $skip: Int = 0, $where: StreamPeriod_filter = {}, $orderBy: StreamPeriod_orderBy = id, $orderDirection: OrderDirection = asc) {
     streamPeriods(
         first: $first
         skip: $skip
         orderBy: $orderBy
         orderDirection: $orderDirection
         where: $where
-        block: $block
     ) {
         id
         flowRate
@@ -16,7 +15,6 @@ query streamPeriods($first: Int = 10, $skip: Int = 0, $where: StreamPeriod_filte
         totalAmountStreamed
         token {
             id
-            symbol
         }
         stream {
             id

@@ -31,12 +31,12 @@ jobs:
     strategy:
       fail-fast: false # build all examples independently
       matrix:
-        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow-truffle, tradeable-cashflow-hardhat, streaming-call-option, budget-nft, nftbillboard-userdata, sdk-redux-react-typecript, sdk-redux-nextjs-typescript, employment-based-loan, simple-acl-close]
+        example: [rewards-distribution-token, continuous-auction, flowlottery, tradeable-cashflow-truffle, tradeable-cashflow-hardhat, streaming-call-option, budget-nft, nftbillboard-userdata, sdk-redux-react-typecript, sdk-redux-nextjs-typescript ]
         install: [locked-install, clean-install]
-        node-version: [16]
+        node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
         with:
           path: monorepo
 
@@ -47,7 +47,7 @@ jobs:
 
       - name: Use Node.js ${{ matrix.node-version }}
         if: ${{ github.event_name != 'push' || env.BUILD_EXAMPLES == 1 }}
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
 

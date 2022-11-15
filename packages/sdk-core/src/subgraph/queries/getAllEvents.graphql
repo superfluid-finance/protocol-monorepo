@@ -1,17 +1,5 @@
-query getAllEvents(
-    $where: Event_filter! = {}
-    $skip: Int! = 0
-    $first: Int! = 10
-    $orderBy: Event_orderBy! = id
-    $orderDirection: OrderDirection! = asc
-) {
-    events(
-        where: $where
-        skip: $skip
-        first: $first
-        orderBy: $orderBy
-        orderDirection: $orderDirection
-    ) {
+query getAllEvents($where: Event_filter! = {}, $skip: Int! = 0, $first: Int! = 10, $orderBy: Event_orderBy! = id, $orderDirection: OrderDirection! = asc) {
+    events(where: $where, skip: $skip, first: $first, orderBy: $orderBy, orderDirection: $orderDirection) {
         ... on FlowUpdatedEvent {
             # we repeat `...eventFields` in each event so it throws an error in the mapper when an expected event isn't included here
             ...eventFields
@@ -21,15 +9,6 @@ query getAllEvents(
             sender
             receiver
             flowRate
-            flowOperator
-            deposit
-        }
-        ... on FlowOperatorUpdatedEvent {
-            ...eventFields
-            token
-            sender
-            permissions
-            flowRateAllowance
         }
         ... on IndexCreatedEvent {
             ...eventFields
@@ -334,7 +313,5 @@ fragment eventFields on Event {
     id
     blockNumber
     transactionHash
-    order
     timestamp
-    logIndex
 }

@@ -13,7 +13,7 @@ export type OperationType =
     | "CALL_APP_ACTION"; // 202
 
 /**
- * Operation Helper Class
+ * @dev Operation Helper Class
  * @description A helper class to create `Operation` objects which can be executed or batched.
  */
 export default class Operation {
@@ -29,7 +29,7 @@ export default class Operation {
     }
 
     /**
-     * Executes the operation via the provided signer.
+     * @dev Executes the operation via the provided signer.
      * @description Populates all fields of the transaction, signs it and sends it to the network.
      * @param signer The signer of the transacation
      * @returns {ethers.providers.TransactionResponse} A TransactionResponse object which can be awaited
@@ -51,7 +51,7 @@ export default class Operation {
     };
 
     /**
-     * Get the populated transaction by awaiting `populateTransactionPromise`.
+     * @dev Get the populated transaction by awaiting `populateTransactionPromise`.
      * @description Note that we need to populate the txn with the signer.
      * @returns {Promise<TransactionRequest>}
      */
@@ -71,7 +71,7 @@ export default class Operation {
         }
     };
     /**
-     * Signs the populated transaction via the provided signer (what you intend on sending to the network).
+     * @dev Signs the populated transaction via the provided signer (what you intend on sending to the network).
      * @param signer The signer of the transacation
      * @returns {Promise<string>} Fully serialized, signed transaction
      */
@@ -93,7 +93,7 @@ export default class Operation {
     };
 
     /**
-     * Gets the transaction hash of the transaction.
+     * @dev Gets the transaction hash of the transaction.
      * @description Calculates this by getting the keccak256 hash of the signedTxn.
      * @param signer The signer of the transacation
      * @returns {Promise<string>} The transaction hash of the transaction

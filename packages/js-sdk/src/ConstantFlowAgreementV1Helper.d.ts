@@ -2,7 +2,6 @@ import type { Transaction } from "web3-core";
 import type { Framework } from "./Framework";
 import type { LoadedContract } from "./loadContracts";
 import type BN from 'bn.js';
-import { GasOptions } from "./types/gasOptions";
 
 // returned from listFlows
 export interface FlowList {
@@ -35,8 +34,7 @@ export interface CreateFlowOptions {
   receiver: string;
   flowRate: string;
   userData?: string;
-  onTransaction?: ()=>any;
-  gasOptions?: GasOptions;
+  onTransaction?: ()=>any
 }
 export type UpdateFlowOptions = CreateFlowOptions
 
@@ -48,8 +46,7 @@ export interface DeleteFlowOptions {
   flowRate: string;
   by?: string;
   userData?: string;
-  onTransaction?: ()=>any;
-  gasOptions?: GasOptions;
+  onTransaction?: ()=>any
 }
 
 export interface GetFlowOptions {
@@ -93,7 +90,6 @@ export declare class ConstantFlowAgreementV1Helper {
    * @param {addressParam} receiver receiver of the flow
    * @param {flowRateParam} flowRate the flowrate of the flow
    * @param {Buffer} userData the user data passed to the callbacks
-   * @param {GasOptions} gasOptions pass network gas parameters
    * @param {Function} onTransaction function to be called when transaction hash has been generated
    * @return {Promise<Transaction>} web3 transaction object
    */
@@ -104,7 +100,6 @@ export declare class ConstantFlowAgreementV1Helper {
     flowRate,
     userData,
     onTransaction,
-    gasOptions,
   }: CreateFlowOptions): Promise<Transaction>;
   /**
    * @dev Update a new flow with a new flow rate
@@ -113,7 +108,6 @@ export declare class ConstantFlowAgreementV1Helper {
    * @param {addressParam} receiver receiver of the flow
    * @param {flowRateParam} flowRate the flowrate of the flow
    * @param {Buffer} userData the user data passed to the callbacks
-   * @param {GasOptions} gasOptions override network gas parameters
    * @param {Function} onTransaction function to be called when transaction hash has been generated
    * @return {Promise<Transaction>} web3 transaction object
    */
@@ -124,7 +118,6 @@ export declare class ConstantFlowAgreementV1Helper {
     flowRate,
     userData,
     onTransaction,
-    gasOptions,
   }: UpdateFlowOptions): Promise<Transaction>;
   /**
    * @dev Delete a existing flow
@@ -133,7 +126,6 @@ export declare class ConstantFlowAgreementV1Helper {
    * @param {addressParam} receiver receiver of the flow
    * @param {addressParam} by delete flow by a third party (liquidations)
    * @param {Buffer} userData the user data passed to the callbacks
-   * @param {GasOptions} gasOptions override network gas parameters
    * @param {Function} onTransaction function to be called when transaction hash has been generated
    * @return {Promise<Transaction>} web3 transaction object
    */
@@ -144,7 +136,6 @@ export declare class ConstantFlowAgreementV1Helper {
     by,
     userData,
     onTransaction,
-    gasOptions,
   }: DeleteFlowOptions): Promise<Transaction>;
   /**
    * @dev Get information of a existing flow

@@ -1,9 +1,9 @@
 import { FC, ReactElement } from "react";
+import { PossibleErrors } from "@superfluid-finance/sdk-redux";
 import { Alert, Button } from "@mui/material";
-import { SerializedError } from "@reduxjs/toolkit";
 
 interface Props {
-    error: SerializedError;
+    error: PossibleErrors;
     retry?: () => void;
 }
 

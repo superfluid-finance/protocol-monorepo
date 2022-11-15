@@ -1,11 +1,11 @@
-import {BigInt} from "@graphprotocol/graph-ts";
+import { BigInt, log } from "@graphprotocol/graph-ts";
 import {
     IndexCreated,
     IndexDistributionClaimed,
+    IndexUpdated,
     IndexSubscribed,
     IndexUnitsUpdated,
     IndexUnsubscribed,
-    IndexUpdated,
     SubscriptionApproved,
     SubscriptionDistributionClaimed,
     SubscriptionRevoked,
@@ -14,31 +14,31 @@ import {
 import {
     IndexCreatedEvent,
     IndexDistributionClaimedEvent,
+    IndexUpdatedEvent,
     IndexSubscribedEvent,
     IndexUnitsUpdatedEvent,
     IndexUnsubscribedEvent,
-    IndexUpdatedEvent,
     SubscriptionApprovedEvent,
     SubscriptionDistributionClaimedEvent,
     SubscriptionRevokedEvent,
     SubscriptionUnitsUpdatedEvent,
 } from "../../generated/schema";
 import {
-    BIG_INT_ZERO,
     createEventID,
-    getIndexID, getOrder,
+    BIG_INT_ZERO,
     subscriptionExists as subscriptionWithUnitsExists,
     tokenHasValidHost,
+    getIndexID,
 } from "../utils";
 import {
     getOrInitIndex,
     getOrInitSubscription,
     getOrInitTokenStatistic,
     updateAggregateIDASubscriptionsData,
-    updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
+    updateATSStreamedAndBalanceUntilUpdatedAt,
 } from "../mappingHelpers";
-import {getHostAddress} from "../addresses";
+import { getHostAddress } from "../addresses";
 
 export function handleIndexCreated(event: IndexCreated): void {
     let hostAddress = getHostAddress();
@@ -59,10 +59,13 @@ export function handleIndexCreated(event: IndexCreated): void {
     index.save();
 
     // update streamed until updated at field
-    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+    updateTokenStatsStreamedUntilUpdatedAt(
+        event.params.token.toHex(),
+        event.block
+    );
 
     let tokenStatistic = getOrInitTokenStatistic(
-        event.params.token,
+        event.params.token.toHex(),
         event.block
     );
     tokenStatistic.totalNumberOfIndexes =
@@ -72,8 +75,8 @@ export function handleIndexCreated(event: IndexCreated): void {
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher,
-        event.params.token,
+        event.params.publisher.toHex(),
+        event.params.token.toHex(),
         event.block
     );
 
@@ -123,10 +126,13 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         previousTotalAmountDistributed.plus(distributionDelta);
     index.save();
 
-    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+    updateTokenStatsStreamedUntilUpdatedAt(
+        event.params.token.toHex(),
+        event.block
+    );
 
     let tokenStatistic = getOrInitTokenStatistic(
-        event.params.token,
+        event.params.token.toHex(),
         event.block
     );
 
@@ -145,8 +151,8 @@ export function handleIndexUpdated(event: IndexUpdated): void {
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher,
-        event.params.token,
+        event.params.publisher.toHex(),
+        event.params.token.toHex(),
         event.block
     );
 
@@ -217,12 +223,14 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
     subscription.approved = true;
     subscription.indexValueUntilUpdatedAt = index.indexValue;
 
+    let tokenId = event.params.token.toHex();
+
     let hasSubscriptionWithUnits = subscriptionWithUnitsExists(subscription.id);
 
     // this must be done whether subscription exists or not
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.subscriber,
-        event.params.token,
+        event.params.subscriber.toHex(),
+        tokenId,
         event.block
     );
 
@@ -238,20 +246,20 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
             subscription.totalAmountReceivedUntilUpdatedAt.plus(balanceDelta);
 
         updateATSStreamedAndBalanceUntilUpdatedAt(
-            event.params.publisher,
-            event.params.token,
+            event.params.publisher.toHex(),
+            tokenId,
             event.block
         );
     }
 
     subscription.save();
 
-    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+    updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
     // we only want to increment approved here ALWAYS
     updateAggregateIDASubscriptionsData(
-        event.params.subscriber,
-        event.params.token,
+        event.params.subscriber.toHex(),
+        event.params.token.toHex(),
         hasSubscriptionWithUnits || subscription.approved,
         subscription.approved,
         false, // don't increment subWithUnits
@@ -298,13 +306,13 @@ export function handleSubscriptionDistributionClaimed(
     createSubscriptionDistributionClaimedEntity(event, subscription.id);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher,
-        event.params.token,
+        event.params.publisher.toHex(),
+        event.params.token.toHex(),
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.subscriber,
-        event.params.token,
+        event.params.subscriber.toHex(),
+        event.params.token.toHex(),
         event.block
     );
 }
@@ -324,6 +332,9 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     if (!hasValidHost) {
         return;
     }
+
+    let tokenId = event.params.token.toHex();
+    let subscriberAddress = event.params.subscriber.toHex();
 
     let index = getOrInitIndex(
         event.params.publisher,
@@ -362,16 +373,16 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     subscription.indexValueUntilUpdatedAt = index.indexValue;
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.subscriber,
-        event.params.token,
+        subscriberAddress,
+        tokenId,
         event.block
     );
 
-    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+    updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
     updateAggregateIDASubscriptionsData(
-        event.params.subscriber,
-        event.params.token,
+        subscriberAddress,
+        tokenId,
         true,
         subscription.approved,
         false, // don't increment subWithUnits
@@ -382,8 +393,8 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     );
     // mimic ida logic more closely
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher,
-        event.params.token,
+        event.params.publisher.toHex(),
+        tokenId,
         event.block
     );
 
@@ -412,6 +423,7 @@ export function handleSubscriptionUnitsUpdated(
     if (!hasValidHost) {
         return;
     }
+    let tokenId = event.params.token.toHex();
 
     let subscription = getOrInitSubscription(
         event.params.subscriber,
@@ -459,13 +471,13 @@ export function handleSubscriptionUnitsUpdated(
     // We move both of these in here as we handle this in revoke or delete
     // as well, so if we put it outside it will be a duplicate call
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.publisher,
-        event.params.token,
+        event.params.publisher.toHex(),
+        tokenId,
         event.block
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.subscriber,
-        event.params.token,
+        event.params.subscriber.toHex(),
+        tokenId,
         event.block
     );
 
@@ -473,11 +485,11 @@ export function handleSubscriptionUnitsUpdated(
     // and therefore subtracts the number of totalSubscriptionWithUnits and
     // totalApprovedSubscriptions
     if (units.equals(BIG_INT_ZERO)) {
-        updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
         updateAggregateIDASubscriptionsData(
-            event.params.subscriber,
-            event.params.token,
+            subscription.subscriber,
+            tokenId,
             hasSubscriptionWithUnits,
             subscription.approved,
             false, // don't increment subWithUnits
@@ -501,11 +513,11 @@ export function handleSubscriptionUnitsUpdated(
         index.totalSubscriptionsWithUnits =
             index.totalSubscriptionsWithUnits + 1;
 
-        updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+        updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
         updateAggregateIDASubscriptionsData(
-            event.params.subscriber,
-            event.params.token,
+            event.params.subscriber.toHex(),
+            tokenId,
             hasSubscriptionWithUnits,
             subscription.approved,
             true, // only place we increment subWithUnits
@@ -532,8 +544,6 @@ function createIndexCreatedEntity(event: IndexCreated, indexId: string): void {
     ev.name = "IndexCreated";
     ev.addresses = [event.params.token, event.params.publisher];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -558,8 +568,6 @@ function createIndexDistributionClaimedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -576,8 +584,6 @@ function createIndexUpdatedEntity(event: IndexUpdated, indexId: string): void {
     ev.name = "IndexUpdated";
     ev.addresses = [event.params.token, event.params.publisher];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -603,8 +609,6 @@ function createIndexSubscribedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.publisher = event.params.publisher;
     ev.indexId = event.params.indexId;
@@ -631,8 +635,6 @@ function createIndexUnitsUpdatedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -660,8 +662,6 @@ function createIndexUnsubscribedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -687,8 +687,6 @@ function createSubscriptionApprovedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -714,8 +712,6 @@ function createSubscriptionDistributionClaimedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -741,8 +737,6 @@ function createSubscriptionRevokedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;
@@ -769,8 +763,6 @@ function createSubscriptionUnitsUpdatedEntity(
         event.params.subscriber,
     ];
     ev.blockNumber = event.block.number;
-    ev.logIndex = event.logIndex;
-    ev.order = getOrder(event.block.number, event.logIndex);
     ev.token = event.params.token;
     ev.subscriber = event.params.subscriber;
     ev.publisher = event.params.publisher;

@@ -11,7 +11,6 @@ export const ROPSTEN_SUBGRAPH_ENDPOINT =
 
 describe("Framework Tests", () => {
     let deployer: SignerWithAddress;
-    let alpha: SignerWithAddress;
     let superToken: SuperToken;
     let framework: Framework;
     let INFURA_API_URL = "https://polygon-rpc.com/";
@@ -21,13 +20,12 @@ describe("Framework Tests", () => {
     );
 
     before(async () => {
-        const { frameworkClass, Deployer, SuperToken, Alpha } = await setup({
+        const { frameworkClass, Deployer, SuperToken } = await setup({
             amount: "10000000000",
             subgraphEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
         });
         framework = frameworkClass;
         deployer = Deployer;
-        alpha = Alpha;
         superToken = SuperToken;
     });
 
@@ -61,7 +59,7 @@ describe("Framework Tests", () => {
         it("Should throw an error if network and chainId don't match", async () => {
             try {
                 await Framework.create({
-                    networkName: "polygon-mainnet",
+                    networkName: "matic",
                     chainId: 4,
                     provider: deployer.provider!,
                 });
@@ -73,7 +71,6 @@ describe("Framework Tests", () => {
         });
 
         it("Should throw an error if your provider network and selected chainId/networkName don't match", async () => {
-            const chainId = (await deployer.provider!.getNetwork()).chainId;
             try {
                 await Framework.create({
                     chainId: 4,
@@ -82,7 +79,7 @@ describe("Framework Tests", () => {
             } catch (err: any) {
                 expect(err.message).to.equal(
                     "Network Mismatch Error - Your provider network chainId is: " +
-                        chainId +
+                        1337 +
                         " whereas your desired chainId is: " +
                         4
                 );
@@ -93,7 +90,7 @@ describe("Framework Tests", () => {
             try {
                 // NOTE: as any to get this to throw an error when test no provider initialization (as if this was JS)
                 await Framework.create({
-                    networkName: "polygon-mainnet",
+                    networkName: "matic",
                 } as any);
             } catch (err: any) {
                 expect(err.message).to.equal(
@@ -136,9 +133,8 @@ describe("Framework Tests", () => {
     describe("Framework.create Tests", () => {
         it("Should throw an error if loadFramework fails", async () => {
             try {
-                const chainId = (await deployer.provider!.getNetwork()).chainId;
                 await Framework.create({
-                    chainId,
+                    chainId: 1337,
                     provider: deployer.provider!,
                     customSubgraphQueriesEndpoint: ROPSTEN_SUBGRAPH_ENDPOINT,
                     resolverAddress:
@@ -155,7 +151,7 @@ describe("Framework Tests", () => {
         it("Should throw an error if subgraph endpoint is empty on supported network and WEB3_ONLY isn't selected", async () => {
             try {
                 await Framework.create({
-                    networkName: "polygon-mainnet",
+                    networkName: "matic",
                     provider: customProvider,
                     customSubgraphQueriesEndpoint: "",
                     resolverAddress:
@@ -258,16 +254,6 @@ describe("Framework Tests", () => {
             const tokenName = await superToken.symbol();
             const daix = await framework.loadSuperToken(tokenName);
             expect(daix.settings.address).to.equal(superToken.address);
-        });
-
-        it("Should be able to use contract object", async () => {
-            const flowData = await framework.contracts.cfaV1
-                .connect(deployer)
-                .getFlow(superToken.address, deployer.address, alpha.address);
-            expect(flowData.timestamp).to.eq("0");
-            expect(flowData.flowRate).to.eq("0");
-            expect(flowData.deposit).to.eq("0");
-            expect(flowData.owedDeposit).to.eq("0");
         });
     });
 });

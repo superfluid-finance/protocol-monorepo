@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.12;
 
 import { CallUtils } from "../libs/CallUtils.sol";
-import { IRelayRecipient } from "../interfaces/utils/IRelayRecipient.sol";
+import { IRelayRecipient } from "../interfaces/ux/IRelayRecipient.sol";
 
 /**
  * @dev A test forwarder that can impersonate any account needed.

@@ -37,7 +37,6 @@ export interface AccountTokenSnapshot {
     updatedAtTimestamp: Timestamp;
     account: Address;
     token: Address;
-    tokenSymbol: string;
 }
 
 export type AccountTokenSnapshotListQuery = SubgraphListQuery<
@@ -73,7 +72,6 @@ export class AccountTokenSnapshotQueryHandler extends SubgraphQueryHandler<
             ...x,
             account: x.account.id,
             token: x.token.id,
-            tokenSymbol: x.token.symbol,
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
             updatedAtTimestamp: Number(x.updatedAtTimestamp),
         }));

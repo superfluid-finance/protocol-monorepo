@@ -320,7 +320,7 @@ async function printSuperTokensInformation({
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  *
- * Usage: npx truffle exec scripts/info-show-protocol-info.js
+ * Usage: npx truffle exec scripts/show-protocol-info.js
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,

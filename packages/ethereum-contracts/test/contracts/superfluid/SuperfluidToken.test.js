@@ -1,4 +1,7 @@
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {
+    expectRevert,
+    // expectEvent
+} = require("@openzeppelin/test-helpers");
 
 const {
     web3tx,
@@ -253,7 +256,7 @@ describe("SuperfluidToken implementation", function () {
                     "0x42",
                     testData
                 );
-                await expectRevertedWith(
+                await expectRevert(
                     acA.createAgreementFor(
                         superToken.address,
                         "0x42",
@@ -262,13 +265,13 @@ describe("SuperfluidToken implementation", function () {
                     "SuperfluidToken: agreement already created"
                 );
                 // try overlapping data
-                await expectRevertedWith(
+                await expectRevert(
                     acA.createAgreementFor(superToken.address, "0x42", [
                         testData[0],
                     ]),
                     "SuperfluidToken: agreement already created"
                 );
-                await expectRevertedWith(
+                await expectRevert(
                     acA.createAgreementFor(superToken.address, "0x42", [
                         ...testData,
                         ...testData,
@@ -331,7 +334,7 @@ describe("SuperfluidToken implementation", function () {
                     acA.terminateAgreementFor,
                     "terminateAgreementFor"
                 )(superToken.address, "0x42", 2);
-                await expectRevertedWith(
+                await expectRevert(
                     acA.terminateAgreementFor(superToken.address, "0x42", 2),
                     "SuperfluidToken: agreement does not exist"
                 );
@@ -430,7 +433,7 @@ describe("SuperfluidToken implementation", function () {
                     web3.utils.sha3("typeBad"),
                     1
                 );
-                await expectRevertedWith(
+                await expectRevert(
                     acBad.settleBalanceFor(superToken.address, bob, "1"),
                     "SuperfluidToken: only listed agreeement"
                 );
@@ -469,7 +472,7 @@ describe("SuperfluidToken implementation", function () {
                 web3.utils.sha3("typeBad"),
                 1
             );
-            await expectRevertedWith(
+            await expectRevert(
                 acBad.makeLiquidationPayoutsFor(
                     superToken.address,
                     "0x42",

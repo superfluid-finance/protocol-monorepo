@@ -41,13 +41,13 @@ export function getHostAddress(): Address {
         address = "0x74b57883f8ce9F2BD330286E884CfD8BB24AC4ED";
     }
     if (network == "avalanche") {
-        address = "0x60377C7016E4cdB03C87EF474896C11cB560752C";
+        address = "";
     }
     if (network == "arbitrum-one") {
-        address = "0xCf8Acb4eF033efF16E8080aed4c7D5B9285D2192";
+        address = "";
     }
     if (network == "optimism") {
-        address = "0x567c4B141ED61923967cA25Ef4906C8781069a10";
+        address = "";
     }
     return Address.fromString(address);
 }
@@ -89,13 +89,13 @@ export function getResolverAddress(): Address {
         address = "0x218B65780615Ff134f9Ad810CB98839534D3C0D6";
     }
     if (network == "avalanche") {
-        address = "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1";
+        address = "";
     }
     if (network == "arbitrum-one") {
-        address = "0x609b9d9d6Ee9C3200745A79B9d3398DBd63d509F";
+        address = "";
     }
     if (network == "optimism") {
-        address = "0x743B5f46BC86caF41bE4956d9275721E0531B186";
+        address = "";
     }
     return Address.fromString(address);
 }

@@ -68,7 +68,7 @@ export const validateFrameworkConstructorOptions = (
 };
 
 /**
- * options.networkName is casted as not null as we check to ensure chainId or networkName is not null.
+ * @dev options.networkName is casted as not null as we check to ensure chainId or networkName is not null.
  * @param options
  * @returns SubgraphQueriesEndpoint which is a custom endpoint or based on selected network
  */
@@ -94,7 +94,7 @@ interface INetworkNameParams {
 }
 
 /**
- * We check that the user has input a networkName or chainId and that they are both supported.
+ * @dev We check that the user has input a networkName or chainId and that they are both supported.
  * @param options.chainId the chainId of the desired network
  * @param options.networkName the name of the desired network
  * @returns the network name

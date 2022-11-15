@@ -1,11 +1,17 @@
 import { ethers } from "hardhat";
 import { abi as TestTokenABI } from "../src/abi/TestToken.json";
+import { abi as IResolverABI } from "../src/abi/IResolver.json";
+import { abi as SuperTokenABI } from "../src/abi/SuperToken.json";
+import { abi as IConstantFlowAgreementV1ABI } from "../src/abi/IConstantFlowAgreementV1.json";
+import { abi as IInstantDistributionAgreementV1ABI } from "../src/abi/IInstantDistributionAgreementV1.json";
 import {
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
+    IResolver,
+    SuperToken,
     TestToken,
 } from "../src/typechain";
-import { DataMode, Framework, WrapperSuperToken } from "../src";
+import { DataMode, Framework } from "../src";
 
 // NOTE: This assumes you are testing with the generic hardhat mnemonic as the deployer:
 // test test test test test test test test test test test junk
@@ -34,6 +40,25 @@ export const setup = async (props: ISetupProps) => {
     if (!provider) {
         throw new Error("No provider");
     }
+    const resolver = new ethers.Contract(
+        RESOLVER_ADDRESS,
+        IResolverABI,
+        Deployer
+    ) as IResolver;
+    const superTokenAddress = await resolver.get("supertokens.test.fDAIx");
+    const SuperToken = new ethers.Contract(
+        superTokenAddress,
+        SuperTokenABI,
+        Deployer
+    ) as SuperToken;
+    const underlyingToken = await SuperToken.connect(
+        Deployer
+    ).getUnderlyingToken();
+    const Token = new ethers.Contract(
+        underlyingToken,
+        TestTokenABI,
+        Deployer
+    ) as TestToken;
     const chainId = (await provider.getNetwork()).chainId;
     const frameworkClass = await Framework.create({
         chainId,
@@ -43,21 +68,16 @@ export const setup = async (props: ISetupProps) => {
         customSubgraphQueriesEndpoint: props.subgraphEndpoint,
         protocolReleaseVersion: "test",
     });
-    const CFAV1 = frameworkClass.contracts.cfaV1.connect(
+    const CFAV1 = new ethers.Contract(
+        frameworkClass.settings.config.cfaV1Address,
+        IConstantFlowAgreementV1ABI,
         Deployer
     ) as IConstantFlowAgreementV1;
-    const IDAV1 = frameworkClass.contracts.idaV1.connect(
+    const IDAV1 = new ethers.Contract(
+        frameworkClass.settings.config.idaV1Address,
+        IInstantDistributionAgreementV1ABI,
         Deployer
     ) as IInstantDistributionAgreementV1;
-    const superTokenClass = (await frameworkClass.loadSuperToken(
-        "fDAIx"
-    )) as WrapperSuperToken;
-    let SuperToken = superTokenClass.contract;
-    const Token = new ethers.Contract(
-        superTokenClass.underlyingToken.address,
-        TestTokenABI,
-        Deployer
-    ) as TestToken;
     if (props.amount) {
         const initialAmount = ethers.utils.parseUnits(props.amount);
         for (let i = 0; i < signers.length; i++) {
@@ -77,7 +97,6 @@ export const setup = async (props: ISetupProps) => {
             });
         }
     }
-    SuperToken = superTokenClass.contract.connect(Deployer);
 
     return {
         CFAV1,

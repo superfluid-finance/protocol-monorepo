@@ -23,7 +23,7 @@ jobs:
       contracts-working-directory: ./packages/ethereum-contracts
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: "Install node"
         uses: "actions/setup-node@v2"

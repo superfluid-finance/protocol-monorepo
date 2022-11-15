@@ -1,18 +1,15 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
-
-import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+pragma solidity 0.8.12;
 
 import {
     ISuperfluid,
-    ISuperToken,
     ISuperfluidToken,
     ISuperApp,
     SuperAppDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { AgreementBase } from "../agreements/AgreementBase.sol";
 import { AgreementLibrary } from "../agreements/AgreementLibrary.sol";
-
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 contract AgreementMock is AgreementBase {
 
@@ -31,10 +28,12 @@ contract AgreementMock is AgreementBase {
 
     function version() external view returns (uint) { return _version; }
 
+    /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external override view returns (bytes32) {
         return _type;
     }
 
+    /// @dev ISuperAgreement.realtimeBalanceOf implementation
     function realtimeBalanceOf(
        ISuperfluidToken token,
        address account,
@@ -57,7 +56,7 @@ contract AgreementMock is AgreementBase {
     }
 
     /**
-     * SuperfluidToken Mockings
+     * Real-time balance mockings
      */
 
     function setRealtimeBalanceFor(
@@ -73,6 +72,10 @@ contract AgreementMock is AgreementBase {
         slotData[2] = bytes32(uint256(owedDeposit));
         token.updateAgreementStateSlot(account, _REAL_TIME_BALANCE_SLOT_ID, slotData);
     }
+
+    /**
+     * Agreement client mockings
+     */
 
     function createAgreementFor(
         ISuperfluidToken token,
@@ -139,92 +142,42 @@ contract AgreementMock is AgreementBase {
     }
 
     /**
-     * Agreement Framework Mockings
+     * Agreement Framework mockings
      */
 
-    function tryCallAppBeforeCallback(ISuperfluid host, ISuperApp appMock, bool hackCtx, bytes calldata ctx)
-        external returns (bytes memory newCtx)
-    {
-        return host.callAppBeforeCallback(
-            appMock,
-            abi.encodeCall(
-                appMock.beforeAgreementCreated,
-                (
-                    ISuperToken(address(0)), /* ISuperToken */
-                    address(this), /* agreementClass */
-                    bytes32(uint256(0)), /* agreementId */
-                    new bytes(0), /* agreementData */
-                    new bytes(0) /* placeholder ctx */
-                )
-            ),
-            true, /* isTermination */
-            hackCtx ? new bytes(0) : ctx);
+    function tryCallAppBeforeCallback(ISuperfluid host) external {
+        host.callAppBeforeCallback(ISuperApp(address(0)), "", false, "");
     }
 
-    function tryCallAppAfterCallback(ISuperfluid host, ISuperApp appMock, bool hackCtx, bytes calldata ctx)
-        external returns (bytes memory newCtx)
-    {
-        return host.callAppAfterCallback(
-            appMock,
-            abi.encodeCall(
-                appMock.afterAgreementCreated,
-                (
-                    ISuperToken(address(0)), /* ISuperToken */
-                    address(this), /* agreementClass */
-                    bytes32(uint256(0)), /* agreementId */
-                    new bytes(0), /* agreementData */
-                    new bytes(0), /* cbData */
-                    new bytes(0) /* placeholder ctx */
-                )
-            ),
-            true, /* isTermination */
-            hackCtx ? new bytes(0) : ctx);
+    function tryCallAppAfterCallback(ISuperfluid host) external {
+        host.callAppAfterCallback(ISuperApp(address(0)), "", false, "");
     }
 
-    function tryAppCallbackPush(ISuperfluid host, ISuperApp appMock, bool hackCtx, bytes calldata ctx)
-        external returns (bytes memory newCtx)
-    {
-        return host.appCallbackPush(hackCtx ? new bytes(0) : ctx, appMock, 0, 0, ISuperfluidToken(address(0)));
+    function tryAppCallbackPush(ISuperfluid host) external {
+        host.appCallbackPush("", ISuperApp(address(0)), 0, 0, ISuperfluidToken(address(0)));
     }
 
-    function tryAppCallbackPop(ISuperfluid host, bytes calldata ctx)
-        external returns (bytes memory newCtx)
-    {
-        return host.appCallbackPop(ctx, 0);
+    function tryAppCallbackPop(ISuperfluid host) external {
+        host.appCallbackPop("", 0);
     }
 
-    function tryCtxUseAllowance(ISuperfluid host, bool hackCtx, bytes calldata ctx)
-        external returns (bytes memory newCtx)
-    {
-        return host.ctxUseAllowance(hackCtx ? new bytes(0) : ctx, 0, 0);
+    function tryCtxUseAllowance(ISuperfluid host) external {
+        host.ctxUseAllowance("", 0, 0);
     }
 
-    function tryJailApp(ISuperfluid host, ISuperApp appMock, bool hackCtx, bytes calldata ctx)
-        external returns (bytes memory newCtx)
-    {
-        return host.jailApp(hackCtx ? new bytes(0) : ctx, appMock, 0);
+    function tryJailApp(ISuperfluid host) external {
+        host.jailApp("", ISuperApp(address(0)), 0);
     }
 
-    /**
-     * Trivial Agreement Operations
-     */
-
-    modifier requireValidCtx(bytes memory ctx) {
-        require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid given by host?!");
-        _;
-    }
-
-    /// doRevert agreement operation
-    function doRevert(string calldata reason, bytes calldata ctx) external view requireValidCtx(ctx) {
+    function doRevert(string calldata reason, bytes calldata ctx) external view validCtx(ctx) {
         revert(reason);
     }
 
-    /// pingMe agreement operation, emits Pong event
     event Pong(uint256 ping);
 
     function pingMe(address expectedMsgSender, uint256 ping, bytes calldata ctx)
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         ISuperfluid.Context memory context = ISuperfluid(msg.sender).decodeCtx(ctx);
@@ -233,16 +186,16 @@ contract AgreementMock is AgreementBase {
         return ctx;
     }
 
-    /**
-     * App Callback Mocking Agreement Operations
-     */
-
-    /// _callAppBeforeCallback base agreement operation, emits AppBeforeCallbackResult event
     event AppBeforeCallbackResult(
         uint8 appLevel,
         uint8 callType,
         bytes4 agreementSelector,
         bytes cbdata);
+
+    event AppAfterCallbackResult(
+        uint8 appLevel,
+        uint8 callType,
+        bytes4 agreementSelector);
 
     function _callAppBeforeCallback(
         ISuperApp app,
@@ -267,12 +220,6 @@ contract AgreementMock is AgreementBase {
             cbdata);
     }
 
-    /// _callAppAfterAgreementCallback base agreement operation, emits AppAfterCallbackResult event
-    event AppAfterCallbackResult(
-        uint8 appLevel,
-        uint8 callType,
-        bytes4 agreementSelector);
-
     function _callAppAfterAgreementCallback(
         ISuperApp app,
         uint256 noopBit,
@@ -289,11 +236,10 @@ contract AgreementMock is AgreementBase {
             "" /* agreementData */
         );
         cbStates.noopBit = noopBit;
-        ISuperfluid.Context memory appContext;
-        (appContext, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
+        (, newCtx) = AgreementLibrary.callAppAfterCallback(cbStates, "", ctx);
         if (isJailed) {
-            // appContext.callType is a sufficient check that the callback was not called at all
-            require(appContext.callType == 0, "AgreementMock: callback should not reach jailed app");
+            require(newCtx.length == 0, "AgreementMock: callback should not reach jailed app");
+            newCtx = ctx;
         } else {
             require(ISuperfluid(msg.sender).isCtxValid(newCtx), "AgreementMock: ctx not valid after callback");
         }
@@ -308,7 +254,7 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         _callAppBeforeCallback(app, SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP, ctx);
@@ -320,7 +266,7 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         return _callAppAfterAgreementCallback(app, SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP, ctx);
@@ -331,7 +277,7 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         _callAppBeforeCallback(app, SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP, ctx);
@@ -343,7 +289,7 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         return _callAppAfterAgreementCallback(app, SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP, ctx);
@@ -354,7 +300,7 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         _callAppBeforeCallback(app, SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP, ctx);
@@ -366,10 +312,14 @@ contract AgreementMock is AgreementBase {
         bytes calldata ctx
     )
         external
-        requireValidCtx(ctx)
+        validCtx(ctx)
         returns (bytes memory newCtx)
     {
         return _callAppAfterAgreementCallback(app, SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP, ctx);
     }
 
+    modifier validCtx(bytes memory ctx) {
+        require(ISuperfluid(msg.sender).isCtxValid(ctx), "AgreementMock: ctx not valid before");
+        _;
+    }
 }

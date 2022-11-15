@@ -4,10 +4,6 @@ All packages inside this repo will have their own LICENSE files.
 
 Notably:
 
-- packages/spec-haskell - MIT
 - packages/ethereum-contracts - AGPLv3
-- packages/subgraph - AGPLv3
 - packages/js-sdk - MIT
-- packages/sdk-core - MIT
-- packages/sdk-redux - MIT
-- packages/hot-fuzz - AGPLv3
+

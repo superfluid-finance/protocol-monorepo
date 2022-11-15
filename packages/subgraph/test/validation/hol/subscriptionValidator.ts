@@ -1,7 +1,9 @@
 import { expect } from "chai";
 import { ethers } from "ethers";
-import { Framework } from "@superfluid-finance/sdk-core";
-import { IDAEventType } from "../../helpers/constants";
+import {Framework} from "@superfluid-finance/sdk-core";
+import {
+    IDAEventType,
+} from "../../helpers/constants";
 import { fetchEntityAndEnsureExistence, toBN } from "../../helpers/helpers";
 import {
     IIndexSubscription,
@@ -10,10 +12,13 @@ import {
     IIDAEvents,
     ILightEntity,
 } from "../../interfaces";
-import { getAccount, getSubscription } from "../../queries/holQueries";
+import {
+    getAccount,
+    getSubscription,
+} from "../../queries/holQueries";
 import { validateReverseLookup } from "../validators";
 
-const validateAccountReverseLookupsForSubscription = async (
+export const validateAccountReverseLookups = async (
     subscription: IIndexSubscription
 ) => {
     const subscriptionLightEntity = { id: subscription.id };
@@ -104,7 +109,7 @@ export const fetchSubscriptionAndValidate = async (
     ) {
         // We only enter here if a subscriber is being added for the first time
         // subscribers who delete or set units to 0 are still in the array
-        validateAccountReverseLookupsForSubscription(indexSubscription);
+        validateAccountReverseLookups(indexSubscription);
     }
 };
 

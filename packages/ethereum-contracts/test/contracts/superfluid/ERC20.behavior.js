@@ -1,8 +1,12 @@
 // NOTE: copied and modified from https://github.com/OpenZeppelin/openzeppelin-contracts/
-const {BN, constants, expectEvent} = require("@openzeppelin/test-helpers");
+const {
+    BN,
+    constants,
+    expectEvent,
+    expectRevert,
+} = require("@openzeppelin/test-helpers");
 const {expect} = require("chai");
 const {ZERO_ADDRESS} = constants;
-const {expectRevertedWith} = require("../../utils/expectRevert");
 
 function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
     let initialHolder, recipient, anotherAccount;
@@ -140,7 +144,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                         const amount = initialSupply.addn(1);
 
                         it("reverts", async function () {
-                            await expectRevertedWith(
+                            await expectRevert(
                                 this.token.transferFrom(
                                     tokenOwner,
                                     to,
@@ -166,7 +170,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                         const amount = initialSupply;
 
                         it("reverts", async function () {
-                            await expectRevertedWith(
+                            await expectRevert(
                                 this.token.transferFrom(
                                     tokenOwner,
                                     to,
@@ -182,7 +186,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                         const amount = initialSupply.addn(1);
 
                         it("reverts", async function () {
-                            await expectRevertedWith(
+                            await expectRevert(
                                 this.token.transferFrom(
                                     tokenOwner,
                                     to,
@@ -207,7 +211,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
                 });
 
                 it("reverts", async function () {
-                    await expectRevertedWith(
+                    await expectRevert(
                         this.token.transferFrom(tokenOwner, to, amount, {
                             from: spender,
                         }),
@@ -227,7 +231,7 @@ function shouldBehaveLikeERC20(errorPrefix, initialSupply, setupAccounts) {
             });
 
             it("reverts", async function () {
-                await expectRevertedWith(
+                await expectRevert(
                     this.token.transferFrom(tokenOwner, to, amount, {
                         from: spender,
                     }),
@@ -268,7 +272,7 @@ function shouldBehaveLikeERC20Transfer(
             const amount = balance.addn(1);
 
             it("reverts", async function () {
-                await expectRevertedWith(
+                await expectRevert(
                     transfer.call(this, from, to, amount),
                     "SuperfluidToken: move amount exceeds balance"
                 );
@@ -330,7 +334,7 @@ function shouldBehaveLikeERC20Transfer(
 
     describe("when the recipient is the zero address", function () {
         it("reverts", async function () {
-            await expectRevertedWith(
+            await expectRevert(
                 transfer.call(this, from, ZERO_ADDRESS, balance),
                 "SuperToken: transfer to zero address"
             );
@@ -430,7 +434,7 @@ function shouldBehaveLikeERC20Approve(
 
     describe("when the spender is the zero address", function () {
         it("reverts", async function () {
-            await expectRevertedWith(
+            await expectRevert(
                 approve.call(this, owner, ZERO_ADDRESS, supply),
                 "SuperToken: approve to zero address"
             );

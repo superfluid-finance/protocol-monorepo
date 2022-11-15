@@ -3,20 +3,18 @@ env:
   GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
-  # TODO We no longer do these, instead you always need to create a pull request
   # Triggered by internal pushes
-  # push:
-  #   branches-ignore: ["dev", "release-*"]
-  #
-  # NOTE To continue the old behaviour, these code snipeets is needed in the check job
-  ## triggered by internal pushes or external PRs
-  ## if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo'
-
+  push:
+    branches-ignore: ["dev", "release-*"]
+  # Triggered by external PRs (filtered in the `check` job)
+  # Notes:
+  # -  https://github.com/superfluid-finance/protocol-monorepo/settings/actions
+  #    Here we can configure approval requirements for external collaborators. Read more:
+  #    https://docs.github.com/en/actions/managing-workflow-runs/approving-workflow-runs-from-public-forks
   pull_request:
 
 jobs:
   check:
-    name: Checking what packages need to be built
 
     runs-on: ubuntu-latest
 
@@ -25,7 +23,9 @@ jobs:
       build_js_sdk: ${{ env.BUILD_JS_SDK }}
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
       build_sdk_core: ${{ env.BUILD_SDK_CORE }}
-      build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
+
+    # triggered by internal pushes or external PRs
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo'
 
     steps:
       - name: Show contexts
@@ -37,7 +37,7 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.base_ref: ${{ github.base_ref }}
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
@@ -55,9 +55,7 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
+      - uses: actions/checkout@v2
 
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
@@ -73,15 +71,10 @@ jobs:
           yarn lint
           yarn build
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
       - name: Test ethereum-contracts
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test
-  
+
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)
 
@@ -91,7 +84,7 @@ jobs:
     if: needs.check.outputs.build_ethereum_contracts
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1
@@ -120,7 +113,7 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -157,21 +150,15 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
-      
-      - name: "Install yarn and ganache-cli"
-        run: npm install -g yarn ganache-cli
-
-      - name: "Run ganache-cli node"
-        run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
 
       - name: "Checkout graph node repo and set up local graph node"
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
         with:
           repository: graphprotocol/graph-node
           path: graph-node
@@ -189,12 +176,18 @@ jobs:
         run: docker-compose up &
         working-directory: ./graph-node/docker
 
+      - name: "Install yarn and ganache-cli"
+        run: npm install -g yarn ganache-cli
+
+      - name: "Run ganache-cli node"
+        run: ganache-cli --networkId 4447 -h 0.0.0.0 -m "test test test test test test test test test test test junk" &
+
       - name: "Run integration test suite"
         run: yarn test
         working-directory: ${{ env.subgraph-working-directory }}
 
   test-sdk-core:
-    name: Build and test sdk-core (feature branch)
+    name: Test sdk-core (feature branch)
 
     runs-on: ubuntu-latest
 
@@ -212,7 +205,7 @@ jobs:
         node-version: [16.x]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v1
@@ -235,220 +228,13 @@ jobs:
           yarn test
         working-directory: ${{ env.sdk-core-working-directory }}
 
-  test-spec-haskell:
-    name: Build and test spec-haskell (Feature Branch) - Linux - ${{ matrix.compiler }}
-    needs: [check]
-    if: needs.check.outputs.build_spec_haskell
-    runs-on: ubuntu-18.04
-    timeout-minutes: 60
-    container:
-      image: buildpack-deps:bionic
-    continue-on-error: ${{ matrix.allow-failure }}
-    strategy:
-      matrix:
-        include:
-          - compiler: ghc-9.2.2
-            compilerKind: ghc
-            compilerVersion: 9.2.2
-            setup-method: ghcup
-            allow-failure: false
-          - compiler: ghc-8.10.7
-            compilerKind: ghc
-            compilerVersion: 8.10.7
-            setup-method: ghcup
-            allow-failure: false
-      fail-fast: false
-    steps:
-      - name: checkout
-        uses: actions/checkout@v3
-        with:
-          path: source
-      - name: apt
-        run: |
-          apt-get update
-          apt-get install -y --no-install-recommends gnupg ca-certificates dirmngr curl git software-properties-common libtinfo5
-          if [ "${{ matrix.setup-method }}" = ghcup ]; then
-            mkdir -p "$HOME/.ghcup/bin"
-            curl -sL https://downloads.haskell.org/ghcup/0.1.17.5/x86_64-linux-ghcup-0.1.17.5 > "$HOME/.ghcup/bin/ghcup"
-            chmod a+x "$HOME/.ghcup/bin/ghcup"
-            "$HOME/.ghcup/bin/ghcup" install ghc "$HCVER"
-            "$HOME/.ghcup/bin/ghcup" install cabal 3.6.2.0
-          else
-            apt-add-repository -y 'ppa:hvr/ghc'
-            apt-get update
-            apt-get install -y "$HCNAME"
-            mkdir -p "$HOME/.ghcup/bin"
-            curl -sL https://downloads.haskell.org/ghcup/0.1.17.5/x86_64-linux-ghcup-0.1.17.5 > "$HOME/.ghcup/bin/ghcup"
-            chmod a+x "$HOME/.ghcup/bin/ghcup"
-            "$HOME/.ghcup/bin/ghcup" install cabal 3.6.2.0
-          fi
-        env:
-          HCKIND: ${{ matrix.compilerKind }}
-          HCNAME: ${{ matrix.compiler }}
-          HCVER: ${{ matrix.compilerVersion }}
-      - name: Set PATH and environment variables
-        run: |
-          echo "$HOME/.cabal/bin" >> $GITHUB_PATH
-          echo "LANG=C.UTF-8" >> "$GITHUB_ENV"
-          echo "CABAL_DIR=$HOME/.cabal" >> "$GITHUB_ENV"
-          echo "CABAL_CONFIG=$HOME/.cabal/config" >> "$GITHUB_ENV"
-          HCDIR=/opt/$HCKIND/$HCVER
-          if [ "${{ matrix.setup-method }}" = ghcup ]; then
-            HC=$HOME/.ghcup/bin/$HCKIND-$HCVER
-            echo "HC=$HC" >> "$GITHUB_ENV"
-            echo "HCPKG=$HOME/.ghcup/bin/$HCKIND-pkg-$HCVER" >> "$GITHUB_ENV"
-            echo "HADDOCK=$HOME/.ghcup/bin/haddock-$HCVER" >> "$GITHUB_ENV"
-            echo "CABAL=$HOME/.ghcup/bin/cabal-3.6.2.0 -vnormal+nowrap" >> "$GITHUB_ENV"
-          else
-            HC=$HCDIR/bin/$HCKIND
-            echo "HC=$HC" >> "$GITHUB_ENV"
-            echo "HCPKG=$HCDIR/bin/$HCKIND-pkg" >> "$GITHUB_ENV"
-            echo "HADDOCK=$HCDIR/bin/haddock" >> "$GITHUB_ENV"
-            echo "CABAL=$HOME/.ghcup/bin/cabal-3.6.2.0 -vnormal+nowrap" >> "$GITHUB_ENV"
-          fi
-
-          HCNUMVER=$(${HC} --numeric-version|perl -ne '/^(\d+)\.(\d+)\.(\d+)(\.(\d+))?$/; print(10000 * $1 + 100 * $2 + ($3 == 0 ? $5 != 1 : $3))')
-          echo "HCNUMVER=$HCNUMVER" >> "$GITHUB_ENV"
-          echo "ARG_TESTS=--enable-tests" >> "$GITHUB_ENV"
-          echo "ARG_BENCH=--enable-benchmarks" >> "$GITHUB_ENV"
-          echo "HEADHACKAGE=false" >> "$GITHUB_ENV"
-          echo "ARG_COMPILER=--$HCKIND --with-compiler=$HC" >> "$GITHUB_ENV"
-          echo "GHCJSARITH=0" >> "$GITHUB_ENV"
-        env:
-          HCKIND: ${{ matrix.compilerKind }}
-          HCNAME: ${{ matrix.compiler }}
-          HCVER: ${{ matrix.compilerVersion }}
-      - name: env
-        run: |
-          env
-      - name: write cabal config
-        run: |
-          mkdir -p $CABAL_DIR
-          cat >> $CABAL_CONFIG <<EOF
-          remote-build-reporting: anonymous
-          write-ghc-environment-files: never
-          remote-repo-cache: $CABAL_DIR/packages
-          logs-dir:          $CABAL_DIR/logs
-          world-file:        $CABAL_DIR/world
-          extra-prog-path:   $CABAL_DIR/bin
-          symlink-bindir:    $CABAL_DIR/bin
-          installdir:        $CABAL_DIR/bin
-          build-summary:     $CABAL_DIR/logs/build.log
-          store-dir:         $CABAL_DIR/store
-          install-dirs user
-            prefix: $CABAL_DIR
-          repository hackage.haskell.org
-            url: http://hackage.haskell.org/
-          EOF
-          cat >> $CABAL_CONFIG <<EOF
-          program-default-options
-            ghc-options: $GHCJOBS +RTS -M3G -RTS
-          EOF
-          cat $CABAL_CONFIG
-      - name: versions
-        run: |
-          $HC --version || true
-          $HC --print-project-git-commit-id || true
-          $CABAL --version || true
-      - name: update cabal index
-        run: |
-          $CABAL v2-update -v
-      - name: install cabal-plan
-        run: |
-          mkdir -p $HOME/.cabal/bin
-          curl -sL https://github.com/haskell-hvr/cabal-plan/releases/download/v0.6.2.0/cabal-plan-0.6.2.0-x86_64-linux.xz > cabal-plan.xz
-          echo 'de73600b1836d3f55e32d80385acc055fd97f60eaa0ab68a755302685f5d81bc  cabal-plan.xz' | sha256sum -c -
-          xz -d < cabal-plan.xz > $HOME/.cabal/bin/cabal-plan
-          rm -f cabal-plan.xz
-          chmod a+x $HOME/.cabal/bin/cabal-plan
-          cabal-plan --version
-      - name: initial cabal.project for sdist
-        run: |
-          touch cabal.project
-          D=$GITHUB_WORKSPACE/source/packages/spec-haskell/packages
-          echo "packages: $D/core" >> cabal.project
-          echo "packages: $D/simple" >> cabal.project
-          echo "packages: $D/validator" >> cabal.project
-          cat cabal.project
-      - name: sdist
-        run: |
-          mkdir -p sdist
-          $CABAL sdist all --output-dir $GITHUB_WORKSPACE/sdist
-      - name: unpack
-        run: |
-          mkdir -p unpacked
-          find sdist -maxdepth 1 -type f -name '*.tar.gz' -exec tar -C $GITHUB_WORKSPACE/unpacked -xzvf {} \;
-      - name: generate cabal.project
-        run: |
-          PKGDIR_superfluid_protocol_spec_core="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/superfluid-protocol-spec-core-[0-9.]*')"
-          echo "PKGDIR_superfluid_protocol_spec_core=${PKGDIR_superfluid_protocol_spec_core}" >> "$GITHUB_ENV"
-          PKGDIR_superfluid_protocol_system_simple="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/superfluid-protocol-system-simple-[0-9.]*')"
-          echo "PKGDIR_superfluid_protocol_system_simple=${PKGDIR_superfluid_protocol_system_simple}" >> "$GITHUB_ENV"
-          PKGDIR_superfluid_protocol_spec_validator="$(find "$GITHUB_WORKSPACE/unpacked" -maxdepth 1 -type d -regex '.*/superfluid-protocol-spec-validator-[0-9.]*')"
-          echo "PKGDIR_superfluid_protocol_spec_validator=${PKGDIR_superfluid_protocol_spec_validator}" >> "$GITHUB_ENV"
-          rm -f cabal.project cabal.project.local
-          touch cabal.project
-          touch cabal.project.local
-          echo "packages: ${PKGDIR_superfluid_protocol_spec_core}" >> cabal.project
-          echo "packages: ${PKGDIR_superfluid_protocol_system_simple}" >> cabal.project
-          echo "packages: ${PKGDIR_superfluid_protocol_spec_validator}" >> cabal.project
-          echo "package superfluid-protocol-spec-core" >> cabal.project
-          echo "    ghc-options: -Werror=missing-methods" >> cabal.project
-          echo "package superfluid-protocol-system-simple" >> cabal.project
-          echo "    ghc-options: -Werror=missing-methods" >> cabal.project
-          echo "package superfluid-protocol-spec-validator" >> cabal.project
-          echo "    ghc-options: -Werror=missing-methods" >> cabal.project
-          cat >> cabal.project <<EOF
-          EOF
-          $HCPKG list --simple-output --names-only | perl -ne 'for (split /\s+/) { print "constraints: $_ installed\n" unless /^(superfluid-protocol-spec-core|superfluid-protocol-spec-validator|superfluid-protocol-system-simple)$/; }' >> cabal.project.local
-          cat cabal.project
-          cat cabal.project.local
-      - name: dump install plan
-        run: |
-          $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH --dry-run all
-          cabal-plan
-      - name: cache
-        uses: actions/cache@v2
-        with:
-          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-          path: ~/.cabal/store
-          restore-keys: ${{ runner.os }}-${{ matrix.compiler }}-
-      - name: install dependencies
-        run: |
-          $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks --dependencies-only -j2 all
-          $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH --dependencies-only -j2 all
-      - name: build w/o tests
-        run: |
-          $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks all
-      - name: build
-        run: |
-          $CABAL v2-build $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --write-ghc-environment-files=always
-      - name: tests
-        run: |
-          $CABAL v2-test $ARG_COMPILER $ARG_TESTS $ARG_BENCH all --test-show-details=direct
-      - name: cabal check
-        run: |
-          cd ${PKGDIR_superfluid_protocol_spec_core} || false
-          ${CABAL} -vnormal check
-          cd ${PKGDIR_superfluid_protocol_system_simple} || false
-          ${CABAL} -vnormal check
-          cd ${PKGDIR_superfluid_protocol_spec_validator} || false
-          ${CABAL} -vnormal check
-      - name: haddock
-        run: |
-          $CABAL v2-haddock $ARG_COMPILER --with-haddock $HADDOCK $ARG_TESTS $ARG_BENCH all
-      - name: unconstrained build
-        run: |
-          rm -f cabal.project.local
-          $CABAL v2-build $ARG_COMPILER --disable-tests --disable-benchmarks all
-
   all-packages-tested:
     name: All packages tested (Feature Branch)
 
     runs-on: ubuntu-latest
 
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
-    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-js-sdk, test-subgraph, test-sdk-core, test-spec-haskell]
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-js-sdk, test-subgraph, test-sdk-core]
 
     steps:
       - name: Test Results
@@ -468,4 +254,3 @@ jobs:
           check_result js-sdk ${{ needs.test-js-sdk.result }}
           check_result subgraph ${{ needs.test-subgraph.result }}
           check_result sdk-core ${{ needs.test-sdk-core.result }}
-          check_result sdk-core ${{ needs.test-spec-haskell.result }}

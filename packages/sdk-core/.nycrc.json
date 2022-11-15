@@ -1,6 +1,16 @@
 {
     "exclude": [
-        "scripts/setup.ts"
+        "hardhat.config.ts",
+        "test",
+        "src/scripts",
+        "src/subgraph",
+        "src/Query.ts",
+        "src/pagination.ts",
+        "src/utils.ts",
+        "src/validation.ts",
+        "src/CustomError.ts",
+        "src/constants.ts",
+        "src/frameworkHelpers.ts",
+        "src/mapGetAllEventsQueryEvents.ts"
     ]
 }
-

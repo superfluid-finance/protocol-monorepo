@@ -1,11 +1,10 @@
-query tokenStatistics($first: Int = 10, $orderBy: TokenStatistic_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: TokenStatistic_filter = {}, $block: Block_height) {
+query tokenStatistics($first: Int = 10, $orderBy: TokenStatistic_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: TokenStatistic_filter = {}) {
     tokenStatistics(
         first: $first
         orderBy: $orderBy
         orderDirection: $orderDirection
         skip: $skip
         where: $where
-        block: $block
     ) {
         id
         totalAmountDistributedUntilUpdatedAt

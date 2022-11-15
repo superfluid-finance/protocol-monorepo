@@ -1,7 +1,6 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
 
 const {web3tx, toWad, toDecimals, toBN} = require("@decentral.ee/web3-helpers");
 
@@ -60,14 +59,14 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#1.3 only host can update the code", async () => {
-            await expectRevertedWith(
+            await expectRevert(
                 superToken.updateCode(ZERO_ADDRESS),
                 "SuperToken: only host can update code"
             );
         });
 
         it("#1.4 only can initialize once", async () => {
-            await expectRevertedWith(
+            await expectRevert(
                 superToken.initialize(ZERO_ADDRESS, 18, "name", "symbol"),
                 "Initializable: contract is already initialized"
             );
@@ -120,7 +119,7 @@ describe("SuperToken's Non Standard Functions", function () {
 
         it("#2.2 - should not upgrade without enough underlying balance", async () => {
             const initialBalance = await testToken.balanceOf.call(alice);
-            await expectRevertedWith(
+            await expectRevert(
                 web3tx(superToken.upgrade, "SuperToken.upgrade - bad balance")(
                     initialBalance.add(toBN(1)),
                     {from: alice}
@@ -214,7 +213,7 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#2.5 - should not downgrade if there is no balance", async () => {
-            await expectRevertedWith(
+            await expectRevert(
                 web3tx(
                     superToken.downgrade,
                     "SuperToken.downgrade - bad balance"
@@ -465,7 +464,7 @@ describe("SuperToken's Non Standard Functions", function () {
 
         it("#2.9 - upgradeTo should trigger tokensReceived", async () => {
             const mock = await ERC777SenderRecipientMock.new();
-            await expectRevertedWith(
+            await expectRevert(
                 superToken.upgradeTo(mock.address, toWad(2), "0x", {
                     from: alice,
                 }),
@@ -555,7 +554,7 @@ describe("SuperToken's Non Standard Functions", function () {
                 from: alice,
             });
 
-            await expectRevertedWith(
+            await expectRevert(
                 superToken.upgradeTo(mockWallet.address, toWad(2), "0x", {
                     from: alice,
                 }),
@@ -603,22 +602,16 @@ describe("SuperToken's Non Standard Functions", function () {
 
         it("#3.2 Custom token functions can only be called by self", async () => {
             const reason = "SuperToken: only self allowed";
-            await expectRevertedWith(
-                superToken.selfMint(alice, 100, "0x"),
-                reason
-            );
-            await expectRevertedWith(
-                superToken.selfBurn(alice, 100, "0x"),
-                reason
-            );
+            await expectRevert(superToken.selfMint(alice, 100, "0x"), reason);
+            await expectRevert(superToken.selfBurn(alice, 100, "0x"), reason);
         });
 
         it("#3.3 Custom token that mints/burn and disabling upgrade/downgrade", async () => {
-            await expectRevertedWith(
+            await expectRevert(
                 customToken.upgrade(100),
                 "SuperToken: no underlying token"
             );
-            await expectRevertedWith(
+            await expectRevert(
                 customToken.downgrade(100),
                 "SuperToken: no underlying token"
             );
@@ -640,7 +633,7 @@ describe("SuperToken's Non Standard Functions", function () {
             );
             assert.equal((await customToken.totalSupply()).toString(), "100");
 
-            await expectRevertedWith(
+            await expectRevert(
                 customToken.callSelfBurn(alice, 101, "0x"),
                 "SuperfluidToken: burn amount exceeds balance"
             );
@@ -673,19 +666,19 @@ describe("SuperToken's Non Standard Functions", function () {
             );
 
             // specified spender is different than holder without allowance reverts
-            await expectRevertedWith(
+            await expectRevert(
                 customToken.callSelfTransferFrom(alice, bob, bob, 100),
                 "SuperToken: transfer amount exceeds allowance"
             );
 
             // holder must have enough balance
-            await expectRevertedWith(
+            await expectRevert(
                 customToken.callSelfTransferFrom(bob, alice, alice, 100),
                 "SuperfluidToken: move amount exceeds balance."
             );
 
             // holder cannot be zero address
-            await expectRevertedWith(
+            await expectRevert(
                 customToken.callSelfTransferFrom(
                     ZERO_ADDRESS,
                     ZERO_ADDRESS,
@@ -696,7 +689,7 @@ describe("SuperToken's Non Standard Functions", function () {
             );
 
             // recipient cannot be zero address
-            await expectRevertedWith(
+            await expectRevert(
                 customToken.callSelfTransferFrom(alice, bob, ZERO_ADDRESS, 100),
                 "SuperToken: transfer to zero address"
             );
@@ -753,13 +746,13 @@ describe("SuperToken's Non Standard Functions", function () {
             );
 
             // account cannot be zero address
-            await expectRevertedWith(
+            await expectRevert(
                 customToken.callSelfApproveFor(ZERO_ADDRESS, bob, 100),
                 "SuperToken: approve from zero address"
             );
 
             // spender cannot be zero address
-            await expectRevertedWith(
+            await expectRevert(
                 customToken.callSelfApproveFor(alice, ZERO_ADDRESS, 100),
                 "SuperToken: approve to zero address"
             );
@@ -812,19 +805,19 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#10.3 batchCall should only be called by host", async function () {
-            await expectRevertedWith(
+            await expectRevert(
                 superToken.operationApprove(alice, bob, "0"),
                 "SuperfluidToken: Only host contract allowed"
             );
-            await expectRevertedWith(
+            await expectRevert(
                 superToken.operationTransferFrom(alice, bob, admin, "0"),
                 "SuperfluidToken: Only host contract allowed"
             );
-            await expectRevertedWith(
+            await expectRevert(
                 superToken.operationUpgrade(alice, "0"),
                 "SuperfluidToken: Only host contract allowed"
             );
-            await expectRevertedWith(
+            await expectRevert(
                 superToken.operationDowngrade(alice, "0"),
                 "SuperfluidToken: Only host contract allowed"
             );

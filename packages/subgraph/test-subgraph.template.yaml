@@ -92,8 +92,6 @@ dataSources:
           entities:
               - Account
               - AccountTokenSnapshot
-              - FlowOperator
-              - FlowOperatorUpdatedEvent
               - FlowUpdatedEvent
               - Stream
               - StreamPeriod
@@ -111,10 +109,6 @@ dataSources:
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleStreamUpdated
-              - event: FlowUpdatedExtension(indexed address,uint256)
-                handler: handleFlowUpdatedExtension
-              - event: FlowOperatorUpdated(indexed address,indexed address,indexed address,uint8,int96)
-                handler: handleFlowOperatorUpdated
     - kind: ethereum/contract
       name: InstantDistributionAgreementV1
       network: {{ network }}

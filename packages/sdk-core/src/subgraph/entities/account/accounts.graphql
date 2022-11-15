@@ -1,11 +1,10 @@
-query accounts($first: Int = 10, $orderBy: Account_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: Account_filter = {}, $block: Block_height) {
+query accounts($first: Int = 10, $orderBy: Account_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: Account_filter = {}) {
     accounts(
         first: $first
         orderBy: $orderBy
         orderDirection: $orderDirection
         skip: $skip
         where: $where
-        block: $block
     ) {
         createdAtBlockNumber
         createdAtTimestamp

@@ -8,8 +8,6 @@ export type ErrorType =
     | "IDAV1_READ"
     | "INVALID_ADDRESS"
     | "INVALID_OBJECT"
-    | "UNCLEAN_PERMISSIONS"
-    | "NEGATIVE_FLOW_ALLOWANCE"
     | "EXECUTE_TRANSACTION"
     | "POPULATE_TRANSACTION"
     | "SIGN_TRANSACTION"
@@ -37,8 +35,6 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["BATCH_CALL_ERROR", "Batch Call"],
     ["NETWORK_MISMATCH", "Network Mismatch"],
     ["UNSUPPORTED_WEB_3_ONLY", "Unsupported Web 3 Only"],
-    ["UNCLEAN_PERMISSIONS", "Unclean Permissions"],
-    ["NEGATIVE_FLOW_ALLOWANCE", "Negative Flow Rate Allowance"],
 ]);
 
 interface ISFErrorProps {

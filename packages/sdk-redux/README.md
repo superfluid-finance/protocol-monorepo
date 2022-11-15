@@ -1,7 +1,6 @@
-<h1 align="center">Welcome to @superfluid-finance/sdk-redux 👋
-</h1>
+<h1 align="center">sdk-redux</h1>
 <div align="center">
-<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-finance/protocol-monorepo/raw/dev/sf-logo.png" />
+<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="./sf-logo.png" />
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/sdk-redux" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/sdk-redux.svg">
@@ -76,20 +75,19 @@ We need to plug in the Superfluid SDK-Redux parts.
 Import the following function:
 ```ts
 import {
-    allRpcEndpoints,
-    allSubgraphEndpoints,
+    allSubgraphSliceEndpoints,
     createApiWithReactHooks,
-    initializeRpcApiSlice,
-    initializeSubgraphApiSlice,
-    initializeTransactionTrackerSlice
+    initializeSfApiSlice,
+    initializeSfSubgraphSlice,
+    initializeSfTransactionSlice
 } from "@superfluid-finance/sdk-redux";
 ```
 
 Create the Redux slices:
 ```ts
-export const rpcApi = initializeRpcApiSlice(createApiWithReactHooks).injectEndpoints(allRpcEndpoints);
-export const subgraphApi = initializeSubgraphApiSlice(createApiWithReactHooks).injectEndpoints(allSubgraphEndpoints);
-export const transactionTracker = initializeTransactionTrackerSlice();
+export const { sfApi } = initializeSfApiSlice(createApiWithReactHooks);
+export const { sfTransactions } = initializeSfTransactionSlice();
+export const sfSubgraph = initializeSfSubgraphSlice(createApiWithReactHooks).injectEndpoints(allSubgraphSliceEndpoints);
 
 ```
 
@@ -97,27 +95,26 @@ Plug in the slices to the Redux store:
 ```ts
 export const store = configureStore({
     reducer: {
-        [rpcApi.reducerPath]: rpcApi.reducer,
-        [subgraphApi.reducerPath]: subgraphApi.reducer
-        [transactionTracker.reducerPath]: transactionTracker.reducer,
+        "sfApi": sfApi.reducer,
+        "sfTransactions": sfTransactions.reducer,
+        "sfSubgraph": sfSubgraph.reducer
     }
 });
 ```
 
-Add the middlewares (important to add for both `rpcApi` & `subgraphApi`):
+Add the middleware:
 ```ts
 export const store = configureStore({
     reducer: {
-        [rpcApi.reducerPath]: rpcApi.reducer,
-        [subgraphApi.reducerPath]: subgraphApi.reducer
-        [transactionTracker.reducerPath]: transactionTracker.reducer,
+        "sfApi": sfApi.reducer,
+        "sfTransactions": sfTransactions.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-        getDefaultMiddleware().concat(rpcApi.middleware).concat(subgraphApi.middleware),
+        getDefaultMiddleware().concat(sfApi.middleware).concat(sfSubgraph.middleware),
 });
 ```
 
-Somewhere in your code, give instructions to the `sdkReduxConfig` to locate `Framework` and `Signer`:
+Somewhere in your code, give instructions to the `superfluidContext` to locate `Framework` and `Signer`:
 ```ts
 import { setFrameworkForSdkRedux, setSignerForSdkRedux } from "@superfluid-finance/sdk-redux";
 
@@ -164,7 +161,7 @@ Read about RTK-Query queries here: https://redux-toolkit.js.org/rtk-query/usage/
 
 Example using React Hook:
 ```ts
-const tx = await rpcApi.createFlow({
+const tx = await sfApi.createFlow({
     senderAddress: signerAddress,
     receiverAddress: receiver,
     flowRateWei: flowRate,
@@ -175,7 +172,7 @@ const tx = await rpcApi.createFlow({
 ```
 
 ### Transaction Tracking
-All mutations trigger tracking for transaction progress (stored in `transactionTrackerSlice`) and transaction monitoring for re-orgs (all cached data is re-fetched in case of a re-org).
+All mutations trigger tracking for transaction progress (stored in `transactionSlice`) and transaction monitoring for re-orgs (all cached data is re-fetched in case of a re-org).
 
 # Examples
 Check out the extensive demo here: `examples/sdk-redux-react-typescript`.

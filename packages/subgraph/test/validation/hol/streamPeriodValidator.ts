@@ -12,16 +12,14 @@ export const fetchStreamPeriodAndValidate = async (
     streamData: IStreamData,
     flowRate: string,
     event: IEvent,
-    actionType: FlowActionType,
-    newDeposit: string
+    actionType: FlowActionType
 ) => {
     if (actionType === FlowActionType.Create) {
         await validateStartedStreamPeriod(
             streamData,
             flowRate,
             event,
-            actionType,
-            newDeposit
+            actionType
         );
     } else if (actionType === FlowActionType.Update) {
         await validateClosedStreamPeriod(streamData, event);
@@ -29,8 +27,7 @@ export const fetchStreamPeriodAndValidate = async (
             streamData,
             flowRate,
             event,
-            actionType,
-            newDeposit
+            actionType
         );
     } else if (actionType === FlowActionType.Delete) {
         await validateClosedStreamPeriod(streamData, event);
@@ -79,8 +76,7 @@ const validateStartedStreamPeriod = async (
     pastStreamData: IStreamData,
     flowRate: string,
     event: IEvent,
-    actionType: FlowActionType,
-    newDeposit: string
+    actionType: FlowActionType
 ) => {
     const newPeriodRevisionIndex =
         Number(pastStreamData.periodRevisionIndex) +
@@ -98,9 +94,6 @@ const validateStartedStreamPeriod = async (
         streamPeriod.startedAtEvent.id,
         "StreamPeriod: startedAtEvent error"
     ).to.equal(event.id);
-    expect(streamPeriod.deposit, "StreamPeriod: deposit error").to.equal(
-        newDeposit
-    );
     expect(
         streamPeriod.startedAtTimestamp,
         "StreamPeriod: startedAtTimestamp error"

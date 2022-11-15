@@ -17,7 +17,6 @@ const completeTransaction = async ({
     args,
     sender,
     onTransaction,
-    gasOptions = {},
 }) => {
     let tx;
     if (sf.ethers) {
@@ -26,7 +25,7 @@ const completeTransaction = async ({
         if (receipt.status === 1) onTransaction(receipt.transactionHash);
         tx.receipt = receipt;
     } else {
-        tx = await method(...args, {from: sender, ...gasOptions}).on(
+        tx = await method(...args, {from: sender}).on(
             "transactionHash",
             onTransaction
         );

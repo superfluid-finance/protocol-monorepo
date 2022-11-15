@@ -1,27 +1,26 @@
 import { configureStore, Dispatch } from "@reduxjs/toolkit";
 import {
-    initializeRpcApiSlice,
-    initializeTransactionTrackerSlice,
-    initializeSubgraphApiSlice,
+    initializeSfApiSlice,
+    initializeSfTransactionSlice,
+    initializeSubgraphSlice,
     createApiWithReactHooks,
-    allSubgraphEndpoints,
-    allRpcEndpoints
+    allSubgraphSliceEndpoints,
 } from "@superfluid-finance/sdk-redux";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import { createApi } from "@reduxjs/toolkit/dist/query/react";
 
-export const sfApi = initializeRpcApiSlice(createApiWithReactHooks).injectEndpoints(allRpcEndpoints);
-
-export const sfSubgraph = initializeSubgraphApiSlice(createApiWithReactHooks).injectEndpoints(
-    allSubgraphEndpoints
+export const { sfApi } = initializeSfApiSlice(createApiWithReactHooks);
+export const sfSubgraph = initializeSubgraphSlice(createApi).injectEndpoints(
+    allSubgraphSliceEndpoints
 );
 
-export const sfTransactions = initializeTransactionTrackerSlice();
+export const { sfTransactions } = initializeSfTransactionSlice();
 
 export const store = configureStore({
     reducer: {
-        [sfApi.reducerPath]: sfApi.reducer,
-        [sfTransactions.reducerPath]: sfTransactions.reducer,
-        [sfSubgraph.reducerPath]: sfSubgraph.reducer,
+        sfApi: sfApi.reducer,
+        sfTransactions: sfTransactions.reducer,
+        sfSubgraph: sfSubgraph.reducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware()

@@ -1,11 +1,10 @@
-query tokens($first: Int = 10, $orderBy: Token_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: Token_filter = {}, $block: Block_height) {
+query tokens($first: Int = 10, $orderBy: Token_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: Token_filter = {}) {
     tokens(
         first: $first
         orderBy: $orderBy
         orderDirection: $orderDirection
         skip: $skip
         where: $where
-        block: $block
     ) {
         createdAtBlockNumber
         createdAtTimestamp

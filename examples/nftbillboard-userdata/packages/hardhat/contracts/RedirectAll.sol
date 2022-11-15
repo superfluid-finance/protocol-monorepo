@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity ^0.7.0;
+pragma experimental ABIEncoderV2;
 
 import "hardhat/console.sol";
 
@@ -19,10 +20,6 @@ import {
 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 import {
-    CFAv1Library
-} from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
-
-import {
     SuperAppBase
 } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
 
@@ -32,9 +29,6 @@ contract RedirectAll is SuperAppBase {
     IConstantFlowAgreementV1 private _cfa; // the stored constant flow agreement class address
     ISuperToken private _acceptedToken; // accepted token
     address public _receiver;
-
-    using CFAv1Library for CFAv1Library.InitData;
-    CFAv1Library.InitData cfaV1; //initialize cfaV1 variable
 
     constructor(
         ISuperfluid host,
@@ -60,18 +54,6 @@ contract RedirectAll is SuperAppBase {
             SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP;
 
         _host.registerApp(configWord);
-
-        //initialize InitData struct, and set equal to cfaV1
-        cfaV1 = CFAv1Library.InitData(
-        host,
-        //here, we are deriving the address of the CFA using the host contract
-        IConstantFlowAgreementV1(
-            address(host.getAgreementClass(
-                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                ))
-            )
-        );
-
     }
 
 
@@ -113,14 +95,47 @@ contract RedirectAll is SuperAppBase {
       // @dev If inFlowRate === 0, then delete existing flow.
      if (inFlowRate == int96(0)) {
         // @dev if inFlowRate is zero, delete outflow.
-        newCtx = cfaV1.deleteFlowWithCtx(newCtx,address(this), _receiver, _acceptedToken);
+          (newCtx, ) = _host.callAgreementWithContext(
+              _cfa,
+              abi.encodeWithSelector(
+                  _cfa.deleteFlow.selector,
+                  _acceptedToken,
+                  address(this),
+                  _receiver,
+                  new bytes(0) // placeholder
+              ),
+              "0x",
+              newCtx
+          );
      }
       else if (outFlowRate != int96(0)){
-        newCtx = cfaV1.updateFlowWithCtx(ctx, _receiver, _acceptedToken, inFlowRate);
+        (newCtx, ) = _host.callAgreementWithContext(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.updateFlow.selector,
+                _acceptedToken,
+                _receiver,
+                inFlowRate,
+                new bytes(0) // placeholder
+            ),
+            "0x",
+            newCtx
+        );
       } 
     else {
       // @dev If there is no existing outflow, then create new flow to equal inflow
-        newCtx = cfaV1.createFlowWithCtx(ctx, _receiver, _acceptedToken, inFlowRate);
+          (newCtx, ) = _host.callAgreementWithContext(
+              _cfa,
+              abi.encodeWithSelector(
+                  _cfa.createFlow.selector,
+                  _acceptedToken,
+                  _receiver,
+                  inFlowRate,
+                  new bytes(0) // placeholder
+              ),
+              "0x",
+              newCtx
+          );
       }
     }
 
@@ -129,13 +144,32 @@ contract RedirectAll is SuperAppBase {
         require(newReceiver != address(0), "New receiver is zero address");
         // @dev because our app is registered as final, we can't take downstream apps
         require(!_host.isApp(ISuperApp(newReceiver)), "New receiver can not be a superApp");
-        // @dev only engage in flow editting if there is active outflow and transfer is not to self
-        (,int96 outFlowRate,,) = _cfa.getFlow(_acceptedToken, address(this), _receiver);
-        if (newReceiver == _receiver || outFlowRate == 0) return ;
+        if (newReceiver == _receiver) return ;
         // @dev delete flow to old receiver
-        cfaV1.deleteFlow(address(this), _receiver, _acceptedToken);
+        _host.callAgreement(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.deleteFlow.selector,
+                _acceptedToken,
+                address(this),
+                _receiver,
+                new bytes(0)
+            ),
+            "0x"
+        );
         // @dev create flow to new receiver
-        cfaV1.createFlow(newReceiver, _acceptedToken, _cfa.getNetFlow(_acceptedToken, address(this)));
+        _host.callAgreement(
+            _cfa,
+            abi.encodeWithSelector(
+                _cfa.createFlow.selector,
+                _acceptedToken,
+                newReceiver,
+                _cfa.getNetFlow(_acceptedToken, address(this)),
+                new bytes(0)
+                
+            ),
+            "0x"
+        );
         // @dev set global receiver to new receiver
         _receiver = newReceiver;
 

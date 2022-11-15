@@ -15,12 +15,8 @@ import {
     IStreamData,
     IIndexSubscription,
     ITokenStatistic,
-    IFlowOperatorUpdatedInitTestData,
-    IFlowOperator,
 } from "../interfaces";
 import {
-    getATSId,
-    getFlowOperatorId,
     getIndexId,
     getRevisionIndexId,
     getStreamId,
@@ -54,42 +50,11 @@ export const getOrInitStreamData = (
             revisionIndex,
             periodRevisionIndex,
             oldFlowRate: "0",
-            deposit: "0",
             streamedUntilUpdatedAt: "0",
             updatedAtTimestamp,
         };
     }
     return existingStreamData;
-};
-
-export const getOrInitFlowOperator = (
-    flowOperators: {
-        [id: string]: IFlowOperator | undefined;
-    },
-    flowOperatorId: string,
-    updatedAtBlockNumber: string,
-    updatedAtTimestamp: string
-): IFlowOperator => {
-    const existingFlowOperator = flowOperators[flowOperatorId];
-    if (existingFlowOperator == null) {
-        const [flowOperator, token, sender] = flowOperatorId.split("-");
-        return {
-            id: flowOperatorId,
-            createdAtTimestamp: updatedAtTimestamp,
-            createdAtBlockNumber: updatedAtBlockNumber,
-            updatedAtTimestamp,
-            updatedAtBlockNumber,
-            permissions: 0,
-            flowRateAllowanceGranted: "0",
-            flowRateAllowanceRemaining: "0",
-            flowOperatorUpdatedEvents: [],
-            sender: { id: sender },
-            token: { id: token },
-            flowOperator,
-            accountTokenSnapshot: { id: sender + "-" + token },
-        };
-    }
-    return existingFlowOperator;
 };
 
 export const getOrInitIndex = (
@@ -163,11 +128,11 @@ export const getOrInitAccountTokenSnapshot = (
     updatedAtBlockNumber: string,
     updatedAtTimestamp: string
 ): IAccountTokenSnapshot => {
-    const atsId = getATSId(accountId, tokenId);
+    const atsId = accountId + "-" + tokenId;
     const existingATS = accountTokenSnapshots[atsId];
     if (existingATS == null) {
         return {
-            id: atsId,
+            id: accountId + "-" + tokenId,
             updatedAtBlockNumber,
             updatedAtTimestamp,
             totalNumberOfActiveStreams: 0,
@@ -175,15 +140,13 @@ export const getOrInitAccountTokenSnapshot = (
             totalSubscriptionsWithUnits: 0,
             totalApprovedSubscriptions: 0,
             balanceUntilUpdatedAt: "0",
-            totalAmountStreamedUntilUpdatedAt: "0",
-            totalAmountTransferredUntilUpdatedAt: "0",
-            totalDeposit: "0",
             totalNetFlowRate: "0",
             totalInflowRate: "0",
             totalOutflowRate: "0",
+            totalAmountStreamedUntilUpdatedAt: "0",
+            totalAmountTransferredUntilUpdatedAt: "0",
             account: { id: accountId },
             token: { id: tokenId },
-            flowOperators: [],
         };
     }
     return existingATS;
@@ -212,7 +175,6 @@ export const getOrInitTokenStatistics = (
             totalAmountStreamedUntilUpdatedAt: "0",
             totalAmountTransferredUntilUpdatedAt: "0",
             totalAmountDistributedUntilUpdatedAt: "0",
-            totalDeposit: "0",
             totalSupply: totalSupply || "0",
             token: { id: tokenId },
         };
@@ -222,107 +184,77 @@ export const getOrInitTokenStatistics = (
 
 /**
  * Gets/Initializes all data for the FlowUpdated event
- * @param initTestData
+ * @param testData
  * @returns
  */
 export function getOrInitializeDataForFlowUpdated(
-    initTestData: IFlowUpdatedInitTestData
+    testData: IFlowUpdatedInitTestData
 ) {
-    const data = initTestData.data;
-    const localData = initTestData.data.localData;
-    const tokenAddress = data.superToken.address;
+    const {
+        accountTokenSnapshots,
+        updatedAtBlockNumber,
+        updatedAtTimestamp,
+        receiver,
+        revisionIndexes,
+        periodRevisionIndexes,
+        sender,
+        streamData,
+        token,
+        tokenStatistics,
+        totalSupply,
+    } = testData;
 
-    const revisionIndexId = getRevisionIndexId(
-        data.sender,
-        data.receiver,
-        tokenAddress
-    );
-    const flowOperatorId = getFlowOperatorId({
-        flowOperator: data.flowOperator,
-        token: tokenAddress,
-        sender: data.sender,
-    });
-    const tokenId = tokenAddress.toLowerCase();
+    const revisionIndexId = getRevisionIndexId(sender, receiver, token);
+    const tokenId = token.toLowerCase();
     const currentRevisionIndex = getOrInitRevisionIndex(
-        localData.revisionIndexes,
+        revisionIndexes,
         revisionIndexId
     );
     const currentPeriodRevisionIndex = getOrInitPeriodRevisionIndex(
-        localData.periodRevisionIndexes,
+        periodRevisionIndexes,
         revisionIndexId
     );
     const streamId = getStreamId(
-        data.sender,
-        data.receiver,
-        tokenAddress,
+        sender,
+        receiver,
+        token,
         currentRevisionIndex.toString()
     );
     const pastStreamData = getOrInitStreamData(
-        localData.streamData,
+        streamData,
         currentRevisionIndex.toString(),
         currentPeriodRevisionIndex.toString(),
         streamId,
-        initTestData.updatedAtTimestamp
+        updatedAtTimestamp
     );
     const currentSenderATS = getOrInitAccountTokenSnapshot(
-        localData.accountTokenSnapshots,
-        data.sender.toLowerCase(),
+        accountTokenSnapshots,
+        sender.toLowerCase(),
         tokenId,
-        initTestData.updatedAtBlockNumber,
-        initTestData.updatedAtTimestamp
+        updatedAtBlockNumber,
+        updatedAtTimestamp
     );
     const currentReceiverATS = getOrInitAccountTokenSnapshot(
-        localData.accountTokenSnapshots,
-        data.receiver.toLowerCase(),
+        accountTokenSnapshots,
+        receiver.toLowerCase(),
         tokenId,
-        initTestData.updatedAtBlockNumber,
-        initTestData.updatedAtTimestamp
+        updatedAtBlockNumber,
+        updatedAtTimestamp
     );
     const currentTokenStats = getOrInitTokenStatistics(
-        localData.tokenStatistics,
+        tokenStatistics,
         tokenId,
-        initTestData.updatedAtBlockNumber,
-        initTestData.updatedAtTimestamp,
-        data.totalSupply
+        updatedAtBlockNumber,
+        updatedAtTimestamp,
+        totalSupply
     );
-    const currentFlowOperator = getOrInitFlowOperator(
-        localData.flowOperators,
-        flowOperatorId,
-        initTestData.updatedAtBlockNumber,
-        initTestData.updatedAtTimestamp
-    );
-
+    
     return {
-        currentFlowOperator,
-        currentReceiverATS,
         currentSenderATS,
+        currentReceiverATS,
         currentTokenStats,
         pastStreamData,
         revisionIndexId,
-    };
-}
-
-export function getOrInitializeDataForFlowOperatorUpdated(
-    testData: IFlowOperatorUpdatedInitTestData
-) {
-    const flowOperator = getOrInitFlowOperator(
-        testData.flowOperators,
-        testData.flowOperatorId,
-        testData.updatedAtBlockNumber,
-        testData.updatedAtTimestamp
-    );
-
-    const senderATS = getOrInitAccountTokenSnapshot(
-        testData.accountTokenSnapshots,
-        flowOperator.sender.id,
-        testData.token,
-        testData.updatedAtBlockNumber,
-        testData.updatedAtTimestamp
-    );
-
-    return {
-        flowOperator,
-        senderATS,
     };
 }
 

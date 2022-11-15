@@ -1,7 +1,6 @@
-// SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+pragma solidity ^0.7.0;
 
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@chainlink/contracts/src/v0.7/interfaces/AggregatorV3Interface.sol";
 
 
 contract MockV3Aggregator {

@@ -1,7 +1,6 @@
 const TestEnvironment = require("../../TestEnvironment");
 
-const {expectEvent} = require("@openzeppelin/test-helpers");
-const {expectRevertedWith} = require("../../utils/expectRevert");
+const {expectEvent, expectRevert} = require("@openzeppelin/test-helpers");
 const {expect} = require("chai");
 const {web3tx, toBN} = require("@decentral.ee/web3-helpers");
 
@@ -68,7 +67,7 @@ describe("SuperToken's ERC20 compliance", function () {
             function shouldDecreaseApproval(amount) {
                 describe("when there was no approved amount before", function () {
                     it("reverts", async function () {
-                        await expectRevertedWith(
+                        await expectRevert(
                             this.token.decreaseAllowance(spender, amount, {
                                 from: alice,
                             }),
@@ -128,7 +127,7 @@ describe("SuperToken's ERC20 compliance", function () {
                     });
 
                     it("reverts when more than the full allowance is removed", async function () {
-                        await expectRevertedWith(
+                        await expectRevert(
                             this.token.decreaseAllowance(
                                 spender,
                                 approvedAmount.addn(1),
@@ -158,7 +157,7 @@ describe("SuperToken's ERC20 compliance", function () {
             const spender = ZERO_ADDRESS;
 
             it("reverts", async function () {
-                await expectRevertedWith(
+                await expectRevert(
                     this.token.decreaseAllowance(spender, amount, {
                         from: alice,
                     }),
@@ -280,7 +279,7 @@ describe("SuperToken's ERC20 compliance", function () {
             const spender = ZERO_ADDRESS;
 
             it("reverts", async function () {
-                await expectRevertedWith(
+                await expectRevert(
                     this.token.increaseAllowance(spender, amount, {
                         from: alice,
                     }),
@@ -305,7 +304,7 @@ describe("SuperToken's ERC20 compliance", function () {
 
         describe("when the sender is the zero address", function () {
             it("reverts", async function () {
-                await expectRevertedWith(
+                await expectRevert(
                     this.token.transferInternal(
                         ZERO_ADDRESS,
                         bob,
@@ -332,7 +331,7 @@ describe("SuperToken's ERC20 compliance", function () {
 
         describe("when the owner is the zero address", function () {
             it("reverts", async function () {
-                await expectRevertedWith(
+                await expectRevert(
                     this.token.approveInternal(
                         ZERO_ADDRESS,
                         bob,

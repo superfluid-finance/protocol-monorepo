@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+/* solhint-disable not-rely-on-time */
+pragma solidity 0.8.12;
 
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperAgreement } from "../interfaces/superfluid/ISuperAgreement.sol";
@@ -107,14 +108,14 @@ abstract contract SuperfluidToken is ISuperfluidToken
     function realtimeBalanceOfNow(
        address account
     )
-        public view override
+        external view override
         returns (
             int256 availableBalance,
             uint256 deposit,
             uint256 owedDeposit,
             uint256 timestamp)
     {
-        timestamp = _host.getNow();
+        timestamp = block.timestamp;
         (
             availableBalance,
             deposit,
@@ -139,7 +140,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         external view override
        returns(bool isCritical)
     {
-        return isAccountCritical(account, _host.getNow());
+        return isAccountCritical(account, block.timestamp);
     }
 
     function isAccountSolvent(
@@ -163,7 +164,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
        external view override
        returns(bool isSolvent)
     {
-        return isAccountSolvent(account, _host.getNow());
+        return isAccountSolvent(account, block.timestamp);
     }
 
     /// @dev ISuperfluidToken.getAccountActiveAgreements implementation
@@ -194,7 +195,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     )
         internal
     {
-        (int256 availableBalance,,) = realtimeBalanceOf(account, _host.getNow());
+        (int256 availableBalance,,) = realtimeBalanceOf(account, block.timestamp);
         require(availableBalance >= amount.toInt256(), "SuperfluidToken: burn amount exceeds balance");
         _balances[account] = _balances[account] - amount.toInt256();
         _totalSupply = _totalSupply - amount;
@@ -207,7 +208,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     )
         internal
     {
-        (int256 availableBalance,,) = realtimeBalanceOf(from, _host.getNow());
+        (int256 availableBalance,,) = realtimeBalanceOf(from, block.timestamp);
         require(availableBalance >= amount, "SuperfluidToken: move amount exceeds balance");
         _balances[from] = _balances[from] - amount;
         _balances[to] = _balances[to] + amount;
@@ -332,7 +333,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         if (defaultRewardAccount == address(0)) {
             rewardAccount = liquidatorAccount;
         }
-
+        
         if (useDefaultRewardAccount) {
             _balances[rewardAccount] = _balances[rewardAccount]
                 + rewardAmount.toInt256();

@@ -1,6 +1,4 @@
-/* eslint-disable no-global-assign */
-
-/* istanbul ignore next */
+// eslint-disable-next-line no-global-assign
 if (typeof module === "undefined") module = {};
 
 // eslint-disable-next-line no-undef
@@ -179,13 +177,6 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         43114: {
             // avalanche c-chain mainnet
             nativeTokenSymbol: "AVAX",
-            resolverAddress: "0x24a3F04F70B7f07B9673EadD3e146391BcfEa5c1",
-            versions: {
-                v1: {
-                    subgraphQueryEndpoint:
-                        "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-c",
-                },
-            },
         },
         43113: {
             // avalanche c-chain fuji testnet

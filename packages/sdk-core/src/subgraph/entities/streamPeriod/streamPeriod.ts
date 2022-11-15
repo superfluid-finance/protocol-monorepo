@@ -30,7 +30,6 @@ export interface StreamPeriod {
     stoppedAtTimestamp?: Timestamp;
     totalAmountStreamed?: BigNumber;
     token: Address;
-    tokenSymbol: string;
     stream: SubgraphId;
     sender: Address;
     receiver: Address;
@@ -69,7 +68,6 @@ export class StreamPeriodQueryHandler extends SubgraphQueryHandler<
             ...x,
             stream: x.stream.id,
             token: x.token.id,
-            tokenSymbol: x.token.symbol,
             sender: x.sender.id,
             receiver: x.receiver.id,
             startedAtEvent: x.startedAtEvent.id,

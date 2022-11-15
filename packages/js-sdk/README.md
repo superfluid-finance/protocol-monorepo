@@ -1,13 +1,10 @@
 <h1 align="center">Welcome to @superfluid-finance/js-sdk 👋
 </h1>
 <div align="center">
-<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="https://github.com/superfluid-finance/protocol-monorepo/raw/dev/sf-logo.png" />
+<img  width="300" padding="0 0 10px" alt="Superfluid logo" src="/sf-logo.png" />
 <p>
   <a href="https://www.npmjs.com/package/@superfluid-finance/js-sdk" target="_blank">
     <img alt="Version" src="https://img.shields.io/npm/v/@superfluid-finance/js-sdk.svg">
-  </a>
-  <a href="https://codecov.io/gh/superfluid-finance/protocol-monorepo/tree/dev/packages/js-sdk">
-    <img src="https://codecov.io/gh/superfluid-finance/protocol-monorepo/branch/dev/graph/badge.svg?token=LJW5NDGEJ9&flag=js-sdk"/>
   </a>
   <a href="#" target="_blank">
     <img alt="License: MIT" src="https://img.shields.io/badge/License-MIT-yellow.svg" />
@@ -18,11 +15,9 @@
 </p>
 </div>
 
-Javascript SDK for building with Superfluid Protocol.
+<>{`\_`}</>
 
-### :warning: This repo is deprecated :warning:
-**Superfluid SDK project has been modularized, for similar functionality use [`@superfluid-finance/sdk-core`](https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core) instead.**
-
+> Javascript SDK for building with Superfluid Protocol
 
 ### 🏠 [Homepage](https://superfluid.finance)
 

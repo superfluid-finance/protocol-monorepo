@@ -29,7 +29,6 @@ export interface Stream {
     receiver: Address;
     sender: Address;
     token: Address;
-    tokenSymbol: string;
 }
 
 export type StreamListQuery = SubgraphListQuery<Stream_Filter, Stream_OrderBy>;
@@ -64,7 +63,6 @@ export class StreamQueryHandler extends SubgraphQueryHandler<
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
             receiver: x.receiver.id,
             token: x.token.id,
-            tokenSymbol: x.token.symbol,
             sender: x.sender.id,
         }));
 

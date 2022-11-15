@@ -64,5 +64,4 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("Wrapper created at", superToken.address);
 
     console.log("======== Super token deployed ========");
-    return superToken.address;
 });

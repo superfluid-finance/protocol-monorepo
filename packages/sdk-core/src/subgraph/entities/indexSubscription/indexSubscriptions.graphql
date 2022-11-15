@@ -1,11 +1,10 @@
-query indexSubscriptions($first: Int = 10, $orderBy: IndexSubscription_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: IndexSubscription_filter = {}, $block: Block_height) {
+query indexSubscriptions($first: Int = 10, $orderBy: IndexSubscription_orderBy = id, $orderDirection: OrderDirection = asc, $skip: Int = 0, $where: IndexSubscription_filter = {}) {
     indexSubscriptions(
         first: $first
         orderBy: $orderBy
         orderDirection: $orderDirection
         skip: $skip
         where: $where
-        block: $block
     ) {
         approved
         createdAtBlockNumber
@@ -17,7 +16,6 @@ query indexSubscriptions($first: Int = 10, $orderBy: IndexSubscription_orderBy =
             totalUnits
             token {
                 id
-                symbol
             }
             publisher {
                 id

@@ -156,9 +156,7 @@ async function setResolver(sf, key, value) {
         case "MULTISIG": {
             console.log("Resolver Admin type: MultiSig");
             const ADMIN_ROLE = "0x" + "0".repeat(64);
-            const ac = await sf.contracts.IAccessControlEnumerable.at(
-                sf.resolver.address
-            );
+            const ac = await sf.contracts.AccessControl.at(sf.resolver.address);
             const rmCnt = (await ac.getRoleMemberCount(ADMIN_ROLE)).toNumber();
             // always picks the last admin set (could be more than one)
             const resolverAdmin = await ac.getRoleMember(ADMIN_ROLE, rmCnt - 1);

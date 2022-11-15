@@ -32,7 +32,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const tokenAddress = args.pop();
     const tokenName = args.pop();
     console.log("Token name", tokenName);
-    console.log("Token address", tokenAddress);
+    console.log("Token name", tokenAddress);
 
     const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();

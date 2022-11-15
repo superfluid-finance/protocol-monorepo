@@ -3,6 +3,7 @@
     "version": "0.1.0",
     "private": true,
     "dependencies": {
+        "@types/lodash": "latest",
         "@emotion/react": "latest",
         "@emotion/styled": "latest",
         "@ethersproject/contracts": "latest",
@@ -11,12 +12,11 @@
         "@mui/material": "latest",
         "@mui/x-data-grid": "latest",
         "@reduxjs/toolkit": "latest",
-        "@superfluid-finance/sdk-core": "0.3.3-dev.2bc50bf.0",
-        "@superfluid-finance/sdk-redux": "^0.3.1-dev.2bc50bf.0",
-        "@types/lodash": "latest",
+        "@superfluid-finance/sdk-core": "0.3.0",
+        "@superfluid-finance/sdk-redux": "0.2.0",
         "@types/node": "latest",
-        "@types/react": "^17.0.37",
-        "@types/react-dom": "^17.0.11",
+        "@types/react": "latest",
+        "@types/react-dom": "latest",
         "@types/react-redux": "latest",
         "ethers": "latest",
         "graphql": "latest",
@@ -28,12 +28,7 @@
         "typescript": "latest",
         "web3modal": "latest"
     },
-    "resolutions": {
-        "@types/react": "^17.0.37",
-        "@types/react-dom": "^17.0.11"
-    },
     "scripts": {
-        "link-sdks": "yarn link --cwd ./../../packages/sdk-core && yarn link @superfluid-finance/sdk-core && yarn link --cwd ./../../packages/sdk-redux && yarn link @superfluid-finance/sdk-redux",
         "start": "react-scripts start",
         "build": "react-scripts build",
         "test": "echo test",

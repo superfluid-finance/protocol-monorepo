@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.13;
+pragma solidity 0.8.12;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
@@ -374,7 +374,7 @@ contract SuperToken is
         returns(uint256 balance)
     {
         // solhint-disable-next-line not-rely-on-time
-        (int256 availableBalance, , ,) = super.realtimeBalanceOfNow(account);
+        (int256 availableBalance, , ) = super.realtimeBalanceOf(account, block.timestamp);
         return availableBalance < 0 ? 0 : uint256(availableBalance);
     }
 

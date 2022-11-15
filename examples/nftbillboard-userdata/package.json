@@ -70,8 +70,8 @@
     ]
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^4.5.0",
-    "@superfluid-finance/ethereum-contracts": "^1.1.0",
+    "@openzeppelin/contracts": "^3.4.2-solc-0.7",
+    "@superfluid-finance/ethereum-contracts": "^1.0.0-rc.7",
     "ganache-cli": "^6.12.2",
     "yarn": "^1.22.15"
   }

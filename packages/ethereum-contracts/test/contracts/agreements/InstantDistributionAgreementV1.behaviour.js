@@ -987,7 +987,7 @@ async function shouldClaimPendingDistribution({
 
     const tx = await web3tx(
         testenv.sf.ida.claim,
-        `${subscriberName} claims pending distributions from ${publisherName}@${indexId}`
+        `${subscriberName} claims pending distrubtions from ${publisherName}@${indexId}`
     )({
         superToken: superToken.address,
         publisher,

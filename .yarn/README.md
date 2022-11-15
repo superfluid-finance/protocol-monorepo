@@ -1,2 +1,0 @@
-- To upgrade to a newer version see: https://classic.yarnpkg.com/en/docs/cli/policies
-- You might encounter this bug: https://github.com/yarnpkg/yarn/issues/7847

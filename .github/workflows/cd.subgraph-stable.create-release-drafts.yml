@@ -1,12 +1,11 @@
 name: Create subgraph Stable Release Draft
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - "release-subgraph-v1"
     paths:
-      - 'packages/subgraph/**'
+      - 'packages/subgraph'
       - '.github/workflows/cd.subgraph-stable.create-release-drafts.yml'
 
 jobs:
@@ -17,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v2
 
       - name: Use Node.js 16.x
         uses: actions/setup-node@v1

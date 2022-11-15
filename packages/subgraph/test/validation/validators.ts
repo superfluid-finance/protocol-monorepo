@@ -7,8 +7,6 @@ import {
     IEvent,
     ILightEntity,
     IIDAEvents,
-    IFlowOperator,
-    IExpectedFlowOperatorData,
 } from "../interfaces";
 import { fetchStreamPeriodAndValidate } from "./hol/streamPeriodValidator";
 import { fetchIndexAndValidate } from "./hol/indexValidator";
@@ -18,66 +16,46 @@ import {
     fetchATSAndValidate,
     fetchTokenStatsAndValidate,
 } from "./aggregateValidators";
-import { Framework } from "@superfluid-finance/sdk-core";
+import {Framework} from "@superfluid-finance/sdk-core";
 import { BigNumber } from "@ethersproject/bignumber";
 import { expect } from "chai";
 import { FlowActionType, IDAEventType } from "../helpers/constants";
-import { fetchFlowOperatorAndValidate } from "./hol/flowOperatorValidator";
 
 export async function validateFlowUpdated(
     pastStreamData: IStreamData,
     streamedAmountUntilTimestamp: BigNumber,
-    newFlowRate: BigNumber,
+    flowRate: BigNumber,
+    tokenId: string,
     updatedSenderATS: IAccountTokenSnapshot,
     updatedReceiverATS: IAccountTokenSnapshot,
     updatedTokenStats: ITokenStatistic,
     event: IEvent,
-    actionType: FlowActionType,
-    newDeposit: string
+    actionType: FlowActionType
 ) {
     // validate Stream HOL
     await fetchStreamAndValidate(
         pastStreamData,
         streamedAmountUntilTimestamp,
-        newFlowRate.toString(),
+        flowRate.toString(),
         event,
-        actionType === FlowActionType.Create,
-        newDeposit
+        actionType === FlowActionType.Create
     );
     // validate StreamPeriod HOL
     await fetchStreamPeriodAndValidate(
         pastStreamData,
-        newFlowRate.toString(),
+        flowRate.toString(),
         event,
-        actionType,
-        newDeposit
+        actionType
     );
 
     // validate sender ATS
-    await fetchATSAndValidate(updatedSenderATS);
+    await fetchATSAndValidate(updatedSenderATS.id, updatedSenderATS);
 
     // validate receiver ATS
-    await fetchATSAndValidate(updatedReceiverATS);
+    await fetchATSAndValidate(updatedReceiverATS.id, updatedReceiverATS);
 
     // validate token stats
-    await fetchTokenStatsAndValidate(updatedTokenStats);
-}
-
-export async function validateUpdateFlowOperatorPermissions({
-    event,
-    expectedFlowOperator,
-    isCreate,
-}: {
-    event: IEvent;
-    expectedFlowOperator: IExpectedFlowOperatorData;
-    isCreate: boolean;
-}) {
-    // fetch flow operator entity and validte it
-    await fetchFlowOperatorAndValidate({
-        event,
-        expectedFlowOperator,
-        isCreate,
-    });
+    await fetchTokenStatsAndValidate(tokenId, updatedTokenStats);
 }
 
 export async function validateModifyIDA(
@@ -87,6 +65,8 @@ export async function validateModifyIDA(
     updatedPublisherATS: IAccountTokenSnapshot,
     updatedSubscriberATS: IAccountTokenSnapshot,
     updatedTokenStats: ITokenStatistic,
+    token: string,
+    publisher: string,
     subscriberAddress: string,
     eventType: IDAEventType,
     events: IIDAEvents,
@@ -103,7 +83,9 @@ export async function validateModifyIDA(
             events,
             subscriptionExists
         );
-        await fetchATSAndValidate(updatedSubscriberATS);
+        const subscriberATSId =
+            subscriberAddress.toLowerCase() + "-" + token.toLowerCase();
+        await fetchATSAndValidate(subscriberATSId, updatedSubscriberATS);
     }
     await fetchIndexAndValidate(
         framework,
@@ -113,8 +95,9 @@ export async function validateModifyIDA(
         updatedSubscription.id,
         subscriptionExists
     );
-    await fetchATSAndValidate(updatedPublisherATS);
-    await fetchTokenStatsAndValidate(updatedTokenStats);
+    const publisherATSId = publisher.toLowerCase() + "-" + token.toLowerCase();
+    await fetchATSAndValidate(publisherATSId, updatedPublisherATS);
+    await fetchTokenStatsAndValidate(token.toLowerCase(), updatedTokenStats);
 }
 
 export function validateReverseLookup(

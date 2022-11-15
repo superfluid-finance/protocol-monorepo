@@ -87,9 +87,9 @@ module.exports = function (ctxFn, logicFn, runnerOpts) {
                 options.protocolReleaseVersion
             );
 
-            const retVal = await logicFn(args, options);
+            await logicFn(args, options);
+
             cb();
-            return retVal;
         } catch (err) {
             cb(err);
         }

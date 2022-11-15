@@ -1,6 +1,5 @@
-const {expectEvent} = require("@openzeppelin/test-helpers");
+const {expectRevert, expectEvent} = require("@openzeppelin/test-helpers");
 const {web3tx, wad4human, toWad} = require("@decentral.ee/web3-helpers");
-
 const {
     shouldCreateIndex,
     shouldDistribute,
@@ -11,11 +10,8 @@ const {
     shouldClaimPendingDistribution,
 } = require("./InstantDistributionAgreementV1.behaviour.js");
 
-const {expectRevertedWith} = require("../../utils/expectRevert");
-
 const IDASuperAppTester = artifacts.require("IDASuperAppTester");
 const TestEnvironment = require("../../TestEnvironment");
-const {ZERO_ADDRESS} = require("@openzeppelin/test-helpers/src/constants");
 
 const DEFAULT_INDEX_ID = "42";
 
@@ -25,7 +21,7 @@ describe("Using InstantDistributionAgreement v1", function () {
 
     const {INIT_BALANCE} = t.configs;
 
-    let alice, bob, carol;
+    let alice, bob, carol, dan;
     let superToken;
 
     before(async function () {
@@ -33,7 +29,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             isTruffle: true,
             nAccounts: 5,
         });
-        ({alice, bob, carol} = t.aliases);
+        ({alice, bob, carol, dan} = t.aliases);
 
         superToken = t.sf.tokens.TESTx;
     });
@@ -47,7 +43,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             const account = expectedBalances[i][0];
             const expectedBalance = expectedBalances[i][1];
             //const expectedDeposit = expectedBalances[i][2] || "0";
-            const balance = await superToken.balanceOf(account);
+            const balance = await superToken.balanceOf.call(account);
             console.log(
                 `${t.toAlias(account)}'s current balance: `,
                 wad4human(balance)
@@ -81,7 +77,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await expectRevertedWith(
+                await expectRevert(
                     shouldCreateIndex({
                         testenv: t,
                         superToken,
@@ -135,7 +131,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.1.5 publisher should fail to update non-existent index", async () => {
-                await expectRevertedWith(
+                await expectRevert(
                     t.sf.ida.updateIndex({
                         superToken: superToken.address,
                         publisher: alice,
@@ -144,7 +140,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     }),
                     "IDA: E_NO_INDEX"
                 );
-                await expectRevertedWith(
+                await expectRevert(
                     t.sf.ida.distribute({
                         superToken: superToken.address,
                         publisher: alice,
@@ -153,7 +149,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     }),
                     "IDA: E_NO_INDEX"
                 );
-                await expectRevertedWith(
+                await expectRevert(
                     t.sf.agreements.ida.calculateDistribution(
                         superToken.address,
                         alice,
@@ -207,7 +203,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     [bob, toWad("0.00")],
                 ]);
 
-                await expectRevertedWith(
+                await expectRevert(
                     shouldDistribute({
                         testenv: t,
                         superToken,
@@ -280,7 +276,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     units: toWad("0.001").toString(),
                 });
 
-                await expectRevertedWith(
+                await expectRevert(
                     shouldDistribute({
                         testenv: t,
                         superToken,
@@ -289,45 +285,6 @@ describe("Using InstantDistributionAgreement v1", function () {
                         amount: toWad(1).toString(),
                     }),
                     "IDA: E_LOW_BALANCE"
-                );
-            });
-
-            it("#1.1.9 publisher should not be able to update subscription to zero address", async () => {
-                await shouldCreateIndex({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-                await expectRevertedWith(
-                    t.sf.ida.updateSubscription({
-                        superToken: superToken.address,
-                        publisher: t.getAddress("alice"),
-                        indexId: DEFAULT_INDEX_ID,
-                        subscriber: ZERO_ADDRESS,
-                        units: toWad("0.001").toString(),
-                    }),
-                    "IDA: E_NO_ZERO_SUBS"
-                );
-            });
-
-            it("#1.2.0 publisher should not be able to delete zero address subscription", async () => {
-                await shouldCreateIndex({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await expectRevertedWith(
-                    t.sf.ida.deleteSubscription({
-                        superToken: superToken.address,
-                        indexId: DEFAULT_INDEX_ID,
-                        publisher: t.getAddress("alice"),
-                        subscriber: ZERO_ADDRESS,
-                        sender: t.getAddress("alice"),
-                    }),
-                    "IDA: E_NO_ZERO_SUBS"
                 );
             });
         });
@@ -365,7 +322,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                await expectRevertedWith(
+                await expectRevert(
                     shouldApproveSubscription({
                         testenv: t,
                         superToken,
@@ -486,7 +443,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
-                await expectRevertedWith(
+                await expectRevert(
                     shouldDeleteSubscription({
                         testenv: t,
                         superToken,
@@ -513,7 +470,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                     subscriberName: "bob",
                 });
-                await expectRevertedWith(
+                await expectRevert(
                     shouldDeleteSubscription({
                         testenv: t,
                         superToken,
@@ -669,7 +626,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.2.10 one should fail to use a subscription of a non-existent index", async () => {
-                await expectRevertedWith(
+                await expectRevert(
                     shouldApproveSubscription({
                         testenv: t,
                         superToken,
@@ -679,7 +636,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     }),
                     "IDA: E_NO_INDEX"
                 );
-                await expectRevertedWith(
+                await expectRevert(
                     shouldUpdateSubscription({
                         testenv: t,
                         superToken,
@@ -690,7 +647,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     }),
                     "IDA: E_NO_INDEX"
                 );
-                await expectRevertedWith(
+                await expectRevert(
                     t.sf.ida.getSubscription({
                         superToken: superToken.address,
                         publisher: alice,
@@ -789,7 +746,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     subscriberName: "bob",
                     units: toWad("0.001").toString(),
                 });
-                await expectRevertedWith(
+                await expectRevert(
                     shouldRevokeSubscription({
                         testenv: t,
                         superToken,
@@ -808,7 +765,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     publisherName: "alice",
                     indexId: DEFAULT_INDEX_ID,
                 });
-                await expectRevertedWith(
+                await expectRevert(
                     shouldRevokeSubscription({
                         testenv: t,
                         superToken,
@@ -821,7 +778,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.2.14 subscriber should fail to revoke a subscription of a non-existent index", async () => {
-                await expectRevertedWith(
+                await expectRevert(
                     shouldRevokeSubscription({
                         testenv: t,
                         superToken,
@@ -831,113 +788,6 @@ describe("Using InstantDistributionAgreement v1", function () {
                         senderName: "bob",
                     }),
                     "IDA: E_NO_INDEX"
-                );
-            });
-
-            it("#1.2.15 publisher should be able to delete an approved subscription", async () => {
-                await t.upgradeBalance("alice", INIT_BALANCE);
-
-                await shouldCreateIndex({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await shouldUpdateSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    units: toWad("0.001").toString(),
-                });
-
-                await shouldDistribute({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    indexValue: "500",
-                });
-
-                await shouldApproveSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                });
-
-                await shouldDeleteSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    senderName: "alice",
-                });
-            });
-
-            it("#1.2.16 Max number of subscriptions a subscriber can have", async () => {
-                const maxNumberOfSubs = 256;
-
-                for (let i = 0; i < maxNumberOfSubs; i++) {
-                    console.log(`Creating subscription ${i}`);
-                    await t.sf.ida.createIndex({
-                        superToken: superToken.address,
-                        publisher: t.getAddress("alice"),
-                        indexId: i,
-                    });
-
-                    await t.sf.ida.updateSubscription({
-                        superToken: superToken.address,
-                        publisher: t.getAddress("alice"),
-                        indexId: i,
-                        subscriber: t.getAddress("bob"),
-                        units: toWad(0.01).toString(),
-                    });
-
-                    await t.sf.ida.approveSubscription({
-                        superToken: superToken.address,
-                        publisher: t.getAddress("alice"),
-                        indexId: i,
-                        subscriber: t.getAddress("bob"),
-                    });
-                }
-
-                const subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-
-                assert.equal(subs.length, maxNumberOfSubs);
-
-                await shouldCreateIndex({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: maxNumberOfSubs,
-                });
-
-                await shouldUpdateSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: maxNumberOfSubs,
-                    subscriberName: "bob",
-                    units: toWad(0.01).toString(),
-                });
-
-                expectRevertedWith(
-                    shouldApproveSubscription({
-                        testenv: t,
-                        superToken,
-                        publisherName: "alice",
-                        indexId: maxNumberOfSubs,
-                        subscriberName: "bob",
-                    }),
-                    "SlotBitmap out of bound"
                 );
             });
         });
@@ -1355,7 +1205,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     indexId: DEFAULT_INDEX_ID,
                 });
 
-                await expectRevertedWith(
+                await expectRevert(
                     shouldClaimPendingDistribution({
                         testenv: t,
                         superToken,
@@ -1369,7 +1219,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             });
 
             it("#1.4.4 one should not claim from a subscription of a non-existent index", async () => {
-                await expectRevertedWith(
+                await expectRevert(
                     shouldClaimPendingDistribution({
                         testenv: t,
                         superToken,
@@ -1398,7 +1248,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                     subscriberName: "bob",
                 });
 
-                await expectRevertedWith(
+                await expectRevert(
                     shouldClaimPendingDistribution({
                         testenv: t,
                         superToken,
@@ -1409,240 +1259,6 @@ describe("Using InstantDistributionAgreement v1", function () {
                     }),
                     "IDA: E_SUBS_APPROVED"
                 );
-            });
-
-            it("#1.4.6 cannot claim from zero address", async () => {
-                await shouldCreateIndex({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await expectRevertedWith(
-                    t.sf.ida.claim({
-                        superToken: superToken.address,
-                        indexId: DEFAULT_INDEX_ID,
-                        publisher: t.getAddress("alice"),
-                        subscriber: ZERO_ADDRESS,
-                        sender: t.getAddress("bob"),
-                    }),
-                    "IDA: E_NO_ZERO_SUBS"
-                );
-            });
-        });
-
-        describe("#1.5 complex sequences", () => {
-            it("#1.5.1 distributions using the correct token", async () => {
-                await t.upgradeBalance("alice", INIT_BALANCE);
-                const {superToken: superToken2} = await t.deployNewToken(
-                    "TEST2",
-                    {
-                        doUpgrade: true,
-                        isTruffle: true,
-                    }
-                );
-
-                await shouldCreateIndex({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await shouldUpdateSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    units: toWad(0.01).toString(),
-                });
-
-                await shouldDistribute({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(50).toString(),
-                });
-
-                assert.equal(
-                    await superToken.balanceOf(
-                        t.getAddress("alice").toString()
-                    ),
-                    toWad("50").toString()
-                );
-                assert.equal(
-                    await superToken2.balanceOf(
-                        t.getAddress("alice").toString()
-                    ),
-                    INIT_BALANCE.toString()
-                );
-            });
-
-            it("#1.5.2 context should not be exploited", async () => {
-                const {superfluid, ida} = t.contracts;
-
-                await expectRevertedWith(
-                    superfluid.callAgreement(
-                        ida.address,
-                        ida.contract.methods
-                            .createIndex(
-                                superToken.address,
-                                DEFAULT_INDEX_ID,
-                                web3.eth.abi.encodeParameters(
-                                    ["bytes", "bytes"],
-                                    ["0xdeadbeef", "0x"]
-                                )
-                            )
-                            .encodeABI(),
-                        "0x",
-                        {
-                            from: alice,
-                        }
-                    ),
-                    "invalid ctx"
-                );
-            });
-
-            it("#1.5.3 publisher subscribing to their own index and receiving a distribution", async () => {
-                await t.upgradeBalance("alice", INIT_BALANCE);
-
-                await shouldCreateIndex({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await shouldUpdateSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "alice",
-                    units: toWad(0.01).toString(),
-                });
-
-                await shouldApproveSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "alice",
-                });
-
-                await t.sf.ida.distribute({
-                    superToken: superToken.address,
-                    publisher: alice,
-                    indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(30).toString(),
-                });
-
-                await testExpectedBalances([[alice, INIT_BALANCE]]);
-            });
-
-            it("#1.5.4 subscribe -> distribute -> unsubscribe -> distribute -> subscribe -> distribute", async () => {
-                await t.upgradeBalance("alice", INIT_BALANCE);
-
-                await shouldCreateIndex({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                });
-
-                await shouldUpdateSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    units: toWad(0.01).toString(),
-                });
-
-                await shouldApproveSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                });
-
-                await shouldDistribute({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(50).toString(),
-                });
-
-                await testExpectedBalances([
-                    [alice, toWad("50.00")],
-                    [bob, toWad("50.00")],
-                ]);
-                await shouldRevokeSubscription({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                });
-                let subs = await t.sf.ida.listSubscriptions({
-                    superToken: superToken.address,
-                    subscriber: bob,
-                });
-                assert.equal(subs.length, 0);
-
-                await shouldDistribute({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(25).toString(),
-                });
-
-                await testExpectedBalances([
-                    [alice, toWad("25.00")],
-                    [bob, toWad("50.00")],
-                ]);
-
-                await shouldClaimPendingDistribution({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    senderName: "alice",
-                });
-
-                await testExpectedBalances([
-                    [alice, toWad("25.00")],
-                    [bob, toWad("75.00")],
-                ]);
-
-                await shouldDistribute({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    amount: toWad(25).toString(),
-                });
-
-                await shouldClaimPendingDistribution({
-                    testenv: t,
-                    superToken,
-                    publisherName: "alice",
-                    indexId: DEFAULT_INDEX_ID,
-                    subscriberName: "bob",
-                    senderName: "alice",
-                });
-
-                await testExpectedBalances([
-                    [alice, toWad("0")],
-                    [bob, toWad("100.00")],
-                ]);
             });
         });
     });
@@ -1876,6 +1492,57 @@ describe("Using InstantDistributionAgreement v1", function () {
             );
         });
 
+        it.skip("#2.5 subscriber deleteSubscription callbacks", async () => {
+            const units = toWad("0.003").toString();
+            await shouldUpdateSubscription({
+                testenv: t,
+                superToken,
+                publisherName: "app",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "alice",
+                units,
+                fn: async () => {
+                    return await web3tx(
+                        app.updateSubscription,
+                        "app.updateSubscription alice"
+                    )(alice, units);
+                },
+            });
+            const tx = await shouldDeleteSubscription({
+                testenv: t,
+                superToken,
+                publisherName: "app",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "alice",
+                senderName: "alice",
+                userData: web3.eth.abi.encodeParameters(
+                    ["bytes32", "bytes4", "bytes"],
+                    [
+                        web3.utils.sha3("deleted"),
+                        idaSelector("deleteSubscription"),
+                        "0x",
+                    ]
+                ),
+            });
+            await expectEvent.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataBefore",
+                {
+                    publisher: app.address,
+                    indexId: DEFAULT_INDEX_ID,
+                    approved: false,
+                    units,
+                    pendingDistribution: "0",
+                }
+            );
+            await expectEvent.notEmitted.inTransaction(
+                tx.tx,
+                IDASuperAppTester,
+                "SubscriptionDataAfter"
+            );
+        });
+
         it("#2.6 publisher deleteSubscription callbacks", async () => {
             const units = toWad("0.003").toString();
             await shouldCreateIndex({
@@ -2008,7 +1675,7 @@ describe("Using InstantDistributionAgreement v1", function () {
 
         it("#2.8 getSubscriptionByID revert with E_NO_SUBS", async () => {
             await app.setForceGetSubscriptionByID();
-            await expectRevertedWith(
+            await expectRevert(
                 shouldApproveSubscription({
                     testenv: t,
                     superToken,
@@ -2034,7 +1701,7 @@ describe("Using InstantDistributionAgreement v1", function () {
             const FakeSuperfluidMock = artifacts.require("FakeSuperfluidMock");
             const fakeHost = await FakeSuperfluidMock.new();
             const ida = t.sf.agreements.ida;
-            await expectRevertedWith(
+            await expectRevert(
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
@@ -2044,7 +1711,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 ),
                 "unauthorized host"
             );
-            await expectRevertedWith(
+            await expectRevert(
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
@@ -2054,7 +1721,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 ),
                 "unauthorized host"
             );
-            await expectRevertedWith(
+            await expectRevert(
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
@@ -2064,7 +1731,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 ),
                 "unauthorized host"
             );
-            await expectRevertedWith(
+            await expectRevert(
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
@@ -2074,7 +1741,7 @@ describe("Using InstantDistributionAgreement v1", function () {
                 ),
                 "unauthorized host"
             );
-            await expectRevertedWith(
+            await expectRevert(
                 fakeHost.callAgreement(
                     ida.address,
                     ida.contract.methods
@@ -2090,6 +1757,241 @@ describe("Using InstantDistributionAgreement v1", function () {
                 ),
                 "unauthorized host"
             );
+        });
+    });
+
+    context("#10 scenarios", async () => {
+        it("#10.1 1to3 distribution scenario", async () => {
+            await t.upgradeBalance("alice", INIT_BALANCE);
+
+            await shouldCreateIndex({
+                testenv: t,
+                superToken,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+            });
+
+            const subscribers = [
+                [bob, toWad("0.0001"), true],
+                [carol, toWad("0.0002"), true],
+                [dan, toWad("0.0003"), false],
+            ];
+            for (let i = 0; i < subscribers.length; ++i) {
+                const subscriberAddr = subscribers[i][0];
+                const subscriptionUnits = subscribers[i][1];
+                const doApprove = subscribers[i][2];
+                const subscriberName = t.toAlias(subscriberAddr);
+
+                if (doApprove) {
+                    await shouldApproveSubscription({
+                        testenv: t,
+                        superToken,
+                        publisherName: "alice",
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: subscriberName,
+                    });
+                }
+
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    superToken,
+                    publisherName: "alice",
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: subscriberName,
+                    units: subscriptionUnits.toString(),
+                });
+
+                const subs = await t.sf.ida.listSubscriptions({
+                    superToken: superToken.address,
+                    subscriber: subscriberAddr,
+                });
+                if (doApprove) {
+                    assert.equal(subs.length, 1);
+                    assert.equal(subs[0].publisher, alice);
+                    assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
+                    assert.equal(subs[0].units, subscriptionUnits.toString());
+                } else {
+                    assert.equal(subs.length, 0);
+                }
+            }
+
+            await shouldDistribute({
+                testenv: t,
+                superToken,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                indexValue: "100",
+            });
+            await testExpectedBalances([
+                [alice, toWad("99.94")],
+                [bob, toWad("0.01")],
+                [carol, toWad("0.02")],
+                [dan, toWad("0.00")],
+            ]);
+
+            await shouldDistribute({
+                testenv: t,
+                superToken,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                indexValue: "300",
+            });
+            await testExpectedBalances([
+                [alice, toWad("99.82")],
+                [bob, toWad("0.03")],
+                [carol, toWad("0.06")],
+                [dan, toWad("0.00")],
+            ]);
+
+            await shouldDeleteSubscription({
+                testenv: t,
+                superToken,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "dan",
+                senderName: "alice",
+            });
+            await testExpectedBalances([
+                [alice, toWad("99.82")],
+                [bob, toWad("0.03")],
+                [carol, toWad("0.06")],
+                [dan, toWad("0.09")],
+            ]);
+
+            await shouldDistribute({
+                testenv: t,
+                superToken,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                indexValue: "400",
+            });
+            await testExpectedBalances([
+                [alice, toWad("99.79")],
+                [bob, toWad("0.04")],
+                [carol, toWad("0.08")],
+                [dan, toWad("0.09")],
+            ]);
+
+            await verifyAll();
+        });
+
+        it("#10.2 2to1 distribution scenario", async () => {
+            await t.upgradeBalance("alice", INIT_BALANCE);
+            await t.upgradeBalance("bob", INIT_BALANCE);
+
+            // alice and bob create indeces and dan subscribes to them
+            const publishers = [
+                [alice, toWad("0.0001"), true],
+                [bob, toWad("0.0002"), false],
+            ];
+            for (let i = 0; i < publishers.length; ++i) {
+                let publisherAddr = publishers[i][0];
+                let subscriptionUnits = publishers[i][1];
+                let doApprove = publishers[i][2];
+                const publisherName = t.toAlias(publisherAddr);
+
+                await shouldCreateIndex({
+                    testenv: t,
+                    superToken,
+                    publisherName,
+                    indexId: DEFAULT_INDEX_ID,
+                });
+
+                if (doApprove) {
+                    await shouldApproveSubscription({
+                        testenv: t,
+                        superToken,
+                        publisherName,
+                        indexId: DEFAULT_INDEX_ID,
+                        subscriberName: "dan",
+                    });
+                }
+
+                await shouldUpdateSubscription({
+                    testenv: t,
+                    superToken,
+                    publisherName,
+                    indexId: DEFAULT_INDEX_ID,
+                    subscriberName: "dan",
+                    units: subscriptionUnits.toString(),
+                });
+            }
+
+            const subs = await t.sf.ida.listSubscriptions({
+                superToken: superToken.address,
+                subscriber: dan,
+            });
+            assert.equal(subs.length, 1);
+            assert.equal(subs[0].publisher, alice);
+            assert.equal(subs[0].indexId, DEFAULT_INDEX_ID);
+            assert.equal(wad4human(subs[0].units), "0.00010");
+
+            // Alice distributes tokens (100 * 0.0001 = 0.01)
+            await shouldDistribute({
+                testenv: t,
+                superToken,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                indexValue: "100",
+            });
+            await testExpectedBalances([
+                [alice, toWad("99.99")],
+                [bob, toWad("100.00")],
+                [dan, toWad("0.01")],
+            ]);
+
+            // Bob distributes tokens (200 * 0.0002 = 0.04)
+            await shouldDistribute({
+                testenv: t,
+                superToken,
+                publisherName: "bob",
+                indexId: DEFAULT_INDEX_ID,
+                indexValue: "200",
+            });
+            await testExpectedBalances([
+                [alice, toWad("99.99")],
+                [bob, toWad("99.96")],
+                [dan, toWad("0.01")],
+            ]);
+
+            // Alice update Dan's subscription with more units
+            await shouldUpdateSubscription({
+                testenv: t,
+                superToken,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "dan",
+                units: toWad("0.0003").toString(),
+            });
+
+            // Alice distributes tokens again (100 * 0.0003 = 0.03)
+            await shouldDistribute({
+                testenv: t,
+                superToken,
+                publisherName: "alice",
+                indexId: DEFAULT_INDEX_ID,
+                indexValue: "200",
+            });
+            await testExpectedBalances([
+                [alice, toWad("99.96")],
+                [bob, toWad("99.96")],
+                [dan, toWad("0.04")],
+            ]);
+
+            await shouldApproveSubscription({
+                testenv: t,
+                superToken,
+                publisherName: "bob",
+                indexId: DEFAULT_INDEX_ID,
+                subscriberName: "dan",
+            });
+            await testExpectedBalances([
+                [alice, toWad("99.96")],
+                [bob, toWad("99.96")],
+                [dan, toWad("0.08")],
+            ]);
+
+            await verifyAll();
         });
     });
 });

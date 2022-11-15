@@ -5,56 +5,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
-## [0.4.1] - 2022-05-14
-
-### Added
-- Avalanche Network Support
-
-### Changed
-- Network constants consistent with canonical Superfluid name
-
-## [0.4.0] - 2022-05-06
-
-### Added
-- Added option to specify block details when querying through a `SubgraphQueryHandler`
-- Added Subgraph's `_meta` table query
-- Added `tokenSymbol` for `SubgraphQueryHandler` entity queries where `token` (token ID) was previously included
-- Added `PageNumberPaging` for UI development friendly pagination API
-- Added `AllPaging` to recursively query all results from Subgraph
-- Added support for `TypedDocumentNode` for `SubgraphClient`
-- Expose underlying ethers.js contracts for each class: CFAv1, Host, IDAv1 and `contracts` property in `Framework` class
-- Added new ACL function support: authorizing flow operator permissions and create/update/delete flow by operator
-- Added `nativeTokenSymbol` property to `constants.ts`
-- Split `SuperToken` class into: `WrapperSuperToken`, `PureSuperToken` and `NativeAssetSuperToken` classes
-- Added `loadWrapperSuperToken`, `loadNativeAssetSuperToken`, and `loadPureSuperToken` super token initialization functions
-- Support `upgrade`, `upgradeTo` and `downgrade` functions via `NativeAssetSuperToken`
-- Added `upgradeTo` to `WrapperSuperToken` class as this was missing as well
-
-### Changed
-- Renamed `Token` to `ERC20Token`
-- Exported `ERC20Token`
-- Renamed `PagedResult.data` to `PagedResult.items`
-- Moved `listAllResults` into separate function from `Query` object
-- Removed `SubgraphClient.batchRequests` because Subgraph Node didn't support it
-
-### Internal
-- Use `eslint-plugin-prettier` over separate `prettier` instance
-
-### Breaking
-- The `SuperToken` class is now an abstract base class and no longer contains the functions `upgrade` and `downgrade`.
-- `underlyingToken` is possibly undefined on `SuperToken`: `WrapperSuperToken` has `underlyingToken`, but `PureSuperToken` and `NativeAssetSuperToken` do not.
-> NOTE: These changes are due to the split of `SuperToken` into `WrapperSuperToken`, `PureSuperToken` and `NativeAssetSuperToken` classes.
-  - Migration: 
-      - if you are unsure of the type of the super token, you can use: `await framework.loadSuperToken("0x...");`
-      - if you want to load a wrapper super token, use: `await framework.loadWrapperSuperToken("DAIx");`
-      - if you want to load a native asset super token, use: `await framework.loadNativeAssetSuperToken("ETHx");`
-      - if you want to load a pure super token, use: `await framework.loadPureSuperToken("0x...");`
-
 ## [0.3.2] - 2022-03-16
 
 ### Added
 
-- Added "optimism-mainnet" and "arbitrum-one" support
+- Added "optimism-mainnet" and "arbitrum-one" support.
 
 ## [0.3.1] - 2022-02-16
 
@@ -124,10 +79,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.1...HEAD
-[0.4.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.4.0...sdk-core%40v0.4.1
-[0.4.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.2...sdk-core%40v0.4.0
-[0.3.2]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.1...sdk-core%40v0.3.2
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.1...HEAD
 [0.3.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.3.0...sdk-core%40v0.3.1
 [0.3.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.1...sdk-core%40v0.3.0
 [0.2.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.2.0...sdk-core%40v0.2.1

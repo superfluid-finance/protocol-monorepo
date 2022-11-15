@@ -1,4 +1,0 @@
-packages:
-    packages/core/superfluid-protocol-spec-core.cabal
-    packages/simple/superfluid-protocol-system-simple.cabal
-    packages/validator/superfluid-protocol-spec-validator.cabal

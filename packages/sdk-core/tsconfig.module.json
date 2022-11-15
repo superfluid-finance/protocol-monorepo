@@ -6,7 +6,8 @@
         "module": "esnext",
         "declaration": true,
         "declarationMap": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "lib": ["DOM", "ESNext"]
     },
     "exclude": [
         "node_modules/**"

@@ -1251,10 +1251,7 @@ type Index @entity {
     updatedAtBlockNumber: BigInt!
 
     """
-    indexId is not the id of the `Index` entity.
-    """
-    
-    """
+    NOTE: indexId is not the same as the id of the `Index` entity.
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
     indexId: BigInt!

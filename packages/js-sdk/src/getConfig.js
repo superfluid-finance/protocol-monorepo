@@ -57,6 +57,8 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         //
         // ETHEREUM
         //
+        // mainnet
+        1: getConfigData(1),
         // goerli
         5: getConfigData(5),
 

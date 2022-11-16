@@ -67,11 +67,5 @@
         "graphql": "^16.6.0",
         "graphql-request": "^4.3.0",
         "lodash": "^4.17.21"
-    },
-    "workspaces": {
-        "nohoist": [
-            "**/@graphprotocol",
-            "**/@graphprotocol/**"
-        ]
     }
 }

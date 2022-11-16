@@ -1,6 +1,6 @@
 import { BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { assert } from "matchstick-as/assembly/index";
-import { createEventID, getOrder } from "../src/utils";
+import { assert, log } from "matchstick-as/assembly/index";
+import { createEventID, createLogID, getOrder } from "../src/utils";
 
 /**
  * Asserts that the "base" properties on our Event entity are correct
@@ -70,6 +70,8 @@ export function assertAggregateBaseProperties(
 /**
  * Asserts that the properties on a TokenStatistic entity are correct.
  * @param id the token address
+ * @param event if event is passed, we validate TokenStatisticLog
+ * @param triggeredByEventName if triggeredByEventName is passed, we validate TokenStatisticLog
  * @param updatedAtTimestamp timestamp retrieved from the event
  * @param updatedAtBlockNumber block number retrieved from the event
  * @param totalNumberOfActiveStreams expected count of active streams for the token
@@ -84,9 +86,10 @@ export function assertAggregateBaseProperties(
  * @param totalAmountTransferredUntilUpdatedAt expected total amount transferred until updated at timestamp
  * @param totalAmountDistributedUntilUpdatedAt expected total amount distributed (with IDA) until updated at timestamp
  * @param totalSupply expected total supply
- * @param token expected token address
  */
 export function assertTokenStatisticProperties(
+    event: ethereum.Event | null,
+    triggeredByEventName: string | null,
     id: string,
     updatedAtTimestamp: BigInt,
     updatedAtBlockNumber: BigInt,
@@ -101,9 +104,12 @@ export function assertTokenStatisticProperties(
     totalAmountStreamedUntilUpdatedAt: BigInt,
     totalAmountTransferredUntilUpdatedAt: BigInt,
     totalAmountDistributedUntilUpdatedAt: BigInt,
-    totalSupply: BigInt,
-    token: string
+    totalSupply: BigInt
 ): void {
+    if (event && ! triggeredByEventName || !event && triggeredByEventName) {
+        log.error("You cannot pass event OR triggeredByEventName, you must pass both.", []);
+    }
+
     const entityName = "TokenStatistic";
     assertAggregateBaseProperties(entityName, id, updatedAtTimestamp, updatedAtBlockNumber);
     assert.fieldEquals(entityName, id, "totalNumberOfActiveStreams", totalNumberOfActiveStreams.toString());
@@ -118,7 +124,27 @@ export function assertTokenStatisticProperties(
     assert.fieldEquals(entityName, id, "totalAmountTransferredUntilUpdatedAt", totalAmountTransferredUntilUpdatedAt.toString());
     assert.fieldEquals(entityName, id, "totalAmountDistributedUntilUpdatedAt", totalAmountDistributedUntilUpdatedAt.toString());
     assert.fieldEquals(entityName, id, "totalSupply", totalSupply.toString());
-    assert.fieldEquals(entityName, id, "token", token);
+    assert.fieldEquals(entityName, id, "token", id); // NOTE: id of tokenStatistic is token address
+
+    if (event && triggeredByEventName) {
+        assertTokenStatisticLogProperties(
+            event,
+            triggeredByEventName,
+            totalNumberOfActiveStreams,
+            totalNumberOfClosedStreams,
+            totalNumberOfIndexes,
+            totalNumberOfActiveIndexes,
+            totalSubscriptionsWithUnits,
+            totalApprovedSubscriptions,
+            totalDeposit,
+            totalOutflowRate,
+            totalAmountStreamedUntilUpdatedAt,
+            totalAmountTransferredUntilUpdatedAt,
+            totalAmountDistributedUntilUpdatedAt,
+            totalSupply,
+            id
+        );
+    }
 }
 
 /**
@@ -142,8 +168,6 @@ export function assertTokenStatisticProperties(
 
 /**
  * Asserts that the properties on a TokenStatisticLog entity are correct.
- * @param entityName The name of the entity
- * @param id token address
  * @param event ethereum event object
  * @param triggeredByEventName name of the event which triggered the creation of this log
  * @param totalNumberOfActiveStreams expected count of active streams for the token
@@ -154,15 +178,13 @@ export function assertTokenStatisticProperties(
  * @param totalApprovedSubscriptions expected totalNumber of approved subscriptions for the token
  * @param totalDeposit expected total deposit amount
  * @param totalOutflowRate expected total outflow rate
- * @param totalAmountStreamedUntilUpdatedAt expected total amount streamed until updated at timestamp
- * @param totalAmountTransferredUntilUpdatedAt expected total amount transferred until updated at timestamp
- * @param totalAmountDistributedUntilUpdatedAt expected total amount distributed (with IDA) until updated at timestamp
+ * @param totalAmountStreamed expected total amount streamed until timestamp
+ * @param totalAmountTransferred expected total amount transferred until timestamp
+ * @param totalAmountDistributed expected total amount distributed (with IDA) until timestamp
  * @param totalSupply expected total supply
- * @param token expected token address
+ * @param tokenAddress expected token address
  */
 export function assertTokenStatisticLogProperties(
-    entityName: string,
-    id: string,
     event: ethereum.Event,
     triggeredByEventName: string,
     totalNumberOfActiveStreams: i32,
@@ -173,15 +195,20 @@ export function assertTokenStatisticLogProperties(
     totalApprovedSubscriptions: i32,
     totalDeposit: BigInt,
     totalOutflowRate: BigInt,
-    totalAmountStreamedUntilUpdatedAt: BigInt,
-    totalAmountTransferredUntilUpdatedAt: BigInt,
-    totalAmountDistributedUntilUpdatedAt: BigInt,
+    totalAmountStreamed: BigInt,
+    totalAmountTransferred: BigInt,
+    totalAmountDistributed: BigInt,
     totalSupply: BigInt,
-    token: string
+    tokenAddress: string
 ): void {
+    const entityName = "TokenStatisticLog";
+    const timestamp = event.block.timestamp;
+    const blockNumber = event.block.number;
+    const id = createLogID("TSLog", tokenAddress, event);
+    assertAggregateLogBaseProperties(entityName, id, timestamp, blockNumber);
     const order = getOrder(event.block.number, event.logIndex);
-    assert.fieldEquals(entityName, id, "timestamp", event.block.timestamp.toString());
-    assert.fieldEquals(entityName, id, "blockNumber", event.block.number.toString());
+    assert.fieldEquals(entityName, id, "timestamp", timestamp.toString());
+    assert.fieldEquals(entityName, id, "blockNumber", blockNumber.toString());
     assert.fieldEquals(entityName, id, "transactionHash", event.transaction.hash.toHex());
     assert.fieldEquals(entityName, id, "logIndex", event.logIndex.toString());
     assert.fieldEquals(entityName, id, "order", order.toString());
@@ -194,9 +221,10 @@ export function assertTokenStatisticLogProperties(
     assert.fieldEquals(entityName, id, "totalApprovedSubscriptions", totalApprovedSubscriptions.toString());
     assert.fieldEquals(entityName, id, "totalDeposit", totalDeposit.toString());
     assert.fieldEquals(entityName, id, "totalOutflowRate", totalOutflowRate.toString());
-    assert.fieldEquals(entityName, id, "totalAmountStreamedUntilUpdatedAt", totalAmountStreamedUntilUpdatedAt.toString());
-    assert.fieldEquals(entityName, id, "totalAmountTransferredUntilUpdatedAt", totalAmountTransferredUntilUpdatedAt.toString());
-    assert.fieldEquals(entityName, id, "totalAmountDistributedUntilUpdatedAt", totalAmountDistributedUntilUpdatedAt.toString());
+    assert.fieldEquals(entityName, id, "totalAmountStreamed", totalAmountStreamed.toString());
+    assert.fieldEquals(entityName, id, "totalAmountTransferred", totalAmountTransferred.toString());
+    assert.fieldEquals(entityName, id, "totalAmountDistributed", totalAmountDistributed.toString());
     assert.fieldEquals(entityName, id, "totalSupply", totalSupply.toString());
-    assert.fieldEquals(entityName, id, "token", token);
+    assert.fieldEquals(entityName, id, "token", tokenAddress);
+    assert.fieldEquals(entityName, id, "tokenStatistic", tokenAddress);
 }

@@ -7,7 +7,8 @@ import {
     test,
 } from "matchstick-as/assembly/index";
 import { handleBurned, handleMinted, handleSent } from "../../src/mappings/superToken";
-import { assertEventBaseProperties, assertTokenStatisticProperties } from "../assertionHelper";
+import { BIG_INT_ZERO } from "../../src/utils";
+import { assertEventBaseProperties, assertTokenStatisticProperties } from "../assertionHelpers";
 import {
     alice,
     bob
@@ -134,22 +135,23 @@ describe("SuperToken Mapper Unit Tests", () => {
 
             handleBurned(burnedEvent);
             assertTokenStatisticProperties(
+                null,
+                null,
                 burnedEvent.address.toHex(),
                 burnedEvent.block.timestamp,
                 burnedEvent.block.number,
-                0,                 // totalNumberOfActiveStreams
-                0,                 // totalNumberOfClosedStreams
-                0,                 // totalNumberOfIndexes
-                0,                 // totalNumberOfActiveIndexes
-                0,                 // totalSubscriptionsWithUnits
-                0,                 // totalApprovedSubscriptions
-                BigInt.fromI32(0), // totalDeposit
-                BigInt.fromI32(0), // totalOutflowRate
-                BigInt.fromI32(0), // totalAmountStreamedUntilUpdatedAt
-                BigInt.fromI32(0), // totalAmountTransferredUntilUpdatedAt
-                BigInt.fromI32(0), // totalAmountDistributedUntilUpdatedAt
-                amount.neg(),      // totalSupply = -100 (not possible in practice)
-                burnedEvent.address.toHex()
+                0,            // totalNumberOfActiveStreams
+                0,            // totalNumberOfClosedStreams
+                0,            // totalNumberOfIndexes
+                0,            // totalNumberOfActiveIndexes
+                0,            // totalSubscriptionsWithUnits
+                0,            // totalApprovedSubscriptions
+                BIG_INT_ZERO, // totalDeposit
+                BIG_INT_ZERO, // totalOutflowRate
+                BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
+                BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
+                amount.neg()  // totalSupply = -100 (not possible in practice)
             );
         });
 
@@ -170,22 +172,23 @@ describe("SuperToken Mapper Unit Tests", () => {
 
             handleMinted(mintedEvent);
             assertTokenStatisticProperties(
+                null,
+                null,
                 mintedEvent.address.toHex(),
                 mintedEvent.block.timestamp,
                 mintedEvent.block.number,
-                0,                 // totalNumberOfActiveStreams
-                0,                 // totalNumberOfClosedStreams
-                0,                 // totalNumberOfIndexes
-                0,                 // totalNumberOfActiveIndexes
-                0,                 // totalSubscriptionsWithUnits
-                0,                 // totalApprovedSubscriptions
-                BigInt.fromI32(0), // totalDeposit
-                BigInt.fromI32(0), // totalOutflowRate
-                BigInt.fromI32(0), // totalAmountStreamedUntilUpdatedAt
-                BigInt.fromI32(0), // totalAmountTransferredUntilUpdatedAt
-                BigInt.fromI32(0), // totalAmountDistributedUntilUpdatedAt
-                amount,            // totalSupply = 100
-                mintedEvent.address.toHex()
+                0,            // totalNumberOfActiveStreams
+                0,            // totalNumberOfClosedStreams
+                0,            // totalNumberOfIndexes
+                0,            // totalNumberOfActiveIndexes
+                0,            // totalSubscriptionsWithUnits
+                0,            // totalApprovedSubscriptions
+                BIG_INT_ZERO, // totalDeposit
+                BIG_INT_ZERO, // totalOutflowRate
+                BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
+                BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
+                amount        // totalSupply = 100
             );
         });
     });

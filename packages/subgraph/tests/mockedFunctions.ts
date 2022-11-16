@@ -1,6 +1,13 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { createMockedFunction } from "matchstick-as/assembly/index";
-import { hostAddress } from "./constants";
+import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import { BIG_INT_ZERO, ZERO_ADDRESS } from "../src/utils";
+import {
+    FAKE_INITIAL_BALANCE,
+    FAKE_SUPER_TOKEN_TOTAL_SUPPLY,
+    hostAddress,
+    resolverAddress,
+} from "./constants";
 import {
     getETHAddress,
     getETHBoolean,
@@ -10,13 +17,132 @@ import {
     getETHUnsignedBigInt,
 } from "./converters";
 
+// @note When we mock RPC calls, we are essentially defining what the contracts are returning
+// so in the case of mocking token name/symbol, etc. we are saying that these are the values on the
+// contract
+
+/**
+ * Creates the necessary mocked functions in order for getOrInitSuperToken to work as expected.
+ * @param superToken 
+ * @param decimals 
+ * @param underlyingAddress 
+ * @param tokenName 
+ * @param tokenSymbol 
+ */
+export function mockedHandleSuperTokenInitRPCCalls(
+    superToken: string,
+    decimals: i32,
+    underlyingAddress: Address,
+    tokenName: string,
+    tokenSymbol: string,
+    isListed: boolean
+): void {
+    // [START] getTokenInfoAndReturn =>
+    // token.try_getUnderlyingToken()
+    mockedGetUnderlyingToken(superToken, underlyingAddress.toHexString());
+    // token.try_name()
+    mockedTokenName(superToken, tokenName);
+    // token.try_symbol()
+    mockedTokenSymbol(superToken, tokenSymbol);
+    // token.try_decimals()
+    mockedTokenDecimals(superToken, decimals);
+    // [END] getTokenInfoAndReturn
+
+    // getIsListedToken(token, resolver) => resolver.try_get(key)
+    mockedResolverGet(
+        resolverAddress,
+        "supertokens.test." + tokenSymbol,
+        isListed ? superToken : ZERO_ADDRESS.toHexString()
+    );
+
+    // updateTotalSupplyForNativeSuperToken(token, tokenStatistic, tokenAddress)
+    mockedTokenTotalSupply(superToken, FAKE_SUPER_TOKEN_TOTAL_SUPPLY);
+}
+
+/**
+ * Creates the necessary mocked functions in order for the handleFlowUpdated mapping function to work as expected.
+ * @param flowUpdatedEvent
+ * @param superToken
+ * @param decimals
+ * @param tokenName
+ * @param tokenSymbol
+ * @param underlyingAddress
+ * @param expectedDeposit
+ * @param expectedOwedDeposit
+ */
+export function mockedHandleFlowUpdatedRPCCalls(
+    flowUpdatedEvent: FlowUpdated,
+    superToken: string,
+    decimals: i32,
+    tokenName: string,
+    tokenSymbol: string,
+    underlyingAddress: Address,
+    expectedDeposit: BigInt,
+    expectedOwedDeposit: BigInt,
+    isListed: boolean
+): void {
+    const sender = flowUpdatedEvent.params.sender.toHex();
+    const receiver = flowUpdatedEvent.params.receiver.toHex();
+    const flowRate = flowUpdatedEvent.params.flowRate;
+
+    // tokenHasValidHost => tokenContract.try_getHost()
+    mockedGetHost(superToken);
+
+    // cfaContract.try_GetFlow(token,sender,receiver)
+    mockedGetFlow(
+        flowUpdatedEvent.address.toHexString(),
+        superToken,
+        flowUpdatedEvent.params.sender.toHexString(),
+        flowUpdatedEvent.params.receiver.toHexString(),
+        flowUpdatedEvent.block.timestamp,
+        flowRate,
+        expectedDeposit,
+        expectedOwedDeposit
+    );
+
+    // getOrInitStream(event) => getOrInitAccount(sender) => host.try_getAppManifest(sender)
+    mockedGetAppManifest(sender, false, false, BIG_INT_ZERO);
+    // getOrInitStream(event) => getOrInitAccount(receiver) => host.try_getAppManifest(receiver)
+    mockedGetAppManifest(receiver, false, false, BIG_INT_ZERO);
+
+    // [START] getOrInitStream(event) => getOrInitSuperToken(token, block) => handleTokenRPCCalls(token, resolverAddress)
+    mockedHandleSuperTokenInitRPCCalls(
+        superToken,
+        decimals,
+        underlyingAddress,
+        tokenName,
+        tokenSymbol,
+        isListed
+    );
+    // [END] getOrInitStream(event) => getOrInitSuperToken(token, block) => handleTokenRPCCalls(token, resolverAddress)
+
+    // updateATSStreamedAndBalanceUntilUpdatedAt => updateATSBalanceAndUpdatedAt => try_realtimeBalanceOf(sender)
+    mockedRealtimeBalanceOf(
+        superToken,
+        sender,
+        flowUpdatedEvent.block.timestamp,
+        FAKE_INITIAL_BALANCE.minus(flowRate),
+        flowRate,
+        BIG_INT_ZERO
+    );
+    // updateATSStreamedAndBalanceUntilUpdatedAt => updateATSBalanceAndUpdatedAt => try_realtimeBalanceOf(receiver)
+    mockedRealtimeBalanceOf(
+        superToken,
+        receiver,
+        flowUpdatedEvent.block.timestamp,
+        FAKE_INITIAL_BALANCE,
+        BIG_INT_ZERO,
+        BIG_INT_ZERO
+    );
+}
+
 // Mocked Resolver Functions
 
 /**
  * Creates a mocked Resolver.get(key) function
  * @param resolverAddress
  * @param key the key of the item
- * @param value the expected value
+ * @param value the expected value (zero address means unlisted for given key)
  */
 export function mockedResolverGet(
     resolverAddress: string,
@@ -107,7 +233,7 @@ export function mockedGetAppManifest(
  * Creates a mocked SuperToken.getHost() function
  * @param tokenAddress
  */
- export function mockedGetHost(tokenAddress: string): void {
+export function mockedGetHost(tokenAddress: string): void {
     createMockedFunction(
         Address.fromString(tokenAddress),
         "getHost",
@@ -119,8 +245,8 @@ export function mockedGetAppManifest(
 
 /**
  * Creates a mocked SuperToken.getUnderlyingToken(address) function
- * @param tokenAddress 
- * @param expectedUnderlyingToken 
+ * @param tokenAddress
+ * @param expectedUnderlyingToken
  */
 export function mockedGetUnderlyingToken(
     tokenAddress: string,
@@ -170,8 +296,8 @@ export function mockedRealtimeBalanceOf(
 
 /**
  * Creates a mocked SuperToken.name() function
- * @param tokenAddress 
- * @param expectedName 
+ * @param tokenAddress
+ * @param expectedName
  */
 export function mockedTokenName(
     tokenAddress: string,
@@ -188,8 +314,8 @@ export function mockedTokenName(
 
 /**
  * Creates a mocked SuperToken.symbol() function
- * @param tokenAddress 
- * @param expectedSymbol 
+ * @param tokenAddress
+ * @param expectedSymbol
  */
 export function mockedTokenSymbol(
     tokenAddress: string,
@@ -206,8 +332,8 @@ export function mockedTokenSymbol(
 
 /**
  * Creates a mocked SuperToken.decimals() function
- * @param tokenAddress 
- * @param expectedDecimals 
+ * @param tokenAddress
+ * @param expectedDecimals
  */
 export function mockedTokenDecimals(
     tokenAddress: string,
@@ -224,8 +350,8 @@ export function mockedTokenDecimals(
 
 /**
  * Creates a mocked SuperToken.totalSupply() function
- * @param tokenAddress 
- * @param expectedTotalSupply 
+ * @param tokenAddress
+ * @param expectedTotalSupply
  */
 export function mockedTokenTotalSupply(
     tokenAddress: string,

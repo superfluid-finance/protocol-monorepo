@@ -8,8 +8,8 @@ import {
 } from "matchstick-as";
 import { handleIndexDistributionClaimed, handleIndexSubscribed, handleIndexUnsubscribed } from "../../src/mappings/idav1";
 import { getIndexID } from "../../src/utils";
-import { assertEventBaseProperties } from "../assertionHelper";
-import { alice, bob, maticx } from "../constants";
+import { assertEventBaseProperties } from "../assertionHelpers";
+import { alice, bob, maticXAddress } from "../constants";
 import { stringToBytes } from "../converters";
 import { createIndexDistributionClaimedEvent, createIndexSubscribedEvent, createIndexUnsubscribedEvent } from "./idav1.helper";
 
@@ -20,7 +20,7 @@ describe("Instant Distribution V1 Mapper Unit Tests", () => {
 
         //     // const mockEvent = newMockEvent();
         //     // createSuperToken(
-        //     //     Address.fromString(maticx),
+        //     //     Address.fromString(maticXAddress),
         //     //     mockEvent.block,
         //     //     18,
         //     //     "Super Matic",
@@ -33,7 +33,7 @@ describe("Instant Distribution V1 Mapper Unit Tests", () => {
         //     // // the resolver contract, otherwise we get the
         //     // // "Could not find a mocked function" error
         //     createMockedFunction(
-        //         Address.fromString(maticx),
+        //         Address.fromString(maticXAddress),
         //         "getHost",
         //         "getHost():(address)"
         //     )
@@ -64,12 +64,12 @@ describe("Instant Distribution V1 Mapper Unit Tests", () => {
         //     //         ethereum.Value.fromString("supertokens.test.MATICx"),
         //     //     ])
         //     //     .returns([
-        //     //         ethereum.Value.fromAddress(Address.fromString(maticx)),
+        //     //         ethereum.Value.fromAddress(Address.fromString(maticXAddress)),
         //     //     ]);
         });
 
         // test("handleIndexCreated() - Should create a new IndexCreatedEvent entity", () => {
-        //     const token = maticx;
+        //     const token = maticXAddress;
         //     const publisher = alice;
         //     const indexId = BigInt.fromI32(1);
         //     const userData = stringToBytes("");
@@ -97,7 +97,7 @@ describe("Instant Distribution V1 Mapper Unit Tests", () => {
         // });
 
         test("handleIndexDistributionClaimed() - Should create a new IndexDistributionClaimedEvent entity", () => {
-            const token = maticx;
+            const token = maticXAddress;
             const publisher = alice;
             const subscriber = bob;
             const indexId = BigInt.fromI32(1);
@@ -127,7 +127,7 @@ describe("Instant Distribution V1 Mapper Unit Tests", () => {
         });
         
         test("handleIndexSubscribed() - Should create a new IndexSubscribedEvent entity", () => {
-            const token = maticx;
+            const token = maticXAddress;
             const publisher = alice;
             const subscriber = bob;
             const indexId = BigInt.fromI32(1);
@@ -157,7 +157,7 @@ describe("Instant Distribution V1 Mapper Unit Tests", () => {
         });
 
         test("handleIndexUnsubscribed() - Should create a new IndexUnsubscribedEvent entity", () => {
-            const token = maticx;
+            const token = maticXAddress;
             const publisher = alice;
             const subscriber = bob;
             const indexId = BigInt.fromI32(1);

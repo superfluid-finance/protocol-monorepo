@@ -14,15 +14,15 @@ import { BIG_INT_ZERO, getAccountTokenSnapshotID, getStreamID, ZERO_ADDRESS } fr
 import {
     assertEventBaseProperties,
     assertHigherOrderBaseProperties,
-} from "../assertionHelper";
-import { alice, bob, DEFAULT_DECIMALS, maticx } from "../constants";
+} from "../assertionHelpers";
+import { alice, bob, DEFAULT_DECIMALS, maticXAddress, maticXName, maticXSymbol } from "../constants";
 import { stringToBytes } from "../converters";
+import { mockedHandleFlowUpdatedRPCCalls } from "../mockedFunctions";
 import {
     createFlowOperatorUpdatedEvent,
     createFlowUpdatedEvent,
     getFlowOperatorId,
 } from "./cfav1.helper";
-import { mockedHandleFlowUpdatedRPCCalls } from "./cfav1.helper";
 
 describe("ConstantFlowAgreementV1 Mapper Unit Tests", () => {
     describe("Event Entity Mapping Tests", () => {
@@ -31,7 +31,7 @@ describe("ConstantFlowAgreementV1 Mapper Unit Tests", () => {
         });
 
         test("handleFlowUpdated() - Should create a new FlowUpdatedEvent entity (create)", () => {
-            const superToken = maticx;
+            const superToken = maticXAddress;
             const sender = alice;
             const receiver = bob;
             const flowRate = BigInt.fromI32(100);
@@ -55,11 +55,12 @@ describe("ConstantFlowAgreementV1 Mapper Unit Tests", () => {
                 flowUpdatedEvent,
                 superToken,
                 DEFAULT_DECIMALS,
-                "Super Matic",
-                "MATICx",
+                maticXName,
+                maticXSymbol,
                 ZERO_ADDRESS,
                 flowRate,
-                BIG_INT_ZERO
+                BIG_INT_ZERO,
+                false
             );
 
             handleFlowUpdated(flowUpdatedEvent);
@@ -88,7 +89,7 @@ describe("ConstantFlowAgreementV1 Mapper Unit Tests", () => {
         });
 
         test("handleFlowOperatorUpdated() - Should create a new FlowOperatorUpdatedEvent entity", () => {
-            const superToken = maticx;
+            const superToken = maticXAddress;
             const permissions = 1; // create only
             const flowRateAllowance = BigInt.fromI32(100);
             const sender = alice;
@@ -123,7 +124,7 @@ describe("ConstantFlowAgreementV1 Mapper Unit Tests", () => {
         });
 
         test("handleFlowOperatorUpdated() - Should create a new FlowOperator entity", () => {
-            const superToken = maticx;
+            const superToken = maticXAddress;
             const permissions = 1; // create only
             const flowRateAllowance = BigInt.fromI32(100);
             const sender = alice;

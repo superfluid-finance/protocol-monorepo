@@ -2,8 +2,6 @@ import { Address, ethereum } from "@graphprotocol/graph-ts";
 import { Token } from "../generated/schema";
 import { getNativeAssetSuperTokenAddress } from "../src/addresses";
 
-// @note TODO: Delete all usages of createSuperToken
-// we can now test super token creation properly...
 /**
  * Creates a SuperToken entity
  * Note: this is needed otherwise we get a null error when we try

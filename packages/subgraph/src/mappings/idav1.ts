@@ -47,27 +47,29 @@ import { getHostAddress } from "../addresses";
  * Event Handlers *
  *****************/
 export function handleIndexCreated(event: IndexCreated): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    const eventName = "IndexCreated";
+    const hostAddress = getHostAddress();
+    const hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
     }
 
-    let currentTimestamp = event.block.timestamp;
-    let indexCreatedId = createEventID("IndexCreated", event);
-    let index = getOrInitIndex(
+    const currentTimestamp = event.block.timestamp;
+    const indexCreatedId = createEventID(eventName, event);
+    const index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block,
-        indexCreatedId
+        indexCreatedId,
+        eventName
     );
     index.save();
 
     // update streamed until updated at field
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
-    let tokenStatistic = getOrInitTokenStatistic(
+    const tokenStatistic = getOrInitTokenStatistic(
         event.params.token,
         event.block
     );
@@ -88,46 +90,49 @@ export function handleIndexCreated(event: IndexCreated): void {
         event,
         event.params.publisher,
         event.params.token,
-        "IndexCreated"
+        eventName
     );
-    _createTokenStatisticLogEntity(event, event.params.token, "IndexCreated");
-    _createIndexCreatedEventEntity(event, index.id);
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
+    _createIndexCreatedEventEntity(event, eventName, index.id);
 }
 
 export function handleIndexDistributionClaimed(
     event: IndexDistributionClaimed
 ): void {
-    let indexId = getIndexID(
+    const eventName = "IndexDistributionClaimed";
+    const indexId = getIndexID(
         event.params.publisher,
         event.params.token,
         event.params.indexId
     );
-    _createIndexDistributionClaimedEventEntity(event, indexId);
+    _createIndexDistributionClaimedEventEntity(event, eventName, indexId);
 }
 
 export function handleIndexUpdated(event: IndexUpdated): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    const eventName = "IndexUpdated";
+    const hostAddress = getHostAddress();
+    const hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
     }
 
-    let totalUnits = event.params.totalUnitsPending.plus(
+    const totalUnits = event.params.totalUnitsPending.plus(
         event.params.totalUnitsApproved
     );
-    let distributionDelta = event.params.newIndexValue
+    const distributionDelta = event.params.newIndexValue
         .minus(event.params.oldIndexValue)
         .times(totalUnits);
 
     // update Index entity
-    let index = getOrInitIndex(
+    const index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block,
-        ""
+        "",
+        eventName
     );
-    let previousTotalAmountDistributed =
+    const previousTotalAmountDistributed =
         index.totalAmountDistributedUntilUpdatedAt;
     index.indexValue = event.params.newIndexValue;
     index.totalUnitsPending = event.params.totalUnitsPending;
@@ -139,7 +144,7 @@ export function handleIndexUpdated(event: IndexUpdated): void {
 
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
-    let tokenStatistic = getOrInitTokenStatistic(
+    const tokenStatistic = getOrInitTokenStatistic(
         event.params.token,
         event.block
     );
@@ -168,77 +173,91 @@ export function handleIndexUpdated(event: IndexUpdated): void {
         event,
         event.params.publisher,
         event.params.token,
-        "IndexUpdated"
+        eventName
     );
-    _createTokenStatisticLogEntity(event, event.params.token, "IndexUpdated");
-    _createIndexUpdatedEventEntity(event, index.id);
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
+    _createIndexUpdatedEventEntity(event, eventName, index.id);
 }
 
 export function handleIndexSubscribed(event: IndexSubscribed): void {
-    let indexId = getIndexID(
+    const eventName = "IndexSubscribed";
+    const indexId = getIndexID(
         event.params.publisher,
         event.params.token,
         event.params.indexId
     );
-    _createIndexSubscribedEventEntity(event, indexId);
+    _createIndexSubscribedEventEntity(event, eventName, indexId);
 }
 
 export function handleIndexUnitsUpdated(event: IndexUnitsUpdated): void {
-    let indexId = getIndexID(
+    const eventName = "IndexUnitsUpdated";
+    const indexId = getIndexID(
         event.params.publisher,
         event.params.token,
         event.params.indexId
     );
-    let subscription = getOrInitSubscription(
+    const subscription = getOrInitSubscription(
+        event,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block
+        eventName
     );
-    _createIndexUnitsUpdatedEventEntity(event, indexId, subscription.units);
+    _createIndexUnitsUpdatedEventEntity(
+        event,
+        eventName,
+        indexId,
+        subscription.units
+    );
 }
 
 export function handleIndexUnsubscribed(event: IndexUnsubscribed): void {
-    let indexId = getIndexID(
+    const eventName = "IndexUnsubscribed";
+    const indexId = getIndexID(
         event.params.publisher,
         event.params.token,
         event.params.indexId
     );
-    _createIndexUnsubscribedEventEntity(event, indexId);
+    _createIndexUnsubscribedEventEntity(event, eventName, indexId);
 }
 
 export function handleSubscriptionApproved(event: SubscriptionApproved): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    const eventName = "SubscriptionApproved";
+    const hostAddress = getHostAddress();
+    const hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
     }
 
-    let index = getOrInitIndex(
+    const index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block,
-        ""
+        "",
+        eventName
     );
 
-    let subscription = getOrInitSubscription(
+    const subscription = getOrInitSubscription(
+        event,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block
+        eventName
     );
 
-    let balanceDelta = index.indexValue
+    const balanceDelta = index.indexValue
         .minus(subscription.indexValueUntilUpdatedAt)
         .times(subscription.units);
 
     subscription.approved = true;
     subscription.indexValueUntilUpdatedAt = index.indexValue;
 
-    let hasSubscriptionWithUnits = subscriptionWithUnitsExists(subscription.id);
+    const hasSubscriptionWithUnits = subscriptionWithUnitsExists(
+        subscription.id
+    );
 
     // this must be done whether subscription exists or not
     updateATSStreamedAndBalanceUntilUpdatedAt(
@@ -269,7 +288,7 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
             event,
             event.params.publisher,
             event.params.token,
-            "SubscriptionApproved"
+            eventName
         );
     }
 
@@ -291,40 +310,39 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
     );
     index.save();
 
-    _createSubscriptionApprovedEventEntity(event, subscription.id);
+    _createSubscriptionApprovedEventEntity(event, eventName, subscription.id);
     _createAccountTokenSnapshotLogEntity(
         event,
         event.params.subscriber,
         event.params.token,
-        "SubscriptionApproved"
+        eventName
     );
-    _createTokenStatisticLogEntity(
-        event,
-        event.params.token,
-        "SubscriptionApproved"
-    );
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
 }
 
 export function handleSubscriptionDistributionClaimed(
     event: SubscriptionDistributionClaimed
 ): void {
-    let index = getOrInitIndex(
+    const eventName = "SubscriptionDistributionClaimed";
+    const index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block,
-        ""
+        "",
+        eventName
     );
 
-    let subscription = getOrInitSubscription(
+    const subscription = getOrInitSubscription(
+        event,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block
+        eventName
     );
 
-    let pendingDistribution = subscription.units.times(
+    const pendingDistribution = subscription.units.times(
         index.indexValue.minus(subscription.indexValueUntilUpdatedAt)
     );
 
@@ -335,7 +353,11 @@ export function handleSubscriptionDistributionClaimed(
     subscription.indexValueUntilUpdatedAt = index.indexValue;
     subscription.save();
 
-    _createSubscriptionDistributionClaimedEventEntity(event, subscription.id);
+    _createSubscriptionDistributionClaimedEventEntity(
+        event,
+        eventName,
+        subscription.id
+    );
 
     // // update streamed until updated at field
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
@@ -356,19 +378,15 @@ export function handleSubscriptionDistributionClaimed(
         event,
         event.params.publisher,
         event.params.token,
-        "SubscriptionDistributionClaimed"
+        eventName
     );
     _createAccountTokenSnapshotLogEntity(
         event,
         event.params.subscriber,
         event.params.token,
-        "SubscriptionDistributionClaimed"
+        eventName
     );
-    _createTokenStatisticLogEntity(
-        event,
-        event.params.token,
-        "SubscriptionDistributionClaimed"
-    );
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
 }
 
 /**
@@ -377,34 +395,35 @@ export function handleSubscriptionDistributionClaimed(
  * _revokeOrUpdateSubscription - it runs whenever a subscription
  * is revoked or deleted.
  * @param event
- * @param hostAddress
- * @returns
  */
 export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    const eventName = "SubscriptionRevoked";
+    const hostAddress = getHostAddress();
+    const hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
     }
 
-    let index = getOrInitIndex(
+    const index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block,
-        ""
+        "",
+        eventName
     );
 
     // This will always execute on an existing subscription
-    let subscription = getOrInitSubscription(
+    const subscription = getOrInitSubscription(
+        event,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block
+        eventName
     );
 
-    let balanceDelta = index.indexValue
+    const balanceDelta = index.indexValue
         .minus(subscription.indexValueUntilUpdatedAt)
         .times(subscription.units);
 
@@ -459,24 +478,20 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
     index.save();
     subscription.save();
 
-    _createSubscriptionRevokedEventEntity(event, subscription.id);
+    _createSubscriptionRevokedEventEntity(event, eventName, subscription.id);
     _createAccountTokenSnapshotLogEntity(
         event,
         event.params.subscriber,
         event.params.token,
-        "SubscriptionRevoked"
+        eventName
     );
     _createAccountTokenSnapshotLogEntity(
         event,
         event.params.publisher,
         event.params.token,
-        "SubscriptionRevoked"
+        eventName
     );
-    _createTokenStatisticLogEntity(
-        event,
-        event.params.token,
-        "SubscriptionRevoked"
-    );
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
 }
 
 /**
@@ -488,34 +503,39 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
 export function handleSubscriptionUnitsUpdated(
     event: SubscriptionUnitsUpdated
 ): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    const eventName = "SubscriptionUnitsUpdated";
+    const hostAddress = getHostAddress();
+    const hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
     }
 
-    let subscription = getOrInitSubscription(
+    const subscription = getOrInitSubscription(
+        event,
         event.params.subscriber,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block
+        eventName
     );
 
-    let index = getOrInitIndex(
+    const index = getOrInitIndex(
+        event,
         event.params.publisher,
         event.params.token,
         event.params.indexId,
-        event.block,
-        ""
+        "",
+        eventName
     );
-    let units = event.params.units;
-    let oldUnits = subscription.units;
-    let hasSubscriptionWithUnits = subscriptionWithUnitsExists(subscription.id);
+    const units = event.params.units;
+    const oldUnits = subscription.units;
+    const hasSubscriptionWithUnits = subscriptionWithUnitsExists(
+        subscription.id
+    );
 
     // we only handle updateSubscription in this function
     // is updateSubscription
-    let totalUnitsDelta = units.minus(subscription.units);
+    const totalUnitsDelta = units.minus(subscription.units);
 
     // if you have an approved subscription, you just add to totalUnitsApproved
     if (subscription.approved) {
@@ -528,7 +548,7 @@ export function handleSubscriptionUnitsUpdated(
         index.totalUnits = index.totalUnits.plus(totalUnitsDelta);
     }
 
-    let balanceDelta = index.indexValue
+    const balanceDelta = index.indexValue
         .minus(subscription.indexValueUntilUpdatedAt)
         .times(subscription.units);
 
@@ -602,6 +622,7 @@ export function handleSubscriptionUnitsUpdated(
 
     _createSubscriptionUnitsUpdatedEventEntity(
         event,
+        eventName,
         subscription.id,
         oldUnits
     );
@@ -609,19 +630,15 @@ export function handleSubscriptionUnitsUpdated(
         event,
         event.params.publisher,
         event.params.token,
-        "SubscriptionUnitsUpdated"
+        eventName
     );
     _createAccountTokenSnapshotLogEntity(
         event,
         event.params.subscriber,
         event.params.token,
-        "SubscriptionUnitsUpdated"
+        eventName
     );
-    _createTokenStatisticLogEntity(
-        event,
-        event.params.token,
-        "SubscriptionUnitsUpdated"
-    );
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
 }
 
 /****************************************
@@ -629,9 +646,10 @@ export function handleSubscriptionUnitsUpdated(
  ***************************************/
 function _createIndexCreatedEventEntity(
     event: IndexCreated,
+    eventName: string,
     indexId: string
 ): void {
-    const eventId = createEventID("IndexCreated", event);
+    const eventId = createEventID(eventName, event);
     const ev = new IndexCreatedEvent(eventId);
     initializeEventEntity(ev, event, [
         event.params.token,
@@ -648,9 +666,10 @@ function _createIndexCreatedEventEntity(
 
 function _createIndexDistributionClaimedEventEntity(
     event: IndexDistributionClaimed,
+    eventName: string,
     indexId: string
 ): void {
-    const eventId = createEventID("IndexDistributionClaimed", event);
+    const eventId = createEventID(eventName, event);
     const ev = new IndexDistributionClaimedEvent(eventId);
     initializeEventEntity(ev, event, [
         event.params.token,
@@ -669,9 +688,10 @@ function _createIndexDistributionClaimedEventEntity(
 
 function _createIndexUpdatedEventEntity(
     event: IndexUpdated,
+    eventName: string,
     indexId: string
 ): void {
-    const eventId = createEventID("IndexUpdated", event);
+    const eventId = createEventID(eventName, event);
     const ev = new IndexUpdatedEvent(eventId);
     initializeEventEntity(ev, event, [
         event.params.token,
@@ -691,9 +711,10 @@ function _createIndexUpdatedEventEntity(
 }
 function _createIndexSubscribedEventEntity(
     event: IndexSubscribed,
+    eventName: string,
     indexId: string
 ): void {
-    const eventId = createEventID("IndexSubscribed", event);
+    const eventId = createEventID(eventName, event);
     const ev = new IndexSubscribedEvent(eventId);
     initializeEventEntity(ev, event, [
         event.params.token,
@@ -712,10 +733,11 @@ function _createIndexSubscribedEventEntity(
 
 function _createIndexUnitsUpdatedEventEntity(
     event: IndexUnitsUpdated,
+    eventName: string,
     indexId: string,
     oldUnits: BigInt
 ): void {
-    const eventId = createEventID("IndexUnitsUpdated", event);
+    const eventId = createEventID(eventName, event);
     const ev = new IndexUnitsUpdatedEvent(eventId);
     initializeEventEntity(ev, event, [
         event.params.token,
@@ -736,9 +758,10 @@ function _createIndexUnitsUpdatedEventEntity(
 
 function _createIndexUnsubscribedEventEntity(
     event: IndexUnsubscribed,
+    eventName: string,
     indexId: string
 ): void {
-    const eventId = createEventID("IndexUnsubscribed", event);
+    const eventId = createEventID(eventName, event);
     const ev = new IndexUnsubscribedEvent(eventId);
     initializeEventEntity(ev, event, [
         event.params.token,
@@ -757,9 +780,10 @@ function _createIndexUnsubscribedEventEntity(
 
 function _createSubscriptionApprovedEventEntity(
     event: SubscriptionApproved,
+    eventName: string,
     subscriptionId: string
 ): void {
-    const eventId = createEventID("SubscriptionApproved", event);
+    const eventId = createEventID(eventName, event);
     const ev = new SubscriptionApprovedEvent(eventId);
     initializeEventEntity(ev, event, [
         event.params.token,
@@ -777,9 +801,10 @@ function _createSubscriptionApprovedEventEntity(
 
 function _createSubscriptionDistributionClaimedEventEntity(
     event: SubscriptionDistributionClaimed,
+    eventName: string,
     subscriptionId: string
 ): void {
-    const eventId = createEventID("SubscriptionDistributionClaimed", event);
+    const eventId = createEventID(eventName, event);
     const ev = new SubscriptionDistributionClaimedEvent(eventId);
     initializeEventEntity(ev, event, [
         event.params.token,
@@ -798,9 +823,10 @@ function _createSubscriptionDistributionClaimedEventEntity(
 
 function _createSubscriptionRevokedEventEntity(
     event: SubscriptionRevoked,
+    eventName: string,
     subscriptionId: string
 ): void {
-    const eventId = createEventID("SubscriptionRevoked", event);
+    const eventId = createEventID(eventName, event);
     const ev = new SubscriptionRevokedEvent(eventId);
     initializeEventEntity(ev, event, [
         event.params.token,
@@ -819,10 +845,11 @@ function _createSubscriptionRevokedEventEntity(
 
 function _createSubscriptionUnitsUpdatedEventEntity(
     event: SubscriptionUnitsUpdated,
+    eventName: string,
     subscriptionId: string,
     oldUnits: BigInt
 ): void {
-    const eventId = createEventID("SubscriptionUnitsUpdated", event);
+    const eventId = createEventID(eventName, event);
     const ev = new SubscriptionUnitsUpdatedEvent(eventId);
     initializeEventEntity(ev, event, [
         event.params.token,

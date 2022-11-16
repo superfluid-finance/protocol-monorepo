@@ -317,7 +317,7 @@ The higher order level entities are an abstraction of the events is not ephemera
 Aggregate entities are exactly what the name suggests - they are entities that store aggregate data. More specifically, we do this at an account-token level and also at a global token level.
 
 ### Test Structure
-
+<!-- @note TODO: EDIT THIS SECTION TO REFLECT UNIT MATCHSTICK UNIT TESTS -->
 This section is intended for those who are interested in understanding the structure of the test suite.
 The idea of this test suite is to ensure that we can be as confident as possible that the data is what we expect it to be based on our actions. We want to validate the data between each action. To accomplish this, we needed to store a global state for our HOL and aggregate entities and so it is important to follow the pattern of modify then update global state otherwise the tests break.
 

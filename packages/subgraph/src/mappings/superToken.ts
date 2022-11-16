@@ -91,7 +91,7 @@ export function handleTokenUpgraded(event: TokenUpgraded): void {
 
     getOrInitAccount(event.params.account, event.block);
 
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event, event.address, "TokenUpgraded");
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.account,
@@ -120,7 +120,7 @@ export function handleTokenDowngraded(event: TokenDowngraded): void {
 
     getOrInitAccount(event.params.account, event.block);
 
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event, event.address, "TokenDowngraded");
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.account,
@@ -149,19 +149,19 @@ export function handleTransfer(event: Transfer): void {
 
     let tokenId = event.address;
 
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event, event.address, "Transfer");
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.to,
         event.address,
         event.block,
-        null // manual accounting (overriden in upgrade/downgrade)
+        null // manual accounting (overridden in upgrade/downgrade)
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.from,
         event.address,
         event.block,
-        null // manual accounting (overriden in upgrade/downgrade)
+        null // manual accounting (overridden in upgrade/downgrade)
     );
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
@@ -200,8 +200,8 @@ export function handleSent(event: Sent): void {
 }
 
 /**
- * This always gets called with the Transfer event, which handles
- * a lot of the logic with the Token, Account, ATS and TokenStatistic
+ * This always gets called prior to the Transfer event, which handles
+ * a lot of the logic with the Token, Account, ATS, TokenStatistic and TokenStatisticLog
  * entities.
  * @param event
  */
@@ -214,8 +214,8 @@ export function handleBurned(event: Burned): void {
 }
 
 /**
- * This always gets called with the Transfer event, which handles
- * a lot of the logic with the Token, Account, ATS and TokenStatistic
+ * This always gets called prior to the Transfer event, which handles
+ * a lot of the logic with the Token, Account, ATS, TokenStatistic and TokenStatisticLog
  * entities.
  * @param event
  */
@@ -237,7 +237,7 @@ function updateHOLEntitiesForLiquidation(
     bondAccount: Address,
     eventName: string
 ): void {
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event, event.address, eventName);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
         liquidatorAccount,

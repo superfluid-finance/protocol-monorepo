@@ -26,9 +26,8 @@ import {
     getStreamID,
     getStreamRevisionID,
     getSubscriptionID,
-    getTokenInfoAndReturn,
     streamRevisionExists,
-    updateTotalSupplyForNativeSuperToken,
+    getInitialTotalSupplyForSuperToken,
     ZERO_ADDRESS,
     handleTokenRPCCalls,
 } from "./utils";
@@ -54,12 +53,13 @@ export function getOrInitAccount(
     block: ethereum.Block
 ): Account {
     let account = Account.load(accountAddress.toHex());
-    let hostAddress = getHostAddress();
+    const hostAddress = getHostAddress();
 
-    let currentTimestamp = block.timestamp;
+    const currentTimestamp = block.timestamp;
     if (account == null) {
-        let hostContract = Superfluid.bind(hostAddress);
-        let appManifestResult = hostContract.try_getAppManifest(accountAddress);
+        const hostContract = Superfluid.bind(hostAddress);
+        const appManifestResult =
+            hostContract.try_getAppManifest(accountAddress);
         account = new Account(accountAddress.toHex());
         account.createdAtTimestamp = currentTimestamp;
         account.createdAtBlockNumber = block.number;
@@ -80,17 +80,19 @@ export function getOrInitAccount(
  * We also create token stats in here if it doesn't exist yet.
  */
 export function getOrInitSuperToken(
+    event: ethereum.Event,
     tokenAddress: Address,
-    block: ethereum.Block
+    triggeredByEventName: string
 ): Token {
-    let tokenId = tokenAddress.toHex();
+    const tokenId = tokenAddress.toHex();
+    const block = event.block;
     let token = Token.load(tokenId);
     if (tokenAddress.equals(ZERO_ADDRESS)) {
         return token as Token;
     }
 
-    let currentTimestamp = block.timestamp;
-    let resolverAddress = getResolverAddress();
+    const currentTimestamp = block.timestamp;
+    const resolverAddress = getResolverAddress();
 
     if (token == null) {
         // Note: this is necessary otherwise we will not be able to capture
@@ -118,21 +120,26 @@ export function getOrInitSuperToken(
         // Note: we initialize and create tokenStatistic whenever we create a
         // token as well.
         let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
-        tokenStatistic = updateTotalSupplyForNativeSuperToken(
-            token,
+        tokenStatistic = getInitialTotalSupplyForSuperToken(
             tokenStatistic,
             tokenAddress
         );
         tokenStatistic.save();
 
+        // Per our TokenStatistic Invariant: whenever we create TokenStatistic, we must create TokenStatisticLog
+        _createTokenStatisticLogEntity(
+            event,
+            tokenAddress,
+            triggeredByEventName
+        );
+
         // If the token has an underlying ERC20, we create a token entity for it.
-        let underlyingToken = Token.load(token.underlyingAddress.toHex());
         if (
             underlyingAddress.notEqual(ZERO_ADDRESS) &&
-            underlyingToken == null
+            Token.load(token.underlyingAddress.toHex()) == null
         ) {
             let address = Address.fromString(underlyingAddress.toHexString());
-            getOrInitToken(address, block);
+            getOrInitToken(address, block, resolverAddress);
         }
         return token as Token;
     }
@@ -154,9 +161,10 @@ export function getOrInitSuperToken(
  */
 export function getOrInitToken(
     tokenAddress: Address,
-    block: ethereum.Block
+    block: ethereum.Block,
+    resolverAddress: Address
 ): void {
-    let tokenId = tokenAddress.toHex();
+    const tokenId = tokenAddress.toHex();
     let token = new Token(tokenId);
 
     if (tokenAddress.equals(ZERO_ADDRESS)) {
@@ -164,10 +172,14 @@ export function getOrInitToken(
     }
 
     token.createdAtTimestamp = block.timestamp;
+    token.decimals = 0;
+    token.name = "";
+    token.symbol = "";
     token.createdAtBlockNumber = block.number;
     token.isSuperToken = false;
+    token.isNativeAssetSuperToken = false;
     token.isListed = false;
-    token = getTokenInfoAndReturn(token as Token);
+    token = handleTokenRPCCalls(token, resolverAddress);
     token.save();
 }
 
@@ -179,7 +191,7 @@ export function getOrInitStreamRevision(
     recipientAddress: Address,
     tokenAddress: Address
 ): StreamRevision {
-    let streamRevisionId = getStreamRevisionID(
+    const streamRevisionId = getStreamRevisionID(
         senderAddress,
         recipientAddress,
         tokenAddress
@@ -205,12 +217,12 @@ export function getOrInitStream(event: FlowUpdated): Stream {
     getOrInitAccount(event.params.receiver, event.block);
 
     // Create a streamRevision entity for this stream if one doesn't exist.
-    let streamRevision = getOrInitStreamRevision(
+    const streamRevision = getOrInitStreamRevision(
         event.params.sender,
         event.params.receiver,
         event.params.token
     );
-    let currentTimestamp = event.block.timestamp;
+    const currentTimestamp = event.block.timestamp;
     if (
         !streamRevisionExists(
             getStreamRevisionID(
@@ -222,7 +234,7 @@ export function getOrInitStream(event: FlowUpdated): Stream {
     ) {
         streamRevision.save();
     }
-    let id = getStreamID(
+    const id = getStreamID(
         event.params.sender,
         event.params.receiver,
         event.params.token,
@@ -246,7 +258,7 @@ export function getOrInitStream(event: FlowUpdated): Stream {
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
         // also handles the fact that custom super tokens are
         // initialized after event is first initialized
-        getOrInitSuperToken(event.params.token, event.block);
+        getOrInitSuperToken(event, event.params.token, "FlowUpdated");
     }
     return stream as Stream;
 }
@@ -257,13 +269,13 @@ export function getOrInitFlowOperator(
     tokenAddress: Address,
     senderAddress: Address
 ): FlowOperator {
-    let flowOperatorId = getFlowOperatorID(
+    const flowOperatorId = getFlowOperatorID(
         flowOperatorAddress,
         tokenAddress,
         senderAddress
     );
+    const currentTimestamp = block.timestamp;
     let flowOperatorEntity = FlowOperator.load(flowOperatorId);
-    let currentTimestamp = block.timestamp;
     if (flowOperatorEntity == null) {
         flowOperatorEntity = new FlowOperator(flowOperatorId);
         flowOperatorEntity.createdAtBlockNumber = block.number;
@@ -292,18 +304,20 @@ export function getOrInitFlowOperator(
  * Gets or initializes an Index, always sets the updatedAt.
  */
 export function getOrInitIndex(
+    event: ethereum.Event,
     publisherAddress: Address,
     tokenAddress: Address,
     indexId: BigInt,
-    block: ethereum.Block,
-    indexCreatedId: string
+    indexCreatedId: string,
+    triggeredByEventName: string
 ): Index {
-    let indexEntityId = getIndexID(publisherAddress, tokenAddress, indexId);
+    const indexEntityId = getIndexID(publisherAddress, tokenAddress, indexId);
+    const block = event.block;
+    const currentTimestamp = block.timestamp;
     let index = Index.load(indexEntityId);
-    let currentTimestamp = block.timestamp;
     if (index == null) {
-        let publisherId = publisherAddress.toHex();
-        let tokenId = tokenAddress.toHex();
+        const publisherId = publisherAddress.toHex();
+        const tokenId = tokenAddress.toHex();
         index = new Index(indexEntityId);
         index.createdAtTimestamp = currentTimestamp;
         index.createdAtBlockNumber = block.number;
@@ -326,7 +340,7 @@ export function getOrInitIndex(
 
         // NOTE: we must check if token exists and create here
         // if not. for SETH tokens (e.g. ETH, MATIC, xDAI)
-        getOrInitSuperToken(tokenAddress, block);
+        getOrInitSuperToken(event, tokenAddress, triggeredByEventName);
     }
     index.updatedAtTimestamp = currentTimestamp;
     index.updatedAtBlockNumber = block.number;
@@ -337,36 +351,38 @@ export function getOrInitIndex(
  * Gets or initializes a Subscription, always sets the updatedAt.
  */
 export function getOrInitSubscription(
+    event: ethereum.Event,
     subscriberAddress: Address,
     publisherAddress: Address,
     tokenAddress: Address,
     indexId: BigInt,
-    block: ethereum.Block
+    triggeredByEventName: string
 ): IndexSubscription {
-    let subscriptionId = getSubscriptionID(
+    const subscriptionId = getSubscriptionID(
         subscriberAddress,
         publisherAddress,
         tokenAddress,
         indexId
     );
     let subscription = IndexSubscription.load(subscriptionId);
-    let indexEntityId = getIndexID(publisherAddress, tokenAddress, indexId);
-    let currentTimestamp = block.timestamp;
+    const indexEntityId = getIndexID(publisherAddress, tokenAddress, indexId);
+    const block = event.block;
+    const currentTimestamp = block.timestamp;
 
     if (subscription == null) {
-        let index = getOrInitIndex(
+        const index = getOrInitIndex(
+            event,
             publisherAddress,
             tokenAddress,
             indexId,
-            block,
-            ""
+            "",
+            triggeredByEventName
         );
 
-        let subscriberId = subscriberAddress.toHex();
         subscription = new IndexSubscription(subscriptionId);
         subscription.createdAtTimestamp = currentTimestamp;
         subscription.createdAtBlockNumber = block.number;
-        subscription.subscriber = subscriberId;
+        subscription.subscriber = subscriberAddress.toHex();
         subscription.approved = false;
         subscription.units = BIG_INT_ZERO;
         subscription.totalAmountReceivedUntilUpdatedAt = BIG_INT_ZERO;
@@ -415,7 +431,7 @@ export function getOrInitAccountTokenSnapshot(
     tokenAddress: Address,
     block: ethereum.Block
 ): AccountTokenSnapshot {
-    let atsId = getAccountTokenSnapshotID(accountAddress, tokenAddress);
+    const atsId = getAccountTokenSnapshotID(accountAddress, tokenAddress);
     let accountTokenSnapshot = AccountTokenSnapshot.load(atsId);
 
     if (accountTokenSnapshot == null) {
@@ -455,13 +471,13 @@ export function _createAccountTokenSnapshotLogEntity(
     if (accountAddress.equals(ZERO_ADDRESS)) {
         return;
     }
-    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
+    const accountTokenSnapshot = getOrInitAccountTokenSnapshot(
         accountAddress,
         tokenAddress,
         event.block
     );
     // Transaction
-    let atsLog = new AccountTokenSnapshotLog(
+    const atsLog = new AccountTokenSnapshotLog(
         createLogID("ATSLog", accountTokenSnapshot.id, event)
     );
     atsLog.transactionHash = event.transaction.hash;
@@ -533,8 +549,8 @@ export function _createTokenStatisticLogEntity(
     tokenAddress: Address,
     eventName: string
 ): void {
-    let tokenStatistic = getOrInitTokenStatistic(tokenAddress, event.block);
-    let tokenStatisticLog = new TokenStatisticLog(
+    const tokenStatistic = getOrInitTokenStatistic(tokenAddress, event.block);
+    const tokenStatisticLog = new TokenStatisticLog(
         createLogID("TSLog", tokenStatistic.id, event)
     );
 
@@ -584,7 +600,7 @@ export function updateAccountUpdatedAt(
     accountAddress: Address,
     block: ethereum.Block
 ): void {
-    let account = getOrInitAccount(accountAddress, block);
+    const account = getOrInitAccount(accountAddress, block);
     account.updatedAtTimestamp = block.timestamp;
     account.updatedAtBlockNumber = block.number;
     account.save();
@@ -608,21 +624,21 @@ export function updateAggregateIDASubscriptionsData(
     isApproving: boolean,
     block: ethereum.Block
 ): void {
-    let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
-    let totalSubscriptionWithUnitsDelta =
+    const tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
+    const totalSubscriptionWithUnitsDelta =
         isDeletingSubscription && subscriptionWithUnitsExists
             ? -1
             : isIncrementingSubWithUnits && !subscriptionWithUnitsExists
             ? 1
             : 0;
-    let totalApprovedSubscriptionsDelta = isApproving
+    const totalApprovedSubscriptionsDelta = isApproving
         ? 1
         : isRevokingSubscription && subscriptionApproved
         ? -1
         : 0;
 
     // update ATS Subscription data
-    let accountTokenSnapshot = getOrInitAccountTokenSnapshot(
+    const accountTokenSnapshot = getOrInitAccountTokenSnapshot(
         accountAddress,
         tokenAddress,
         block
@@ -666,7 +682,7 @@ function updateATSBalanceAndUpdatedAt(
     block: ethereum.Block,
     balanceDelta: BigInt | null
 ): AccountTokenSnapshot {
-    let superTokenContract = SuperToken.bind(
+    const superTokenContract = SuperToken.bind(
         Address.fromString(accountTokenSnapshot.token)
     );
 
@@ -680,7 +696,7 @@ function updateATSBalanceAndUpdatedAt(
         // the balance data requires a RPC call for balance because we did not
         // have claim events there and we do not count distributions
         // for subscribers
-        let newBalanceResult = superTokenContract.try_realtimeBalanceOf(
+        const newBalanceResult = superTokenContract.try_realtimeBalanceOf(
             Address.fromString(accountTokenSnapshot.account),
             block.timestamp
         );
@@ -726,18 +742,19 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
         tokenAddress,
         block
     );
-    let amountStreamedSinceLastUpdatedAt = getAmountStreamedSinceLastUpdatedAt(
-        block.timestamp,
-        accountTokenSnapshot.updatedAtTimestamp,
-        accountTokenSnapshot.totalNetFlowRate
-    );
-    let amountStreamedInSinceLastUpdatedAt =
+    const amountStreamedSinceLastUpdatedAt =
+        getAmountStreamedSinceLastUpdatedAt(
+            block.timestamp,
+            accountTokenSnapshot.updatedAtTimestamp,
+            accountTokenSnapshot.totalNetFlowRate
+        );
+    const amountStreamedInSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
             accountTokenSnapshot.updatedAtTimestamp,
             accountTokenSnapshot.totalInflowRate
         );
-    let amountStreamedOutSinceLastUpdatedAt =
+    const amountStreamedOutSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
             accountTokenSnapshot.updatedAtTimestamp,
@@ -762,7 +779,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
             amountStreamedOutSinceLastUpdatedAt
         );
 
-    let netAmountStreamedInSinceLastUpdatedAt =
+    const netAmountStreamedInSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
             accountTokenSnapshot.updatedAtTimestamp,
@@ -794,12 +811,13 @@ export function updateTokenStatsStreamedUntilUpdatedAt(
     tokenAddress: Address,
     block: ethereum.Block
 ): void {
-    let tokenStats = getOrInitTokenStatistic(tokenAddress, block);
-    let amountStreamedSinceLastUpdatedAt = getAmountStreamedSinceLastUpdatedAt(
-        block.timestamp,
-        tokenStats.updatedAtTimestamp,
-        tokenStats.totalOutflowRate
-    );
+    const tokenStats = getOrInitTokenStatistic(tokenAddress, block);
+    const amountStreamedSinceLastUpdatedAt =
+        getAmountStreamedSinceLastUpdatedAt(
+            block.timestamp,
+            tokenStats.updatedAtTimestamp,
+            tokenStats.totalOutflowRate
+        );
     tokenStats.totalAmountStreamedUntilUpdatedAt =
         tokenStats.totalAmountStreamedUntilUpdatedAt.plus(
             amountStreamedSinceLastUpdatedAt
@@ -825,10 +843,10 @@ export function updateAggregateEntitiesStreamData(
     isDelete: boolean,
     block: ethereum.Block
 ): void {
-    let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
-    let totalNumberOfActiveStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
-    let totalNumberOfClosedStreamsDelta = isDelete ? 1 : 0;
-    let tokenStatsAmountStreamedSinceLastUpdate =
+    const tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
+    const totalNumberOfActiveStreamsDelta = isCreate ? 1 : isDelete ? -1 : 0;
+    const totalNumberOfClosedStreamsDelta = isDelete ? 1 : 0;
+    const tokenStatsAmountStreamedSinceLastUpdate =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
             tokenStatistic.updatedAtTimestamp,
@@ -860,7 +878,7 @@ export function updateAggregateEntitiesStreamData(
     tokenStatistic.totalDeposit =
         tokenStatistic.totalDeposit.plus(depositDelta);
 
-    let senderATS = getOrInitAccountTokenSnapshot(
+    const senderATS = getOrInitAccountTokenSnapshot(
         senderAddress,
         tokenAddress,
         block
@@ -888,7 +906,7 @@ export function updateAggregateEntitiesStreamData(
         senderATS.maybeCriticalAtTimestamp
     );
 
-    let receiverATS = getOrInitAccountTokenSnapshot(
+    const receiverATS = getOrInitAccountTokenSnapshot(
         receiverAddress,
         tokenAddress,
         block
@@ -929,7 +947,7 @@ export function updateAggregateEntitiesTransferData(
     value: BigInt,
     block: ethereum.Block
 ): void {
-    let fromAccountTokenSnapshot = getOrInitAccountTokenSnapshot(
+    const fromAccountTokenSnapshot = getOrInitAccountTokenSnapshot(
         fromAddress,
         tokenAddress,
         block
@@ -944,7 +962,7 @@ export function updateAggregateEntitiesTransferData(
     fromAccountTokenSnapshot.updatedAtBlockNumber = block.number;
     fromAccountTokenSnapshot.save();
 
-    let tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
+    const tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
     tokenStatistic.totalAmountTransferredUntilUpdatedAt =
         tokenStatistic.totalAmountTransferredUntilUpdatedAt.plus(value);
     tokenStatistic.save();

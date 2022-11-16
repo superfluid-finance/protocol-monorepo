@@ -23,7 +23,7 @@ import {
     createSuperTokenLogicUpdatedEvent,
 } from "./host.helper";
 import { alice, bob } from "../constants";
-import { assertEventBaseProperties } from "../assertionHelper";
+import { assertEventBaseProperties } from "../assertionHelpers";
 
 describe("Host Mapper Unit Tests", () => {
     describe("Event Entity Mapping Tests", () => {

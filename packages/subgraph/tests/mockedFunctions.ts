@@ -28,6 +28,7 @@ import {
  * @param underlyingAddress 
  * @param tokenName 
  * @param tokenSymbol 
+ * @param isListed 
  */
 export function mockedHandleSuperTokenInitRPCCalls(
     superToken: string,
@@ -69,6 +70,7 @@ export function mockedHandleSuperTokenInitRPCCalls(
  * @param underlyingAddress
  * @param expectedDeposit
  * @param expectedOwedDeposit
+ * @param isListed
  */
 export function mockedHandleFlowUpdatedRPCCalls(
     flowUpdatedEvent: FlowUpdated,

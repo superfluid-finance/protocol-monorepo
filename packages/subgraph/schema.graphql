@@ -7,18 +7,53 @@ event entities and contains basic transaction
 data.
 """
 interface Event {
+    """
+    The id of the event entity.
+    """
     id: ID!
+
+    """
+    The block number which the event was logged in.
+    """
     blockNumber: BigInt!
+
+    """
+    The index of the event, e.g. first event emitted would have `logIndex` of 0.
+    """
     logIndex: BigInt!
+
+    """
+    A number used internally to sort the order of transactions.
+    The formula: `blockNumber * ORDER_MULTIPLIER + logIndex`
+    where: ORDER_MULTIPLIER = 10000
+    """
     order: BigInt!
+
+    """
+    The name of the event - is a 1-to-1 match with the name in our smart contracts.
+    """
     name: String!
 
     """
-    Holds the addresses for accounts that were impacted by the event.
+    Contains the addresses for accounts that were "impacted" by the event.
+    This typically involves accounts which experienced a state change as
+    a result of the transaction which emitted this event.
     """
     addresses: [Bytes!]!
+
+    """
+    The block timestamp which the event was logged in.
+    """
     timestamp: BigInt!
+
+    """
+    The transaction hash of the transaction that the event was logged in.
+    """
     transactionHash: Bytes!
+
+    """
+    The gas price of the transaction that the event was logged in.
+    """
     gasPrice: BigInt!
 }
 
@@ -28,6 +63,7 @@ FlowUpdated: An `Event` entity that is emitted
 when a flow is created, updated, or deleted.
 """
 type FlowUpdatedEvent implements Event @entity {
+    # Base Event Properties
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -35,24 +71,35 @@ type FlowUpdatedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, sender and receiver addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (supertoken)
+    addresses[1] = `sender`
+    addresses[2] = `receiver`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
 
+    # FlowUpdatedEvent Specific Properties
     """
-    The address of the `token` being streamed.
+    The address of the `token` (supertoken) being streamed.
     """
     token: Bytes!
+
+    """
+    The address of the flow sender.
+    """
     sender: Bytes!
+
+    """
+    The address of the flow receiver.
+    """
     receiver: Bytes!
 
     """
-    The address that is triggering the flow update.
-    This will be the zero address until the flowOperator
-    feature is live.
+    The address that is executing the flow update transaction.
+    This will be the zero address until the flowOperator feature is live.
     """
     flowOperator: Bytes!
 
@@ -60,17 +107,34 @@ type FlowUpdatedEvent implements Event @entity {
     The flow rate per second.
     """
     flowRate: BigInt!
+
+    """
+    The total (global/account level) flow rate of `sender` for `token` as of this event.
+    """
     totalSenderFlowRate: BigInt!
+
+    """
+    The total (global/account level) flow rate of `receiver` for `token` as of this event.
+    """
     totalReceiverFlowRate: BigInt!
+
+    """
+    The deposit amount put up for the creation of the flow.
+    """
     deposit: BigInt!
+
+    """
+    Arbitrary bytes (additional data) passed upon flow creation.
+    """
     userData: Bytes!
 
     # Custom Properties (not on event)
 
     """
-    The previous flow rate.
+    The previous flow rate, the absolute (positive) value.
     """
     oldFlowRate: BigInt!
+
     """
     The "type" of the `FlowUpdated` event.
     0 = create
@@ -100,7 +164,10 @@ type FlowOperatorUpdatedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, sender, and flowOperator addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = sender
+    addresses[2] = `flowOperator`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -133,14 +200,24 @@ type IndexCreatedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token and publisher addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `publisher`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
+
+    """
+    The creator of the `index`.
+    """
     publisher: Bytes!
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
     userData: Bytes!
 
@@ -156,15 +233,31 @@ type IndexDistributionClaimedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, publisher and subscriber addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `publisher`
+    addresses[2] = `subscriber`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
+
+    """
+    The creator of the `index`.
+    """
     publisher: Bytes!
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
+    
+    """
+    The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+    `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+    """
     subscriber: Bytes!
     amount: BigInt!
 
@@ -180,14 +273,24 @@ type IndexUpdatedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token and publisher addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `publisher`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
+
+    """
+    The creator of the `index`.
+    """
     publisher: Bytes!
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
     oldIndexValue: BigInt!
     newIndexValue: BigInt!
@@ -207,15 +310,31 @@ type IndexSubscribedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, publisher and subscriber addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `publisher`
+    addresses[2] = `subscriber`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
+
+    """
+    The creator of the `index`.
+    """
     publisher: Bytes!
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
+    
+    """
+    The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+    `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+    """
     subscriber: Bytes!
     userData: Bytes!
 
@@ -231,15 +350,31 @@ type IndexUnitsUpdatedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, publisher and subscriber addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `publisher`
+    addresses[2] = `subscriber`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
+
+    """
+    The creator of the `index`.
+    """
     publisher: Bytes!
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
+    
+    """
+    The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+    `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+    """
     subscriber: Bytes!
     units: BigInt!
     userData: Bytes!
@@ -259,15 +394,31 @@ type IndexUnsubscribedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, publisher and subscriber addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `publisher`
+    addresses[2] = `subscriber`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
+
+    """
+    The creator of the `index`.
+    """
     publisher: Bytes!
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
+    
+    """
+    The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+    `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+    """
     subscriber: Bytes!
     userData: Bytes!
 
@@ -283,15 +434,31 @@ type SubscriptionApprovedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, publisher and subscriber addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `publisher`
+    addresses[2] = `subscriber`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
+    
+    """
+    The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+    `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+    """
     subscriber: Bytes!
+
+    """
+    The creator of the `index`.
+    """
     publisher: Bytes!
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
     userData: Bytes!
 
@@ -307,15 +474,31 @@ type SubscriptionDistributionClaimedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, publisher and subscriber addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `publisher`
+    addresses[2] = `subscriber`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
+    
+    """
+    The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+    `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+    """
     subscriber: Bytes!
+
+    """
+    The creator of the `index`.
+    """
     publisher: Bytes!
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
     amount: BigInt!
 
@@ -331,15 +514,31 @@ type SubscriptionRevokedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, publisher and subscriber addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `publisher`
+    addresses[2] = `subscriber`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
+    
+    """
+    The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+    `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+    """
     subscriber: Bytes!
+
+    """
+    The creator of the `index`.
+    """
     publisher: Bytes!
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
     userData: Bytes!
 
@@ -355,15 +554,31 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, publisher and subscriber addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `publisher`
+    addresses[2] = `subscriber`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
+    
+    """
+    The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+    `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+    """
     subscriber: Bytes!
+
+    """
+    The creator of the `index`.
+    """
     publisher: Bytes!
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
     units: BigInt!
     userData: Bytes!
@@ -715,6 +930,14 @@ type TrustedForwarderChangedEvent implements Event @entity {
 }
 
 #     SuperToken    #
+"""
+NOTE: This event was deprecated since the introduction of the 3Ps system.
+Replaced by: ``
+See: https://docs.superfluid.finance/superfluid/sentinels/liquidations-and-toga#patricians-plebs-and-pirates-3ps
+for more details on the 3Ps system and
+https://github.com/superfluid-finance/protocol-monorepo/blob/dev/packages/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol#L425
+for more details on the events itself.
+"""
 type AgreementLiquidatedByEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
@@ -723,7 +946,11 @@ type AgreementLiquidatedByEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, liquidatorAccount, penaltyAccount and bondAccount addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = liquidatorAccount (executor of liquidation)
+    addresses[2] = penaltyAccount (the sender of the flow/stream)
+    addresses[3] = bondAccount (the address receiving the reward - the reward account for the token, pre 3Ps)
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -747,7 +974,11 @@ type AgreementLiquidatedV2Event implements Event @entity {
     name: String!
 
     """
-    Holds the token, liquidatorAccount, targetAccount and rewardAmountReceiver addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `liquidatorAccount` (executor of liquidation)
+    addresses[2] = `targetAccount` (the sender of the flow/stream)
+    addresses[3] = `rewardAmountReceiver` (the address receiving the reward) addresses
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -778,7 +1009,9 @@ type BurnedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token and from addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `from`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -800,7 +1033,10 @@ type MintedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, operator and to addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `operator`
+    addresses[2] = `to`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -822,7 +1058,10 @@ type SentEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, operator and from addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `operator`
+    addresses[2] = `from`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -845,7 +1084,10 @@ type TransferEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token, from and to addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `from`
+    addresses[2] = `to`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -866,7 +1108,9 @@ type TokenDowngradedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token and account addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `account`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -885,7 +1129,9 @@ type TokenUpgradedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token and account addresses.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `account`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -905,7 +1151,8 @@ type CustomSuperTokenCreatedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token address.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -922,7 +1169,8 @@ type SuperTokenCreatedEvent implements Event @entity {
     name: String!
 
     """
-    Holds the token address.
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -957,8 +1205,7 @@ type SuperTokenLogicCreatedEvent implements Event @entity {
 # entity to another higher order entity.
 
 """
-Account: A higher order entity created for any addresses which interact with
-Superfluid contracts.
+Account: A higher order entity created for any addresses which interact with Superfluid contracts.
 """
 type Account @entity {
     id: ID!
@@ -1006,6 +1253,10 @@ type Index @entity {
     """
     indexId is not the id of the `Index` entity.
     """
+    
+    """
+    An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+    """
     indexId: BigInt!
     # ---------------------------------- state ----------------------------------
 
@@ -1018,15 +1269,13 @@ type Index @entity {
 
     """
     The number of units allocated by the `Index` that are pending.
-    This refers to the current (as of updatedAt) `totalUnitsPending`
-    - not all that has ever been pending.
+    This refers to the current (as of updatedAt) `totalUnitsPending`-not all that has ever been pending.
     """
     totalUnitsPending: BigInt!
 
     """
     The number of units allocated by the `Index` that are approved.
-    This refers to the current (as of updatedAt) `totalUnitsApproved`
-    - not all that has ever been approved.
+    This refers to the current (as of updatedAt) `totalUnitsApproved`-not all that has ever been approved.
     """
     totalUnitsApproved: BigInt!
 
@@ -1067,8 +1316,7 @@ type Index @entity {
 }
 
 """
-IndexSubscription: A higher order entity that contains subscription data for a `subscriber` account of a particular
-`Index`.
+IndexSubscription: A higher order entity that contains subscription data for a `subscriber` account of a particular `Index`.
 """
 type IndexSubscription @entity {
     """
@@ -1083,14 +1331,13 @@ type IndexSubscription @entity {
 
     # ---------------------------------- state ----------------------------------
     """
-    Approved subscriptions don't require subscribers to claim tokens that are distributed from
-    the publisher.
+    A boolean indicating whether the `IndexSubscription` is approved.
+    Approved subscriptions don't require `subscriber` to claim tokens that are distributed from the publisher.
     """
     approved: Boolean!
 
     """
-    If units is 0, it indicates that the subscription is "deleted". They are no longer
-    subscribed to the index.
+    If `units` is `0`, it indicates that the subscription is "deleted" and `subscriber` is no longer subscribed to `index`.
     """
     units: BigInt!
 
@@ -1101,8 +1348,8 @@ type IndexSubscription @entity {
     totalAmountReceivedUntilUpdatedAt: BigInt!
 
     """
-    The previous index value - used to calculate `totalAmountReceivedUntilUpdatedAt` field as of the
-    `index.updatedAtTimestamp`. The formula to get this value is:
+    The previous index value - used to calculate `totalAmountReceivedUntilUpdatedAt` field as of the `index.updatedAtTimestamp`. 
+    The formula to get this value is:
     `IndexSubscription.totalAmountReceivedUntilUpdatedAt + ((index.newIndexValue - indexSubscription.indexValueUntilUpdatedAt) * indexSubscription.units)`.
     """
     indexValueUntilUpdatedAt: BigInt!
@@ -1247,11 +1494,9 @@ type StreamRevision @entity {
 }
 
 """
-Token: A higher order entity created for super tokens that are "valid" (tokens that have
-Superfluid's host contract address set as the host).
+Token: A higher order entity created for super tokens (and underlying tokens) that are "valid" (tokens that have Superfluid's host contract address set as the host).
 """
 type Token @entity {
-    # Note: All Tokens are Super Tokens for this subgraph
     """
     ID: the token address
     """
@@ -1264,22 +1509,21 @@ type Token @entity {
     isSuperToken: Boolean!
 
     """
-    This indicates whether the token is a NativeAssetSuperToken.
+    A boolean indicating whether the token is a NativeAssetSuperToken.
     """
     isNativeAssetSuperToken: Boolean!
 
     """
-    This indicates whether the token is a part of our resolver list.
+    A boolean indicating whether the token is a part of our resolver list.
     """
     isListed: Boolean!
 
     """
-    The address of the underlying ERC20 token.
+    The address of the underlying ERC20 token (zero address for non-ERC20WrapperSuperToken's)
     """
     underlyingAddress: Bytes! # Underlying ERC20
     """
-    The underlying ERC20 token for a SuperToken or
-    null for a regular ERC20 token.
+    The underlying ERC20 token for a ERC20WrapperSuperToken otherwise null.
     """
     underlyingToken: Token
 }
@@ -1304,8 +1548,7 @@ type ResolverEntry @entity {
 #  Aggr. Entities  #
 ####################
 """
-AccountTokenSnapshot: An aggregate entity which aggregates data on an account's
-interaction with a `token`.
+AccountTokenSnapshot: An aggregate entity which aggregates data between an `account`'s interaction with `token`.
 """
 type AccountTokenSnapshot @entity {
     """
@@ -1332,7 +1575,7 @@ type AccountTokenSnapshot @entity {
     totalNumberOfActiveStreams: Int!
 
     """
-    The number of all-time closed streams.
+    The count of closed streams by `account`.
     """
     totalNumberOfClosedStreams: Int!
 
@@ -1402,7 +1645,7 @@ type AccountTokenSnapshot @entity {
 }
 
 """
-AccountTokenSnapshotLog: Historical entries of AccountTokenSnapshot updates.
+AccountTokenSnapshotLog: Historical entries of `AccountTokenSnapshot` updates.
 """
 type AccountTokenSnapshotLog @entity {
     id: ID!
@@ -1420,12 +1663,12 @@ type AccountTokenSnapshotLog @entity {
     """
     maybeCriticalAtTimestamp: BigInt
     """
-    The current (as of timestamp) number of currently open streams.
+    The current (as of timestamp) number of open streams.
     """
     totalNumberOfActiveStreams: Int!
 
     """
-    The current (as of timestamp) number of all-time closed streams.
+    The current (as of timestamp) count of closed streams.
     """
     totalNumberOfClosedStreams: Int!
 
@@ -1493,11 +1736,11 @@ type AccountTokenSnapshotLog @entity {
 }
 
 """
-TokenStatistic: An aggregate entity which aggregates data of a single `token`.
+TokenStatistic: An aggregate entity which contains aggregate data for `token`.
 """
 type TokenStatistic @entity {
     """
-    id: token address
+    id: `token` (superToken) address
     """
     id: ID!
     updatedAtTimestamp: BigInt!
@@ -1509,7 +1752,7 @@ type TokenStatistic @entity {
     totalNumberOfActiveStreams: Int!
 
     """
-    The all-time number of closed streams.
+    The count of closed streams for `token`.
     """
     totalNumberOfClosedStreams: Int!
 
@@ -1519,14 +1762,12 @@ type TokenStatistic @entity {
     totalNumberOfIndexes: Int!
 
     """
-    The total number of "active" (has greater than 0 units and has distributed it at
-    least once) Indexes created with `token`.
+    The total number of "active" (has greater than 0 units and has distributed it at least once) Indexes created with `token`.
     """
     totalNumberOfActiveIndexes: Int!
 
     """
-    The number of subscriptions which have units allocated to them
-    created with Indexes that distribute `token`.
+    The number of subscriptions which have units allocated to them created with Indexes that distribute `token`.
     """
     totalSubscriptionsWithUnits: Int!
 
@@ -1573,7 +1814,7 @@ type TokenStatistic @entity {
 }
 
 """
-TokenStatisticLog: Historical entries of TokenStatistic updates.
+TokenStatisticLog: Historical entries of `TokenStatistic` updates.
 """
 type TokenStatisticLog @entity {
     id: ID!
@@ -1591,7 +1832,7 @@ type TokenStatisticLog @entity {
     totalNumberOfActiveStreams: Int!
 
     """
-    The all-time number of closed streams.
+    The count of closed streams for `token`.
     """
     totalNumberOfClosedStreams: Int!
 
@@ -1601,14 +1842,12 @@ type TokenStatisticLog @entity {
     totalNumberOfIndexes: Int!
 
     """
-    The total number of "active" (has greater than 0 units and has distributed it at
-    least once) Indexes created with `token`.
+    The total number of "active" (has greater than 0 units and has distributed it at least once) Indexes created with `token`.
     """
     totalNumberOfActiveIndexes: Int!
 
     """
-    The number of subscriptions which have units allocated to them
-    created with Indexes that distribute `token`.
+    The number of subscriptions which have units allocated to them created with Indexes that distribute `token`.
     """
     totalSubscriptionsWithUnits: Int!
 
@@ -1628,17 +1867,17 @@ type TokenStatisticLog @entity {
     totalOutflowRate: BigInt!
 
     """
-    The all-time total amount streamed (outflows) until the `timestamp`/`block`.
+    The all-time total amount of `token` streamed (outflows) until the `timestamp`/`block`.
     """
     totalAmountStreamed: BigInt!
 
     """
-    The all-time total amount transferred until the `timestamp`/`block`.
+    The all-time total amount of `token` transferred until the `timestamp`/`block`.
     """
     totalAmountTransferred: BigInt!
 
     """
-    The all-time total amount distributed until the `timestamp`/`block`.
+    The all-time total amount of `token` distributed until the `timestamp`/`block`.
     """
     totalAmountDistributed: BigInt!
 

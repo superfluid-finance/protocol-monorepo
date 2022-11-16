@@ -21,7 +21,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          # cache: "yarn" TODO(KK): Temporary disabling
+          cache: "yarn"
 
       - name: Show context
         run: |

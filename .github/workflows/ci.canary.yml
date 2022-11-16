@@ -120,7 +120,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 16.x
-          # cache: "yarn" TODO(KK): Temporary disable
+          cache: "yarn"
 
       - name: Run coverage test
         run: |

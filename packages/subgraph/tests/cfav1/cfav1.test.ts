@@ -189,6 +189,52 @@ describe("ConstantFlowAgreementV1 Mapper Unit Tests", () => {
             clearStore();
         });
 
+        test("handleFlowUpdated() - Should create a new Stream entity (create)", () => {
+            // create flow
+            const flowUpdatedEvent = _modifyFlowAndAssertFlowUpdatedEventProperties(
+                maticXAddress,      // superToken
+                maticXName,         // tokenName
+                maticXSymbol,       // tokenSymbol
+                alice,              // sender
+                bob,                // receiver
+                ZERO_ADDRESS,       // underlyingToken
+                "0",                // expectedType
+                BIG_INT_ZERO,       // expectedOwedDeposit
+                initialFlowRate,    // flowRate
+                BIG_INT_ZERO,       // previousSenderFlowRate
+                BIG_INT_ZERO,       // previousReceiverFlowRate
+                true                // isListed
+            );
+
+            const id = getStreamID(
+                flowUpdatedEvent.params.sender,
+                flowUpdatedEvent.params.receiver,
+                flowUpdatedEvent.params.token,
+                0
+            );
+            const deposit = _getDeposit(flowUpdatedEvent.params.flowRate);
+            const streamedUntilUpdatedAt = _getStreamedUntilUpdatedAt(
+                BIG_INT_ZERO,
+                flowUpdatedEvent.block.timestamp,
+                BIG_INT_ZERO,
+                BIG_INT_ZERO
+            );
+
+            assert.fieldEquals("Stream", id, "id", id);
+            assert.fieldEquals("Stream", id, "createdAtTimestamp", flowUpdatedEvent.block.timestamp.toString());
+            assert.fieldEquals("Stream", id, "createdAtBlockNumber", flowUpdatedEvent.block.number.toString());
+            assert.fieldEquals("Stream", id, "updatedAtTimestamp", flowUpdatedEvent.block.timestamp.toString());
+            assert.fieldEquals("Stream", id, "updatedAtBlockNumber", flowUpdatedEvent.block.number.toString());
+            assert.fieldEquals("Stream", id, "currentFlowRate", flowUpdatedEvent.params.flowRate.toString());
+            assert.fieldEquals("Stream", id, "deposit", deposit.toString());
+            assert.fieldEquals("Stream", id, "streamedUntilUpdatedAt", streamedUntilUpdatedAt.toString());
+            assert.fieldEquals("Stream", id, "token", flowUpdatedEvent.params.token.toHexString());
+            assert.fieldEquals("Stream", id, "sender", flowUpdatedEvent.params.sender.toHexString());
+            assert.fieldEquals("Stream", id, "receiver", flowUpdatedEvent.params.receiver.toHexString());
+        });
+
+        // test("handleFlowUpdated() - Should create a new Stream entity (create => update)", () => {});
+
         test("handleFlowOperatorUpdated() - Should create a new FlowOperator entity", () => {
             const superToken = maticXAddress;
             const permissions = 1; // create only
@@ -263,8 +309,7 @@ function _modifyFlowAndAssertFlowUpdatedEventProperties(
     const totalReceiverFlowRate = previousReceiverFlowRate.plus(flowRateDelta);
     const userData = stringToBytes("");
 
-    // NOTE: We ignore clipping here and only update flow: multiply flow rate by the liquidation period.
-    const deposit = flowRate.times(LIQUIDATION_PERIOD);
+    const deposit = _getDeposit(flowRate);
 
     const flowUpdatedEvent = createFlowUpdatedEvent(
         superToken,
@@ -314,4 +359,33 @@ function _modifyFlowAndAssertFlowUpdatedEventProperties(
     assert.fieldEquals("FlowUpdatedEvent", id, "stream", streamId);
 
     return flowUpdatedEvent;
+}
+
+/**
+ * Calculates the deposit amount given a flow rate.
+ * NOTE: We ignore clipping here and only update flow: multiply flow rate by the liquidation period.
+ * @param flowRate
+ * @returns unclipped deposit
+ */
+ function _getDeposit(flowRate: BigInt): BigInt {
+    return flowRate.times(LIQUIDATION_PERIOD);
+}
+
+/**
+ * Calculates the streamedUntilUpdatedAt.
+ * @param streamedSoFar
+ * @param currentTime
+ * @param lastUpdatedAtTime
+ * @param previousOutflowRate
+ * @returns streamedUntilUpdatedAt at lastUpdatedAtTime timestamp
+ */
+function _getStreamedUntilUpdatedAt(
+    streamedSoFar: BigInt,
+    currentTime: BigInt,
+    lastUpdatedAtTime: BigInt,
+    previousOutflowRate: BigInt
+): BigInt {
+    return streamedSoFar.plus(
+        previousOutflowRate.times(currentTime.minus(lastUpdatedAtTime))
+    );
 }

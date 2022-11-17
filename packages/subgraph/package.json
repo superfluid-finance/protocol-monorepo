@@ -21,7 +21,7 @@
         "matchstick:prepare-manifest": "mustache config/matic.json subgraph.template.yaml > subgraph.yaml",
         "matchstick:prepare-addresses": "mustache config/matic.json src/addresses.template.ts > src/addresses.ts",
         "matchstick:test": "graph test",
-        "dev": "nodemon -e ts -i src/addresses.ts -x yarn matchstick    ",
+        "dev": "nodemon -e ts -i src/addresses.ts -x yarn matchstick",
         "posttest": "yarn testenv:stop",
         "integrity": "npx hardhat run scripts/dataIntegrity/dataIntegrityTest.ts --network",
         "check-indexing-completeness": "ts-node scripts/checkIsDeployedOnAllNetworks.ts",

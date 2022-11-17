@@ -1,0 +1,3 @@
+{
+    "ignore": ["generated", "src/addresses.ts", "src/meta.ignore.ts"]
+}

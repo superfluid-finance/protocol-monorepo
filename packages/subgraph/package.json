@@ -22,7 +22,7 @@
         "matchstick:prepare-addresses": "mustache config/matic.json src/addresses.template.ts > src/addresses.ts",
         "matchstick:prepare-generated": "yarn getAbi && yarn codegen && yarn generate-sf-meta-local",
         "matchstick:test": "graph test",
-        "dev": "nodemon -e ts -i src/addresses.ts -x yarn matchstick",
+        "dev": "nodemon -e ts -x yarn matchstick",
         "posttest": "yarn testenv:stop",
         "integrity": "npx hardhat run scripts/dataIntegrity/dataIntegrityTest.ts --network",
         "check-indexing-completeness": "ts-node scripts/checkIsDeployedOnAllNetworks.ts",

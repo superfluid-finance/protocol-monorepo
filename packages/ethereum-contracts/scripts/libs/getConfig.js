@@ -29,6 +29,20 @@ module.exports = function getConfig(chainId) {
         //
         // ETHEREUM
         //
+        1: {
+            // mainnet
+            liquidationPeriod: 3600 * 4,
+            patricianPeriod: 3600 * 4 * 0.2,
+            tokenList: [],
+            // governance default configs
+            gov_enableAppWhiteListing: true,
+            // misc
+            disableTestGovernance: true,
+            data: {
+                initialBlockNumber: 15870000,
+                getLogsRange: 10000,
+            },
+        },
         5: {
             // goerli
             liquidationPeriod: 3600,

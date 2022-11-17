@@ -43,7 +43,7 @@ if ! [ -z "$GITHUB_ENV" ];then
         echo Ethereum contracts and Subgraph will be tested.
     fi
     # if sdk-core package changed
-    if grep -E "^packages/sdk-core/(src/|test/|package.json)" changed-files.list;then
+    if grep -E "^packages/sdk-core/(src/|test/|package.json|tsconfig.*)" changed-files.list;then
         BUILD_SDK_CORE=1
         BUILD_SDK_REDUX=1
         BUILD_SUBGRAPH=1

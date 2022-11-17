@@ -56,8 +56,17 @@ export function handleSet(event: Set): void {
         event.block
     );
 
+    // upon initial setting, we will know if this address belongs to a token contract
     if (resolverEntry.isToken) {
-        const token = Token.load(resolverEntry.targetAddress.toHex());
+        // we first try to load token from targetAddress, this will return null if
+        // a token was set, unset and on the next set
+        let token = Token.load(resolverEntry.targetAddress.toHex());
+        // we catch this edge case here and we use the newly set address to load the token
+        // we are assuming the token address here is being properly set and that it points
+        // to a token which has already been indexed
+        if (!token) {
+            token = Token.load(event.params.target.toHex());
+        }
         if (token) {
             if (event.params.target.equals(ZERO_ADDRESS)) {
                 token.isListed = false;

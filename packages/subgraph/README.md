@@ -317,24 +317,24 @@ The higher order level entities are an abstraction of the events is not ephemera
 Aggregate entities are exactly what the name suggests - they are entities that store aggregate data. More specifically, we do this at an account-token level and also at a global token level.
 
 ### Test Structure
-<!-- @note TODO: EDIT THIS SECTION TO REFLECT UNIT MATCHSTICK UNIT TESTS -->
-This section is intended for those who are interested in understanding the structure of the test suite.
-The idea of this test suite is to ensure that we can be as confident as possible that the data is what we expect it to be based on our actions. We want to validate the data between each action. To accomplish this, we needed to store a global state for our HOL and aggregate entities and so it is important to follow the pattern of modify then update global state otherwise the tests break.
+This section is intended for those who are interested in understanding the structure of our two test suites:
 
-The entry point of the tests is the `subgraph.test.ts` file, this is where you specify the parameters and what you want to test. For example, you want to test indexing a newly created flow. There are helper functions for all the different things you may want to do and examples of everything in the test, but you must follow the pattern of modify then update global state as stated above.
+- Unit Tests which test the mapping logic and asserts that the properties on the entities are what is expected
+- Integration Tests which ensure that a local blockchain and subgraph instance can index events via transactions and query the created entities.
 
-The helper functions contain the following:
+#### Unit Tests
+Our unit tests utilize [Matchstick](https://github.com/LimeChain/matchstick) to test our mapping logic.
 
--   action function: creates a txn and modifies the blockchain state
--   initialize functions: initializes the data or gets the last saved data to be validated
--   updater functions: these functions get what we expect the data to be, this will be compared to the data returned from the subgraph
--   event validator function: this validates the newly created event
--   hol/aggregate validator functions: these functions validate the hol or aggregate entities
--   returns the updated data from the updater functions
+We have helper files which create the mock events and the actual test files which contain the actual tests.
 
-Then we are back in `subgraph.test.ts` and the global state is updated with this new data and the tests continue.
+The tests look something like this:
 
-Caveats/Downsides: Unfortunately, given this pattern, the tests are dependent on the previous test passing and this means that if even one tests fail, all of the downstream tests will as well. This also means that moving the tests around require extra thinking.
+- you create a mock event with the desired parameters for a specific entity
+- you pass this event to its complementary event handler
+- you assert that the values on the created entity in the graph store have been created 
+
+#### Integration Tests
+The integration tests have been scaled down drastically and are no longer responsible for validating the mapping logic as this is handled in the unit tests. This solely serves to ensure that transactions executed against a local blockchain connected to a local subgraph instance will index events and create entities which can be retrieved by querying the exposed API endpoint from the local subgraph. At its core, we are testing the full lifecycle from transaction => event => indexed event => entity => entity is queryable. In addition, we still need these tests to ensure that new changes made to our schema won't break the SDK's query feature.
 
 # Production
 

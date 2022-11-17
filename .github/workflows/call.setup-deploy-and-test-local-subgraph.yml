@@ -11,8 +11,32 @@ on:
         type: boolean
 
 jobs:
-  setup-and-test-subgraph:
-    name: Build and Test subgraph
+  subgraph-unit-tests:
+    name: Run subgraph unit tests
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "yarn"
+
+      - name: "Install dependencies"
+        run: yarn install --frozen-lockfile
+
+      - name: "Build contracts"
+        run: yarn build
+        working-directory: ./packages/ethereum-contracts
+
+      - name: "Run unit tests"
+        run: yarn matchstick
+        working-directory: ./packages/subgraph
+
+  subgraph-end-to-end-integration:
+    name: Run subgraph integration tests
 
     runs-on: ubuntu-latest
 

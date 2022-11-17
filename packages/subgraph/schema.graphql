@@ -2,9 +2,7 @@
 # Event Entities #
 ##################
 """
-Event: An interface which is shared by all
-event entities and contains basic transaction
-data.
+Event: An interface which is shared by all event entities and contains basic transaction data.
 """
 interface Event {
     """
@@ -36,8 +34,7 @@ interface Event {
 
     """
     Contains the addresses for accounts that were "impacted" by the event.
-    This typically involves accounts which experienced a state change as
-    a result of the transaction which emitted this event.
+    This typically involves accounts which experienced a state change as a result of the transaction which emitted this event.
     """
     addresses: [Bytes!]!
 
@@ -63,7 +60,6 @@ FlowUpdated: An `Event` entity that is emitted
 when a flow is created, updated, or deleted.
 """
 type FlowUpdatedEvent implements Event @entity {
-    # Base Event Properties
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -81,7 +77,6 @@ type FlowUpdatedEvent implements Event @entity {
     logIndex: BigInt!
     order: BigInt!
 
-    # FlowUpdatedEvent Specific Properties
     """
     The address of the `token` (supertoken) being streamed.
     """
@@ -214,7 +209,7 @@ type IndexCreatedEvent implements Event @entity {
     The creator of the `index`.
     """
     publisher: Bytes!
-    
+
     """
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
@@ -248,12 +243,12 @@ type IndexDistributionClaimedEvent implements Event @entity {
     The creator of the `index`.
     """
     publisher: Bytes!
-    
+
     """
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
     indexId: BigInt!
-    
+
     """
     The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
     `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
@@ -287,7 +282,7 @@ type IndexUpdatedEvent implements Event @entity {
     The creator of the `index`.
     """
     publisher: Bytes!
-    
+
     """
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
@@ -325,12 +320,12 @@ type IndexSubscribedEvent implements Event @entity {
     The creator of the `index`.
     """
     publisher: Bytes!
-    
+
     """
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
     indexId: BigInt!
-    
+
     """
     The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
     `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
@@ -365,12 +360,12 @@ type IndexUnitsUpdatedEvent implements Event @entity {
     The creator of the `index`.
     """
     publisher: Bytes!
-    
+
     """
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
     indexId: BigInt!
-    
+
     """
     The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
     `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
@@ -409,12 +404,12 @@ type IndexUnsubscribedEvent implements Event @entity {
     The creator of the `index`.
     """
     publisher: Bytes!
-    
+
     """
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
     indexId: BigInt!
-    
+
     """
     The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
     `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
@@ -444,7 +439,7 @@ type SubscriptionApprovedEvent implements Event @entity {
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
-    
+
     """
     The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
     `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
@@ -455,7 +450,7 @@ type SubscriptionApprovedEvent implements Event @entity {
     The creator of the `index`.
     """
     publisher: Bytes!
-    
+
     """
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
@@ -484,7 +479,7 @@ type SubscriptionDistributionClaimedEvent implements Event @entity {
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
-    
+
     """
     The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
     `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
@@ -495,7 +490,7 @@ type SubscriptionDistributionClaimedEvent implements Event @entity {
     The creator of the `index`.
     """
     publisher: Bytes!
-    
+
     """
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
@@ -524,7 +519,7 @@ type SubscriptionRevokedEvent implements Event @entity {
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
-    
+
     """
     The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
     `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
@@ -535,7 +530,7 @@ type SubscriptionRevokedEvent implements Event @entity {
     The creator of the `index`.
     """
     publisher: Bytes!
-    
+
     """
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
@@ -564,7 +559,7 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     logIndex: BigInt!
     order: BigInt!
     token: Bytes!
-    
+
     """
     The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
     `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
@@ -575,7 +570,7 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     The creator of the `index`.
     """
     publisher: Bytes!
-    
+
     """
     An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
     """
@@ -1345,7 +1340,7 @@ type IndexSubscription @entity {
     totalAmountReceivedUntilUpdatedAt: BigInt!
 
     """
-    The previous index value - used to calculate `totalAmountReceivedUntilUpdatedAt` field as of the `index.updatedAtTimestamp`. 
+    The previous index value - used to calculate `totalAmountReceivedUntilUpdatedAt` field as of the `index.updatedAtTimestamp`.
     The formula to get this value is:
     `IndexSubscription.totalAmountReceivedUntilUpdatedAt + ((index.newIndexValue - indexSubscription.indexValueUntilUpdatedAt) * indexSubscription.units)`.
     """
@@ -1371,10 +1366,9 @@ type IndexSubscription @entity {
 
 """
 Stream: A higher order entity that represents the lifetime of a stream between a `sender` and a `receiver`.
-A account can start a stream, update the flow rate, but when they close it, it is
-considered "dead". The next stream you create with the same `sender` and `receiver`
-will create a new stream entity. Therefore, multiple stream entities can be created
-between the same `sender` and `receiver`.
+A account can start a stream, update the flow rate, but when they close it, it is considered "dead".
+The next stream you create with the same `sender` and `receiver` will create a new stream entity.
+Therefore, multiple stream entities can be created between the same `sender` and `receiver`.
 """
 type Stream @entity {
     """
@@ -1390,8 +1384,8 @@ type Stream @entity {
     deposit: BigInt!
 
     """
-    The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
-    amount is:
+    The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. 
+    The formula to get the current streamed amount is:
     `streamedUntilUpdatedAt + ((currentTime in seconds) - updatedAtTimestamp) * currentFlowRate`.
     """
     streamedUntilUpdatedAt: BigInt!
@@ -1409,7 +1403,7 @@ FlowOperator: A higher order entity that of a flow operator for an `AccountToken
 """
 type FlowOperator @entity {
     """
-    ID composed of: flowOperator - token - sender
+    ID composed of: flowOperator-token-sender
     """
     id: ID!
     createdAtTimestamp: BigInt!
@@ -1419,23 +1413,23 @@ type FlowOperator @entity {
 
     """
     The permissions granted to the `flowOperator`.
-    Octo bitmask representation.
+    Bitmask representation:
+    Delete | Update | Create
+    | D | U | C |
+    | 0 | 0 | 0 |
     """
     permissions: Int!
 
     """
-    The flow rate allowance granted to the `flowOperator`
-    by the `sender`. This can be reset if the `sender`
-    updates the `flowOperator` flow rate allowance.
+    The flow rate allowance granted to the `flowOperator` by the `sender`. This can be reset if the `sender` updates the `flowOperator` flow rate allowance.
     """
     flowRateAllowanceGranted: BigInt!
 
     """
-    The remaining flow rate allowance the `flowOperator` has,
-    this will go down every time when `flowOperator` uses it
-    (if they increase flowRate or create a new flow)
-    and can only be reset if the `sender` updates the flow
-    rate allowance.
+    The remaining flow rate allowance the `flowOperator` has.
+    This will go down every time when the `flowOperator` uses the allowance, that is, if they increase flowRate for `sender` or create a new flow on behalf of `sender`.
+    It can only be reset if the `sender` updates the flow rate allowance.
+    NOTE: this value will NOT go down if max flow rate allowance is set.
     """
     flowRateAllowanceRemaining: BigInt!
 
@@ -1557,7 +1551,7 @@ type AccountTokenSnapshot @entity {
     # ---------------------------------- state ----------------------------------
     """
     isLiquidationEstimateOptimistic, If `totalSubscriptionsWithUnits > 0`, it is true.
-    Optimistic means that it is the earliest time the user will be liquidated as they may receive ongoing distributions which aren't tracked by the subgraph
+    "Optimistic" can be thought of as conservative as it refers to the earliest time the user may be liquidated as they may receive ongoing distributions which aren't tracked by the subgraph.
     """
     isLiquidationEstimateOptimistic: Boolean!
 
@@ -1612,20 +1606,17 @@ type AccountTokenSnapshot @entity {
     totalOutflowRate: BigInt!
 
     """
-    The total amount of `token` streamed into this `account` until
-    the `updatedAtTimestamp`/`updatedAtBlock`.
+    The total amount of `token` streamed into this `account` until the `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalAmountStreamedInUntilUpdatedAt: BigInt!
 
     """
-    The total amount of `token` streamed from this `account` until
-    the `updatedAtTimestamp`/`updatedAtBlock`.
+    The total amount of `token` streamed from this `account` until the `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalAmountStreamedOutUntilUpdatedAt: BigInt!
 
     """
-    The total amount of `token` streamed through this `account` until
-    the `updatedAtTimestamp`/`updatedAtBlock`.
+    The total amount of `token` streamed through this `account` until the `updatedAtTimestamp`/`updatedAtBlock`.
     """
     totalAmountStreamedUntilUpdatedAt: BigInt!
 
@@ -1691,6 +1682,7 @@ type AccountTokenSnapshotLog @entity {
 
     """
     The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block`.
+    This can be obtained by: `totalInflowRate - totalOutflowRate` 
     """
     totalNetFlowRate: BigInt!
 
@@ -1705,25 +1697,22 @@ type AccountTokenSnapshotLog @entity {
     totalOutflowRate: BigInt!
 
     """
-    The total (as of timestamp) amount of `token` streamed into this `account` until
-    the `timestamp`/`block`.
+    The total (as of timestamp) amount of `token` streamed into this `account` until the `timestamp`/`block`.
     """
     totalAmountStreamedIn: BigInt!
 
     """
-    The total (as of timestamp) amount of `token` streamed from this `account` until
-    the `timestamp`/`block`.
+    The total (as of timestamp) amount of `token` streamed from this `account` until the `timestamp`/`block`.
     """
     totalAmountStreamedOut: BigInt!
 
     """
-    The total (as of timestamp) net amount of `token` streamed through this `account` until
-    the `timestamp`/`block`.
+    The total (as of timestamp) net amount of `token` streamed through this `account` until the `timestamp`/`block`.
     """
     totalAmountStreamed: BigInt!
 
     """
-    The total (as of timestamp) amount of `token` this `account` has transferred.
+    The total (as of timestamp) amount of `token` this `account` has transferred out until the `timestamp`/`block`.
     """
     totalAmountTransferred: BigInt!
     # ---------------------------------- links ----------------------------------
@@ -1799,8 +1788,7 @@ type TokenStatistic @entity {
     totalAmountDistributedUntilUpdatedAt: BigInt!
 
     """
-    The total supply of the token - this is impacted by users upgrading/downgrading their
-    tokens.
+    The total supply of the token - this is impacted by users upgrading/downgrading their tokens.
     """
     totalSupply: BigInt!
 
@@ -1879,8 +1867,7 @@ type TokenStatisticLog @entity {
     totalAmountDistributed: BigInt!
 
     """
-    The total supply of the token - this is impacted by users upgrading/downgrading their
-    tokens.
+    The total supply of the token - this is impacted by users upgrading/downgrading their tokens.
     """
     totalSupply: BigInt!
 

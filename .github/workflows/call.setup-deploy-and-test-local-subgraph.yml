@@ -31,10 +31,6 @@ jobs:
         run: yarn build
         working-directory: ./packages/ethereum-contracts
 
-      - name: "Get ABI and create generated files"
-        run: yarn getAbi && yarn codegen
-        working-directory: ./packages/subgraph
-
       - name: "Run unit tests"
         run: yarn matchstick
         working-directory: ./packages/subgraph

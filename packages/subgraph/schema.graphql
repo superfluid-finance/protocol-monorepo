@@ -927,11 +927,9 @@ type TrustedForwarderChangedEvent implements Event @entity {
 #     SuperToken    #
 """
 NOTE: This event was deprecated since the introduction of the 3Ps system.
-Replaced by: ``
-See: https://docs.superfluid.finance/superfluid/sentinels/liquidations-and-toga#patricians-plebs-and-pirates-3ps
-for more details on the 3Ps system and
-https://github.com/superfluid-finance/protocol-monorepo/blob/dev/packages/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol#L425
-for more details on the events itself.
+Replaced by: `AgreementLiquidatedV2Event`
+See: https://docs.superfluid.finance/superfluid/sentinels/liquidations-and-toga#patricians-plebs-and-pirates-3ps for more details on the 3Ps system.
+See: https://github.com/superfluid-finance/protocol-monorepo/blob/dev/packages/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol#L425 for more details on the events.
 """
 type AgreementLiquidatedByEvent implements Event @entity {
     id: ID!

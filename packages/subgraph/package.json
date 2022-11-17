@@ -20,6 +20,7 @@
         "matchstick": "run-s matchstick:*",
         "matchstick:prepare-manifest": "mustache config/matic.json subgraph.template.yaml > subgraph.yaml",
         "matchstick:prepare-addresses": "mustache config/matic.json src/addresses.template.ts > src/addresses.ts",
+        "matchstick:prepare-generated": "yarn getAbi && yarn codegen",
         "matchstick:test": "graph test",
         "dev": "nodemon -e ts -i src/addresses.ts -x yarn matchstick",
         "posttest": "yarn testenv:stop",

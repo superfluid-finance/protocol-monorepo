@@ -1,17 +1,20 @@
 import { TokenRender } from "../[name]";
-import { makeStore, sfApi, wrapper } from "../../../redux/store";
+import { subgraphApi, wrapper } from "../../../redux/store";
 import { useRouter } from "next/router";
 
 const queryArgs = {
     chainId: 5,
-    take: 999,
-    skip: 0,
-    isListed: true,
+    filter: {
+        isListed: true,
+    },
+    pagination: {
+        take: Infinity,
+    },
 };
 
-export default function Token() {
+export default function TokenPage() {
     const router = useRouter();
-    const result = sfApi.useListSuperTokensQuery(queryArgs, {
+    const result = subgraphApi.useTokensQuery(queryArgs, {
         // If the page is not yet generated, router.isFallback will be true
         // initially until getStaticProps() finishes running
         skip: router.isFallback,
@@ -23,9 +26,9 @@ export default function Token() {
 
 export const getStaticProps = wrapper.getStaticProps(
     (store) => async (context) => {
-        store.dispatch(sfApi.endpoints.listSuperTokens.initiate(queryArgs));
+        store.dispatch(subgraphApi.endpoints.tokens.initiate(queryArgs));
 
-        await Promise.all(sfApi.util.getRunningOperationPromises());
+        await Promise.all(store.dispatch(subgraphApi.util.getRunningQueriesThunk()));
 
         return {
             props: {},

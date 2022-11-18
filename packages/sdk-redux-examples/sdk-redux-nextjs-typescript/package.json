@@ -1,32 +1,29 @@
 {
-    "name": "sdk-redux-nextjs-typescript",
-    "private": true,
-    "scripts": {
-        "dev": "next dev",
-        "build": "next build",
-        "start": "next start",
-        "lint": "next lint"
-    },
-    "dependencies": {
-        "@reduxjs/toolkit": "^1.7.1",
-        "@superfluid-finance/sdk-core": "^0.3.2",
-        "@superfluid-finance/sdk-redux": "^0.2.0",
-        "graphql": "^16.0.1",
-        "next": "^12.0.7",
-        "next-redux-wrapper": "^7.0.2",
-        "react": "^17.0.2",
-        "react-dom": "^17.0.2",
-        "react-redux": "^7.2.6"
-    },
-    "devDependencies": {
-        "@types/node": "^16.11.12",
-        "@types/react": "^17.0.37",
-        "eslint": "^8.4.1",
-        "eslint-config-next": "^12.0.7",
-        "typescript": "^4.5.2"
-    },
-    "resolutions": {
-        "@types/react": "^17.0.37",
-        "@types/react-dom": "^17.0.11"
-    }
+  "name": "sdk-redux-nextjs-typescript",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^1.9.0",
+    "@superfluid-finance/sdk-core": "^0.5.8",
+    "@superfluid-finance/sdk-redux": "^0.4.1-dev.08816e6.0",
+    "ethers": "^5.7.2",
+    "graphql": "^16.6.0",
+    "next": "^12.3.2",
+    "next-redux-wrapper": "^8.0.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^8.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.9",
+    "@types/react": "^18.0.25",
+    "eslint": "^8.27.0",
+    "eslint-config-next": "^13.0.4",
+    "typescript": "^4.9.3"
+  }
 }

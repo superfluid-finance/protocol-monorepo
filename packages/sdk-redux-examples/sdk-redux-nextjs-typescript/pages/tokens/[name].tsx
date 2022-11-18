@@ -2,28 +2,28 @@ import {useRouter} from "next/router";
 import Layout from "../../components/layout";
 import Head from "next/head";
 import {SerializedError} from "@reduxjs/toolkit";
-import { sfApi, useAppDispatch } from "../../redux/store";
+import { subgraphApi, useAppDispatch } from "../../redux/store";
 import {useState} from "react";
-import {
-    ValidationError
-} from "@superfluid-finance/sdk-redux";
-import { ISuperToken, PagedResult } from "@superfluid-finance/sdk-core";
+import { PagedResult, Token } from "@superfluid-finance/sdk-core";
 
-export default function Token() {
+export default function TokenPage() {
     const dispatch = useAppDispatch();
 
     const [shouldResetApi, setShouldResetApi] = useState(true);
 
     if (shouldResetApi) {
-        dispatch(sfApi.util.resetApiState());
+        dispatch(subgraphApi.util.resetApiState());
         setShouldResetApi(false);
     }
 
-    const result = sfApi.useListSuperTokensQuery({
+    const result = subgraphApi.useTokensQuery({
         chainId: 5,
-        take: 999,
-        skip: 0,
-        isListed: true,
+        filter: {
+            isListed: true
+        },
+        pagination: {
+            take: Infinity
+        }
     });
 
     const {isFetching, error, data} = result;
@@ -32,8 +32,8 @@ export default function Token() {
 
 export function TokenRender(
     isLoading: boolean,
-    error: ValidationError | SerializedError | undefined,
-    data: PagedResult<ISuperToken> | undefined
+    error: SerializedError | undefined,
+    data: PagedResult<Token> | undefined
 ) {
     const router = useRouter();
     const name = router.query.name;

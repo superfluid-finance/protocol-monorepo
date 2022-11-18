@@ -265,7 +265,7 @@ export function mockedGetUnderlyingToken(
 
 /**
  * Creates a mocked SuperToken.realtimeBalanceOf(address,uint256) function
- * @param contractAddress
+ * @param superTokenAddress
  * @param accountAddress
  * @param timestamp
  * @param expectedAvailableBalance
@@ -273,7 +273,7 @@ export function mockedGetUnderlyingToken(
  * @param expectedOwedDeposit
  */
 export function mockedRealtimeBalanceOf(
-    contractAddress: string,
+    superTokenAddress: string,
     accountAddress: string,
     timestamp: BigInt,
     expectedAvailableBalance: BigInt,
@@ -281,7 +281,7 @@ export function mockedRealtimeBalanceOf(
     expectedOwedDeposit: BigInt
 ): void {
     createMockedFunction(
-        Address.fromString(contractAddress),
+        Address.fromString(superTokenAddress),
         "realtimeBalanceOf",
         "realtimeBalanceOf(address,uint256):(int256,uint256,uint256)"
     )

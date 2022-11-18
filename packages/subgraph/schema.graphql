@@ -203,6 +203,7 @@ type IndexCreatedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 
     """
@@ -276,6 +277,7 @@ type IndexUpdatedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 
     """
@@ -314,6 +316,7 @@ type IndexSubscribedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 
     """
@@ -354,6 +357,7 @@ type IndexUnitsUpdatedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 
     """
@@ -398,6 +402,7 @@ type IndexUnsubscribedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 
     """
@@ -438,6 +443,7 @@ type SubscriptionApprovedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 
     """
@@ -478,6 +484,7 @@ type SubscriptionDistributionClaimedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 
     """
@@ -518,6 +525,7 @@ type SubscriptionRevokedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 
     """
@@ -558,6 +566,7 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 
     """

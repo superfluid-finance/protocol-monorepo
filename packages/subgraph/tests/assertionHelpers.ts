@@ -1,6 +1,8 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { assert, log } from "matchstick-as/assembly/index";
-import { createEventID, createLogID, getOrder } from "../src/utils";
+import { createEventID, createLogID, getIndexID, getOrder } from "../src/utils";
+
+// General Assertion Helpers
 
 /**
  * Asserts that the "base" properties on our Event entity are correct
@@ -66,6 +68,70 @@ export function assertAggregateBaseProperties(
     assert.fieldEquals(entityName, id, "updatedAtTimestamp", updatedAtTimestamp.toString());
     assert.fieldEquals(entityName, id, "updatedAtBlockNumber", updatedAtBlockNumber.toString());
 }
+
+// IDA Event Assertion Helpers
+
+/**
+ * Asserts that "base" event properties are correct as well as properties
+ * specific to all IDA events.
+ * @param event 
+ * @param eventName
+ * @param superToken 
+ * @param indexId 
+ * @param publisher 
+ */
+export function assertIDAEventBaseProperties(
+    event: ethereum.Event,
+    eventName: string,
+    superToken: string,
+    indexId: string,
+    publisher: string,
+): string {
+    const id = assertEventBaseProperties(event, eventName);
+    const entityName = eventName + "Event";
+
+    assert.fieldEquals(entityName, id, "token", superToken);
+    assert.fieldEquals(entityName, id, "indexId", indexId);
+    assert.fieldEquals(entityName, id, "publisher", publisher);
+
+    return id;
+}
+
+/**
+ * Asserts that "base" event properties are correct as well as properties
+ * specific to all IDA events and properties specific to IDA "Index" events.
+ * @param event 
+ * @param eventName 
+ * @param superToken 
+ * @param indexId 
+ * @param publisher 
+ * @param userData 
+ * @returns id of the event
+ */
+ export function assertIDAIndexEventBaseProperties(
+    event: ethereum.Event,
+    eventName: string,
+    superToken: string,
+    indexId: string,
+    publisher: string,
+    userData: string,
+): string {
+    const id = assertEventBaseProperties(event, eventName);
+    assertIDAEventBaseProperties(event, eventName, superToken, indexId, publisher);
+    const indexEntityId = getIndexID(
+        Address.fromString(publisher),
+        Address.fromString(superToken),
+        BigInt.fromString(indexId)
+    );
+    const entityName = eventName + "Event";
+    
+    assert.fieldEquals(entityName, id, "index", indexEntityId);
+    assert.fieldEquals(entityName, id, "userData", userData);
+
+    return id;
+}
+
+// Aggregate Entity Assertion Helpers
 
 /**
  * Asserts that the properties on a TokenStatistic entity are correct.

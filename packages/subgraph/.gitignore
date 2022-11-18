@@ -8,3 +8,4 @@ tasks/config
 src/addresses.ts
 **/*.wasm
 **/*.latest.json
+tests/.bin

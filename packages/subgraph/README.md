@@ -219,25 +219,9 @@ Navigate to the url in the console output, and let's try a test query so we know
 
 ## Running Tests
 
-If you are continuing from the previous steps, you can immediately run the tests with the following command:
+To run the unit tests, you first need to build the ethereum-contracts, then you can run: `yarn matchstick`. This prepares the manifest file (`subgraph.yaml`), the networks file (`addresses.ts`), gets the abi files required to run `yarn codegen` and runs the tests.
 
-```bash
-npx hardhat test --network localhost
-or
-yarn test
-```
-
-> Note: If you get an error complaining about workspaces requiring an array, delete the workspaces property in the subgraph folder's package.json.
-
-This goes over an integration tests which test that the data we are mapping to the subgraph is expected given the inputs for creating a flow, index, subscription, etc. If you're interested in learning about how the test code is structured, you can click [here](#test-structure) to learn more.
-
-You can also run data integrity tests which checks that the data mapped to the subgraph is in line with the data from the contracts:
-
-```bash
-yarn integrity <NETWORK>
-```
-
-> Note: you must specify the network in the `hardhat.config.ts` file, you can look at how it is being done for matic and do so for any network you are interested in running this on. You can use a URL from Infura, Alchemy or from your own node.
+You only need to do this the first time (unless you make changes in the contracts which impact the ABI or changes to `schema.graphql`).
 
 ## Re-deployments
 

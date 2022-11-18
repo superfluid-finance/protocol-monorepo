@@ -160,7 +160,7 @@ export function createSubscriptionDistributionClaimedEvent(
     subscriber: string,
     publisher: string,
     indexId: BigInt,
-    userData: Bytes
+    amount: BigInt
 ): SubscriptionDistributionClaimed {
     const newSubscriptionDistributionClaimedEvent =
         changetype<SubscriptionDistributionClaimed>(newMockEvent());
@@ -170,7 +170,7 @@ export function createSubscriptionDistributionClaimedEvent(
     newSubscriptionDistributionClaimedEvent.parameters.push(getAddressEventParam("subscriber", subscriber));
     newSubscriptionDistributionClaimedEvent.parameters.push(getAddressEventParam("publisher", publisher));
     newSubscriptionDistributionClaimedEvent.parameters.push(getBigIntEventParam("indexId", indexId));
-    newSubscriptionDistributionClaimedEvent.parameters.push(getBytesEventParam("userData", userData));
+    newSubscriptionDistributionClaimedEvent.parameters.push(getBigIntEventParam("amount", amount));
 
     return newSubscriptionDistributionClaimedEvent;
 }

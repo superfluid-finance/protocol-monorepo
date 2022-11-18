@@ -238,6 +238,7 @@ type IndexDistributionClaimedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 
     """
@@ -716,6 +717,7 @@ type SuperTokenLogicUpdatedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
     code: Bytes!
 }
@@ -958,6 +960,7 @@ type AgreementLiquidatedByEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
     liquidatorAccount: Bytes!
     agreementClass: Bytes!
@@ -986,10 +989,11 @@ type AgreementLiquidatedV2Event implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
-    liquidatorAccount: Bytes!
     agreementClass: Bytes!
     agreementId: Bytes!
+    liquidatorAccount: Bytes!
     targetAccount: Bytes!
     rewardAmountReceiver: Bytes!
     rewardAmount: BigInt!
@@ -1019,6 +1023,7 @@ type BurnedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     operator: Bytes!
     from: Bytes!
     token: Bytes!
@@ -1044,6 +1049,7 @@ type MintedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     operator: Bytes!
     to: Bytes!
     amount: BigInt!
@@ -1069,6 +1075,7 @@ type SentEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     operator: Bytes!
     from: Bytes!
     to: Bytes!
@@ -1095,6 +1102,7 @@ type TransferEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     from: Account!
     to: Account!
     value: BigInt!
@@ -1118,6 +1126,7 @@ type TokenDowngradedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
     amount: BigInt!
 }
@@ -1139,6 +1148,7 @@ type TokenUpgradedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
     amount: BigInt!
 }
@@ -1160,6 +1170,7 @@ type CustomSuperTokenCreatedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 }
 
@@ -1178,6 +1189,7 @@ type SuperTokenCreatedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     token: Bytes!
 }
 
@@ -1195,6 +1207,7 @@ type SuperTokenLogicCreatedEvent implements Event @entity {
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
     tokenLogic: Bytes!
 }
 

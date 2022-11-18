@@ -15,7 +15,7 @@ import { getAddressEventParam, getBigIntEventParam, getBytesEventParam } from ".
 export function createAgreementLiquidatedByEvent(
     liquidatorAccount: string,
     agreementClass: string,
-    id: Bytes,
+    agreementId: Bytes,
     penaltyAccount: string,
     bondAccount: string,
     rewardAmount: BigInt,
@@ -27,9 +27,9 @@ export function createAgreementLiquidatedByEvent(
     newAgreementLiquidatedByEvent.parameters = new Array();
 
     newAgreementLiquidatedByEvent.parameters = new Array();
-    newAgreementLiquidatedByEvent.parameters.push(getAddressEventParam("agreementClass", agreementClass));
-    newAgreementLiquidatedByEvent.parameters.push(getBytesEventParam("id", id));
     newAgreementLiquidatedByEvent.parameters.push(getAddressEventParam("liquidatorAccount", liquidatorAccount));
+    newAgreementLiquidatedByEvent.parameters.push(getAddressEventParam("agreementClass", agreementClass));
+    newAgreementLiquidatedByEvent.parameters.push(getBytesEventParam("id", agreementId));
     newAgreementLiquidatedByEvent.parameters.push(getAddressEventParam("penaltyAccount", penaltyAccount));
     newAgreementLiquidatedByEvent.parameters.push(getAddressEventParam("bondAccount", bondAccount));
     newAgreementLiquidatedByEvent.parameters.push(getBigIntEventParam("rewardAmount", rewardAmount));
@@ -39,9 +39,9 @@ export function createAgreementLiquidatedByEvent(
 }
 
 export function createAgreementLiquidatedV2Event(
-    agreementClass: string,
-    id: Bytes,
     liquidatorAccount: string,
+    agreementClass: string,
+    agreementId: Bytes,
     targetAccount: string,
     rewardAmountReceiver: string,
     rewardAmount: BigInt,
@@ -53,7 +53,7 @@ export function createAgreementLiquidatedV2Event(
     );
     newAgreementLiquidatedV2Event.parameters = new Array();
     newAgreementLiquidatedV2Event.parameters.push(getAddressEventParam("agreementClass", agreementClass));
-    newAgreementLiquidatedV2Event.parameters.push(getBytesEventParam("id", id));
+    newAgreementLiquidatedV2Event.parameters.push(getBytesEventParam("id", agreementId));
     newAgreementLiquidatedV2Event.parameters.push(getAddressEventParam("liquidatorAccount", liquidatorAccount));
     newAgreementLiquidatedV2Event.parameters.push(getAddressEventParam("targetAccount", targetAccount));
     newAgreementLiquidatedV2Event.parameters.push(getAddressEventParam("rewardAmountReceiver", rewardAmountReceiver));

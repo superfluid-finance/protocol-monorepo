@@ -1,4 +1,4 @@
-import { FC, ReactElement, useState } from "react";
+import { FC, PropsWithChildren, ReactElement, useState } from "react";
 import { Box, Container, Paper, Typography } from "@mui/material";
 import { InitializeSuperfluidSdk } from "./InitializeSuperfluidSdk";
 import { Framework } from "@superfluid-finance/sdk-core";
@@ -37,7 +37,6 @@ import { IndexSubscriptions } from "./features/generic-entity-queries/IndexSubsc
 import { TokenStatistics } from "./features/generic-entity-queries/TokenStatistics";
 import { ethers, Signer } from "ethers";
 import { chains } from "./wagmiAndRainbowKit";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 function App() {
     const [superfluidSdk, setSuperfluidSdk] = useState<Framework | undefined>();
@@ -252,7 +251,7 @@ function App() {
     );
 }
 
-export const SdkListItem: FC<{ title: string }> = ({
+export const SdkListItem: FC<PropsWithChildren<{ title: string }>> = ({
     children,
     title,
 }): ReactElement => {

@@ -1,8 +1,8 @@
 import { configureStore, Dispatch } from "@reduxjs/toolkit";
 import {
+    allSubgraphEndpoints,
     createApiWithReactHooks,
-    initializeSfApiSlice,
-    initializeSfTransactionSlice,
+    initializeSubgraphApiSlice,
     setFrameworkForSdkRedux,
 } from "@superfluid-finance/sdk-redux";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
@@ -10,7 +10,7 @@ import { Framework } from "@superfluid-finance/sdk-core";
 import { ethers } from "ethers";
 import { createWrapper, HYDRATE } from "next-redux-wrapper";
 
-export const { sfApi } = initializeSfApiSlice((options) =>
+export const subgraphApi = initializeSubgraphApiSlice((options) =>
     createApiWithReactHooks({
         ...options,
         extractRehydrationInfo(action, { reducerPath }) {
@@ -19,29 +19,26 @@ export const { sfApi } = initializeSfApiSlice((options) =>
             }
         },
     })
-);
-export const { sfTransactions } = initializeSfTransactionSlice();
+).injectEndpoints(allSubgraphEndpoints);
 
 export const makeStore = () => {
-    const chainId = 5;
-
-    setFrameworkForSdkRedux(chainId, () =>
+    const goerliChainId = 5;
+    setFrameworkForSdkRedux(goerliChainId, () =>
         Framework.create({
-            chainId,
-            provider: new ethers.providers.InfuraProvider(
-                chainId,
-                process.env.NEXT_PUBLIC_INFURA_ID
+            chainId: goerliChainId,
+            provider: new ethers.providers.StaticJsonRpcProvider(
+                "https://rpc-endpoints.superfluid.dev/eth-goerli",
+                "goerli" 
             ),
         })
     );
 
     return configureStore({
         reducer: {
-            sfApi: sfApi.reducer,
-            sfTransactions: sfTransactions.reducer,
+            [subgraphApi.reducerPath]: subgraphApi.reducer,
         },
         middleware: (getDefaultMiddleware) =>
-            getDefaultMiddleware().concat(sfApi.middleware),
+            getDefaultMiddleware().concat(subgraphApi.middleware),
     });
 };
 

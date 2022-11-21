@@ -4480,11 +4480,6 @@
   resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.3.1.tgz#e2c6e73e0bdeb2521d00756d099218e9f5d90a04"
   integrity sha512-/zPMqDkzSZ8t3VtxOa4KPq7uzzW978M9Tvh+j7GHKuo6k6GTLxPJ4J5gE5cjfJ26pnXst0N5Hax8Sr0T2Mi9zQ==
 
-"@types/chai@^4.3.3":
-  version "4.3.3"
-  resolved "https://registry.yarnpkg.com/@types/chai/-/chai-4.3.3.tgz#3c90752792660c4b562ad73b3fbd68bf3bc7ae07"
-  integrity sha512-hC7OMnszpxhZPduX+m+nrx+uFoLkWOMiR4oa/AZF3MuSETYTZmFfJAHqZEM8MVlvfG7BEUcgvtwoCTxBp6hm3g==
-
 "@types/concat-stream@^1.6.0":
   version "1.6.1"
   resolved "https://registry.yarnpkg.com/@types/concat-stream/-/concat-stream-1.6.1.tgz#24bcfc101ecf68e886aaedce60dfd74b632a1b74"
@@ -6741,14 +6736,7 @@ chai-bn@^0.2.1:
   resolved "https://registry.yarnpkg.com/chai-bn/-/chai-bn-0.2.2.tgz#4dcf30dbc79db2378a00781693bc749c972bf34f"
   integrity sha512-MzjelH0p8vWn65QKmEq/DLBG1Hle4WeyqT79ANhXZhn/UxRWO0OogkAxi5oGGtfzwU9bZR8mvbvYdoqNVWQwFg==
 
-chai-ethers@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/chai-ethers/-/chai-ethers-0.0.1.tgz#2dcc2d3251a07ea42ac37923b976198cccad3f1c"
-  integrity sha512-yajwk1BSf+lO2LzV+vra/iKukiUJcfD2aEVBZRWmaIJr0kI0eI1s6VF47qoXNolYxg0bf/SAlHSfwaPZWKBVyQ==
-  dependencies:
-    ethers "^5.0.0"
-
-chai@^4.2.0, chai@^4.3.6:
+chai@^4.2.0:
   version "4.3.6"
   resolved "https://registry.yarnpkg.com/chai/-/chai-4.3.6.tgz#ffe4ba2d9fa9d6680cc0b370adae709ec9011e9c"
   integrity sha512-bbcp3YfHCUzMOvKqsztczerVgBKSsEijCySNlHHbX3VG1nskvqjz5Rfso1gGwD6w6oOV3eI60pKuMOV5MV7p3Q==
@@ -8912,10 +8900,10 @@ eslint@^5.6.0:
     table "^5.2.3"
     text-table "^0.2.0"
 
-eslint@^8.27.0:
-  version "8.27.0"
-  resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.27.0.tgz#d547e2f7239994ad1faa4bb5d84e5d809db7cf64"
-  integrity sha512-0y1bfG2ho7mty+SiILVf9PfuRA49ek4Nc60Wmmu62QlobNR+CeXa4xXIJgcuwSQgZiWaPH+5BDsctpIW0PR/wQ==
+eslint@^8.28.0:
+  version "8.28.0"
+  resolved "https://registry.yarnpkg.com/eslint/-/eslint-8.28.0.tgz#81a680732634677cc890134bcdd9fdfea8e63d6e"
+  integrity sha512-S27Di+EVyMxcHiwDrFzk8dJYAaD+/5SoWKxL1ri/71CRHsnJnRDPNt2Kzj24+MT9FDupf4aqqyqPrvI8MvQ4VQ==
   dependencies:
     "@eslint/eslintrc" "^1.3.3"
     "@humanwhocodes/config-array" "^0.11.6"
@@ -9395,7 +9383,7 @@ ethers@^4.0.0-beta.1, ethers@^4.0.32:
     uuid "2.0.1"
     xmlhttprequest "1.8.0"
 
-ethers@^5.0.0, ethers@^5.0.13:
+ethers@^5.0.13:
   version "5.6.9"
   resolved "https://registry.yarnpkg.com/ethers/-/ethers-5.6.9.tgz#4e12f8dfcb67b88ae7a78a9519b384c23c576a4d"
   integrity sha512-lMGC2zv9HC5EC+8r429WaWu3uWJUCgUCt8xxKCFqkrFuBDZXDYIdzDUECxzjf2BMF8IVBByY1EBoGSL3RTm8RA==

@@ -115,8 +115,7 @@ contract CFAv1Forwarder {
      * @param sender Sender address of the flow
      * @param receiver Receiver address of the flow
      * @param flowrateDelta If > 0, the flowrate will be increased, if < 0, it will be decreased.
-     * @param revertIfNegative If true and if applying the flowrateDalta would lead to a negative flowrate,
-     * revert the transaction. If not true, the flow is deleted, resulting in the flowrate to become 0.
+     * Note that the call will fail if the resulting new flowrate would be negative!
      * @param userData (optional) User data to be set. Should be set to zero if not needed.
      * @param ctx (optional) To be set only when called from a SuperApp
      * @return newFlowrate The flowrate after applying the delta
@@ -126,13 +125,12 @@ contract CFAv1Forwarder {
         address sender,
         address receiver,
         int96 flowrateDelta,
-        bool revertIfNegative,
         bytes memory userData,
         bytes memory ctx
     ) external returns(int96 newFlowrate) {
         (, int96 oldFlowrate, , ) = _cfa.getFlow(token, sender, receiver);
         int96 uncappedNewFlowrate = oldFlowrate + flowrateDelta; // can be negative
-        if (revertIfNegative && uncappedNewFlowrate < 0) revert CFA_FWD_INVALID_FLOW_RATE();
+        if (uncappedNewFlowrate < 0) revert CFA_FWD_INVALID_FLOW_RATE();
         newFlowrate = 0 > uncappedNewFlowrate ? int96(0) : uncappedNewFlowrate;
         _setFlowFrom(token, sender, receiver, newFlowrate, userData, ctx);
     }
@@ -289,18 +287,6 @@ contract CFAv1Forwarder {
     }
 
     /**
-     * @notice convenience method for getting the permissions bitmask for delegating permissions on flow control
-     */
-    function getPermissionsBitmask(bool allowCreate, bool allowUpdate, bool allowDelete)
-        external pure returns(uint8 permissionsBitmask)
-    {
-        return
-            (allowCreate ? 1 : 0)
-            | (allowUpdate ? 1 : 0) << 1
-            | (allowDelete ? 1 : 0) << 2;
-    }
-
-    /**
      * @notice Sets the permissions for a specific flowOperator
      * In order to restrict what a flowOperator can or can't do, the flowOperator account
      * should be a contract implementing the desired restrictions.
@@ -313,11 +299,16 @@ contract CFAv1Forwarder {
     function setFlowPermissions(
         ISuperToken token,
         address flowOperator,
-        uint8 permissionsBitmask,
+        bool allowCreate,
+        bool allowUpdate,
+        bool allowDelete,
         int96 flowrateAllowance
     )
         external returns (bool)
     {
+        uint8 permissionsBitmask = (allowCreate ? 1 : 0)
+            | (allowUpdate ? 1 : 0) << 1
+            | (allowDelete ? 1 : 0) << 2;
         return _updateFlowOperatorPermissions(
             token,
             flowOperator,
@@ -336,9 +327,13 @@ contract CFAv1Forwarder {
      * @return flowrateAllowance Max. flowrate in wad/second the flowOperator can set for individual flows.
      */
     function getFlowPermissions(ISuperToken token, address sender, address flowOperator) external view
-        returns (uint8 permissions, int96 flowrateAllowance)
+        returns (bool allowCreate, bool allowUpdate, bool allowDelete, int96 flowrateAllowance)
     {
-        (, permissions, flowrateAllowance) = _cfa.getFlowOperatorData(token, sender, flowOperator);
+        uint8 permissionsBitmask;
+        (, permissionsBitmask, flowrateAllowance) = _cfa.getFlowOperatorData(token, sender, flowOperator);
+        allowCreate = permissionsBitmask & 1 == 1 ? true : false;
+        allowUpdate = permissionsBitmask >> 1 & 1 == 1 ? true : false;
+        allowDelete = permissionsBitmask >> 2 & 1 == 1 ? true : false;
     }
 
     /**************************************************************************

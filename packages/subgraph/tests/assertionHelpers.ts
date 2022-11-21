@@ -23,6 +23,7 @@ export function assertEventBaseProperties(
     assert.fieldEquals(entityType, id, "logIndex", event.logIndex.toString());
     assert.fieldEquals(entityType, id, "order", order.toString());
     assert.fieldEquals(entityType, id, "timestamp", event.block.timestamp.toString());
+    assert.fieldEquals(entityType, id, "name", eventName);
     assert.fieldEquals(entityType, id, "transactionHash", event.transaction.hash.toHex());
     assert.fieldEquals(entityType, id, "gasPrice", event.transaction.gasPrice.toString());
     return id;

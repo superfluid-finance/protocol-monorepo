@@ -40,7 +40,7 @@ contract CFALibraryMock {
         address receiver,
         int96 flowRate
     ) public {
-        cfaV1.createFlow(receiver, token, flowRate);
+        cfaV1.createFlow(token, receiver, flowRate);
     }
 
     function updateFlowTest(
@@ -48,11 +48,11 @@ contract CFALibraryMock {
         address receiver,
         int96 flowRate
     ) public {
-        cfaV1.updateFlow(receiver, token, flowRate);
+        cfaV1.updateFlow(token, receiver, flowRate);
     }
 
     function deleteFlowTest(ISuperfluidToken token, address receiver) public {
-        cfaV1.deleteFlow(address(this), receiver, token);
+        cfaV1.deleteFlow(token, address(this), receiver);
     }
 
     function createFlowByOperatorTest(
@@ -61,7 +61,7 @@ contract CFALibraryMock {
         ISuperfluidToken token,
         int96 flowRate
     ) public {
-        cfaV1.createFlowByOperator(sender, receiver, token, flowRate);
+        cfaV1.createFlowByOperator(token, sender, receiver, flowRate);
     }
 
     function updateFlowByOperatorTest(
@@ -70,7 +70,7 @@ contract CFALibraryMock {
         ISuperfluidToken token,
         int96 flowRate
     ) public {
-        cfaV1.updateFlowByOperator(sender, receiver, token, flowRate);
+        cfaV1.updateFlowByOperator(token, sender, receiver, flowRate);
     }
 
     function deleteFlowByOperator(
@@ -78,7 +78,7 @@ contract CFALibraryMock {
         address receiver,
         ISuperfluidToken token
     ) public {
-        cfaV1.deleteFlowByOperator(sender, receiver, token);
+        cfaV1.deleteFlowByOperator(token, sender, receiver);
     }
 
     function updateFlowOperatorPermissionsTest(
@@ -87,21 +87,21 @@ contract CFALibraryMock {
         uint8 permissions,
         int96 flowRateAllowance
     ) public {
-        cfaV1.updateFlowOperatorPermissions(flowOperator, token, permissions, flowRateAllowance);
+        cfaV1.updateFlowOperatorPermissions(token, flowOperator, permissions, flowRateAllowance);
     }
 
     function authorizeFlowOperatorWithFullControlTest(
         address flowOperator,
         ISuperfluidToken token
     ) public {
-        cfaV1.authorizeFlowOperatorWithFullControl(flowOperator, token);
+        cfaV1.authorizeFlowOperatorWithFullControl(token, flowOperator);
     }
 
     function revokeFlowOperatorWithFullControlTest(
         address flowOperator,
         ISuperfluidToken token
     ) public {
-        cfaV1.revokeFlowOperatorWithFullControl(flowOperator, token);
+        cfaV1.revokeFlowOperatorWithFullControl(token, flowOperator);
     }
 }
 
@@ -165,12 +165,12 @@ contract CFALibrarySuperAppMock is SuperAppBase {
     }
 
     function createFlow(ISuperToken token) external {
-        cfaV1.createFlow(receiver, token, FLOW_RATE);
+        cfaV1.createFlow(token, receiver, FLOW_RATE);
     }
 
     // literally ONLY for the revokeFlowOperatorWithFullControlWithCtx test.
     function authorizeFlowOperatorWithFullControl(ISuperToken token) external {
-        cfaV1.authorizeFlowOperatorWithFullControl(flowOperator, token);
+        cfaV1.authorizeFlowOperatorWithFullControl(token, flowOperator);
     }
 
     function afterAgreementCreated(
@@ -185,29 +185,29 @@ contract CFALibrarySuperAppMock is SuperAppBase {
         (uint8 functionIndex) = abi.decode(userData, (uint8));
 
         if (functionIndex == uint8(FunctionIndex.CREATE_FLOW))
-            return cfaV1.createFlowWithCtx(ctx, receiver, token, FLOW_RATE);
+            return cfaV1.createFlowWithCtx(token, receiver, FLOW_RATE, ctx);
         else if (functionIndex == uint8(FunctionIndex.UPDATE_FLOW))
-            return cfaV1.updateFlowWithCtx(ctx, receiver, token, UPDATED_FLOW_RATE);
+            return cfaV1.updateFlowWithCtx(token, receiver, UPDATED_FLOW_RATE, ctx);
         else if (functionIndex == uint8(FunctionIndex.DELETE_FLOW))
-            return cfaV1.deleteFlowWithCtx(ctx, address(this), receiver, token);
+            return cfaV1.deleteFlowWithCtx(token, address(this), receiver, ctx);
         else if (functionIndex == uint8(FunctionIndex.CREATE_FLOW_BY_OPERATOR))
-            return cfaV1.createFlowByOperatorWithCtx(ctx, sender, receiver, token, FLOW_RATE);
+            return cfaV1.createFlowByOperatorWithCtx(token, sender, receiver, FLOW_RATE, ctx);
         else if (functionIndex == uint8(FunctionIndex.UPDATE_FLOW_BY_OPERATOR))
-            return cfaV1.updateFlowByOperatorWithCtx(ctx, sender, receiver, token, UPDATED_FLOW_RATE);
+            return cfaV1.updateFlowByOperatorWithCtx(token, sender, receiver, UPDATED_FLOW_RATE, ctx);
         else if (functionIndex == uint8(FunctionIndex.DELETE_FLOW_BY_OPERATOR))
-            return cfaV1.deleteFlowByOperatorWithCtx(ctx, sender, receiver, token);
+            return cfaV1.deleteFlowByOperatorWithCtx(token, sender, receiver, ctx);
         else if (functionIndex == uint8(FunctionIndex.UPDATE_FLOW_OPERATOR_PERMISSIONS))
             return cfaV1.updateFlowOperatorPermissionsWithCtx(
-                ctx,
-                flowOperator,
                 token,
+                flowOperator,
                 PERMISSIONS,
-                FLOW_RATE
+                FLOW_RATE,
+                ctx
             );
         else if (functionIndex == uint8(FunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL))
-            return cfaV1.authorizeFlowOperatorWithFullControlWithCtx(ctx, flowOperator, token);
+            return cfaV1.authorizeFlowOperatorWithFullControlWithCtx(token, flowOperator, ctx);
         else if (functionIndex == uint8(FunctionIndex.REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL))
-            return cfaV1.revokeFlowOperatorWithFullControlWithCtx(ctx, flowOperator, token);
+            return cfaV1.revokeFlowOperatorWithFullControlWithCtx(token, flowOperator, ctx);
         else revert("invalid function index");
     }
 }

@@ -57,9 +57,9 @@ contract StreamRedirector is SuperAppBase {
      */
     function startStreamToSelf(address _originAccount, int96 _flowRate) public {
         cfaV1.createFlowByOperator(
+            token,
             _originAccount,
             address(this),
-            token,
             _flowRate
         );
     }
@@ -69,7 +69,7 @@ contract StreamRedirector is SuperAppBase {
      * @param _originAccount ACL permissions granter
      */
     function stopStreamToSelf(address _originAccount) public {
-        cfaV1.deleteFlowByOperator(_originAccount, address(this), token);
+        cfaV1.deleteFlowByOperator(token, _originAccount, address(this));
     }
 
     /**
@@ -78,7 +78,7 @@ contract StreamRedirector is SuperAppBase {
      * @param _flowRate desired flow rate
      */
     function startStreamToSuperApp(address _superApp, int96 _flowRate) public {
-        cfaV1.createFlow(_superApp, token, _flowRate);
+        cfaV1.createFlow(token, _superApp, _flowRate);
     }
 
     /**
@@ -87,7 +87,7 @@ contract StreamRedirector is SuperAppBase {
      * @param _receiver the receiver super app
      */
     function stopStreamToSuperApp(address _sender, address _receiver) public {
-        cfaV1.deleteFlow(_sender, _receiver, token);
+        cfaV1.deleteFlow(token, _sender, _receiver);
     }
 
     /**
@@ -111,10 +111,10 @@ contract StreamRedirector is SuperAppBase {
         newCtx = _ctx;
         int96 netFlowRate = cfaV1.cfa.getNetFlow(_superToken, address(this));
         newCtx = cfaV1.createFlowWithCtx(
-            newCtx,
-            receiver,
             _superToken,
-            netFlowRate
+            receiver,
+            netFlowRate,
+            newCtx
         );
     }
 
@@ -139,10 +139,10 @@ contract StreamRedirector is SuperAppBase {
 
         if (currentFlowRate > 0) {
             newCtx = cfaV1.deleteFlowWithCtx(
-                newCtx,
+                _superToken,
                 address(this),
                 receiver,
-                _superToken
+                newCtx
             );
         }
     }

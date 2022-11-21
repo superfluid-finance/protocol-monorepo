@@ -17,8 +17,8 @@ import { getOrInitSuperToken } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
 
 export function handleSuperTokenCreated(event: SuperTokenCreated): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    const hostAddress = getHostAddress();
+    const hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
     }
@@ -29,14 +29,14 @@ export function handleSuperTokenCreated(event: SuperTokenCreated): void {
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitSuperToken(event.params.token, event.block);
+    getOrInitSuperToken(event, event.params.token, "SuperTokenCreated");
 }
 
 export function handleCustomSuperTokenCreated(
     event: CustomSuperTokenCreated
 ): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
+    const hostAddress = getHostAddress();
+    const hasValidHost = tokenHasValidHost(hostAddress, event.params.token);
     if (!hasValidHost) {
         return;
     }
@@ -46,14 +46,14 @@ export function handleCustomSuperTokenCreated(
     ev.token = event.params.token;
     ev.save();
 
-    getOrInitSuperToken(event.params.token, event.block);
+    getOrInitSuperToken(event, event.params.token, "CustomSuperTokenCreated");
 }
 
 export function handleSuperTokenLogicCreated(
     event: SuperTokenLogicCreated
 ): void {
-    let hostAddress = getHostAddress();
-    let hasValidHost = tokenHasValidHost(hostAddress, event.params.tokenLogic);
+    const hostAddress = getHostAddress();
+    const hasValidHost = tokenHasValidHost(hostAddress, event.params.tokenLogic);
     if (!hasValidHost) {
         return;
     }

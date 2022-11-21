@@ -15,7 +15,7 @@ import { getResolverAddress } from "./addresses";
 export const BIG_INT_ZERO = BigInt.fromI32(0);
 export const BIG_INT_ONE = BigInt.fromI32(1);
 export const ZERO_ADDRESS = Address.zero();
-export let MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
+export const MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
 export const ORDER_MULTIPLIER = BigInt.fromI32(10000);
 export const MAX_SAFE_SECONDS = BigInt.fromI64(8640000000000); //In seconds, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#the_ecmascript_epoch_and_timestamps
 /**************************************************************************
@@ -78,13 +78,14 @@ export function handleTokenRPCCalls(
     token: Token,
     resolverAddress: Address
 ): Token {
-    token = getIsListedToken(token, resolverAddress);
-
     // we must handle the case when the native token hasn't been initialized
     // there is no name/symbol, but this may occur later
     if (token.name.length == 0 || token.symbol.length == 0) {
         token = getTokenInfoAndReturn(token);
     }
+    
+    // we do getIsListedToken after getTokenInfoAndReturn because it requires the token symbol
+    token = getIsListedToken(token, resolverAddress);
     return token;
 }
 
@@ -109,34 +110,34 @@ export function getIsListedToken(
     token: Token,
     resolverAddress: Address
 ): Token {
-    let resolverContract = Resolver.bind(resolverAddress);
+    const resolverContract = Resolver.bind(resolverAddress);
     const RESOLVER_ADDRESS = getResolverAddress();
-    let version = resolverAddress.equals(RESOLVER_ADDRESS) ? "test" : "v1";
-    let result = resolverContract.try_get(
+    const version = resolverAddress.equals(RESOLVER_ADDRESS) ? "test" : "v1";
+    const result = resolverContract.try_get(
         "supertokens." + version + "." + token.symbol
     );
-    let superTokenAddress = result.reverted ? ZERO_ADDRESS : result.value;
+    const superTokenAddress = result.reverted ? ZERO_ADDRESS : result.value;
     token.isListed = token.id == superTokenAddress.toHex();
 
     return token;
 }
 
-export function updateTotalSupplyForNativeSuperToken(
-    token: Token,
+/**
+ * Gets and sets the total supply for TokenStatistic of a SuperToken upon initial creation
+ * @param tokenStatistic 
+ * @param tokenAddress 
+ * @returns TokenStatistic
+ */
+export function getInitialTotalSupplyForSuperToken(
     tokenStatistic: TokenStatistic,
     tokenAddress: Address
 ): TokenStatistic {
-    if (
-        Address.fromBytes(token.underlyingAddress).equals(ZERO_ADDRESS) &&
-        tokenStatistic.totalSupply.equals(BIG_INT_ZERO)
-    ) {
-        let tokenContract = SuperToken.bind(tokenAddress);
-        let totalSupplyResult = tokenContract.try_totalSupply();
-        if (totalSupplyResult.reverted) {
-            return tokenStatistic;
-        }
-        tokenStatistic.totalSupply = totalSupplyResult.value;
+    const tokenContract = SuperToken.bind(tokenAddress);
+    const totalSupplyResult = tokenContract.try_totalSupply();
+    if (totalSupplyResult.reverted) {
+        return tokenStatistic;
     }
+    tokenStatistic.totalSupply = totalSupplyResult.value;
     return tokenStatistic;
 }
 
@@ -151,14 +152,13 @@ export function tokenHasValidHost(
     hostAddress: Address,
     tokenAddress: Address
 ): boolean {
-    let tokenId = tokenAddress.toHex();
-    let token = Token.load(tokenId);
-    if (token == null) {
-        let tokenContract = SuperToken.bind(tokenAddress);
-        let tokenHostAddressResult = tokenContract.try_getHost();
+    const tokenId = tokenAddress.toHex();
+    if (Token.load(tokenId) == null) {
+        const tokenContract = SuperToken.bind(tokenAddress);
+        const tokenHostAddressResult = tokenContract.try_getHost();
 
         if (tokenHostAddressResult.reverted) {
-            log.error("REVERTED GET HOST = {}", [tokenAddress.toHex()]);
+            log.error("REVERTED GET HOST = {}", [tokenId]);
             return false;
         }
 
@@ -273,7 +273,7 @@ export function streamRevisionExists(id: string): boolean {
  * @returns
  */
 export function subscriptionExists(id: string): boolean {
-    let subscription = IndexSubscription.load(id);
+    const subscription = IndexSubscription.load(id);
     return subscription != null && subscription.units.gt(BIG_INT_ZERO);
 }
 
@@ -282,7 +282,7 @@ export function getAmountStreamedSinceLastUpdatedAt(
     lastUpdatedTime: BigInt,
     flowRate: BigInt
 ): BigInt {
-    let timeDelta = currentTime.minus(lastUpdatedTime);
+    const timeDelta = currentTime.minus(lastUpdatedTime);
     return timeDelta.times(flowRate);
 }
 

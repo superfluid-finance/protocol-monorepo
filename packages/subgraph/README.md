@@ -95,39 +95,7 @@ Start hardhat node.
 npx hardhat node --hostname 0.0.0.0
 ```
 
-### Graph-node
-
-If on Linux, run the following script. You should be already have docker open.
-
-```bash
-# For Linux machines
-sudo apt install jq
-./setup.sh # writes the host IP to the docker-compose file
-```
-
-> Note: If you get a "version" error, update your docker-compose with [these instructions](https://docs.docker.com/compose/install/). If you get an error like `ERROR: could not find an available, non-overlapping IPv4 address...` then try turning off OpenVPN, or follow [this tutorial](https://stackoverflow.com/questions/45692255/how-make-openvpn-work-with-docker).
-
-If you are on a mac, create a `setup_graph.sh` file in `graph-node/docker` and paste the following in it if you plan on running tests more than once:
-
-```bash
-docker-compose down -v;
-
-if [ -d "data" ]
-then
-  echo "Found old data for the graph node - deleting it";
-  # we need to sudo this to remove system locked files
-  rm -rf data/;
-fi
-
-docker-compose up;
-```
-
-Then run `chmod +x setup_graph.sh`, this makes the shell script executable.
-Open another terminal window and run `./setup_graph.sh` and your local graph will start booting up.
-
-> Note: You can check out this [blog post](https://medium.com/blockrocket/dapp-development-with-a-local-subgraph-ganache-setup-566a4d4cbb) for more details if you run into any issues.
-
-> Another note: If you are using an M1 mac, follow the instructions [here](https://github.com/graphprotocol/graph-node/tree/master/docker#running-graph-node-on-an-macbook-m1) otherwise you will probably run into issues.
+### Setting up a local Subgraph node instance
 
 Run `docker-compose up` in `packages/subgraph`. There is a `docker-compose.yml` file which sets up a local graph node container.
 

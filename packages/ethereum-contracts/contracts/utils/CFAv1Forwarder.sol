@@ -292,7 +292,9 @@ contract CFAv1Forwarder {
      * should be a contract implementing the desired restrictions.
      * @param token Super token address
      * @param flowOperator Account to which permissions are granted
-     * @param permissionsBitmask see `getPermissionsBitmask`. Set to 0 in order to revoke all permissions.
+     * @param allowCreate If set, the flowOperator is allowed to create flows
+     * @param allowUpdate If set, the flowOperator is allowed to update flows
+     * @param allowDelete If set, the flowOperator is allowed to delete flows
      * @param flowrateAllowance Max. flowrate in wad/second the operator can set for individual flows.
      * @return bool
      */
@@ -323,7 +325,9 @@ contract CFAv1Forwarder {
      * @param token Super token address
      * @param sender The account which (possiby) granted permissions
      * @param flowOperator Account to which (possibly) permissions were granted
-     * @return permissions A bitmask of the permissions currently granted (or not) by `sender` to `flowOperator`
+     * @return allowCreate True if the flowOperator has permission to create flows
+     * @return allowUpdate True if the flowOperator has permission to update flows
+     * @return allowDelete True if the flowOperator has permission to delete flows
      * @return flowrateAllowance Max. flowrate in wad/second the flowOperator can set for individual flows.
      */
     function getFlowPermissions(ISuperToken token, address sender, address flowOperator) external view

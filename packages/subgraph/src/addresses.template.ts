@@ -15,3 +15,7 @@ export function getResolverAddress(): Address {
 export function getNativeAssetSuperTokenAddress(): Address {
     return Address.fromString("{{nativeAssetSuperTokenAddress}}");
 }
+
+export function getIsTestNetwork(): boolean {
+    return "{{testNetwork}}".length > 0;
+}

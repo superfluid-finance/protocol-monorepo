@@ -52,7 +52,7 @@ export function mockedHandleSuperTokenInitRPCCalls(
     // getIsListedToken(token, resolver) => resolver.try_get(key)
     mockedResolverGet(
         resolverAddress,
-        "supertokens.test." + tokenSymbol,
+        "supertokens.v1." + tokenSymbol,
         isListed ? superToken : ZERO_ADDRESS.toHexString()
     );
 

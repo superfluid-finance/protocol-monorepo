@@ -7,7 +7,7 @@ import {
     Token,
     TokenStatistic,
 } from "../generated/schema";
-import { getIsTestNetwork } from "./addresses";
+import { getIsLocalIntegrationTesting } from "./addresses";
 
 /**************************************************************************
  * Constants
@@ -111,7 +111,7 @@ export function getIsListedToken(
     resolverAddress: Address
 ): Token {
     const resolverContract = Resolver.bind(resolverAddress);
-    const isLocalIntegrationTesting = getIsTestNetwork();
+    const isLocalIntegrationTesting = getIsLocalIntegrationTesting();
     const version = isLocalIntegrationTesting ? "test" : "v1";
     const result = resolverContract.try_get(
         "supertokens." + version + "." + token.symbol

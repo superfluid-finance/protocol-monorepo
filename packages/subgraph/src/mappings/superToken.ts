@@ -14,11 +14,13 @@ import {
     BurnedEvent,
     MintedEvent,
     SentEvent,
+    StreamRevision,
     TokenDowngradedEvent,
     TokenUpgradedEvent,
     TransferEvent,
 } from "../../generated/schema";
 import {
+    BIG_INT_ZERO,
     createEventID,
     initializeEventEntity,
     tokenHasValidHost,
@@ -294,6 +296,10 @@ function _createAgreementLiquidatedByEventEntity(
         event.params.bondAccount,
     ]) as AgreementLiquidatedByEvent;
 
+    const streamRevisionId =
+        event.params.id.toHex() + "-" + event.address.toHexString();
+    const streamRevision = StreamRevision.load(streamRevisionId);
+
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
@@ -302,6 +308,7 @@ function _createAgreementLiquidatedByEventEntity(
     ev.bondAccount = event.params.bondAccount;
     ev.rewardAmount = event.params.rewardAmount;
     ev.bailoutAmount = event.params.bailoutAmount;
+    ev.deposit = streamRevision ? streamRevision.deposit : BIG_INT_ZERO;
     ev.save();
 }
 
@@ -317,6 +324,10 @@ function _createAgreementLiquidatedV2EventEntity(
         event.params.rewardAmountReceiver,
     ]);
 
+    const streamRevisionId =
+        event.params.id.toHex() + "-" + event.address.toHexString();
+    const streamRevision = StreamRevision.load(streamRevisionId);
+
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
@@ -326,6 +337,7 @@ function _createAgreementLiquidatedV2EventEntity(
     ev.rewardAccount = event.params.rewardAmountReceiver;
     ev.rewardAmount = event.params.rewardAmount;
     ev.targetAccountBalanceDelta = event.params.targetAccountBalanceDelta;
+    ev.deposit = streamRevision ? streamRevision.deposit : BIG_INT_ZERO;
 
     let decoded = ethereum.decode(
         "(uint256,uint256)",

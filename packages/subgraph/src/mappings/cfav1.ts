@@ -92,18 +92,23 @@ export function handleFlowUpdated(event: FlowUpdated): void {
     stream.deposit = newDeposit;
     stream.save();
 
+    const streamRevision = getOrInitStreamRevision(
+        senderAddress,
+        receiverAddress,
+        tokenAddress
+    );
+
     const flowRateDelta = flowRate.minus(oldFlowRate);
     const isCreate = oldFlowRate.equals(BIG_INT_ZERO);
     const isDelete = flowRate.equals(BIG_INT_ZERO);
+
+    streamRevision.deposit = newDeposit;
+
     if (isDelete) {
-        const streamRevision = getOrInitStreamRevision(
-            senderAddress,
-            receiverAddress,
-            tokenAddress
-        );
         streamRevision.revisionIndex = streamRevision.revisionIndex + 1;
-        streamRevision.save();
     }
+
+    streamRevision.save();
 
     // create event entity
     const flowUpdateEvent = _createFlowUpdatedEntity(

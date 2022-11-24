@@ -201,6 +201,7 @@ export function getOrInitStreamRevision(
         streamRevision = new StreamRevision(streamRevisionId);
         streamRevision.revisionIndex = 0;
         streamRevision.periodRevisionIndex = 0;
+        streamRevision.deposit = BIG_INT_ZERO;
     }
     return streamRevision as StreamRevision;
 }

@@ -1,5 +1,5 @@
-import { Address, ethereum } from "@graphprotocol/graph-ts";
-import { Token } from "../generated/schema";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { StreamRevision, Token } from "../generated/schema";
 import { getNativeAssetSuperTokenAddress } from "../src/addresses";
 
 /**
@@ -25,11 +25,9 @@ export function createSuperToken(
     underlyingAddress: Address
 ): Token {
     const tokenId = tokenAddress.toHex();
-    let token = Token.load(tokenId);
-
     let currentTimestamp = block.timestamp;
 
-    token = new Token(tokenId);
+    const token = new Token(tokenId);
     token.createdAtTimestamp = currentTimestamp;
     token.createdAtBlockNumber = block.number;
     token.decimals = decimals;
@@ -48,4 +46,31 @@ export function createSuperToken(
     
     token.save();
     return token as Token;
+}
+
+/**
+ * Creates a StreamRevision entity
+ * @param flowId 
+ * @param tokenAddress 
+ * @param deposit 
+ * @param revisionIndex 
+ * @param periodRevisionIndex 
+ * @returns StreamRevision
+ */
+export function createStreamRevision(
+    flowId: string,
+    tokenAddress: string,
+    deposit: BigInt,
+    revisionIndex: i32,
+    periodRevisionIndex: i32,
+): StreamRevision {
+    const id = flowId + "-" + tokenAddress;
+
+    const streamRevision = new StreamRevision(id);
+    streamRevision.deposit = deposit;
+    streamRevision.revisionIndex = revisionIndex;
+    streamRevision.periodRevisionIndex =  periodRevisionIndex;
+
+    streamRevision.save();
+    return streamRevision;
 }

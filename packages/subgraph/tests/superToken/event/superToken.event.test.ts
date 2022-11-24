@@ -1,4 +1,4 @@
-import { BigInt, Bytes, crypto, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, crypto, ethereum } from "@graphprotocol/graph-ts";
 import {
     assert,
     beforeEach,
@@ -23,7 +23,7 @@ import {
 } from "../../assertionHelpers";
 import { alice, bob, cfaV1Address, charlie, DEFAULT_DECIMALS, delta, FAKE_INITIAL_BALANCE, maticXName, maticXSymbol } from "../../constants";
 import { getETHAddress, getETHUnsignedBigInt, stringToBytes } from "../../converters";
-import { createStreamRevision } from "../../mockedEntities";
+import { createStream, createStreamRevision } from "../../mockedEntities";
 import { mockedGetAppManifest, mockedGetHost, mockedHandleSuperTokenInitRPCCalls, mockedRealtimeBalanceOf } from "../../mockedFunctions";
 import {
     createAgreementLiquidatedByEvent,
@@ -55,6 +55,7 @@ describe("SuperToken Mapper Unit Tests", () => {
             ];
             const agreementId = crypto.keccak256(encode(values)); // flowId keccak256(abi.encode(sender, receiver))
             const rewardAmount = BigInt.fromI32(100);
+            const revisionIndex = 0;
             const bailoutAmount = BIG_INT_ZERO;
             const deposit = BigInt.fromI32(420);
 
@@ -70,12 +71,23 @@ describe("SuperToken Mapper Unit Tests", () => {
 
             const tokenAddress = agreementLiquidatedByEvent.address.toHex();
 
+            const stream = createStream(
+                Address.fromString(penaltyAccount),
+                Address.fromString(receiver),
+                agreementLiquidatedByEvent.address,
+                revisionIndex,
+                agreementLiquidatedByEvent.block,
+                BigInt.fromI32(42069),
+                deposit,
+                BIG_INT_ZERO
+            );
+
             createStreamRevision(
                 agreementLiquidatedByEvent.params.id.toHex(),
                 tokenAddress,
-                deposit,
-                0,
-                0
+                stream.id,
+                revisionIndex,
+                0 // periodRevisionIndex
             );
 
             mockedGetHost(tokenAddress);
@@ -156,6 +168,7 @@ describe("SuperToken Mapper Unit Tests", () => {
             const agreementId = encode(agreementIdValues);
             const liquidationTypeData = encode(liquidationTypeDataValues);
             const rewardAmount = BigInt.fromI32(100);
+            const revisionIndex = 0;
             const targetAccountBalanceDelta = rewardAmount.neg();
             const deposit = BigInt.fromI32(420);
 
@@ -169,15 +182,24 @@ describe("SuperToken Mapper Unit Tests", () => {
                 targetAccountBalanceDelta,
                 liquidationTypeData
             );
-
+            const stream = createStream(
+                Address.fromString(targetAccount),
+                Address.fromString(receiver),
+                agreementLiquidatedV2Event.address,
+                revisionIndex,
+                agreementLiquidatedV2Event.block,
+                BigInt.fromI32(42069),
+                deposit,
+                BIG_INT_ZERO
+            );
             const tokenAddress = agreementLiquidatedV2Event.address.toHex();
 
             createStreamRevision(
                 agreementLiquidatedV2Event.params.id.toHex(),
                 tokenAddress,
-                deposit,
-                0,
-                0
+                stream.id,
+                revisionIndex,
+                0 // periodRevisionIndex
             );
 
             mockedGetHost(tokenAddress);

@@ -1517,9 +1517,9 @@ type StreamRevision @entity {
     periodRevisionIndex: Int!
 
     """
-    The "most recent" deposit of a stream between a sender and receiver.
+    The "most recently alive" stream between a sender and receiver.
     """
-    deposit: BigInt!
+    stream: Stream!
 }
 
 """

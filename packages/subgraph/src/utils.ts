@@ -280,10 +280,6 @@ export function getAccountTokenSnapshotID(
 
 // Get HOL Exists Functions
 
-export function streamRevisionExists(id: string): boolean {
-    return StreamRevision.load(id) != null;
-}
-
 /**
  * If your units get set to 0, you will still have a subscription
  * entity, but your subscription technically no longer exists.

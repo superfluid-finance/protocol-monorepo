@@ -1,6 +1,7 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
-import { StreamRevision, Token } from "../generated/schema";
+import { Stream, StreamRevision, Token } from "../generated/schema";
 import { getNativeAssetSuperTokenAddress } from "../src/addresses";
+import { getStreamID } from "../src/utils";
 
 /**
  * Creates a SuperToken entity
@@ -49,10 +50,57 @@ export function createSuperToken(
 }
 
 /**
+ * Creates a Stream entity
+ * Note: this function currently assumes the createdAt/updatedAt is the same.
+ * @param senderAddress 
+ * @param receiverAddress 
+ * @param tokenAddress 
+ * @param revisionIndex 
+ * @param block
+ * @param currentFlowRate 
+ * @param deposit 
+ * @param streamedUntilUpdatedAt 
+ * @returns 
+ */
+export function createStream(
+    senderAddress: Address,
+    receiverAddress: Address,
+    tokenAddress: Address,
+    revisionIndex: i32,
+    block: ethereum.Block,
+    currentFlowRate: BigInt,
+    deposit: BigInt,
+    streamedUntilUpdatedAt: BigInt
+): Stream {
+    const streamId = getStreamID(
+        senderAddress,
+        receiverAddress,
+        tokenAddress,
+        revisionIndex
+    );
+    const timestamp = block.timestamp;
+    const blockNumber = block.number;
+
+    const stream = new Stream(streamId);
+    stream.createdAtTimestamp = timestamp;
+    stream.createdAtBlockNumber = blockNumber;
+    stream.updatedAtTimestamp = timestamp;
+    stream.updatedAtBlockNumber = blockNumber;
+    stream.currentFlowRate = currentFlowRate;
+    stream.deposit = deposit;
+    stream.streamedUntilUpdatedAt = streamedUntilUpdatedAt;
+    stream.token = tokenAddress.toHex();
+    stream.sender = senderAddress.toHex();
+    stream.receiver = receiverAddress.toHex();
+    stream.save();
+    return stream;
+}
+
+/**
  * Creates a StreamRevision entity
  * @param flowId 
  * @param tokenAddress 
- * @param deposit 
+ * @param streamId 
  * @param revisionIndex 
  * @param periodRevisionIndex 
  * @returns StreamRevision
@@ -60,14 +108,14 @@ export function createSuperToken(
 export function createStreamRevision(
     flowId: string,
     tokenAddress: string,
-    deposit: BigInt,
+    streamId: string,
     revisionIndex: i32,
     periodRevisionIndex: i32,
 ): StreamRevision {
     const id = flowId + "-" + tokenAddress;
 
     const streamRevision = new StreamRevision(id);
-    streamRevision.deposit = deposit;
+    streamRevision.stream = streamId;
     streamRevision.revisionIndex = revisionIndex;
     streamRevision.periodRevisionIndex =  periodRevisionIndex;
 

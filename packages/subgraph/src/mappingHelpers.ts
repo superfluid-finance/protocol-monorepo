@@ -229,7 +229,7 @@ export function getOrInitStream(event: FlowUpdated): Stream {
     );
 
     // set stream id
-    streamRevision.stream = id;
+    streamRevision.mostRecentStream = id;
     streamRevision.save();
 
     let stream = Stream.load(id);

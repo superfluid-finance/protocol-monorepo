@@ -1518,8 +1518,9 @@ type StreamRevision @entity {
 
     """
     The "most recently alive" stream between a sender and receiver.
+    Note: The `revisionIndex` property may not be the same as the `revisionIndex` of `mostRecentStream`. Which means `mostRecentStream` has been closed and no new stream has been opened.
     """
-    stream: Stream!
+    mostRecentStream: Stream!
 }
 
 """

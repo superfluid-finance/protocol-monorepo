@@ -115,7 +115,7 @@ export function createStreamRevision(
     const id = flowId + "-" + tokenAddress;
 
     const streamRevision = new StreamRevision(id);
-    streamRevision.stream = streamId;
+    streamRevision.mostRecentStream = streamId;
     streamRevision.revisionIndex = revisionIndex;
     streamRevision.periodRevisionIndex =  periodRevisionIndex;
 

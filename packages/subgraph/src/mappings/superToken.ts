@@ -300,7 +300,7 @@ function _createAgreementLiquidatedByEventEntity(
     const streamRevisionId =
         event.params.id.toHex() + "-" + event.address.toHexString();
     const streamRevision = StreamRevision.load(streamRevisionId);
-    const stream = streamRevision ? Stream.load(streamRevision.stream) : null;
+    const stream = streamRevision ? Stream.load(streamRevision.mostRecentStream) : null;
 
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
@@ -329,7 +329,7 @@ function _createAgreementLiquidatedV2EventEntity(
     const streamRevisionId =
         event.params.id.toHex() + "-" + event.address.toHexString();
     const streamRevision = StreamRevision.load(streamRevisionId);
-    const stream = streamRevision ? Stream.load(streamRevision.stream) : null;
+    const stream = streamRevision ? Stream.load(streamRevision.mostRecentStream) : null;
 
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;

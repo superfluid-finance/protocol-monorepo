@@ -969,6 +969,11 @@ type AgreementLiquidatedByEvent implements Event @entity {
     bondAccount: Bytes!
     rewardAmount: BigInt!
     bailoutAmount: BigInt!
+
+    """
+    The full deposit amount of the stream that was liquidated.
+    """
+    deposit: BigInt!
 }
 
 type AgreementLiquidatedV2Event implements Event @entity {
@@ -1000,6 +1005,11 @@ type AgreementLiquidatedV2Event implements Event @entity {
     targetAccountBalanceDelta: BigInt!
     version: BigInt!
     liquidationType: Int!
+
+    """
+    The full deposit amount of the stream that was liquidated.
+    """
+    deposit: BigInt!
 
     """
     TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
@@ -1499,9 +1509,18 @@ type StreamPeriod @entity {
 #  Helper Entities #
 ####################
 type StreamRevision @entity {
+    """
+    ID composed of: keccak256(abi.encode(sender,receiver))-tokenAddress
+    """
     id: ID!
     revisionIndex: Int!
     periodRevisionIndex: Int!
+
+    """
+    The "most recently alive" stream between a sender and receiver.
+    Note: The `revisionIndex` property may not be the same as the `revisionIndex` of `mostRecentStream`. Which means `mostRecentStream` has been closed and no new stream has been opened.
+    """
+    mostRecentStream: Stream!
 }
 
 """

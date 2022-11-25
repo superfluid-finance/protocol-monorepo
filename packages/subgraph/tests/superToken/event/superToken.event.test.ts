@@ -1,4 +1,4 @@
-import { BigInt, Bytes, crypto, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, crypto, ethereum } from "@graphprotocol/graph-ts";
 import {
     assert,
     beforeEach,
@@ -16,13 +16,14 @@ import {
     handleTokenUpgraded,
     handleTransfer,
 } from "../../../src/mappings/superToken";
-import { BIG_INT_ONE, BIG_INT_ZERO, ZERO_ADDRESS } from "../../../src/utils";
+import { BIG_INT_ONE, BIG_INT_ZERO, encode, ZERO_ADDRESS } from "../../../src/utils";
 import {
     assertEventBaseProperties,
     assertTokenStatisticProperties,
 } from "../../assertionHelpers";
 import { alice, bob, cfaV1Address, charlie, DEFAULT_DECIMALS, delta, FAKE_INITIAL_BALANCE, maticXName, maticXSymbol } from "../../constants";
-import { encode, getETHAddress, getETHUnsignedBigInt, stringToBytes } from "../../converters";
+import { getETHAddress, getETHUnsignedBigInt, stringToBytes } from "../../converters";
+import { createStream, createStreamRevision } from "../../mockedEntities";
 import { mockedGetAppManifest, mockedGetHost, mockedHandleSuperTokenInitRPCCalls, mockedRealtimeBalanceOf } from "../../mockedFunctions";
 import {
     createAgreementLiquidatedByEvent,
@@ -51,9 +52,12 @@ describe("SuperToken Mapper Unit Tests", () => {
             const values: Array<ethereum.Value> = [
                 getETHAddress(penaltyAccount),
                 getETHAddress(receiver),
-              ]
+            ];
             const agreementId = crypto.keccak256(encode(values)); // flowId keccak256(abi.encode(sender, receiver))
             const rewardAmount = BigInt.fromI32(100);
+            const revisionIndex = 0;
+            const bailoutAmount = BIG_INT_ZERO;
+            const deposit = BigInt.fromI32(420);
 
             const agreementLiquidatedByEvent = createAgreementLiquidatedByEvent(
                 liquidatorAccount,
@@ -62,10 +66,29 @@ describe("SuperToken Mapper Unit Tests", () => {
                 penaltyAccount,
                 bondAccount,
                 rewardAmount,
-                BIG_INT_ZERO
+                bailoutAmount
             );
 
             const tokenAddress = agreementLiquidatedByEvent.address.toHex();
+
+            const stream = createStream(
+                Address.fromString(penaltyAccount),
+                Address.fromString(receiver),
+                agreementLiquidatedByEvent.address,
+                revisionIndex,
+                agreementLiquidatedByEvent.block,
+                BigInt.fromI32(42069),
+                deposit,
+                BIG_INT_ZERO
+            );
+
+            createStreamRevision(
+                agreementLiquidatedByEvent.params.id.toHex(),
+                tokenAddress,
+                stream.id,
+                revisionIndex,
+                0 // periodRevisionIndex
+            );
 
             mockedGetHost(tokenAddress);
 
@@ -119,6 +142,11 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals(entityName, id, "liquidatorAccount", liquidatorAccount);
             assert.fieldEquals(entityName, id, "agreementClass", agreementClass);
             assert.fieldEquals(entityName, id, "agreementId", agreementId.toHexString());
+            assert.fieldEquals(entityName, id, "penaltyAccount", penaltyAccount);
+            assert.fieldEquals(entityName, id, "bondAccount", bondAccount);
+            assert.fieldEquals(entityName, id, "rewardAmount", rewardAmount.toString());
+            assert.fieldEquals(entityName, id, "bailoutAmount", bailoutAmount.toString());
+            assert.fieldEquals(entityName, id, "deposit", deposit.toString());
         });
 
         test("handleAgreementLiquidatedV2() - Should create a new AgreementLiquidatedV2Event entity", () => {
@@ -140,7 +168,9 @@ describe("SuperToken Mapper Unit Tests", () => {
             const agreementId = encode(agreementIdValues);
             const liquidationTypeData = encode(liquidationTypeDataValues);
             const rewardAmount = BigInt.fromI32(100);
+            const revisionIndex = 0;
             const targetAccountBalanceDelta = rewardAmount.neg();
+            const deposit = BigInt.fromI32(420);
 
             const agreementLiquidatedV2Event = createAgreementLiquidatedV2Event(
                 liquidatorAccount,
@@ -152,8 +182,25 @@ describe("SuperToken Mapper Unit Tests", () => {
                 targetAccountBalanceDelta,
                 liquidationTypeData
             );
-
+            const stream = createStream(
+                Address.fromString(targetAccount),
+                Address.fromString(receiver),
+                agreementLiquidatedV2Event.address,
+                revisionIndex,
+                agreementLiquidatedV2Event.block,
+                BigInt.fromI32(42069),
+                deposit,
+                BIG_INT_ZERO
+            );
             const tokenAddress = agreementLiquidatedV2Event.address.toHex();
+
+            createStreamRevision(
+                agreementLiquidatedV2Event.params.id.toHex(),
+                tokenAddress,
+                stream.id,
+                revisionIndex,
+                0 // periodRevisionIndex
+            );
 
             mockedGetHost(tokenAddress);
 
@@ -213,6 +260,7 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals(entityName, id, "targetAccountBalanceDelta", targetAccountBalanceDelta.toString());
             assert.fieldEquals(entityName, id, "version", version.toString());
             assert.fieldEquals(entityName, id, "liquidationType", liquidationType.toString());
+            assert.fieldEquals(entityName, id, "deposit", deposit.toString());
         });
 
         test("handleTokenUpgraded() - Should create a new TokenUpgradedEvent entity", () => {

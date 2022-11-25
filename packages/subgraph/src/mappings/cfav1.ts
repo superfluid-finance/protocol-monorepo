@@ -95,6 +95,7 @@ export function handleFlowUpdated(event: FlowUpdated): void {
     const flowRateDelta = flowRate.minus(oldFlowRate);
     const isCreate = oldFlowRate.equals(BIG_INT_ZERO);
     const isDelete = flowRate.equals(BIG_INT_ZERO);
+
     if (isDelete) {
         const streamRevision = getOrInitStreamRevision(
             senderAddress,
@@ -102,6 +103,7 @@ export function handleFlowUpdated(event: FlowUpdated): void {
             tokenAddress
         );
         streamRevision.revisionIndex = streamRevision.revisionIndex + 1;
+
         streamRevision.save();
     }
 

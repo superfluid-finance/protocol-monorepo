@@ -174,14 +174,3 @@ export function getBooleanEventParam(
     return new ethereum.EventParam(name, ethereum.Value.fromBoolean(value));
 }
 
-/**
- * Take an array of ethereum values and return the encoded bytes.
- * @param values
- * @returns the encoded bytes
- */
-export function encode(values: Array<ethereum.Value>): Bytes {
-    return ethereum.encode(
-        // forcefully cast Value[] -> Tuple
-        ethereum.Value.fromTuple(changetype<ethereum.Tuple>(values))
-    )!;
-}

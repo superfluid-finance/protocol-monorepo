@@ -340,6 +340,7 @@ async function printSuperTokensInformation({
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
+ * @param {bool} options.skipTokens Don't fetch & print SuperToken info (env: SKIP_TOKENS)
  *
  * Usage: npx truffle exec scripts/info-show-protocol-info.js
  */
@@ -347,7 +348,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    let {protocolReleaseVersion} = options;
+    let {protocolReleaseVersion, skipTokens} = options;
+    skipTokens = skipTokens || process.env.SKIP_TOKENS;
 
     const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
@@ -387,12 +389,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         await printSuperTokenFactoryInformation({sf});
     console.log("");
 
-    console.log("# Managed Super Tokens\n");
-    await printSuperTokensInformation({
-        sf,
-        superTokenFactory,
-        latestSuperTokenLogicAddress,
-    });
+    if (! skipTokens) {
+        console.log("# Managed Super Tokens\n");
+        await printSuperTokensInformation({
+            sf,
+            superTokenFactory,
+            latestSuperTokenLogicAddress,
+        });
+    }
 
     console.log("\n===== Resolver Information =====\n");
     await printResolverInformation({sf});

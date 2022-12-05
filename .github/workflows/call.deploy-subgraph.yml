@@ -46,7 +46,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Generate subgraph manifest"
-        run: "yarn prepare-manifest-local" # NOTE: A hack to make codegen work
+        run: "yarn prepare-manifest-local"
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Generate meta.ignore.ts file"

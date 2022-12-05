@@ -15,7 +15,7 @@
         "esModuleInterop": true,
         /* Include modules imported with .json extension. */
         "resolveJsonModule": true,
-        "skipLibCheck": true,
+        "skipLibCheck": false,
         "strict": true
         /* Enable all strict type-checking options. */,
         /* Strict Type-Checking Options */

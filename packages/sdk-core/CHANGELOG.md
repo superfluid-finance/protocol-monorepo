@@ -4,10 +4,16 @@ All notable changes to the SDK-core will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.5.9] - 2022-12-05
+
 ### Added
 - Map `deposit` to Stream when querying from Subgraph
 
-## [0.6.0] - 2022-11-02
+### Fixes
+- Fix `@nomiclabs/hardhat-ethers/types` dependency error
+
+## [0.5.8] - 2022-11-02
 
 ### Added
 - Support for mainnet

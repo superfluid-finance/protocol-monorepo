@@ -55,6 +55,7 @@
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
     },
     "dependencies": {
+        "@nomiclabs/hardhat-ethers": "^2.2.1",
         "@superfluid-finance/ethereum-contracts": "1.4.3",
         "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
         "browserify": "^17.0.0",

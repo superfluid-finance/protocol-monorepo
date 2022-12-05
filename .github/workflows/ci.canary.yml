@@ -86,6 +86,8 @@ jobs:
     with: 
       release_branch: dev
       deploy_to_satsuma_endpoint: false
+      # empty network deploys to all networks
+      network: "" 
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml

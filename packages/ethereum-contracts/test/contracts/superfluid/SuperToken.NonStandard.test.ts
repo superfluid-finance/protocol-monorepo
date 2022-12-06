@@ -441,27 +441,87 @@ describe("SuperToken's Non Standard Functions", function () {
             await t.validateSystemInvariance();
         });
 
-        it("#2.9 - upgradeTo should trigger tokensReceived", async () => {
+        it("#2.9 - upgradeTo should not revert for unregistered contract if no user data is passed to tokensReceived", async () => {
             const mockFactory = await ethers.getContractFactory(
                 "ERC777SenderRecipientMock"
             );
             const mock = await mockFactory.deploy();
-            await expectCustomError(
-                superToken
-                    .connect(aliceSigner)
-                    .upgradeTo(mock.address, toWad(2), "0x"),
-                superToken,
-                "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to unregistered mock w/ empty userData"
             );
-            console.log("registerRecipient");
-            await mock.registerRecipient(mock.address);
-            console.log("SuperToken.upgrade 2.0 tokens from alice to bob");
             await superToken
                 .connect(aliceSigner)
                 .upgradeTo(mock.address, toWad(2), "0x");
         });
 
-        it("#2.10 upgrade and self-upgradeTo should not trigger tokenReceived", async () => {
+        it("#2.10 - upgradeTo should revert for unregistered contract if user data is passed to tokensReceived", async () => {
+            const mockFactory = await ethers.getContractFactory(
+                "ERC777SenderRecipientMock"
+            );
+            const mock = await mockFactory.deploy();
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to unregistered mock w/ non-empty userData"
+            );
+            await expectCustomError(
+                superToken
+                    .connect(aliceSigner)
+                    .upgradeTo(mock.address, toWad(2), "0x4206"),
+                superToken,
+                "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
+            );
+        });
+
+        it("#2.11 - upgradeTo should not revert for registered contract if no userData is passed to tokensReceived", async () => {
+            const mockFactory = await ethers.getContractFactory(
+                "ERC777SenderRecipientMock"
+            );
+            const mock = await mockFactory.deploy();
+
+            console.log("registerRecipient");
+            await mock.registerRecipient(mock.address);
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to registered mock w/ empty userData"
+            );
+            await superToken
+                .connect(aliceSigner)
+                .upgradeTo(mock.address, toWad(2), "0x");
+        });
+
+        it("#2.12 - upgradeTo should not revert for registered contract if userData is passed to tokensReceived", async () => {
+            const mockFactory = await ethers.getContractFactory(
+                "ERC777SenderRecipientMock"
+            );
+            const mock = await mockFactory.deploy();
+
+            console.log("registerRecipient");
+            await mock.registerRecipient(mock.address);
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to registered mock w/ non-empty userData"
+            );
+            await superToken
+                .connect(aliceSigner)
+                .upgradeTo(mock.address, toWad(2), "0x4206");
+        });
+
+        it("#2.13 - upgradeTo should not revert for EOA if userData is passed to tokensReceived", async () => {
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to bob w/ non-empty userData"
+            );
+            await superToken
+                .connect(aliceSigner)
+                .upgradeTo(bobSigner.address, toWad(2), "0x4206");
+        });
+
+        it("#2.14 - upgradeTo should not revert for EOA if empty userData is passed to tokensReceived", async () => {
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to bob w/ empty userData"
+            );
+            await superToken
+                .connect(aliceSigner)
+                .upgradeTo(bobSigner.address, toWad(2), "0x");
+        });
+
+        it("#2.15 upgrade and self-upgradeTo should not trigger tokenReceived", async () => {
             const mockFactory = await ethers.getContractFactory(
                 "ERC777SenderRecipientMock"
             );
@@ -492,7 +552,7 @@ describe("SuperToken's Non Standard Functions", function () {
             );
         });
 
-        it("#2.11 upgrade and self-upgradeTo should not trigger tokenReceived if self is contract", async () => {
+        it("#2.16 upgrade and self-upgradeTo should not trigger tokenReceived if self is contract", async () => {
             console.log("send token from alice to wallet");
             await testToken
                 .connect(aliceSigner)
@@ -523,7 +583,7 @@ describe("SuperToken's Non Standard Functions", function () {
             );
         });
 
-        it("#2.12 Revert upgrade and self-upgradeTo if trigger tokenReceived", async () => {
+        it("#2.17 Revert upgrade and self-upgradeTo if trigger tokenReceived", async () => {
             console.log("TestToken.approve - from alice to SuperToken");
             await testToken
                 .connect(aliceSigner)

@@ -4,10 +4,16 @@ All notable changes to the SDK-core will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.5.9] - 2022-12-05
+
 ### Added
 - Map `deposit` to Stream when querying from Subgraph
 
-## [0.6.0] - 2022-11-02
+### Fixes
+- Fix `@nomiclabs/hardhat-ethers/types` dependency error
+
+## [0.5.8] - 2022-11-02
 
 ### Added
 - Support for mainnet
@@ -246,8 +252,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.0...HEAD
-[0.6.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.7...sdk-core%40v0.6.0
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.9...HEAD
+[0.5.9]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.8...sdk-core%40v0.5.9
+[0.5.8]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.7...sdk-core%40v0.5.8
 [0.5.7]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.6...sdk-core%40v0.5.7
 [0.5.6]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.5...sdk-core%40v0.5.6
 [0.5.5]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.4...sdk-core%40v0.5.5

@@ -55,6 +55,7 @@ describe("SuperToken Mapper Unit Tests", () => {
             ];
             const agreementId = crypto.keccak256(encode(values)); // flowId keccak256(abi.encode(sender, receiver))
             const rewardAmount = BigInt.fromI32(100);
+            const currentFlowRate = BigInt.fromI32(42069);
             const revisionIndex = 0;
             const bailoutAmount = BIG_INT_ZERO;
             const deposit = BigInt.fromI32(420);
@@ -77,7 +78,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 agreementLiquidatedByEvent.address,
                 revisionIndex,
                 agreementLiquidatedByEvent.block,
-                BigInt.fromI32(42069),
+                currentFlowRate,
                 deposit,
                 BIG_INT_ZERO
             );
@@ -147,6 +148,7 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals(entityName, id, "rewardAmount", rewardAmount.toString());
             assert.fieldEquals(entityName, id, "bailoutAmount", bailoutAmount.toString());
             assert.fieldEquals(entityName, id, "deposit", deposit.toString());
+            assert.fieldEquals(entityName, id, "flowRateAtLiquidation", currentFlowRate.toString());
         });
 
         test("handleAgreementLiquidatedV2() - Should create a new AgreementLiquidatedV2Event entity", () => {
@@ -170,6 +172,7 @@ describe("SuperToken Mapper Unit Tests", () => {
             const rewardAmount = BigInt.fromI32(100);
             const revisionIndex = 0;
             const targetAccountBalanceDelta = rewardAmount.neg();
+            const currentFlowRate = BigInt.fromI32(42069);
             const deposit = BigInt.fromI32(420);
 
             const agreementLiquidatedV2Event = createAgreementLiquidatedV2Event(
@@ -188,7 +191,7 @@ describe("SuperToken Mapper Unit Tests", () => {
                 agreementLiquidatedV2Event.address,
                 revisionIndex,
                 agreementLiquidatedV2Event.block,
-                BigInt.fromI32(42069),
+                currentFlowRate,
                 deposit,
                 BIG_INT_ZERO
             );
@@ -261,6 +264,7 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals(entityName, id, "version", version.toString());
             assert.fieldEquals(entityName, id, "liquidationType", liquidationType.toString());
             assert.fieldEquals(entityName, id, "deposit", deposit.toString());
+            assert.fieldEquals(entityName, id, "flowRateAtLiquidation", currentFlowRate.toString());
         });
 
         test("handleTokenUpgraded() - Should create a new TokenUpgradedEvent entity", () => {

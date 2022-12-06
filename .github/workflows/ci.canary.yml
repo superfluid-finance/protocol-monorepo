@@ -77,6 +77,18 @@ jobs:
     with:
       subgraph-release: dev
 
+  # deploy subgraph if changes are made, we can call this every time, but we won't actually do any deployments
+  # if the IPFS hash generated stays the same (no mapping logic changes)
+  deploy-subgraph-changes:
+    uses: ./.github/workflows/call.deploy-subgraph.yml
+    name: "Deploy Subgraph to all dev endpoints"
+    needs: [test-subgraph, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-dev-subgraphs]
+    with: 
+      release_branch: dev
+      deploy_to_satsuma_endpoint: false
+      # empty network deploys to all networks
+      network: "" 
+
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml
     name: Build and Test Spec Haskell (Canary Branch)

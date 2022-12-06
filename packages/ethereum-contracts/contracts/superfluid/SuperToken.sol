@@ -582,7 +582,7 @@ contract SuperToken is
         _downgrade(msg.sender, msg.sender, msg.sender, amount, "", "");
     }
 
-    /// @dev ISuperToken.downgradeTo implementation
+    /// @inheritdoc ISuperToken
     function downgradeTo(address to, uint256 amount) external override {
         _downgrade(msg.sender, msg.sender, to, amount, "", "");
     }

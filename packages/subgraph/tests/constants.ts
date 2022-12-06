@@ -25,6 +25,7 @@ export const idaV1Address = "0xb0aabba4b2783a72c52956cdef62d438eca2d7a1";
 export const superTokenFactoryAddress = "0x2c90719f25b10fc5646c82da3240c76fa5bccf34";
 export const superTokenLogicAddress = "0xd15c6953c0a7fcc324e835f397496d53751441e2";
 export const resolverAddress = "0xe0cc76334405ee8b39213e620587d815967af39c";
+export const togaAddress = "0x6aeaee5fd4d05a741723d752d30ee4d72690a8f7";
 export const maticXAddress = "0x3ad736904e9e65189c3000c7dd2c8ac8bb7cd4e3";
 export const maticXSymbol = "MATICx";
 export const maticXName = "Super MATIC";

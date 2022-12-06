@@ -1281,6 +1281,7 @@ type NewPICEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1319,6 +1320,7 @@ type ExitRateChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1346,6 +1348,7 @@ type BondIncreasedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 

@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- Added `downgradeTo` function on `SuperToken` class
+
 ## [0.5.9] - 2022-12-05
 
 ### Added

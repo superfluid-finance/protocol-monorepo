@@ -382,7 +382,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Upgrade ERC20 to SuperToken and transfer immediately
-     * @param to The account to received upgraded tokens
+     * @param to The account to receive upgraded tokens
      * @param amount Number of tokens to be upgraded (in 18 decimals)
      * @param data User data for the TokensRecipient callback
      *
@@ -407,6 +407,13 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * @param amount Number of tokens to be downgraded
      */
     function downgrade(uint256 amount) external;
+
+    /**
+     * @dev Downgrade SuperToken to ERC20 and transfer immediately
+     * @param to The account to receive downgraded tokens
+     * @param amount Number of tokens to be upgraded (in 18 decimals)
+     */
+    function downgradeTo(address to, uint256 amount) external;
 
     /**
      * @dev Token downgrade event

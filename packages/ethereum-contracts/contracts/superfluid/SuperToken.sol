@@ -448,7 +448,7 @@ contract SuperToken is
     }
 
     function burn(uint256 amount, bytes calldata data) external override {
-        _downgrade(msg.sender, msg.sender, amount, data, "");
+        _downgrade(msg.sender, msg.sender, msg.sender, amount, data, "");
     }
 
     function isOperatorFor(address operator, address tokenHolder) external override view returns (bool) {
@@ -491,7 +491,7 @@ contract SuperToken is
     ) external override {
         address operator = msg.sender;
         if (!_operators.isOperatorFor(operator, account)) revert SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
-        _downgrade(operator, account, amount, data, operatorData);
+        _downgrade(operator, account, account, amount, data, operatorData);
     }
 
     function _setupDefaultOperators(address[] memory operators) internal {
@@ -579,7 +579,12 @@ contract SuperToken is
 
     /// @dev ISuperToken.downgrade implementation
     function downgrade(uint256 amount) external override {
-        _downgrade(msg.sender, msg.sender, amount, "", "");
+        _downgrade(msg.sender, msg.sender, msg.sender, amount, "", "");
+    }
+
+    /// @dev ISuperToken.downgradeTo implementation
+    function downgradeTo(address to, uint256 amount) external override {
+        _downgrade(msg.sender, msg.sender, to, amount, "", "");
     }
 
     function _upgrade(
@@ -608,8 +613,9 @@ contract SuperToken is
     }
 
     function _downgrade(
-        address operator,
-        address account,
+        address operator, // the account executing the transaction
+        address account,  // the account whose super tokens we are burning
+        address to,       // the account receiving the underlying tokens
         uint256 amount,
         bytes memory data,
         bytes memory operatorData) private {
@@ -621,7 +627,7 @@ contract SuperToken is
          _burn(operator, account, adjustedAmount, data, operatorData);
 
         uint256 amountBefore = _underlyingToken.balanceOf(address(this));
-        _underlyingToken.safeTransfer(account, underlyingAmount);
+        _underlyingToken.safeTransfer(to, underlyingAmount);
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
         uint256 actualDowngradedAmount = amountBefore - amountAfter;
         if (underlyingAmount != actualDowngradedAmount) revert SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED();
@@ -693,7 +699,7 @@ contract SuperToken is
         external override
         onlyHost
     {
-        _downgrade(msg.sender, account, amount, "", "");
+        _downgrade(msg.sender, account, account, amount, "", "");
     }
 
     /**************************************************************************

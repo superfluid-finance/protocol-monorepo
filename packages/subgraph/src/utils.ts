@@ -80,15 +80,14 @@ export function initializeEventEntity(
     entity.set("timestamp", Value.fromBigInt(event.block.timestamp));
     entity.set("transactionHash", Value.fromBytes(event.transaction.hash));
     entity.set("gasPrice", Value.fromBigInt(event.transaction.gasPrice));
-    if (event.receipt) {
+    const receipt = event.receipt;
+    if (receipt) {
         // @note if we don't cast event.receipt as ethereum.TransactionReceipt,
         // we get a compile error because it thinks event.receipt is:
         // ethereum.TransactionReceipt | null
-        const receipt = event.receipt as ethereum.TransactionReceipt;
         entity.set("gasUsed", Value.fromBigInt(receipt.gasUsed));
-    } else {
-        entity.set("gasUsed", Value.fromBigInt(BIG_INT_ZERO));
     }
+
     return entity;
   }
 

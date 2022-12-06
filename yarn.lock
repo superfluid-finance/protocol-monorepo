@@ -1064,16 +1064,27 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
+"@float-capital/float-subgraph-uncrashable@^0.0.0-alpha.4":
+  version "0.0.0-alpha.6"
+  resolved "https://registry.yarnpkg.com/@float-capital/float-subgraph-uncrashable/-/float-subgraph-uncrashable-0.0.0-alpha.6.tgz#92929f4e60ba1aa4f901c807892527bf37998b54"
+  integrity sha512-ZPnxfewgEAr3UWjLQd1XRyx4e6kffLDaLHJiDsS8pLzVi84EOQVWeFgYOXajav/zM+QSlbTkCF9F1hVSUdcV1Q==
+  dependencies:
+    "@rescript/std" "9.0.0"
+    graphql "^16.6.0"
+    graphql-import-node "^0.0.5"
+    js-yaml "^4.1.0"
+
 "@gar/promisify@^1.1.3":
   version "1.1.3"
   resolved "https://registry.yarnpkg.com/@gar/promisify/-/promisify-1.1.3.tgz#555193ab2e3bb3b6adc3d551c9c030d9e860daf6"
   integrity sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==
 
-"@graphprotocol/graph-cli@0.35.0":
-  version "0.35.0"
-  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-cli/-/graph-cli-0.35.0.tgz#2f3c688f47ce763c2e8c6d8b86817fb21b3a367d"
-  integrity sha512-50tjeLZg3425fwueH8ORTZbPRSn4uICL0NK9XsJVriDPKCNnhyAIgJgOWaYyPAFgxR8LuyXYkoxIxZ5nduKbiw==
+"@graphprotocol/graph-cli@0.37.0":
+  version "0.37.0"
+  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-cli/-/graph-cli-0.37.0.tgz#42d7a40748ee7628bab653984e61b4496507ff4b"
+  integrity sha512-p//lNNxDTFO05LntKHeDt1sCwRxJHsdcIN2P9/FPnxE5Z2N3n3z0jHEifRhxrPpfkjKyydStT7TM5QMCqxf1kQ==
   dependencies:
+    "@float-capital/float-subgraph-uncrashable" "^0.0.0-alpha.4"
     assemblyscript "0.19.10"
     binary-install-raw "0.0.13"
     chalk "3.0.0"
@@ -1100,10 +1111,10 @@
     which "2.0.2"
     yaml "1.9.2"
 
-"@graphprotocol/graph-ts@0.28.1":
-  version "0.28.1"
-  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-ts/-/graph-ts-0.28.1.tgz#271affc77deb5a4a7c3f95d4b3b1daaa9818e51c"
-  integrity sha512-1wMLQ0cu84/6Ml3zcz9ya1zFzrDAzCj0dIGZ7Rz9upnRSXg5jjqU4DefO/OYrl2K2/OPso9hSAr6I4aue2pL1Q==
+"@graphprotocol/graph-ts@0.29.0":
+  version "0.29.0"
+  resolved "https://registry.yarnpkg.com/@graphprotocol/graph-ts/-/graph-ts-0.29.0.tgz#0b9fb72dece2dccf921f6f11518c7fec3830ab79"
+  integrity sha512-9rCouklL2CjlqtywcwSw++MzjBWlmm6274j4s5HokjOTxr64ER7SCKx+2iCqVV0/S7ivc63MzIHlCLSCjPjbiA==
   dependencies:
     assemblyscript "0.19.10"
 
@@ -3205,6 +3216,11 @@
     redux "^4.2.0"
     redux-thunk "^2.4.2"
     reselect "^4.1.7"
+
+"@rescript/std@9.0.0":
+  version "9.0.0"
+  resolved "https://registry.yarnpkg.com/@rescript/std/-/std-9.0.0.tgz#df53f3fa5911cb4e85bd66b92e9e58ddf3e4a7e1"
+  integrity sha512-zGzFsgtZ44mgL4Xef2gOy1hrRVdrs9mcxCOOKZrIPsmbZW14yTkaF591GXxpQvjXiHtgZ/iA9qLyWH6oSReIxQ==
 
 "@resolver-engine/core@^0.2.1":
   version "0.2.1"
@@ -9714,9 +9730,9 @@ globby@^11.0.2, globby@^11.0.3, globby@^11.1.0:
     merge2 "^1.4.1"
     slash "^3.0.0"
 
-"gluegun@https://github.com/edgeandnode/gluegun#v4.3.1-pin-colors-dep":
+"gluegun@git+https://github.com/edgeandnode/gluegun.git#v4.3.1-pin-colors-dep":
   version "4.3.1"
-  resolved "https://github.com/edgeandnode/gluegun#b34b9003d7bf556836da41b57ef36eb21570620a"
+  resolved "git+https://github.com/edgeandnode/gluegun.git#b34b9003d7bf556836da41b57ef36eb21570620a"
   dependencies:
     apisauce "^1.0.1"
     app-module-path "^2.2.0"
@@ -9857,6 +9873,11 @@ graphql-config@4.3.6:
     string-env-interpolation "1.0.1"
     ts-node "^10.8.1"
     tslib "^2.4.0"
+
+graphql-import-node@^0.0.5:
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/graphql-import-node/-/graphql-import-node-0.0.5.tgz#caf76a6cece10858b14f27cce935655398fc1bf0"
+  integrity sha512-OXbou9fqh9/Lm7vwXT0XoRN9J5+WCYKnbiTalgFDvkQERITRmcfncZs6aVABedd5B85yQU5EULS4a5pnbpuI0Q==
 
 graphql-request@^4.0.0, graphql-request@^4.3.0:
   version "4.3.0"

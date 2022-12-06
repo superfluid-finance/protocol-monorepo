@@ -15,6 +15,7 @@ const contracts = [
     "SuperfluidGovernanceBase",
     "SuperToken",
     "TestToken",
+    "TOGA",
 ];
 
 const directoryPath = path.join(

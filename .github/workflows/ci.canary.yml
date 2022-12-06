@@ -88,6 +88,8 @@ jobs:
       deploy_to_satsuma_endpoint: false
       # empty network deploys to all networks
       network: "" 
+    secrets:
+      THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml

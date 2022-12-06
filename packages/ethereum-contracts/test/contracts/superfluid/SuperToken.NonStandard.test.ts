@@ -583,16 +583,12 @@ describe("SuperToken's Non Standard Functions", function () {
             );
         });
 
-        it("#2.17 Revert upgrade and self-upgradeTo if trigger tokenReceived", async () => {
-            console.log("TestToken.approve - from alice to SuperToken");
-            await testToken
-                .connect(aliceSigner)
-                .approve(superToken.address, MAX_UINT256);
-
+        it("#2.17 Revert upgrade and self-upgradeTo if trigger tokenReceived on unregistered wallet with userData", async () => {
+            console.log("TestToken.approve - from alice to mockWallet");
             await expectCustomError(
                 superToken
                     .connect(aliceSigner)
-                    .upgradeTo(mockWallet.address, toWad(2), "0x"),
+                    .upgradeTo(mockWallet.address, toWad(2), "0x4206"),
                 superToken,
                 "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
             );

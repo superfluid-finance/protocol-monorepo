@@ -52,6 +52,11 @@ interface Event {
     The gas price of the transaction that the event was logged in.
     """
     gasPrice: BigInt!
+
+    """
+    The gas used for this transaction.
+    """
+    gasUsed: BigInt!
 }
 
 #     ConstantFlowAgreementV1    #
@@ -63,6 +68,7 @@ type FlowUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -155,6 +161,7 @@ type FlowOperatorUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -191,6 +198,7 @@ type IndexCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -225,6 +233,7 @@ type IndexDistributionClaimedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -266,6 +275,7 @@ type IndexUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -304,6 +314,7 @@ type IndexSubscribedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -345,6 +356,7 @@ type IndexUnitsUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -390,6 +402,7 @@ type IndexUnsubscribedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -431,6 +444,7 @@ type SubscriptionApprovedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -472,6 +486,7 @@ type SubscriptionDistributionClaimedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -513,6 +528,7 @@ type SubscriptionRevokedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -554,6 +570,7 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -601,6 +618,7 @@ type AgreementClassRegisteredEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -619,6 +637,7 @@ type AgreementClassUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -637,6 +656,7 @@ type AppRegisteredEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -654,6 +674,7 @@ type GovernanceReplacedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
     blockNumber: BigInt!
@@ -672,6 +693,7 @@ type JailEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -690,6 +712,7 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -707,6 +730,7 @@ type SuperTokenLogicUpdatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -727,6 +751,7 @@ type RoleAdminChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -746,6 +771,7 @@ type RoleGrantedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -765,6 +791,7 @@ type RoleRevokedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -784,6 +811,7 @@ type SetEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -811,6 +839,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -836,6 +865,7 @@ type ConfigChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -862,6 +892,7 @@ type RewardAddressChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -887,6 +918,7 @@ type PPPConfigurationChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -913,6 +945,7 @@ type TrustedForwarderChangedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -946,6 +979,7 @@ type AgreementLiquidatedByEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -985,6 +1019,7 @@ type AgreementLiquidatedV2Event implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1031,6 +1066,7 @@ type BurnedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1056,6 +1092,7 @@ type MintedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1082,6 +1119,7 @@ type SentEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1109,6 +1147,7 @@ type TransferEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1134,6 +1173,7 @@ type TokenDowngradedEvent implements Event @entity {
     account: Account!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1156,6 +1196,7 @@ type TokenUpgradedEvent implements Event @entity {
     account: Account!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1179,6 +1220,7 @@ type CustomSuperTokenCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1198,6 +1240,7 @@ type SuperTokenCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1217,6 +1260,7 @@ type SuperTokenLogicCreatedEvent implements Event @entity {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 

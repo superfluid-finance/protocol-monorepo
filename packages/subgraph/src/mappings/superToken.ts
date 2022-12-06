@@ -311,6 +311,7 @@ function _createAgreementLiquidatedByEventEntity(
     ev.rewardAmount = event.params.rewardAmount;
     ev.bailoutAmount = event.params.bailoutAmount;
     ev.deposit = stream ? stream.deposit : BIG_INT_ZERO;
+    ev.flowRateAtLiquidation = stream ? stream.currentFlowRate : BIG_INT_ZERO;
     ev.save();
 }
 
@@ -341,6 +342,7 @@ function _createAgreementLiquidatedV2EventEntity(
     ev.rewardAmount = event.params.rewardAmount;
     ev.targetAccountBalanceDelta = event.params.targetAccountBalanceDelta;
     ev.deposit = stream ? stream.deposit : BIG_INT_ZERO;
+    ev.flowRateAtLiquidation = stream ? stream.currentFlowRate : BIG_INT_ZERO;
 
     let decoded = ethereum.decode(
         "(uint256,uint256)",

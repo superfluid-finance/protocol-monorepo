@@ -974,6 +974,11 @@ type AgreementLiquidatedByEvent implements Event @entity {
     The full deposit amount of the stream that was liquidated.
     """
     deposit: BigInt!
+
+    """
+    The flow rate of the stream at the time of liquidation.
+    """
+    flowRateAtLiquidation: BigInt!
 }
 
 type AgreementLiquidatedV2Event implements Event @entity {
@@ -1010,6 +1015,11 @@ type AgreementLiquidatedV2Event implements Event @entity {
     The full deposit amount of the stream that was liquidated.
     """
     deposit: BigInt!
+
+    """
+    The flow rate of the stream at the time of liquidation.
+    """
+    flowRateAtLiquidation: BigInt!
 
     """
     TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead

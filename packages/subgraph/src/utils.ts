@@ -82,10 +82,13 @@ export function initializeEventEntity(
     entity.set("gasPrice", Value.fromBigInt(event.transaction.gasPrice));
     const receipt = event.receipt;
     if (receipt) {
-        // @note if we don't cast event.receipt as ethereum.TransactionReceipt,
-        // we get a compile error because it thinks event.receipt is:
-        // ethereum.TransactionReceipt | null
         entity.set("gasUsed", Value.fromBigInt(receipt.gasUsed));
+    } else {
+        // @note `gasUsed` is a non-nullable property in our `schema.graphql` file, so when we attempt to save 
+        // the entity with a null field, it will halt the subgraph indexing.
+        // Nonetheless, we explicitly throw if receipt is null, as this can arise due forgetting to include
+        // `receipt: true` under `eventHandlers` in our manifest (`subgraph.template.yaml`) file.
+        log.critical("receipt MUST NOT be null", []);
     }
 
     return entity;

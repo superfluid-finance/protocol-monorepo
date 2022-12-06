@@ -1231,6 +1231,100 @@ type SuperTokenLogicCreatedEvent implements Event @entity {
     tokenLogic: Bytes!
 }
 
+#     TOGA    #
+
+type NewPICEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `pic` (new Patrician In Charge)
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    """
+    The address of the `token` (supertoken) the PIC is posting a bond for.
+    """
+    token: Bytes!
+
+    """
+    The address of the new Patrician In Charge (PIC).
+    """
+    pic: Bytes!
+
+    """
+    The bond the new PIC staked in order to claim the position.
+    """
+    bond: BigInt!
+
+    """
+    The flowrate at which the bond is streamed back to the PIC.
+    """
+    exitRate: BigInt!
+}
+
+type ExitRateChangedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    """
+    The address of the `token` (supertoken).
+    """
+    token: Bytes!
+
+    """
+    The flowrate at which the bond is streamed back to the Patrician In Charge.
+    """
+    exitRate: BigInt!
+}
+
+type BondIncreasedEvent implements Event @entity {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    """
+    The address of the `token` (supertoken).
+    """
+    token: Bytes!
+
+    """
+    The additional amount added to the bond by the current Patrician In Charge (PIC).
+    """
+    additionalBond: BigInt!
+}
+
 #########################
 # Higher Order Entities #
 #########################

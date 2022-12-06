@@ -283,3 +283,27 @@ templates:
           handler: handlePPPConfigurationChanged
         - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
           handler: handleTrustedForwarderChanged
+  - kind: ethereum/contract
+    name: TOGA
+    network: {{ network }}
+    source:
+      abi: TOGA
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/toga.ts
+      entities:
+        - NewPICEvent
+        - ExitRateChangedEvent
+        - BondIncreasedEvent
+      abis:
+        - name: TOGA
+          file: ./abis/TOGA.json
+      eventHandlers:
+        - event: NewPIC(indexed address,address,uint256,int96)
+          handler: handleNewPIC
+        - event: ExitRateChanged(indexed address,int96)
+          handler: handleExitRateChanged
+        - event: BondIncreased(indexed address,uint256)
+          handler: handleBondIncreased

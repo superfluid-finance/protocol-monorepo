@@ -34,3 +34,4 @@ jobs:
       satsuma_version_label: ${{ github.event.inputs.satsuma_version_label }}
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
+      SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

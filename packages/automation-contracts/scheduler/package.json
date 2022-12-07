@@ -1,0 +1,14 @@
+{
+    "name": "scheduler",
+    "version": "0.0.1",
+    "description": "Open contracts that allow scheduling streams and vestings onchain",
+    "license": "MIT",
+    "scripts": {
+        "forge-test": "forge test",
+        "forge-build": "forge build"
+    },
+    "dependencies": {
+        "@openzeppelin/contracts": "^4.8.0",
+        "@superfluid-finance/ethereum-contracts": "^1.4.3"
+    }
+}

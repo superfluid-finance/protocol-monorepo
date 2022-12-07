@@ -2,6 +2,8 @@ const {ethers} = require("hardhat");
 
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
 const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
+const SuperfluidSuperTokenCreatorArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidSuperTokenCreator.sol/SuperfluidSuperTokenCreator.json");
+const TestResolverArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/TestResolver.sol/TestResolver.json");
 
 const ERC1820Registry = require("./artifacts/ERC1820Registry.json");
 
@@ -73,6 +75,30 @@ const deployTestFramework = async () => {
     return frameworkDeployer;
 };
 
+const deploySuperfluidSuperTokenCreator = async (sfDeployer) => {
+    const signer = (await ethers.getSigners())[0];
+    const framework = await sfDeployer.getFramework();
+
+    const superTokenCreator = await _getFactoryAndReturnDeployedContract(
+        "SuperfluidSuperTokenCreator",
+        SuperfluidSuperTokenCreatorArtifact,
+        {signer},
+        framework.superTokenFactory,
+        framework.resolver
+    );
+
+    // we must grant admin privileges to the SuperfluidSuperTokenCreator contract
+    // so it can list tokens on the resolver for you automatically
+    const resolver = await ethers.getContractAtFromArtifact(
+        TestResolverArtifact,
+        framework.resolver,
+        signer
+    );
+    await resolver.grantAdminPrivileges(superTokenCreator.address);
+    return superTokenCreator;
+};
+
 module.exports = {
     deployTestFramework,
+    deploySuperfluidSuperTokenCreator,
 };

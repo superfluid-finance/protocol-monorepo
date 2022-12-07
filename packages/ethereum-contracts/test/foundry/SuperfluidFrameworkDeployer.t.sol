@@ -5,9 +5,12 @@ import "forge-std/Test.sol";
 import {
     SuperfluidFrameworkDeployer,
     TestResolver,
-    SuperfluidLoader,
-    TestToken
+    SuperfluidLoader
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
+import {
+    SuperfluidSuperTokenCreator,
+    TestToken
+} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidSuperTokenCreator.sol";
 import {
     ERC1820RegistryCompiled
 } from "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
@@ -25,6 +28,7 @@ import {
 
 contract SuperfluidFrameworkDeployerTest is Test {
     SuperfluidFrameworkDeployer internal sfDeployer;
+    SuperfluidSuperTokenCreator internal sfTokenCreator;
     SuperfluidFrameworkDeployer.Framework internal sf;
     TestResolver internal resolver;
     SuperfluidLoader internal superfluidLoader;
@@ -37,6 +41,8 @@ contract SuperfluidFrameworkDeployerTest is Test {
         sfDeployer = new SuperfluidFrameworkDeployer();
 
         sf = sfDeployer.getFramework();
+        sfTokenCreator = new SuperfluidSuperTokenCreator(sf.superTokenFactory, sf.resolver);
+        sf.resolver.grantAdminPrivileges(address(sfTokenCreator));
 
         resolver = sf.resolver;
 
@@ -87,7 +93,7 @@ contract SuperfluidFrameworkDeployerTest is Test {
         uint8 _decimals,
         uint256 _mintLimit
     ) public {
-        (TestToken underlyingToken, SuperToken superToken) = sfDeployer
+        (TestToken underlyingToken, SuperToken superToken) = sfTokenCreator
             .deployWrapperSuperToken(_name, _symbol, _decimals, _mintLimit);
 
         // assert underlying erc20 name/symbol properly set
@@ -113,7 +119,7 @@ contract SuperfluidFrameworkDeployerTest is Test {
         string calldata _name,
         string calldata _symbol
     ) public {
-        ISETH nativeAssetSuperToken = sfDeployer.deployNativeAssetSuperToken(
+        ISETH nativeAssetSuperToken = sfTokenCreator.deployNativeAssetSuperToken(
             _name,
             _symbol
         );
@@ -136,7 +142,7 @@ contract SuperfluidFrameworkDeployerTest is Test {
     ) public {
         vm.assume(_initialSupply <= uint256(type(int256).max));
 
-        IPureSuperToken pureSuperToken = sfDeployer.deployPureSuperToken(
+        IPureSuperToken pureSuperToken = sfTokenCreator.deployPureSuperToken(
             _name,
             _symbol,
             _initialSupply

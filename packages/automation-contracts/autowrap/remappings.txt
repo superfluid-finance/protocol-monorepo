@@ -1,0 +1,4 @@
+@openzeppelin/=node_modules/@openzeppelin/
+@superfluid-finance/=node_modules/@superfluid-finance/
+ds-test/=lib/ds-test/src/
+forge-std/=lib/forge-std/src/

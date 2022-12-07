@@ -1,0 +1,10 @@
+{
+  "name": "autowrap",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.8.0",
+    "@superfluid-finance/ethereum-contracts": "^1.4.3"
+  }
+}

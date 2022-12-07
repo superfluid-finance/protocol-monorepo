@@ -8,7 +8,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import { WagmiConfig } from "wagmi";
 import { chains, wagmiClient } from "./wagmiAndRainbowKit";
 import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
-import "@rainbow-me/rainbowkit/dist/index.css";
+import '@rainbow-me/rainbowkit/styles.css';
 
 ReactDOM.render(
     <React.StrictMode>

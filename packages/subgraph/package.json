@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/subgraph",
-    "version": "1.4.6",
+    "version": "1.5.0",
     "description": "Subgraph for the Superfluid Ethereum contracts.",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph",
     "repository": {
@@ -17,6 +17,12 @@
         "testenv:stop": "tasks/testenv-ctl.sh stop",
         "pretest": "yarn testenv:start",
         "test": "npx hardhat test --network localhost",
+        "matchstick": "run-s matchstick:*",
+        "matchstick:prepare-manifest": "mustache config/matic.json subgraph.template.yaml > subgraph.yaml",
+        "matchstick:prepare-addresses": "mustache config/matic.json src/addresses.template.ts > src/addresses.ts",
+        "matchstick:prepare-generated": "yarn getAbi && yarn codegen && yarn generate-sf-meta-local",
+        "matchstick:test": "graph test",
+        "dev": "nodemon -e ts -x yarn matchstick:test",
         "posttest": "yarn testenv:stop",
         "integrity": "npx hardhat run scripts/dataIntegrity/dataIntegrityTest.ts --network",
         "check-indexing-completeness": "ts-node scripts/checkIsDeployedOnAllNetworks.ts",
@@ -56,16 +62,17 @@
         "cloc": "cloc src"
     },
     "dependencies": {
-        "@graphprotocol/graph-cli": "0.29.0",
-        "@graphprotocol/graph-ts": "0.27.0",
-        "@superfluid-finance/sdk-core": "0.6.0",
+        "@graphprotocol/graph-cli": "0.37.0",
+        "@graphprotocol/graph-ts": "0.29.0",
+        "@superfluid-finance/sdk-core": "0.5.9",
         "mustache": "^4.2.0"
     },
     "devDependencies": {
         "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
         "coingecko-api": "^1.0.10",
         "graphql": "^16.6.0",
-        "graphql-request": "^4.3.0",
-        "lodash": "^4.17.21"
+        "graphql-request": "^5.0.0",
+        "lodash": "^4.17.21",
+        "matchstick-as": "^0.5.0"
     }
 }

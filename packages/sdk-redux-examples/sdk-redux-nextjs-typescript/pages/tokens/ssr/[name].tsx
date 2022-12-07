@@ -1,15 +1,18 @@
 import { TokenRender } from "../[name]";
-import { sfApi, wrapper } from "../../../redux/store";
+import { subgraphApi, wrapper } from "../../../redux/store";
 
 const queryArgs = {
     chainId: 5,
-    take: 999,
-    skip: 0,
-    isListed: true,
+    filter: {
+        isListed: true
+    },
+    pagination: {
+        take: Infinity
+    }
 };
 
-export default function Token() {
-    const result = sfApi.useListSuperTokensQuery(queryArgs);
+export default function TokenPage() {
+    const result = subgraphApi.useTokensQuery(queryArgs);
 
     const { isFetching, error, data } = result;
     return TokenRender(isFetching, error, data);
@@ -17,9 +20,9 @@ export default function Token() {
 
 export const getServerSideProps = wrapper.getServerSideProps(
     (store) => async (context) => {
-        store.dispatch(sfApi.endpoints.listSuperTokens.initiate(queryArgs));
+        store.dispatch(subgraphApi.endpoints.tokens.initiate(queryArgs));
 
-        await Promise.all(sfApi.util.getRunningOperationPromises());
+        await Promise.all(store.dispatch(subgraphApi.util.getRunningQueriesThunk()));
 
         return {
             props: {},

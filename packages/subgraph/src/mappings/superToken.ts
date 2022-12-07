@@ -14,11 +14,14 @@ import {
     BurnedEvent,
     MintedEvent,
     SentEvent,
+    Stream,
+    StreamRevision,
     TokenDowngradedEvent,
     TokenUpgradedEvent,
     TransferEvent,
 } from "../../generated/schema";
 import {
+    BIG_INT_ZERO,
     createEventID,
     initializeEventEntity,
     tokenHasValidHost,
@@ -91,7 +94,7 @@ export function handleTokenUpgraded(event: TokenUpgraded): void {
 
     getOrInitAccount(event.params.account, event.block);
 
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event, event.address, "TokenUpgraded");
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.account,
@@ -120,7 +123,7 @@ export function handleTokenDowngraded(event: TokenDowngraded): void {
 
     getOrInitAccount(event.params.account, event.block);
 
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event, event.address, "TokenDowngraded");
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.account,
@@ -149,19 +152,19 @@ export function handleTransfer(event: Transfer): void {
 
     let tokenId = event.address;
 
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event, event.address, "Transfer");
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.to,
         event.address,
         event.block,
-        null // manual accounting (overriden in upgrade/downgrade)
+        null // manual accounting (overridden in upgrade/downgrade)
     );
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.from,
         event.address,
         event.block,
-        null // manual accounting (overriden in upgrade/downgrade)
+        null // manual accounting (overridden in upgrade/downgrade)
     );
     updateTokenStatsStreamedUntilUpdatedAt(tokenId, event.block);
 
@@ -200,8 +203,8 @@ export function handleSent(event: Sent): void {
 }
 
 /**
- * This always gets called with the Transfer event, which handles
- * a lot of the logic with the Token, Account, ATS and TokenStatistic
+ * This always gets called prior to the Transfer event, which handles
+ * a lot of the logic with the Token, Account, ATS, TokenStatistic and TokenStatisticLog
  * entities.
  * @param event
  */
@@ -214,8 +217,8 @@ export function handleBurned(event: Burned): void {
 }
 
 /**
- * This always gets called with the Transfer event, which handles
- * a lot of the logic with the Token, Account, ATS and TokenStatistic
+ * This always gets called prior to the Transfer event, which handles
+ * a lot of the logic with the Token, Account, ATS, TokenStatistic and TokenStatisticLog
  * entities.
  * @param event
  */
@@ -237,7 +240,7 @@ function updateHOLEntitiesForLiquidation(
     bondAccount: Address,
     eventName: string
 ): void {
-    getOrInitSuperToken(event.address, event.block);
+    getOrInitSuperToken(event, event.address, eventName);
 
     updateATSStreamedAndBalanceUntilUpdatedAt(
         liquidatorAccount,
@@ -294,6 +297,11 @@ function _createAgreementLiquidatedByEventEntity(
         event.params.bondAccount,
     ]) as AgreementLiquidatedByEvent;
 
+    const streamRevisionId =
+        event.params.id.toHex() + "-" + event.address.toHexString();
+    const streamRevision = StreamRevision.load(streamRevisionId);
+    const stream = streamRevision ? Stream.load(streamRevision.mostRecentStream) : null;
+
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
@@ -302,6 +310,8 @@ function _createAgreementLiquidatedByEventEntity(
     ev.bondAccount = event.params.bondAccount;
     ev.rewardAmount = event.params.rewardAmount;
     ev.bailoutAmount = event.params.bailoutAmount;
+    ev.deposit = stream ? stream.deposit : BIG_INT_ZERO;
+    ev.flowRateAtLiquidation = stream ? stream.currentFlowRate : BIG_INT_ZERO;
     ev.save();
 }
 
@@ -317,6 +327,11 @@ function _createAgreementLiquidatedV2EventEntity(
         event.params.rewardAmountReceiver,
     ]);
 
+    const streamRevisionId =
+        event.params.id.toHex() + "-" + event.address.toHexString();
+    const streamRevision = StreamRevision.load(streamRevisionId);
+    const stream = streamRevision ? Stream.load(streamRevision.mostRecentStream) : null;
+
     ev.token = event.address;
     ev.liquidatorAccount = event.params.liquidatorAccount;
     ev.agreementClass = event.params.agreementClass;
@@ -326,6 +341,8 @@ function _createAgreementLiquidatedV2EventEntity(
     ev.rewardAccount = event.params.rewardAmountReceiver;
     ev.rewardAmount = event.params.rewardAmount;
     ev.targetAccountBalanceDelta = event.params.targetAccountBalanceDelta;
+    ev.deposit = stream ? stream.deposit : BIG_INT_ZERO;
+    ev.flowRateAtLiquidation = stream ? stream.currentFlowRate : BIG_INT_ZERO;
 
     let decoded = ethereum.decode(
         "(uint256,uint256)",

@@ -6,3 +6,6 @@ package-lock.json
 subgraph.yaml
 tasks/config
 src/addresses.ts
+**/*.wasm
+**/*.latest.json
+tests/.bin

@@ -95,39 +95,7 @@ Start hardhat node.
 npx hardhat node --hostname 0.0.0.0
 ```
 
-### Graph-node
-
-If on Linux, run the following script. You should be already have docker open.
-
-```bash
-# For Linux machines
-sudo apt install jq
-./setup.sh # writes the host IP to the docker-compose file
-```
-
-> Note: If you get a "version" error, update your docker-compose with [these instructions](https://docs.docker.com/compose/install/). If you get an error like `ERROR: could not find an available, non-overlapping IPv4 address...` then try turning off OpenVPN, or follow [this tutorial](https://stackoverflow.com/questions/45692255/how-make-openvpn-work-with-docker).
-
-If you are on a mac, create a `setup_graph.sh` file in `graph-node/docker` and paste the following in it if you plan on running tests more than once:
-
-```bash
-docker-compose down -v;
-
-if [ -d "data" ]
-then
-  echo "Found old data for the graph node - deleting it";
-  # we need to sudo this to remove system locked files
-  rm -rf data/;
-fi
-
-docker-compose up;
-```
-
-Then run `chmod +x setup_graph.sh`, this makes the shell script executable.
-Open another terminal window and run `./setup_graph.sh` and your local graph will start booting up.
-
-> Note: You can check out this [blog post](https://medium.com/blockrocket/dapp-development-with-a-local-subgraph-ganache-setup-566a4d4cbb) for more details if you run into any issues.
-
-> Another note: If you are using an M1 mac, follow the instructions [here](https://github.com/graphprotocol/graph-node/tree/master/docker#running-graph-node-on-an-macbook-m1) otherwise you will probably run into issues.
+### Setting up a local Subgraph node instance
 
 Run `docker-compose up` in `packages/subgraph`. There is a `docker-compose.yml` file which sets up a local graph node container.
 
@@ -219,25 +187,9 @@ Navigate to the url in the console output, and let's try a test query so we know
 
 ## Running Tests
 
-If you are continuing from the previous steps, you can immediately run the tests with the following command:
+To run the unit tests, you first need to build the ethereum-contracts, then you can run: `yarn matchstick`. This prepares the manifest file (`subgraph.yaml`), the networks file (`addresses.ts`), gets the abi files required to run `yarn codegen` and runs the tests.
 
-```bash
-npx hardhat test --network localhost
-or
-yarn test
-```
-
-> Note: If you get an error complaining about workspaces requiring an array, delete the workspaces property in the subgraph folder's package.json.
-
-This goes over an integration tests which test that the data we are mapping to the subgraph is expected given the inputs for creating a flow, index, subscription, etc. If you're interested in learning about how the test code is structured, you can click [here](#test-structure) to learn more.
-
-You can also run data integrity tests which checks that the data mapped to the subgraph is in line with the data from the contracts:
-
-```bash
-yarn integrity <NETWORK>
-```
-
-> Note: you must specify the network in the `hardhat.config.ts` file, you can look at how it is being done for matic and do so for any network you are interested in running this on. You can use a URL from Infura, Alchemy or from your own node.
+You only need to do this the first time (unless you make changes in the contracts which impact the ABI or changes to `schema.graphql`).
 
 ## Re-deployments
 
@@ -317,24 +269,24 @@ The higher order level entities are an abstraction of the events is not ephemera
 Aggregate entities are exactly what the name suggests - they are entities that store aggregate data. More specifically, we do this at an account-token level and also at a global token level.
 
 ### Test Structure
+This section is intended for those who are interested in understanding the structure of our two test suites:
 
-This section is intended for those who are interested in understanding the structure of the test suite.
-The idea of this test suite is to ensure that we can be as confident as possible that the data is what we expect it to be based on our actions. We want to validate the data between each action. To accomplish this, we needed to store a global state for our HOL and aggregate entities and so it is important to follow the pattern of modify then update global state otherwise the tests break.
+- Unit Tests which test the mapping logic and asserts that the properties on the entities are what is expected
+- Integration Tests which ensure that a local blockchain and subgraph instance can index events via transactions and query the created entities.
 
-The entry point of the tests is the `subgraph.test.ts` file, this is where you specify the parameters and what you want to test. For example, you want to test indexing a newly created flow. There are helper functions for all the different things you may want to do and examples of everything in the test, but you must follow the pattern of modify then update global state as stated above.
+#### Unit Tests
+Our unit tests utilize [Matchstick](https://github.com/LimeChain/matchstick) to test our mapping logic.
 
-The helper functions contain the following:
+We have helper files which create the mock events and the actual test files which contain the actual tests.
 
--   action function: creates a txn and modifies the blockchain state
--   initialize functions: initializes the data or gets the last saved data to be validated
--   updater functions: these functions get what we expect the data to be, this will be compared to the data returned from the subgraph
--   event validator function: this validates the newly created event
--   hol/aggregate validator functions: these functions validate the hol or aggregate entities
--   returns the updated data from the updater functions
+The tests look something like this:
 
-Then we are back in `subgraph.test.ts` and the global state is updated with this new data and the tests continue.
+- you create a mock event with the desired parameters for a specific entity
+- you pass this event to its complementary event handler
+- you assert that the values on the created entity in the graph store have been created 
 
-Caveats/Downsides: Unfortunately, given this pattern, the tests are dependent on the previous test passing and this means that if even one tests fail, all of the downstream tests will as well. This also means that moving the tests around require extra thinking.
+#### Integration Tests
+The integration tests have been scaled down drastically and are no longer responsible for validating the mapping logic as this is handled in the unit tests. This solely serves to ensure that transactions executed against a local blockchain connected to a local subgraph instance will index events and create entities which can be retrieved by querying the exposed API endpoint from the local subgraph. At its core, we are testing the full lifecycle from transaction => event => indexed event => entity => entity is queryable. In addition, we still need these tests to ensure that new changes made to our schema won't break the SDK's query feature.
 
 # Production
 

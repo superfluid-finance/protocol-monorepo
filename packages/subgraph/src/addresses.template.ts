@@ -1,4 +1,4 @@
-import { Address, TypedMap } from "@graphprotocol/graph-ts";
+import { Address } from "@graphprotocol/graph-ts";
 
 // This file is a template file which is used for getting the address
 // based on the network we set in the set-network package.json file.
@@ -14,4 +14,8 @@ export function getResolverAddress(): Address {
 
 export function getNativeAssetSuperTokenAddress(): Address {
     return Address.fromString("{{nativeAssetSuperTokenAddress}}");
+}
+
+export function getIsLocalIntegrationTesting(): boolean {
+    return "{{testNetwork}}".length > 0;
 }

@@ -3,7 +3,7 @@ import { Superfluid__factory } from "@superfluid-finance/ethereum-contracts/buil
 import { ethers } from "ethers";
 
 import Host from "./Host";
-import Operation, { OperationType } from "./Operation";
+import Operation, { BatchOperationType } from "./Operation";
 import { SFError } from "./SFError";
 import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
 
@@ -18,9 +18,10 @@ interface OperationStruct {
     readonly data: string;
 }
 
-const operationTypeStringToTypeMap = new Map<OperationType, number>([
+const batchOperationTypeStringToTypeMap = new Map<BatchOperationType, number>([
     ["ERC20_APPROVE", 1],
     ["ERC20_TRANSFER_FROM", 2],
+    ["ERC777_SEND", 3],
     ["SUPERTOKEN_UPGRADE", 101],
     ["SUPERTOKEN_DOWNGRADE", 102],
     ["SUPERFLUID_CALL_AGREEMENT", 201],
@@ -63,9 +64,11 @@ export default class BatchCall {
         operation: Operation,
         index: number
     ): Promise<OperationStruct> => {
-        const operationType = operationTypeStringToTypeMap.get(operation.type);
+        const batchOperationType = batchOperationTypeStringToTypeMap.get(
+            operation.type
+        );
         const populatedTransaction = await operation.populateTransactionPromise;
-        if (!operationType) {
+        if (!batchOperationType) {
             throw new SFError({
                 type: "UNSUPPORTED_OPERATION",
                 message: "The operation at index " + index + " is unsupported.",
@@ -94,7 +97,7 @@ export default class BatchCall {
             );
 
             return {
-                operationType,
+                operationType: batchOperationType,
                 target: functionArgs["agreementClass"],
                 data,
             };
@@ -108,15 +111,15 @@ export default class BatchCall {
             );
 
             return {
-                operationType,
+                operationType: batchOperationType,
                 target: functionArgs["app"],
                 data: functionArgs["callData"],
             };
         }
 
-        // Handles remaining ERC20/SuperToken Operations
+        // Handles remaining ERC20/ERC777/SuperToken Operations
         return {
-            operationType,
+            operationType: batchOperationType,
             target: populatedTransaction.to,
             data: removeSigHashFromCallData(populatedTransaction.data),
         };

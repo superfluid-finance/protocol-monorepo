@@ -7,7 +7,7 @@ import Framework from "./Framework";
 import Governance from "./Governance";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
-import Operation, { OperationType } from "./Operation";
+import Operation, { BatchOperationType } from "./Operation";
 import Query from "./Query";
 import SuperToken, {
     NativeAssetSuperToken,
@@ -24,7 +24,7 @@ export * from "./events";
 export * from "./types";
 export * from "@superfluid-finance/ethereum-contracts/build/typechain";
 
-export { Operation, OperationType };
+export { Operation, BatchOperationType as OperationType };
 export { BatchCall };
 export { ConstantFlowAgreementV1 };
 export { ERC20Token };

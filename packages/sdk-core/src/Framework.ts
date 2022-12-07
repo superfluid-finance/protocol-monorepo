@@ -13,7 +13,7 @@ import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import Governance from "./Governance";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
-import Operation, { OperationType } from "./Operation";
+import Operation, { BatchOperationType } from "./Operation";
 import Query from "./Query";
 import { SFError } from "./SFError";
 import SuperToken, {
@@ -299,7 +299,7 @@ export default class Framework {
      */
     operation = (
         txn: Promise<ethers.PopulatedTransaction>,
-        type: OperationType
+        type: BatchOperationType
     ) => {
         return new Operation(txn, type);
     };

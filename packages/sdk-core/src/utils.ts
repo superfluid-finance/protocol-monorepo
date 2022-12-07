@@ -57,7 +57,7 @@ export function toBN(num: any) {
 }
 
 /**
- * Removes the 8-character signature hash from `callData`.
+ * Removes the 8-character (4 byte) signature hash from `callData`.
  * @param callData
  * @returns function parameters
  */

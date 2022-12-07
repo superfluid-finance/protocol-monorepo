@@ -194,7 +194,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Destroys `amount` tokens from the caller's account, reducing the
-     * total supply.
+     * total supply and transfers the underlying token to the caller's account.
      *
      * If a send hook is registered for the caller, the corresponding function
      * will be called with `data` and empty `operatorData`. See {IERC777Sender}.
@@ -438,10 +438,10 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     ) external;
 
     /**
-    * @dev Perform ERC20 transfer from by host contract.
+    * @dev Perform ERC20 transferFrom by host contract.
     * @param account The account to spend sender's funds.
-    * @param spender  The account where the funds is sent from.
-    * @param recipient The recipient of thefunds.
+    * @param spender The account where the funds is sent from.
+    * @param recipient The recipient of the funds.
     * @param amount Number of tokens to be transferred.
     *
     * @custom:modifiers 
@@ -449,6 +449,21 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     */
     function operationTransferFrom(
         address account,
+        address spender,
+        address recipient,
+        uint256 amount
+    ) external;
+
+    /**
+    * @dev Perform ERC777 send by host contract.
+    * @param spender The account where the funds is sent from.
+    * @param recipient The recipient of the funds.
+    * @param amount Number of tokens to be transferred.
+    *
+    * @custom:modifiers 
+    *  - onlyHost
+    */
+    function operationSend(
         address spender,
         address recipient,
         uint256 amount

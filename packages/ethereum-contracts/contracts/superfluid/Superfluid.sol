@@ -796,14 +796,20 @@ contract Superfluid is
                     sender,
                     receiver,
                     amount);
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC777_SEND) {
+                (address recipient, uint256 amount) = abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationSend(
+                    msgSender,
+                    recipient,
+                    amount);
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE) {
                 ISuperToken(operations[i].target).operationUpgrade(
                     msgSender,
-                    abi.decode(operations[i].data, (uint256)));
+                    abi.decode(operations[i].data, (uint256))); // amount
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE) {
                 ISuperToken(operations[i].target).operationDowngrade(
                     msgSender,
-                    abi.decode(operations[i].data, (uint256)));
+                    abi.decode(operations[i].data, (uint256))); // amount
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT) {
                 (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
                 _callAgreement(

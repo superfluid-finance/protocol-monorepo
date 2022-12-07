@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+- `batchCall` supports new `send` batch operation
+
 ### [v1.4.3] - 2022-10-27
 ### Added
 

@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- `SuperToken` class has `send` function
+- `batchCall` supports new `send` batch operation
+
 ## [0.5.9] - 2022-12-05
 
 ### Added

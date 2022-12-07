@@ -10,7 +10,7 @@ import {
 } from "../../generated/schema";
 import { createEventID, initializeEventEntity } from "../utils";
 
-export function handleNewPICEvent(event: NewPIC): void {
+export function handleNewPIC(event: NewPIC): void {
     const eventId = createEventID("NewPIC", event);
     const ev = new NewPICEvent(eventId);
     initializeEventEntity(ev, event, [event.params.token, event.params.pic]);
@@ -23,7 +23,7 @@ export function handleNewPICEvent(event: NewPIC): void {
     ev.save();
 }
 
-export function handleExitRateChangedEvent(event: ExitRateChanged): void {
+export function handleExitRateChanged(event: ExitRateChanged): void {
     const eventId = createEventID("ExitRateChanged", event);
     const ev = new ExitRateChangedEvent(eventId);
     initializeEventEntity(ev, event, [event.params.token]);
@@ -34,7 +34,7 @@ export function handleExitRateChangedEvent(event: ExitRateChanged): void {
     ev.save();
 }
 
-export function handleBondIncreasedEvent(event: BondIncreased): void {
+export function handleBondIncreased(event: BondIncreased): void {
     const eventId = createEventID("BondIncreased", event);
     const ev = new BondIncreasedEvent(eventId);
     initializeEventEntity(ev, event, [event.params.token]);

@@ -2179,7 +2179,28 @@ describe("Superfluid Host Contract", function () {
                 await t.validateSystemInvariance();
             });
 
-            it("#10.2 batchCall call agreement", async () => {
+            it("#10.2 batchCall send", async () => {
+                const superToken = t.tokens.SuperToken;
+
+                const aliceSigner = await ethers.getSigner(alice);
+                console.log("Alice upgrades 10 tokens");
+                await superToken.connect(aliceSigner).upgrade(toWad("10"));
+
+                await superfluid.connect(aliceSigner).batchCall([
+                    {
+                        operationType: 3, // send
+                        target: superToken.address,
+                        data: web3.eth.abi.encodeParameters(
+                            ["address", "uint256"],
+                            [bob, toWad("3").toString()]
+                        ),
+                    },
+                ]);
+
+                await t.validateSystemInvariance();
+            });
+
+            it("#10.3 batchCall call agreement", async () => {
                 let agreement = await createAgreementMock(
                     web3.utils.sha3("MockAgreement")!,
                     0
@@ -2234,7 +2255,7 @@ describe("Superfluid Host Contract", function () {
                     .withArgs(43);
             });
 
-            it("#10.3 batchCall call app action", async () => {
+            it("#10.4 batchCall call app action", async () => {
                 let agreement = await createAgreementMock(
                     web3.utils.sha3("MockAgreement")!,
                     0
@@ -2290,7 +2311,7 @@ describe("Superfluid Host Contract", function () {
                     .and.to.emit(app, "NoopEvent");
             });
 
-            it("#10.4 batchCall one fail revert all", async () => {
+            it("#10.5 batchCall one fail revert all", async () => {
                 const SuperAppMockFactory = await ethers.getContractFactory(
                     "SuperAppMock"
                 );
@@ -2325,7 +2346,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#10.5 batchCall invalid operation type", async () => {
+            it("#10.6 batchCall invalid operation type", async () => {
                 await expectCustomError(
                     superfluid.batchCall([
                         {operationType: 8888, target: ZERO_ADDRESS, data: "0x"},

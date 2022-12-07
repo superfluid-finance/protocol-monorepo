@@ -805,6 +805,11 @@ describe("SuperToken's Non Standard Functions", function () {
                 "SF_TOKEN_ONLY_HOST"
             );
             await expectCustomError(
+                superToken.operationSend(alice, bob, "0"),
+                superToken,
+                "SF_TOKEN_ONLY_HOST"
+            );
+            await expectCustomError(
                 superToken.operationUpgrade(alice, "0"),
                 superToken,
                 "SF_TOKEN_ONLY_HOST"

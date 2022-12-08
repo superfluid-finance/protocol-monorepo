@@ -17,7 +17,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.resetToken Reset the token deployment
  *
- * Usage: npx truffle exec scripts/resolver-register-token.js : {TOKEN_NAME} {TOKEN_ADDRESS}
+ * Usage: npx truffle exec ops-scripts/resolver-register-token.js : {TOKEN_NAME} {TOKEN_ADDRESS}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,

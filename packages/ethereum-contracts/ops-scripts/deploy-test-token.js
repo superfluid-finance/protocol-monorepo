@@ -17,7 +17,7 @@ const {ethers} = require("ethers");
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.resetToken Reset the token deployment
  *
- * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_DECIMALS} {TOKEN_SYMBOL}
+ * Usage: npx truffle exec ops-scripts/deploy-test-token.js : {TOKEN_DECIMALS} {TOKEN_SYMBOL}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,

@@ -4,7 +4,7 @@ const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const ethers = require("ethers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const deployERC1820 = require("../scripts/deploy-erc1820");
+const deployERC1820 = require("../ops-scripts/deploy-erc1820");
 
 const {
     getScriptRunnerFactory: S,
@@ -102,7 +102,7 @@ async function deployContractIfCodeChanged(
  * @param {boolean} options.cfaHookContract Address of the contract to be set up as CFA hooks receiver
  *                  (overriding env: CFA_HOOK_CONTRACT)
  *
- * Usage: npx truffle exec scripts/deploy-framework.js
+ * Usage: npx truffle exec ops-scripts/deploy-framework.js
  */
 
 module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (

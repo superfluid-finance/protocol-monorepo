@@ -28,7 +28,7 @@ async function takeEvmSnapshot() {
 /**
  * @dev Deploy the superfluid framework and test tokens for local testing
  *
- * Usage: npx truffle exec scripts/deploy-test-environment.js : {TOKENS_TO_DEPLOY}
+ * Usage: npx truffle exec ops-scripts/deploy-test-environment.js : {TOKENS_TO_DEPLOY}
  * where TOKENS_TO_DEPLOY is an optional list of token symbols, e.g. TEST1,TEST2.
  * For each such token, an underlying ERC20 and a wrapping Super Token will be deployed.
  */

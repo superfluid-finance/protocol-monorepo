@@ -14,7 +14,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/gov-set-3Ps-config.js : {TOKEN ADDRESS} {LIQUIDATION PERIOD} {PATRICIAN PERIOD}
+ * Usage: npx truffle exec ops-scripts/gov-set-3Ps-config.js : {TOKEN ADDRESS} {LIQUIDATION PERIOD} {PATRICIAN PERIOD}
  *        use TOKEN ADDRESS 0x0000000000000000000000000000000000000000 to set a default/fallback value
  *        if LIQUIDATION PERIOD and PATRICIAN PERIOD are zero, the current config for the token is cleared
  *        and thus falls back to the default.

@@ -18,7 +18,7 @@ const {
  * But since it's bound to a deployer address, that doesn't really matter.
  *
  * Usage:
- * npx truffle exec scripts/gov-create-new-app-registration-key.js : {DEPLOYER} {REGISTRATION_KEY} [EXPIRATION_TS]
+ * npx truffle exec ops-scripts/gov-create-new-app-registration-key.js : {DEPLOYER} {REGISTRATION_KEY} [EXPIRATION_TS]
  *        EXPIRATION_TS is a Unix timestamp in seconds for when the key should expire.
  *        If not set, we default to 90 days in the future.
  *        Hint: you may use https://www.unixtimestamp.com/ to calculate a timestamp

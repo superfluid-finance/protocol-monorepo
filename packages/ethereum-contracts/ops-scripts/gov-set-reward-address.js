@@ -15,7 +15,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/gov-set-reward-address.js : {TOKEN ADDRESS} {REWARD ADDRESS}
+ * Usage: npx truffle exec ops-scripts/gov-set-reward-address.js : {TOKEN ADDRESS} {REWARD ADDRESS}
  *        If REWARD ADDRESS is 0x0000000000000000000000000000000000000000,
  *        the reward address for the token is cleared and thus set to the default.
  */

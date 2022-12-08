@@ -21,7 +21,6 @@ const config: HardhatUserConfig = {
             },
         },
     },
-    
     networks: {
         localhost: {
             // url may not be necessary for localhost/hardhat node chainId

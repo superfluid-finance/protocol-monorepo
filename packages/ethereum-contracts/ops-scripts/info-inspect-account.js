@@ -13,7 +13,7 @@ function normalizeFlowRate(fr) {
  * @dev Inspect accounts and their agreements
  * @param {Array} argv Overriding command line arguments
  *
- * Usage: npx truffle exec scripts/info-inspect-account.js : 0xACC1 0xACC2 ...
+ * Usage: npx truffle exec ops-scripts/info-inspect-account.js : 0xACC1 0xACC2 ...
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,

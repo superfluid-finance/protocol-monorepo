@@ -14,7 +14,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/gov-create-new-factory-registration.js : {FACTORY_ADDRESS}
+ * Usage: npx truffle exec ops-scripts/gov-create-new-factory-registration.js : {FACTORY_ADDRESS}
  */
 module.exports = eval(`(${S.toString()})({
     doNotPrintColonArgs: true

@@ -12,7 +12,7 @@ const {getScriptRunnerFactory: S, hasCode} = require("./libs/common");
  * @param web3 The web3 to be used
  * @param from address to deploy contracts from
  *
- * Usage: npx truffle exec scripts/deploy-erc1820.js
+ * Usage: npx truffle exec ops-scripts/deploy-erc1820.js
  */
 module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     args,

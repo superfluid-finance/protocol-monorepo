@@ -7,7 +7,7 @@ const SuperToken = artifacts.require("SuperToken");
  * Also needed for a change of the resolver listing state to take effect.
  * TODO: remove once not needed anymore
  *
- * Usage: npx truffle exec scripts/tmp-trigger-token-transfer.js : {TOKEN_ADDRESS}
+ * Usage: npx truffle exec ops-scripts/tmp-trigger-token-transfer.js : {TOKEN_ADDRESS}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (args) {
     console.log("======== Trigger token Transfer ========");

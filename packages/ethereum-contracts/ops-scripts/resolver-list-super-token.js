@@ -15,7 +15,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/resolver-list-super-token.js : {SUPER_TOKEN_ADDRESS}
+ * Usage: npx truffle exec ops-scripts/resolver-list-super-token.js : {SUPER_TOKEN_ADDRESS}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,

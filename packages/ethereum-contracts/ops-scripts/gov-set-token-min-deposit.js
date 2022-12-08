@@ -14,7 +14,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/gov-set-token-min-deposit.js : {TOKEN ADDRESS} {MINIMUM DEPOSIT}
+ * Usage: npx truffle exec ops-scripts/gov-set-token-min-deposit.js : {TOKEN ADDRESS} {MINIMUM DEPOSIT}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,

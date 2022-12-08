@@ -15,7 +15,7 @@ const {
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/resolver-set-key-value.js : {KEY} {VALUE}
+ * Usage: npx truffle exec ops-scripts/resolver-set-key-value.js : {KEY} {VALUE}
  *
  * ENV vars:
  *    ALLOW_UPDATE: only if set will existing values be overwritten

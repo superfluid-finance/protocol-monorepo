@@ -26,7 +26,7 @@ const BatchLiquidator = artifacts.require("BatchLiquidator");
  * @param web3 The web3 instance to be used
  * @param from address to use for funding the deployer account
  *
- * Usage: npx truffle exec scripts/deploy-aux-contracts.js
+ * Usage: npx truffle exec ops-scripts/deploy-aux-contracts.js
  *
  * (optional) ENV vars:
  * - GOV_LIQUIDATION_PERIOD overrides the default value of 4 hours

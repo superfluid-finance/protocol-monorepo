@@ -32,6 +32,9 @@ if ! [ -z "$GITHUB_ENV" ];then
     if grep -E "^.github/workflows/ci.*.yml$" changed-files.list;then
         setBuildAll
     fi
+    if grep -E "^.github/workflows/call.yml$" changed-files.list;then
+        setBuildAll
+    fi
     # if root package changed, rebuild everything
     if grep -E "^package.json$" changed-files.list;then
         setBuildAll

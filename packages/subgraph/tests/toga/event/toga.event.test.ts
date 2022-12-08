@@ -1,6 +1,6 @@
 import { BigInt } from "@graphprotocol/graph-ts";
 import { assert, beforeEach, clearStore, describe, test } from "matchstick-as";
-import { handleBondIncreasedEvent, handleExitRateChangedEvent, handleNewPICEvent } from "../../../src/mappings/toga";
+import { handleBondIncreased, handleExitRateChanged, handleNewPIC } from "../../../src/mappings/toga";
 import { assertEventBaseProperties } from "../../assertionHelpers";
 import { alice, maticXAddress } from "../../constants";
 import {
@@ -21,10 +21,10 @@ describe("TOGA Event Entity Unit Tests", () => {
         clearStore();
     });
 
-    test("handleNewPICEvent() - Should create a new NewPICEvent entity", () => {
+    test("handleNewPIC() - Should create a new NewPICEvent entity", () => {
         const newPICEvent = createNewPICEvent(token, pic, bond, exitRate);
 
-        handleNewPICEvent(newPICEvent);
+        handleNewPIC(newPICEvent);
 
         const id = assertEventBaseProperties(newPICEvent, "NewPIC");
         assert.fieldEquals("NewPICEvent", id, "token", token);
@@ -33,20 +33,20 @@ describe("TOGA Event Entity Unit Tests", () => {
         assert.fieldEquals("NewPICEvent", id, "exitRate", exitRate.toString());
     });
 
-    test("handleExitRateChangedEvent() - Should create a new ExitRateChangedEvent entity", () => {
+    test("handleExitRateChanged() - Should create a new ExitRateChangedEvent entity", () => {
         const exitRateChangedEvent = createExitRateChangedEvent(token, exitRate);
 
-        handleExitRateChangedEvent(exitRateChangedEvent);
+        handleExitRateChanged(exitRateChangedEvent);
 
         const id = assertEventBaseProperties(exitRateChangedEvent, "ExitRateChanged");
         assert.fieldEquals("ExitRateChangedEvent", id, "token", token);
         assert.fieldEquals("ExitRateChangedEvent", id, "exitRate", exitRate.toString());
     });
 
-    test("handleBondIncreasedEvent() - Should create a new BondIncreasedEvent entity", () => {
+    test("handleBondIncreased() - Should create a new BondIncreasedEvent entity", () => {
         const bondIncreasedEvent = createBondIncreasedEvent(token, additionalBond);
         
-        handleBondIncreasedEvent(bondIncreasedEvent);
+        handleBondIncreased(bondIncreasedEvent);
 
         const id = assertEventBaseProperties(bondIncreasedEvent, "BondIncreased");
         assert.fieldEquals("BondIncreasedEvent", id, "token", token);

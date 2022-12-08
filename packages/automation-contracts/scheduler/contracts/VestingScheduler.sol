@@ -1,9 +1,13 @@
 // SPDX-License-Identifier: AGPLv3
+// solhint-disable not-rely-on-time
 pragma solidity ^0.8.0;
-
-import { ISuperfluid, ISuperToken, SuperAppDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import {
+    ISuperfluid, ISuperToken, SuperAppDefinitions
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { SuperAppBase } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
-import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    IConstantFlowAgreementV1
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import { IVestingScheduler } from "./interface/IVestingScheduler.sol";
 
@@ -13,9 +17,9 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
     CFAv1Library.InitData public cfaV1;
     mapping(bytes32 => VestingSchedule) public vestingSchedules; // id = keccak(supertoken, sender, receiver)
 
-    uint32 constant MIN_VESTING_DURATION = 7 days;
-    uint32 constant START_DATE_VALID_AFTER = 3 days;
-    uint32 constant END_DATE_VALID_BEFORE = 1 days;
+    uint32 public constant MIN_VESTING_DURATION = 7 days;
+    uint32 public constant START_DATE_VALID_AFTER = 3 days;
+    uint32 public constant END_DATE_VALID_BEFORE = 1 days;
 
     constructor(ISuperfluid host, string memory registrationKey) {
         cfaV1 = CFAv1Library.InitData(
@@ -194,11 +198,14 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
             // delete first the stream and unlock deposit amount.
             cfaV1.deleteFlowByOperator(sender, receiver, superToken);
 
-            uint256 earlyEndCompensation = schedule.endDate > block.timestamp ? (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) : 0;
+            uint256 earlyEndCompensation = schedule.endDate > block.timestamp ?
+                (schedule.endDate - block.timestamp) * uint96(schedule.flowRate) : 0;
             bool didCompensationFail;
             if (earlyEndCompensation != 0) {
-                // try-catch this because if the account does not have tokens for earlyEndCompensation we should delete the flow anyway.
+                // try-catch this because if the account does not have tokens for earlyEndCompensation
+                // we should delete the flow anyway.
                 try superToken.transferFrom(sender, receiver, earlyEndCompensation)
+                // solhint-disable-next-line no-empty-blocks
                 {} catch {
                     didCompensationFail = true;
                 }
@@ -225,7 +232,11 @@ contract VestingScheduler is IVestingScheduler, SuperAppBase {
     }
 
     /// @dev IVestingScheduler.getVestingSchedule implementation.
-    function getVestingSchedule(address supertoken, address sender, address receiver) external view returns (VestingSchedule memory) {
+    function getVestingSchedule(
+        address supertoken,
+        address sender,
+        address receiver
+    ) external view returns (VestingSchedule memory) {
         return vestingSchedules[keccak256(abi.encodePacked(supertoken, sender, receiver))];
     }
 

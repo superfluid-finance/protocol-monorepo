@@ -208,12 +208,55 @@ makeSuite("SuperToken Tests", (testEnv: TestEnvironment) => {
             });
         });
 
-        it("Should be able to approve + downgrade", async () => {
-            await shouldApproveAndDowngrade(testEnv, testEnv.alice);
+        it("Should be able to downgrade", async () => {
+            await shouldDowngrade(testEnv, testEnv.alice);
         });
 
+        it("Should be able to use downgradeTo", async () => {
+            const amount = ethers.utils.parseUnits("2000").toString();
+            const aliceBalanceBefore =
+                await testEnv.wrapperSuperToken.balanceOf({
+                    account: testEnv.alice.address,
+                    providerOrSigner: testEnv.alice,
+                });
+            const bobBalanceBefore = await testEnv.wrapperSuperToken.underlyingToken.balanceOf({
+                account: testEnv.bob.address,
+                providerOrSigner: testEnv.bob,
+            });
+            await expect(
+                testEnv.wrapperSuperToken
+                    .downgradeTo({ to: testEnv.bob.address, amount })
+                    .exec(testEnv.alice)
+            )
+                .to.emit(
+                    testEnv.wrapperSuperToken.contract.connect(
+                        testEnv.alice.provider!
+                    ),
+                    "TokenDowngraded"
+                )
+                .withArgs(testEnv.alice.address, amount);
+
+            const aliceBalanceAfter = await testEnv.wrapperSuperToken.balanceOf(
+                {
+                    account: testEnv.alice.address,
+                    providerOrSigner: testEnv.alice,
+                }
+            );
+            const bobBalanceAfter = await testEnv.wrapperSuperToken.underlyingToken.balanceOf({
+                account: testEnv.bob.address,
+                providerOrSigner: testEnv.bob,
+            });
+
+            // alice new super token balance = prev balance - amount
+            expect(toBN(aliceBalanceBefore).sub(toBN(amount))).to.equal(aliceBalanceAfter.toString());
+            
+            // bob new erc20 token balance = prev balance + amount
+            expect(toBN(bobBalanceBefore).add(toBN(amount))).to.equal(bobBalanceAfter.toString());
+        });
+        
+
         it("Should be able to transfer downgraded tokens", async () => {
-            await shouldApproveAndDowngrade(testEnv, testEnv.alice);
+            await shouldDowngrade(testEnv, testEnv.alice);
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
                 testEnv.wrapperSuperToken.underlyingToken
@@ -228,7 +271,7 @@ makeSuite("SuperToken Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should be able to approve + upgrade", async () => {
-            await shouldApproveAndDowngrade(testEnv, testEnv.alice);
+            await shouldDowngrade(testEnv, testEnv.alice);
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
                 testEnv.token
@@ -259,7 +302,7 @@ makeSuite("SuperToken Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should be able to approve + upgrade to", async () => {
-            await shouldApproveAndDowngrade(testEnv, testEnv.bob);
+            await shouldDowngrade(testEnv, testEnv.bob);
             const amount = ethers.utils.parseUnits("1000").toString();
             await expect(
                 testEnv.token
@@ -455,25 +498,12 @@ makeSuite("SuperToken Tests", (testEnv: TestEnvironment) => {
  * @param params
  * @returns
  */
-async function shouldApproveAndDowngrade(
+async function shouldDowngrade(
     testEnv: TestEnvironment,
     signer: SignerWithAddress,
     amount: string = "2000"
 ) {
     amount = ethers.utils.parseUnits(amount).toString();
-    await expect(
-        testEnv.wrapperSuperToken
-            .approve({
-                receiver: testEnv.wrapperSuperToken.address,
-                amount,
-            })
-            .exec(signer)
-    )
-        .to.emit(
-            testEnv.wrapperSuperToken.contract.connect(testEnv.alice.provider!),
-            "Approval"
-        )
-        .withArgs(signer.address, testEnv.wrapperSuperToken.address, amount);
     await expect(testEnv.wrapperSuperToken.downgrade({ amount }).exec(signer))
         .to.emit(
             testEnv.wrapperSuperToken.contract.connect(testEnv.alice.provider!),

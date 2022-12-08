@@ -323,3 +323,30 @@ templates:
         - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
           handler: handleTrustedForwarderChanged
           receipt: true
+  - kind: ethereum/contract
+    name: TOGA
+    network: {{ network }}
+    source:
+      abi: TOGA
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/toga.ts
+      entities:
+        - NewPICEvent
+        - ExitRateChangedEvent
+        - BondIncreasedEvent
+      abis:
+        - name: TOGA
+          file: ./abis/TOGA.json
+      eventHandlers:
+        - event: NewPIC(indexed address,address,uint256,int96)
+          handler: handleNewPIC
+          receipt: true
+        - event: ExitRateChanged(indexed address,int96)
+          handler: handleExitRateChanged
+          receipt: true
+        - event: BondIncreased(indexed address,uint256)
+          handler: handleBondIncreased
+          receipt: true

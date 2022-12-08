@@ -94,6 +94,8 @@ const DEFAULT_NETWORK_TIMEOUT = 60000;
  * ETH_MAINNET_MNEMONIC
  * MAINNET_MNEMONIC
  * DEFAULT_MNEMONIC,
+ *
+ * Returns undefined if not set anywhere
  */
 function getEnvValue(networkName, key) {
     const keysToTry = [networkName, ...ALIASES[networkName]]

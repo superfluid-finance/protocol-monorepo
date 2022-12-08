@@ -1,4 +1,5 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {BigNumberish} from "ethers";
 import {artifacts, assert, ethers, expect, web3} from "hardhat";
 
 import {
@@ -209,6 +210,81 @@ describe("SuperToken's Non Standard Functions", function () {
                 superToken,
                 "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
             );
+        });
+
+        it("#2.6 should not be able to downgradeTo self if there is no balance", async () => {
+            console.log("SuperToken.downgradeTo self - bad balance");
+            await expectCustomError(
+                superToken
+                    .connect(aliceSigner)
+                    .downgradeTo(aliceSigner.address, toBN(1)),
+                superToken,
+                "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
+            );
+        });
+
+        it("#2.7 should not be able to downgradeTo others if there is no balance", async () => {
+            console.log("SuperToken.downgradeTo alice -> bob - bad balance");
+            await expectCustomError(
+                superToken
+                    .connect(aliceSigner)
+                    .downgradeTo(bobSigner.address, toBN(1)),
+                superToken,
+                "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
+            );
+        });
+
+        it("#2.8 should be able to downgradeTo self", async () => {
+            console.log("SuperToken.upgrade 2 from alice");
+            await superToken.connect(aliceSigner).upgrade(toWad(2));
+            const downgradeAmount = toBN(1);
+            console.log("SuperToken.downgradeTo self");
+            await assertDowngradeToBalances({
+                superToken,
+                testToken,
+                sender: aliceSigner.address,
+                receiver: aliceSigner.address,
+                downgradeAmount,
+            });
+
+            await t.validateSystemInvariance();
+        });
+
+        it("#2.9 should be able to downgradeTo other EOA", async () => {
+            console.log("SuperToken.upgrade 2 from alice");
+            await superToken.connect(aliceSigner).upgrade(toWad(2));
+            const downgradeAmount = toBN(1);
+            console.log("SuperToken.downgradeTo alice -> bob");
+            await assertDowngradeToBalances({
+                superToken,
+                testToken,
+                sender: aliceSigner.address,
+                receiver: bobSigner.address,
+                downgradeAmount,
+            });
+
+            await t.validateSystemInvariance();
+        });
+
+        it("#2.10 should be able to downgradeTo contract (doesn't make a difference)", async () => {
+            const mockFactory = await ethers.getContractFactory(
+                "ERC777SenderRecipientMock"
+            );
+            const mock = await mockFactory.deploy();
+
+            console.log("SuperToken.upgrade 2 from alice");
+            await superToken.connect(aliceSigner).upgrade(toWad(2));
+            const downgradeAmount = toBN(1);
+            console.log("SuperToken.downgradeTo alice -> bob");
+            await assertDowngradeToBalances({
+                superToken,
+                testToken,
+                sender: aliceSigner.address,
+                receiver: mock.address,
+                downgradeAmount,
+            });
+
+            await t.validateSystemInvariance();
         });
 
         it("#2.6 - should convert from smaller underlying decimals", async () => {
@@ -873,3 +949,69 @@ describe("SuperToken's Non Standard Functions", function () {
         });
     });
 });
+
+const assertDowngradeToBalances = async ({
+    superToken,
+    testToken,
+    sender,
+    receiver,
+    downgradeAmount,
+}: {
+    superToken: SuperToken;
+    testToken: TestToken;
+    sender: string;
+    receiver: string;
+    downgradeAmount: BigNumberish;
+}) => {
+    const senderSigner = await ethers.getSigner(sender);
+    const receiverSigner = await ethers.getSigner(receiver);
+    const senderSuperTokenBalanceBefore = await superToken
+        .connect(senderSigner)
+        .balanceOf(sender);
+    const senderERC20BalanceBefore = await testToken
+        .connect(senderSigner)
+        .balanceOf(sender);
+    const receiverSuperTokenBalanceBefore = await superToken
+        .connect(receiverSigner)
+        .balanceOf(receiver);
+    const receiverERC20TokenBalanceBefore = await testToken
+        .connect(receiverSigner)
+        .balanceOf(receiver);
+
+    await superToken
+        .connect(senderSigner)
+        .downgradeTo(receiver, downgradeAmount);
+
+    const senderSuperTokenBalanceAfter = await superToken
+        .connect(senderSigner)
+        .balanceOf(sender);
+    const senderERC20TokenBalanceAfter = await testToken
+        .connect(senderSigner)
+        .balanceOf(sender);
+    const receiverSuperTokenBalanceAfter = await superToken
+        .connect(receiverSigner)
+        .balanceOf(receiver);
+    const receiverERC20TokenBalanceAfter = await testToken
+        .connect(receiverSigner)
+        .balanceOf(receiver);
+
+    // sender super token balance after downgrade = sender super token balance before - downgrade amount
+    expect(senderSuperTokenBalanceBefore.sub(downgradeAmount)).to.equal(
+        senderSuperTokenBalanceAfter
+    );
+
+    // receiver underlying token balance before downgrade = receiver underlying token balance before + downgrade amount
+    expect(receiverERC20TokenBalanceBefore.add(downgradeAmount)).to.equal(
+        receiverERC20TokenBalanceAfter
+    );
+
+    // unless they are downgrading to their self, then balances will change for both
+    if (sender !== receiver) {
+        // sender underlying token balance after downgrade = sender underlying token balance after downgrade
+        expect(senderERC20BalanceBefore).to.equal(senderERC20TokenBalanceAfter);
+        // receiver super token balance after downgrade = receiver super token balance after downgrade
+        expect(receiverSuperTokenBalanceBefore).to.equal(
+            receiverSuperTokenBalanceAfter
+        );
+    }
+};

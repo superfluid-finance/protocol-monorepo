@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+
+- Added `downgradeTo` function in `SuperToken.sol`
+
 ### Changed
 
 - `upgradeTo` logic changed to revert if `data` is not empty and `to` is a contract and is not a registered ERC777 recipient

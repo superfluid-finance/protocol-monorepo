@@ -9,6 +9,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - Added `downgradeTo` function in `SuperToken.sol`
 
+### Breaking
+
+- `scripts/deploy-test-framework.js` no longer exists, `deploy-test-framework.js` has been moved to `dev-scripts`
+  - Migration: Use `dev-scripts/deploy-test-framework.js` instead
+
 ### Changed
 
 - `upgradeTo` logic changed to revert if `data` is not empty and `to` is a contract and is not a registered ERC777 recipient

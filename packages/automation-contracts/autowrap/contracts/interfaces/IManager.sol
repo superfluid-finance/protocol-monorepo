@@ -70,7 +70,7 @@ interface IManager {
      * @param liquidityToken Address of the token to be liquidated/used for conversion to supertoken.
      * @param expiry Expiration time of the wrap schedule request.
      * @param lowerLimit Minimum time necessary in order to trigger a wrap.
-     * @param upperLimit Determines the amount of supertokens required in terms of time (ex: 1 week's worth, 2 days worth etc).
+     * @param upperLimit Determines the amount of supertokens required in terms of time (ex: 1 week's worth).
      */
     struct WrapSchedule {
         address user;
@@ -98,7 +98,7 @@ interface IManager {
      * @notice Sets the global limits for wrap schedules.
      * @param lowerLimit Triggers wrap schedule if stream can't be continued for this amount of seconds.
      * @param upperLimit Increase supertoken balance to continue stream for this amount of seconds.
-     * @dev If the previous wrap schedules don't adhere to the current global limits, the global limits will be enforced.
+     * @dev If the previous wrap schedules don't adhere to the current global limits,the global limits will be enforced.
      * i.e., max(global limit, user defined limit) is always taken.
      */
     function setLimits(uint64 lowerLimit, uint64 upperLimit) external;

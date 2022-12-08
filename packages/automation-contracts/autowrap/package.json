@@ -3,8 +3,19 @@
     "version": "0.0.1",
     "description": "Open contracts that allow upgrading underlying token to supertokens based on running stream",
     "license": "MIT",
-    "dependencies": {
+    "scripts": {
+        "test": "forge test",
+        "build": "forge build",
+        "lint": "run-s lint:*",
+        "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
+        "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
+        "pre-commit:lint": "yarn lint"
+    },
+    "peerDependencies": {
+        "@superfluid-finance/ethereum-contracts": "1.2.2"
+    },
+    "devDependencies": {
         "@openzeppelin/contracts": "^4.8.0",
-        "@superfluid-finance/ethereum-contracts": "^1.4.3"
+        "@superfluid-finance/ethereum-contracts": "1.4.3"
     }
 }

@@ -12,7 +12,7 @@ interface IStrategy {
     );
     event ManagerChanged(
         address indexed oldManager,
-        address indexed Manager
+        address indexed manager
     );
     event EmergencyWithdrawInitiated(
         address indexed receiver,

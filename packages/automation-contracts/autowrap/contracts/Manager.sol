@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
+// solhint-disable not-rely-on-time
 pragma solidity ^0.8.0;
 
-import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    IConstantFlowAgreementV1
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Mod.sol";
 import "./interfaces/IManager.sol";
@@ -178,9 +181,9 @@ contract Manager is IManager, Ownable {
 
     /// @dev IManager.executeWrapByIndex implementation.
     function executeWrapByIndex(bytes32 index) public {
-        uint256 WrapAmount = checkWrapByIndex(index);
+        uint256 wrapAmount = checkWrapByIndex(index);
 
-        if (WrapAmount == 0) revert WrapNotRequired(index);
+        if (wrapAmount == 0) revert WrapNotRequired(index);
 
         WrapSchedule storage wrap = wrapSchedule[index];
 

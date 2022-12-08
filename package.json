@@ -73,7 +73,8 @@
             "packages/sdk-redux",
             "packages/subgraph",
             "packages/hot-fuzz",
-            "packages/automation-contracts/scheduler"
+            "packages/automation-contracts/scheduler",
+            "packages/automation-contracts/autowrap"
         ],
         "nohoist": [
             "**/webpack",

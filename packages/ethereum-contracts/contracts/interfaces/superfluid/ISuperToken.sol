@@ -382,12 +382,17 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Upgrade ERC20 to SuperToken and transfer immediately
-     * @param to The account to received upgraded tokens
+     * @param to The account to receive upgraded tokens
      * @param amount Number of tokens to be upgraded (in 18 decimals)
      * @param data User data for the TokensRecipient callback
      *
      * @custom:note It will use `transferFrom` to get tokens. Before calling this
      * function you should `approve` this contract
+     * 
+     * @custom:warning
+     * - there is potential of reentrancy IF the "to" account is a registered ERC777 recipient.
+     * @custom:requirements 
+     * - if `data` is NOT empty AND `to` is a contract, it MUST be a registered ERC777 recipient otherwise it reverts.
      */
     function upgradeTo(address to, uint256 amount, bytes calldata data) external;
 
@@ -409,8 +414,15 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     function downgrade(uint256 amount) external;
 
     /**
+     * @dev Downgrade SuperToken to ERC20 and transfer immediately
+     * @param to The account to receive downgraded tokens
+     * @param amount Number of tokens to be downgraded (in 18 decimals)
+     */
+    function downgradeTo(address to, uint256 amount) external;
+
+    /**
      * @dev Token downgrade event
-     * @param account Account whose tokens are upgraded
+     * @param account Account whose tokens are downgraded
      * @param amount Amount of tokens downgraded
      */
     event TokenDowngraded(

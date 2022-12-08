@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, Entity, ethereum, log, Value } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, crypto, Entity, ethereum, log, Value } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { Resolver } from "../generated/ResolverV1/Resolver";
 import {
@@ -7,7 +7,7 @@ import {
     Token,
     TokenStatistic,
 } from "../generated/schema";
-import { getResolverAddress } from "./addresses";
+import { getIsLocalIntegrationTesting } from "./addresses";
 
 /**************************************************************************
  * Constants
@@ -18,11 +18,24 @@ export const ZERO_ADDRESS = Address.zero();
 export const MAX_FLOW_RATE = BigInt.fromI32(2).pow(95).minus(BigInt.fromI32(1));
 export const ORDER_MULTIPLIER = BigInt.fromI32(10000);
 export const MAX_SAFE_SECONDS = BigInt.fromI64(8640000000000); //In seconds, https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date#the_ecmascript_epoch_and_timestamps
+
 /**************************************************************************
  * Convenience Conversions
  *************************************************************************/
 export function bytesToAddress(bytes: Bytes): Address {
     return Address.fromBytes(bytes);
+}
+
+/**
+ * Take an array of ethereum values and return the encoded bytes.
+ * @param values
+ * @returns the encoded bytes
+ */
+ export function encode(values: Array<ethereum.Value>): Bytes {
+    return ethereum.encode(
+        // forcefully cast Value[] -> Tuple
+        ethereum.Value.fromTuple(changetype<ethereum.Tuple>(values))
+    )!;
 }
 
 /**************************************************************************
@@ -67,6 +80,17 @@ export function initializeEventEntity(
     entity.set("timestamp", Value.fromBigInt(event.block.timestamp));
     entity.set("transactionHash", Value.fromBytes(event.transaction.hash));
     entity.set("gasPrice", Value.fromBigInt(event.transaction.gasPrice));
+    const receipt = event.receipt;
+    if (receipt) {
+        entity.set("gasUsed", Value.fromBigInt(receipt.gasUsed));
+    } else {
+        // @note `gasUsed` is a non-nullable property in our `schema.graphql` file, so when we attempt to save 
+        // the entity with a null field, it will halt the subgraph indexing.
+        // Nonetheless, we explicitly throw if receipt is null, as this can arise due forgetting to include
+        // `receipt: true` under `eventHandlers` in our manifest (`subgraph.template.yaml`) file.
+        log.critical("receipt MUST NOT be null", []);
+    }
+
     return entity;
   }
 
@@ -111,8 +135,8 @@ export function getIsListedToken(
     resolverAddress: Address
 ): Token {
     const resolverContract = Resolver.bind(resolverAddress);
-    const RESOLVER_ADDRESS = getResolverAddress();
-    const version = resolverAddress.equals(RESOLVER_ADDRESS) ? "test" : "v1";
+    const isLocalIntegrationTesting = getIsLocalIntegrationTesting();
+    const version = isLocalIntegrationTesting ? "test" : "v1";
     const result = resolverContract.try_get(
         "supertokens." + version + "." + token.symbol
     );
@@ -175,10 +199,13 @@ export function getStreamRevisionID(
     receiverAddress: Address,
     tokenAddress: Address
 ): string {
+    const values: Array<ethereum.Value> = [
+        ethereum.Value.fromAddress(senderAddress),
+        ethereum.Value.fromAddress(receiverAddress),
+    ];
+    const flowId = crypto.keccak256(encode(values));
     return (
-        senderAddress.toHex() +
-        "-" +
-        receiverAddress.toHex() +
+        flowId.toHex() +
         "-" +
         tokenAddress.toHex()
     );
@@ -191,7 +218,11 @@ export function getStreamID(
     revisionIndex: number
 ): string {
     return (
-        getStreamRevisionID(senderAddress, receiverAddress, tokenAddress) +
+        senderAddress.toHex() +
+        "-" +
+        receiverAddress.toHex() +
+        "-" +
+        tokenAddress.toHex() +
         "-" +
         revisionIndex.toString()
     );
@@ -259,10 +290,6 @@ export function getAccountTokenSnapshotID(
 }
 
 // Get HOL Exists Functions
-
-export function streamRevisionExists(id: string): boolean {
-    return StreamRevision.load(id) != null;
-}
 
 /**
  * If your units get set to 0, you will still have a subscription

@@ -1,4 +1,4 @@
-specVersion: 0.0.3
+specVersion: 0.0.5
 description: Subgraph for the Superfluid Ethereum contracts.
 repository: https://github.com/superfluid-finance/protocol-monorepo
 schema:
@@ -13,7 +13,7 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.6
+          apiVersion: 0.0.7
           language: wasm/assemblyscript
           file: ./src/mappings/superTokenFactory.ts
           entities:
@@ -34,10 +34,13 @@ dataSources:
           eventHandlers:
               - event: SuperTokenCreated(indexed address)
                 handler: handleSuperTokenCreated
+                receipt: true
               - event: CustomSuperTokenCreated(indexed address)
                 handler: handleCustomSuperTokenCreated
+                receipt: true
               - event: SuperTokenLogicCreated(indexed address)
                 handler: handleSuperTokenLogicCreated
+                receipt: true
     - kind: ethereum/contract
       name: Host
       network: {{ network }}
@@ -47,7 +50,7 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.6
+          apiVersion: 0.0.7
           language: wasm/assemblyscript
           file: ./src/mappings/host.ts
           entities:
@@ -65,18 +68,25 @@ dataSources:
           eventHandlers:
               - event: GovernanceReplaced(address,address)
                 handler: handleGovernanceReplaced
+                receipt: true
               - event: AgreementClassRegistered(bytes32,address)
                 handler: handleAgreementClassRegistered
+                receipt: true
               - event: AgreementClassUpdated(bytes32,address)
                 handler: handleAgreementClassUpdated
+                receipt: true
               - event: SuperTokenFactoryUpdated(address)
                 handler: handleSuperTokenFactoryUpdated
+                receipt: true
               - event: SuperTokenLogicUpdated(indexed address,address)
                 handler: handleSuperTokenLogicUpdated
+                receipt: true
               - event: AppRegistered(indexed address)
                 handler: handleAppRegistered
+                receipt: true
               - event: Jail(indexed address,uint256)
                 handler: handleJail
+                receipt: true
     - kind: ethereum/contract
       name: ConstantFlowAgreementV1
       network: {{ network }}
@@ -86,7 +96,7 @@ dataSources:
           startBlock: {{ hostStartBlock }}
       mapping:
           kind: ethereum/events
-          apiVersion: 0.0.6
+          apiVersion: 0.0.7
           language: wasm/assemblyscript
           file: ./src/mappings/cfav1.ts
           entities:
@@ -111,10 +121,13 @@ dataSources:
           eventHandlers:
               - event: FlowUpdated(indexed address,indexed address,indexed address,int96,int256,int256,bytes)
                 handler: handleFlowUpdated
+                receipt: true
               - event: FlowUpdatedExtension(indexed address,uint256)
                 handler: handleFlowUpdatedExtension
+                receipt: true
               - event: FlowOperatorUpdated(indexed address,indexed address,indexed address,uint8,int96)
                 handler: handleFlowOperatorUpdated
+                receipt: true
     - kind: ethereum/contract
       name: InstantDistributionAgreementV1
       network: {{ network }}
@@ -124,7 +137,7 @@ dataSources:
         startBlock: {{ hostStartBlock }}
       mapping:
         kind: ethereum/events
-        apiVersion: 0.0.6
+        apiVersion: 0.0.7
         language: wasm/assemblyscript
         file: ./src/mappings/idav1.ts
         entities:
@@ -156,24 +169,34 @@ dataSources:
         eventHandlers:
           - event: IndexCreated(indexed address,indexed address,indexed uint32,bytes)
             handler: handleIndexCreated
+            receipt: true
           - event: IndexDistributionClaimed(indexed address,indexed address,indexed uint32,address,uint256)
             handler: handleIndexDistributionClaimed
+            receipt: true
           - event: IndexUpdated(indexed address,indexed address,indexed uint32,uint128,uint128,uint128,uint128,bytes)
             handler: handleIndexUpdated
+            receipt: true
           - event: IndexSubscribed(indexed address,indexed address,indexed uint32,address,bytes)
             handler: handleIndexSubscribed
+            receipt: true
           - event: IndexUnitsUpdated(indexed address,indexed address,indexed uint32,address,uint128,bytes)
             handler: handleIndexUnitsUpdated
+            receipt: true
           - event: IndexUnsubscribed(indexed address,indexed address,indexed uint32,address,bytes)
             handler: handleIndexUnsubscribed
+            receipt: true
           - event: SubscriptionApproved(indexed address,indexed address,address,uint32,bytes)
             handler: handleSubscriptionApproved
+            receipt: true
           - event: SubscriptionDistributionClaimed(indexed address,indexed address,address,uint32,uint256)
             handler: handleSubscriptionDistributionClaimed
+            receipt: true
           - event: SubscriptionRevoked(indexed address,indexed address,address,uint32,bytes)
             handler: handleSubscriptionRevoked
+            receipt: true
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
             handler: handleSubscriptionUnitsUpdated
+            receipt: true
     - kind: ethereum/contract
       name: ResolverV1
       network: {{ network }}
@@ -183,7 +206,7 @@ dataSources:
         startBlock: {{ hostStartBlock }}
       mapping:
         kind: ethereum/events
-        apiVersion: 0.0.6
+        apiVersion: 0.0.7
         language: wasm/assemblyscript
         file: ./src/mappings/resolver.ts
         entities:
@@ -199,12 +222,16 @@ dataSources:
         eventHandlers:
           - event: RoleAdminChanged(indexed bytes32,indexed bytes32,indexed bytes32)
             handler: handleRoleAdminChanged
+            receipt: true
           - event: RoleGranted(indexed bytes32,indexed address,indexed address)
             handler: handleRoleGranted
+            receipt: true
           - event: RoleRevoked(indexed bytes32,indexed address,indexed address)
             handler: handleRoleRevoked
+            receipt: true
           - event: Set(indexed string,address)
             handler: handleSet
+            receipt: true
 templates:
   - name: SuperToken
     kind: ethereum/contract
@@ -213,7 +240,7 @@ templates:
       abi: ISuperToken
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/superToken.ts
       entities:
@@ -239,20 +266,28 @@ templates:
       eventHandlers:
         - event: AgreementLiquidatedBy(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
           handler: handleAgreementLiquidatedBy
+          receipt: true
         - event: AgreementLiquidatedV2(indexed address,bytes32,indexed address,indexed address,address,uint256,int256,bytes)
           handler: handleAgreementLiquidatedV2
+          receipt: true
         - event: Burned(indexed address,indexed address,uint256,bytes,bytes)
           handler: handleBurned
+          receipt: true
         - event: Minted(indexed address,indexed address,uint256,bytes,bytes)
           handler: handleMinted
+          receipt: true
         - event: Sent(indexed address,indexed address,indexed address,uint256,bytes,bytes)
           handler: handleSent
+          receipt: true
         - event: TokenUpgraded(indexed address,uint256)
           handler: handleTokenUpgraded
+          receipt: true
         - event: TokenDowngraded(indexed address,uint256)
           handler: handleTokenDowngraded
+          receipt: true
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+          receipt: true
   - kind: ethereum/contract
     name: SuperfluidGovernance
     network: {{ network }}
@@ -260,7 +295,7 @@ templates:
       abi: SuperfluidGovernanceBase
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/superfluidGovernance.ts
       entities:
@@ -275,11 +310,43 @@ templates:
       eventHandlers:
         - event: ConfigChanged(indexed address,indexed address,bytes32,bool,uint256)
           handler: handleConfigChanged
+          receipt: true
         - event: RewardAddressChanged(indexed address,indexed address,bool,address)
           handler: handleRewardAddressChanged
+          receipt: true
         - event: CFAv1LiquidationPeriodChanged(indexed address,indexed address,bool,uint256)
           handler: handleCFAv1LiquidationPeriodChanged
+          receipt: true
         - event: PPPConfigurationChanged(indexed address,indexed address,bool,uint256,uint256)
           handler: handlePPPConfigurationChanged
+          receipt: true
         - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
           handler: handleTrustedForwarderChanged
+          receipt: true
+  - kind: ethereum/contract
+    name: TOGA
+    network: {{ network }}
+    source:
+      abi: TOGA
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/toga.ts
+      entities:
+        - NewPICEvent
+        - ExitRateChangedEvent
+        - BondIncreasedEvent
+      abis:
+        - name: TOGA
+          file: ./abis/TOGA.json
+      eventHandlers:
+        - event: NewPIC(indexed address,address,uint256,int96)
+          handler: handleNewPIC
+          receipt: true
+        - event: ExitRateChanged(indexed address,int96)
+          handler: handleExitRateChanged
+          receipt: true
+        - event: BondIncreased(indexed address,uint256)
+          handler: handleBondIncreased
+          receipt: true

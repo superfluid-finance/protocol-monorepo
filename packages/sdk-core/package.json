@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-core",
-    "version": "0.6.0",
+    "version": "0.5.9",
     "description": "SDK Core for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
     "repository": {
@@ -29,7 +29,7 @@
         "testenv:stop": "tasks/testenv-ctl.sh stop",
         "pretest": "yarn testenv:start",
         "test": "hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
-        "dev": "nodemon -e ts -x hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
+        "dev": "nodemon -e ts -x yarn test",
         "test-coverage": "nyc --reporter=html --reporter=lcov --reporter=json yarn test",
         "posttest": "yarn testenv:stop",
         "check-updates": "ncu --target minor --dep prod,dev",
@@ -55,6 +55,7 @@
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
     },
     "dependencies": {
+        "@nomiclabs/hardhat-ethers": "^2.2.1",
         "@superfluid-finance/ethereum-contracts": "1.4.3",
         "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
         "browserify": "^17.0.0",
@@ -85,4 +86,3 @@
         "node": ">=12"
     }
 }
- 

@@ -52,6 +52,11 @@ interface Event {
     The gas price of the transaction that the event was logged in.
     """
     gasPrice: BigInt!
+
+    """
+    The gas used for this transaction.
+    """
+    gasUsed: BigInt!
 }
 
 #     ConstantFlowAgreementV1    #
@@ -59,10 +64,11 @@ interface Event {
 FlowUpdated: An `Event` entity that is emitted
 when a flow is created, updated, or deleted.
 """
-type FlowUpdatedEvent implements Event @entity {
+type FlowUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -151,10 +157,11 @@ type FlowUpdatedEvent implements Event @entity {
     stream: Stream!
 }
 
-type FlowOperatorUpdatedEvent implements Event @entity {
+type FlowOperatorUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -187,10 +194,11 @@ type FlowOperatorUpdatedEvent implements Event @entity {
 }
 
 #  InstantDistributionAgreementV1 #
-type IndexCreatedEvent implements Event @entity {
+type IndexCreatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -221,10 +229,11 @@ type IndexCreatedEvent implements Event @entity {
     index: Index!
 }
 
-type IndexDistributionClaimedEvent implements Event @entity {
+type IndexDistributionClaimedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -262,10 +271,11 @@ type IndexDistributionClaimedEvent implements Event @entity {
     index: Index!
 }
 
-type IndexUpdatedEvent implements Event @entity {
+type IndexUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -300,10 +310,11 @@ type IndexUpdatedEvent implements Event @entity {
     index: Index!
 }
 
-type IndexSubscribedEvent implements Event @entity {
+type IndexSubscribedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -341,10 +352,11 @@ type IndexSubscribedEvent implements Event @entity {
     index: Index!
 }
 
-type IndexUnitsUpdatedEvent implements Event @entity {
+type IndexUnitsUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -386,10 +398,11 @@ type IndexUnitsUpdatedEvent implements Event @entity {
     index: Index!
 }
 
-type IndexUnsubscribedEvent implements Event @entity {
+type IndexUnsubscribedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -427,10 +440,11 @@ type IndexUnsubscribedEvent implements Event @entity {
     index: Index!
 }
 
-type SubscriptionApprovedEvent implements Event @entity {
+type SubscriptionApprovedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -468,10 +482,11 @@ type SubscriptionApprovedEvent implements Event @entity {
     subscription: IndexSubscription!
 }
 
-type SubscriptionDistributionClaimedEvent implements Event @entity {
+type SubscriptionDistributionClaimedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -509,10 +524,11 @@ type SubscriptionDistributionClaimedEvent implements Event @entity {
     subscription: IndexSubscription!
 }
 
-type SubscriptionRevokedEvent implements Event @entity {
+type SubscriptionRevokedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -550,10 +566,11 @@ type SubscriptionRevokedEvent implements Event @entity {
     subscription: IndexSubscription!
 }
 
-type SubscriptionUnitsUpdatedEvent implements Event @entity {
+type SubscriptionUnitsUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -597,10 +614,11 @@ type SubscriptionUnitsUpdatedEvent implements Event @entity {
 
 #     Host    #
 
-type AgreementClassRegisteredEvent implements Event @entity {
+type AgreementClassRegisteredEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -615,10 +633,11 @@ type AgreementClassRegisteredEvent implements Event @entity {
     code: Bytes!
 }
 
-type AgreementClassUpdatedEvent implements Event @entity {
+type AgreementClassUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -633,10 +652,11 @@ type AgreementClassUpdatedEvent implements Event @entity {
     code: Bytes!
 }
 
-type AppRegisteredEvent implements Event @entity {
+type AppRegisteredEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -650,10 +670,11 @@ type AppRegisteredEvent implements Event @entity {
     app: Bytes!
 }
 
-type GovernanceReplacedEvent implements Event @entity {
+type GovernanceReplacedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
     blockNumber: BigInt!
@@ -668,10 +689,11 @@ type GovernanceReplacedEvent implements Event @entity {
     newGovernance: Bytes!
 }
 
-type JailEvent implements Event @entity {
+type JailEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -686,10 +708,11 @@ type JailEvent implements Event @entity {
     reason: BigInt!
 }
 
-type SuperTokenFactoryUpdatedEvent implements Event @entity {
+type SuperTokenFactoryUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -703,10 +726,11 @@ type SuperTokenFactoryUpdatedEvent implements Event @entity {
     newFactory: Bytes!
 }
 
-type SuperTokenLogicUpdatedEvent implements Event @entity {
+type SuperTokenLogicUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -723,10 +747,11 @@ type SuperTokenLogicUpdatedEvent implements Event @entity {
 }
 
 #     Resolver    #
-type RoleAdminChangedEvent implements Event @entity {
+type RoleAdminChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -742,10 +767,11 @@ type RoleAdminChangedEvent implements Event @entity {
     newAdminRole: Bytes!
 }
 
-type RoleGrantedEvent implements Event @entity {
+type RoleGrantedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -761,10 +787,11 @@ type RoleGrantedEvent implements Event @entity {
     sender: Bytes!
 }
 
-type RoleRevokedEvent implements Event @entity {
+type RoleRevokedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -780,10 +807,11 @@ type RoleRevokedEvent implements Event @entity {
     sender: Bytes!
 }
 
-type SetEvent implements Event @entity {
+type SetEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -807,10 +835,11 @@ type SetEvent implements Event @entity {
 }
 
 #     SuperfluidGovernance    #
-type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
+type CFAv1LiquidationPeriodChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -832,10 +861,11 @@ type CFAv1LiquidationPeriodChangedEvent implements Event @entity {
     liquidationPeriod: BigInt!
 }
 
-type ConfigChangedEvent implements Event @entity {
+type ConfigChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -858,10 +888,11 @@ type ConfigChangedEvent implements Event @entity {
     value: BigInt!
 }
 
-type RewardAddressChangedEvent implements Event @entity {
+type RewardAddressChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -883,10 +914,11 @@ type RewardAddressChangedEvent implements Event @entity {
     rewardAddress: Bytes!
 }
 
-type PPPConfigurationChangedEvent implements Event @entity {
+type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -909,10 +941,11 @@ type PPPConfigurationChangedEvent implements Event @entity {
     patricianPeriod: BigInt!
 }
 
-type TrustedForwarderChangedEvent implements Event @entity {
+type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -942,10 +975,11 @@ Replaced by: `AgreementLiquidatedV2Event`
 See: https://docs.superfluid.finance/superfluid/sentinels/liquidations-and-toga#patricians-plebs-and-pirates-3ps for more details on the 3Ps system.
 See: https://github.com/superfluid-finance/protocol-monorepo/blob/dev/packages/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol#L425 for more details on the events.
 """
-type AgreementLiquidatedByEvent implements Event @entity {
+type AgreementLiquidatedByEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -969,12 +1003,23 @@ type AgreementLiquidatedByEvent implements Event @entity {
     bondAccount: Bytes!
     rewardAmount: BigInt!
     bailoutAmount: BigInt!
+
+    """
+    The full deposit amount of the stream that was liquidated.
+    """
+    deposit: BigInt!
+
+    """
+    The flow rate of the stream at the time of liquidation.
+    """
+    flowRateAtLiquidation: BigInt!
 }
 
-type AgreementLiquidatedV2Event implements Event @entity {
+type AgreementLiquidatedV2Event implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1002,15 +1047,26 @@ type AgreementLiquidatedV2Event implements Event @entity {
     liquidationType: Int!
 
     """
+    The full deposit amount of the stream that was liquidated.
+    """
+    deposit: BigInt!
+
+    """
+    The flow rate of the stream at the time of liquidation.
+    """
+    flowRateAtLiquidation: BigInt!
+
+    """
     TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
     """
     rewardAccount: Bytes! @deprecated(reason: "use rewardAmountReceiver")
 }
 
-type BurnedEvent implements Event @entity {
+type BurnedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1032,10 +1088,11 @@ type BurnedEvent implements Event @entity {
     operatorData: Bytes!
 }
 
-type MintedEvent implements Event @entity {
+type MintedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1058,10 +1115,11 @@ type MintedEvent implements Event @entity {
     operatorData: Bytes!
 }
 
-type SentEvent implements Event @entity {
+type SentEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1085,10 +1143,11 @@ type SentEvent implements Event @entity {
     operatorData: Bytes!
 }
 
-type TransferEvent implements Event @entity {
+type TransferEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1109,11 +1168,12 @@ type TransferEvent implements Event @entity {
     token: Bytes!
 }
 
-type TokenDowngradedEvent implements Event @entity {
+type TokenDowngradedEvent implements Event @entity(immutable: true) {
     id: ID!
     account: Account!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1131,11 +1191,12 @@ type TokenDowngradedEvent implements Event @entity {
     amount: BigInt!
 }
 
-type TokenUpgradedEvent implements Event @entity {
+type TokenUpgradedEvent implements Event @entity(immutable: true) {
     id: ID!
     account: Account!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1155,10 +1216,11 @@ type TokenUpgradedEvent implements Event @entity {
 
 #     SuperTokenFactory    #
 
-type CustomSuperTokenCreatedEvent implements Event @entity {
+type CustomSuperTokenCreatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1174,10 +1236,11 @@ type CustomSuperTokenCreatedEvent implements Event @entity {
     token: Bytes!
 }
 
-type SuperTokenCreatedEvent implements Event @entity {
+type SuperTokenCreatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1193,10 +1256,11 @@ type SuperTokenCreatedEvent implements Event @entity {
     token: Bytes!
 }
 
-type SuperTokenLogicCreatedEvent implements Event @entity {
+type SuperTokenLogicCreatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
+    gasUsed: BigInt!
     timestamp: BigInt!
     name: String!
 
@@ -1209,6 +1273,103 @@ type SuperTokenLogicCreatedEvent implements Event @entity {
     order: BigInt!
 
     tokenLogic: Bytes!
+}
+
+#     TOGA    #
+
+type NewPICEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `pic` (new Patrician In Charge)
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    """
+    The address of the `token` (supertoken) the PIC is posting a bond for.
+    """
+    token: Bytes!
+
+    """
+    The address of the new Patrician In Charge (PIC).
+    """
+    pic: Bytes!
+
+    """
+    The bond the new PIC staked in order to claim the position.
+    """
+    bond: BigInt!
+
+    """
+    The flowrate at which the bond is streamed back to the PIC.
+    """
+    exitRate: BigInt!
+}
+
+type ExitRateChangedEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    """
+    The address of the `token` (supertoken).
+    """
+    token: Bytes!
+
+    """
+    The flowrate at which the bond is streamed back to the Patrician In Charge.
+    """
+    exitRate: BigInt!
+}
+
+type BondIncreasedEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    """
+    The address of the `token` (supertoken).
+    """
+    token: Bytes!
+
+    """
+    The additional amount added to the bond by the current Patrician In Charge (PIC).
+    """
+    additionalBond: BigInt!
 }
 
 #########################
@@ -1499,9 +1660,18 @@ type StreamPeriod @entity {
 #  Helper Entities #
 ####################
 type StreamRevision @entity {
+    """
+    ID composed of: keccak256(abi.encode(sender,receiver))-tokenAddress
+    """
     id: ID!
     revisionIndex: Int!
     periodRevisionIndex: Int!
+
+    """
+    The "most recently alive" stream between a sender and receiver.
+    Note: The `revisionIndex` property may not be the same as the `revisionIndex` of `mostRecentStream`. Which means `mostRecentStream` has been closed and no new stream has been opened.
+    """
+    mostRecentStream: Stream!
 }
 
 """

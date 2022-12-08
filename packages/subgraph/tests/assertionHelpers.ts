@@ -26,6 +26,10 @@ export function assertEventBaseProperties(
     assert.fieldEquals(entityType, id, "name", eventName);
     assert.fieldEquals(entityType, id, "transactionHash", event.transaction.hash.toHex());
     assert.fieldEquals(entityType, id, "gasPrice", event.transaction.gasPrice.toString());
+    const receipt = event.receipt;
+    if (receipt) {
+        assert.fieldEquals(entityType, id, "gasUsed", receipt.gasUsed.toString());
+    }
     return id;
 }
 

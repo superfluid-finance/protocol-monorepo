@@ -26,7 +26,6 @@ import {
     getStreamID,
     getStreamRevisionID,
     getSubscriptionID,
-    streamRevisionExists,
     getInitialTotalSupplyForSuperToken,
     ZERO_ADDRESS,
     handleTokenRPCCalls,
@@ -222,26 +221,20 @@ export function getOrInitStream(event: FlowUpdated): Stream {
         event.params.receiver,
         event.params.token
     );
-    const currentTimestamp = event.block.timestamp;
-    if (
-        !streamRevisionExists(
-            getStreamRevisionID(
-                event.params.sender,
-                event.params.receiver,
-                event.params.token
-            )
-        )
-    ) {
-        streamRevision.save();
-    }
     const id = getStreamID(
         event.params.sender,
         event.params.receiver,
         event.params.token,
         streamRevision.revisionIndex
     );
+
+    // set stream id
+    streamRevision.mostRecentStream = id;
+    streamRevision.save();
+
     let stream = Stream.load(id);
     if (stream == null) {
+        const currentTimestamp = event.block.timestamp;
         stream = new Stream(id);
         stream.createdAtTimestamp = currentTimestamp;
         stream.createdAtBlockNumber = event.block.number;

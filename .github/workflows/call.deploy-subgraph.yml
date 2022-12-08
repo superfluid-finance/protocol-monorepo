@@ -1,0 +1,82 @@
+name: Reusable Workflow | Deploy Subgraph
+
+on:
+  workflow_call:
+    inputs:
+      release_branch:
+        required: true
+        type: string
+      deploy_to_satsuma_endpoint:
+        required: true
+        type: boolean
+      network:
+        required: true
+        type: string
+      satsuma_version_label:
+        required: false
+        type: string
+    secrets:
+      SATSUMA_DEPLOY_KEY:
+        description: 'Satsuma deploy key for deploying subgraphs'
+        required: false
+      THE_GRAPH_ACCESS_TOKEN:
+        description: 'The Graph access token for deploying subgraphs'
+        required: false
+
+jobs:
+  deploy-subgraph:
+    name: Deploy Subgraph
+
+    runs-on: ubuntu-latest
+
+    env:
+      subgraph-working-directory: ./packages/subgraph
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: "Install node"
+        uses: "actions/setup-node@v3"
+        with:
+          node-version: "16"
+          cache: "yarn"
+
+      - name: "Install dependencies"
+        run: yarn install --frozen-lockfile
+
+      - name: "Build contracts"
+        run: yarn build
+        working-directory: ./packages/ethereum-contracts
+
+      - name: "Get ABI"
+        run: node scripts/getAbi.js
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Generate subgraph manifest"
+        run: "yarn prepare-manifest-local"
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Generate meta.ignore.ts file"
+        run: "yarn generate-sf-meta"
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          COMMIT_HASH: ${{ github.sha }}
+          CONFIGURATION: ${{ inputs.release_branch }}
+
+      - name: "Generate AssemblyScript types"
+        run: "yarn codegen"
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Deploy to Satsuma endpoint"
+        if: inputs.deploy_to_satsuma_endpoint == true
+        run: "yarn deploy:to-satsuma ${{ inputs.satsuma_version_label }} ${{ inputs.network }}"
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
+
+      - name: "Deploy to Hosted Subgraph Superfluid endpoint"
+        if: inputs.deploy_to_satsuma_endpoint == false
+        run: "yarn deploy ${{ inputs.release_branch }} ${{ inputs.network }}"
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}

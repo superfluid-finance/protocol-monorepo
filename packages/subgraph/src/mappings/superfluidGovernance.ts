@@ -13,6 +13,7 @@ import {
     TrustedForwarderChangedEvent,
 } from "../../generated/schema";
 import { createEventID, initializeEventEntity } from "../utils";
+import { TOGA } from "../../generated/templates";
 
 export function handleConfigChanged(event: ConfigChanged): void {
     const eventId = createEventID("ConfigChanged", event);
@@ -39,6 +40,12 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
     ev.isKeySet = event.params.isKeySet;
     ev.rewardAddress = event.params.rewardAddress;
     ev.save();
+
+    // Create data source template for new TOGA contract
+    // and start indexing events
+    // @note The subgraph will start capturing TOGA events
+    // which occur once this event is emitted for a valid TOGA address
+    TOGA.create(event.params.rewardAddress);
 }
 
 export function handleCFAv1LiquidationPeriodChanged(

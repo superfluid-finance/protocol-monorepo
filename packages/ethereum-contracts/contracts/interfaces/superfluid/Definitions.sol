@@ -155,7 +155,7 @@ library BatchOperation {
      *
      * Call spec:
      * ISuperToken(target).operationSend(
-     *     abi.decode(data, (address recipient, uint256 amount)
+     *     abi.decode(data, (address recipient, uint256 amount, bytes userData)
      * )
      */
     uint32 constant internal OPERATION_TYPE_ERC777_SEND = 3;
@@ -183,7 +183,7 @@ library BatchOperation {
      * Call spec:
      * callAgreement(
      *     ISuperAgreement(target)),
-     *     abi.decode(data, (bytes calldata, bytes userdata)
+     *     abi.decode(data, (bytes callData, bytes userData)
      * )
      */
     uint32 constant internal OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT = 1 + 200;

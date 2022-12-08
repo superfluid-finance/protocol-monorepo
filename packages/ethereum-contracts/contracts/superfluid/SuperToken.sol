@@ -685,12 +685,13 @@ contract SuperToken is
     function operationSend(
         address spender,
         address recipient,
-        uint256 amount
+        uint256 amount,
+        bytes memory userData
     ) 
         external override
         onlyHost
     {
-        _send(msg.sender, spender, recipient, amount, "", "", false);
+        _send(msg.sender, spender, recipient, amount, userData, "", userData.length != 0);
     }
 
     function operationUpgrade(address account, uint256 amount)

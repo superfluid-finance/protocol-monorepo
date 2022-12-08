@@ -459,6 +459,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * @param spender The account where the funds is sent from.
     * @param recipient The recipient of the funds.
     * @param amount Number of tokens to be transferred.
+    * @param data Arbitrary user inputted data
     *
     * @custom:modifiers 
     *  - onlyHost
@@ -466,7 +467,8 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     function operationSend(
         address spender,
         address recipient,
-        uint256 amount
+        uint256 amount,
+        bytes memory data
     ) external;
 
     /**

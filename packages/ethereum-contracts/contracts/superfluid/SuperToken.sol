@@ -607,7 +607,7 @@ contract SuperToken is
 
         _mint(operator, to, adjustedAmount,
             // if `userData.length` than 0, we requireReceptionAck
-            userData.length > 0, userData, operatorData);
+            userData.length != 0, userData, operatorData);
 
         emit TokenUpgraded(to, adjustedAmount);
     }

@@ -125,7 +125,7 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_sdk_core
     with:
-      subgraph-release: feature
+      subgraph-release: dev
 
   # test latest and previous version of sdk-core with current subgraph
   test-subgraph-on-previous-sdk-core-versions:

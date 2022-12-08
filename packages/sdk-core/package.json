@@ -29,7 +29,7 @@
         "testenv:stop": "tasks/testenv-ctl.sh stop",
         "pretest": "yarn testenv:start",
         "test": "hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
-        "dev": "nodemon -e ts -x hardhat test --network localhost --tsconfig \"tsconfig.test.json\"",
+        "dev": "nodemon -e ts -x yarn test",
         "test-coverage": "nyc --reporter=html --reporter=lcov --reporter=json yarn test",
         "posttest": "yarn testenv:stop",
         "check-updates": "ncu --target minor --dep prod,dev",

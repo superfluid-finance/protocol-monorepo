@@ -574,7 +574,7 @@ contract SuperToken is
 
     /// @dev ISuperToken.upgradeTo implementation
     function upgradeTo(address to, uint256 amount, bytes calldata data) external override {
-        _upgrade(msg.sender, msg.sender, to, amount, "", data);
+        _upgrade(msg.sender, msg.sender, to, amount, data, "");
     }
 
     /// @dev ISuperToken.downgrade implementation
@@ -606,8 +606,8 @@ contract SuperToken is
         if (underlyingAmount != actualUpgradedAmount) revert SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED();
 
         _mint(operator, to, adjustedAmount,
-            // if `to` is diffferent from `account`, we requireReceptionAck
-            account != to, userData, operatorData);
+            // if `userData.length` than 0, we requireReceptionAck
+            userData.length != 0, userData, operatorData);
 
         emit TokenUpgraded(to, adjustedAmount);
     }

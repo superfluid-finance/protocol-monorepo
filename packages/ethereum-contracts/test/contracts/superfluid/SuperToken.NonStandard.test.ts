@@ -1,4 +1,5 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
+import {BigNumberish} from "ethers";
 import {artifacts, assert, ethers, expect, web3} from "hardhat";
 
 import {
@@ -209,6 +210,81 @@ describe("SuperToken's Non Standard Functions", function () {
                 superToken,
                 "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
             );
+        });
+
+        it("#2.6 should not be able to downgradeTo self if there is no balance", async () => {
+            console.log("SuperToken.downgradeTo self - bad balance");
+            await expectCustomError(
+                superToken
+                    .connect(aliceSigner)
+                    .downgradeTo(aliceSigner.address, toBN(1)),
+                superToken,
+                "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
+            );
+        });
+
+        it("#2.7 should not be able to downgradeTo others if there is no balance", async () => {
+            console.log("SuperToken.downgradeTo alice -> bob - bad balance");
+            await expectCustomError(
+                superToken
+                    .connect(aliceSigner)
+                    .downgradeTo(bobSigner.address, toBN(1)),
+                superToken,
+                "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
+            );
+        });
+
+        it("#2.8 should be able to downgradeTo self", async () => {
+            console.log("SuperToken.upgrade 2 from alice");
+            await superToken.connect(aliceSigner).upgrade(toWad(2));
+            const downgradeAmount = toBN(1);
+            console.log("SuperToken.downgradeTo self");
+            await assertDowngradeToBalances({
+                superToken,
+                testToken,
+                sender: aliceSigner.address,
+                receiver: aliceSigner.address,
+                downgradeAmount,
+            });
+
+            await t.validateSystemInvariance();
+        });
+
+        it("#2.9 should be able to downgradeTo other EOA", async () => {
+            console.log("SuperToken.upgrade 2 from alice");
+            await superToken.connect(aliceSigner).upgrade(toWad(2));
+            const downgradeAmount = toBN(1);
+            console.log("SuperToken.downgradeTo alice -> bob");
+            await assertDowngradeToBalances({
+                superToken,
+                testToken,
+                sender: aliceSigner.address,
+                receiver: bobSigner.address,
+                downgradeAmount,
+            });
+
+            await t.validateSystemInvariance();
+        });
+
+        it("#2.10 should be able to downgradeTo contract (doesn't make a difference)", async () => {
+            const mockFactory = await ethers.getContractFactory(
+                "ERC777SenderRecipientMock"
+            );
+            const mock = await mockFactory.deploy();
+
+            console.log("SuperToken.upgrade 2 from alice");
+            await superToken.connect(aliceSigner).upgrade(toWad(2));
+            const downgradeAmount = toBN(1);
+            console.log("SuperToken.downgradeTo alice -> bob");
+            await assertDowngradeToBalances({
+                superToken,
+                testToken,
+                sender: aliceSigner.address,
+                receiver: mock.address,
+                downgradeAmount,
+            });
+
+            await t.validateSystemInvariance();
         });
 
         it("#2.6 - should convert from smaller underlying decimals", async () => {
@@ -441,27 +517,87 @@ describe("SuperToken's Non Standard Functions", function () {
             await t.validateSystemInvariance();
         });
 
-        it("#2.9 - upgradeTo should trigger tokensReceived", async () => {
+        it("#2.9 - upgradeTo should not revert for unregistered contract if no user data is passed to tokensReceived", async () => {
             const mockFactory = await ethers.getContractFactory(
                 "ERC777SenderRecipientMock"
             );
             const mock = await mockFactory.deploy();
-            await expectCustomError(
-                superToken
-                    .connect(aliceSigner)
-                    .upgradeTo(mock.address, toWad(2), "0x"),
-                superToken,
-                "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to unregistered mock w/ empty userData"
             );
-            console.log("registerRecipient");
-            await mock.registerRecipient(mock.address);
-            console.log("SuperToken.upgrade 2.0 tokens from alice to bob");
             await superToken
                 .connect(aliceSigner)
                 .upgradeTo(mock.address, toWad(2), "0x");
         });
 
-        it("#2.10 upgrade and self-upgradeTo should not trigger tokenReceived", async () => {
+        it("#2.10 - upgradeTo should revert for unregistered contract if user data is passed to tokensReceived", async () => {
+            const mockFactory = await ethers.getContractFactory(
+                "ERC777SenderRecipientMock"
+            );
+            const mock = await mockFactory.deploy();
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to unregistered mock w/ non-empty userData"
+            );
+            await expectCustomError(
+                superToken
+                    .connect(aliceSigner)
+                    .upgradeTo(mock.address, toWad(2), "0x4206"),
+                superToken,
+                "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
+            );
+        });
+
+        it("#2.11 - upgradeTo should not revert for registered contract if no userData is passed to tokensReceived", async () => {
+            const mockFactory = await ethers.getContractFactory(
+                "ERC777SenderRecipientMock"
+            );
+            const mock = await mockFactory.deploy();
+
+            console.log("registerRecipient");
+            await mock.registerRecipient(mock.address);
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to registered mock w/ empty userData"
+            );
+            await superToken
+                .connect(aliceSigner)
+                .upgradeTo(mock.address, toWad(2), "0x");
+        });
+
+        it("#2.12 - upgradeTo should not revert for registered contract if userData is passed to tokensReceived", async () => {
+            const mockFactory = await ethers.getContractFactory(
+                "ERC777SenderRecipientMock"
+            );
+            const mock = await mockFactory.deploy();
+
+            console.log("registerRecipient");
+            await mock.registerRecipient(mock.address);
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to registered mock w/ non-empty userData"
+            );
+            await superToken
+                .connect(aliceSigner)
+                .upgradeTo(mock.address, toWad(2), "0x4206");
+        });
+
+        it("#2.13 - upgradeTo should not revert for EOA if userData is passed to tokensReceived", async () => {
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to bob w/ non-empty userData"
+            );
+            await superToken
+                .connect(aliceSigner)
+                .upgradeTo(bobSigner.address, toWad(2), "0x4206");
+        });
+
+        it("#2.14 - upgradeTo should not revert for EOA if empty userData is passed to tokensReceived", async () => {
+            console.log(
+                "SuperToken.upgrade 2.0 tokens from alice to bob w/ empty userData"
+            );
+            await superToken
+                .connect(aliceSigner)
+                .upgradeTo(bobSigner.address, toWad(2), "0x");
+        });
+
+        it("#2.15 upgrade and self-upgradeTo should not trigger tokenReceived", async () => {
             const mockFactory = await ethers.getContractFactory(
                 "ERC777SenderRecipientMock"
             );
@@ -492,7 +628,7 @@ describe("SuperToken's Non Standard Functions", function () {
             );
         });
 
-        it("#2.11 upgrade and self-upgradeTo should not trigger tokenReceived if self is contract", async () => {
+        it("#2.16 upgrade and self-upgradeTo should not trigger tokenReceived if self is contract", async () => {
             console.log("send token from alice to wallet");
             await testToken
                 .connect(aliceSigner)
@@ -523,16 +659,12 @@ describe("SuperToken's Non Standard Functions", function () {
             );
         });
 
-        it("#2.12 Revert upgrade and self-upgradeTo if trigger tokenReceived", async () => {
-            console.log("TestToken.approve - from alice to SuperToken");
-            await testToken
-                .connect(aliceSigner)
-                .approve(superToken.address, MAX_UINT256);
-
+        it("#2.17 Revert upgrade and self-upgradeTo if trigger tokenReceived on unregistered wallet with userData", async () => {
+            console.log("TestToken.approve - from alice to mockWallet");
             await expectCustomError(
                 superToken
                     .connect(aliceSigner)
-                    .upgradeTo(mockWallet.address, toWad(2), "0x"),
+                    .upgradeTo(mockWallet.address, toWad(2), "0x4206"),
                 superToken,
                 "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
             );
@@ -822,3 +954,69 @@ describe("SuperToken's Non Standard Functions", function () {
         });
     });
 });
+
+const assertDowngradeToBalances = async ({
+    superToken,
+    testToken,
+    sender,
+    receiver,
+    downgradeAmount,
+}: {
+    superToken: SuperToken;
+    testToken: TestToken;
+    sender: string;
+    receiver: string;
+    downgradeAmount: BigNumberish;
+}) => {
+    const senderSigner = await ethers.getSigner(sender);
+    const receiverSigner = await ethers.getSigner(receiver);
+    const senderSuperTokenBalanceBefore = await superToken
+        .connect(senderSigner)
+        .balanceOf(sender);
+    const senderERC20BalanceBefore = await testToken
+        .connect(senderSigner)
+        .balanceOf(sender);
+    const receiverSuperTokenBalanceBefore = await superToken
+        .connect(receiverSigner)
+        .balanceOf(receiver);
+    const receiverERC20TokenBalanceBefore = await testToken
+        .connect(receiverSigner)
+        .balanceOf(receiver);
+
+    await superToken
+        .connect(senderSigner)
+        .downgradeTo(receiver, downgradeAmount);
+
+    const senderSuperTokenBalanceAfter = await superToken
+        .connect(senderSigner)
+        .balanceOf(sender);
+    const senderERC20TokenBalanceAfter = await testToken
+        .connect(senderSigner)
+        .balanceOf(sender);
+    const receiverSuperTokenBalanceAfter = await superToken
+        .connect(receiverSigner)
+        .balanceOf(receiver);
+    const receiverERC20TokenBalanceAfter = await testToken
+        .connect(receiverSigner)
+        .balanceOf(receiver);
+
+    // sender super token balance after downgrade = sender super token balance before - downgrade amount
+    expect(senderSuperTokenBalanceBefore.sub(downgradeAmount)).to.equal(
+        senderSuperTokenBalanceAfter
+    );
+
+    // receiver underlying token balance before downgrade = receiver underlying token balance before + downgrade amount
+    expect(receiverERC20TokenBalanceBefore.add(downgradeAmount)).to.equal(
+        receiverERC20TokenBalanceAfter
+    );
+
+    // unless they are downgrading to their self, then balances will change for both
+    if (sender !== receiver) {
+        // sender underlying token balance after downgrade = sender underlying token balance after downgrade
+        expect(senderERC20BalanceBefore).to.equal(senderERC20TokenBalanceAfter);
+        // receiver super token balance after downgrade = receiver super token balance after downgrade
+        expect(receiverSuperTokenBalanceBefore).to.equal(
+            receiverSuperTokenBalanceAfter
+        );
+    }
+};

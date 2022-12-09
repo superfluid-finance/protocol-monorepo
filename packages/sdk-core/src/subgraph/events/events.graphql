@@ -738,6 +738,66 @@ query superTokenLogicCreatedEvents(
     }
 }
 
+query newPICEvents(
+    $first: Int
+    $skip: Int
+    $where: NewPICEvent_filter
+    $orderBy: NewPICEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
+    newPICEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        ...newPICEvent
+    }
+}
+
+query exitRateChangedEvents(
+    $first: Int
+    $skip: Int
+    $where: ExitRateChangedEvent_filter
+    $orderBy: ExitRateChangedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
+    exitRateChangedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        ...newExitRateChangedEvent
+    }
+}
+
+query bondIncreasedEvents(
+    $first: Int
+    $skip: Int
+    $where: BondIncreasedEvent_filter
+    $orderBy: BondIncreasedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
+    bondIncreasedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        ...newBondIncreasedEvent
+    }
+}
+
 query events(
     $where: Event_filter! = {}
     $skip: Int! = 0
@@ -874,6 +934,15 @@ query events(
         }
         ... on SuperTokenLogicCreatedEvent {
             ...superTokenLogicCreatedEvent
+        }
+        ... on NewPICEvent {
+            ...newPICEvent
+        }
+        ... on ExitRateChangedEvent {
+            ...newExitRateChangedEvent
+        }
+        ... on BondIncreasedEvent {
+            ...newBondIncreasedEvent
         }
     }
 }
@@ -1258,4 +1327,24 @@ fragment superTokenCreatedEvent on SuperTokenCreatedEvent {
 fragment superTokenLogicCreatedEvent on SuperTokenLogicCreatedEvent {
     ...eventFields
     tokenLogic
+}
+
+fragment newPICEvent on NewPICEvent {
+    ...eventFields
+    token
+    pic
+    bond
+    exitRate
+}
+
+fragment newExitRateChangedEvent on ExitRateChangedEvent {
+    ...eventFields
+    token
+    exitRate
+}
+
+fragment newBondIncreasedEvent on BondIncreasedEvent {
+    ...eventFields
+    token
+    additionalBond
 }

@@ -71,7 +71,7 @@ jobs:
         working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: "Deploy Framework and Tokens"
-        run: npx hardhat run ops-scripts/runDeployContractsAndToken.ts --network localhost
+        run: npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost
         working-directory: ./packages/ethereum-contracts
 
       - name: "Prepare files for local testing"

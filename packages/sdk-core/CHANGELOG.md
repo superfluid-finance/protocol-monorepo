@@ -6,6 +6,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 ## [0.5.9] - 2022-12-15
+### Added
+- Added `downgradeTo` function on `SuperToken` class
+- Added toga events to be part of query
+- Map `deposit` to Stream when querying from Subgraph
 
 ### Fixes
 - Added CFAForwarderV1 address to sdk-core

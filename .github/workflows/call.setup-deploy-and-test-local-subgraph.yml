@@ -90,7 +90,7 @@ jobs:
 
       - name: "Run subgraph integration test suite"
         if: inputs.run-sdk-core-tests == false
-        run: yarn test
+        run: yarn test --network localhost
         working-directory: ${{ env.subgraph-working-directory }}
       #
 

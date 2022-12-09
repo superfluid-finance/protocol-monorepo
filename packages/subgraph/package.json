@@ -16,7 +16,7 @@
         "testenv:start": "tasks/testenv-ctl.sh start",
         "testenv:stop": "tasks/testenv-ctl.sh stop",
         "pretest": "yarn testenv:start",
-        "test": "npx hardhat test --network localhost",
+        "test": "npx hardhat test",
         "matchstick": "run-s matchstick:*",
         "matchstick:prepare-manifest": "mustache config/matic.json subgraph.template.yaml > subgraph.yaml",
         "matchstick:prepare-addresses": "mustache config/matic.json src/addresses.template.ts > src/addresses.ts",

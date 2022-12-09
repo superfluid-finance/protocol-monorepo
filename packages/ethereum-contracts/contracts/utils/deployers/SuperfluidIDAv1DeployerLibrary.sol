@@ -9,7 +9,7 @@ import { ISuperfluid } from "../../superfluid/Superfluid.sol";
 /// @title SuperfluidIDAv1DeployerLibrary
 /// @author Superfluid
 /// @notice An external library that deploys the Superfluid InstantDistributionAgreementV1 contract.
-/// @dev This library is used for testing purposes only, not deployments to test OR production networks.
+/// @dev This library is used for testing purposes only, not deployments to test OR production networks
 library SuperfluidIDAv1DeployerLibrary {
     /// @notice deploys the Superfluid InstantDistributionAgreementV1 Contract
     /// @param _host Superfluid host address

@@ -119,7 +119,6 @@ const deployTestFramework = async () => {
             },
         }
     );
-    console.log(await frameworkDeployer.getFramework());
     return frameworkDeployer;
 };
 

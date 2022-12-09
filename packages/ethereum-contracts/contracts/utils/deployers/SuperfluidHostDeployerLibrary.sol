@@ -11,7 +11,7 @@ import { TestGovernance } from "../TestGovernance.sol";
 /// @title SuperfluidHostDeployerLibrary
 /// @author Superfluid
 /// @notice An external library that deploys the Superfluid Host contract with additional functions.
-/// @dev This library is used for testing purposes only, not deployments to test OR production networks.
+/// @dev This library is used for testing purposes only, not deployments to test OR production networks
 library SuperfluidHostDeployerLibrary {
     /// @notice Deploys the Superfluid Host Contract
     /// @param _nonUpgradable whether the hsot contract is upgradeable or not

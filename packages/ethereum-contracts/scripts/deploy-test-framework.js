@@ -1,12 +1,12 @@
 const {ethers} = require("hardhat");
 
-const SuperfluidGovDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/superfluidFrameworkDeployer/SuperfluidGovDeployerLibrary.sol/SuperfluidGovDeployerLibrary.json");
-const SuperfluidHostDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/superfluidFrameworkDeployer/SuperfluidHostDeployerLibrary.sol/SuperfluidHostDeployerLibrary.json");
-const SuperfluidCFAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/superfluidFrameworkDeployer/SuperfluidCFAv1DeployerLibrary.sol/SuperfluidCFAv1DeployerLibrary.json");
-const SuperfluidIDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/superfluidFrameworkDeployer/SuperfluidIDAv1DeployerLibrary.sol/SuperfluidIDAv1DeployerLibrary.json");
-const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/superfluidFrameworkDeployer/SuperfluidPeripheryDeployerLibrary.sol/SuperfluidPeripheryDeployerLibrary.json");
-const SuperfluidSuperTokenFactoryHelperDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/superfluidFrameworkDeployer/SuperfluidSuperTokenFactoryHelperDeployerLibrary.sol/SuperfluidSuperTokenFactoryHelperDeployerLibrary.json");
-const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/superfluidFrameworkDeployer/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
+const SuperfluidGovDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/sfFrameworkDeployer/SuperfluidGovDeployerLibrary.sol/SuperfluidGovDeployerLibrary.json");
+const SuperfluidHostDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/sfFrameworkDeployer/SuperfluidHostDeployerLibrary.sol/SuperfluidHostDeployerLibrary.json");
+const SuperfluidCFAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/sfFrameworkDeployer/SuperfluidCFAv1DeployerLibrary.sol/SuperfluidCFAv1DeployerLibrary.json");
+const SuperfluidIDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/sfFrameworkDeployer/SuperfluidIDAv1DeployerLibrary.sol/SuperfluidIDAv1DeployerLibrary.json");
+const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/sfFrameworkDeployer/SuperfluidPeripheryDeployerLibrary.sol/SuperfluidPeripheryDeployerLibrary.json");
+const SuperfluidSuperTokenFactoryHelperDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/sfFrameworkDeployer/SuperfluidSuperTokenFactoryHelperDeployerLibrary.sol/SuperfluidSuperTokenFactoryHelperDeployerLibrary.json");
+const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/sfFrameworkDeployer/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
 
 const ERC1820Registry = require("./artifacts/ERC1820Registry.json");

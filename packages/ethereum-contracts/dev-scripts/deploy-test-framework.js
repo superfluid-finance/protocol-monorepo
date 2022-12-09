@@ -122,14 +122,6 @@ const deployTestFramework = async () => {
     return frameworkDeployer;
 };
 
-const main = async () => {
-    await deployTestFramework();
-}
-
-main().catch((err) => {
-    console.error(err);
-})
-
 module.exports = {
     deployTestFramework,
 };

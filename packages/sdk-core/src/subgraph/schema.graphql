@@ -52,8 +52,7 @@ enum _SubgraphErrorPolicy_ {
 }
 
 """
-Account: A higher order entity created for any addresses which interact with
-Superfluid contracts.
+Account: A higher order entity created for any addresses which interact with Superfluid contracts.
 
 """
 type Account {
@@ -157,8 +156,7 @@ enum Account_orderBy {
 }
 
 """
-AccountTokenSnapshot: An aggregate entity which aggregates data on an account's
-interaction with a `token`.
+AccountTokenSnapshot: An aggregate entity which aggregates data between an `account`'s interaction with `token`.
 
 """
 type AccountTokenSnapshot {
@@ -172,8 +170,9 @@ type AccountTokenSnapshot {
 
   """
   isLiquidationEstimateOptimistic, If `totalSubscriptionsWithUnits > 0`, it is true.
-  Optimistic means that it is the earliest time the user will be liquidated as
-  they may receive ongoing distributions which aren't tracked by the subgraph
+  "Optimistic" can be thought of as conservative as it refers to the earliest
+  time the user may be liquidated as they may receive ongoing distributions
+  which aren't tracked by the subgraph.
   
   """
   isLiquidationEstimateOptimistic: Boolean!
@@ -191,7 +190,7 @@ type AccountTokenSnapshot {
   totalNumberOfActiveStreams: Int!
 
   """
-  The number of all-time closed streams.
+  The count of closed streams by `account`.
   
   """
   totalNumberOfClosedStreams: Int!
@@ -239,22 +238,19 @@ type AccountTokenSnapshot {
   totalOutflowRate: BigInt!
 
   """
-  The total amount of `token` streamed into this `account` until
-  the `updatedAtTimestamp`/`updatedAtBlock`.
+  The total amount of `token` streamed into this `account` until the `updatedAtTimestamp`/`updatedAtBlock`.
   
   """
   totalAmountStreamedInUntilUpdatedAt: BigInt!
 
   """
-  The total amount of `token` streamed from this `account` until
-  the `updatedAtTimestamp`/`updatedAtBlock`.
+  The total amount of `token` streamed from this `account` until the `updatedAtTimestamp`/`updatedAtBlock`.
   
   """
   totalAmountStreamedOutUntilUpdatedAt: BigInt!
 
   """
-  The total amount of `token` streamed through this `account` until
-  the `updatedAtTimestamp`/`updatedAtBlock`.
+  The total amount of `token` streamed through this `account` until the `updatedAtTimestamp`/`updatedAtBlock`.
   
   """
   totalAmountStreamedUntilUpdatedAt: BigInt!
@@ -486,7 +482,7 @@ enum AccountTokenSnapshot_orderBy {
 }
 
 """
-AccountTokenSnapshotLog: Historical entries of AccountTokenSnapshot updates.
+AccountTokenSnapshotLog: Historical entries of `AccountTokenSnapshot` updates.
 
 """
 type AccountTokenSnapshotLog {
@@ -505,13 +501,13 @@ type AccountTokenSnapshotLog {
   maybeCriticalAtTimestamp: BigInt
 
   """
-  The current (as of timestamp) number of currently open streams.
+  The current (as of timestamp) number of open streams.
   
   """
   totalNumberOfActiveStreams: Int!
 
   """
-  The current (as of timestamp) number of all-time closed streams.
+  The current (as of timestamp) count of closed streams.
   
   """
   totalNumberOfClosedStreams: Int!
@@ -542,6 +538,7 @@ type AccountTokenSnapshotLog {
 
   """
   The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block`.
+  This can be obtained by: `totalInflowRate - totalOutflowRate` 
   
   """
   totalNetFlowRate: BigInt!
@@ -559,28 +556,25 @@ type AccountTokenSnapshotLog {
   totalOutflowRate: BigInt!
 
   """
-  The total (as of timestamp) amount of `token` streamed into this `account` until
-  the `timestamp`/`block`.
+  The total (as of timestamp) amount of `token` streamed into this `account` until the `timestamp`/`block`.
   
   """
   totalAmountStreamedIn: BigInt!
 
   """
-  The total (as of timestamp) amount of `token` streamed from this `account` until
-  the `timestamp`/`block`.
+  The total (as of timestamp) amount of `token` streamed from this `account` until the `timestamp`/`block`.
   
   """
   totalAmountStreamedOut: BigInt!
 
   """
-  The total (as of timestamp) net amount of `token` streamed through this `account` until
-  the `timestamp`/`block`.
+  The total (as of timestamp) net amount of `token` streamed through this `account` until the `timestamp`/`block`.
   
   """
   totalAmountStreamed: BigInt!
 
   """
-  The total (as of timestamp) amount of `token` this `account` has transferred.
+  The total (as of timestamp) amount of `token` this `account` has transferred out until the `timestamp`/`block`.
   
   """
   totalAmountTransferred: BigInt!
@@ -867,6 +861,7 @@ type AgreementClassRegisteredEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -905,6 +900,14 @@ input AgreementClassRegisteredEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -984,6 +987,7 @@ enum AgreementClassRegisteredEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -998,6 +1002,7 @@ type AgreementClassUpdatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -1036,6 +1041,14 @@ input AgreementClassUpdatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -1115,6 +1128,7 @@ enum AgreementClassUpdatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -1125,15 +1139,27 @@ enum AgreementClassUpdatedEvent_orderBy {
   code
 }
 
+"""
+NOTE: This event was deprecated since the introduction of the 3Ps system.
+Replaced by: `AgreementLiquidatedV2Event`
+See: https://docs.superfluid.finance/superfluid/sentinels/liquidations-and-toga#patricians-plebs-and-pirates-3ps for more details on the 3Ps system.
+See: https://github.com/superfluid-finance/protocol-monorepo/blob/dev/packages/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol#L425 for more details on the events.
+
+"""
 type AgreementLiquidatedByEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, liquidatorAccount, penaltyAccount and bondAccount addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = liquidatorAccount (executor of liquidation)
+  addresses[2] = penaltyAccount (the sender of the flow/stream)
+  addresses[3] = bondAccount (the address receiving the reward - the reward account for the token, pre 3Ps)
   
   """
   addresses: [Bytes!]!
@@ -1148,6 +1174,18 @@ type AgreementLiquidatedByEvent implements Event {
   bondAccount: Bytes!
   rewardAmount: BigInt!
   bailoutAmount: BigInt!
+
+  """
+  The full deposit amount of the stream that was liquidated.
+  
+  """
+  deposit: BigInt!
+
+  """
+  The flow rate of the stream at the time of liquidation.
+  
+  """
+  flowRateAtLiquidation: BigInt!
 }
 
 input AgreementLiquidatedByEvent_filter {
@@ -1173,6 +1211,14 @@ input AgreementLiquidatedByEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -1283,6 +1329,22 @@ input AgreementLiquidatedByEvent_filter {
   bailoutAmount_lte: BigInt
   bailoutAmount_in: [BigInt!]
   bailoutAmount_not_in: [BigInt!]
+  deposit: BigInt
+  deposit_not: BigInt
+  deposit_gt: BigInt
+  deposit_lt: BigInt
+  deposit_gte: BigInt
+  deposit_lte: BigInt
+  deposit_in: [BigInt!]
+  deposit_not_in: [BigInt!]
+  flowRateAtLiquidation: BigInt
+  flowRateAtLiquidation_not: BigInt
+  flowRateAtLiquidation_gt: BigInt
+  flowRateAtLiquidation_lt: BigInt
+  flowRateAtLiquidation_gte: BigInt
+  flowRateAtLiquidation_lte: BigInt
+  flowRateAtLiquidation_in: [BigInt!]
+  flowRateAtLiquidation_not_in: [BigInt!]
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -1292,6 +1354,7 @@ enum AgreementLiquidatedByEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -1306,17 +1369,24 @@ enum AgreementLiquidatedByEvent_orderBy {
   bondAccount
   rewardAmount
   bailoutAmount
+  deposit
+  flowRateAtLiquidation
 }
 
 type AgreementLiquidatedV2Event implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, liquidatorAccount, targetAccount and rewardAmountReceiver addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `liquidatorAccount` (executor of liquidation)
+  addresses[2] = `targetAccount` (the sender of the flow/stream)
+  addresses[3] = `rewardAmountReceiver` (the address receiving the reward) addresses
   
   """
   addresses: [Bytes!]!
@@ -1324,15 +1394,27 @@ type AgreementLiquidatedV2Event implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
-  liquidatorAccount: Bytes!
   agreementClass: Bytes!
   agreementId: Bytes!
+  liquidatorAccount: Bytes!
   targetAccount: Bytes!
   rewardAmountReceiver: Bytes!
   rewardAmount: BigInt!
   targetAccountBalanceDelta: BigInt!
   version: BigInt!
   liquidationType: Int!
+
+  """
+  The full deposit amount of the stream that was liquidated.
+  
+  """
+  deposit: BigInt!
+
+  """
+  The flow rate of the stream at the time of liquidation.
+  
+  """
+  flowRateAtLiquidation: BigInt!
 
   """
   TO BE DEPRECATED in v2 endpoint - use rewardAmountReceiver instead
@@ -1364,6 +1446,14 @@ input AgreementLiquidatedV2Event_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -1428,12 +1518,6 @@ input AgreementLiquidatedV2Event_filter {
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
-  liquidatorAccount: Bytes
-  liquidatorAccount_not: Bytes
-  liquidatorAccount_in: [Bytes!]
-  liquidatorAccount_not_in: [Bytes!]
-  liquidatorAccount_contains: Bytes
-  liquidatorAccount_not_contains: Bytes
   agreementClass: Bytes
   agreementClass_not: Bytes
   agreementClass_in: [Bytes!]
@@ -1446,6 +1530,12 @@ input AgreementLiquidatedV2Event_filter {
   agreementId_not_in: [Bytes!]
   agreementId_contains: Bytes
   agreementId_not_contains: Bytes
+  liquidatorAccount: Bytes
+  liquidatorAccount_not: Bytes
+  liquidatorAccount_in: [Bytes!]
+  liquidatorAccount_not_in: [Bytes!]
+  liquidatorAccount_contains: Bytes
+  liquidatorAccount_not_contains: Bytes
   targetAccount: Bytes
   targetAccount_not: Bytes
   targetAccount_in: [Bytes!]
@@ -1490,6 +1580,22 @@ input AgreementLiquidatedV2Event_filter {
   liquidationType_lte: Int
   liquidationType_in: [Int!]
   liquidationType_not_in: [Int!]
+  deposit: BigInt
+  deposit_not: BigInt
+  deposit_gt: BigInt
+  deposit_lt: BigInt
+  deposit_gte: BigInt
+  deposit_lte: BigInt
+  deposit_in: [BigInt!]
+  deposit_not_in: [BigInt!]
+  flowRateAtLiquidation: BigInt
+  flowRateAtLiquidation_not: BigInt
+  flowRateAtLiquidation_gt: BigInt
+  flowRateAtLiquidation_lt: BigInt
+  flowRateAtLiquidation_gte: BigInt
+  flowRateAtLiquidation_lte: BigInt
+  flowRateAtLiquidation_in: [BigInt!]
+  flowRateAtLiquidation_not_in: [BigInt!]
   rewardAccount: Bytes
   rewardAccount_not: Bytes
   rewardAccount_in: [Bytes!]
@@ -1505,6 +1611,7 @@ enum AgreementLiquidatedV2Event_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -1512,15 +1619,17 @@ enum AgreementLiquidatedV2Event_orderBy {
   logIndex
   order
   token
-  liquidatorAccount
   agreementClass
   agreementId
+  liquidatorAccount
   targetAccount
   rewardAmountReceiver
   rewardAmount
   targetAccountBalanceDelta
   version
   liquidationType
+  deposit
+  flowRateAtLiquidation
   rewardAccount
 }
 
@@ -1528,6 +1637,7 @@ type AppRegisteredEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -1565,6 +1675,14 @@ input AppRegisteredEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -1638,6 +1756,7 @@ enum AppRegisteredEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -1661,15 +1780,172 @@ input BlockChangedFilter {
   number_gte: Int!
 }
 
-type BurnedEvent implements Event {
+type BondIncreasedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token and from addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  
+  """
+  addresses: [Bytes!]!
+  blockNumber: BigInt!
+  logIndex: BigInt!
+  order: BigInt!
+
+  """
+  The address of the `token` (supertoken).
+  
+  """
+  token: Bytes!
+
+  """
+  The additional amount added to the bond by the current Patrician In Charge (PIC).
+  
+  """
+  additionalBond: BigInt!
+}
+
+input BondIncreasedEvent_filter {
+  id: ID
+  id_not: ID
+  id_gt: ID
+  id_lt: ID
+  id_gte: ID
+  id_lte: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  transactionHash: Bytes
+  transactionHash_not: Bytes
+  transactionHash_in: [Bytes!]
+  transactionHash_not_in: [Bytes!]
+  transactionHash_contains: Bytes
+  transactionHash_not_contains: Bytes
+  gasPrice: BigInt
+  gasPrice_not: BigInt
+  gasPrice_gt: BigInt
+  gasPrice_lt: BigInt
+  gasPrice_gte: BigInt
+  gasPrice_lte: BigInt
+  gasPrice_in: [BigInt!]
+  gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
+  timestamp: BigInt
+  timestamp_not: BigInt
+  timestamp_gt: BigInt
+  timestamp_lt: BigInt
+  timestamp_gte: BigInt
+  timestamp_lte: BigInt
+  timestamp_in: [BigInt!]
+  timestamp_not_in: [BigInt!]
+  name: String
+  name_not: String
+  name_gt: String
+  name_lt: String
+  name_gte: String
+  name_lte: String
+  name_in: [String!]
+  name_not_in: [String!]
+  name_contains: String
+  name_contains_nocase: String
+  name_not_contains: String
+  name_not_contains_nocase: String
+  name_starts_with: String
+  name_starts_with_nocase: String
+  name_not_starts_with: String
+  name_not_starts_with_nocase: String
+  name_ends_with: String
+  name_ends_with_nocase: String
+  name_not_ends_with: String
+  name_not_ends_with_nocase: String
+  addresses: [Bytes!]
+  addresses_not: [Bytes!]
+  addresses_contains: [Bytes!]
+  addresses_contains_nocase: [Bytes!]
+  addresses_not_contains: [Bytes!]
+  addresses_not_contains_nocase: [Bytes!]
+  blockNumber: BigInt
+  blockNumber_not: BigInt
+  blockNumber_gt: BigInt
+  blockNumber_lt: BigInt
+  blockNumber_gte: BigInt
+  blockNumber_lte: BigInt
+  blockNumber_in: [BigInt!]
+  blockNumber_not_in: [BigInt!]
+  logIndex: BigInt
+  logIndex_not: BigInt
+  logIndex_gt: BigInt
+  logIndex_lt: BigInt
+  logIndex_gte: BigInt
+  logIndex_lte: BigInt
+  logIndex_in: [BigInt!]
+  logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
+  token: Bytes
+  token_not: Bytes
+  token_in: [Bytes!]
+  token_not_in: [Bytes!]
+  token_contains: Bytes
+  token_not_contains: Bytes
+  additionalBond: BigInt
+  additionalBond_not: BigInt
+  additionalBond_gt: BigInt
+  additionalBond_lt: BigInt
+  additionalBond_gte: BigInt
+  additionalBond_lte: BigInt
+  additionalBond_in: [BigInt!]
+  additionalBond_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
+}
+
+enum BondIncreasedEvent_orderBy {
+  id
+  transactionHash
+  gasPrice
+  gasUsed
+  timestamp
+  name
+  addresses
+  blockNumber
+  logIndex
+  order
+  token
+  additionalBond
+}
+
+type BurnedEvent implements Event {
+  id: ID!
+  transactionHash: Bytes!
+  gasPrice: BigInt!
+  gasUsed: BigInt!
+  timestamp: BigInt!
+  name: String!
+
+  """
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `from`
   
   """
   addresses: [Bytes!]!
@@ -1707,6 +1983,14 @@ input BurnedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -1812,6 +2096,7 @@ enum BurnedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -1832,6 +2117,7 @@ type CFAv1LiquidationPeriodChangedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -1878,6 +2164,14 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -1975,6 +2269,7 @@ enum CFAv1LiquidationPeriodChangedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   governanceAddress
@@ -1992,6 +2287,7 @@ type ConfigChangedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -2039,6 +2335,14 @@ input ConfigChangedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -2142,6 +2446,7 @@ enum ConfigChangedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   governanceAddress
@@ -2160,11 +2465,13 @@ type CustomSuperTokenCreatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token address.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
   
   """
   addresses: [Bytes!]!
@@ -2197,6 +2504,14 @@ input CustomSuperTokenCreatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -2270,6 +2585,7 @@ enum CustomSuperTokenCreatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -2280,26 +2596,72 @@ enum CustomSuperTokenCreatedEvent_orderBy {
 }
 
 """
-Event: An interface which is shared by all
-event entities and contains basic transaction
-data.
+Event: An interface which is shared by all event entities and contains basic transaction data.
 
 """
 interface Event {
+  """
+  The id of the event entity.
+  
+  """
   id: ID!
+
+  """
+  The block number which the event was logged in.
+  
+  """
   blockNumber: BigInt!
+
+  """
+  The index of the event, e.g. first event emitted would have `logIndex` of 0.
+  
+  """
   logIndex: BigInt!
+
+  """
+  A number used internally to sort the order of transactions.
+  The formula: `blockNumber * ORDER_MULTIPLIER + logIndex`
+  where: ORDER_MULTIPLIER = 10000
+  
+  """
   order: BigInt!
+
+  """
+  The name of the event - is a 1-to-1 match with the name in our smart contracts.
+  
+  """
   name: String!
 
   """
-  Holds the addresses for accounts that were impacted by the event.
+  Contains the addresses for accounts that were "impacted" by the event.
+  This typically involves accounts which experienced a state change as a result of the transaction which emitted this event.
   
   """
   addresses: [Bytes!]!
+
+  """
+  The block timestamp which the event was logged in.
+  
+  """
   timestamp: BigInt!
+
+  """
+  The transaction hash of the transaction that the event was logged in.
+  
+  """
   transactionHash: Bytes!
+
+  """
+  The gas price of the transaction that the event was logged in.
+  
+  """
   gasPrice: BigInt!
+
+  """
+  The gas used for this transaction.
+  
+  """
+  gasUsed: BigInt!
 }
 
 input Event_filter {
@@ -2383,6 +2745,14 @@ input Event_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -2398,6 +2768,161 @@ enum Event_orderBy {
   timestamp
   transactionHash
   gasPrice
+  gasUsed
+}
+
+type ExitRateChangedEvent implements Event {
+  id: ID!
+  transactionHash: Bytes!
+  gasPrice: BigInt!
+  gasUsed: BigInt!
+  timestamp: BigInt!
+  name: String!
+
+  """
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  
+  """
+  addresses: [Bytes!]!
+  blockNumber: BigInt!
+  logIndex: BigInt!
+  order: BigInt!
+
+  """
+  The address of the `token` (supertoken).
+  
+  """
+  token: Bytes!
+
+  """
+  The flowrate at which the bond is streamed back to the Patrician In Charge.
+  
+  """
+  exitRate: BigInt!
+}
+
+input ExitRateChangedEvent_filter {
+  id: ID
+  id_not: ID
+  id_gt: ID
+  id_lt: ID
+  id_gte: ID
+  id_lte: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  transactionHash: Bytes
+  transactionHash_not: Bytes
+  transactionHash_in: [Bytes!]
+  transactionHash_not_in: [Bytes!]
+  transactionHash_contains: Bytes
+  transactionHash_not_contains: Bytes
+  gasPrice: BigInt
+  gasPrice_not: BigInt
+  gasPrice_gt: BigInt
+  gasPrice_lt: BigInt
+  gasPrice_gte: BigInt
+  gasPrice_lte: BigInt
+  gasPrice_in: [BigInt!]
+  gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
+  timestamp: BigInt
+  timestamp_not: BigInt
+  timestamp_gt: BigInt
+  timestamp_lt: BigInt
+  timestamp_gte: BigInt
+  timestamp_lte: BigInt
+  timestamp_in: [BigInt!]
+  timestamp_not_in: [BigInt!]
+  name: String
+  name_not: String
+  name_gt: String
+  name_lt: String
+  name_gte: String
+  name_lte: String
+  name_in: [String!]
+  name_not_in: [String!]
+  name_contains: String
+  name_contains_nocase: String
+  name_not_contains: String
+  name_not_contains_nocase: String
+  name_starts_with: String
+  name_starts_with_nocase: String
+  name_not_starts_with: String
+  name_not_starts_with_nocase: String
+  name_ends_with: String
+  name_ends_with_nocase: String
+  name_not_ends_with: String
+  name_not_ends_with_nocase: String
+  addresses: [Bytes!]
+  addresses_not: [Bytes!]
+  addresses_contains: [Bytes!]
+  addresses_contains_nocase: [Bytes!]
+  addresses_not_contains: [Bytes!]
+  addresses_not_contains_nocase: [Bytes!]
+  blockNumber: BigInt
+  blockNumber_not: BigInt
+  blockNumber_gt: BigInt
+  blockNumber_lt: BigInt
+  blockNumber_gte: BigInt
+  blockNumber_lte: BigInt
+  blockNumber_in: [BigInt!]
+  blockNumber_not_in: [BigInt!]
+  logIndex: BigInt
+  logIndex_not: BigInt
+  logIndex_gt: BigInt
+  logIndex_lt: BigInt
+  logIndex_gte: BigInt
+  logIndex_lte: BigInt
+  logIndex_in: [BigInt!]
+  logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
+  token: Bytes
+  token_not: Bytes
+  token_in: [Bytes!]
+  token_not_in: [Bytes!]
+  token_contains: Bytes
+  token_not_contains: Bytes
+  exitRate: BigInt
+  exitRate_not: BigInt
+  exitRate_gt: BigInt
+  exitRate_lt: BigInt
+  exitRate_gte: BigInt
+  exitRate_lte: BigInt
+  exitRate_in: [BigInt!]
+  exitRate_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
+}
+
+enum ExitRateChangedEvent_orderBy {
+  id
+  transactionHash
+  gasPrice
+  gasUsed
+  timestamp
+  name
+  addresses
+  blockNumber
+  logIndex
+  order
+  token
+  exitRate
 }
 
 """
@@ -2406,7 +2931,7 @@ FlowOperator: A higher order entity that of a flow operator for an `AccountToken
 """
 type FlowOperator {
   """
-  ID composed of: flowOperator - token - sender
+  ID composed of: flowOperator-token-sender
   
   """
   id: ID!
@@ -2417,25 +2942,27 @@ type FlowOperator {
 
   """
   The permissions granted to the `flowOperator`.
-  Octo bitmask representation.
+  Bitmask representation:
+  Delete | Update | Create
+  | D | U | C |
+  | 0 | 0 | 0 |
   
   """
   permissions: Int!
 
   """
-  The flow rate allowance granted to the `flowOperator`
-  by the `sender`. This can be reset if the `sender`
-  updates the `flowOperator` flow rate allowance.
+  The flow rate allowance granted to the `flowOperator` by the `sender`. This
+  can be reset if the `sender` updates the `flowOperator` flow rate allowance.
   
   """
   flowRateAllowanceGranted: BigInt!
 
   """
-  The remaining flow rate allowance the `flowOperator` has,
-  this will go down every time when `flowOperator` uses it
-  (if they increase flowRate or create a new flow)
-  and can only be reset if the `sender` updates the flow
-  rate allowance.
+  The remaining flow rate allowance the `flowOperator` has.
+  This will go down every time when the `flowOperator` uses the allowance, that
+  is, if they increase flowRate for `sender` or create a new flow on behalf of `sender`.
+  It can only be reset if the `sender` updates the flow rate allowance.
+  NOTE: this value will NOT go down if max flow rate allowance is set.
   
   """
   flowRateAllowanceRemaining: BigInt!
@@ -2606,11 +3133,15 @@ type FlowOperatorUpdatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, sender, and flowOperator addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = sender
+  addresses[2] = `flowOperator`
   
   """
   addresses: [Bytes!]!
@@ -2658,6 +3189,14 @@ input FlowOperatorUpdatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -2774,6 +3313,7 @@ enum FlowOperatorUpdatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -2796,11 +3336,15 @@ type FlowUpdatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, sender and receiver addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (supertoken)
+  addresses[1] = `sender`
+  addresses[2] = `receiver`
   
   """
   addresses: [Bytes!]!
@@ -2809,17 +3353,26 @@ type FlowUpdatedEvent implements Event {
   order: BigInt!
 
   """
-  The address of the `token` being streamed.
+  The address of the `token` (supertoken) being streamed.
   
   """
   token: Bytes!
+
+  """
+  The address of the flow sender.
+  
+  """
   sender: Bytes!
+
+  """
+  The address of the flow receiver.
+  
+  """
   receiver: Bytes!
 
   """
-  The address that is triggering the flow update.
-  This will be the zero address until the flowOperator
-  feature is live.
+  The address that is executing the flow update transaction.
+  This will be the zero address until the flowOperator feature is live.
   
   """
   flowOperator: Bytes!
@@ -2829,13 +3382,33 @@ type FlowUpdatedEvent implements Event {
   
   """
   flowRate: BigInt!
+
+  """
+  The total (global/account level) flow rate of `sender` for `token` as of this event.
+  
+  """
   totalSenderFlowRate: BigInt!
+
+  """
+  The total (global/account level) flow rate of `receiver` for `token` as of this event.
+  
+  """
   totalReceiverFlowRate: BigInt!
+
+  """
+  The deposit amount put up for the creation of the flow.
+  
+  """
   deposit: BigInt!
+
+  """
+  Arbitrary bytes (additional data) passed upon flow creation.
+  
+  """
   userData: Bytes!
 
   """
-  The previous flow rate.
+  The previous flow rate, the absolute (positive) value.
   
   """
   oldFlowRate: BigInt!
@@ -2886,6 +3459,14 @@ input FlowUpdatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -3060,6 +3641,7 @@ enum FlowUpdatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -3085,6 +3667,7 @@ type GovernanceReplacedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
   blockNumber: BigInt!
@@ -3123,6 +3706,14 @@ input GovernanceReplacedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -3202,6 +3793,7 @@ enum GovernanceReplacedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   blockNumber
@@ -3228,7 +3820,8 @@ type Index {
   updatedAtBlockNumber: BigInt!
 
   """
-  indexId is not the id of the `Index` entity.
+  NOTE: indexId is not the same as the id of the `Index` entity.
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
   
   """
   indexId: BigInt!
@@ -3242,16 +3835,14 @@ type Index {
 
   """
   The number of units allocated by the `Index` that are pending.
-  This refers to the current (as of updatedAt) `totalUnitsPending`
-  - not all that has ever been pending.
+  This refers to the current (as of updatedAt) `totalUnitsPending`-not all that has ever been pending.
   
   """
   totalUnitsPending: BigInt!
 
   """
   The number of units allocated by the `Index` that are approved.
-  This refers to the current (as of updatedAt) `totalUnitsApproved`
-  - not all that has ever been approved.
+  This refers to the current (as of updatedAt) `totalUnitsApproved`-not all that has ever been approved.
   
   """
   totalUnitsApproved: BigInt!
@@ -3488,11 +4079,14 @@ type IndexCreatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token and publisher addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `publisher`
   
   """
   addresses: [Bytes!]!
@@ -3500,7 +4094,17 @@ type IndexCreatedEvent implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
+
+  """
+  The creator of the `index`.
+  
+  """
   publisher: Bytes!
+
+  """
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+  
+  """
   indexId: BigInt!
   userData: Bytes!
   index: Index!
@@ -3529,6 +4133,14 @@ input IndexCreatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -3643,6 +4255,7 @@ enum IndexCreatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -3660,11 +4273,15 @@ type IndexDistributionClaimedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, publisher and subscriber addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `publisher`
+  addresses[2] = `subscriber`
   
   """
   addresses: [Bytes!]!
@@ -3672,8 +4289,24 @@ type IndexDistributionClaimedEvent implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
+
+  """
+  The creator of the `index`.
+  
+  """
   publisher: Bytes!
+
+  """
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+  
+  """
   indexId: BigInt!
+
+  """
+  The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+  `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+  
+  """
   subscriber: Bytes!
   amount: BigInt!
   index: Index!
@@ -3702,6 +4335,14 @@ input IndexDistributionClaimedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -3824,6 +4465,7 @@ enum IndexDistributionClaimedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -3842,11 +4484,15 @@ type IndexSubscribedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, publisher and subscriber addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `publisher`
+  addresses[2] = `subscriber`
   
   """
   addresses: [Bytes!]!
@@ -3854,8 +4500,24 @@ type IndexSubscribedEvent implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
+
+  """
+  The creator of the `index`.
+  
+  """
   publisher: Bytes!
+
+  """
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+  
+  """
   indexId: BigInt!
+
+  """
+  The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+  `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+  
+  """
   subscriber: Bytes!
   userData: Bytes!
   index: Index!
@@ -3884,6 +4546,14 @@ input IndexSubscribedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -4004,6 +4674,7 @@ enum IndexSubscribedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -4019,8 +4690,7 @@ enum IndexSubscribedEvent_orderBy {
 }
 
 """
-IndexSubscription: A higher order entity that contains subscription data for a `subscriber` account of a particular
-`Index`.
+IndexSubscription: A higher order entity that contains subscription data for a `subscriber` account of a particular `Index`.
 
 """
 type IndexSubscription {
@@ -4036,15 +4706,14 @@ type IndexSubscription {
   subscriber: Account!
 
   """
-  Approved subscriptions don't require subscribers to claim tokens that are distributed from
-  the publisher.
+  A boolean indicating whether the `IndexSubscription` is approved.
+  Approved subscriptions don't require `subscriber` to claim tokens that are distributed from the publisher.
   
   """
   approved: Boolean!
 
   """
-  If units is 0, it indicates that the subscription is "deleted". They are no longer
-  subscribed to the index.
+  If `units` is `0`, it indicates that the subscription is "deleted" and `subscriber` is no longer subscribed to `index`.
   
   """
   units: BigInt!
@@ -4057,8 +4726,10 @@ type IndexSubscription {
   totalAmountReceivedUntilUpdatedAt: BigInt!
 
   """
-  The previous index value - used to calculate `totalAmountReceivedUntilUpdatedAt` field as of the
-  `index.updatedAtTimestamp`. The formula to get this value is:
+  The previous index value - used to calculate
+  `totalAmountReceivedUntilUpdatedAt` field as of the
+  `index.updatedAtTimestamp`.
+  The formula to get this value is:
   `IndexSubscription.totalAmountReceivedUntilUpdatedAt + ((index.newIndexValue -
   indexSubscription.indexValueUntilUpdatedAt) * indexSubscription.units)`.
   
@@ -4218,11 +4889,15 @@ type IndexUnitsUpdatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, publisher and subscriber addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `publisher`
+  addresses[2] = `subscriber`
   
   """
   addresses: [Bytes!]!
@@ -4230,8 +4905,24 @@ type IndexUnitsUpdatedEvent implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
+
+  """
+  The creator of the `index`.
+  
+  """
   publisher: Bytes!
+
+  """
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+  
+  """
   indexId: BigInt!
+
+  """
+  The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+  `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+  
+  """
   subscriber: Bytes!
   units: BigInt!
   userData: Bytes!
@@ -4262,6 +4953,14 @@ input IndexUnitsUpdatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -4398,6 +5097,7 @@ enum IndexUnitsUpdatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -4418,11 +5118,15 @@ type IndexUnsubscribedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, publisher and subscriber addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `publisher`
+  addresses[2] = `subscriber`
   
   """
   addresses: [Bytes!]!
@@ -4430,8 +5134,24 @@ type IndexUnsubscribedEvent implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
+
+  """
+  The creator of the `index`.
+  
+  """
   publisher: Bytes!
+
+  """
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+  
+  """
   indexId: BigInt!
+
+  """
+  The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+  `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+  
+  """
   subscriber: Bytes!
   userData: Bytes!
   index: Index!
@@ -4460,6 +5180,14 @@ input IndexUnsubscribedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -4580,6 +5308,7 @@ enum IndexUnsubscribedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -4598,11 +5327,14 @@ type IndexUpdatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token and publisher addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `publisher`
   
   """
   addresses: [Bytes!]!
@@ -4610,7 +5342,17 @@ type IndexUpdatedEvent implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
+
+  """
+  The creator of the `index`.
+  
+  """
   publisher: Bytes!
+
+  """
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+  
+  """
   indexId: BigInt!
   oldIndexValue: BigInt!
   newIndexValue: BigInt!
@@ -4643,6 +5385,14 @@ input IndexUpdatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -4789,6 +5539,7 @@ enum IndexUpdatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -4810,6 +5561,7 @@ type JailEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -4848,6 +5600,14 @@ input JailEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -4929,6 +5689,7 @@ enum JailEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -4943,11 +5704,15 @@ type MintedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, operator and to addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `operator`
+  addresses[2] = `to`
   
   """
   addresses: [Bytes!]!
@@ -4985,6 +5750,14 @@ input MintedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -5090,6 +5863,7 @@ enum MintedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -5104,6 +5878,189 @@ enum MintedEvent_orderBy {
   operatorData
 }
 
+type NewPICEvent implements Event {
+  id: ID!
+  transactionHash: Bytes!
+  gasPrice: BigInt!
+  gasUsed: BigInt!
+  timestamp: BigInt!
+  name: String!
+
+  """
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `pic` (new Patrician In Charge)
+  
+  """
+  addresses: [Bytes!]!
+  blockNumber: BigInt!
+  logIndex: BigInt!
+  order: BigInt!
+
+  """
+  The address of the `token` (supertoken) the PIC is posting a bond for.
+  
+  """
+  token: Bytes!
+
+  """
+  The address of the new Patrician In Charge (PIC).
+  
+  """
+  pic: Bytes!
+
+  """
+  The bond the new PIC staked in order to claim the position.
+  
+  """
+  bond: BigInt!
+
+  """
+  The flowrate at which the bond is streamed back to the PIC.
+  
+  """
+  exitRate: BigInt!
+}
+
+input NewPICEvent_filter {
+  id: ID
+  id_not: ID
+  id_gt: ID
+  id_lt: ID
+  id_gte: ID
+  id_lte: ID
+  id_in: [ID!]
+  id_not_in: [ID!]
+  transactionHash: Bytes
+  transactionHash_not: Bytes
+  transactionHash_in: [Bytes!]
+  transactionHash_not_in: [Bytes!]
+  transactionHash_contains: Bytes
+  transactionHash_not_contains: Bytes
+  gasPrice: BigInt
+  gasPrice_not: BigInt
+  gasPrice_gt: BigInt
+  gasPrice_lt: BigInt
+  gasPrice_gte: BigInt
+  gasPrice_lte: BigInt
+  gasPrice_in: [BigInt!]
+  gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
+  timestamp: BigInt
+  timestamp_not: BigInt
+  timestamp_gt: BigInt
+  timestamp_lt: BigInt
+  timestamp_gte: BigInt
+  timestamp_lte: BigInt
+  timestamp_in: [BigInt!]
+  timestamp_not_in: [BigInt!]
+  name: String
+  name_not: String
+  name_gt: String
+  name_lt: String
+  name_gte: String
+  name_lte: String
+  name_in: [String!]
+  name_not_in: [String!]
+  name_contains: String
+  name_contains_nocase: String
+  name_not_contains: String
+  name_not_contains_nocase: String
+  name_starts_with: String
+  name_starts_with_nocase: String
+  name_not_starts_with: String
+  name_not_starts_with_nocase: String
+  name_ends_with: String
+  name_ends_with_nocase: String
+  name_not_ends_with: String
+  name_not_ends_with_nocase: String
+  addresses: [Bytes!]
+  addresses_not: [Bytes!]
+  addresses_contains: [Bytes!]
+  addresses_contains_nocase: [Bytes!]
+  addresses_not_contains: [Bytes!]
+  addresses_not_contains_nocase: [Bytes!]
+  blockNumber: BigInt
+  blockNumber_not: BigInt
+  blockNumber_gt: BigInt
+  blockNumber_lt: BigInt
+  blockNumber_gte: BigInt
+  blockNumber_lte: BigInt
+  blockNumber_in: [BigInt!]
+  blockNumber_not_in: [BigInt!]
+  logIndex: BigInt
+  logIndex_not: BigInt
+  logIndex_gt: BigInt
+  logIndex_lt: BigInt
+  logIndex_gte: BigInt
+  logIndex_lte: BigInt
+  logIndex_in: [BigInt!]
+  logIndex_not_in: [BigInt!]
+  order: BigInt
+  order_not: BigInt
+  order_gt: BigInt
+  order_lt: BigInt
+  order_gte: BigInt
+  order_lte: BigInt
+  order_in: [BigInt!]
+  order_not_in: [BigInt!]
+  token: Bytes
+  token_not: Bytes
+  token_in: [Bytes!]
+  token_not_in: [Bytes!]
+  token_contains: Bytes
+  token_not_contains: Bytes
+  pic: Bytes
+  pic_not: Bytes
+  pic_in: [Bytes!]
+  pic_not_in: [Bytes!]
+  pic_contains: Bytes
+  pic_not_contains: Bytes
+  bond: BigInt
+  bond_not: BigInt
+  bond_gt: BigInt
+  bond_lt: BigInt
+  bond_gte: BigInt
+  bond_lte: BigInt
+  bond_in: [BigInt!]
+  bond_not_in: [BigInt!]
+  exitRate: BigInt
+  exitRate_not: BigInt
+  exitRate_gt: BigInt
+  exitRate_lt: BigInt
+  exitRate_gte: BigInt
+  exitRate_lte: BigInt
+  exitRate_in: [BigInt!]
+  exitRate_not_in: [BigInt!]
+
+  """Filter for the block changed event."""
+  _change_block: BlockChangedFilter
+}
+
+enum NewPICEvent_orderBy {
+  id
+  transactionHash
+  gasPrice
+  gasUsed
+  timestamp
+  name
+  addresses
+  blockNumber
+  logIndex
+  order
+  token
+  pic
+  bond
+  exitRate
+}
+
 """Defines the order direction, either ascending or descending"""
 enum OrderDirection {
   asc
@@ -5114,6 +6071,7 @@ type PPPConfigurationChangedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -5161,6 +6119,14 @@ input PPPConfigurationChangedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -5266,6 +6232,7 @@ enum PPPConfigurationChangedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   governanceAddress
@@ -6841,6 +7808,126 @@ type Query {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [SuperTokenLogicCreatedEvent!]!
+  newPICEvent(
+    id: ID!
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): NewPICEvent
+  newPICEvents(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: NewPICEvent_orderBy
+    orderDirection: OrderDirection
+    where: NewPICEvent_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [NewPICEvent!]!
+  exitRateChangedEvent(
+    id: ID!
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): ExitRateChangedEvent
+  exitRateChangedEvents(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: ExitRateChangedEvent_orderBy
+    orderDirection: OrderDirection
+    where: ExitRateChangedEvent_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [ExitRateChangedEvent!]!
+  bondIncreasedEvent(
+    id: ID!
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): BondIncreasedEvent
+  bondIncreasedEvents(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: BondIncreasedEvent_orderBy
+    orderDirection: OrderDirection
+    where: BondIncreasedEvent_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [BondIncreasedEvent!]!
   account(
     id: ID!
 
@@ -7539,6 +8626,7 @@ type RewardAddressChangedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -7585,6 +8673,14 @@ input RewardAddressChangedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -7680,6 +8776,7 @@ enum RewardAddressChangedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   governanceAddress
@@ -7697,6 +8794,7 @@ type RoleAdminChangedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -7736,6 +8834,14 @@ input RoleAdminChangedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -7821,6 +8927,7 @@ enum RoleAdminChangedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -7836,6 +8943,7 @@ type RoleGrantedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -7875,6 +8983,14 @@ input RoleGrantedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -7960,6 +9076,7 @@ enum RoleGrantedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -7975,6 +9092,7 @@ type RoleRevokedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -8014,6 +9132,14 @@ input RoleRevokedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -8099,6 +9225,7 @@ enum RoleRevokedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -8114,11 +9241,15 @@ type SentEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, operator and from addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `operator`
+  addresses[2] = `from`
   
   """
   addresses: [Bytes!]!
@@ -8157,6 +9288,14 @@ input SentEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -8268,6 +9407,7 @@ enum SentEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -8287,6 +9427,7 @@ type SetEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -8333,6 +9474,14 @@ input SetEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -8433,6 +9582,7 @@ enum SetEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -8546,10 +9696,9 @@ enum SFMeta_orderBy {
 
 """
 Stream: A higher order entity that represents the lifetime of a stream between a `sender` and a `receiver`.
-A account can start a stream, update the flow rate, but when they close it, it is
-considered "dead". The next stream you create with the same `sender` and `receiver`
-will create a new stream entity. Therefore, multiple stream entities can be created
-between the same `sender` and `receiver`.
+A account can start a stream, update the flow rate, but when they close it, it is considered "dead".
+The next stream you create with the same `sender` and `receiver` will create a new stream entity.
+Therefore, multiple stream entities can be created between the same `sender` and `receiver`.
 
 """
 type Stream {
@@ -8566,8 +9715,8 @@ type Stream {
   deposit: BigInt!
 
   """
-  The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. The formula to get the current streamed
-  amount is:
+  The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. 
+  The formula to get the current streamed amount is:
   `streamedUntilUpdatedAt + ((currentTime in seconds) - updatedAtTimestamp) * currentFlowRate`.
   
   """
@@ -8974,9 +10123,22 @@ enum StreamPeriod_orderBy {
 }
 
 type StreamRevision {
+  """
+  ID composed of: keccak256(abi.encode(sender,receiver))-tokenAddress
+  
+  """
   id: ID!
   revisionIndex: Int!
   periodRevisionIndex: Int!
+
+  """
+  The "most recently alive" stream between a sender and receiver.
+  Note: The `revisionIndex` property may not be the same as the `revisionIndex`
+  of `mostRecentStream`. Which means `mostRecentStream` has been closed and no
+  new stream has been opened.
+  
+  """
+  mostRecentStream: Stream!
 }
 
 input StreamRevision_filter {
@@ -9004,6 +10166,27 @@ input StreamRevision_filter {
   periodRevisionIndex_lte: Int
   periodRevisionIndex_in: [Int!]
   periodRevisionIndex_not_in: [Int!]
+  mostRecentStream: String
+  mostRecentStream_not: String
+  mostRecentStream_gt: String
+  mostRecentStream_lt: String
+  mostRecentStream_gte: String
+  mostRecentStream_lte: String
+  mostRecentStream_in: [String!]
+  mostRecentStream_not_in: [String!]
+  mostRecentStream_contains: String
+  mostRecentStream_contains_nocase: String
+  mostRecentStream_not_contains: String
+  mostRecentStream_not_contains_nocase: String
+  mostRecentStream_starts_with: String
+  mostRecentStream_starts_with_nocase: String
+  mostRecentStream_not_starts_with: String
+  mostRecentStream_not_starts_with_nocase: String
+  mostRecentStream_ends_with: String
+  mostRecentStream_ends_with_nocase: String
+  mostRecentStream_not_ends_with: String
+  mostRecentStream_not_ends_with_nocase: String
+  mostRecentStream_: Stream_filter
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
@@ -9013,6 +10196,7 @@ enum StreamRevision_orderBy {
   id
   revisionIndex
   periodRevisionIndex
+  mostRecentStream
 }
 
 type Subscription {
@@ -10576,6 +11760,126 @@ type Subscription {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [SuperTokenLogicCreatedEvent!]!
+  newPICEvent(
+    id: ID!
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): NewPICEvent
+  newPICEvents(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: NewPICEvent_orderBy
+    orderDirection: OrderDirection
+    where: NewPICEvent_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [NewPICEvent!]!
+  exitRateChangedEvent(
+    id: ID!
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): ExitRateChangedEvent
+  exitRateChangedEvents(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: ExitRateChangedEvent_orderBy
+    orderDirection: OrderDirection
+    where: ExitRateChangedEvent_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [ExitRateChangedEvent!]!
+  bondIncreasedEvent(
+    id: ID!
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): BondIncreasedEvent
+  bondIncreasedEvents(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: BondIncreasedEvent_orderBy
+    orderDirection: OrderDirection
+    where: BondIncreasedEvent_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [BondIncreasedEvent!]!
   account(
     id: ID!
 
@@ -11185,11 +12489,15 @@ type SubscriptionApprovedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, publisher and subscriber addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `publisher`
+  addresses[2] = `subscriber`
   
   """
   addresses: [Bytes!]!
@@ -11197,8 +12505,24 @@ type SubscriptionApprovedEvent implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
+
+  """
+  The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+  `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+  
+  """
   subscriber: Bytes!
+
+  """
+  The creator of the `index`.
+  
+  """
   publisher: Bytes!
+
+  """
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+  
+  """
   indexId: BigInt!
   userData: Bytes!
   subscription: IndexSubscription!
@@ -11227,6 +12551,14 @@ input SubscriptionApprovedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -11347,6 +12679,7 @@ enum SubscriptionApprovedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -11365,11 +12698,15 @@ type SubscriptionDistributionClaimedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, publisher and subscriber addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `publisher`
+  addresses[2] = `subscriber`
   
   """
   addresses: [Bytes!]!
@@ -11377,8 +12714,24 @@ type SubscriptionDistributionClaimedEvent implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
+
+  """
+  The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+  `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+  
+  """
   subscriber: Bytes!
+
+  """
+  The creator of the `index`.
+  
+  """
   publisher: Bytes!
+
+  """
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+  
+  """
   indexId: BigInt!
   amount: BigInt!
   subscription: IndexSubscription!
@@ -11407,6 +12760,14 @@ input SubscriptionDistributionClaimedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -11529,6 +12890,7 @@ enum SubscriptionDistributionClaimedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -11547,11 +12909,15 @@ type SubscriptionRevokedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, publisher and subscriber addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `publisher`
+  addresses[2] = `subscriber`
   
   """
   addresses: [Bytes!]!
@@ -11559,8 +12925,24 @@ type SubscriptionRevokedEvent implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
+
+  """
+  The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+  `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+  
+  """
   subscriber: Bytes!
+
+  """
+  The creator of the `index`.
+  
+  """
   publisher: Bytes!
+
+  """
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+  
+  """
   indexId: BigInt!
   userData: Bytes!
   subscription: IndexSubscription!
@@ -11589,6 +12971,14 @@ input SubscriptionRevokedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -11709,6 +13099,7 @@ enum SubscriptionRevokedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -11727,11 +13118,15 @@ type SubscriptionUnitsUpdatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, publisher and subscriber addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `publisher`
+  addresses[2] = `subscriber`
   
   """
   addresses: [Bytes!]!
@@ -11739,8 +13134,24 @@ type SubscriptionUnitsUpdatedEvent implements Event {
   logIndex: BigInt!
   order: BigInt!
   token: Bytes!
+
+  """
+  The account that is subscribed to `index`. A possible recipient of distributions from the `publisher`.
+  `subscriber` only receives tokens if they have been allocated units (can be thought of as shares).
+  
+  """
   subscriber: Bytes!
+
+  """
+  The creator of the `index`.
+  
+  """
   publisher: Bytes!
+
+  """
+  An arbitrary uint32 value used to allow a publisher to create multiple indexes for a specific `token`.
+  
+  """
   indexId: BigInt!
   units: BigInt!
   userData: Bytes!
@@ -11771,6 +13182,14 @@ input SubscriptionUnitsUpdatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -11907,6 +13326,7 @@ enum SubscriptionUnitsUpdatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -11927,11 +13347,13 @@ type SuperTokenCreatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token address.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
   
   """
   addresses: [Bytes!]!
@@ -11964,6 +13386,14 @@ input SuperTokenCreatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -12037,6 +13467,7 @@ enum SuperTokenCreatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -12050,6 +13481,7 @@ type SuperTokenFactoryUpdatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -12087,6 +13519,14 @@ input SuperTokenFactoryUpdatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -12160,6 +13600,7 @@ enum SuperTokenFactoryUpdatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -12173,6 +13614,7 @@ type SuperTokenLogicCreatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -12210,6 +13652,14 @@ input SuperTokenLogicCreatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -12283,6 +13733,7 @@ enum SuperTokenLogicCreatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -12296,6 +13747,7 @@ type SuperTokenLogicUpdatedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -12334,6 +13786,14 @@ input SuperTokenLogicUpdatedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -12413,6 +13873,7 @@ enum SuperTokenLogicUpdatedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -12424,8 +13885,8 @@ enum SuperTokenLogicUpdatedEvent_orderBy {
 }
 
 """
-Token: A higher order entity created for super tokens that are "valid" (tokens that have
-Superfluid's host contract address set as the host).
+Token: A higher order entity created for super tokens (and underlying tokens)
+that are "valid" (tokens that have Superfluid's host contract address set as the host).
 
 """
 type Token {
@@ -12442,26 +13903,25 @@ type Token {
   isSuperToken: Boolean!
 
   """
-  This indicates whether the token is a NativeAssetSuperToken.
+  A boolean indicating whether the token is a NativeAssetSuperToken.
   
   """
   isNativeAssetSuperToken: Boolean!
 
   """
-  This indicates whether the token is a part of our resolver list.
+  A boolean indicating whether the token is a part of our resolver list.
   
   """
   isListed: Boolean!
 
   """
-  The address of the underlying ERC20 token.
+  The address of the underlying ERC20 token (zero address for non-ERC20WrapperSuperToken's)
   
   """
   underlyingAddress: Bytes!
 
   """
-  The underlying ERC20 token for a SuperToken or
-  null for a regular ERC20 token.
+  The underlying ERC20 token for a ERC20WrapperSuperToken otherwise null.
   
   """
   underlyingToken: Token
@@ -12603,11 +14063,14 @@ type TokenDowngradedEvent implements Event {
   account: Account!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token and account addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `account`
   
   """
   addresses: [Bytes!]!
@@ -12662,6 +14125,14 @@ input TokenDowngradedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -12744,6 +14215,7 @@ enum TokenDowngradedEvent_orderBy {
   account
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -12755,12 +14227,12 @@ enum TokenDowngradedEvent_orderBy {
 }
 
 """
-TokenStatistic: An aggregate entity which aggregates data of a single `token`.
+TokenStatistic: An aggregate entity which contains aggregate data for `token`.
 
 """
 type TokenStatistic {
   """
-  id: token address
+  id: `token` (superToken) address
   
   """
   id: ID!
@@ -12774,7 +14246,7 @@ type TokenStatistic {
   totalNumberOfActiveStreams: Int!
 
   """
-  The all-time number of closed streams.
+  The count of closed streams for `token`.
   
   """
   totalNumberOfClosedStreams: Int!
@@ -12786,15 +14258,13 @@ type TokenStatistic {
   totalNumberOfIndexes: Int!
 
   """
-  The total number of "active" (has greater than 0 units and has distributed it at
-  least once) Indexes created with `token`.
+  The total number of "active" (has greater than 0 units and has distributed it at least once) Indexes created with `token`.
   
   """
   totalNumberOfActiveIndexes: Int!
 
   """
-  The number of subscriptions which have units allocated to them
-  created with Indexes that distribute `token`.
+  The number of subscriptions which have units allocated to them created with Indexes that distribute `token`.
   
   """
   totalSubscriptionsWithUnits: Int!
@@ -12836,8 +14306,7 @@ type TokenStatistic {
   totalAmountDistributedUntilUpdatedAt: BigInt!
 
   """
-  The total supply of the token - this is impacted by users upgrading/downgrading their
-  tokens.
+  The total supply of the token - this is impacted by users upgrading/downgrading their tokens.
   
   """
   totalSupply: BigInt!
@@ -13014,7 +14483,7 @@ enum TokenStatistic_orderBy {
 }
 
 """
-TokenStatisticLog: Historical entries of TokenStatistic updates.
+TokenStatisticLog: Historical entries of `TokenStatistic` updates.
 
 """
 type TokenStatisticLog {
@@ -13033,7 +14502,7 @@ type TokenStatisticLog {
   totalNumberOfActiveStreams: Int!
 
   """
-  The all-time number of closed streams.
+  The count of closed streams for `token`.
   
   """
   totalNumberOfClosedStreams: Int!
@@ -13045,15 +14514,13 @@ type TokenStatisticLog {
   totalNumberOfIndexes: Int!
 
   """
-  The total number of "active" (has greater than 0 units and has distributed it at
-  least once) Indexes created with `token`.
+  The total number of "active" (has greater than 0 units and has distributed it at least once) Indexes created with `token`.
   
   """
   totalNumberOfActiveIndexes: Int!
 
   """
-  The number of subscriptions which have units allocated to them
-  created with Indexes that distribute `token`.
+  The number of subscriptions which have units allocated to them created with Indexes that distribute `token`.
   
   """
   totalSubscriptionsWithUnits: Int!
@@ -13077,26 +14544,25 @@ type TokenStatisticLog {
   totalOutflowRate: BigInt!
 
   """
-  The all-time total amount streamed (outflows) until the `timestamp`/`block`.
+  The all-time total amount of `token` streamed (outflows) until the `timestamp`/`block`.
   
   """
   totalAmountStreamed: BigInt!
 
   """
-  The all-time total amount transferred until the `timestamp`/`block`.
+  The all-time total amount of `token` transferred until the `timestamp`/`block`.
   
   """
   totalAmountTransferred: BigInt!
 
   """
-  The all-time total amount distributed until the `timestamp`/`block`.
+  The all-time total amount of `token` distributed until the `timestamp`/`block`.
   
   """
   totalAmountDistributed: BigInt!
 
   """
-  The total supply of the token - this is impacted by users upgrading/downgrading their
-  tokens.
+  The total supply of the token - this is impacted by users upgrading/downgrading their tokens.
   
   """
   totalSupply: BigInt!
@@ -13343,11 +14809,14 @@ type TokenUpgradedEvent implements Event {
   account: Account!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token and account addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `account`
   
   """
   addresses: [Bytes!]!
@@ -13402,6 +14871,14 @@ input TokenUpgradedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -13484,6 +14961,7 @@ enum TokenUpgradedEvent_orderBy {
   account
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -13498,11 +14976,15 @@ type TransferEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
   """
-  Holds the token, from and to addresses.
+  Contains the addresses that were impacted by this event:
+  addresses[0] = `token` (superToken)
+  addresses[1] = `from`
+  addresses[2] = `to`
   
   """
   addresses: [Bytes!]!
@@ -13538,6 +15020,14 @@ input TransferEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -13661,6 +15151,7 @@ enum TransferEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   addresses
@@ -13677,6 +15168,7 @@ type TrustedForwarderChangedEvent implements Event {
   id: ID!
   transactionHash: Bytes!
   gasPrice: BigInt!
+  gasUsed: BigInt!
   timestamp: BigInt!
   name: String!
 
@@ -13724,6 +15216,14 @@ input TrustedForwarderChangedEvent_filter {
   gasPrice_lte: BigInt
   gasPrice_in: [BigInt!]
   gasPrice_not_in: [BigInt!]
+  gasUsed: BigInt
+  gasUsed_not: BigInt
+  gasUsed_gt: BigInt
+  gasUsed_lt: BigInt
+  gasUsed_gte: BigInt
+  gasUsed_lte: BigInt
+  gasUsed_in: [BigInt!]
+  gasUsed_not_in: [BigInt!]
   timestamp: BigInt
   timestamp_not: BigInt
   timestamp_gt: BigInt
@@ -13823,6 +15323,7 @@ enum TrustedForwarderChangedEvent_orderBy {
   id
   transactionHash
   gasPrice
+  gasUsed
   timestamp
   name
   governanceAddress

@@ -12,7 +12,7 @@ import {
     SuperfluidFrameworkDeployer,
     CFAv1Library,
     IDAv1Library
-} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/utils/sfFrameworkDeployer/SuperfluidFrameworkDeployer.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
 
 

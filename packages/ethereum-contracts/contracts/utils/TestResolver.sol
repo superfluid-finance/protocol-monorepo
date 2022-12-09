@@ -11,4 +11,8 @@ contract TestResolver is Resolver {
     constructor(address _additionalAdmin) {
         _setupRole(DEFAULT_ADMIN_ROLE, _additionalAdmin);
     }
+
+    function addAdmin(address _additionalAdmin) external {
+        _setupRole(DEFAULT_ADMIN_ROLE, _additionalAdmin);
+    }
 }

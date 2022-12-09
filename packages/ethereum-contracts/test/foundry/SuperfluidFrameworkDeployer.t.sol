@@ -7,7 +7,7 @@ import {
     TestResolver,
     SuperfluidLoader,
     TestToken
-} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/utils/sfFrameworkDeployer/SuperfluidFrameworkDeployer.sol";
 import {
     ERC1820RegistryCompiled
 } from "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";

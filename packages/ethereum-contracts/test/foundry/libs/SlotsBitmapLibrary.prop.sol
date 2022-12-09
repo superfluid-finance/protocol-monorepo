@@ -13,7 +13,7 @@ import {
     SuperToken,
     SuperTokenFactory,
     SuperfluidFrameworkDeployer
-} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/utils/sfFrameworkDeployer/SuperfluidFrameworkDeployer.sol";
 
 contract SlotsBitmapLibraryProperties is Test {
     SuperfluidFrameworkDeployer internal immutable sfDeployer;

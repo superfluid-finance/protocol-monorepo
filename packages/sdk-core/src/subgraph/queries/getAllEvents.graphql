@@ -345,6 +345,23 @@ query getAllEvents(
             ...eventFields
             tokenLogic
         }
+        ... on NewPICEvent {
+            ...eventFields
+            token
+            pic
+            bond
+            exitRate
+        }
+        ... on ExitRateChangedEvent {
+            ...eventFields
+            token
+            exitRate
+        }
+        ... on BondIncreasedEvent {
+            ...eventFields
+            token
+            additionalBond
+        }
     }
 }
 

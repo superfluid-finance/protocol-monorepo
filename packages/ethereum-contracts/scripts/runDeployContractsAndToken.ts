@@ -1,7 +1,7 @@
-import { Framework } from "@superfluid-finance/sdk-core";
+import {Framework} from "@superfluid-finance/sdk-core";
 import fs from "fs";
-import { ethers } from "hardhat";
-import { deployContractsAndToken } from "./deployContractsAndToken";
+import {ethers} from "hardhat";
+import {deployContractsAndToken} from "./deployContractsAndToken";
 
 deployContractsAndToken()
     .then(async (deployer) => {
@@ -32,9 +32,10 @@ deployContractsAndToken()
             nativeAssetSuperTokenAddress: nativeAssetSuperToken.address,
         });
 
-        // write to ganache.json for local testing
+        // write to ganache.json in packages/subgraph for local testing
         const writeToDir =
-            __dirname.split("scripts")[0] + "config/ganache.json";
+            __dirname.split("ethereum-contracts")[0] +
+            "subgraph/config/ganache.json";
         fs.writeFile(writeToDir, JSONOutput, (err: any) => {
             if (err) {
                 console.error(err);

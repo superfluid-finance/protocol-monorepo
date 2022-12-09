@@ -22,9 +22,7 @@ const config: HardhatUserConfig = {
         },
     },
     networks: {
-        localhost: {
-            // url may not be necessary for localhost/hardhat node chainId
-            url: "http://0.0.0.0:8545/",
+        hardhat: {
             chainId: 31337,
         },
         matic: {

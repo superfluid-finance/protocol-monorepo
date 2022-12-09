@@ -3,60 +3,60 @@ pragma solidity ^0.8.0;
 
 import {
     SuperfluidGovDeployerLibrary
-} from "./SuperfluidGovDeployerLibrary.sol";
+} from "./deployers/SuperfluidGovDeployerLibrary.sol";
 
 import {
     SuperfluidHostDeployerLibrary
-} from "./SuperfluidHostDeployerLibrary.sol";
+} from "./deployers/SuperfluidHostDeployerLibrary.sol";
 import {
     SuperfluidCFAv1DeployerLibrary
-} from "./SuperfluidCFAv1DeployerLibrary.sol";
+} from "./deployers/SuperfluidCFAv1DeployerLibrary.sol";
 import {
     SuperfluidIDAv1DeployerLibrary
-} from "./SuperfluidIDAv1DeployerLibrary.sol";
+} from "./deployers/SuperfluidIDAv1DeployerLibrary.sol";
 import {
     SuperfluidSuperTokenFactoryHelperDeployerLibrary
-} from "./SuperfluidSuperTokenFactoryHelperDeployerLibrary.sol";
+} from "./deployers/SuperfluidSuperTokenFactoryHelperDeployerLibrary.sol";
 import {
     SuperfluidPeripheryDeployerLibrary
-} from "./SuperfluidPeripheryDeployerLibrary.sol";
-import { CFAv1Forwarder } from "../CFAv1Forwarder.sol";
+} from "./deployers/SuperfluidPeripheryDeployerLibrary.sol";
+import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import { UUPSProxy } from "../../upgradability/UUPSProxy.sol";
+import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
-import { Superfluid } from "../../superfluid/Superfluid.sol";
+import { Superfluid } from "../superfluid/Superfluid.sol";
 import {
     ISuperfluidToken
-} from "../../interfaces/superfluid/ISuperfluidToken.sol";
-import { TestGovernance } from "../TestGovernance.sol";
+} from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { TestGovernance } from "./TestGovernance.sol";
 import {
     ConstantFlowAgreementV1
-} from "../../agreements/ConstantFlowAgreementV1.sol";
+} from "../agreements/ConstantFlowAgreementV1.sol";
 import {
     InstantDistributionAgreementV1
-} from "../../agreements/InstantDistributionAgreementV1.sol";
+} from "../agreements/InstantDistributionAgreementV1.sol";
 import {
     ISuperTokenFactory,
     SuperTokenFactory,
     SuperTokenFactoryHelper,
     ERC20WithTokenInfo
-} from "../../superfluid/SuperTokenFactory.sol";
-import { SuperToken } from "../../superfluid/SuperToken.sol";
-import { TestResolver } from "../TestResolver.sol";
-import { SuperfluidLoader } from "../SuperfluidLoader.sol";
+} from "../superfluid/SuperTokenFactory.sol";
+import { SuperToken } from "../superfluid/SuperToken.sol";
+import { TestResolver } from "./TestResolver.sol";
+import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 
-import { SETHProxy } from "../../tokens/SETH.sol";
-import { PureSuperToken } from "../../tokens/PureSuperToken.sol";
+import { SETHProxy } from "../tokens/SETH.sol";
+import { PureSuperToken } from "../tokens/PureSuperToken.sol";
 import {
     IConstantFlowAgreementHook
-} from "../../interfaces/agreements/IConstantFlowAgreementHook.sol";
-import { IPureSuperToken } from "../../interfaces/tokens/IPureSuperToken.sol";
-import { ISETH } from "../../interfaces/tokens/ISETH.sol";
-import { CFAv1Library } from "../../apps/CFAv1Library.sol";
-import { IDAv1Library } from "../../apps/IDAv1Library.sol";
+} from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
+import { IPureSuperToken } from "../interfaces/tokens/IPureSuperToken.sol";
+import { ISETH } from "../interfaces/tokens/ISETH.sol";
+import { CFAv1Library } from "../apps/CFAv1Library.sol";
+import { IDAv1Library } from "../apps/IDAv1Library.sol";
 
-import { TestToken } from "../TestToken.sol";
+import { TestToken } from "./TestToken.sol";
 
 /// @title Superfluid Framework Deployer
 /// @notice This is NOT for deploying public nets, but rather only for tesing envs

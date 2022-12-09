@@ -388,6 +388,11 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:note It will use `transferFrom` to get tokens. Before calling this
      * function you should `approve` this contract
+     * 
+     * @custom:warning
+     * - there is potential of reentrancy IF the "to" account is a registered ERC777 recipient.
+     * @custom:requirements 
+     * - if `data` is NOT empty AND `to` is a contract, it MUST be a registered ERC777 recipient otherwise it reverts.
      */
     function upgradeTo(address to, uint256 amount, bytes calldata data) external;
 

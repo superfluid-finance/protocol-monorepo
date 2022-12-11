@@ -42,6 +42,7 @@ jobs:
 
     env:
       subgraph-working-directory: ./packages/subgraph
+      sdk-core-working-directory: ./packages/sdk-core
 
     steps:
       - uses: actions/checkout@v3
@@ -62,30 +63,30 @@ jobs:
       - name: "Start hardhat node"
         run: |
           ./tasks/startHardhatNode.sh start
-        working-directory: ./packages/sdk-core
+        working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: "Build SDK-Core"
         # build sdk-core because of auto linking to dependency
         run: yarn build
-        working-directory: ./packages/sdk-core
+        working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: "Deploy Framework and Tokens"
         run: npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost
-        working-directory: ./packages/subgraph
+        working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Prepare files for local testing"
         run: yarn prepare-local
-        working-directory: ./packages/subgraph
+        working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run setup-graph-node"
         run: |
           chmod +x ./tasks/setup-graph-node.sh
           ./tasks/setup-graph-node.sh
-        working-directory: ./packages/subgraph
+        working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Docker compose"
         run: docker-compose up &
-        working-directory: ./packages/subgraph
+        working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run subgraph integration test suite"
         if: inputs.run-sdk-core-tests == false
@@ -105,6 +106,15 @@ jobs:
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
           yarn generate
           npx hardhat test --network localhost
-        working-directory: ./packages/sdk-core
+        working-directory: ${{ env.sdk-core-working-directory }}
         env:
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
+
+      # test local subgraph schema against sdk-core schema representation
+      # this will break if there is an inconsistency between the subgraph schema
+      # and the sdk-core schema (if not all events are mapped)
+      - name: "Test new local subgraph schema against existing SDK-Core build"
+        run: |
+          npx get-graphql-schema http://localhost:8000/subgraphs/name/superfluid-test > src/subgraph/schema.graphql
+          yarn build
+        working-directory: ${{ env.sdk-core-working-directory }}

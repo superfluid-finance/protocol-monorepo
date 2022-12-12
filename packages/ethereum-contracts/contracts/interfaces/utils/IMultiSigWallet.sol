@@ -2,7 +2,8 @@
 
 pragma solidity >= 0.8.4;
 /**
- * @title Multisig wallet interface
+ * @title Partial Multisig wallet interface
+ * See https://github.com/gnosis/MultiSigWallet/blob/master/contracts/MultiSigWallet.sol
  * @author Superfluid
  */
 interface IMultiSigWallet {

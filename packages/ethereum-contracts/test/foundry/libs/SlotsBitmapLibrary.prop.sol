@@ -9,14 +9,14 @@ import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/in
 import { ISuperfluidToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperTokenFactory } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperTokenFactory.sol";
 import {
+    TestToken,
+    SuperToken,
     SuperTokenFactory,
     SuperfluidFrameworkDeployer
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
-import {SuperfluidSuperTokenCreator, SuperToken, TestToken} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidSuperTokenCreator.sol";
 
 contract SlotsBitmapLibraryProperties is Test {
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperfluidSuperTokenCreator internal immutable sfTokenCreator;
     TestToken private token;
     ISuperToken private immutable superToken;
     address constant subscriber = address(1);
@@ -35,11 +35,7 @@ contract SlotsBitmapLibraryProperties is Test {
         // Deploy ERC1820
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
         sfDeployer = new SuperfluidFrameworkDeployer();
-        SuperfluidFrameworkDeployer.Framework memory sfFramework = sfDeployer
-            .getFramework();
-        sfTokenCreator = new SuperfluidSuperTokenCreator(sfFramework.superTokenFactory, sfFramework.resolver);
-        sfFramework.resolver.grantAdminPrivileges(address(sfTokenCreator));
-        (token, superToken) = sfTokenCreator.deployWrapperSuperToken(
+        (token, superToken) = sfDeployer.deployWrapperSuperToken(
             "Test Token", "TST", 18, type(uint256).max
         );
 

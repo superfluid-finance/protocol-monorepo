@@ -7,11 +7,12 @@ import {
     Superfluid,
     ConstantFlowAgreementV1,
     InstantDistributionAgreementV1,
+    TestToken,
+    SuperToken,
     SuperfluidFrameworkDeployer,
     CFAv1Library,
     IDAv1Library
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
-import {SuperfluidSuperTokenCreator, SuperToken, TestToken} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidSuperTokenCreator.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
 
 
@@ -33,7 +34,6 @@ contract FoundrySuperfluidTester is Test {
 
     uint internal immutable N_TESTERS;
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperfluidSuperTokenCreator internal immutable sfTokenCreator;
     SuperfluidFrameworkDeployer.Framework internal sf;
 
     TestToken internal token;
@@ -52,14 +52,12 @@ contract FoundrySuperfluidTester is Test {
 
         sfDeployer = new SuperfluidFrameworkDeployer();
         sf = sfDeployer.getFramework();
-        sfTokenCreator = new SuperfluidSuperTokenCreator(sf.superTokenFactory, sf.resolver);
-        sf.resolver.grantAdminPrivileges(address(sfTokenCreator));
 
         vm.stopPrank();
     }
 
     function setUp() virtual public {
-        (token, superToken) = sfTokenCreator.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
 
         for (uint i = 0; i < N_TESTERS; ++i) {
             token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);

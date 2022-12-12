@@ -234,7 +234,7 @@ async function sendGovernanceAction(sf, actionFn) {
 // Possible return values: "MULTISIG", "OWNABLE".
 // Throws when encountering an unknown contract.
 async function autodetectGovAdminType(sf, account) {
-    if (! await hasCode(web3, account)) {
+    if (!await hasCode(web3, account)) {
         console.log("account has no code");
         return "OWNABLE";
     }

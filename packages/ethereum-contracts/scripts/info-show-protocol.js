@@ -389,7 +389,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         await printSuperTokenFactoryInformation({sf});
     console.log("");
 
-    if (! skipTokens) {
+    if (!skipTokens) {
         console.log("# Managed Super Tokens\n");
         await printSuperTokensInformation({
             sf,

@@ -13,8 +13,8 @@ on:
         description: 'Network for the script to run on'
         required: true
       admin_type:
-        description: 'Choose the admin type: MULTISIG, or OWNABLE'
-        required: true
+        description: 'Choose the admin type: MULTISIG, or OWNABLE. Defaults to autodetect.'
+        required: false
       script_name:
         description: 'Script name'
         required: true

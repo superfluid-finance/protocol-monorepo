@@ -141,7 +141,7 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
 
     it("Should be able to batch erc777 send wrapper super token", async () => {
         const amount = ethers.utils.parseUnits("1000").toString();
-        const sendOp = testEnv.wrapperSuperToken.send({
+        const sendOp = testEnv.pureSuperToken.send({
             recipient: testEnv.bob.address,
             amount,
         });
@@ -149,7 +149,7 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
 
         await expect(batchCall.exec(testEnv.alice))
             .to.emit(
-                testEnv.wrapperSuperToken.contract.connect(testEnv.alice),
+                testEnv.pureSuperToken.contract.connect(testEnv.alice),
                 "Transfer"
             )
             .withArgs(testEnv.alice.address, testEnv.bob.address, amount);

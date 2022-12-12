@@ -30,10 +30,13 @@ async function printHostInformation({sf}) {
             "APP_WHITE_LISTING_ENABLED",
             (await host.APP_WHITE_LISTING_ENABLED.call()).toString()
         );
+        /*
+        // this was renamed and made internal, currently not accessible
         console.log(
             "MAX_APP_LEVEL",
-            (await host.MAX_APP_LEVEL.call()).toString()
+            (await host.MAX_APP_CALLBACK_LEVEL.call()).toString()
         );
+        */
         console.log(
             "CALLBACK_GAS_LIMIT",
             (await host.CALLBACK_GAS_LIMIT.call()).toString()
@@ -143,14 +146,16 @@ async function printGovernanceInformation({sf}) {
                     host: sf.host.address,
                 })
             ).filter((i) => !!i.enabled);
+
             const enabledEventsUnique = [
                 ...new Set(
-                    enabledEvents.map((i) => ({
+                    // intermediate conversion to JSON string helps filter out unique entries
+                    enabledEvents.map((i) => (JSON.stringify({
                         superToken: i.superToken,
                         forwarder: i.forwarder,
-                    }))
+                    })))
                 ),
-            ];
+            ].map(e => JSON.parse(e));
             for (const i of enabledEventsUnique) {
                 // checking if currently enabled. This avoids false positives (disabled in a later event)
                 if (
@@ -335,6 +340,7 @@ async function printSuperTokensInformation({
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
+ * @param {bool} options.skipTokens Don't fetch & print SuperToken info (env: SKIP_TOKENS)
  *
  * Usage: npx truffle exec ops-scripts/info-show-protocol-info.js
  */
@@ -342,7 +348,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    let {protocolReleaseVersion} = options;
+    let {protocolReleaseVersion, skipTokens} = options;
+    skipTokens = skipTokens || process.env.SKIP_TOKENS;
 
     const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
@@ -382,12 +389,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         await printSuperTokenFactoryInformation({sf});
     console.log("");
 
-    console.log("# Managed Super Tokens\n");
-    await printSuperTokensInformation({
-        sf,
-        superTokenFactory,
-        latestSuperTokenLogicAddress,
-    });
+    if (!skipTokens) {
+        console.log("# Managed Super Tokens\n");
+        await printSuperTokensInformation({
+            sf,
+            superTokenFactory,
+            latestSuperTokenLogicAddress,
+        });
+    }
 
     console.log("\n===== Resolver Information =====\n");
     await printResolverInformation({sf});

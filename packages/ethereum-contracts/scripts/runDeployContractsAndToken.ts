@@ -22,7 +22,7 @@ deployContractsAndToken()
         // create json output
         const JSONOutput = JSON.stringify({
             network: "mainnet",
-            testNetwork: "ganache",
+            testNetwork: "hardhat",
             hostStartBlock: 0,
             hostAddress: frameworkAddresses.host,
             cfaAddress: frameworkAddresses.cfa,
@@ -32,10 +32,10 @@ deployContractsAndToken()
             nativeAssetSuperTokenAddress: nativeAssetSuperToken.address,
         });
 
-        // write to ganache.json in packages/subgraph for local testing
+        // write to hardhat.json in packages/subgraph for local testing
         const writeToDir =
             __dirname.split("ethereum-contracts")[0] +
-            "subgraph/config/ganache.json";
+            "subgraph/config/hardhat.json";
         fs.writeFile(writeToDir, JSONOutput, (err: any) => {
             if (err) {
                 console.error(err);

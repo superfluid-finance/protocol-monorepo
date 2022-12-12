@@ -22,6 +22,8 @@
         "artifacts/contracts/**/*.json",
         "!/**/*.dbg.json",
         "dev-scripts/**/*",
+        "ops-scripts/**/*",
+        "scripts/**/*",
         "utils/**/*",
         "/build/typechain/**/*"
     ],

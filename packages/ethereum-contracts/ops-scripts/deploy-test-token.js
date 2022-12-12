@@ -1,6 +1,5 @@
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-
 const getConfig = require("./libs/getConfig");
 
 const {
@@ -8,31 +7,37 @@ const {
     extractWeb3Options,
     builtTruffleContractLoader,
 } = require("./libs/common");
+const {ethers} = require("ethers");
 
 /**
- * @dev Deploy test token (Mintable ERC20) to the network.
+ * @dev Deploy test token (Mintable ERC20) and register it in the resolver.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.resetToken Reset the token deployment
  *
- * Usage: npx truffle exec scripts/resolver-register-token.js : {TOKEN_NAME} {TOKEN_ADDRESS}
+ * Usage: npx truffle exec ops-scripts/deploy-test-token.js : {TOKEN_DECIMALS} {TOKEN_SYMBOL}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    console.log("======== Register test token ========");
+    console.log("======== Deploying test token ========");
     let {resetToken} = options;
 
-    if (args.length !== 2) {
+    // > 2 because decimals is an optional field
+    // symbol should be required though
+    if (args.length > 2 || args.length < 1) {
         throw new Error("Wrong number of arguments");
     }
-    const tokenAddress = args.pop();
-    const tokenName = args.pop();
-    console.log("Token name", tokenName);
-    console.log("Token address", tokenAddress);
+    const tokenSymbol = args.pop();
+    console.log("Token symbol", tokenSymbol);
+    const tokenDecimals = args.pop() || 18;
+    console.log("Token decimals", tokenDecimals);
+
+    resetToken = resetToken || !!process.env.RESET_TOKEN;
+    console.log("reset token: ", resetToken);
 
     const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
@@ -42,13 +47,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("chain ID: ", chainId);
     const config = getConfig(chainId);
 
-    resetToken = resetToken || !!process.env.RESET_TOKEN;
-    console.log("reset token: ", resetToken);
-    console.log("chain ID: ", chainId);
-
-    const {Resolver} = await SuperfluidSDK.loadContracts({
+    const {Resolver, TestToken} = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
-        additionalContracts: ["Resolver"],
+        additionalContracts: ["Resolver", "TestToken"],
         contractLoader: builtTruffleContractLoader,
         networkId,
     });
@@ -56,17 +57,30 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const resolver = await Resolver.at(config.resolverAddress);
     console.log("Resolver address", resolver.address);
 
-    const name = `tokens.${tokenName}`;
+    // deploy test token
+    const name = `tokens.${tokenSymbol}`;
     let testTokenAddress = await resolver.get(name);
-
     if (
         resetToken ||
         testTokenAddress === "0x0000000000000000000000000000000000000000"
     ) {
-        await web3tx(resolver.set, `Resolver set ${name}`)(name, tokenAddress);
+        const testToken = await web3tx(TestToken.new, "TestToken.new")(
+            tokenSymbol + " Fake Token",
+            tokenSymbol,
+            tokenDecimals,
+            ethers.utils.parseUnits((1e12).toString())
+        );
+        testTokenAddress = testToken.address;
+        await web3tx(resolver.set, `Resolver set ${name}`)(
+            name,
+            testTokenAddress
+        );
     } else {
-        console.log("Token already set");
+        console.log("Token already deployed");
     }
+    console.log(`Token ${tokenSymbol} address`, testTokenAddress);
 
-    console.log("======== Test token registered ======");
+    console.log("======== Test token deployed ========");
+
+    return testTokenAddress;
 });

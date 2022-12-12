@@ -62,14 +62,14 @@ jobs:
         run: |
           cd packages/ethereum-contracts
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
+          npx truffle exec --network ${{ matrix.network }} ops-scripts/deploy-test-environment.js
 
       - name: Etherscan verification of ${{ matrix.network }} deployment
         if: env.DO_SKIP != 1
         run: |
           cd packages/ethereum-contracts
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
-          npx truffle exec --network ${{ matrix.network }} scripts/info-print-contract-addresses.js : addresses.vars
+          npx truffle exec --network ${{ matrix.network }} ops-scripts/info-print-contract-addresses.js : addresses.vars
           tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:
           SKIP_IF_UNSUPPORTED: 1

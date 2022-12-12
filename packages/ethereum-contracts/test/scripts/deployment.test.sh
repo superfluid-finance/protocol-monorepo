@@ -37,7 +37,7 @@ export DISABLE_NATIVE_TRUFFLE=1
 # if any of them fail, exit
 set -xe
 
-npx truffle exec scripts/deploy-test-environment.js
+npx truffle exec ops-scripts/deploy-test-environment.js
 
 # deployment result is stored in TESTENV_SNAPSHOT_VARS
 cat $TESTENV_SNAPSHOT_VARS
@@ -47,10 +47,10 @@ source $TESTENV_SNAPSHOT_VARS
 export RESOLVER_ADDRESS=$RESOLVER_ADDRESS
 
 # Test all info scripts
-npx truffle exec scripts/info-scan-deployments.js
-npx truffle exec scripts/info-show-protocol.js
-npx truffle exec scripts/info-print-contract-addresses.js : >(cat)
-npx truffle exec scripts/info-inspect-account.js : $VITALIK_ADDRESS
-npx truffle exec scripts/info-list-apps.js
+npx truffle exec ops-scripts/info-scan-deployments.js
+npx truffle exec ops-scripts/info-show-protocol.js
+npx truffle exec ops-scripts/info-print-contract-addresses.js : >(cat)
+npx truffle exec ops-scripts/info-inspect-account.js : $VITALIK_ADDRESS
+npx truffle exec ops-scripts/info-list-apps.js
 
-npx truffle exec scripts/gov-transfer-framework-ownership.js : $VITALIK_ADDRESS
+npx truffle exec ops-scripts/gov-transfer-framework-ownership.js : $VITALIK_ADDRESS

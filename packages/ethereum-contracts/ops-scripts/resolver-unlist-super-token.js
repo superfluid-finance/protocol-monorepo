@@ -1,31 +1,34 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     getScriptRunnerFactory: S,
+    ZERO_ADDRESS,
     extractWeb3Options,
     builtTruffleContractLoader,
-    sendGovernanceAction,
+    setResolver,
 } = require("./libs/common");
 
 /**
- * @dev Create a new super app factory registration.
+ * @dev Unlist a previously listed super token in resolver.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/gov-create-new-factory-registration.js : {FACTORY_ADDRESS}
+ * Usage: npx truffle exec ops-scripts/resolver-unlist-super-token.js : {SYMBOL}
  */
-module.exports = eval(`(${S.toString()})({
-    doNotPrintColonArgs: true
-})`)(async function (args, options = {}) {
-    console.log("======== Creating new factory registration ========");
+module.exports = eval(`(${S.toString()})()`)(async function (
+    args,
+    options = {}
+) {
+    console.log("======== Unlist a super token ========");
     let {protocolReleaseVersion} = options;
 
     if (args.length !== 1) {
         throw new Error("Wrong number of arguments");
     }
-    const factoryAddress = args.pop();
+    const superTokenSymbol = args.pop();
+    console.log("Super Token Symbol", superTokenSymbol);
 
     console.log("protocol release version:", protocolReleaseVersion);
 
@@ -36,14 +39,23 @@ module.exports = eval(`(${S.toString()})({
             "Ownable",
             "IMultiSigWallet",
             "SuperfluidGovernanceBase",
+            "SuperToken",
+            "Resolver",
+            "IAccessControlEnumerable",
         ],
         contractLoader: builtTruffleContractLoader,
     });
     await sf.initialize();
 
-    console.log("Factory Address:", factoryAddress);
+    const superTokenKey = `supertokens.${protocolReleaseVersion}.${superTokenSymbol}`;
+    console.log("Super token key", superTokenKey);
 
-    await sendGovernanceAction(sf, (gov) =>
-        gov.authorizeAppFactory(sf.host.address, factoryAddress)
-    );
+    const resolver = await sf.contracts.Resolver.at(sf.resolver.address);
+    const superTokenAddress = await resolver.get.call(superTokenKey);
+
+    if (superTokenAddress === ZERO_ADDRESS) {
+        throw new Error("Super token is not listed");
+    }
+
+    await setResolver(sf, superTokenKey, ZERO_ADDRESS);
 });

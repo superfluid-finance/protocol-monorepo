@@ -1,12 +1,9 @@
 const boilerplate = require("./boilerplate");
 
 module.exports = function () {
-    boilerplate(
-        "deploy-test-environment.js",
-        "IF you have already completed the migration for scripts/deploy-test-token.js, you can just delete the import for scripts/deploy-test-token.js"
-    );
+    boilerplate("deploy-framework.js");
     console.log(
-        "If you are using Hardhat, below is how to migrate from deploy-test-environment.js to deploy-test-framework.js:"
+        "If you are using Hardhat, below is how to migrate from deploy-framework.js to deploy-test-framework.js:"
     );
     console.log(`
     // previous deploy framework 

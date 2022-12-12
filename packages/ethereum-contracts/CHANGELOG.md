@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 - Added `downgradeTo` function in `SuperToken.sol`
+- Added `deployContractsAndToken.js` and `runDeployContractsAndToken.js` to `dev-scripts`
 
 ### Breaking
 

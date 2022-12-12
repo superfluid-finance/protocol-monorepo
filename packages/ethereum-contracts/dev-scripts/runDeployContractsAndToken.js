@@ -1,7 +1,7 @@
-import { Framework } from "@superfluid-finance/sdk-core";
-import fs from "fs";
-import { ethers } from "hardhat";
-import { deployContractsAndToken } from "./deployContractsAndToken";
+const {Framework} = require("@superfluid-finance/sdk-core");
+const fs = require("fs");
+const {ethers} = require("hardhat");
+const {deployContractsAndToken} = require("./deployContractsAndToken");
 
 deployContractsAndToken()
     .then(async (deployer) => {
@@ -22,7 +22,7 @@ deployContractsAndToken()
         // create json output
         const JSONOutput = JSON.stringify({
             network: "mainnet",
-            testNetwork: "ganache",
+            testNetwork: "hardhat",
             hostStartBlock: 0,
             hostAddress: frameworkAddresses.host,
             cfaAddress: frameworkAddresses.cfa,
@@ -32,10 +32,11 @@ deployContractsAndToken()
             nativeAssetSuperTokenAddress: nativeAssetSuperToken.address,
         });
 
-        // write to ganache.json for local testing
+        // write to hardhat.json in packages/subgraph for local testing
         const writeToDir =
-            __dirname.split("scripts")[0] + "config/ganache.json";
-        fs.writeFile(writeToDir, JSONOutput, (err: any) => {
+            __dirname.split("ethereum-contracts")[0] +
+            "subgraph/config/hardhat.json";
+        fs.writeFile(writeToDir, JSONOutput, (err) => {
             if (err) {
                 console.error(err);
                 process.exit(1);

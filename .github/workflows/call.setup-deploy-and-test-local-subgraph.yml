@@ -71,8 +71,8 @@ jobs:
         working-directory: ${{ env.sdk-core-working-directory }}
 
       - name: "Deploy Framework and Tokens"
-        run: npx hardhat run scripts/runDeployContractsAndToken.ts --network localhost
-        working-directory: ${{ env.subgraph-working-directory }}
+        run: npx hardhat run dev-scripts/runDeployContractsAndToken.js --network localhost
+        working-directory: ./packages/ethereum-contracts
 
       - name: "Prepare files for local testing"
         run: yarn prepare-local
@@ -90,7 +90,7 @@ jobs:
 
       - name: "Run subgraph integration test suite"
         if: inputs.run-sdk-core-tests == false
-        run: yarn test
+        run: yarn test --network localhost
         working-directory: ${{ env.subgraph-working-directory }}
       #
 
@@ -105,7 +105,7 @@ jobs:
         run: |
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
           yarn generate
-          npx hardhat test --network localhost
+          npx hardhat test
         working-directory: ${{ env.sdk-core-working-directory }}
         env:
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}

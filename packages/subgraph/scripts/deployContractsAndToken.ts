@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { deployTestFramework } from "@superfluid-finance/ethereum-contracts/scripts/deploy-test-framework";
+import { deployTestFramework } from "@superfluid-finance/ethereum-contracts/dev-scripts/deploy-test-framework";
 
 export const errorHandler = (type: string, err: any) => {
     if (err) console.error("Deploy " + type + " Error: ", err);

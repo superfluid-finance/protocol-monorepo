@@ -19,7 +19,7 @@ const CFAv1Forwarder = artifacts.require("CFAv1Forwarder");
  * @param web3 The web3 instance to be used
  * @param from address to use for funding the deployer account
  *
- * Usage: npx truffle exec scripts/deploy-deterministically.js : {CONTRACT NAME} [{NONCE}]
+ * Usage: npx truffle exec ops-scripts/deploy-deterministically.js : {CONTRACT NAME} [{NONCE}]
  *        CONTRACT NAME must be one of SuperfluidLoader, AgreementForwarder
  *        If NONCE is not defined, 0 is assumed (-> first tx done from the deployer account)
  *

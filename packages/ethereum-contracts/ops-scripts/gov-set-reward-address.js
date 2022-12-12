@@ -1,43 +1,38 @@
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {
     getScriptRunnerFactory: S,
-    ZERO_ADDRESS,
     extractWeb3Options,
     builtTruffleContractLoader,
-    setResolver,
+    sendGovernanceAction,
+    ZERO_ADDRESS,
 } = require("./libs/common");
 
 /**
- * @dev Set a given value for a given key in resolver
+ * @dev Set the reward address for a super token.
  * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/resolver-set-key-value.js : {KEY} {VALUE}
- *
- * ENV vars:
- *    ALLOW_UPDATE: only if set will existing values be overwritten
- *    RESOLVER_ADMIN_TYPE: needs to be set to MULTISIG for networks with multisig owner
+ * Usage: npx truffle exec ops-scripts/gov-set-reward-address.js : {TOKEN ADDRESS} {REWARD ADDRESS}
+ *        If REWARD ADDRESS is 0x0000000000000000000000000000000000000000,
+ *        the reward address for the token is cleared and thus set to the default.
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
     options = {}
 ) {
-    console.log("======== Set key with value ========");
+    console.log("======== Setting reward address ========");
     let {protocolReleaseVersion} = options;
 
     if (args.length !== 2) {
         throw new Error("Wrong number of arguments");
     }
-    const value = args.pop();
-    const key = args.pop();
-
-    console.log("Key", key);
-    console.log("Value", value);
-
-    console.log("protocol release version:", protocolReleaseVersion);
+    const rewardAddr = args.pop();
+    const tokenAddr = args.pop();
+    console.log("token address", tokenAddr);
+    console.log("reward address", rewardAddr);
 
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
@@ -46,24 +41,20 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             "Ownable",
             "IMultiSigWallet",
             "SuperfluidGovernanceBase",
-            "Resolver",
-            "IAccessControlEnumerable",
         ],
         contractLoader: builtTruffleContractLoader,
     });
     await sf.initialize();
 
-    const resolver = await sf.contracts.Resolver.at(sf.resolver.address);
-
-    const prevVal = await resolver.get.call(key);
-    if (prevVal !== ZERO_ADDRESS) {
-        console.log("Key already has a value", prevVal);
-        if (!process.env.ALLOW_UPDATE) {
-            throw new Error(
-                "ALLOW_UPDATE not set, can't override existing value"
-            );
-        }
+    if (rewardAddr !== ZERO_ADDRESS) {
+        console.log("setting new reward address");
+        await sendGovernanceAction(sf, (gov) =>
+            gov.setRewardAddress(sf.host.address, tokenAddr, rewardAddr)
+        );
+    } else {
+        console.log("clearing reward address");
+        await sendGovernanceAction(sf, (gov) =>
+            gov.clearRewardAddress(sf.host.address, tokenAddr)
+        );
     }
-
-    await setResolver(sf, key, value);
 });

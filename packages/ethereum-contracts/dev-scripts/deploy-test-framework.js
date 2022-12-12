@@ -3,7 +3,7 @@ const {ethers} = require("hardhat");
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
 const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
 
-const ERC1820Registry = require("./artifacts/ERC1820Registry.json");
+const ERC1820Registry = require("../ops-scripts/artifacts/ERC1820Registry.json");
 
 const ERC1820_ADDRESS = "0x1820a4b7618bde71dce8cdc73aab6c95905fad24";
 const ERC1820_BIN = ERC1820Registry.bin;
@@ -52,6 +52,11 @@ const _getFactoryAndReturnDeployedContract = async (
     return contract;
 };
 
+/**
+ * Deploys Superfluid Framework in local testing environments.
+ * NOTE: This only works with Hardhat.
+ * @returns 
+ */
 const deployTestFramework = async () => {
     const signer = (await ethers.getSigners())[0];
     await deployERC1820(ethers.provider);

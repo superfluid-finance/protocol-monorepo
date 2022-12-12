@@ -32,7 +32,7 @@ export const beforeSetup = async (tokenAmount: number) => {
         (x, y) => ({ ...x, [y.address]: y }),
         {}
     );
-    const readFromDir = __dirname.split("test")[0] + "config/ganache.json";
+    const readFromDir = __dirname.split("test")[0] + "config/hardhat.json";
     const rawData = fs.readFileSync(readFromDir);
     const frameworkAddresses = JSON.parse(rawData.toString());
 

@@ -193,8 +193,8 @@ contract Manager is IManager, Ownable {
         if (!strategy.isSupportedSuperToken(superToken))
             revert UnsupportedSuperToken(address(superToken));
 
-        strategy.wrap(wrap.user, superToken, WrapAmount);
-        emit WrapExecuted(index, WrapAmount);
+        strategy.wrap(wrap.user, superToken, wrapAmount);
+        emit WrapExecuted(index, wrapAmount);
     }
 
     /// @dev IManager.deleteWrapSchedule implementation.

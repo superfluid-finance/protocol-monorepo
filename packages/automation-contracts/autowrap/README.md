@@ -16,7 +16,7 @@ When your Super Token balance reaches a certain lower threshold, Auto Wrap steps
 - Use .env-template as a template for your .env file
 
 ```bash
-# .env-template
+# .env-example
 
 PRIVATE_KEY=
 
@@ -39,10 +39,16 @@ forge test --vvv
 
 #### Deploy
 
-Create a `.env` file using template above and run:
+Create a `.env` file using example above and run:
 
 Deployment script will deploy all contracts and verify them on Etherscan.
 
 ```bash
-npx hardhat deploy --network [NETWORK_NAME]
+npx hardhat run --network <network> deploy/deploy.js
+```
+
+#### Add Approved Strategies to Manager contract
+
+```bash
+npx hardhat addStrategy --manager <manager_address> --strategy <strategy_address> --network goerli
 ```

@@ -15,15 +15,15 @@ The Vesting Scheduler allows you to schedule the vesting of tokens to a receiver
 
 ### Prerequisites
 
-- Auto Wrap uses [Foundry](https://github.com/gakonst/foundry#installation) as the development framework.
+- Scheduler uses [Foundry](https://github.com/gakonst/foundry#installation) as the development framework.
 - [Yarn](https://github.com/yarnpkg/yarn) is used as the package manager.
 
 ### Environment Variables
 
-- Use .env-template as a template for your .env file
+- Use `.env-example` as a template for your .env file
 
 ```bash
-# .env-template
+# .env-example
 
 PRIVATE_KEY=
 
@@ -46,10 +46,10 @@ forge test --vvv
 
 #### Deploy
 
-Create a `.env` file using template above and run:
+Create a `.env` file using example above and run:
 
 Deployment script will deploy all contracts and verify them on Etherscan.
 
 ```bash
-npx hardhat deploy --network [NETWORK_NAME]
+npx hardhat run --network <network> deploy/deploy.js
 ```

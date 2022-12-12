@@ -1,11 +1,10 @@
-import { ethers } from "hardhat";
-import { deployTestFramework } from "@superfluid-finance/ethereum-contracts/dev-scripts/deploy-test-framework";
+const {ethers} = require("hardhat");
 
-export const errorHandler = (type: string, err: any) => {
-    if (err) console.error("Deploy " + type + " Error: ", err);
-};
+const {
+    deployTestFramework,
+} = require("@superfluid-finance/ethereum-contracts/dev-scripts/deploy-test-framework");
 
-export async function deployContractsAndToken() {
+async function deployContractsAndToken() {
     const [Deployer] = await ethers.getSigners();
 
     const deployer = await deployTestFramework();
@@ -35,3 +34,7 @@ export async function deployContractsAndToken() {
         );
     return deployer;
 }
+
+module.exports = {
+    deployContractsAndToken,
+};

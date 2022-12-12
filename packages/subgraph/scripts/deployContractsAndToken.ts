@@ -1,8 +1,5 @@
 import { ethers } from "hardhat";
-import {
-    deploySuperfluidSuperTokenCreator,
-    deployTestFramework,
-} from "@superfluid-finance/ethereum-contracts/scripts/deploy-test-framework";
+import { deployTestFramework } from "@superfluid-finance/ethereum-contracts/dev-scripts/deploy-test-framework";
 
 export const errorHandler = (type: string, err: any) => {
     if (err) console.error("Deploy " + type + " Error: ", err);
@@ -12,10 +9,9 @@ export async function deployContractsAndToken() {
     const [Deployer] = await ethers.getSigners();
 
     const deployer = await deployTestFramework();
-    const superTokenCreator = await deploySuperfluidSuperTokenCreator(deployer);
 
     console.log("Deploying Wrapper Super Token...");
-    await superTokenCreator
+    await deployer
         .connect(Deployer)
         .deployWrapperSuperToken(
             "Fake DAI",
@@ -25,12 +21,12 @@ export async function deployContractsAndToken() {
         );
 
     console.log("Deploying Native Asset Super Token...");
-    await superTokenCreator
+    await deployer
         .connect(Deployer)
         .deployNativeAssetSuperToken("Super ETH", "ETHx");
 
     console.log("Deploying Pure Super Token...");
-    await superTokenCreator
+    await deployer
         .connect(Deployer)
         .deployPureSuperToken(
             "Mr.Token",

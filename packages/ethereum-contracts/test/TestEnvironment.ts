@@ -32,9 +32,9 @@ const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const traveler = require("ganache-time-traveler");
 
-const deployFramework = require("../scripts/deploy-framework");
-const deploySuperToken = require("../scripts/deploy-super-token");
-const deployTestToken = require("../scripts/deploy-test-token");
+const deployFramework = require("../ops-scripts/deploy-framework");
+const deploySuperToken = require("../ops-scripts/deploy-super-token");
+const deployTestToken = require("../ops-scripts/deploy-test-token");
 
 const SuperTokenMock = artifacts.require("SuperTokenMock");
 const TestToken = artifacts.require("TestToken");

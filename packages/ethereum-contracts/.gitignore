@@ -6,5 +6,5 @@
 /cache
 /docs/api
 /typechain-types
-/scripts/**/*.d.ts
-/scripts/**/*.d.ts.map
+/dev-scripts/**/*.d.ts
+/dev-scripts/**/*.d.ts.map

@@ -3,8 +3,8 @@ const {expectRevert} = require("@openzeppelin/test-helpers");
 const Web3 = require("web3");
 
 const TestEnvironment = require("@superfluid-finance/ethereum-contracts/test/TestEnvironment");
-const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
-const deploySuperToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-super-token");
+const deployTestToken = require("@superfluid-finance/ethereum-contracts/ops-scripts/deploy-test-token");
+const deploySuperToken = require("@superfluid-finance/ethereum-contracts/ops-scripts/deploy-super-token");
 const SuperfluidSDK = require("../src");
 
 describe("Framework class", function () {

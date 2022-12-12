@@ -59,7 +59,7 @@ contract Superfluid is
      *   will not be able to call other app.
      */
     // solhint-disable-next-line var-name-mixedcase
-    uint constant internal MAX_APP_CALLBACK_LEVEL = 1;
+    uint constant public MAX_APP_CALLBACK_LEVEL = 1;
 
     // solhint-disable-next-line var-name-mixedcase
     uint64 constant public CALLBACK_GAS_LIMIT = 3000000;

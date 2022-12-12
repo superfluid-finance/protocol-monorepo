@@ -12,7 +12,7 @@ contract TestResolver is Resolver {
         _setupRole(DEFAULT_ADMIN_ROLE, _additionalAdmin);
     }
 
-    function grantAdminPrivileges(address _additionalAdmin) external {
+    function addAdmin(address _additionalAdmin) external {
         _setupRole(DEFAULT_ADMIN_ROLE, _additionalAdmin);
     }
 }

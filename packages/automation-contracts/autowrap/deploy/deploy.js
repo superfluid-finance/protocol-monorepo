@@ -1,19 +1,21 @@
 /*
-* Usage: npx hardhat run --network <network> deploy/deploy.js
-*
-* Notes:
-* You need to have a .env file based on .env-example.
-* If verification fails, you can run again this script to verify later.
-*/
+ * Usage: npx hardhat run --network <network> deploy/deploy.js
+ *
+ * Notes:
+ * You need to have a .env file based on .env-example.
+ * If verification fails, you can run again this script to verify later.
+ */
 
 const metadata = require("@superfluid-finance/metadata");
 
-const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
+const sleep = (waitTimeInMs) =>
+    new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
     const chainId = await hre.getChainId();
-    const cfaV1 = (metadata.networks.filter((item) => item.chainId == chainId)[0]).contractsV1.cfaV1;
-    if(cfaV1 === undefined) {
+    const cfaV1 = metadata.networks.filter((item) => item.chainId == chainId)[0]
+        .contractsV1.cfaV1;
+    if (cfaV1 === undefined) {
         console.log("cfaV1 contract not found for this network");
         return;
     }
@@ -47,7 +49,6 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     await sleep(15000);
 
     try {
-
         await hre.run("verify:verify", {
             address: Manager.address,
             constructorArguments: [cfaV1, minLower, minUpper],

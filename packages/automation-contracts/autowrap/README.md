@@ -47,7 +47,7 @@ npx hardhat run --network <network> deploy/deploy.js
 #### Add Approved Strategies to Manager contract
 
 ```bash
-npx hardhat addStrategy --manager <manager_address> --strategy <strategy_address> --network goerli
+npx hardhat addStrategy --manager <manager_address> --strategy <strategy_address> --network <network>
 ```
 
 

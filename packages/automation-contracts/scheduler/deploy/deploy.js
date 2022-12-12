@@ -1,20 +1,22 @@
 /*
-* Usage: npx hardhat run --network <network> deploy/deploy.js
-*
-* Notes:
-* You need to have a .env file based on .env-template.
-* If verification fails, you can run again this script to verify later.
-*/
+ * Usage: npx hardhat run --network <network> deploy/deploy.js
+ *
+ * Notes:
+ * You need to have a .env file based on .env-template.
+ * If verification fails, you can run again this script to verify later.
+ */
 
 const metadata = require("@superfluid-finance/metadata");
 
-const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
+const sleep = (waitTimeInMs) =>
+    new Promise((resolve) => setTimeout(resolve, waitTimeInMs));
 
 module.exports = async function ({ deployments, getNamedAccounts }) {
     const chainId = await hre.getChainId();
-    const host = (metadata.networks.filter((item) => item.chainId == chainId)[0]).contractsV1.host;
-    const registrationKey ="";
-    if(host === undefined) {
+    const host = metadata.networks.filter((item) => item.chainId == chainId)[0]
+        .contractsV1.host;
+    const registrationKey = "";
+    if (host === undefined) {
         console.log("Host contract not found for this network");
         return;
     }
@@ -45,7 +47,6 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     await sleep(15000);
 
     try {
-
         await hre.run("verify:verify", {
             address: FlowScheduler.address,
             constructorArguments: [host, registrationKey],

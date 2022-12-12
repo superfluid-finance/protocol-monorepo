@@ -14,7 +14,7 @@ import {
     toBN,
     WrapperSuperToken,
 } from "../src";
-import { deployContractsAndToken } from "@superfluid-finance/ethereum-contracts/scripts/deployContractsAndToken";
+import { deployContractsAndToken } from "@superfluid-finance/ethereum-contracts/dev-scripts/deployContractsAndToken";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { expect } from "chai";
@@ -71,7 +71,7 @@ export const initializeTestEnvironment = async () => {
     const signers = await ethers.getSigners();
 
     console.log("Deploy Superfluid Test Framework...");
-    testEnv.superfluidFrameworkDeployer = await deployContractsAndToken();
+    testEnv.superfluidFrameworkDeployer = await deployContractsAndToken() as SuperfluidFrameworkDeployer;
 
     console.log("Initialize Signers...");
     [testEnv.alice, testEnv.bob, testEnv.charlie] = signers;

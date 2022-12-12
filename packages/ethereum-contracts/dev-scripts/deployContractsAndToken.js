@@ -1,7 +1,10 @@
-import { ethers } from "hardhat";
-import { deployTestFramework } from "@superfluid-finance/ethereum-contracts/dev-scripts/deploy-test-framework";
+const {ethers} = require("hardhat");
 
-export const errorHandler = (type: string, err: any) => {
+const {
+    deployTestFramework,
+} = require("@superfluid-finance/ethereum-contracts/dev-scripts/deploy-test-framework");
+
+export const errorHandler = (type, err) => {
     if (err) console.error("Deploy " + type + " Error: ", err);
 };
 

@@ -1,7 +1,7 @@
-import {Framework} from "@superfluid-finance/sdk-core";
-import fs from "fs";
-import {ethers} from "hardhat";
-import {deployContractsAndToken} from "./deployContractsAndToken";
+const {Framework} = require("@superfluid-finance/sdk-core");
+const fs = require("fs");
+const {ethers} = require("hardhat");
+const {deployContractsAndToken} = require("./deployContractsAndToken");
 
 deployContractsAndToken()
     .then(async (deployer) => {
@@ -36,7 +36,7 @@ deployContractsAndToken()
         const writeToDir =
             __dirname.split("ethereum-contracts")[0] +
             "subgraph/config/hardhat.json";
-        fs.writeFile(writeToDir, JSONOutput, (err: any) => {
+        fs.writeFile(writeToDir, JSONOutput, (err) => {
             if (err) {
                 console.error(err);
                 process.exit(1);

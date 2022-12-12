@@ -52,6 +52,11 @@ const _getFactoryAndReturnDeployedContract = async (
     return contract;
 };
 
+/**
+ * Deploys Superfluid Framework in local testing environments.
+ * NOTE: This only works with Hardhat.
+ * @returns 
+ */
 const deployTestFramework = async () => {
     const signer = (await ethers.getSigners())[0];
     await deployERC1820(ethers.provider);

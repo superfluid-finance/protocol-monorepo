@@ -30,13 +30,10 @@ async function printHostInformation({sf}) {
             "APP_WHITE_LISTING_ENABLED",
             (await host.APP_WHITE_LISTING_ENABLED.call()).toString()
         );
-        /*
-        // this was renamed and made internal, currently not accessible
         console.log(
             "MAX_APP_LEVEL",
             (await host.MAX_APP_CALLBACK_LEVEL.call()).toString()
         );
-        */
         console.log(
             "CALLBACK_GAS_LIMIT",
             (await host.CALLBACK_GAS_LIMIT.call()).toString()

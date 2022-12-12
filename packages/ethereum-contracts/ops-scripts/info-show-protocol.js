@@ -30,13 +30,10 @@ async function printHostInformation({sf}) {
             "APP_WHITE_LISTING_ENABLED",
             (await host.APP_WHITE_LISTING_ENABLED.call()).toString()
         );
-        /*
-        // this was renamed and made internal, currently not accessible
         console.log(
             "MAX_APP_LEVEL",
             (await host.MAX_APP_CALLBACK_LEVEL.call()).toString()
         );
-        */
         console.log(
             "CALLBACK_GAS_LIMIT",
             (await host.CALLBACK_GAS_LIMIT.call()).toString()
@@ -342,7 +339,7 @@ async function printSuperTokensInformation({
  * @param {Address} options.from Address to deploy contracts from
  * @param {bool} options.skipTokens Don't fetch & print SuperToken info (env: SKIP_TOKENS)
  *
- * Usage: npx truffle exec scripts/info-show-protocol-info.js
+ * Usage: npx truffle exec ops-scripts/info-show-protocol-info.js
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,

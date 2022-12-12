@@ -5,7 +5,7 @@ const {getScriptRunnerFactory: S, getPastEvents} = require("./libs/common");
 /**
  * @dev Scans the network for a protocol deployment by looking for AgreementClassRegistered events
  *
- * Usage: npx truffle exec scripts/info-scan-deployments.js
+ * Usage: npx truffle exec ops-scripts/info-scan-deployments.js
  */
 
 module.exports = eval(`(${S.toString()})()`)(async function () {

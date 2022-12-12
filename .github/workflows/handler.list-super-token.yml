@@ -53,7 +53,7 @@ jobs:
           echo "${{ github.event.inputs.environments }}" | sed 's/;/\n/' > .env
           npx truffle exec \
             --network ${{ github.event.inputs.network }} \
-            scripts/resolver-list-super-token.js \
+            ops-scripts/resolver-list-super-token.js \
             : ${{ github.event.inputs.token_address }}
 
         env:

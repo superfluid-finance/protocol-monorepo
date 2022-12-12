@@ -7,29 +7,27 @@ const {
 } = require("./libs/common");
 
 /**
- * @dev Set the minimum deposit for a super token.
- * @param {Array} args Overriding command line arguments
+ * @dev Create a new super app factory registration.
+ * @param {Array} argv Overriding command line arguments
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
- * @param {Web3} options.web3 Injected web3 instance
+ * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/gov-set-token-min-deposit.js : {TOKEN ADDRESS} {MINIMUM DEPOSIT}
+ * Usage: npx truffle exec ops-scripts/gov-create-new-factory-registration.js : {FACTORY_ADDRESS}
  */
-module.exports = eval(`(${S.toString()})()`)(async function (
-    args,
-    options = {}
-) {
-    console.log("======== Setting minimum deposit ========");
+module.exports = eval(`(${S.toString()})({
+    doNotPrintColonArgs: true
+})`)(async function (args, options = {}) {
+    console.log("======== Creating new factory registration ========");
     let {protocolReleaseVersion} = options;
 
-    if (args.length !== 2) {
+    if (args.length !== 1) {
         throw new Error("Wrong number of arguments");
     }
-    const minimumDeposit = args.pop();
-    const tokenAddr = args.pop();
-    console.log("token address", tokenAddr);
-    console.log("minimum deposit", minimumDeposit);
+    const factoryAddress = args.pop();
+
+    console.log("protocol release version:", protocolReleaseVersion);
 
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
@@ -43,11 +41,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
+    console.log("Factory Address:", factoryAddress);
+
     await sendGovernanceAction(sf, (gov) =>
-        gov.setSuperTokenMinimumDeposit(
-            sf.host.address,
-            tokenAddr,
-            minimumDeposit
-        )
+        gov.authorizeAppFactory(sf.host.address, factoryAddress)
     );
 });

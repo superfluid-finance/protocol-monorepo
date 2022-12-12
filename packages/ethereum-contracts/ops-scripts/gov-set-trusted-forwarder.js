@@ -14,7 +14,7 @@ const {
  * @param {Address} options.from Address to send transactions from
  * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
  *
- * Usage: npx truffle exec scripts/gov-set-trusted-forwarder.js : {TOKEN ADDRESS} {FORWARDER ADDRESS} {ENABLE}
+ * Usage: npx truffle exec ops-scripts/gov-set-trusted-forwarder.js : {TOKEN ADDRESS} {FORWARDER ADDRESS} {ENABLE}
  *        use TOKEN ADDRESS 0x0000000000000000000000000000000000000000 to set for all tokens.
  *        If ENABLE is 1, the forwarder is enabled; if ENABLE is 0, the forwarder is disabled.
  *

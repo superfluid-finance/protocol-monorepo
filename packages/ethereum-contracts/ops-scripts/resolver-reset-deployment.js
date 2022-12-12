@@ -9,7 +9,7 @@ const {getScriptRunnerFactory: S, rl} = require("./libs/common");
  * @dev Reset the superfluid framework deployment.
  * @param {Array} args Overriding command line arguments
  *
- * Usage: npx truffle exec scripts/resolver-reset-deployment.js : {VERSION}
+ * Usage: npx truffle exec ops-scripts/resolver-reset-deployment.js : {VERSION}
  */
 module.exports = eval(`(${S.toString()})()`)(async function (args) {
     if (args.length !== 1) {

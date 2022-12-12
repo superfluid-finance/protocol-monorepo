@@ -300,7 +300,7 @@ jobs:
       - name: Deploy to ${{ matrix.network }}
         run: |
           cd packages/ethereum-contracts
-          npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
+          npx truffle exec --network ${{ matrix.network }} ops-scripts/deploy-test-environment.js
         env:
           RELEASE_VERSION: master
           ETH_GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}

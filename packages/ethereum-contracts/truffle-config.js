@@ -94,6 +94,8 @@ const DEFAULT_NETWORK_TIMEOUT = 60000;
  * ETH_MAINNET_MNEMONIC
  * MAINNET_MNEMONIC
  * DEFAULT_MNEMONIC,
+ *
+ * Returns undefined if not set anywhere
  */
 function getEnvValue(networkName, key) {
     const keysToTry = [networkName, ...ALIASES[networkName]]
@@ -123,6 +125,8 @@ function createNetworkDefaultConfiguration(
                 shareNonce: true,
             }),
         gasPrice: +getEnvValue(networkName, "GAS_PRICE"),
+        maxFeePerGas: +getEnvValue(networkName, "MAX_FEE_PER_GAS"),
+        maxPriorityFeePerGas: +getEnvValue(networkName, "MAX_PRIORITY_FEE_PER_GAS"),
     };
 }
 
@@ -176,6 +180,8 @@ const E = (module.exports = {
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+            maxPriorityFeePerGas: 31e9,
+            maxFeePerGas: 500e9,
         },
 
         "polygon-mumbai": {

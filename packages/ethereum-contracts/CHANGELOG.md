@@ -17,6 +17,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - `upgradeTo` logic changed to revert if `data` is not empty and `to` is a contract and is not a registered ERC777 recipient
+- `MAX_APP_CALLBACK_LEVEL` is public again
 
 ### [v1.4.3] - 2022-10-27
 ### Added

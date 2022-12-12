@@ -1,10 +1,10 @@
 const Web3 = require("web3");
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const {codeChanged} = require("../../scripts/libs/common");
-const deployFramework = require("../../scripts/deploy-framework");
-const deployTestToken = require("../../scripts/deploy-test-token");
-const deploySuperToken = require("../../scripts/deploy-super-token");
-const deployTestEnvironment = require("../../scripts/deploy-test-environment");
+const {codeChanged} = require("../../ops-scripts/libs/common");
+const deployFramework = require("../../ops-scripts/deploy-framework");
+const deployTestToken = require("../../ops-scripts/deploy-test-token");
+const deploySuperToken = require("../../ops-scripts/deploy-super-token");
+const deployTestEnvironment = require("../../ops-scripts/deploy-test-environment");
 const {expect} = require("chai");
 const Resolver = artifacts.require("Resolver");
 const TestToken = artifacts.require("TestToken");
@@ -145,7 +145,7 @@ contract("Embedded deployment scripts", (accounts) => {
     context("Used in native truffle environment", () => {
         const deploymentOptions = {isTruffle: true};
 
-        describe("scripts/deploy-framework.js", () => {
+        describe("ops-scripts/deploy-framework.js", () => {
             const SuperfluidMock = artifacts.require("SuperfluidMock");
             const SuperTokenFactory = artifacts.require("SuperTokenFactory");
             const SuperTokenFactoryMock = artifacts.require(
@@ -364,7 +364,7 @@ contract("Embedded deployment scripts", (accounts) => {
             }
         });
 
-        it("scripts/deploy-test-token.js", async () => {
+        it("ops-scripts/deploy-test-token.js", async () => {
             const resolver = await web3tx(Resolver.new, "Resolver.new")();
             process.env.RESOLVER_ADDRESS = resolver.address;
             await deployFramework(errorHandler, {
@@ -417,7 +417,7 @@ contract("Embedded deployment scripts", (accounts) => {
             assert.equal(6, await testToken6420.decimals());
         });
 
-        it("scripts/deploy-super-token.js", async () => {
+        it("ops-scripts/deploy-super-token.js", async () => {
             const resolver = await web3tx(Resolver.new, "Resolver.new")();
             process.env.RESOLVER_ADDRESS = resolver.address;
 
@@ -499,13 +499,13 @@ contract("Embedded deployment scripts", (accounts) => {
             );
         });
 
-        it("scripts/deploy-test-environment.js", async () => {
+        it("ops-scripts/deploy-test-environment.js", async () => {
             await deployTestEnvironment(errorHandler, [], deploymentOptions);
         });
     });
 
     context("Used in non-native truffle environment (web3)", () => {
-        it("scripts/deploy-test-environment.js", async () => {
+        it("ops-scripts/deploy-test-environment.js", async () => {
             await deployTestEnvironment(errorHandler, [], {
                 web3: new Web3(web3.currentProvider),
             });

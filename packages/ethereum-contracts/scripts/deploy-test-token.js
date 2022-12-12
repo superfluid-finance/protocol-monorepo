@@ -1,86 +1,56 @@
-const {web3tx} = require("@decentral.ee/web3-helpers");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const getConfig = require("./libs/getConfig");
+const boilerplate = require("./boilerplate");
 
-const {
-    getScriptRunnerFactory: S,
-    extractWeb3Options,
-    builtTruffleContractLoader,
-} = require("./libs/common");
-const {ethers} = require("ethers");
+module.exports = function () {
+    boilerplate(
+        "deploy-test-token.js",
+        "IF you have already completed the migration for scripts/deploy-test-token.js, you can just delete the import for scripts/deploy-test-token.js"
+    );
+    console.log(
+        "If you are using Hardhat, below is how to migrate from deploy-test-token.js to deploy-test-framework.js:"
+    );
+    console.log(`
+    // previous deploy erc20 test token 
+    const deployTestToken = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-token");
+    // or
+    // import deployTestToken from "@superfluid-finance/ethereum-contracts/scripts/deploy-test-token";
+    await deployTestToken(
+        (x: any) => errorHandler("TestToken", x),
+        [":", "fDAI"],
+        {
+            web3: (global as any).web3,
+            from: Deployer,
+        }
+    );
+    // previous deploy erc20 test token end
 
-/**
- * @dev Deploy test token (Mintable ERC20) and register it in the resolver.
- * @param {Array} argv Overriding command line arguments
- * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
- * @param {Web3} options.web3  Injected web3 instance
- * @param {Address} options.from Address to deploy contracts from
- * @param {boolean} options.resetToken Reset the token deployment
- *
- * Usage: npx truffle exec scripts/deploy-test-token.js : {TOKEN_DECIMALS} {TOKEN_SYMBOL}
- */
-module.exports = eval(`(${S.toString()})()`)(async function (
-    args,
-    options = {}
-) {
-    console.log("======== Deploying test token ========");
-    let {resetToken} = options;
 
-    // > 2 because decimals is an optional field
-    // symbol should be required though
-    if (args.length > 2 || args.length < 1) {
-        throw new Error("Wrong number of arguments");
-    }
-    const tokenSymbol = args.pop();
-    console.log("Token symbol", tokenSymbol);
-    const tokenDecimals = args.pop() || 18;
-    console.log("Token decimals", tokenDecimals);
+    // new deploy erc20 test token 
 
-    resetToken = resetToken || !!process.env.RESET_TOKEN;
-    console.log("reset token: ", resetToken);
+    const { deployTestFramework } = require("@superfluid-finance/ethereum-contracts/scripts/deploy-test-framework");
+    // or 
+    // import { deployTestFramework } from "@superfluid-finance/ethereum-contracts/scripts/deploy-test-framework";
 
-    const networkType = await web3.eth.net.getNetworkType();
-    const networkId = await web3.eth.net.getId();
-    const chainId = await web3.eth.getChainId();
-    console.log("network Type: ", networkType);
-    console.log("network ID: ", networkId);
-    console.log("chain ID: ", chainId);
-    const config = getConfig(chainId);
+    const deployer = await deployTestFramework(); // this returns the SuperfluidFrameworkDeployer 
 
-    const {Resolver, TestToken} = await SuperfluidSDK.loadContracts({
-        ...extractWeb3Options(options),
-        additionalContracts: ["Resolver", "TestToken"],
-        contractLoader: builtTruffleContractLoader,
-        networkId,
-    });
-
-    const resolver = await Resolver.at(config.resolverAddress);
-    console.log("Resolver address", resolver.address);
-
-    // deploy test token
-    const name = `tokens.${tokenSymbol}`;
-    let testTokenAddress = await resolver.get(name);
-    if (
-        resetToken ||
-        testTokenAddress === "0x0000000000000000000000000000000000000000"
-    ) {
-        const testToken = await web3tx(TestToken.new, "TestToken.new")(
-            tokenSymbol + " Fake Token",
-            tokenSymbol,
-            tokenDecimals,
-            ethers.utils.parseUnits((1e12).toString())
+    // this deploys an ERC20 Test token and its Wrapper Super Token
+    await deployer
+        .connect(Deployer)
+        .deployWrapperSuperToken(
+            "Fake DAI",                                 // underlying token name
+            "fDAI",                                     // underlying token symbol
+            18,                                         // underlying token decimals
+            ethers.utils.parseUnits("1000000000000")    // underlying token total supply
         );
-        testTokenAddress = testToken.address;
-        await web3tx(resolver.set, `Resolver set ${name}`)(
-            name,
-            testTokenAddress
-        );
-    } else {
-        console.log("Token already deployed");
-    }
-    console.log(`Token ${tokenSymbol} address`, testTokenAddress);
+    // new deploy erc20 test token end
+    `);
 
-    console.log("======== Test token deployed ========");
-
-    return testTokenAddress;
-});
+    console.log(
+        "NOTE: You will need to apply migration changes for all other imports from scripts/*.js\n"
+    );
+    console.log(
+        "Refer to the files in node_modules/@superfluid-finance/ethereum-contracts/scripts/*.js for migration steps for other files.\n\n"
+    );
+    throw new Error(
+        "Please complete the migration, please refer to the other files in /scripts in your node_modules or fix them one at a time."
+    );
+};

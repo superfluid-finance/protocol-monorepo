@@ -6,7 +6,7 @@
 * If verification fails, you can run again this script to verify later.
 */
 
-const metadata = require("metadata");
+const metadata = require("@superfluid-finance/metadata");
 
 const sleep = (waitTimeInMs) => new Promise(resolve => setTimeout(resolve, waitTimeInMs));
 
@@ -45,6 +45,7 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
     await sleep(15000);
 
     try {
+
         await hre.run("verify:verify", {
             address: FlowScheduler.address,
             constructorArguments: [host, registrationKey],

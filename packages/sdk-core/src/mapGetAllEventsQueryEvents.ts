@@ -609,6 +609,47 @@ export const mapGetAllEventsQueryEvents = (
                     forwarder: x.forwarder,
                     enabled: x.enabled,
                 });
+            case "NewPICEvent":
+                return typeGuard<events.NewPICEvent>({
+                    name: "NewPIC",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                    token: x.token,
+                    pic: x.pic,
+                    bond: x.bond,
+                    exitRate: x.exitRate,
+                });
+            case "ExitRateChangedEvent":
+                return typeGuard<events.ExitRateChangedEvent>({
+                    name: "ExitRateChanged",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                    token: x.token,
+                    exitRate: x.exitRate,
+                });
+            case "BondIncreasedEvent":
+                return typeGuard<events.BondIncreasedEvent>({
+                    name: "BondIncreased",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                    token: x.token,
+                    additionalBond: x.additionalBond,
+                });
             default:
                 console.warn(
                     "An unknown event was detected which couldn't be mapped. Please update to the latest version of @superfluid-finance/sdk-core."

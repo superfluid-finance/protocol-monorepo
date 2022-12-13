@@ -2222,20 +2222,7 @@ describe("Superfluid Host Contract", function () {
                     ]);
                 });
 
-                it("#10.2.1 batchCall send with empty userData to contract allowed", async () => {
-                    await superfluid.connect(aliceSigner).batchCall([
-                        {
-                            operationType: 3, // send
-                            target: superToken.address,
-                            data: web3.eth.abi.encodeParameters(
-                                ["address", "uint256", "bytes"],
-                                [mock.address, toWad("3").toString(), "0x"]
-                            ),
-                        },
-                    ]);
-                });
-
-                it("#10.2.2 batchCall send with non-empty userData to unregistered contract reverts", async () => {
+                it("#10.2.1 batchCall send with non-empty userData to unregistered contract reverts", async () => {
                     await expectCustomError(
                         superfluid.connect(aliceSigner).batchCall([
                             {
@@ -2256,7 +2243,7 @@ describe("Superfluid Host Contract", function () {
                     );
                 });
 
-                it("#10.2.3 batchCall send with non-empty userData to registered contract allowed", async () => {
+                it("#10.2.2 batchCall send with non-empty userData to registered contract allowed", async () => {
                     console.log("registerRecipient");
                     await mock.registerRecipient(mock.address);
 
@@ -2272,7 +2259,7 @@ describe("Superfluid Host Contract", function () {
                     ]);
                 });
 
-                it("#10.2.4 batchCall send with non-empty userData to EOA allowed", async () => {
+                it("#10.2.3 batchCall send with non-empty userData to EOA allowed", async () => {
                     await superfluid.connect(aliceSigner).batchCall([
                         {
                             operationType: 3, // send

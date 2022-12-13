@@ -98,17 +98,21 @@ jobs:
     name: "Deploy Subgraph to all dev endpoints"
     needs: [check, test-subgraph, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-dev-subgraphs]
     if: needs.check.outputs.build_subgraph
-    with: 
+    with:
       release_branch: dev
       deploy_to_satsuma_endpoint: false
       # empty network deploys to all networks
-      network: "" 
+      network: ""
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml
     name: Build and Test Spec Haskell (Canary Branch)
+
+  test-automation-contracts:
+    uses: ./.github/workflows/call.test-automation-contracts.yml
+    name: Build and Test Automation Contracts (Canary Branch)
 
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch

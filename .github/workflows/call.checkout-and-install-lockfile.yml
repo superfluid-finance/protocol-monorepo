@@ -1,0 +1,19 @@
+name: Reusable Workflow | Checkout Repository and Install Frozen Lockfile
+
+on: 
+  workflow_call:
+
+jobs: 
+  checkout-and-install:
+    name: Checkout repo and install dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "yarn"
+
+      - name: "Install dependencies"
+        run: yarn install --frozen-lockfile

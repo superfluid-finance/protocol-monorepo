@@ -266,7 +266,7 @@ contract SuperfluidFrameworkDeployer {
     }
 
     /// @notice Deploys a Pure Super Token and lists it in the resolver
-    /// @dev A Pure Super Token cannot be downgraded, which is why we specify the initial supply on creation
+    /// @dev We specify the initial supply (because non-downgradeable) on creation and send it to the deployer
     /// @param _name The token name
     /// @param _symbol The token symbol
     /// @param _initialSupply The initial token supply of the pure super token
@@ -289,6 +289,9 @@ contract SuperfluidFrameworkDeployer {
             string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, _symbol),
             address(pureSuperToken)
         );
+
+        // transfer initial supply to deployer
+        pureSuperToken.transfer(msg.sender, _initialSupply);
     }
 
     function _handleResolverList(

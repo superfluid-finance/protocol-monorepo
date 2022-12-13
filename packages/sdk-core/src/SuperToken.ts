@@ -15,6 +15,7 @@ import { SFError } from "./SFError";
 import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {
+    ERC777SendParams,
     IConfig,
     IRealtimeBalanceOfParams,
     ISuperTokenBaseIDAParams,
@@ -163,6 +164,24 @@ export default abstract class SuperToken extends ERC20Token {
                 cause: err,
             });
         }
+    };
+
+    /** ### ERC777 Token Write Functions ### */
+    /**
+     * Send `amount` tokens to `recipient` from transaction signer.
+     * @param recipient the recipient of the tokens
+     * @param amount the amount of tokens to send
+     * @param userData Extra user data provided.
+     */
+    send = (params: ERC777SendParams): Operation => {
+        const recipient = normalizeAddress(params.recipient);
+        const txn = this.contract.populateTransaction.send(
+            recipient,
+            params.amount,
+            params.userData || "0x",
+            params.overrides || {}
+        );
+        return new Operation(txn, "ERC777_SEND");
     };
 
     /** ### SuperToken Contract Read Functions ### */

@@ -24,6 +24,7 @@ export const TEST_ENVIRONMENT_CONSTANTS = {
     HARDHAT_PRIVATE_KEY:
         "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80",
     INITIAL_TOKEN_BALANCE: ethers.utils.parseUnits("10000000000"),
+    INITIAL_NATIVE_TOKEN_BALANCE: ethers.utils.parseUnits("100"),
     LIQUIDATION_PERIOD: toBN(14400),
     PATRICIAN_PERIOD: toBN(1800),
     MAX_FLOW_RATE: toBN(2).pow(toBN(95)).sub(toBN(1)),
@@ -107,6 +108,13 @@ export const initializeTestEnvironment = async () => {
         testEnv.alice
     );
 
+    const pureSuperTokensPerUser = toBN(
+        await testEnv.pureSuperToken.balanceOf({
+            account: testEnv.alice.address,
+            providerOrSigner: testEnv.alice,
+        })
+    ).div(toBN(testEnv.users.length));
+
     for (let i = 0; i < testEnv.users.length; i++) {
         const user = testEnv.users[i];
         await testEnv.token
@@ -119,10 +127,26 @@ export const initializeTestEnvironment = async () => {
                 testEnv.wrapperSuperToken.address,
                 testEnv.constants.INITIAL_TOKEN_BALANCE
             );
-
+        
+        // distribute pure super tokens from deployer
+        await testEnv.pureSuperToken
+            .transfer({
+                amount: pureSuperTokensPerUser.toString(),
+                receiver: user.address,
+            })
+            .exec(testEnv.alice);
+        
+        // upgrade wrapper super token
         await testEnv.wrapperSuperToken
             .upgrade({
                 amount: testEnv.constants.INITIAL_TOKEN_BALANCE.toString(),
+            })
+            .exec(user);
+
+        // upgrade native asset super token
+        await testEnv.nativeAssetSuperToken
+            .upgrade({
+                amount: testEnv.constants.INITIAL_NATIVE_TOKEN_BALANCE.toString(),
             })
             .exec(user);
     }

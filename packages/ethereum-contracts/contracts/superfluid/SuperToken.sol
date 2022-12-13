@@ -697,7 +697,7 @@ contract SuperToken is
         external override
         onlyHost
     {
-        _send(msg.sender, spender, recipient, amount, userData, "", userData.length != 0);
+        _send(msg.sender, spender, recipient, amount, userData, "", true);
     }
 
     function operationUpgrade(address account, uint256 amount)

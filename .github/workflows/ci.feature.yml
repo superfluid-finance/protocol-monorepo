@@ -164,7 +164,7 @@ jobs:
     runs-on: ubuntu-latest
 
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
-    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs]
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs, test-automation-contracts]
 
     steps:
       - name: Test Results
@@ -186,3 +186,4 @@ jobs:
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
           check_result subgraph-on-previous-sdk-core-versions ${{ needs.test-subgraph-on-previous-sdk-core-versions.result }}
           check_result query-schema-against-deployed-feature-subgraph ${{ needs.test-query-schema-against-deployed-feature-subgraphs.result }}
+          check_result automation-contracts ${{ needs.test-automation-contracts.result }}

@@ -1,5 +1,5 @@
 /*
- * Usage: npx hardhat run --network <network> deploy/deploy.js
+ * Usage: npx hardhat deploy --network <network>
  *
  * Notes:
  * You need to have a .env file based on .env-example.
@@ -43,6 +43,12 @@ module.exports = async function ({ deployments, getNamedAccounts }) {
         args: [Manager.address],
         log: true,
         skipIfAlreadyDeployed: false,
+    });
+
+    // approve strategy on manager contract
+    await hre.run("addStrategy", {
+        manager: Manager.address,
+        strategy:WrapStrategy.address,
     });
 
     // wait for 15 seconds to allow etherscan to indexed the contracts

@@ -1,5 +1,5 @@
 /*
- * Usage: npx hardhat run --network <network> deploy/deploy.js
+ * Usage: npx hardhat deploy --network <network>
  *
  * Notes:
  * You need to have a .env file based on .env-template.

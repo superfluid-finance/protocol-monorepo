@@ -51,7 +51,7 @@ Create a `.env` file using example above and run:
 Deployment script will deploy all contracts and verify them on Etherscan.
 
 ```bash
-npx hardhat run --network <network> deploy/deploy.js
+npx hardhat deploy --network <network>
 ```
 
 

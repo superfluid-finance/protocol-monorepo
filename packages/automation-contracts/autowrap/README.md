@@ -39,12 +39,15 @@ forge test --vvv
 Create a `.env` file using example above and run:
 
 Deployment script will deploy all contracts and verify them on Etherscan.
+Deploy script also calls `addStrategy` task to add the strategy to the Scheduler.
 
 ```bash
-npx hardhat run --network <network> deploy/deploy.js
+npx hardhat deploy --network <network>
 ```
 
-#### Add Approved Strategies to Manager contract
+#### Task - Add Approved Strategies to Manager contract
+
+If you need to add strategies to the Scheduler, you can use the `addStrategy` task.
 
 ```bash
 npx hardhat addStrategy --manager <manager_address> --strategy <strategy_address> --network <network>

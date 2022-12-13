@@ -1,3 +1,4 @@
+import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {Interface} from "ethers/lib/utils";
 import {artifacts, assert, ethers, web3} from "hardhat";
@@ -5,11 +6,13 @@ import {artifacts, assert, ethers, web3} from "hardhat";
 import {
     AgreementMock,
     AgreementMock__factory,
+    ERC777SenderRecipientMock,
     ForwarderMock,
     SuperAppMock,
     SuperAppMock__factory,
     SuperAppMockWithRegistrationKey__factory,
     SuperfluidMock,
+    SuperTokenMock,
     TestGovernance,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
@@ -2179,7 +2182,98 @@ describe("Superfluid Host Contract", function () {
                 await t.validateSystemInvariance();
             });
 
-            it("#10.2 batchCall call agreement", async () => {
+            context("#10.2 batchCall send", () => {
+                let superToken: SuperTokenMock;
+                let mock: ERC777SenderRecipientMock;
+                let aliceSigner: SignerWithAddress;
+
+                before(async () => {
+                    superToken = t.tokens.SuperToken;
+                    aliceSigner = await ethers.getSigner(alice);
+                });
+
+                beforeEach(async () => {
+                    const mockFactory = await ethers.getContractFactory(
+                        "ERC777SenderRecipientMock"
+                    );
+                    mock = await mockFactory.deploy();
+
+                    // @note we must add alias otherwise validateSystemInvariance will fail
+                    t.addAlias("ERC777SenderRecipientMock", mock.address);
+
+                    console.log("Alice upgrades 10 tokens");
+                    await superToken.connect(aliceSigner).upgrade(toWad("10"));
+                });
+
+                afterEach(async () => {
+                    await t.validateSystemInvariance();
+                });
+
+                it("#10.2.0 batchCall send with empty userData to EOA allowed", async () => {
+                    await superfluid.connect(aliceSigner).batchCall([
+                        {
+                            operationType: 3, // send
+                            target: superToken.address,
+                            data: web3.eth.abi.encodeParameters(
+                                ["address", "uint256", "bytes"],
+                                [bob, toWad("3").toString(), "0x"]
+                            ),
+                        },
+                    ]);
+                });
+
+                it("#10.2.1 batchCall send with non-empty userData to unregistered contract reverts", async () => {
+                    await expectCustomError(
+                        superfluid.connect(aliceSigner).batchCall([
+                            {
+                                operationType: 3, // send
+                                target: superToken.address,
+                                data: web3.eth.abi.encodeParameters(
+                                    ["address", "uint256", "bytes"],
+                                    [
+                                        mock.address,
+                                        toWad("3").toString(),
+                                        "0x4206",
+                                    ]
+                                ),
+                            },
+                        ]),
+                        superToken,
+                        "SUPER_TOKEN_NOT_ERC777_TOKENS_RECIPIENT"
+                    );
+                });
+
+                it("#10.2.2 batchCall send with non-empty userData to registered contract allowed", async () => {
+                    console.log("registerRecipient");
+                    await mock.registerRecipient(mock.address);
+
+                    await superfluid.connect(aliceSigner).batchCall([
+                        {
+                            operationType: 3, // send
+                            target: superToken.address,
+                            data: web3.eth.abi.encodeParameters(
+                                ["address", "uint256", "bytes"],
+                                [mock.address, toWad("3").toString(), "0x4206"]
+                            ),
+                        },
+                    ]);
+                });
+
+                it("#10.2.3 batchCall send with non-empty userData to EOA allowed", async () => {
+                    await superfluid.connect(aliceSigner).batchCall([
+                        {
+                            operationType: 3, // send
+                            target: superToken.address,
+                            data: web3.eth.abi.encodeParameters(
+                                ["address", "uint256", "bytes"],
+                                [bob, toWad("3").toString(), "0x4206"]
+                            ),
+                        },
+                    ]);
+                });
+            });
+
+            it("#10.3 batchCall call agreement", async () => {
                 let agreement = await createAgreementMock(
                     web3.utils.sha3("MockAgreement")!,
                     0
@@ -2234,7 +2328,7 @@ describe("Superfluid Host Contract", function () {
                     .withArgs(43);
             });
 
-            it("#10.3 batchCall call app action", async () => {
+            it("#10.4 batchCall call app action", async () => {
                 let agreement = await createAgreementMock(
                     web3.utils.sha3("MockAgreement")!,
                     0
@@ -2290,7 +2384,7 @@ describe("Superfluid Host Contract", function () {
                     .and.to.emit(app, "NoopEvent");
             });
 
-            it("#10.4 batchCall one fail revert all", async () => {
+            it("#10.5 batchCall one fail revert all", async () => {
                 const SuperAppMockFactory = await ethers.getContractFactory(
                     "SuperAppMock"
                 );
@@ -2325,7 +2419,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#10.5 batchCall invalid operation type", async () => {
+            it("#10.6 batchCall invalid operation type", async () => {
                 await expectCustomError(
                     superfluid.batchCall([
                         {operationType: 8888, target: ZERO_ADDRESS, data: "0x"},

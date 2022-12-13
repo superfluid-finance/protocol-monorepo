@@ -139,6 +139,53 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
             .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
     });
 
+    it("Should be able to batch erc777 send wrapper super token", async () => {
+        const amount = ethers.utils.parseUnits("1000").toString();
+        const sendOp = testEnv.pureSuperToken.send({
+            recipient: testEnv.bob.address,
+            amount,
+        });
+        const batchCall = testEnv.sdkFramework.batchCall([sendOp]);
+
+        await expect(batchCall.exec(testEnv.alice))
+            .to.emit(
+                testEnv.pureSuperToken.contract.connect(testEnv.alice),
+                "Transfer"
+            )
+            .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
+    });
+
+    it("Should be able to batch erc777 send pure super token", async () => {
+        const amount = ethers.utils.parseUnits("1000").toString();
+        const sendOp = testEnv.pureSuperToken.send({
+            recipient: testEnv.bob.address,
+            amount,
+        });
+        const batchCall = testEnv.sdkFramework.batchCall([sendOp]);
+
+        await expect(batchCall.exec(testEnv.alice))
+            .to.emit(
+                testEnv.pureSuperToken.contract.connect(testEnv.alice),
+                "Transfer"
+            )
+            .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
+    });
+
+    it("Should be able to batch erc777 send native asset super token", async () => {
+        const amount = ethers.utils.parseUnits("10").toString();
+        const sendOp = testEnv.nativeAssetSuperToken.send({
+            recipient: testEnv.bob.address,
+            amount,
+        });
+        const batchCall = testEnv.sdkFramework.batchCall([sendOp]);
+        await expect(batchCall.exec(testEnv.alice))
+            .to.emit(
+                testEnv.nativeAssetSuperToken.contract.connect(testEnv.alice),
+                "Transfer"
+            )
+            .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
+    });
+
     it("Should be able to batch create flows and batch update flows and batch delete flows", async () => {
         let flowRate = getPerSecondFlowRateByMonth("10000");
         const createFlow1 = testEnv.wrapperSuperToken.createFlow({

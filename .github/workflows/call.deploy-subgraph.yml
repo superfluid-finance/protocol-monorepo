@@ -57,7 +57,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Prepare subgraph manifest"
-        run: ./tasks/prepare-manifest.sh
+        run: ./tasks/prepare-manifest.sh ${{ inputs.network }}
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Generate meta.ignore.ts file"

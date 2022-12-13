@@ -21,6 +21,8 @@ jobs:
     needs: [checkout-and-install]
     
     steps:
+      - uses: actions/checkout@v3
+
       - name: "Build contracts"
         run: yarn build
         working-directory: ./packages/ethereum-contracts
@@ -39,6 +41,8 @@ jobs:
       sdk-core-working-directory: ./packages/sdk-core
 
     steps:
+      - uses: actions/checkout@v3
+
       - name: "Build contracts"
         run: yarn build
         working-directory: ./packages/ethereum-contracts

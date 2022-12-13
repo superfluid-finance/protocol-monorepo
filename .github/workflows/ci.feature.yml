@@ -25,6 +25,7 @@ jobs:
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
       build_sdk_core: ${{ env.BUILD_SDK_CORE }}
       build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
+      build_automation_contracts: ${{ env.BUILD_AUTOMATION_CONTRACTS }}
 
     steps:
       - name: Show contexts
@@ -105,6 +106,14 @@ jobs:
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
+
+  #test automations:
+  test-automation-contracts:
+    uses: ./.github/workflows/call.test-automation-contracts.yml
+    name: Build and Test Automation Contracts
+    needs: [ check ]
+    if: needs.check.outputs.build_automation_contracts
+
   # subgraph integration test
   test-subgraph:
     uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
@@ -155,7 +164,7 @@ jobs:
     runs-on: ubuntu-latest
 
     if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
-    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs]
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs, test-automation-contracts]
 
     steps:
       - name: Test Results
@@ -177,3 +186,4 @@ jobs:
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
           check_result subgraph-on-previous-sdk-core-versions ${{ needs.test-subgraph-on-previous-sdk-core-versions.result }}
           check_result query-schema-against-deployed-feature-subgraph ${{ needs.test-query-schema-against-deployed-feature-subgraphs.result }}
+          check_result automation-contracts ${{ needs.test-automation-contracts.result }}

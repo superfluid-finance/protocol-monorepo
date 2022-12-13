@@ -22,6 +22,7 @@ function setBuildAll() {
     BUILD_SDK_REDUX=1
     BUILD_SPEC_HASKELL=1
     BUILD_SUBGRAPH=1
+    BUILD_AUTOMATION_CONTRACTS=1
     echo Everything will be tested.
 }
 
@@ -68,12 +69,23 @@ if ! [ -z "$GITHUB_ENV" ];then
         BUILD_SPEC_HASKELL=1
         echo SPEC-HASKELL will be tested.
     fi
+    # if specified automation-contracts-scheduler folders and files changed
+    if grep -E "^packages/automation-contracts/scheduler/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+        BUILD_AUTOMATION_CONTRACTS=1
+        echo Automation Contracts will be tested.
+    fi
+    # if specified automation-contracts-autowrap folders and files changed
+    if grep -E "^packages/automation-contracts/autowrap/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
+        BUILD_AUTOMATION_CONTRACTS=1
+        echo Automation Contracts will be tested.
+    fi
 
     echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}" >> $GITHUB_ENV
     echo "BUILD_SDK_CORE=${BUILD_SDK_CORE}" >> $GITHUB_ENV
     echo "BUILD_SDK_REDUX=${BUILD_SDK_REDUX}" >> $GITHUB_ENV
     echo "BUILD_SUBGRAPH=${BUILD_SUBGRAPH}" >> $GITHUB_ENV
     echo "BUILD_SPEC_HASKELL=${BUILD_SPEC_HASKELL}" >> $GITHUB_ENV
+    echo "BUILD_AUTOMATION_CONTRACTS=${BUILD_AUTOMATION_CONTRACTS}" >> $GITHUB_ENV
     if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ];then
         echo PR packages will be published.
         echo "PUBLISH_PR_ARTIFACT=1" >> $GITHUB_ENV

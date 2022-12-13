@@ -4,8 +4,8 @@ on:
   workflow_call:
 
 jobs:
-  test-autowrap-contract:
-    name: Test Autowrap Contract
+  test-automation-contract:
+    name: Test Automation Contracts
 
     runs-on: ubuntu-latest
 
@@ -15,50 +15,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-
-      - name: Install, lint and build
-        run: |
-          yarn install --frozen-lockfile
-          yarn lint
-          yarn build
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
-      - name: Test automation-contracts-autowrap
-        run: |
-          yarn workspace autowrap test
-
-
-  test-scheduler-contract:
-    name: Test Scheduler Contract
-
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [ 16.x ]
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -80,3 +36,8 @@ jobs:
       - name: Test automation-contracts-scheduler
         run: |
           yarn workspace scheduler test
+
+      - name: Test automation-contracts-autowrap
+        run: |
+          yarn workspace autowrap test
+

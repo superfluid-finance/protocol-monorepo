@@ -60,9 +60,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
-
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
         with:

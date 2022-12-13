@@ -13,7 +13,7 @@ on:
 jobs:
   checkout-and-install:
     name: Checkout repo and install dependencies
-    uses: ./.github/workflows/call.checkout-ant-install-lockfile.yml
+    uses: ./.github/workflows/call.checkout-and-install-lockfile.yml
 
   subgraph-unit-tests:
     name: Run subgraph unit tests

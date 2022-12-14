@@ -37,12 +37,12 @@ jobs:
       subgraph-working-directory: ./packages/subgraph
 
     steps:
-      - uses: actions/checkout@v3
+      # - uses: actions/checkout@v3
 
-      - name: Print Test
+      - name: Test
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
-          echo "Deploying to Satsuma endpoint with version label ${{ inputs.satsuma_version_label }}-$shortRev"
+          "yarn deploy:to-satsuma ${{ inputs.satsuma_version_label }}-$shortRev ${{ inputs.network }}" ${shortRev}
 
       # - name: "Install node"
       #   uses: "actions/setup-node@v3"
@@ -80,8 +80,7 @@ jobs:
       #   if: inputs.deploy_to_satsuma_endpoint == true
       #   run: |
       #     shortRev=$(git rev-parse --short ${{ github.sha }})
-      #     echo "Deploying to Satsuma endpoint with version label ${{ inputs.satsuma_version_label }}-$shortRev"
-      #     # "yarn deploy:to-satsuma ${{ inputs.satsuma_version_label }} ${{ inputs.network }}" ${shortRev}
+      #     "yarn deploy:to-satsuma ${{ inputs.satsuma_version_label }}-$shortRev ${{ inputs.network }}" ${shortRev}
       #   working-directory: ${{ env.subgraph-working-directory }}
       #   env:
       #     SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

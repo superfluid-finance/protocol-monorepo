@@ -42,7 +42,8 @@ jobs:
       - name: Test
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
-          "yarn deploy:to-satsuma ${{ inputs.satsuma_version_label-$shortRev }} ${{ inputs.network }}"
+          versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
+          "yarn deploy:to-satsuma ${versionLabel} ${{ inputs.network }}"
 
       # - name: "Install node"
       #   uses: "actions/setup-node@v3"

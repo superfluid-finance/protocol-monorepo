@@ -9,6 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `batchCall` supports new `send` batch operation
 - Added `downgradeTo` function in `SuperToken.sol`
 - Added `deployContractsAndToken.js` and `runDeployContractsAndToken.js` to `dev-scripts`
+- Added `SuperTokenV1Library` which provides a token centric interface for Superfluid specific SuperToken functionality.
 
 ### Breaking
 
@@ -88,7 +89,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-- Add resolver and loader to deployer, add tests (#1011) 
+- Add resolver and loader to deployer, add tests (#1011)
 
 ## [v1.3.0] - 2022-06-16
 

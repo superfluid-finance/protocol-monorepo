@@ -15,8 +15,7 @@
 
 graph="../../node_modules/@graphprotocol/graph-cli"
 
-echo $1
-# graph deploy $2 \
-#     --version-label $1 \
-#     --node https://app.satsuma.xyz/api/subgraphs/deploy \
-#     --deploy-key $SATSUMA_DEPLOY_KEY
+graph deploy $2 \
+    --version-label $1 \
+    --node https://app.satsuma.xyz/api/subgraphs/deploy \
+    --deploy-key $SATSUMA_DEPLOY_KEY

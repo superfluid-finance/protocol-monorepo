@@ -2,10 +2,10 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {assert, ethers, expect, web3} from "hardhat";
 
 import {
-    IDAv1LibraryMock,
-    IDAv1LibrarySuperAppMock,
     InstantDistributionAgreementV1,
     SuperfluidMock,
+    SuperTokenLibraryIDAMock,
+    SuperTokenLibraryIDASuperAppMock,
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
@@ -63,8 +63,8 @@ describe("IDAv1Library testing", function () {
         ida: InstantDistributionAgreementV1,
         alice: string,
         bob: string,
-        idaV1LibMock: IDAv1LibraryMock,
-        idaV1LibSuperAppMock: IDAv1LibrarySuperAppMock,
+        idaV1LibMock: SuperTokenLibraryIDAMock,
+        idaV1LibSuperAppMock: SuperTokenLibraryIDASuperAppMock,
         aliceSigner: SignerWithAddress;
 
     before(async () => {
@@ -89,13 +89,13 @@ describe("IDAv1Library testing", function () {
 
     beforeEach(async () => {
         const idaV1LibMockFactory = await ethers.getContractFactory(
-            "IDAv1LibraryMock"
+            "SuperTokenLibraryIDAMock"
         );
-        idaV1LibMock = (await idaV1LibMockFactory.deploy(host.address)).connect(
+        idaV1LibMock = (await idaV1LibMockFactory.deploy()).connect(
             aliceSigner
         );
         const idaV1LibSuperAppMockFactory = await ethers.getContractFactory(
-            "IDAv1LibrarySuperAppMock"
+            "SuperTokenLibraryIDASuperAppMock"
         );
         idaV1LibSuperAppMock = (
             await idaV1LibSuperAppMockFactory.deploy(host.address)

@@ -2,10 +2,11 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {assert, ethers, web3} from "hardhat";
 
 import {
-    CFALibraryMock,
-    CFALibrarySuperAppMock,
+    // CFALibrarySuperAppMock,
     ConstantFlowAgreementV1,
     Superfluid,
+    SuperTokenLibraryCFAMock,
+    SuperTokenLibraryCFASuperAppMock,
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
@@ -36,8 +37,8 @@ describe("CFAv1 Library testing", function () {
         cfa: ConstantFlowAgreementV1;
     let alice: string, bob: string;
     let aliceSigner: SignerWithAddress;
-    let cfaLibraryMock: CFALibraryMock;
-    let cfaLibrarySuperAppMock: CFALibrarySuperAppMock;
+    let cfaLibraryMock: SuperTokenLibraryCFAMock;
+    let cfaLibrarySuperAppMock: SuperTokenLibraryCFASuperAppMock;
 
     // the calldata used for a lot of the tests are
     // repeated, it makes sense to collapse them here
@@ -65,14 +66,8 @@ describe("CFAv1 Library testing", function () {
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");
 
-        // deploy a contract we'll use for testing the library
-        const CFALibraryMockFactory = await ethers.getContractFactory(
-            "CFALibraryMock"
-        );
-        cfaLibraryMock = await CFALibraryMockFactory.deploy(host.address);
-
         const CFALibrarySuperAppMockFactory = await ethers.getContractFactory(
-            "CFALibrarySuperAppMock"
+            "SuperTokenLibraryCFASuperAppMock"
         );
         cfaLibrarySuperAppMock = await CFALibrarySuperAppMockFactory.deploy(
             host.address,
@@ -80,6 +75,11 @@ describe("CFAv1 Library testing", function () {
             bob, // receiver
             alice // operator
         );
+        // deploy a contract we'll use for testing the library
+        const CFALibraryMockFactory = await ethers.getContractFactory(
+            "SuperTokenLibraryCFAMock"
+        );
+        cfaLibraryMock = await CFALibraryMockFactory.deploy();
 
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken
@@ -120,6 +120,58 @@ describe("CFAv1 Library testing", function () {
                 ).flowRate.toString(),
                 flowRate
             );
+            //testing read functions
+            const flowInfo = await cfaLibraryMock.getFlowInfoTest(
+                superToken.address,
+                cfaLibraryMock.address,
+                bob
+            );
+
+            const flowRateTestResponse = await cfaLibraryMock.getFlowRateTest(
+                superToken.address,
+                cfaLibraryMock.address,
+                bob
+            );
+            assert.equal(flowInfo[1].toString(), flowRate);
+            assert.equal(flowRateTestResponse.toString(), flowRate);
+            const netFlowRateResponse = await cfaLibraryMock.getNetFlowRateTest(
+                superToken.address,
+                cfaLibraryMock.address
+            );
+            const cfaNetFlowRateResponse = await cfa.getNetFlow(
+                superToken.address,
+                cfaLibraryMock.address
+            );
+            assert.equal(
+                netFlowRateResponse.toString(),
+                cfaNetFlowRateResponse.toString()
+            );
+            const netFlowInfoResponse = await cfaLibraryMock.getNetFlowInfoTest(
+                superToken.address,
+                cfaLibraryMock.address
+            );
+            assert.equal(
+                netFlowInfoResponse[1].toString(),
+                cfaNetFlowRateResponse.toString()
+            );
+
+            const cfaDepositCalculation = (
+                await cfa.getFlow(
+                    superToken.address,
+                    cfaLibraryMock.address,
+                    bob
+                )
+            ).deposit;
+            const libDepositCalculation =
+                await cfaLibraryMock.getBufferAmountByFlowRateTest(
+                    superToken.address,
+                    flowRate
+                );
+
+            assert.equal(
+                cfaDepositCalculation.toString(),
+                libDepositCalculation.toString()
+            );
         });
 
         it("1.2 - Update Flow", async () => {
@@ -154,7 +206,11 @@ describe("CFAv1 Library testing", function () {
                 flowRate
             );
 
-            await cfaLibraryMock.deleteFlowTest(superToken.address, bob);
+            await cfaLibraryMock.deleteFlowTest(
+                superToken.address,
+                cfaLibraryMock.address,
+                bob
+            );
 
             assert.equal(
                 (
@@ -256,10 +312,30 @@ describe("CFAv1 Library testing", function () {
     describe("2 - Flow Operator Ops", async () => {
         // testing permissions first before testing operator functions
         it("2.1 - Can Update Flow Operator Permissions", async () => {
-            await cfaLibraryMock.updateFlowOperatorPermissionsTest(
-                alice,
+            await cfaLibraryMock.setFlowPermissionsTest(
                 superToken.address,
-                "7",
+                alice,
+                true,
+                true,
+                true,
+                "1"
+            );
+            //testing getter function
+            const flowPermissionsCheck =
+                await cfaLibraryMock.getFlowPermissionsTest(
+                    superToken.address,
+                    cfaLibraryMock.address,
+                    alice
+                );
+            assert.equal(
+                flowPermissionsCheck.allowCreate,
+                flowPermissionsCheck.allowUpdate,
+                flowPermissionsCheck.allowDelete,
+                true
+            );
+
+            assert.equal(
+                flowPermissionsCheck.flowRateAllowance.toString(),
                 "1"
             );
 
@@ -276,7 +352,7 @@ describe("CFAv1 Library testing", function () {
         });
 
         it("2.2 - Can Authorize Flow Operator With full Control", async () => {
-            await cfaLibraryMock.authorizeFlowOperatorWithFullControlTest(
+            await cfaLibraryMock.setMaxFlowPermissionsTest(
                 alice,
                 superToken.address
             );
@@ -294,12 +370,12 @@ describe("CFAv1 Library testing", function () {
         });
 
         it("2.3 - Can Revoke Flow Operator With Full Control", async () => {
-            await cfaLibraryMock.authorizeFlowOperatorWithFullControlTest(
+            await cfaLibraryMock.setMaxFlowPermissionsTest(
                 alice,
                 superToken.address
             );
 
-            await cfaLibraryMock.revokeFlowOperatorWithFullControlTest(
+            await cfaLibraryMock.revokeFlowPermissionsTest(
                 alice,
                 superToken.address
             );
@@ -321,10 +397,10 @@ describe("CFAv1 Library testing", function () {
                 .connect(aliceSigner)
                 .callAgreement(cfa.address, authorizeFullControlCalldata, "0x");
 
-            await cfaLibraryMock.createFlowByOperatorTest(
+            await cfaLibraryMock.createFlowFromTest(
+                superToken.address,
                 alice,
                 bob,
-                superToken.address,
                 flowRate
             );
 
@@ -359,10 +435,10 @@ describe("CFAv1 Library testing", function () {
                     "0x"
                 );
 
-            await cfaLibraryMock.updateFlowByOperatorTest(
+            await cfaLibraryMock.updateFlowFromTest(
+                superToken.address,
                 alice,
                 bob,
-                superToken.address,
                 updatedFlowRate
             );
 
@@ -390,10 +466,10 @@ describe("CFAv1 Library testing", function () {
                     "0x"
                 );
 
-            await cfaLibraryMock.deleteFlowByOperator(
+            await cfaLibraryMock.deleteFlowFromTest(
+                superToken.address,
                 alice,
-                bob,
-                superToken.address
+                bob
             );
 
             assert.equal(

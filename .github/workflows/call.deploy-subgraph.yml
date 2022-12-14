@@ -39,58 +39,52 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Test
+      - name: "Install node"
+        uses: "actions/setup-node@v3"
+        with:
+          node-version: "16"
+          cache: "yarn"
+
+      - name: "Install dependencies"
+        run: yarn install --frozen-lockfile
+
+      - name: "Build contracts"
+        run: yarn build
+        working-directory: ./packages/ethereum-contracts
+
+      - name: "Get ABI"
+        run: node scripts/getAbi.js
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Prepare subgraph manifest"
+        run: ./tasks/prepare-manifest.sh ${{ inputs.network }}
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Generate meta.ignore.ts file"
+        run: "yarn generate-sf-meta"
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          COMMIT_HASH: ${{ github.sha }}
+          CONFIGURATION: ${{ inputs.release_branch }}
+
+      - name: "Generate AssemblyScript types"
+        run: "yarn codegen"
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Deploy to Satsuma endpoint"
+        if: inputs.deploy_to_satsuma_endpoint == true
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
           yarn deploy:to-satsuma ${versionLabel} ${{ inputs.network }}
         working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
 
-      # - name: "Install node"
-      #   uses: "actions/setup-node@v3"
-      #   with:
-      #     node-version: "16"
-      #     cache: "yarn"
-
-      # - name: "Install dependencies"
-      #   run: yarn install --frozen-lockfile
-
-      # - name: "Build contracts"
-      #   run: yarn build
-      #   working-directory: ./packages/ethereum-contracts
-
-      # - name: "Get ABI"
-      #   run: node scripts/getAbi.js
-      #   working-directory: ${{ env.subgraph-working-directory }}
-
-      # - name: "Prepare subgraph manifest"
-      #   run: ./tasks/prepare-manifest.sh ${{ inputs.network }}
-      #   working-directory: ${{ env.subgraph-working-directory }}
-
-      # - name: "Generate meta.ignore.ts file"
-      #   run: "yarn generate-sf-meta"
-      #   working-directory: ${{ env.subgraph-working-directory }}
-      #   env:
-      #     COMMIT_HASH: ${{ github.sha }}
-      #     CONFIGURATION: ${{ inputs.release_branch }}
-
-      # - name: "Generate AssemblyScript types"
-      #   run: "yarn codegen"
-      #   working-directory: ${{ env.subgraph-working-directory }}
-
-      # - name: "Deploy to Satsuma endpoint"
-      #   if: inputs.deploy_to_satsuma_endpoint == true
-      #   run: |
-      #     shortRev=$(git rev-parse --short ${{ github.sha }})
-      #     "yarn deploy:to-satsuma ${{ inputs.satsuma_version_label }}-$shortRev ${{ inputs.network }}" ${shortRev}
-      #   working-directory: ${{ env.subgraph-working-directory }}
-      #   env:
-      #     SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
-
-      # - name: "Deploy to Hosted Subgraph Superfluid endpoint(s)"
-      #   if: inputs.deploy_to_satsuma_endpoint == false
-      #   # if no network is specified, deploy to all networks on specified release branch
-      #   run: "yarn deploy:to-hosted-service ${{ inputs.release_branch }} ${{ inputs.network }}"
-      #   working-directory: ${{ env.subgraph-working-directory }}
-      #   env:
-      #     THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
+      - name: "Deploy to Hosted Subgraph Superfluid endpoint(s)"
+        if: inputs.deploy_to_satsuma_endpoint == false
+        # if no network is specified, deploy to all networks on specified release branch
+        run: yarn deploy:to-hosted-service ${{ inputs.release_branch }} ${{ inputs.network }}
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}

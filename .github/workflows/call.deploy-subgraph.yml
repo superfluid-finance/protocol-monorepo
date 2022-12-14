@@ -37,7 +37,7 @@ jobs:
       subgraph-working-directory: ./packages/subgraph
 
     steps:
-      # - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Test
         run: |

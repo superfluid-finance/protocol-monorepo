@@ -672,6 +672,7 @@ library SuperTokenV1Library {
      * @param token The token used in flow
      * @param sender The sender of the flow
      * @param receiver The receiver of the flow
+     * @return flowRate The flow rate
      */
     function getFlowRate(ISuperToken token, address sender, address receiver)
         internal view returns(int96 flowRate)
@@ -685,6 +686,10 @@ library SuperTokenV1Library {
      * @param token The token used in flow
      * @param sender The sender of the flow
      * @param receiver The receiver of the flow
+     * @return lastUpdated Timestamp of flow creation or last flowrate change
+     * @return flowRate The flow rate
+     * @return deposit The amount of deposit the flow
+     * @return owedDeposit The amount of owed deposit of the flow
      */
     function getFlowInfo(ISuperToken token, address sender, address receiver)
         internal view
@@ -696,8 +701,9 @@ library SuperTokenV1Library {
 
     /**
      * @dev get net flow rate for given account for given token
-     * @param token The token used in flow
-     * @param account The sender of the flow
+     * @param token Super token address
+     * @param account Account to query
+     * @return flowRate The net flow rate of the account
      */
     function getNetFlowRate(ISuperToken token, address account)
         internal view returns (int96 flowRate)
@@ -707,9 +713,13 @@ library SuperTokenV1Library {
     }
 
     /**
-     * @dev get net flow info between two accounts for given token
-     * @param token The token used in flow
-     * @param account The sender of the flow
+     * @dev get the aggregated flow info of the account
+     * @param token Super token address
+     * @param account Account to query
+     * @return lastUpdated Timestamp of the last change of the net flow
+     * @return flowRate The net flow rate of token for account
+     * @return deposit The sum of all deposits for account's flows
+     * @return owedDeposit The sum of all owed deposits for account's flows
      */
     function getNetFlowInfo(ISuperToken token, address account)
         internal view
@@ -723,6 +733,7 @@ library SuperTokenV1Library {
      * @dev calculate buffer for a flow rate
      * @param token The token used in flow
      * @param flowRate The flowrate to calculate the needed buffer for
+     * @return bufferAmount The buffer amount based on flowRate, liquidationPeriod and minimum deposit
      */
     function getBufferAmountByFlowRate(ISuperToken token, int96 flowRate) internal view
         returns (uint256 bufferAmount)
@@ -736,6 +747,10 @@ library SuperTokenV1Library {
      * @param token The token used in flow
      * @param sender sender of a flow
      * @param flowOperator the address we are checking permissions of for sender & token
+     * @return allowCreate is true if the flowOperator can create flows
+     * @return allowUpdate is true if the flowOperator can update flows
+     * @return allowDelete is true if the flowOperator can delete flows
+     * @return flowRateAllowance The flow rate allowance the flowOperator is granted (only goes down)
      */
     function getFlowPermissions(ISuperToken token, address sender, address flowOperator)
         internal view

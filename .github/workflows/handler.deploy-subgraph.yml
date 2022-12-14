@@ -29,7 +29,7 @@ jobs:
     name: Deploy Subgraph
     with:
       release_branch: ${{ github.event.inputs.release_branch }}
-      deploy_to_satsuma_endpoint: ${{ github.event.inputs.deploy_to_satsuma_endpoint == true }}
+      deploy_to_satsuma_endpoint: ${{ github.event.inputs.deploy_to_satsuma_endpoint == 'true' }}
       network: ${{ github.event.inputs.network }}
       satsuma_version_label: ${{ github.event.inputs.satsuma_version_label }}
     secrets:

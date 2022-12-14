@@ -6,15 +6,19 @@ on:
       release_branch:
         required: true
         type: string
+        description: 'The subgraph release: feature, dev, v1'
       deploy_to_satsuma_endpoint:
         required: true
         type: boolean
+        description: 'Whether we want to deploy to Satsuma endpoint'
       network:
         required: true
         type: string
+        description: 'The network we want to deploy to (matic, mumbai, etc)'
       satsuma_version_label:
         required: false
         type: string
+        description: 'The version label for Satsuma endpoint'
     secrets:
       SATSUMA_DEPLOY_KEY:
         description: 'Satsuma deploy key for deploying subgraphs'
@@ -52,8 +56,8 @@ jobs:
         run: node scripts/getAbi.js
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "Generate subgraph manifest"
-        run: "yarn prepare-manifest-local"
+      - name: "Prepare subgraph manifest"
+        run: ./tasks/prepare-manifest.sh ${{ inputs.network }}
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Generate meta.ignore.ts file"
@@ -69,14 +73,18 @@ jobs:
 
       - name: "Deploy to Satsuma endpoint"
         if: inputs.deploy_to_satsuma_endpoint == true
-        run: "yarn deploy:to-satsuma ${{ inputs.satsuma_version_label }} ${{ inputs.network }}"
+        run: |
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
+          yarn deploy:to-satsuma ${versionLabel} ${{ inputs.network }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
 
-      - name: "Deploy to Hosted Subgraph Superfluid endpoint"
+      - name: "Deploy to Hosted Subgraph Superfluid endpoint(s)"
         if: inputs.deploy_to_satsuma_endpoint == false
-        run: "yarn deploy ${{ inputs.release_branch }} ${{ inputs.network }}"
+        # if no network is specified, deploy to all networks on specified release branch
+        run: yarn deploy:to-hosted-service ${{ inputs.release_branch }} ${{ inputs.network }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}

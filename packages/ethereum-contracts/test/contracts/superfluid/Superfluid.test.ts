@@ -8,6 +8,8 @@ import {
     AgreementMock__factory,
     ERC777SenderRecipientMock,
     ForwarderMock,
+    NonSuperAppContractMock,
+    NonSuperAppContractMock__factory,
     SuperAppMock,
     SuperAppMock__factory,
     SuperAppMockWithRegistrationKey__factory,
@@ -1775,20 +1777,143 @@ describe("Superfluid Host Contract", function () {
                 await t.popEvmSnapshot();
             });
 
-            it("#8.1 only super app can be called", async () => {
-                const reason = "HOST_NOT_A_SUPER_APP";
-                // call to an non agreement
-                await expect(superfluid.callAppAction(alice, "0x")).to.be
-                    .reverted;
-                // call to an unregistered mock agreement
+            it("#8.1 reverts if attempting to call EOA with invalid call data (no selector)", async () => {
+                await expect(
+                    superfluid.callAppAction(alice, "0x")
+                ).to.be.revertedWith("CallUtils: invalid callData");
+            });
+
+            it("#8.2 reverts if attempting to call contract with invalid call data (no selector)", async () => {
+                await expect(
+                    superfluid.callAppAction(governance.address, "0x")
+                ).to.be.revertedWith("CallUtils: invalid callData");
+            });
+
+            it("#8.3 reverts when trying to call super app with invalid call data (no selector)", async () => {
+                await expect(
+                    superfluid.callAppAction(app.address, "0x")
+                ).to.be.revertedWith("CallUtils: invalid callData");
+            });
+
+            it("#8.4 reverts when trying to callAppAction on an EOA", async () => {
                 await expectCustomError(
-                    superfluid.callAppAction(governance.address, "0x"),
+                    superfluid.callAppAction(
+                        bob,
+                        "0xe09f22820000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+                    ),
                     superfluid,
-                    reason
+                    "APP_RULE",
+                    t.customErrorCode.APP_RULE_CTX_IS_MALFORMATED
                 );
             });
 
-            it("#8.2 actionNoop", async () => {
+            context("#8.5 callAppAction on non-superApp contract", () => {
+                let nonSuperAppContractMockFactory: NonSuperAppContractMock__factory;
+                let nonSuperAppContractMock: NonSuperAppContractMock;
+
+                beforeEach(async () => {
+                    nonSuperAppContractMockFactory =
+                        await ethers.getContractFactory(
+                            "NonSuperAppContractMock"
+                        );
+                    nonSuperAppContractMock =
+                        await nonSuperAppContractMockFactory.deploy(
+                            superfluid.address
+                        );
+                });
+
+                it("#8.5.0 reverts when trying to callAppAction on a non-super app contract function with improper calldata", async () => {
+                    await expectCustomError(
+                        superfluid.callAppAction(
+                            nonSuperAppContractMock.address,
+                            nonSuperAppContractMockFactory.interface.encodeFunctionData(
+                                "invalidCallAppActionFunction",
+                                ["69"]
+                            )
+                        ),
+                        superfluid,
+                        "HOST_NON_ZERO_LENGTH_PLACEHOLDER_CTX"
+                    );
+                });
+
+                it("#8.5.1 reverts when trying to callAppAction on a non-super app contract function which returns invalid context", async () => {
+                    await expectCustomError(
+                        superfluid.callAppAction(
+                            nonSuperAppContractMock.address,
+                            nonSuperAppContractMockFactory.interface.encodeFunctionData(
+                                "sneakyCallAppActionFunction",
+                                ["69", "0x"]
+                            )
+                        ),
+                        superfluid,
+                        "APP_RULE",
+                        t.customErrorCode.APP_RULE_CTX_IS_READONLY
+                    );
+                });
+
+                it("#8.5.2 should be able to callAppAction on a non-super app contract function which returns correct context", async () => {
+                    await expect(
+                        superfluid.callAppAction(
+                            nonSuperAppContractMock.address,
+                            nonSuperAppContractMockFactory.interface.encodeFunctionData(
+                                "validCallAppActionFunction",
+                                ["69", "0x"]
+                            )
+                        )
+                    )
+                        .to.emit(nonSuperAppContractMock, "Log")
+                        .withArgs(69);
+                });
+
+                it("#8.5.3 should be able to callAppActionWithContext on a non-super app contract via another contract with correct context", async () => {
+                    const callData =
+                        nonSuperAppContractMockFactory.interface.encodeFunctionData(
+                            "validCallAppActionFunction",
+                            ["69", "0x"]
+                        );
+                    await expect(
+                        superfluid.callAppAction(
+                            app.address,
+                            app.interface.encodeFunctionData(
+                                "validCallAppActionOnNonSuperAppWithCtx",
+                                [
+                                    nonSuperAppContractMock.address,
+                                    callData,
+                                    "0x",
+                                ]
+                            )
+                        )
+                    )
+                        .to.emit(nonSuperAppContractMock, "Log")
+                        .withArgs(69);
+                });
+
+                it("#8.5.4 should revert if callAppActionWithContext on a non-super app contract via another contract with bad context", async () => {
+                    const callData =
+                        nonSuperAppContractMockFactory.interface.encodeFunctionData(
+                            "validCallAppActionFunction",
+                            ["69", "0x"]
+                        );
+                    await expectCustomError(
+                        superfluid.callAppAction(
+                            app.address,
+                            app.interface.encodeFunctionData(
+                                "invalidCallAppActionOnNonSuperAppWithCtx",
+                                [
+                                    nonSuperAppContractMock.address,
+                                    callData,
+                                    "0x",
+                                ]
+                            )
+                        ),
+                        superfluid,
+                        "APP_RULE",
+                        t.customErrorCode.APP_RULE_CTX_IS_READONLY
+                    );
+                });
+            });
+
+            it("#8.6 actionNoop on super app", async () => {
                 await expect(
                     superfluid.callAppAction(
                         app.address,
@@ -1805,7 +1930,7 @@ describe("Superfluid Host Contract", function () {
                     );
             });
 
-            it("#8.3 callAppAction assert or revert", async () => {
+            it("#8.7 callAppAction on super app assert or revert", async () => {
                 await expectRevertedWith(
                     superfluid.callAppAction(
                         app.address,
@@ -1838,7 +1963,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#8.4 app action should not callAgreement or callAppAction without ctx", async () => {
+            it("#8.8 app action should not callAgreement or callAppAction without ctx", async () => {
                 await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
@@ -1865,7 +1990,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#8.5 app callAgreementWithContext which doPing", async () => {
+            it("#8.9 app callAgreementWithContext which doPing", async () => {
                 await expect(
                     superfluid.callAppAction(
                         app.address,
@@ -1879,7 +2004,7 @@ describe("Superfluid Host Contract", function () {
                     .withArgs(42);
             });
 
-            it("#8.6 app callAgreementWithContext which reverts", async () => {
+            it("#8.10 app callAgreementWithContext which reverts", async () => {
                 await expectRevertedWith(
                     superfluid.callAppAction(
                         app.address,
@@ -1892,7 +2017,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#8.7 app callAppActionWithContext which noop", async () => {
+            it("#8.11 app callAppActionWithContext which noop", async () => {
                 await expect(
                     superfluid.callAppAction(
                         app.address,
@@ -1904,7 +2029,7 @@ describe("Superfluid Host Contract", function () {
                 ).to.emit(app, "NoopEvent");
             });
 
-            it("#8.8 app callAppActionWithContext which reverts", async () => {
+            it("#8.12 app callAppActionWithContext which reverts", async () => {
                 await expectRevertedWith(
                     superfluid.callAppAction(
                         app.address,
@@ -1917,7 +2042,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#8.9 app action should not alter ctx", async () => {
+            it("#8.13 app action should not alter ctx", async () => {
                 await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
@@ -1932,22 +2057,18 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#8.10 should not be able call jailed app", async () => {
+            it("#8.14 should be able to call jailed app", async () => {
                 await superfluid["jailApp(address)"](app.address);
-                await expectCustomError(
-                    superfluid.callAppAction(
-                        app.address,
-                        superAppMockInterface.encodeFunctionData(
-                            "actionCallActionNoop",
-                            ["0x"]
-                        )
-                    ),
-                    superfluid,
-                    "HOST_SUPER_APP_IS_JAILED"
+                await superfluid.callAppAction(
+                    app.address,
+                    superAppMockInterface.encodeFunctionData(
+                        "actionCallActionNoop",
+                        ["0x"]
+                    )
                 );
             });
 
-            it("#8.11 should give explicit error message when empty ctx returned by the action", async () => {
+            it("#8.15 should give explicit error message when empty ctx returned by the action", async () => {
                 await expectCustomError(
                     superfluid.callAppAction(
                         app.address,
@@ -1962,7 +2083,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#8.12 should not be able to call callbacks", async () => {
+            it("#8.16 should not be able to call callbacks", async () => {
                 await Promise.all(
                     [
                         "beforeAgreementCreated",

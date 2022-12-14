@@ -255,6 +255,31 @@ contract SuperAppMock is ISuperApp {
             abi.encode(42));
     }
 
+    function validCallAppActionOnNonSuperAppWithCtx(
+        address _nonSuperAppContract,
+        bytes calldata callData,
+        bytes calldata ctx
+    ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
+        newCtx = _host.callAppActionWithContext(
+            ISuperApp(_nonSuperAppContract),
+            callData,
+            ctx
+        );
+    }
+
+    function invalidCallAppActionOnNonSuperAppWithCtx(
+        address _nonSuperAppContract,
+        bytes calldata callData,
+        bytes calldata ctx
+    ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
+        newCtx = _host.callAppActionWithContext(
+            ISuperApp(_nonSuperAppContract),
+            callData,
+            // we tamper with the original ctx passed by host.callAppAction to make it invalid
+            "0x"
+        );
+    }
+
     function actionCallBadAction(bytes calldata ctx)
         external
         requireValidCtx(ctx)

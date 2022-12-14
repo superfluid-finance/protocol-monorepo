@@ -646,7 +646,6 @@ contract Superfluid is
     )
         internal
         cleanCtx
-        isAppActive(app)
         isValidAppAction(callData)
         returns(bytes memory returnedData)
     {
@@ -731,7 +730,6 @@ contract Superfluid is
     )
         external override
         requireValidCtx(ctx)
-        isAppActive(app)
         isValidAppAction(callData)
         returns(bytes memory newCtx)
     {
@@ -1095,13 +1093,6 @@ contract Superfluid is
         if (!isAgreementClassListed(ISuperAgreement(msg.sender))) {
             revert HOST_ONLY_LISTED_AGREEMENT();
         }
-        _;
-    }
-
-    modifier isAppActive(ISuperApp app) {
-        uint256 configWord = _appManifests[app].configWord;
-        if (configWord == 0) revert HOST_NOT_A_SUPER_APP();
-        if (SuperAppDefinitions.isAppJailed(configWord)) revert HOST_SUPER_APP_IS_JAILED();
         _;
     }
 

@@ -19,6 +19,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - `upgradeTo` logic changed to revert if `data` is not empty and `to` is a contract and is not a registered ERC777 recipient
 - `MAX_APP_CALLBACK_LEVEL` is public again
+- `callAppAction` and `callAppActionWithContext` can be called where `app` is a non-super app smart contract as long as it satisfies two requirements:
+  1. The function you want to call via `callAppAction` must take bytes (the passed context from the host) as the last parameter.
+  2. You must return the "correct" context bytes from the contract in the function, that is, untouched.
 
 ### [v1.4.3] - 2022-10-27
 ### Added

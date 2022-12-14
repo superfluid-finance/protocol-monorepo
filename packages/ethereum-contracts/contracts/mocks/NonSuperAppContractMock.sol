@@ -28,7 +28,6 @@ contract NonSuperAppContractMock {
     /// @notice An example of a sneaky function that does not satisfy the requirements for callAppAction
     /// @dev This satisfies requirement 1 but not 2
     /// @param _amount arbitrary amount
-    /// @param _ctx arbitrary context bytes
     /// @return newCtx the context bytes
     function sneakyCallAppActionFunction(
         uint256 _amount,

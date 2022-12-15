@@ -77,23 +77,42 @@ jobs:
     with:
       subgraph-release: dev
 
+  check:
+    name: Checking what packages need to be built
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      build_subgraph: ${{ env.BUILD_SUBGRAPH }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check changeset
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
+
   # deploy subgraph if changes are made, we can call this every time, but we won't actually do any deployments
   # if the IPFS hash generated stays the same (no mapping logic changes)
   deploy-subgraph-changes:
     uses: ./.github/workflows/call.deploy-subgraph.yml
     name: "Deploy Subgraph to all dev endpoints"
-    needs: [test-subgraph, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-dev-subgraphs]
-    with: 
+    needs: [check, test-subgraph, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-dev-subgraphs]
+    if: needs.check.outputs.build_subgraph
+    with:
       release_branch: dev
       deploy_to_satsuma_endpoint: false
       # empty network deploys to all networks
-      network: "" 
+      network: ""
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml
     name: Build and Test Spec Haskell (Canary Branch)
+
+  test-automation-contracts:
+    uses: ./.github/workflows/call.test-automation-contracts.yml
+    name: Build and Test Automation Contracts (Canary Branch)
 
   ethereum-contracts-coverage:
     name: Run coverage test of ethereum-contracts of dev branch
@@ -300,7 +319,7 @@ jobs:
       - name: Deploy to ${{ matrix.network }}
         run: |
           cd packages/ethereum-contracts
-          npx truffle exec --network ${{ matrix.network }} scripts/deploy-test-environment.js
+          npx truffle exec --network ${{ matrix.network }} ops-scripts/deploy-test-environment.js
         env:
           RELEASE_VERSION: master
           ETH_GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}

@@ -32,6 +32,7 @@ jobs:
       - name: "Run test suite"
         run: |
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
+          yarn build
           yarn test
         working-directory: ./packages/sdk-core
         env:

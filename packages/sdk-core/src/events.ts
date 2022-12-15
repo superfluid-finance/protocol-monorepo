@@ -36,13 +36,16 @@ export type OtherEvents =
     | AgreementLiquidatedByEvent
     | AgreementLiquidatedV2Event
     | AppRegisteredEvent
+    | BondIncreasedEvent
     | BurnedEvent
     | CFAv1LiquidationPeriodChangedEvent
     | ConfigChangedEvent
     | CustomSuperTokenCreatedEvent
+    | ExitRateChangedEvent
     | GovernanceReplacedEvent
     | JailEvent
     | MintedEvent
+    | NewPICEvent
     | RewardAddressChangedEvent
     | RoleAdminChangedEvent
     | RoleGrantedEvent
@@ -392,6 +395,26 @@ export interface TrustedForwarderChangedEvent extends EventBase {
     isKeySet: boolean;
     forwarder: string;
     enabled: boolean;
+}
+
+export interface NewPICEvent extends EventBase {
+    name: "NewPIC";
+    token: string;
+    pic: string;
+    bond: string;
+    exitRate: string;
+}
+
+export interface ExitRateChangedEvent extends EventBase {
+    name: "ExitRateChanged";
+    token: string;
+    exitRate: string;
+}
+
+export interface BondIncreasedEvent extends EventBase {
+    name: "BondIncreased";
+    token: string;
+    additionalBond: string;
 }
 
 export interface UnknownEvent extends EventBase {

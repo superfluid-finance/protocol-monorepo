@@ -15,6 +15,7 @@ import { SFError } from "./SFError";
 import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {
+    ERC777SendParams,
     IConfig,
     IRealtimeBalanceOfParams,
     ISuperTokenBaseIDAParams,
@@ -163,6 +164,24 @@ export default abstract class SuperToken extends ERC20Token {
                 cause: err,
             });
         }
+    };
+
+    /** ### ERC777 Token Write Functions ### */
+    /**
+     * Send `amount` tokens to `recipient` from transaction signer.
+     * @param recipient the recipient of the tokens
+     * @param amount the amount of tokens to send
+     * @param userData Extra user data provided.
+     */
+    send = (params: ERC777SendParams): Operation => {
+        const recipient = normalizeAddress(params.recipient);
+        const txn = this.contract.populateTransaction.send(
+            recipient,
+            params.amount,
+            params.userData || "0x",
+            params.overrides || {}
+        );
+        return new Operation(txn, "ERC777_SEND");
     };
 
     /** ### SuperToken Contract Read Functions ### */
@@ -653,6 +672,28 @@ export class WrapperSuperToken extends SuperToken {
     };
 
     /**
+     * Downgrade `amount` of an ERC20 token to its SuperToken to `to` address.
+     * @param amount The amount to be downgraded.
+     * @param to The destination of the downgraded ERC20 token.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed.
+     */
+    downgradeTo = ({
+        amount,
+        to,
+        overrides,
+    }: {
+        amount: string;
+        to: string;
+        overrides?: Overrides & { from?: string | Promise<string> };
+    }) => {
+        const txn = this.contract.populateTransaction.downgradeTo(to, amount, {
+            ...overrides,
+        });
+        return new Operation(txn, "UNSUPPORTED");
+    };
+
+    /**
      * Upgrade `amount` SuperToken's.
      * @param amount The amount to be upgraded.
      * @param overrides ethers overrides object for more control over the transaction sent.
@@ -675,8 +716,8 @@ export class WrapperSuperToken extends SuperToken {
     /**
      * Upgrade `amount` of an ERC20 token to its SuperToken to `to` address.
      * @param amount The amount to be upgraded.
-     * @param to The destination of the upgraded native asset super tokens.
-     * @param data Bytes operatorData
+     * @param to The destination of the upgraded wrapper super tokens.
+     * @param data Bytes userData
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */

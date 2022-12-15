@@ -59,7 +59,7 @@ contract Superfluid is
      *   will not be able to call other app.
      */
     // solhint-disable-next-line var-name-mixedcase
-    uint constant internal MAX_APP_CALLBACK_LEVEL = 1;
+    uint constant public MAX_APP_CALLBACK_LEVEL = 1;
 
     // solhint-disable-next-line var-name-mixedcase
     uint64 constant public CALLBACK_GAS_LIMIT = 3000000;
@@ -796,14 +796,22 @@ contract Superfluid is
                     sender,
                     receiver,
                     amount);
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC777_SEND) {
+                (address recipient, uint256 amount, bytes memory userData) =
+                    abi.decode(operations[i].data, (address, uint256, bytes));
+                ISuperToken(operations[i].target).operationSend(
+                    msgSender,
+                    recipient,
+                    amount,
+                    userData);
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE) {
                 ISuperToken(operations[i].target).operationUpgrade(
                     msgSender,
-                    abi.decode(operations[i].data, (uint256)));
+                    abi.decode(operations[i].data, (uint256))); // amount
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_DOWNGRADE) {
                 ISuperToken(operations[i].target).operationDowngrade(
                     msgSender,
-                    abi.decode(operations[i].data, (uint256)));
+                    abi.decode(operations[i].data, (uint256))); // amount
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT) {
                 (bytes memory callData, bytes memory userData) = abi.decode(operations[i].data, (bytes, bytes));
                 _callAgreement(

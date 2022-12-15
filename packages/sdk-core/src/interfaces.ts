@@ -48,13 +48,18 @@ export interface IShouldUseCallAgreement {
     readonly shouldUseCallAgreement?: boolean;
 }
 
+interface EthersParams {
+    readonly overrides?: Overrides & { from?: string | Promise<string> };
+}
+
 // write request interfaces
-export interface ISuperTokenModifyFlowParams extends IShouldUseCallAgreement {
+export interface ISuperTokenModifyFlowParams
+    extends IShouldUseCallAgreement,
+        EthersParams {
     readonly flowRate?: string;
     readonly receiver: string;
     readonly sender: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ISuperTokenCreateFlowParams
     extends ISuperTokenModifyFlowParams {
@@ -70,10 +75,9 @@ export interface ISuperTokenCreateFlowByOperatorParams
 export type ISuperTokenUpdateFlowByOperatorParams =
     ISuperTokenCreateFlowByOperatorParams;
 
-export interface ISuperTokenBaseIDAParams {
+export interface ISuperTokenBaseIDAParams extends EthersParams {
     readonly indexId: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface ISuperTokenGetSubscriptionParams {
     readonly indexId: string;
@@ -90,37 +94,32 @@ export interface ISuperTokenPublisherParams extends ISuperTokenBaseIDAParams {
     readonly publisher: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
-export interface ISuperTokenPubSubParams {
+export interface ISuperTokenPubSubParams extends EthersParams {
     readonly indexId: string;
     readonly publisher: string;
     readonly subscriber: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
-export interface ISuperTokenPublisherOperationParams {
+export interface ISuperTokenPublisherOperationParams extends EthersParams {
     readonly indexId: string;
     readonly publisher: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
-export interface ISuperTokenDistributeParams {
+export interface ISuperTokenDistributeParams extends EthersParams {
     readonly indexId: string;
     readonly amount: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
-export interface ISuperTokenUpdateIndexValueParams {
+export interface ISuperTokenUpdateIndexValueParams extends EthersParams {
     readonly indexId: string;
     readonly indexValue: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
-export interface ISuperTokenUpdateSubscriptionUnitsParams {
+export interface ISuperTokenUpdateSubscriptionUnitsParams extends EthersParams {
     readonly indexId: string;
     readonly subscriber: string;
     readonly units: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
 export interface IModifyFlowParams extends ISuperTokenModifyFlowParams {
@@ -140,20 +139,19 @@ export interface IDeleteFlowParams extends IModifyFlowParams {
     readonly sender: string;
 }
 
-export interface ISuperTokenUpdateFlowOperatorPermissionsParams {
+export interface ISuperTokenUpdateFlowOperatorPermissionsParams
+    extends EthersParams {
     readonly flowOperator: string;
     readonly permissions: number;
     readonly flowRateAllowance: string;
     readonly shouldUseCallAgreement?: boolean;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface ISuperTokenFullControlParams {
+export interface ISuperTokenFullControlParams extends EthersParams {
     readonly flowOperator: string;
     readonly shouldUseCallAgreement?: boolean;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
 export interface IUpdateFlowOperatorPermissionsParams
@@ -174,17 +172,21 @@ export interface IRealtimeBalanceOfParams {
     readonly timestamp?: number;
 }
 
-export interface IBaseSuperTokenParams {
+export interface IBaseSuperTokenParams extends EthersParams {
     readonly receiver: string;
     readonly amount: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface ITransferFromParams {
+export interface ITransferFromParams extends EthersParams {
     readonly sender: string;
     readonly receiver: string;
     readonly amount: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
+}
+
+export interface ERC777SendParams extends EthersParams {
+    readonly recipient: string;
+    readonly amount: string;
+    readonly userData?: string;
 }
 
 export interface ISuperTokenGetFlowParams {
@@ -246,11 +248,10 @@ export interface IBaseIDAParams {
     readonly publisher?: string;
 }
 
-export interface ICreateIndexParams {
+export interface ICreateIndexParams extends EthersParams {
     readonly indexId: string;
     readonly superToken: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 export interface IBaseSubscriptionParams extends IBaseIDAParams {
     readonly subscriber: string;
@@ -266,63 +267,56 @@ export interface IGetIndexParams extends IBaseIDAParams {
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
-export interface IDistributeParams {
+export interface IDistributeParams extends EthersParams {
     readonly indexId: string;
     readonly superToken: string;
     readonly amount: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface IUpdateIndexValueParams {
+export interface IUpdateIndexValueParams extends EthersParams {
     readonly indexId: string;
     readonly superToken: string;
     readonly indexValue: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface IUpdateSubscriptionUnitsParams {
+export interface IUpdateSubscriptionUnitsParams extends EthersParams {
     readonly indexId: string;
     readonly superToken: string;
     readonly subscriber: string;
     readonly units: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface IApproveSubscriptionParams {
+export interface IApproveSubscriptionParams extends EthersParams {
     readonly indexId: string;
     readonly superToken: string;
     readonly publisher: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface IRevokeSubscriptionParams {
+export interface IRevokeSubscriptionParams extends EthersParams {
     readonly indexId: string;
     readonly superToken: string;
     readonly publisher: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 
-export interface IDeleteSubscriptionParams {
-    readonly indexId: string;
-    readonly superToken: string;
-    readonly publisher: string;
-    readonly subscriber: string;
-    readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
-}
-
-export interface IClaimParams {
+export interface IDeleteSubscriptionParams extends EthersParams {
     readonly indexId: string;
     readonly superToken: string;
     readonly publisher: string;
     readonly subscriber: string;
     readonly userData?: string;
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
+}
+
+export interface IClaimParams extends EthersParams {
+    readonly indexId: string;
+    readonly superToken: string;
+    readonly publisher: string;
+    readonly subscriber: string;
+    readonly userData?: string;
 }
 
 // Subgraph Return Data

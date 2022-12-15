@@ -1,10 +1,11 @@
 import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
 
-export type OperationType =
+export type BatchOperationType =
     | "UNSUPPORTED" // 0
     | "ERC20_APPROVE" // 1
     | "ERC20_TRANSFER_FROM" // 2
+    | "ERC777_SEND" // 3
     | "SUPERTOKEN_UPGRADE" // 101
     | "SUPERTOKEN_DOWNGRADE" // 102
     | "SUPERFLUID_CALL_AGREEMENT" // 201
@@ -16,7 +17,7 @@ export type OperationType =
  */
 export default class Operation {
     readonly populateTransactionPromise: Promise<ethers.PopulatedTransaction>;
-    readonly type: OperationType;
+    readonly type: BatchOperationType;
 
     // @note This property is used to ensure BatchCall operations still function
     // when using the agreement forwarder
@@ -24,7 +25,7 @@ export default class Operation {
 
     constructor(
         txn: Promise<ethers.PopulatedTransaction>,
-        type: OperationType,
+        type: BatchOperationType,
         forwarderPopulatedPromise?: Promise<ethers.PopulatedTransaction>
     ) {
         this.populateTransactionPromise = txn;

@@ -5,6 +5,22 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+- `batchCall` supports new `send` batch operation
+- Added `downgradeTo` function in `SuperToken.sol`
+- Added `deployContractsAndToken.js` and `runDeployContractsAndToken.js` to `dev-scripts`
+- Added `SuperTokenV1Library` which provides a token centric interface for Superfluid specific SuperToken functionality.
+
+### Breaking
+
+- `scripts/deploy-test-framework.js` no longer exists, `deploy-test-framework.js` has been moved to `dev-scripts`
+  - Migration: Use `dev-scripts/deploy-test-framework.js` instead
+
+### Changed
+
+- `upgradeTo` logic changed to revert if `data` is not empty and `to` is a contract and is not a registered ERC777 recipient
+- `MAX_APP_CALLBACK_LEVEL` is public again
+
 ### [v1.4.3] - 2022-10-27
 ### Added
 
@@ -70,7 +86,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-- Add resolver and loader to deployer, add tests (#1011) 
+- Add resolver and loader to deployer, add tests (#1011)
 
 ## [v1.3.0] - 2022-06-16
 

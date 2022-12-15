@@ -194,7 +194,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Destroys `amount` tokens from the caller's account, reducing the
-     * total supply.
+     * total supply and transfers the underlying token to the caller's account.
      *
      * If a send hook is registered for the caller, the corresponding function
      * will be called with `data` and empty `operatorData`. See {IERC777Sender}.
@@ -382,12 +382,17 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Upgrade ERC20 to SuperToken and transfer immediately
-     * @param to The account to received upgraded tokens
+     * @param to The account to receive upgraded tokens
      * @param amount Number of tokens to be upgraded (in 18 decimals)
      * @param data User data for the TokensRecipient callback
      *
      * @custom:note It will use `transferFrom` to get tokens. Before calling this
      * function you should `approve` this contract
+     * 
+     * @custom:warning
+     * - there is potential of reentrancy IF the "to" account is a registered ERC777 recipient.
+     * @custom:requirements 
+     * - if `data` is NOT empty AND `to` is a contract, it MUST be a registered ERC777 recipient otherwise it reverts.
      */
     function upgradeTo(address to, uint256 amount, bytes calldata data) external;
 
@@ -409,8 +414,15 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     function downgrade(uint256 amount) external;
 
     /**
+     * @dev Downgrade SuperToken to ERC20 and transfer immediately
+     * @param to The account to receive downgraded tokens
+     * @param amount Number of tokens to be downgraded (in 18 decimals)
+     */
+    function downgradeTo(address to, uint256 amount) external;
+
+    /**
      * @dev Token downgrade event
-     * @param account Account whose tokens are upgraded
+     * @param account Account whose tokens are downgraded
      * @param amount Amount of tokens downgraded
      */
     event TokenDowngraded(
@@ -438,10 +450,10 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     ) external;
 
     /**
-    * @dev Perform ERC20 transfer from by host contract.
+    * @dev Perform ERC20 transferFrom by host contract.
     * @param account The account to spend sender's funds.
-    * @param spender  The account where the funds is sent from.
-    * @param recipient The recipient of thefunds.
+    * @param spender The account where the funds is sent from.
+    * @param recipient The recipient of the funds.
     * @param amount Number of tokens to be transferred.
     *
     * @custom:modifiers 
@@ -452,6 +464,23 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         address spender,
         address recipient,
         uint256 amount
+    ) external;
+
+    /**
+    * @dev Perform ERC777 send by host contract.
+    * @param spender The account where the funds is sent from.
+    * @param recipient The recipient of the funds.
+    * @param amount Number of tokens to be transferred.
+    * @param data Arbitrary user inputted data
+    *
+    * @custom:modifiers 
+    *  - onlyHost
+    */
+    function operationSend(
+        address spender,
+        address recipient,
+        uint256 amount,
+        bytes memory data
     ) external;
 
     /**

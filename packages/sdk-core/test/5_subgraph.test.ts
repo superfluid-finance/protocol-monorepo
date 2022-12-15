@@ -1,4 +1,4 @@
-import { chainIdToResolverDataMap, Query } from "../src";
+import { chainIdToResolverDataMap, NetworkData, Query } from "../src";
 import {
     getChainId,
     testExpectListenerThrow,
@@ -41,31 +41,29 @@ describe("Subgraph Tests", () => {
         it("Should have the correct subgraph endpoints", async () => {
             const resolverDataArray = Array.from(
                 chainIdToResolverDataMap.values()
-            );
+            ) as NetworkData[];
             await Promise.all(
                 resolverDataArray.map(async (x) => {
                     // @note this handles arbitrum-goerli not being ready
-                    const isArbitrumGoerli =
-                        x.subgraphAPIEndpoint.includes("arbitrum-goerli");
-                    if (!isArbitrumGoerli) {
-                        const isValidFeatureEndpoint =
-                            process.env.SUBGRAPH_RELEASE_TAG === "feature" &&
-                            (x.networkName === "eth-goerli" ||
-                                x.networkName === "polygon-mainnet");
-                        const isNotFeatureEndpoint =
-                            process.env.SUBGRAPH_RELEASE_TAG !== "feature";
-                        // @note this handles feature endpoint only having goerli/matic endpoints
-                        if (isValidFeatureEndpoint || isNotFeatureEndpoint) {
-                            const query = new Query({
-                                customSubgraphQueriesEndpoint:
-                                    x.subgraphAPIEndpoint,
-                            });
-                            const event = await query.listEvents(
-                                {},
-                                { take: 1 }
-                            );
-                            expect(event.data.length).to.be.greaterThan(0);
-                        }
+                    if (x.subgraphAPIEndpoint.includes("arbitrum-goerli")) {
+                        return;
+                    }
+                    // @note if SUBGRAPH_RELEASE_TAG is feature, we only test goerli
+                    const isValidFeatureEndpoint =
+                        process.env.SUBGRAPH_RELEASE_TAG === "feature" &&
+                        x.networkName === "eth-goerli";
+                    // @note else we test all networks
+                    const isNotFeatureEndpoint =
+                        process.env.SUBGRAPH_RELEASE_TAG !== "feature";
+
+                    // @note MUST be eth-goerli for feature release tag OR NOT feature release tag
+                    if (isValidFeatureEndpoint || isNotFeatureEndpoint) {
+                        const query = new Query({
+                            customSubgraphQueriesEndpoint:
+                                x.subgraphAPIEndpoint,
+                        });
+                        const event = await query.listEvents({}, { take: 1 });
+                        expect(event.data.length).to.be.greaterThan(0);
                     }
                 })
             );

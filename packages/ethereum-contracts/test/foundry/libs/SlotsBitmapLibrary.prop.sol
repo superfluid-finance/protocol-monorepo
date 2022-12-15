@@ -35,8 +35,6 @@ contract SlotsBitmapLibraryProperties is Test {
         // Deploy ERC1820
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
         sfDeployer = new SuperfluidFrameworkDeployer();
-        SuperfluidFrameworkDeployer.Framework memory sfFramework = sfDeployer
-            .getFramework();
         (token, superToken) = sfDeployer.deployWrapperSuperToken(
             "Test Token", "TST", 18, type(uint256).max
         );

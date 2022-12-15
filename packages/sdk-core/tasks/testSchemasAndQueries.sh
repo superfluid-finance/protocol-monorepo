@@ -7,7 +7,8 @@ set -xe
 
 if [ "$SUBGRAPH_RELEASE_TAG" == "feature" ];then
     # we only support matic and goerli feature endpoints
-    NETWORKS=("matic" "goerli")
+    # however, we don't want to be blocked by matic for feature
+    NETWORKS=("goerli")
 fi
 
 if [ "$SUBGRAPH_RELEASE_TAG" == "dev" ] || [ "$SUBGRAPH_RELEASE_TAG" == "v1" ];then

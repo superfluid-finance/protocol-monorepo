@@ -16574,7 +16574,7 @@ solidity-coverage@0.8.2:
     shelljs "^0.8.3"
     web3-utils "^1.3.6"
 
-solidity-docgen@^0.6.0-beta.30:
+solidity-docgen@^0.6.0-beta.32:
   version "0.6.0-beta.32"
   resolved "https://registry.yarnpkg.com/solidity-docgen/-/solidity-docgen-0.6.0-beta.32.tgz#bd6424de061cee3c1e3df2e90e2069cb87db982e"
   integrity sha512-LGcosbgqxrqTo9winVq3+Xz1shS9k4p+RKwqPVPI0HtjfsKF9Mc5GzBzOUhce9uwzy0yJfhf832whfY1UKt4Aw==
@@ -17507,10 +17507,10 @@ truffle-flattener@^1.6.0:
     mkdirp "^1.0.4"
     tsort "0.0.1"
 
-truffle-plugin-verify@0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/truffle-plugin-verify/-/truffle-plugin-verify-0.6.0.tgz#7dccdc64837deb3538c01d7c6e0f133b4cf0a125"
-  integrity sha512-nu0qDbbgAOTmqbJPZzBpEC9gaNDnTmm9cxuvyAfrO9d5g0dC+VAdDSqVP8+MNnjhQ6ZXri88s6F+IiffhpYfaA==
+truffle-plugin-verify@0.6.1:
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/truffle-plugin-verify/-/truffle-plugin-verify-0.6.1.tgz#b8d45b6c62ff00a4416c04796ac8b8f09b2e72b2"
+  integrity sha512-9Wxscxtmv1njVJKmG9nywx19QZrQqXrdcgHQs/8SeGNts8VjP6K9/CWO0uCMnBcmuew42LjlgxYB7cajSWR0CA==
   dependencies:
     axios "^0.26.1"
     cli-logger "^0.5.40"

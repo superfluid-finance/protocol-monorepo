@@ -37,6 +37,7 @@ interface ISuperfluid {
     error HOST_AGREEMENT_CALLBACK_IS_NOT_ACTION();              // 0xef4295f6
     error HOST_CANNOT_DOWNGRADE_TO_NON_UPGRADEABLE();           // 0x474e7641
     error HOST_CALL_AGREEMENT_WITH_CTX_FROM_WRONG_ADDRESS();    // 0x0cd0ebc2
+    error HOST_CALL_APP_ACTION_NO_SF_CONTRACT_AS_TARGET();      // 0x9e3aeeab
     error HOST_CALL_APP_ACTION_WITH_CTX_FROM_WRONG_ADDRESS();   // 0x473f7bd4
     error HOST_INVALID_CONFIG_WORD();                           // 0xf4c802a4
     error HOST_MAX_256_AGREEMENTS();                            // 0x7c281a78
@@ -455,7 +456,7 @@ interface ISuperfluid {
      * @custom:note See "Contextless Call Proxies" above for more about contextual call data.
      */
     function callAppAction(
-        ISuperApp app,
+        address target,
         bytes calldata callData
     )
         external
@@ -540,7 +541,7 @@ interface ISuperfluid {
         returns (bytes memory newCtx, bytes memory returnedData);
 
     function callAppActionWithContext(
-        ISuperApp app,
+        address target,
         bytes calldata callData,
         bytes calldata ctx
     )

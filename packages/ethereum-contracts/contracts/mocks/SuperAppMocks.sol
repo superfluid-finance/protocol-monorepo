@@ -33,7 +33,7 @@ contract SuperAppMockAux {
         external
     {
         host.callAppActionWithContext(
-            app,
+            address(app),
             abi.encodeCall(
                 app.actionNoop,
                 (new bytes(0))
@@ -117,7 +117,7 @@ contract SuperAppMock is ISuperApp {
 
     function actionCallAppActionWithoutCtx(bytes calldata ctx) external requireValidCtx(ctx) {
         // this should fail, action should call agreement with ctx
-        _host.callAppAction(ISuperApp(address(0)), new bytes(0));
+        _host.callAppAction(address(0), new bytes(0));
     }
 
     function actionAlteringCtx(bytes calldata ctx)
@@ -194,7 +194,7 @@ contract SuperAppMock is ISuperApp {
         returns (bytes memory newCtx)
     {
         newCtx = _host.callAppActionWithContext(
-            this,
+            address(this),
             abi.encodeCall(
                 this.actionNoop,
                 (new bytes(0))
@@ -208,7 +208,7 @@ contract SuperAppMock is ISuperApp {
         returns (bytes memory newCtx)
     {
         newCtx = _host.callAppActionWithContext(
-            this,
+            address(this),
             abi.encodeCall(
                 this.actionRevertWithReason,
                 (
@@ -244,7 +244,7 @@ contract SuperAppMock is ISuperApp {
         returns (bytes memory newCtx)
     {
         newCtx = _host.callAppActionWithContext(
-            this,
+            address(this),
             abi.encodeCall(
                 this.actionRevertWithReason,
                 (
@@ -261,7 +261,7 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
         newCtx = _host.callAppActionWithContext(
-            ISuperApp(_nonSuperAppContract),
+            _nonSuperAppContract,
             callData,
             ctx
         );
@@ -273,7 +273,7 @@ contract SuperAppMock is ISuperApp {
         bytes calldata ctx
     ) external requireValidCtx(ctx) returns (bytes memory newCtx) {
         newCtx = _host.callAppActionWithContext(
-            ISuperApp(_nonSuperAppContract),
+            _nonSuperAppContract,
             callData,
             // we tamper with the original ctx passed by host.callAppAction to make it invalid
             "0x"
@@ -285,7 +285,7 @@ contract SuperAppMock is ISuperApp {
         requireValidCtx(ctx)
     {
         _host.callAppActionWithContext(
-            this,
+            address(this),
             abi.encodeCall(
                 this.actionAlteringCtx,
                 (new bytes(0))

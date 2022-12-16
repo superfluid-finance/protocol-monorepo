@@ -641,7 +641,7 @@ contract Superfluid is
 
     function _callAppAction(
         address msgSender,
-        ISuperApp app,
+        address target,
         bytes memory callData
     )
         internal
@@ -649,6 +649,10 @@ contract Superfluid is
         isValidAppAction(callData)
         returns(bytes memory returnedData)
     {
+        if (target == address(this) || isAgreementClassListed(ISuperAgreement(target))) {
+            revert HOST_CALL_APP_ACTION_NO_SF_CONTRACT_AS_TARGET();
+        }
+
         // Build context data
         bytes memory ctx = _updateContext(Context({
             appCallbackLevel: 0,
@@ -660,11 +664,11 @@ contract Superfluid is
             appCreditGranted: 0,
             appCreditWantedDeprecated: 0,
             appCreditUsed: 0,
-            appAddress: address(app),
+            appAddress: target,
             appCreditToken: ISuperfluidToken(address(0))
         }));
         bool success;
-        (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
+        (success, returnedData) = _callExternalWithReplacedCtx(target, callData, ctx);
         if (success) {
             ctx = abi.decode(returnedData, (bytes));
             if (!_isCtxValid(ctx)) revert APP_RULE(SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
@@ -676,13 +680,13 @@ contract Superfluid is
     }
 
     function callAppAction(
-        ISuperApp app,
+        address target,
         bytes memory callData
     )
         external override // NOTE: modifiers are called in _callAppAction
         returns(bytes memory returnedData)
     {
-        return _callAppAction(msg.sender, app, callData);
+        return _callAppAction(msg.sender, target, callData);
     }
 
     /**************************************************************************
@@ -724,7 +728,7 @@ contract Superfluid is
     }
 
     function callAppActionWithContext(
-        ISuperApp app,
+        address target,
         bytes calldata callData,
         bytes calldata ctx
     )
@@ -740,7 +744,7 @@ contract Superfluid is
         context.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
-        (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(address(app), callData, newCtx);
+        (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(target, callData, newCtx);
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             if (!_isCtxValid(newCtx)) revert APP_RULE(SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
@@ -820,7 +824,7 @@ contract Superfluid is
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION) {
                 _callAppAction(
                     msgSender,
-                    ISuperApp(operations[i].target),
+                    operations[i].target,
                     operations[i].data);
             } else {
                revert HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();

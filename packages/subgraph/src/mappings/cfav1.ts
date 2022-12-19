@@ -103,7 +103,6 @@ export function handleFlowUpdated(event: FlowUpdated): void {
             tokenAddress
         );
         streamRevision.revisionIndex = streamRevision.revisionIndex + 1;
-
         streamRevision.save();
     }
 

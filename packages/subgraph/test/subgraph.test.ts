@@ -253,6 +253,7 @@ describe("Subgraph Tests", () => {
                 "fDAI",
                 true,
                 false,
+                false,
                 "",
                 18
             );

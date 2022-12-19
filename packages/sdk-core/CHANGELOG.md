@@ -5,6 +5,90 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.5.5] - 2022-08-31
+### Added
+- Support for: `optimism-goerli` and `arbitrum-goerli` added
+
+### Breaking
+- Support for: `rinkeby`, `ropsten`, `kovan`, `optimism-kovan` and `arbitrum-rinkeby` removed
+- Don't throw `SFError` when executing `Operation` or `BatchCall`; let the original error bubble up
+
+### Fixes
+- Serialize a much smaller version of the cause in `SFError` (only `name`, `message`, `code`)
+- Change `SFError.name` from "Error" to "SFError"
+
+# [0.5.4] - 2022-08-19
+
+### Fixes
+- Properly console the cause, not the caught serialization error
+
+## [0.5.3] - 2022-08-15
+
+### Added
+- Map `indexId` to `IndexSubscription` when querying from Subgraph
+
+### Fixes
+- Catch and handle serialization error
+
+## [0.5.2] - 2022-07-26
+
+### Added
+- Support for `isNativeAssetSuperToken` property on SuperToken entity queries
+- `callAppAction` Operation creator added to `Host` class
+
+### Breaking
+- `BatchCall.getCallDataFunctionArgs` deprecates the old `BatchCall.getCallAgreementFunctionArgs`
+  - Migration:
+      - Replace `getCallAgreementFunctionArgs` with `getCallDataFunctionArgs` and pass in the fragment/ABI as the first argument, whilst keeping the same `callData` argument.
+- `Host.populateCallAgreementTxnAndReturnOperation` is replaced by `Host.callAgreement`
+  - Migration:
+      - Replace instances of `populateCallAgreementTxnAndReturnOperation` with `callAgreement`
+
+### Fixes
+- Handle `CALL_APP_ACTION` operation type correctly in SDK-Core when doing a batch call
+- Undefined `process` in `constants.ts` in React and client-side apps using SDK-Core directly
+
+## [0.5.1] - 2022-07-26
+
+### Fixes
+- Patch fix serializeError strange serialization
+
+## [0.5.0] - 2022-07-14
+
+### Added
+- Support for SetEvent and Subgraph v1.4.4
+- `Framework.operation` method for easily creating `Operation` instances
+
+### Fixes
+- Compile AJV validations to prevent unsafe-eval and did not allow SDK-Core usage inside Google Chrome extension due to unsafe-eval CSP
+
+### Changed
+- `SFError` refactor to be more conventional. It inherits `Error` and uses `cause` to wrap internal errors.
+- Use `serialize-error` for serializing error object inside the message.
+- Export Operation & OperationType
+
+### Breaking
+- `SFError.errorObject` renamed to `SFError.cause`
+
+## [0.4.4] - 2022-06-30
+
+### Added
+- Support for new event properties for Subgraph v1.4.1
+### Breaking
+- Subgraph Query: `rewardAccount` renamed to `rewardAmountReceiver` on `AgreementLiquidatedV2Event` entity
+- `chainId` is a required property for framework initialization
+- `networkId` and `dataMode` no longer exist as properties for framework initialization
+
+## [0.4.3] - 2022-06-29
+
+### Added
+- BNB Chain support added
+
+### Changed
+- `maybeCriticalAtTimestamp` is a nullable property now
+
+## [0.4.2] - 2022-05-17
+
 ### Added
 - `SuperToken` class has `send` function
 - `batchCall` supports new `send` batch operation

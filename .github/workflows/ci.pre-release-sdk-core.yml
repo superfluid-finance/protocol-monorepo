@@ -40,3 +40,14 @@ jobs:
     if: github.base_ref == 'release-sdk-core-stable'
     with:
       subgraph-release: v1
+
+  # C. build and test dev endpoint subgraph with release sdk-core
+  # purpose: ensure the new sdk-core version works with the currently deployed dev goerli endpoint
+  # assumption: we assume that dev endpoint is synced (do a manual check here to see this is true)
+  # result: this should work as ci.canary should've passed otherwise we need to go back and complete the previous release
+  build-and-test-live-dev-subgraph-current-release:
+    uses: ./.github/workflows/call.test-sdk-core.yml
+    name: Build and Test SDK-Core (Release branch)
+    if: github.base_ref == 'release-sdk-core-stable'
+    with:
+      subgraph-release: dev

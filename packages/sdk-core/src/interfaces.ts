@@ -58,7 +58,7 @@ export interface ISuperTokenModifyFlowParams
         EthersParams {
     readonly flowRate?: string;
     readonly receiver: string;
-    readonly sender: string;
+    readonly sender?: string;
     readonly userData?: string;
 }
 export interface ISuperTokenCreateFlowParams
@@ -66,7 +66,10 @@ export interface ISuperTokenCreateFlowParams
     readonly flowRate: string;
 }
 export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
-export type ISuperTokenDeleteFlowParams = ISuperTokenModifyFlowParams;
+export interface ISuperTokenDeleteFlowParams
+    extends ISuperTokenModifyFlowParams {
+    readonly sender: string;
+}
 
 export interface ISuperTokenCreateFlowByOperatorParams
     extends ISuperTokenCreateFlowParams {
@@ -122,7 +125,13 @@ export interface ISuperTokenUpdateSubscriptionUnitsParams extends EthersParams {
     readonly userData?: string;
 }
 
-export interface IModifyFlowParams extends ISuperTokenModifyFlowParams {
+export interface IModifyFlowParams
+    extends IShouldUseCallAgreement,
+        EthersParams {
+    readonly flowRate?: string;
+    readonly receiver: string;
+    readonly sender?: string;
+    readonly userData?: string;
     readonly superToken: string;
 }
 export interface ICreateFlowParams extends IModifyFlowParams {

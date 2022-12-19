@@ -247,7 +247,7 @@ export default class ConstantFlowAgreementV1 {
         return this._getCallAgreementOperation(
             callAgreementOperation,
             forwarderPopulatedTxnPromise,
-            params.shouldUseCallAgreement
+            params.shouldUseCallAgreement || normalizedSender === ""
         );
     };
 
@@ -293,7 +293,7 @@ export default class ConstantFlowAgreementV1 {
         return this._getCallAgreementOperation(
             callAgreementOperation,
             forwarderPopulatedTxnPromise,
-            params.shouldUseCallAgreement
+            params.shouldUseCallAgreement || normalizedSender === ""
         );
     };
 
@@ -337,7 +337,7 @@ export default class ConstantFlowAgreementV1 {
         return this._getCallAgreementOperation(
             callAgreementOperation,
             forwarderPopulatedTxnPromise,
-            params.shouldUseCallAgreement
+            params.shouldUseCallAgreement || normalizedSender === ""
         );
     };
 
@@ -520,7 +520,7 @@ export default class ConstantFlowAgreementV1 {
         return this._getCallAgreementOperation(
             callAgreementOperation,
             createFlowOperation.forwarderPopulatedPromise,
-            params.shouldUseCallAgreement
+            params.shouldUseCallAgreement || normalizedSender === ""
         );
     };
 
@@ -562,7 +562,7 @@ export default class ConstantFlowAgreementV1 {
         return this._getCallAgreementOperation(
             callAgreementOperation,
             updateFlowOperation.forwarderPopulatedPromise,
-            params.shouldUseCallAgreement
+            params.shouldUseCallAgreement || normalizedSender === ""
         );
     };
 
@@ -597,7 +597,7 @@ export default class ConstantFlowAgreementV1 {
         return this._getCallAgreementOperation(
             callAgreementOperation,
             deleteFlowOperation.forwarderPopulatedPromise,
-            params.shouldUseCallAgreement
+            params.shouldUseCallAgreement || normalizedSender === ""
         );
     };
 

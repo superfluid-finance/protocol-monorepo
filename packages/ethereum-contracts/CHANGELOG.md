@@ -5,6 +5,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### [v1.5.0] - 2022-12-19
 ### Added
 - `batchCall` supports new `send` batch operation
 - Added `downgradeTo` function in `SuperToken.sol`

@@ -134,12 +134,18 @@ makeSuite("SuperToken-CFA Tests", (testEnv: TestEnvironment) => {
         context("Should be able to create flow", async () => {
             async function shouldCreateFlow(shouldUseCallAgreement: boolean) {
                 const flowRate = getPerSecondFlowRateByMonth("1000");
-                const createFlowOp = testEnv.wrapperSuperToken.createFlow({
-                    sender: testEnv.alice.address,
+                const baseParams = {
                     receiver: testEnv.bob.address,
                     flowRate,
                     shouldUseCallAgreement,
-                });
+                };
+                
+                // should work without sender
+                const params = shouldUseCallAgreement
+                    ? baseParams
+                    : { ...baseParams, sender: testEnv.alice.address };
+                const createFlowOp =
+                    testEnv.wrapperSuperToken.createFlow(params);
                 validateOperationShouldUseCallAgreement(
                     testEnv,
                     createFlowOp,
@@ -212,12 +218,17 @@ makeSuite("SuperToken-CFA Tests", (testEnv: TestEnvironment) => {
         context("Should be able to update flow", async () => {
             async function shouldUpdateFlow(shouldUseCallAgreement: boolean) {
                 let flowRate = getPerSecondFlowRateByMonth("1000");
-                const createFlowOp = testEnv.wrapperSuperToken.createFlow({
-                    sender: testEnv.alice.address,
+                const baseParams = {
                     receiver: testEnv.bob.address,
                     flowRate,
                     shouldUseCallAgreement,
-                });
+                };
+                
+                // should work without sender
+                const params = shouldUseCallAgreement
+                    ? baseParams
+                    : { ...baseParams, sender: testEnv.alice.address };
+                const createFlowOp = testEnv.wrapperSuperToken.createFlow(params);
                 await createFlowOp.exec(testEnv.alice);
                 validateOperationShouldUseCallAgreement(
                     testEnv,
@@ -227,12 +238,7 @@ makeSuite("SuperToken-CFA Tests", (testEnv: TestEnvironment) => {
                 );
                 flowRate = getPerSecondFlowRateByMonth("1200");
 
-                const updateFlowOp = testEnv.wrapperSuperToken.updateFlow({
-                    sender: testEnv.alice.address,
-                    receiver: testEnv.bob.address,
-                    flowRate,
-                    shouldUseCallAgreement,
-                });
+                const updateFlowOp = testEnv.wrapperSuperToken.updateFlow({...params, flowRate});
                 validateOperationShouldUseCallAgreement(
                     testEnv,
                     updateFlowOp,
@@ -266,12 +272,17 @@ makeSuite("SuperToken-CFA Tests", (testEnv: TestEnvironment) => {
                 shouldUseCallAgreement: boolean
             ) {
                 let flowRate = getPerSecondFlowRateByMonth("1000");
-                const createFlowOp = testEnv.wrapperSuperToken.createFlow({
-                    sender: testEnv.alice.address,
+                const baseParams = {
                     receiver: testEnv.bob.address,
                     flowRate,
                     shouldUseCallAgreement,
-                });
+                };
+                
+                // should work without sender
+                const params = shouldUseCallAgreement
+                    ? baseParams
+                    : { ...baseParams, sender: testEnv.alice.address };
+                const createFlowOp = testEnv.wrapperSuperToken.createFlow(params);
                 validateOperationShouldUseCallAgreement(
                     testEnv,
                     createFlowOp,

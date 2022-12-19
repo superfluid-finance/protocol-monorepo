@@ -69,7 +69,6 @@ contract ConstantFlowAgreementV1 is
     // An arbitrarily chosen safety limit for the external calls to protect against out-of-gas grief exploits.
     // solhint-disable-next-line var-name-mixedcase
     uint64 constant public CFA_HOOK_GAS_LIMIT = 250000;
-
     using SafeCast for uint256;
     using SafeCast for int256;
 
@@ -458,6 +457,7 @@ contract ConstantFlowAgreementV1 is
         }
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
+
 
         if (address(constantFlowAgreementHook) != address(0))  {
             uint256 gasLeftBefore = gasleft();

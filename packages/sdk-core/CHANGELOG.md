@@ -17,6 +17,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.5.9] - 2022-12-05
 
 ### Added
+- Added toga events to be part of query
+
+### Fixes
+- Added CFAForwarderV1 address to sdk-core
+
+## [0.5.8] - 2022-11-15
+
+### Added
+- Support for eth-mainnet
 - Map `deposit` to Stream when querying from Subgraph
 
 ### Fixes
@@ -61,6 +70,87 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Serialize a much smaller version of the cause in `SFError` (only `name`, `message`, `code`)
 - Change `SFError.name` from "Error" to "SFError"
 
+# [0.5.4] - 2022-08-19
+
+### Fixes
+- Properly console the cause, not the caught serialization error
+
+## [0.5.3] - 2022-08-15
+
+### Added
+- Map `indexId` to `IndexSubscription` when querying from Subgraph
+
+### Fixes
+- Catch and handle serialization error
+
+## [0.5.2] - 2022-07-26
+
+### Added
+- Support for `isNativeAssetSuperToken` property on SuperToken entity queries
+- `callAppAction` Operation creator added to `Host` class
+
+### Breaking
+- `BatchCall.getCallDataFunctionArgs` deprecates the old `BatchCall.getCallAgreementFunctionArgs`
+  - Migration:
+      - Replace `getCallAgreementFunctionArgs` with `getCallDataFunctionArgs` and pass in the fragment/ABI as the first argument, whilst keeping the same `callData` argument.
+- `Host.populateCallAgreementTxnAndReturnOperation` is replaced by `Host.callAgreement`
+  - Migration:
+      - Replace instances of `populateCallAgreementTxnAndReturnOperation` with `callAgreement`
+
+### Fixes
+- Handle `CALL_APP_ACTION` operation type correctly in SDK-Core when doing a batch call
+- Undefined `process` in `constants.ts` in React and client-side apps using SDK-Core directly
+
+## [0.5.1] - 2022-07-26
+
+### Fixes
+- Patch fix serializeError strange serialization
+
+## [0.5.0] - 2022-07-14
+
+### Added
+- Support for SetEvent and Subgraph v1.4.4
+- `Framework.operation` method for easily creating `Operation` instances
+
+### Fixes
+- Compile AJV validations to prevent unsafe-eval and did not allow SDK-Core usage inside Google Chrome extension due to unsafe-eval CSP
+
+### Changed
+- `SFError` refactor to be more conventional. It inherits `Error` and uses `cause` to wrap internal errors.
+- Use `serialize-error` for serializing error object inside the message.
+- Export Operation & OperationType
+
+### Breaking
+- `SFError.errorObject` renamed to `SFError.cause`
+
+## [0.5.7] - 2022-10-13
+### Breaking
+
+-   `CFAv1Forwarder` integrated into SDK-Core and will be the default way of calling CFA agreements and `sender` is now a required property.
+  - Migration: pass sender into the affected CFAv1 callAgreement functions - `create/update/deleteFlow`.
+  > NOTE: You must pass `shouldUseCallAgreement` explicitly as a property if you want to execute these calls via the Host.
+
+### Added
+
+-   typechain files consumed from `@superfluid-finance/ethereum-contracts` and exported from SDK-Core
+
+## [0.5.6] - 2022-09-07
+### Fixes
+- Correct `subgraphAPIEndpoint` in `getResolverData`
+
+### Breaking
+- Don't wrap `SubgraphClient` with `SFError`
+
+## [0.5.5] - 2022-08-31
+### Added
+- Support for: `optimism-goerli` and `arbitrum-goerli` added
+### Breaking
+- Support for: `rinkeby`, `ropsten`, `kovan`, `optimism-kovan` and `arbitrum-rinkeby` removed
+- Don't throw `SFError` when executing `Operation` or `BatchCall`; let the original error bubble up
+
+### Fixes
+- Serialize a much smaller version of the cause in `SFError` (only `name`, `message`, `code`)
+- Change `SFError.name` from "Error" to "SFError"
 # [0.5.4] - 2022-08-19
 
 ### Fixes
@@ -262,7 +352,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
 [Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.0...HEAD
-[0.5.9]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.9...sdk-core%40v0.6.0
+[0.6.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.9...sdk-core%40v0.6.0
 [0.5.9]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.8...sdk-core%40v0.5.9
 [0.5.8]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.7...sdk-core%40v0.5.8
 [0.5.7]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.6...sdk-core%40v0.5.7

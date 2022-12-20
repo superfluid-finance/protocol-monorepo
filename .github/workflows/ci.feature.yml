@@ -60,14 +60,19 @@ jobs:
           submodules: recursive
 
       - name: Use Node.js ${{ matrix.node-version }}
+        id: setup-node
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.node-version }}
           cache: "yarn"
 
-      - name: Install, lint and build
+      - name: Install
+        if: steps.setup-node.outputs.cache-hit != 'true'
         run: |
           yarn install --frozen-lockfile
+      
+      - name: Lint and Build
+        run: |
           yarn lint
           yarn build
 

@@ -218,11 +218,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/checkout@v3
-        with:
-          repository: superfluid-finance/build-scripts
-          path: build-scripts
-
       - name: Use Node.js 16.x
         uses: actions/setup-node@v3
         with:
@@ -256,19 +251,43 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
 
+  publish-sdk-html-docs:
+    name: Publish canary HTML docs
+
+    needs: [publish-npm-packages]
+
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/checkout@v3
+        with:
+          repository: superfluid-finance/build-scripts
+          path: build-scripts
+
+      - name: Use Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: "yarn"
+          registry-url: https://registry.npmjs.org/
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: |
+          yarn --cwd packages/sdk-core set-default-subgraph-release-tag
+          yarn --cwd packages/sdk-core generate-graphql-schema:dev
+          yarn build
+        env:
+          SUBGRAPH_RELEASE_TAG: dev
+
       - name: Build HTML documentation of SDK-s
         run: |
           yarn --cwd packages/sdk-core doc:html
           yarn --cwd packages/sdk-redux doc:html
-
-      - name: Get versions for sdk-core & sdk-redux
-        id: sdk-versions
-        run: |
-          SDK_CORE_VERSION=`jq -r .version packages/sdk-core/package.json`
-          echo "::set-output name=SDK_CORE_VERSION::$SDK_CORE_VERSION"
-
-          SDK_REDUX_VERSION=`jq -r .version packages/sdk-redux/package.json`
-          echo "::set-output name=SDK_REDUX_VERSION::$SDK_REDUX_VERSION"
 
       - name: Upload sdk-core HTML documentation
         uses: ./build-scripts/s3cloudfront-hosting/actions/sync

@@ -48,6 +48,7 @@ interface ISuperfluid {
     error HOST_AGREEMENT_IS_NOT_REGISTERED();                   // 0x1c9e9bea
     error HOST_MUST_BE_CONTRACT();                              // 0xd4f6b30c
     error HOST_ONLY_LISTED_AGREEMENT();                         // 0x619c5359
+    error HOST_UNTRUSTED_SUPER_TOKEN();                         // b4854e5d27
 
     // App Related Custom Errors
     // uses SuperAppDefinitions' App Jail Reasons as _code
@@ -584,6 +585,13 @@ interface ISuperfluid {
      * @param operations Array of batch operations
      */
     function forwardBatchCall(Operation[] calldata operations) external;
+
+    /**
+     * @dev Token call function for trusted super tokens
+     * Uses (EIP-2771) to get address
+     * @param operations Array of batch operations
+     */
+    function tokenBatchCall(Operation[] calldata operations) external;
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

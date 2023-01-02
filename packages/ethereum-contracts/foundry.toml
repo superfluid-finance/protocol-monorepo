@@ -6,5 +6,6 @@ remappings = [
     '@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/',
     '@openzeppelin/=node_modules/@openzeppelin/',
     'ds-test/=lib/forge-std/lib/ds-test/src/',
-    'forge-std/=lib/forge-std/src/']
+    'forge-std/=lib/forge-std/src/',
+    'hardhat/=node_modules/hardhat/']
 out = 'packages/ethereum-contracts/build/foundry/out'

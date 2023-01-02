@@ -846,6 +846,25 @@ contract Superfluid is
         _batchCall(_getTransactionSigner(), operations);
     }
 
+    function _getTokenTransactionSigner() internal view returns (address payable ret) {
+        address underlyingTokenAddress = ISuperToken(msg.sender).getUnderlyingToken();
+        bool isCanonicalWrapperSuperToken = 
+            _superTokenFactory.getCanonicalERC20Wrapper(underlyingTokenAddress) != address(0);
+        if (msg.data.length < 24 || !isCanonicalWrapperSuperToken) {
+            revert HOST_UNTRUSTED_SUPER_TOKEN();
+        }
+        // At this point we know that the sender is a trusted super token,
+        // so we trust that the last bytes of msg.data are the verified sender address.
+        // extract sender address from the end of msg.data
+        assembly {
+            ret := shr(96,calldataload(sub(calldatasize(),20)))
+        }
+    }
+
+    function tokenBatchCall(Operation[] calldata operations) external {
+        _batchCall(_getTokenTransactionSigner() , operations);
+    }
+
     /// @dev BaseRelayRecipient.isTrustedForwarder implementation
     function isTrustedForwarder(address forwarder)
         public view override

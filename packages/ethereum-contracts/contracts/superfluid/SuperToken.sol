@@ -4,6 +4,7 @@ pragma solidity 0.8.16;
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 import {
+    BatchOperation,
     ISuperfluid,
     ISuperfluidGovernance,
     ISuperToken,
@@ -12,9 +13,11 @@ import {
     IERC777,
     TokenInfo
 } from "../interfaces/superfluid/ISuperfluid.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
+import { CallUtils } from "../libs/CallUtils.sol";
 
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -22,6 +25,8 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
+import { CFAOutflowNFT } from "./CFAOutflowNFT.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -39,6 +44,7 @@ contract SuperToken is
     using Address for address;
     using ERC777Helper for ERC777Helper.Operators;
     using SafeERC20 for IERC20;
+    using SuperTokenV1Library for ISuperToken;
 
     uint8 constant private _STANDARD_DECIMALS = 18;
 
@@ -73,7 +79,7 @@ contract SuperToken is
     // behaviors/layout when upgrading
 
     uint256 internal _reserve22;
-    uint256 private _reserve23;
+    CFAOutflowNFT internal _cfaOutflowNFT;
     uint256 private _reserve24;
     uint256 private _reserve25;
     uint256 private _reserve26;
@@ -712,6 +718,60 @@ contract SuperToken is
         onlyHost
     {
         _downgrade(msg.sender, account, account, amount, "", "");
+    }
+
+    /**************************************************************************
+     * CFAv1 Operations
+     *************************************************************************/
+    function createFlow(
+        address _receiver,
+        int96 _flowRate
+    )
+        external
+    {
+        IConstantFlowAgreementV1 cfa = IConstantFlowAgreementV1(
+                address(
+                    _host.getAgreementClass(
+                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
+                    )
+                )
+            );
+        bytes memory cfaCallData = abi.encodeCall(
+            cfa.createFlow,
+            (ISuperfluidToken(address(this)), _receiver, _flowRate, new bytes(0))
+        );
+        _forwardTokenCall(address(cfa), cfaCallData, new bytes(0));
+    }
+
+    // compiles the calldata of a single operation for the host invocation and executes it
+    function _forwardTokenCall(address target, bytes memory callData, bytes memory userData) internal returns (bool) {
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        ops[0] = ISuperfluid.Operation(
+            BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT, // type
+            address(target), // target
+            abi.encode( // data
+                callData,
+                userData
+            )
+        );
+
+        bytes memory fwBatchCallData = abi.encodeCall(
+            _host.tokenBatchCall,
+            (
+                ops
+            )
+        );
+
+        // https://eips.ethereum.org/EIPS/eip-2771
+        // we encode the msg.sender as the last 20 bytes per EIP-2771 to extract the original txn signer later on
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory returnedData) = address(_host).call(abi.encodePacked(fwBatchCallData, msg.sender));
+
+        if (!success) {
+            CallUtils.revertFromReturnedData(returnedData);
+        }
+
+        return true;
     }
 
     /**************************************************************************

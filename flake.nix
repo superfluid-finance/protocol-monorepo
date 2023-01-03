@@ -32,10 +32,8 @@
       nodePackages.nodemon
       # for haskell spec
       cabal-install
-      haskell.compiler.ghc92
-      (haskell-language-server.override {
-        supportedGhcVersions = [ "924" ];
-      })
+      haskell.compiler.ghc94
+      haskell.packages.ghc94.haskell-language-server
       hlint
       stylish-haskell
       gnuplot

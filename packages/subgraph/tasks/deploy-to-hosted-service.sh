@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # args
 # $1 = the configuration (v1, dev, feature)

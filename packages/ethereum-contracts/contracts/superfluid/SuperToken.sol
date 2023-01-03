@@ -27,6 +27,7 @@ import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sende
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 import { CFAOutflowNFT } from "./CFAOutflowNFT.sol";
+import { CFAInflowNFT } from "./CFAInflowNFT.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -78,8 +79,8 @@ contract SuperToken is
     // function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     // behaviors/layout when upgrading
 
-    uint256 internal _reserve22;
-    CFAOutflowNFT internal _cfaOutflowNFT;
+    CFAOutflowNFT public _cfaOutflowNFT;
+    CFAInflowNFT public _cfaInflowNFT;
     uint256 private _reserve24;
     uint256 private _reserve25;
     uint256 private _reserve26;
@@ -111,6 +112,33 @@ contract SuperToken is
 
         _name = n;
         _symbol = s;
+
+        // register interfaces
+        ERC777Helper.register(address(this));
+
+        // help tools like explorers detect the token contract
+        emit Transfer(address(0), address(0), 0);
+    }
+
+    function initialize(
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string calldata n,
+        string calldata s,
+        address cfaOutflowNFT,
+        address cfaInflowNFT
+    )
+        external override
+        initializer // OpenZeppelin Initializable
+    {
+        _underlyingToken = underlyingToken;
+        _underlyingDecimals = underlyingDecimals;
+
+        _name = n;
+        _symbol = s;
+
+        _cfaOutflowNFT = CFAOutflowNFT(cfaOutflowNFT);
+        _cfaInflowNFT = CFAInflowNFT(cfaInflowNFT);
 
         // register interfaces
         ERC777Helper.register(address(this));
@@ -736,11 +764,16 @@ contract SuperToken is
                     )
                 )
             );
-        bytes memory cfaCallData = abi.encodeCall(
+        bytes memory createFlowCallData = abi.encodeCall(
             cfa.createFlow,
             (ISuperfluidToken(address(this)), _receiver, _flowRate, new bytes(0))
         );
-        _forwardTokenCall(address(cfa), cfaCallData, new bytes(0));
+        _forwardTokenCall(address(cfa), createFlowCallData, new bytes(0));
+
+        // mint an outflow nft to the flow sender
+        _cfaOutflowNFT.mint(msg.sender);
+        // mint an inflow nft to the flow receiver
+        _cfaInflowNFT.mint(_receiver);
     }
 
     // compiles the calldata of a single operation for the host invocation and executes it
@@ -756,7 +789,7 @@ contract SuperToken is
         );
 
         bytes memory fwBatchCallData = abi.encodeCall(
-            _host.tokenBatchCall,
+            _host.trustedTokenBatchCall,
             (
                 ops
             )

@@ -846,6 +846,7 @@ contract Superfluid is
         _batchCall(_getTransactionSigner(), operations);
     }
 
+    // @note this is a temporary function for the prototype (will be cleaned up)
     function _getTokenTransactionSigner() internal view returns (address payable ret) {
         address underlyingTokenAddress = ISuperToken(msg.sender).getUnderlyingToken();
         bool isCanonicalWrapperSuperToken = 
@@ -861,7 +862,8 @@ contract Superfluid is
         }
     }
 
-    function tokenBatchCall(Operation[] calldata operations) external {
+    // @note this is a temporary function for the prototype (will be cleaned up)
+    function trustedTokenBatchCall(Operation[] calldata operations) external {
         _batchCall(_getTokenTransactionSigner() , operations);
     }
 

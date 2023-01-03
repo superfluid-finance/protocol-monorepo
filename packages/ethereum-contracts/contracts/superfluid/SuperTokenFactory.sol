@@ -7,16 +7,15 @@ import {
     IERC20,
     ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
-
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-
-import { SuperToken } from "../superfluid/SuperToken.sol";
-
+import { SuperToken, ISuperToken } from "../superfluid/SuperToken.sol";
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
+import { CFAOutflowNFT } from "./CFAOutflowNFT.sol";
+import { CFAInflowNFT } from "./CFAInflowNFT.sol";
 
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,
@@ -147,11 +146,23 @@ abstract contract SuperTokenFactoryBase is
         string memory underlyingName = _underlyingToken.name();
         string memory underlyingSymbol = _underlyingToken.symbol();
         // initialize the contract (proxy constructor)
+        string memory name = string.concat("Super ", underlyingName);
+        string memory symbol = string.concat(underlyingSymbol, "x");
+
+        // deploy flow NFT contracts
+        (address cfaInflowNFTAddress, address cfaOutflowNFTAddress) = deployFlowNFTContracts(
+            address(superToken),
+            name,
+            symbol
+        );
+
         superToken.initialize(
             _underlyingToken,
             underlyingDecimals,
-            string.concat("Super ", underlyingName),
-            string.concat(underlyingSymbol, "x")
+            name,
+            symbol,
+            cfaInflowNFTAddress,
+            cfaOutflowNFTAddress
         );
 
         emit SuperTokenCreated(superToken);
@@ -187,12 +198,21 @@ abstract contract SuperTokenFactoryBase is
             superToken = ISuperToken(address(proxy));
         }
 
+        // deploy flow NFT contracts
+        (address cfaInflowNFTAddress, address cfaOutflowNFTAddress) = deployFlowNFTContracts(
+            address(superToken),
+            name,
+            symbol
+        );
+
         // initialize the token
         superToken.initialize(
             underlyingToken,
             underlyingDecimals,
             name,
-            symbol
+            symbol,
+            cfaInflowNFTAddress,
+            cfaOutflowNFTAddress
         );
 
         emit SuperTokenCreated(superToken);
@@ -262,6 +282,36 @@ abstract contract SuperTokenFactoryBase is
             );
             isDeployed = false;
         }
+    }
+
+    function deployFlowNFTContracts(
+        address _superToken,
+        string memory _name,
+        string memory _symbol
+    )
+        public
+        returns (address cfaInflowNFTAddress, address cfaOutflowNFTAddress)
+    {
+        address cfaAddress = address(
+            _host.getAgreementClass(
+                keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
+            )
+        );
+
+        CFAInflowNFT cfaInflowNFT = new CFAInflowNFT(
+            ISuperToken(_superToken),
+            IConstantFlowAgreementV1(cfaAddress),
+            string.concat(_symbol, "CIF"),
+            string.concat(_name, " Inflow NFT")
+        );
+        cfaInflowNFTAddress = address(cfaInflowNFT);
+
+        CFAOutflowNFT cfaOutflowNFT = new CFAOutflowNFT(
+            ISuperToken(_superToken),
+            IConstantFlowAgreementV1(cfaAddress),
+            string.concat(_symbol, "COF"),
+            string.concat(_name, " Outflow NFT"));
+        cfaOutflowNFTAddress = address(cfaOutflowNFT);
     }
 
     /// @inheritdoc ISuperTokenFactory

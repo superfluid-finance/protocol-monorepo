@@ -591,7 +591,7 @@ interface ISuperfluid {
      * Uses (EIP-2771) to get address
      * @param operations Array of batch operations
      */
-    function tokenBatchCall(Operation[] calldata operations) external;
+    function trustedTokenBatchCall(Operation[] calldata operations) external;
 
     /**************************************************************************
      * Function modifiers for access control and parameter validations

@@ -39,6 +39,18 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         string calldata s
     ) external;
 
+    /**
+     * @dev Overloaded Initialize function which takes in/outflow nft contracts
+     */
+    function initialize(
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string calldata n,
+        string calldata s,
+        address outflowNFT,
+        address inflowNFT
+    ) external;
+
     /**************************************************************************
     * TokenInfo & ERC777
     *************************************************************************/

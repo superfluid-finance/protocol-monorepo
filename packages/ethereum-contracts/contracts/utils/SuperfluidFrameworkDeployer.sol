@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {
     SuperfluidGovDeployerLibrary
 } from "./deployers/SuperfluidGovDeployerLibrary.sol";
-
 import {
     SuperfluidHostDeployerLibrary
 } from "./deployers/SuperfluidHostDeployerLibrary.sol";
@@ -45,7 +44,6 @@ import {
 import { SuperToken } from "../superfluid/SuperToken.sol";
 import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
-
 import { SETHProxy } from "../tokens/SETH.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
 import {
@@ -55,7 +53,6 @@ import { IPureSuperToken } from "../interfaces/tokens/IPureSuperToken.sol";
 import { ISETH } from "../interfaces/tokens/ISETH.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
-
 import { TestToken } from "./TestToken.sol";
 
 /// @title Superfluid Framework Deployer

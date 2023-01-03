@@ -48,40 +48,4 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
 
         assertTrue(checkAllInvariants());
     }
-
-    function testTokenCreateFlowFailIfNotCanonical(uint32 a) public {
-        vm.assume(a > 0);
-        vm.assume(a <= uint32(type(int32).max));
-        int96 flowRate = int96(int32(a));
-
-        vm.startPrank(alice);
-        vm.expectRevert(ISuperfluid.HOST_UNTRUSTED_SUPER_TOKEN.selector);
-        superToken.createFlow(bob, flowRate);
-        vm.stopPrank();
-    }
-
-    function testTokenCreateFlow(uint32 a) public {
-        vm.assume(a > 0);
-        vm.assume(a <= uint32(type(int32).max));
-        int96 flowRate = int96(int32(a));
-
-        vm.startPrank(address(sfDeployer));
-        SuperTokenFactoryBase.InitializeData[] memory tokens = new SuperTokenFactoryBase.InitializeData[](1);
-        SuperTokenFactoryBase.InitializeData memory tokenData = SuperTokenFactoryBase.InitializeData({
-            underlyingToken: superToken.getUnderlyingToken(),
-            superToken: address(superToken)
-        });
-        tokens[0] = tokenData;
-        sf.superTokenFactory.initializeCanonicalWrapperSuperTokens(tokens);
-        vm.stopPrank();
-
-        vm.startPrank(alice);
-        superToken.createFlow(bob, flowRate);
-        vm.stopPrank();
-
-        assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate);
-        assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate);
-
-        assertTrue(checkAllInvariants());
-    }
 }

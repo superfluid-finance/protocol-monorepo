@@ -1,5 +1,5 @@
 {
-  description = "Flake commands (including dev shells) for working with the monorepo.";
+  description = "Overlay for working with Superfluid protocol monorepo";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
@@ -36,10 +36,11 @@
       haskell.packages.ghc94.haskell-language-server
       hlint
       stylish-haskell
-      gnuplot
       # sage math
       sage
-      # yellow-paper pipeline
+      # testing tooling
+      gnuplot
+      # yellowpaper pipeline tooling
       haskellPackages.lhs2tex
       python39Packages.pygments
       (texlive.combine {

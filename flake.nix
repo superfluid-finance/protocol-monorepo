@@ -4,7 +4,7 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flakeUtils.url = "github:numtide/flake-utils";
-    foundry.url = "github:shazow/foundry.nix";
+    foundry.url = "github:hellwolf/foundry.nix/nightly-202301";
   };
 
   outputs = { self, nixpkgs, flakeUtils, foundry } :

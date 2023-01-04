@@ -1,18 +1,12 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.16;
 
-import { ISuperfluid, ISuperfluidToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import { SuperTokenFactoryBase } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperTokenFactory.sol";
 import "../FoundrySuperfluidTester.sol";
 
 
 contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
     using CFAv1Library for CFAv1Library.InitData;
 
-    struct InitializeData {
-        address underlyingToken;
-        address superToken;
-    }
     constructor () FoundrySuperfluidTester(3) { }
 
     function testAlice2Bob(uint32 a) public {

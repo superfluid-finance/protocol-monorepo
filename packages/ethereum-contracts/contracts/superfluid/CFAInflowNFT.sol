@@ -3,6 +3,7 @@ pragma solidity 0.8.16;
 // @note temporary
 // solhint-disable no-empty-blocks
 // solhint-disable no-unused-vars
+// solhint-disable not-rely-on-time
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
@@ -12,21 +13,21 @@ import {
 contract CFAInflowNFT {
 
     struct FlowData {
+        address sender;
+        address receiver;
         uint64 startDate;
-        uint256 tokenId;
     }
 
     ISuperToken public immutable superToken;
     IConstantFlowAgreementV1 public immutable cfa;
     string public name;
     string public symbol;
-    // uint256 tokenCount;
 
     // Mapping owner address to token count
     mapping(address => uint256) private _balances;
 
-    // mapping from abi.encode(sender, receiver) to FlowData
-    mapping(bytes => FlowData) internal _flowDataBySenderReceiver;
+    // mapping from keccak256(abi.encode(sender, receiver)) to FlowData
+    mapping(bytes32 => FlowData) internal _flowDataBySenderReceiver;
 
     /**
      * @dev Emitted when `tokenId` token is transferred from `from` to `to`.
@@ -76,12 +77,12 @@ contract CFAInflowNFT {
         _;
     }
 
-    function mint(address _to) public onlySuperToken {
-        _mint(_to);
+    function mint(address _sender, address _receiver) public onlySuperToken {
+        _mint(_sender, _receiver);
     }
 
-    function burn(address _sender) public onlySuperToken {
-        _burn(_sender);
+    function burn(address _sender, address _receiver) public onlySuperToken {
+        _burn(_sender, _receiver);
     }
 
     function transferFrom(address _from, address _to, uint256 _tokenId) public {
@@ -135,8 +136,12 @@ contract CFAInflowNFT {
         return _balances[_owner];
     }
 
+    /// @notice Returns the owner of the outflowing flow with id `_tokenId`
+    /// @dev `_tokenId` is the uint256 cast of the keccak256 hash of the sender and receiver addresses
+    /// @param _tokenId uint256(keccak256(abi.encode(sender, receiver)))
+    /// @return The owner of the outflowing flow NFT with id `_tokenId`
     function ownerOf(uint256 _tokenId) public view returns (address) {
-        // get owner of nft
+        return _flowDataBySenderReceiver[bytes32(_tokenId)].receiver;
     }
 
     function safeTransferFrom(
@@ -164,15 +169,21 @@ contract CFAInflowNFT {
         // check if interface is supported
     }
 
-    function _mint(address _to) internal {
+    function _mint(address _sender, address _receiver) internal {
+        _flowDataBySenderReceiver[
+            keccak256(abi.encode(_sender, _receiver))
+        ] = FlowData(_sender, _receiver, uint64(block.timestamp));
         unchecked {
-            _balances[_to] += 1;
+            _balances[_receiver] += 1;
         }
     }
 
-    function _burn(address _sender) internal {
+    function _burn(address _sender, address _receiver) internal {
+        delete _flowDataBySenderReceiver[
+            keccak256(abi.encode(_sender, _receiver))
+        ];
         unchecked {
-            _balances[_sender] -= 1;
+            _balances[_receiver] -= 1;
         }
     }
 }

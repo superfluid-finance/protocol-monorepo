@@ -84,6 +84,10 @@ contract SuperTokenCFAV1Anvil is FoundrySuperfluidTester {
         assertEq(outflowNFT.balanceOf(alice), 1);
         assertEq(inflowNFT.balanceOf(bob), 1);
 
+        uint256 nftId = uint256(keccak256(abi.encode(alice, bob)));
+        assertEq(outflowNFT.ownerOf(nftId), alice);
+        assertEq(inflowNFT.ownerOf(nftId), bob);
+
         assertTrue(checkAllInvariants());
     }
 }

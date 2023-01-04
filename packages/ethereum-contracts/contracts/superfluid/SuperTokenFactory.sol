@@ -161,8 +161,8 @@ abstract contract SuperTokenFactoryBase is
             underlyingDecimals,
             name,
             symbol,
-            cfaInflowNFTAddress,
-            cfaOutflowNFTAddress
+            cfaOutflowNFTAddress,
+            cfaInflowNFTAddress
         );
 
         emit SuperTokenCreated(superToken);
@@ -211,8 +211,8 @@ abstract contract SuperTokenFactoryBase is
             underlyingDecimals,
             name,
             symbol,
-            cfaInflowNFTAddress,
-            cfaOutflowNFTAddress
+            cfaOutflowNFTAddress,
+            cfaInflowNFTAddress
         );
 
         emit SuperTokenCreated(superToken);

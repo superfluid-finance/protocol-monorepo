@@ -25,7 +25,6 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 import { CFAOutflowNFT } from "./CFAOutflowNFT.sol";
 import { CFAInflowNFT } from "./CFAInflowNFT.sol";
 
@@ -45,7 +44,6 @@ contract SuperToken is
     using Address for address;
     using ERC777Helper for ERC777Helper.Operators;
     using SafeERC20 for IERC20;
-    using SuperTokenV1Library for ISuperToken;
 
     uint8 constant private _STANDARD_DECIMALS = 18;
 
@@ -771,9 +769,9 @@ contract SuperToken is
         _forwardTokenCall(address(cfa), createFlowCallData, new bytes(0));
 
         // mint an outflow nft to the flow sender
-        _cfaOutflowNFT.mint(msg.sender);
+        _cfaOutflowNFT.mint(msg.sender, _receiver);
         // mint an inflow nft to the flow receiver
-        _cfaInflowNFT.mint(_receiver);
+        _cfaInflowNFT.mint(msg.sender, _receiver);
     }
 
     // compiles the calldata of a single operation for the host invocation and executes it

@@ -3,13 +3,13 @@ pragma solidity 0.8.16;
 // @note temporary
 // solhint-disable no-empty-blocks
 // solhint-disable no-unused-vars
+// solhint-disable not-rely-on-time
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 contract CFAOutflowNFT {
-
     struct FlowData {
         address sender;
         address receiver;
@@ -20,7 +20,6 @@ contract CFAOutflowNFT {
     IConstantFlowAgreementV1 public cfa;
     string public name;
     string public symbol;
-    // uint256 tokenCount;
 
     // Mapping owner address to token count
     mapping(address => uint256) private _balances;
@@ -76,12 +75,12 @@ contract CFAOutflowNFT {
         _;
     }
 
-    function mint(address _to) public onlySuperToken {
-        _mint(_to);
+    function mint(address _sender, address _receiver) public onlySuperToken {
+        _mint(_sender, _receiver);
     }
 
-    function burn(address _sender) public onlySuperToken {
-        _burn(_sender);
+    function burn(address _sender, address _receiver) public onlySuperToken {
+        _burn(_sender, _receiver);
     }
 
     function transferFrom(address _from, address _to, uint256 _tokenId) public {
@@ -169,15 +168,22 @@ contract CFAOutflowNFT {
         // check if interface is supported
     }
 
-    function _mint(address _to) internal {
+    function _mint(address _sender, address _receiver) internal {
         unchecked {
-            _balances[_to] += 1;
+            _balances[_sender] += 1;
         }
+        _flowDataBySenderReceiver[
+            keccak256(abi.encode(_sender, _receiver))
+        ] = FlowData(_sender, _receiver, uint64(block.timestamp));
     }
 
-    function _burn(address _sender) internal {
+    function _burn(address _sender, address _receiver) internal {
         unchecked {
             _balances[_sender] -= 1;
         }
+
+        delete _flowDataBySenderReceiver[
+            keccak256(abi.encode(_sender, _receiver))
+        ];
     }
 }

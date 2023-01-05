@@ -31,6 +31,7 @@
     "typings": "./types/index.d.ts",
     "scripts": {
         "dev": "tasks/dev.sh",
+        "forge-dev": "nodemon -e sol -x yarn test:contracts:foundry",
         "clean": "rm -rf node_modules; rm -rf cache; rm -rf build; rm -rf artifacts; rm -rf typechain-types; rm -rf scripts/*.d.ts scripts/*.d.ts.map",
         "run-hardhat": "IS_HARDHAT=true hardhat",
         "run-truffle": "IS_TRUFFLE=true truffle",

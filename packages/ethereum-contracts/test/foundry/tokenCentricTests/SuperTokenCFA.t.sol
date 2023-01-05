@@ -40,6 +40,56 @@ contract SuperTokenCFAV1Anvil is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function _createFlowViaSuperTokenAndAssertProperties(
+        uint32 _flowRate,
+        address _sender,
+        address _receiver
+    ) internal returns (int96 flowRate) {
+        vm.assume(_flowRate > 0);
+        vm.assume(_flowRate <= uint32(type(int32).max));
+        flowRate = int96(int32(_flowRate));
+
+        vm.startPrank(_sender);
+        superToken.createFlow(_receiver, flowRate);
+        vm.stopPrank();
+
+        assertEq(sf.cfa.getNetFlow(superToken, _sender), -flowRate);
+        assertEq(sf.cfa.getNetFlow(superToken, _receiver), flowRate);
+
+    }
+
+    function _assertCreateFlowNFTInvariants(
+        address _sender,
+        address _receiver,
+        uint256 _senderExpectedBalance,
+        uint256 _receiverExpectedBalance
+    ) internal returns (uint256 nftId) {
+        CFAOutflowNFT outflowNFT = CFAOutflowNFT(superToken.cfaOutflowNFT());
+        CFAInflowNFT inflowNFT = CFAInflowNFT(superToken.cfaInflowNFT());
+        assertEq(outflowNFT.balanceOf(_sender), _senderExpectedBalance);
+        assertEq(inflowNFT.balanceOf(_receiver), _receiverExpectedBalance);
+
+        nftId = uint256(keccak256(abi.encode(_sender, _receiver)));
+        assertEq(outflowNFT.ownerOf(nftId), _sender);
+        assertEq(inflowNFT.ownerOf(nftId), _receiver);
+    }
+
+    function _assertDeleteFlowNFTInvariants(
+        address _sender,
+        address _receiver,
+        uint256 _senderExpectedBalance,
+        uint256 _receiverExpectedBalance
+    ) internal returns (uint256 nftId) {
+        CFAOutflowNFT outflowNFT = CFAOutflowNFT(superToken.cfaOutflowNFT());
+        CFAInflowNFT inflowNFT = CFAInflowNFT(superToken.cfaInflowNFT());
+        assertEq(outflowNFT.balanceOf(_sender), _senderExpectedBalance);
+        assertEq(inflowNFT.balanceOf(_receiver), _receiverExpectedBalance);
+
+        nftId = uint256(keccak256(abi.encode(_sender, _receiver)));
+        assertEq(outflowNFT.ownerOf(nftId), address(0));
+        assertEq(inflowNFT.ownerOf(nftId), address(0));
+    }
+
     function testTokenCreateFlowNonCanonicalFail(uint32 a) public {
         vm.assume(a > 0);
         vm.assume(a <= uint32(type(int32).max));
@@ -53,60 +103,23 @@ contract SuperTokenCFAV1Anvil is FoundrySuperfluidTester {
     }
 
     function testTokenCreateFlow(uint32 a) public {
-        vm.assume(a > 0);
-        vm.assume(a <= uint32(type(int32).max));
-        int96 flowRate = int96(int32(a));
-
         _initializeCanonicalWrapperSuperTokens();
-
-        vm.startPrank(alice);
-        superToken.createFlow(bob, flowRate);
-        vm.stopPrank();
-
-        assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate);
-        assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate);
+        _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
 
         assertTrue(checkAllInvariants());
     }
 
     function testTokenCreateFlowNFTMinted(uint32 a) public {
-        vm.assume(a > 0);
-        vm.assume(a <= uint32(type(int32).max));
-        int96 flowRate = int96(int32(a));
-
         _initializeCanonicalWrapperSuperTokens();
-
-        vm.startPrank(alice);
-        superToken.createFlow(bob, flowRate);
-        vm.stopPrank();
-
-        CFAOutflowNFT outflowNFT = CFAOutflowNFT(superToken.cfaOutflowNFT());
-        CFAInflowNFT inflowNFT = CFAInflowNFT(superToken.cfaInflowNFT());
-        assertEq(outflowNFT.balanceOf(alice), 1);
-        assertEq(inflowNFT.balanceOf(bob), 1);
-
-        uint256 nftId = uint256(keccak256(abi.encode(alice, bob)));
-        assertEq(outflowNFT.ownerOf(nftId), alice);
-        assertEq(inflowNFT.ownerOf(nftId), bob);
+        _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
+        _assertCreateFlowNFTInvariants(alice, bob, 1, 1);
 
         assertTrue(checkAllInvariants());
     }
 
     function testTokenUpdateFlow(uint32 a) public {
-        vm.assume(a > 0);
-        vm.assume(a <= uint32(type(int32).max));
-        int96 flowRate = int96(int32(a));
-
         _initializeCanonicalWrapperSuperTokens();
-
-        vm.startPrank(alice);
-        superToken.createFlow(bob, flowRate);
-        vm.stopPrank();
-
-        assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate);
-        assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate);
-
-        assertTrue(checkAllInvariants());
+        int96 flowRate = _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
 
         int96 updatedFlowRate = flowRate + 420;
 
@@ -121,24 +134,10 @@ contract SuperTokenCFAV1Anvil is FoundrySuperfluidTester {
     }
 
     function testTokenUpdateFlowNFTUnchanged(uint32 a) public {
-        vm.assume(a > 0);
-        vm.assume(a <= uint32(type(int32).max));
-        int96 flowRate = int96(int32(a));
-
         _initializeCanonicalWrapperSuperTokens();
+        int96 flowRate = _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
 
-        vm.startPrank(alice);
-        superToken.createFlow(bob, flowRate);
-        vm.stopPrank();
-
-        CFAOutflowNFT outflowNFT = CFAOutflowNFT(superToken.cfaOutflowNFT());
-        CFAInflowNFT inflowNFT = CFAInflowNFT(superToken.cfaInflowNFT());
-        assertEq(outflowNFT.balanceOf(alice), 1);
-        assertEq(inflowNFT.balanceOf(bob), 1);
-
-        uint256 nftId = uint256(keccak256(abi.encode(alice, bob)));
-        assertEq(outflowNFT.ownerOf(nftId), alice);
-        assertEq(inflowNFT.ownerOf(nftId), bob);
+        _assertCreateFlowNFTInvariants(alice, bob, 1, 1);
 
         int96 updatedFlowRate = flowRate + 420;
 
@@ -146,28 +145,14 @@ contract SuperTokenCFAV1Anvil is FoundrySuperfluidTester {
         superToken.updateFlow(bob, updatedFlowRate);
         vm.stopPrank();
 
-        assertEq(outflowNFT.balanceOf(alice), 1);
-        assertEq(inflowNFT.balanceOf(bob), 1);
-
-        assertEq(outflowNFT.ownerOf(nftId), alice);
-        assertEq(inflowNFT.ownerOf(nftId), bob);
+        _assertCreateFlowNFTInvariants(alice, bob, 1, 1);
 
         assertTrue(checkAllInvariants());
     }
 
     function testTokenDeleteFlow(uint32 a) public {
-        vm.assume(a > 0);
-        vm.assume(a <= uint32(type(int32).max));
-        int96 flowRate = int96(int32(a));
-
         _initializeCanonicalWrapperSuperTokens();
-
-        vm.startPrank(alice);
-        superToken.createFlow(bob, flowRate);
-        vm.stopPrank();
-
-        assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate);
-        assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate);
+        _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
 
         assertTrue(checkAllInvariants());
 
@@ -182,34 +167,81 @@ contract SuperTokenCFAV1Anvil is FoundrySuperfluidTester {
     }
 
     function testTokenDeleteFlowNFTBurned(uint32 a) public {
-        vm.assume(a > 0);
-        vm.assume(a <= uint32(type(int32).max));
-        int96 flowRate = int96(int32(a));
-
         _initializeCanonicalWrapperSuperTokens();
+        _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
 
-        vm.startPrank(alice);
-        superToken.createFlow(bob, flowRate);
-        vm.stopPrank();
-
-        CFAOutflowNFT outflowNFT = CFAOutflowNFT(superToken.cfaOutflowNFT());
-        CFAInflowNFT inflowNFT = CFAInflowNFT(superToken.cfaInflowNFT());
-        assertEq(outflowNFT.balanceOf(alice), 1);
-        assertEq(inflowNFT.balanceOf(bob), 1);
-
-        uint256 nftId = uint256(keccak256(abi.encode(alice, bob)));
-        assertEq(outflowNFT.ownerOf(nftId), alice);
-        assertEq(inflowNFT.ownerOf(nftId), bob);
+        _assertCreateFlowNFTInvariants(alice, bob, 1, 1);
 
         vm.startPrank(alice);
         superToken.deleteFlow(bob);
         vm.stopPrank();
 
-        assertEq(outflowNFT.balanceOf(alice), 0);
-        assertEq(inflowNFT.balanceOf(bob), 0);
+        _assertDeleteFlowNFTInvariants(alice, bob, 0, 0);
 
-        assertEq(outflowNFT.ownerOf(nftId), address(0));
-        assertEq(inflowNFT.ownerOf(nftId), address(0));
         assertTrue(checkAllInvariants());
+    }
+
+    function testTransferInflowNFTFail(uint32 a) public {
+        _initializeCanonicalWrapperSuperTokens();
+        _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
+
+        uint256 nftId = _assertCreateFlowNFTInvariants(alice, bob, 1, 1);
+
+        assertTrue(checkAllInvariants());
+
+        // transfer inflow NFT
+        CFAInflowNFT inflowNFT = CFAInflowNFT(superToken.cfaInflowNFT());
+        vm.expectRevert(CFAInflowNFT.CFA_INFLOW_NFT_ONLY_OWNER_OR_APPROVED.selector);
+        vm.startPrank(carol);
+        inflowNFT.transferFrom(bob, carol, nftId);
+        vm.stopPrank();
+    }
+
+    function testTransferInflowNFT(uint32 a) public {
+        _initializeCanonicalWrapperSuperTokens();
+        int96 flowRate = _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
+
+        uint256 nftId = _assertCreateFlowNFTInvariants(alice, bob, 1, 1);
+
+        assertTrue(checkAllInvariants());
+
+        // transfer inflow NFT
+        CFAInflowNFT inflowNFT = CFAInflowNFT(superToken.cfaInflowNFT());
+        vm.startPrank(bob);
+        inflowNFT.transferFrom(bob, carol, nftId);
+        vm.stopPrank();
+
+        // check that the flow is from alice to bob is deleted
+        // and a new flow is created from alice to carol
+        assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate);
+        assertEq(sf.cfa.getNetFlow(superToken, bob), 0);
+        assertEq(sf.cfa.getNetFlow(superToken, carol), flowRate);
+
+        // check that the NFTs are transferred
+        _assertCreateFlowNFTInvariants(alice, carol, 1, 1);
+        _assertDeleteFlowNFTInvariants(alice, bob, 1, 0);
+
+        assertTrue(checkAllInvariants());
+    }
+
+    function testApproveAndTransferInflowNFT(uint32 a) public {
+        _initializeCanonicalWrapperSuperTokens();
+        _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
+
+        uint256 nftId = _assertCreateFlowNFTInvariants(alice, bob, 1, 1);
+
+        assertTrue(checkAllInvariants());
+
+
+        CFAInflowNFT inflowNFT = CFAInflowNFT(superToken.cfaInflowNFT());
+        // approve nft transfer
+        vm.startPrank(bob);
+        inflowNFT.approve(carol, nftId);
+        vm.stopPrank();
+
+        // transfer inflow NFT
+        vm.startPrank(carol);
+        inflowNFT.transferFrom(bob, carol, nftId);
+        vm.stopPrank();
     }
 }

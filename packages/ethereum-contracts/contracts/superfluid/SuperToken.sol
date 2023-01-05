@@ -24,7 +24,6 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { CFANFTBase } from "./CFANFTBase.sol";
 import { CFAOutflowNFT } from "./CFAOutflowNFT.sol";
 import { CFAInflowNFT } from "./CFAInflowNFT.sol";
 
@@ -758,21 +757,21 @@ contract SuperToken is
      * CFAv1 Operations
      *************************************************************************/
     function createFlow(address _receiver, int96 _flowRate) external {
-        CFANFTBase(cfaOutflowNFT()).createFlow(msg.sender, _receiver, _flowRate);
+        CFAOutflowNFT(cfaOutflowNFT()).createFlow(msg.sender, _receiver, _flowRate);
     }
     
     // TODO: createFlow with userData
     // TODO: createFlow with ctx
 
     function updateFlow(address _receiver, int96 _flowRate) external {
-        CFANFTBase(cfaOutflowNFT()).updateFlow(msg.sender, _receiver, _flowRate);
+        CFAOutflowNFT(cfaOutflowNFT()).updateFlow(msg.sender, _receiver, _flowRate);
     }
 
     // TODO: updateFlow with userData
     // TODO: updateFlow with ctx
 
     function deleteFlow(address _receiver) external {
-        CFANFTBase(cfaOutflowNFT()).deleteFlow(msg.sender, _receiver);
+        CFAOutflowNFT(cfaOutflowNFT()).deleteFlow(msg.sender, _receiver);
     }
 
     // TODO: deleteFlow with userData
@@ -789,7 +788,7 @@ contract SuperToken is
         bool _allowDelete,
         int96 _flowRateAllowance
     ) external {
-        CFANFTBase(cfaOutflowNFT()).setFlowPermissions(
+        CFAOutflowNFT(cfaOutflowNFT()).setFlowPermissions(
             msg.sender,
             _flowOperator,
             _allowCreate,
@@ -804,7 +803,7 @@ contract SuperToken is
     function setMaxFlowPermissions(
         address _flowOperator
     ) external {
-        CFANFTBase(cfaOutflowNFT()).setMaxFlowPermissions(
+        CFAOutflowNFT(cfaOutflowNFT()).setMaxFlowPermissions(
             msg.sender,
             _flowOperator
         );
@@ -813,7 +812,7 @@ contract SuperToken is
     // TODO: setMaxFlowPermissions with ctx
 
     function revokeFlowPermissions(address _flowOperator) external {
-        CFANFTBase(cfaOutflowNFT()).revokeFlowPermissions(
+        CFAOutflowNFT(cfaOutflowNFT()).revokeFlowPermissions(
             msg.sender,
             _flowOperator
         );

@@ -299,6 +299,7 @@ abstract contract SuperTokenFactoryBase is
         );
 
         CFAInflowNFT cfaInflowNFT = new CFAInflowNFT(
+            _host,
             ISuperToken(_superToken),
             IConstantFlowAgreementV1(cfaAddress),
             string.concat(_symbol, "CIF"),
@@ -307,6 +308,7 @@ abstract contract SuperTokenFactoryBase is
         cfaInflowNFTAddress = address(cfaInflowNFT);
 
         CFAOutflowNFT cfaOutflowNFT = new CFAOutflowNFT(
+            _host,
             ISuperToken(_superToken),
             IConstantFlowAgreementV1(cfaAddress),
             string.concat(_symbol, "COF"),

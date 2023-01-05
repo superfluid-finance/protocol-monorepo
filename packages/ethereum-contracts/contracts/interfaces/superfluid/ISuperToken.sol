@@ -516,6 +516,10 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     function operationDowngrade(address account, uint256 amount) external;
 
 
+    function cfaOutflowNFT() external view returns (address);
+
+    function cfaInflowNFT() external view returns (address);
+
     /**************************************************************************
     * Function modifiers for access control and parameter validations
     *

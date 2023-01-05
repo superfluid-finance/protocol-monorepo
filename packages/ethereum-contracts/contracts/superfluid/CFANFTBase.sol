@@ -5,10 +5,16 @@ pragma solidity 0.8.16;
 // solhint-disable no-unused-vars
 // solhint-disable not-rely-on-time
 
-import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
+import {
+    BatchOperation,
+    ISuperfluid,
+    ISuperToken
+} from "../interfaces/superfluid/ISuperfluid.sol";
+import { SuperToken } from "../superfluid/SuperToken.sol";
 import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { CallUtils } from "../libs/CallUtils.sol";
 
 abstract contract CFANFTBase {
     struct FlowData {
@@ -19,6 +25,7 @@ abstract contract CFANFTBase {
 
     ISuperToken public immutable superToken;
     IConstantFlowAgreementV1 public immutable cfa;
+    ISuperfluid public immutable host;
     string public name;
     string public symbol;
 
@@ -58,11 +65,13 @@ abstract contract CFANFTBase {
     error ONLY_SUPER_TOKEN();
 
     constructor(
+        ISuperfluid _host,
         ISuperToken _superToken,
         IConstantFlowAgreementV1 _cfa,
         string memory _name,
         string memory _symbol
     ) {
+        host = _host;
         superToken = _superToken;
         cfa = _cfa;
         name = _name;
@@ -76,11 +85,11 @@ abstract contract CFANFTBase {
         _;
     }
 
-    function mint(address _sender, address _receiver) external onlySuperToken {
+    function mint(address _sender, address _receiver) external {
         _mint(_sender, _receiver);
     }
 
-    function burn(address _sender, address _receiver) external onlySuperToken {
+    function burn(address _sender, address _receiver) external {
         _burn(_sender, _receiver);
     }
 
@@ -169,4 +178,169 @@ abstract contract CFANFTBase {
     function _mint(address _sender, address _receiver) internal virtual;
 
     function _burn(address _sender, address _receiver) internal virtual;
+
+    /**************************************************************************
+     * CFAv1 Operations
+     *************************************************************************/
+    function createFlow(
+        address _sender,
+        address _receiver,
+        int96 _flowRate
+    ) external virtual;
+
+    // function createFlow(
+    //     address _sender,
+    //     address _receiver,
+    //     int96 _flowRate,
+    //     bytes memory _userData
+    // ) external virtual;
+
+    function updateFlow(
+        address _sender,
+        address _receiver,
+        int96 _flowRate
+    ) external onlySuperToken {
+        bytes memory updateFlowCallData = abi.encodeCall(
+            cfa.updateFlow,
+            (superToken, _receiver, _flowRate, new bytes(0))
+        );
+        _forwardTokenCall(
+            _sender,
+            address(cfa),
+            updateFlowCallData,
+            new bytes(0)
+        );
+    }
+
+    // function updateFlow(
+    //     address _sender,
+    //     address _receiver,
+    //     int96 _flowRate,
+    //     bytes memory _userData
+    // ) external onlySuperToken {
+    //     bytes memory updateFlowCallData = abi.encodeCall(
+    //         cfa.updateFlow,
+    //         (superToken, _receiver, _flowRate, new bytes(0))
+    //     );
+    //     _forwardTokenCall(_sender, address(cfa), updateFlowCallData, _userData);
+    // }
+
+    function deleteFlow(address _sender, address _receiver) external virtual;
+
+    // function deleteFlow(
+    //     address _sender,
+    //     address _receiver,
+    //     bytes memory _userData
+    // ) external virtual;
+
+    /**
+     * @dev Update permissions for flow operator
+     * @param _sender The executor of the call (msg.sender)
+     * @param flowOperator The address given flow permissions
+     * @param allowCreate creation permissions
+     * @param allowCreate update permissions
+     * @param allowCreate deletion permissions
+     * @param flowRateAllowance The allowance provided to flowOperator
+     */
+    function setFlowPermissions(
+        address _sender,
+        address flowOperator,
+        bool allowCreate,
+        bool allowUpdate,
+        bool allowDelete,
+        int96 flowRateAllowance
+    ) external returns (bool) {
+        uint8 permissionsBitmask = (allowCreate ? 1 : 0) |
+            ((allowUpdate ? 1 : 0) << 1) |
+            ((allowDelete ? 1 : 0) << 2);
+        bytes memory updateFlowOperatorPermissionsCallData = abi.encodeCall(
+            cfa.updateFlowOperatorPermissions,
+            (
+                superToken,
+                flowOperator,
+                permissionsBitmask,
+                flowRateAllowance,
+                new bytes(0)
+            )
+        );
+
+        _forwardTokenCall(
+            _sender,
+            address(cfa),
+            updateFlowOperatorPermissionsCallData,
+            new bytes(0)
+        );
+        return true;
+    }
+
+    function setMaxFlowPermissions(
+        address _sender,
+        address flowOperator
+    ) external returns (bool) {
+        bytes memory authorizeFlowOperatorWithFullControlCallData = abi
+            .encodeCall(
+                cfa.authorizeFlowOperatorWithFullControl,
+                (superToken, flowOperator, new bytes(0))
+            );
+
+        _forwardTokenCall(
+            _sender,
+            address(cfa),
+            authorizeFlowOperatorWithFullControlCallData,
+            new bytes(0)
+        );
+
+        return true;
+    }
+
+    function revokeFlowPermissions(
+        address _sender,
+        address flowOperator
+    ) external returns (bool) {
+        bytes memory revokeFlowOperatorWithFullControlCallData = abi.encodeCall(
+            cfa.revokeFlowOperatorWithFullControl,
+            (superToken, flowOperator, new bytes(0))
+        );
+
+        _forwardTokenCall(
+            _sender,
+            address(cfa),
+            revokeFlowOperatorWithFullControlCallData,
+            new bytes(0)
+        );
+        return true;
+    }
+
+    // compiles the calldata of a single operation for the host invocation and executes it
+    function _forwardTokenCall(
+        address _sender,
+        address target,
+        bytes memory callData,
+        bytes memory userData
+    ) internal returns (bool) {
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        ops[0] = ISuperfluid.Operation(
+            BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT, // type
+            address(target), // target
+            abi.encode(callData, userData) // data
+        );
+
+        bytes memory fwBatchCallData = abi.encodeCall(
+            host.trustedTokenBatchCall,
+            (ops)
+        );
+
+        // https://eips.ethereum.org/EIPS/eip-2771
+        // we encode the msg.sender as the last 20 bytes per EIP-2771 to extract the original txn signer later on
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory returnedData) = address(host).call(
+            abi.encodePacked(fwBatchCallData, _sender)
+        );
+
+        if (!success) {
+            CallUtils.revertFromReturnedData(returnedData);
+        }
+
+        return true;
+    }
 }

@@ -17,7 +17,6 @@ import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlow
 import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
-import { CallUtils } from "../libs/CallUtils.sol";
 
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -25,6 +24,7 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { CFANFTBase } from "./CFANFTBase.sol";
 import { CFAOutflowNFT } from "./CFAOutflowNFT.sol";
 import { CFAInflowNFT } from "./CFAInflowNFT.sol";
 
@@ -77,8 +77,8 @@ contract SuperToken is
     // function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     // behaviors/layout when upgrading
 
-    CFAOutflowNFT public _cfaOutflowNFT;
-    CFAInflowNFT public _cfaInflowNFT;
+    CFAOutflowNFT internal _cfaOutflowNFT;
+    CFAInflowNFT internal _cfaInflowNFT;
     uint256 private _reserve24;
     uint256 private _reserve25;
     uint256 private _reserve26;
@@ -746,68 +746,106 @@ contract SuperToken is
         _downgrade(msg.sender, account, account, amount, "", "");
     }
 
+    function cfaOutflowNFT() public view returns (address) {
+        return address(_cfaOutflowNFT);
+    }
+
+    function cfaInflowNFT() public view returns (address) {
+        return address(_cfaInflowNFT);
+    }
+    
     /**************************************************************************
      * CFAv1 Operations
      *************************************************************************/
-    function createFlow(
-        address _receiver,
-        int96 _flowRate
-    )
-        external
-    {
-        IConstantFlowAgreementV1 cfa = IConstantFlowAgreementV1(
-                address(
-                    _host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                    )
-                )
-            );
-        bytes memory createFlowCallData = abi.encodeCall(
-            cfa.createFlow,
-            (ISuperfluidToken(address(this)), _receiver, _flowRate, new bytes(0))
-        );
-        _forwardTokenCall(address(cfa), createFlowCallData, new bytes(0));
+    function createFlow(address _receiver, int96 _flowRate) external {
+        CFANFTBase(cfaOutflowNFT()).createFlow(msg.sender, _receiver, _flowRate);
+    }
+    
+    // TODO: createFlow with userData
+    // TODO: createFlow with ctx
 
-        // mint an outflow nft to the flow sender
-        _cfaOutflowNFT.mint(msg.sender, _receiver);
-        // mint an inflow nft to the flow receiver
-        _cfaInflowNFT.mint(msg.sender, _receiver);
+    function updateFlow(address _receiver, int96 _flowRate) external {
+        CFANFTBase(cfaOutflowNFT()).updateFlow(msg.sender, _receiver, _flowRate);
     }
 
-    // compiles the calldata of a single operation for the host invocation and executes it
-    function _forwardTokenCall(address target, bytes memory callData, bytes memory userData) internal returns (bool) {
-        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
-        ops[0] = ISuperfluid.Operation(
-            BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT, // type
-            address(target), // target
-            abi.encode( // data
-                callData,
-                userData
-            )
-        );
+    // TODO: updateFlow with userData
+    // TODO: updateFlow with ctx
 
-        bytes memory fwBatchCallData = abi.encodeCall(
-            _host.trustedTokenBatchCall,
-            (
-                ops
-            )
-        );
-
-        // https://eips.ethereum.org/EIPS/eip-2771
-        // we encode the msg.sender as the last 20 bytes per EIP-2771 to extract the original txn signer later on
-        // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory returnedData) = address(_host).call(abi.encodePacked(fwBatchCallData, msg.sender));
-
-        if (!success) {
-            CallUtils.revertFromReturnedData(returnedData);
-        }
-
-        return true;
+    function deleteFlow(address _receiver) external {
+        CFANFTBase(cfaOutflowNFT()).deleteFlow(msg.sender, _receiver);
     }
+
+    // TODO: deleteFlow with userData
+    // TODO: deleteFlow with ctx
 
     /**************************************************************************
-    * Modifiers
-    *************************************************************************/
+     * CFAv1 ACL Operations
+     *************************************************************************/
+
+    function setFlowPermissions(
+        address _flowOperator,
+        bool _allowCreate,
+        bool _allowUpdate,
+        bool _allowDelete,
+        int96 _flowRateAllowance
+    ) external {
+        CFANFTBase(cfaOutflowNFT()).setFlowPermissions(
+            msg.sender,
+            _flowOperator,
+            _allowCreate,
+            _allowUpdate,
+            _allowDelete,
+            _flowRateAllowance
+        );
+    }
+
+    // TODO: setFlowPermissions with ctx
+
+    function setMaxFlowPermissions(
+        address _flowOperator
+    ) external {
+        CFANFTBase(cfaOutflowNFT()).setMaxFlowPermissions(
+            msg.sender,
+            _flowOperator
+        );
+    }
+
+    // TODO: setMaxFlowPermissions with ctx
+
+    function revokeFlowPermissions(address _flowOperator) external {
+        CFANFTBase(cfaOutflowNFT()).revokeFlowPermissions(
+            msg.sender,
+            _flowOperator
+        );
+    }
+
+    // TODO: revokeFlowPermissions with ctx
+
+
+    // function createFlowFrom(address _sender, address _receiver, int96 _flowRate) external {
+    //     CFANFTBase(cfaOutflowNFT()).createFlowFrom(msg.sender, _receiver, _flowRate);
+    // }
+    
+    // TODO: createFlowFrom with userData
+    // TODO: createFlowFrom with ctx
+
+    // function updateFlowFrom(address _sender, address _receiver, int96 _flowRate) external {
+    //     CFANFTBase(cfaOutflowNFT()).updateFlowFrom(msg.sender, _receiver, _flowRate);
+    // }
+
+    // TODO: updateFlowFrom with userData
+    // TODO: updateFlowFrom with ctx
+
+    // function deleteFlowFrom(address _sender, address _receiver) external {
+    //     CFANFTBase(cfaOutflowNFT()).deleteFlowFrom(msg.sender, _receiver);
+    // }
+
+    // TODO: deleteFlowFrom with userData
+    // TODO: deleteFlowFrom with ctx
+
+    /**************************************************************************
+     * Modifiers
+     *************************************************************************/
 
     modifier onlySelf() {
         if (msg.sender != address(this)) revert SUPER_TOKEN_ONLY_SELF();

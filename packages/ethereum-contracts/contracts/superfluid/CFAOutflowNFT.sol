@@ -4,19 +4,26 @@ pragma solidity 0.8.16;
 // solhint-disable no-empty-blocks
 // solhint-disable no-unused-vars
 // solhint-disable not-rely-on-time
-import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
+
+import {
+    ISuperfluid,
+    ISuperToken
+} from "../interfaces/superfluid/ISuperfluid.sol";
+import { SuperToken } from "../superfluid/SuperToken.sol";
 import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { CFANFTBase } from "./CFANFTBase.sol";
+import { CFAInflowNFT } from "./CFAInflowNFT.sol";
 
 contract CFAOutflowNFT is CFANFTBase {
     constructor(
+        ISuperfluid _host,
         ISuperToken _superToken,
         IConstantFlowAgreementV1 _cfa,
         string memory _name,
         string memory _symbol
-    ) CFANFTBase(_superToken, _cfa, _name, _symbol) {}
+    ) CFANFTBase(_host, _superToken, _cfa, _name, _symbol) {}
 
     /// @notice Returns the owner of the outflowing flow with id `_tokenId`
     /// @dev `_tokenId` is the uint256 cast of the keccak256 hash of the sender and receiver addresses
@@ -78,5 +85,54 @@ contract CFAOutflowNFT is CFANFTBase {
         delete _flowDataBySenderReceiver[
             keccak256(abi.encode(_sender, _receiver))
         ];
+    }
+
+    function createFlow(
+        address _sender,
+        address _receiver,
+        int96 _flowRate
+    ) external override onlySuperToken {
+        bytes memory createFlowCallData = abi.encodeCall(
+            cfa.createFlow,
+            (superToken, _receiver, _flowRate, new bytes(0))
+        );
+        _forwardTokenCall(
+            _sender,
+            address(cfa),
+            createFlowCallData,
+            new bytes(0)
+        );
+
+        // mint an outflow nft to the flow sender
+        _mint(_sender, _receiver);
+        // mint an inflow nft to the flow receiver
+        CFAInflowNFT(SuperToken(address(superToken)).cfaInflowNFT()).mint(
+            _sender,
+            _receiver
+        );
+    }
+
+    function deleteFlow(
+        address _sender,
+        address _receiver
+    ) external override onlySuperToken {
+        bytes memory deleteFlowCallData = abi.encodeCall(
+            cfa.deleteFlow,
+            (superToken, _sender, _receiver, new bytes(0))
+        );
+        _forwardTokenCall(
+            _sender,
+            address(cfa),
+            deleteFlowCallData,
+            new bytes(0)
+        );
+
+        // burn the outflow nft to the flow sender
+        _burn(_sender, _receiver);
+        // burn the inflow nft to the flow receiver
+        CFAInflowNFT(SuperToken(address(superToken)).cfaInflowNFT()).burn(
+            _sender,
+            _receiver
+        );
     }
 }

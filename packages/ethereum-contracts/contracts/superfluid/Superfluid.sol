@@ -24,6 +24,10 @@ import {
 import { CallUtils } from "../libs/CallUtils.sol";
 import { BaseRelayRecipient } from "../libs/BaseRelayRecipient.sol";
 
+interface ICFANFTBase {
+    function superToken() external view returns (ISuperToken);
+}
+
 /**
  * @dev The Superfluid host implementation.
  *
@@ -847,18 +851,33 @@ contract Superfluid is
     }
 
     // @note this is a temporary function for the prototype (will be cleaned up)
-    function _getTokenTransactionSigner() internal view returns (address payable ret) {
-        address underlyingTokenAddress = ISuperToken(msg.sender).getUnderlyingToken();
-        bool isCanonicalWrapperSuperToken = 
-            _superTokenFactory.getCanonicalERC20Wrapper(underlyingTokenAddress) != address(0);
-        if (msg.data.length < 24 || !isCanonicalWrapperSuperToken) {
+    function _getTokenTransactionSigner()
+        internal
+        view
+        returns (address payable ret)
+    {
+        ISuperToken nftSuperToken = ICFANFTBase(msg.sender).superToken();
+        address underlyingTokenAddress = nftSuperToken.getUnderlyingToken();
+        // this ensures the super token of the NFT contract is a canonical wrapper super token
+        // however, msg.sender is an input and can be any contract which spoofs the super token
+        bool isCanonicalWrapperSuperToken = _superTokenFactory
+            .getCanonicalERC20Wrapper(underlyingTokenAddress) != address(0);
+        
+        // this ensures the NFT contract (msg.sender) is whitelisted in the super token contract
+        bool isWhitelistedNFT = nftSuperToken.cfaInflowNFT() == msg.sender ||
+            nftSuperToken.cfaOutflowNFT() == msg.sender;
+        if (
+            msg.data.length < 24 ||
+            !isCanonicalWrapperSuperToken ||
+            !isWhitelistedNFT
+        ) {
             revert HOST_UNTRUSTED_SUPER_TOKEN();
         }
         // At this point we know that the sender is a trusted super token,
         // so we trust that the last bytes of msg.data are the verified sender address.
         // extract sender address from the end of msg.data
         assembly {
-            ret := shr(96,calldataload(sub(calldatasize(),20)))
+            ret := shr(96, calldataload(sub(calldatasize(), 20)))
         }
     }
 

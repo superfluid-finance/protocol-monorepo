@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # NOTE: do export BUILT=true for subsequent test runs to reduce the amount
 # of time spent rebuilding unnecessary things

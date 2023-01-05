@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # verification script for etherscan-like explorers.
 # takes 2 arguments: the canonical network name and a file with a list of contract addresses to verify.

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # $1 = the configuration (v1, dev, feature)
 # $2 = the network
 

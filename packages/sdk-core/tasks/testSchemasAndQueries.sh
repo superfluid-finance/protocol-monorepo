@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 JQ="../../node_modules/node-jq/bin/jq"
 

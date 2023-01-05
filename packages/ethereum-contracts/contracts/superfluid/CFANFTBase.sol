@@ -20,7 +20,6 @@ abstract contract CFANFTBase {
     struct FlowData {
         address sender;
         address receiver;
-        uint64 startDate;
     }
 
     ISuperToken public immutable superToken;

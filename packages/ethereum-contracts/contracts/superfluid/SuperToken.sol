@@ -122,8 +122,8 @@ contract SuperToken is
         uint8 underlyingDecimals,
         string calldata n,
         string calldata s,
-        address cfaOutflowNFT,
-        address cfaInflowNFT
+        address cfaOutflowNFT_,
+        address cfaInflowNFT_
     )
         external override
         initializer // OpenZeppelin Initializable
@@ -134,8 +134,8 @@ contract SuperToken is
         _name = n;
         _symbol = s;
 
-        _cfaOutflowNFT = CFAOutflowNFT(cfaOutflowNFT);
-        _cfaInflowNFT = CFAInflowNFT(cfaInflowNFT);
+        _cfaOutflowNFT = CFAOutflowNFT(cfaOutflowNFT_);
+        _cfaInflowNFT = CFAInflowNFT(cfaInflowNFT_);
 
         // register interfaces
         ERC777Helper.register(address(this));

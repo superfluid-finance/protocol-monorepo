@@ -24,7 +24,7 @@ contract SuperTokenCFAV1Anvil is FoundrySuperfluidTester {
         address superToken;
     }
 
-    constructor() FoundrySuperfluidTester(3) {}
+    constructor() FoundrySuperfluidTester(4) {}
 
     function _initializeCanonicalWrapperSuperTokens() internal {
         vm.startPrank(address(sfDeployer));
@@ -243,5 +243,94 @@ contract SuperTokenCFAV1Anvil is FoundrySuperfluidTester {
         vm.startPrank(carol);
         inflowNFT.transferFrom(bob, carol, nftId);
         vm.stopPrank();
+    }
+
+    function testTransferOutflowNFTFail(uint32 a) public {
+        _initializeCanonicalWrapperSuperTokens();
+        _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
+
+        uint256 nftId = _assertCreateFlowNFTInvariants(alice, bob, 1, 1);
+
+        assertTrue(checkAllInvariants());
+
+        // transfer outflow NFT
+        CFAOutflowNFT outflowNFT = CFAOutflowNFT(superToken.cfaOutflowNFT());
+        vm.expectRevert(CFAOutflowNFT.CFA_OUTFLOW_NFT_ONLY_OWNER_OR_APPROVED.selector);
+        vm.startPrank(dan);
+        outflowNFT.transferFrom(alice, carol, nftId);
+        vm.stopPrank();
+    }
+
+    function testTransferOutflowNFTAsNFTOwner(uint32 a) public {
+        _initializeCanonicalWrapperSuperTokens();
+
+        // alice creates a flow to bob, outflow nft alice->bob is created
+        int96 flowRate = _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
+
+        uint256 nftId = _assertCreateFlowNFTInvariants(alice, bob, 1, 1);
+
+        assertTrue(checkAllInvariants());
+
+        CFAOutflowNFT outflowNFT = CFAOutflowNFT(superToken.cfaOutflowNFT());
+
+        // @note carol has to approve nft transfer?
+        // might make more sense to just do via acl directly
+
+        // alice wants to transfer the outflow nft to carol
+        // alice must have acl permissions to do so from carol
+        // carol provides acl permissions via nft
+        vm.startPrank(carol);
+        superToken.setFlowPermissions(alice, true, false, false, flowRate);
+        vm.stopPrank();
+
+        // alice transfers the nft to carol
+        // this should delete the flow from alice to bob and create a new flow from carol to bob
+        // transfer outflow NFT
+        vm.startPrank(alice);
+        outflowNFT.transferFrom(alice, carol, nftId);
+        vm.stopPrank();
+
+        // check that the flow is from alice to bob is deleted
+        // and a new flow is created from carol to bob
+        assertEq(sf.cfa.getNetFlow(superToken, alice), 0);
+        assertEq(sf.cfa.getNetFlow(superToken, carol), -flowRate);
+        assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate);
+
+        // check that the NFTs are transferred
+        _assertCreateFlowNFTInvariants(carol, bob, 1, 1);
+        _assertDeleteFlowNFTInvariants(alice, bob, 0, 1);
+
+        assertTrue(checkAllInvariants());
+    }
+
+    function testTransferOutflowNFTWithOwnerApproval(uint32 a) public {
+        _initializeCanonicalWrapperSuperTokens();
+        // alice creates a flow to bob
+        int96 flowRate = _createFlowViaSuperTokenAndAssertProperties(a, alice, bob);
+
+        uint256 nftId = _assertCreateFlowNFTInvariants(alice, bob, 1, 1);
+
+        assertTrue(checkAllInvariants());
+
+        // carol transfers the outflow
+        CFAOutflowNFT outflowNFT = CFAOutflowNFT(superToken.cfaOutflowNFT());
+
+        // alice wants to transfer the outflow nft to carol
+        // alice must have acl permissions to do so from carol
+        // carol provides acl permissions via nft
+        vm.startPrank(alice);
+        outflowNFT.approve(carol, nftId);
+        vm.stopPrank();
+
+        // transfer outflow NFT
+        vm.startPrank(carol);
+        outflowNFT.transferFrom(alice, carol, nftId);
+        vm.stopPrank();
+
+        // check that the flow is from alice to bob is deleted
+        // check that a flow from carol to bob is created
+        assertEq(sf.cfa.getNetFlow(superToken, alice), 0);
+        assertEq(sf.cfa.getNetFlow(superToken, carol), -flowRate);
+        assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate);
     }
 }

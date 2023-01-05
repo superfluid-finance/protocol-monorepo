@@ -71,6 +71,7 @@ contract CFAInflowNFT is CFANFTBase {
     function _requireMinted(uint256 _tokenId) internal view virtual {
         require(_exists(_tokenId), "ERC721: invalid token ID");
     }
+
     /**
      * @dev Returns whether `_tokenId` exists.
      *
@@ -82,8 +83,9 @@ contract CFAInflowNFT is CFANFTBase {
     function _exists(uint256 _tokenId) internal view virtual returns (bool) {
         return _ownerOf(_tokenId) != address(0);
     }
+
     /**
-     * @dev Returns the owner of the `tokenId`. Does NOT revert if token doesn't exist
+     * @dev Returns the owner of the `_tokenId`. Does NOT revert if token doesn't exist
      */
     function _ownerOf(uint256 _tokenId) internal view virtual returns (address) {
         FlowData memory flowData = cfaOutflowNFT().getFlowDataByTokenId(_tokenId);
@@ -93,10 +95,9 @@ contract CFAInflowNFT is CFANFTBase {
     /**
      * @dev See {IERC721-getApproved}.
      */
-    function getApproved(uint256 tokenId) public view override returns (address) {
-        _requireMinted(tokenId);
-
-        return _tokenApprovals[tokenId];
+    function getApproved(uint256 _tokenId) public view override returns (address) {
+        _requireMinted(_tokenId);
+        return _tokenApprovals[_tokenId];
     }
 
     /// @notice This sets approval for operator to allow transfer of all your inflow NFTs

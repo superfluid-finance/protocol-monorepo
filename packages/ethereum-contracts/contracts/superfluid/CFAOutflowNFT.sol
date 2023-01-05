@@ -23,6 +23,13 @@ contract CFAOutflowNFT is CFANFTBase {
     // Mapping owner address to token count
     mapping(address => uint256) internal _balances;
 
+    // Mapping from token ID to approved address
+    // @note this only allows a single approved address per token
+    mapping(uint256 => address) private _tokenApprovals;
+
+    error CFA_OUTFLOW_NFT_ONLY_OWNER_OR_APPROVED();
+    error CFA_OUTFLOW_FROM_FLOW_SENDER_MISMATCH();
+
     constructor(
         ISuperfluid _host,
         ISuperToken _superToken,
@@ -38,7 +45,7 @@ contract CFAOutflowNFT is CFANFTBase {
     function ownerOf(
         uint256 _tokenId
     ) external view override returns (address) {
-        return _flowDataBySenderReceiver[bytes32(_tokenId)].sender;
+        return _ownerOf(_tokenId);
     }
 
     /// outflow nft balance
@@ -48,17 +55,15 @@ contract CFAOutflowNFT is CFANFTBase {
         return _balances[_owner];
     }
 
-    /// note we can also just grant full permissions to the owner of the NFT
-    /// but either way we are granting more access than just for this singular NFT
-    /// we are granting ACL permissions for the whole token
-    /// @notice Grant `_to` ACL permissions passed via `_tokenId` (see below for format)
-    /// @dev _tokenId contains the permissions and the granted flowRateAllowance in the following format:
-    /// WORD A: | reserved  | permissions | reserved | flowRateAllowance |
-    ///         | 120       | 8           | 32       | 96                |
-    /// NOTE: This is consistent with the format of our flow operator data.
+    /// @notice Grant create flow ACL permissions to `_to` for the outflowing flow with id `_tokenId`
+    /// @dev This grants ACL approval for the amount for the current flow rate of the NFT
     /// @param _to The address you want to provide ACL permissions for
     /// @param _tokenId The address you want to provide ACL permissions for
     function approve(address _to, uint256 _tokenId) external override {
+        address owner = _ownerOf(_tokenId);
+        require(_to != owner, "ERC721: approval to current owner");
+
+        require(msg.sender == owner, "ERC721: approve caller is not token owner or approved for all");
         _approve(_to, _tokenId);
     }
 
@@ -67,39 +72,17 @@ contract CFAOutflowNFT is CFANFTBase {
      *
      * Emits an {Approval} event.
      */
-    function _approve(address _to, uint256 _tokenId) internal virtual {
-        int96 flowRateAllowance = int96(int256(_tokenId & uint256(int256(type(int96).max))));
-        uint8 permissionsBitmask = uint8(_tokenId >> 128) & type(uint8).max;
-
-        bytes memory updateFlowOperatorPermissionsCallData = abi.encodeCall(
-            cfa.updateFlowOperatorPermissions,
-            (
-                superToken,
-                _to,
-                permissionsBitmask,
-                flowRateAllowance,
-                new bytes(0)
-            )
-        );
-
-        _forwardTokenCall(
-            // @note make sure this approval with the msg.sender is safe
-            // if outflownft is accesible via the super token we need to make sure
-            msg.sender,
-            address(cfa),
-            updateFlowOperatorPermissionsCallData,
-            new bytes(0)
-        );
-
-        emit Approval(_ownerOf(_tokenId), _to, _tokenId);
+    function _approve(address to, uint256 _tokenId) internal virtual {
+        _tokenApprovals[_tokenId] = to;
+        emit Approval(_ownerOf(_tokenId), to, _tokenId);
     }
-
     /**
      * @dev Reverts if the `_tokenId` has not been minted yet.
      */
     function _requireMinted(uint256 _tokenId) internal view virtual {
         require(_exists(_tokenId), "ERC721: invalid token ID");
     }
+
     /**
      * @dev Returns whether `_tokenId` exists.
      *
@@ -111,44 +94,117 @@ contract CFAOutflowNFT is CFANFTBase {
     function _exists(uint256 _tokenId) internal view virtual returns (bool) {
         return _ownerOf(_tokenId) != address(0);
     }
+
     /**
      * @dev Returns the owner of the `tokenId`. Does NOT revert if token doesn't exist
      */
-    function _ownerOf(uint256 _tokenId) internal view virtual returns (address) {
-        FlowData memory flowData = _flowDataBySenderReceiver[bytes32(_tokenId)];
-        return flowData.receiver;
+    function _ownerOf(
+        uint256 _tokenId
+    ) internal view virtual returns (address) {
+        return _flowDataBySenderReceiver[bytes32(_tokenId)].sender;
     }
 
-    /**
-     * @dev See {IERC721-getApproved}.
-     */
-    function getApproved(uint256 tokenId) public view override returns (address) {
-        _requireMinted(tokenId);
-
-        return address(0);
+    /// @notice Returns the address of the flow operator for the outflowing flow NFT with id `_tokenId`
+    /// @dev Returns address(0) if caller has no permissions, otherwise it returns the msg.sender
+    function getApproved(
+        uint256 _tokenId
+    ) public view override returns (address) {
+        _requireMinted(_tokenId);
+        return _tokenApprovals[_tokenId];
     }
 
     /// @notice Explain to an end user what this does
     /// @dev Explain to a developer any extra details
     /// @param _operator The address you want to grant or revoke ACL permissions for
     /// @param _approved Whether you want to grant (true) or revoke (false) permissions
-    function setApprovalForAll(address _operator, bool _approved) external override {
+    function setApprovalForAll(
+        address _operator,
+        bool _approved
+    ) external override {
         // set approval for all nfts
+        bytes memory callData;
         if (_approved == true) {
-            // grant permissions
+            callData = abi.encodeCall(
+                cfa.authorizeFlowOperatorWithFullControl,
+                (superToken, _operator, new bytes(0))
+            );
         } else {
-            // revoke permissions
+            callData = abi.encodeCall(
+                cfa.revokeFlowOperatorWithFullControl,
+                (superToken, _operator, new bytes(0))
+            );
         }
+        _forwardTokenCall(msg.sender, address(cfa), callData, new bytes(0));
     }
 
+    /// @notice Allows transfer of an outflowing flow NFT with id `tokenId` from `_from` to `_to`
+    /// @dev This means `_to` is now the owner of the outflowing flow NFT and the sender of the flow is now `_to`
+    /// @param _from The address you want to transfer the outflowing flow NFT from
+    /// @param _to The address you want to transfer the outflowing flow NFT to
+    /// @param _tokenId The id of the outflowing flow NFT you want to transfer
     function transferFrom(
         address _from,
         address _to,
         uint256 _tokenId
     ) external override {
-        // TODO: for outflow NFTs, we can allow a transfer to the _to address
-        // IF and only IF the _from address has ACL permissions to create a flow
-        // on behalf of the _to address
+        FlowData memory flowData = _flowDataBySenderReceiver[bytes32(_tokenId)];
+        if (_from != flowData.sender) {
+            revert CFA_OUTFLOW_FROM_FLOW_SENDER_MISMATCH();
+        }
+
+        if (msg.sender != _from && getApproved(_tokenId) != msg.sender) {
+            revert CFA_OUTFLOW_NFT_ONLY_OWNER_OR_APPROVED();
+        }
+
+        // update the balances
+        unchecked {
+            _balances[_from] -= 1;
+            _balances[_to] += 1;
+        }
+        _flowDataBySenderReceiver[
+            keccak256(abi.encode(_to, flowData.receiver))
+        ] = FlowData(_to, flowData.receiver);
+        delete _flowDataBySenderReceiver[bytes32(_tokenId)];
+
+        // get flow before deletion
+        (, int96 flowRate, , ) = cfa.getFlow(
+            superToken,
+            flowData.sender,
+            flowData.receiver
+        );
+
+        // delete the existing flow from sender to receiver
+        bytes memory deleteFlowCallData = abi.encodeCall(
+            cfa.deleteFlow,
+            (superToken, flowData.sender, flowData.receiver, new bytes(0))
+        );
+        _forwardTokenCall(
+            flowData.sender,
+            address(cfa),
+            deleteFlowCallData,
+            new bytes(0)
+        );
+
+        bytes memory callData;
+
+        // start with the case where we are an operator for the final flow creatod
+        if (msg.sender != _to) {
+            callData = abi.encodeCall(
+                cfa.createFlowByOperator,
+                (superToken, _to, flowData.receiver, flowRate, new bytes(0))
+            );
+        } else {
+            callData = abi.encodeCall(
+                cfa.createFlow,
+                (superToken, flowData.receiver, flowRate, new bytes(0))
+            );
+        }
+        _forwardTokenCall(
+            msg.sender,
+            address(cfa),
+            callData,
+            new bytes(0)
+        );
     }
 
     function safeTransferFrom(
@@ -189,7 +245,7 @@ contract CFAOutflowNFT is CFANFTBase {
         }
         _flowDataBySenderReceiver[
             keccak256(abi.encode(_sender, _receiver))
-        ] = FlowData(_sender, _receiver, uint64(block.timestamp));
+        ] = FlowData(_sender, _receiver);
     }
 
     function _burn(address _sender, address _receiver) internal {
@@ -217,11 +273,7 @@ contract CFAOutflowNFT is CFANFTBase {
         ];
         _flowDataBySenderReceiver[
             keccak256(abi.encode(_sender, _newReceiver))
-        ] = FlowData({
-            sender: _sender,
-            receiver: _newReceiver,
-            startDate: uint64(block.timestamp)
-        });
+        ] = FlowData({ sender: _sender, receiver: _newReceiver });
     }
 
     function getFlowDataByTokenId(

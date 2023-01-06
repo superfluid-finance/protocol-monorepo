@@ -6,6 +6,7 @@ All notable changes to the SDK-redux will be documented in this file.
 ## [0.4.0] - 2022-10-31
 
 ### Changes
+- Require SDK-core version `^0.6.0`
 - Allow RTK-query `^1.7.0 || ^1.8.0 || ^1.9.0`
 
 ### Breaking

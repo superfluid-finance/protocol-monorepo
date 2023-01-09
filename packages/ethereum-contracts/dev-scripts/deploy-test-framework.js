@@ -8,6 +8,7 @@ const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/
 const SuperfluidSuperTokenFactoryHelperDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/deployers/SuperfluidSuperTokenFactoryHelperDeployerLibrary.sol/SuperfluidSuperTokenFactoryHelperDeployerLibrary.json");
 const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
+const NFTDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/superfluid/NFTDeployerLibrary.sol/NFTDeployerLibrary.json");
 
 const ERC1820Registry = require("../ops-scripts/artifacts/ERC1820Registry.json");
 
@@ -61,7 +62,7 @@ const _getFactoryAndReturnDeployedContract = async (
 /**
  * Deploys Superfluid Framework in local testing environments.
  * NOTE: This only works with Hardhat.
- * @returns 
+ * @returns
  */
 const deployTestFramework = async () => {
     const signer = (await ethers.getSigners())[0];
@@ -93,21 +94,34 @@ const deployTestFramework = async () => {
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidIDAv1DeployerLibrary",
             SuperfluidIDAv1DeployerLibraryArtifact,
-            {signer,
+            {
+                signer,
                 libraries: {
                     SlotsBitmapLibrary: SlotsBitmapLibrary.address,
-                },}
+                },
+            }
+        );
+    const NFTDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "NFTDeployerLibrary",
+            NFTDeployerLibraryArtifact
         );
     const SuperfluidPeripheryDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidPeripheryDeployerLibrary",
             SuperfluidPeripheryDeployerLibraryArtifact,
-            signer
+            {
+                signer,
+                libraries: {
+                    NFTDeployerLibrary:
+                        NFTDeployerLibrary.address,
+                },
+            }
         );
     const SuperfluidSuperTokenFactoryHelperDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidSuperTokenFactoryHelperDeployerLibrary",
-            SuperfluidSuperTokenFactoryHelperDeployerLibraryArtifact,
+            SuperfluidSuperTokenFactoryHelperDeployerLibraryArtifact
         );
     const frameworkDeployer = await _getFactoryAndReturnDeployedContract(
         "SuperfluidFrameworkDeployer",
@@ -115,12 +129,18 @@ const deployTestFramework = async () => {
         {
             signer,
             libraries: {
-                SuperfluidGovDeployerLibrary: SuperfluidGovDeployerLibrary.address,
-                SuperfluidHostDeployerLibrary: SuperfluidHostDeployerLibrary.address,
-                SuperfluidCFAv1DeployerLibrary: SuperfluidCFAv1DeployerLibrary.address,
-                SuperfluidIDAv1DeployerLibrary: SuperfluidIDAv1DeployerLibrary.address,
-                SuperfluidPeripheryDeployerLibrary: SuperfluidPeripheryDeployerLibrary.address,
-                SuperfluidSuperTokenFactoryHelperDeployerLibrary: SuperfluidSuperTokenFactoryHelperDeployerLibrary.address
+                SuperfluidGovDeployerLibrary:
+                    SuperfluidGovDeployerLibrary.address,
+                SuperfluidHostDeployerLibrary:
+                    SuperfluidHostDeployerLibrary.address,
+                SuperfluidCFAv1DeployerLibrary:
+                    SuperfluidCFAv1DeployerLibrary.address,
+                SuperfluidIDAv1DeployerLibrary:
+                    SuperfluidIDAv1DeployerLibrary.address,
+                SuperfluidPeripheryDeployerLibrary:
+                    SuperfluidPeripheryDeployerLibrary.address,
+                SuperfluidSuperTokenFactoryHelperDeployerLibrary:
+                    SuperfluidSuperTokenFactoryHelperDeployerLibrary.address,
             },
         }
     );

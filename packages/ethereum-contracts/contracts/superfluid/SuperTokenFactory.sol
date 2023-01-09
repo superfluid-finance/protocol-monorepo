@@ -14,8 +14,7 @@ import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { SuperToken, ISuperToken } from "../superfluid/SuperToken.sol";
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
-import { CFAOutflowNFT } from "./CFAOutflowNFT.sol";
-import { CFAInflowNFT } from "./CFAInflowNFT.sol";
+import { NFTDeployerLibrary } from "./NFTDeployerLibrary.sol";
 
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,
@@ -292,28 +291,19 @@ abstract contract SuperTokenFactoryBase is
         public
         returns (address cfaInflowNFTAddress, address cfaOutflowNFTAddress)
     {
-        address cfaAddress = address(
-            _host.getAgreementClass(
-                keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-            )
-        );
-
-        CFAInflowNFT cfaInflowNFT = new CFAInflowNFT(
+        cfaOutflowNFTAddress = NFTDeployerLibrary.deployCFAOutflowNFT(
             _host,
             ISuperToken(_superToken),
-            IConstantFlowAgreementV1(cfaAddress),
-            string.concat(_symbol, "CIF"),
-            string.concat(_name, " Inflow NFT")
+            _name,
+            _symbol
         );
-        cfaInflowNFTAddress = address(cfaInflowNFT);
 
-        CFAOutflowNFT cfaOutflowNFT = new CFAOutflowNFT(
+        cfaInflowNFTAddress = NFTDeployerLibrary.deployCFAInflowNFT(
             _host,
             ISuperToken(_superToken),
-            IConstantFlowAgreementV1(cfaAddress),
-            string.concat(_symbol, "COF"),
-            string.concat(_name, " Outflow NFT"));
-        cfaOutflowNFTAddress = address(cfaOutflowNFT);
+            _name,
+            _symbol
+        );
     }
 
     /// @inheritdoc ISuperTokenFactory

@@ -44,10 +44,6 @@ describe("Subgraph Tests", () => {
             ) as NetworkData[];
             await Promise.all(
                 resolverDataArray.map(async (x) => {
-                    // @note this handles arbitrum-goerli not being ready
-                    if (x.subgraphAPIEndpoint.includes("arbitrum-goerli")) {
-                        return;
-                    }
                     // @note if SUBGRAPH_RELEASE_TAG is feature, we only test goerli
                     const isValidFeatureEndpoint =
                         process.env.SUBGRAPH_RELEASE_TAG === "feature" &&

@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-core",
-    "version": "0.5.9",
+    "version": "0.6.1",
     "description": "SDK Core for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
     "repository": {
@@ -56,7 +56,7 @@
     },
     "dependencies": {
         "@nomiclabs/hardhat-ethers": "^2.2.1",
-        "@superfluid-finance/ethereum-contracts": "1.4.3",
+        "@superfluid-finance/ethereum-contracts": "1.5.0",
         "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
         "browserify": "^17.0.0",
         "graphql-request": "^4.3.0",

@@ -1,10 +1,10 @@
 {
-  description = "Flake commands (including dev shells) for working with the monorepo.";
+  description = "Overlay for working with Superfluid protocol monorepo";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flakeUtils.url = "github:numtide/flake-utils";
-    foundry.url = "github:shazow/foundry.nix";
+    foundry.url = "github:shazow/foundry.nix/monthly";
   };
 
   outputs = { self, nixpkgs, flakeUtils, foundry } :
@@ -32,16 +32,15 @@
       nodePackages.nodemon
       # for haskell spec
       cabal-install
-      haskell.compiler.ghc92
-      (haskell-language-server.override {
-        supportedGhcVersions = [ "924" ];
-      })
+      haskell.compiler.ghc94
+      haskell.packages.ghc94.haskell-language-server
       hlint
       stylish-haskell
-      gnuplot
       # sage math
       sage
-      # yellow-paper pipeline
+      # testing tooling
+      gnuplot
+      # yellowpaper pipeline tooling
       haskellPackages.lhs2tex
       python39Packages.pygments
       (texlive.combine {

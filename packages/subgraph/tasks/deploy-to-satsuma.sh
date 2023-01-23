@@ -1,4 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# args
 # $1 = the version label
 # $2 = the network
 
@@ -11,11 +13,8 @@
 #   --node http://app.satsuma.xyz/api/subgraphs/deploy \
 #   --deploy-key <DEPLOY_KEY>
 
-mustache="../../node_modules/mustache/bin/mustache"
 graph="../../node_modules/@graphprotocol/graph-cli"
 
-mustache config/$2.json subgraph.template.yaml > subgraph.yaml
-mustache config/$2.json src/addresses.template.ts > src/addresses.ts
 graph deploy $2 \
     --version-label $1 \
     --node https://app.satsuma.xyz/api/subgraphs/deploy \

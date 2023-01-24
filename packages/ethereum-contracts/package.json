@@ -73,6 +73,7 @@
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.8.0",
+        "@openzeppelin/contracts-upgradeable": "^4.8.1",
         "@superfluid-finance/js-sdk": "0.6.3",
         "@truffle/contract": "4.5.23",
         "ethereumjs-tx": "2.1.2",
@@ -81,6 +82,7 @@
     },
     "devDependencies": {
         "@nomiclabs/hardhat-truffle5": "^2.0.7",
+        "@openzeppelin/hardhat-upgrades": "^1.22.1",
         "async": "^3.2.4",
         "csv-writer": "^1.6.0",
         "ganache-time-traveler": "1.0.16",

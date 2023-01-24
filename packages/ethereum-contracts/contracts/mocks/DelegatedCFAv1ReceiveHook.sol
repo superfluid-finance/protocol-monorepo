@@ -2,12 +2,12 @@
 pragma solidity 0.8.16;
 
 import { ISuperfluid, ISuperToken } from "../apps/SuperAppBase.sol";
-import { IConstantFlowAgreementV1Receiver }from "../interfaces/agreements/IConstantFlowAgreementV1Receiver.sol";
+import { IConstantFlowAgreementV1ReceiveHook }from "../interfaces/agreements/IConstantFlowAgreementV1ReceiveHook.sol";
 import "../apps/SuperTokenV1Library.sol";
 import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 
 // CFA receive hook implementation which blocks incoming flows of all but one SuperToken
-contract TokenFilter is IConstantFlowAgreementV1Receiver {
+contract TokenFilter is IConstantFlowAgreementV1ReceiveHook {
     ISuperfluid public host;
     ISuperToken public goodToken;
 
@@ -46,12 +46,12 @@ contract PiMaximalist {
     function enableFilter() external {
         IERC1820Registry reg = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
         reg.setInterfaceImplementer(
-            address(this), keccak256("IConstantFlowAgreementV1Receiver"), address(piTokenFilter));
+            address(this), keccak256("IConstantFlowAgreementV1ReceiveHook"), address(piTokenFilter));
     }
 
     function disableFilter() external {
         IERC1820Registry reg = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
         reg.setInterfaceImplementer(
-            address(this), keccak256("IConstantFlowAgreementV1Receiver"), address(0));
+            address(this), keccak256("IConstantFlowAgreementV1ReceiveHook"), address(0));
     }
 }

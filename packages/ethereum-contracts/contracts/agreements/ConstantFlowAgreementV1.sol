@@ -20,7 +20,7 @@ import { AgreementBase } from "./AgreementBase.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
-import { IConstantFlowAgreementV1Receiver } from "../interfaces/agreements/IConstantFlowAgreementV1Receiver.sol";
+import { IConstantFlowAgreementV1ReceiveHook } from "../interfaces/agreements/IConstantFlowAgreementV1ReceiveHook.sol";
 import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 
 /**
@@ -404,10 +404,10 @@ contract ConstantFlowAgreementV1 is
     function getReceiverHookHandler(address account) internal view returns(address handler) {
         IERC1820Registry reg = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
         handler = reg.getInterfaceImplementer(
-            account, keccak256("IConstantFlowAgreementV1Receiver"));
+            account, keccak256("IConstantFlowAgreementV1ReceiveHook"));
         // no delegated handler set, check if the flow receiver account itself wants to handle
         if (handler == address(0) && account.code.length > 0) {
-            // 0x882ed34b is the ERC165 interface hash of IConstantFlowAgreementV1Receiver
+            // 0x882ed34b is the ERC165 interface hash of IConstantFlowAgreementV1ReceiveHook
             handler = reg.getInterfaceImplementer(account, bytes32(bytes4(0x882ed34b)));
         }
         // returns null if both queries returned the zero address

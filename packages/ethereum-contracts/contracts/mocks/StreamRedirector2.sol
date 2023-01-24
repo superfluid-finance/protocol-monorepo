@@ -2,10 +2,10 @@
 pragma solidity 0.8.16;
 
 import { ISuperfluid, ISuperToken } from "../apps/SuperAppBase.sol";
-import { ConstantFlowAgreementV1Receiver }from "../agreements/ConstantFlowAgreementV1Receiver.sol";
+import { ConstantFlowAgreementV1ReceiveHook }from "../agreements/ConstantFlowAgreementV1ReceiveHook.sol";
 import "../apps/SuperTokenV1Library.sol";
 
-contract StreamRedirector2 is ConstantFlowAgreementV1Receiver {
+contract StreamRedirector2 is ConstantFlowAgreementV1ReceiveHook {
     using SuperTokenV1Library for ISuperToken;
 
     ISuperfluid public host;

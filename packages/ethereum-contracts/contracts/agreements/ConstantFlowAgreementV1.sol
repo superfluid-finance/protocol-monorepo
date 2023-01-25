@@ -407,8 +407,8 @@ contract ConstantFlowAgreementV1 is
             account, keccak256("IConstantFlowAgreementV1ReceiveHook"));
         // no delegated handler set, check if the flow receiver account itself wants to handle
         if (handler == address(0) && account.code.length > 0) {
-            // 0x882ed34b is the ERC165 interface hash of IConstantFlowAgreementV1ReceiveHook
-            handler = reg.getInterfaceImplementer(account, bytes32(bytes4(0x882ed34b)));
+            // 0x896ef7df is the ERC165 interface hash of IConstantFlowAgreementV1ReceiveHook
+            handler = reg.getInterfaceImplementer(account, bytes32(bytes4(0x896ef7df)));
         }
         // returns null if both queries returned the zero address
     }

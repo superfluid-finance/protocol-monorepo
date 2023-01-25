@@ -13,6 +13,6 @@ abstract contract ConstantFlowAgreementV1ReceiveHook is IConstantFlowAgreementV1
     function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
         return
             interfaceId == 0x01ffc9a7 || // Interface ID for ERC165
-            interfaceId == this.onFlowChanged.selector; // 0x882ed34b
+            interfaceId == this.onFlowChanged.selector; // 0x896ef7df
     }
 }

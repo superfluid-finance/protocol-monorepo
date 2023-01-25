@@ -11,10 +11,11 @@ pragma solidity ^0.8.0;
 /// can set up the delegation with ERC1820.setInterfaceImplementer(), using
 /// keccak("IConstantFlowAgreementV1ReceiveHook") as _interfaceHash.
 interface IConstantFlowAgreementV1ReceiveHook {
+    /// @notice hook sent by the SuperToken contract
     /// @dev if the hook reverts when setting the flowrate from non-zero to zero,
     /// the transaction will succeed anyway. In other cases, it will also revert.
+    /// Make sure to only accept calls from trusted SuperToken contracts (msg.sender)
     function onFlowChanged(
-        address superToken,
         address operator,
         address sender,
         address receiver,

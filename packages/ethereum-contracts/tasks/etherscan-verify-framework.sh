@@ -30,7 +30,8 @@ case $TRUFFLE_NETWORK in
     arbitrum-one | \
     avalanche-c | \
     bsc-mainnet | \
-    xdai-mainnet )
+    xdai-mainnet | \
+    celo-mainnet )
         echo "$TRUFFLE_NETWORK is mainnet"
         IS_TESTNET=
         ;;

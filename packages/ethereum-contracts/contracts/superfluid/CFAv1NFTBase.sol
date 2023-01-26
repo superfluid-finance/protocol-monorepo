@@ -77,7 +77,9 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
     }
 
     function updateCode(address newAddress) external override {
-        if (msg.sender != address(superToken.getHost())) revert CFA_NFT_ONLY_HOST();
+        if (msg.sender != address(superToken.getHost())) {
+            revert CFA_NFT_ONLY_HOST();
+        }
         UUPSProxiable._updateCodeAddress(newAddress);
     }
 

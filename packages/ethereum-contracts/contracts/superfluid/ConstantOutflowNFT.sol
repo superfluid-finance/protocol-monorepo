@@ -30,8 +30,10 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
     mapping(uint256 => FlowData) internal _flowDataBySenderReceiver;
 
-    error COF_NFT_MINT_TO_ZERO_ADDRESS(); // 0x43d05e51
-    error COF_NFT_TOKEN_ALREADY_EXISTS(); // 0xe2480183
+    error COF_NFT_ONLY_CONSTANT_INFLOW();           // 0xa495a718
+    error COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME(); // 0x0d1d1161
+    error COF_NFT_MINT_TO_ZERO_ADDRESS();           // 0x43d05e51
+    error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
 
     /// @notice An external function for querying flow data by `_tokenId``
     /// @param _tokenId the token id
@@ -90,14 +92,14 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         address _to,
         address _flowReceiver,
         uint256 _newTokenId
-    ) external {
+    ) external onlyConstantInflowNFT {
         _mint(_to, _flowReceiver, _newTokenId);
     }
 
     /// @notice Handles the burn of ConstantOutflowNFT when an inflow NFT user transfers their NFT.
     /// @dev Only callable by ConstantInflowNFT
     /// @param _tokenId the token id to burn when an inflow NFT is transferred
-    function inflowTransferBurn(uint256 _tokenId) external {
+    function inflowTransferBurn(uint256 _tokenId) external onlyConstantInflowNFT {
         _burn(_tokenId);
     }
 
@@ -185,6 +187,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
     /// @notice Mints `_newTokenId` and transfers it to `_to`
     /// @dev `_newTokenId` must not exist `_to` cannot be `address(0)` and we emit a {Transfer} event.
+    /// `_to` cannot be equal to `_flowReceiver`.
     /// @param _to the receiver of the newly minted outflow nft (flow sender)
     /// @param _flowReceiver the flow receiver (owner of the InflowNFT)
     /// @param _newTokenId the new token id to be minted
@@ -195,6 +198,10 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     ) internal {
         if (_to == address(0)) {
             revert COF_NFT_MINT_TO_ZERO_ADDRESS();
+        }
+
+        if (_to == _flowReceiver) {
+            revert COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME();
         }
 
         if (_exists(_newTokenId)) {
@@ -222,5 +229,11 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
         // emit burn of outflow token with _tokenId
         emit Transfer(owner, address(0), _tokenId);
+    }
+
+    modifier onlyConstantInflowNFT() {
+        address constantInflowNFT = address(superToken.constantInflowNFT());
+        if (msg.sender != constantInflowNFT) revert COF_NFT_ONLY_CONSTANT_INFLOW();
+        _;
     }
 }

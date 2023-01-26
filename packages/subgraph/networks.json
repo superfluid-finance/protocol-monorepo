@@ -10,5 +10,6 @@
     "arbitrum-goerli",
     "optimism-goerli",
     "avalanche-fuji",
-    "bsc-mainnet"
+    "bsc-mainnet",
+    "celo-mainnet"
 ]

@@ -3,6 +3,10 @@ All notable changes to the SDK-core will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.2] - 2023-01-26
+### Added
+- Support for Celo
+
 ## [0.6.1] - 2022-12-20
 
 ### Changed
@@ -266,7 +270,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.1...HEAD
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.2...HEAD
+[0.6.2]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.1...sdk-core%40v0.6.2
 [0.6.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.0...sdk-core%40v0.6.1
 [0.6.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.9...sdk-core%40v0.6.0
 [0.5.9]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.8...sdk-core%40v0.5.9

@@ -1,4 +1,4 @@
-#!/bin/bash -eux
+#!/usr/bin/env bash -eux
 
 # Usage:
 # tasks/deploy-cfa-forwarder.sh <network> <contract-addr>

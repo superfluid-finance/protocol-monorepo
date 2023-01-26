@@ -8,8 +8,6 @@ import {
 import {
     IConstantOutflowNFT
 } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
-
-// import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
 
 /// @note TODO: clean up the inheritance with IConstantOutflowNFT and CFAv1Base
@@ -21,7 +19,12 @@ import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
 /// @notice The ConstantOutflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract uses mint/burn interface for flow creation/deletion and holds the actual storage for both NFTs.
 contract ConstantOutflowNFT is CFAv1NFTBase {
-    // using SuperTokenV1Library for ISuperToken;
+    function proxiableUUID() public pure override returns (bytes32) {
+        return
+            keccak256(
+                "org.superfluid-finance.contracts.ConstantOutflowNFT.implementation"
+            );
+    }
 
     /// @notice A mapping from token id to FlowData = { address sender, address receiver}
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
@@ -29,16 +32,6 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
     error COF_NFT_MINT_TO_ZERO_ADDRESS(); // 0x43d05e51
     error COF_NFT_TOKEN_ALREADY_EXISTS(); // 0xe2480183
-
-    constructor(
-        ISuperToken _superToken,
-        string memory _nftName,
-        string memory _nftSymbol
-    )
-        CFAv1NFTBase(_superToken, _nftName, _nftSymbol)
-    {
-
-    }
 
     /// @notice An external function for querying flow data by `_tokenId``
     /// @param _tokenId the token id
@@ -180,8 +173,9 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         // burn the inflow nft with _tokenId
         constantInflowNFT.burn(_tokenId);
 
-        // mint a new outflow token with newTokenId
+        // mint the new outflow token with newTokenId
         _mint(_to, oldFlowData.flowReceiver, newTokenId);
+
         // mint the inflow nft with newTokenId
         constantInflowNFT.mint(_to, oldFlowData.flowReceiver);
 
@@ -191,7 +185,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
     /// @notice Mints `_newTokenId` and transfers it to `_to`
     /// @dev `_newTokenId` must not exist `_to` cannot be `address(0)` and we emit a {Transfer} event.
-    /// @param _to the receiver of the newly minted token
+    /// @param _to the receiver of the newly minted outflow nft (flow sender)
     /// @param _flowReceiver the flow receiver (owner of the InflowNFT)
     /// @param _newTokenId the new token id to be minted
     function _mint(
@@ -212,9 +206,6 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
         // emit mint of new outflow token with newTokenId
         emit Transfer(address(0), _to, _newTokenId);
-
-        // @note TODO: this is probably not the right place to do this, keeping as a note, but remove later
-        // INFLOWNFT.mint(newTokenId) => this will ONLY emit a mint Transfer event
     }
 
     /// @notice Destroys token with `_tokenId` and clears approvals from previous owner.
@@ -231,8 +222,5 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
         // emit burn of outflow token with _tokenId
         emit Transfer(owner, address(0), _tokenId);
-
-        // @note TODO: this is probably not the right place to do this, keeping as a note, but remove later
-        // INFLOWNFT.burn(_tokenId) => this will ONLY emit a burn Transfer event
     }
 }

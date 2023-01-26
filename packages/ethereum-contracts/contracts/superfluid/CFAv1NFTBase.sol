@@ -1,27 +1,30 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.16;
 
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import {
-    IERC165,
-    IERC721,
-    IERC721Metadata
-} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+    IERC165Upgradeable,
+    IERC721Upgradeable,
+    IERC721MetadataUpgradeable
+} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 
 /// @title CFAv1NFTBase abstract contract
 /// @author Superfluid
 /// @notice The abstract contract to be inherited by the Constant Flow NFTs.
-/// @dev This contract inherits from IERC721Metadata and holds shared functions for the two NFT contracts.
+/// @dev This contract inherits from IERC721MetadataUpgradeable and holds shared storage and functions for the two NFT
+/// contracts.
+/// This contract is upgradeable and it inherits from our own ad-hoc UUPSProxiable contract which allows.
 /// NOTE: the storage gap at the end of the contract which allows us to add an additional 45 storage
 /// variables to this contract without breaking child COFNFT or CIFNFT storage.
-abstract contract CFAv1NFTBase is IERC721Metadata {
+abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
     struct FlowData {
         address flowSender;
         address flowReceiver;
     }
 
-    ISuperToken public immutable superToken;
+    ISuperToken public superToken;
 
     string internal _name;
     string internal _symbol;
@@ -43,35 +46,45 @@ abstract contract CFAv1NFTBase is IERC721Metadata {
     error CFA_NFT_APPROVE_TO_CALLER();                              // 0xd3c77329
     error CFA_NFT_APPROVE_TO_CURRENT_OWNER();                       // 0xe4790b25
     error CFA_NFT_INVALID_TOKEN_ID();                               // 0xeab95e3b
+    error CFA_NFT_ONLY_HOST();                                      // 0x2d5a6dfa
     error CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();  // 0x2551d606
     error CFA_NFT_TRANSFER_FROM_INCORRECT_OWNER();                  // 0x5a26c744
     error CFA_NFT_TRANSFER_TO_ZERO_ADDRESS();                       // 0xde06d21e
 
-    constructor(
+    function initialize(
         ISuperToken _superToken,
         string memory _nftName,
         string memory _nftSymbol
-    ) {
+    )
+        external
+        initializer // OpenZeppelin Initializable
+    {
         superToken = _superToken;
+
         _name = _nftName;
         _symbol = _nftSymbol;
     }
 
-    /// @notice This informs this contract supports IERC165, IERC721 and IERC721Metadata
+    function updateCode(address newAddress) external override {
+        if (msg.sender != address(superToken.getHost())) revert CFA_NFT_ONLY_HOST();
+        UUPSProxiable._updateCodeAddress(newAddress);
+    }
+
+    /// @notice This contract supports IERC165Upgradeable, IERC721Upgradeable and IERC721MetadataUpgradeable
     /// @dev This is part of the Standard Interface Detection EIP: https://eips.ethereum.org/EIPS/eip-165
     /// @param _interfaceId the XOR of all function selectors in the interface
     /// @return boolean true if the interface is supported
-    /// @inheritdoc IERC165
+    /// @inheritdoc IERC165Upgradeable
     function supportsInterface(
         bytes4 _interfaceId
     ) external pure virtual override returns (bool) {
         return
-            _interfaceId == type(IERC165).interfaceId ||
-            _interfaceId == type(IERC721).interfaceId ||
-            _interfaceId == type(IERC721Metadata).interfaceId;
+            _interfaceId == type(IERC165Upgradeable).interfaceId ||
+            _interfaceId == type(IERC721Upgradeable).interfaceId ||
+            _interfaceId == type(IERC721MetadataUpgradeable).interfaceId;
     }
 
-    /// @inheritdoc IERC721
+    /// @inheritdoc IERC721Upgradeable
     function ownerOf(
         uint256 _tokenId
     ) public view virtual override returns (address) {
@@ -105,7 +118,7 @@ abstract contract CFAv1NFTBase is IERC721Metadata {
         return _symbol;
     }
 
-    /// @inheritdoc IERC721
+    /// @inheritdoc IERC721Upgradeable
     function approve(address _to, uint256 _tokenId) public virtual override {
         address owner = CFAv1NFTBase.ownerOf(_tokenId);
         if (_to == owner) {
@@ -119,7 +132,7 @@ abstract contract CFAv1NFTBase is IERC721Metadata {
         _approve(_to, _tokenId);
     }
 
-    /// @inheritdoc IERC721
+    /// @inheritdoc IERC721Upgradeable
     function getApproved(
         uint256 _tokenId
     ) public view virtual override returns (address) {
@@ -128,7 +141,7 @@ abstract contract CFAv1NFTBase is IERC721Metadata {
         return _tokenApprovals[_tokenId];
     }
 
-    /// @inheritdoc IERC721
+    /// @inheritdoc IERC721Upgradeable
     function setApprovalForAll(
         address _operator,
         bool _approved
@@ -136,7 +149,7 @@ abstract contract CFAv1NFTBase is IERC721Metadata {
         _setApprovalForAll(msg.sender, _operator, _approved);
     }
 
-    /// @inheritdoc IERC721
+    /// @inheritdoc IERC721Upgradeable
     function isApprovedForAll(
         address _owner,
         address _operator
@@ -144,7 +157,7 @@ abstract contract CFAv1NFTBase is IERC721Metadata {
         return _operatorApprovals[_owner][_operator];
     }
 
-    /// @inheritdoc IERC721
+    /// @inheritdoc IERC721Upgradeable
     function transferFrom(
         address _from,
         address _to,
@@ -157,7 +170,7 @@ abstract contract CFAv1NFTBase is IERC721Metadata {
         _transfer(_from, _to, _tokenId);
     }
 
-    /// @inheritdoc IERC721
+    /// @inheritdoc IERC721Upgradeable
     function safeTransferFrom(
         address _from,
         address _to,
@@ -166,7 +179,7 @@ abstract contract CFAv1NFTBase is IERC721Metadata {
         safeTransferFrom(_from, _to, _tokenId, "");
     }
 
-    /// @inheritdoc IERC721
+    /// @inheritdoc IERC721Upgradeable
     function safeTransferFrom(
         address _from,
         address _to,

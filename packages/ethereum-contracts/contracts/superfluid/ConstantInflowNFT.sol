@@ -8,7 +8,6 @@ import {
 import {
     IConstantInflowNFT
 } from "../interfaces/superfluid/IConstantInflowNFT.sol";
-// import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
 
 /// @note TODO: clean up the inheritance with IConstantInflowNFT and CFAv1Base
@@ -20,14 +19,11 @@ import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
 /// @notice The ConstantInflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract does not hold any storage, but references the ConstantOutflowNFT contract storage.
 contract ConstantInflowNFT is CFAv1NFTBase {
-    constructor(
-        ISuperToken _superToken,
-        string memory _nftName,
-        string memory _nftSymbol
-    )
-        CFAv1NFTBase(_superToken, _nftName, _nftSymbol)
-    {
-
+    function proxiableUUID() public pure override returns (bytes32) {
+        return
+            keccak256(
+                "org.superfluid-finance.contracts.ConstantInflowNFT.implementation"
+            );
     }
 
     /// @notice This returns the Uniform Resource Identifier (URI), where the metadata for the NFT lives.
@@ -44,10 +40,10 @@ contract ConstantInflowNFT is CFAv1NFTBase {
     /// @notice The mint function emits the "mint" `Transfer` event.
     /// @dev We don't modify storage as this is handled in ConstantOutflowNFT.sol and this function's sole purpose
     /// is to inform clients that search for events.
-    /// @param _flowSender desired flow sender
-    /// @param _flowReceiver desired flow receiver
-    function mint(address _flowSender, address _flowReceiver) external {
-        _mint(_flowSender, _flowReceiver);
+    /// @param _to the receiver of the inflow nft and desired flow receiver
+    /// @param _newTokenId the new token id
+    function mint(address _to, uint256 _newTokenId) external {
+        _mint(_to, _newTokenId);
     }
 
     /// @notice This burn function emits the "burn" `Transfer` event.
@@ -101,6 +97,11 @@ contract ConstantInflowNFT is CFAv1NFTBase {
     ///
     /// We also clear storage for `_tokenApprovals` and `_flowDataBySenderReceiver` with `_tokenId`
     /// and create new storage for `_flowDataBySenderReceiver` with `newTokenId`.
+    /// NOTE: There are also interactions at the protocol level:
+    /// - We delete the flow from oldFlowData.flowSender => oldFlowData.flowReceiver (_from)
+    ///   - This will trigger super app before/afterAgreementTerminated hooks if a super app is part of the agreement
+    /// - We create a new flow from oldFlowData.flowSender => _to
+    ///   - This will trigger super app before/afterAgreementCreated hooks if a super app is part of the agreement
     /// @param _from the owner of _tokenId
     /// @param _to the receiver of the NFT
     /// @param _tokenId the token id to transfer
@@ -140,13 +141,20 @@ contract ConstantInflowNFT is CFAv1NFTBase {
 
         // burn the inflow token with _tokenId
         _burn(_tokenId);
+
+        // mint the outflow token with newTokenId
+        constantOutflowNFT.inflowTransferMint(
+            oldFlowData.flowSender,
+            _to,
+            newTokenId
+        );
+
+        // mint the inflow token to _to (inflow NFT receiver) with newTokenId
+        _mint(_to, newTokenId);
     }
 
-    function _mint(address _flowSender, address _flowReceiver) internal {
-        uint256 tokenId = uint256(
-            keccak256(abi.encode(_flowSender, _flowReceiver))
-        );
-        emit Transfer(address(0), _flowReceiver, tokenId);
+    function _mint(address _to, uint256 _newTokenId) internal {
+        emit Transfer(address(0), _to, _newTokenId);
     }
 
     function _burn(uint256 _tokenId) internal {

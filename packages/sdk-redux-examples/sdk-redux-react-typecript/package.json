@@ -12,8 +12,8 @@
     "@mui/x-data-grid": "^5.17.12",
     "@rainbow-me/rainbowkit": "^0.8.0",
     "@reduxjs/toolkit": "^1.9.0",
-    "@superfluid-finance/sdk-core": "^0.5.8",
-    "@superfluid-finance/sdk-redux": "^0.4.1-dev.08816e6.0",
+    "@superfluid-finance/sdk-core": "^0.6.0",
+    "@superfluid-finance/sdk-redux": "^0.4.0",
     "@types/lodash": "^4.14.189",
     "@types/node": "^18.11.9",
     "@types/react": "^18.0.25",
@@ -42,7 +42,7 @@
     "web3modal": "^1.9.9"
   },
   "scripts": {
-    "link-sdks": "yarn link --cwd ./../../packages/sdk-core && yarn link @superfluid-finance/sdk-core && yarn link --cwd ./../../packages/sdk-redux && yarn link @superfluid-finance/sdk-redux",
+    "link-sdks": "yarn link --cwd ./../../sdk-core && yarn link @superfluid-finance/sdk-core && yarn link --cwd ./../../sdk-redux && yarn link @superfluid-finance/sdk-redux",
     "start": "react-app-rewired start",
     "build": "react-app-rewired build",
     "test": "echo test",

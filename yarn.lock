@@ -3468,6 +3468,19 @@
     ethereumjs-util "7.1.5"
     stack-trace "0.0.10"
 
+"@superfluid-finance/ethereum-contracts@1.4.3":
+  version "1.4.3"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.4.3.tgz#2c1377b674799208850b334779ed62411b85995e"
+  integrity sha512-QKycgANL6/+09+JbSLF7PaHFHbYKRWSKb4vpVWsXMSR44ozxWkS8ebld72+iG7qxzybw4XIxzKyzLce5h4PE+A==
+  dependencies:
+    "@decentral.ee/web3-helpers" "0.5.3"
+    "@openzeppelin/contracts" "4.7.3"
+    "@superfluid-finance/js-sdk" "0.6.3"
+    "@truffle/contract" "4.5.23"
+    ethereumjs-tx "2.1.2"
+    ethereumjs-util "7.1.5"
+    stack-trace "0.0.10"
+
 "@superfluid-finance/metadata@git+https://github.com/superfluid-finance/metadata.git":
   version "1.1.0"
   resolved "git+https://github.com/superfluid-finance/metadata.git#680a8020da870e28853182de5ae7f297992ac498"

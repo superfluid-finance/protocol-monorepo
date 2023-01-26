@@ -17,11 +17,16 @@ import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
 
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { IIndexPublisherNFT } from "../interfaces/superfluid/IIndexPublisherNFT.sol";
+import { IIndexSubscriberNFT } from "../interfaces/superfluid/IIndexSubscriberNFT.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -65,18 +70,19 @@ contract SuperToken is
     /// @dev ERC777 operators support data
     ERC777Helper.Operators internal _operators;
 
+    IConstantOutflowNFT public constantOutflowNFT;
+    IConstantInflowNFT public constantInflowNFT;
+    IIndexPublisherNFT public indexPublisherNFT;
+    IIndexSubscriberNFT public indexSubscriberNFT;
+
     // NOTE: for future compatibility, these are reserved solidity slots
-    // The sub-class of SuperToken solidity slot will start after _reserve22
+    // The sub-class of SuperToken solidity slot will start after _reserve26
 
     // NOTE: Whenever modifying the storage layout here it is important to update the validateStorageLayout
     // function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     // behaviors/layout when upgrading
 
-    uint256 internal _reserve22;
-    uint256 private _reserve23;
-    uint256 private _reserve24;
-    uint256 private _reserve25;
-    uint256 private _reserve26;
+    uint256 internal _reserve26;
     uint256 private _reserve27;
     uint256 private _reserve28;
     uint256 private _reserve29;
@@ -712,6 +718,25 @@ contract SuperToken is
         onlyHost
     {
         _downgrade(msg.sender, account, account, amount, "", "");
+    }
+
+    /**************************************************************************
+     * ERC20x-specific Functions
+     *************************************************************************/
+
+    function initializeNFTContracts(
+        address _constantOutflowNFT,
+        address _constantInflowNFT,
+        address _indexPublisherNFT,
+        address _indexSubscriberNFT
+    ) external {
+        Ownable gov = Ownable(address(_host.getGovernance()));
+        if (msg.sender != gov.owner()) revert SUPER_TOKEN_ONLY_GOV_OWNER();
+
+        constantOutflowNFT = IConstantOutflowNFT(_constantOutflowNFT);
+        constantInflowNFT = IConstantInflowNFT(_constantInflowNFT);
+        indexPublisherNFT = IIndexPublisherNFT(_indexPublisherNFT);
+        indexSubscriberNFT = IIndexSubscriberNFT(_indexSubscriberNFT);
     }
 
     /**************************************************************************

@@ -6,6 +6,10 @@ import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
+import { IIndexPublisherNFT } from "./IIndexPublisherNFT.sol";
+import { IIndexSubscriberNFT } from "./IIndexSubscriberNFT.sol";
 
 /**
  * @title Super token (Superfluid Token + ERC20 + ERC777) interface
@@ -22,6 +26,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     error SUPER_TOKEN_NO_UNDERLYING_TOKEN();                     // 0xf79cf656
     error SUPER_TOKEN_ONLY_SELF();                               // 0x7ffa6648
     error SUPER_TOKEN_ONLY_HOST();                               // 0x98f73704
+    error SUPER_TOKEN_ONLY_GOV_OWNER();                          // 0xd9c7ed08
     error SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS();               // 0x81638627
     error SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS();                 // 0xdf070274
     error SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS();                  // 0xba2ab184
@@ -503,6 +508,21 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     */
     function operationDowngrade(address account, uint256 amount) external;
 
+    /**************************************************************************
+    * ERC20x-specific Functions
+    *************************************************************************/
+
+    function constantOutflowNFT() external view returns (IConstantOutflowNFT);
+    function constantInflowNFT() external view returns (IConstantInflowNFT);
+    function indexPublisherNFT() external view returns (IIndexPublisherNFT);
+    function indexSubscriberNFT() external view returns (IIndexSubscriberNFT);
+
+    function initializeNFTContracts(
+        address _constantOutflowNFT,
+        address _constantInflowNFT,
+        address _indexPublisherNFT,
+        address _indexSubscriberNFT
+    ) external;
 
     /**************************************************************************
     * Function modifiers for access control and parameter validations

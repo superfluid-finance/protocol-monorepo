@@ -9,16 +9,16 @@ import {
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 
-/// @title CFANFTBase abstract contract
+/// @title CFAv1NFTBase abstract contract
 /// @author Superfluid
 /// @notice The abstract contract to be inherited by the Constant Flow NFTs.
 /// @dev This contract inherits from IERC721Metadata and holds shared functions for the two NFT contracts.
-/// Take note of the storage gap at the end of the contract which allows us to add an additional 45 storage
+/// NOTE: the storage gap at the end of the contract which allows us to add an additional 45 storage
 /// variables to this contract without breaking child COFNFT or CIFNFT storage.
-abstract contract CFANFTBase is IERC721Metadata {
+abstract contract CFAv1NFTBase is IERC721Metadata {
     struct FlowData {
-        address sender;
-        address receiver;
+        address flowSender;
+        address flowReceiver;
     }
 
     ISuperToken public immutable superToken;
@@ -107,7 +107,7 @@ abstract contract CFANFTBase is IERC721Metadata {
 
     /// @inheritdoc IERC721
     function approve(address _to, uint256 _tokenId) public virtual override {
-        address owner = CFANFTBase.ownerOf(_tokenId);
+        address owner = CFAv1NFTBase.ownerOf(_tokenId);
         if (_to == owner) {
             revert CFA_NFT_APPROVE_TO_CURRENT_OWNER();
         }
@@ -144,10 +144,41 @@ abstract contract CFANFTBase is IERC721Metadata {
         return _operatorApprovals[_owner][_operator];
     }
 
-    /// @dev Returns the owner of the `tokenId`. Does NOT revert if token doesn't exist.
-    /// @param _tokenId the token id whose existence we're checking
-    /// @return address the address of the owner of `_tokenId`
-    function _ownerOf(uint256 _tokenId) internal view virtual returns (address);
+    /// @inheritdoc IERC721
+    function transferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId
+    ) external virtual override {
+        if (!_isApprovedOrOwner(msg.sender, _tokenId)) {
+            revert CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
+        }
+
+        _transfer(_from, _to, _tokenId);
+    }
+
+    /// @inheritdoc IERC721
+    function safeTransferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId
+    ) external virtual override {
+        safeTransferFrom(_from, _to, _tokenId, "");
+    }
+
+    /// @inheritdoc IERC721
+    function safeTransferFrom(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        bytes memory _data
+    ) public virtual override {
+        if (!_isApprovedOrOwner(msg.sender, _tokenId)) {
+            revert CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
+        }
+
+        _safeTransfer(_from, _to, _tokenId, _data);
+    }
 
     /// @notice Returns whether `_spender` is allowed to manage `_tokenId`.
     /// @dev Will revert if `_tokenId` doesn't exist.
@@ -157,11 +188,17 @@ abstract contract CFANFTBase is IERC721Metadata {
     function _isApprovedOrOwner(
         address _spender,
         uint256 _tokenId
-    ) internal view virtual returns (bool) {
-        address owner = CFANFTBase.ownerOf(_tokenId);
+    ) internal view returns (bool) {
+        address owner = CFAv1NFTBase.ownerOf(_tokenId);
         return (_spender == owner ||
             isApprovedForAll(owner, _spender) ||
             getApproved(_tokenId) == _spender);
+    }
+
+    /// @notice Reverts if `_tokenId` doesn't exist
+    /// @param _tokenId the token id whose existence we are checking
+    function _requireMinted(uint256 _tokenId) internal view {
+        if (!_exists(_tokenId)) revert CFA_NFT_INVALID_TOKEN_ID();
     }
 
     /// @notice Returns whether `_tokenId` exists
@@ -171,11 +208,11 @@ abstract contract CFANFTBase is IERC721Metadata {
     /// and stop existing when they are burned (`_burn`).
     /// @param _tokenId the token id we're interested in seeing if exists
     /// @return bool whether ot not the token exists
-    function _exists(uint256 _tokenId) internal view virtual returns (bool) {
+    function _exists(uint256 _tokenId) internal view returns (bool) {
         return _ownerOf(_tokenId) != address(0);
     }
 
-    function _approve(address to, uint256 tokenId) internal virtual {
+    function _approve(address to, uint256 tokenId) internal {
         _tokenApprovals[tokenId] = to;
 
         emit Approval(_ownerOf(tokenId), to, tokenId);
@@ -185,7 +222,7 @@ abstract contract CFANFTBase is IERC721Metadata {
         address _owner,
         address _operator,
         bool _approved
-    ) internal virtual {
+    ) internal {
         if (_owner == _operator) revert CFA_NFT_APPROVE_TO_CALLER();
 
         _operatorApprovals[_owner][_operator] = _approved;
@@ -193,11 +230,23 @@ abstract contract CFANFTBase is IERC721Metadata {
         emit ApprovalForAll(_owner, _operator, _approved);
     }
 
-    /// @notice Reverts if `_tokenId` doesn't exist
-    /// @param _tokenId the token id whose existence we are checking
-    function _requireMinted(uint256 _tokenId) internal view virtual {
-        if (!_exists(_tokenId)) revert CFA_NFT_INVALID_TOKEN_ID();
-    }
+    /// @dev Returns the owner of the `tokenId`. Does NOT revert if token doesn't exist.
+    /// @param _tokenId the token id whose existence we're checking
+    /// @return address the address of the owner of `_tokenId`
+    function _ownerOf(uint256 _tokenId) internal view virtual returns (address);
+
+    function _transfer(
+        address _from,
+        address _to,
+        uint256 _tokenId
+    ) internal virtual;
+
+    function _safeTransfer(
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        bytes memory _data
+    ) internal virtual;
 
     /// @notice This allows us to add new storage variables in the base contract
     /// without having to worry about messing up the storage layout that exists in COFNFT or CIFNFT.

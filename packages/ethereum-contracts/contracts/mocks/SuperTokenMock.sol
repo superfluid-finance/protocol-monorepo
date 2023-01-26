@@ -60,8 +60,20 @@ contract SuperTokenStorageLayoutTester is SuperToken {
         require (slot == 18 && offset == 0, "_operators changed location");
         // uses 4 slots
 
-        assembly { slot:= _reserve22.slot offset := _reserve22.offset }
-        require (slot == 22 && offset == 0, "_reserve22 changed location");
+        assembly { slot:= constantOutflowNFT.slot offset := constantOutflowNFT.offset }
+        require (slot == 22 && offset == 0, "constantOutflowNFT changed location");
+
+        assembly { slot:= constantInflowNFT.slot offset := constantInflowNFT.offset }
+        require (slot == 23 && offset == 0, "constantInflowNFT changed location");
+
+        assembly { slot:= indexPublisherNFT.slot offset := indexPublisherNFT.offset }
+        require (slot == 24 && offset == 0, "indexPublisherNFT changed location");
+
+        assembly { slot:= indexSubscriberNFT.slot offset := indexSubscriberNFT.offset }
+        require (slot == 25 && offset == 0, "indexSubscriberNFT changed location");
+
+        assembly { slot:= _reserve26.slot offset := _reserve26.offset }
+        require (slot == 26 && offset == 0, "_reserve26 changed location");
 
         assembly { slot:= _reserve31.slot offset := _reserve31.offset }
         require (slot == 31 && offset == 0, "_reserve31 changed location");

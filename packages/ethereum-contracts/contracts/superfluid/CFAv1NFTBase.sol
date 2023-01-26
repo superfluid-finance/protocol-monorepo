@@ -13,11 +13,11 @@ import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 /// @title CFAv1NFTBase abstract contract
 /// @author Superfluid
 /// @notice The abstract contract to be inherited by the Constant Flow NFTs.
-/// @dev This contract inherits from IERC721MetadataUpgradeable and holds shared storage and functions for the two NFT
-/// contracts.
+/// @dev This contract inherits from IERC721MetadataUpgradeable and holds
+/// shared storage and functions for the two NFT contracts.
 /// This contract is upgradeable and it inherits from our own ad-hoc UUPSProxiable contract which allows.
-/// NOTE: the storage gap at the end of the contract which allows us to add an additional 45 storage
-/// variables to this contract without breaking child COFNFT or CIFNFT storage.
+/// NOTE: the storage gap allows us to add an additional 45 storage variables to this contract without breaking child
+/// COFNFT or CIFNFT storage.
 abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
     struct FlowData {
         address flowSender;
@@ -36,6 +36,17 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
     /// @notice Mapping for operator approvals
     /// @dev owner => operator => approved boolean mapping
     mapping(address => mapping(address => bool)) internal _operatorApprovals;
+
+    /// @notice This allows us to add new storage variables in the base contract
+    /// without having to worry about messing up the storage layout that exists in COFNFT or CIFNFT.
+    /// @dev This empty reserved space is put in place to allow future versions to add new
+    /// variables without shifting down storage in the inheritance chain.
+    /// Important to note that the array number is calculated so the amount of storage used
+    /// by a contract adds up to 50.
+    /// So each time we add a new storage variable above `_gap`, we must decrease the length of the
+    /// array by one.
+    /// See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+    uint256[45] private _gap;
 
     /// @notice Informs third-party platforms that NFT metadata should be updated
     /// @dev This event comes from https://eips.ethereum.org/EIPS/eip-4906
@@ -260,15 +271,4 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
         uint256 _tokenId,
         bytes memory _data
     ) internal virtual;
-
-    /// @notice This allows us to add new storage variables in the base contract
-    /// without having to worry about messing up the storage layout that exists in COFNFT or CIFNFT.
-    /// @dev This empty reserved space is put in place to allow future versions to add new
-    /// variables without shifting down storage in the inheritance chain.
-    /// Important to note that the array number is calculated so the amount of storage used
-    /// by a contract adds up to 50.
-    /// So each time we add a new storage variable above `_gap`, we must decrease the length of the
-    /// array by one.
-    /// See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-    uint256[45] private _gap;
 }

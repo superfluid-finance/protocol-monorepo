@@ -1,6 +1,6 @@
 {
     "network": "celo",
-    "hostStartBlock": 15870000,
+    "hostStartBlock": 16393000,
     "hostAddress": "0x4E583d9390082B65Bef884b629DFA426114CED6d",
     "cfaAddress": "0x2844c1BBdA121E9E43105630b9C8310e5c72744b",
     "idaAddress": "0xbCF9cfA8Da20B591790dF27DE65C1254Bf91563d",

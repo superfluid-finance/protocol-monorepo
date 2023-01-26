@@ -2,6 +2,6 @@ import {ethers} from 'ethers';
 
 export type EthersError = Error & {
     code: ethers.errors;
-    reason?: 'replaced' | 'repriced' | 'cancelled';
+    reason?: 'reverted' | 'replaced' | 'repriced' | 'cancelled';
     cancelled?: boolean;
 };

@@ -6,9 +6,11 @@ All notable changes to the SDK-redux will be documented in this file.
 ## [0.4.0] - 2022-10-31
 
 ### Changes
+- Fix transaction tracking erroneously registering reverted transactions as successful.
 - Allow RTK-query `^1.7.0 || ^1.8.0 || ^1.9.0`
 
 ### Breaking
+- Require SDK-core version `^0.6.0`
 - Pass in `signer` through mutation payload
 - Remove `setSignerForSdkRedux`
 - Serialized `transactionResponse` is now possibly undefined on `TrackedTransaction` when serialization fails

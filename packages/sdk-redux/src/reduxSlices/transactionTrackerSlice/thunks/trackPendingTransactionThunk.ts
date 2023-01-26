@@ -1,7 +1,8 @@
 // Having a single "track" action makes it easy to use transaction tracking logic.
+import {ErrorCode} from '@ethersproject/logger';
 import {createAsyncThunk, Dispatch} from '@reduxjs/toolkit';
 import {EventQueryHandler} from '@superfluid-finance/sdk-core';
-import {ethers} from 'ethers';
+import {ethers, logger} from 'ethers';
 import promiseRetry from 'promise-retry';
 
 import {getFramework, getRpcApiSlice, getSubgraphApiSlice, getTransactionTrackerSlice} from '../../../sdkReduxConfig';
@@ -37,6 +38,11 @@ export const trackPendingTransactionThunk = createAsyncThunk<
     await waitForOneConfirmation(framework.settings.provider, transactionHash)
         .then(async (transactionReceipt: ethers.providers.TransactionReceipt) => {
             // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
+
+            if (transactionReceipt.status === 0) {
+                // The transaction was reverted when status is 0: https://docs.ethers.org/v5/api/providers/types/#providers-TransactionReceipt
+                throw logger.makeError('reverted', ErrorCode.CALL_EXCEPTION); // Throw and let error be handled in the catch-block.
+            }
 
             const {updateTransaction} = getTransactionTrackerSlice().actions;
             dispatch(

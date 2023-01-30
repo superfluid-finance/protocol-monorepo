@@ -92,7 +92,9 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     }
 
     function setUp() public override {
+        // run setup from FoundrySuperfluidTester
         super.setUp();
+        // then deploy contracts
         (
             constantOutflowNFTLogic,
             constantOutflowNFTProxy,

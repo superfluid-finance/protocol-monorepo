@@ -19,13 +19,6 @@ import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
 /// @notice The ConstantOutflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract uses mint/burn interface for flow creation/deletion and holds the actual storage for both NFTs.
 contract ConstantOutflowNFT is CFAv1NFTBase {
-    function proxiableUUID() public pure override returns (bytes32) {
-        return
-            keccak256(
-                "org.superfluid-finance.contracts.ConstantOutflowNFT.implementation"
-            );
-    }
-
     /// @notice A mapping from token id to FlowData = { address sender, address receiver}
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
     mapping(uint256 => FlowData) internal _flowDataBySenderReceiver;
@@ -34,6 +27,13 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     error COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME(); // 0x0d1d1161
     error COF_NFT_MINT_TO_ZERO_ADDRESS();           // 0x43d05e51
     error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
+
+    function proxiableUUID() public pure override returns (bytes32) {
+        return
+            keccak256(
+                "org.superfluid-finance.contracts.ConstantOutflowNFT.implementation"
+            );
+    }
 
     /// @notice An external function for querying flow data by `_tokenId``
     /// @param _tokenId the token id

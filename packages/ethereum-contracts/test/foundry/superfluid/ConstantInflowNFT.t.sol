@@ -31,19 +31,19 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         );
     }
 
-    function test_RevertIf_OwnerOfForNonExistentToken(uint256 _tokenId) public {
+    function testFuzz_RevertIf_OwnerOfForNonExistentToken(uint256 _tokenId) public {
         vm.expectRevert(CFAv1NFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
         constantInflowNFTProxy.ownerOf(_tokenId);
     }
 
-    function test_RevertIf_GetApprovedForNonExistentToken(
+    function testFuzz_RevertIf_GetApprovedForNonExistentToken(
         uint256 _tokenId
     ) public {
         vm.expectRevert(CFAv1NFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
         constantInflowNFTProxy.getApproved(_tokenId);
     }
 
-    function test_RevertIf_SetApprovalForAllOperatorApproveToCaller(
+    function testFuzz_RevertIf_SetApprovalForAllOperatorApproveToCaller(
         address _flowSender,
         address _flowReceiver
     ) public {
@@ -61,7 +61,7 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         constantInflowNFTProxy.setApprovalForAll(_flowReceiver, true);
     }
 
-    function test_RevertIf_ApproveToCurrentOwner(
+    function testFuzz_RevertIf_ApproveToCurrentOwner(
         address _flowSender,
         address _flowReceiver
     ) public {
@@ -79,7 +79,7 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         constantInflowNFTProxy.approve(_flowReceiver, nftId);
     }
 
-    function test_RevertIf_ApproveAsNonOwner(
+    function testFuzz_RevertIf_ApproveAsNonOwner(
         address _flowSender,
         address _flowReceiver,
         address _approver,
@@ -91,6 +91,7 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         );
         /// @dev _flowReceiver is owner of inflow NFT
         vm.assume(_approver != _flowReceiver);
+        vm.assume(_approvedAccount != _flowReceiver);
 
         uint256 nftId = helper_getNFTId(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
@@ -142,7 +143,7 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         );
     }
 
-    function test_Passing_FlowDataByTokenIdMint(
+    function testFuzz_Passing_FlowDataByTokenIdMint(
         address _flowSender,
         address _flowReceiver
     ) public {
@@ -162,7 +163,7 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         assertEq(flowData.flowReceiver, _flowReceiver);
     }
 
-    function test_Passing_InternalMintToken(
+    function testFuzz_Passing_InternalMintToken(
         address _flowSender,
         address _flowReceiver
     ) public {
@@ -180,7 +181,7 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         assert_FlowDataState_IsEmpty(nftId);
     }
 
-    function test_Passing_InternalBurnToken(
+    function testFuzz_Passing_InternalBurnToken(
         address _flowSender,
         address _flowReceiver
     ) public {
@@ -200,7 +201,7 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         assert_FlowDataState_IsExpected(nftId, _flowSender, _flowReceiver);
     }
 
-    function test_Passing_Approve(
+    function testFuzz_Passing_Approve(
         address _flowSender,
         address _flowReceiver,
         address _approvedAccount
@@ -227,7 +228,7 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         );
     }
 
-    function test_Passing_SetApprovalForAll(
+    function testFuzz_Passing_SetApprovalForAll(
         address _tokenOwner,
         address _operator,
         bool _approved

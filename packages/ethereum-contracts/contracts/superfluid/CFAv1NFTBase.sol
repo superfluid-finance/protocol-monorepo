@@ -84,6 +84,13 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
         UUPSProxiable._updateCodeAddress(newAddress);
     }
 
+    /// @notice Emits the MetadataUpdate event with `_tokenId` as the argument.
+    /// @dev Callable by anyone.
+    /// @param _tokenId the token id to trigger a metaupdate for
+    function triggerMetadataUpdate(uint256 _tokenId) external {
+        _triggerMetadataUpdate(_tokenId);
+    }
+
     /// @notice This contract supports IERC165Upgradeable, IERC721Upgradeable and IERC721MetadataUpgradeable
     /// @dev This is part of the Standard Interface Detection EIP: https://eips.ethereum.org/EIPS/eip-165
     /// @param _interfaceId the XOR of all function selectors in the interface
@@ -237,6 +244,10 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
     /// @return bool whether ot not the token exists
     function _exists(uint256 _tokenId) internal view returns (bool) {
         return _ownerOf(_tokenId) != address(0);
+    }
+
+    function _triggerMetadataUpdate(uint256 _tokenId) internal {
+        emit MetadataUpdate(_tokenId);
     }
 
     function _approve(address to, uint256 tokenId) internal {

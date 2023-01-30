@@ -100,7 +100,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             constantOutflowNFTProxy,
             constantInflowNFTLogic,
             constantInflowNFTProxy
-        ) = helper_deployNFTContractsAndSetAddressInSuperToken();
+        ) = helper_deploy_NFT_Contracts_And_Set_Address_In_Super_Token();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -222,7 +222,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
-    function helper_deployConstantOutflowNFT()
+    function helper_deploy_Constant_Outflow_NFT()
         public
         returns (
             ConstantOutflowNFTMock _constantOutflowNFTLogic,
@@ -242,7 +242,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function helper_deployConstantInflowNFT()
+    function helper_deploy_Constant_Inflow_NFT()
         public
         returns (
             ConstantInflowNFTMock _constantInflowNFTLogic,
@@ -262,7 +262,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function helper_deployNFTContractsAndSetAddressInSuperToken()
+    function helper_deploy_NFT_Contracts_And_Set_Address_In_Super_Token()
         public
         returns (
             ConstantOutflowNFTMock _constantOutflowNFTLogic,
@@ -274,11 +274,11 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         (
             _constantOutflowNFTLogic,
             _constantOutflowNFTProxy
-        ) = helper_deployConstantOutflowNFT();
+        ) = helper_deploy_Constant_Outflow_NFT();
         (
             _constantInflowNFTLogic,
             _constantInflowNFTProxy
-        ) = helper_deployConstantInflowNFT();
+        ) = helper_deploy_Constant_Inflow_NFT();
 
         vm.prank(governanceOwner);
         superToken.initializeNFTContracts(
@@ -299,7 +299,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Assume Helpers
     //////////////////////////////////////////////////////////////////////////*/
-    function assume_SenderNotEqReceiverAndNeitherAreZeroAddress(
+    function assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
         address _flowSender,
         address _flowReceiver
     ) public {
@@ -311,7 +311,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Happy Path Cases
     //////////////////////////////////////////////////////////////////////////*/
-    function test_Passing_NFTContractsDeploymentAndSuperTokenStateInitialization()
+    function test_Passing_NFT_Contracts_And_Super_Token_Are_Properly_Initialized()
         public
     {
         (
@@ -319,7 +319,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             ConstantOutflowNFTMock _constantOutflowNFTProxy,
             ConstantInflowNFTMock _constantInflowNFTLogic,
             ConstantInflowNFTMock _constantInflowNFTProxy
-        ) = helper_deployNFTContractsAndSetAddressInSuperToken();
+        ) = helper_deploy_NFT_Contracts_And_Set_Address_In_Super_Token();
         assertEq(
             address(_constantOutflowNFTProxy),
             address(superToken.constantOutflowNFT())

@@ -24,6 +24,15 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
         address flowReceiver;
     }
 
+    /// NOTE: The storage variables in this contract MUST NOT:
+    /// - change the ordering of the existing variables
+    /// - change any of the variable types 
+    /// - rename any of the existing variables
+    /// - remove any of the existing variables
+    /// - add any new variables after _gap
+    /// - add any new variables before _gap and NOT decrement the length of the _gap array
+    /// Go to CFAv1NFTUpgradability.t.sol for the tests and make sure to add new tests for upgrades.
+
     ISuperToken public superToken;
 
     string internal _name;
@@ -42,7 +51,7 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
     /// @dev This empty reserved space is put in place to allow future versions to add new
     /// variables without shifting down storage in the inheritance chain.
     /// Important to note that the array number is calculated so the amount of storage used
-    /// by a contract adds up to 50.
+    /// by a contract adds up to 50 (slots 0 to 49).
     /// So each time we add a new storage variable above `_gap`, we must decrease the length of the
     /// array by one.
     /// See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps

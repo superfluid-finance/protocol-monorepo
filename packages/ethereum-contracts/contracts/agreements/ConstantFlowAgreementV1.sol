@@ -10,11 +10,13 @@ import {
     ISuperfluid,
     ISuperfluidGovernance,
     ISuperApp,
+    ISuperToken,
     FlowOperatorDefinitions,
     SuperAppDefinitions,
     ContextDefinitions,
     SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
@@ -459,6 +461,10 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
+        IConstantOutflowNFT(
+            address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
+        ).onCreate(flowVars.sender, flowVars.receiver, uint256(flowId));
+
         if (address(constantFlowAgreementHook) != address(0))  {
             uint256 gasLeftBefore = gasleft();
             try constantFlowAgreementHook.onCreate{ gas: CFA_HOOK_GAS_LIMIT }(
@@ -492,7 +498,7 @@ contract ConstantFlowAgreementV1 is
         internal
         returns(bytes memory newCtx)
     {
-        (, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
+        (bytes32 flowId, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
 
         if (!exist) revert CFA_FLOW_DOES_NOT_EXIST();
 
@@ -508,6 +514,10 @@ contract ConstantFlowAgreementV1 is
         }
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
+
+        IConstantOutflowNFT(
+            address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
+        ).onUpdate(uint256(flowId));
 
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {
@@ -640,6 +650,10 @@ contract ConstantFlowAgreementV1 is
                     newCtx, currentContext);
             }
         }
+
+        IConstantOutflowNFT(
+            address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
+        ).onDelete(uint256(flowParams.flowId));
 
         // @note See comment in _createFlow
         if (address(constantFlowAgreementHook) != address(0))  {

@@ -28,6 +28,16 @@ interface IConstantOutflowNFT is IERC721Metadata {
     /**************************************************************************
      * Write Functions
      *************************************************************************/
+    
+    function onCreate(
+        address _to,
+        address _flowReceiver,
+        uint256 _newTokenId
+    ) external;
+
+    function onUpdate(uint256 _tokenId) external;
+
+    function onDelete(uint256 _tokenId) external;
 
     /// @notice The mint function creates a flow from `_from` to `_to`.
     /// @dev If `msg.sender` is not equal to `_from`, we `createFlowByOperator`.

@@ -57,6 +57,8 @@ import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
 
 import { TestToken } from "./TestToken.sol";
+import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
+import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 
 /// @title Superfluid Framework Deployer
 /// @notice This is NOT for deploying public nets, but rather only for tesing envs
@@ -75,6 +77,8 @@ contract SuperfluidFrameworkDeployer {
         TestResolver resolver;
         SuperfluidLoader superfluidLoader;
         CFAv1Forwarder cfaV1Forwarder;
+        ConstantOutflowNFT constantOutflowNFTLogic;
+        ConstantInflowNFT constantInflowNFTLogic;
     }
 
     TestGovernance internal testGovernance;
@@ -85,9 +89,15 @@ contract SuperfluidFrameworkDeployer {
     TestResolver internal testResolver;
     SuperfluidLoader internal superfluidLoader;
     CFAv1Forwarder internal cfaV1Forwarder;
+    ConstantOutflowNFT internal constantOutflowNFTLogic;
+    ConstantInflowNFT internal constantInflowNFTLogic;
 
     constructor() {
         // @note ERC1820 must be deployed for this to work
+
+        // Deploy NFT logic contracts
+        constantOutflowNFTLogic = new ConstantOutflowNFT();
+        constantInflowNFTLogic = new ConstantInflowNFT();
 
         // Deploy TestGovernance. Needs initialization later.
         testGovernance = SuperfluidGovDeployerLibrary.deployTestGovernance();
@@ -191,7 +201,9 @@ contract SuperfluidFrameworkDeployer {
             superTokenFactory: superTokenFactory,
             resolver: testResolver,
             superfluidLoader: superfluidLoader,
-            cfaV1Forwarder: cfaV1Forwarder
+            cfaV1Forwarder: cfaV1Forwarder,
+            constantOutflowNFTLogic: constantOutflowNFTLogic,
+            constantInflowNFTLogic: constantInflowNFTLogic
         });
         return sf;
     }
@@ -213,15 +225,37 @@ contract SuperfluidFrameworkDeployer {
             _decimals,
             _mintLimit
         );
+        string memory superTokenSymbol = string.concat(_underlyingSymbol, "x");
         superToken = SuperToken(
             address(
                 superTokenFactory.createERC20Wrapper(
                     ERC20WithTokenInfo(address(underlyingToken)),
                     ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
                     string.concat("Super ", _underlyingSymbol),
-                    string.concat(_underlyingSymbol, "x")
+                    superTokenSymbol
                 )
             )
+        );
+
+        UUPSProxy outflowNFTProxy = new UUPSProxy();
+        outflowNFTProxy.initializeProxy(address(constantOutflowNFTLogic));
+        ConstantOutflowNFT(address(outflowNFTProxy)).initialize(
+            superToken,
+            string.concat(superTokenSymbol, " Outflow NFT"),
+            string.concat(superTokenSymbol, "COF")
+        );
+        UUPSProxy inflowNFTProxy = new UUPSProxy();
+        inflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
+        ConstantOutflowNFT(address(inflowNFTProxy)).initialize(
+            superToken,
+            string.concat(superTokenSymbol, " Inflow NFT"),
+            string.concat(superTokenSymbol, "CIF")
+        );
+        superToken.initializeNFTContracts(
+            address(outflowNFTProxy),
+            address(inflowNFTProxy),
+            address(0),
+            address(0)
         );
 
         // list underlying token in resolver

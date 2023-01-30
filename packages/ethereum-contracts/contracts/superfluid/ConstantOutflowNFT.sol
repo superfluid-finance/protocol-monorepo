@@ -24,9 +24,11 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     mapping(uint256 => FlowData) internal _flowDataBySenderReceiver;
 
     error COF_NFT_ONLY_CONSTANT_INFLOW();           // 0xa495a718
+    error COF_NFT_ONLY_CFA();                       // 0x054fae59
     error COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME(); // 0x0d1d1161
     error COF_NFT_MINT_TO_ZERO_ADDRESS();           // 0x43d05e51
     error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
+    error COF_NFT_TRANSFER_IS_NOT_ALLOWED();        // 0x5b1855b1
 
     function proxiableUUID() public pure override returns (bytes32) {
         return
@@ -83,6 +85,35 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         }
     }
 
+    /// NOTE probably should be access controlled to only cfa
+    function onCreate(
+        address _to,
+        address _flowReceiver,
+        uint256 _newTokenId
+    ) external {
+        _mint(_to, _flowReceiver, _newTokenId);
+
+        IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
+        constantInflowNFT.mint(_to, _newTokenId);
+    }
+
+    /// NOTE probably should be access controlled to only cfa
+    /// but also not super important for triggering metadata update
+    function onUpdate(uint256 _tokenId) external {
+        _triggerMetadataUpdate(_tokenId);
+
+        IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
+        constantInflowNFT.triggerMetadataUpdate(_tokenId);
+    }
+
+    /// NOTE probably should be access controlled to only cfa
+    function onDelete(uint256 _tokenId) external {
+        _burn(_tokenId);
+
+        IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
+        constantInflowNFT.burn(_tokenId);
+    }
+
     /// @notice Handles the mint of ConstantOutflowNFT when an inflow NFT user transfers their NFT.
     /// @dev Only callable by ConstantInflowNFT
     /// @param _to the receiver of the newly minted token
@@ -110,9 +141,6 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         bytes memory // _data
     ) internal virtual override {
         _transfer(_from, _to, _tokenId);
-        // TODO
-        // require(_checkOnERC721Received(from, to, tokenId, data),
-        // "ERC721: transfer to non ERC721Receiver implementer");
     }
 
     /// @inheritdoc CFAv1NFTBase
@@ -122,67 +150,15 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         return _flowDataBySenderReceiver[_tokenId].flowSender;
     }
 
-    /// @notice Transfers `_tokenId` from `_from` to `_to`
-    /// @dev `_from` must own `_tokenId` and `_to` cannot be `address(0)`.
-    ///
-    /// We emit three Transfer events from this ConstantOutflowNFT contract:
-    /// `_from` is old OutflowNFT owner | `_to` is new OutflowNFT owner
-    /// 1. Transfer of `_tokenId` (`_from` -> `_to`)
-    /// 2. Transfer (burn) of `_tokenId` (`_to` -> `address(0)`)
-    /// 3. Transfer (mint) of `newTokenId` (`address(0)` -> `_to`)
-    ///
-    /// We also emit two Transfer events from the ConstantInflowNFT contract:
-    /// 1. Transfer (burn) of `_tokenId` (`_from` -> `address(0)`) | `_from` is InflowNFT owner
-    /// 2. Transfer (mint) of `newTokenId` (`address(0)` -> `_to`)   | `_to` is InflowNFT owner
-    ///
-    /// We also clear storage for `_tokenApprovals` and `_flowDataBySenderReceiver` with `_tokenId`
-    /// and create new storage for `_flowDataBySenderReceiver` with `newTokenId`.
-    /// @param _from the owner of _tokenId
-    /// @param _to the receiver of the NFT
-    /// @param _tokenId the token id to transfer
+    /// @notice Reverts - Transfer of outflow NFT is not allowed.
+    /// @dev We revert when users attempt to transfer outflow NFTs.
     function _transfer(
-        address _from,
-        address _to,
-        uint256 _tokenId
+        address, // _from,
+        address, // _to,
+        uint256 // _tokenId
     ) internal virtual override {
-        // TODO: Do we even want to allow this function?
-        if (CFAv1NFTBase.ownerOf(_tokenId) != _from) {
-            revert CFA_NFT_TRANSFER_FROM_INCORRECT_OWNER();
-        }
-
-        if (_to == address(0)) {
-            revert CFA_NFT_TRANSFER_TO_ZERO_ADDRESS();
-        }
-
-        FlowData memory oldFlowData = _flowDataBySenderReceiver[_tokenId];
-        IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
-        uint256 newTokenId = uint256(
-            keccak256(abi.encode(_to, oldFlowData.flowReceiver))
-        );
-
-        /// TODO: If we choose to use the _beforeTokenTransfer hook
-        /// _beforeTokenTransfer(from, to, _tokenId, 1);
-
-        // Check that _tokenId was not transferred by `_beforeTokenTransfer` hook
-        // require(_ownerOf(_tokenId) == _from, "ERC721: transfer from incorrect owner");
-
-        // emit initial transfer of outflow token with _tokenId (from -> to)
-        emit Transfer(_from, _to, _tokenId);
-
-        // burn the outflow nft with _tokenId
-        _burn(_tokenId);
-
-        // burn the inflow nft with _tokenId
-        constantInflowNFT.burn(_tokenId);
-
-        // mint the new outflow token with newTokenId
-        _mint(_to, oldFlowData.flowReceiver, newTokenId);
-
-        // mint the inflow nft with newTokenId
-        constantInflowNFT.mint(_to, oldFlowData.flowReceiver);
-
-        // TODO: What is the functionality of transfer of the NFT at the protocol level?
-        // Do we want to implement something which occurs on transfer at the protocol level?
+        // @note TODO WRITE A TEST TO ENSURE ALL THE TRANSFER FUNCTIONS REVERT
+        revert COF_NFT_TRANSFER_IS_NOT_ALLOWED();
     }
 
     /// @notice Mints `_newTokenId` and transfers it to `_to`

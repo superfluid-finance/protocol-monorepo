@@ -21,13 +21,15 @@ interface IConstantInflowNFT is IERC721Metadata {
     /// @notice The mint function emits the "mint" `Transfer` event.
     /// @dev We don't modify storage as this is handled in ConstantOutflowNFT.sol and this function's sole purpose
     /// is to inform clients that search for events.
-    /// @param _flowSender desired flow sender
-    /// @param _flowReceiver desired flow receiver
-    function mint(address _flowSender, address _flowReceiver) external;
+    /// @param _to the flow receiver (inflow NFT receiver)
+    /// @param _newTokenId the new token id
+    function mint(address _to, uint256 _newTokenId) external;
 
     /// @notice This burn function emits the "burn" `Transfer` event.
     /// @dev We don't modify storage as this is handled in ConstantOutflowNFT.sol and this function's sole purpose
     /// is to inform clients that search for events.
     /// @param _tokenId desired token id to burn
     function burn(uint256 _tokenId) external;
+
+    function triggerMetadataUpdate(uint256 _tokenId) external;
 }

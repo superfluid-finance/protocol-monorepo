@@ -85,7 +85,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         _mint(_to, _flowReceiver, _newTokenId);
 
         IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
-        constantInflowNFT.mint(_to, _newTokenId);
+        constantInflowNFT.mint(_flowReceiver, _newTokenId);
     }
 
     /// NOTE probably should be access controlled to only cfa

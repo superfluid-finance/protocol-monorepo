@@ -10,7 +10,10 @@ import {
     ConstantInflowNFT
 } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 
-import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
+import {
+    CFAv1Library,
+    FoundrySuperfluidTester
+} from "../FoundrySuperfluidTester.sol";
 
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     /// @dev a mock mint function that exposes the internal _mint function
@@ -58,6 +61,8 @@ contract ConstantInflowNFTMock is ConstantInflowNFT {
 }
 
 abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
+    using CFAv1Library for CFAv1Library.InitData;
+
     string constant OUTFLOW_NFT_NAME_TEMPLATE = " Constant Outflow NFT";
     string constant OUTFLOW_NFT_SYMBOL_TEMPLATE = "COF";
     string constant INFLOW_NFT_NAME_TEMPLATE = " Constant Inflow NFT";
@@ -87,6 +92,8 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         bool approved
     );
 
+    event MetadataUpdate(uint256 _tokenId);
+
     constructor() FoundrySuperfluidTester(5) {
         governanceOwner = address(sfDeployer);
     }
@@ -100,7 +107,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             constantOutflowNFTProxy,
             constantInflowNFTLogic,
             constantInflowNFTProxy
-        ) = helper_deploy_NFT_Contracts_And_Set_Address_In_Super_Token();
+        ) = helper_Deploy_NFT_Contracts_And_Set_Address_In_Super_Token();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -186,31 +193,34 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     }
 
     function assert_Event_Transfer(
+        address _emittingAddress,
         address _expectedFrom,
         address _expectedTo,
         uint256 _expectedTokenId
     ) public {
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, false, _emittingAddress);
 
         emit Transfer(_expectedFrom, _expectedTo, _expectedTokenId);
     }
 
     function assert_Event_Approval(
+        address _emittingAddress,
         address _expectedOwner,
         address _expectedApproved,
         uint256 _expectedTokenId
     ) public {
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit(true, true, true, false, _emittingAddress);
 
         emit Approval(_expectedOwner, _expectedApproved, _expectedTokenId);
     }
 
     function assert_Event_ApprovalForAll(
+        address _emittingAddress,
         address _expectedOwner,
         address _expectedOperator,
         bool _expectedApproved
     ) public {
-        vm.expectEmit(true, true, false, true);
+        vm.expectEmit(true, true, false, true, _emittingAddress);
 
         emit ApprovalForAll(
             _expectedOwner,
@@ -219,10 +229,26 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         );
     }
 
+    function assert_Event_MetadataUpdate(
+        address _emittingAddress,
+        uint256 _tokenId
+    ) public {
+        vm.expectEmit(true, false, false, false, _emittingAddress);
+
+        emit MetadataUpdate(_tokenId);
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
-    function helper_deploy_Constant_Outflow_NFT()
+    function helper_Get_NFT_ID(
+        address _flowSender,
+        address _flowReceiver
+    ) public pure returns (uint256) {
+        return uint256(keccak256(abi.encode(_flowSender, _flowReceiver)));
+    }
+
+    function helper_Deploy_Constant_Outflow_NFT()
         public
         returns (
             ConstantOutflowNFTMock _constantOutflowNFTLogic,
@@ -242,7 +268,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function helper_deploy_Constant_Inflow_NFT()
+    function helper_Deploy_Constant_Inflow_NFT()
         public
         returns (
             ConstantInflowNFTMock _constantInflowNFTLogic,
@@ -262,7 +288,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function helper_deploy_NFT_Contracts_And_Set_Address_In_Super_Token()
+    function helper_Deploy_NFT_Contracts_And_Set_Address_In_Super_Token()
         public
         returns (
             ConstantOutflowNFTMock _constantOutflowNFTLogic,
@@ -274,11 +300,11 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         (
             _constantOutflowNFTLogic,
             _constantOutflowNFTProxy
-        ) = helper_deploy_Constant_Outflow_NFT();
+        ) = helper_Deploy_Constant_Outflow_NFT();
         (
             _constantInflowNFTLogic,
             _constantInflowNFTProxy
-        ) = helper_deploy_Constant_Inflow_NFT();
+        ) = helper_Deploy_Constant_Inflow_NFT();
 
         vm.prank(governanceOwner);
         superToken.initializeNFTContracts(
@@ -289,11 +315,30 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function helper_getNFTId(
+    function helper_Create_Flow_And_Assert_NFT_Invariants(
         address _flowSender,
-        address _flowReceiver
-    ) public pure returns (uint256) {
-        return uint256(keccak256(abi.encode(_flowSender, _flowReceiver)));
+        address _flowReceiver,
+        int96 _flowRate
+    ) public {
+        uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
+
+        assert_Event_Transfer(
+            address(constantOutflowNFTProxy),
+            address(0),
+            _flowSender,
+            nftId
+        );
+
+        assert_Event_Transfer(
+            address(constantInflowNFTProxy),
+            address(0),
+            _flowReceiver,
+            nftId
+        );
+
+        vm.prank(_flowSender);
+        sf.cfaLib.createFlow(_flowReceiver, superToken, _flowRate);
+        assert_FlowDataState_IsExpected(nftId, _flowSender, _flowReceiver);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -309,7 +354,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                    Happy Path Cases
+                                    Passing Cases
     //////////////////////////////////////////////////////////////////////////*/
     function test_Passing_NFT_Contracts_And_Super_Token_Are_Properly_Initialized()
         public
@@ -319,7 +364,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             ConstantOutflowNFTMock _constantOutflowNFTProxy,
             ConstantInflowNFTMock _constantInflowNFTLogic,
             ConstantInflowNFTMock _constantInflowNFTProxy
-        ) = helper_deploy_NFT_Contracts_And_Set_Address_In_Super_Token();
+        ) = helper_Deploy_NFT_Contracts_And_Set_Address_In_Super_Token();
         assertEq(
             address(_constantOutflowNFTProxy),
             address(superToken.constantOutflowNFT())
@@ -328,5 +373,62 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             address(_constantInflowNFTProxy),
             address(superToken.constantInflowNFT())
         );
+    }
+
+    function test_Passing_Create_Flow_Mints_Outflow_And_Inflow_NFTs_And_Emits_Transfer_Events()
+        public
+    {
+        int96 flowRate = 42069;
+        address flowSender = alice;
+        address flowReceiver = bob;
+        helper_Create_Flow_And_Assert_NFT_Invariants(flowSender, flowReceiver, flowRate);
+    }
+
+    function test_Passing_Update_Flow_Does_Not_Impact_Storage_And_Emits_MetadataUpdate_Events()
+        public
+    {
+        int96 flowRate = 42069;
+        address flowSender = alice;
+        address flowReceiver = bob;
+        helper_Create_Flow_And_Assert_NFT_Invariants(flowSender, flowReceiver, flowRate);
+
+        uint256 nftId = helper_Get_NFT_ID(flowSender, flowReceiver);
+        assert_Event_MetadataUpdate(address(constantOutflowNFTProxy), nftId);
+        assert_Event_MetadataUpdate(address(constantInflowNFTProxy), nftId);
+
+        vm.prank(flowSender);
+        sf.cfaLib.updateFlow(flowReceiver, superToken, flowRate + 333);
+
+        assert_FlowDataState_IsExpected(nftId, flowSender, flowReceiver);
+    }
+
+    function test_Passing_Delete_Flow_Clears_Storage_And_Emits_Transfer_Events()
+        public
+    {
+        int96 flowRate = 42069;
+        address flowSender = alice;
+        address flowReceiver = bob;
+        helper_Create_Flow_And_Assert_NFT_Invariants(flowSender, flowReceiver, flowRate);
+
+        uint256 nftId = helper_Get_NFT_ID(flowSender, flowReceiver);
+
+        assert_Event_Transfer(
+            address(constantInflowNFTProxy),
+            flowReceiver,
+            address(0),
+            nftId
+        );
+
+        assert_Event_Transfer(
+            address(constantOutflowNFTProxy),
+            flowSender,
+            address(0),
+            nftId
+        );
+
+        vm.prank(flowSender);
+        sf.cfaLib.deleteFlow(flowSender, flowReceiver, superToken);
+
+        assert_FlowDataState_IsEmpty(nftId);
     }
 }

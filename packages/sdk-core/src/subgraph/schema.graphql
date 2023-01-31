@@ -610,6 +610,10 @@ input AccountTokenSnapshotLog_filter {
   blockNumber_not_in: [BigInt!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -888,6 +892,10 @@ input AgreementClassRegisteredEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -968,12 +976,20 @@ input AgreementClassRegisteredEvent_filter {
   order_not_in: [BigInt!]
   agreementType: Bytes
   agreementType_not: Bytes
+  agreementType_gt: Bytes
+  agreementType_lt: Bytes
+  agreementType_gte: Bytes
+  agreementType_lte: Bytes
   agreementType_in: [Bytes!]
   agreementType_not_in: [Bytes!]
   agreementType_contains: Bytes
   agreementType_not_contains: Bytes
   code: Bytes
   code_not: Bytes
+  code_gt: Bytes
+  code_lt: Bytes
+  code_gte: Bytes
+  code_lte: Bytes
   code_in: [Bytes!]
   code_not_in: [Bytes!]
   code_contains: Bytes
@@ -1029,6 +1045,10 @@ input AgreementClassUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -1109,12 +1129,20 @@ input AgreementClassUpdatedEvent_filter {
   order_not_in: [BigInt!]
   agreementType: Bytes
   agreementType_not: Bytes
+  agreementType_gt: Bytes
+  agreementType_lt: Bytes
+  agreementType_gte: Bytes
+  agreementType_lte: Bytes
   agreementType_in: [Bytes!]
   agreementType_not_in: [Bytes!]
   agreementType_contains: Bytes
   agreementType_not_contains: Bytes
   code: Bytes
   code_not: Bytes
+  code_gt: Bytes
+  code_lt: Bytes
+  code_gte: Bytes
+  code_lte: Bytes
   code_in: [Bytes!]
   code_not_in: [Bytes!]
   code_contains: Bytes
@@ -1199,6 +1227,10 @@ input AgreementLiquidatedByEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -1279,36 +1311,60 @@ input AgreementLiquidatedByEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   liquidatorAccount: Bytes
   liquidatorAccount_not: Bytes
+  liquidatorAccount_gt: Bytes
+  liquidatorAccount_lt: Bytes
+  liquidatorAccount_gte: Bytes
+  liquidatorAccount_lte: Bytes
   liquidatorAccount_in: [Bytes!]
   liquidatorAccount_not_in: [Bytes!]
   liquidatorAccount_contains: Bytes
   liquidatorAccount_not_contains: Bytes
   agreementClass: Bytes
   agreementClass_not: Bytes
+  agreementClass_gt: Bytes
+  agreementClass_lt: Bytes
+  agreementClass_gte: Bytes
+  agreementClass_lte: Bytes
   agreementClass_in: [Bytes!]
   agreementClass_not_in: [Bytes!]
   agreementClass_contains: Bytes
   agreementClass_not_contains: Bytes
   agreementId: Bytes
   agreementId_not: Bytes
+  agreementId_gt: Bytes
+  agreementId_lt: Bytes
+  agreementId_gte: Bytes
+  agreementId_lte: Bytes
   agreementId_in: [Bytes!]
   agreementId_not_in: [Bytes!]
   agreementId_contains: Bytes
   agreementId_not_contains: Bytes
   penaltyAccount: Bytes
   penaltyAccount_not: Bytes
+  penaltyAccount_gt: Bytes
+  penaltyAccount_lt: Bytes
+  penaltyAccount_gte: Bytes
+  penaltyAccount_lte: Bytes
   penaltyAccount_in: [Bytes!]
   penaltyAccount_not_in: [Bytes!]
   penaltyAccount_contains: Bytes
   penaltyAccount_not_contains: Bytes
   bondAccount: Bytes
   bondAccount_not: Bytes
+  bondAccount_gt: Bytes
+  bondAccount_lt: Bytes
+  bondAccount_gte: Bytes
+  bondAccount_lte: Bytes
   bondAccount_in: [Bytes!]
   bondAccount_not_in: [Bytes!]
   bondAccount_contains: Bytes
@@ -1434,6 +1490,10 @@ input AgreementLiquidatedV2Event_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -1514,36 +1574,60 @@ input AgreementLiquidatedV2Event_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   agreementClass: Bytes
   agreementClass_not: Bytes
+  agreementClass_gt: Bytes
+  agreementClass_lt: Bytes
+  agreementClass_gte: Bytes
+  agreementClass_lte: Bytes
   agreementClass_in: [Bytes!]
   agreementClass_not_in: [Bytes!]
   agreementClass_contains: Bytes
   agreementClass_not_contains: Bytes
   agreementId: Bytes
   agreementId_not: Bytes
+  agreementId_gt: Bytes
+  agreementId_lt: Bytes
+  agreementId_gte: Bytes
+  agreementId_lte: Bytes
   agreementId_in: [Bytes!]
   agreementId_not_in: [Bytes!]
   agreementId_contains: Bytes
   agreementId_not_contains: Bytes
   liquidatorAccount: Bytes
   liquidatorAccount_not: Bytes
+  liquidatorAccount_gt: Bytes
+  liquidatorAccount_lt: Bytes
+  liquidatorAccount_gte: Bytes
+  liquidatorAccount_lte: Bytes
   liquidatorAccount_in: [Bytes!]
   liquidatorAccount_not_in: [Bytes!]
   liquidatorAccount_contains: Bytes
   liquidatorAccount_not_contains: Bytes
   targetAccount: Bytes
   targetAccount_not: Bytes
+  targetAccount_gt: Bytes
+  targetAccount_lt: Bytes
+  targetAccount_gte: Bytes
+  targetAccount_lte: Bytes
   targetAccount_in: [Bytes!]
   targetAccount_not_in: [Bytes!]
   targetAccount_contains: Bytes
   targetAccount_not_contains: Bytes
   rewardAmountReceiver: Bytes
   rewardAmountReceiver_not: Bytes
+  rewardAmountReceiver_gt: Bytes
+  rewardAmountReceiver_lt: Bytes
+  rewardAmountReceiver_gte: Bytes
+  rewardAmountReceiver_lte: Bytes
   rewardAmountReceiver_in: [Bytes!]
   rewardAmountReceiver_not_in: [Bytes!]
   rewardAmountReceiver_contains: Bytes
@@ -1598,6 +1682,10 @@ input AgreementLiquidatedV2Event_filter {
   flowRateAtLiquidation_not_in: [BigInt!]
   rewardAccount: Bytes
   rewardAccount_not: Bytes
+  rewardAccount_gt: Bytes
+  rewardAccount_lt: Bytes
+  rewardAccount_gte: Bytes
+  rewardAccount_lte: Bytes
   rewardAccount_in: [Bytes!]
   rewardAccount_not_in: [Bytes!]
   rewardAccount_contains: Bytes
@@ -1663,6 +1751,10 @@ input AppRegisteredEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -1743,6 +1835,10 @@ input AppRegisteredEvent_filter {
   order_not_in: [BigInt!]
   app: Bytes
   app_not: Bytes
+  app_gt: Bytes
+  app_lt: Bytes
+  app_gte: Bytes
+  app_lte: Bytes
   app_in: [Bytes!]
   app_not_in: [Bytes!]
   app_contains: Bytes
@@ -1822,6 +1918,10 @@ input BondIncreasedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -1902,6 +2002,10 @@ input BondIncreasedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -1971,6 +2075,10 @@ input BurnedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2051,18 +2159,30 @@ input BurnedEvent_filter {
   order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
+  operator_gt: Bytes
+  operator_lt: Bytes
+  operator_gte: Bytes
+  operator_lte: Bytes
   operator_in: [Bytes!]
   operator_not_in: [Bytes!]
   operator_contains: Bytes
   operator_not_contains: Bytes
   from: Bytes
   from_not: Bytes
+  from_gt: Bytes
+  from_lt: Bytes
+  from_gte: Bytes
+  from_lte: Bytes
   from_in: [Bytes!]
   from_not_in: [Bytes!]
   from_contains: Bytes
   from_not_contains: Bytes
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -2077,12 +2197,20 @@ input BurnedEvent_filter {
   amount_not_in: [BigInt!]
   data: Bytes
   data_not: Bytes
+  data_gt: Bytes
+  data_lt: Bytes
+  data_gte: Bytes
+  data_lte: Bytes
   data_in: [Bytes!]
   data_not_in: [Bytes!]
   data_contains: Bytes
   data_not_contains: Bytes
   operatorData: Bytes
   operatorData_not: Bytes
+  operatorData_gt: Bytes
+  operatorData_lt: Bytes
+  operatorData_gte: Bytes
+  operatorData_lte: Bytes
   operatorData_in: [Bytes!]
   operatorData_not_in: [Bytes!]
   operatorData_contains: Bytes
@@ -2152,6 +2280,10 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2202,6 +2334,10 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -2238,12 +2374,20 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
   logIndex_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
@@ -2323,6 +2467,10 @@ input ConfigChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2373,6 +2521,10 @@ input ConfigChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -2409,18 +2561,30 @@ input ConfigChangedEvent_filter {
   order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
   superToken_not_contains: Bytes
   key: Bytes
   key_not: Bytes
+  key_gt: Bytes
+  key_lt: Bytes
+  key_gte: Bytes
+  key_lte: Bytes
   key_in: [Bytes!]
   key_not_in: [Bytes!]
   key_contains: Bytes
@@ -2492,6 +2656,10 @@ input CustomSuperTokenCreatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2572,6 +2740,10 @@ input CustomSuperTokenCreatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -2733,6 +2905,10 @@ input Event_filter {
   timestamp_not_in: [BigInt!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2813,6 +2989,10 @@ input ExitRateChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2893,6 +3073,10 @@ input ExitRateChangedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -3040,6 +3224,10 @@ input FlowOperator_filter {
   flowRateAllowanceRemaining_not_in: [BigInt!]
   flowOperator: Bytes
   flowOperator_not: Bytes
+  flowOperator_gt: Bytes
+  flowOperator_lt: Bytes
+  flowOperator_gte: Bytes
+  flowOperator_lte: Bytes
   flowOperator_in: [Bytes!]
   flowOperator_not_in: [Bytes!]
   flowOperator_contains: Bytes
@@ -3177,6 +3365,10 @@ input FlowOperatorUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -3257,12 +3449,20 @@ input FlowOperatorUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   sender: Bytes
   sender_not: Bytes
+  sender_gt: Bytes
+  sender_lt: Bytes
+  sender_gte: Bytes
+  sender_lte: Bytes
   sender_in: [Bytes!]
   sender_not_in: [Bytes!]
   sender_contains: Bytes
@@ -3447,6 +3647,10 @@ input FlowUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -3527,24 +3731,40 @@ input FlowUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   sender: Bytes
   sender_not: Bytes
+  sender_gt: Bytes
+  sender_lt: Bytes
+  sender_gte: Bytes
+  sender_lte: Bytes
   sender_in: [Bytes!]
   sender_not_in: [Bytes!]
   sender_contains: Bytes
   sender_not_contains: Bytes
   receiver: Bytes
   receiver_not: Bytes
+  receiver_gt: Bytes
+  receiver_lt: Bytes
+  receiver_gte: Bytes
+  receiver_lte: Bytes
   receiver_in: [Bytes!]
   receiver_not_in: [Bytes!]
   receiver_contains: Bytes
   receiver_not_contains: Bytes
   flowOperator: Bytes
   flowOperator_not: Bytes
+  flowOperator_gt: Bytes
+  flowOperator_lt: Bytes
+  flowOperator_gte: Bytes
+  flowOperator_lte: Bytes
   flowOperator_in: [Bytes!]
   flowOperator_not_in: [Bytes!]
   flowOperator_contains: Bytes
@@ -3583,6 +3803,10 @@ input FlowUpdatedEvent_filter {
   deposit_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -3694,6 +3918,10 @@ input GovernanceReplacedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -3774,12 +4002,20 @@ input GovernanceReplacedEvent_filter {
   addresses_not_contains_nocase: [Bytes!]
   oldGovernance: Bytes
   oldGovernance_not: Bytes
+  oldGovernance_gt: Bytes
+  oldGovernance_lt: Bytes
+  oldGovernance_gte: Bytes
+  oldGovernance_lte: Bytes
   oldGovernance_in: [Bytes!]
   oldGovernance_not_in: [Bytes!]
   oldGovernance_contains: Bytes
   oldGovernance_not_contains: Bytes
   newGovernance: Bytes
   newGovernance_not: Bytes
+  newGovernance_gt: Bytes
+  newGovernance_lt: Bytes
+  newGovernance_gte: Bytes
+  newGovernance_lte: Bytes
   newGovernance_in: [Bytes!]
   newGovernance_not_in: [Bytes!]
   newGovernance_contains: Bytes
@@ -4121,6 +4357,10 @@ input IndexCreatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -4201,12 +4441,20 @@ input IndexCreatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -4221,6 +4469,10 @@ input IndexCreatedEvent_filter {
   indexId_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -4323,6 +4575,10 @@ input IndexDistributionClaimedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -4403,12 +4659,20 @@ input IndexDistributionClaimedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -4423,6 +4687,10 @@ input IndexDistributionClaimedEvent_filter {
   indexId_not_in: [BigInt!]
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
@@ -4534,6 +4802,10 @@ input IndexSubscribedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -4614,12 +4886,20 @@ input IndexSubscribedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -4634,12 +4914,20 @@ input IndexSubscribedEvent_filter {
   indexId_not_in: [BigInt!]
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -4941,6 +5229,10 @@ input IndexUnitsUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -5021,12 +5313,20 @@ input IndexUnitsUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -5041,6 +5341,10 @@ input IndexUnitsUpdatedEvent_filter {
   indexId_not_in: [BigInt!]
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
@@ -5055,6 +5359,10 @@ input IndexUnitsUpdatedEvent_filter {
   units_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -5168,6 +5476,10 @@ input IndexUnsubscribedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -5248,12 +5560,20 @@ input IndexUnsubscribedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -5268,12 +5588,20 @@ input IndexUnsubscribedEvent_filter {
   indexId_not_in: [BigInt!]
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -5373,6 +5701,10 @@ input IndexUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -5453,12 +5785,20 @@ input IndexUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -5505,6 +5845,10 @@ input IndexUpdatedEvent_filter {
   totalUnitsApproved_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -5588,6 +5932,10 @@ input JailEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -5668,6 +6016,10 @@ input JailEvent_filter {
   order_not_in: [BigInt!]
   app: Bytes
   app_not: Bytes
+  app_gt: Bytes
+  app_lt: Bytes
+  app_gte: Bytes
+  app_lte: Bytes
   app_in: [Bytes!]
   app_not_in: [Bytes!]
   app_contains: Bytes
@@ -5738,6 +6090,10 @@ input MintedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -5818,12 +6174,20 @@ input MintedEvent_filter {
   order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
+  operator_gt: Bytes
+  operator_lt: Bytes
+  operator_gte: Bytes
+  operator_lte: Bytes
   operator_in: [Bytes!]
   operator_not_in: [Bytes!]
   operator_contains: Bytes
   operator_not_contains: Bytes
   to: Bytes
   to_not: Bytes
+  to_gt: Bytes
+  to_lt: Bytes
+  to_gte: Bytes
+  to_lte: Bytes
   to_in: [Bytes!]
   to_not_in: [Bytes!]
   to_contains: Bytes
@@ -5838,18 +6202,30 @@ input MintedEvent_filter {
   amount_not_in: [BigInt!]
   data: Bytes
   data_not: Bytes
+  data_gt: Bytes
+  data_lt: Bytes
+  data_gte: Bytes
+  data_lte: Bytes
   data_in: [Bytes!]
   data_not_in: [Bytes!]
   data_contains: Bytes
   data_not_contains: Bytes
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   operatorData: Bytes
   operatorData_not: Bytes
+  operatorData_gt: Bytes
+  operatorData_lt: Bytes
+  operatorData_gte: Bytes
+  operatorData_lte: Bytes
   operatorData_in: [Bytes!]
   operatorData_not_in: [Bytes!]
   operatorData_contains: Bytes
@@ -5933,6 +6309,10 @@ input NewPICEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -6013,12 +6393,20 @@ input NewPICEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   pic: Bytes
   pic_not: Bytes
+  pic_gt: Bytes
+  pic_lt: Bytes
+  pic_gte: Bytes
+  pic_lte: Bytes
   pic_in: [Bytes!]
   pic_not_in: [Bytes!]
   pic_contains: Bytes
@@ -6107,6 +6495,10 @@ input PPPConfigurationChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -6157,6 +6549,10 @@ input PPPConfigurationChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -6193,12 +6589,20 @@ input PPPConfigurationChangedEvent_filter {
   order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
@@ -8592,6 +8996,10 @@ input ResolverEntry_filter {
   updatedAtBlockNumber_not_in: [BigInt!]
   targetAddress: Bytes
   targetAddress_not: Bytes
+  targetAddress_gt: Bytes
+  targetAddress_lt: Bytes
+  targetAddress_gte: Bytes
+  targetAddress_lte: Bytes
   targetAddress_in: [Bytes!]
   targetAddress_not_in: [Bytes!]
   targetAddress_contains: Bytes
@@ -8661,6 +9069,10 @@ input RewardAddressChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -8711,6 +9123,10 @@ input RewardAddressChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -8747,12 +9163,20 @@ input RewardAddressChangedEvent_filter {
   order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
@@ -8763,6 +9187,10 @@ input RewardAddressChangedEvent_filter {
   isKeySet_not_in: [Boolean!]
   rewardAddress: Bytes
   rewardAddress_not: Bytes
+  rewardAddress_gt: Bytes
+  rewardAddress_lt: Bytes
+  rewardAddress_gte: Bytes
+  rewardAddress_lte: Bytes
   rewardAddress_in: [Bytes!]
   rewardAddress_not_in: [Bytes!]
   rewardAddress_contains: Bytes
@@ -8822,6 +9250,10 @@ input RoleAdminChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -8902,18 +9334,30 @@ input RoleAdminChangedEvent_filter {
   order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
+  role_gt: Bytes
+  role_lt: Bytes
+  role_gte: Bytes
+  role_lte: Bytes
   role_in: [Bytes!]
   role_not_in: [Bytes!]
   role_contains: Bytes
   role_not_contains: Bytes
   previousAdminRole: Bytes
   previousAdminRole_not: Bytes
+  previousAdminRole_gt: Bytes
+  previousAdminRole_lt: Bytes
+  previousAdminRole_gte: Bytes
+  previousAdminRole_lte: Bytes
   previousAdminRole_in: [Bytes!]
   previousAdminRole_not_in: [Bytes!]
   previousAdminRole_contains: Bytes
   previousAdminRole_not_contains: Bytes
   newAdminRole: Bytes
   newAdminRole_not: Bytes
+  newAdminRole_gt: Bytes
+  newAdminRole_lt: Bytes
+  newAdminRole_gte: Bytes
+  newAdminRole_lte: Bytes
   newAdminRole_in: [Bytes!]
   newAdminRole_not_in: [Bytes!]
   newAdminRole_contains: Bytes
@@ -8971,6 +9415,10 @@ input RoleGrantedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -9051,18 +9499,30 @@ input RoleGrantedEvent_filter {
   order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
+  role_gt: Bytes
+  role_lt: Bytes
+  role_gte: Bytes
+  role_lte: Bytes
   role_in: [Bytes!]
   role_not_in: [Bytes!]
   role_contains: Bytes
   role_not_contains: Bytes
   account: Bytes
   account_not: Bytes
+  account_gt: Bytes
+  account_lt: Bytes
+  account_gte: Bytes
+  account_lte: Bytes
   account_in: [Bytes!]
   account_not_in: [Bytes!]
   account_contains: Bytes
   account_not_contains: Bytes
   sender: Bytes
   sender_not: Bytes
+  sender_gt: Bytes
+  sender_lt: Bytes
+  sender_gte: Bytes
+  sender_lte: Bytes
   sender_in: [Bytes!]
   sender_not_in: [Bytes!]
   sender_contains: Bytes
@@ -9120,6 +9580,10 @@ input RoleRevokedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -9200,18 +9664,30 @@ input RoleRevokedEvent_filter {
   order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
+  role_gt: Bytes
+  role_lt: Bytes
+  role_gte: Bytes
+  role_lte: Bytes
   role_in: [Bytes!]
   role_not_in: [Bytes!]
   role_contains: Bytes
   role_not_contains: Bytes
   account: Bytes
   account_not: Bytes
+  account_gt: Bytes
+  account_lt: Bytes
+  account_gte: Bytes
+  account_lte: Bytes
   account_in: [Bytes!]
   account_not_in: [Bytes!]
   account_contains: Bytes
   account_not_contains: Bytes
   sender: Bytes
   sender_not: Bytes
+  sender_gt: Bytes
+  sender_lt: Bytes
+  sender_gte: Bytes
+  sender_lte: Bytes
   sender_in: [Bytes!]
   sender_not_in: [Bytes!]
   sender_contains: Bytes
@@ -9276,6 +9752,10 @@ input SentEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -9356,24 +9836,40 @@ input SentEvent_filter {
   order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
+  operator_gt: Bytes
+  operator_lt: Bytes
+  operator_gte: Bytes
+  operator_lte: Bytes
   operator_in: [Bytes!]
   operator_not_in: [Bytes!]
   operator_contains: Bytes
   operator_not_contains: Bytes
   from: Bytes
   from_not: Bytes
+  from_gt: Bytes
+  from_lt: Bytes
+  from_gte: Bytes
+  from_lte: Bytes
   from_in: [Bytes!]
   from_not_in: [Bytes!]
   from_contains: Bytes
   from_not_contains: Bytes
   to: Bytes
   to_not: Bytes
+  to_gt: Bytes
+  to_lt: Bytes
+  to_gte: Bytes
+  to_lte: Bytes
   to_in: [Bytes!]
   to_not_in: [Bytes!]
   to_contains: Bytes
   to_not_contains: Bytes
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -9388,12 +9884,20 @@ input SentEvent_filter {
   amount_not_in: [BigInt!]
   data: Bytes
   data_not: Bytes
+  data_gt: Bytes
+  data_lt: Bytes
+  data_gte: Bytes
+  data_lte: Bytes
   data_in: [Bytes!]
   data_not_in: [Bytes!]
   data_contains: Bytes
   data_not_contains: Bytes
   operatorData: Bytes
   operatorData_not: Bytes
+  operatorData_gt: Bytes
+  operatorData_lt: Bytes
+  operatorData_gte: Bytes
+  operatorData_lte: Bytes
   operatorData_in: [Bytes!]
   operatorData_not_in: [Bytes!]
   operatorData_contains: Bytes
@@ -9462,6 +9966,10 @@ input SetEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -9542,12 +10050,20 @@ input SetEvent_filter {
   order_not_in: [BigInt!]
   hashedName: Bytes
   hashedName_not: Bytes
+  hashedName_gt: Bytes
+  hashedName_lt: Bytes
+  hashedName_gte: Bytes
+  hashedName_lte: Bytes
   hashedName_in: [Bytes!]
   hashedName_not_in: [Bytes!]
   hashedName_contains: Bytes
   hashedName_not_contains: Bytes
   target: Bytes
   target_not: Bytes
+  target_gt: Bytes
+  target_lt: Bytes
+  target_gte: Bytes
+  target_lte: Bytes
   target_in: [Bytes!]
   target_not_in: [Bytes!]
   target_contains: Bytes
@@ -12539,6 +13055,10 @@ input SubscriptionApprovedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -12619,18 +13139,30 @@ input SubscriptionApprovedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -12645,6 +13177,10 @@ input SubscriptionApprovedEvent_filter {
   indexId_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -12748,6 +13284,10 @@ input SubscriptionDistributionClaimedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -12828,18 +13368,30 @@ input SubscriptionDistributionClaimedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -12959,6 +13511,10 @@ input SubscriptionRevokedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13039,18 +13595,30 @@ input SubscriptionRevokedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -13065,6 +13633,10 @@ input SubscriptionRevokedEvent_filter {
   indexId_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -13170,6 +13742,10 @@ input SubscriptionUnitsUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13250,18 +13826,30 @@ input SubscriptionUnitsUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -13284,6 +13872,10 @@ input SubscriptionUnitsUpdatedEvent_filter {
   units_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -13374,6 +13966,10 @@ input SuperTokenCreatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13454,6 +14050,10 @@ input SuperTokenCreatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -13507,6 +14107,10 @@ input SuperTokenFactoryUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13587,6 +14191,10 @@ input SuperTokenFactoryUpdatedEvent_filter {
   order_not_in: [BigInt!]
   newFactory: Bytes
   newFactory_not: Bytes
+  newFactory_gt: Bytes
+  newFactory_lt: Bytes
+  newFactory_gte: Bytes
+  newFactory_lte: Bytes
   newFactory_in: [Bytes!]
   newFactory_not_in: [Bytes!]
   newFactory_contains: Bytes
@@ -13640,6 +14248,10 @@ input SuperTokenLogicCreatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13720,6 +14332,10 @@ input SuperTokenLogicCreatedEvent_filter {
   order_not_in: [BigInt!]
   tokenLogic: Bytes
   tokenLogic_not: Bytes
+  tokenLogic_gt: Bytes
+  tokenLogic_lt: Bytes
+  tokenLogic_gte: Bytes
+  tokenLogic_lte: Bytes
   tokenLogic_in: [Bytes!]
   tokenLogic_not_in: [Bytes!]
   tokenLogic_contains: Bytes
@@ -13774,6 +14390,10 @@ input SuperTokenLogicUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13854,12 +14474,20 @@ input SuperTokenLogicUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   code: Bytes
   code_not: Bytes
+  code_gt: Bytes
+  code_lt: Bytes
+  code_gte: Bytes
+  code_lte: Bytes
   code_in: [Bytes!]
   code_not_in: [Bytes!]
   code_contains: Bytes
@@ -14014,6 +14642,10 @@ input Token_filter {
   isListed_not_in: [Boolean!]
   underlyingAddress: Bytes
   underlyingAddress_not: Bytes
+  underlyingAddress_gt: Bytes
+  underlyingAddress_lt: Bytes
+  underlyingAddress_gte: Bytes
+  underlyingAddress_lte: Bytes
   underlyingAddress_in: [Bytes!]
   underlyingAddress_not_in: [Bytes!]
   underlyingAddress_contains: Bytes
@@ -14113,6 +14745,10 @@ input TokenDowngradedEvent_filter {
   account_: Account_filter
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -14193,6 +14829,10 @@ input TokenDowngradedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -14597,6 +15237,10 @@ input TokenStatisticLog_filter {
   blockNumber_not_in: [BigInt!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -14859,6 +15503,10 @@ input TokenUpgradedEvent_filter {
   account_: Account_filter
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -14939,6 +15587,10 @@ input TokenUpgradedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -15008,6 +15660,10 @@ input TransferEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -15138,6 +15794,10 @@ input TransferEvent_filter {
   value_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -15204,6 +15864,10 @@ input TrustedForwarderChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -15254,6 +15918,10 @@ input TrustedForwarderChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -15290,12 +15958,20 @@ input TrustedForwarderChangedEvent_filter {
   order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
@@ -15306,6 +15982,10 @@ input TrustedForwarderChangedEvent_filter {
   isKeySet_not_in: [Boolean!]
   forwarder: Bytes
   forwarder_not: Bytes
+  forwarder_gt: Bytes
+  forwarder_lt: Bytes
+  forwarder_gte: Bytes
+  forwarder_lte: Bytes
   forwarder_in: [Bytes!]
   forwarder_not_in: [Bytes!]
   forwarder_contains: Bytes

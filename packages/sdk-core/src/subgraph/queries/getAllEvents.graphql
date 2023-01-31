@@ -23,6 +23,9 @@ query getAllEvents(
             flowRate
             flowOperator
             deposit
+            stream {
+                id
+            }
         }
         ... on FlowOperatorUpdatedEvent {
             ...eventFields

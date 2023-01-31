@@ -89,7 +89,7 @@ contract CFAv1NFTBaseMockV1 is UUPSProxiable, ICFAv1NFTBaseMockErrors {
         if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
         
         assembly { slot := _gap.slot offset := _gap.offset }
-        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_gap");      /// this lasts until slot 50
+        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_gap"); /// this lasts until slot 49
     }
 
     function proxiableUUID() public pure virtual override returns (bytes32) {
@@ -188,7 +188,7 @@ contract CFAv1NFTBaseMockVGoodUpgrade is UUPSProxiable, ICFAv1NFTBaseMockErrors 
 
         // @note Note how we update the expected slot after adding 3 new variables
         assembly { slot := _gap.slot offset := _gap.offset }
-        if (slot != 8 || offset != 0) revert STORAGE_LOCATION_CHANGED("_gap");      /// this lasts until slot 50
+        if (slot != 8 || offset != 0) revert STORAGE_LOCATION_CHANGED("_gap"); /// this lasts until slot 49
     }
 
     function proxiableUUID() public pure virtual override returns (bytes32) {

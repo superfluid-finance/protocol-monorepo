@@ -28,6 +28,7 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
 
     string public constant BASE_URI =
         "https://nft.superfluid.finance/cfa/v1/getmeta";
+
     struct FlowData {
         address flowSender;
         address flowReceiver;

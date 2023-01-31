@@ -20,6 +20,9 @@ import {
 import {
     SuperfluidPeripheryDeployerLibrary
 } from "./deployers/SuperfluidPeripheryDeployerLibrary.sol";
+import {
+    SuperfluidNFTDeployerLibrary
+} from "./deployers/SuperfluidNFTDeployerLibrary.sol";
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
@@ -96,10 +99,10 @@ contract SuperfluidFrameworkDeployer {
         // @note ERC1820 must be deployed for this to work
 
         // Deploy NFT logic contracts
-        // @note TODO: create periphery library to deploy this
-        // to reduce code size issue
-        constantOutflowNFTLogic = new ConstantOutflowNFT();
-        constantInflowNFTLogic = new ConstantInflowNFT();
+        constantOutflowNFTLogic = SuperfluidNFTDeployerLibrary
+            .deployConstantOutflowNFT();
+        constantInflowNFTLogic = SuperfluidNFTDeployerLibrary
+            .deployConstantInflowNFT();
 
         // Deploy TestGovernance. Needs initialization later.
         testGovernance = SuperfluidGovDeployerLibrary.deployTestGovernance();

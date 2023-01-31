@@ -4,7 +4,8 @@ const workflowPath =
     "/repos/superfluid-finance/protocol-monorepo/actions/runs?per_page=100";
 const pullRequestPath =
     "/repos/superfluid-finance/protocol-monorepo/pulls?state=open";
-
+const allPullRequests =
+    "https://github.com/superfluid-finance/protocol-monorepo/pulls";
 const warningIcon =
     "https://api.slack.com/img/blocks/bkb_template_images/notificationsWarningIcon.png";
 const greenCheckMark =
@@ -94,13 +95,15 @@ async function sendMessageToSlack(data) {
     const amountOfPRsOpen = openPRs.length;
     const oldestOpenPR = openPRs[openPRs.length - 1];
     const oldestDraftPR = draftPRs[draftPRs.length - 1];
-    let oldestOpenPRTitle = oldestOpenPR.title;
-    const oldestDraftPRTitle = oldestDraftPR.title;
-    const oldestPRAuthorName = oldestOpenPR.user.login;
-    const oldestPRAuthorPicture = oldestOpenPR.user.avatar_url;
-    const oldestPRCreatedByUrl = oldestOpenPR.user.url;
-    const oldestPRUrl = oldestOpenPR.html_url;
-    const oldestDraftPRUrl = oldestDraftPR.html_url;
+    let oldestOpenPRTitle = oldestOpenPR ? oldestOpenPR.title : "";
+    const oldestDraftPRTitle = oldestDraftPR ? oldestDraftPR.title : "";
+    const oldestPRAuthorName = oldestOpenPR ? oldestOpenPR.user.login : "";
+    const oldestPRAuthorPicture = oldestOpenPR
+        ? oldestOpenPR.user.avatar_url
+        : "";
+    const oldestPRCreatedByUrl = oldestOpenPR ? oldestOpenPR.user.url : "";
+    const oldestPRUrl = oldestOpenPR ? oldestOpenPR.html_url : "";
+    const oldestDraftPRUrl = oldestDraftPR ? oldestDraftPR.html_url : "";
     const lastWorkflow = workflowJson.workflow_runs.filter(
         (x) => x.path === workflowFileName
     )[0];
@@ -135,18 +138,24 @@ async function sendMessageToSlack(data) {
         return allCommits[allCommits.length - 1];
     }
 
-    let olderstPrOldestCommit = await getPrOldestCommit(oldestOpenPR);
-    let oldestDraftPrOldestCommit = await getPrOldestCommit(oldestDraftPR);
+    let olderstPrOldestCommit = oldestOpenPR
+        ? await getPrOldestCommit(oldestOpenPR)
+        : "";
+    let oldestDraftPrOldestCommit = oldestDraftPR
+        ? await getPrOldestCommit(oldestDraftPR)
+        : "";
 
-    const oldestPRLastUpdate = new Date(
-        olderstPrOldestCommit.commit.author.date
-    );
+    const oldestPRLastUpdate = oldestOpenPR
+        ? new Date(olderstPrOldestCommit.commit.author.date)
+        : "";
 
-    const oldestDraftPRLastUpdate = new Date(
-        oldestDraftPrOldestCommit.commit.author.date
-    );
+    const oldestDraftPRLastUpdate = oldestDraftPR
+        ? new Date(oldestDraftPrOldestCommit.commit.author.date)
+        : "";
 
-    const oldestPRMessage = olderstPrOldestCommit.commit.message;
+    const oldestPRMessage = oldestOpenPR
+        ? olderstPrOldestCommit.commit.message
+        : "";
 
     const msInADay = 1000 * 60 * 60 * 24;
     const lastUpdatedBeforeDays = (
@@ -274,11 +283,7 @@ async function sendMessageToSlack(data) {
             prCountString =
                 "Click here to see a magnificent view of no open PRs in the monorepo";
         }
-        return (
-            "*<https://github.com/superfluid-finance/protocol-monorepo/pulls|" +
-            prCountString +
-            ">*"
-        );
+        return "*<" + allPullRequests + "|" + prCountString + ">*";
     }
 
     function addDraftPRSection() {
@@ -321,9 +326,16 @@ async function sendMessageToSlack(data) {
             );
             addPRContext();
         } else {
+            let draftMessage = oldestDraftPR
+                ? "There are no open PRs????? *<" +
+                  allPullRequests +
+                  "|" +
+                  amountOfDraftPRs +
+                  " pull requests are in draft , you might want to look into those>*"
+                : "There are no open and draft PRs? What is this, why u no work, you might want to read this:\n*<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request|How to create a pull request>*";
             addSectionWithImage(
                 webhookPayload,
-                "There are no open PRs? What is this, you might want to read this:\n*<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request|How to create a pull request>*",
+                draftMessage,
                 sadPepeKidImage,
                 "The pepe kid is sad, open a PR to make him happy"
             );
@@ -368,6 +380,18 @@ async function sendMessageToSlack(data) {
         }
     }
 
+    function getWorkflowTimeString() {
+        if (workflowStatus === "in_progress") {
+            return workflowName + " is still running , please wait";
+        } else {
+            return (
+                workflowName +
+                " ran for: " +
+                convertMS(lastWorkflowUsage.run_duration_ms)
+            );
+        }
+    }
+
     function getWorkflowString() {
         return (
             workflowName +
@@ -376,7 +400,7 @@ async function sendMessageToSlack(data) {
             "|#" +
             workflowNumber +
             ">*: " +
-            workflowConclusion +
+            getOverallWorkflowString() +
             "\nLast commit: *<" +
             workflowCommitLink +
             "|" +
@@ -384,9 +408,7 @@ async function sendMessageToSlack(data) {
             ">*\nWorkflow ran at: " +
             workflowRanAt +
             "\n" +
-            workflowName +
-            " ran for: " +
-            convertMS(lastWorkflowUsage.run_duration_ms)
+            getWorkflowTimeString()
         );
     }
 

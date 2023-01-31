@@ -7,8 +7,13 @@ import {
     IERC721Upgradeable,
     IERC721MetadataUpgradeable
 } from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
+import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
+import {
+    IConstantFlowAgreementV1
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /// @title CFAv1NFTBase abstract contract
 /// @author Superfluid
@@ -19,6 +24,10 @@ import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 /// NOTE: the storage gap allows us to add an additional 45 storage variables to this contract without breaking child
 /// COFNFT or CIFNFT storage.
 abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
+    using Strings for uint256;
+
+    string public constant BASE_URI =
+        "https://nft.superfluid.finance/cfa/v1/getmeta";
     struct FlowData {
         address flowSender;
         address flowReceiver;
@@ -26,7 +35,7 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
 
     /// NOTE: The storage variables in this contract MUST NOT:
     /// - change the ordering of the existing variables
-    /// - change any of the variable types 
+    /// - change any of the variable types
     /// - rename any of the existing variables
     /// - remove any of the existing variables
     /// - add any new variables after _gap
@@ -146,6 +155,55 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
     /// @return symbol of the NFT
     function symbol() external view virtual override returns (string memory) {
         return _symbol;
+    }
+
+    /// @notice This returns the Uniform Resource Identifier (URI), where the metadata for the NFT lives.
+    /// @dev Returns the Uniform Resource Identifier (URI) for `_tokenId` token.
+    /// @return the token URI
+    function tokenURI(
+        uint256 _tokenId
+    ) external view virtual override returns (string memory) {
+        FlowData memory flowData = flowDataByTokenId(_tokenId);
+        address superTokenAddress = address(superToken);
+
+        string memory superTokenSymbol = superToken.symbol();
+
+        (uint256 startDate, int96 flowRate) = _getFlow(
+            flowData.flowSender,
+            flowData.flowReceiver
+        );
+
+        return
+            string(
+                abi.encodePacked(
+                    BASE_URI,
+                    "?chain_id=",
+                    block.chainid.toString(),
+                    "&token_address=",
+                    Strings.toHexString(
+                        uint256(uint160(superTokenAddress)),
+                        20
+                    ),
+                    "&token_symbol=",
+                    superTokenSymbol,
+                    "&token_decimals=",
+                    uint256(18).toString(),
+                    "&sender=",
+                    Strings.toHexString(
+                        uint256(uint160(flowData.flowSender)),
+                        20
+                    ),
+                    "&receiver=",
+                    Strings.toHexString(
+                        uint256(uint160(flowData.flowReceiver)),
+                        20
+                    ),
+                    "&flowRate=",
+                    uint256(uint96(flowRate)).toString(),
+                    "&start_date=",
+                    startDate.toString()
+                )
+            );
     }
 
     /// @inheritdoc IERC721Upgradeable
@@ -276,6 +334,29 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
 
         emit ApprovalForAll(_owner, _operator, _approved);
     }
+
+    function _getFlow(
+        address sender,
+        address receiver
+    ) internal view returns (uint256 timestamp, int96 flowRate) {
+        ISuperfluid host = ISuperfluid(superToken.getHost());
+        (timestamp, flowRate, , ) = IConstantFlowAgreementV1(
+            address(
+                host.getAgreementClass(
+                    keccak256(
+                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+                    )
+                )
+            )
+        ).getFlow(superToken, sender, receiver);
+    }
+
+    /// @dev Returns the flow data of the `tokenId`. Does NOT revert if token doesn't exist.
+    /// @param _tokenId the token id whose existence we're checking
+    /// @return flowData the FlowData struct for `_tokenId`
+    function flowDataByTokenId(
+        uint256 _tokenId
+    ) public view virtual returns (FlowData memory flowData);
 
     /// @dev Returns the owner of the `tokenId`. Does NOT revert if token doesn't exist.
     /// @param _tokenId the token id whose existence we're checking

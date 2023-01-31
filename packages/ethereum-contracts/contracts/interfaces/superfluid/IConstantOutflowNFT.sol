@@ -21,7 +21,7 @@ interface IConstantOutflowNFT is IERC721Metadata {
     /// @notice An external function for querying flow data by `_tokenId``
     /// @param _tokenId the token id
     /// @return flowData the flow data associated with `_tokenId`
-    function flowDataBySenderReceiver(
+    function flowDataByTokenId(
         uint256 _tokenId
     ) external view returns (CFAv1NFTBase.FlowData memory flowData);
 

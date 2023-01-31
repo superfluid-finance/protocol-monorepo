@@ -26,15 +26,6 @@ contract ConstantInflowNFT is CFAv1NFTBase {
             );
     }
 
-    /// @notice This returns the Uniform Resource Identifier (URI), where the metadata for the NFT lives.
-    /// @dev Returns the Uniform Resource Identifier (URI) for `_tokenId` token.
-    /// @return the token URI
-    function tokenURI(
-        uint256 // _tokenId
-    ) external view virtual override returns (string memory) {
-        return "";
-    }
-
     /// @note Neither mint nor burn will work here because we need to forward these calls.
 
     /// @note mint/burn should also probably be access controlled to just outflow NFT calling it
@@ -56,12 +47,12 @@ contract ConstantInflowNFT is CFAv1NFTBase {
         _burn(_tokenId);
     }
 
-    function _flowDataByTokenId(
+    function flowDataByTokenId(
         uint256 _tokenId
-    ) internal view returns (FlowData memory flowData) {
+    ) public view override returns (FlowData memory flowData) {
         IConstantOutflowNFT constantOutflowNFT = superToken
             .constantOutflowNFT();
-        flowData = constantOutflowNFT.flowDataBySenderReceiver(_tokenId);
+        flowData = constantOutflowNFT.flowDataByTokenId(_tokenId);
     }
 
     function _safeTransfer(
@@ -80,7 +71,7 @@ contract ConstantInflowNFT is CFAv1NFTBase {
     function _ownerOf(
         uint256 _tokenId
     ) internal view virtual override returns (address) {
-        FlowData memory flowData = _flowDataByTokenId(_tokenId);
+        FlowData memory flowData = flowDataByTokenId(_tokenId);
         return flowData.flowReceiver;
     }
 
@@ -97,8 +88,8 @@ contract ConstantInflowNFT is CFAv1NFTBase {
     /// 1. Transfer (burn) of `_tokenId` (`_from` -> `address(0)`) | `_from` is OutflowNFT owner
     /// 2. Transfer (mint) of `newTokenId` (`address(0)` -> `_to`)   | `_to` is OutflowNFT owner
     ///
-    /// We also clear storage for `_tokenApprovals` and `_flowDataBySenderReceiver` with `_tokenId`
-    /// and create new storage for `_flowDataBySenderReceiver` with `newTokenId`.
+    /// We also clear storage for `_tokenApprovals` and `flowDataByTokenId` with `_tokenId`
+    /// and create new storage for `flowDataByTokenId` with `newTokenId`.
     /// NOTE: There are also interactions at the protocol level:
     /// - We delete the flow from oldFlowData.flowSender => oldFlowData.flowReceiver (_from)
     ///   - This will trigger super app before/afterAgreementTerminated hooks if a super app is part of the agreement
@@ -120,7 +111,7 @@ contract ConstantInflowNFT is CFAv1NFTBase {
             revert CFA_NFT_TRANSFER_TO_ZERO_ADDRESS();
         }
 
-        FlowData memory oldFlowData = _flowDataByTokenId(_tokenId);
+        FlowData memory oldFlowData = flowDataByTokenId(_tokenId);
         // @note we are doing this external call twice, here and in the function above
         IConstantOutflowNFT constantOutflowNFT = superToken
             .constantOutflowNFT();
@@ -160,7 +151,7 @@ contract ConstantInflowNFT is CFAv1NFTBase {
     }
 
     function _burn(uint256 _tokenId) internal {
-        FlowData memory flowData = _flowDataByTokenId(_tokenId);
+        FlowData memory flowData = flowDataByTokenId(_tokenId);
         emit Transfer(flowData.flowReceiver, address(0), _tokenId);
     }
 }

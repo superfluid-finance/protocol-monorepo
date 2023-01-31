@@ -151,7 +151,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
         assert_Expected_Logic_Contract_Address(mockProxy, address(badLogic));
 
         helper_Expect_Revert_When_Storage_Layout_Is_Changed(
-            "_flowDataBySenderReceiver"
+            "_flowDataByTokenId"
         );
 
         mockProxy.validateStorageLayout();
@@ -183,7 +183,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
         assert_Expected_Logic_Contract_Address(mockProxy, address(badLogic));
 
         helper_Expect_Revert_When_Storage_Layout_Is_Changed(
-            "_flowDataBySenderReceiver"
+            "_flowDataByTokenId"
         );
 
         mockProxy.validateStorageLayout();

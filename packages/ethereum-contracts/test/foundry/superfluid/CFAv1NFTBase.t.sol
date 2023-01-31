@@ -53,7 +53,7 @@ contract ConstantInflowNFTMock is ConstantInflowNFT {
     function mockFlowDataByTokenId(
         uint256 _tokenId
     ) public view returns (FlowData memory flowData) {
-        return _flowDataByTokenId(_tokenId);
+        return flowDataByTokenId(_tokenId);
     }
 }
 
@@ -112,7 +112,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         address _expectedFlowReceiver
     ) public {
         CFAv1NFTBase.FlowData memory flowData = constantOutflowNFTProxy
-            .flowDataBySenderReceiver(_tokenId);
+            .flowDataByTokenId(_tokenId);
 
         // assert flow sender is equal to expected flow sender
         assertEq(flowData.flowSender, _expectedFlowSender);
@@ -148,7 +148,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         bool _isOutflow
     ) public {
         CFAv1NFTBase.FlowData memory flowData = constantOutflowNFTProxy
-            .flowDataBySenderReceiver(_tokenId);
+            .flowDataByTokenId(_tokenId);
 
         address actualOwner = _isOutflow
             ? ConstantOutflowNFTMock(address(_nftContract)).mockOwnerOf(

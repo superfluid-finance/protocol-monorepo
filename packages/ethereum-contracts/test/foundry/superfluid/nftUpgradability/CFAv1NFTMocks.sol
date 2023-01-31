@@ -363,7 +363,7 @@ contract CFAv1NFTBaseMockV1BadReorderingPreGap is UUPSProxiable, ICFAv1NFTBaseMo
 //////////////////////////////////////////////////////////////////////////*/
 
 contract ConstantOutflowNFTMockV1 is CFAv1NFTBaseMockV1 {
-    mapping(uint256 => FlowData) internal _flowDataBySenderReceiver;
+    mapping(uint256 => FlowData) internal _flowDataByTokenId;
 
     function proxiableUUID() public pure virtual override returns (bytes32) {
         return
@@ -380,8 +380,8 @@ contract ConstantOutflowNFTMockV1 is CFAv1NFTBaseMockV1 {
 
         // slots 5-49 occupied by _gap in CFAv1NFTBaseMockV1
 
-        assembly { slot := _flowDataBySenderReceiver.slot offset := _flowDataBySenderReceiver.offset }
-        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataBySenderReceiver");   
+        assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
+        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
     }
 }
 
@@ -463,7 +463,7 @@ contract CFAv1NFTBaseMockV1BadPostGap is UUPSProxiable, ICFAv1NFTBaseMockErrors 
 }
 
 contract ConstantOutflowNFTMockV1BaseBadNewVariable is CFAv1NFTBaseMockV1BadPostGap {
-    mapping(uint256 => FlowData) internal _flowDataBySenderReceiver;
+    mapping(uint256 => FlowData) internal _flowDataByTokenId;
 
     function proxiableUUID() public pure override returns (bytes32) {
         return
@@ -480,15 +480,15 @@ contract ConstantOutflowNFTMockV1BaseBadNewVariable is CFAv1NFTBaseMockV1BadPost
 
         // slots 5-49 occupied by _gap in CFAv1NFTBaseMockV1
 
-        assembly { slot := _flowDataBySenderReceiver.slot offset := _flowDataBySenderReceiver.offset }
-        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataBySenderReceiver");   
+        assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
+        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
     }
 }
 
 contract ConstantOutflowNFTMockV1BadNewVariable is CFAv1NFTBaseMockV1 {
     // @note The incorrectly placed variable!
     uint256 public badVariable;
-    mapping(uint256 => FlowData) internal _flowDataBySenderReceiver;
+    mapping(uint256 => FlowData) internal _flowDataByTokenId;
 
     function proxiableUUID() public pure override returns (bytes32) {
         return
@@ -505,8 +505,8 @@ contract ConstantOutflowNFTMockV1BadNewVariable is CFAv1NFTBaseMockV1 {
 
         // slots 5-49 occupied by _gap in CFAv1NFTBaseMockV1
 
-        assembly { slot := _flowDataBySenderReceiver.slot offset := _flowDataBySenderReceiver.offset }
-        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataBySenderReceiver");   
+        assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
+        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
     }
 }
 
@@ -533,8 +533,8 @@ contract ConstantOutflowNFTMockV1GoodUpgrade is ConstantOutflowNFTMockV1 {
 
         // slots 5-49 occupied by _gap in CFAv1NFTBaseMockV1
 
-        assembly { slot := _flowDataBySenderReceiver.slot offset := _flowDataBySenderReceiver.offset }
-        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataBySenderReceiver");   
+        assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
+        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
 
         assembly { slot := goodVariable.slot offset := goodVariable.offset }
         if (slot != 51 || offset != 0) revert STORAGE_LOCATION_CHANGED("goodVariable");   

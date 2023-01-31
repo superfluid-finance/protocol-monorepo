@@ -21,7 +21,7 @@ import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
 contract ConstantOutflowNFT is CFAv1NFTBase {
     /// @notice A mapping from token id to FlowData = { address sender, address receiver}
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
-    mapping(uint256 => FlowData) internal _flowDataBySenderReceiver;
+    mapping(uint256 => FlowData) internal _flowDataByTokenId;
 
     error COF_NFT_ONLY_CONSTANT_INFLOW();           // 0xa495a718
     error COF_NFT_ONLY_CFA();                       // 0x054fae59
@@ -40,19 +40,10 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     /// @notice An external function for querying flow data by `_tokenId``
     /// @param _tokenId the token id
     /// @return flowData the flow data associated with `_tokenId`
-    function flowDataBySenderReceiver(
+    function flowDataByTokenId(
         uint256 _tokenId
-    ) external view returns (FlowData memory flowData) {
-        flowData = _flowDataBySenderReceiver[_tokenId];
-    }
-
-    /// @notice This returns the Uniform Resource Identifier (URI), where the metadata for the NFT lives.
-    /// @dev Returns the Uniform Resource Identifier (URI) for `_tokenId` token.
-    /// @return the token URI
-    function tokenURI(
-        uint256 // _tokenId
-    ) external view virtual override returns (string memory) {
-        return "";
+    ) public view override returns (FlowData memory flowData) {
+        flowData = _flowDataByTokenId[_tokenId];
     }
 
     /// @note Neither mint nor burn will work here because we need to forward these calls.
@@ -77,7 +68,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     /// Also important to note is that the agreement contract will handle the NFT deletion.
     /// @param _tokenId desired token id to burn
     function burn(uint256 _tokenId) external {
-        FlowData memory flowData = _flowDataBySenderReceiver[_tokenId];
+        FlowData memory flowData = _flowDataByTokenId[_tokenId];
         if (flowData.flowSender == msg.sender) {
             // superToken.deleteFlow(flowData.sender, flowData.receiver);
         } else {
@@ -148,7 +139,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     function _ownerOf(
         uint256 _tokenId
     ) internal view virtual override returns (address) {
-        return _flowDataBySenderReceiver[_tokenId].flowSender;
+        return _flowDataByTokenId[_tokenId].flowSender;
     }
 
     /// @notice Reverts - Transfer of outflow NFT is not allowed.
@@ -186,7 +177,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         }
 
         // update mapping for new NFT to be minted
-        _flowDataBySenderReceiver[_newTokenId] = FlowData(_to, _flowReceiver);
+        _flowDataByTokenId[_newTokenId] = FlowData(_to, _flowReceiver);
 
         // emit mint of new outflow token with newTokenId
         emit Transfer(address(0), _to, _newTokenId);
@@ -202,7 +193,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         delete _tokenApprovals[_tokenId];
 
         // remove previous _tokenId flow data mapping
-        delete _flowDataBySenderReceiver[_tokenId];
+        delete _flowDataByTokenId[_tokenId];
 
         // emit burn of outflow token with _tokenId
         emit Transfer(owner, address(0), _tokenId);

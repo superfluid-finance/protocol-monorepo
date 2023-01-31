@@ -1,10 +1,10 @@
 {
     "network": "celo",
     "hostStartBlock": 16393000,
-    "hostAddress": "0x4E583d9390082B65Bef884b629DFA426114CED6d",
-    "cfaAddress": "0x2844c1BBdA121E9E43105630b9C8310e5c72744b",
-    "idaAddress": "0xbCF9cfA8Da20B591790dF27DE65C1254Bf91563d",
-    "superTokenFactoryAddress": "0x0422689cc4087b6B7280e0a7e7F655200ec86Ae1",
-    "resolverV1Address": "0xeE4cD028f5fdaAdeA99f8fc38e8bA8A57c90Be53",
-    "nativeAssetSuperTokenAddress": "0xc22bea0be9872d8b7b3933cec70ece4d53a900da"
+    "hostAddress": "0xA4Ff07cF81C02CFD356184879D953970cA957585",
+    "cfaAddress": "0x9d369e78e1a682cE0F8d9aD849BeA4FE1c3bD3Ad",
+    "idaAddress": "0x26747Fe93fAC8bF28E1e24A558a2bC7E4d9846cA",
+    "superTokenFactoryAddress": "0x36be86dEe6BC726Ed0Cbd170ccD2F21760BC73D9",
+    "resolverV1Address": "0x05eE721BD4D803d6d477Aa7607395452B65373FF",
+    "nativeAssetSuperTokenAddress": "0x671425Ae1f272Bc6F79beC3ed5C4b00e9c628240"
 }

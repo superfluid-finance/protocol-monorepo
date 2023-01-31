@@ -11,6 +11,7 @@ import {
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError} from "../../utils/expectRevert";
+import {deploySuperTokenAndNFTContractsAndInitialize} from "../apps/SuperTokenV1Library.CFA.test";
 import {toBN} from "./helpers";
 
 const mintAmount = "1000000000000000000000000000"; // a small loan of a billion dollars
@@ -66,10 +67,10 @@ describe("Agreement Forwarder", function () {
     });
 
     beforeEach(async () => {
-        const SuperTokenMockFactory = await ethers.getContractFactory(
-            "SuperTokenMock"
+        superToken = await deploySuperTokenAndNFTContractsAndInitialize(
+            t.contracts.superfluid,
+            t.contracts.resolver
         );
-        superToken = await SuperTokenMockFactory.deploy(host.address, "69");
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");
     });

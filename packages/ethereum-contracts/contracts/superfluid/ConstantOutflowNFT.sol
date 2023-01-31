@@ -108,10 +108,11 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
     /// NOTE probably should be access controlled to only cfa
     function onDelete(uint256 _tokenId) external {
-        _burn(_tokenId);
-
+        // must "burn" inflow NFT first because we clear storage when burning outflow NFT
         IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
         constantInflowNFT.burn(_tokenId);
+
+        _burn(_tokenId);
     }
 
     /// @notice Handles the mint of ConstantOutflowNFT when an inflow NFT user transfers their NFT.

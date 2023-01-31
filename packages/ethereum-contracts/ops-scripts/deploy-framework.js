@@ -2,7 +2,6 @@ const fs = require("fs");
 const util = require("util");
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const ethers = require("ethers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../ops-scripts/deploy-erc1820");
 
@@ -192,6 +191,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "SlotsBitmapLibrary",
         "ConstantFlowAgreementV1",
         "InstantDistributionAgreementV1",
+        "ConstantOutflowNFT",
+        "ConstantInflowNFT"
     ];
     const mockContracts = [
         "SuperfluidMock",
@@ -221,6 +222,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         SlotsBitmapLibrary,
         ConstantFlowAgreementV1,
         InstantDistributionAgreementV1,
+        ConstantOutflowNFT,
+        ConstantInflowNFT
     } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
@@ -451,9 +454,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     }
 
-    // deploy CFAv1Forwarder for test deployments
-    // for other (permanent) deployments, it's not handled by this script
     if (protocolReleaseVersion === "test") {
+        // deploy CFAv1Forwarder for test deployments
+        // for other (permanent) deployments, it's not handled by this script
         await deployAndRegisterContractIf(
             CFAv1Forwarder,
             "CFAv1Forwarder",
@@ -466,6 +469,28 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     "Governance set CFAv1Forwarder"
                 )(superfluid.address, ZERO_ADDRESS, forwarder.address);
                 return forwarder;
+            }
+        );
+
+        // also deploy ConstantOutflowNFT logic and ConstantInflowNFT logic
+        await deployAndRegisterContractIf(
+            ConstantOutflowNFT,
+            "ConstantOutflowNFT",
+            async (contractAddress) => contractAddress === ZERO_ADDRESS,
+            async () => {
+                const constantOutflowNFT = await ConstantOutflowNFT.new();
+                output += `COF_NFT=${constantOutflowNFT.address}\n`;
+                return constantOutflowNFT;
+            }
+        );
+        await deployAndRegisterContractIf(
+            ConstantInflowNFT,
+            "ConstantInflowNFT",
+            async (contractAddress) => contractAddress === ZERO_ADDRESS,
+            async () => {
+                const constantInflowNFT = await ConstantInflowNFT.new();
+                output += `COF_NFT=${constantInflowNFT.address}\n`;
+                return constantInflowNFT;
             }
         );
     }

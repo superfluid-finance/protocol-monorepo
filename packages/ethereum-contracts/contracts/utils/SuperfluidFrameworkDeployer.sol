@@ -42,7 +42,7 @@ import {
     SuperTokenFactoryHelper,
     ERC20WithTokenInfo
 } from "../superfluid/SuperTokenFactory.sol";
-import { SuperToken } from "../superfluid/SuperToken.sol";
+import { SuperToken, ISuperToken } from "../superfluid/SuperToken.sol";
 import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 
@@ -96,6 +96,8 @@ contract SuperfluidFrameworkDeployer {
         // @note ERC1820 must be deployed for this to work
 
         // Deploy NFT logic contracts
+        // @note TODO: create periphery library to deploy this
+        // to reduce code size issue
         constantOutflowNFTLogic = new ConstantOutflowNFT();
         constantInflowNFTLogic = new ConstantInflowNFT();
 
@@ -125,8 +127,7 @@ contract SuperfluidFrameworkDeployer {
         );
 
         // Deploy ConstantFlowAgreementV1
-        // TODO @note Once we have the actual implementation for the hook contract,
-        // we will need to deploy it and put it here
+        // @note TODO hook contract is no more-should be deleted
 
         cfaV1 = SuperfluidCFAv1DeployerLibrary.deployConstantFlowAgreementV1(
             host,
@@ -225,7 +226,9 @@ contract SuperfluidFrameworkDeployer {
             _decimals,
             _mintLimit
         );
+
         string memory superTokenSymbol = string.concat(_underlyingSymbol, "x");
+
         superToken = SuperToken(
             address(
                 superTokenFactory.createERC20Wrapper(
@@ -237,26 +240,7 @@ contract SuperfluidFrameworkDeployer {
             )
         );
 
-        UUPSProxy outflowNFTProxy = new UUPSProxy();
-        outflowNFTProxy.initializeProxy(address(constantOutflowNFTLogic));
-        ConstantOutflowNFT(address(outflowNFTProxy)).initialize(
-            superToken,
-            string.concat(superTokenSymbol, " Outflow NFT"),
-            string.concat(superTokenSymbol, "COF")
-        );
-        UUPSProxy inflowNFTProxy = new UUPSProxy();
-        inflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
-        ConstantOutflowNFT(address(inflowNFTProxy)).initialize(
-            superToken,
-            string.concat(superTokenSymbol, " Inflow NFT"),
-            string.concat(superTokenSymbol, "CIF")
-        );
-        superToken.initializeNFTContracts(
-            address(outflowNFTProxy),
-            address(inflowNFTProxy),
-            address(0),
-            address(0)
-        );
+        _deployCFANFTContractsAndInitialize(superToken, superTokenSymbol);
 
         // list underlying token in resolver
         _handleResolverList(
@@ -276,7 +260,7 @@ contract SuperfluidFrameworkDeployer {
     /// @notice Deploys a Native Asset Super Token and lists it in the resolver
     /// @dev e.g. ETHx, MATICx, AVAXx, etc. The underlying is the Native Asset.
     /// @param _name The token name
-    /// @param _symbol The token symbol
+    /// @param _symbol The super token symbol
     /// @return nativeAssetSuperToken
     function deployNativeAssetSuperToken(
         string calldata _name,
@@ -291,6 +275,8 @@ contract SuperfluidFrameworkDeployer {
             _name,
             _symbol
         );
+
+        _deployCFANFTContractsAndInitialize(nativeAssetSuperToken, _symbol);
 
         _handleResolverList(
             true,
@@ -318,6 +304,8 @@ contract SuperfluidFrameworkDeployer {
 
         pureSuperToken = IPureSuperToken(address(pureSuperTokenProxy));
 
+        _deployCFANFTContractsAndInitialize(pureSuperToken, _symbol);
+
         _handleResolverList(
             true,
             string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, _symbol),
@@ -326,6 +314,38 @@ contract SuperfluidFrameworkDeployer {
 
         // transfer initial supply to deployer
         pureSuperToken.transfer(msg.sender, _initialSupply);
+    }
+
+    /// @notice Deploys and initializes the outflow and inflow CFA NFTs and initializes them in the super token
+    /// @dev Each super token is linked to the two outflow and inflow CFA NFTs
+    /// @param _superToken The super token
+    /// @param _superTokenSymbol the symbol of the super token
+    function _deployCFANFTContractsAndInitialize(
+        ISuperToken _superToken,
+        string memory _superTokenSymbol
+    ) internal {
+        UUPSProxy outflowNFTProxy = new UUPSProxy();
+        outflowNFTProxy.initializeProxy(address(constantOutflowNFTLogic));
+        ConstantOutflowNFT(address(outflowNFTProxy)).initialize(
+            _superToken,
+            string.concat(_superTokenSymbol, " Outflow NFT"),
+            string.concat(_superTokenSymbol, "COF")
+        );
+
+        UUPSProxy inflowNFTProxy = new UUPSProxy();
+        inflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
+        ConstantInflowNFT(address(inflowNFTProxy)).initialize(
+            _superToken,
+            string.concat(_superTokenSymbol, " Inflow NFT"),
+            string.concat(_superTokenSymbol, "CIF")
+        );
+
+        _superToken.initializeNFTContracts(
+            address(outflowNFTProxy),
+            address(inflowNFTProxy),
+            address(0),
+            address(0)
+        );
     }
 
     function _handleResolverList(

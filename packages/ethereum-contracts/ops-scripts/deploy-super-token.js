@@ -55,6 +55,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             "Resolver",
             "UUPSProxiable",
             "SETHProxy",
+            "UUPSProxy",
+            "ConstantOutflowNFT",
+            "ConstantInflowNFT",
         ],
         contractLoader: builtTruffleContractLoader,
     });
@@ -67,6 +70,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         ISuperToken,
         ISETH,
         SETHProxy,
+        UUPSProxy,
+        ConstantOutflowNFT,
+        ConstantInflowNFT,
     } = sf.contracts;
 
     const superTokenFactory = await sf.contracts.ISuperTokenFactory.at(
@@ -199,6 +205,65 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         const resolver = await Resolver.at(sf.resolver.address);
         await resolver.set(superTokenKey, superToken.address);
         console.log("Resolver set done.");
+
+        // attach CFA NFT contracts to super token for test deployments
+        if (protocolReleaseVersion === "test") {
+            console.log(
+                '** "test" Protocol Release Version - Attaching CFA NFTs to deployed SuperToken **'
+            );
+
+            // superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}x`;
+            const superTokenSymbol = superTokenKey.split(".")[2];
+
+            const constantOutflowLogicAddress = await sf.resolver.get(
+                "ConstantOutflowNFT"
+            );
+            console.log(
+                "Deploy and initialize ConstantOutflowNFT proxy with logic address: ",
+                constantOutflowLogicAddress
+            );
+            const constantOutflowProxy = await UUPSProxy.new();
+            await constantOutflowProxy.initializeProxy(
+                constantOutflowLogicAddress
+            );
+            const constantOutflow = await ConstantOutflowNFT.at(
+                constantOutflowProxy.address
+            );
+            await constantOutflow.initialize(
+                superToken.address,
+                `${superTokenSymbol} Outflow NFT`,
+                `${superTokenSymbol} COF`
+            );
+
+            const constantInflowLogicAddress = await sf.resolver.get(
+                "ConstantInflowNFT"
+            );
+            console.log(
+                "Deploy and initialize ConstantInflowNFT proxy with logic address: ",
+                constantInflowLogicAddress
+            );
+            let constantInflowProxy = await UUPSProxy.new();
+            await constantInflowProxy.initializeProxy(
+                constantInflowLogicAddress
+            );
+            const constantInflow = await ConstantInflowNFT.at(
+                constantInflowProxy.address
+            );
+            await constantInflow.initialize(
+                superToken.address,
+                `${superTokenSymbol} Outflow NFT`,
+                `${superTokenSymbol} COF`
+            );
+
+            console.log("Initialize NFT contracts on SuperToken");
+            await superToken.initializeNFTContracts(
+                constantOutflowProxy.address,
+                constantInflowProxy.address,
+                ZERO_ADDRESS,
+                ZERO_ADDRESS
+            );
+        }
+
         return superToken.address;
     }
 

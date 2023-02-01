@@ -113,9 +113,10 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Assertion Helpers
     //////////////////////////////////////////////////////////////////////////*/
-    function assert_FlowDataState_IsExpected(
+    function assert_Flow_Data_State_IsExpected(
         uint256 _tokenId,
         address _expectedFlowSender,
+        uint32 _expectedFlowStartDate,
         address _expectedFlowReceiver
     ) public {
         CFAv1NFTBase.FlowData memory flowData = constantOutflowNFTProxy
@@ -123,6 +124,9 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
 
         // assert flow sender is equal to expected flow sender
         assertEq(flowData.flowSender, _expectedFlowSender);
+
+        // assert flow start date is equal to expected flow start date
+        assertEq(flowData.flowStartDate, _expectedFlowStartDate);
 
         // assert flow sender is equal to expected flow sender
         assertEq(flowData.flowReceiver, _expectedFlowReceiver);
@@ -144,8 +148,8 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function assert_FlowDataState_IsEmpty(uint256 _tokenId) public {
-        assert_FlowDataState_IsExpected(_tokenId, address(0), address(0));
+    function assert_Flow_Data_State_IsEmpty(uint256 _tokenId) public {
+        assert_Flow_Data_State_IsExpected(_tokenId, address(0), 0, address(0));
     }
 
     function assert_OwnerOf(
@@ -338,7 +342,12 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
 
         vm.prank(_flowSender);
         sf.cfaLib.createFlow(_flowReceiver, superToken, _flowRate);
-        assert_FlowDataState_IsExpected(nftId, _flowSender, _flowReceiver);
+        assert_Flow_Data_State_IsExpected(
+            nftId,
+            _flowSender,
+            uint32(block.timestamp),
+            _flowReceiver
+        );
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -354,7 +363,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                    Passing Cases
+                                    Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
     function test_Passing_NFT_Contracts_And_Super_Token_Are_Properly_Initialized()
         public
@@ -373,62 +382,5 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             address(_constantInflowNFTProxy),
             address(superToken.constantInflowNFT())
         );
-    }
-
-    function test_Passing_Create_Flow_Mints_Outflow_And_Inflow_NFTs_And_Emits_Transfer_Events()
-        public
-    {
-        int96 flowRate = 42069;
-        address flowSender = alice;
-        address flowReceiver = bob;
-        helper_Create_Flow_And_Assert_NFT_Invariants(flowSender, flowReceiver, flowRate);
-    }
-
-    function test_Passing_Update_Flow_Does_Not_Impact_Storage_And_Emits_MetadataUpdate_Events()
-        public
-    {
-        int96 flowRate = 42069;
-        address flowSender = alice;
-        address flowReceiver = bob;
-        helper_Create_Flow_And_Assert_NFT_Invariants(flowSender, flowReceiver, flowRate);
-
-        uint256 nftId = helper_Get_NFT_ID(flowSender, flowReceiver);
-        assert_Event_MetadataUpdate(address(constantOutflowNFTProxy), nftId);
-        assert_Event_MetadataUpdate(address(constantInflowNFTProxy), nftId);
-
-        vm.prank(flowSender);
-        sf.cfaLib.updateFlow(flowReceiver, superToken, flowRate + 333);
-
-        assert_FlowDataState_IsExpected(nftId, flowSender, flowReceiver);
-    }
-
-    function test_Passing_Delete_Flow_Clears_Storage_And_Emits_Transfer_Events()
-        public
-    {
-        int96 flowRate = 42069;
-        address flowSender = alice;
-        address flowReceiver = bob;
-        helper_Create_Flow_And_Assert_NFT_Invariants(flowSender, flowReceiver, flowRate);
-
-        uint256 nftId = helper_Get_NFT_ID(flowSender, flowReceiver);
-
-        assert_Event_Transfer(
-            address(constantInflowNFTProxy),
-            flowReceiver,
-            address(0),
-            nftId
-        );
-
-        assert_Event_Transfer(
-            address(constantOutflowNFTProxy),
-            flowSender,
-            address(0),
-            nftId
-        );
-
-        vm.prank(flowSender);
-        sf.cfaLib.deleteFlow(flowSender, flowReceiver, superToken);
-
-        assert_FlowDataState_IsEmpty(nftId);
     }
 }

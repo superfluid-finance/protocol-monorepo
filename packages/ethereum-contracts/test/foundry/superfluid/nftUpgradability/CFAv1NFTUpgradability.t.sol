@@ -90,7 +90,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
         assertEq(_proxy.getCodeAddress(), _expectedLogicContract);
     }
 
-    // Should be able to update CFAv1NFTBase by adding new storage variables in gap space
+    // Should be able to update CFAv1NFTBase by adding new storage variables in gap space and reducing storage gap by one
     function test_Passing_Base_NFT_Contract_Is_Upgraded_Properly() external {
         CFAv1NFTBaseMockVGoodUpgrade goodNewLogic = new CFAv1NFTBaseMockVGoodUpgrade();
         vm.prank(address(superToken.getHost()));

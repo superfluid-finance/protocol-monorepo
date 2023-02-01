@@ -41,7 +41,23 @@ contract CFAv1NFTBaseMockV1 is UUPSProxiable, ICFAv1NFTBaseMockErrors {
 
     mapping(address => mapping(address => bool)) internal _operatorApprovals;
 
-    uint256[45] private _gap;
+    uint256 internal _reserve5;
+    uint256 private _reserve6;
+    uint256 private _reserve7;
+    uint256 private _reserve8;
+    uint256 private _reserve9;
+    uint256 private _reserve10;
+    uint256 private _reserve11;
+    uint256 private _reserve12;
+    uint256 private _reserve13;
+    uint256 private _reserve14;
+    uint256 private _reserve15;
+    uint256 private _reserve16;
+    uint256 private _reserve17;
+    uint256 private _reserve18;
+    uint256 private _reserve19;
+    uint256 private _reserve20;
+    uint256 internal _reserve21;
 
     function initialize(
         ISuperToken _superToken,
@@ -88,8 +104,11 @@ contract CFAv1NFTBaseMockV1 is UUPSProxiable, ICFAv1NFTBaseMockErrors {
         assembly { slot := _operatorApprovals.slot offset := _operatorApprovals.offset }
         if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
         
-        assembly { slot := _gap.slot offset := _gap.offset }
-        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_gap"); /// this lasts until slot 49
+        assembly { slot := _reserve5.slot offset := _reserve5.offset }
+        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve5");
+
+        assembly { slot := _reserve21.slot offset := _reserve21.offset }
+        if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
     }
 
     function proxiableUUID() public pure virtual override returns (bytes32) {
@@ -128,8 +147,22 @@ contract CFAv1NFTBaseMockVGoodUpgrade is UUPSProxiable, ICFAv1NFTBaseMockErrors 
     uint256 public newVar2;
     uint256 public newVar3;
 
-    // @note Notice the decrement of gap by the number of new variables added
-    uint256[42] private _gap;
+    // @note Notice the deletion of _reserve5 -> _reserve7
+    // and the changing of _reserve8 to an internal variable
+    uint256 internal _reserve8;
+    uint256 private _reserve9;
+    uint256 private _reserve10;
+    uint256 private _reserve11;
+    uint256 private _reserve12;
+    uint256 private _reserve13;
+    uint256 private _reserve14;
+    uint256 private _reserve15;
+    uint256 private _reserve16;
+    uint256 private _reserve17;
+    uint256 private _reserve18;
+    uint256 private _reserve19;
+    uint256 private _reserve20;
+    uint256 internal _reserve21;
 
     function initialize(
         ISuperToken _superToken,
@@ -187,8 +220,11 @@ contract CFAv1NFTBaseMockVGoodUpgrade is UUPSProxiable, ICFAv1NFTBaseMockErrors 
         if (slot != 7 || offset != 0) revert STORAGE_LOCATION_CHANGED("newVar3");
 
         // @note Note how we update the expected slot after adding 3 new variables
-        assembly { slot := _gap.slot offset := _gap.offset }
-        if (slot != 8 || offset != 0) revert STORAGE_LOCATION_CHANGED("_gap"); /// this lasts until slot 49
+        assembly { slot := _reserve8.slot offset := _reserve8.offset }
+        if (slot != 8 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve8");
+
+        assembly { slot := _reserve21.slot offset := _reserve21.offset }
+        if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
     }
 
     function proxiableUUID() public pure virtual override returns (bytes32) {
@@ -225,7 +261,23 @@ contract CFAv1NFTBaseMockV1BadNewVariablePreGap is UUPSProxiable, ICFAv1NFTBaseM
 
     mapping(address => mapping(address => bool)) internal _operatorApprovals;
 
-    uint256[45] private _gap;
+    uint256 internal _reserve5;
+    uint256 private _reserve6;
+    uint256 private _reserve7;
+    uint256 private _reserve8;
+    uint256 private _reserve9;
+    uint256 private _reserve10;
+    uint256 private _reserve11;
+    uint256 private _reserve12;
+    uint256 private _reserve13;
+    uint256 private _reserve14;
+    uint256 private _reserve15;
+    uint256 private _reserve16;
+    uint256 private _reserve17;
+    uint256 private _reserve18;
+    uint256 private _reserve19;
+    uint256 private _reserve20;
+    uint256 internal _reserve21;
 
     function initialize(
         ISuperToken _superToken,
@@ -279,8 +331,11 @@ contract CFAv1NFTBaseMockV1BadNewVariablePreGap is UUPSProxiable, ICFAv1NFTBaseM
         assembly { slot := _operatorApprovals.slot offset := _operatorApprovals.offset }
         if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
         
-        assembly { slot := _gap.slot offset := _gap.offset }
-        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_gap");
+        assembly { slot := _reserve5.slot offset := _reserve5.offset }
+        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve5");
+
+        assembly { slot := _reserve21.slot offset := _reserve21.offset }
+        if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
     }
 }
 
@@ -299,7 +354,23 @@ contract CFAv1NFTBaseMockV1BadReorderingPreGap is UUPSProxiable, ICFAv1NFTBaseMo
     mapping(address => mapping(address => bool)) internal _operatorApprovals;
     mapping(uint256 => address) internal _tokenApprovals;
 
-    uint256[45] private _gap;
+    uint256 internal _reserve5;
+    uint256 private _reserve6;
+    uint256 private _reserve7;
+    uint256 private _reserve8;
+    uint256 private _reserve9;
+    uint256 private _reserve10;
+    uint256 private _reserve11;
+    uint256 private _reserve12;
+    uint256 private _reserve13;
+    uint256 private _reserve14;
+    uint256 private _reserve15;
+    uint256 private _reserve16;
+    uint256 private _reserve17;
+    uint256 private _reserve18;
+    uint256 private _reserve19;
+    uint256 private _reserve20;
+    uint256 internal _reserve21;
 
     function initialize(
         ISuperToken _superToken,
@@ -353,8 +424,11 @@ contract CFAv1NFTBaseMockV1BadReorderingPreGap is UUPSProxiable, ICFAv1NFTBaseMo
         assembly { slot := _operatorApprovals.slot offset := _operatorApprovals.offset }
         if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
         
-        assembly { slot := _gap.slot offset := _gap.offset }
-        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_gap");
+        assembly { slot := _reserve5.slot offset := _reserve5.offset }
+        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve5");
+
+        assembly { slot := _reserve21.slot offset := _reserve21.offset }
+        if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
     }
 }
 
@@ -378,10 +452,10 @@ contract ConstantOutflowNFTMockV1 is CFAv1NFTBaseMockV1 {
 
         super.validateStorageLayout();
 
-        // slots 5-49 occupied by _gap in CFAv1NFTBaseMockV1
+        // slots 5-21 occupied by _gap in CFAv1NFTBaseMockV1
 
         assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
-        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
+        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
     }
 }
 
@@ -400,7 +474,23 @@ contract CFAv1NFTBaseMockV1BadPostGap is UUPSProxiable, ICFAv1NFTBaseMockErrors 
 
     mapping(address => mapping(address => bool)) internal _operatorApprovals;
 
-    uint256[45] private _gap;
+    uint256 internal _reserve5;
+    uint256 private _reserve6;
+    uint256 private _reserve7;
+    uint256 private _reserve8;
+    uint256 private _reserve9;
+    uint256 private _reserve10;
+    uint256 private _reserve11;
+    uint256 private _reserve12;
+    uint256 private _reserve13;
+    uint256 private _reserve14;
+    uint256 private _reserve15;
+    uint256 private _reserve16;
+    uint256 private _reserve17;
+    uint256 private _reserve18;
+    uint256 private _reserve19;
+    uint256 private _reserve20;
+    uint256 internal _reserve21;
 
     // @note The incorrectly placed variable!
     uint256 public badVariable;
@@ -457,8 +547,11 @@ contract CFAv1NFTBaseMockV1BadPostGap is UUPSProxiable, ICFAv1NFTBaseMockErrors 
         assembly { slot := _operatorApprovals.slot offset := _operatorApprovals.offset }
         if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
         
-        assembly { slot := _gap.slot offset := _gap.offset }
-        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_gap");
+        assembly { slot := _reserve5.slot offset := _reserve5.offset }
+        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve5");
+
+        assembly { slot := _reserve21.slot offset := _reserve21.offset }
+        if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
     }
 }
 
@@ -478,10 +571,10 @@ contract ConstantOutflowNFTMockV1BaseBadNewVariable is CFAv1NFTBaseMockV1BadPost
 
         super.validateStorageLayout();
 
-        // slots 5-49 occupied by _gap in CFAv1NFTBaseMockV1
+        // slots 5-21 occupied by _gap in CFAv1NFTBaseMockV1
 
         assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
-        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
+        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
     }
 }
 
@@ -503,10 +596,10 @@ contract ConstantOutflowNFTMockV1BadNewVariable is CFAv1NFTBaseMockV1 {
 
         super.validateStorageLayout();
 
-        // slots 5-49 occupied by _gap in CFAv1NFTBaseMockV1
+        // slots 5-21 occupied by _gap in CFAv1NFTBaseMockV1
 
         assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
-        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
+        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
     }
 }
 
@@ -531,12 +624,12 @@ contract ConstantOutflowNFTMockV1GoodUpgrade is ConstantOutflowNFTMockV1 {
 
         super.validateStorageLayout();
 
-        // slots 5-49 occupied by _gap in CFAv1NFTBaseMockV1
+        // slots 5-21 occupied by _gap in CFAv1NFTBaseMockV1
 
         assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
-        if (slot != 50 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
+        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");   
 
         assembly { slot := goodVariable.slot offset := goodVariable.offset }
-        if (slot != 51 || offset != 0) revert STORAGE_LOCATION_CHANGED("goodVariable");   
+        if (slot != 23 || offset != 0) revert STORAGE_LOCATION_CHANGED("goodVariable");   
     }
 }

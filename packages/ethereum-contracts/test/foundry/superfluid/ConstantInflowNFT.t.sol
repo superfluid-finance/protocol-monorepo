@@ -155,7 +155,12 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
 
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-        assert_FlowDataState_IsExpected(nftId, _flowSender, _flowReceiver);
+        assert_Flow_Data_State_IsExpected(
+            nftId,
+            _flowSender,
+            uint32(block.timestamp),
+            _flowReceiver
+        );
 
         CFAv1NFTBase.FlowData memory flowData = constantInflowNFTProxy
             .mockFlowDataByTokenId(nftId);
@@ -174,11 +179,16 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
 
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
 
-        assert_Event_Transfer(address(constantInflowNFTProxy), address(0), _flowReceiver, nftId);
+        assert_Event_Transfer(
+            address(constantInflowNFTProxy),
+            address(0),
+            _flowReceiver,
+            nftId
+        );
 
         constantInflowNFTProxy.mockMint(_flowReceiver, nftId);
 
-        assert_FlowDataState_IsEmpty(nftId);
+        assert_Flow_Data_State_IsEmpty(nftId);
     }
 
     function test_Fuzz_Passing_Internal_Burn_Token(
@@ -192,13 +202,28 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
 
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-        assert_FlowDataState_IsExpected(nftId, _flowSender, _flowReceiver);
+        assert_Flow_Data_State_IsExpected(
+            nftId,
+            _flowSender,
+            uint32(block.timestamp),
+            _flowReceiver
+        );
 
-        assert_Event_Transfer(address(constantInflowNFTProxy), _flowReceiver, address(0), nftId);
+        assert_Event_Transfer(
+            address(constantInflowNFTProxy),
+            _flowReceiver,
+            address(0),
+            nftId
+        );
 
         constantInflowNFTProxy.mockBurn(nftId);
 
-        assert_FlowDataState_IsExpected(nftId, _flowSender, _flowReceiver);
+        assert_Flow_Data_State_IsExpected(
+            nftId,
+            _flowSender,
+            uint32(block.timestamp),
+            _flowReceiver
+        );
     }
 
     function test_Fuzz_Passing_Approve(
@@ -214,9 +239,19 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
 
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-        assert_FlowDataState_IsExpected(nftId, _flowSender, _flowReceiver);
+        assert_Flow_Data_State_IsExpected(
+            nftId,
+            _flowSender,
+            uint32(block.timestamp),
+            _flowReceiver
+        );
 
-        assert_Event_Approval(address(constantInflowNFTProxy), _flowReceiver, _approvedAccount, nftId);
+        assert_Event_Approval(
+            address(constantInflowNFTProxy),
+            _flowReceiver,
+            _approvedAccount,
+            nftId
+        );
 
         vm.prank(_flowReceiver);
         constantInflowNFTProxy.approve(_approvedAccount, nftId);
@@ -236,7 +271,12 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         vm.assume(_tokenOwner != address(0));
         vm.assume(_tokenOwner != _operator);
 
-        assert_Event_ApprovalForAll(address(constantInflowNFTProxy), _tokenOwner, _operator, _approved);
+        assert_Event_ApprovalForAll(
+            address(constantInflowNFTProxy),
+            _tokenOwner,
+            _operator,
+            _approved
+        );
 
         vm.prank(_tokenOwner);
         constantInflowNFTProxy.setApprovalForAll(_operator, _approved);

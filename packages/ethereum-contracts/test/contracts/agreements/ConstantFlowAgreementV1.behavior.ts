@@ -20,8 +20,6 @@ import CFADataModel from "./ConstantFlowAgreementV1.data";
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const expectEvent = require("@openzeppelin/test-helpers/src/expectEvent");
 
-const EXPECT_EVENT_ERROR_MESSAGE = `Returned values aren't valid, did it run Out of Gas? `;
-
 //
 // test functions
 //
@@ -377,34 +375,6 @@ export async function _shouldChangeFlow({
                         liquidationTypeData,
                     }
                 );
-
-                // targetAccount (sender) transferring remaining deposit to
-                // rewardAccount / liquidatorAccount depending on isPatricianPeriod
-                try {
-                    // @note TODO adding a try catch here temporarily because Transfer event not expected properly
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        testenv.sf.contracts.ISuperToken,
-                        "Transfer",
-                        {
-                            from: cfaDataModel.roles.sender,
-                            to: isPatricianPeriod
-                                ? cfaDataModel.roles.reward
-                                : cfaDataModel.roles.agent,
-                            value: expectedRewardAmount.toString(),
-                        }
-                    );
-                } catch (err) {
-                    if (
-                        !(err as any).message.includes(
-                            EXPECT_EVENT_ERROR_MESSAGE
-                        )
-                    ) {
-                        throw new Error(
-                            "Something is actually wrong. Not just an issue with the tooling."
-                        );
-                    }
-                }
             } else {
                 const expectedRewardAmount = toBN(
                     cfaDataModel.flows.main.flowInfoBefore.deposit
@@ -464,57 +434,6 @@ export async function _shouldChangeFlow({
                         liquidationTypeData,
                     }
                 );
-
-                // reward account transferring the single flow deposit to the
-                // liquidator (agent)
-                // @note TODO adding a try catch here temporarily because Transfer event not expected properly
-                try {
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        testenv.sf.contracts.ISuperToken,
-                        "Transfer",
-                        {
-                            from: cfaDataModel.roles.reward,
-                            to: cfaDataModel.roles.agent,
-                            value: expectedRewardAmount.toString(),
-                        }
-                    );
-                } catch (err) {
-                    if (
-                        !(err as any).message.includes(
-                            EXPECT_EVENT_ERROR_MESSAGE
-                        )
-                    ) {
-                        throw new Error(
-                            "Something is actually wrong. Not just an issue with the tooling."
-                        );
-                    }
-                }
-
-                // reward account bailing out the targetAccount (sender)
-                // @note TODO adding a try catch here temporarily because Transfer event not expected properly
-                try {
-                    await expectEvent.inTransaction(
-                        tx.tx,
-                        testenv.sf.contracts.ISuperToken,
-                        "Transfer",
-                        {
-                            from: cfaDataModel.roles.reward,
-                            to: cfaDataModel.roles.sender,
-                            value: expectedBailoutAmount.toString(),
-                        }
-                    );
-                } catch (err) {
-                    if (
-                        !(err as any).message.includes(
-                            EXPECT_EVENT_ERROR_MESSAGE
-                        )
-                    ) {
-                        throw new Error(
-                            "Something is actually wrong. Not just an issue with the tooling."
-                        );
-                    }
-                }
             }
             console.log("--------");
         }

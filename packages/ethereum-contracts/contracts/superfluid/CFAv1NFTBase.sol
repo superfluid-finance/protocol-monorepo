@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.16;
+pragma solidity >= 0.8.4;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import {
@@ -29,8 +29,18 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
     string public constant BASE_URI =
         "https://nft.superfluid.finance/cfa/v1/getmeta";
 
+    // FlowData struct storage packing:
+    // b = bits
+    // WORD 1: | flowSender     | flowStartDate | FREE
+    //         | 160b           | 32b           | 64b
+    // WORD 2: | flowReceiver   | FREE      
+    //         | 160b           | 96b       
+    // @note Using 32 bits for flowStartDate is future proof "enough":
+    // 2 ** 32 - 1 = 4294967295 seconds
+    // Will overflow after: Sun Feb 07 2106 08:28:15
     struct FlowData {
         address flowSender;
+        uint32 flowStartDate;
         address flowReceiver;
     }
 
@@ -60,12 +70,27 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
     /// without having to worry about messing up the storage layout that exists in COFNFT or CIFNFT.
     /// @dev This empty reserved space is put in place to allow future versions to add new
     /// variables without shifting down storage in the inheritance chain.
-    /// Important to note that the array number is calculated so the amount of storage used
-    /// by a contract adds up to 50 (slots 0 to 49).
-    /// So each time we add a new storage variable above `_gap`, we must decrease the length of the
-    /// array by one.
+    /// Slots 5-21 are reserved for future use.
+    /// We use this pattern in SuperToken.sol and favor this over the OpenZeppelin pattern
+    /// as this prevents silly footgunning.
     /// See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-    uint256[45] private _gap;
+    uint256 internal _reserve5;
+    uint256 private _reserve6;
+    uint256 private _reserve7;
+    uint256 private _reserve8;
+    uint256 private _reserve9;
+    uint256 private _reserve10;
+    uint256 private _reserve11;
+    uint256 private _reserve12;
+    uint256 private _reserve13;
+    uint256 private _reserve14;
+    uint256 private _reserve15;
+    uint256 private _reserve16;
+    uint256 private _reserve17;
+    uint256 private _reserve18;
+    uint256 private _reserve19;
+    uint256 private _reserve20;
+    uint256 internal _reserve21;
 
     /// @notice Informs third-party platforms that NFT metadata should be updated
     /// @dev This event comes from https://eips.ethereum.org/EIPS/eip-4906

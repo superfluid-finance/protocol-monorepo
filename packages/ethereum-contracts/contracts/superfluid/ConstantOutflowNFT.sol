@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
+// solhint-disable not-rely-on-time
 pragma solidity 0.8.16;
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
@@ -19,17 +20,19 @@ import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
 /// @notice The ConstantOutflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract uses mint/burn interface for flow creation/deletion and holds the actual storage for both NFTs.
 contract ConstantOutflowNFT is CFAv1NFTBase {
-    /// @notice A mapping from token id to FlowData = { address sender, address receiver}
+    /// @notice A mapping from token id to FlowData = { address sender, uint32 flowStartDate, address receiver}
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
     mapping(uint256 => FlowData) internal _flowDataByTokenId;
 
-    error COF_NFT_ONLY_CONSTANT_INFLOW();           // 0xa495a718
-    error COF_NFT_ONLY_CFA();                       // 0x054fae59
     error COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME(); // 0x0d1d1161
     error COF_NFT_MINT_TO_ZERO_ADDRESS();           // 0x43d05e51
+    error COF_NFT_ONLY_CONSTANT_INFLOW();           // 0xa495a718
+    error COF_NFT_ONLY_CFA();                       // 0x054fae59
+    error COF_NFT_OVERFLOW();                       // 0xb398aeb1
     error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
     error COF_NFT_TRANSFER_IS_NOT_ALLOWED();        // 0x5b1855b1
 
+    // note that this is used so we don't upgrade to wrong logic contract
     function proxiableUUID() public pure override returns (bytes32) {
         return
             keccak256(
@@ -122,7 +125,9 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     /// @notice Handles the burn of ConstantOutflowNFT when an inflow NFT user transfers their NFT.
     /// @dev Only callable by ConstantInflowNFT
     /// @param _tokenId the token id to burn when an inflow NFT is transferred
-    function inflowTransferBurn(uint256 _tokenId) external onlyConstantInflowNFT {
+    function inflowTransferBurn(
+        uint256 _tokenId
+    ) external onlyConstantInflowNFT {
         _burn(_tokenId);
     }
 
@@ -175,9 +180,16 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         if (_exists(_newTokenId)) {
             revert COF_NFT_TOKEN_ALREADY_EXISTS();
         }
+        if (block.timestamp != uint256(uint32(block.timestamp))) {
+            revert COF_NFT_OVERFLOW();
+        }
 
         // update mapping for new NFT to be minted
-        _flowDataByTokenId[_newTokenId] = FlowData(_to, _flowReceiver);
+        _flowDataByTokenId[_newTokenId] = FlowData(
+            _to,
+            uint32(block.timestamp),
+            _flowReceiver
+        );
 
         // emit mint of new outflow token with newTokenId
         emit Transfer(address(0), _to, _newTokenId);
@@ -201,7 +213,8 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
     modifier onlyConstantInflowNFT() {
         address constantInflowNFT = address(superToken.constantInflowNFT());
-        if (msg.sender != constantInflowNFT) revert COF_NFT_ONLY_CONSTANT_INFLOW();
+        if (msg.sender != constantInflowNFT)
+            revert COF_NFT_ONLY_CONSTANT_INFLOW();
         _;
     }
 }

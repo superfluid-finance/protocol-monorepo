@@ -8,8 +8,8 @@ import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
-import { IIndexPublisherNFT } from "./IIndexPublisherNFT.sol";
-import { IIndexSubscriberNFT } from "./IIndexSubscriberNFT.sol";
+import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
 
 /**
  * @title Super token (Superfluid Token + ERC20 + ERC777) interface
@@ -514,14 +514,14 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     function constantOutflowNFT() external view returns (IConstantOutflowNFT);
     function constantInflowNFT() external view returns (IConstantInflowNFT);
-    function indexPublisherNFT() external view returns (IIndexPublisherNFT);
-    function indexSubscriberNFT() external view returns (IIndexSubscriberNFT);
+    function poolAdminNFT() external view returns (IPoolAdminNFT);
+    function poolMemberNFT() external view returns (IPoolMemberNFT);
 
     function initializeNFTContracts(
         address _constantOutflowNFT,
         address _constantInflowNFT,
-        address _indexPublisherNFT,
-        address _indexSubscriberNFT
+        address _poolAdminNFT,
+        address _poolMemberNFT
     ) external;
 
     /**************************************************************************

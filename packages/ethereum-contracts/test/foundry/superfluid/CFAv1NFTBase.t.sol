@@ -348,6 +348,13 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             uint32(block.timestamp),
             _flowReceiver
         );
+
+        (uint256 timestamp, int96 flowRate, , ) = superToken.getFlow(
+            _flowSender,
+            _flowReceiver
+        );
+        assertEq(timestamp, block.timestamp);
+        assertEq(flowRate, _flowRate);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

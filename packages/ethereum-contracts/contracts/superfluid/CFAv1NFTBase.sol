@@ -355,16 +355,7 @@ abstract contract CFAv1NFTBase is
         address sender,
         address receiver
     ) internal view returns (uint256 timestamp, int96 flowRate) {
-        ISuperfluid host = ISuperfluid(superToken.getHost());
-        (timestamp, flowRate, , ) = IConstantFlowAgreementV1(
-            address(
-                host.getAgreementClass(
-                    keccak256(
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                    )
-                )
-            )
-        ).getFlow(superToken, sender, receiver);
+       (timestamp, flowRate, ,) = superToken.getFlow(sender, receiver);
     }
 
     /// @dev Returns the flow data of the `tokenId`. Does NOT revert if token doesn't exist.

@@ -3,6 +3,7 @@ pragma solidity 0.8.16;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {
     ISuperfluid,
     ISuperfluidGovernance,
@@ -725,18 +726,43 @@ contract SuperToken is
      *************************************************************************/
 
     function initializeNFTContracts(
-        address _constantOutflowNFT,
-        address _constantInflowNFT,
-        address _poolAdminNFT,
-        address _poolMemberNFT
+        address constantOutflowNFTAddress,
+        address constantInflowNFTAddress,
+        address poolAdminNFTAddress,
+        address poolMemberNFTAddress
     ) external {
         Ownable gov = Ownable(address(_host.getGovernance()));
         if (msg.sender != gov.owner()) revert SUPER_TOKEN_ONLY_GOV_OWNER();
 
-        constantOutflowNFT = IConstantOutflowNFT(_constantOutflowNFT);
-        constantInflowNFT = IConstantInflowNFT(_constantInflowNFT);
-        poolAdminNFT = IPoolAdminNFT(_poolAdminNFT);
-        poolMemberNFT = IPoolMemberNFT(_poolMemberNFT);
+        constantOutflowNFT = IConstantOutflowNFT(constantOutflowNFTAddress);
+        constantInflowNFT = IConstantInflowNFT(constantInflowNFTAddress);
+        poolAdminNFT = IPoolAdminNFT(poolAdminNFTAddress);
+        poolMemberNFT = IPoolMemberNFT(poolMemberNFTAddress);
+    }
+
+    function getFlow(
+        address sender,
+        address receiver
+    )
+        external
+        view
+        returns (
+            uint256 timestamp,
+            int96 flowRate,
+            uint256 deposit,
+            uint256 owedDeposit
+        )
+    {
+        IConstantFlowAgreementV1 cfaV1 = IConstantFlowAgreementV1(
+            address(
+                _host.getAgreementClass(
+                    keccak256(
+                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+                    )
+                )
+            )
+        );
+        return cfaV1.getFlow(ISuperfluidToken(address(this)), sender, receiver);
     }
 
     /**************************************************************************

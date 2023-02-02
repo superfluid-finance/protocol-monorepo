@@ -517,12 +517,41 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     function poolAdminNFT() external view returns (IPoolAdminNFT);
     function poolMemberNFT() external view returns (IPoolMemberNFT);
 
+    /**
+     * @dev Links the NFT contracts to the SuperToken.
+     * @param constantOutflowNFT constant outflow nft proxy contract address
+     * @param constantInflowNFT constant inflow nft proxy contract address
+     * @param poolAdminNFT pool admin nft proxy contract address
+     * @param poolMemberNFT pool member nft proxy contract address
+     */
     function initializeNFTContracts(
-        address _constantOutflowNFT,
-        address _constantInflowNFT,
-        address _poolAdminNFT,
-        address _poolMemberNFT
+        address constantOutflowNFT,
+        address constantInflowNFT,
+        address poolAdminNFT,
+        address poolMemberNFT
     ) external;
+
+    /**
+     * @dev Gets the flow data between sender-receiver for the Super Token
+     * @param sender the flow sender
+     * @param receiver the flow receiver
+     * @return timestamp the last updated timestamp of the flow 
+     * @return flowRate the flow rate of the flow 
+     * @return deposit the deposit of the flow 
+     * @return owedDeposit the owed deposit of the flow 
+     */
+    function getFlow(
+        address sender,
+        address receiver
+    )
+        external
+        view
+        returns (
+            uint256 timestamp,
+            int96 flowRate,
+            uint256 deposit,
+            uint256 owedDeposit
+        );
 
     /**************************************************************************
     * Function modifiers for access control and parameter validations

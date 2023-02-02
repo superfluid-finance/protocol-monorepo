@@ -75,75 +75,14 @@ contract ConstantInflowNFT is CFAv1NFTBase {
         return flowData.flowReceiver;
     }
 
-    /// @notice Transfers `_tokenId` from `_from` to `_to`
-    /// @dev `_from` must own `_tokenId` and `_to` cannot be `address(0)`.
-    ///
-    /// We emit three Transfer events from this ConstantInflowNFT contract:
-    /// `_from` is old InflowNFT owner | `_to` is new InflowNFT owner
-    /// 1. Transfer of `_tokenId` (`_from` -> `_to`)
-    /// 2. Transfer (burn) of `_tokenId` (`_to` -> `address(0)`)
-    /// 3. Transfer (mint) of `newTokenId` (`address(0)` -> `_to`)
-    ///
-    /// We also emit two Transfer events from the ConstantOutflowNFT contract:
-    /// 1. Transfer (burn) of `_tokenId` (`_from` -> `address(0)`) | `_from` is OutflowNFT owner
-    /// 2. Transfer (mint) of `newTokenId` (`address(0)` -> `_to`)   | `_to` is OutflowNFT owner
-    ///
-    /// We also clear storage for `_tokenApprovals` and `flowDataByTokenId` with `_tokenId`
-    /// and create new storage for `flowDataByTokenId` with `newTokenId`.
-    /// NOTE: There are also interactions at the protocol level:
-    /// - We delete the flow from oldFlowData.flowSender => oldFlowData.flowReceiver (_from)
-    ///   - This will trigger super app before/afterAgreementTerminated hooks if a super app is part of the agreement
-    /// - We create a new flow from oldFlowData.flowSender => _to
-    ///   - This will trigger super app before/afterAgreementCreated hooks if a super app is part of the agreement
-    /// @param _from the owner of _tokenId
-    /// @param _to the receiver of the NFT
-    /// @param _tokenId the token id to transfer
+    /// @notice Transfer is currently not allowed.
+    /// @dev Will revert currently.
     function _transfer(
-        address _from,
-        address _to,
-        uint256 _tokenId
+        address, // _from,
+        address, // _to,
+        uint256 // _tokenId
     ) internal virtual override {
-        if (CFAv1NFTBase.ownerOf(_tokenId) != _from) {
-            revert CFA_NFT_TRANSFER_FROM_INCORRECT_OWNER();
-        }
-
-        if (_to == address(0)) {
-            revert CFA_NFT_TRANSFER_TO_ZERO_ADDRESS();
-        }
-
-        FlowData memory oldFlowData = flowDataByTokenId(_tokenId);
-        // @note we are doing this external call twice, here and in the function above
-        IConstantOutflowNFT constantOutflowNFT = superToken
-            .constantOutflowNFT();
-
-        uint256 newTokenId = uint256(
-            keccak256(abi.encode(oldFlowData.flowSender, _to))
-        );
-
-        /// TODO: If we choose to use the _beforeTokenTransfer hook
-        /// _beforeTokenTransfer(from, to, _tokenId, 1);
-
-        // Check that _tokenId was not transferred by `_beforeTokenTransfer` hook
-        // require(_ownerOf(_tokenId) == _from, "ERC721: transfer from incorrect owner");
-
-        // emit initial transfer of inflow token with _tokenId (from -> to)
-        emit Transfer(_from, _to, _tokenId);
-
-        // burn the outflow nft with _tokenId
-        constantOutflowNFT.inflowTransferBurn(_tokenId);
-
-        // burn the inflow token with _tokenId
-        _burn(_tokenId);
-
-        // mint the outflow token with newTokenId
-        constantOutflowNFT.inflowTransferMint(
-            oldFlowData.flowSender,
-            _to,
-            newTokenId
-        );
-
-        // mint the inflow token to _to (inflow NFT receiver) with newTokenId
-        _mint(_to, newTokenId);
+        revert CFA_NFT_TRANSFER_IS_NOT_ALLOWED();
     }
 
     function _mint(address _to, uint256 _newTokenId) internal {

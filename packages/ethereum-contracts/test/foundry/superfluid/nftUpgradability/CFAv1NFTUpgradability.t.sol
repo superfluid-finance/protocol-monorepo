@@ -11,7 +11,14 @@ import {
     ISuperfluid,
     ISuperToken
 } from "../../../../contracts/interfaces/superfluid/ISuperToken.sol";
-
+import {
+    CFAv1NFTBase,
+    ConstantInflowNFT
+} from "../../../../contracts/superfluid/ConstantInflowNFT.sol";
+import {
+    ConstantOutflowNFT
+} from "../../../../contracts/superfluid/ConstantOutflowNFT.sol";
+import { CFAv1BaseTest } from "../CFAv1NFTBase.t.sol";
 import { FoundrySuperfluidTester } from "../../FoundrySuperfluidTester.sol";
 
 import {
@@ -31,16 +38,10 @@ import {
 /// @author Superfluid
 /// @notice Used for testing upgradability of CFAv1 NFT contracts
 /// @dev Add a test for new NFT logic contracts here when it changes
-contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
+contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
     UUPSProxy proxy;
     CFAv1NFTBaseMockV1 cfaV1NFTBaseMockV1Logic;
     CFAv1NFTBaseMockV1 cfaV1NFTBaseMockV1Proxy;
-
-    address public governanceOwner;
-
-    constructor() FoundrySuperfluidTester(5) {
-        governanceOwner = address(sfDeployer);
-    }
 
     function setUp() public override {
         super.setUp();
@@ -72,6 +73,37 @@ contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
         cfaV1NFTBaseMockV1Proxy.validateStorageLayout();
     }
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Helper Functions
+    //////////////////////////////////////////////////////////////////////////*/
+    function _helper_Deploy_Mock_Constant_Outflow_NFT()
+        internal
+        returns (ConstantOutflowNFTMockV1 mockProxy)
+    {
+        UUPSProxy _proxy = new UUPSProxy();
+        ConstantOutflowNFTMockV1 initialOutflowLogicMock = new ConstantOutflowNFTMockV1();
+        _proxy.initializeProxy(address(initialOutflowLogicMock));
+        mockProxy = ConstantOutflowNFTMockV1(address(_proxy));
+        mockProxy.initialize(superToken, "FTTx ConstantOutflowNFT", "FTTx COF");
+
+        // Baseline assertion that logic address is expected
+        assert_Expected_Logic_Contract_Address(
+            mockProxy,
+            address(initialOutflowLogicMock)
+        );
+
+        vm.prank(governanceOwner);
+        superToken.initializeNFTContracts(
+            address(_proxy),
+            address(cfaV1NFTBaseMockV1Proxy),
+            address(0),
+            address(0)
+        );
+
+        // Baseline passing validate layout for outflow NFT contract
+        mockProxy.validateStorageLayout();
+    }
+
     function helper_Expect_Revert_When_Storage_Layout_Is_Changed(
         string memory _variableName
     ) internal {
@@ -83,6 +115,9 @@ contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
         );
     }
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Assertion Helpers
+    //////////////////////////////////////////////////////////////////////////*/
     function assert_Expected_Logic_Contract_Address(
         UUPSProxiable _proxy,
         address _expectedLogicContract
@@ -90,16 +125,35 @@ contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
         assertEq(_proxy.getCodeAddress(), _expectedLogicContract);
     }
 
-    // Should be able to update CFAv1NFTBase by adding new storage variables in gap space and reducing storage gap by one
-    function test_Passing_Base_NFT_Contract_Is_Upgraded_Properly() external {
-        CFAv1NFTBaseMockVGoodUpgrade goodNewLogic = new CFAv1NFTBaseMockVGoodUpgrade();
-        vm.prank(address(superToken.getHost()));
-        cfaV1NFTBaseMockV1Proxy.updateCode(address(goodNewLogic));
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Revert Tests
+    //////////////////////////////////////////////////////////////////////////*/
 
-        assert_Expected_Logic_Contract_Address(
-            cfaV1NFTBaseMockV1Proxy,
-            address(goodNewLogic)
-        );
+    function test_Revert_If_NFT_Contract_Upgrade_Is_Not_Executed_By_Host()
+        public
+    {
+        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT();
+        vm.expectRevert(CFAv1NFTBase.CFA_NFT_ONLY_HOST.selector);
+        constantOutflowNFTProxy.updateCode(address(newOutflowLogic));
+
+        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT();
+        vm.expectRevert(CFAv1NFTBase.CFA_NFT_ONLY_HOST.selector);
+        constantInflowNFTProxy.updateCode(address(newInflowLogic));
+    }
+
+    function test_Revert_If_You_Upgrade_With_The_Wrong_Logic_Contract() public {
+        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT();
+        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT();
+
+
+        vm.prank(address(sf.host));
+        vm.expectRevert("UUPSProxiable: not compatible logic");
+        constantOutflowNFTProxy.updateCode(address(newInflowLogic));
+
+        vm.prank(address(sf.host));
+        vm.expectRevert("UUPSProxiable: not compatible logic");
+        constantInflowNFTProxy.updateCode(address(newOutflowLogic));
+
     }
 
     // Should not be able to update CFAv1NFTBase by adding new storage variables in between existing storage
@@ -142,7 +196,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
     function test_Revert_If_Variable_Added_After_Storage_Gap_In_Base_NFT_Contract()
         external
     {
-        ConstantOutflowNFTMockV1 mockProxy = _deployOutflowNFT();
+        ConstantOutflowNFTMockV1 mockProxy = _helper_Deploy_Mock_Constant_Outflow_NFT();
 
         ConstantOutflowNFTMockV1BaseBadNewVariable badLogic = new ConstantOutflowNFTMockV1BaseBadNewVariable();
         vm.prank(address(superToken.getHost()));
@@ -159,7 +213,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
 
     // Should be able to update ConstantOutflowNFT by adding new storage variables after mapping
     function test_Passing_If_Outflow_NFT_Is_Upgraded_Properly() external {
-        ConstantOutflowNFTMockV1 mockProxy = _deployOutflowNFT();
+        ConstantOutflowNFTMockV1 mockProxy = _helper_Deploy_Mock_Constant_Outflow_NFT();
         ConstantOutflowNFTMockV1GoodUpgrade goodLogic = new ConstantOutflowNFTMockV1GoodUpgrade();
 
         vm.prank(address(superToken.getHost()));
@@ -174,7 +228,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
     function test_Revert_If_A_New_Variable_Is_Added_Incorrectly_To_Outflow_NFT()
         external
     {
-        ConstantOutflowNFTMockV1 mockProxy = _deployOutflowNFT();
+        ConstantOutflowNFTMockV1 mockProxy = _helper_Deploy_Mock_Constant_Outflow_NFT();
 
         ConstantOutflowNFTMockV1BadNewVariable badLogic = new ConstantOutflowNFTMockV1BadNewVariable();
         vm.prank(address(superToken.getHost()));
@@ -189,31 +243,29 @@ contract ConstantFAv1NFTsUpgradabilityTest is FoundrySuperfluidTester {
         mockProxy.validateStorageLayout();
     }
 
-    function _deployOutflowNFT()
-        internal
-        returns (ConstantOutflowNFTMockV1 mockProxy)
-    {
-        UUPSProxy _proxy = new UUPSProxy();
-        ConstantOutflowNFTMockV1 initialOutflowLogicMock = new ConstantOutflowNFTMockV1();
-        _proxy.initializeProxy(address(initialOutflowLogicMock));
-        mockProxy = ConstantOutflowNFTMockV1(address(_proxy));
-        mockProxy.initialize(superToken, "FTTx ConstantOutflowNFT", "FTTx COF");
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Passing Tests
+    //////////////////////////////////////////////////////////////////////////*/
 
-        // Baseline assertion that logic address is expected
+    // Should be able to update CFAv1NFTBase by adding new storage variables in gap space and reducing storage gap by one
+    function test_Passing_Base_NFT_Contract_Is_Upgraded_Properly() external {
+        CFAv1NFTBaseMockVGoodUpgrade goodNewLogic = new CFAv1NFTBaseMockVGoodUpgrade();
+        vm.prank(address(superToken.getHost()));
+        cfaV1NFTBaseMockV1Proxy.updateCode(address(goodNewLogic));
+
         assert_Expected_Logic_Contract_Address(
-            mockProxy,
-            address(initialOutflowLogicMock)
+            cfaV1NFTBaseMockV1Proxy,
+            address(goodNewLogic)
         );
+    }
 
-        vm.prank(governanceOwner);
-        superToken.initializeNFTContracts(
-            address(_proxy),
-            address(cfaV1NFTBaseMockV1Proxy),
-            address(0),
-            address(0)
-        );
-
-        // Baseline passing validate layout for outflow NFT contract
-        mockProxy.validateStorageLayout();
+    function test_Passing_NFT_Contracts_Can_Be_Upgraded_By_Host() public {
+        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT();
+        vm.prank(address(sf.host));
+        constantOutflowNFTProxy.updateCode(address(newOutflowLogic));
+        
+        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT();
+        vm.prank(address(sf.host));
+        constantInflowNFTProxy.updateCode(address(newInflowLogic));
     }
 }

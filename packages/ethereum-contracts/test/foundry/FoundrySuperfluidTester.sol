@@ -15,9 +15,7 @@ import {
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
 
-
 contract FoundrySuperfluidTester is Test {
-
     uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
     address internal constant admin = address(0x420);
@@ -41,7 +39,7 @@ contract FoundrySuperfluidTester is Test {
 
     uint256 private _expectedTotalSupply;
 
-    constructor (uint8 nTesters) {
+    constructor(uint8 nTesters) {
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
         N_TESTERS = nTesters;
 
@@ -56,8 +54,13 @@ contract FoundrySuperfluidTester is Test {
         vm.stopPrank();
     }
 
-    function setUp() virtual public {
-        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+    function setUp() public virtual {
+        (token, superToken) = sfDeployer.deployWrapperSuperToken(
+            "FTT",
+            "FTT",
+            18,
+            type(uint256).max
+        );
 
         for (uint i = 0; i < N_TESTERS; ++i) {
             token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
@@ -70,27 +73,82 @@ contract FoundrySuperfluidTester is Test {
         }
     }
 
-    function checkAllInvariants() public view returns (bool) {
-        return
-            checkLiquiditySumInvariance() &&
-            checkNetFlowRateSumInvariant();
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Assume Helpers
+    //////////////////////////////////////////////////////////////////////////*/
+    function assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+        uint32 _flowRate
+    ) public {
+        vm.assume(_flowRate > 0);
+        vm.assume(_flowRate <= uint32(type(int32).max));
+        int96 flowRate = int96(int32(_flowRate));
     }
 
-    function checkLiquiditySumInvariance() public view returns (bool) {
+    /*//////////////////////////////////////////////////////////////////////////
+                                Invariant Definitions
+    //////////////////////////////////////////////////////////////////////////*/
+    /// @notice Superfluid Global Invariants
+    /// @dev Superfluid Global Invariants:
+    /// - Liquidity Sum Invariant
+    /// - Net Flow Rate Sum Invariant
+    /// @return bool Superfluid Global Invariants hold true
+    function definition_Global_Invariants() public view returns (bool) {
+        return
+            definition_Liquidity_Sum_Invariant() &&
+            definition_Net_Flow_Rate_Sum_Invariant();
+    }
+
+    /// @notice Liquidity Sum Invariant definition
+    /// @dev Liquidity Sum Invariant: Expected Total Supply === Liquidity Sum
+    /// Liquidity Sum = sum of available balance, deposit and owed deposit for all users
+    /// @return bool Liquidity Sum Invariant holds true
+    function definition_Liquidity_Sum_Invariant() public view returns (bool) {
         int256 liquiditySum;
+
         for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            (int256 avb, uint256 d, uint256 od, ) = superToken.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
-            liquiditySum += avb + int256(d) - int256(od);
+            (
+                int256 availableBalance,
+                uint256 deposit,
+                uint256 owedDeposit,
+
+            ) = superToken.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
+
+            liquiditySum +=
+                availableBalance +
+                int256(deposit) -
+                int256(owedDeposit);
         }
         return int256(_expectedTotalSupply) == liquiditySum;
     }
 
-    function checkNetFlowRateSumInvariant() public view returns (bool) {
+    /// @notice Net Flow Rate Sum Invariant definition
+    /// @dev Net Flow Rate Sum Invariant: Sum of all net flow rates === 0
+    /// @return bool Net Flow Rate Sum Invariant holds true
+    function definition_Net_Flow_Rate_Sum_Invariant()
+        public
+        view
+        returns (bool)
+    {
         int96 netFlowRateSum;
         for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            netFlowRateSum += sf.cfa.getNetFlow(superToken, address(TEST_ACCOUNTS[i]));
+            netFlowRateSum += sf.cfa.getNetFlow(
+                superToken,
+                address(TEST_ACCOUNTS[i])
+            );
         }
         return netFlowRateSum == 0;
     }
 
+    function assert_Global_Invariants() public {
+        assert_Liquidity_Sum_Invariant();
+        assert_Net_Flow_Rate_Sum_Invariant();
+    }
+
+    function assert_Liquidity_Sum_Invariant() public {
+        assertTrue(definition_Liquidity_Sum_Invariant());
+    }
+
+    function assert_Net_Flow_Rate_Sum_Invariant() public {
+        assertTrue(definition_Net_Flow_Rate_Sum_Invariant());
+    }
 }

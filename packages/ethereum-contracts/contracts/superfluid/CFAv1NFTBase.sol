@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.4;
+pragma solidity >=0.8.4;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import {
@@ -8,7 +8,7 @@ import {
     IERC721MetadataUpgradeable
 } from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
+import { ICFAv1NFTBase } from "../interfaces/superfluid/ICFAv1NFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
@@ -23,26 +23,15 @@ import {
 /// This contract is upgradeable and it inherits from our own ad-hoc UUPSProxiable contract which allows.
 /// NOTE: the storage gap allows us to add an additional 45 storage variables to this contract without breaking child
 /// COFNFT or CIFNFT storage.
-abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
+abstract contract CFAv1NFTBase is
+    UUPSProxiable,
+    IERC721MetadataUpgradeable,
+    ICFAv1NFTBase
+{
     using Strings for uint256;
 
     string public constant BASE_URI =
         "https://nft.superfluid.finance/cfa/v1/getmeta";
-
-    // FlowData struct storage packing:
-    // b = bits
-    // WORD 1: | flowSender     | flowStartDate | FREE
-    //         | 160b           | 32b           | 64b
-    // WORD 2: | flowReceiver   | FREE      
-    //         | 160b           | 96b       
-    // @note Using 32 bits for flowStartDate is future proof "enough":
-    // 2 ** 32 - 1 = 4294967295 seconds
-    // Will overflow after: Sun Feb 07 2106 08:28:15
-    struct FlowData {
-        address flowSender;
-        uint32 flowStartDate;
-        address flowReceiver;
-    }
 
     /// NOTE: The storage variables in this contract MUST NOT:
     /// - change the ordering of the existing variables
@@ -104,6 +93,7 @@ abstract contract CFAv1NFTBase is UUPSProxiable, IERC721MetadataUpgradeable {
     error CFA_NFT_ONLY_HOST();                                      // 0x2d5a6dfa
     error CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();  // 0x2551d606
     error CFA_NFT_TRANSFER_FROM_INCORRECT_OWNER();                  // 0x5a26c744
+    error CFA_NFT_TRANSFER_IS_NOT_ALLOWED();                        // 0xaa747eca
     error CFA_NFT_TRANSFER_TO_ZERO_ADDRESS();                       // 0xde06d21e
 
     function initialize(

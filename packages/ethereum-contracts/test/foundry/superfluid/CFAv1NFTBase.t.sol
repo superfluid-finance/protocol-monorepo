@@ -98,7 +98,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         governanceOwner = address(sfDeployer);
     }
 
-    function setUp() public override {
+    function setUp() public virtual override {
         // run setup from FoundrySuperfluidTester
         super.setUp();
         // then deploy contracts

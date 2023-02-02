@@ -30,7 +30,6 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     error COF_NFT_ONLY_CFA();                       // 0x054fae59
     error COF_NFT_OVERFLOW();                       // 0xb398aeb1
     error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
-    error COF_NFT_TRANSFER_IS_NOT_ALLOWED();        // 0x5b1855b1
 
     // note that this is used so we don't upgrade to wrong logic contract
     function proxiableUUID() public pure override returns (bytes32) {
@@ -47,36 +46,6 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         uint256 _tokenId
     ) public view override returns (FlowData memory flowData) {
         flowData = _flowDataByTokenId[_tokenId];
-    }
-
-    /// @note Neither mint nor burn will work here because we need to forward these calls.
-
-    /// @notice The mint function creates a flow from `_from` to `_to`.
-    /// @dev If `msg.sender` is not equal to `_from`, we `createFlowByOperator`.
-    /// Also important to note is that the agreement contract will handle the NFT creation.
-    /// @param _from desired flow sender
-    /// @param _to desired flow receiver
-    /// @param _flowRate desired flow rate
-    function mint(address _from, address _to, int96 _flowRate) external {
-        // regular create flow
-        if (msg.sender == _from) {
-            // superToken.createFlow(_to, _flowRate);
-        } else {
-            // superToken.createFlowFrom(_from, _to, _flowRate);
-        }
-    }
-
-    /// @notice The burn function deletes the flow between `sender` and `receiver` stored in `_tokenId`
-    /// @dev If `msg.sender` is not equal to `_from`, we `deleteFlowByOperator`.
-    /// Also important to note is that the agreement contract will handle the NFT deletion.
-    /// @param _tokenId desired token id to burn
-    function burn(uint256 _tokenId) external {
-        FlowData memory flowData = _flowDataByTokenId[_tokenId];
-        if (flowData.flowSender == msg.sender) {
-            // superToken.deleteFlow(flowData.sender, flowData.receiver);
-        } else {
-            // superToken.deleteFlowFrom(flowData.sender, flowData.receiver);
-        }
     }
 
     /// NOTE probably should be access controlled to only cfa
@@ -155,7 +124,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         uint256 // _tokenId
     ) internal virtual override {
         // @note TODO WRITE A TEST TO ENSURE ALL THE TRANSFER FUNCTIONS REVERT
-        revert COF_NFT_TRANSFER_IS_NOT_ALLOWED();
+        revert CFA_NFT_TRANSFER_IS_NOT_ALLOWED();
     }
 
     /// @notice Mints `_newTokenId` and transfers it to `_to`

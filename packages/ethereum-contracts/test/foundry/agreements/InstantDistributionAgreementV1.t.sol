@@ -52,7 +52,7 @@ contract InstantDistributionAgreementV1Anvil is FoundrySuperfluidTester {
         assertEq(totalUnitsApproved, units);
         assertEq(totalUnitsPending, 0);
 
-        assertTrue(checkAllInvariants());
+        assert_Global_Invariants();
     }
 
 }

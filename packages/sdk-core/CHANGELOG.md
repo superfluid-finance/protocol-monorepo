@@ -3,6 +3,10 @@ All notable changes to the SDK-core will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+### Added
+
+- `streamId` to `FlowUpdatedEvent` when querying from Subgraph
+
 ## [0.6.1] - 2022-12-20
 
 ### Changed

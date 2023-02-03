@@ -4,13 +4,16 @@ const workflowPath =
     "/repos/superfluid-finance/protocol-monorepo/actions/runs?per_page=100";
 const pullRequestPath =
     "/repos/superfluid-finance/protocol-monorepo/pulls?state=open";
-
+const allPullRequests =
+    "https://github.com/superfluid-finance/protocol-monorepo/pulls";
 const warningIcon =
     "https://api.slack.com/img/blocks/bkb_template_images/notificationsWarningIcon.png";
 const greenCheckMark =
     "https://emojipedia-us.s3.amazonaws.com/source/skype/289/check-mark-button_2705.png";
 const redWarningIcon =
-    "https://uxwing.com/wp-content/themes/uxwing/download/26-signs-symbols/red-alert.png";
+    "https://www.clipartkey.com/mpngs/m/72-728395_red-attention-sign-png-no-background-warning-icon.png";
+const sadPepeKidImage =
+    "https://www.pngmart.com/files/11/Sad-Pepe-The-Frog-PNG-Transparent-Picture.png";
 const topSectionMessage =
     "Looks like there are some lonely pull requests open in your area";
 const workflowFileName = ".github/workflows/ci.canary.yml";
@@ -38,6 +41,9 @@ async function getDataAsJson(path) {
             let body = "";
             res.on("data", function (chunk) {
                 body += chunk;
+            });
+            res.on("error", (err) => {
+                console.log(err);
             });
             res.on("end", function () {
                 resolve(JSON.parse(body));
@@ -83,14 +89,21 @@ async function sendMessageToSlack(data) {
 (async () => {
     const prJson = await getDataAsJson(pullRequestPath);
     const workflowJson = await getDataAsJson(workflowPath);
-    const amountOfPRsOpen = prJson.length;
-    const oldestOpenPR = prJson[prJson.length - 1];
-    const oldestOpenPRTitle = oldestOpenPR.title;
-    const oldestPRAuthorName = oldestOpenPR.user.login;
-    const oldestPRAuthorPicture = oldestOpenPR.user.avatar_url;
-    const oldestPRCreatedByUrl = oldestOpenPR.user.url;
-    const oldestPRUrl = oldestOpenPR.html_url;
-
+    const openPRs = prJson.filter((x) => x.draft === false);
+    const draftPRs = prJson.filter((x) => x.draft === true);
+    let amountOfDraftPRs = draftPRs.length;
+    const amountOfPRsOpen = openPRs.length;
+    const oldestOpenPR = openPRs[openPRs.length - 1];
+    const oldestDraftPR = draftPRs[draftPRs.length - 1];
+    let oldestOpenPRTitle = oldestOpenPR ? oldestOpenPR.title : "";
+    const oldestDraftPRTitle = oldestDraftPR ? oldestDraftPR.title : "";
+    const oldestPRAuthorName = oldestOpenPR ? oldestOpenPR.user.login : "";
+    const oldestPRAuthorPicture = oldestOpenPR
+        ? oldestOpenPR.user.avatar_url
+        : "";
+    const oldestPRCreatedByUrl = oldestOpenPR ? oldestOpenPR.user.url : "";
+    const oldestPRUrl = oldestOpenPR ? oldestOpenPR.html_url : "";
+    const oldestDraftPRUrl = oldestDraftPR ? oldestDraftPR.html_url : "";
     const lastWorkflow = workflowJson.workflow_runs.filter(
         (x) => x.path === workflowFileName
     )[0];
@@ -112,11 +125,11 @@ async function sendMessageToSlack(data) {
         lastWorkflow.head_commit.message.split("\n")[0];
     const workflowCommitLink =
         "https://github.com/superfluid-finance/protocol-monorepo/commit/" +
-        lastWorkflow.id;
+        lastWorkflow.head_commit.id;
 
     let webhookPayload = { blocks: [] };
 
-    async function getOldestPrOldestCommit(prJson) {
+    async function getPrOldestCommit(prJson) {
         let allCommits = await getDataAsJson(
             "/repos/superfluid-finance/protocol-monorepo/pulls/" +
                 prJson.number +
@@ -125,12 +138,24 @@ async function sendMessageToSlack(data) {
         return allCommits[allCommits.length - 1];
     }
 
-    let olderstPrOldestCommit = await getOldestPrOldestCommit(oldestOpenPR);
-    const oldestPRLastUpdate = new Date(
-        olderstPrOldestCommit.commit.author.date
-    );
+    let olderstPrOldestCommit = oldestOpenPR
+        ? await getPrOldestCommit(oldestOpenPR)
+        : "";
+    let oldestDraftPrOldestCommit = oldestDraftPR
+        ? await getPrOldestCommit(oldestDraftPR)
+        : "";
 
-    const oldestPRMessage = olderstPrOldestCommit.commit.message;
+    const oldestPRLastUpdate = oldestOpenPR
+        ? new Date(olderstPrOldestCommit.commit.author.date)
+        : "";
+
+    const oldestDraftPRLastUpdate = oldestDraftPR
+        ? new Date(oldestDraftPrOldestCommit.commit.author.date)
+        : "";
+
+    const oldestPRMessage = oldestOpenPR
+        ? olderstPrOldestCommit.commit.message
+        : "";
 
     const msInADay = 1000 * 60 * 60 * 24;
     const lastUpdatedBeforeDays = (
@@ -138,8 +163,13 @@ async function sendMessageToSlack(data) {
         msInADay
     ).toFixed(0);
 
+    let lastDraftPrUpdateBeforeDays = (
+        (Date.now() - oldestDraftPRLastUpdate) /
+        msInADay
+    ).toFixed(0);
+
     function convertMS(ms) {
-        var d, h, m, s;
+        let d, h, m, s;
         s = Math.floor(ms / 1000);
         m = Math.floor(s / 60);
         s = s % 60;
@@ -217,7 +247,7 @@ async function sendMessageToSlack(data) {
     }
 
     function getAssigneeString() {
-        let finalString = "Asigned to: ";
+        let finalString = "Assigned to: ";
         oldestOpenPR.assignees.forEach((asignee) => {
             finalString += "*<" + asignee.url + "|" + asignee.login + ">*,";
         });
@@ -243,63 +273,122 @@ async function sendMessageToSlack(data) {
     }
 
     function getPRAmountString() {
-        return (
-            "*<https://github.com/superfluid-finance/protocol-monorepo/pulls|There are " +
-            amountOfPRsOpen +
-            " PRs open in total>*"
-        );
+        let prCountString;
+        prCountString = "There are " + amountOfPRsOpen + " PRs open";
+        if (amountOfDraftPRs > 0) {
+            prCountString =
+                prCountString + " and " + amountOfDraftPRs + " are in draft";
+        }
+        if (amountOfPRsOpen === 0 && amountOfDraftPRs === 0) {
+            prCountString =
+                "Click here to see a magnificent view of no open PRs in the monorepo";
+        }
+        return "*<" + allPullRequests + "|" + prCountString + ">*";
+    }
+
+    function addDraftPRSection() {
+        if (amountOfDraftPRs > 0 && lastDraftPrUpdateBeforeDays >= 90) {
+            let americaTrips = (lastDraftPrUpdateBeforeDays / 36).toFixed(0);
+            addHeader(
+                webhookPayload,
+                "Unlike fine wine , draft pull requests don't get better with time"
+            );
+            addSectionWithImage(
+                webhookPayload,
+                "Please have a look at: *<" +
+                    oldestDraftPRUrl +
+                    "|" +
+                    oldestDraftPRTitle +
+                    ">*\nColumbus would have went to America " +
+                    americaTrips +
+                    " times already by this time ,do something with this as this has been open for *" +
+                    lastDraftPrUpdateBeforeDays +
+                    "* days",
+                redWarningIcon,
+                "It took them 36 days"
+            );
+            addDivider(webhookPayload);
+        }
     }
 
     function addPRSection() {
-        let PRString =
-            getLastPRString() +
-            getAssigneeString() +
-            getPRCreatedByString() +
-            getPRAmountString();
-        addSectionWithImage(
-            webhookPayload,
-            PRString,
-            oldestPRAuthorPicture,
-            oldestPRAuthorName
-        );
-        addPRContext();
+        if (amountOfPRsOpen > 0) {
+            let PRString =
+                getLastPRString() +
+                getAssigneeString() +
+                getPRCreatedByString() +
+                getPRAmountString();
+            addSectionWithImage(
+                webhookPayload,
+                PRString,
+                oldestPRAuthorPicture,
+                oldestPRAuthorName
+            );
+            addPRContext();
+        } else {
+            let draftMessage = oldestDraftPR
+                ? "There are no open PRs????? *<" +
+                  allPullRequests +
+                  "|" +
+                  amountOfDraftPRs +
+                  " pull requests are in draft , you might want to look into those>*"
+                : "There are no open and draft PRs? What is this, why u no work, you might want to read this:\n*<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request|How to create a pull request>*";
+            addSectionWithImage(
+                webhookPayload,
+                draftMessage,
+                sadPepeKidImage,
+                "The pepe kid is sad, open a PR to make him happy"
+            );
+        }
     }
 
     function addPRContext() {
-        let imageToAddToContext;
-        let imageText;
-        if (lastUpdatedBeforeDays >= 30) {
-            imageToAddToContext = redWarningIcon;
-            imageText =
-                "C'mon guys it has been a month already , lets move this along";
-        } else {
-            imageToAddToContext =
-                lastUpdatedBeforeDays < 14 ? greenCheckMark : warningIcon;
+        if (amountOfPRsOpen > 0) {
+            let imageToAddToContext;
+            let imageText;
+            if (lastUpdatedBeforeDays >= 30) {
+                imageToAddToContext = redWarningIcon;
+                imageText =
+                    "C'mon guys it has been a month already , lets move this along";
+            } else {
+                imageToAddToContext =
+                    lastUpdatedBeforeDays < 14 ? greenCheckMark : warningIcon;
 
-            imageText =
-                lastUpdatedBeforeDays < 14
-                    ? "Please, publicly shame Elvijs if this value is wrong ,otherwise the PR is nice and fresh"
-                    : "Amigo, the PR is hanging there for more than 2 weeks already, maybe have a look?";
+                imageText =
+                    lastUpdatedBeforeDays < 14
+                        ? "Please, publicly shame Elvijs if this value is wrong ,otherwise the PR is nice and fresh"
+                        : "Amigo, the PR is hanging there for more than 2 weeks already, maybe have a look?";
+            }
+            addContextWithImage(
+                webhookPayload,
+                "*The PR has been last updated before " +
+                    lastUpdatedBeforeDays +
+                    " days*\nLast commit: " +
+                    oldestPRMessage,
+                imageToAddToContext,
+                imageText
+            );
+            addDivider(webhookPayload);
         }
-        addContextWithImage(
-            webhookPayload,
-            "*The PR has been last updated before " +
-                lastUpdatedBeforeDays +
-                " days*\nLast commit: " +
-                oldestPRMessage,
-            imageToAddToContext,
-            imageText
-        );
-        addDivider(webhookPayload);
     }
 
     function getOverallWorkflowString() {
         if (workflowStatus === "in_progress") {
             return "In progress";
         } else {
-            return workflowConclusion === "success"
-                ? "Success"
-                : "Failed";
+            return workflowConclusion === "success" ? "Success" : "Failed";
+        }
+    }
+
+    function getWorkflowTimeString() {
+        if (workflowStatus === "in_progress") {
+            return workflowName + " is still running , please wait";
+        } else {
+            return (
+                workflowName +
+                " ran for: " +
+                convertMS(lastWorkflowUsage.run_duration_ms)
+            );
         }
     }
 
@@ -311,7 +400,7 @@ async function sendMessageToSlack(data) {
             "|#" +
             workflowNumber +
             ">*: " +
-            workflowConclusion +
+            getOverallWorkflowString() +
             "\nLast commit: *<" +
             workflowCommitLink +
             "|" +
@@ -319,9 +408,7 @@ async function sendMessageToSlack(data) {
             ">*\nWorkflow ran at: " +
             workflowRanAt +
             "\n" +
-            workflowName +
-            " ran for: " +
-            convertMS(lastWorkflowUsage.run_duration_ms)
+            getWorkflowTimeString()
         );
     }
 
@@ -329,9 +416,7 @@ async function sendMessageToSlack(data) {
         if (workflowStatus === "in_progress") {
             return orangeImage;
         } else {
-            return workflowConclusion === "success"
-                ? greenImage
-                : redImage;
+            return workflowConclusion === "success" ? greenImage : redImage;
         }
     }
 
@@ -348,11 +433,10 @@ async function sendMessageToSlack(data) {
     addPlainText(webhookPayload, topSectionMessage);
     addDivider(webhookPayload);
     addPRSection();
+    addDraftPRSection();
     addHeader(
         webhookPayload,
-        workflowName +
-            " latest status: " +
-            getOverallWorkflowString()
+        workflowName + " latest status: " + getOverallWorkflowString()
     );
     addWorkflowSection();
     addDivider(webhookPayload);

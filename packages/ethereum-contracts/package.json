@@ -68,6 +68,7 @@
         "fix:eslint": "yarn lint-ts --fix",
         "lint:check-no-focused-tests": "grep -FR .only test || { echo 'No test is focused.';exit 0; } && { echo '✘ You have focused tests.'; exit 1; }",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
+        "pre-commit:build": "forge build",
         "pre-commit:lint": "yarn lint",
         "check-updates": "ncu --target minor --dep prod,dev",
         "cloc": "bash tasks/cloc.sh",

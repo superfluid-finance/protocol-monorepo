@@ -68,7 +68,6 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     string constant INFLOW_NFT_NAME_TEMPLATE = " Constant Inflow NFT";
     string constant INFLOW_NFT_SYMBOL_TEMPLATE = "CIF";
 
-    address public governanceOwner;
     ConstantOutflowNFTMock public constantOutflowNFTLogic;
     ConstantOutflowNFTMock public constantOutflowNFTProxy;
     ConstantInflowNFTMock public constantInflowNFTLogic;
@@ -94,9 +93,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
 
     event MetadataUpdate(uint256 _tokenId);
 
-    constructor() FoundrySuperfluidTester(5) {
-        governanceOwner = address(sfDeployer);
-    }
+    constructor() FoundrySuperfluidTester(5) {}
 
     function setUp() public virtual override {
         // run setup from FoundrySuperfluidTester
@@ -310,7 +307,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             _constantInflowNFTProxy
         ) = helper_Deploy_Constant_Inflow_NFT();
 
-        vm.prank(governanceOwner);
+        vm.prank(sf.governance.owner());
         superToken.initializeNFTContracts(
             address(_constantOutflowNFTProxy),
             address(_constantInflowNFTProxy),

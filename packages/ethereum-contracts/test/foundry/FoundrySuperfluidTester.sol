@@ -1,24 +1,24 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.16;
 
-import "forge-std/Test.sol";
-
 import {
     Superfluid,
     ConstantFlowAgreementV1,
     InstantDistributionAgreementV1,
-    TestToken,
-    SuperToken,
     SuperfluidFrameworkDeployer,
     CFAv1Library,
-    IDAv1Library
-} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
+    IDAv1Library,
+    TestResolver
+} from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import {
+    TestToken,
+    SuperToken
+} from "../../contracts/utils/SuperTokenDeployer.sol";
+import { DeployerBaseTest } from "./DeployerBase.t.sol";
 
-contract FoundrySuperfluidTester is Test {
+contract FoundrySuperfluidTester is DeployerBaseTest {
     uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
-    address internal constant admin = address(0x420);
     address internal constant alice = address(0x421);
     address internal constant bob = address(0x422);
     address internal constant carol = address(0x423);
@@ -31,8 +31,6 @@ contract FoundrySuperfluidTester is Test {
     address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
 
     uint internal immutable N_TESTERS;
-    SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperfluidFrameworkDeployer.Framework internal sf;
 
     TestToken internal token;
     SuperToken internal superToken;
@@ -42,20 +40,10 @@ contract FoundrySuperfluidTester is Test {
     constructor(uint8 nTesters) {
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
         N_TESTERS = nTesters;
-
-        vm.startPrank(admin);
-
-        // Deploy ERC1820
-        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
-
-        sfDeployer = new SuperfluidFrameworkDeployer();
-        sf = sfDeployer.getFramework();
-
-        vm.stopPrank();
     }
 
-    function setUp() public virtual {
-        (token, superToken) = sfDeployer.deployWrapperSuperToken(
+    function setUp() public virtual override {
+        (token, superToken) = superTokenDeployer.deployWrapperSuperToken(
             "FTT",
             "FTT",
             18,

@@ -114,7 +114,7 @@ export const initializeTestEnvironment = async () => {
             providerOrSigner: testEnv.alice,
         })
     ).div(toBN(testEnv.users.length));
-
+    console.log("Mint and Approve Tokens...");
     for (let i = 0; i < testEnv.users.length; i++) {
         const user = testEnv.users[i];
         await testEnv.token

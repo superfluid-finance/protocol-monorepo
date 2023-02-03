@@ -7,6 +7,10 @@ import {
     IERC20,
     ERC20WithTokenInfo
 } from "../tokens/ERC20WithTokenInfo.sol";
+import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
+import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
 
 /**
  * @title Super token factory interface
@@ -130,21 +134,106 @@ interface ISuperTokenFactory {
         external;
 
     /**
-      * @dev Super token logic created event
-      * @param tokenLogic Token logic address
-      */
+     * @notice Deploys the NFT proxy contracts and initializes them
+     * @dev This function still requires you to call SuperToken.initializeNFTContracts
+     * to link the NFT contracts to the super token
+     * NOTE: This function is only callable by the governance contract owner
+     * @param superToken the super token we are attaching the NFT contracts to
+     * @param constantOutflowNFTLogic address of the constant outflow NFT logic contract
+     * @param constantInflowNFTLogic address of the constant inflow NFT logic contract
+     * @param poolAdminNFTProxy address of the pool admin NFT proxy contract
+     * @param poolMemberNFT address of the pool member NFT contract
+     * @return constantOutflowNFT the deployed constant outflow NFT contract
+     * @return constantInflowNFT the deployed constant inflow NFT contract
+     * @return poolAdminNFT the deployed pool admin NFT contract
+     * @return poolMemberNFT the deployed pool member NFT contract
+     */
+    function deployNFTProxyContractsAndInititialize(
+        ISuperToken superToken,
+        address constantOutflowNFTLogic,
+        address constantInflowNFTLogic,
+        address poolAdminNFTProxy,
+        address poolMemberNFTProxy
+    )
+        external
+        returns (
+            IConstantOutflowNFT constantOutflowNFT,
+            IConstantInflowNFT constantInflowNFT,
+            IPoolAdminNFT poolAdminNFT,
+            IPoolMemberNFT poolMemberNFT
+        );
+
+    /**
+     * @dev Super token logic created event
+     * @param tokenLogic Token logic address
+     */
     event SuperTokenLogicCreated(ISuperToken indexed tokenLogic);
 
     /**
-      * @dev Super token created event
-      * @param token Newly created super token address
-      */
+     * @dev Super token created event
+     * @param token Newly created super token address
+     */
     event SuperTokenCreated(ISuperToken indexed token);
 
     /**
-      * @dev Custom super token created event
-      * @param token Newly created custom super token address
-      */
+     * @dev Custom super token created event
+     * @param token Newly created custom super token address
+     */
     event CustomSuperTokenCreated(ISuperToken indexed token);
 
+    /**
+     * @dev Constant Outflow NFT logic created event
+     * @param constantOutflowNFTLogic constant outflow nft logic address
+     */
+    event ConstantOutflowNFTLogicCreated(
+        IConstantOutflowNFT indexed constantOutflowNFTLogic
+    );
+
+    /**
+     * @dev Constant Outflow NFT proxy created event
+     * @param constantOutflowNFT constant outflow nft address
+     */
+    event ConstantOutflowNFTCreated(
+        IConstantOutflowNFT indexed constantOutflowNFT
+    );
+
+    /**
+     * @dev Constant Inflow NFT logic created event
+     * @param constantInflowNFTLogic constant inflow nft logic address
+     */
+    event ConstantInflowNFTLogicCreated(
+        IConstantInflowNFT indexed constantInflowNFTLogic
+    );
+
+    /**
+     * @dev Constant Inflow NFT proxy created event
+     * @param constantInflowNFT constant inflow nft address
+     */
+    event ConstantInflowNFTCreated(
+        IConstantInflowNFT indexed constantInflowNFT
+    );
+
+    /**
+     * @dev Pool Admin NFT logic created event
+     * @param poolAdminNFTProxy pool admin nft proxy address
+     */
+    event PoolAdminNFTProxyCreated(IPoolAdminNFT indexed poolAdminNFTProxy);
+
+    /**
+     * @dev Pool Admin NFT logic created event
+     * @param poolAdminNFTProxy pool admin nft proxy address
+     */
+    event PoolAdminNFTCreated(IPoolAdminNFT indexed poolAdminNFTProxy);
+
+    /**
+     * @dev Pool Member NFT logic created event
+     * @param poolMemberNFTProxy pool member nft proxy address
+     */
+    event PoolMemberNFTProxyCreated(IPoolMemberNFT indexed poolMemberNFTProxy);
+
+    /**
+     * @dev Pool Member NFT logic created event
+     * @param poolMemberNFTProxy pool member nft proxy address
+     */
+    event PoolMemberNFTCreated(IPoolMemberNFT indexed poolMemberNFTProxy);
 }

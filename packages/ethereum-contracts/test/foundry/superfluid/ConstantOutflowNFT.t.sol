@@ -286,7 +286,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         );
     }
 
-    function test_Revert_Create_Flow_Overflows_When_Timestamp_Greater_Than_Uint32_Max()
+    function test_Revert_When_Create_Flow_Overflows_Because_Timestamp_Is_Greater_Than_Uint32_Max()
         public
     {
         int96 flowRate = 42069;
@@ -422,6 +422,10 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         address _flowSender,
         address _flowReceiver
     ) public {
+        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+            _flowSender,
+            _flowReceiver
+        );
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
 
         vm.prank(address(constantInflowNFTProxy));
@@ -436,6 +440,10 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         address _flowSender,
         address _flowReceiver
     ) public {
+        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+            _flowSender,
+            _flowReceiver
+        );
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
 

@@ -29,6 +29,18 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
 
         assembly { slot := _canonicalWrapperSuperTokens.slot offset := _canonicalWrapperSuperTokens.offset }
         require(slot == 1 && offset == 0, "_canonicalWrapperSuperTokens changed location");
+
+        assembly { slot := _constantOutflowNFTLogic.slot offset := _constantOutflowNFTLogic.offset }
+        require(slot == 2 && offset == 0, "_constantOutflowNFTLogic changed location");
+
+        assembly { slot := _constantInflowNFTLogic.slot offset := _constantInflowNFTLogic.offset }
+        require(slot == 3 && offset == 0, "_constantInflowNFTLogic changed location");
+
+        assembly { slot := _poolAdminNFTLogic.slot offset := _poolAdminNFTLogic.offset }
+        require(slot == 4 && offset == 0, "_poolAdminNFTLogic changed location");
+
+        assembly { slot := _poolMemberNFTLogic.slot offset := _poolMemberNFTLogic.offset }
+        require(slot == 5 && offset == 0, "_poolMemberNFTLogic changed location");
     }
 
     // dummy impl

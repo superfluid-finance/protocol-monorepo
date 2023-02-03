@@ -4,8 +4,9 @@ pragma solidity >=0.8.4;
 import {
     IERC721Metadata
 } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { ICFAv1NFTBase } from "./ICFAv1NFTBase.sol";
 
-interface IConstantInflowNFT is IERC721Metadata {
+interface IConstantInflowNFT is IERC721Metadata, ICFAv1NFTBase {
     /**************************************************************************
      * Errors
      *************************************************************************/

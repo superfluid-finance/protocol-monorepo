@@ -26,10 +26,6 @@ contract ConstantInflowNFT is CFAv1NFTBase {
             );
     }
 
-    /// @note Neither mint nor burn will work here because we need to forward these calls.
-
-    /// @note mint/burn should also probably be access controlled to just outflow NFT calling it
-
     /// @notice The mint function emits the "mint" `Transfer` event.
     /// @dev We don't modify storage as this is handled in ConstantOutflowNFT.sol and this function's sole purpose
     /// is to inform clients that search for events.

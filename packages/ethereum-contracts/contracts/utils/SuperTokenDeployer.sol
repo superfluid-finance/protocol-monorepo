@@ -4,6 +4,12 @@ pragma solidity ^0.8.0;
 import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {
+    IConstantOutflowNFT,
+    IConstantInflowNFT,
+    IPoolAdminNFT,
+    IPoolMemberNFT
+} from "../interfaces/superfluid/ISuperToken.sol";
 import { IPureSuperToken } from "../interfaces/tokens/IPureSuperToken.sol";
 import { ISETH } from "../interfaces/tokens/ISETH.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
@@ -84,7 +90,7 @@ contract SuperTokenDeployer {
             )
         );
 
-        _deployCFANFTContractsAndInitialize(superToken, superTokenSymbol);
+        _deployCFANFTContractsAndInitialize(superToken);
 
         // list underlying token in resolver
         _handleResolverList(
@@ -120,7 +126,7 @@ contract SuperTokenDeployer {
             _symbol
         );
 
-        _deployCFANFTContractsAndInitialize(nativeAssetSuperToken, _symbol);
+        _deployCFANFTContractsAndInitialize(nativeAssetSuperToken);
 
         _handleResolverList(
             true,
@@ -148,7 +154,7 @@ contract SuperTokenDeployer {
 
         pureSuperToken = IPureSuperToken(address(pureSuperTokenProxy));
 
-        _deployCFANFTContractsAndInitialize(pureSuperToken, _symbol);
+        _deployCFANFTContractsAndInitialize(pureSuperToken);
 
         _handleResolverList(
             true,
@@ -160,33 +166,37 @@ contract SuperTokenDeployer {
         pureSuperToken.transfer(msg.sender, _initialSupply);
     }
 
+    /// @notice Returns outflow, inflow and super token factory addresses
+    /// @return SuperTokenAddresses struct
+    function superTokenAddresses()
+        external
+        view
+        returns (SuperTokenAddresses memory)
+    {
+        return SuperTokenAddresses({
+            constantOutflowNFTLogic: constantOutflowNFTLogic,
+            constantInflowNFTLogic: constantInflowNFTLogic,
+            superTokenFactory: superTokenFactory
+        });
+    }
+
     /// @notice Deploys and initializes the outflow and inflow CFA NFTs and initializes them in the super token
     /// @dev Each super token is linked to the two outflow and inflow CFA NFTs
     /// @param _superToken The super token
-    /// @param _superTokenSymbol the symbol of the super token
     function _deployCFANFTContractsAndInitialize(
-        ISuperToken _superToken,
-        string memory _superTokenSymbol
+        ISuperToken _superToken
     ) internal {
-        UUPSProxy outflowNFTProxy = new UUPSProxy();
-        outflowNFTProxy.initializeProxy(address(constantOutflowNFTLogic));
-        ConstantOutflowNFT(address(outflowNFTProxy)).initialize(
+        superTokenFactory.deployNFTProxyContractsAndInititialize(
             _superToken,
-            string.concat(_superTokenSymbol, " Outflow NFT"),
-            string.concat(_superTokenSymbol, "COF")
+            address(constantOutflowNFTLogic),
+            address(constantInflowNFTLogic),
+            address(0),
+            address(0)
         );
-
-        UUPSProxy inflowNFTProxy = new UUPSProxy();
-        inflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
-        ConstantInflowNFT(address(inflowNFTProxy)).initialize(
-            _superToken,
-            string.concat(_superTokenSymbol, " Inflow NFT"),
-            string.concat(_superTokenSymbol, "CIF")
-        );
-
+        
         _superToken.initializeNFTContracts(
-            address(outflowNFTProxy),
-            address(inflowNFTProxy),
+            address(constantOutflowNFTLogic),
+            address(constantInflowNFTLogic),
             address(0),
             address(0)
         );

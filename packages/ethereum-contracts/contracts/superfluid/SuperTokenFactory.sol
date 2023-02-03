@@ -7,16 +7,21 @@ import {
     IERC20,
     ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
-
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-
 import { SuperToken } from "../superfluid/SuperToken.sol";
-
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
+import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
+import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+import { SuperfluidNFTDeployerLibrary } from "../libs/SuperfluidNFTDeployerLibrary.sol";
+
+// @note TODO must deploy and link the SuperfluidNFTDeployerLibrary contract in deploy-framework.js
 
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,
@@ -41,6 +46,12 @@ abstract contract SuperTokenFactoryBase is
     /// @dev (2) prevent address retrieval issues if we ever choose to modify the bytecode of the UUPSProxy contract
     /// @dev NOTE: address(0) key points to the NativeAssetSuperToken on the network.
     mapping(address => address) internal _canonicalWrapperSuperTokens;
+
+    IConstantOutflowNFT internal _constantOutflowNFTLogic;
+    IConstantInflowNFT internal _constantInflowNFTLogic;
+
+    IPoolAdminNFT internal _poolAdminNFTLogic;
+    IPoolMemberNFT internal _poolMemberNFTLogic;
     
     /// NOTE: Whenever modifying the storage layout here it is important to update the validateStorageLayout
     /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
@@ -78,12 +89,22 @@ abstract contract SuperTokenFactoryBase is
         return keccak256("org.superfluid-finance.contracts.SuperTokenFactory.implementation");
     }
 
+    /// @notice Updates the logic contract for the SuperTokenFactory
+    /// @dev This function updates the logic contract for the SuperTokenFactory
+    /// It also updates the logic contract for the SuperToken and the respective NFTs:
+    /// ConstantOutflowNFT, ConstantInflowNFT, PoolAdminNFT, PoolMemberNFT
+    /// @param newAddress the new address of the SuperTokenFactory logic contract
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host)) {
             revert SUPER_TOKEN_FACTORY_ONLY_HOST();
         }
+
+        // point at the new logic contract for the SuperTokenFactory
         _updateCodeAddress(newAddress);
+
         _updateSuperTokenLogic();
+        _updateConstantOutflowNFTLogic();
+        _updateConstantInflowNFTLogic();
     }
 
     function _updateSuperTokenLogic() private {
@@ -91,6 +112,20 @@ abstract contract SuperTokenFactoryBase is
         _superTokenLogic = SuperToken(this.createSuperTokenLogic(_host));
         UUPSProxiable(address(_superTokenLogic)).castrate();
         emit SuperTokenLogicCreated(_superTokenLogic);
+    }
+
+    function _updateConstantOutflowNFTLogic() private {
+        // use external call to trigger the new code to update the super token logic contract
+        _constantOutflowNFTLogic = IConstantOutflowNFT(this.createConstantOutflowNFTLogic());
+        UUPSProxiable(address(_constantOutflowNFTLogic)).castrate();
+        emit ConstantOutflowNFTLogicCreated(_constantOutflowNFTLogic);
+    }
+
+    function _updateConstantInflowNFTLogic() private {
+        // use external call to trigger the new code to update the super token logic contract
+        _constantInflowNFTLogic = IConstantInflowNFT(this.createConstantInflowNFTLogic());
+        UUPSProxiable(address(_constantInflowNFTLogic)).castrate();
+        emit ConstantInflowNFTLogicCreated(_constantInflowNFTLogic);
     }
 
     /**************************************************************************
@@ -105,6 +140,13 @@ abstract contract SuperTokenFactoryBase is
     }
 
     function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
+
+    function createConstantOutflowNFTLogic() external virtual returns (address logic) {
+        return SuperfluidNFTDeployerLibrary.deployConstantOutflowNFT();
+    }
+    function createConstantInflowNFTLogic() external virtual returns (address logic) {
+        return SuperfluidNFTDeployerLibrary.deployConstantInflowNFT();
+    }
 
     /// @inheritdoc ISuperTokenFactory
     function createCanonicalERC20Wrapper(ERC20WithTokenInfo _underlyingToken)
@@ -295,6 +337,50 @@ abstract contract SuperTokenFactoryBase is
             _canonicalWrapperSuperTokens[_data[i].underlyingToken] = _data[i]
                 .superToken;
         }
+    }
+
+    /// @inheritdoc ISuperTokenFactory
+    function deployNFTProxyContractsAndInititialize(
+        ISuperToken superToken,
+        address constantOutflowNFTLogic,
+        address constantInflowNFTLogic,
+        address, // poolAdminNFTProxy,
+        address // poolMemberNFT
+    )
+        external
+        returns (
+            IConstantOutflowNFT constantOutflowNFT,
+            IConstantInflowNFT constantInflowNFT,
+            IPoolAdminNFT poolAdminNFT,
+            IPoolMemberNFT poolMemberNFT
+        )
+    {
+        Ownable gov = Ownable(address(_host.getGovernance()));
+        if (msg.sender != gov.owner()) {
+            revert SUPER_TOKEN_FACTORY_ONLY_GOVERNANCE_OWNER();
+        }
+
+        string memory superTokenSymbol = superToken.symbol();
+
+        UUPSProxy outflowNFTProxy = new UUPSProxy();
+        outflowNFTProxy.initializeProxy(address(constantOutflowNFTLogic));
+        constantOutflowNFT = IConstantOutflowNFT(address(outflowNFTProxy));
+        constantOutflowNFT.initialize(
+            superToken,
+            string.concat(superTokenSymbol, " Outflow NFT"),
+            string.concat(superTokenSymbol, "COF")
+        );
+        emit ConstantOutflowNFTCreated(constantOutflowNFT);
+
+        UUPSProxy inflowNFTProxy = new UUPSProxy();
+        inflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
+        constantInflowNFT = IConstantInflowNFT(address(inflowNFTProxy));
+        constantInflowNFT.initialize(
+            superToken,
+            string.concat(superTokenSymbol, " Inflow NFT"),
+            string.concat(superTokenSymbol, "CIF")
+        );
+        emit ConstantInflowNFTCreated(constantInflowNFT);
     }
 }
 

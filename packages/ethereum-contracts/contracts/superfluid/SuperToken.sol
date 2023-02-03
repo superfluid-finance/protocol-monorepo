@@ -725,6 +725,7 @@ contract SuperToken is
      * ERC20x-specific Functions
      *************************************************************************/
 
+    /// @inheritdoc ISuperToken
     function initializeNFTContracts(
         address constantOutflowNFTAddress,
         address constantInflowNFTAddress,
@@ -740,6 +741,7 @@ contract SuperToken is
         poolMemberNFT = IPoolMemberNFT(poolMemberNFTAddress);
     }
 
+    /// @inheritdoc ISuperToken
     function getFlow(
         address sender,
         address receiver

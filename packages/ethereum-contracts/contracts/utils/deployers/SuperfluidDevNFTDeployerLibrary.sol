@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import { ConstantOutflowNFT } from "../../superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT } from "../../superfluid/ConstantInflowNFT.sol";
 
-library SuperfluidNFTDeployerLibrary {
+library SuperfluidDevNFTDeployerLibrary {
 
     /// @notice Deploys the Superfluid ConstantOutflowNFT Contract
     /// @return constantOutflowNFT newly deployed ConstantOutflowNFT contract

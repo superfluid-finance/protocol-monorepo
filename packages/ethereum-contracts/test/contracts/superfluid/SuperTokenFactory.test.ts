@@ -114,8 +114,21 @@ describe("SuperTokenFactory Contract", function () {
     describe("#2 createERC20Wrapper", () => {
         context("#2.a Mock factory", () => {
             async function updateSuperTokenFactory() {
+                const superfluidNFTDeployerLibraryFactory =
+                    await ethers.getContractFactory(
+                        "SuperfluidNFTDeployerLibrary"
+                    );
+                const superfluidNFTDeployerLibrary =
+                    await superfluidNFTDeployerLibraryFactory.deploy();
+                await superfluidNFTDeployerLibrary.deployed();
                 const SuperTokenFactoryMock42 = await ethers.getContractFactory(
-                    "SuperTokenFactoryMock42"
+                    "SuperTokenFactoryMock42",
+                    {
+                        libraries: {
+                            SuperfluidNFTDeployerLibrary:
+                                superfluidNFTDeployerLibrary.address,
+                        },
+                    }
                 );
                 const SuperTokenFactoryMockHelper =
                     await ethers.getContractFactory(
@@ -233,8 +246,20 @@ describe("SuperTokenFactory Contract", function () {
                 const helper = await (
                     await ethers.getContractFactory("SuperTokenFactoryHelper")
                 ).deploy();
+                const superfluidNFTDeployerLibraryFactory =
+                    await ethers.getContractFactory(
+                        "SuperfluidNFTDeployerLibrary"
+                    );
+                const superfluidNFTDeployerLibrary =
+                    await superfluidNFTDeployerLibraryFactory.deploy();
+                await superfluidNFTDeployerLibrary.deployed();
                 const factory2Logic = await (
-                    await ethers.getContractFactory("SuperTokenFactory")
+                    await ethers.getContractFactory("SuperTokenFactory", {
+                        libraries: {
+                            SuperfluidNFTDeployerLibrary:
+                                superfluidNFTDeployerLibrary.address,
+                        },
+                    })
                 ).deploy(superfluid.address, helper.address);
                 await governance.updateContracts(
                     superfluid.address,

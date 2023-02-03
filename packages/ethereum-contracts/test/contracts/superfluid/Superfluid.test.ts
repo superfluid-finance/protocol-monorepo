@@ -435,8 +435,21 @@ describe("Superfluid Host Contract", function () {
                     await ethers.getContractFactory("SuperTokenFactoryHelper");
                 const superTokenFactoryHelper =
                     await SuperTokenFactoryHelperFactory.deploy();
+                const superfluidNFTDeployerLibraryFactory =
+                    await ethers.getContractFactory(
+                        "SuperfluidNFTDeployerLibrary"
+                    );
+                const superfluidNFTDeployerLibrary =
+                    await superfluidNFTDeployerLibraryFactory.deploy();
+                await superfluidNFTDeployerLibrary.deployed();
                 const factory2LogicFactory = await ethers.getContractFactory(
-                    "SuperTokenFactory"
+                    "SuperTokenFactory",
+                    {
+                        libraries: {
+                            SuperfluidNFTDeployerLibrary:
+                                superfluidNFTDeployerLibrary.address,
+                        },
+                    }
                 );
                 const factory2Logic = await factory2LogicFactory.deploy(
                     superfluid.address,
@@ -2603,8 +2616,21 @@ describe("Superfluid Host Contract", function () {
                     await ethers.getContractFactory("SuperTokenFactoryHelper");
                 const SuperTokenFactoryHelper =
                     await SuperTokenFactoryHelperFactory.deploy();
+                const superfluidNFTDeployerLibraryFactory =
+                    await ethers.getContractFactory(
+                        "SuperfluidNFTDeployerLibrary"
+                    );
+                const superfluidNFTDeployerLibrary =
+                    await superfluidNFTDeployerLibraryFactory.deploy();
+                await superfluidNFTDeployerLibrary.deployed();
                 const factory2LogicFactory = await ethers.getContractFactory(
-                    "SuperTokenFactory"
+                    "SuperTokenFactory",
+                    {
+                        libraries: {
+                            SuperfluidNFTDeployerLibrary:
+                                superfluidNFTDeployerLibrary.address,
+                        },
+                    }
                 );
                 const factory2Logic = await factory2LogicFactory.deploy(
                     superfluid.address,

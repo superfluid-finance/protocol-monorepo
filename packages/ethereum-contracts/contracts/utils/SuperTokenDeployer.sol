@@ -28,8 +28,8 @@ import { TestToken } from "./TestToken.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 import {
-    SuperfluidNFTDeployerLibrary
-} from "./deployers/SuperfluidNFTDeployerLibrary.sol";
+    SuperfluidDevNFTDeployerLibrary
+} from "./deployers/SuperfluidDevNFTDeployerLibrary.sol";
 
 contract SuperTokenDeployer {
     struct SuperTokenAddresses {
@@ -50,9 +50,9 @@ contract SuperTokenDeployer {
         // @note SuperfluidFrameworkDeployer must be deployed at this point
 
         // Deploy NFT logic contracts
-        constantOutflowNFTLogic = SuperfluidNFTDeployerLibrary
+        constantOutflowNFTLogic = SuperfluidDevNFTDeployerLibrary
             .deployConstantOutflowNFT();
-        constantInflowNFTLogic = SuperfluidNFTDeployerLibrary
+        constantInflowNFTLogic = SuperfluidDevNFTDeployerLibrary
             .deployConstantInflowNFT();
 
         superTokenFactory = SuperTokenFactory(superTokenFactoryAddress);

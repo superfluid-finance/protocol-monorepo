@@ -21,8 +21,6 @@ import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { SuperfluidNFTDeployerLibrary } from "../libs/SuperfluidNFTDeployerLibrary.sol";
 
-// @note TODO must deploy and link the SuperfluidNFTDeployerLibrary contract in deploy-framework.js
-
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,
     ISuperTokenFactory

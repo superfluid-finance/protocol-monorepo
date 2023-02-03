@@ -189,6 +189,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "UUPSProxy",
         "UUPSProxiable",
         "SlotsBitmapLibrary",
+        "SuperfluidNFTDeployerLibrary",
         "ConstantFlowAgreementV1",
         "InstantDistributionAgreementV1",
         "ConstantOutflowNFT",
@@ -220,6 +221,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         UUPSProxy,
         UUPSProxiable,
         SlotsBitmapLibrary,
+        SuperfluidNFTDeployerLibrary,
         ConstantFlowAgreementV1,
         InstantDistributionAgreementV1,
         ConstantOutflowNFT,
@@ -564,6 +566,21 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const SuperTokenFactoryLogic = useMocks
         ? SuperTokenFactoryMock
         : SuperTokenFactory;
+    const deploySuperfluidNFTDeployerLibrary = async () => {
+        const superfluidNFTDeployerLib = await web3tx(
+            SuperfluidNFTDeployerLibrary.new,
+            "SuperfluidNFTDeployerLibrary.new"
+        )();
+        if (process.env.IS_HARDHAT) {
+            SuperTokenFactoryLogic.link(superfluidNFTDeployerLib);
+        } else {
+            SuperTokenFactoryLogic.link(
+                "SuperfluidNFTDeployerLibrary",
+                superfluidNFTDeployerLib.address
+            );
+        }
+    };
+    await deploySuperfluidNFTDeployerLibrary();
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
     const superTokenFactoryNewLogicAddress = await deployContractIf(
         web3,

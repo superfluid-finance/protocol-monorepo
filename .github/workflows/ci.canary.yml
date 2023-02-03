@@ -134,11 +134,11 @@ jobs:
           yarn build
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
-      - name: Clean up coverage artifacts
+      - name: Clean up and merge coverage artifacts
         run: |
           # extract coverage for NFT contracts from forge coverage
           lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol'
-          # combine coverage from hardhat coverage and fore coverage
+          # merge coverage from hardhat coverage and forge coverage
           lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o lcov.info
 
       - name: Create coverage artifact

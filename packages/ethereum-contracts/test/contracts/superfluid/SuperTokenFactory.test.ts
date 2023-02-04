@@ -1,4 +1,4 @@
-import {artifacts, assert, ethers, expect, web3} from "hardhat";
+import {assert, ethers, expect, web3} from "hardhat";
 
 import {
     SuperfluidMock,
@@ -56,8 +56,25 @@ describe("SuperTokenFactory Contract", function () {
 
     describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
-            const T = artifacts.require("SuperTokenFactoryStorageLayoutTester");
-            const tester = await T.new(superfluid.address);
+            const superfluidNFTDeployerLibraryFactory =
+                await ethers.getContractFactory("SuperfluidNFTDeployerLibrary");
+            const superfluidNFTDeployerLibrary =
+                await superfluidNFTDeployerLibraryFactory.deploy();
+            await superfluidNFTDeployerLibrary.deployed();
+            const superTokenFactoryStorageLayoutTesterFactory =
+                await ethers.getContractFactory(
+                    "SuperTokenFactoryStorageLayoutTester",
+                    {
+                        libraries: {
+                            SuperfluidNFTDeployerLibrary:
+                                superfluidNFTDeployerLibrary.address,
+                        },
+                    }
+                );
+            const tester =
+                await superTokenFactoryStorageLayoutTesterFactory.deploy(
+                    superfluid.address
+                );
             await tester.validateStorageLayout();
         });
 

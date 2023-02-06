@@ -102,6 +102,11 @@ jobs:
           yarn install --frozen-lockfile
           yarn build
 
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
       - name: Run coverage test
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage

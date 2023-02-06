@@ -160,9 +160,9 @@ makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
                 365
             );
             await operation.exec(testEnv.alice);
-            const updateOpTxn1 = await updateOp1.exec(testEnv.alice, 1);
-            const updateOpTxn2 = await updateOp2.exec(testEnv.alice, 2);
-            expect(updateOpTxn1.gasLimit.mul(toBN(2))).to.equal(
+            const updateOpTxn1 = await updateOp1.exec(testEnv.alice, 3);
+            const updateOpTxn2 = await updateOp2.exec(testEnv.alice, 9);
+            expect(updateOpTxn1.gasLimit.mul(toBN(3))).to.equal(
                 updateOpTxn2.gasLimit
             );
         });

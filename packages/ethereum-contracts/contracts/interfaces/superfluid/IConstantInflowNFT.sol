@@ -4,9 +4,10 @@ pragma solidity >=0.8.4;
 import {
     IERC721Metadata
 } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import { ICFAv1NFTBase } from "./ICFAv1NFTBase.sol";
+import { ISuperToken } from "./ISuperToken.sol";
+import "./ICFAv1NFTBase.sol";
 
-interface IConstantInflowNFT is IERC721Metadata, ICFAv1NFTBase {
+interface IConstantInflowNFT is IERC721Metadata {
     /**************************************************************************
      * Errors
      *************************************************************************/
@@ -18,6 +19,12 @@ interface IConstantInflowNFT is IERC721Metadata, ICFAv1NFTBase {
     /**************************************************************************
      * Write Functions
      *************************************************************************/
+
+    function initialize(
+        ISuperToken superToken,
+        string memory nftName,
+        string memory nftSymbol
+    ) external; // initializer;
 
     /// @notice The mint function emits the "mint" `Transfer` event.
     /// @dev We don't modify storage as this is handled in ConstantOutflowNFT.sol and this function's sole purpose

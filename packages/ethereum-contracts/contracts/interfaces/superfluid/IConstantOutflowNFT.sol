@@ -4,9 +4,10 @@ pragma solidity >=0.8.4;
 import {
     IERC721Metadata
 } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import { ICFAv1NFTBase } from "./ICFAv1NFTBase.sol";
+import { ISuperToken } from "./ISuperToken.sol";
+import "./ICFAv1NFTBase.sol";
 
-interface IConstantOutflowNFT is IERC721Metadata, ICFAv1NFTBase {
+interface IConstantOutflowNFT is IERC721Metadata {
     /**************************************************************************
      * Errors
      *************************************************************************/
@@ -22,11 +23,17 @@ interface IConstantOutflowNFT is IERC721Metadata, ICFAv1NFTBase {
     /// @return flowData the flow data associated with `_tokenId`
     function flowDataByTokenId(
         uint256 _tokenId
-    ) external view returns (FlowData memory flowData);
+    ) external view returns (ICFAv1NFTBase.FlowData memory flowData);
 
     /**************************************************************************
      * Write Functions
      *************************************************************************/
+
+    function initialize(
+        ISuperToken superToken,
+        string memory nftName,
+        string memory nftSymbol
+    ) external; // initializer;
     
     function onCreate(
         address _to,

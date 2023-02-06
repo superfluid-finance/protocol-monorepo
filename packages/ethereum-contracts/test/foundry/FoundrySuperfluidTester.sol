@@ -11,12 +11,17 @@ import {
     TestResolver
 } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import {
+    SuperTokenV1Library
+} from "../../contracts/apps/SuperTokenV1Library.sol";
+import {
     TestToken,
     SuperToken
 } from "../../contracts/utils/SuperTokenDeployer.sol";
 import { DeployerBaseTest } from "./DeployerBase.t.sol";
 
 contract FoundrySuperfluidTester is DeployerBaseTest {
+    using SuperTokenV1Library for SuperToken;
+
     uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
     address internal constant alice = address(0x421);
@@ -28,7 +33,8 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
     address internal constant grace = address(0x427);
     address internal constant heidi = address(0x428);
     address internal constant ivan = address(0x429);
-    address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
+    address internal constant defaultRewardAddress = address(69);
+    address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan,defaultRewardAddress];
 
     uint internal immutable N_TESTERS;
 
@@ -62,24 +68,13 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                    Assume Helpers
-    //////////////////////////////////////////////////////////////////////////*/
-    function assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
-        uint32 _flowRate
-    ) public {
-        vm.assume(_flowRate > 0);
-        vm.assume(_flowRate <= uint32(type(int32).max));
-        int96 flowRate = int96(int32(_flowRate));
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
                                 Invariant Definitions
     //////////////////////////////////////////////////////////////////////////*/
     /// @notice Superfluid Global Invariants
     /// @dev Superfluid Global Invariants:
     /// - Liquidity Sum Invariant
     /// - Net Flow Rate Sum Invariant
-    /// @return bool Superfluid Global Invariants hold true
+    /// @return bool Superfluid Global Invariants holds true
     function definition_Global_Invariants() public view returns (bool) {
         return
             definition_Liquidity_Sum_Invariant() &&
@@ -106,6 +101,7 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
                 int256(deposit) -
                 int256(owedDeposit);
         }
+
         return int256(_expectedTotalSupply) == liquiditySum;
     }
 
@@ -128,8 +124,7 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
     }
 
     function assert_Global_Invariants() public {
-        assert_Liquidity_Sum_Invariant();
-        assert_Net_Flow_Rate_Sum_Invariant();
+        assertTrue(definition_Global_Invariants());
     }
 
     function assert_Liquidity_Sum_Invariant() public {
@@ -138,5 +133,119 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
 
     function assert_Net_Flow_Rate_Sum_Invariant() public {
         assertTrue(definition_Net_Flow_Rate_Sum_Invariant());
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Assertion Helpers
+    //////////////////////////////////////////////////////////////////////////*/
+    function assert_Modify_Flow_And_Net_Flow_Is_Expected(
+        address flowSender,
+        address flowReceiver,
+        int96 flowRateDelta,
+        int96 senderNetFlowBefore,
+        int96 receiverNetFlowBefore
+    ) internal {
+        int96 senderFlowAfter = superToken.getNetFlowRate(flowSender);
+        int96 receiverFlowAfter = superToken.getNetFlowRate(flowReceiver);
+
+        assertEq(
+            senderFlowAfter,
+            senderNetFlowBefore - flowRateDelta,
+            "sender net flow after"
+        );
+        assertEq(
+            receiverFlowAfter,
+            receiverNetFlowBefore + flowRateDelta,
+            "receiver net flow after"
+        );
+    }
+
+    function assert_Modify_Flow_And_Flow_Info_Is_Expected(
+        address flowSender,
+        address flowReceiver,
+        int96 expectedFlowRate,
+        uint256 expectedLastUpdated,
+        uint256 expectedOwedDeposit
+    ) internal {
+        (
+            uint256 lastUpdated,
+            int96 _flowRate,
+            uint256 deposit,
+            uint256 owedDeposit
+        ) = superToken.getFlowInfo(flowSender, flowReceiver);
+
+        uint256 expectedDeposit = superToken.getBufferAmountByFlowRate(
+            expectedFlowRate
+        );
+
+        assertEq(_flowRate, expectedFlowRate, "flow rate");
+        assertEq(lastUpdated, expectedLastUpdated, "last updated");
+        assertEq(deposit, expectedDeposit, "deposit");
+        assertEq(owedDeposit, expectedOwedDeposit, "owed deposit");
+    }
+
+    function assert_Flow_Info_Is_Empty(
+        address flowSender,
+        address flowReceiver
+    ) internal {
+        assert_Modify_Flow_And_Flow_Info_Is_Expected(
+            flowSender,
+            flowReceiver,
+            0,
+            0,
+            0
+        );
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Assume Helpers
+    //////////////////////////////////////////////////////////////////////////*/
+    /// @notice Assume a valid flow rate
+    /// @dev Flow rate must be greater than 0 and less than or equal to int32.max
+    function assume_Valid_Flow_Rate(
+        uint32 a
+    ) internal returns (int96 flowRate) {
+        vm.assume(a > 0);
+        vm.assume(a <= uint32(type(int32).max));
+        flowRate = int96(int32(a));
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Helper Functions
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function helper_Create_Flow_And_Assert_Global_Invariants(
+        address flowSender,
+        address flowReceiver,
+        uint32 _flowRate
+    ) internal returns (int96 absoluteFlowRate) {
+        int96 flowRate = assume_Valid_Flow_Rate(_flowRate);
+
+        absoluteFlowRate = flowRate;
+
+        int96 senderNetFlowRateBefore = superToken.getNetFlowRate(flowSender);
+        int96 receiverNetFlowRateBefore = superToken.getNetFlowRate(flowReceiver);
+
+        vm.startPrank(flowSender);
+        superToken.createFlow(flowReceiver, flowRate);
+        vm.stopPrank();
+
+        assert_Modify_Flow_And_Net_Flow_Is_Expected(
+            flowSender,
+            flowReceiver,
+            flowRate,
+            senderNetFlowRateBefore,
+            receiverNetFlowRateBefore
+        );
+
+        assert_Modify_Flow_And_Flow_Info_Is_Expected(
+            flowSender,
+            flowReceiver,
+            flowRate,
+            block.timestamp,
+            0
+        );
+
+        assert_Global_Invariants();
     }
 }

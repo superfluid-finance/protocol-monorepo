@@ -59,6 +59,8 @@ contract SuperfluidFrameworkDeployer {
         CFAv1Forwarder cfaV1Forwarder;
     }
 
+    address public constant DEFAULT_REWARD_ADDRESS = address(69);
+
     TestGovernance internal testGovernance;
     Superfluid internal host;
     ConstantFlowAgreementV1 internal cfaV1;
@@ -90,7 +92,7 @@ contract SuperfluidFrameworkDeployer {
         address[] memory trustedForwarders = new address[](0);
         testGovernance.initialize(
             host,
-            address(69),
+            DEFAULT_REWARD_ADDRESS,
             4 hours,
             30 minutes,
             trustedForwarders

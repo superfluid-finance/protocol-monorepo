@@ -217,23 +217,23 @@ interface ISuperTokenFactory {
      * @dev Pool Admin NFT logic created event
      * @param poolAdminNFTProxy pool admin nft proxy address
      */
-    event PoolAdminNFTProxyCreated(IPoolAdminNFT indexed poolAdminNFTProxy);
+    event PoolAdminNFTCreated(IPoolAdminNFT indexed poolAdminNFTProxy);
 
     /**
      * @dev Pool Admin NFT logic created event
      * @param poolAdminNFTProxy pool admin nft proxy address
      */
-    event PoolAdminNFTCreated(IPoolAdminNFT indexed poolAdminNFTProxy);
-
-    /**
-     * @dev Pool Member NFT logic created event
-     * @param poolMemberNFTProxy pool member nft proxy address
-     */
-    event PoolMemberNFTProxyCreated(IPoolMemberNFT indexed poolMemberNFTProxy);
+    event PoolAdminNFTLogicCreated(IPoolAdminNFT indexed poolAdminNFTProxy);
 
     /**
      * @dev Pool Member NFT logic created event
      * @param poolMemberNFTProxy pool member nft proxy address
      */
     event PoolMemberNFTCreated(IPoolMemberNFT indexed poolMemberNFTProxy);
+
+    /**
+     * @dev Pool Member NFT logic created event
+     * @param poolMemberNFTProxy pool member nft proxy address
+     */
+    event PoolMemberNFTLogicCreated(IPoolMemberNFT indexed poolMemberNFTProxy);
 }

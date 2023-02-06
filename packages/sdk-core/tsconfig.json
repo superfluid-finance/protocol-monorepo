@@ -86,9 +86,7 @@
         /* Disallow inconsistently-cased references to the same file. */
     },
     "include": [
-        "src/**/*.ts",
-        "hardhat.config.ts",
-        "test"
+        "src/**/*.ts"
     ],
     "exclude": [
         "node_modules"

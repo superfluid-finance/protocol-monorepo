@@ -3,8 +3,9 @@ All notable changes to the SDK-core will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.6.2] - 2023-01-26
+## [0.6.2] - 2023-02-07
 ### Added
+- `streamId` to `FlowUpdatedEvent` when querying from Subgraph
 - Support for Celo
 
 ## [0.6.1] - 2022-12-20

@@ -167,6 +167,7 @@ export const mapGetAllEventsQueryEvents = (
                     sender: x.sender,
                     flowOperator: x.flowOperator,
                     deposit: x.deposit,
+                    streamId: x.stream.id,
                 });
             case "FlowOperatorUpdatedEvent":
                 return typeGuard<events.FlowOperatorUpdatedEvent>({

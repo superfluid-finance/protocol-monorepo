@@ -140,15 +140,6 @@ makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should be able to use arbitrary gas estimation limit", async () => {
-            const NEW_VAL = 69;
-            const { operation } = await createCallAppActionOperation(
-                testEnv.alice,
-                testEnv.sdkFramework,
-                NEW_VAL
-            );
-
-            // we compare the two update operations and not the first one
-            // because initial storage creation costs more than subsequent updates
             const { operation: updateOp1 } = await createCallAppActionOperation(
                 testEnv.alice,
                 testEnv.sdkFramework,
@@ -157,12 +148,14 @@ makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
             const { operation: updateOp2 } = await createCallAppActionOperation(
                 testEnv.alice,
                 testEnv.sdkFramework,
-                365
+                420
             );
-            await operation.exec(testEnv.alice);
-            const updateOpTxn1 = await updateOp1.exec(testEnv.alice, 3);
-            const updateOpTxn2 = await updateOp2.exec(testEnv.alice, 9);
-            expect(updateOpTxn1.gasLimit.mul(toBN(3))).to.equal(
+
+            // we are deploying the same contract twice and calling an app action on it twice
+            // we should be using the exact same value for gas estimation
+            const updateOpTxn1 = await updateOp1.exec(testEnv.alice, 1);
+            const updateOpTxn2 = await updateOp2.exec(testEnv.alice, 2);
+            expect(updateOpTxn1.gasLimit.mul(toBN(2))).to.equal(
                 updateOpTxn2.gasLimit
             );
         });

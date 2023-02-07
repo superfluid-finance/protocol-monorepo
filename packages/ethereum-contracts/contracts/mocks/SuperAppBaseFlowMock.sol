@@ -3,10 +3,14 @@ pragma solidity >=0.8.0;
 
 import {ISuperfluid, ISuperToken, ISuperApp, SuperAppDefinitions} from "../interfaces/superfluid/ISuperfluid.sol";
 
-abstract contract SuperAppBaseFlow is ISuperApp {
+abstract contract SuperAppBaseFlowMock is ISuperApp {
     ISuperfluid public _host;
 
     mapping(ISuperToken => bool) internal _acceptedSuperTokens;
+
+    bytes public beforeCtxHolder;
+    bytes public afterCtxHolder;
+    string public callbackHolder;
 
     /// @dev Thrown when the callback caller is not the host.
     error UnauthorizedHost();
@@ -19,6 +23,12 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         _host = host_;
 
         host_.registerApp(SuperAppDefinitions.APP_LEVEL_FINAL | callBackDefinitions);
+    }
+
+    function clearHolders() public {
+        beforeCtxHolder = "";
+        afterCtxHolder = "";
+        callbackHolder = "";
     }
 
     /**
@@ -52,7 +62,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
     function afterFlowCreated(
         ISuperToken /*superToken*/,
         address /*sender*/,
-        bytes calldata /*beforeData*/,
+        bytes calldata /*callbackData*/,
         bytes calldata /*ctx*/
     ) internal virtual returns (bytes memory /*newCtx*/) {
         revert("Unsupported callback - After Agreement Created");
@@ -61,7 +71,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
     function afterFlowUpdated(
         ISuperToken /*superToken*/,
         address /*sender*/,
-        bytes calldata /*beforeData*/,
+        bytes calldata /*callbackData*/,
         bytes calldata /*ctx*/
     ) internal virtual returns (bytes memory /*newCtx*/) {
         revert("Unsupported callback - After Agreement Updated");
@@ -71,7 +81,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         ISuperToken /*superToken*/,
         address /*sender*/,
         address /*receiver*/,
-        bytes calldata /*beforeData*/,
+        bytes calldata /*callbackData*/,
         bytes calldata /*ctx*/
     ) internal virtual returns (bytes memory /*newCtx*/) {
         revert("Unsupported callback - After Agreement Deleted");
@@ -84,7 +94,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         ISuperToken /*superToken*/,
         address /*sender*/,
         bytes calldata /*ctx*/
-    ) internal view virtual returns (bytes memory /*beforeData*/) {
+    ) internal view virtual returns (bytes memory /*callbackData*/) {
         revert("Unsupported callback - Before Agreement Created");
     }
 
@@ -92,7 +102,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         ISuperToken /*superToken*/,
         address /*sender*/,
         bytes calldata /*ctx*/
-    ) internal view virtual returns (bytes memory /*beforeData*/) {
+    ) internal view virtual returns (bytes memory /*callbackData*/) {
         revert("Unsupported callback - Before Agreement Updated");
     }
 
@@ -101,7 +111,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         address /*sender*/,
         address /*receiver*/,
         bytes calldata /*ctx*/
-    ) internal view virtual returns (bytes memory /*beforeData*/) {
+    ) internal view virtual returns (bytes memory /*callbackData*/) {
         revert("Unsupported callback - Before Agreement Deleted");
     }
 
@@ -115,7 +125,10 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes calldata agreementData,
         bytes calldata cbdata,
         bytes calldata ctx
-    ) external override returns (bytes memory newCtx) {
+    ) external override returns (bytes memory) {
+        beforeCtxHolder = ctx;
+        callbackHolder = "create";
+
         // sender is host
         if (msg.sender != address(_host)) revert UnauthorizedHost();
         // super token is accepted
@@ -125,13 +138,15 @@ abstract contract SuperAppBaseFlow is ISuperApp {
 
         (address sender, ) = abi.decode(agreementData, (address, address));
 
-        return
-            afterFlowCreated(
-                superToken,
-                sender,
-                cbdata,
-                ctx // userData can be acquired with `_host.decodeCtx(ctx).userData`
-            );
+        
+        afterCtxHolder = afterFlowCreated(
+            superToken,
+            sender,
+            cbdata,
+            ctx // userData can be acquired with `_host.decodeCtx(ctx).userData`
+        );
+
+        return afterCtxHolder;
     }
 
     function afterAgreementUpdated(
@@ -141,7 +156,10 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes calldata agreementData,
         bytes calldata cbdata,
         bytes calldata ctx
-    ) external override returns (bytes memory newCtx) {
+    ) external override returns (bytes memory) {
+        beforeCtxHolder = ctx;
+        callbackHolder = "update";
+
         // sender is host
         if (msg.sender != address(_host)) revert UnauthorizedHost();
         // super token is accepted
@@ -151,13 +169,14 @@ abstract contract SuperAppBaseFlow is ISuperApp {
 
         (address sender, ) = abi.decode(agreementData, (address, address));
 
-        return
-            afterFlowUpdated(
+        afterCtxHolder = afterFlowUpdated(
                 superToken,
                 sender,
                 cbdata,
                 ctx // userData can be acquired with `_host.decodeCtx(ctx).userData`
             );
+
+        return afterCtxHolder;
     }
 
     function afterAgreementTerminated(
@@ -167,7 +186,10 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes calldata agreementData,
         bytes calldata cbdata,
         bytes calldata ctx
-    ) external override returns (bytes memory newCtx) {
+    ) external override returns (bytes memory) {
+        beforeCtxHolder = ctx;
+        callbackHolder = "delete";
+
         // sender is host
         if (msg.sender != address(_host)) return ctx;
         // super token is accepted
@@ -177,14 +199,15 @@ abstract contract SuperAppBaseFlow is ISuperApp {
 
         (address sender, address receiver) = abi.decode(agreementData, (address, address));
 
-        return 
-            afterFlowDeleted(
+        afterCtxHolder = afterFlowDeleted(
                 superToken,
                 sender,
                 receiver,
                 cbdata,
                 ctx
             );
+
+        return afterCtxHolder;
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -196,7 +219,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes32 /*agreementId*/,
         bytes calldata agreementData,
         bytes calldata ctx
-    ) external view override returns (bytes memory /*beforeData*/) {
+    ) external view override returns (bytes memory /*callbackData*/) {
         // sender is host
         if (msg.sender != address(_host)) revert UnauthorizedHost();
         // super token is accepted
@@ -220,7 +243,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes32 /*agreementId*/,
         bytes calldata agreementData,
         bytes calldata ctx
-    ) external view override returns (bytes memory /*beforeData*/) {
+    ) external view override returns (bytes memory /*callbackData*/) {
         // sender is host
         if (msg.sender != address(_host)) revert UnauthorizedHost();
         // super token is accepted
@@ -244,7 +267,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes32 /*agreementId*/,
         bytes calldata agreementData,
         bytes calldata ctx
-    ) external view override returns (bytes memory /*beforeData*/) {
+    ) external view override returns (bytes memory /*callbackData*/) {
         // sender is host
         if (msg.sender != address(_host)) return "0x";
         // super token is accepted

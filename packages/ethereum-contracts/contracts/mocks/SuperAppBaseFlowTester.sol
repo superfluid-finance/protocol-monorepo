@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.16;
 
-import { ISuperfluid, ISuperToken, SuperAppBaseFlow, SuperAppDefinitions } from "../apps/SuperAppBaseFlow.sol";
+import { SuperAppBaseFlowMock, ISuperfluid, ISuperToken, SuperAppDefinitions } from "./SuperAppBaseFlowMock.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
 error ErraticSender();
 error ErraticReceiver();
 
-contract SuperAppBaseFlowTester is SuperAppBaseFlow {
+contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
     using SuperTokenV1Library for ISuperToken;
 
     uint256 public lastUpdateHolder;
@@ -15,20 +15,28 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlow {
     int96 public oldFlowRateHolder;
 
     address public afterSenderHolder;
+    address public beforeSenderHolder;
 
     address public afterReceiverHolder;
+    address public beforeReceiverHolder;
 
     constructor(
         ISuperfluid host
-    ) SuperAppBaseFlow(
+    ) SuperAppBaseFlowMock(
         host,
         0
     ) {}
 
     // SETTING ACCEPTED SUPER TOKENS
 
-    function setAcceptedSuperToken(ISuperToken acceptedSuperToken) public {
-        _acceptedSuperTokens[acceptedSuperToken] = true;
+    function setAcceptedSuperToken(ISuperToken acceptedSuperToken, bool accepted) public {
+        _acceptedSuperTokens[acceptedSuperToken] = accepted;
+    }
+
+    // ARBITRARY START STREAM
+
+    function startStream(ISuperToken superToken, address receiver, int96 flowRate) public {
+        superToken.createFlow(receiver, flowRate);
     }
 
     // CREATE
@@ -55,11 +63,10 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlow {
 
         (uint256 lastUpdate, int96 flowRate, address sender_) = abi.decode(callBackData, (uint256,int96,address));
         
-        if (sender != sender_) revert ErraticSender();
-
         lastUpdateHolder = lastUpdate;
         oldFlowRateHolder = flowRate;
         afterSenderHolder = sender;
+        beforeSenderHolder = sender_;
         return ctx;
     }
 
@@ -86,11 +93,10 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlow {
     ) internal override returns(bytes memory) {
         (uint256 lastUpdate, int96 flowRate, address sender_) = abi.decode(callBackData, (uint256,int96,address));
         
-        if (sender != sender_) revert ErraticSender();
-
         lastUpdateHolder = lastUpdate;
         oldFlowRateHolder = flowRate;
         afterSenderHolder = sender;
+        beforeSenderHolder = sender_;
         return ctx;
     }
 
@@ -102,7 +108,7 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlow {
         address receiver,
         bytes calldata /*ctx*/
     ) internal view override returns (bytes memory /*callbackData*/) {
-        (uint256 lastUpdate, int96 flowRate,,) = superToken.getFlowInfo(sender, address(this));
+        (uint256 lastUpdate, int96 flowRate,,) = superToken.getFlowInfo(sender, receiver);
         return abi.encode(
             lastUpdate,
             flowRate,
@@ -123,15 +129,14 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlow {
             int96 flowRate, 
             address sender_, 
             address receiver_
-        ) = abi.decode(callBackData, (uint256,int96,address));
-        
-        if (sender != sender_) revert ErraticSender();
-        if (receiver != receiver_) revert ErraticReceiver();
+        ) = abi.decode(callBackData, (uint256,int96,address,address));
 
         lastUpdateHolder = lastUpdate;
         oldFlowRateHolder = flowRate;
         afterSenderHolder = sender;
+        beforeSenderHolder = sender_;
         afterReceiverHolder = receiver;
+        beforeReceiverHolder = receiver_;
         return ctx;
     }
 

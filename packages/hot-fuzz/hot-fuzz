@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # In all seriousness, this script should be written in perl. To the dearest leader Tim Toady.
 

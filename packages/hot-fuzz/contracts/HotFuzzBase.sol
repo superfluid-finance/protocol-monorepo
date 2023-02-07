@@ -3,11 +3,11 @@
 // solhint-disable func-name-mixedcase
 pragma solidity >= 0.8.0;
 
+import { ERC20PresetMinterPauser } from "@openzeppelin/contracts/token/ERC20/presets/ERC20PresetMinterPauser.sol";
 import {
     Superfluid,
     ConstantFlowAgreementV1,
     InstantDistributionAgreementV1,
-    ERC20PresetMinterPauser,
     SuperToken,
     SuperfluidFrameworkDeployer
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";

@@ -201,6 +201,32 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         );
     }
 
+    function test_Fuzz_Revert_If_Mint_Is_Not_Called_By_Outflow_NFT(
+        address caller
+    ) public {
+        assume_Caller_Is_Not_Other_Address(
+            caller,
+            address(constantOutflowNFTProxy)
+        );
+        vm.expectRevert(
+            ConstantInflowNFT.CIF_NFT_ONLY_CONSTANT_OUTFLOW.selector
+        );
+        constantInflowNFTProxy.mint(address(0), 69);
+    }
+
+    function test_Fuzz_Revert_If_Burn_Is_Not_Called_By_Outflow_NFT(
+        address caller
+    ) public {
+        assume_Caller_Is_Not_Other_Address(
+            caller,
+            address(constantOutflowNFTProxy)
+        );
+        vm.expectRevert(
+            ConstantInflowNFT.CIF_NFT_ONLY_CONSTANT_OUTFLOW.selector
+        );
+        constantInflowNFTProxy.burn(69);
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/

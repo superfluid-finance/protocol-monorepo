@@ -23,13 +23,6 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
     using CFAv1Library for CFAv1Library.InitData;
 
     /*//////////////////////////////////////////////////////////////////////////
-                                    Assume Helpers
-    //////////////////////////////////////////////////////////////////////////*/
-    function assume_Caller_Is_Not_CFAv1(CFAv1NFTBase baseContract) public {
-        vm.assume(msg.sender != address(baseContract.cfaV1()));
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
                                     Revert Tests
     //////////////////////////////////////////////////////////////////////////*/
     function test_Revert_If_Contract_Already_Initialized() public {
@@ -310,28 +303,37 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         );
     }
 
-    function test_Revert_If_On_Create_Is_Not_Called_By_CFAv1(
+    function test_Fuzz_Revert_If_On_Create_Is_Not_Called_By_CFAv1(
         address caller
     ) public {
-        assume_Caller_Is_Not_CFAv1(constantOutflowNFTProxy);
+        assume_Caller_Is_Not_Other_Address(
+            caller,
+            address(constantOutflowNFTProxy)
+        );
         vm.prank(caller);
         vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
         constantOutflowNFTProxy.onCreate(address(1), address(2));
     }
 
-    function test_Revert_If_On_Update_Is_Not_Called_By_CFAv1(
+    function test_Fuzz_Revert_If_On_Update_Is_Not_Called_By_CFAv1(
         address caller
     ) public {
-        assume_Caller_Is_Not_CFAv1(constantOutflowNFTProxy);
+        assume_Caller_Is_Not_Other_Address(
+            caller,
+            address(constantOutflowNFTProxy)
+        );
         vm.prank(caller);
         vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
         constantOutflowNFTProxy.onUpdate(address(1), address(2));
     }
 
-    function test_Revert_If_On_Delete_Is_Not_Called_By_CFAv1(
+    function test_Fuzz_Revert_If_On_Delete_Is_Not_Called_By_CFAv1(
         address caller
     ) public {
-        assume_Caller_Is_Not_CFAv1(constantOutflowNFTProxy);
+        assume_Caller_Is_Not_Other_Address(
+            caller,
+            address(constantOutflowNFTProxy)
+        );
         vm.prank(caller);
         vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
         constantOutflowNFTProxy.onDelete(address(1), address(2));

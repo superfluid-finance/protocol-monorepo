@@ -366,6 +366,13 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         vm.assume(_flowSender != _flowReceiver);
     }
 
+    function assume_Caller_Is_Not_Other_Address(
+        address caller,
+        address otherAddress
+    ) public {
+        vm.assume(caller != otherAddress);
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
@@ -388,9 +395,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function test_Passing_CFAv1_Is_Properly_Set_During_Initialization()
-        public
-    {
+    function test_Passing_CFAv1_Is_Properly_Set_During_Initialization() public {
         assertEq(address(constantOutflowNFTProxy.cfaV1()), address(sf.cfa));
         assertEq(address(constantInflowNFTProxy.cfaV1()), address(sf.cfa));
     }

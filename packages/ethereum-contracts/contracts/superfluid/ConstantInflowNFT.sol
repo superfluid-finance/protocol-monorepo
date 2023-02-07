@@ -15,6 +15,8 @@ import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
 /// @notice The ConstantInflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract does not hold any storage, but references the ConstantOutflowNFT contract storage.
 contract ConstantInflowNFT is CFAv1NFTBase {
+    error CIF_NFT_ONLY_CONSTANT_OUTFLOW(); // 0xe81ef57a
+
     function proxiableUUID() public pure override returns (bytes32) {
         return
             keccak256(
@@ -25,17 +27,22 @@ contract ConstantInflowNFT is CFAv1NFTBase {
     /// @notice The mint function emits the "mint" `Transfer` event.
     /// @dev We don't modify storage as this is handled in ConstantOutflowNFT.sol and this function's sole purpose
     /// is to inform clients that search for events.
+    /// Only callable by ConstantOutflowNFT
     /// @param to the receiver of the inflow nft and desired flow receiver
     /// @param newTokenId the new token id
-    function mint(address to, uint256 newTokenId) external {
+    function mint(
+        address to,
+        uint256 newTokenId
+    ) external onlyConstantOutflowNFT {
         _mint(to, newTokenId);
     }
 
     /// @notice This burn function emits the "burn" `Transfer` event.
     /// @dev We don't modify storage as this is handled in ConstantOutflowNFT.sol and this function's sole purpose
     /// is to inform clients that search for events.
+    /// Only callable by ConstantOutflowNFT
     /// @param tokenId desired token id to burn
-    function burn(uint256 tokenId) external {
+    function burn(uint256 tokenId) external onlyConstantOutflowNFT {
         _burn(tokenId);
     }
 
@@ -84,5 +91,13 @@ contract ConstantInflowNFT is CFAv1NFTBase {
     function _burn(uint256 tokenId) internal {
         CFAv1NFTFlowData memory flowData = flowDataByTokenId(tokenId);
         emit Transfer(flowData.flowReceiver, address(0), tokenId);
+    }
+
+    modifier onlyConstantOutflowNFT() {
+        address constantOutflowNFT = address(superToken.constantOutflowNFT());
+        if (msg.sender != constantOutflowNFT) {
+            revert CIF_NFT_ONLY_CONSTANT_OUTFLOW();
+        }
+        _;
     }
 }

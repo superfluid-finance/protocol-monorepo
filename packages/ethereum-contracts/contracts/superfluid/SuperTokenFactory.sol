@@ -113,7 +113,7 @@ abstract contract SuperTokenFactoryBase is
     /// This means we can add new update code in this function and 
     /// it will be called when the new contract is deployed.
     /// Only callable by self
-    function updateLogicContracts() external onlySelf {
+    function updateLogicContracts() external virtual onlySelf {
         _updateSuperTokenLogic();
     }
 

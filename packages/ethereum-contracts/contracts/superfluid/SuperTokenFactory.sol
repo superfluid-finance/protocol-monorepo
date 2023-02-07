@@ -136,12 +136,9 @@ abstract contract SuperTokenFactoryBase is
 
     function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
 
-    function createConstantOutflowNFTLogic() external virtual returns (address logic) {
-        return SuperfluidNFTDeployerLibrary.deployConstantOutflowNFT();
-    }
-    function createConstantInflowNFTLogic() external virtual returns (address logic) {
-        return SuperfluidNFTDeployerLibrary.deployConstantInflowNFT();
-    }
+    function createConstantOutflowNFTLogic() external virtual returns (address logic);
+    
+    function createConstantInflowNFTLogic() external virtual returns (address logic);
     /// @notice Update the logic contracts for the super token contract
     /// @dev This function allows us to call the updateLogicContracts
     /// on the newly deployed contract instead of the previous one.
@@ -429,5 +426,21 @@ contract SuperTokenFactory is SuperTokenFactoryBase
         returns (address logic)
     {
         return _helper.create(host);
+    }
+
+    function createConstantOutflowNFTLogic()
+        external
+        override
+        returns (address logic)
+    {
+        return SuperfluidNFTDeployerLibrary.deployConstantOutflowNFT();
+    }
+
+    function createConstantInflowNFTLogic()
+        external
+        override
+        returns (address logic)
+    {
+        return SuperfluidNFTDeployerLibrary.deployConstantInflowNFT();
     }
 }

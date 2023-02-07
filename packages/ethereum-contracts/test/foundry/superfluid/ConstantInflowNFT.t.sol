@@ -272,8 +272,8 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
             _flowReceiver
         );
 
-        CFAv1NFTBase.FlowData memory flowData = constantInflowNFTProxy
-            .mockFlowDataByTokenId(nftId);
+        CFAv1NFTBase.CFAv1NFTFlowData memory flowData = constantInflowNFTProxy
+            .mockCFAv1NFTFlowDataByTokenId(nftId);
         assertEq(flowData.flowSender, _flowSender);
         assertEq(flowData.flowReceiver, _flowReceiver);
     }

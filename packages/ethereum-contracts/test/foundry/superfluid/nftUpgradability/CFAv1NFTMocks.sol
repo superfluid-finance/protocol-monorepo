@@ -27,8 +27,9 @@ interface ICFAv1NFTBaseMockErrors {
 /// @dev This contract *MUST* have the same storage layout as CFAv1NFTBase.sol
 /// It is copied and pasted over to remove the extra noise from the functions.
 contract CFAv1NFTBaseMockV1 is UUPSProxiable, ICFAv1NFTBaseMockErrors {
-    struct FlowData {
+    struct CFAv1NFTFlowData {
         address flowSender;
+        uint32 flowStartDate;
         address flowReceiver;
     }
 
@@ -128,8 +129,9 @@ contract CFAv1NFTBaseMockV1 is UUPSProxiable, ICFAv1NFTBaseMockErrors {
 }
 
 contract CFAv1NFTBaseMockVGoodUpgrade is UUPSProxiable, ICFAv1NFTBaseMockErrors {
-    struct FlowData {
+    struct CFAv1NFTFlowData {
         address flowSender;
+        uint32 flowStartDate;
         address flowReceiver;
     }
 
@@ -244,8 +246,9 @@ contract CFAv1NFTBaseMockVGoodUpgrade is UUPSProxiable, ICFAv1NFTBaseMockErrors 
 }
 
 contract CFAv1NFTBaseMockV1BadNewVariablePreGap is UUPSProxiable, ICFAv1NFTBaseMockErrors {
-    struct FlowData {
+    struct CFAv1NFTFlowData {
         address flowSender;
+        uint32 flowStartDate;
         address flowReceiver;
     }
 
@@ -340,8 +343,9 @@ contract CFAv1NFTBaseMockV1BadNewVariablePreGap is UUPSProxiable, ICFAv1NFTBaseM
 }
 
 contract CFAv1NFTBaseMockV1BadReorderingPreGap is UUPSProxiable, ICFAv1NFTBaseMockErrors {
-    struct FlowData {
+    struct CFAv1NFTFlowData {
         address flowSender;
+        uint32 flowStartDate;
         address flowReceiver;
     }
 
@@ -437,7 +441,7 @@ contract CFAv1NFTBaseMockV1BadReorderingPreGap is UUPSProxiable, ICFAv1NFTBaseMo
 //////////////////////////////////////////////////////////////////////////*/
 
 contract ConstantOutflowNFTMockV1 is CFAv1NFTBaseMockV1 {
-    mapping(uint256 => FlowData) internal _flowDataByTokenId;
+    mapping(uint256 => CFAv1NFTFlowData) internal _flowDataByTokenId;
 
     function proxiableUUID() public pure virtual override returns (bytes32) {
         return
@@ -460,8 +464,9 @@ contract ConstantOutflowNFTMockV1 is CFAv1NFTBaseMockV1 {
 }
 
 contract CFAv1NFTBaseMockV1BadPostGap is UUPSProxiable, ICFAv1NFTBaseMockErrors {
-    struct FlowData {
+    struct CFAv1NFTFlowData {
         address flowSender;
+        uint32 flowStartDate;
         address flowReceiver;
     }
 
@@ -556,7 +561,7 @@ contract CFAv1NFTBaseMockV1BadPostGap is UUPSProxiable, ICFAv1NFTBaseMockErrors 
 }
 
 contract ConstantOutflowNFTMockV1BaseBadNewVariable is CFAv1NFTBaseMockV1BadPostGap {
-    mapping(uint256 => FlowData) internal _flowDataByTokenId;
+    mapping(uint256 => CFAv1NFTFlowData) internal _flowDataByTokenId;
 
     function proxiableUUID() public pure override returns (bytes32) {
         return
@@ -581,7 +586,7 @@ contract ConstantOutflowNFTMockV1BaseBadNewVariable is CFAv1NFTBaseMockV1BadPost
 contract ConstantOutflowNFTMockV1BadNewVariable is CFAv1NFTBaseMockV1 {
     // @note The incorrectly placed variable!
     uint256 public badVariable;
-    mapping(uint256 => FlowData) internal _flowDataByTokenId;
+    mapping(uint256 => CFAv1NFTFlowData) internal _flowDataByTokenId;
 
     function proxiableUUID() public pure override returns (bytes32) {
         return

@@ -18,12 +18,12 @@ interface IConstantOutflowNFT is IERC721Metadata {
      * View Functions
      *************************************************************************/
 
-    /// @notice An external function for querying flow data by `_tokenId``
-    /// @param _tokenId the token id
-    /// @return flowData the flow data associated with `_tokenId`
+    /// @notice An external function for querying flow data by `tokenId``
+    /// @param tokenId the token id
+    /// @return flowData the flow data associated with `tokenId`
     function flowDataByTokenId(
-        uint256 _tokenId
-    ) external view returns (ICFAv1NFTBase.FlowData memory flowData);
+        uint256 tokenId
+    ) external view returns (ICFAv1NFTBase.CFAv1NFTFlowData memory flowData);
 
     /**************************************************************************
      * Write Functions
@@ -36,42 +36,42 @@ interface IConstantOutflowNFT is IERC721Metadata {
     ) external; // initializer;
     
     function onCreate(
-        address _to,
-        address _flowReceiver,
-        uint256 _newTokenId
+        address to,
+        address flowReceiver,
+        uint256 newTokenId
     ) external;
 
-    function onUpdate(uint256 _tokenId) external;
+    function onUpdate(uint256 tokenId) external;
 
-    function onDelete(uint256 _tokenId) external;
+    function onDelete(uint256 tokenId) external;
 
-    /// @notice The mint function creates a flow from `_from` to `_to`.
-    /// @dev If `msg.sender` is not equal to `_from`, we `createFlowByOperator`.
+    /// @notice The mint function creates a flow from `from` to `to`.
+    /// @dev If `msg.sender` is not equal to `from`, we `createFlowByOperator`.
     /// Also important to note is that the agreement contract will handle the NFT creation.
-    /// @param _from desired flow sender
-    /// @param _to desired flow receiver
-    /// @param _flowRate desired flow rate
-    function mint(address _from, address _to, int96 _flowRate) external;
+    /// @param from desired flow sender
+    /// @param to desired flow receiver
+    /// @param flowRate desired flow rate
+    function mint(address from, address to, int96 flowRate) external;
 
-    /// @notice The burn function deletes the flow between `sender` and `receiver` stored in `_tokenId`
-    /// @dev If `msg.sender` is not equal to `_from`, we `deleteFlowByOperator`.
+    /// @notice The burn function deletes the flow between `sender` and `receiver` stored in `tokenId`
+    /// @dev If `msg.sender` is not equal to `from`, we `deleteFlowByOperator`.
     /// Also important to note is that the agreement contract will handle the NFT deletion.
-    /// @param _tokenId desired token id to burn
-    function burn(uint256 _tokenId) external;
+    /// @param tokenId desired token id to burn
+    function burn(uint256 tokenId) external;
 
     /// @notice Handles the mint of ConstantOutflowNFT when an inflow NFT user transfers their NFT.
     /// @dev Only callable by ConstantInflowNFT
-    /// @param _to the receiver of the newly minted token
-    /// @param _flowReceiver the flow receiver (owner of the InflowNFT)
-    /// @param _newTokenId the new token id to be minted when an inflowNFT is minted
+    /// @param to the receiver of the newly minted token
+    /// @param flowReceiver the flow receiver (owner of the InflowNFT)
+    /// @param newTokenId the new token id to be minted when an inflowNFT is minted
     function inflowTransferMint(
-        address _to,
-        address _flowReceiver,
-        uint256 _newTokenId
+        address to,
+        address flowReceiver,
+        uint256 newTokenId
     ) external;
 
     /// @notice Handles the burn of ConstantOutflowNFT when an inflow NFT user transfers their NFT.
     /// @dev Only callable by ConstantInflowNFT
-    /// @param _tokenId the token id to burn when an inflow NFT is transferred
-    function inflowTransferBurn(uint256 _tokenId) external;
+    /// @param tokenId the token id to burn when an inflow NFT is transferred
+    function inflowTransferBurn(uint256 tokenId) external;
 }

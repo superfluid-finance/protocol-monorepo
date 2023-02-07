@@ -147,7 +147,7 @@ abstract contract SuperTokenFactoryBase is
     }
 
     /// @inheritdoc ISuperTokenFactory
-    function createCanonicalERC20Wrapper(ERC20WithTokenInfo _underlyingToken)
+    function createCanonicalERC20Wrapper(ERC20WithTokenInfo underlyingToken)
         external
         returns (ISuperToken)
     {
@@ -157,7 +157,7 @@ abstract contract SuperTokenFactoryBase is
             revert SUPER_TOKEN_FACTORY_UNINITIALIZED();
         }
 
-        address underlyingTokenAddress = address(_underlyingToken);
+        address underlyingTokenAddress = address(underlyingToken);
         address canonicalSuperTokenAddress = _canonicalWrapperSuperTokens[
                 underlyingTokenAddress
             ];
@@ -183,12 +183,12 @@ abstract contract SuperTokenFactoryBase is
         ISuperToken superToken = ISuperToken(address(proxy));
 
         // get underlying token info
-        uint8 underlyingDecimals = _underlyingToken.decimals();
-        string memory underlyingName = _underlyingToken.name();
-        string memory underlyingSymbol = _underlyingToken.symbol();
+        uint8 underlyingDecimals = underlyingToken.decimals();
+        string memory underlyingName = underlyingToken.name();
+        string memory underlyingSymbol = underlyingToken.symbol();
         // initialize the contract (proxy constructor)
         superToken.initialize(
-            _underlyingToken,
+            underlyingToken,
             underlyingDecimals,
             string.concat("Super ", underlyingName),
             string.concat(underlyingSymbol, "x")
@@ -305,21 +305,21 @@ abstract contract SuperTokenFactoryBase is
     }
 
     /// @inheritdoc ISuperTokenFactory
-    function getCanonicalERC20Wrapper(address _underlyingTokenAddress)
+    function getCanonicalERC20Wrapper(address underlyingTokenAddress)
         external
         view
         returns (address superTokenAddress)
     {
         superTokenAddress = _canonicalWrapperSuperTokens[
-            _underlyingTokenAddress
+            underlyingTokenAddress
         ];
     }
 
     /// @notice Initializes list of canonical wrapper super tokens.
     /// @dev Note that this should also be kind of a throwaway function which will be executed only once.
-    /// @param _data an array of canonical wrappper super tokens to be set
+    /// @param data an array of canonical wrappper super tokens to be set
     function initializeCanonicalWrapperSuperTokens(
-        InitializeData[] calldata _data
+        InitializeData[] calldata data
     ) external virtual  {
         Ownable gov = Ownable(address(_host.getGovernance()));
         if (msg.sender != gov.owner()) revert SUPER_TOKEN_FACTORY_ONLY_GOVERNANCE_OWNER();
@@ -331,8 +331,8 @@ abstract contract SuperTokenFactoryBase is
         }
 
         // initialize mapping
-        for (uint256 i = 0; i < _data.length; i++) {
-            _canonicalWrapperSuperTokens[_data[i].underlyingToken] = _data[i]
+        for (uint256 i = 0; i < data.length; i++) {
+            _canonicalWrapperSuperTokens[data[i].underlyingToken] = data[i]
                 .superToken;
         }
     }

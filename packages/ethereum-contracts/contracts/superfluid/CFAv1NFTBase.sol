@@ -18,16 +18,12 @@ import {
 /// @title CFAv1NFTBase abstract contract
 /// @author Superfluid
 /// @notice The abstract contract to be inherited by the Constant Flow NFTs.
-/// @dev This contract inherits from IERC721MetadataUpgradeable and holds
-/// shared storage and functions for the two NFT contracts.
+/// @dev This contract inherits from ICFAv1NFTBase which inherits from
+/// IERC721MetadataUpgradeable and holds shared storage and functions for the two NFT contracts.
 /// This contract is upgradeable and it inherits from our own ad-hoc UUPSProxiable contract which allows.
 /// NOTE: the storage gap allows us to add an additional 45 storage variables to this contract without breaking child
 /// COFNFT or CIFNFT storage.
-abstract contract CFAv1NFTBase is
-    UUPSProxiable,
-    IERC721MetadataUpgradeable,
-    ICFAv1NFTBase
-{
+abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
     using Strings for uint256;
 
     string public constant BASE_URI =
@@ -83,8 +79,8 @@ abstract contract CFAv1NFTBase is
 
     /// @notice Informs third-party platforms that NFT metadata should be updated
     /// @dev This event comes from https://eips.ethereum.org/EIPS/eip-4906
-    /// @param _tokenId the id of the token that should have its metadata updated
-    event MetadataUpdate(uint256 _tokenId);
+    /// @param tokenId the id of the token that should have its metadata updated
+    event MetadataUpdate(uint256 tokenId);
 
     error CFA_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();   // 0xa3352582
     error CFA_NFT_APPROVE_TO_CALLER();                              // 0xd3c77329
@@ -97,17 +93,17 @@ abstract contract CFAv1NFTBase is
     error CFA_NFT_TRANSFER_TO_ZERO_ADDRESS();                       // 0xde06d21e
 
     function initialize(
-        ISuperToken _superToken,
-        string memory _nftName,
-        string memory _nftSymbol
+        ISuperToken superTokenContract,
+        string memory nftName,
+        string memory nftSymbol
     )
         external
         initializer // OpenZeppelin Initializable
     {
-        superToken = _superToken;
+        superToken = superTokenContract;
 
-        _name = _nftName;
-        _symbol = _nftSymbol;
+        _name = nftName;
+        _symbol = nftSymbol;
     }
 
     function updateCode(address newAddress) external override {
@@ -118,32 +114,32 @@ abstract contract CFAv1NFTBase is
         UUPSProxiable._updateCodeAddress(newAddress);
     }
 
-    /// @notice Emits the MetadataUpdate event with `_tokenId` as the argument.
+    /// @notice Emits the MetadataUpdate event with `tokenId` as the argument.
     /// @dev Callable by anyone.
-    /// @param _tokenId the token id to trigger a metaupdate for
-    function triggerMetadataUpdate(uint256 _tokenId) external {
-        _triggerMetadataUpdate(_tokenId);
+    /// @param tokenId the token id to trigger a metaupdate for
+    function triggerMetadataUpdate(uint256 tokenId) external {
+        _triggerMetadataUpdate(tokenId);
     }
 
     /// @notice This contract supports IERC165Upgradeable, IERC721Upgradeable and IERC721MetadataUpgradeable
     /// @dev This is part of the Standard Interface Detection EIP: https://eips.ethereum.org/EIPS/eip-165
-    /// @param _interfaceId the XOR of all function selectors in the interface
+    /// @param interfaceId the XOR of all function selectors in the interface
     /// @return boolean true if the interface is supported
     /// @inheritdoc IERC165Upgradeable
     function supportsInterface(
-        bytes4 _interfaceId
+        bytes4 interfaceId
     ) external pure virtual override returns (bool) {
         return
-            _interfaceId == type(IERC165Upgradeable).interfaceId ||
-            _interfaceId == type(IERC721Upgradeable).interfaceId ||
-            _interfaceId == type(IERC721MetadataUpgradeable).interfaceId;
+            interfaceId == type(IERC165Upgradeable).interfaceId ||
+            interfaceId == type(IERC721Upgradeable).interfaceId ||
+            interfaceId == type(IERC721MetadataUpgradeable).interfaceId;
     }
 
     /// @inheritdoc IERC721Upgradeable
     function ownerOf(
-        uint256 _tokenId
+        uint256 tokenId
     ) public view virtual override returns (address) {
-        address owner = _ownerOf(_tokenId);
+        address owner = _ownerOf(tokenId);
         if (owner == address(0)) {
             revert CFA_NFT_INVALID_TOKEN_ID();
         }
@@ -154,7 +150,7 @@ abstract contract CFAv1NFTBase is
     /// @dev We always return 1 to avoid the need for additional mapping
     /// @return balance = 1
     function balanceOf(
-        address // _owner
+        address // owner
     ) external pure returns (uint256 balance) {
         balance = 1;
     }
@@ -174,12 +170,12 @@ abstract contract CFAv1NFTBase is
     }
 
     /// @notice This returns the Uniform Resource Identifier (URI), where the metadata for the NFT lives.
-    /// @dev Returns the Uniform Resource Identifier (URI) for `_tokenId` token.
+    /// @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
     /// @return the token URI
     function tokenURI(
-        uint256 _tokenId
+        uint256 tokenId
     ) external view virtual override returns (string memory) {
-        FlowData memory flowData = flowDataByTokenId(_tokenId);
+        CFAv1NFTFlowData memory flowData = flowDataByTokenId(tokenId);
         address superTokenAddress = address(superToken);
 
         string memory superTokenSymbol = superToken.symbol();
@@ -223,9 +219,9 @@ abstract contract CFAv1NFTBase is
     }
 
     /// @inheritdoc IERC721Upgradeable
-    function approve(address _to, uint256 _tokenId) public virtual override {
-        address owner = CFAv1NFTBase.ownerOf(_tokenId);
-        if (_to == owner) {
+    function approve(address to, uint256 tokenId) public virtual override {
+        address owner = CFAv1NFTBase.ownerOf(tokenId);
+        if (to == owner) {
             revert CFA_NFT_APPROVE_TO_CURRENT_OWNER();
         }
 
@@ -233,104 +229,104 @@ abstract contract CFAv1NFTBase is
             revert CFA_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
         }
 
-        _approve(_to, _tokenId);
+        _approve(to, tokenId);
     }
 
     /// @inheritdoc IERC721Upgradeable
     function getApproved(
-        uint256 _tokenId
+        uint256 tokenId
     ) public view virtual override returns (address) {
-        _requireMinted(_tokenId);
+        _requireMinted(tokenId);
 
-        return _tokenApprovals[_tokenId];
+        return _tokenApprovals[tokenId];
     }
 
     /// @inheritdoc IERC721Upgradeable
     function setApprovalForAll(
-        address _operator,
-        bool _approved
+        address operator,
+        bool approved
     ) external virtual override {
-        _setApprovalForAll(msg.sender, _operator, _approved);
+        _setApprovalForAll(msg.sender, operator, approved);
     }
 
     /// @inheritdoc IERC721Upgradeable
     function isApprovedForAll(
-        address _owner,
-        address _operator
+        address owner,
+        address operator
     ) public view virtual override returns (bool) {
-        return _operatorApprovals[_owner][_operator];
+        return _operatorApprovals[owner][operator];
     }
 
     /// @inheritdoc IERC721Upgradeable
     function transferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId
+        address from,
+        address to,
+        uint256 tokenId
     ) external virtual override {
-        if (!_isApprovedOrOwner(msg.sender, _tokenId)) {
+        if (!_isApprovedOrOwner(msg.sender, tokenId)) {
             revert CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
         }
 
-        _transfer(_from, _to, _tokenId);
+        _transfer(from, to, tokenId);
     }
 
     /// @inheritdoc IERC721Upgradeable
     function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId
+        address from,
+        address to,
+        uint256 tokenId
     ) external virtual override {
-        safeTransferFrom(_from, _to, _tokenId, "");
+        safeTransferFrom(from, to, tokenId, "");
     }
 
     /// @inheritdoc IERC721Upgradeable
     function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _tokenId,
-        bytes memory _data
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
     ) public virtual override {
-        if (!_isApprovedOrOwner(msg.sender, _tokenId)) {
+        if (!_isApprovedOrOwner(msg.sender, tokenId)) {
             revert CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
         }
 
-        _safeTransfer(_from, _to, _tokenId, _data);
+        _safeTransfer(from, to, tokenId, data);
     }
 
-    /// @notice Returns whether `_spender` is allowed to manage `_tokenId`.
-    /// @dev Will revert if `_tokenId` doesn't exist.
-    /// @param _spender the spender of the token
-    /// @param _tokenId the id of the token to be spent
-    /// @return whether `_tokenId` can be spent by `_spender`
+    /// @notice Returns whether `spender` is allowed to manage `tokenId`.
+    /// @dev Will revert if `tokenId` doesn't exist.
+    /// @param spender the spender of the token
+    /// @param tokenId the id of the token to be spent
+    /// @return whether `tokenId` can be spent by `spender`
     function _isApprovedOrOwner(
-        address _spender,
-        uint256 _tokenId
+        address spender,
+        uint256 tokenId
     ) internal view returns (bool) {
-        address owner = CFAv1NFTBase.ownerOf(_tokenId);
-        return (_spender == owner ||
-            isApprovedForAll(owner, _spender) ||
-            getApproved(_tokenId) == _spender);
+        address owner = CFAv1NFTBase.ownerOf(tokenId);
+        return (spender == owner ||
+            isApprovedForAll(owner, spender) ||
+            getApproved(tokenId) == spender);
     }
 
-    /// @notice Reverts if `_tokenId` doesn't exist
-    /// @param _tokenId the token id whose existence we are checking
-    function _requireMinted(uint256 _tokenId) internal view {
-        if (!_exists(_tokenId)) revert CFA_NFT_INVALID_TOKEN_ID();
+    /// @notice Reverts if `tokenId` doesn't exist
+    /// @param tokenId the token id whose existence we are checking
+    function _requireMinted(uint256 tokenId) internal view {
+        if (!_exists(tokenId)) revert CFA_NFT_INVALID_TOKEN_ID();
     }
 
-    /// @notice Returns whether `_tokenId` exists
+    /// @notice Returns whether `tokenId` exists
     /// @dev Explain to a developer any extra details
     /// Tokens can be managed by their owner or approved accounts via `approve` or `setApprovalForAll`.
     /// Tokens start existing when they are minted (`_mint`),
     /// and stop existing when they are burned (`_burn`).
-    /// @param _tokenId the token id we're interested in seeing if exists
+    /// @param tokenId the token id we're interested in seeing if exists
     /// @return bool whether ot not the token exists
-    function _exists(uint256 _tokenId) internal view returns (bool) {
-        return _ownerOf(_tokenId) != address(0);
+    function _exists(uint256 tokenId) internal view returns (bool) {
+        return _ownerOf(tokenId) != address(0);
     }
 
-    function _triggerMetadataUpdate(uint256 _tokenId) internal {
-        emit MetadataUpdate(_tokenId);
+    function _triggerMetadataUpdate(uint256 tokenId) internal {
+        emit MetadataUpdate(tokenId);
     }
 
     function _approve(address to, uint256 tokenId) internal {
@@ -340,46 +336,46 @@ abstract contract CFAv1NFTBase is
     }
 
     function _setApprovalForAll(
-        address _owner,
-        address _operator,
-        bool _approved
+        address owner,
+        address operator,
+        bool approved
     ) internal {
-        if (_owner == _operator) revert CFA_NFT_APPROVE_TO_CALLER();
+        if (owner == operator) revert CFA_NFT_APPROVE_TO_CALLER();
 
-        _operatorApprovals[_owner][_operator] = _approved;
+        _operatorApprovals[owner][operator] = approved;
 
-        emit ApprovalForAll(_owner, _operator, _approved);
+        emit ApprovalForAll(owner, operator, approved);
     }
 
     function _getFlow(
         address sender,
         address receiver
     ) internal view returns (uint256 timestamp, int96 flowRate) {
-       (timestamp, flowRate, ,) = superToken.getFlow(sender, receiver);
+        (timestamp, flowRate, , ) = superToken.getFlow(sender, receiver);
     }
 
     /// @dev Returns the flow data of the `tokenId`. Does NOT revert if token doesn't exist.
-    /// @param _tokenId the token id whose existence we're checking
-    /// @return flowData the FlowData struct for `_tokenId`
+    /// @param tokenId the token id whose existence we're checking
+    /// @return flowData the CFAv1NFTFlowData struct for `tokenId`
     function flowDataByTokenId(
-        uint256 _tokenId
-    ) public view virtual returns (FlowData memory flowData);
+        uint256 tokenId
+    ) public view virtual returns (CFAv1NFTFlowData memory flowData);
 
     /// @dev Returns the owner of the `tokenId`. Does NOT revert if token doesn't exist.
-    /// @param _tokenId the token id whose existence we're checking
-    /// @return address the address of the owner of `_tokenId`
-    function _ownerOf(uint256 _tokenId) internal view virtual returns (address);
+    /// @param tokenId the token id whose existence we're checking
+    /// @return address the address of the owner of `tokenId`
+    function _ownerOf(uint256 tokenId) internal view virtual returns (address);
 
     function _transfer(
-        address _from,
-        address _to,
-        uint256 _tokenId
+        address from,
+        address to,
+        uint256 tokenId
     ) internal virtual;
 
     function _safeTransfer(
-        address _from,
-        address _to,
-        uint256 _tokenId,
-        bytes memory _data
+        address from,
+        address to,
+        uint256 tokenId,
+        bytes memory data
     ) internal virtual;
 }

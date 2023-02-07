@@ -53,9 +53,9 @@ contract ConstantInflowNFTMock is ConstantInflowNFT {
     }
 
     /// @dev this exposes the internal flow data by token id for testing purposes
-    function mockFlowDataByTokenId(
+    function mockCFAv1NFTFlowDataByTokenId(
         uint256 _tokenId
-    ) public view returns (FlowData memory flowData) {
+    ) public view returns (CFAv1NFTFlowData memory flowData) {
         return flowDataByTokenId(_tokenId);
     }
 }
@@ -116,7 +116,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         uint32 _expectedFlowStartDate,
         address _expectedFlowReceiver
     ) public {
-        CFAv1NFTBase.FlowData memory flowData = constantOutflowNFTProxy
+        CFAv1NFTBase.CFAv1NFTFlowData memory flowData = constantOutflowNFTProxy
             .flowDataByTokenId(_tokenId);
 
         // assert flow sender is equal to expected flow sender
@@ -155,7 +155,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         address _expectedOwner,
         bool _isOutflow
     ) public {
-        CFAv1NFTBase.FlowData memory flowData = constantOutflowNFTProxy
+        CFAv1NFTBase.CFAv1NFTFlowData memory flowData = constantOutflowNFTProxy
             .flowDataByTokenId(_tokenId);
 
         address actualOwner = _isOutflow

@@ -472,6 +472,37 @@ describe("Superfluid Host Contract", function () {
                     "Upgradable factory logic address should change to the new one"
                 );
             });
+
+            it("#3.3 update super token factory double check if new code is called", async () => {
+                const factory = await superfluid.getSuperTokenFactory();
+                const factory2LogicFactory = await ethers.getContractFactory(
+                    "SuperTokenFactoryUpdateLogicContractsTester"
+                );
+                const factory2Logic = await factory2LogicFactory.deploy(
+                    superfluid.address
+                );
+                await governance.updateContracts(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    [],
+                    factory2Logic.address
+                );
+                assert.equal(
+                    await superfluid.getSuperTokenFactory(),
+                    factory,
+                    "Upgradable factory address does not change"
+                );
+                assert.equal(
+                    await superfluid.getSuperTokenFactoryLogic(),
+                    factory2Logic.address,
+                    "Upgradable factory logic address should change to the new one"
+                );
+                const factoryProxy = await ethers.getContractAt(
+                    "SuperTokenFactoryUpdateLogicContractsTester",
+                    factory
+                );
+                assert.equal(await factoryProxy.newVariable(), 69);
+            });
         });
 
         describe("#4 App Registry", () => {

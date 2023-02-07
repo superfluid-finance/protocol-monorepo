@@ -52,6 +52,31 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
     }
 }
 
+contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
+    uint256 public newVariable;
+
+    constructor(
+        ISuperfluid host
+    )
+        SuperTokenFactoryBase(host)
+        // solhint-disable-next-line no-empty-blocks
+    {
+    }
+    event UpdateLogicContractsCalled();
+
+    function updateLogicContracts() external override onlySelf {
+        newVariable = 69;
+    }
+
+    // dummy impl
+    function createSuperTokenLogic(ISuperfluid)
+        external pure override
+        returns (address)
+    {
+        return address(0);
+    }
+}
+
 // spliting this off because the contract is getting bigger
 contract SuperTokenFactoryMockHelper {
     function create(ISuperfluid host, uint256 waterMark)

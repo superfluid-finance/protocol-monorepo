@@ -80,7 +80,7 @@ abstract contract SuperTokenFactoryBase is
         external override
         initializer // OpenZeppelin Initializable
     {
-        _updateSuperTokenLogic();
+        this.updateLogicContracts();
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
@@ -99,10 +99,7 @@ abstract contract SuperTokenFactoryBase is
 
         // point at the new logic contract for the SuperTokenFactory
         _updateCodeAddress(newAddress);
-
-        _updateSuperTokenLogic();
-        _updateConstantOutflowNFTLogic();
-        _updateConstantInflowNFTLogic();
+        this.updateLogicContracts();
     }
 
     function _updateSuperTokenLogic() private {
@@ -144,6 +141,17 @@ abstract contract SuperTokenFactoryBase is
     }
     function createConstantInflowNFTLogic() external virtual returns (address logic) {
         return SuperfluidNFTDeployerLibrary.deployConstantInflowNFT();
+    }
+    /// @notice Update the logic contracts for the super token contract
+    /// @dev This function allows us to call the updateLogicContracts
+    /// on the newly deployed contract instead of the previous one.
+    /// This means we can add new update code in this function and 
+    /// it will be called when the new contract is deployed.
+    /// Only callable by self
+    function updateLogicContracts() external virtual onlySelf {
+        _updateSuperTokenLogic();
+        _updateConstantOutflowNFTLogic();
+        _updateConstantInflowNFTLogic();
     }
 
     /// @inheritdoc ISuperTokenFactory
@@ -379,6 +387,11 @@ abstract contract SuperTokenFactoryBase is
             string.concat(superTokenSymbol, "CIF")
         );
         emit ConstantInflowNFTCreated(constantInflowNFT);
+    }
+    modifier onlySelf() {
+        if (msg.sender != address(this)) revert SUPER_TOKEN_FACTORY_ONLY_SELF();
+        _;
+
     }
 }
 

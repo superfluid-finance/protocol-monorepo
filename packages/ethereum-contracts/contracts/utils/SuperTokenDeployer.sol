@@ -28,8 +28,8 @@ import { TestToken } from "./TestToken.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
 import {
-    SuperfluidDevNFTDeployerLibrary
-} from "./deployers/SuperfluidDevNFTDeployerLibrary.sol";
+    SuperfluidNFTDeployerLibrary
+} from "../libs/SuperfluidNFTDeployerLibrary.sol";
 
 contract SuperTokenDeployer {
     struct SuperTokenAddresses {
@@ -50,10 +50,10 @@ contract SuperTokenDeployer {
         // @note SuperfluidFrameworkDeployer must be deployed at this point
 
         // Deploy NFT logic contracts
-        constantOutflowNFTLogic = SuperfluidDevNFTDeployerLibrary
-            .deployConstantOutflowNFT();
-        constantInflowNFTLogic = SuperfluidDevNFTDeployerLibrary
-            .deployConstantInflowNFT();
+        constantOutflowNFTLogic = ConstantOutflowNFT(SuperfluidNFTDeployerLibrary
+            .deployConstantOutflowNFT());
+        constantInflowNFTLogic = ConstantInflowNFT(SuperfluidNFTDeployerLibrary
+            .deployConstantInflowNFT());
 
         superTokenFactory = SuperTokenFactory(superTokenFactoryAddress);
         testResolver = TestResolver(resolverAddress);
@@ -173,11 +173,12 @@ contract SuperTokenDeployer {
         view
         returns (SuperTokenAddresses memory)
     {
-        return SuperTokenAddresses({
-            constantOutflowNFTLogic: constantOutflowNFTLogic,
-            constantInflowNFTLogic: constantInflowNFTLogic,
-            superTokenFactory: superTokenFactory
-        });
+        return
+            SuperTokenAddresses({
+                constantOutflowNFTLogic: constantOutflowNFTLogic,
+                constantInflowNFTLogic: constantInflowNFTLogic,
+                superTokenFactory: superTokenFactory
+            });
     }
 
     /// @notice Deploys and initializes the outflow and inflow CFA NFTs and initializes them in the super token
@@ -193,7 +194,7 @@ contract SuperTokenDeployer {
             address(0),
             address(0)
         );
-        
+
         _superToken.initializeNFTContracts(
             address(constantOutflowNFTLogic),
             address(constantInflowNFTLogic),

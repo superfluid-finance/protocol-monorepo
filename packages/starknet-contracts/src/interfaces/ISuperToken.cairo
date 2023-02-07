@@ -1,11 +1,5 @@
 %lang starknet
 
-struct RTBParticle {
-    settledAt: felt,
-    settedValue: felt,
-    flowRate: felt,
-}
-
 @contract_interface
 namespace ISuperToken {
     
@@ -33,19 +27,13 @@ namespace ISuperToken {
     func transferFrom(sender: felt, receiver: felt, amount: felt) -> (success: felt) {
     }
 
-    func createFlow(universalIndex: RTBParticle, receiver: felt) {
+    func createFlow(sender: felt, receiver: felt) {
     }
 
-    func updateFlow(universalIndex: RTBParticle, receiver: felt) {
+    func updateFlow(sender: felt, receiver: felt) {
     }
 
-    func deleteFlow(universalIndex: RTBParticle, receiver: felt) {
-    }
-
-    func distribute(pdIndex: RTBParticle, amount: felt) {
-    }
-
-    func distributeFlow(pdIndex: RTBParticle, pdPoolMember_len: felt, pdPoolMember: RTBParticle*, amount: felt) {
+    func deleteFlow(sender: felt, receiver: felt) {
     }
 
     func approve(spender: felt, amount: felt) -> (success: felt) {

@@ -76,7 +76,7 @@ contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
     }
     event UpdateLogicContractsCalled();
 
-    function updateLogicContracts() external override onlySelf {
+    function updateLogicContracts() external override {
         newVariable = 69;
     }
 

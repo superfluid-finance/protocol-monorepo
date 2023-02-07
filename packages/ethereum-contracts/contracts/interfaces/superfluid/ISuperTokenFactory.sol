@@ -42,6 +42,16 @@ interface ISuperTokenFactory {
     function getSuperTokenLogic() external view returns (ISuperToken superToken);
 
     /**
+     * @dev Get the current constant outflow NFT logic used by the factory
+     */
+    function getConstantOutflowNFTLogic() external view returns (IConstantOutflowNFT constantOutflowNFT);
+
+    /**
+     * @dev Get the current constant inflow NFT logic used by the factory
+     */
+    function getConstantInflowNFTLogic() external view returns (IConstantInflowNFT constantInflowNFT);
+
+    /**
      * @dev Upgradability modes
      */
     enum Upgradability {

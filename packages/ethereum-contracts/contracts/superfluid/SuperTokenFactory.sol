@@ -134,18 +134,35 @@ abstract contract SuperTokenFactoryBase is
         return _superTokenLogic;
     }
 
+    function getConstantOutflowNFTLogic()
+        external view
+        returns (IConstantOutflowNFT)
+    {
+        return _constantOutflowNFTLogic;
+    }
+
+    function getConstantInflowNFTLogic()
+        external view
+        returns (IConstantInflowNFT)
+    {
+        return _constantInflowNFTLogic;
+    }
+
     function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
 
     function createConstantOutflowNFTLogic() external virtual returns (address logic);
     
     function createConstantInflowNFTLogic() external virtual returns (address logic);
+
     /// @notice Update the logic contracts for the super token contract
     /// @dev This function allows us to call the updateLogicContracts
     /// on the newly deployed contract instead of the previous one.
     /// This means we can add new update code in this function and 
     /// it will be called when the new contract is deployed.
     /// Only callable by self
-    function updateLogicContracts() external virtual onlySelf {
+    function updateLogicContracts() external virtual {
+        if (msg.sender != address(this)) revert SUPER_TOKEN_FACTORY_ONLY_SELF();
+
         _updateSuperTokenLogic();
         _updateConstantOutflowNFTLogic();
         _updateConstantInflowNFTLogic();
@@ -384,11 +401,6 @@ abstract contract SuperTokenFactoryBase is
             string.concat(superTokenSymbol, "CIF")
         );
         emit ConstantInflowNFTCreated(constantInflowNFT);
-    }
-    modifier onlySelf() {
-        if (msg.sender != address(this)) revert SUPER_TOKEN_FACTORY_ONLY_SELF();
-        _;
-
     }
 }
 

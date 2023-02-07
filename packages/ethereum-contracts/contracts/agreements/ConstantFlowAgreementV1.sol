@@ -467,7 +467,7 @@ contract ConstantFlowAgreementV1 is
                 address(
                     ISuperToken(address(flowVars.token)).constantOutflowNFT()
                 )
-            ).onCreate(flowVars.sender, flowVars.receiver, uint256(flowId))
+            ).onCreate(flowVars.sender, flowVars.receiver)
         // solhint-disable-next-line no-empty-blocks
         {
 
@@ -491,7 +491,7 @@ contract ConstantFlowAgreementV1 is
         internal
         returns(bytes memory newCtx)
     {
-        (bytes32 flowId, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
+        (, FlowParams memory flowParams) = _createOrUpdateFlowCheck(flowVars, currentContext);
 
         if (!exist) revert CFA_FLOW_DOES_NOT_EXIST();
 
@@ -514,7 +514,7 @@ contract ConstantFlowAgreementV1 is
                 address(
                     ISuperToken(address(flowVars.token)).constantOutflowNFT()
                 )
-            ).onUpdate(uint256(flowId))
+            ).onUpdate(flowVars.sender, flowVars.receiver)
         // solhint-disable-next-line no-empty-blocks
         {
 
@@ -640,7 +640,7 @@ contract ConstantFlowAgreementV1 is
                 address(
                     ISuperToken(address(flowVars.token)).constantOutflowNFT()
                 )
-            ).onDelete(uint256(flowParams.flowId))
+            ).onDelete(flowVars.sender, flowVars.receiver)
         // solhint-disable-next-line no-empty-blocks
         {
 

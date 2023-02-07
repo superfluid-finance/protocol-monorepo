@@ -232,6 +232,21 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
         _approve(to, tokenId);
     }
 
+    /// @inheritdoc ICFAv1NFTBase
+    function getTokenId(
+        address sender,
+        address receiver
+    ) external view returns (uint256 tokenId) {
+        tokenId = _getTokenId(sender, receiver);
+    }
+
+    function _getTokenId(
+        address sender,
+        address receiver
+    ) internal view returns (uint256 tokenId) {
+        tokenId = uint256(keccak256(abi.encode(sender, receiver)));
+    }
+
     /// @inheritdoc IERC721Upgradeable
     function getApproved(
         uint256 tokenId

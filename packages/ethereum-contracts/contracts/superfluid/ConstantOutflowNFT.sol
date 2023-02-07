@@ -46,11 +46,11 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
     /// NOTE probably should be access controlled to only cfa
     function onCreate(
-        address to,
-        address flowReceiver,
-        uint256 newTokenId
+        address flowSender,
+        address flowReceiver
     ) external {
-        _mint(to, flowReceiver, newTokenId);
+        uint256 newTokenId = _getTokenId(flowSender, flowReceiver);
+        _mint(flowSender, flowReceiver, newTokenId);
 
         IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
         constantInflowNFT.mint(flowReceiver, newTokenId);
@@ -58,7 +58,12 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
     /// NOTE probably should be access controlled to only cfa
     /// but also not super important for triggering metadata update
-    function onUpdate(uint256 tokenId) external {
+    function onUpdate(
+        address flowSender,
+        address flowReceiver
+    ) external {
+        uint256 tokenId = _getTokenId(flowSender, flowReceiver);
+
         _triggerMetadataUpdate(tokenId);
 
         IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
@@ -66,7 +71,11 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     }
 
     /// NOTE probably should be access controlled to only cfa
-    function onDelete(uint256 tokenId) external {
+    function onDelete(
+        address flowSender,
+        address flowReceiver
+    ) external {
+        uint256 tokenId = _getTokenId(flowSender, flowReceiver);
         // must "burn" inflow NFT first because we clear storage when burning outflow NFT
         IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
         constantInflowNFT.burn(tokenId);
@@ -119,7 +128,6 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         address, // to,
         uint256 // tokenId
     ) internal virtual override {
-        // @note TODO WRITE A TEST TO ENSURE ALL THE TRANSFER FUNCTIONS REVERT
         revert CFA_NFT_TRANSFER_IS_NOT_ALLOWED();
     }
 

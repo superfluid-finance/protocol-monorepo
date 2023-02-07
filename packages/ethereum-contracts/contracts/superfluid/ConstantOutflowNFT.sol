@@ -44,11 +44,14 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         flowData = _flowDataByTokenId[tokenId];
     }
 
-    /// NOTE probably should be access controlled to only cfa
+    /// @notice Hook called by CFA contract on flow creation
+    /// @dev This function mints the COF NFT to the flow sender and mints the CIF NFT to the flow receiver
+    /// @param flowSender the flow sender
+    /// @param flowReceiver the flow receiver
     function onCreate(
         address flowSender,
         address flowReceiver
-    ) external {
+    ) external onlyCFAv1 {
         uint256 newTokenId = _getTokenId(flowSender, flowReceiver);
         _mint(flowSender, flowReceiver, newTokenId);
 
@@ -56,12 +59,14 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         constantInflowNFT.mint(flowReceiver, newTokenId);
     }
 
-    /// NOTE probably should be access controlled to only cfa
-    /// but also not super important for triggering metadata update
+    /// @notice Hook called by CFA contract on flow update
+    /// @dev This function triggers the metadata update of both COF and CIF NFTs
+    /// @param flowSender the flow sender
+    /// @param flowReceiver the flow receiver
     function onUpdate(
         address flowSender,
         address flowReceiver
-    ) external {
+    ) external onlyCFAv1 {
         uint256 tokenId = _getTokenId(flowSender, flowReceiver);
 
         _triggerMetadataUpdate(tokenId);
@@ -70,11 +75,14 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         constantInflowNFT.triggerMetadataUpdate(tokenId);
     }
 
-    /// NOTE probably should be access controlled to only cfa
+    /// @notice Hook called by CFA contract on flow deletion
+    /// @dev This function burns the COF NFT and burns the CIF NFT
+    /// @param flowSender the flow sender
+    /// @param flowReceiver the flow receiver
     function onDelete(
         address flowSender,
         address flowReceiver
-    ) external {
+    ) external onlyCFAv1 {
         uint256 tokenId = _getTokenId(flowSender, flowReceiver);
         // must "burn" inflow NFT first because we clear storage when burning outflow NFT
         IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
@@ -186,8 +194,16 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
 
     modifier onlyConstantInflowNFT() {
         address constantInflowNFT = address(superToken.constantInflowNFT());
-        if (msg.sender != constantInflowNFT)
+        if (msg.sender != constantInflowNFT) {
             revert COF_NFT_ONLY_CONSTANT_INFLOW();
+        }
+        _;
+    }
+
+    modifier onlyCFAv1() {
+        if (msg.sender != address(cfaV1)) {
+            revert COF_NFT_ONLY_CFA();
+        }
         _;
     }
 }

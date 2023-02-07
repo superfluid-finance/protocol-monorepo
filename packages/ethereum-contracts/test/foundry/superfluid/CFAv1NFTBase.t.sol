@@ -387,4 +387,11 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             address(superToken.constantInflowNFT())
         );
     }
+
+    function test_Passing_CFAv1_Is_Properly_Set_During_Initialization()
+        public
+    {
+        assertEq(address(constantOutflowNFTProxy.cfaV1()), address(sf.cfa));
+        assertEq(address(constantInflowNFTProxy.cfaV1()), address(sf.cfa));
+    }
 }

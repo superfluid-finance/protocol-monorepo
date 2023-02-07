@@ -257,6 +257,8 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
             cfaV1NFTBaseMockV1Proxy,
             address(goodNewLogic)
         );
+
+        cfaV1NFTBaseMockV1Proxy.validateStorageLayout();
     }
 
     function test_Passing_NFT_Contracts_Can_Be_Upgraded_By_Host() public {

@@ -51,16 +51,20 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
     /// @dev owner => operator => approved boolean mapping
     mapping(address => mapping(address => bool)) internal _operatorApprovals;
 
+    /// @notice ConstantFlowAgreementV1 contract address
+    /// @dev This is the address of the CFAv1 contract cached so we don't have to
+    /// do an external call for every flow created.
+    IConstantFlowAgreementV1 public cfaV1;
+
     /// @notice This allows us to add new storage variables in the base contract
     /// without having to worry about messing up the storage layout that exists in COFNFT or CIFNFT.
     /// @dev This empty reserved space is put in place to allow future versions to add new
     /// variables without shifting down storage in the inheritance chain.
-    /// Slots 5-21 are reserved for future use.
+    /// Slots 6-21 are reserved for future use.
     /// We use this pattern in SuperToken.sol and favor this over the OpenZeppelin pattern
     /// as this prevents silly footgunning.
     /// See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-    uint256 internal _reserve5;
-    uint256 private _reserve6;
+    uint256 internal _reserve6;
     uint256 private _reserve7;
     uint256 private _reserve8;
     uint256 private _reserve9;
@@ -104,6 +108,13 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
 
         _name = nftName;
         _symbol = nftSymbol;
+        cfaV1 = IConstantFlowAgreementV1(
+            address(ISuperfluid(superToken.getHost()).getAgreementClass(
+                keccak256(
+                    "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+                )
+            ))
+        );
     }
 
     function updateCode(address newAddress) external override {

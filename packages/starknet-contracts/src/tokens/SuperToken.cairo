@@ -3,7 +3,7 @@
 
 %lang starknet
 
-from starkware.starknet.common.syscalls import get_caller_address
+from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
 
@@ -140,10 +140,11 @@ func renounceOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 
 @external
 func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) {
+    let (timestamp) = get_block_timestamp();
     let (caller) = get_caller_address();
     let (senderUniversalIndex) = universal_indexes.read(caller);
     let (receiverUniversalIndex) = universal_indexes.read(receiver);
-    let (newSenderUniversalIndex, newReceiverUniversalIndex) = SemanticMoney.flow2(senderUniversalIndex, receiverUniversalIndex, flow_rate);
+    let (newSenderUniversalIndex, newReceiverUniversalIndex) = SemanticMoney.flow2(senderUniversalIndex, receiverUniversalIndex, flow_rate, timestamp);
     universal_indexes.write(caller, newSenderUniversalIndex);
     universal_indexes.write(receiver, receiverUniversalIndex);
     return ();
@@ -151,10 +152,11 @@ func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 
 @external
 func updateFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) {
+    let (timestamp) = get_block_timestamp();
     let (caller) = get_caller_address();
     let (senderUniversalIndex) = universal_indexes.read(caller);
     let (receiverUniversalIndex) = universal_indexes.read(receiver);
-    let (newSenderUniversalIndex, newReceiverUniversalIndex) = SemanticMoney.flow2(senderUniversalIndex, receiverUniversalIndex, flow_rate);
+    let (newSenderUniversalIndex, newReceiverUniversalIndex) = SemanticMoney.flow2(senderUniversalIndex, receiverUniversalIndex, flow_rate, timestamp);
     universal_indexes.write(caller, newSenderUniversalIndex);
     universal_indexes.write(receiver, receiverUniversalIndex);
     return ();

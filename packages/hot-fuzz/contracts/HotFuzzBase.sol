@@ -46,7 +46,7 @@ contract HotFuzzBase {
         _sfDeployer = new SuperfluidFrameworkDeployer();
         sf = _sfDeployer.getFramework();
 
-        (token, superToken) = _sfDeployer.deployWrapperSuperToken("HOTfuzz Token", "HOTT", 18, type(uint256).max);
+        (token, superToken) = _sfDeployer.deployWrapperSuperToken("HOTFuzz Token", "HOTT", 18, type(uint256).max);
         nTesters = nTesters_;
         otherAccounts = new address[](0);
     }

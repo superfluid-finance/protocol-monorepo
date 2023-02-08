@@ -15,8 +15,8 @@ import {
     SuperfluidIDAv1DeployerLibrary
 } from "./deployers/SuperfluidIDAv1DeployerLibrary.sol";
 import {
-    SuperfluidSuperTokenFactoryHelperDeployerLibrary
-} from "./deployers/SuperfluidSuperTokenFactoryHelperDeployerLibrary.sol";
+    SuperTokenFactoryHelperDeployerLibrary
+} from "./deployers/SuperTokenFactoryHelperDeployerLibrary.sol";
 import {
     SuperfluidPeripheryDeployerLibrary
 } from "./deployers/SuperfluidPeripheryDeployerLibrary.sol";
@@ -144,7 +144,7 @@ contract SuperfluidFrameworkDeployer {
         testGovernance.registerAgreementClass(host, address(idaV1));
 
         // Deploy SuperTokenFactoryHelper
-        SuperTokenFactoryHelper superTokenFactoryHelper = SuperfluidSuperTokenFactoryHelperDeployerLibrary
+        SuperTokenFactoryHelper superTokenFactoryHelper = SuperTokenFactoryHelperDeployerLibrary
                 .deploySuperTokenFactoryHelper();
 
         // Deploy SuperTokenFactory

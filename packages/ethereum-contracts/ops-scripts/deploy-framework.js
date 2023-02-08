@@ -602,7 +602,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             if (useMocks === false) {
                 await deploySuperTokenDeployerLibraryAndLinkToFactoryHelper();
             }
-            // small inefficiency: this
             let superTokenFactoryLogic;
             const helper = await web3tx(
                 SuperTokenFactoryHelperLogic.new,

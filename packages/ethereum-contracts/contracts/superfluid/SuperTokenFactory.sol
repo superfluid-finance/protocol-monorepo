@@ -81,6 +81,7 @@ abstract contract SuperTokenFactoryBase is
         }
         _updateCodeAddress(newAddress);
 
+        // we use this. to call the updateLogicContracts function on the new logic contract
         this.updateLogicContracts();
     }
 

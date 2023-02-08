@@ -9,11 +9,11 @@ import {
 } from "../../superfluid/SuperTokenFactory.sol";
 import { TestResolver } from "../TestResolver.sol";
 
-/// @title SuperfluidSuperTokenFactoryHelperDeployerLibrary
+/// @title SuperTokenFactoryHelperDeployerLibrary
 /// @author Superfluid
 /// @notice An external library that deploys the Superfluid Super Token Factory Helper contract.
 /// @dev This library is used for testing purposes only, not deployments to test OR production networks
-library SuperfluidSuperTokenFactoryHelperDeployerLibrary {
+library SuperTokenFactoryHelperDeployerLibrary {
     /// @dev deploys Super Token Factory Helper contract
     /// @return newly deployed Super Token Factory Helper contract
     function deploySuperTokenFactoryHelper()

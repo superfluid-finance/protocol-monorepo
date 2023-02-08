@@ -7,3 +7,8 @@ cairo-path = ["lib/cairo_contracts/src"]
 ISuperToken = ["src/interfaces/ISuperToken.cairo"]
 SemanticMoney = ["src/libraries/SemanticMoney.cairo"]
 SuperToken = ["src/tokens/SuperToken.cairo"]
+Test = ["src/Test.cairo"]
+
+[profile.devnet.project]
+gateway-url = "http://127.0.0.1:5050/"
+chain-id = 1536727068981429685321

@@ -1,7 +1,9 @@
 [project]
 protostar-version = "0.9.1"
 lib-path = "lib"
+cairo-path = ["lib/cairo_contracts/src"]
 
 [contracts]
 ISuperToken = ["src/interfaces/ISuperToken.cairo"]
-
+SemanticMoney = ["src/libraries/SemanticMoney.cairo"]
+SuperToken = ["src/SuperToken.cairo"]

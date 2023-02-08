@@ -27,10 +27,10 @@ namespace ISuperToken {
     func transferFrom(sender: felt, receiver: felt, amount: felt) -> (success: felt) {
     }
 
-    func createFlow(sender: felt, receiver: felt) {
+    func createFlow(receiver: felt, flow_rate: felt) {
     }
 
-    func updateFlow(sender: felt, receiver: felt) {
+    func updateFlow(receiver: felt, flow_rate: felt) {
     }
 
     func deleteFlow(sender: felt, receiver: felt) {

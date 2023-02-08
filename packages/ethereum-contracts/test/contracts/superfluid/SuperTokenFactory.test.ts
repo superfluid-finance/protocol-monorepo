@@ -230,12 +230,25 @@ describe("SuperTokenFactory Contract", function () {
 
         context("#2.b Production Factory", () => {
             it("#2.b.1 use production factory to create different super tokens", async () => {
-                const helper = await (
-                    await ethers.getContractFactory("SuperTokenFactoryHelper")
-                ).deploy();
+                const SuperTokenDeployerLibraryFactory =
+                    await ethers.getContractFactory(
+                        "SuperTokenDeployerLibrary"
+                    );
+                const SuperTokenDeployerLibrary =
+                    await SuperTokenDeployerLibraryFactory.deploy();
+
+                const SuperTokenFactoryHelperFactory =
+                    await ethers.getContractFactory("SuperTokenFactoryHelper", {
+                        libraries: {
+                            SuperTokenDeployerLibrary:
+                                SuperTokenDeployerLibrary.address,
+                        },
+                    });
+                const SuperTokenFactoryHelper =
+                    await SuperTokenFactoryHelperFactory.deploy();
                 const factory2Logic = await (
                     await ethers.getContractFactory("SuperTokenFactory")
-                ).deploy(superfluid.address, helper.address);
+                ).deploy(superfluid.address, SuperTokenFactoryHelper.address);
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,

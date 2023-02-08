@@ -431,8 +431,20 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
+                const SuperTokenDeployerLibraryFactory =
+                    await ethers.getContractFactory(
+                        "SuperTokenDeployerLibrary"
+                    );
+                const SuperTokenDeployerLibrary =
+                    await SuperTokenDeployerLibraryFactory.deploy();
+
                 const SuperTokenFactoryHelperFactory =
-                    await ethers.getContractFactory("SuperTokenFactoryHelper");
+                    await ethers.getContractFactory("SuperTokenFactoryHelper", {
+                        libraries: {
+                            SuperTokenDeployerLibrary:
+                                SuperTokenDeployerLibrary.address,
+                        },
+                    });
                 const superTokenFactoryHelper =
                     await SuperTokenFactoryHelperFactory.deploy();
                 const factory2LogicFactory = await ethers.getContractFactory(
@@ -462,8 +474,20 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.3 update super token factory double check if new code is called", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
+                const SuperTokenDeployerLibraryFactory =
+                    await ethers.getContractFactory(
+                        "SuperTokenDeployerLibrary"
+                    );
+                const SuperTokenDeployerLibrary =
+                    await SuperTokenDeployerLibraryFactory.deploy();
                 const factory2LogicFactory = await ethers.getContractFactory(
-                    "SuperTokenFactoryUpdateLogicContractsTester"
+                    "SuperTokenFactoryUpdateLogicContractsTester",
+                    {
+                        libraries: {
+                            SuperTokenDeployerLibrary:
+                                SuperTokenDeployerLibrary.address,
+                        },
+                    }
                 );
                 const factory2Logic = await factory2LogicFactory.deploy(
                     superfluid.address
@@ -488,7 +512,10 @@ describe("Superfluid Host Contract", function () {
                     "SuperTokenFactoryUpdateLogicContractsTester",
                     factory
                 );
-                assert.equal(await factoryProxy.newVariable(), 69);
+                assert.equal(
+                    (await factoryProxy.newVariable()).toString(),
+                    ethers.BigNumber.from(69).toString()
+                );
             });
         });
 
@@ -2630,8 +2657,20 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic()
                 );
+                const SuperTokenDeployerLibraryFactory =
+                    await ethers.getContractFactory(
+                        "SuperTokenDeployerLibrary"
+                    );
+                const SuperTokenDeployerLibrary =
+                    await SuperTokenDeployerLibraryFactory.deploy();
+
                 const SuperTokenFactoryHelperFactory =
-                    await ethers.getContractFactory("SuperTokenFactoryHelper");
+                    await ethers.getContractFactory("SuperTokenFactoryHelper", {
+                        libraries: {
+                            SuperTokenDeployerLibrary:
+                                SuperTokenDeployerLibrary.address,
+                        },
+                    });
                 const SuperTokenFactoryHelper =
                     await SuperTokenFactoryHelperFactory.deploy();
                 const factory2LogicFactory = await ethers.getContractFactory(

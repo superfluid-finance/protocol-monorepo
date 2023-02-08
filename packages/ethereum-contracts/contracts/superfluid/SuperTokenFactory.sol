@@ -1,21 +1,18 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.16;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     ISuperTokenFactory,
     ISuperToken,
     IERC20,
     ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
-
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
+import { SuperTokenDeployerLibrary } from "../libs/SuperTokenDeployerLibrary.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-
 import { SuperToken } from "../superfluid/SuperToken.sol";
-
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
 
 abstract contract SuperTokenFactoryBase is
@@ -113,7 +110,8 @@ abstract contract SuperTokenFactoryBase is
     /// This means we can add new update code in this function and 
     /// it will be called when the new contract is deployed.
     /// Only callable by self
-    function updateLogicContracts() external virtual onlySelf {
+    function updateLogicContracts() external virtual override {
+        if (msg.sender != address(this)) revert SUPER_TOKEN_FACTORY_ONLY_SELF();
         _updateSuperTokenLogic();
     }
 
@@ -307,20 +305,12 @@ abstract contract SuperTokenFactoryBase is
                 .superToken;
         }
     }
-
-    modifier onlySelf() {
-        if (msg.sender != address(this)) revert SUPER_TOKEN_FACTORY_ONLY_SELF();
-        _;
-    }
 }
 
 // splitting this off because the contract is getting bigger
 contract SuperTokenFactoryHelper {
-    function create(ISuperfluid host)
-        external
-        returns (address logic)
-    {
-        return address(new SuperToken(host));
+    function create(ISuperfluid host) external returns (address logic) {
+        return SuperTokenDeployerLibrary.deploySuperTokenLogic(host);
     }
 }
 

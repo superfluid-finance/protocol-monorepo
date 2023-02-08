@@ -3,9 +3,11 @@ pragma solidity 0.8.16;
 
 import { SuperTokenMock } from "./SuperTokenMock.sol";
 import {
+    SuperToken,
     SuperTokenFactoryBase,
     ISuperfluid
 } from "../superfluid/SuperTokenFactory.sol";
+import { SuperTokenDeployerLibrary } from "../libs/SuperTokenDeployerLibrary.sol";
 
 contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
 
@@ -52,16 +54,16 @@ contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
     }
     event UpdateLogicContractsCalled();
 
-    function updateLogicContracts() external override onlySelf {
+    function updateLogicContracts() external override {
         newVariable = 69;
     }
 
     // dummy impl
-    function createSuperTokenLogic(ISuperfluid)
-        external pure override
+    function createSuperTokenLogic(ISuperfluid host)
+        external override
         returns (address)
     {
-        return address(0);
+        return SuperTokenDeployerLibrary.deploySuperTokenLogic(host);
     }
 }
 

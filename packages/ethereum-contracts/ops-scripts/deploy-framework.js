@@ -117,7 +117,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         appWhiteListing,
         protocolReleaseVersion,
         outputFile,
-        cfaHookContract
+        cfaHookContract,
     } = options;
     resetSuperfluidFramework = options.resetSuperfluidFramework;
 
@@ -190,6 +190,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "UUPSProxy",
         "UUPSProxiable",
         "SlotsBitmapLibrary",
+        "SuperTokenDeployerLibrary",
         "ConstantFlowAgreementV1",
         "InstantDistributionAgreementV1",
     ];
@@ -219,6 +220,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         UUPSProxy,
         UUPSProxiable,
         SlotsBitmapLibrary,
+        SuperTokenDeployerLibrary,
         ConstantFlowAgreementV1,
         InstantDistributionAgreementV1,
     } = await SuperfluidSDK.loadContracts({
@@ -577,6 +579,30 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             }
         },
         async () => {
+            const deploySuperTokenDeployerLibraryAndLinkToFactoryHelper =
+                async () => {
+                    const superTokenDeployerLibrary = await web3tx(
+                        SuperTokenDeployerLibrary.new,
+                        "SuperTokenDeployerLibrary.new"
+                    )();
+                    output += `SUPER_TOKEN_DEPLOYER_LIBRARY_ADDRESS=${superTokenDeployerLibrary.address}\n`;
+                    if (process.env.IS_HARDHAT) {
+                        SuperTokenFactoryHelperLogic.link(
+                            superTokenDeployerLibrary
+                        );
+                    } else {
+                        SuperTokenFactoryHelperLogic.link(
+                            "SuperTokenDeployerLibrary",
+                            superTokenDeployerLibrary.address
+                        );
+                    }
+                    return superTokenDeployerLibrary;
+                };
+            // SuperTokenFactoryMock does not use the SuperTokenDeployerLibrary
+            if (useMocks === false) {
+                await deploySuperTokenDeployerLibraryAndLinkToFactoryHelper();
+            }
+            // small inefficiency: this
             let superTokenFactoryLogic;
             const helper = await web3tx(
                 SuperTokenFactoryHelperLogic.new,

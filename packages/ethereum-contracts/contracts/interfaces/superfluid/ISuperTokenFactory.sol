@@ -21,7 +21,6 @@ interface ISuperTokenFactory {
     error SUPER_TOKEN_FACTORY_DOES_NOT_EXIST(); // 0x872cac48
     error SUPER_TOKEN_FACTORY_UNINITIALIZED();  // 0x1b39b9b4
     error SUPER_TOKEN_FACTORY_ONLY_HOST();      // 0x478b8e83
-    error SUPER_TOKEN_FACTORY_ONLY_SELF();      // 0x6b08b2e7
     error SUPER_TOKEN_FACTORY_ZERO_ADDRESS();   // 0x305c9e82
 
     /**

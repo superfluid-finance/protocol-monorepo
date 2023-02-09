@@ -2651,7 +2651,7 @@ describe("Superfluid Host Contract", function () {
                 const factory2Logic =
                     await t.deployExternalLibraryAndLink<SuperTokenFactory>(
                         "SuperTokenDeployerLibrary",
-                        "SuperTokenFactoryUpdateLogicContractsTester",
+                        "SuperTokenFactory",
                         superfluid.address,
                         superTokenLogic.address
                     );

@@ -26,12 +26,8 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: nix shell
-        run: nix develop .#${{ matrix.devShell }}
-
-      - name: update cabal index
-        run: |
-          cabal v2-update -v
+      - run: cabal v2-update -v
+        shell: nix develop .#${{ matrix.devShell }}
 
       - name: cache
         uses: actions/cache@v2
@@ -39,23 +35,28 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
           path: ~/.cabal/store
           restore-keys: ${{ runner.os }}-${{ matrix.compiler }}-
+        shell: nix develop .#${{ matrix.devShell }}
 
       - name: lint
         run: |
           cd packages/spec-haskell
           make lint
+        shell: nix develop .#${{ matrix.devShell }}
 
       - name: build
         run: |
           cd packages/spec-haskell
           make build
+        shell: nix develop .#${{ matrix.devShell }}
 
       - name: tests
         run: |
           cd packages/spec-haskell
           make test
+        shell: nix develop .#${{ matrix.devShell }}
 
       - name: haddock
         run: |
           cd packages/spec-haddock
           make docs-haddock
+        shell: nix develop .#${{ matrix.devShell }}

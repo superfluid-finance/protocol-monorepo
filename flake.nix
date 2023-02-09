@@ -74,9 +74,10 @@
     };
     devShells.ci-spec-ghc925 = with pkgs; mkShell {
       buildInputs = [
-        hlint
+        gnumake
         cabal-install
         haskell.compiler.ghc925
+        hlint
       ];
     };
   });

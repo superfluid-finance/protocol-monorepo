@@ -29,10 +29,8 @@ jobs:
       - name: nix shell
         run: nix develop .#${{ matrix.devShell }}
 
-      - run: |
-          nix develop .#${{ matrix.devShell }} << EOF
-            cabal v2-update -v
-          EOF
+      - name: update cabal index
+        run: cabal v2-update -v
 
       - name: cache
         uses: actions/cache@v2
@@ -43,28 +41,20 @@ jobs:
 
       - name: lint
         run: |
-          nix develop .#${{ matrix.devShell }} << EOF
-            cd packages/spec-haskell
-            make lint
-          EOF
+          cd packages/spec-haskell
+          make lint
 
       - name: build
         run: |
-          nix develop .#${{ matrix.devShell }} << EOF
-            cd packages/spec-haskell
-            make build
-          EOF
+          cd packages/spec-haskell
+          make build
 
       - name: tests
         run: |
-          nix develop .#${{ matrix.devShell }} << EOF
-            cd packages/spec-haskell
-            make test
-          EOF
+          cd packages/spec-haskell
+          make test
 
       - name: haddock
         run: |
-          nix develop .#${{ matrix.devShell }} << EOF
-            cd packages/spec-haddock
-            make docs-haddock
-          EOF
+          cd packages/spec-haddock
+          make docs-haddock

@@ -9,9 +9,6 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    container:
-      image: nixos/nix
-
     continue-on-error: ${{ matrix.allow-failure }}
 
     strategy:

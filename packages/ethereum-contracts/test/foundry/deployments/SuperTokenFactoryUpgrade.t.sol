@@ -23,12 +23,12 @@ import {
 } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
 import {
     IERC20,
-    ISuperToken
-} from "../../../contracts/interfaces/superfluid/ISuperToken.sol";
+    ISuperToken,
+    SuperToken
+} from "../../../contracts/superfluid/SuperToken.sol";
 import {
     ISuperTokenFactory,
-    SuperTokenFactory,
-    SuperTokenFactoryHelper
+    SuperTokenFactory
 } from "../../../contracts/superfluid/SuperTokenFactory.sol";
 import {
     SuperTokenFactoryUpdateLogicContractsTester
@@ -37,6 +37,11 @@ import {
     SuperTokenV1Library
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
+/// @title SuperTokenFactoryUpgradeTest
+/// @author Superfluid
+/// @notice Tests the SuperTokenFactory upgrade flow on a forked mainnet
+/// @dev Note that this test file is likely dynamic and will change over time
+/// due to the possibility that the upgrade flow may also change over time
 contract SuperTokenFactoryUpgradeTest is Test {
     using SuperTokenV1Library for ISuperToken;
     uint256 forkId;
@@ -114,12 +119,18 @@ contract SuperTokenFactoryUpgradeTest is Test {
         // Prank as governance owner
         vm.startPrank(governanceOwner);
 
-        vm.expectRevert();
-        superTokenFactory.updateLogicContracts();
+        // As part of the new ops flow, we deploy a new SuperToken logic contract
+        SuperToken newSuperTokenLogic = new SuperToken(host);
 
+        // Deploy the new super token factory logic contract, note that we pass in
+        // the new super token logic contract, this is set as an immutable field in
+        // the constructor
         SuperTokenFactoryUpdateLogicContractsTester newLogic = new SuperTokenFactoryUpdateLogicContractsTester(
-                host
+                host,
+                newSuperTokenLogic
             );
+
+        // update the super token factory logic via goverance->host
         governance.updateContracts(
             host,
             address(0),
@@ -127,14 +138,22 @@ contract SuperTokenFactoryUpgradeTest is Test {
             address(newLogic)
         );
 
+        // get the addresses of the super token factory logic and super token logic post update
         address superTokenFactoryLogicPost = host.getSuperTokenFactoryLogic();
         address superTokenLogicPost = address(
             superTokenFactory.getSuperTokenLogic()
         );
 
-        // validate that the logic contracts have been updated
+        // validate that the logic contracts have been updated and are no longer the same
+        // as prior to deployment
         assertFalse(superTokenFactoryLogicPre == superTokenFactoryLogicPost);
         assertFalse(superTokenLogicPre == superTokenLogicPost);
+
+        // validate that the super token logic is the new one
+        // we deprecate the previous _superTokenLogic in slot 2 and replace it
+        // with an immutable variable - this is a sanity check that the new
+        // immutable variable is properly set and referenced
+        assertEq(address(newSuperTokenLogic), superTokenLogicPost);
 
         // expect revert when trying to initialize the logic contracts
         vm.expectRevert("Initializable: contract is already initialized");
@@ -142,20 +161,12 @@ contract SuperTokenFactoryUpgradeTest is Test {
 
         vm.stopPrank();
 
-        // this time calling updateLogicContracts doesn't work because of the only self modifier
-        // this isn't reverting
-        // vm.expectRevert(
-        //     ISuperTokenFactory.SUPER_TOKEN_FACTORY_ONLY_SELF.selector
-        // );
-        // vm.prank(address(0));
-        // superTokenFactory.updateLogicContracts();
-
         // the mock contract adds a new storage variable and sets it to 69
         assertEq(
             SuperTokenFactoryUpdateLogicContractsTester(
                 address(superTokenFactory)
             ).newVariable(),
-            69
+            0
         );
 
         vm.stopPrank();

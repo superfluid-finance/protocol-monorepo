@@ -3,9 +3,9 @@ pragma solidity ^0.8.0;
 
 import { ISuperfluid, ISuperfluidToken } from "../../superfluid/Superfluid.sol";
 import {
+    ISuperToken,
     ISuperTokenFactory,
-    SuperTokenFactory,
-    SuperTokenFactoryHelper
+    SuperTokenFactory
 } from "../../superfluid/SuperTokenFactory.sol";
 import { TestResolver } from "../TestResolver.sol";
 
@@ -16,13 +16,13 @@ import { TestResolver } from "../TestResolver.sol";
 library SuperfluidPeripheryDeployerLibrary {
     /// @dev deploys Super Token Factory contract
     /// @param _host address of the Superfluid contract
-    /// @param _superTokenFactoryHelper address of the SuperTokenFactoryHelper contract
+    /// @param _superTokenLogic address of the Super Token logic contract
     /// @return newly deployed SuperTokenFactory contract
     function deploySuperTokenFactory(
         ISuperfluid _host,
-        SuperTokenFactoryHelper _superTokenFactoryHelper
+        ISuperToken _superTokenLogic
     ) external returns (SuperTokenFactory) {
-        return new SuperTokenFactory(_host, _superTokenFactoryHelper);
+        return new SuperTokenFactory(_host, _superTokenLogic);
     }
 
     /// @dev deploys Test Resolver contract

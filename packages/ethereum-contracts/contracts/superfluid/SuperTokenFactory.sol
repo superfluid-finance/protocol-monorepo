@@ -8,9 +8,9 @@ import {
     IERC20,
     ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
+import { SuperTokenDeployerLibrary } from "../libs/SuperTokenDeployerLibrary.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
-import { SuperTokenDeployerLibrary } from "../libs/SuperTokenDeployerLibrary.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { SuperToken } from "../superfluid/SuperToken.sol";
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
@@ -29,9 +29,14 @@ abstract contract SuperTokenFactoryBase is
         variables are added APPEND-ONLY. Re-ordering variables can
         permanently BREAK the deployed proxy contract. */
 
+    ISuperToken immutable public _superTokenLogic;
+
     ISuperfluid immutable internal _host;
 
-    ISuperToken internal _superTokenLogic;
+    // @dev This is the old SuperToken logic contract that is no longer used
+    // It is kept here for backwards compatibility due to the fact that we cannot
+    // change the storage layout of the contract
+    ISuperToken internal _superTokenLogicDeprecated;
 
     /// @notice A mapping from underlying token addresses to canonical wrapper super token addresses
     /// @dev Reasoning: (1) provide backwards compatibility for existing listed wrapper super tokens
@@ -46,9 +51,24 @@ abstract contract SuperTokenFactoryBase is
     error SUPER_TOKEN_FACTORY_ONLY_GOVERNANCE_OWNER();
 
     constructor(
-        ISuperfluid host
+        ISuperfluid host,
+        ISuperToken superTokenLogic
     ) {
         _host = host;
+
+        // SuperToken logic is now deployed prior to new factory logic deployment
+        // and passed in as a parameter to SuperTokenFactory constructor
+        _superTokenLogic = superTokenLogic;
+        
+        // @note this function call is commented out on the first upgrade
+        // https://polygonscan.com/address/0x092462ef87bdd081a6346102b0be134ff63da01b#code
+        // the logic contract has _updateSuperTokenLogic and uses: this.createSuperTokenLogic
+        // which calls .castrate() on the logic contract, so if we call it here again,
+        // it will revert the first time, however we MUST uncomment it after subsequent 
+        // updates to the logic contract so that the super token logic contract is initialized
+        // here 
+        // UUPSProxiable(address(_superTokenLogic)).castrate();
+        emit SuperTokenLogicCreated(_superTokenLogic);
     }
 
     /// @inheritdoc ISuperTokenFactory
@@ -65,10 +85,12 @@ abstract contract SuperTokenFactoryBase is
     **************************************************************************/
     /// @inheritdoc ISuperTokenFactory
     function initialize()
-        external override
+        external
+        override
         initializer // OpenZeppelin Initializable
+    // solhint-disable-next-line no-empty-blocks
     {
-        this.updateLogicContracts();
+
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
@@ -80,16 +102,6 @@ abstract contract SuperTokenFactoryBase is
             revert SUPER_TOKEN_FACTORY_ONLY_HOST();
         }
         _updateCodeAddress(newAddress);
-
-        // we use this. to call the updateLogicContracts function on the new logic contract
-        this.updateLogicContracts();
-    }
-
-    function _updateSuperTokenLogic() private {
-        // use external call to trigger the new code to update the super token logic contract
-        _superTokenLogic = SuperToken(this.createSuperTokenLogic(_host));
-        UUPSProxiable(address(_superTokenLogic)).castrate();
-        emit SuperTokenLogicCreated(_superTokenLogic);
     }
 
     /**************************************************************************
@@ -104,17 +116,6 @@ abstract contract SuperTokenFactoryBase is
     }
 
     function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
-
-    /// @notice Update the logic contracts for the super token contract
-    /// @dev This function allows us to call the updateLogicContracts
-    /// on the newly deployed contract instead of the previous one.
-    /// This means we can add new update code in this function and 
-    /// it will be called when the new contract is deployed.
-    /// Only callable by self
-    function updateLogicContracts() external virtual override {
-        if (msg.sender != address(this)) revert SUPER_TOKEN_FACTORY_ONLY_SELF();
-        _updateSuperTokenLogic();
-    }
 
     /// @inheritdoc ISuperTokenFactory
     function createCanonicalERC20Wrapper(ERC20WithTokenInfo _underlyingToken)
@@ -185,7 +186,7 @@ abstract contract SuperTokenFactoryBase is
         }
 
         if (upgradability == Upgradability.NON_UPGRADABLE) {
-            superToken = ISuperToken(this.createSuperTokenLogic(_host));
+            superToken = ISuperToken(SuperTokenDeployerLibrary.deploySuperTokenLogic(_host));
         } else if (upgradability == Upgradability.SEMI_UPGRADABLE) {
             UUPSProxy proxy = new UUPSProxy();
             // initialize the wrapper
@@ -308,12 +309,6 @@ abstract contract SuperTokenFactoryBase is
     }
 }
 
-// splitting this off because the contract is getting bigger
-contract SuperTokenFactoryHelper {
-    function create(ISuperfluid host) external returns (address logic) {
-        return SuperTokenDeployerLibrary.deploySuperTokenLogic(host);
-    }
-}
 
 contract SuperTokenFactory is SuperTokenFactoryBase
 {
@@ -322,22 +317,25 @@ contract SuperTokenFactory is SuperTokenFactoryBase
         variables are added APPEND-ONLY. Re-ordering variables can
         permanently BREAK the deployed proxy contract. */
 
-    SuperTokenFactoryHelper immutable private _helper;
-
     constructor(
         ISuperfluid host,
-        SuperTokenFactoryHelper helper
+        ISuperToken superTokenLogic
     )
-        SuperTokenFactoryBase(host)
+        SuperTokenFactoryBase(host, superTokenLogic)
         // solhint-disable-next-line no-empty-blocks
     {
-        _helper = helper;
     }
 
-    function createSuperTokenLogic(ISuperfluid host)
+    /// DEPRECATED
+    /// This function will return the super token logic
+    /// that was set in the constructor
+    /// TO BE DELETED IN THE NEXT UPGRADE
+    function createSuperTokenLogic(
+        ISuperfluid // host
+        )
         external override
-        returns (address logic)
+        returns (address)
     {
-        return _helper.create(host);
+        return address(_superTokenLogic);
     }
 }

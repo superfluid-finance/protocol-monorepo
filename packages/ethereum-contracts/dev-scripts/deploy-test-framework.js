@@ -4,9 +4,8 @@ const SuperfluidGovDeployerLibraryArtifact = require("@superfluid-finance/ethere
 const SuperfluidHostDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/deployers/SuperfluidHostDeployerLibrary.sol/SuperfluidHostDeployerLibrary.json");
 const SuperfluidCFAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/deployers/SuperfluidCFAv1DeployerLibrary.sol/SuperfluidCFAv1DeployerLibrary.json");
 const SuperfluidIDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/deployers/SuperfluidIDAv1DeployerLibrary.sol/SuperfluidIDAv1DeployerLibrary.json");
-const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/deployers/SuperfluidPeripheryDeployerLibrary.sol/SuperfluidPeripheryDeployerLibrary.json");
-const SuperTokenFactoryHelperDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/deployers/SuperTokenFactoryHelperDeployerLibrary.sol/SuperTokenFactoryHelperDeployerLibrary.json");
 const SuperTokenDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SuperTokenDeployerLibrary.sol/SuperTokenDeployerLibrary.json");
+const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/deployers/SuperfluidPeripheryDeployerLibrary.sol/SuperfluidPeripheryDeployerLibrary.json");
 const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
 
@@ -101,22 +100,16 @@ const deployTestFramework = async () => {
                 },
             }
         );
-    const SuperfluidPeripheryDeployerLibrary =
-        await _getFactoryAndReturnDeployedContract(
-            "SuperfluidPeripheryDeployerLibrary",
-            SuperfluidPeripheryDeployerLibraryArtifact,
-            signer
-        );
     const SuperTokenDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperTokenDeployerLibrary",
             SuperTokenDeployerLibraryArtifact,
             signer
         );
-    const SuperTokenFactoryHelperDeployerLibrary =
+    const SuperfluidPeripheryDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
-            "SuperTokenFactoryHelperDeployerLibrary",
-            SuperTokenFactoryHelperDeployerLibraryArtifact,
+            "SuperfluidPeripheryDeployerLibrary",
+            SuperfluidPeripheryDeployerLibraryArtifact,
             {
                 signer,
                 libraries: {
@@ -141,8 +134,7 @@ const deployTestFramework = async () => {
                     SuperfluidIDAv1DeployerLibrary.address,
                 SuperfluidPeripheryDeployerLibrary:
                     SuperfluidPeripheryDeployerLibrary.address,
-                SuperTokenFactoryHelperDeployerLibrary:
-                    SuperTokenFactoryHelperDeployerLibrary.address,
+                SuperTokenDeployerLibrary: SuperTokenDeployerLibrary.address,
             },
         }
     );

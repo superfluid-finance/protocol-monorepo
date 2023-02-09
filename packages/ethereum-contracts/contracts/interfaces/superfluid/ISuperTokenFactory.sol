@@ -121,18 +121,6 @@ interface ISuperTokenFactory {
         view
         returns (address superTokenAddress);
 
-
-
-    /**
-     * @notice Function for updating logic contracts.
-     * @dev It does this for:
-     * - SuperTokenFactory
-     * - SuperToken
-     * and can be extended to others.
-     * It can only be called by itself via the host via the governance owner.
-     */
-    function updateLogicContracts() external; 
-
     /**
      * @dev Creates a new custom super token
      * @param customSuperTokenProxy address of the custom supertoken proxy

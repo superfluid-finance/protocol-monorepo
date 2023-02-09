@@ -183,7 +183,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "SuperfluidLoader",
         "Superfluid",
         "SuperTokenFactory",
-        "SuperTokenFactoryHelper",
         "SuperToken",
         "TestGovernance",
         "ISuperfluidGovernance",
@@ -197,7 +196,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const mockContracts = [
         "SuperfluidMock",
         "SuperTokenFactoryMock",
-        "SuperTokenFactoryMockHelper",
         "SuperTokenMock",
     ];
     const {
@@ -210,9 +208,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         Superfluid,
         SuperfluidMock,
         SuperTokenFactory,
-        SuperTokenFactoryHelper,
         SuperTokenFactoryMock,
-        SuperTokenFactoryMockHelper,
         SuperToken,
         SuperTokenMock,
         TestGovernance,
@@ -388,26 +384,35 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         )(superfluid.address, cfa.address);
     }
 
+    const deployExternalLibraryAndLink = async (
+        externalLibraryArtifact,
+        externalLibraryName,
+        outputName,
+        contract
+    ) => {
+        const externalLibrary = await web3tx(
+            externalLibraryArtifact.new,
+            `${externalLibraryName}.new`
+        )();
+        output += `${outputName}=${externalLibrary.address}\n`;
+        if (process.env.IS_HARDHAT) {
+            contract.link(externalLibrary);
+        } else {
+            contract.link(externalLibraryName, externalLibrary.address);
+        }
+        return externalLibrary;
+    };
+
     // list IDA v1
     const deployIDAv1 = async () => {
-        const deploySlotsBitmapLibrary = async () => {
-            const slotsBmpLib = await web3tx(
-                SlotsBitmapLibrary.new,
-                "SlotsBitmapLibrary.new"
-            )();
-            output += `SLOTS_BITMAP_LIBRARY_ADDRESS=${slotsBmpLib.address}\n`;
-            if (process.env.IS_HARDHAT) {
-                InstantDistributionAgreementV1.link(slotsBmpLib);
-            } else {
-                InstantDistributionAgreementV1.link(
-                    "SlotsBitmapLibrary",
-                    slotsBmpLib.address
-                );
-            }
-            return slotsBmpLib;
-        };
         // small inefficiency: this may be re-deployed even if not changed
-        await deploySlotsBitmapLibrary();
+        // deploySlotsBitmapLibrary
+        await deployExternalLibraryAndLink(
+            SlotsBitmapLibrary,
+            "SlotsBitmapLibrary",
+            "SLOTS_BITMAP_LIBRARY_ADDRESS",
+            InstantDistributionAgreementV1
+        );
         const agreement = await web3tx(
             InstantDistributionAgreementV1.new,
             "InstantDistributionAgreementV1.new"
@@ -535,12 +540,17 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
 
     // deploy new super token factory logic
-    const SuperTokenFactoryHelperLogic = useMocks
-        ? SuperTokenFactoryMockHelper
-        : SuperTokenFactoryHelper;
     const SuperTokenFactoryLogic = useMocks
         ? SuperTokenFactoryMock
         : SuperTokenFactory;
+
+    // deploy SuperTokenDeployerLibrary and link it to SuperTokenFactoryLogic
+    await deployExternalLibraryAndLink(
+        SuperTokenDeployerLibrary,
+        "SuperTokenDeployerLibrary",
+        "SUPER_TOKEN_DEPLOYER_LIBRARY_ADDRESS",
+        SuperTokenFactoryLogic
+    );
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
     const superTokenFactoryNewLogicAddress = await deployContractIf(
         web3,
@@ -579,38 +589,20 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             }
         },
         async () => {
-            const deploySuperTokenDeployerLibraryAndLinkToFactoryHelper =
-                async () => {
-                    const superTokenDeployerLibrary = await web3tx(
-                        SuperTokenDeployerLibrary.new,
-                        "SuperTokenDeployerLibrary.new"
-                    )();
-                    output += `SUPER_TOKEN_DEPLOYER_LIBRARY_ADDRESS=${superTokenDeployerLibrary.address}\n`;
-                    if (process.env.IS_HARDHAT) {
-                        SuperTokenFactoryHelperLogic.link(
-                            superTokenDeployerLibrary
-                        );
-                    } else {
-                        SuperTokenFactoryHelperLogic.link(
-                            "SuperTokenDeployerLibrary",
-                            superTokenDeployerLibrary.address
-                        );
-                    }
-                    return superTokenDeployerLibrary;
-                };
-            // SuperTokenFactoryMock does not use the SuperTokenDeployerLibrary
-            if (useMocks === false) {
-                await deploySuperTokenDeployerLibraryAndLinkToFactoryHelper();
-            }
             let superTokenFactoryLogic;
-            const helper = await web3tx(
-                SuperTokenFactoryHelperLogic.new,
-                "SuperTokenFactoryHelperLogic.new"
-            )();
+            const superTokenLogic = useMocks
+                ? await web3tx(SuperTokenLogic.new, "SuperTokenLogic.new")(
+                      superfluid.address,
+                      0
+                  )
+                : await web3tx(
+                      SuperTokenLogic.new,
+                      "SuperTokenLogic.new"
+                  )(superfluid.address);
             superTokenFactoryLogic = await web3tx(
                 SuperTokenFactoryLogic.new,
                 "SuperTokenFactoryLogic.new"
-            )(superfluid.address, helper.address);
+            )(superfluid.address, superTokenLogic.address);
             output += `SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC=${superTokenFactoryLogic.address}\n`;
             return superTokenFactoryLogic.address;
         }

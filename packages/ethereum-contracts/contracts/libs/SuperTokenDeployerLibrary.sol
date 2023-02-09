@@ -4,7 +4,7 @@ pragma solidity 0.8.16;
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperToken } from "../superfluid/SuperToken.sol";
 
-/// @title Superfluid NFT deployer library
+/// @title SuperToken deployer library
 /// @author Superfluid
 /// @notice This is an external library used to deploy SuperToken logic contracts
 library SuperTokenDeployerLibrary {

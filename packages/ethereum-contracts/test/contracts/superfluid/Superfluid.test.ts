@@ -12,6 +12,8 @@ import {
     SuperAppMock__factory,
     SuperAppMockWithRegistrationKey__factory,
     SuperfluidMock,
+    SuperToken,
+    SuperTokenFactory,
     SuperTokenMock,
     TestGovernance,
 } from "../../../typechain-types";
@@ -431,29 +433,19 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                const SuperTokenDeployerLibraryFactory =
-                    await ethers.getContractFactory(
-                        "SuperTokenDeployerLibrary"
+                const superTokenLogicFactory = await ethers.getContractFactory(
+                    "SuperToken"
+                );
+                const superTokenLogic = await superTokenLogicFactory.deploy(
+                    superfluid.address
+                );
+                const factory2Logic =
+                    await t.deployExternalLibraryAndLink<SuperTokenFactory>(
+                        "SuperTokenDeployerLibrary",
+                        "SuperTokenFactory",
+                        superfluid.address,
+                        superTokenLogic.address
                     );
-                const SuperTokenDeployerLibrary =
-                    await SuperTokenDeployerLibraryFactory.deploy();
-
-                const SuperTokenFactoryHelperFactory =
-                    await ethers.getContractFactory("SuperTokenFactoryHelper", {
-                        libraries: {
-                            SuperTokenDeployerLibrary:
-                                SuperTokenDeployerLibrary.address,
-                        },
-                    });
-                const superTokenFactoryHelper =
-                    await SuperTokenFactoryHelperFactory.deploy();
-                const factory2LogicFactory = await ethers.getContractFactory(
-                    "SuperTokenFactory"
-                );
-                const factory2Logic = await factory2LogicFactory.deploy(
-                    superfluid.address,
-                    superTokenFactoryHelper.address
-                );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -474,24 +466,19 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.3 update super token factory double check if new code is called", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                const SuperTokenDeployerLibraryFactory =
-                    await ethers.getContractFactory(
-                        "SuperTokenDeployerLibrary"
-                    );
-                const SuperTokenDeployerLibrary =
-                    await SuperTokenDeployerLibraryFactory.deploy();
-                const factory2LogicFactory = await ethers.getContractFactory(
-                    "SuperTokenFactoryUpdateLogicContractsTester",
-                    {
-                        libraries: {
-                            SuperTokenDeployerLibrary:
-                                SuperTokenDeployerLibrary.address,
-                        },
-                    }
+                const superTokenLogicFactory = await ethers.getContractFactory(
+                    "SuperToken"
                 );
-                const factory2Logic = await factory2LogicFactory.deploy(
+                const superTokenLogic = await superTokenLogicFactory.deploy(
                     superfluid.address
                 );
+                const factory2Logic =
+                    await t.deployExternalLibraryAndLink<SuperTokenFactory>(
+                        "SuperTokenDeployerLibrary",
+                        "SuperTokenFactoryUpdateLogicContractsTester",
+                        superfluid.address,
+                        superTokenLogic.address
+                    );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -514,7 +501,7 @@ describe("Superfluid Host Contract", function () {
                 );
                 assert.equal(
                     (await factoryProxy.newVariable()).toString(),
-                    ethers.BigNumber.from(69).toString()
+                    ethers.BigNumber.from(0).toString()
                 );
             });
         });
@@ -2657,29 +2644,17 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic()
                 );
-                const SuperTokenDeployerLibraryFactory =
-                    await ethers.getContractFactory(
-                        "SuperTokenDeployerLibrary"
+                const superTokenLogic = await t.deployContract<SuperToken>(
+                    "SuperToken",
+                    superfluid.address
+                );
+                const factory2Logic =
+                    await t.deployExternalLibraryAndLink<SuperTokenFactory>(
+                        "SuperTokenDeployerLibrary",
+                        "SuperTokenFactoryUpdateLogicContractsTester",
+                        superfluid.address,
+                        superTokenLogic.address
                     );
-                const SuperTokenDeployerLibrary =
-                    await SuperTokenDeployerLibraryFactory.deploy();
-
-                const SuperTokenFactoryHelperFactory =
-                    await ethers.getContractFactory("SuperTokenFactoryHelper", {
-                        libraries: {
-                            SuperTokenDeployerLibrary:
-                                SuperTokenDeployerLibrary.address,
-                        },
-                    });
-                const SuperTokenFactoryHelper =
-                    await SuperTokenFactoryHelperFactory.deploy();
-                const factory2LogicFactory = await ethers.getContractFactory(
-                    "SuperTokenFactory"
-                );
-                const factory2Logic = await factory2LogicFactory.deploy(
-                    superfluid.address,
-                    SuperTokenFactoryHelper.address
-                );
                 await expectCustomError(
                     governance.updateContracts(
                         superfluid.address,

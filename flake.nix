@@ -64,7 +64,8 @@
         ++ whitehatInputs;
     };
     devShells.spec = with pkgs; mkShell {
-      buildInputs = specInputs;
+      buildInputs = minimumEVMDevInputs
+        ++ specInputs;
     };
     devShells.full = with pkgs; mkShell {
       buildInputs = minimumEVMDevInputs

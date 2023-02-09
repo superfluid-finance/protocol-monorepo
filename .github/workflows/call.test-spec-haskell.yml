@@ -17,6 +17,9 @@ jobs:
           - compiler: ghc-9.2.5
             devShell: ci-spec-ghc925
             allow-failure: false
+          - compiler: ghc-9.4.4
+            devShell: ci-spec-ghc944
+            allow-failure: false
       fail-fast: false
 
     steps:
@@ -26,10 +29,6 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: nix devShell
-        run: |
-          echo 'nix develop .#${{ matrix.devShell }} -c bash $@' > devShell.sh
-
       - name: cache
         uses: actions/cache@v2
         with:
@@ -37,30 +36,34 @@ jobs:
           path: ~/.cabal/store
           restore-keys: ${{ runner.os }}-${{ matrix.compiler }}-
 
-      - name: cabal update
+      - name: Create devShell
+        run: |
+          echo 'nix develop .#${{ matrix.devShell }} -c bash $@' > devShell.sh
+
+      - name: Run cabal update
         run: |
           cabal v2-update
         shell: sh devShell.sh {0}
 
-      - name: lint
+      - name: Run lint
         run: |
           cd packages/spec-haskell
           make lint
         shell: sh devShell.sh {0}
 
-      - name: build
+      - name: Run build
         run: |
           cd packages/spec-haskell
           make build
         shell: sh devShell.sh {0}
 
-      - name: tests
+      - name: Run tests
         run: |
           cd packages/spec-haskell
           make test
         shell: sh devShell.sh {0}
 
-      - name: haddock
+      - name: Make haddock docs
         run: |
           cd packages/spec-haskell
           make docs-haddock

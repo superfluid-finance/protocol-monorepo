@@ -11,10 +11,6 @@
   flakeUtils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs { inherit system; };
-    # GHC version selection
-    ghcVer = "ghc944";
-    ghc = pkgs.haskell.compiler.${ghcVer};
-    ghcPackages = pkgs.haskell.packages.${ghcVer};
     # minimem development shell
     minimumEVMDevInputs = with pkgs; [
       # for nodejs ecosystem
@@ -29,6 +25,9 @@
       echidna
     ];
     # for developing specification
+    ghcVer = "ghc944";
+    ghc = pkgs.haskell.compiler.${ghcVer};
+    ghcPackages = pkgs.haskell.packages.${ghcVer};
     specInputs = with pkgs; [
       # for nodejs ecosystem
       yarn
@@ -55,6 +54,14 @@
         collection-fontsrecommended collection-fontsextra;
       })
     ];
+    ci-spec = ghcVer : with pkgs; mkShell {
+      buildInputs = [
+        gnumake
+        cabal-install
+        haskell.compiler.${ghcVer}
+        hlint
+      ];
+    };
   in {
     devShells.default = with pkgs; mkShell {
       buildInputs = minimumEVMDevInputs;
@@ -72,14 +79,8 @@
       ++ whitehatInputs
       ++ specInputs;
     };
-    devShells.ci-spec-ghc925 = with pkgs; mkShell {
-      buildInputs = [
-        gnumake
-        cabal-install
-        haskell.compiler.ghc925
-        hlint
-      ];
-    };
+    devShells.ci-spec-ghc925 = ci-spec "ghc925";
+    devShells.ci-spec-ghc944 = ci-spec "ghc944";
   });
 }
 

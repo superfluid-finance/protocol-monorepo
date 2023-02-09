@@ -72,8 +72,9 @@
       ++ whitehatInputs
       ++ specInputs;
     };
-    devShells.ci-ghc925 = with pkgs; mkShell {
+    devShells.ci-spec-ghc925 = with pkgs; mkShell {
       buildInputs = [
+        hlint
         cabal-install
         haskell.compiler.ghc925
       ];

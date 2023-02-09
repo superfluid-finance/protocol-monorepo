@@ -213,5 +213,5 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
     align2 u u' (a, b) = (a', b')
         where r = getFlowRate a
               (r', er') = if u' == 0 then (0, r `mt_v_mul_u` u) else r `mt_v_mul_u_qr_u` (u, u')
-              a' = (fst . setFlow1 r') $ a
-              b' = (fst . shiftFlow1 er') $ b
+              a' = (fst . setFlow1 r') a
+              b' = (fst . shiftFlow1 er') b

@@ -14,8 +14,8 @@ jobs:
     strategy:
       matrix:
         include:
-          - compiler: ghc-9.2.4
-            devShell: ci-ghc925
+          - compiler: ghc-9.2.5
+            devShell: ci-spec-ghc925
             allow-failure: false
       fail-fast: false
 

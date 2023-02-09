@@ -29,6 +29,8 @@ jobs:
           path: source
 
       - uses: cachix/install-nix-action@v19 
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: nix shell
         run: nix develop .#${{ matrix.devShell }}

@@ -138,7 +138,7 @@ freeze:
 	$(CABAL) v2-freeze
 
 lint:
-	for i in $$PWD/pkgs/*;do cd $$i; cabal -vnormal check || exit 1;done
+	for i in $$PWD/pkgs/*/*.cabal;do cd $$(dirname $$i);pwd;cabal -vnormal check || exit 1;done
 	hlint pkgs
 
 repl-simple:

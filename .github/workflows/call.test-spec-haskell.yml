@@ -23,11 +23,7 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: checkout
-        uses: actions/checkout@v3
-        with:
-          path: source
-
+      - uses: actions/checkout@v3
       - uses: cachix/install-nix-action@v19 
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}

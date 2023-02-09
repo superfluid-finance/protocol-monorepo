@@ -9,6 +9,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    container:
+      image: nixos/nix
+
     continue-on-error: ${{ matrix.allow-failure }}
 
     strategy:
@@ -31,7 +34,7 @@ jobs:
 
       - name: update cabal index
         run: |
-          $CABAL v2-update -v
+          cabal v2-update -v
 
       - name: cache
         uses: actions/cache@v2

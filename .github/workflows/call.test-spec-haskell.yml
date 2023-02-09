@@ -62,6 +62,6 @@ jobs:
 
       - name: haddock
         run: |
-          cd packages/spec-haddock
+          cd packages/spec-haskell
           make docs-haddock
         shell: sh devShell.sh {0}

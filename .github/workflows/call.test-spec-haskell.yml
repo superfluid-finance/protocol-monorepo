@@ -28,7 +28,7 @@ jobs:
 
       - name: nix devShell setup
         run: |
-          echo 'nix develop .#${{ matrix.devShell }} -c "bash $@"' > devShell.sh
+          echo 'nix develop .#${{ matrix.devShell }} -c bash $@' > devShell.sh
 
       - name: cache
         uses: actions/cache@v2

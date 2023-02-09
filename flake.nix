@@ -64,12 +64,21 @@
         ++ whitehatInputs;
     };
     devShells.spec = with pkgs; mkShell {
-      buildInputs = specInputs;
+      buildInputs = minimumEVMDevInputs
+        ++ specInputs;
     };
     devShells.full = with pkgs; mkShell {
       buildInputs = minimumEVMDevInputs
       ++ whitehatInputs
       ++ specInputs;
+    };
+    devShells.ci-spec-ghc925 = with pkgs; mkShell {
+      buildInputs = [
+        gnumake
+        cabal-install
+        haskell.compiler.ghc925
+        hlint
+      ];
     };
   });
 }

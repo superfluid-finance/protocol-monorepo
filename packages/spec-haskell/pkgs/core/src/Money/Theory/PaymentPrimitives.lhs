@@ -51,13 +51,13 @@ instance ( MoneyDistribution md
          ) => Semigroup (MoneyDistributionModel md) where
     -- ⊕: monoid binary operator
     (MkMoneyDistributionModel ma) <> (MkMoneyDistributionModel mb) =
-        MkMoneyDistributionModel (\u -> \t -> ma u t + mb u t)
+        MkMoneyDistributionModel (\u t -> ma u t + mb u t)
 
 -- | Monoid class instance ⟦𝓜⟧.
 instance ( MoneyDistribution md
          ) => Monoid (MoneyDistributionModel md) where
     -- ∅: monoid empty set
-    mempty = MkMoneyDistributionModel (\_ -> \_ -> 0)
+    mempty = MkMoneyDistributionModel (\_ _ -> 0)
 \end{code}
 
 \begin{code}
@@ -88,10 +88,10 @@ type 𝓜 md = forall ν t u.
 -- | ⟦.⟧ - semantic function of 𝓜.
 sem :: MoneyDistribution md
     => 𝓜 md -> MoneyDistributionModel' md
-sem (TransferI ka kb amount) = \u -> \_ ->
+sem (TransferI ka kb amount) = \u _ ->
     let x = fromIntegral amount
     in ceiling $ -x * ρ ka u + x * ρ kb u
-sem (FlowI ka kb r t') = \u -> \t ->
+sem (FlowI ka kb r t') = \u t ->
     let x = fromIntegral $ -r * coerce(t - t')
     in ceiling $ -x * ρ ka u + x * ρ kb u
 -- GHC 9.4.2 bug re non-exhaustive pattern matching?

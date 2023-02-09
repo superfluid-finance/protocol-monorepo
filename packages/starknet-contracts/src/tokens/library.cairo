@@ -7,7 +7,6 @@ from starkware.starknet.common.syscalls import (
 )
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import assert_not_zero, assert_le, assert_nn
-from starkware.cairo.common.bool import TRUE, FALSE
 
 from openzeppelin.utils.constants.library import UINT8_MAX
 
@@ -46,7 +45,7 @@ func SuperERC20_total_supply() -> (total_supply: felt) {
 }
 
 @storage_var
-func SuperERC20_balances(account: felt) -> (balance: felt) {
+func SuperERC20_settled_balances(account: felt) -> (balance: felt) {
 }
 
 @storage_var
@@ -70,7 +69,7 @@ namespace SuperERC20 {
         with_attr error_message("SuperERC20: decimals exceed 2^8") {
             assert_le(decimals, UINT8_MAX);
         }
-        ERC20_decimals.write(decimals);
+        SuperERC20_decimals.write(decimals);
         return ();
     }
 
@@ -103,11 +102,11 @@ namespace SuperERC20 {
     func balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         account: felt
     ) -> (balance: felt) {
-        let (_balance) = SuperERC20_balances.read(account);
+        let (_balance) = SuperERC20_settled_balances.read(account);
         let (accountIndex) = SuperERC20_universal_indexes.read(account);
         let (timestamp) = get_block_timestamp();
         let (realtime_balance) = SemanticMoney.realtime_balance_of(accountIndex, timestamp);
-        let (total_balance) = _balance + realtime_balance;
+        let total_balance = _balance + realtime_balance;
         return (balance = total_balance);
     }
 
@@ -126,73 +125,82 @@ namespace SuperERC20 {
         return SuperERC20_allowances.read(owner, spender);
     }
 
-    func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        recipient: felt, amount: felt
-    ) -> (success: felt) {
-        let (sender) = get_caller_address();
-        _transfer(sender, recipient, amount);
-        return (success=TRUE);
-    }
+    // func settle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(index: UniversalIndex, account: felt) {
+    //     let (timestamp) = get_block_timestamp();
+    //     let (newIndex) = SemanticMoney.settle(index);
+    //     let (oldBalance) = SuperERC20_settled_balances.read(account);
+    //     let newBalance = oldBalance + newIndex.
+    //     SuperERC20_settled_balances.write(account, oldBalance);
+    //     return ();
+    // }
 
-    func transfer_from{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        sender: felt, recipient: felt, amount: felt
-    ) -> (success: felt) {
-        let (caller) = get_caller_address();
-        _spend_allowance(sender, caller, amount);
-        _transfer(sender, recipient, amount);
-        return (success=TRUE);
-    }
+    // func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    //     recipient: felt, amount: felt
+    // ) -> (success: felt) {
+    //     let (sender) = get_caller_address();
+    //     _transfer(sender, recipient, amount);
+    //     return (success=TRUE);
+    // }
 
-    func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        spender: felt, amount: felt
-    ) -> (success: felt) {
-        with_attr error_message("SuperERC20: amount is negative") {
-            assert_nn(amount);
-        }
+    // func transfer_from{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    //     sender: felt, recipient: felt, amount: felt
+    // ) -> (success: felt) {
+    //     let (caller) = get_caller_address();
+    //     _spend_allowance(sender, caller, amount);
+    //     _transfer(sender, recipient, amount);
+    //     return (success=TRUE);
+    // }
 
-        let (caller) = get_caller_address();
-        _approve(caller, spender, amount);
-        return (success=TRUE);
-    }
+    // func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    //     spender: felt, amount: felt
+    // ) -> (success: felt) {
+    //     with_attr error_message("SuperERC20: amount is negative") {
+    //         assert_nn(amount);
+    //     }
 
-    func increase_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        spender: felt, added_value: felt
-    ) -> (success: felt) {
-        with_attr error("SuperERC20: added_value is negative") {
-            assert_nn(added_value);
-        }
+    //     let (caller) = get_caller_address();
+    //     _approve(caller, spender, amount);
+    //     return (success=TRUE);
+    // }
 
-        let (caller) = get_caller_address();
-        let (current_allowance: Uint256) = SuperERC20_allowances.read(caller, spender);
+    // func increase_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    //     spender: felt, added_value: felt
+    // ) -> (success: felt) {
+    //     with_attr error("SuperERC20: added_value is negative") {
+    //         assert_nn(added_value);
+    //     }
 
-        // add allowance
-        let new_allowance = current_allowance + added_value;
-        _approve(caller, spender, new_allowance);
-        return (success=TRUE);
-    }
+    //     let (caller) = get_caller_address();
+    //     let (current_allowance: Uint256) = SuperERC20_allowances.read(caller, spender);
 
-    func decrease_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        spender: felt, subtracted_value: felt
-    ) -> (success: felt) {
-        alloc_locals;
-        with_attr error_message("SuperERC20: subtracted_value is negative") {
-            assert_nn(subtracted_value);
-        }
+    //     // add allowance
+    //     let new_allowance = current_allowance + added_value;
+    //     _approve(caller, spender, new_allowance);
+    //     return (success=TRUE);
+    // }
 
-        let (caller) = get_caller_address();
-        let (current_allowance: Uint256) = SuperERC20_allowances.read(owner=caller, spender=spender);
+    // func decrease_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    //     spender: felt, subtracted_value: felt
+    // ) -> (success: felt) {
+    //     alloc_locals;
+    //     with_attr error_message("SuperERC20: subtracted_value is negative") {
+    //         assert_nn(subtracted_value);
+    //     }
 
-        let new_allowance = current_allowance - subtracted_value;
-        _approve(caller, spender, new_allowance);
-        return (success=TRUE);
-    }
+    //     let (caller) = get_caller_address();
+    //     let (current_allowance: Uint256) = SuperERC20_allowances.read(owner=caller, spender=spender);
+
+    //     let new_allowance = current_allowance - subtracted_value;
+    //     _approve(caller, spender, new_allowance);
+    //     return (success=TRUE);
+    // }
 
     //
     // Internal
     //
 
     func _mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        recipient: felt, amount: Uint256
+        recipient: felt, amount: felt
     ) {
         with_attr error_message("SuperERC20: amount is negative") {
             assert_nn(amount);
@@ -205,87 +213,74 @@ namespace SuperERC20 {
         let (supply) = SuperERC20_total_supply.read();
         let new_supply = supply + amount;
         SuperERC20_total_supply.write(new_supply);
-        let (balance: Uint256) = SuperERC20_balances.read(account=recipient);
+        let (balance) = SuperERC20_settled_balances.read(account=recipient);
         // overflow is not possible because sum is guaranteed to be less than total supply
         // which we check for overflow below
         let new_balance = balance + amount;
-        SuperERC20_balances.write(recipient, new_balance);
+        SuperERC20_settled_balances.write(recipient, new_balance);
 
         Transfer.emit(0, recipient, amount);
         return ();
     }
 
-    func _transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        sender: felt, recipient: felt, amount: Uint256
-    ) {
-        with_attr error_message("ERC20: amount is not a valid Uint256") {
-            assert_nn(amount);  // almost surely not needed, might remove after confirmation
-        }
+    // func _transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    //     sender: felt, recipient: felt, amount: Uint256
+    // ) {
+    //     with_attr error_message("SuperERC20: amount is not a valid Uint256") {
+    //         assert_nn(amount);  // almost surely not needed, might remove after confirmation
+    //     }
 
-        with_attr error_message("ERC20: cannot transfer from the zero address") {
-            assert_not_zero(sender);
-        }
+    //     with_attr error_message("SuperERC20: cannot transfer from the zero address") {
+    //         assert_not_zero(sender);
+    //     }
 
-        with_attr error_message("ERC20: cannot transfer to the zero address") {
-            assert_not_zero(recipient);
-        }
-        _update_balance();
-        let sender_balance: Uint256 = ERC20_balances.read(sender);
-        with_attr error_message("ERC20: transfer amount exceeds balance") {
-            let (new_sender_balance: Uint256) = SafeUint256.sub_le(sender_balance, amount);
-        }
+    //     with_attr error_message("SuperERC20: cannot transfer to the zero address") {
+    //         assert_not_zero(recipient);
+    //     }
+    //     let (sender_balance) = SuperERC20_balances.read(sender);
+    //     with_attr error_message("SuperERC20: transfer amount exceeds balance") {
+    //         let (new_sender_balance) = sender_balance - amount;
+    //         assert_nn(new_sender_balance);
+    //     }
 
-        ERC20_balances.write(sender, new_sender_balance);
+    //     SuperERC20_balances.write(sender, new_sender_balance);
 
-        // add to recipient
-        let (recipient_balance: Uint256) = ERC20_balances.read(account=recipient);
-        // overflow is not possible because sum is guaranteed by mint to be less than total supply
-        let (new_recipient_balance: Uint256) = SafeUint256.add(recipient_balance, amount);
-        ERC20_balances.write(recipient, new_recipient_balance);
-        Transfer.emit(sender, recipient, amount);
+    //     // add to recipient
+    //     let (recipient_balance: Uint256) = SuperERC20_balances.read(account=recipient);
+    //     // overflow is not possible because sum is guaranteed by mint to be less than total supply
+    //     let (new_recipient_balance) = recipient_balance + amount;
+    //     SuperERC20_balances.write(recipient, new_recipient_balance);
+    //     Transfer.emit(sender, recipient, amount);
+    //     return ();
+    // }
+
+    func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) {
+        let (caller) = get_caller_address();
+        with_attr error_message("SuperERC20: balance is zero") {
+            let (callerBalance) = SuperERC20_settled_balances.read(receiver);
+            assert_not_zero(callerBalance);
+        }
+        let (callerIndex) = SuperERC20_universal_indexes.read(caller);
+        let (receiverIndex) = SuperERC20_universal_indexes.read(receiver);
+        let (timestamp) = get_block_timestamp();
+        let (newCallerIndex, newReceiverIndex) = SemanticMoney.flow2(callerIndex, receiverIndex, flow_rate, timestamp);
+        SuperERC20_universal_indexes.write(caller, newCallerIndex);
+        SuperERC20_universal_indexes.write(receiver, newReceiverIndex);
         return ();
     }
 
-    func _approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        owner: felt, spender: felt, amount: Uint256
-    ) {
-        with_attr error_message("ERC20: amount is not a valid Uint256") {
-            uint256_check(amount);
+    func updateFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) {
+        let (caller) = get_caller_address();
+        with_attr error_message("SuperERC20: balance is zero") {
+            let (callerBalance) = SuperERC20_settled_balances.read(receiver);
+            assert_not_zero(callerBalance);
         }
-
-        with_attr error_message("ERC20: cannot approve from the zero address") {
-            assert_not_zero(owner);
-        }
-
-        with_attr error_message("ERC20: cannot approve to the zero address") {
-            assert_not_zero(spender);
-        }
-        _update_balance();
-        ERC20_allowances.write(owner, spender, amount);
-        Approval.emit(owner, spender, amount);
-        return ();
-    }
-
-    func _spend_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        owner: felt, spender: felt, amount: Uint256
-    ) {
-        alloc_locals;
-        with_attr error_message("ERC20: amount is not a valid Uint256") {
-            uint256_check(amount);  // almost surely not needed, might remove after confirmation
-        }
-
-        let (current_allowance: Uint256) = ERC20_allowances.read(owner, spender);
-        let (infinite: Uint256) = uint256_not(Uint256(0, 0));
-        let (is_infinite: felt) = uint256_eq(current_allowance, infinite);
-
-        if (is_infinite == FALSE) {
-            with_attr error_message("ERC20: insufficient allowance") {
-                let (new_allowance: Uint256) = SafeUint256.sub_le(current_allowance, amount);
-            }
-
-            _approve(owner, spender, new_allowance);
-            return ();
-        }
+        let (callerIndex) = SuperERC20_universal_indexes.read(caller);
+        let (receiverIndex) = SuperERC20_universal_indexes.read(receiver);
+        let (timestamp) = get_block_timestamp();
+        let (newCallerIndex, newReceiverIndex) = SemanticMoney.flow2(callerIndex, receiverIndex, flow_rate, timestamp);
+        SuperERC20_universal_indexes.write(caller, newCallerIndex);
+        SuperERC20_universal_indexes.write(receiver, newReceiverIndex);
         return ();
     }
 }

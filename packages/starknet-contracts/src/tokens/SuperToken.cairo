@@ -6,25 +6,19 @@
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.bool import TRUE
 
 from openzeppelin.access.ownable.library import Ownable
-from openzeppelin.token.erc20.library import ERC20
 
-
-from src.libraries.SemanticMoney import SemanticMoney, UniversalIndex
-
-@storage_var
-func universal_indexes(address: felt) -> (index: UniversalIndex) {
-}
+from src.tokens.library import SuperERC20
 
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    name: felt, symbol: felt, decimals: felt, initial_supply: Uint256, recipient: felt, owner: felt
+    name: felt, symbol: felt, decimals: felt, initial_supply: felt, recipient: felt, owner: felt
 ) {
-    ERC20.initializer(name, symbol, decimals);
-    ERC20._mint(recipient, initial_supply);
-    Ownable.initializer(owner);
+    SuperERC20.initializer(name, symbol, decimals);
+    SuperERC20._mint(recipient, initial_supply);
     return ();
 }
 
@@ -34,130 +28,76 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 
 @view
 func name{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (name: felt) {
-    return ERC20.name();
+    return SuperERC20.name();
 }
 
 @view
 func symbol{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (symbol: felt) {
-    return ERC20.symbol();
+    return SuperERC20.symbol();
 }
 
 @view
 func totalSupply{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-    totalSupply: Uint256
+    total_supply: felt
 ) {
-    let (totalSupply: Uint256) = ERC20.total_supply();
-    return (totalSupply=totalSupply);
+    return SuperERC20.total_supply();
 }
 
 @view
 func decimals{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
     decimals: felt
 ) {
-    return ERC20.decimals();
+    return SuperERC20.decimals();
 }
 
 @view
 func balanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(account: felt) -> (
-    balance: Uint256
+    balance: felt
 ) {
-    return ERC20.balance_of(account);
+    return SuperERC20.balance_of(account);
 }
 
 @view
 func allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     owner: felt, spender: felt
-) -> (remaining: Uint256) {
-    return ERC20.allowance(owner, spender);
-}
-
-@view
-func owner{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (owner: felt) {
-    return Ownable.owner();
+) -> (remaining: felt) {
+    return SuperERC20.allowance(owner, spender);
 }
 
 //
 // Externals
 //
 
-@external
-func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    recipient: felt, amount: Uint256
-) -> (success: felt) {
-    return ERC20.transfer(recipient, amount);
-}
+// @external
+// func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+//     recipient: felt, amount: Uint256
+// ) -> (success: felt) {
+//     return ERC20.transfer(recipient, amount);
+// }
 
-@external
-func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    sender: felt, recipient: felt, amount: Uint256
-) -> (success: felt) {
-    return ERC20.transfer_from(sender, recipient, amount);
-}
-
-@external
-func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, amount: Uint256
-) -> (success: felt) {
-    return ERC20.approve(spender, amount);
-}
-
-@external
-func increaseAllowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, added_value: Uint256
-) -> (success: felt) {
-    return ERC20.increase_allowance(spender, added_value);
-}
-
-@external
-func decreaseAllowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, subtracted_value: Uint256
-) -> (success: felt) {
-    return ERC20.decrease_allowance(spender, subtracted_value);
-}
+// @external
+// func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+//     sender: felt, recipient: felt, amount: Uint256
+// ) -> (success: felt) {
+//     return ERC20.transfer_from(sender, recipient, amount);
+// }
 
 @external
 func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    to: felt, amount: Uint256
+    to: felt, amount: felt
 ) {
-    Ownable.assert_only_owner();
-    ERC20._mint(to, amount);
+    SuperERC20._mint(to, amount);
     return ();
 }
 
 @external
-func transferOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    newOwner: felt
-) {
-    Ownable.transfer_ownership(newOwner);
-    return ();
+func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) -> (success: felt) {
+    SuperERC20.createFlow(receiver, flow_rate);
+    return (success=TRUE);
 }
 
 @external
-func renounceOwnership{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    Ownable.renounce_ownership();
-    return ();
-}
-
-@external
-func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) {
-    let (timestamp) = get_block_timestamp();
-    let (caller) = get_caller_address();
-    let (senderUniversalIndex) = universal_indexes.read(caller);
-    let (receiverUniversalIndex) = universal_indexes.read(receiver);
-    let (newSenderUniversalIndex, newReceiverUniversalIndex) = SemanticMoney.flow2(senderUniversalIndex, receiverUniversalIndex, flow_rate, timestamp);
-    universal_indexes.write(caller, newSenderUniversalIndex);
-    universal_indexes.write(receiver, receiverUniversalIndex);
-    return ();
-}
-
-@external
-func updateFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) {
-    let (timestamp) = get_block_timestamp();
-    let (caller) = get_caller_address();
-    let (senderUniversalIndex) = universal_indexes.read(caller);
-    let (receiverUniversalIndex) = universal_indexes.read(receiver);
-    let (newSenderUniversalIndex, newReceiverUniversalIndex) = SemanticMoney.flow2(senderUniversalIndex, receiverUniversalIndex, flow_rate, timestamp);
-    universal_indexes.write(caller, newSenderUniversalIndex);
-    universal_indexes.write(receiver, receiverUniversalIndex);
-    return ();
+func updateFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) -> (success: felt) {
+    SuperERC20.updateFlow(receiver, flow_rate);
+    return (success=TRUE);
 }

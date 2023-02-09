@@ -40,7 +40,7 @@ namespace SemanticMoney {
     }
 
     func setFlow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(flow_rate: felt, index: UniversalIndex) -> (index: UniversalIndex, flow_rate: felt) {
-        let newUniversalIndex = UniversalIndex(index.rtb_settled_at, index.rtb_settled_value, index.rtb_flow_rate + flow_rate);
+        let newUniversalIndex = UniversalIndex(index.rtb_settled_at, index.rtb_settled_value, flow_rate);
         return (index = newUniversalIndex, flow_rate = flow_rate);
     }
 

@@ -26,11 +26,9 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: nix shell
-        run: nix develop .#${{ matrix.devShell }}
-
-      - name: update cabal index
-        run: cabal v2-update -v
+      - name: nix devShell setup
+        run: |
+          echo 'nix develop .#${{ matrix.devShell }} -c "$@"' > devShell.sh
 
       - name: cache
         uses: actions/cache@v2
@@ -43,18 +41,22 @@ jobs:
         run: |
           cd packages/spec-haskell
           make lint
+        shell: sh -c "source devShell.sh {0}"
 
       - name: build
         run: |
           cd packages/spec-haskell
           make build
+        shell: sh -c "source devShell.sh {0}"
 
       - name: tests
         run: |
           cd packages/spec-haskell
           make test
+        shell: sh -c "source devShell.sh {0}"
 
       - name: haddock
         run: |
           cd packages/spec-haddock
           make docs-haddock
+        shell: sh -c "source devShell.sh {0}"

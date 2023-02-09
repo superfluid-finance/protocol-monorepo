@@ -5,7 +5,7 @@ cairo-path = ["lib/cairo_contracts/src"]
 
 [contracts]
 ISuperToken = ["src/interfaces/ISuperToken.cairo"]
-PureSemanticMoney = ["src/PureSemanticMoney.cairo"]
+SemanticMoney = ["src/utils/SemanticMoney.cairo"]
 SuperToken = ["src/tokens/SuperToken.cairo"]
 
 [profile.devnet.project]

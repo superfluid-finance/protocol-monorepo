@@ -1,6 +1,3 @@
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts for Cairo v0.6.0 (token/erc20/presets/ERC20Mintable.cairo)
-
 %lang starknet
 
 from starkware.starknet.common.syscalls import get_caller_address, get_block_timestamp
@@ -68,19 +65,19 @@ func allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 // Externals
 //
 
-// @external
-// func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-//     recipient: felt, amount: Uint256
-// ) -> (success: felt) {
-//     return ERC20.transfer(recipient, amount);
-// }
+@external
+func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    recipient: felt, amount: felt
+) -> (success: felt) {
+    return SuperERC20.transfer(recipient, amount);
+}
 
-// @external
-// func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-//     sender: felt, recipient: felt, amount: Uint256
-// ) -> (success: felt) {
-//     return ERC20.transfer_from(sender, recipient, amount);
-// }
+@external
+func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    sender: felt, recipient: felt, amount: felt
+) -> (success: felt) {
+    return SuperERC20.transfer_from(sender, recipient, amount);
+}
 
 @external
 func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -99,5 +96,29 @@ func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 @external
 func updateFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) -> (success: felt) {
     SuperERC20.updateFlow(receiver, flow_rate);
+    return (success=TRUE);
+}
+
+@external
+func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        spender: felt, amount: felt
+) -> (success: felt) {
+    SuperERC20.approve(spender, amount);
+    return (success=TRUE);
+}
+
+@external
+func increase_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        spender: felt, added_value: felt
+) -> (success: felt) {
+    SuperERC20.increase_allowance(spender, added_value);
+    return (success=TRUE);
+}
+
+@external
+func decrease_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        spender: felt, subtracted_value: felt
+) -> (success: felt) {
+    SuperERC20.decrease_allowance(spender, subtracted_value);
     return (success=TRUE);
 }

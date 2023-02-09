@@ -72,6 +72,12 @@
       ++ whitehatInputs
       ++ specInputs;
     };
+    devShells.ci-ghc925 = with pkgs; mkShell {
+      buildInputs = [
+        cabal-install
+        haskell.compiler.ghc925
+      ];
+    };
   });
 }
 

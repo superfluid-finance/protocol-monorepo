@@ -41,22 +41,22 @@ jobs:
         run: |
           cd packages/spec-haskell
           make lint
-        shell: sh -c "source devShell.sh {0}"
+        shell: sh devShell.sh {0}
 
       - name: build
         run: |
           cd packages/spec-haskell
           make build
-        shell: sh -c "source devShell.sh {0}"
+        shell: sh devShell.sh {0}
 
       - name: tests
         run: |
           cd packages/spec-haskell
           make test
-        shell: sh -c "source devShell.sh {0}"
+        shell: sh devShell.sh {0}
 
       - name: haddock
         run: |
           cd packages/spec-haddock
           make docs-haddock
-        shell: sh -c "source devShell.sh {0}"
+        shell: sh devShell.sh {0}

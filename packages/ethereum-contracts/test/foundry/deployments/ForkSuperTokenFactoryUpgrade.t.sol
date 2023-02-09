@@ -36,13 +36,14 @@ import {
 import {
     SuperTokenV1Library
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { ForkBaselineTest } from "./ForkBaseline.t.sol";
 
-/// @title SuperTokenFactoryUpgradeTest
+/// @title ForkSuperTokenFactoryUpgradeTest
 /// @author Superfluid
 /// @notice Tests the SuperTokenFactory upgrade flow on a forked mainnet
 /// @dev Note that this test file is likely dynamic and will change over time
 /// due to the possibility that the upgrade flow may also change over time
-contract SuperTokenFactoryUpgradeTest is Test {
+contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
     using SuperTokenV1Library for ISuperToken;
     uint256 forkId;
 
@@ -69,6 +70,7 @@ contract SuperTokenFactoryUpgradeTest is Test {
     address public constant BOB = address(2);
     address public constant DEFAULT_FLOW_OPERATOR = address(69);
 
+    constructor() ForkBaselineTest(ethX, TEST_ACCOUNT) {}
     function setUp() public {
         POLYGON_MAINNET_PROVIDER_URL = vm.envString(
             "POLYGON_MAINNET_PROVIDER_URL"
@@ -83,32 +85,10 @@ contract SuperTokenFactoryUpgradeTest is Test {
         host = ISuperfluid(framework.superfluid);
         governance = host.getGovernance();
         superTokenFactory = framework.superTokenFactory;
+        helper_Execute_Super_Token_Factory_Upgrade();
     }
 
-    function assert_Flow_Rate_Is_Expected(
-        address sender,
-        address receiver,
-        int96 expectedFlowRate
-    ) public {
-        (, int96 flowRate, , ) = ethX.getFlowInfo(sender, receiver);
-        assertEq(flowRate, expectedFlowRate);
-    }
-
-    function helper_Create_Update_Delete_Flow() public {
-        // test that flows can still be created with SuperTokenFactory updated
-        vm.startPrank(TEST_ACCOUNT);
-
-        ethX.createFlow(address(1), 42069);
-        assert_Flow_Rate_Is_Expected(TEST_ACCOUNT, address(1), 42069);
-        ethX.updateFlow(address(1), 4206933);
-        assert_Flow_Rate_Is_Expected(TEST_ACCOUNT, address(1), 4206933);
-        ethX.deleteFlow(TEST_ACCOUNT, address(1));
-        assert_Flow_Rate_Is_Expected(TEST_ACCOUNT, address(1), 0);
-
-        vm.stopPrank();
-    }
-
-    function test_Passing_Super_Token_Factory_Upgrade() public {
+    function helper_Execute_Super_Token_Factory_Upgrade() public {
         address superTokenFactoryLogicPre = host.getSuperTokenFactoryLogic();
         address superTokenLogicPre = address(
             superTokenFactory.getSuperTokenLogic()
@@ -173,7 +153,7 @@ contract SuperTokenFactoryUpgradeTest is Test {
 
         // create update and delete flows after updating SuperTokenFactory logic
         // after deploying and setting new SuperToken logic in SuperTokenFactory
-        helper_Create_Update_Delete_Flow();
+        helper_Create_Update_Delete_Flow_One_To_One(ethX, TEST_ACCOUNT);
 
         // LOGGING
         console.log("Chain ID:                                  ", block.chainid);

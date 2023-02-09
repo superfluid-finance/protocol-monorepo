@@ -1,0 +1,49 @@
+cabal-version: 3.0
+name:          semantic-money
+version:       0.0.1.0
+license:       MIT
+maintainer:    miao@superfluid.finance
+author:        Miao, ZhiCheng
+tested-with:   ghc ==9.2.4
+homepage:      https://www.superfluid.finance/
+synopsis:      Semantic money - generalizing payment primitives.
+description:
+    Part of the monorepo of https://github.com/superfluid-finance/protocol-monorepo/.
+category:      Money
+
+build-type:    Simple
+
+common warnings
+    ghc-options:
+        -Wall
+        -Wno-missing-signatures
+
+library
+    import:           warnings
+    default-language: GHC2021
+    hs-source-dirs:   src
+    exposed-modules:
+        Money.Theory.SemanticMoney
+    -- other-modules:
+    -- other-extensions:
+    build-depends:
+        base >=4.16.0.0,
+        data-default
+
+test-suite semantic-money-test
+    import:           warnings
+    default-language: GHC2021
+    type:             exitcode-stdio-1.0
+    other-modules:
+        Money.Theory.TestMonetaryTypes
+        Money.Theory.SemanticMoney_prop
+    -- other-extensions:
+    hs-source-dirs:   test
+    main-is:          Main.hs
+    build-depends:
+        base >=4.16.0.0,
+        QuickCheck >=2.13,
+        hspec >=2.0,
+        HUnit >=1.6.0.0,
+        data-default,
+        semantic-money

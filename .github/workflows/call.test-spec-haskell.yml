@@ -26,8 +26,13 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run: cabal v2-update -v
-        shell: nix develop .#${{ matrix.devShell }}
+      - name: nix shell
+        run: nix develop .#${{ matrix.devShell }}
+
+      - run: |
+          nix develop .#${{ matrix.devShell }} << EOF
+            cabal v2-update -v
+          EOF
 
       - name: cache
         uses: actions/cache@v2
@@ -35,28 +40,31 @@ jobs:
           key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
           path: ~/.cabal/store
           restore-keys: ${{ runner.os }}-${{ matrix.compiler }}-
-        shell: nix develop .#${{ matrix.devShell }}
 
       - name: lint
         run: |
-          cd packages/spec-haskell
-          make lint
-        shell: nix develop .#${{ matrix.devShell }}
+          nix develop .#${{ matrix.devShell }} << EOF
+            cd packages/spec-haskell
+            make lint
+          EOF
 
       - name: build
         run: |
-          cd packages/spec-haskell
-          make build
-        shell: nix develop .#${{ matrix.devShell }}
+          nix develop .#${{ matrix.devShell }} << EOF
+            cd packages/spec-haskell
+            make build
+          EOF
 
       - name: tests
         run: |
-          cd packages/spec-haskell
-          make test
-        shell: nix develop .#${{ matrix.devShell }}
+          nix develop .#${{ matrix.devShell }} << EOF
+            cd packages/spec-haskell
+            make test
+          EOF
 
       - name: haddock
         run: |
-          cd packages/spec-haddock
-          make docs-haddock
-        shell: nix develop .#${{ matrix.devShell }}
+          nix develop .#${{ matrix.devShell }} << EOF
+            cd packages/spec-haddock
+            make docs-haddock
+          EOF

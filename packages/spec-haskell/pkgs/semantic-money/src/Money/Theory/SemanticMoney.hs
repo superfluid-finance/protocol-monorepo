@@ -194,8 +194,8 @@ instance MonetaryTypes mt => Default (BasicParticle mt) where def = mempty
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
          ) => MonetaryUnit mt t v (BasicParticle mt) where
     settle t' a = a { rtb_settled_at = t'
-                     , rtb_settled_value = rtb a t'
-                     }
+                    , rtb_settled_value = rtb a t'
+                    }
     settledAt = rtb_settled_at
     rtb (BasicParticle t s r) t' = r `mt_v_mul_t` (t' - t) + s
 

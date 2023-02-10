@@ -6,11 +6,9 @@ import { Test } from "forge-std/Test.sol";
 import {
     IConstantFlowAgreementV1
 } from "../../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
-
 import {
     ISuperToken
 } from "../../../../contracts/interfaces/superfluid/ISuperToken.sol";
-
 import {
     UUPSProxiable
 } from "../../../../contracts/upgradability/UUPSProxiable.sol";

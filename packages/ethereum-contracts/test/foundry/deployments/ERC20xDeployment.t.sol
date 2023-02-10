@@ -39,12 +39,14 @@ import {
 import {
     SuperTokenV1Library
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { CFAv1Library } from "../../../contracts/apps/CFAv1Library.sol";
 
 contract ERC20xDeploymentTest is Test {
-    using SuperTokenV1Library for ISuperToken;
+    using CFAv1Library for CFAv1Library.InitData;
     uint256 polygonFork;
 
-    string POLYGON_RPC_URL = vm.envString("POLYGON_RPC_URL");
+    string POLYGON_MAINNET_PROVIDER_URL =
+        vm.envString("POLYGON_MAINNET_PROVIDER_URL");
 
     IResolver public constant resolver =
         IResolver(0xE0cc76334405EE8b39213E620587d815967af39C);
@@ -57,6 +59,7 @@ contract ERC20xDeploymentTest is Test {
         IERC20(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
     ISuperToken public constant ethX =
         ISuperToken(0x27e1e4E6BC79D93032abef01025811B7E4727e85);
+    CFAv1Library.InitData public cfaV1Lib;
 
     address public constant TEST_ACCOUNT =
         0x0154d25120Ed20A516fE43991702e7463c5A6F6e;
@@ -65,7 +68,7 @@ contract ERC20xDeploymentTest is Test {
     address public constant DEFAULT_FLOW_OPERATOR = address(69);
 
     function setUp() public {
-        polygonFork = vm.createSelectFork(POLYGON_RPC_URL);
+        polygonFork = vm.createSelectFork(POLYGON_MAINNET_PROVIDER_URL);
         superfluidLoader = SuperfluidLoader(
             resolver.get("SuperfluidLoader-v1")
         );
@@ -73,6 +76,10 @@ contract ERC20xDeploymentTest is Test {
             .loadFramework("v1");
         cfaV1 = ConstantFlowAgreementV1(address(framework.agreementCFAv1));
         host = ISuperfluid(framework.superfluid);
+        cfaV1Lib = CFAv1Library.InitData(
+            host,
+            IConstantFlowAgreementV1(address(framework.agreementCFAv1))
+        );
         governance = host.getGovernance();
         superTokenFactory = framework.superTokenFactory;
     }
@@ -82,22 +89,21 @@ contract ERC20xDeploymentTest is Test {
         address receiver,
         int96 expectedFlowRate
     ) public {
-        (, int96 flowRate, , ) = ethX.getFlowInfo(sender, receiver);
+        (, int96 flowRate, , ) = cfaV1.getFlow(ethX, sender, receiver);
         assertEq(flowRate, expectedFlowRate);
     }
 
     function helper_Create_Update_Delete_Flow() public {
         // test that flows can still be created with SuperTokenFactory updated
-        vm.startPrank(TEST_ACCOUNT);
-
-        ethX.createFlow(address(1), 42069);
+        vm.prank(TEST_ACCOUNT);
+        cfaV1Lib.createFlow(address(1), ethX, 42069);
         assert_Flow_Rate_Is_Expected(TEST_ACCOUNT, address(1), 42069);
-        ethX.updateFlow(address(1), 4206933);
+        vm.prank(TEST_ACCOUNT);
+        cfaV1Lib.updateFlow(address(1), ethX, 4206933);
         assert_Flow_Rate_Is_Expected(TEST_ACCOUNT, address(1), 4206933);
-        ethX.deleteFlow(TEST_ACCOUNT, address(1));
+        vm.prank(TEST_ACCOUNT);
+        cfaV1Lib.deleteFlow(TEST_ACCOUNT, address(1), ethX);
         assert_Flow_Rate_Is_Expected(TEST_ACCOUNT, address(1), 0);
-
-        vm.stopPrank();
     }
 
     function test_Full_Migration() public {
@@ -126,7 +132,7 @@ contract ERC20xDeploymentTest is Test {
 
         newHelper = new SuperTokenFactoryHelper();
         newLogic = new SuperTokenFactory(host, newHelper);
-        
+
         // SuperTokenFactory.updateCode
         // _updateCodeAddress(newAddress): this upgrades the SuperTokenFactory logic
         // this.updateLogicContracts()
@@ -140,12 +146,11 @@ contract ERC20xDeploymentTest is Test {
             address(newLogic)
         );
 
-
         address superTokenFactoryLogicPost = host.getSuperTokenFactoryLogic();
         address superTokenLogicPost = address(
             superTokenFactory.getSuperTokenLogic()
         );
-        
+
         // validate that the logic contracts have been updated
         assertFalse(superTokenFactoryLogicPre == superTokenFactoryLogicPost);
         assertFalse(superTokenLogicPre == superTokenLogicPost);
@@ -170,44 +175,49 @@ contract ERC20xDeploymentTest is Test {
         // after deploying and setting new SuperToken logic in SuperTokenFactory
         // after deploying and setting new NFT contracts in SuperTokenFactory
         helper_Create_Update_Delete_Flow();
+        {
+            vm.startPrank(governanceOwner);
+            // deploy the outflow and inflow nft PROXY contracts
+            // and initialize the proxies in the same txn
+            // we would do this for all supertokens on each network
+            // @note TODO we probably want to have a batch for this?
+            (
+                IConstantOutflowNFT constantOutflowNFTProxy,
+                IConstantInflowNFT constantInflowNFTProxy,
+                ,
 
-        vm.startPrank(governanceOwner);
-        // deploy the outflow and inflow nft PROXY contracts
-        // and initialize the proxies in the same txn
-        // we would do this for all supertokens on each network
-        // @note TODO we probably want to have a batch for this?
-        superTokenFactory.deployNFTProxyContractsAndInititialize(
-            ethX,
-            address(constantOutflowNFTLogic),
-            address(constantInflowNFTLogic),
-            address(0),
-            address(0)
-        );
+            ) = superTokenFactory.deployNFTProxyContractsAndInititialize(
+                    ethX,
+                    address(constantOutflowNFTLogic),
+                    address(constantInflowNFTLogic),
+                    address(0),
+                    address(0)
+                );
 
-        ISuperToken[] memory superTokens = new ISuperToken[](1);
-        superTokens[0] = ethX;
+            ISuperToken[] memory superTokens = new ISuperToken[](1);
+            superTokens[0] = ethX;
 
-        // batch update SuperToken logic
-        // we would put all supertokens not just ethX in reality
-        governance.batchUpdateSuperTokenLogic(host, superTokens);
+            // batch update SuperToken logic
+            // we would put all supertokens not just ethX in reality
+            governance.batchUpdateSuperTokenLogic(host, superTokens);
 
-        assertEq(address(ethX.constantOutflowNFT()), address(0));
-        assertEq(address(ethX.constantInflowNFT()), address(0));
+            assertEq(address(ethX.constantOutflowNFT()), address(0));
+            assertEq(address(ethX.constantInflowNFT()), address(0));
 
-        // link the NFT contracts to the SuperToken
-        ethX.initializeNFTContracts(
-            address(constantOutflowNFTLogic),
-            address(constantInflowNFTLogic),
-            address(0),
-            address(0)
-        );
+            // link the NFT contracts to the SuperToken
+            ethX.initializeNFTContracts(
+                address(constantOutflowNFTProxy),
+                address(constantInflowNFTProxy),
+                address(0),
+                address(0)
+            );
 
-        // validate that the NFT contracts are set in the SuperToken
-        assertFalse(address(ethX.constantOutflowNFT()) == address(0));
-        assertFalse(address(ethX.constantInflowNFT()) == address(0));
+            // validate that the NFT contracts are set in the SuperToken
+            assertFalse(address(ethX.constantOutflowNFT()) == address(0));
+            assertFalse(address(ethX.constantInflowNFT()) == address(0));
 
-        vm.stopPrank();
-
+            vm.stopPrank();
+        }
         // create update and delete flows after updating super token logic
         helper_Create_Update_Delete_Flow();
 
@@ -227,9 +237,13 @@ contract ERC20xDeploymentTest is Test {
             agreementAddresses,
             address(0)
         );
-        address constantFlowAgreementLogicPost = address(cfaV1.getCodeAddress());
+        address constantFlowAgreementLogicPost = address(
+            cfaV1.getCodeAddress()
+        );
 
-        assertFalse(constantFlowAgreementLogicPre == constantFlowAgreementLogicPost);
+        assertFalse(
+            constantFlowAgreementLogicPre == constantFlowAgreementLogicPost
+        );
         vm.stopPrank();
 
         // create update and delete flows after updating CFAv1 Logic

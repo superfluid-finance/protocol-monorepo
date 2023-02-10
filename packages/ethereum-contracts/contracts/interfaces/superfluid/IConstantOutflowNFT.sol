@@ -29,6 +29,16 @@ interface IConstantOutflowNFT is IERC721Metadata {
         string memory nftSymbol
     ) external; // initializer;
 
+    /// @notice An external function for computing the deterministic tokenId
+    /// @dev tokenId = uint256(keccak256(abi.encode(flowSender, flowReceiver)))
+    /// @param flowSender the flow sender
+    /// @param flowReceiver the flow receiver
+    /// @return tokenId the tokenId
+    function getTokenId(
+        address flowSender,
+        address flowReceiver
+    ) external view returns (uint256);
+
     function onCreate(address flowSender, address flowReceiver) external;
 
     function onUpdate(address flowSender, address flowReceiver) external;

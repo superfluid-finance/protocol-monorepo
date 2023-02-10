@@ -410,6 +410,7 @@ contract SuperTokenFactoryHelper {
         external
         returns (address logic)
     {
+        // do not deploy here anymore
         return address(new SuperToken(host));
     }
 }

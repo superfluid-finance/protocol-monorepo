@@ -7,71 +7,21 @@ import {
     ConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import {
+    SuperToken
+} from "../../../contracts/superfluid/SuperToken.sol";
+import {
     ConstantInflowNFT
 } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
-
 import {
-    CFAv1Library,
+    SuperTokenV1Library
+} from "../../../contracts/apps/SuperTokenV1Library.sol";
+import {
     FoundrySuperfluidTester
 } from "../FoundrySuperfluidTester.sol";
-
-contract ConstantOutflowNFTMock is ConstantOutflowNFT {
-    /// @dev a mock mint function that exposes the internal _mint function
-    function mockMint(
-        address _to,
-        address _flowReceiver,
-        uint256 _newTokenId
-    ) public {
-        _mint(_to, _flowReceiver, _newTokenId);
-    }
-
-    /// @dev a mock burn function that exposes the internal _burn function
-    function mockBurn(uint256 _tokenId) public {
-        _burn(_tokenId);
-    }
-
-    /// @dev this ownerOf doesn't revert if _tokenId doesn't exist
-    function mockOwnerOf(uint256 _tokenId) public view returns (address) {
-        return _ownerOf(_tokenId);
-    }
-}
-
-contract ConstantInflowNFTMock is ConstantInflowNFT {
-    /// @dev a mock mint function to emit the mint Transfer event
-    function mockMint(address _to, uint256 _newTokenId) public {
-        _mint(_to, _newTokenId);
-    }
-
-    /// @dev a mock burn function to emit the burn Transfer event
-    function mockBurn(uint256 _tokenId) public {
-        _burn(_tokenId);
-    }
-
-    // @dev this ownerOf doesn't revert if _tokenId doesn't exist
-    function mockOwnerOf(uint256 _tokenId) public view returns (address) {
-        return _ownerOf(_tokenId);
-    }
-
-    /// @dev this exposes the internal flow data by token id for testing purposes
-    function mockCFAv1NFTFlowDataByTokenId(
-        uint256 _tokenId
-    ) public view returns (CFAv1NFTFlowData memory flowData) {
-        return flowDataByTokenId(_tokenId);
-    }
-}
+import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "./CFAv1NFTMock.t.sol";
 
 abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
-    using CFAv1Library for CFAv1Library.InitData;
-
-    string constant OUTFLOW_NFT_NAME_TEMPLATE = " Constant Outflow NFT";
-    string constant OUTFLOW_NFT_SYMBOL_TEMPLATE = "COF";
-    string constant INFLOW_NFT_NAME_TEMPLATE = " Constant Inflow NFT";
-    string constant INFLOW_NFT_SYMBOL_TEMPLATE = "CIF";
-
-    ConstantOutflowNFTMock public constantOutflowNFTLogic;
-    ConstantOutflowNFTMock public constantOutflowNFTProxy;
-    ConstantInflowNFTMock public constantInflowNFTLogic;
-    ConstantInflowNFTMock public constantInflowNFTProxy;
+    using SuperTokenV1Library for SuperToken;
 
     event Transfer(
         address indexed from,
@@ -96,15 +46,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     constructor() FoundrySuperfluidTester(5) {}
 
     function setUp() public virtual override {
-        // run setup from FoundrySuperfluidTester
         super.setUp();
-        // then deploy contracts
-        (
-            constantOutflowNFTLogic,
-            constantOutflowNFTProxy,
-            constantInflowNFTLogic,
-            constantInflowNFTProxy
-        ) = helper_Deploy_NFT_Contracts_And_Set_Address_In_Super_Token();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -249,73 +191,6 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
         return uint256(keccak256(abi.encode(_flowSender, _flowReceiver)));
     }
 
-    function helper_Deploy_Constant_Outflow_NFT()
-        public
-        returns (
-            ConstantOutflowNFTMock _constantOutflowNFTLogic,
-            ConstantOutflowNFTMock _constantOutflowNFTProxy
-        )
-    {
-        _constantOutflowNFTLogic = new ConstantOutflowNFTMock();
-        UUPSProxy proxy = new UUPSProxy();
-        proxy.initializeProxy(address(_constantOutflowNFTLogic));
-
-        _constantOutflowNFTProxy = ConstantOutflowNFTMock(address(proxy));
-        string memory symbol = superToken.symbol();
-        _constantOutflowNFTProxy.initialize(
-            superToken,
-            string.concat(symbol, OUTFLOW_NFT_NAME_TEMPLATE),
-            string.concat(symbol, OUTFLOW_NFT_SYMBOL_TEMPLATE)
-        );
-    }
-
-    function helper_Deploy_Constant_Inflow_NFT()
-        public
-        returns (
-            ConstantInflowNFTMock _constantInflowNFTLogic,
-            ConstantInflowNFTMock _constantInflowNFTProxy
-        )
-    {
-        _constantInflowNFTLogic = new ConstantInflowNFTMock();
-        UUPSProxy proxy = new UUPSProxy();
-        proxy.initializeProxy(address(_constantInflowNFTLogic));
-
-        _constantInflowNFTProxy = ConstantInflowNFTMock(address(proxy));
-        string memory symbol = superToken.symbol();
-        _constantInflowNFTProxy.initialize(
-            superToken,
-            string.concat(symbol, INFLOW_NFT_NAME_TEMPLATE),
-            string.concat(symbol, INFLOW_NFT_SYMBOL_TEMPLATE)
-        );
-    }
-
-    function helper_Deploy_NFT_Contracts_And_Set_Address_In_Super_Token()
-        public
-        returns (
-            ConstantOutflowNFTMock _constantOutflowNFTLogic,
-            ConstantOutflowNFTMock _constantOutflowNFTProxy,
-            ConstantInflowNFTMock _constantInflowNFTLogic,
-            ConstantInflowNFTMock _constantInflowNFTProxy
-        )
-    {
-        (
-            _constantOutflowNFTLogic,
-            _constantOutflowNFTProxy
-        ) = helper_Deploy_Constant_Outflow_NFT();
-        (
-            _constantInflowNFTLogic,
-            _constantInflowNFTProxy
-        ) = helper_Deploy_Constant_Inflow_NFT();
-
-        vm.prank(sf.governance.owner());
-        superToken.initializeNFTContracts(
-            address(_constantOutflowNFTProxy),
-            address(_constantInflowNFTProxy),
-            address(0),
-            address(0)
-        );
-    }
-
     function helper_Create_Flow_And_Assert_NFT_Invariants(
         address _flowSender,
         address _flowReceiver,
@@ -337,8 +212,10 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             nftId
         );
 
-        vm.prank(_flowSender);
-        sf.cfaLib.createFlow(_flowReceiver, superToken, _flowRate);
+        // we must start prank if using SuperTokenV1Library syntax
+        vm.startPrank(_flowSender);
+        superToken.createFlow(_flowReceiver, _flowRate);
+        vm.stopPrank();
         assert_Flow_Data_State_IsExpected(
             nftId,
             _flowSender,

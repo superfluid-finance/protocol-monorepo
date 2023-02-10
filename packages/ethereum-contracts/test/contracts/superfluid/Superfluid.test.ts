@@ -475,8 +475,20 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.3 update super token factory double check if new code is called", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
+                const superfluidNFTDeployerLibraryFactory =
+                    await ethers.getContractFactory(
+                        "SuperfluidNFTDeployerLibrary"
+                    );
+                const superfluidNFTDeployerLibrary =
+                    await superfluidNFTDeployerLibraryFactory.deploy();
                 const factory2LogicFactory = await ethers.getContractFactory(
-                    "SuperTokenFactoryUpdateLogicContractsTester"
+                    "SuperTokenFactoryUpdateLogicContractsTester",
+                    {
+                        libraries: {
+                            SuperfluidNFTDeployerLibrary:
+                                superfluidNFTDeployerLibrary.address,
+                        },
+                    }
                 );
                 const factory2Logic = await factory2LogicFactory.deploy(
                     superfluid.address

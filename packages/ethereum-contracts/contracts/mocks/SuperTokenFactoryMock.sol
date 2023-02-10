@@ -6,6 +6,7 @@ import {
     SuperTokenFactoryBase,
     ISuperfluid
 } from "../superfluid/SuperTokenFactory.sol";
+import { SuperfluidNFTDeployerLibrary } from "../libs/SuperfluidNFTDeployerLibrary.sol";
 
 contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
 
@@ -50,17 +51,21 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
     {
         return address(0);
     }
+    
     function createConstantOutflowNFTLogic()
-        external override
-        returns (address)
+        external
+        override
+        returns (address logic)
     {
-        return address(0);
+        return SuperfluidNFTDeployerLibrary.deployConstantOutflowNFT();
     }
+
     function createConstantInflowNFTLogic()
-        external override
-        returns (address)
+        external
+        override
+        returns (address logic)
     {
-        return address(0);
+        return SuperfluidNFTDeployerLibrary.deployConstantInflowNFT();
     }
 }
 
@@ -87,17 +92,21 @@ contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
     {
         return address(0);
     }
+    
     function createConstantOutflowNFTLogic()
-        external override
-        returns (address)
+        external
+        override
+        returns (address logic)
     {
-        return address(0);
+        return SuperfluidNFTDeployerLibrary.deployConstantOutflowNFT();
     }
+
     function createConstantInflowNFTLogic()
-        external override
-        returns (address)
+        external
+        override
+        returns (address logic)
     {
-        return address(0);
+        return SuperfluidNFTDeployerLibrary.deployConstantInflowNFT();
     }
 }
 
@@ -131,17 +140,21 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase
     {
         return _helper.create(host, 0);
     }
+    
     function createConstantOutflowNFTLogic()
-        external override
-        returns (address)
+        external
+        override
+        returns (address logic)
     {
-        return address(0);
+        return SuperfluidNFTDeployerLibrary.deployConstantOutflowNFT();
     }
+
     function createConstantInflowNFTLogic()
-        external override
-        returns (address)
+        external
+        override
+        returns (address logic)
     {
-        return address(0);
+        return SuperfluidNFTDeployerLibrary.deployConstantInflowNFT();
     }
 }
 
@@ -165,17 +178,21 @@ contract SuperTokenFactoryMock42 is SuperTokenFactoryBase
     {
         return _helper.create(host, 42);
     }
+    
     function createConstantOutflowNFTLogic()
-        external override
-        returns (address)
+        external
+        override
+        returns (address logic)
     {
-        return address(0);
+        return SuperfluidNFTDeployerLibrary.deployConstantOutflowNFT();
     }
+
     function createConstantInflowNFTLogic()
-        external override
-        returns (address)
+        external
+        override
+        returns (address logic)
     {
-        return address(0);
+        return SuperfluidNFTDeployerLibrary.deployConstantInflowNFT();
     }
 
 }

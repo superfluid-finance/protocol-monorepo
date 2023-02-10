@@ -32,7 +32,7 @@ import {
     ConstantOutflowNFTMockV1BadNewVariable,
     ConstantOutflowNFTMockV1GoodUpgrade,
     ICFAv1NFTBaseMockErrors
-} from "./CFAv1NFTMocks.sol";
+} from "./CFAv1NFTUpgradabilityMocks.sol";
 
 /// @title ConstantFAv1NFTsUpgradabilityTest
 /// @author Superfluid

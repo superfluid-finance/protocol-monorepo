@@ -28,7 +28,7 @@ interface ICFAv1NFTBase is IERC721MetadataUpgradeable {
         string memory nftSymbol
     ) external; // initializer;
 
-    /// @notice An external function for computing the determenistic tokenId
+    /// @notice An external function for computing the deterministic tokenId
     /// @dev tokenId = uint256(keccak256(abi.encode(flowSender, flowReceiver)))
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver

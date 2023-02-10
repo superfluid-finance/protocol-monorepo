@@ -12,12 +12,12 @@ import {
     CFAv1NFTBase,
     ConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
-
 import {
     CFAv1Library,
     FoundrySuperfluidTester
 } from "../FoundrySuperfluidTester.sol";
-import { CFAv1BaseTest, ConstantOutflowNFTMock } from "./CFAv1NFTBase.t.sol";
+import { CFAv1BaseTest } from "./CFAv1NFTBase.t.sol";
+import { ConstantOutflowNFTMock } from "./CFAv1NFTMock.t.sol";
 
 contract ConstantOutflowNFTTest is CFAv1BaseTest {
     using CFAv1Library for CFAv1Library.InitData;
@@ -310,8 +310,8 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
             caller,
             address(constantOutflowNFTProxy)
         );
-        vm.prank(caller);
         vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
+        vm.prank(caller);
         constantOutflowNFTProxy.onCreate(address(1), address(2));
     }
 

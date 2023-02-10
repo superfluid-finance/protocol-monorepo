@@ -6,7 +6,6 @@ import {
     IERC721Upgradeable,
     IERC721MetadataUpgradeable
 } from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
-
 import {
     ConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
@@ -14,8 +13,8 @@ import {
     CFAv1NFTBase,
     ConstantInflowNFT
 } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import { CFAv1BaseTest } from "./CFAv1NFTBase.t.sol";
 
-import { CFAv1BaseTest, ConstantOutflowNFTMock } from "./CFAv1NFTBase.t.sol";
 
 contract ConstantInflowNFTTest is CFAv1BaseTest {
     /*//////////////////////////////////////////////////////////////////////////

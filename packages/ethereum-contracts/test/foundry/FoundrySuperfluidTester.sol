@@ -10,6 +10,7 @@ import {
     IDAv1Library,
     TestResolver
 } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import {
     SuperTokenV1Library
 } from "../../contracts/apps/SuperTokenV1Library.sol";
@@ -18,9 +19,16 @@ import {
     SuperToken
 } from "../../contracts/utils/SuperTokenDeployer.sol";
 import { DeployerBaseTest } from "./DeployerBase.t.sol";
+import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "./superfluid/CFAv1NFTMock.t.sol";
 
 contract FoundrySuperfluidTester is DeployerBaseTest {
     using SuperTokenV1Library for SuperToken;
+
+    string constant OUTFLOW_NFT_NAME_TEMPLATE = " Constant Outflow NFT";
+    string constant OUTFLOW_NFT_SYMBOL_TEMPLATE = "COF";
+    string constant INFLOW_NFT_NAME_TEMPLATE = " Constant Inflow NFT";
+    string constant INFLOW_NFT_SYMBOL_TEMPLATE = "CIF";
+
 
     uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
@@ -40,6 +48,12 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
 
     TestToken internal token;
     SuperToken internal superToken;
+
+    ConstantOutflowNFTMock public constantOutflowNFTLogic;
+    ConstantInflowNFTMock public constantInflowNFTLogic;
+
+    ConstantOutflowNFTMock public constantOutflowNFTProxy;
+    ConstantInflowNFTMock public constantInflowNFTProxy;
 
     uint256 private _expectedTotalSupply;
 
@@ -65,6 +79,14 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
             _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
             vm.stopPrank();
         }
+
+        // deploy NFT contracts and set in state
+        (
+            constantOutflowNFTLogic,
+            constantOutflowNFTProxy,
+            constantInflowNFTLogic,
+            constantInflowNFTProxy
+        ) = helper_Deploy_NFT_Contracts_And_Set_Address_In_Super_Token();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -214,6 +236,73 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
 
+    function helper_Deploy_Constant_Outflow_NFT()
+        public
+        returns (
+            ConstantOutflowNFTMock _constantOutflowNFTLogic,
+            ConstantOutflowNFTMock _constantOutflowNFTProxy
+        )
+    {
+        _constantOutflowNFTLogic = new ConstantOutflowNFTMock();
+        UUPSProxy proxy = new UUPSProxy();
+        proxy.initializeProxy(address(_constantOutflowNFTLogic));
+
+        _constantOutflowNFTProxy = ConstantOutflowNFTMock(address(proxy));
+        string memory symbol = superToken.symbol();
+        _constantOutflowNFTProxy.initialize(
+            superToken,
+            string.concat(symbol, OUTFLOW_NFT_NAME_TEMPLATE),
+            string.concat(symbol, OUTFLOW_NFT_SYMBOL_TEMPLATE)
+        );
+    }
+
+    function helper_Deploy_Constant_Inflow_NFT()
+        public
+        returns (
+            ConstantInflowNFTMock _constantInflowNFTLogic,
+            ConstantInflowNFTMock _constantInflowNFTProxy
+        )
+    {
+        _constantInflowNFTLogic = new ConstantInflowNFTMock();
+        UUPSProxy proxy = new UUPSProxy();
+        proxy.initializeProxy(address(_constantInflowNFTLogic));
+
+        _constantInflowNFTProxy = ConstantInflowNFTMock(address(proxy));
+        string memory symbol = superToken.symbol();
+        _constantInflowNFTProxy.initialize(
+            superToken,
+            string.concat(symbol, INFLOW_NFT_NAME_TEMPLATE),
+            string.concat(symbol, INFLOW_NFT_SYMBOL_TEMPLATE)
+        );
+    }
+
+    function helper_Deploy_NFT_Contracts_And_Set_Address_In_Super_Token()
+        public
+        returns (
+            ConstantOutflowNFTMock _constantOutflowNFTLogic,
+            ConstantOutflowNFTMock _constantOutflowNFTProxy,
+            ConstantInflowNFTMock _constantInflowNFTLogic,
+            ConstantInflowNFTMock _constantInflowNFTProxy
+        )
+    {
+        (
+            _constantOutflowNFTLogic,
+            _constantOutflowNFTProxy
+        ) = helper_Deploy_Constant_Outflow_NFT();
+        (
+            _constantInflowNFTLogic,
+            _constantInflowNFTProxy
+        ) = helper_Deploy_Constant_Inflow_NFT();
+
+        vm.prank(sf.governance.owner());
+        superToken.initializeNFTContracts(
+            address(_constantOutflowNFTProxy),
+            address(_constantInflowNFTProxy),
+            address(0),
+            address(0)
+        );
+    }
+
     function helper_Create_Flow_And_Assert_Global_Invariants(
         address flowSender,
         address flowReceiver,
@@ -224,7 +313,9 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
         absoluteFlowRate = flowRate;
 
         int96 senderNetFlowRateBefore = superToken.getNetFlowRate(flowSender);
-        int96 receiverNetFlowRateBefore = superToken.getNetFlowRate(flowReceiver);
+        int96 receiverNetFlowRateBefore = superToken.getNetFlowRate(
+            flowReceiver
+        );
 
         vm.startPrank(flowSender);
         superToken.createFlow(flowReceiver, flowRate);

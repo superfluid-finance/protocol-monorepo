@@ -28,7 +28,7 @@ contract GasTest is Test {
     using SuperTokenV1Library for ISuperToken;
     uint256 polygonFork;
 
-    string POLYGON_RPC_URL = vm.envString("POLYGON_RPC_URL");
+    string POLYGON_MAINNET_PROVIDER_URL = vm.envString("POLYGON_MAINNET_PROVIDER_URL");
 
     ISuperfluid public constant host =
         ISuperfluid(0x3E14dC1b13c488a8d5D310918780c983bD5982E7);
@@ -46,7 +46,7 @@ contract GasTest is Test {
 
     function setUp() public {
         vm.startPrank(TEST_ACCOUNT);
-        polygonFork = vm.createSelectFork(POLYGON_RPC_URL);
+        polygonFork = vm.createSelectFork(POLYGON_MAINNET_PROVIDER_URL);
 
         // vm.rollFork(marketingNFTDeploymentBlock);
 

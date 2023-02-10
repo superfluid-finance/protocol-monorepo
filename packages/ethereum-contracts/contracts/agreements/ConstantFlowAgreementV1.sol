@@ -461,24 +461,10 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        uint256 gasLeftBefore = gasleft();
-        try
-            IConstantOutflowNFT(
-                address(
-                    ISuperToken(address(flowVars.token)).constantOutflowNFT()
-                )
-            ).onCreate(flowVars.sender, flowVars.receiver)
-        // solhint-disable-next-line no-empty-blocks
-        {
-
-        } catch {
-// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
-// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
-// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
-            if (gasleft() <= gasLeftBefore / 63) {
-                revert CFA_HOOK_OUT_OF_GAS();
-            }
-        }
+        // @note for some reason this is breaking #1.2 NonClosableOutflowTestApp test
+        IConstantOutflowNFT(
+            address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
+        ).onCreate(flowVars.sender, flowVars.receiver);
     }
 
     function _updateFlow(
@@ -508,22 +494,9 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        uint256 gasLeftBefore = gasleft();
-        try
-            IConstantOutflowNFT(
-                address(
-                    ISuperToken(address(flowVars.token)).constantOutflowNFT()
-                )
-            ).onUpdate(flowVars.sender, flowVars.receiver)
-        // solhint-disable-next-line no-empty-blocks
-        {
-
-        } catch {
-            // @note See comment in _createFlow
-            if (gasleft() <= gasLeftBefore / 63) {
-                revert CFA_HOOK_OUT_OF_GAS();
-            }
-        }
+        IConstantOutflowNFT(
+            address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
+        ).onUpdate(flowVars.sender, flowVars.receiver);
     }
 
     function _deleteFlow(
@@ -634,22 +607,17 @@ contract ConstantFlowAgreementV1 is
                     newCtx, currentContext);
             }
         }
-        uint256 gasLeftBefore = gasleft();
-        try
-            IConstantOutflowNFT(
-                address(
-                    ISuperToken(address(flowVars.token)).constantOutflowNFT()
-                )
-            ).onDelete(flowVars.sender, flowVars.receiver)
-        // solhint-disable-next-line no-empty-blocks
-        {
 
-        } catch {
-            // @note See comment in _createFlow
-            if (gasleft() <= gasLeftBefore / 63) {
-                revert CFA_HOOK_OUT_OF_GAS();
-            }
-        }
+        // IConstantOutflowNFT constantOutflowNFT = IConstantOutflowNFT(
+        //     address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
+        // );
+        // uint256 tokenId = constantOutflowNFT.getTokenId(
+        //     flowVars.sender,
+        //     flowVars.receiver
+        // );
+        // if (constantOutflowNFT.flowDataByTokenId(tokenId).flowSender != address(0)) {
+        //     constantOutflowNFT.onDelete(flowVars.sender, flowVars.receiver);
+        // }
     }
 
     /**************************************************************************

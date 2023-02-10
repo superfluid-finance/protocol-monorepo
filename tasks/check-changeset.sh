@@ -31,14 +31,17 @@ function setBuildAll() {
 if ! [ -z "$GITHUB_ENV" ];then
     # if ci workflows changed
     if grep -E "^.github/workflows/ci.*.yml$" changed-files.list;then
+        echo "CI workflows changed."
         setBuildAll
     fi
     # if call (reusable) workflows changed
     if grep -E "^.github/workflows/call.*.yml$" changed-files.list;then
+        echo "Call workflows changed."
         setBuildAll
     fi
     # if root package.json changed, rebuild everything
     if grep -E "^package.json$" changed-files.list;then
+        echo "Root package.json changed."
         setBuildAll
     fi
     # if specified ethereum-contracts folders and files changed

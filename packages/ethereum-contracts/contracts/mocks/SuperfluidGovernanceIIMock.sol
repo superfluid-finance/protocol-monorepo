@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.16;
+pragma solidity 0.8.18;
 
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperfluidGovernanceII } from "../gov/SuperfluidGovernanceII.sol";

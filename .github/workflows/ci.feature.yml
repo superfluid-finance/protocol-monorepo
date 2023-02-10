@@ -79,6 +79,8 @@ jobs:
       - name: Test ethereum-contracts
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test
+        env:
+          POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
 
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)

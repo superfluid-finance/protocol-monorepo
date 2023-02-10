@@ -547,7 +547,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         emit AppFactoryAuthorizationChanged(host, factory, false);
     }
 
-    // NOTE: we currently don't do check anything with host in
+    // NOTE: we currently don't check anything with host in
     // SuperfluidGovernanceII and only assert that the host passed
     // is the correct host in TestGovernance
     modifier onlyAuthorized(ISuperfluid host) {

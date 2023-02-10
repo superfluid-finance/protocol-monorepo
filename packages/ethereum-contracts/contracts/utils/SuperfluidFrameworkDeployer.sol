@@ -14,8 +14,8 @@ import {
     SuperfluidIDAv1DeployerLibrary
 } from "./deployers/SuperfluidIDAv1DeployerLibrary.sol";
 import {
-    SuperfluidSuperTokenFactoryHelperDeployerLibrary
-} from "./deployers/SuperfluidSuperTokenFactoryHelperDeployerLibrary.sol";
+    SuperTokenDeployerLibrary
+} from "../libs/SuperTokenDeployerLibrary.sol";
 import {
     SuperfluidPeripheryDeployerLibrary
 } from "./deployers/SuperfluidPeripheryDeployerLibrary.sol";
@@ -33,7 +33,7 @@ import {
 } from "../agreements/InstantDistributionAgreementV1.sol";
 import {
     SuperTokenFactory,
-    SuperTokenFactoryHelper
+    ERC20WithTokenInfo
 } from "../superfluid/SuperTokenFactory.sol";
 import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
@@ -126,13 +126,13 @@ contract SuperfluidFrameworkDeployer {
         // Register InstantDistributionAgreementV1 with Governance
         testGovernance.registerAgreementClass(host, address(idaV1));
 
-        // Deploy SuperTokenFactoryHelper
-        SuperTokenFactoryHelper superTokenFactoryHelper = SuperfluidSuperTokenFactoryHelperDeployerLibrary
-                .deploySuperTokenFactoryHelper();
+        // Deploy canonical SuperToken logic contract
+        SuperToken superTokenLogic = SuperToken(SuperTokenDeployerLibrary
+            .deploySuperTokenLogic(host));
 
         // Deploy SuperTokenFactory
         superTokenFactory = SuperfluidPeripheryDeployerLibrary
-            .deploySuperTokenFactory(host, superTokenFactoryHelper);
+            .deploySuperTokenFactory(host, superTokenLogic);
 
         // 'Update' code with Governance and register SuperTokenFactory with Superfluid
         testGovernance.updateContracts(

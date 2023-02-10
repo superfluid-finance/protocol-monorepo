@@ -11,6 +11,10 @@
   flakeUtils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs { inherit system; };
+    # GHC version selection
+    ghcVer = "ghc944";
+    ghc = pkgs.haskell.compiler.${ghcVer};
+    ghcPackages = pkgs.haskell.packages.${ghcVer};
     # minimem development shell
     minimumEVMDevInputs = with pkgs; [
       # for nodejs ecosystem
@@ -32,8 +36,8 @@
       nodePackages.nodemon
       # for haskell spec
       cabal-install
-      haskell.compiler.ghc94
-      haskell.packages.ghc94.haskell-language-server
+      ghc
+      ghcPackages.haskell-language-server
       hlint
       stylish-haskell
       # sage math
@@ -41,7 +45,7 @@
       # testing tooling
       gnuplot
       # yellowpaper pipeline tooling
-      haskellPackages.lhs2tex
+      ghcPackages.lhs2tex
       python39Packages.pygments
       (texlive.combine {
         inherit (texlive)

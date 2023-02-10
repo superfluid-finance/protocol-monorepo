@@ -25,7 +25,9 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
     ) SuperAppBaseFlowMock(
         host,
         0
-    ) {}
+    ) {
+        lastUpdateHolder = 0; // appeasing linter
+    }
 
     // SETTING ACCEPTED SUPER TOKENS
 

@@ -4,7 +4,7 @@ version:       0.0.1.0
 license:       MIT
 maintainer:    miao@superfluid.finance
 author:        Miao, ZhiCheng
-tested-with:   ghc ==9.2.4
+tested-with:   ghc ==9.2.4, ghc ==9.4.4
 homepage:      https://www.superfluid.finance/
 synopsis:      Superfluid protocol specifications validator.
 description:

@@ -113,13 +113,7 @@ const deployTestFramework = async () => {
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidPeripheryDeployerLibrary",
             SuperfluidPeripheryDeployerLibraryArtifact,
-            {
-                signer,
-                libraries: {
-                    SuperTokenDeployerLibrary:
-                        SuperTokenDeployerLibrary.address,
-                },
-            }
+            signer
         );
     const frameworkDeployer = await _getFactoryAndReturnDeployedContract(
         "SuperfluidFrameworkDeployer",

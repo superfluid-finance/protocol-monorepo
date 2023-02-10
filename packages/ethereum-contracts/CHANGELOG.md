@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+- bump solc to 0.8.18
 ### Breaking
 - `SuperTokenFactory` contract no longer takes `SuperTokenHelper` contract in its constructor
   - Migration: Pass in a deployed `SuperToken` (logic) contract address to `SuperTokenFactory` constructor instead

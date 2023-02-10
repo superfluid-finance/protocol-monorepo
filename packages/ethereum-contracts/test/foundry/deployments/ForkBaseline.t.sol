@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.16;
+pragma solidity 0.8.18;
 
 import { console, Test } from "forge-std/Test.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
@@ -318,6 +318,7 @@ contract ForkBaselineTest is Test {
         address prankedAccount
     ) public {
         vm.startPrank(prankedAccount);
+        vm.expectRevert(ISuperTokenFactory.SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED.selector);
         superTokenFactory.createERC20Wrapper(
             underlyingToken,
             18,

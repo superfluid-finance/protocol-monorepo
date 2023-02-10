@@ -19,7 +19,6 @@ import { SuperToken, ISuperToken } from "../superfluid/SuperToken.sol";
 import {
     ISuperTokenFactory,
     SuperTokenFactory,
-    SuperTokenFactoryHelper,
     ERC20WithTokenInfo
 } from "../superfluid/SuperTokenFactory.sol";
 import { TestGovernance } from "./TestGovernance.sol";
@@ -187,14 +186,7 @@ contract SuperTokenDeployer {
     function _deployCFANFTContractsAndInitialize(
         ISuperToken _superToken
     ) internal {
-        superTokenFactory.deployNFTProxyContractsAndInititialize(
-            _superToken,
-            address(constantOutflowNFTLogic),
-            address(constantInflowNFTLogic),
-            address(0),
-            address(0)
-        );
-
+        // @note this should be initializing the proxy contracts, not logic
         _superToken.initializeNFTContracts(
             address(constantOutflowNFTLogic),
             address(constantInflowNFTLogic),

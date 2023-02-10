@@ -112,20 +112,6 @@ abstract contract SuperTokenFactoryBase is
         _updateCodeAddress(newAddress);
     }
 
-    function _updateConstantOutflowNFTLogic() private {
-        // use external call to trigger the new code to update the super token logic contract
-        _constantOutflowNFTLogic = IConstantOutflowNFT(this.createConstantOutflowNFTLogic());
-        UUPSProxiable(address(_constantOutflowNFTLogic)).castrate();
-        emit ConstantOutflowNFTLogicCreated(_constantOutflowNFTLogic);
-    }
-
-    function _updateConstantInflowNFTLogic() private {
-        // use external call to trigger the new code to update the super token logic contract
-        _constantInflowNFTLogic = IConstantInflowNFT(this.createConstantInflowNFTLogic());
-        UUPSProxiable(address(_constantInflowNFTLogic)).castrate();
-        emit ConstantInflowNFTLogicCreated(_constantInflowNFTLogic);
-    }
-
     /**************************************************************************
     * ISuperTokenFactory
     **************************************************************************/

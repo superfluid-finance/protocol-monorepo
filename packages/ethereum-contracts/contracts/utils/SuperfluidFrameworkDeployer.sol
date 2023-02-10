@@ -32,6 +32,7 @@ import {
     InstantDistributionAgreementV1
 } from "../agreements/InstantDistributionAgreementV1.sol";
 import {
+    SuperToken,
     SuperTokenFactory,
     ERC20WithTokenInfo
 } from "../superfluid/SuperTokenFactory.sol";

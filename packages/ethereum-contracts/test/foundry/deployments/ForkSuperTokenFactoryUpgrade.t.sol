@@ -45,15 +45,13 @@ import { ForkBaselineTest } from "./ForkBaseline.t.sol";
 /// due to the possibility that the upgrade flow may also change over time
 contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
     using SuperTokenV1Library for ISuperToken;
-    uint256 forkId;
-
-    string public POLYGON_MAINNET_PROVIDER_URL;
+    string public PROVIDER_URL;
 
     IResolver public constant resolver =
         IResolver(0xE0cc76334405EE8b39213E620587d815967af39C);
 
     ISuperfluid public host;
-    ConstantFlowAgreementV1 public cfaV1;
+    IConstantFlowAgreementV1 public cfaV1;
     SuperfluidLoader public superfluidLoader;
     ISuperTokenFactory public superTokenFactory;
     ISuperfluidGovernance public governance;
@@ -70,21 +68,23 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
     address public constant BOB = address(2);
     address public constant DEFAULT_FLOW_OPERATOR = address(69);
 
-    constructor() ForkBaselineTest(ethX, TEST_ACCOUNT) {}
-    function setUp() public {
-        POLYGON_MAINNET_PROVIDER_URL = vm.envString(
+    constructor()
+        ForkBaselineTest(
+            ethX,
+            TEST_ACCOUNT,
+            resolver,
             "POLYGON_MAINNET_PROVIDER_URL"
-        );
-        forkId = vm.createSelectFork(POLYGON_MAINNET_PROVIDER_URL);
-        superfluidLoader = SuperfluidLoader(
-            resolver.get("SuperfluidLoader-v1")
-        );
-        SuperfluidLoader.Framework memory framework = superfluidLoader
-            .loadFramework("v1");
-        cfaV1 = ConstantFlowAgreementV1(address(framework.agreementCFAv1));
-        host = ISuperfluid(framework.superfluid);
-        governance = host.getGovernance();
-        superTokenFactory = framework.superTokenFactory;
+        )
+    {}
+
+    function setUp() public {
+        superfluidLoader = sfFramework.superfluidLoader;
+        cfaV1 = sfFramework.cfaV1;
+        host = sfFramework.host;
+        governance = sfFramework.governance;
+        superTokenFactory = sfFramework.superTokenFactory;
+
+        // execute super token factory upgrade
         helper_Execute_Super_Token_Factory_Upgrade();
     }
 

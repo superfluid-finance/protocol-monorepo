@@ -189,7 +189,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "UUPSProxy",
         "UUPSProxiable",
         "SlotsBitmapLibrary",
-        "SuperTokenDeployerLibrary",
         "ConstantFlowAgreementV1",
         "InstantDistributionAgreementV1",
     ];
@@ -216,7 +215,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         UUPSProxy,
         UUPSProxiable,
         SlotsBitmapLibrary,
-        SuperTokenDeployerLibrary,
         ConstantFlowAgreementV1,
         InstantDistributionAgreementV1,
     } = await SuperfluidSDK.loadContracts({
@@ -544,13 +542,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         ? SuperTokenFactoryMock
         : SuperTokenFactory;
 
-    // deploy SuperTokenDeployerLibrary and link it to SuperTokenFactoryLogic
-    await deployExternalLibraryAndLink(
-        SuperTokenDeployerLibrary,
-        "SuperTokenDeployerLibrary",
-        "SUPER_TOKEN_DEPLOYER_LIBRARY_ADDRESS",
-        SuperTokenFactoryLogic
-    );
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
     const superTokenFactoryNewLogicAddress = await deployContractIf(
         web3,

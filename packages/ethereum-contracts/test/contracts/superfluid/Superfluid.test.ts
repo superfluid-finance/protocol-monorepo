@@ -439,13 +439,13 @@ describe("Superfluid Host Contract", function () {
                 const superTokenLogic = await superTokenLogicFactory.deploy(
                     superfluid.address
                 );
-                const factory2Logic =
-                    await t.deployExternalLibraryAndLink<SuperTokenFactory>(
-                        "SuperTokenDeployerLibrary",
-                        "SuperTokenFactory",
-                        superfluid.address,
-                        superTokenLogic.address
-                    );
+                const factory2LogicFactory = await ethers.getContractFactory(
+                    "SuperTokenFactory"
+                );
+                const factory2Logic = await factory2LogicFactory.deploy(
+                    superfluid.address,
+                    superTokenLogic.address
+                );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -472,13 +472,13 @@ describe("Superfluid Host Contract", function () {
                 const superTokenLogic = await superTokenLogicFactory.deploy(
                     superfluid.address
                 );
-                const factory2Logic =
-                    await t.deployExternalLibraryAndLink<SuperTokenFactory>(
-                        "SuperTokenDeployerLibrary",
-                        "SuperTokenFactoryUpdateLogicContractsTester",
-                        superfluid.address,
-                        superTokenLogic.address
-                    );
+                const factory2LogicFactory = await ethers.getContractFactory(
+                    "SuperTokenFactory"
+                );
+                const factory2Logic = await factory2LogicFactory.deploy(
+                    superfluid.address,
+                    superTokenLogic.address
+                );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,

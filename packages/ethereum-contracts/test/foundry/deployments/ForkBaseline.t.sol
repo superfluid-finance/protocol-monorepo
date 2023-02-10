@@ -318,6 +318,7 @@ contract ForkBaselineTest is Test {
         address prankedAccount
     ) public {
         vm.startPrank(prankedAccount);
+        vm.expectRevert(ISuperTokenFactory.SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED.selector);
         superTokenFactory.createERC20Wrapper(
             underlyingToken,
             18,

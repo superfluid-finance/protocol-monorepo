@@ -156,28 +156,17 @@ describe("SuperTokenFactory Contract", function () {
                 await superfluid.getSuperTokenFactoryLogic();
             }
 
-            it("#2.a.1 non upgradable", async () => {
-                let superToken1 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 0,
-                });
-                await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
-                    token: superToken1.address,
-                });
-                superToken1 = await ethers.getContractAt(
-                    "SuperTokenMock",
-                    superToken1.address
+            it("#2.a.1 non upgradable super token creation is deprecated", async () => {
+                await expectCustomError(
+                    factory["createERC20Wrapper(address,uint8,string,string)"](
+                        token1.address,
+                        0,
+                        "",
+                        ""
+                    ),
+                    factory,
+                    "SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED"
                 );
-                await updateSuperTokenFactory();
-                // @note I am not sure what the original intention of waterMark is
-                // but this is not working anymore for some reason when upgradability is 0
-                // assert.equal((await superToken1.waterMark()).toString(), "0");
-                await expectRevertedWith(
-                    governance.batchUpdateSuperTokenLogic(superfluid.address, [
-                        superToken1.address,
-                    ]),
-                    "UUPSProxiable: not upgradable"
-                );
-                // assert.equal((await superToken1.waterMark()).toString(), "0");
             });
 
             it("#2.a.2 semi upgradable", async () => {

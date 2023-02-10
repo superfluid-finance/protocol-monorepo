@@ -4,9 +4,7 @@ lib-path = "lib"
 cairo-path = ["lib/cairo_contracts/src"]
 
 [contracts]
-ISuperToken = ["src/interfaces/ISuperToken.cairo"]
-SemanticMoney = ["src/utils/SemanticMoney.cairo"]
-SuperToken = ["src/tokens/SuperToken.cairo"]
+SuperToken = ["src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo"]
 
 [profile.devnet.project]
 gateway-url = "http://127.0.0.1:5050/"

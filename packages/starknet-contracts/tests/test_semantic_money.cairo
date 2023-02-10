@@ -2,7 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
-from src.libraries.SemanticMoney import SemanticMoney, UniversalIndex
+from src.utils.SemanticMoney import SemanticMoney, UniversalIndex
 
 
 @external

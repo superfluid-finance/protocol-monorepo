@@ -295,7 +295,7 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
         ) = helper_Deploy_Constant_Inflow_NFT();
 
         vm.prank(sf.governance.owner());
-        superToken.initializeNFTContracts(
+        superToken.setNFTProxyContracts(
             address(_constantOutflowNFTProxy),
             address(_constantInflowNFTProxy),
             address(0),

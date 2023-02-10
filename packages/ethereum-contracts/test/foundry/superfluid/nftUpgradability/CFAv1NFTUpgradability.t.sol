@@ -62,7 +62,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         );
 
         vm.prank(sf.governance.owner());
-        superToken.initializeNFTContracts(
+        superToken.setNFTProxyContracts(
             address(cfaV1NFTBaseMockV1Proxy),
             address(cfaV1NFTBaseMockV1Proxy),
             address(0),
@@ -93,7 +93,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         );
 
         vm.prank(sf.governance.owner());
-        superToken.initializeNFTContracts(
+        superToken.setNFTProxyContracts(
             address(_proxy),
             address(cfaV1NFTBaseMockV1Proxy),
             address(0),

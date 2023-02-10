@@ -48,6 +48,9 @@ contract SuperToken is
 
     uint8 constant private _STANDARD_DECIMALS = 18;
 
+    IConstantOutflowNFT immutable public _constantOutflowNFTLogic;
+    IConstantInflowNFT immutable public _constantInflowNFTLogic;
+
     /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
        Always double-check that new
        variables are added APPEND-ONLY. Re-ordering variables can
@@ -71,9 +74,16 @@ contract SuperToken is
     /// @dev ERC777 operators support data
     ERC777Helper.Operators internal _operators;
 
+    /// @notice Constant Outflow NFT proxy address
     IConstantOutflowNFT public constantOutflowNFT;
+    
+    /// @notice Constant Inflow NFT proxy address
     IConstantInflowNFT public constantInflowNFT;
+
+    /// @notice Pool Admin NFT proxy address
     IPoolAdminNFT public poolAdminNFT;
+
+    /// @notice Pool Member NFT proxy address
     IPoolMemberNFT public poolMemberNFT;
 
     // NOTE: for future compatibility, these are reserved solidity slots
@@ -91,11 +101,20 @@ contract SuperToken is
     uint256 internal _reserve31;
 
     constructor(
-        ISuperfluid host
+        ISuperfluid host,
+        IConstantOutflowNFT constantOutflowNFTLogic,
+        IConstantInflowNFT constantInflowNFTLogic
     )
         SuperfluidToken(host)
         // solhint-disable-next-line no-empty-blocks
     {
+        // set the immutable canonical NFT logic addresses in construction
+        _constantOutflowNFTLogic = constantOutflowNFTLogic;
+        _constantInflowNFTLogic = constantInflowNFTLogic;
+
+        // immediately initialize (castrate) the logic contracts
+        UUPSProxiable(address(_constantOutflowNFTLogic)).castrate();
+        UUPSProxiable(address(_constantInflowNFTLogic)).castrate();
     }
 
     function initialize(
@@ -726,7 +745,7 @@ contract SuperToken is
      *************************************************************************/
 
     /// @inheritdoc ISuperToken
-    function initializeNFTContracts(
+    function setNFTProxyContracts(
         address constantOutflowNFTAddress,
         address constantInflowNFTAddress,
         address poolAdminNFTAddress,

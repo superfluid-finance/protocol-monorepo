@@ -256,7 +256,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             );
 
             console.log("Initialize NFT contracts on SuperToken");
-            await superToken.initializeNFTContracts(
+            await superToken.setNFTProxyContracts(
                 constantOutflowProxy.address,
                 constantInflowProxy.address,
                 ZERO_ADDRESS,

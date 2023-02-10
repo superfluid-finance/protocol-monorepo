@@ -9,11 +9,13 @@ import {
     IConstantFlowAgreementHook
 } from "../../../contracts/agreements/ConstantFlowAgreementV1.sol";
 import {
+    ConstantOutflowNFT,
     IConstantOutflowNFT
-} from "../../../contracts/interfaces/superfluid/IConstantOutflowNFT.sol";
+} from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import {
+    ConstantInflowNFT,
     IConstantInflowNFT
-} from "../../../contracts/interfaces/superfluid/IConstantInflowNFT.sol";
+} from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import {
     IInstantDistributionAgreementV1
 } from "../../../contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
@@ -119,11 +121,25 @@ contract ERC20xDeploymentTest is Test {
         // Prank as governance owner
         vm.startPrank(governanceOwner);
 
-        SuperToken newSuperTokenLogic = new SuperToken(host);
+        // Deploy new constant outflow nft logic
+        ConstantOutflowNFT newConstantOutflowNFTLogic = new ConstantOutflowNFT();
+
+        // Deploy new constant inflow nft logic
+        ConstantInflowNFT newConstantInflowNFTLogic = new ConstantInflowNFT();
+
+        // Deploy new super token logic
+        SuperToken newSuperTokenLogic = new SuperToken(
+            host,
+            IConstantOutflowNFT(address(newConstantOutflowNFTLogic)),
+            IConstantInflowNFT(address(newConstantInflowNFTLogic))
+        );
 
         // the first upgrade of SuperTokenFactory is to add in updateLogicContracts
         // there is a separate PR open for this currently
-        SuperTokenFactory newLogic = new SuperTokenFactory(host, newSuperTokenLogic);
+        SuperTokenFactory newLogic = new SuperTokenFactory(
+            host,
+            newSuperTokenLogic
+        );
         governance.updateContracts(
             host,
             address(0),
@@ -205,7 +221,7 @@ contract ERC20xDeploymentTest is Test {
             assertEq(address(ethX.constantInflowNFT()), address(0));
 
             // link the NFT contracts to the SuperToken
-            // ethX.initializeNFTContracts(
+            // ethX.setNFTProxyContracts(
             //     address(constantOutflowNFTProxy),
             //     address(constantInflowNFTProxy),
             //     address(0),

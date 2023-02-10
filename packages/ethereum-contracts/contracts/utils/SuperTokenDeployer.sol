@@ -187,7 +187,7 @@ contract SuperTokenDeployer {
         ISuperToken _superToken
     ) internal {
         // @note this should be initializing the proxy contracts, not logic
-        _superToken.initializeNFTContracts(
+        _superToken.setNFTProxyContracts(
             address(constantOutflowNFTLogic),
             address(constantInflowNFTLogic),
             address(0),

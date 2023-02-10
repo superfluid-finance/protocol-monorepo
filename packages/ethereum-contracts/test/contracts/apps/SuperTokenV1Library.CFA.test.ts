@@ -71,7 +71,7 @@ export const deploySuperTokenAndNFTContractsAndInitialize = async (
         symbol + " Inflow NFT",
         symbol + " CIF"
     );
-    await superToken.initializeNFTContracts(
+    await superToken.setNFTProxyContracts(
         outflowNFT.address,
         inflowNFT.address,
         ethers.constants.AddressZero,

@@ -6,14 +6,18 @@ import {
     ISuperAgreement,
     SuperToken
 } from "../superfluid/SuperToken.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
 
 contract SuperTokenStorageLayoutTester is SuperToken {
 
-    constructor(ISuperfluid host)
-        SuperToken(host)
-    // solhint-disable-next-line no-empty-blocks
-    {
-    }
+    constructor(
+        ISuperfluid host,
+        IConstantOutflowNFT constantOutflowNFTLogic,
+        IConstantInflowNFT constantInflowNFTLogic
+    )
+        SuperToken(host, constantOutflowNFTLogic, constantInflowNFTLogic) // solhint-disable-next-line no-empty-blocks
+    {}
 
     // @dev Make sure the storage layout never change over the course of the development
     function validateStorageLayout() external pure {
@@ -88,9 +92,12 @@ contract SuperTokenMock is SuperToken {
 
     uint256 immutable public waterMark;
 
-    constructor(ISuperfluid host, uint256 w)
-        SuperToken(host)
-    {
+    constructor(
+        ISuperfluid host,
+        uint256 w,
+        IConstantOutflowNFT constantOutflowNFTLogic,
+        IConstantInflowNFT constantInflowNFTLogic
+    ) SuperToken(host, constantOutflowNFTLogic, constantInflowNFTLogic) {
         waterMark = w;
     }
 

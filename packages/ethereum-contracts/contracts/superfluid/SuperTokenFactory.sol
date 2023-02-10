@@ -8,7 +8,6 @@ import {
     IERC20,
     ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
-import { SuperTokenDeployerLibrary } from "../libs/SuperTokenDeployerLibrary.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
@@ -192,7 +191,7 @@ abstract contract SuperTokenFactoryBase is
         }
 
         if (upgradability == Upgradability.NON_UPGRADABLE) {
-            superToken = ISuperToken(SuperTokenDeployerLibrary.deploySuperTokenLogic(_host));
+            revert SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED();
         } else if (upgradability == Upgradability.SEMI_UPGRADABLE) {
             UUPSProxy proxy = new UUPSProxy();
             // initialize the wrapper
@@ -313,49 +312,6 @@ abstract contract SuperTokenFactoryBase is
                 .superToken;
         }
     }
-    /// @inheritdoc ISuperTokenFactory
-    // function deployNFTProxyContractsAndInititialize(
-    //     ISuperToken superToken,
-    //     address constantOutflowNFTLogic,
-    //     address constantInflowNFTLogic,
-    //     address, // poolAdminNFTProxy,
-    //     address // poolMemberNFT
-    // )
-    //     external
-    //     returns (
-    //         IConstantOutflowNFT constantOutflowNFT,
-    //         IConstantInflowNFT constantInflowNFT,
-    //         IPoolAdminNFT poolAdminNFT,
-    //         IPoolMemberNFT poolMemberNFT
-    //     )
-    // {
-    //     Ownable gov = Ownable(address(_host.getGovernance()));
-    //     if (msg.sender != gov.owner()) {
-    //         revert SUPER_TOKEN_FACTORY_ONLY_GOVERNANCE_OWNER();
-    //     }
-
-    //     string memory superTokenSymbol = superToken.symbol();
-
-    //     UUPSProxy outflowNFTProxy = new UUPSProxy();
-    //     outflowNFTProxy.initializeProxy(address(constantOutflowNFTLogic));
-    //     constantOutflowNFT = IConstantOutflowNFT(address(outflowNFTProxy));
-    //     constantOutflowNFT.initialize(
-    //         superToken,
-    //         string.concat(superTokenSymbol, " Outflow NFT"),
-    //         string.concat(superTokenSymbol, "COF")
-    //     );
-    //     emit ConstantOutflowNFTCreated(constantOutflowNFT);
-
-    //     UUPSProxy inflowNFTProxy = new UUPSProxy();
-    //     inflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
-    //     constantInflowNFT = IConstantInflowNFT(address(inflowNFTProxy));
-    //     constantInflowNFT.initialize(
-    //         superToken,
-    //         string.concat(superTokenSymbol, " Inflow NFT"),
-    //         string.concat(superTokenSymbol, "CIF")
-    //     );
-    //     emit ConstantInflowNFTCreated(constantInflowNFT);
-    // }
 }
 
 contract SuperTokenFactory is SuperTokenFactoryBase

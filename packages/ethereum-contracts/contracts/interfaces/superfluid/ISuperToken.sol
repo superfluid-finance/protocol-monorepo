@@ -45,6 +45,12 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     ) external;
 
     /**************************************************************************
+    * Immutable variables
+    *************************************************************************/
+    function _constantOutflowNFTLogic() external view returns (IConstantOutflowNFT);
+    function _constantInflowNFTLogic() external view returns (IConstantInflowNFT);
+
+    /**************************************************************************
     * TokenInfo & ERC777
     *************************************************************************/
 
@@ -524,7 +530,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * @param poolAdminNFT pool admin nft proxy contract address
      * @param poolMemberNFT pool member nft proxy contract address
      */
-    function initializeNFTContracts(
+    function setNFTProxyContracts(
         address constantOutflowNFT,
         address constantInflowNFT,
         address poolAdminNFT,

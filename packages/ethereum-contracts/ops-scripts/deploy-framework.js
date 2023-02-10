@@ -188,11 +188,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "UUPSProxy",
         "UUPSProxiable",
         "SlotsBitmapLibrary",
-        "SuperTokenDeployerLibrary",
         "ConstantFlowAgreementV1",
         "InstantDistributionAgreementV1",
         "ConstantOutflowNFT",
-        "ConstantInflowNFT"
+        "ConstantInflowNFT",
     ];
     const mockContracts = [
         "SuperfluidMock",
@@ -217,11 +216,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         UUPSProxy,
         UUPSProxiable,
         SlotsBitmapLibrary,
-        SuperTokenDeployerLibrary,
         ConstantFlowAgreementV1,
         InstantDistributionAgreementV1,
         ConstantOutflowNFT,
-        ConstantInflowNFT
+        ConstantInflowNFT,
     } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
@@ -569,13 +567,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         ? SuperTokenFactoryMock
         : SuperTokenFactory;
 
-    // deploy SuperTokenDeployerLibrary and link it to SuperTokenFactoryLogic
-    await deployExternalLibraryAndLink(
-        SuperTokenDeployerLibrary,
-        "SuperTokenDeployerLibrary",
-        "SUPER_TOKEN_DEPLOYER_LIBRARY_ADDRESS",
-        SuperTokenFactoryLogic
-    );
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
     const superTokenFactoryNewLogicAddress = await deployContractIf(
         web3,
@@ -615,15 +606,26 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         },
         async () => {
             let superTokenFactoryLogic;
+            const constantOutflowNFTLogic = await web3tx(
+                ConstantOutflowNFT.new,
+                "ConstantOutflowNFT.new"
+            )();
+            const constantInflowNFTLogic = await web3tx(
+                ConstantInflowNFT.new,
+                "ConstantInflowNFT.new"
+            )();
             const superTokenLogic = useMocks
                 ? await web3tx(SuperTokenLogic.new, "SuperTokenLogic.new")(
                       superfluid.address,
-                      0
+                      0,
+                      constantOutflowNFTLogic.address,
+                      constantInflowNFTLogic.address
                   )
-                : await web3tx(
-                      SuperTokenLogic.new,
-                      "SuperTokenLogic.new"
-                  )(superfluid.address);
+                : await web3tx(SuperTokenLogic.new, "SuperTokenLogic.new")(
+                      superfluid.address,
+                      constantOutflowNFTLogic.address,
+                      constantInflowNFTLogic.address
+                  );
             superTokenFactoryLogic = await web3tx(
                 SuperTokenFactoryLogic.new,
                 "SuperTokenFactoryLogic.new"

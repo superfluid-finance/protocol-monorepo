@@ -29,6 +29,14 @@ import {
     ConstantFlowAgreementV1
 } from "../agreements/ConstantFlowAgreementV1.sol";
 import {
+    ConstantOutflowNFT,
+    IConstantOutflowNFT
+} from "../superfluid/ConstantOutflowNFT.sol";
+import {
+    ConstantInflowNFT,
+    IConstantInflowNFT
+} from "../superfluid/ConstantInflowNFT.sol";
+import {
     InstantDistributionAgreementV1
 } from "../agreements/InstantDistributionAgreementV1.sol";
 import {
@@ -127,9 +135,20 @@ contract SuperfluidFrameworkDeployer {
         // Register InstantDistributionAgreementV1 with Governance
         testGovernance.registerAgreementClass(host, address(idaV1));
 
+        // Deploy canonical Constant Outflow NFT logic contract
+        ConstantOutflowNFT constantOutflowNFTLogic = new ConstantOutflowNFT();
+
+        // Deploy canonical Constant Inflow NFT logic contract
+        ConstantInflowNFT constantInflowNFTLogic = new ConstantInflowNFT();
+
         // Deploy canonical SuperToken logic contract
-        SuperToken superTokenLogic = SuperToken(SuperTokenDeployerLibrary
-            .deploySuperTokenLogic(host));
+        SuperToken superTokenLogic = SuperToken(
+            SuperTokenDeployerLibrary.deploySuperTokenLogic(
+                host,
+                IConstantOutflowNFT(address(constantOutflowNFTLogic)),
+                IConstantInflowNFT(address(constantInflowNFTLogic))
+            )
+        );
 
         // Deploy SuperTokenFactory
         superTokenFactory = SuperfluidPeripheryDeployerLibrary

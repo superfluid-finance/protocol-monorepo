@@ -558,6 +558,62 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
             uint256 deposit,
             uint256 owedDeposit
         );
+    
+    /**
+     * @dev Constant Outflow NFT logic created event
+     * @param constantOutflowNFTLogic constant outflow nft logic address
+     */
+    event ConstantOutflowNFTLogicCreated(
+        IConstantOutflowNFT indexed constantOutflowNFTLogic
+    );
+
+    /**
+     * @dev Constant Inflow NFT logic created event
+     * @param constantInflowNFTLogic constant inflow nft logic address
+     */
+    event ConstantInflowNFTLogicCreated(
+        IConstantInflowNFT indexed constantInflowNFTLogic
+    );
+
+    /**
+     * @dev Constant Outflow NFT proxy created event
+     * @param constantOutflowNFT constant outflow nft address
+     */
+    event ConstantOutflowNFTCreated(
+        IConstantOutflowNFT indexed constantOutflowNFT
+    );
+
+    /**
+     * @dev Constant Inflow NFT proxy created event
+     * @param constantInflowNFT constant inflow nft address
+     */
+    event ConstantInflowNFTCreated(
+        IConstantInflowNFT indexed constantInflowNFT
+    );
+
+    // /**
+    //  * @dev Pool Admin NFT logic created event
+    //  * @param poolAdminNFTProxy pool admin nft proxy address
+    //  */
+    // event PoolAdminNFTLogicCreated(IPoolAdminNFT indexed poolAdminNFTProxy);
+
+    // /**
+    //  * @dev Pool Member NFT logic created event
+    //  * @param poolMemberNFTProxy pool member nft proxy address
+    //  */
+    // event PoolMemberNFTLogicCreated(IPoolMemberNFT indexed poolMemberNFTProxy);
+
+    // /**
+    //  * @dev Pool Admin NFT logic created event
+    //  * @param poolAdminNFTProxy pool admin nft proxy address
+    //  */
+    // event PoolAdminNFTCreated(IPoolAdminNFT indexed poolAdminNFTProxy);
+
+    // /**
+    //  * @dev Pool Member NFT logic created event
+    //  * @param poolMemberNFTProxy pool member nft proxy address
+    //  */
+    // event PoolMemberNFTCreated(IPoolMemberNFT indexed poolMemberNFTProxy);
 
     /**************************************************************************
     * Function modifiers for access control and parameter validations

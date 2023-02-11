@@ -2,7 +2,6 @@
 pragma solidity 0.8.18;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {
     ISuperfluid,
@@ -14,9 +13,7 @@ import {
     TokenInfo
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
-
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
-
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -28,6 +25,7 @@ import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNF
 import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
 import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
+import { SuperfluidNFTDeployerLibrary } from "../libs/SuperfluidNFTDeployerLibrary.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -115,15 +113,25 @@ contract SuperToken is
         // immediately initialize (castrate) the logic contracts
         UUPSProxiable(address(_constantOutflowNFTLogic)).castrate();
         UUPSProxiable(address(_constantInflowNFTLogic)).castrate();
+
+        // emit logic contract creation event
+        // note that creation here means the setting of the nft logic contracts
+        // as the canonical nft logic contracts for the Superfluid framework and not the
+        // actual contract creation
+        emit ConstantOutflowNFTLogicCreated(_constantOutflowNFTLogic);
+        emit ConstantInflowNFTLogicCreated(_constantInflowNFTLogic);
     }
 
+    
+    /// @dev Initialize the Super Token proxy
     function initialize(
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,
         string calldata s
     )
-        external override
+        external
+        override
         initializer // OpenZeppelin Initializable
     {
         _underlyingToken = underlyingToken;
@@ -134,6 +142,23 @@ contract SuperToken is
 
         // register interfaces
         ERC777Helper.register(address(this));
+
+        // deploy NFT proxies in SuperToken.initialize
+        // initialize the proxies, pointing to the canonical NFT logic contracts
+        // set in the constructor
+        // link the deployed NFT proxies to the SuperToken
+        (
+            address constantOutflowNFTProxyAddress,
+            address constantInflowNFTProxyAddress
+        ) = SuperfluidNFTDeployerLibrary.deployNFTProxyContractsAndInitialize(
+                SuperToken(address(this)),
+                address(_constantOutflowNFTLogic),
+                address(_constantInflowNFTLogic)
+            );
+        constantOutflowNFT = IConstantOutflowNFT(
+            constantOutflowNFTProxyAddress
+        );
+        constantInflowNFT = IConstantInflowNFT(constantInflowNFTProxyAddress);
 
         // help tools like explorers detect the token contract
         emit Transfer(address(0), address(0), 0);

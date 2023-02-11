@@ -61,15 +61,13 @@ abstract contract SuperTokenFactoryBase is
         // SuperToken logic is now deployed prior to new factory logic deployment
         // and passed in as a parameter to SuperTokenFactory constructor
         _superTokenLogic = superTokenLogic;
-        
-        // @note this function call is commented out on the first upgrade
-        // https://polygonscan.com/address/0x092462ef87bdd081a6346102b0be134ff63da01b#code
-        // the logic contract has _updateSuperTokenLogic and uses: this.createSuperTokenLogic
-        // which calls .castrate() on the logic contract, so if we call it here again,
-        // it will revert the first time, however we MUST uncomment it after subsequent 
-        // updates to the logic contract so that the super token logic contract is initialized
-        // here 
+
         UUPSProxiable(address(_superTokenLogic)).castrate();
+
+        // emit SuperTokenLogicCreated event
+        // note that creation here means the setting of the super token logic contract
+        // as the canonical super token logic for the Superfluid framework and not the
+        // actual contract creation
         emit SuperTokenLogicCreated(_superTokenLogic);
     }
 

@@ -322,6 +322,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
             caller,
             address(constantOutflowNFTProxy)
         );
+        vm.assume(caller != address(sf.cfa));
         vm.prank(caller);
         vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
         constantOutflowNFTProxy.onUpdate(address(1), address(2));

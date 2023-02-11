@@ -103,22 +103,28 @@ const deployTestFramework = async () => {
                 },
             }
         );
+    const SuperfluidNFTDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "SuperfluidNFTDeployerLibrary",
+            SuperfluidNFTDeployerLibraryArtifact,
+            signer
+        );
     const SuperTokenDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperTokenDeployerLibrary",
             SuperTokenDeployerLibraryArtifact,
-            signer
+            {
+                signer,
+                libraries: {
+                    SuperfluidNFTDeployerLibrary:
+                        SuperfluidNFTDeployerLibrary.address,
+                },
+            }
         );
     const SuperfluidPeripheryDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidPeripheryDeployerLibrary",
             SuperfluidPeripheryDeployerLibraryArtifact,
-            signer
-        );
-    const SuperfluidNFTDeployerLibrary =
-        await _getFactoryAndReturnDeployedContract(
-            "SuperfluidNFTDeployerLibrary",
-            SuperfluidNFTDeployerLibraryArtifact,
             signer
         );
     const frameworkDeployer = await _getFactoryAndReturnDeployedContract(
@@ -147,10 +153,6 @@ const deployTestFramework = async () => {
         SuperTokenDeployerArtifact,
         {
             signer,
-            libraries: {
-                SuperfluidNFTDeployerLibrary:
-                    SuperfluidNFTDeployerLibrary.address,
-            },
         },
         sf.superTokenFactory,
         sf.resolver

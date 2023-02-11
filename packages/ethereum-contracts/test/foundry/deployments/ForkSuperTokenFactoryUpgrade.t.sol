@@ -58,12 +58,6 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
     IResolver public constant resolver =
         IResolver(0xE0cc76334405EE8b39213E620587d815967af39C);
 
-    ISuperfluid public host;
-    IConstantFlowAgreementV1 public cfaV1;
-    SuperfluidLoader public superfluidLoader;
-    ISuperTokenFactory public superTokenFactory;
-    ISuperfluidGovernance public governance;
-
     IERC20 public constant weth =
         IERC20(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
     ISuperToken public constant ethX =
@@ -86,23 +80,20 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
     {}
 
     function setUp() public {
-        superfluidLoader = sfFramework.superfluidLoader;
-        cfaV1 = sfFramework.cfaV1;
-        host = sfFramework.host;
-        governance = sfFramework.governance;
-        superTokenFactory = sfFramework.superTokenFactory;
-
         // execute super token factory upgrade
         helper_Execute_Super_Token_Factory_Upgrade();
     }
 
     function helper_Execute_Super_Token_Factory_Upgrade() public {
-        address superTokenFactoryLogicPre = host.getSuperTokenFactoryLogic();
+        address superTokenFactoryLogicPre = sfFramework
+            .host
+            .getSuperTokenFactoryLogic();
         address superTokenLogicPre = address(
-            superTokenFactory.getSuperTokenLogic()
+            sfFramework.superTokenFactory.getSuperTokenLogic()
         );
 
-        address governanceOwner = Ownable(address(governance)).owner();
+        address governanceOwner = Ownable(address(sfFramework.governance))
+            .owner();
 
         // Prank as governance owner
         vm.startPrank(governanceOwner);
@@ -115,7 +106,7 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
 
         // As part of the new ops flow, we deploy a new SuperToken logic contract
         SuperToken newSuperTokenLogic = new SuperToken(
-            host,
+            sfFramework.host,
             IConstantOutflowNFT(address(newConstantOutflowNFTLogic)),
             IConstantInflowNFT(address(newConstantInflowNFTLogic))
         );
@@ -124,22 +115,24 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
         // the new super token logic contract, this is set as an immutable field in
         // the constructor
         SuperTokenFactoryUpdateLogicContractsTester newLogic = new SuperTokenFactoryUpdateLogicContractsTester(
-                host,
+                sfFramework.host,
                 newSuperTokenLogic
             );
 
-        // update the super token factory logic via goverance->host
-        governance.updateContracts(
-            host,
+        // update the super token factory logic via goverance->sfFramework.host
+        sfFramework.governance.updateContracts(
+            sfFramework.host,
             address(0),
             new address[](0),
             address(newLogic)
         );
 
         // get the addresses of the super token factory logic and super token logic post update
-        address superTokenFactoryLogicPost = host.getSuperTokenFactoryLogic();
+        address superTokenFactoryLogicPost = sfFramework
+            .host
+            .getSuperTokenFactoryLogic();
         address superTokenLogicPost = address(
-            superTokenFactory.getSuperTokenLogic()
+            sfFramework.superTokenFactory.getSuperTokenLogic()
         );
 
         // validate that the logic contracts have been updated and are no longer the same
@@ -162,7 +155,7 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
         // the mock contract adds a new storage variable and sets it to 69
         assertEq(
             SuperTokenFactoryUpdateLogicContractsTester(
-                address(superTokenFactory)
+                address(sfFramework.superTokenFactory)
             ).newVariable(),
             0
         );
@@ -174,15 +167,45 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
         helper_Create_Update_Delete_Flow_One_To_One(ethX, TEST_ACCOUNT);
 
         // LOGGING
-        console.log("Chain ID:                                  ", block.chainid);
-        console.log("Governance Owner Address:                  ", governanceOwner);
-        console.log("SuperfluidLoader Address:                  ", address(superfluidLoader));
-        console.log("Superfluid Host Address:                   ", address(host));
-        console.log("Superfluid Governance Address:             ", address(governance));
-        console.log("SuperTokenFactory Address:                 ", address(superTokenFactory));
-        console.log("SuperTokenFactoryLogic Pre Migration:      ", superTokenFactoryLogicPre);
-        console.log("SuperTokenFactoryLogic Post Migration:     ", superTokenFactoryLogicPost);
-        console.log("SuperTokenLogic Pre Migration:             ", superTokenLogicPre);
-        console.log("SuperTokenLogic Post Migration:            ", superTokenLogicPost);
+        console.log(
+            "Chain ID:                                  ",
+            block.chainid
+        );
+        console.log(
+            "Governance Owner Address:                  ",
+            governanceOwner
+        );
+        console.log(
+            "SuperfluidLoader Address:                  ",
+            address(sfFramework.superfluidLoader)
+        );
+        console.log(
+            "Superfluid Host Address:                   ",
+            address(sfFramework.host)
+        );
+        console.log(
+            "Superfluid Governance Address:             ",
+            address(sfFramework.governance)
+        );
+        console.log(
+            "SuperTokenFactory Address:                 ",
+            address(sfFramework.superTokenFactory)
+        );
+        console.log(
+            "SuperTokenFactoryLogic Pre Migration:      ",
+            superTokenFactoryLogicPre
+        );
+        console.log(
+            "SuperTokenFactoryLogic Post Migration:     ",
+            superTokenFactoryLogicPost
+        );
+        console.log(
+            "SuperTokenLogic Pre Migration:             ",
+            superTokenLogicPre
+        );
+        console.log(
+            "SuperTokenLogic Post Migration:            ",
+            superTokenLogicPost
+        );
     }
 }

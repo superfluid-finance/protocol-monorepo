@@ -42,8 +42,9 @@ import {
     SuperTokenV1Library
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { CFAv1Library } from "../../../contracts/apps/CFAv1Library.sol";
+import { ForkBaselineTest } from "./ForkBaseline.t.sol";
 
-contract ERC20xDeploymentTest is Test {
+contract ForkERC20xCFANFTDeployment is ForkBaselineTest {
     using CFAv1Library for CFAv1Library.InitData;
     uint256 polygonFork;
 
@@ -52,11 +53,6 @@ contract ERC20xDeploymentTest is Test {
 
     IResolver public constant resolver =
         IResolver(0xE0cc76334405EE8b39213E620587d815967af39C);
-    ISuperfluid public host;
-    ConstantFlowAgreementV1 public cfaV1;
-    SuperfluidLoader public superfluidLoader;
-    ISuperTokenFactory public superTokenFactory;
-    ISuperfluidGovernance public governance;
     IERC20 public constant weth =
         IERC20(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
     ISuperToken public constant ethX =
@@ -69,21 +65,17 @@ contract ERC20xDeploymentTest is Test {
     address public constant BOB = address(2);
     address public constant DEFAULT_FLOW_OPERATOR = address(69);
 
+    constructor()
+        ForkBaselineTest(
+            ethX,
+            TEST_ACCOUNT,
+            resolver,
+            "POLYGON_MAINNET_PROVIDER_URL"
+        )
+    {}
+
     function setUp() public {
         polygonFork = vm.createSelectFork(POLYGON_MAINNET_PROVIDER_URL);
-        superfluidLoader = SuperfluidLoader(
-            resolver.get("SuperfluidLoader-v1")
-        );
-        SuperfluidLoader.Framework memory framework = superfluidLoader
-            .loadFramework("v1");
-        cfaV1 = ConstantFlowAgreementV1(address(framework.agreementCFAv1));
-        host = ISuperfluid(framework.superfluid);
-        cfaV1Lib = CFAv1Library.InitData(
-            host,
-            IConstantFlowAgreementV1(address(framework.agreementCFAv1))
-        );
-        governance = host.getGovernance();
-        superTokenFactory = framework.superTokenFactory;
     }
 
     function assert_Flow_Rate_Is_Expected(
@@ -91,7 +83,11 @@ contract ERC20xDeploymentTest is Test {
         address receiver,
         int96 expectedFlowRate
     ) public {
-        (, int96 flowRate, , ) = cfaV1.getFlow(ethX, sender, receiver);
+        (, int96 flowRate, , ) = sfFramework.cfaV1.getFlow(
+            ethX,
+            sender,
+            receiver
+        );
         assertEq(flowRate, expectedFlowRate);
     }
 
@@ -109,16 +105,21 @@ contract ERC20xDeploymentTest is Test {
     }
 
     function test_Full_Migration() public {
-        address superTokenFactoryLogicPre = host.getSuperTokenFactoryLogic();
+        address superTokenFactoryLogicPre = sfFramework
+            .host
+            .getSuperTokenFactoryLogic();
         address superTokenLogicPre = address(
-            superTokenFactory.getSuperTokenLogic()
+            sfFramework.superTokenFactory.getSuperTokenLogic()
         );
 
-        address constantFlowAgreementLogicPre = address(cfaV1.getCodeAddress());
+        address constantFlowAgreementLogicPre = ConstantFlowAgreementV1(
+            address(sfFramework.cfaV1)
+        ).getCodeAddress();
 
-        address governanceOwner = Ownable(address(governance)).owner();
+        address governanceOwner = Ownable(address(sfFramework.governance))
+            .owner();
 
-        // Prank as governance owner
+        // Prank as sfFramework.governance owner
         vm.startPrank(governanceOwner);
 
         // Deploy new constant outflow nft logic
@@ -129,7 +130,7 @@ contract ERC20xDeploymentTest is Test {
 
         // Deploy new super token logic
         SuperToken newSuperTokenLogic = new SuperToken(
-            host,
+            sfFramework.host,
             IConstantOutflowNFT(address(newConstantOutflowNFTLogic)),
             IConstantInflowNFT(address(newConstantInflowNFTLogic))
         );
@@ -137,17 +138,17 @@ contract ERC20xDeploymentTest is Test {
         // the first upgrade of SuperTokenFactory is to add in updateLogicContracts
         // there is a separate PR open for this currently
         SuperTokenFactory newLogic = new SuperTokenFactory(
-            host,
+            sfFramework.host,
             newSuperTokenLogic
         );
-        governance.updateContracts(
-            host,
+        sfFramework.governance.updateContracts(
+            sfFramework.host,
             address(0),
             new address[](0),
             address(newLogic)
         );
 
-        newLogic = new SuperTokenFactory(host, newSuperTokenLogic);
+        newLogic = new SuperTokenFactory(sfFramework.host, newSuperTokenLogic);
 
         // SuperTokenFactory.updateCode
         // _updateCodeAddress(newAddress): this upgrades the SuperTokenFactory logic
@@ -155,16 +156,18 @@ contract ERC20xDeploymentTest is Test {
         // _updateSuperTokenLogic(): this deploys and sets the new SuperToken logic in SuperTokenFactory
         // _updateConstantOutflowNFTLogic(): deploy and set constant outflow nft logic contract
         // _updateConstantInflowNFTLogic(): deploy and set constant inflow nft logic contract
-        governance.updateContracts(
-            host,
+        sfFramework.governance.updateContracts(
+            sfFramework.host,
             address(0),
             new address[](0),
             address(newLogic)
         );
 
-        address superTokenFactoryLogicPost = host.getSuperTokenFactoryLogic();
+        address superTokenFactoryLogicPost = sfFramework
+            .host
+            .getSuperTokenFactoryLogic();
         address superTokenLogicPost = address(
-            superTokenFactory.getSuperTokenLogic()
+            sfFramework.superTokenFactory.getSuperTokenLogic()
         );
 
         // validate that the logic contracts have been updated
@@ -215,7 +218,10 @@ contract ERC20xDeploymentTest is Test {
 
             // batch update SuperToken logic
             // we would put all supertokens not just ethX in reality
-            governance.batchUpdateSuperTokenLogic(host, superTokens);
+            sfFramework.governance.batchUpdateSuperTokenLogic(
+                sfFramework.host,
+                superTokens
+            );
 
             assertEq(address(ethX.constantOutflowNFT()), address(0));
             assertEq(address(ethX.constantInflowNFT()), address(0));
@@ -241,20 +247,20 @@ contract ERC20xDeploymentTest is Test {
         vm.startPrank(governanceOwner);
 
         ConstantFlowAgreementV1 newCFAv1Logic = new ConstantFlowAgreementV1(
-            host,
+            sfFramework.host,
             IConstantFlowAgreementHook(address(0))
         );
         address[] memory agreementAddresses = new address[](1);
         agreementAddresses[0] = address(newCFAv1Logic);
 
-        governance.updateContracts(
-            host,
+        sfFramework.governance.updateContracts(
+            sfFramework.host,
             address(0),
             agreementAddresses,
             address(0)
         );
         address constantFlowAgreementLogicPost = address(
-            cfaV1.getCodeAddress()
+            ConstantFlowAgreementV1(address(sfFramework.cfaV1)).getCodeAddress()
         );
 
         assertFalse(
@@ -266,17 +272,53 @@ contract ERC20xDeploymentTest is Test {
         helper_Create_Update_Delete_Flow();
 
         // LOGGING
-        console.log("Chain ID                                   ", block.chainid);
-        console.log("Governance Owner Address:                  ", governanceOwner);
-        console.log("SuperfluidLoader Address:                  ", address(superfluidLoader));
-        console.log("Superfluid Host Address:                   ", address(host));
-        console.log("Superfluid Governance Address:             ", address(governance));
-        console.log("SuperTokenFactory Address:                 ", address(superTokenFactory));
-        console.log("SuperTokenFactoryLogic Pre Migration:      ", superTokenFactoryLogicPre);
-        console.log("SuperTokenFactoryLogic Post Migration:     ", superTokenFactoryLogicPost);
-        console.log("SuperTokenLogic Pre Migration:             ", superTokenLogicPre);
-        console.log("SuperTokenLogic Post Migration:            ", superTokenLogicPost);
-        console.log("ConstantFlowAgreementLogic Pre Migration:  ", constantFlowAgreementLogicPre);
-        console.log("ConstantFlowAgreementLogic Post Migration: ", constantFlowAgreementLogicPost);
+        console.log(
+            "Chain ID                                   ",
+            block.chainid
+        );
+        console.log(
+            "Governance Owner Address:                  ",
+            governanceOwner
+        );
+        console.log(
+            "SuperfluidLoader Address:                  ",
+            address(sfFramework.superfluidLoader)
+        );
+        console.log(
+            "Superfluid Host Address:                   ",
+            address(sfFramework.host)
+        );
+        console.log(
+            "Superfluid Governance Address:             ",
+            address(sfFramework.governance)
+        );
+        console.log(
+            "SuperTokenFactory Address:                 ",
+            address(sfFramework.superTokenFactory)
+        );
+        console.log(
+            "SuperTokenFactoryLogic Pre Migration:      ",
+            superTokenFactoryLogicPre
+        );
+        console.log(
+            "SuperTokenFactoryLogic Post Migration:     ",
+            superTokenFactoryLogicPost
+        );
+        console.log(
+            "SuperTokenLogic Pre Migration:             ",
+            superTokenLogicPre
+        );
+        console.log(
+            "SuperTokenLogic Post Migration:            ",
+            superTokenLogicPost
+        );
+        console.log(
+            "ConstantFlowAgreementLogic Pre Migration:  ",
+            constantFlowAgreementLogicPre
+        );
+        console.log(
+            "ConstantFlowAgreementLogic Post Migration: ",
+            constantFlowAgreementLogicPost
+        );
     }
 }

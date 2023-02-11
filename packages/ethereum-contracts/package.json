@@ -49,7 +49,7 @@
         "pretest": "{ yarn testenv:start > /dev/null& } && sleep 5",
         "test": "run-s test:*:*",
         "test:contracts:hardhat": "yarn run-hardhat test testsuites/all-contracts.ts",
-        "test:contracts:foundry": "yarn run-forge test --hardhat --no-match-contract Fork",
+        "test:contracts:foundry": "yarn run-forge test --hardhat --no-match-contract \"Fork|Gas\"",
         "test:contracts:solc-compatibility": "test/test-solc-compatibility.sh",
         "test:deployment:scripts-js-hardhat": "yarn run-hardhat test test/scripts/deployment.test.js",
         "test:deployment:scripts-js-truffle": "yarn run-truffle test test/scripts/deployment.test.js",

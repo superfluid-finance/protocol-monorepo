@@ -7,6 +7,8 @@ import _ from "lodash";
 import Web3 from "web3";
 
 import {
+    ConstantInflowNFT,
+    ConstantOutflowNFT,
     ISuperToken,
     ISuperToken__factory,
     SuperTokenMock,
@@ -541,6 +543,14 @@ export default class TestEnvironment {
             )
         );
     }
+
+    deployNFTContracts = async () => {
+        const constantOutflowNFTLogic =
+            await this.deployContract<ConstantOutflowNFT>("ConstantOutflowNFT");
+        const constantInflowNFTLogic =
+            await this.deployContract<ConstantInflowNFT>("ConstantInflowNFT");
+        return {constantOutflowNFTLogic, constantInflowNFTLogic};
+    };
 
     deployContract = async <T>(contractName: string, ...args: any) => {
         const contractFactory = await ethers.getContractFactory(contractName);

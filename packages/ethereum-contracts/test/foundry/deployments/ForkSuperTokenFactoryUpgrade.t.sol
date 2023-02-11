@@ -85,15 +85,12 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
     }
 
     function helper_Execute_Super_Token_Factory_Upgrade() public {
-        address superTokenFactoryLogicPre = sfFramework
-            .host
-            .getSuperTokenFactoryLogic();
+        address superTokenFactoryLogicPre = sfFramework.host.getSuperTokenFactoryLogic();
         address superTokenLogicPre = address(
             sfFramework.superTokenFactory.getSuperTokenLogic()
         );
 
-        address governanceOwner = Ownable(address(sfFramework.governance))
-            .owner();
+        address governanceOwner = Ownable(address(sfFramework.governance)).owner();
 
         // Prank as governance owner
         vm.startPrank(governanceOwner);
@@ -128,9 +125,7 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
         );
 
         // get the addresses of the super token factory logic and super token logic post update
-        address superTokenFactoryLogicPost = sfFramework
-            .host
-            .getSuperTokenFactoryLogic();
+        address superTokenFactoryLogicPost = sfFramework.host.getSuperTokenFactoryLogic();
         address superTokenLogicPost = address(
             sfFramework.superTokenFactory.getSuperTokenLogic()
         );
@@ -167,45 +162,15 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
         helper_Create_Update_Delete_Flow_One_To_One(ethX, TEST_ACCOUNT);
 
         // LOGGING
-        console.log(
-            "Chain ID:                                  ",
-            block.chainid
-        );
-        console.log(
-            "Governance Owner Address:                  ",
-            governanceOwner
-        );
-        console.log(
-            "SuperfluidLoader Address:                  ",
-            address(sfFramework.superfluidLoader)
-        );
-        console.log(
-            "Superfluid Host Address:                   ",
-            address(sfFramework.host)
-        );
-        console.log(
-            "Superfluid Governance Address:             ",
-            address(sfFramework.governance)
-        );
-        console.log(
-            "SuperTokenFactory Address:                 ",
-            address(sfFramework.superTokenFactory)
-        );
-        console.log(
-            "SuperTokenFactoryLogic Pre Migration:      ",
-            superTokenFactoryLogicPre
-        );
-        console.log(
-            "SuperTokenFactoryLogic Post Migration:     ",
-            superTokenFactoryLogicPost
-        );
-        console.log(
-            "SuperTokenLogic Pre Migration:             ",
-            superTokenLogicPre
-        );
-        console.log(
-            "SuperTokenLogic Post Migration:            ",
-            superTokenLogicPost
-        );
+        console.log("Chain ID:                                  ", block.chainid);
+        console.log("Governance Owner Address:                  ", governanceOwner);
+        console.log("SuperfluidLoader Address:                  ", address(sfFramework.superfluidLoader));
+        console.log("Superfluid Host Address:                   ", address(sfFramework.host));
+        console.log("Superfluid Governance Address:             ", address(sfFramework.governance));
+        console.log("SuperTokenFactory Address:                 ", address(sfFramework.superTokenFactory));
+        console.log("SuperTokenFactoryLogic Pre Migration:      ", superTokenFactoryLogicPre);
+        console.log("SuperTokenFactoryLogic Post Migration:     ", superTokenFactoryLogicPost);
+        console.log("SuperTokenLogic Pre Migration:             ", superTokenLogicPre);
+        console.log("SuperTokenLogic Post Migration:            ", superTokenLogicPost);
     }
 }

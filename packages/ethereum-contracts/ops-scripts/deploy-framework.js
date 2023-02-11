@@ -192,6 +192,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "InstantDistributionAgreementV1",
         "ConstantOutflowNFT",
         "ConstantInflowNFT",
+        "SuperfluidNFTDeployerLibrary",
     ];
     const mockContracts = [
         "SuperfluidMock",
@@ -220,6 +221,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         InstantDistributionAgreementV1,
         ConstantOutflowNFT,
         ConstantInflowNFT,
+        SuperfluidNFTDeployerLibrary,
     } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
@@ -568,6 +570,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         : SuperTokenFactory;
 
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
+    await deployExternalLibraryAndLink(
+        SuperfluidNFTDeployerLibrary,
+        "SuperfluidNFTDeployerLibrary",
+        "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS",
+        SuperTokenLogic
+    );
     const superTokenFactoryNewLogicAddress = await deployContractIf(
         web3,
         SuperTokenFactoryLogic,

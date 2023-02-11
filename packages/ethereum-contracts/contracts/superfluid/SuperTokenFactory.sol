@@ -15,7 +15,6 @@ import { SuperToken } from "../superfluid/SuperToken.sol";
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
 import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
-import { SuperfluidNFTDeployerLibrary } from "../libs/SuperfluidNFTDeployerLibrary.sol";
 
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,

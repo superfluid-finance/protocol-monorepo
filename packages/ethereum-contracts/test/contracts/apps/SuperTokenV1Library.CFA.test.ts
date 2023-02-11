@@ -4,7 +4,6 @@ import {assert, ethers, web3} from "hardhat";
 import {
     // CFALibrarySuperAppMock,
     ConstantFlowAgreementV1,
-    Resolver,
     SuperfluidMock,
     SuperTokenLibraryCFAMock,
     SuperTokenLibraryCFASuperAppMock,
@@ -36,17 +35,25 @@ const callbackFunctionIndex = {
 // reverting to snapshot and are therefore reliant on deploying a
 // new super token each time.
 export const deploySuperTokenAndNFTContractsAndInitialize = async (
-    host: SuperfluidMock,
-    resolver: Resolver
+    t: TestEnvironment
 ) => {
-    const SuperTokenMockFactory = await ethers.getContractFactory(
-        "SuperTokenMock"
+    const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+        await t.deployNFTContracts();
+    const superToken = await t.deployExternalLibraryAndLink<SuperTokenMock>(
+        "SuperfluidNFTDeployerLibrary",
+        "SuperTokenMock",
+        t.contracts.superfluid.address,
+        "69",
+        constantOutflowNFTLogic.address,
+        constantInflowNFTLogic.address
     );
-    const superToken = await SuperTokenMockFactory.deploy(host.address, "69");
+
     const uupsFactory = await ethers.getContractFactory("UUPSProxy");
     const symbol = await superToken.symbol();
 
-    const outflowNFTLogicAddress = await resolver.get("ConstantOutflowNFT");
+    const outflowNFTLogicAddress = await t.contracts.resolver.get(
+        "ConstantOutflowNFT"
+    );
     const outflowNFTProxy = await uupsFactory.deploy();
     await outflowNFTProxy.initializeProxy(outflowNFTLogicAddress);
     const outflowNFT = await ethers.getContractAt(
@@ -59,7 +66,9 @@ export const deploySuperTokenAndNFTContractsAndInitialize = async (
         symbol + " COF"
     );
 
-    const inflowNFTLogicAddress = await resolver.get("ConstantInflowNFT");
+    const inflowNFTLogicAddress = await t.contracts.resolver.get(
+        "ConstantInflowNFT"
+    );
     const inflowNFTProxy = await uupsFactory.deploy();
     await inflowNFTProxy.initializeProxy(inflowNFTLogicAddress);
     const inflowNFT = await ethers.getContractAt(
@@ -111,10 +120,7 @@ describe("CFAv1 Library testing", function () {
     });
 
     beforeEach(async () => {
-        superToken = await deploySuperTokenAndNFTContractsAndInitialize(
-            host,
-            t.contracts.resolver
-        );
+        superToken = await deploySuperTokenAndNFTContractsAndInitialize(t);
 
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");

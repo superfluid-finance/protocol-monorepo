@@ -608,16 +608,16 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
-        // IConstantOutflowNFT constantOutflowNFT = IConstantOutflowNFT(
-        //     address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
-        // );
-        // uint256 tokenId = constantOutflowNFT.getTokenId(
-        //     flowVars.sender,
-        //     flowVars.receiver
-        // );
-        // if (constantOutflowNFT.flowDataByTokenId(tokenId).flowSender != address(0)) {
-        //     constantOutflowNFT.onDelete(flowVars.sender, flowVars.receiver);
-        // }
+        IConstantOutflowNFT constantOutflowNFT = IConstantOutflowNFT(
+            address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
+        );
+        uint256 tokenId = constantOutflowNFT.getTokenId(
+            flowVars.sender,
+            flowVars.receiver
+        );
+        if (constantOutflowNFT.flowDataByTokenId(tokenId).flowSender != address(0)) {
+            constantOutflowNFT.onDelete(flowVars.sender, flowVars.receiver);
+        }
     }
 
     /**************************************************************************

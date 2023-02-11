@@ -31,28 +31,15 @@ import {
 } from "../libs/SuperfluidNFTDeployerLibrary.sol";
 
 contract SuperTokenDeployer {
-    struct SuperTokenAddresses {
-        ConstantOutflowNFT constantOutflowNFTLogic;
-        ConstantInflowNFT constantInflowNFTLogic;
-        SuperTokenFactory superTokenFactory;
-    }
 
     string public constant RESOLVER_BASE_SUPER_TOKEN_KEY = "supertokens.test.";
     string public constant RESOLVER_BASE_TOKEN_KEY = "tokens.test.";
 
-    ConstantOutflowNFT internal constantOutflowNFTLogic;
-    ConstantInflowNFT internal constantInflowNFTLogic;
     SuperTokenFactory internal superTokenFactory;
     TestResolver internal testResolver;
 
     constructor(address superTokenFactoryAddress, address resolverAddress) {
         // @note SuperfluidFrameworkDeployer must be deployed at this point
-
-        // Deploy NFT logic contracts
-        constantOutflowNFTLogic = ConstantOutflowNFT(SuperfluidNFTDeployerLibrary
-            .deployConstantOutflowNFT());
-        constantInflowNFTLogic = ConstantInflowNFT(SuperfluidNFTDeployerLibrary
-            .deployConstantInflowNFT());
 
         superTokenFactory = SuperTokenFactory(superTokenFactoryAddress);
         testResolver = TestResolver(resolverAddress);
@@ -89,8 +76,6 @@ contract SuperTokenDeployer {
             )
         );
 
-        _deployCFANFTContractsAndInitialize(superToken);
-
         // list underlying token in resolver
         _handleResolverList(
             true,
@@ -125,8 +110,6 @@ contract SuperTokenDeployer {
             _symbol
         );
 
-        _deployCFANFTContractsAndInitialize(nativeAssetSuperToken);
-
         _handleResolverList(
             true,
             string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, _symbol),
@@ -153,8 +136,6 @@ contract SuperTokenDeployer {
 
         pureSuperToken = IPureSuperToken(address(pureSuperTokenProxy));
 
-        _deployCFANFTContractsAndInitialize(pureSuperToken);
-
         _handleResolverList(
             true,
             string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, _symbol),
@@ -163,36 +144,6 @@ contract SuperTokenDeployer {
 
         // transfer initial supply to deployer
         pureSuperToken.transfer(msg.sender, _initialSupply);
-    }
-
-    /// @notice Returns outflow, inflow and super token factory addresses
-    /// @return SuperTokenAddresses struct
-    function superTokenAddresses()
-        external
-        view
-        returns (SuperTokenAddresses memory)
-    {
-        return
-            SuperTokenAddresses({
-                constantOutflowNFTLogic: constantOutflowNFTLogic,
-                constantInflowNFTLogic: constantInflowNFTLogic,
-                superTokenFactory: superTokenFactory
-            });
-    }
-
-    /// @notice Deploys and initializes the outflow and inflow CFA NFTs and initializes them in the super token
-    /// @dev Each super token is linked to the two outflow and inflow CFA NFTs
-    /// @param _superToken The super token
-    function _deployCFANFTContractsAndInitialize(
-        ISuperToken _superToken
-    ) internal {
-        // @note this should be initializing the proxy contracts, not logic
-        _superToken.setNFTProxyContracts(
-            address(constantOutflowNFTLogic),
-            address(constantInflowNFTLogic),
-            address(0),
-            address(0)
-        );
     }
 
     function _handleResolverList(

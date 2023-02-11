@@ -115,6 +115,12 @@ const deployTestFramework = async () => {
             SuperfluidPeripheryDeployerLibraryArtifact,
             signer
         );
+    const SuperfluidNFTDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "SuperfluidNFTDeployerLibrary",
+            SuperfluidNFTDeployerLibraryArtifact,
+            signer
+        );
     const frameworkDeployer = await _getFactoryAndReturnDeployedContract(
         "SuperfluidFrameworkDeployer",
         SuperfluidFrameworkDeployerArtifact,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.16;
+pragma solidity 0.8.18;
 
 import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable not-rely-on-time
-pragma solidity 0.8.16;
+pragma solidity 0.8.18;
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {

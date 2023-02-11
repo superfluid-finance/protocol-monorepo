@@ -6,6 +6,7 @@ import {
     SuperTokenFactory,
     SuperTokenFactoryMock42,
     SuperTokenFactoryStorageLayoutTester,
+    SuperTokenFactoryUpdateLogicContractsTester,
     SuperTokenMock,
     TestGovernance,
     TestToken,
@@ -66,8 +67,7 @@ describe("SuperTokenFactory Contract", function () {
                 "0"
             );
             const tester =
-                await t.deployExternalLibraryAndLink<SuperTokenFactoryStorageLayoutTester>(
-                    "SuperTokenDeployerLibrary",
+                await t.deployContract<SuperTokenFactoryStorageLayoutTester>(
                     "SuperTokenFactoryStorageLayoutTester",
                     superfluid.address,
                     superTokenLogic.address
@@ -141,8 +141,7 @@ describe("SuperTokenFactory Contract", function () {
                     42
                 );
                 const factory2Logic =
-                    await t.deployExternalLibraryAndLink<SuperTokenFactoryMock42>(
-                        "SuperTokenDeployerLibrary",
+                    await t.deployContract<SuperTokenFactoryMock42>(
                         "SuperTokenFactoryMock42",
                         superfluid.address,
                         superTokenLogic.address
@@ -247,8 +246,7 @@ describe("SuperTokenFactory Contract", function () {
                     superfluid.address
                 );
                 const factory2Logic =
-                    await t.deployExternalLibraryAndLink<SuperTokenFactory>(
-                        "SuperTokenDeployerLibrary",
+                    await t.deployContract<SuperTokenFactoryUpdateLogicContractsTester>(
                         "SuperTokenFactoryUpdateLogicContractsTester",
                         superfluid.address,
                         superTokenLogic.address
@@ -260,15 +258,15 @@ describe("SuperTokenFactory Contract", function () {
                     factory2Logic.address
                 );
 
-                const superToken0 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 0,
-                });
-                await expectEvent(superToken0.tx.receipt, "SuperTokenCreated", {
-                    token: superToken0.address,
-                });
-                assert.equal(
-                    await superToken0.getUnderlyingToken(),
-                    token1.address
+                await expectCustomError(
+                    factory["createERC20Wrapper(address,uint8,string,string)"](
+                        token1.address,
+                        0,
+                        "",
+                        ""
+                    ),
+                    factory,
+                    "SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED"
                 );
 
                 const superToken1 = await t.sf.createERC20Wrapper(token1, {

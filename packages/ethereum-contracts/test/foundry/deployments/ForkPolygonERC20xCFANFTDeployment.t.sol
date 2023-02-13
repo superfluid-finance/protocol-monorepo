@@ -44,7 +44,13 @@ import {
 import { CFAv1Library } from "../../../contracts/apps/CFAv1Library.sol";
 import { ForkBaselineTest } from "./ForkBaseline.t.sol";
 
-contract ForkERC20xCFANFTDeployment is ForkBaselineTest {
+/// @title ForkPolygonERC20xCFANFTDeployment
+/// @author Superfluid
+/// @notice Tests the ERC20x CFA NFT deployment and upgrade flow on Polygon mainnet fork
+/// @dev Note that this test file is likely dynamic and will change over time
+/// due to the possibility that the upgrade flow may also change over time
+/// This is also only running tests for Polygon
+contract ForkPolygonERC20xCFANFTDeployment is ForkBaselineTest {
     using CFAv1Library for CFAv1Library.InitData;
     uint256 polygonFork;
 
@@ -272,53 +278,17 @@ contract ForkERC20xCFANFTDeployment is ForkBaselineTest {
         helper_Create_Update_Delete_Flow();
 
         // LOGGING
-        console.log(
-            "Chain ID                                   ",
-            block.chainid
-        );
-        console.log(
-            "Governance Owner Address:                  ",
-            governanceOwner
-        );
-        console.log(
-            "SuperfluidLoader Address:                  ",
-            address(sfFramework.superfluidLoader)
-        );
-        console.log(
-            "Superfluid Host Address:                   ",
-            address(sfFramework.host)
-        );
-        console.log(
-            "Superfluid Governance Address:             ",
-            address(sfFramework.governance)
-        );
-        console.log(
-            "SuperTokenFactory Address:                 ",
-            address(sfFramework.superTokenFactory)
-        );
-        console.log(
-            "SuperTokenFactoryLogic Pre Migration:      ",
-            superTokenFactoryLogicPre
-        );
-        console.log(
-            "SuperTokenFactoryLogic Post Migration:     ",
-            superTokenFactoryLogicPost
-        );
-        console.log(
-            "SuperTokenLogic Pre Migration:             ",
-            superTokenLogicPre
-        );
-        console.log(
-            "SuperTokenLogic Post Migration:            ",
-            superTokenLogicPost
-        );
-        console.log(
-            "ConstantFlowAgreementLogic Pre Migration:  ",
-            constantFlowAgreementLogicPre
-        );
-        console.log(
-            "ConstantFlowAgreementLogic Post Migration: ",
-            constantFlowAgreementLogicPost
-        );
+        console.log("Chain ID:                                  ", block.chainid);
+        console.log("Governance Owner Address:                  ", governanceOwner);
+        console.log("SuperfluidLoader Address:                  ", address(sfFramework.superfluidLoader));
+        console.log("Superfluid Host Address:                   ", address(sfFramework.host));
+        console.log("Superfluid Governance Address:             ", address(sfFramework.governance));
+        console.log("SuperTokenFactory Address:                 ", address(sfFramework.superTokenFactory));
+        console.log("SuperTokenFactoryLogic Pre Migration:      ", superTokenFactoryLogicPre);
+        console.log("SuperTokenFactoryLogic Post Migration:     ", superTokenFactoryLogicPost);
+        console.log("SuperTokenLogic Pre Migration:             ", superTokenLogicPre);
+        console.log("SuperTokenLogic Post Migration:            ", superTokenLogicPost);
+        console.log("ConstantFlowAgreementLogic Pre Migration:  ", constantFlowAgreementLogicPre);
+        console.log("ConstantFlowAgreementLogic Post Migration: ", constantFlowAgreementLogicPost);
     }
 }

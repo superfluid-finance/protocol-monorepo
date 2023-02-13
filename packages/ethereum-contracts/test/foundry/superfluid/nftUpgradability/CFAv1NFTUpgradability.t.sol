@@ -50,7 +50,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         proxy.initializeProxy(address(cfaV1NFTBaseMockV1Logic));
         cfaV1NFTBaseMockV1Proxy = CFAv1NFTBaseMockV1(address(proxy));
         cfaV1NFTBaseMockV1Proxy.initialize(
-            superToken,
+            superTokenMock,
             "FTTx CFAv1NFTBase",
             "FTTx BASE"
         );
@@ -62,7 +62,9 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         );
 
         vm.prank(sf.governance.owner());
-        superToken.setNFTProxyContracts(
+
+        // set mock nft proxy contract
+        superTokenMock.setNFTProxyContracts(
             address(cfaV1NFTBaseMockV1Proxy),
             address(cfaV1NFTBaseMockV1Proxy),
             address(0),
@@ -84,7 +86,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         ConstantOutflowNFTMockV1 initialOutflowLogicMock = new ConstantOutflowNFTMockV1();
         _proxy.initializeProxy(address(initialOutflowLogicMock));
         mockProxy = ConstantOutflowNFTMockV1(address(_proxy));
-        mockProxy.initialize(superToken, "FTTx ConstantOutflowNFT", "FTTx COF");
+        mockProxy.initialize(superTokenMock, "FTTx ConstantOutflowNFT", "FTTx COF");
 
         // Baseline assertion that logic address is expected
         assert_Expected_Logic_Contract_Address(
@@ -93,7 +95,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         );
 
         vm.prank(sf.governance.owner());
-        superToken.setNFTProxyContracts(
+        superTokenMock.setNFTProxyContracts(
             address(_proxy),
             address(cfaV1NFTBaseMockV1Proxy),
             address(0),
@@ -161,7 +163,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         external
     {
         CFAv1NFTBaseMockV1BadNewVariablePreGap badNewLogic = new CFAv1NFTBaseMockV1BadNewVariablePreGap();
-        vm.prank(address(superToken.getHost()));
+        vm.prank(address(superTokenMock.getHost()));
         cfaV1NFTBaseMockV1Proxy.updateCode(address(badNewLogic));
 
         assert_Expected_Logic_Contract_Address(
@@ -179,7 +181,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         external
     {
         CFAv1NFTBaseMockV1BadReorderingPreGap badNewLogic = new CFAv1NFTBaseMockV1BadReorderingPreGap();
-        vm.prank(address(superToken.getHost()));
+        vm.prank(address(superTokenMock.getHost()));
         cfaV1NFTBaseMockV1Proxy.updateCode(address(badNewLogic));
 
         assert_Expected_Logic_Contract_Address(
@@ -199,7 +201,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         ConstantOutflowNFTMockV1 mockProxy = _helper_Deploy_Mock_Constant_Outflow_NFT();
 
         ConstantOutflowNFTMockV1BaseBadNewVariable badLogic = new ConstantOutflowNFTMockV1BaseBadNewVariable();
-        vm.prank(address(superToken.getHost()));
+        vm.prank(address(superTokenMock.getHost()));
         mockProxy.updateCode(address(badLogic));
 
         assert_Expected_Logic_Contract_Address(mockProxy, address(badLogic));
@@ -216,7 +218,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         ConstantOutflowNFTMockV1 mockProxy = _helper_Deploy_Mock_Constant_Outflow_NFT();
         ConstantOutflowNFTMockV1GoodUpgrade goodLogic = new ConstantOutflowNFTMockV1GoodUpgrade();
 
-        vm.prank(address(superToken.getHost()));
+        vm.prank(address(superTokenMock.getHost()));
         mockProxy.updateCode(address(goodLogic));
 
         assert_Expected_Logic_Contract_Address(mockProxy, address(goodLogic));
@@ -231,7 +233,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         ConstantOutflowNFTMockV1 mockProxy = _helper_Deploy_Mock_Constant_Outflow_NFT();
 
         ConstantOutflowNFTMockV1BadNewVariable badLogic = new ConstantOutflowNFTMockV1BadNewVariable();
-        vm.prank(address(superToken.getHost()));
+        vm.prank(address(superTokenMock.getHost()));
         mockProxy.updateCode(address(badLogic));
 
         assert_Expected_Logic_Contract_Address(mockProxy, address(badLogic));
@@ -250,7 +252,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
     // Should be able to update CFAv1NFTBase by adding new storage variables in gap space and reducing storage gap by one
     function test_Passing_Base_NFT_Contract_Is_Upgraded_Properly() external {
         CFAv1NFTBaseMockVGoodUpgrade goodNewLogic = new CFAv1NFTBaseMockVGoodUpgrade();
-        vm.prank(address(superToken.getHost()));
+        vm.prank(address(superTokenMock.getHost()));
         cfaV1NFTBaseMockV1Proxy.updateCode(address(goodNewLogic));
 
         assert_Expected_Logic_Contract_Address(

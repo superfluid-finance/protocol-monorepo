@@ -29,7 +29,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         vm.expectRevert("Initializable: contract is already initialized");
 
         constantOutflowNFTProxy.initialize(
-            superToken,
+            superTokenMock,
             string.concat("henlo", OUTFLOW_NFT_NAME_TEMPLATE),
             string.concat("goodbye", OUTFLOW_NFT_SYMBOL_TEMPLATE)
         );
@@ -390,7 +390,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
     function test_Passing_Constant_Outflow_NFT_Is_Properly_Initialized()
         public
     {
-        string memory symbol = superToken.symbol();
+        string memory symbol = superTokenMock.symbol();
 
         assertEq(
             constantOutflowNFTProxy.name(),
@@ -584,7 +584,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         assert_Event_MetadataUpdate(address(constantInflowNFTProxy), nftId);
 
         vm.prank(flowSender);
-        sf.cfaLib.updateFlow(flowReceiver, superToken, flowRate + 333);
+        sf.cfaLib.updateFlow(flowReceiver, superTokenMock, flowRate + 333);
 
         assert_Flow_Data_State_IsExpected(
             nftId,
@@ -623,7 +623,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         );
 
         vm.prank(flowSender);
-        sf.cfaLib.deleteFlow(flowSender, flowReceiver, superToken);
+        sf.cfaLib.deleteFlow(flowSender, flowReceiver, superTokenMock);
 
         assert_Flow_Data_State_IsEmpty(nftId);
     }

@@ -2,7 +2,6 @@
 pragma solidity 0.8.18;
 
 import {
-    CFAv1Library,
     FoundrySuperfluidTester,
     SuperToken
 } from "../FoundrySuperfluidTester.sol";

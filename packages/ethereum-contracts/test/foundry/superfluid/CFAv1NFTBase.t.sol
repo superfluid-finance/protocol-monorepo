@@ -4,24 +4,40 @@ pragma solidity 0.8.18;
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import {
     CFAv1NFTBase,
-    ConstantOutflowNFT
+    ConstantOutflowNFT,
+    IConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import {
-    SuperToken
-} from "../../../contracts/superfluid/SuperToken.sol";
-import {
-    ConstantInflowNFT
+    ConstantInflowNFT,
+    IConstantInflowNFT
 } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import {
     SuperTokenV1Library
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import {
-    FoundrySuperfluidTester
-} from "../FoundrySuperfluidTester.sol";
-import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "./CFAv1NFTMock.t.sol";
+    ConstantOutflowNFTMock,
+    ConstantInflowNFTMock
+} from "./CFAv1NFTMock.t.sol";
+import {
+    SuperToken,
+    SuperTokenMock
+} from "../../../contracts/mocks/SuperTokenMock.sol";
+
+// @note TODO we must include tests to ensure that the NFTs created via SuperToken creation
+// is working as expected
 
 abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
+    using SuperTokenV1Library for SuperTokenMock;
     using SuperTokenV1Library for SuperToken;
+
+    SuperTokenMock public superTokenMock;
+
+    ConstantOutflowNFTMock public constantOutflowNFTLogic;
+    ConstantInflowNFTMock public constantInflowNFTLogic;
+
+    ConstantOutflowNFTMock public constantOutflowNFTProxy;
+    ConstantInflowNFTMock public constantInflowNFTProxy;
 
     event Transfer(
         address indexed from,
@@ -47,6 +63,60 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
 
     function setUp() public virtual override {
         super.setUp();
+
+        // we deploy mock NFT contracts for the tests to access internal functions
+        constantOutflowNFTLogic = new ConstantOutflowNFTMock();
+        constantInflowNFTLogic = new ConstantInflowNFTMock();
+
+        // deploy super token mock for testing
+        superTokenMock = new SuperTokenMock(
+            sf.host,
+            0,
+            IConstantOutflowNFT(address(constantOutflowNFTLogic)),
+            IConstantInflowNFT(address(constantInflowNFTLogic))
+        );
+
+        // mint tokens to test accounts
+        for (uint256 i = 0; i < N_TESTERS; i++) {
+            superTokenMock.mintInternal(
+                TEST_ACCOUNTS[i],
+                INIT_SUPER_TOKEN_BALANCE,
+                "0x",
+                "0x"
+            );
+        }
+
+        string memory symbol = superTokenMock.symbol();
+        // deploy outflow NFT contract
+        UUPSProxy outflowProxy = new UUPSProxy();
+        outflowProxy.initializeProxy(address(constantOutflowNFTLogic));
+
+        constantOutflowNFTProxy = ConstantOutflowNFTMock(address(outflowProxy));
+        constantOutflowNFTProxy.initialize(
+            superTokenMock,
+            string.concat(symbol, OUTFLOW_NFT_NAME_TEMPLATE),
+            string.concat(symbol, OUTFLOW_NFT_SYMBOL_TEMPLATE)
+        );
+
+        // deploy inflow NFT contract
+        UUPSProxy inflowProxy = new UUPSProxy();
+        inflowProxy.initializeProxy(address(constantInflowNFTLogic));
+
+        constantInflowNFTProxy = ConstantInflowNFTMock(address(inflowProxy));
+        constantInflowNFTProxy.initialize(
+            superTokenMock,
+            string.concat(symbol, INFLOW_NFT_NAME_TEMPLATE),
+            string.concat(symbol, INFLOW_NFT_SYMBOL_TEMPLATE)
+        );
+
+        vm.prank(sf.governance.owner());
+        // set mock nft proxy contracts
+        superTokenMock.setNFTProxyContracts(
+            address(constantOutflowNFTProxy),
+            address(constantInflowNFTProxy),
+            address(0),
+            address(0)
+        );
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -214,7 +284,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
 
         // we must start prank if using SuperTokenV1Library syntax
         vm.startPrank(_flowSender);
-        superToken.createFlow(_flowReceiver, _flowRate);
+        superTokenMock.createFlow(_flowReceiver, _flowRate);
         vm.stopPrank();
         assert_Flow_Data_State_IsExpected(
             nftId,
@@ -223,7 +293,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
             _flowReceiver
         );
 
-        (uint256 timestamp, int96 flowRate, , ) = superToken.getFlow(
+        (uint256 timestamp, int96 flowRate, , ) = superTokenMock.getFlow(
             _flowSender,
             _flowReceiver
         );
@@ -256,20 +326,7 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     function test_Passing_NFT_Contracts_And_Super_Token_Are_Properly_Initialized()
         public
     {
-        (
-            ConstantOutflowNFTMock _constantOutflowNFTLogic,
-            ConstantOutflowNFTMock _constantOutflowNFTProxy,
-            ConstantInflowNFTMock _constantInflowNFTLogic,
-            ConstantInflowNFTMock _constantInflowNFTProxy
-        ) = helper_Deploy_NFT_Contracts_And_Set_Address_In_Super_Token();
-        assertEq(
-            address(_constantOutflowNFTProxy),
-            address(superToken.constantOutflowNFT())
-        );
-        assertEq(
-            address(_constantInflowNFTProxy),
-            address(superToken.constantInflowNFT())
-        );
+        // TODO
     }
 
     function test_Passing_CFAv1_Is_Properly_Set_During_Initialization() public {

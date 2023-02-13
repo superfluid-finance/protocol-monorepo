@@ -47,8 +47,8 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**************************************************************************
     * Immutable variables
     *************************************************************************/
-    function _constantOutflowNFTLogic() external view returns (IConstantOutflowNFT);
-    function _constantInflowNFTLogic() external view returns (IConstantInflowNFT);
+    function CONSTANT_OUTFLOW_NFT_LOGIC() external view returns (IConstantOutflowNFT);
+    function CONSTANT_INFLOW_NFT_LOGIC() external view returns (IConstantInflowNFT);
 
     /**************************************************************************
     * TokenInfo & ERC777
@@ -524,20 +524,6 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     function poolMemberNFT() external view returns (IPoolMemberNFT);
 
     /**
-     * @dev Links the NFT contracts to the SuperToken.
-     * @param constantOutflowNFT constant outflow nft proxy contract address
-     * @param constantInflowNFT constant inflow nft proxy contract address
-     * @param poolAdminNFT pool admin nft proxy contract address
-     * @param poolMemberNFT pool member nft proxy contract address
-     */
-    function setNFTProxyContracts(
-        address constantOutflowNFT,
-        address constantInflowNFT,
-        address poolAdminNFT,
-        address poolMemberNFT
-    ) external;
-
-    /**
      * @dev Gets the flow data between sender-receiver for the Super Token
      * @param sender the flow sender
      * @param receiver the flow receiver
@@ -559,6 +545,21 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
             uint256 owedDeposit
         );
     
+    /**
+     * @notice This deploys a UUPSProxy contract, initializes the proxy with the
+     * canonical logic contract and sets the proxy on the SuperToken contract.
+     * @dev This should only be used for existing SuperToken's and can only be called
+     * by the owner of governance.
+     */
+    function deployAndSetNFTProxyContracts()
+        external
+        returns (
+            IConstantOutflowNFT,
+            IConstantInflowNFT,
+            IPoolAdminNFT,
+            IPoolMemberNFT
+        );
+
     /**
      * @dev Constant Outflow NFT logic created event
      * @param constantOutflowNFTLogic constant outflow nft logic address

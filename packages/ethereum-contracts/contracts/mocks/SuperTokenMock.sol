@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.18;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     ISuperfluid,
     ISuperAgreement,
@@ -8,6 +9,8 @@ import {
 } from "../superfluid/SuperToken.sol";
 import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 
 contract SuperTokenStorageLayoutTester is SuperToken {
 
@@ -129,4 +132,26 @@ contract SuperTokenMock is SuperToken {
         _mint(msg.sender, to, amount, true, userData, operatorData);
     }
 
+    /**
+     * @notice Links the NFT contracts to the SuperToken.
+     * @dev This is only to be used in testing as the NFT contracts are linked in initialize.
+     * @param constantOutflowNFTAddress constant outflow nft proxy contract address
+     * @param constantInflowNFTAddress constant inflow nft proxy contract address
+     * @param poolAdminNFTAddress pool admin nft proxy contract address
+     * @param poolMemberNFTAddress pool member nft proxy contract address
+     */
+    function setNFTProxyContracts(
+        address constantOutflowNFTAddress,
+        address constantInflowNFTAddress,
+        address poolAdminNFTAddress,
+        address poolMemberNFTAddress
+    ) external {
+        Ownable gov = Ownable(address(_host.getGovernance()));
+        if (msg.sender != gov.owner()) revert SUPER_TOKEN_ONLY_GOV_OWNER();
+
+        constantOutflowNFT = IConstantOutflowNFT(constantOutflowNFTAddress);
+        constantInflowNFT = IConstantInflowNFT(constantInflowNFTAddress);
+        poolAdminNFT = IPoolAdminNFT(poolAdminNFTAddress);
+        poolMemberNFT = IPoolMemberNFT(poolMemberNFTAddress);
+    }
 }

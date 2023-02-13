@@ -51,9 +51,8 @@ export const deploySuperTokenAndNFTContractsAndInitialize = async (
     const uupsFactory = await ethers.getContractFactory("UUPSProxy");
     const symbol = await superToken.symbol();
 
-    const outflowNFTLogicAddress = await t.contracts.resolver.get(
-        "ConstantOutflowNFT"
-    );
+    const outflowNFTLogicAddress =
+        await superToken.CONSTANT_OUTFLOW_NFT_LOGIC();
     const outflowNFTProxy = await uupsFactory.deploy();
     await outflowNFTProxy.initializeProxy(outflowNFTLogicAddress);
     const outflowNFT = await ethers.getContractAt(
@@ -66,9 +65,7 @@ export const deploySuperTokenAndNFTContractsAndInitialize = async (
         symbol + " COF"
     );
 
-    const inflowNFTLogicAddress = await t.contracts.resolver.get(
-        "ConstantInflowNFT"
-    );
+    const inflowNFTLogicAddress = await superToken.CONSTANT_INFLOW_NFT_LOGIC();
     const inflowNFTProxy = await uupsFactory.deploy();
     await inflowNFTProxy.initializeProxy(inflowNFTLogicAddress);
     const inflowNFT = await ethers.getContractAt(

@@ -24,7 +24,7 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
         vm.expectRevert("Initializable: contract is already initialized");
 
         constantInflowNFTProxy.initialize(
-            superToken,
+            superTokenMock,
             string.concat("henlo", INFLOW_NFT_NAME_TEMPLATE),
             string.concat("goodbye", INFLOW_NFT_SYMBOL_TEMPLATE)
         );
@@ -266,7 +266,7 @@ contract ConstantInflowNFTTest is CFAv1BaseTest {
     }
 
     function test_Passing_Constant_Inflow_NFT_Is_Properly_Initialized() public {
-        string memory symbol = superToken.symbol();
+        string memory symbol = superTokenMock.symbol();
 
         assertEq(
             constantInflowNFTProxy.name(),

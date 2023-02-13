@@ -31,13 +31,13 @@ import {
     SuperTokenV1Library
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
-/// @title ForkBaselineTest
+/// @title ForkSmokeTest
 /// @author Superfluid
-/// @notice A contract containing a set of baseline tests to be used in forked mainnet tests
-/// @dev This contract contains a baseline test function which will run the standard Superfluid
-/// operations on a forked mainnet. It will also make public some of the baseline test functions
+/// @notice A contract containing a set of smoke tests to be used in forked mainnet tests
+/// @dev This contract contains a smoke test function which will run the standard Superfluid
+/// operations on a forked mainnet. It will also make public some of the smoke test functions
 /// so that they can be used between stages of the upgrade process.
-contract ForkBaselineTest is Test {
+contract ForkSmokeTest is Test {
     using SuperTokenV1Library for ISuperToken;
 
      struct SuperfluidFramework {
@@ -551,11 +551,11 @@ contract ForkBaselineTest is Test {
         vm.stopPrank();
     }
 
-    function helper_Run_Full_Baseline_Tests() public {
-        // SuperToken Baseline Tests
+    function helper_Run_Full_Smoke_Tests() public {
+        // SuperToken Smoke Tests
         helper_Wrap_Unwrap(superToken, adminPrankAccount);
 
-        // SuperTokenFactory Baseline Tests
+        // SuperTokenFactory Smoke Tests
         ERC20 mrToken = new ERC20("Mr. Token", "MR");
         helper_Create_Non_Upgradeable_Super_Token(
             sfFramework.superTokenFactory,
@@ -575,7 +575,7 @@ contract ForkBaselineTest is Test {
             adminPrankAccount
         );
 
-        // ConstantFlowAgreementV1 Baseline Tests
+        // ConstantFlowAgreementV1 Smoke Tests
         helper_Create_Update_Delete_Flow_One_To_One(
             superToken,
             adminPrankAccount
@@ -592,7 +592,7 @@ contract ForkBaselineTest is Test {
             adminPrankAccount
         );
 
-        // InstantDistributionAgreementV1 Baseline Tests
+        // InstantDistributionAgreementV1 Smoke Tests
         // create index
         helper_Create_Index(superToken, adminPrankAccount);
         
@@ -624,9 +624,9 @@ contract ForkBaselineTest is Test {
         helper_Claim(superToken, adminPrankAccount, address(2));
     }
 
-    /// @notice A suite of baseline tests to be run after an upgrade
+    /// @notice A suite of smoke tests to be run after an upgrade
     /// @dev This is run after constructor and setUp is run
-    function test_Passing_Run_Full_Baseline_Tests_Post_Upgrade() public {
-        helper_Run_Full_Baseline_Tests();
+    function test_Passing_Run_Full_Smoke_Tests_Post_Upgrade() public {
+        helper_Run_Full_Smoke_Tests();
     }
 }

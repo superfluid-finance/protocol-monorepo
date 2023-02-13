@@ -5,11 +5,9 @@ on:
 
 jobs:
   test-spec-haskell:
-    name: Test Spec Haskell - Linux - ${{ matrix.compiler }}
+    name: Test HotFuzz - Linux
 
     runs-on: ubuntu-latest
-
-    continue-on-error: ${{ matrix.allow-failure }}
 
     steps:
       - uses: actions/checkout@v3

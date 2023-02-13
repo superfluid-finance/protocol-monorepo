@@ -112,7 +112,7 @@ jobs:
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
     needs: [ check ]
-    if: ${{ always() }} # TODO
+    ## if: ${{ always() }} # TODO
 
   #test automations:
   test-automation-contracts:

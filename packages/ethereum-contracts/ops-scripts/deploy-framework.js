@@ -2,7 +2,6 @@ const fs = require("fs");
 const util = require("util");
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const ethers = require("ethers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../ops-scripts/deploy-erc1820");
 
@@ -382,6 +381,17 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         )(superfluid.address, cfa.address);
     }
 
+    /**
+     * This function:
+     * deploys an external library
+     * links a contract artifact to the deployed external library (in two ways depending on if hardhat or truffle env)
+     * returns the deployed external library
+     * @param {*} externalLibraryArtifact artifact of the external library
+     * @param {*} externalLibraryName name of the external library
+     * @param {*} outputName the output name
+     * @param {*} contract the contract artifact to link to the external library
+     * @returns
+     */
     const deployExternalLibraryAndLink = async (
         externalLibraryArtifact,
         externalLibraryName,

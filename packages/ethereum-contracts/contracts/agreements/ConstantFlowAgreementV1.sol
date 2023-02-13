@@ -461,10 +461,15 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        // @note for some reason this is breaking #1.2 NonClosableOutflowTestApp test
-        IConstantOutflowNFT(
-            address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
-        ).onCreate(flowVars.sender, flowVars.receiver);
+
+        IConstantOutflowNFT constantOutflowNFT = ISuperToken(
+            address(flowVars.token)
+        ).constantOutflowNFT();
+
+        // check for existence if NFT exists, if it does, we don't execute hook
+        if (constantOutflowNFT.flowDataByTokenId(uint256(flowId)).flowSender == address(0)) {
+            constantOutflowNFT.onCreate(flowVars.sender, flowVars.receiver);
+        }
     }
 
     function _updateFlow(

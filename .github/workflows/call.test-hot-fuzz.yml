@@ -24,6 +24,6 @@ jobs:
         run: |
           yarn install
           cd packages/hot-fuzz
-          echo "testLimit: 10" >> echidna.yaml
-          ./hot-fuzz contracts/superfluid-tests/SuperHotFuzz.sol
+          echo "testLimit: 1000" >> echidna.yaml
+          ./hot-fuzz contracts/superfluid-tests/SuperHotFuzz.yaml
         shell: sh devShell.sh {0}

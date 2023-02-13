@@ -1,0 +1,29 @@
+name: Reusable Workflow | Test HotFuzz
+
+on:
+  workflow_call:
+
+jobs:
+  test-spec-haskell:
+    name: Test HotFuzz - Linux
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: cachix/install-nix-action@v19
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare devShell
+        run: |
+          echo 'nix develop .#ci-hot-fuzz -c bash $@' > devShell.sh
+          yarn install
+
+      - name: Run tests
+        run: |
+          cd packages/hot-fuzz
+          echo "testLimit: 1000" >> echidna.yaml
+          ./hot-fuzz contracts/superfluid-tests/SuperHotFuzz.yaml
+        shell: sh devShell.sh {0}

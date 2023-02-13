@@ -16,13 +16,6 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: cache
-        uses: actions/cache@v2
-        with:
-          key: ${{ runner.os }}-${{ github.sha }}
-          path: ~/.cabal/store
-          restore-keys: ${{ runner.os }}-
-
       - name: Create devShell
         run: |
           echo 'nix develop .#ci-hot-fuzz -c bash $@' > devShell.sh
@@ -30,7 +23,7 @@ jobs:
       - name: Run tests
         run: |
           cd packages/hot-fuzz
-          ./hotfuz contracts/superfluid-tests/SuperHotFuzz.sol
+          ./hot-fuzz contracts/superfluid-tests/SuperHotFuzz.sol
         shell: sh devShell.sh {0}
         env:
           ECHIDNA_TEST: echidna-test --test-limit 10

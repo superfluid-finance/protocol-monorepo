@@ -16,13 +16,13 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Create devShell
+      - name: Prepare devShell
         run: |
           echo 'nix develop .#ci-hot-fuzz -c bash $@' > devShell.sh
+          yarn install
 
       - name: Run tests
         run: |
-          yarn install
           cd packages/hot-fuzz
           echo "testLimit: 1000" >> echidna.yaml
           ./hot-fuzz contracts/superfluid-tests/SuperHotFuzz.yaml

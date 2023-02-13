@@ -22,6 +22,7 @@ jobs:
 
       - name: Run tests
         run: |
+          yarn install
           cd packages/hot-fuzz
           ./hot-fuzz contracts/superfluid-tests/SuperHotFuzz.sol
         shell: sh devShell.sh {0}

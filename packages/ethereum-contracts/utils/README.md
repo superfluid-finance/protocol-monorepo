@@ -8,7 +8,7 @@ python -m SimpleHTTPServer 1337
 ```
 Then navigate to http://localhost:1337/supertoken-deployer.html
 
-Alternatively, you can also find it on IPFS: [QmbjeSLXfmePAnWRBhkhajCpdu58Xsn7BqQwj8pSxRS9d8](https://ipfs.io/ipfs/QmaCBCARcUthLcG1sNYC8SAE7okuDUZqbythvWuYozBpgC)
+Alternatively, you can also find it on IPFS: [QmP9ruumtpxFGMJdz2G38rqARAUWPHdRbGc2hQg2tXWYTd](https://ipfs.io/ipfs/QmP9ruumtpxFGMJdz2G38rqARAUWPHdRbGc2hQg2tXWYTd)
 
 ## Stream Closer
 

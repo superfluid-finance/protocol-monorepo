@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          network: [eth-goerli, polygon-mumbai, optimism-goerli, arbitrum-goerli, avalanche-fuji, polygon-mainnet, optimism-mainnet, arbitrum-one, avalanche-c, bsc-mainnet]
+          network: [eth-goerli, polygon-mumbai, optimism-goerli, arbitrum-goerli, avalanche-fuji, polygon-mainnet, optimism-mainnet, arbitrum-one, avalanche-c, bsc-mainnet, celo-mainnet]
 
     steps:
       - uses: actions/checkout@v3
@@ -59,3 +59,4 @@ jobs:
           OPTIMISTIC_API_KEY: ${{ secrets.OPTIMISTIC_API_KEY }}
           ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}
           BSCSCAN_API_KEY: ${{ secrets.BSCSCAN_API_KEY }}
+          CELOSCAN_API_KEY: ${{ secrets.CELOSCAN_API_KEY }}}

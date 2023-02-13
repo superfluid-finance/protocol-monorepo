@@ -73,6 +73,8 @@ const ALIASES = {
 
     "bsc-mainnet": ["bsc"],
 
+    "celo-mainnet": ["celo"],
+
     // currently unsupported
     //
     "optimism-kovan": ["opkovan"],
@@ -81,7 +83,6 @@ const ALIASES = {
 
     "bsc-chapel": ["chapel"],
 
-    "celo-mainnet": ["celo"],
     "celo-alfajores": ["alfajores"],
 };
 
@@ -408,6 +409,7 @@ const E = (module.exports = {
         bscscan: process.env.BSCSCAN_API_KEY,
         arbiscan: process.env.ARBISCAN_API_KEY,
         gnosisscan: process.env.GNOSISSCAN_API_KEY,
+        celoscan: process.env.CELOSCAN_API_KEY,
     },
 });
 

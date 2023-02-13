@@ -25,14 +25,23 @@ abstract contract SuperTokenFactoryBase is
         address superToken;
     }
 
+    /**************************************************************************
+    * Immutable Variables
+    **************************************************************************/
+
+    // solhint-disable-next-line var-name-mixedcase
+    ISuperToken immutable public _SUPER_TOKEN_LOGIC;
+
+    ISuperfluid immutable internal _host;
+
+    /**************************************************************************
+    * Storage Variables
+    **************************************************************************/
+
     /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
         Always double-check that new
         variables are added APPEND-ONLY. Re-ordering variables can
         permanently BREAK the deployed proxy contract. */
-
-    ISuperToken immutable public _superTokenLogic;
-
-    ISuperfluid immutable internal _host;
 
     // @dev This is the old SuperToken logic contract that is no longer used
     // It is kept here for backwards compatibility due to the fact that we cannot
@@ -59,15 +68,15 @@ abstract contract SuperTokenFactoryBase is
 
         // SuperToken logic is now deployed prior to new factory logic deployment
         // and passed in as a parameter to SuperTokenFactory constructor
-        _superTokenLogic = superTokenLogic;
+        _SUPER_TOKEN_LOGIC = superTokenLogic;
 
-        UUPSProxiable(address(_superTokenLogic)).castrate();
+        UUPSProxiable(address(_SUPER_TOKEN_LOGIC)).castrate();
 
         // emit SuperTokenLogicCreated event
         // note that creation here means the setting of the super token logic contract
         // as the canonical super token logic for the Superfluid framework and not the
         // actual contract creation
-        emit SuperTokenLogicCreated(_superTokenLogic);
+        emit SuperTokenLogicCreated(_SUPER_TOKEN_LOGIC);
     }
 
     /// @inheritdoc ISuperTokenFactory
@@ -116,7 +125,7 @@ abstract contract SuperTokenFactoryBase is
         external view override
         returns (ISuperToken)
     {
-        return _superTokenLogic;
+        return _SUPER_TOKEN_LOGIC;
     }
 
     /// @inheritdoc ISuperTokenFactory
@@ -150,7 +159,7 @@ abstract contract SuperTokenFactoryBase is
         );
 
         // set the implementation/logic contract address for the newly deployed proxy
-        proxy.initializeProxy(address(_superTokenLogic));
+        proxy.initializeProxy(address(_SUPER_TOKEN_LOGIC));
 
         // cast it as the same type as the logic contract
         ISuperToken superToken = ISuperToken(address(proxy));
@@ -192,7 +201,7 @@ abstract contract SuperTokenFactoryBase is
         } else if (upgradability == Upgradability.SEMI_UPGRADABLE) {
             UUPSProxy proxy = new UUPSProxy();
             // initialize the wrapper
-            proxy.initializeProxy(address(_superTokenLogic));
+            proxy.initializeProxy(address(_SUPER_TOKEN_LOGIC));
             superToken = ISuperToken(address(proxy));
         } else /* if (type == Upgradability.FULL_UPGRADABLE) */ {
             FullUpgradableSuperTokenProxy proxy = new FullUpgradableSuperTokenProxy();
@@ -239,7 +248,7 @@ abstract contract SuperTokenFactoryBase is
         // odd solidity stuff..
         // NOTE payable necessary because UUPSProxy has a payable fallback function
         address payable a = payable(address(uint160(customSuperTokenProxy)));
-        UUPSProxy(a).initializeProxy(address(_superTokenLogic));
+        UUPSProxy(a).initializeProxy(address(_SUPER_TOKEN_LOGIC));
 
         emit CustomSuperTokenCreated(ISuperToken(customSuperTokenProxy));
     }

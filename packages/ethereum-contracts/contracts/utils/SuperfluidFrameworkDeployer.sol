@@ -1,29 +1,13 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
-import {
-    SuperfluidGovDeployerLibrary
-} from "./deployers/SuperfluidGovDeployerLibrary.sol";
-import {
-    SuperfluidHostDeployerLibrary
-} from "./deployers/SuperfluidHostDeployerLibrary.sol";
-import {
-    SuperfluidCFAv1DeployerLibrary
-} from "./deployers/SuperfluidCFAv1DeployerLibrary.sol";
-import {
-    SuperfluidIDAv1DeployerLibrary
-} from "./deployers/SuperfluidIDAv1DeployerLibrary.sol";
-import {
-    SuperTokenDeployerLibrary
-} from "../libs/SuperTokenDeployerLibrary.sol";
-import {
-    SuperfluidPeripheryDeployerLibrary
-} from "./deployers/SuperfluidPeripheryDeployerLibrary.sol";
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
-import { Superfluid } from "../superfluid/Superfluid.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {
-    ISuperfluidToken
-} from "../interfaces/superfluid/ISuperfluidToken.sol";
+    ISuperfluid,
+    ISuperfluidToken,
+    Superfluid
+} from "../superfluid/Superfluid.sol";
 import { TestGovernance } from "./TestGovernance.sol";
 import {
     ConstantFlowAgreementV1
@@ -44,8 +28,12 @@ import {
     SuperTokenFactory,
     ERC20WithTokenInfo
 } from "../superfluid/SuperTokenFactory.sol";
+import { ISuperToken, SuperToken } from "../superfluid/SuperToken.sol";
 import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
+import { SETHProxy } from "../tokens/SETH.sol";
+import { PureSuperToken } from "../tokens/PureSuperToken.sol";
+
 import {
     IConstantFlowAgreementHook
 } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
@@ -204,5 +192,122 @@ contract SuperfluidFrameworkDeployer {
     /// @param newOwner the new owner of the TestGovernance contract
     function transferOwnership(address newOwner) public {
         testGovernance.transferOwnership(newOwner);
+    }
+}
+
+/**************************************************************************
+ * External Libraries
+ **************************************************************************/
+
+/// @title SuperfluidGovDeployerLibrary
+/// @author Superfluid
+/// @notice An external library that deploys the Superfluid TestGovernance contract with additional functions
+/// @dev This library is used for testing purposes only, not deployments to test OR production networks
+library SuperfluidGovDeployerLibrary {
+    /// @notice deploys the Superfluid TestGovernance Contract
+    /// @return newly deployed TestGovernance contract
+    function deployTestGovernance() external returns (TestGovernance) {
+        return new TestGovernance();
+    }
+
+    /// @notice transfers ownership of _gov to _newOwner
+    /// @dev _gov must be deployed from this contract
+    /// @param _gov address of the TestGovernance contract
+    /// @param _newOwner the new owner of the governance contract
+    function transferOwnership(
+        TestGovernance _gov,
+        address _newOwner
+    ) external {
+        _gov.transferOwnership(_newOwner);
+    }
+}
+
+/// @title SuperfluidHostDeployerLibrary
+/// @author Superfluid
+/// @notice An external library that deploys the Superfluid Host contract with additional functions.
+/// @dev This library is used for testing purposes only, not deployments to test OR production networks
+library SuperfluidHostDeployerLibrary {
+    /// @notice Deploys the Superfluid Host Contract
+    /// @param _nonUpgradable whether the hsot contract is upgradeable or not
+    /// @param _appWhiteListingEnabled whether app white listing is enabled
+    /// @return Superfluid newly deployed Superfluid Host contract
+    function deploySuperfluidHost(
+        bool _nonUpgradable,
+        bool _appWhiteListingEnabled
+    ) external returns (Superfluid) {
+        return new Superfluid(_nonUpgradable, _appWhiteListingEnabled);
+    }
+}
+
+/// @title SuperfluidIDAv1DeployerLibrary
+/// @author Superfluid
+/// @notice An external library that deploys the Superfluid InstantDistributionAgreementV1 contract.
+/// @dev This library is used for testing purposes only, not deployments to test OR production networks
+library SuperfluidIDAv1DeployerLibrary {
+    /// @notice deploys the Superfluid InstantDistributionAgreementV1 Contract
+    /// @param _host Superfluid host address
+    /// @return newly deployed InstantDistributionAgreementV1 contract
+    function deployInstantDistributionAgreementV1(
+        ISuperfluid _host
+    ) external returns (InstantDistributionAgreementV1) {
+        return new InstantDistributionAgreementV1(_host);
+    }
+}
+
+/// @title SuperfluidCFAv1DeployerLibrary
+/// @author Superfluid
+/// @notice An external library that deploys Superfluid ConstantFlowAgreementV1 contract
+/// @dev This library is used for testing purposes only, not deployments to test OR production networks
+library SuperfluidCFAv1DeployerLibrary {
+    /// @notice deploys ConstantFlowAgreementV1 contract
+    /// @param _host address of the Superfluid contract
+    /// @param _cfaHook address of the IConstantFlowAgreementHook contract
+    /// @return newly deployed ConstantFlowAgreementV1 contract
+    function deployConstantFlowAgreementV1(
+        ISuperfluid _host,
+        IConstantFlowAgreementHook _cfaHook
+    ) external returns (ConstantFlowAgreementV1) {
+        return new ConstantFlowAgreementV1(_host, _cfaHook);
+    }
+}
+
+/// @title SuperToken deployer library
+/// @author Superfluid
+/// @notice This is an external library used to deploy SuperToken logic contracts
+library SuperTokenDeployerLibrary {
+    /// @notice Deploy a SuperToken logic contract
+    /// @param host the address of the host contract
+    function deploySuperTokenLogic(
+        ISuperfluid host,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
+    ) external returns (address) {
+        return address(new SuperToken(host, constantOutflowNFT, constantInflowNFT));
+    }
+}
+
+/// @title SuperfluidPeripheryDeployerLibrary
+/// @author Superfluid
+/// @notice An external library that deploys Superfluid periphery contracts (Super Token Factory and Test Resolver)
+/// @dev This library is used for testing purposes only, not deployments to test OR production networks
+library SuperfluidPeripheryDeployerLibrary {
+    /// @dev deploys Super Token Factory contract
+    /// @param _host address of the Superfluid contract
+    /// @param _superTokenLogic address of the Super Token logic contract
+    /// @return newly deployed SuperTokenFactory contract
+    function deploySuperTokenFactory(
+        ISuperfluid _host,
+        ISuperToken _superTokenLogic
+    ) external returns (SuperTokenFactory) {
+        return new SuperTokenFactory(_host, _superTokenLogic);
+    }
+
+    /// @dev deploys Test Resolver contract
+    /// @param _additionalAdmin address of the additional administrator of the Test Resolver contract
+    /// @return newly deployed Test Resolver contract
+    function deployTestResolver(
+        address _additionalAdmin
+    ) external returns (TestResolver) {
+        return new TestResolver(_additionalAdmin);
     }
 }

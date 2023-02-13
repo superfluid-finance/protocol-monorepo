@@ -45,7 +45,6 @@ contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
         SuperTokenFactoryBase(host, superTokenLogic)
     // solhint-disable-next-line no-empty-blocks
     {
-
     }
 }
 

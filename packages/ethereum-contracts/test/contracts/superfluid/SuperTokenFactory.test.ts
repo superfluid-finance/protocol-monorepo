@@ -270,15 +270,15 @@ describe("SuperTokenFactory Contract", function () {
                     factory2Logic.address
                 );
 
-                const superToken0 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 0,
-                });
-                await expectEvent(superToken0.tx.receipt, "SuperTokenCreated", {
-                    token: superToken0.address,
-                });
-                assert.equal(
-                    await superToken0.getUnderlyingToken(),
-                    token1.address
+                await expectCustomError(
+                    factory["createERC20Wrapper(address,uint8,string,string)"](
+                        token1.address,
+                        0,
+                        "",
+                        ""
+                    ),
+                    factory,
+                    "SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED"
                 );
 
                 const superToken1 = await t.sf.createERC20Wrapper(token1, {

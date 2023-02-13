@@ -36,14 +36,15 @@ import {
 import {
     SuperTokenV1Library
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
-import { ForkBaselineTest } from "./ForkBaseline.t.sol";
+import { ForkSmokeTest } from "./ForkSmoke.t.sol";
 
-/// @title ForkSuperTokenFactoryUpgradeTest
+/// @title ForkPolygonSuperTokenFactoryUpgradeTest
 /// @author Superfluid
-/// @notice Tests the SuperTokenFactory upgrade flow on a forked mainnet
+/// @notice Tests the SuperTokenFactory upgrade flow on Polygon mainnet fork
 /// @dev Note that this test file is likely dynamic and will change over time
 /// due to the possibility that the upgrade flow may also change over time
-contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
+/// This is also only running tests for Polygon
+contract ForkPolygonSuperTokenFactoryUpgradeTest is ForkSmokeTest {
     using SuperTokenV1Library for ISuperToken;
     string public PROVIDER_URL;
 
@@ -69,7 +70,7 @@ contract ForkSuperTokenFactoryUpgradeTest is ForkBaselineTest {
     address public constant DEFAULT_FLOW_OPERATOR = address(69);
 
     constructor()
-        ForkBaselineTest(
+        ForkSmokeTest(
             ethX,
             TEST_ACCOUNT,
             resolver,

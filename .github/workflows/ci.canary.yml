@@ -56,6 +56,9 @@ jobs:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
           SUBGRAPH_RELEASE_TAG: dev
 
+  test-hot-fuzz:
+    uses: ./.github/workflows/call.test-hot-fuzz.yml
+
   test-subgraph:
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
     name: Build and Test Subgraph (Development Branch)
@@ -208,10 +211,15 @@ jobs:
           flags: sdk-core
           fail_ci_if_error: true
 
+  all-packages-tested:
+    name: All packages tested (Dev Branch)
+    runs-on: ubuntu-latest
+    needs: [essential-build-and-test, test-hot-fuzz, test-subgraph, test-spec-haskell, ethereum-contracts-coverage, sdk-core-coverage]
+
   publish-npm-packages:
     name: Publish canary packages to registries
 
-    needs: [essential-build-and-test, test-subgraph, test-spec-haskell, ethereum-contracts-coverage, sdk-core-coverage]
+    needs: [all-packages-tested:]
 
     runs-on: ubuntu-latest
 
@@ -254,7 +262,7 @@ jobs:
   publish-sdk-html-docs:
     name: Publish canary HTML docs
 
-    needs: [essential-build-and-test, test-subgraph, test-spec-haskell, ethereum-contracts-coverage, sdk-core-coverage]
+    needs: [all-packages-tested]
 
     runs-on: ubuntu-latest
 
@@ -312,7 +320,7 @@ jobs:
   upgrade-contracts:
     name: Upgrade ethereum-contracts on goerli testnet (protocol release version "test")
 
-    needs: [publish-npm-packages]
+    needs: [all-packages-tested]
 
     runs-on: ubuntu-latest
 

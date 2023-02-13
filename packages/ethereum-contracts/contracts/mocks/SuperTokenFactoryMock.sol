@@ -37,7 +37,7 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
     function createSuperTokenLogic(
         ISuperfluid // host
     ) external override returns (address) {
-        return address(_superTokenLogic);
+        return address(_SUPER_TOKEN_LOGIC);
     }
 }
 
@@ -57,7 +57,7 @@ contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
     function createSuperTokenLogic(
         ISuperfluid // host
     ) external override returns (address) {
-        return address(_superTokenLogic);
+        return address(_SUPER_TOKEN_LOGIC);
     }
 }
 
@@ -75,7 +75,7 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase {
     function createSuperTokenLogic(
         ISuperfluid // host
     ) external override returns (address) {
-        return address(_superTokenLogic);
+        return address(_SUPER_TOKEN_LOGIC);
     }
 }
 
@@ -93,6 +93,6 @@ contract SuperTokenFactoryMock42 is SuperTokenFactoryBase {
     function createSuperTokenLogic(
         ISuperfluid // host
     ) external override returns (address) {
-        return address(_superTokenLogic);
+        return address(_SUPER_TOKEN_LOGIC);
     }
 }

@@ -23,14 +23,23 @@ abstract contract SuperTokenFactoryBase is
         address superToken;
     }
 
+    /**************************************************************************
+    * Immutable Variables
+    **************************************************************************/
+
+    // solhint-disable-next-line var-name-mixedcase
+    ISuperToken immutable public _SUPER_TOKEN_LOGIC;
+
+    ISuperfluid immutable internal _host;
+
+    /**************************************************************************
+    * Storage Variables
+    **************************************************************************/
+
     /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
         Always double-check that new
         variables are added APPEND-ONLY. Re-ordering variables can
         permanently BREAK the deployed proxy contract. */
-
-    ISuperToken immutable public _superTokenLogic;
-
-    ISuperfluid immutable internal _host;
 
     // @dev This is the old SuperToken logic contract that is no longer used
     // It is kept here for backwards compatibility due to the fact that we cannot
@@ -57,7 +66,7 @@ abstract contract SuperTokenFactoryBase is
 
         // SuperToken logic is now deployed prior to new factory logic deployment
         // and passed in as a parameter to SuperTokenFactory constructor
-        _superTokenLogic = superTokenLogic;
+        _SUPER_TOKEN_LOGIC = superTokenLogic;
         
         // @note this function call is commented out on the first upgrade
         // https://polygonscan.com/address/0x092462ef87bdd081a6346102b0be134ff63da01b#code
@@ -66,8 +75,8 @@ abstract contract SuperTokenFactoryBase is
         // it will revert the first time, however we MUST uncomment it after subsequent 
         // updates to the logic contract so that the super token logic contract is initialized
         // here 
-        // UUPSProxiable(address(_superTokenLogic)).castrate();
-        emit SuperTokenLogicCreated(_superTokenLogic);
+        // UUPSProxiable(address(_SUPER_TOKEN_LOGIC)).castrate();
+        emit SuperTokenLogicCreated(_SUPER_TOKEN_LOGIC);
     }
 
     /// @inheritdoc ISuperTokenFactory
@@ -111,7 +120,7 @@ abstract contract SuperTokenFactoryBase is
         external view override
         returns (ISuperToken)
     {
-        return _superTokenLogic;
+        return _SUPER_TOKEN_LOGIC;
     }
 
     function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
@@ -147,7 +156,7 @@ abstract contract SuperTokenFactoryBase is
         );
 
         // set the implementation/logic contract address for the newly deployed proxy
-        proxy.initializeProxy(address(_superTokenLogic));
+        proxy.initializeProxy(address(_SUPER_TOKEN_LOGIC));
 
         // cast it as the same type as the logic contract
         ISuperToken superToken = ISuperToken(address(proxy));
@@ -189,7 +198,7 @@ abstract contract SuperTokenFactoryBase is
         } else if (upgradability == Upgradability.SEMI_UPGRADABLE) {
             UUPSProxy proxy = new UUPSProxy();
             // initialize the wrapper
-            proxy.initializeProxy(address(_superTokenLogic));
+            proxy.initializeProxy(address(_SUPER_TOKEN_LOGIC));
             superToken = ISuperToken(address(proxy));
         } else /* if (type == Upgradability.FULL_UPGRADABLE) */ {
             FullUpgradableSuperTokenProxy proxy = new FullUpgradableSuperTokenProxy();
@@ -236,7 +245,7 @@ abstract contract SuperTokenFactoryBase is
         // odd solidity stuff..
         // NOTE payable necessary because UUPSProxy has a payable fallback function
         address payable a = payable(address(uint160(customSuperTokenProxy)));
-        UUPSProxy(a).initializeProxy(address(_superTokenLogic));
+        UUPSProxy(a).initializeProxy(address(_SUPER_TOKEN_LOGIC));
 
         emit CustomSuperTokenCreated(ISuperToken(customSuperTokenProxy));
     }
@@ -335,6 +344,6 @@ contract SuperTokenFactory is SuperTokenFactoryBase
         external override
         returns (address)
     {
-        return address(_superTokenLogic);
+        return address(_SUPER_TOKEN_LOGIC);
     }
 }

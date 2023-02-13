@@ -109,6 +109,10 @@ jobs:
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
+  test-hot-fuzz:
+    uses: ./.github/workflows/call.test-hot-fuzz.yml
+    needs: [ check ]
+    if: true # TODO
 
   #test automations:
   test-automation-contracts:
@@ -166,7 +170,8 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    if: (github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo') && always()
+    if: always()
+
     needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs, test-automation-contracts]
 
     steps:

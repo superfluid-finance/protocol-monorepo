@@ -254,10 +254,10 @@ jobs:
   publish-sdk-html-docs:
     name: Publish canary HTML docs
 
-    needs: [publish-npm-packages]
+    needs: [essential-build-and-test, test-subgraph, test-spec-haskell, ethereum-contracts-coverage, sdk-core-coverage]
 
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
 

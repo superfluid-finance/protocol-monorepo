@@ -2,7 +2,6 @@ const fs = require("fs");
 const util = require("util");
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
-const ethers = require("ethers");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../ops-scripts/deploy-erc1820");
 
@@ -117,7 +116,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         appWhiteListing,
         protocolReleaseVersion,
         outputFile,
-        cfaHookContract
+        cfaHookContract,
     } = options;
     resetSuperfluidFramework = options.resetSuperfluidFramework;
 
@@ -183,7 +182,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "SuperfluidLoader",
         "Superfluid",
         "SuperTokenFactory",
-        "SuperTokenFactoryHelper",
         "SuperToken",
         "TestGovernance",
         "ISuperfluidGovernance",
@@ -196,7 +194,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const mockContracts = [
         "SuperfluidMock",
         "SuperTokenFactoryMock",
-        "SuperTokenFactoryMockHelper",
         "SuperTokenMock",
     ];
     const {
@@ -209,9 +206,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         Superfluid,
         SuperfluidMock,
         SuperTokenFactory,
-        SuperTokenFactoryHelper,
         SuperTokenFactoryMock,
-        SuperTokenFactoryMockHelper,
         SuperToken,
         SuperTokenMock,
         TestGovernance,
@@ -386,26 +381,46 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         )(superfluid.address, cfa.address);
     }
 
+    /**
+     * This function:
+     * deploys an external library
+     * links a contract artifact to the deployed external library (in two ways depending on if hardhat or truffle env)
+     * returns the deployed external library
+     * @param {*} externalLibraryArtifact artifact of the external library
+     * @param {*} externalLibraryName name of the external library
+     * @param {*} outputName the output name
+     * @param {*} contract the contract artifact to link to the external library
+     * @returns
+     */
+    const deployExternalLibraryAndLink = async (
+        externalLibraryArtifact,
+        externalLibraryName,
+        outputName,
+        contract
+    ) => {
+        const externalLibrary = await web3tx(
+            externalLibraryArtifact.new,
+            `${externalLibraryName}.new`
+        )();
+        output += `${outputName}=${externalLibrary.address}\n`;
+        if (process.env.IS_HARDHAT) {
+            contract.link(externalLibrary);
+        } else {
+            contract.link(externalLibraryName, externalLibrary.address);
+        }
+        return externalLibrary;
+    };
+
     // list IDA v1
     const deployIDAv1 = async () => {
-        const deploySlotsBitmapLibrary = async () => {
-            const slotsBmpLib = await web3tx(
-                SlotsBitmapLibrary.new,
-                "SlotsBitmapLibrary.new"
-            )();
-            output += `SLOTS_BITMAP_LIBRARY_ADDRESS=${slotsBmpLib.address}\n`;
-            if (process.env.IS_HARDHAT) {
-                InstantDistributionAgreementV1.link(slotsBmpLib);
-            } else {
-                InstantDistributionAgreementV1.link(
-                    "SlotsBitmapLibrary",
-                    slotsBmpLib.address
-                );
-            }
-            return slotsBmpLib;
-        };
         // small inefficiency: this may be re-deployed even if not changed
-        await deploySlotsBitmapLibrary();
+        // deploySlotsBitmapLibrary
+        await deployExternalLibraryAndLink(
+            SlotsBitmapLibrary,
+            "SlotsBitmapLibrary",
+            "SLOTS_BITMAP_LIBRARY_ADDRESS",
+            InstantDistributionAgreementV1
+        );
         const agreement = await web3tx(
             InstantDistributionAgreementV1.new,
             "InstantDistributionAgreementV1.new"
@@ -533,12 +548,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
 
     // deploy new super token factory logic
-    const SuperTokenFactoryHelperLogic = useMocks
-        ? SuperTokenFactoryMockHelper
-        : SuperTokenFactoryHelper;
     const SuperTokenFactoryLogic = useMocks
         ? SuperTokenFactoryMock
         : SuperTokenFactory;
+
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
     const superTokenFactoryNewLogicAddress = await deployContractIf(
         web3,
@@ -578,14 +591,19 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         },
         async () => {
             let superTokenFactoryLogic;
-            const helper = await web3tx(
-                SuperTokenFactoryHelperLogic.new,
-                "SuperTokenFactoryHelperLogic.new"
-            )();
+            const superTokenLogic = useMocks
+                ? await web3tx(SuperTokenLogic.new, "SuperTokenLogic.new")(
+                      superfluid.address,
+                      0
+                  )
+                : await web3tx(
+                      SuperTokenLogic.new,
+                      "SuperTokenLogic.new"
+                  )(superfluid.address);
             superTokenFactoryLogic = await web3tx(
                 SuperTokenFactoryLogic.new,
                 "SuperTokenFactoryLogic.new"
-            )(superfluid.address, helper.address);
+            )(superfluid.address, superTokenLogic.address);
             output += `SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC=${superTokenFactoryLogic.address}\n`;
             return superTokenFactoryLogic.address;
         }

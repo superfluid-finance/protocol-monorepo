@@ -172,7 +172,13 @@ jobs:
 
     if: always()
 
-    needs: [test-ethereum-contracts, coverage-ethereum-contracts, test-subgraph, test-sdk-core, test-spec-haskell, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs, test-automation-contracts]
+    needs: [ test-spec-haskell
+           , test-ethereum-contracts, coverage-ethereum-contracts
+           , test-hot-fuzz
+           , test-subgraph, test-subgraph-on-previous-sdk-core-versions
+           , test-sdk-core, test-query-schema-against-deployed-feature-subgraphs
+           , test-automation-contracts
+           ]
 
     steps:
       - name: Test Results

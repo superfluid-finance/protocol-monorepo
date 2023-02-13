@@ -219,7 +219,7 @@ jobs:
   publish-npm-packages:
     name: Publish canary packages to registries
 
-    needs: [all-packages-tested:]
+    needs: [all-packages-tested]
 
     runs-on: ubuntu-latest
 

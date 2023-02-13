@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import {
     ISuperfluid,
     ISuperfluidToken,

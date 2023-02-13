@@ -9,6 +9,14 @@ import {
     IConstantFlowAgreementHook
 } from "../../../contracts/agreements/ConstantFlowAgreementV1.sol";
 import {
+    ConstantOutflowNFT,
+    IConstantOutflowNFT
+} from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
+import {
+    ConstantInflowNFT,
+    IConstantInflowNFT
+} from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import {
     IInstantDistributionAgreementV1
 } from "../../../contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
 import { IResolver } from "../../../contracts/interfaces/utils/IResolver.sol";
@@ -100,8 +108,16 @@ contract ForkPolygonSuperTokenFactoryUpgradeTest is ForkSmokeTest {
         // Prank as governance owner
         vm.startPrank(governanceOwner);
 
+        ConstantOutflowNFT constantOutflowNFT = new ConstantOutflowNFT();
+        ConstantInflowNFT constantInflowNFT = new ConstantInflowNFT();
+
         // As part of the new ops flow, we deploy a new SuperToken logic contract
-        SuperToken newSuperTokenLogic = new SuperToken(host);
+        // and as part of the new NFT ops flow, we deploy new NFT logic contracts
+        SuperToken newSuperTokenLogic = new SuperToken(
+            host,
+            IConstantOutflowNFT(address(constantOutflowNFT)),
+            IConstantInflowNFT(address(constantInflowNFT))
+        );
 
         // Deploy the new super token factory logic contract, note that we pass in
         // the new super token logic contract, this is set as an immutable field in

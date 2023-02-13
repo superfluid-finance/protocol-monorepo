@@ -67,10 +67,7 @@ describe("Agreement Forwarder", function () {
     });
 
     beforeEach(async () => {
-        superToken = await deploySuperTokenAndNFTContractsAndInitialize(
-            t.contracts.superfluid,
-            t.contracts.resolver
-        );
+        superToken = await deploySuperTokenAndNFTContractsAndInitialize(t);
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");
     });

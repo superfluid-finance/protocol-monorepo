@@ -176,8 +176,9 @@ jobs:
     needs: [ test-spec-haskell
            , test-ethereum-contracts, coverage-ethereum-contracts
            , test-hot-fuzz
-           , test-subgraph, test-subgraph-on-previous-sdk-core-versions
-           , test-sdk-core, test-query-schema-against-deployed-feature-subgraphs
+           , test-sdk-core
+           , test-subgraph
+           , test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs
            , test-automation-contracts
            ]
 
@@ -195,10 +196,12 @@ jobs:
               echo "Passed."
             fi
           }
-          check_result ethereum-contracts ${{ needs.test-ethereum-contracts.result }}
-          check_result subgraph ${{ needs.test-subgraph.result }}
-          check_result sdk-core ${{ needs.test-sdk-core.result }}
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
+          check_result ethereum-contracts ${{ needs.test-ethereum-contracts.result }}
+          check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
+          check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
+          check_result sdk-core ${{ needs.test-sdk-core.result }}
+          check_result subgraph ${{ needs.test-subgraph.result }}
           check_result subgraph-on-previous-sdk-core-versions ${{ needs.test-subgraph-on-previous-sdk-core-versions.result }}
           check_result query-schema-against-deployed-feature-subgraph ${{ needs.test-query-schema-against-deployed-feature-subgraphs.result }}
           check_result automation-contracts ${{ needs.test-automation-contracts.result }}

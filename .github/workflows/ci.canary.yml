@@ -117,7 +117,7 @@ jobs:
     uses: ./.github/workflows/call.test-automation-contracts.yml
     name: Build and Test Automation Contracts (Canary Branch)
 
-  ethereum-contracts-coverage:
+  coverage-ethereum-contracts:
     name: Run coverage test of ethereum-contracts of dev branch
 
     runs-on: ubuntu-latest
@@ -144,7 +144,7 @@ jobs:
           path: |
             packages/ethereum-contracts/coverage/
 
-  sdk-core-coverage:
+  coverage-sdk-core:
     name: Run coverage test of sdk-core on dev branch
 
     runs-on: ubuntu-latest
@@ -176,7 +176,7 @@ jobs:
 
   publish-coverage-reports:
     name: Publish coverage reports
-    needs: [ethereum-contracts-coverage, sdk-core-coverage]
+    needs: [coverage-ethereum-contracts, coverage-sdk-core]
 
     runs-on: ubuntu-latest
     env:
@@ -214,7 +214,34 @@ jobs:
   all-packages-tested:
     name: All packages tested (Dev Branch)
     runs-on: ubuntu-latest
-    needs: [essential-build-and-test, test-hot-fuzz, test-subgraph, test-spec-haskell, ethereum-contracts-coverage, sdk-core-coverage]
+    needs: [ essential-build-and-test
+           , test-spec-haskell
+           , test-hot-fuzz
+           , test-subgraph
+           , coverage-ethereum-contracts
+           , coverage-sdk-core
+           ]
+    steps:
+      - name: Test Results
+          run: |
+            function check_result() {
+              local package_name="$1"
+              local result="$2"
+              if [ "$result" == "skipped" ];then
+                echo "Skipped $package_name package."
+              else
+                echo "Checking if $package_name package test passes..."
+                test "$result" == "success"
+                echo "Passed."
+              fi
+            }
+            check_result essential-build-and-test ${{ needs.essential-build-and-test.result }}
+            check_result spec-haskell ${{ needs.test-spec-haskell.result }}
+            check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
+            check_result subgraph ${{ needs.test-subgraph.result }}
+            check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
+            check_result sdk-core-coverage ${{ needs.coverage-sdk-core.result }}
+
 
   publish-npm-packages:
     name: Publish canary packages to registries

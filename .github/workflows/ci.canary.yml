@@ -223,24 +223,24 @@ jobs:
            ]
     steps:
       - name: Test Results
-          run: |
-            function check_result() {
-              local package_name="$1"
-              local result="$2"
-              if [ "$result" == "skipped" ];then
-                echo "Skipped $package_name package."
-              else
-                echo "Checking if $package_name package test passes..."
-                test "$result" == "success"
-                echo "Passed."
-              fi
-            }
-            check_result essential-build-and-test ${{ needs.essential-build-and-test.result }}
-            check_result spec-haskell ${{ needs.test-spec-haskell.result }}
-            check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
-            check_result subgraph ${{ needs.test-subgraph.result }}
-            check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
-            check_result sdk-core-coverage ${{ needs.coverage-sdk-core.result }}
+        run: |
+          function check_result() {
+            local package_name="$1"
+            local result="$2"
+            if [ "$result" == "skipped" ];then
+              echo "Skipped $package_name package."
+            else
+              echo "Checking if $package_name package test passes..."
+              test "$result" == "success"
+              echo "Passed."
+            fi
+          }
+          check_result essential-build-and-test ${{ needs.essential-build-and-test.result }}
+          check_result spec-haskell ${{ needs.test-spec-haskell.result }}
+          check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
+          check_result subgraph ${{ needs.test-subgraph.result }}
+          check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
+          check_result sdk-core-coverage ${{ needs.coverage-sdk-core.result }}
 
 
   publish-npm-packages:

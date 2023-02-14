@@ -21,8 +21,8 @@ class ( Integral (MT_TIME  mt) -- NonNegative
     mt_v_mul_t v t = v * (fromInteger . toInteger) t
     mt_v_mul_u :: MT_VALUE mt -> MT_UNIT mt -> MT_VALUE mt
     mt_v_mul_u v u = v * (fromInteger . toInteger) u
-    mt_v_qr_u :: MT_VALUE mt -> MT_UNIT mt -> (MT_VALUE mt, MT_VALUE mt)
-    mt_v_qr_u v u = let u' = (fromInteger . toInteger) u in v `quotRem` u'
+    mt_v_div_u :: MT_VALUE mt -> MT_UNIT mt -> MT_VALUE mt
+    mt_v_div_u v u = let u' = (fromInteger . toInteger) u in v `div` u'
     mt_v_mul_u_qr_u :: MT_VALUE mt -> (MT_UNIT mt, MT_UNIT mt) -> (MT_VALUE mt, MT_VALUE mt)
     mt_v_mul_u_qr_u v (u1, u2) = (v * (fromInteger . toInteger) u1) `quotRem` (fromInteger . toInteger) u2
 
@@ -125,12 +125,12 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
          , MonetaryParticle mt t v u wp) => Index mt t v u (PDPoolIndex mt wp) where
 
     shift1 x a@(PDPoolIndex tu mpi) = (a { pdidx_wp = mpi' }, x' `mt_v_mul_u` tu)
-        where (mpi', x') = if tu == 0 then (mpi, 0) else shift1 (fst (x `mt_v_qr_u` tu)) mpi
+        where (mpi', x') = if tu == 0 then (mpi, 0) else shift1 (x `mt_v_div_u` tu) mpi
 
     getFlowRate (PDPoolIndex _ mpi) = getFlowRate mpi
 
     setFlow1 r' a@(PDPoolIndex tu mpi) = (a { pdidx_wp = mpi' }, r'' `mt_v_mul_u` tu)
-        where (mpi', r'') = if tu == 0 then (mpi, 0) else setFlow1 (fst (r' `mt_v_qr_u` tu)) mpi
+        where (mpi', r'') = if tu == 0 then (mpi, 0) else setFlow1 (r' `mt_v_div_u` tu) mpi
 
 data PDPoolMember mt wp = PDPoolMember { pdpm_owned_unit    :: MT_UNIT mt
                                        , pdpm_settled_value :: MT_VALUE mt

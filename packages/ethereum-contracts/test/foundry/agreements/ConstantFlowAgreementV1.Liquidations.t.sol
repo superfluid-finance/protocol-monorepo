@@ -13,6 +13,9 @@ import {
     SuperTokenV1Library
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
+/// @title ConstantFlowAgreementV1LiquidationsTest
+/// @author Superfluid
+/// @notice A contract for testing that liquidations work as expected
 contract ConstantFlowAgreementV1LiquidationsTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
 
@@ -90,7 +93,7 @@ contract ConstantFlowAgreementV1LiquidationsTest is FoundrySuperfluidTester {
         address _expectedTo,
         uint256 _expectedValue
     ) public {
-        vm.expectEmit(true, true, true, true, _emittingAddress);
+        vm.expectEmit(true, true, false, true, _emittingAddress);
 
         emit Transfer(_expectedFrom, _expectedTo, _expectedValue);
     }
@@ -165,6 +168,7 @@ contract ConstantFlowAgreementV1LiquidationsTest is FoundrySuperfluidTester {
             flowRate,
             ""
         );
+        uint256 nftId = uint256(keccak256(abi.encode(alice, bob)));
 
         int96 senderNetFlowRateBefore = superToken.getNetFlowRate(alice);
         int96 receiverNetFlowRateBefore = superToken.getNetFlowRate(bob);
@@ -228,6 +232,19 @@ contract ConstantFlowAgreementV1LiquidationsTest is FoundrySuperfluidTester {
             uint256(expectedRewardAmount),
             -expectedRewardAmount,
             abi.encode(1, 0)
+        );
+
+        assert_Event_Transfer(
+            address(superToken.constantInflowNFT()),
+            bob,
+            address(0),
+            nftId
+        );
+        assert_Event_Transfer(
+            address(superToken.constantOutflowNFT()),
+            alice,
+            address(0),
+            nftId
         );
 
         vm.startPrank(admin);

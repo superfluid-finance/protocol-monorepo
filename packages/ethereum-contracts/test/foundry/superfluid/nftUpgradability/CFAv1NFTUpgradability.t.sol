@@ -12,6 +12,9 @@ import {
     ISuperToken
 } from "../../../../contracts/interfaces/superfluid/ISuperToken.sol";
 import {
+    ICFAv1NFTBase
+} from "../../../../contracts/interfaces/superfluid/ICFAv1NFTBase.sol";
+import {
     CFAv1NFTBase,
     ConstantInflowNFT
 } from "../../../../contracts/superfluid/ConstantInflowNFT.sol";
@@ -135,11 +138,11 @@ contract ConstantFAv1NFTsUpgradabilityTest is CFAv1BaseTest {
         public
     {
         ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT();
-        vm.expectRevert(CFAv1NFTBase.CFA_NFT_ONLY_HOST.selector);
+        vm.expectRevert(ICFAv1NFTBase.CFA_NFT_ONLY_HOST.selector);
         constantOutflowNFTProxy.updateCode(address(newOutflowLogic));
 
         ConstantInflowNFT newInflowLogic = new ConstantInflowNFT();
-        vm.expectRevert(CFAv1NFTBase.CFA_NFT_ONLY_HOST.selector);
+        vm.expectRevert(ICFAv1NFTBase.CFA_NFT_ONLY_HOST.selector);
         constantInflowNFTProxy.updateCode(address(newInflowLogic));
     }
 

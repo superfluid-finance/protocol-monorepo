@@ -21,7 +21,7 @@ import {
 /// @dev This contract inherits from ICFAv1NFTBase which inherits from
 /// IERC721MetadataUpgradeable and holds shared storage and functions for the two NFT contracts.
 /// This contract is upgradeable and it inherits from our own ad-hoc UUPSProxiable contract which allows.
-/// NOTE: the storage gap allows us to add an additional 45 storage variables to this contract without breaking child
+/// NOTE: the storage gap allows us to add an additional 16 storage variables to this contract without breaking child
 /// COFNFT or CIFNFT storage.
 abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
     using Strings for uint256;
@@ -29,6 +29,9 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
     string public constant BASE_URI =
         "https://nft.superfluid.finance/cfa/v1/getmeta";
 
+    /**************************************************************************
+     * Storage variables
+     *************************************************************************/
     /// NOTE: The storage variables in this contract MUST NOT:
     /// - change the ordering of the existing variables
     /// - change any of the variable types
@@ -81,21 +84,6 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
     uint256 private _reserve20;
     uint256 internal _reserve21;
 
-    /// @notice Informs third-party platforms that NFT metadata should be updated
-    /// @dev This event comes from https://eips.ethereum.org/EIPS/eip-4906
-    /// @param tokenId the id of the token that should have its metadata updated
-    event MetadataUpdate(uint256 tokenId);
-
-    error CFA_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();   // 0xa3352582
-    error CFA_NFT_APPROVE_TO_CALLER();                              // 0xd3c77329
-    error CFA_NFT_APPROVE_TO_CURRENT_OWNER();                       // 0xe4790b25
-    error CFA_NFT_INVALID_TOKEN_ID();                               // 0xeab95e3b
-    error CFA_NFT_ONLY_HOST();                                      // 0x2d5a6dfa
-    error CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();  // 0x2551d606
-    error CFA_NFT_TRANSFER_FROM_INCORRECT_OWNER();                  // 0x5a26c744
-    error CFA_NFT_TRANSFER_IS_NOT_ALLOWED();                        // 0xaa747eca
-    error CFA_NFT_TRANSFER_TO_ZERO_ADDRESS();                       // 0xde06d21e
-
     function initialize(
         ISuperToken superTokenContract,
         string memory nftName,
@@ -109,11 +97,13 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
         _name = nftName;
         _symbol = nftSymbol;
         cfaV1 = IConstantFlowAgreementV1(
-            address(ISuperfluid(superToken.getHost()).getAgreementClass(
-                keccak256(
-                    "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+            address(
+                ISuperfluid(superToken.getHost()).getAgreementClass(
+                    keccak256(
+                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+                    )
                 )
-            ))
+            )
         );
     }
 
@@ -247,7 +237,7 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
     function getTokenId(
         address sender,
         address receiver
-    ) external view returns (uint256 tokenId) {
+    ) external pure returns (uint256 tokenId) {
         tokenId = _getTokenId(sender, receiver);
     }
 

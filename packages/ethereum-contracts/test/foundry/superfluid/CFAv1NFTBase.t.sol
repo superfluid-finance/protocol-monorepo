@@ -31,6 +31,11 @@ abstract contract CFAv1BaseTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperTokenMock;
     using SuperTokenV1Library for SuperToken;
 
+    string constant OUTFLOW_NFT_NAME_TEMPLATE = " Constant Outflow NFT";
+    string constant OUTFLOW_NFT_SYMBOL_TEMPLATE = "COF";
+    string constant INFLOW_NFT_NAME_TEMPLATE = " Constant Inflow NFT";
+    string constant INFLOW_NFT_SYMBOL_TEMPLATE = "CIF";
+
     SuperTokenMock public superTokenMock;
 
     ConstantOutflowNFTMock public constantOutflowNFTLogic;

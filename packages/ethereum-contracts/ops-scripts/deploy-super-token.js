@@ -199,7 +199,6 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         const resolver = await Resolver.at(sf.resolver.address);
         await resolver.set(superTokenKey, superToken.address);
         console.log("Resolver set done.");
-
         return superToken.address;
     }
 

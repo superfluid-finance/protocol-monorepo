@@ -20,6 +20,10 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
     mapping(uint256 => CFAv1NFTFlowData) internal _flowDataByTokenId;
 
+    /**************************************************************************
+     * Custom Errors
+     *************************************************************************/
+
     error COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME(); // 0x0d1d1161
     error COF_NFT_MINT_TO_ZERO_ADDRESS();           // 0x43d05e51
     error COF_NFT_ONLY_CONSTANT_INFLOW();           // 0xa495a718

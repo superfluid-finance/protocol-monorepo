@@ -17,14 +17,14 @@ import {
 } from "../../../contracts/interfaces/superfluid/ISuperToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
-/// @title GasTest 
+/// @title ForkPolygonGasTest 
 /// @author Superfluid
 /// @notice A test contract to measure gas consumption of common Superfluid operations
 /// on a forked network
-/// @dev Use forge snapshot --match-contract GasTest to run this test
+/// @dev Use forge snapshot --match-contract ForkPolygonGasTest to run this test
 /// You can also compare the gas of two different deployments by specifying the block
-/// Then running forge snapshot --diff --match-contract GasTest to see the diff
-contract GasTest is Test {
+/// Then running forge snapshot --diff --match-contract ForkPolygonGasTest to see the diff
+contract ForkPolygonGasTest is Test {
     using SuperTokenV1Library for ISuperToken;
     uint256 polygonFork;
 

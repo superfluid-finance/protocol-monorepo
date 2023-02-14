@@ -7,10 +7,6 @@ import {
     IERC20,
     ERC20WithTokenInfo
 } from "../tokens/ERC20WithTokenInfo.sol";
-import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
-import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
-import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
 
 /**
  * @title Super token factory interface
@@ -135,20 +131,21 @@ interface ISuperTokenFactory {
         external;
 
     /**
-     * @dev Super token logic created event
-     * @param tokenLogic Token logic address
-     */
+      * @dev Super token logic created event
+      * @param tokenLogic Token logic address
+      */
     event SuperTokenLogicCreated(ISuperToken indexed tokenLogic);
 
     /**
-     * @dev Super token created event
-     * @param token Newly created super token address
-     */
+      * @dev Super token created event
+      * @param token Newly created super token address
+      */
     event SuperTokenCreated(ISuperToken indexed token);
 
     /**
-     * @dev Custom super token created event
-     * @param token Newly created custom super token address
-     */
+      * @dev Custom super token created event
+      * @param token Newly created custom super token address
+      */
     event CustomSuperTokenCreated(ISuperToken indexed token);
+
 }

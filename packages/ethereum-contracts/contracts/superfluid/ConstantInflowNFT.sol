@@ -15,6 +15,10 @@ import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
 /// @notice The ConstantInflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract does not hold any storage, but references the ConstantOutflowNFT contract storage.
 contract ConstantInflowNFT is CFAv1NFTBase {
+
+    /**************************************************************************
+     * Custom Errors
+     *************************************************************************/
     error CIF_NFT_ONLY_CONSTANT_OUTFLOW(); // 0xe81ef57a
 
     function proxiableUUID() public pure override returns (bytes32) {
@@ -61,9 +65,6 @@ contract ConstantInflowNFT is CFAv1NFTBase {
         bytes memory // data
     ) internal virtual override {
         _transfer(from, to, tokenId);
-        // TODO
-        // require(_checkOnERC721Received(from, to, tokenId, data),
-        // "ERC721: transfer to non ERC721Receiver implementer");
     }
 
     /// @inheritdoc CFAv1NFTBase

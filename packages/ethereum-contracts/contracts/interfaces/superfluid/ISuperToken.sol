@@ -592,30 +592,6 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         IConstantInflowNFT indexed constantInflowNFT
     );
 
-    // /**
-    //  * @dev Pool Admin NFT logic created event
-    //  * @param poolAdminNFTProxy pool admin nft proxy address
-    //  */
-    // event PoolAdminNFTLogicCreated(IPoolAdminNFT indexed poolAdminNFTProxy);
-
-    // /**
-    //  * @dev Pool Member NFT logic created event
-    //  * @param poolMemberNFTProxy pool member nft proxy address
-    //  */
-    // event PoolMemberNFTLogicCreated(IPoolMemberNFT indexed poolMemberNFTProxy);
-
-    // /**
-    //  * @dev Pool Admin NFT logic created event
-    //  * @param poolAdminNFTProxy pool admin nft proxy address
-    //  */
-    // event PoolAdminNFTCreated(IPoolAdminNFT indexed poolAdminNFTProxy);
-
-    // /**
-    //  * @dev Pool Member NFT logic created event
-    //  * @param poolMemberNFTProxy pool member nft proxy address
-    //  */
-    // event PoolMemberNFTCreated(IPoolMemberNFT indexed poolMemberNFTProxy);
-
     /**************************************************************************
     * Function modifiers for access control and parameter validations
     *

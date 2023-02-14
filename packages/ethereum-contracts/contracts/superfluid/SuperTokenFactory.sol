@@ -107,8 +107,6 @@ abstract contract SuperTokenFactoryBase is
 
     /// @notice Updates the logic contract for the SuperTokenFactory
     /// @dev This function updates the logic contract for the SuperTokenFactory
-    /// It also updates the logic contract for the SuperToken and the respective NFTs:
-    /// ConstantOutflowNFT, ConstantInflowNFT, PoolAdminNFT, PoolMemberNFT
     /// @param newAddress the new address of the SuperTokenFactory logic contract
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host)) {

@@ -10,6 +10,9 @@ import {
     ISuperToken
 } from "../../../../contracts/interfaces/superfluid/ISuperToken.sol";
 import {
+    ICFAv1NFTBase
+} from "../../../../contracts/interfaces/superfluid/ICFAv1NFTBase.sol";
+import {
     UUPSProxiable
 } from "../../../../contracts/upgradability/UUPSProxiable.sol";
 
@@ -126,7 +129,7 @@ contract CFAv1NFTBaseMockV1 is UUPSProxiable, ICFAv1NFTBaseMockErrors {
 
     function updateCode(address newAddress) external override {
         if (msg.sender != address(superToken.getHost())) {
-            revert CFAv1NFTBase.CFA_NFT_ONLY_HOST();
+            revert ICFAv1NFTBase.CFA_NFT_ONLY_HOST();
         }
 
         UUPSProxiable._updateCodeAddress(newAddress);
@@ -246,7 +249,7 @@ contract CFAv1NFTBaseMockVGoodUpgrade is UUPSProxiable, ICFAv1NFTBaseMockErrors 
 
     function updateCode(address newAddress) external override {
         if (msg.sender != address(superToken.getHost())) {
-            revert CFAv1NFTBase.CFA_NFT_ONLY_HOST();
+            revert ICFAv1NFTBase.CFA_NFT_ONLY_HOST();
         }
 
         UUPSProxiable._updateCodeAddress(newAddress);
@@ -313,7 +316,7 @@ contract CFAv1NFTBaseMockV1BadNewVariablePreGap is UUPSProxiable, ICFAv1NFTBaseM
 
     function updateCode(address newAddress) external override {
         if (msg.sender != address(superToken.getHost())) {
-            revert CFAv1NFTBase.CFA_NFT_ONLY_HOST();
+            revert ICFAv1NFTBase.CFA_NFT_ONLY_HOST();
         }
 
         UUPSProxiable._updateCodeAddress(newAddress);
@@ -410,7 +413,7 @@ contract CFAv1NFTBaseMockV1BadReorderingPreGap is UUPSProxiable, ICFAv1NFTBaseMo
 
     function updateCode(address newAddress) external override {
         if (msg.sender != address(superToken.getHost())) {
-            revert CFAv1NFTBase.CFA_NFT_ONLY_HOST();
+            revert ICFAv1NFTBase.CFA_NFT_ONLY_HOST();
         }
 
         UUPSProxiable._updateCodeAddress(newAddress);
@@ -537,7 +540,7 @@ contract CFAv1NFTBaseMockV1BadPostGap is UUPSProxiable, ICFAv1NFTBaseMockErrors 
     
     function updateCode(address newAddress) external override {
         if (msg.sender != address(superToken.getHost())) {
-            revert CFAv1NFTBase.CFA_NFT_ONLY_HOST();
+            revert ICFAv1NFTBase.CFA_NFT_ONLY_HOST();
         }
 
         UUPSProxiable._updateCodeAddress(newAddress);

@@ -19,12 +19,6 @@ import { DeployerBaseTest } from "./DeployerBase.t.sol";
 contract FoundrySuperfluidTester is DeployerBaseTest {
     using SuperTokenV1Library for SuperToken;
 
-    string constant OUTFLOW_NFT_NAME_TEMPLATE = " Constant Outflow NFT";
-    string constant OUTFLOW_NFT_SYMBOL_TEMPLATE = "COF";
-    string constant INFLOW_NFT_NAME_TEMPLATE = " Constant Inflow NFT";
-    string constant INFLOW_NFT_SYMBOL_TEMPLATE = "CIF";
-
-
     uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
     address internal constant alice = address(0x421);

@@ -42,7 +42,7 @@ import {
     SuperTokenV1Library
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { CFAv1Library } from "../../../contracts/apps/CFAv1Library.sol";
-import { ForkBaselineTest } from "./ForkBaseline.t.sol";
+import { ForkSmokeTest } from "./ForkSmoke.t.sol";
 
 /// @title ForkPolygonERC20xCFANFTDeployment
 /// @author Superfluid
@@ -50,7 +50,7 @@ import { ForkBaselineTest } from "./ForkBaseline.t.sol";
 /// @dev Note that this test file is likely dynamic and will change over time
 /// due to the possibility that the upgrade flow may also change over time
 /// This is also only running tests for Polygon
-contract ForkPolygonERC20xCFANFTDeployment is ForkBaselineTest {
+contract ForkPolygonERC20xCFANFTDeployment is ForkSmokeTest {
     using CFAv1Library for CFAv1Library.InitData;
     uint256 polygonFork;
 
@@ -72,7 +72,7 @@ contract ForkPolygonERC20xCFANFTDeployment is ForkBaselineTest {
     address public constant DEFAULT_FLOW_OPERATOR = address(69);
 
     constructor()
-        ForkBaselineTest(
+        ForkSmokeTest(
             ethX,
             TEST_ACCOUNT,
             resolver,

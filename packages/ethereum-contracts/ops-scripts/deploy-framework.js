@@ -580,33 +580,45 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const superTokenLogic = await SuperTokenLogic.at(
                     superTokenLogicAddress
                 );
-                const constantOutflowNFTLogic =
+                const constantOutflowNFTLogicAddress =
                     await superTokenLogic.CONSTANT_OUTFLOW_NFT_LOGIC();
-                const constantInflowNFTLogic =
+                const constantInflowNFTLogicAddress =
                     await superTokenLogic.CONSTANT_INFLOW_NFT_LOGIC();
+                const superTokenFactoryCodeChanged = await codeChanged(
+                    web3,
+                    SuperTokenFactoryLogic,
+                    await superfluid.getSuperTokenFactoryLogic.call(),
+                    [
+                        superfluid.address
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
+                    ]
+                );
+                const superTokenLogicCodeChanged = await codeChanged(
+                    web3,
+                    SuperTokenLogic,
+                    await factory.getSuperTokenLogic.call(),
+                    // this replacement does not support SuperTokenMock
+                    [
+                        // See SuperToken constructor parameter
+                        superfluid.address
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
+                        constantOutflowNFTLogicAddress
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
+                        constantInflowNFTLogicAddress
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
+                    ]
+                );
                 return (
-                    (await codeChanged(
-                        web3,
-                        SuperTokenFactoryLogic,
-                        await superfluid.getSuperTokenFactoryLogic.call()
-                    )) ||
-                    (await codeChanged(
-                        web3,
-                        SuperTokenLogic,
-                        await factory.getSuperTokenLogic.call(),
-                        // this replacement does not support SuperTokenMock
-                        [
-                            // @note this must change given the new
-                            // number of parameters taken by SuperToken
-                            // See SuperToken constructor parameter
-                            superfluid.address
-                                .toLowerCase()
-                                .slice(2)
-                                .padStart(64, "0"),
-                            constantOutflowNFTLogic.slice(2).padStart(64, "0"),
-                            constantInflowNFTLogic.slice(2).padStart(64, "0"),
-                        ]
-                    ))
+                    // check if super token factory logic has changed
+                    superTokenFactoryCodeChanged || superTokenLogicCodeChanged
                 );
             } catch (e) {
                 console.log(e.toString());
@@ -617,6 +629,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // @note this can be further optimized by only deploying
         // SuperTokenFactory if SuperToken logic has changed
         // or if SuperTokenFactoryLogic has changed
+        // or if constant outflow nft logic or constant inflow nft logic has changed
         async () => {
             let superTokenFactoryLogic;
             // deploy constant outflow nft logic contract

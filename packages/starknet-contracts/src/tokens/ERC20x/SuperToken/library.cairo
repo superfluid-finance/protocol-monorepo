@@ -13,7 +13,7 @@ from starkware.cairo.common.bitwise import bitwise_not
 
 from openzeppelin.utils.constants.library import UINT8_MAX
 
-from src.utils.SemanticMoney import SemanticMoney, UniversalIndex
+from src.utils.SemanticMoney import SemanticMoney, BasicParticle
 
 //
 // Events
@@ -52,7 +52,7 @@ func SuperToken_allowances(owner: felt, spender: felt) -> (remaining: felt) {
 }
 
 @storage_var
-func SuperToken_universal_indexes(address: felt) -> (index: UniversalIndex) {
+func SuperToken_universal_indexes(address: felt) -> (index: BasicParticle) {
 }
 
 namespace SuperToken {

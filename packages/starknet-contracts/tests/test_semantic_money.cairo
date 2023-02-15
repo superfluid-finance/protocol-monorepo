@@ -2,8 +2,13 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
-from src.utils.SemanticMoney import SemanticMoney, BasicParticle, PDPoolIndex, PDPoolMember, PDPoolMemberMU
-
+from src.utils.SemanticMoney import (
+    SemanticMoney,
+    BasicParticle,
+    PDPoolIndex,
+    PDPoolMember,
+    PDPoolMemberMU,
+)
 
 @external
 func test_m_append{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
@@ -37,7 +42,9 @@ func test_realtime_balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ra
 }
 
 @external
-func test_realtime_balance_of_pool_member{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+func test_realtime_balance_of_pool_member{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}() {
     let pdPoolIndex = PDPoolIndex(10, BasicParticle(0, 0, 1));
     let pdPoolMember = PDPoolMember(10, 0, BasicParticle(0, 0, 1));
     let pdPoolMemberMU = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
@@ -62,11 +69,34 @@ func test_settle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     let (newIndex) = SemanticMoney.settle(index, 10);
     assert newIndex.rtb_settled_value = 100;
     assert newIndex.rtb_settled_at = 10;
-    let (newIndex) = SemanticMoney.settle(index, 20);
-    assert newIndex.rtb_settled_value = 200;
-    assert newIndex.rtb_settled_at = 20;
+    let (_newIndex) = SemanticMoney.settle(newIndex, 20);
+    assert _newIndex.rtb_settled_value = 200;
+    assert _newIndex.rtb_settled_at = 20;
     return ();
 }
+
+@external
+func test_settle_for_pool_index{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    let poolIndex = PDPoolIndex(10, BasicParticle(0, 0, 10));
+    let (settled_pool_index) = SemanticMoney.settle_for_pool_index(poolIndex, 10);
+    assert settled_pool_index.wrapped_particle.rtb_settled_at = 10;
+    assert settled_pool_index.wrapped_particle.rtb_settled_value = 100;
+    let (_settled_pool_index) = SemanticMoney.settle_for_pool_index(settled_pool_index, 20);
+    assert _settled_pool_index.wrapped_particle.rtb_settled_at = 20;
+    assert _settled_pool_index.wrapped_particle.rtb_settled_value = 200;
+    return ();
+}
+
+@external
+func test_settle_for_pool_member_mu{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    let poolIndex = PDPoolIndex(10, BasicParticle(0, 0, 10));
+    let poolMember = PDPoolMember(5, 0, BasicParticle(0, 0, 10));
+    let poolMemberMU = PDPoolMemberMU(poolIndex, poolMember);
+    let (settled_poolMemberMU) = SemanticMoney.settle_for_pool_member_mu(poolMemberMU, 500);
+    assert settled_poolMemberMU.pdPoolMember.settled_value = 0; 
+    return ();
+}
+
 
 @external
 func test_shift1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {

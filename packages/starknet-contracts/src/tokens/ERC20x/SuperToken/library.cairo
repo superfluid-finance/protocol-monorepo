@@ -104,7 +104,7 @@ namespace SuperToken {
         let (accountIndex) = SuperToken_universal_indexes.read(account);
         let (timestamp) = get_block_timestamp();
         let (realtime_balance) = SemanticMoney.realtime_balance_of(accountIndex, timestamp);
-        return (balance = realtime_balance);
+        return (balance=realtime_balance);
     }
 
     func allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -130,7 +130,9 @@ namespace SuperToken {
         return (success=TRUE);
     }
 
-    func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) {
+    func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        receiver: felt, flow_rate: felt
+    ) {
         let (caller) = get_caller_address();
         with_attr error_message("SuperToken: balance is zero") {
             let (callerBalance) = balance_of(caller);
@@ -139,13 +141,17 @@ namespace SuperToken {
         let (callerIndex) = SuperToken_universal_indexes.read(caller);
         let (receiverIndex) = SuperToken_universal_indexes.read(receiver);
         let (timestamp) = get_block_timestamp();
-        let (newCallerIndex, newReceiverIndex) = SemanticMoney.flow2(callerIndex, receiverIndex, flow_rate, timestamp);
+        let (newCallerIndex, newReceiverIndex) = SemanticMoney.flow2(
+            callerIndex, receiverIndex, flow_rate, timestamp
+        );
         SuperToken_universal_indexes.write(caller, newCallerIndex);
         SuperToken_universal_indexes.write(receiver, newReceiverIndex);
         return ();
     }
 
-    func updateFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) {
+    func updateFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        receiver: felt, flow_rate: felt
+    ) {
         let (caller) = get_caller_address();
         with_attr error_message("SuperToken: balance is zero") {
             let (callerBalance) = balance_of(receiver);
@@ -154,7 +160,9 @@ namespace SuperToken {
         let (callerIndex) = SuperToken_universal_indexes.read(caller);
         let (receiverIndex) = SuperToken_universal_indexes.read(receiver);
         let (timestamp) = get_block_timestamp();
-        let (newCallerIndex, newReceiverIndex) = SemanticMoney.flow2(callerIndex, receiverIndex, flow_rate, timestamp);
+        let (newCallerIndex, newReceiverIndex) = SemanticMoney.flow2(
+            callerIndex, receiverIndex, flow_rate, timestamp
+        );
         SuperToken_universal_indexes.write(caller, newCallerIndex);
         SuperToken_universal_indexes.write(receiver, newReceiverIndex);
         return ();
@@ -224,7 +232,9 @@ namespace SuperToken {
         let (zeroAddressIndex) = SuperToken_universal_indexes.read(0);
         let (recipientIndex) = SuperToken_universal_indexes.read(recipient);
         let (timestamp) = get_block_timestamp();
-        let (newZeroAddressIndex, newRecipientIndex) = SemanticMoney.shift2(zeroAddressIndex, recipientIndex, amount, timestamp);
+        let (newZeroAddressIndex, newRecipientIndex) = SemanticMoney.shift2(
+            zeroAddressIndex, recipientIndex, amount, timestamp
+        );
         SuperToken_universal_indexes.write(0, newZeroAddressIndex);
         SuperToken_universal_indexes.write(recipient, newRecipientIndex);
         Transfer.emit(0, recipient, amount);
@@ -253,7 +263,9 @@ namespace SuperToken {
         let (senderIndex) = SuperToken_universal_indexes.read(sender);
         let (recipientIndex) = SuperToken_universal_indexes.read(recipient);
         let (timestamp) = get_block_timestamp();
-        let (newSenderIndex, newRecipientIndex) = SemanticMoney.shift2(senderIndex, recipientIndex, amount, timestamp);
+        let (newSenderIndex, newRecipientIndex) = SemanticMoney.shift2(
+            senderIndex, recipientIndex, amount, timestamp
+        );
         SuperToken_universal_indexes.write(sender, newSenderIndex);
         SuperToken_universal_indexes.write(recipient, newRecipientIndex);
         Transfer.emit(sender, recipient, amount);

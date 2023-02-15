@@ -2,7 +2,6 @@
 
 @contract_interface
 namespace ISuperToken {
-    
     func name() -> (name: felt) {
     }
 

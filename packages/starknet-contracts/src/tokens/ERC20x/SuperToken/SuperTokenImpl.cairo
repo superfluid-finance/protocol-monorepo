@@ -9,7 +9,6 @@ from openzeppelin.access.ownable.library import Ownable
 
 from src.tokens.ERC20x.SuperToken.library import SuperToken
 
-
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     name: felt, symbol: felt, decimals: felt, initial_supply: felt
@@ -81,28 +80,30 @@ func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 }
 
 @external
-func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    to: felt, amount: felt
-) {
+func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt, amount: felt) {
     SuperToken._mint(to, amount);
     return ();
 }
 
 @external
-func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) -> (success: felt) {
+func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    receiver: felt, flow_rate: felt
+) -> (success: felt) {
     SuperToken.createFlow(receiver, flow_rate);
     return (success=TRUE);
 }
 
 @external
-func updateFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(receiver: felt, flow_rate: felt) -> (success: felt) {
+func updateFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    receiver: felt, flow_rate: felt
+) -> (success: felt) {
     SuperToken.updateFlow(receiver, flow_rate);
     return (success=TRUE);
 }
 
 @external
 func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        spender: felt, amount: felt
+    spender: felt, amount: felt
 ) -> (success: felt) {
     SuperToken.approve(spender, amount);
     return (success=TRUE);
@@ -110,7 +111,7 @@ func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
 @external
 func increase_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        spender: felt, added_value: felt
+    spender: felt, added_value: felt
 ) -> (success: felt) {
     SuperToken.increase_allowance(spender, added_value);
     return (success=TRUE);
@@ -118,7 +119,7 @@ func increase_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 
 @external
 func decrease_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        spender: felt, subtracted_value: felt
+    spender: felt, subtracted_value: felt
 ) -> (success: felt) {
     SuperToken.decrease_allowance(spender, subtracted_value);
     return (success=TRUE);

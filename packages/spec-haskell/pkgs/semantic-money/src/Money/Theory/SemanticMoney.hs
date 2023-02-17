@@ -147,7 +147,7 @@ pdpUpdateMember2 :: ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_
                     , mu ~ PDPoolMemberMU mt wp
                     ) => u -> t -> (a, mu) -> (a, mu)
 pdpUpdateMember2 u' t' (a, (b, pm))  = (a'', (b'', pm''))
-    where (PDPoolIndex tu mpi, pm'1@(PDPoolMember u _ _)) = settle t' (settle t' b, pm)
+    where (PDPoolIndex tu mpi, pm'1@(PDPoolMember u _ _)) = settle t' (b, pm)
           tu' = tu + u' - u
           (mpi', a'') = align2 tu tu' (mpi, settle t' a)
           b''  = PDPoolIndex tu' mpi'
@@ -155,7 +155,7 @@ pdpUpdateMember2 u' t' (a, (b, pm))  = (a'', (b'', pm''))
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
          , MonetaryUnit mt t v wp) => MonetaryUnit mt t v (PDPoolMemberMU mt wp) where
-    settle t' (pix@(PDPoolIndex _ mpi), pm@(PDPoolMember u _ mps)) = (pix, pm')
+    settle t' (pix@(PDPoolIndex _ mpi), pm@(PDPoolMember u _ mps)) = (settle t' pix, pm')
         where sv' = (rtb mpi t' - rtb mps t') `mt_v_mul_u` u
               pm' = pm { pdpm_settled_value = sv' }
 
@@ -210,8 +210,8 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
          ) => MonetaryParticle mt t v u (BasicParticle mt) where
-    align2 u u' (a, b) = (a', b')
-        where r = getFlowRate a
+    align2 u u' (b, a) = (b', a')
+        where r = getFlowRate b
               (r', er') = if u' == 0 then (0, r `mt_v_mul_u` u) else r `mt_v_mul_u_qr_u` (u, u')
-              a' = (fst . setFlow1 r') a
-              b' = (fst . shiftFlow1 er') b
+              b' = (fst . setFlow1 r') b
+              a' = (fst . shiftFlow1 er') a

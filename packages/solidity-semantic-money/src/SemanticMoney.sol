@@ -59,7 +59,7 @@ library MonetaryTypes {
         return FlowRate.wrap(FlowRate.unwrap(a) / int128(uint128(Unit.unwrap(b))));
     }
     function quotRem(FlowRate r, Unit u) internal pure returns (FlowRate nr, FlowRate er) {
-        nr = FlowRate.wrap(FlowRate.unwrap(r) / int128(Unit.unwrap(u)) * int128(Unit.unwrap(u)));
+        nr = FlowRate.wrap(FlowRate.unwrap(r) / int128(Unit.unwrap(u)));
         er = FlowRate.wrap(FlowRate.unwrap(r) % int128(Unit.unwrap(u)));
     }
 
@@ -227,36 +227,25 @@ library SemanticMoney {
     // Update the unit amount of the member of the pool
     function pool_member_update(PDPoolMemberMU memory b1, BasicParticle memory a, Unit u, Time t)
         internal pure
-        returns (PDPoolIndex memory p, PDPoolMember memory p1, BasicParticle memory m)
+        returns (PDPoolIndex memory p, PDPoolMember memory p1, BasicParticle memory b)
     {
-        m = a.settle(t);
         Unit oldTotalUnit = b1.i.total_units;
         Unit newTotalUnit = oldTotalUnit.add(u).sub(b1.m.owned_unit);
         PDPoolMemberMU memory b1s = PDPoolMemberMU(b1.i.settle(t), b1.m).settle(t);
 
         // align "a" because of the change of total units of the pool
-        //
-        // align2 tu tu' (mpi, settle t' a)
-        //
-        // tu  = b1s.i.total_units
-        // tu' = newTotalUnit
-        // mpi = b1s.i.wrapped_particle
-        // settle t' a = m
-        //
-        // r = b1s.i.wrapped_particle.flow_rate
-        // if tu' == 0
         FlowRate nr = b1s.i.wrapped_particle.flow_rate;
         FlowRate er;
         if (Unit.unwrap(newTotalUnit) != 0) {
-            (nr, er) = nr.mul_u_qr_u(b1s.i.total_units, newTotalUnit);
+            (nr, er) = nr.mul_u_qr_u(oldTotalUnit, newTotalUnit);
+            er = er;
         } else {
+            er = nr.mul(oldTotalUnit);
             nr = FlowRate.wrap(0);
-            er = nr;
         }
-
         b1s.i.wrapped_particle = b1s.i.wrapped_particle.setFlow1(nr);
         b1s.i.total_units = newTotalUnit;
-        m = m.setFlow1(m.flow_rate.add(er.mul(oldTotalUnit)));
+        b = a.settle(t).setFlow1(a.flow_rate.add(er));
 
         p = b1s.i;
         p1 = b1s.m;

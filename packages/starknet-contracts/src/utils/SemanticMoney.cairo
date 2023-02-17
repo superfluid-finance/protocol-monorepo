@@ -118,7 +118,35 @@ namespace SemanticMoney {
 
     // Pool Operations
 
-    func realtime_balance_of_pool_member{
+    func clone_of_pool_index{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        index: PDPoolIndex
+    ) -> (index: PDPoolIndex) {
+        let clonedPoolIndex = PDPoolIndex(
+            index.total_units,
+            BasicParticle(
+                index.wrapped_particle.rtb_settled_at, index.rtb_settled_value, index.rtb_flow_rate
+            ),
+        );
+        return clonedPoolIndex;
+    }
+
+    func clone_of_pool_member_mu{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        poolMemberMU: PDPoolMemberMU
+    ) -> (poolMemberMU: PDPoolMemberMU) {
+        let clonedPoolMemberMU = PDPoolMemberMU(
+            PDPoolIndex(
+                poolMemberMU.pdPoolIndex.total_units, poolMemberMU.pdPoolIndex.wrapped_particle
+            ),
+            PDPoolMember(
+                poolMemberMU.pdPoolMember.owned_unit,
+                poolMemberMU.pdPoolMember.settled_value,
+                poolMemberMU.pdPoolMember.synced_particle,
+            ),
+        );
+        return clonedPoolMemberMU;
+    }
+
+    func realtime_balance_of_pool_member_mu{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     }(poolMemberMU: PDPoolMemberMU, time: felt) -> (balance: felt) {
         let (realtime_balance_of_wrapped_particle) = realtime_balance_of(
@@ -128,8 +156,8 @@ namespace SemanticMoney {
             poolMemberMU.pdPoolMember.synced_particle,
             poolMemberMU.pdPoolMember.synced_particle.rtb_settled_at,
         );
-        let balance = (realtime_balance_of_wrapped_particle - realtime_balance_of_synced_particle) *
-            poolMemberMU.pdPoolMember.owned_unit;
+        let balance = ((realtime_balance_of_wrapped_particle - realtime_balance_of_synced_particle) *
+            poolMemberMU.pdPoolMember.owned_unit) + poolMemberMU.pdPoolMember.settled_value;
         return (balance=balance);
     }
 
@@ -163,4 +191,78 @@ namespace SemanticMoney {
         );
         return (poolMemberMU=newPoolMemberMU);
     }
+
+    func pool_member_update{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        poolMemberMU: PDPoolMemberMU, u_index: BasicParticle, unit: felt, time: felt
+    ) -> (p_index: PDPoolIndex, pool_member: PDPoolMember, u_index: BasicParticle) {
+        alloc_locals;
+        let old_total_units = poolMemberMU.pdPoolIndex.total_units;
+        let new_total_units = (old_total_units + unit) - poolMemberMU.pdPoolMember.owned_unit;
+        let (settled_pool_index) = settle_for_pool_index(poolMemberMU.pdPoolIndex, time);
+        let newPoolMemberMU = PDPoolMemberMU(settled_pool_index, poolMemberMU.pdPoolMember);
+        let (settled_pool_member_mu) = settle_for_pool_member_mu(newPoolIndex, time);
+
+        // Alignment
+        let nr = poolMemberMU.pdPoolIndex.wrapped_particle.rtb_flow_rate;
+        let er = 0;
+        if(new_total_units != 0){
+            let r_mul_otu = nr * old_total_units;
+            let r_mul_otu_div_ntu = r_mul_otu/new_total_units;
+            nr = r_mul_otu_div_ntu;
+            er = r_mul_otu - (r_mul_otu_div_ntu * new_total_units);
+        } else {
+            er = nr * old_total_units;
+            nr = 0;
+        }
+        let (wp_with_new_fr, _) = setFlow1(nr, poolMemberMU.pdPoolIndex.wrapped_particle);
+        let (settled_u_index) = settle(u_index, time);
+        let (u_index_with_new_fr, _) = setFlow1(u_index.rtb_flow_rate + er, settled_u_index);
+
+        let newPoolIndex = PDPoolIndex(new_total_units, wp_with_new_fr);
+        let newPoolMember = PDPoolMember(unit, poolMemberMU.pdPoolMember.settled_value, wp_with_new_fr);
+        return (p_index=PDPoolIndex, pool_member=newPoolMember, u_index=u_index_with_new_fr);
+    }
+
+    func shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        u_index: BasicParticle, p_index: PDPoolIndex, value: felt, time: felt
+    ) -> (u_index: BasicParticle, p_index: PDPoolIndex) {
+        alloc_locals;
+        local _u_index;
+        local _p_index;
+        if(p_index.total_units != 0){
+            let nx = (value / p_index.total_units) * p_index.total_units;
+            let (settled_u_index) = settle(u_index, time);
+            let (shift1_on_u_index, _) = shift1(settled_u_index, -value);
+            let (settled_p_index) = settle_for_pool_index(p_index, time);
+            let (shift1_on_wrapped_particle, _) = shift1(nx/p_index.total_units, settled_p_index.wrapped_particle);
+            _u_index = shift1_on_u_index;
+            _p_index = PDPoolIndex(p_index.total_units, shift1_on_wrapped_particle);
+        } else {
+            _u_index = settle(u_index, time);
+            _p_index = settle_for_pool_index(p_index, time);
+        }
+        return (u_index=_u_index, p_index=_p_index);
+    }
+
+    func flow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        u_index: BasicParticle, p_index: PDPoolIndex, value: felt, time: felt
+    ) -> (u_index: BasicParticle, p_index: PDPoolIndex) {
+        alloc_locals;
+        local _u_index;
+        local _p_index;
+        if(p_index.total_units != 0){
+            let nr = (value / p_index.total_units) * p_index.total_units;
+            let (settled_u_index) = settle(u_index, time);
+            let (setFlow1_on_u_index, _) = setFlow1(settled_u_index, -value);
+            let (settled_p_index) = settle_for_pool_index(p_index, time);
+            let (setFlow1_on_wrapped_particle, _) = setFlow1(nr/p_index.total_units, settled_p_index.wrapped_particle);
+            _u_index = setFlow1_on_u_index;
+            _p_index = PDPoolIndex(p_index.total_units, setFlow1_on_wrapped_particle);
+        } else {
+            _u_index = settle(u_index, time);
+            _p_index = settle_for_pool_index(p_index, time);
+        }
+        return (u_index=_u_index, p_index=_p_index);
+    }
+
 }

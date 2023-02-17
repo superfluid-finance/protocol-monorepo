@@ -42,23 +42,23 @@ func test_realtime_balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ra
 }
 
 @external
-func test_realtime_balance_of_pool_member{
+func test_realtime_balance_of_pool_member_mu{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }() {
     let pdPoolIndex = PDPoolIndex(10, BasicParticle(0, 0, 1));
     let pdPoolMember = PDPoolMember(10, 0, BasicParticle(0, 0, 1));
     let pdPoolMemberMU = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
-    let (balance) = SemanticMoney.realtime_balance_of_pool_member(pdPoolMemberMU, 10);
+    let (balance) = SemanticMoney.realtime_balance_of_pool_member_mu(pdPoolMemberMU, 10);
     assert balance = 100;
     let _pdPoolIndex = PDPoolIndex(10, BasicParticle(0, 0, 10));
     let _pdPoolMember = PDPoolMember(10, 0, BasicParticle(0, 0, 10));
     let _pdPoolMemberMU = PDPoolMemberMU(_pdPoolIndex, _pdPoolMember);
-    let (_balance) = SemanticMoney.realtime_balance_of_pool_member(_pdPoolMemberMU, 10);
+    let (_balance) = SemanticMoney.realtime_balance_of_pool_member_mu(_pdPoolMemberMU, 10);
     assert _balance = 1000;
     let __pdPoolIndex = PDPoolIndex(10, BasicParticle(0, 0, 10));
     let __pdPoolMember = PDPoolMember(3, 0, BasicParticle(0, 0, 10));
     let __pdPoolMemberMU = PDPoolMemberMU(__pdPoolIndex, __pdPoolMember);
-    let (__balance) = SemanticMoney.realtime_balance_of_pool_member(__pdPoolMemberMU, 10);
+    let (__balance) = SemanticMoney.realtime_balance_of_pool_member_mu(__pdPoolMemberMU, 10);
     assert __balance = 300;
     return ();
 }
@@ -88,15 +88,16 @@ func test_settle_for_pool_index{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
 }
 
 @external
-func test_settle_for_pool_member_mu{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+func test_settle_for_pool_member_mu{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}() {
     let poolIndex = PDPoolIndex(10, BasicParticle(0, 0, 10));
     let poolMember = PDPoolMember(5, 0, BasicParticle(0, 0, 10));
     let poolMemberMU = PDPoolMemberMU(poolIndex, poolMember);
     let (settled_poolMemberMU) = SemanticMoney.settle_for_pool_member_mu(poolMemberMU, 500);
-    assert settled_poolMemberMU.pdPoolMember.settled_value = 0; 
+    assert settled_poolMemberMU.pdPoolMember.settled_value = 0;
     return ();
 }
-
 
 @external
 func test_shift1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {

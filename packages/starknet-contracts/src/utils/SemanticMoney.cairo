@@ -247,12 +247,12 @@ namespace SemanticMoney {
             let (shift1_on_wrapped_particle, _) = shift1(
                 nx / p_index.total_units, settled_p_index.wrapped_particle
             );
-            let _p_index = PDPoolIndex(p_index.total_units, shift1_on_wrapped_particle);
-            return (u_index=shift1_on_u_index, p_index=_p_index);
+            let newPoolIndex = PDPoolIndex(settled_p_index.total_units, shift1_on_wrapped_particle);
+            return (u_index=shift1_on_u_index, p_index=newPoolIndex);
         } else {
-            let (_u_index) = settle(u_index, time);
-            let (_p_index) = settle_for_pool_index(p_index, time);
-            return (u_index=_u_index, p_index=_p_index);
+            let (u_index) = settle(u_index, time);
+            let (p_index) = settle_for_pool_index(p_index, time);
+            return (u_index=u_index, p_index=p_index);
         }
     }
 
@@ -270,9 +270,12 @@ namespace SemanticMoney {
             let _p_index = PDPoolIndex(p_index.total_units, setFlow1_on_wrapped_particle);
             return (u_index=setFlow1_on_u_index, p_index=_p_index);
         } else {
-            let (_u_index) = settle(u_index, time);
-            let (_p_index) = settle_for_pool_index(p_index, time);
-            return (u_index=_u_index, p_index=_p_index);
+            let (settled_u_index) = settle(u_index, time);
+            let (settled_p_index) = settle_for_pool_index(p_index, time);
+            let (setFlow1_on_u_index, _) = setFlow1(0, settled_u_index);
+            let (setFlow1_on_wrapped_particle, _) = setFlow1(0, settled_p_index.wrapped_particle);
+            let newPoolIndex = PDPoolIndex(settled_p_index.total_units, setFlow1_on_wrapped_particle);
+            return (u_index=setFlow1_on_u_index, p_index=newPoolIndex);
         }
     }
 }

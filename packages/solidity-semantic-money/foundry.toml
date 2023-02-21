@@ -2,7 +2,9 @@
 root = '../..'
 src = 'packages/solidity-semantic-money'
 out = 'packages/solidity-semantic-money/out'
+solc_version = '0.8.18'
 remappings = [
-    '@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/',
+    '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',
+    '@openzeppelin/=node_modules/@openzeppelin/',
     'ds-test/=lib/forge-std/lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/']

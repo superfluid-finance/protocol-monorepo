@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity 0.8.18;
 
 
 type Time     is uint32;
@@ -45,6 +45,9 @@ library MonetaryTypes {
     ////////////////////////////////////////////////////////////
     function add(FlowRate a, FlowRate b) internal pure returns (FlowRate) {
         return FlowRate.wrap(FlowRate.unwrap(a) + FlowRate.unwrap(b));
+    }
+    function sub(FlowRate a, FlowRate b) internal pure returns (FlowRate) {
+        return FlowRate.wrap(FlowRate.unwrap(a) - FlowRate.unwrap(b));
     }
     function inv(FlowRate r) internal pure returns (FlowRate) {
         return FlowRate.wrap(-FlowRate.unwrap(r));
@@ -140,6 +143,7 @@ library SemanticMoney {
         Time t = Time.unwrap(a.settled_at) > Time.unwrap(b.settled_at) ? a.settled_at : b.settled_at;
         BasicParticle memory a1 = a.settle(t);
         BasicParticle memory b1 = b.settle(t);
+        c.settled_at = t;
         c.settled_value = a1.settled_value.add(b1.settled_value);
         c.flow_rate = a1.flow_rate.add(b1.flow_rate);
     }
@@ -159,7 +163,7 @@ library SemanticMoney {
         b.settled_value = b.settled_value.add(x); // TODO b.add_to(x);
     }
 
-    function setFlow1(BasicParticle memory a, FlowRate r) internal pure returns (BasicParticle memory b) {
+    function flow1(BasicParticle memory a, FlowRate r) internal pure returns (BasicParticle memory b) {
         b = a.clone();
         b.flow_rate = r;
     }
@@ -176,8 +180,8 @@ library SemanticMoney {
 
     function flow2(BasicParticle memory a, BasicParticle memory b, FlowRate r, Time t) internal pure
         returns (BasicParticle memory m, BasicParticle memory n) {
-        m = a.settle(t).setFlow1(r.inv());
-        n = b.settle(t).setFlow1(r);
+        m = a.settle(t).flow1(r.inv());
+        n = b.settle(t).flow1(r);
     }
 
     //
@@ -243,9 +247,9 @@ library SemanticMoney {
             er = nr.mul(oldTotalUnit);
             nr = FlowRate.wrap(0);
         }
-        b1s.i.wrapped_particle = b1s.i.wrapped_particle.setFlow1(nr);
+        b1s.i.wrapped_particle = b1s.i.wrapped_particle.flow1(nr);
         b1s.i.total_units = newTotalUnit;
-        b = a.settle(t).setFlow1(a.flow_rate.add(er));
+        b = a.settle(t).flow1(a.flow_rate.add(er));
 
         p = b1s.i;
         p1 = b1s.m;
@@ -271,13 +275,13 @@ library SemanticMoney {
     {
         if (Unit.unwrap(b.total_units) != 0) {
             FlowRate nr = r.div(b.total_units).mul(b.total_units);
-            m = a.settle(t).setFlow1(nr.inv());
+            m = a.settle(t).flow1(nr.inv());
             n = b.settle(t);
-            n.wrapped_particle = n.wrapped_particle.setFlow1(nr.div(b.total_units));
+            n.wrapped_particle = n.wrapped_particle.flow1(nr.div(b.total_units));
         } else {
-            m = a.settle(t).setFlow1(FlowRate.wrap(0));
+            m = a.settle(t).flow1(FlowRate.wrap(0));
             n = b.settle(t);
-            n.wrapped_particle = n.wrapped_particle.setFlow1(FlowRate.wrap(0));
+            n.wrapped_particle = n.wrapped_particle.flow1(FlowRate.wrap(0));
         }
     }
 

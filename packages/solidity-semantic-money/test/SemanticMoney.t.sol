@@ -119,6 +119,106 @@ contract SemanticMoneyTest is Test {
 
     }
 
+    function test_UPDP_1Member_Shift2Shift2(uint16 m1, uint64 u1, // update unit
+                                            uint16 m2, int64 x2,  // distribute
+                                            uint16 m3, uint64 u2, // update unit
+                                            uint16 m4, int64 x4,  // distribute
+                                            uint16 m5) external {
+        UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
+
+        (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u1), d.t1);
+        assertEq(Value.unwrap(d.b1.synced_particle.settled_value), 0);
+        assertEq(Unit.unwrap(d.b.total_units), u1);
+        assertEq(Unit.unwrap(d.b1.owned_unit), u1);
+
+        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x2), d.t2);
+
+        (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
+        assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
+        assertEq(Unit.unwrap(d.b1.owned_unit), u2);
+
+        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x4), d.t4);
+
+        assertEq(Value.unwrap(d.a.rtb(d.t5)
+                              .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
+                             ), 0);
+    }
+
+    function test_UPDP_1Member_Flow2Flow2(uint16 m1, uint64 u1, // update unit
+                                          uint16 m2, int64 r2,  // distribute flow
+                                          uint16 m3, uint64 u2, // update unit
+                                          uint16 m4, int64 r4,  // distribute flow
+                                          uint16 m5) external {
+        UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
+
+        (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u1), d.t1);
+        assertEq(Value.unwrap(d.b1.synced_particle.settled_value), 0);
+        assertEq(Unit.unwrap(d.b.total_units), u1);
+        assertEq(Unit.unwrap(d.b1.owned_unit), u1);
+
+        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
+
+        (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
+        assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
+        assertEq(Unit.unwrap(d.b1.owned_unit), u2);
+
+        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
+
+        assertEq(Value.unwrap(d.a.rtb(d.t5)
+                              .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
+                             ), 0);
+    }
+
+    function test_UPDP_1Member_Shift2Flow2(uint16 m1, uint64 u1, // update unit
+                                           uint16 m2, int64 x2,  // distribute
+                                           uint16 m3, uint64 u2, // update unit
+                                           uint16 m4, int64 r4,  // distribute flow
+                                           uint16 m5) external {
+        UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
+
+        (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u1), d.t1);
+        assertEq(Value.unwrap(d.b1.synced_particle.settled_value), 0);
+        assertEq(Unit.unwrap(d.b.total_units), u1);
+        assertEq(Unit.unwrap(d.b1.owned_unit), u1);
+
+        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x2), d.t2);
+
+        (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
+        assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
+        assertEq(Unit.unwrap(d.b1.owned_unit), u2);
+
+        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
+
+        assertEq(Value.unwrap(d.a.rtb(d.t5)
+                              .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
+                             ), 0);
+    }
+
+    function test_UPDP_1Member_Flow2Shift2(uint16 m1, uint64 u1, // update unit
+                                           uint16 m2, int64 r2,  // distribute flow
+                                           uint16 m3, uint64 u2, // update unit
+                                           uint16 m4, int64 x4,  // distribute
+                                           uint16 m5) external {
+        UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
+
+        (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u1), d.t1);
+        assertEq(Value.unwrap(d.b1.synced_particle.settled_value), 0);
+        assertEq(Unit.unwrap(d.b.total_units), u1);
+        assertEq(Unit.unwrap(d.b1.owned_unit), u1);
+
+        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
+
+        (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
+        assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
+        assertEq(Unit.unwrap(d.b1.owned_unit), u2);
+
+        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x4), d.t4);
+
+        assertEq(Value.unwrap(d.a.rtb(d.t5)
+                              .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
+                             ), 0);
+    }
+
     function test_UPDP_2Members_Shift2Shift2(uint16 m1, uint64 u1, // update unit for member 1
                                              uint16 m2, int64 x2,  // distribute
                                              uint16 m3, uint64 u2, // update unit for member 2

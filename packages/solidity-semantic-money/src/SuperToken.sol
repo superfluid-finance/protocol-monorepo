@@ -21,8 +21,9 @@ contract SuperToken is IERC20 {
     using MonetaryTypes for Value;
     using SemanticMoney for BasicParticle;
     using SemanticMoney for PDPoolMemberMU;
+
     // immutable internal Pool _POOL_IMPLEMENTATION;
-    FlowId constant public ALL_FLOWS_FLOW_ID = FlowId.wrap(type(uint32).max);
+    //FlowId constant public ALL_FLOWS_FLOW_ID = FlowId.wrap(type(uint32).max);
 
     mapping (address owner => BasicParticle) public uIndexes;
     mapping (bytes32 flowAddress => FlowRate) public flowRates;
@@ -49,6 +50,9 @@ contract SuperToken is IERC20 {
 
     function transferFrom(address from, address to, uint256 amount) public returns (bool) {
         Time t = Time.wrap(uint32(block.timestamp));
+        // FIXME: plug permission controls
+        require(msg.sender == from);
+        // Make updates
         (uIndexes[from], uIndexes[to]) = uIndexes[from].shift2(uIndexes[to], Value.wrap(int256(amount)), t);
         return true;
     }
@@ -61,15 +65,18 @@ contract SuperToken is IERC20 {
         returns (bool success) {}
 
     function distribute(address from, Pool to, Value reqAmount) external
-        returns (bool success, Value actualAmount) {}
+        returns (bool success, Value actualAmount) {
+    }
 
     function flow(address from, address to, FlowId flowId, FlowRate flowRate) external
         returns (bool success) {
-        bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
         Time t = Time.wrap(uint32(block.timestamp));
+        bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
+        // FIXME: plug permission controls
+        require(msg.sender == from);
+        // Make updates
         FlowRate oldFlowRate = flowRates[flowAddress];
-        (uIndexes[from], uIndexes[to]) = uIndexes[from]
-            .flow2(uIndexes[to], flowRate.sub(oldFlowRate), t);
+        (uIndexes[from], uIndexes[to]) = uIndexes[from].flow2(uIndexes[to], flowRate.sub(oldFlowRate), t);
         flowRates[flowAddress] = oldFlowRate;
         return false;
     }
@@ -86,6 +93,8 @@ contract SuperToken is IERC20 {
     // Pool Operations
     ////////////////////////////////////////////////////////////////////////////////
 
-    function createPool() external returns (bool success, Pool pool) {}
+    function createPool() external returns (Pool pool) {
+        return new Pool();
+    }
 
 }

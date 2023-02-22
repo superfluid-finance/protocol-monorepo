@@ -26,7 +26,6 @@ library MonetaryTypes {
     function inv(Value x) internal pure returns (Value) {
         return Value.wrap(-Value.unwrap(x));
     }
-    // TODO: add_to
     function add(Value a, Value b) internal pure returns (Value) {
         return Value.wrap(Value.unwrap(a) + Value.unwrap(b));
     }
@@ -138,15 +137,15 @@ library SemanticMoney {
     }
 
     // monoid append
-    function mappend(BasicParticle memory a, BasicParticle memory b)
-        internal pure returns (BasicParticle memory c) {
-        Time t = Time.unwrap(a.settled_at) > Time.unwrap(b.settled_at) ? a.settled_at : b.settled_at;
-        BasicParticle memory a1 = a.settle(t);
-        BasicParticle memory b1 = b.settle(t);
-        c.settled_at = t;
-        c.settled_value = a1.settled_value.add(b1.settled_value);
-        c.flow_rate = a1.flow_rate.add(b1.flow_rate);
-    }
+    /* function mappend(BasicParticle memory a, BasicParticle memory b) */
+    /*     internal pure returns (BasicParticle memory c) { */
+    /*     Time t = Time.unwrap(a.settled_at) > Time.unwrap(b.settled_at) ? a.settled_at : b.settled_at; */
+    /*     BasicParticle memory a1 = a.settle(t); */
+    /*     BasicParticle memory b1 = b.settle(t); */
+    /*     c.settled_at = t; */
+    /*     c.settled_value = a1.settled_value.add(b1.settled_value); */
+    /*     c.flow_rate = a1.flow_rate.add(b1.flow_rate); */
+    /* } */
 
     function settle(BasicParticle memory a, Time t) internal pure returns (BasicParticle memory b) {
         b = a.clone();
@@ -172,10 +171,10 @@ library SemanticMoney {
     // Universal Index to Universal Index 2-primitives
     //
 
-    function shift2(BasicParticle memory a, BasicParticle memory b, Value x, Time t) internal pure
+    function shift2(BasicParticle memory a, BasicParticle memory b, Value x, Time /* ignored */) internal pure
         returns (BasicParticle memory m, BasicParticle memory n) {
-        m = a.settle(t).shift1(x.inv());
-        n = b.settle(t).shift1(x);
+        m = a.shift1(x.inv());
+        n = b.shift1(x);
     }
 
     function flow2(BasicParticle memory a, BasicParticle memory b, FlowRate r, Time t) internal pure
@@ -257,16 +256,16 @@ library SemanticMoney {
         p1.synced_particle = b1s.i.wrapped_particle.clone();
     }
 
-    function shift2(BasicParticle memory a, PDPoolIndex memory b, Value x, Time t) internal pure
+    function shift2(BasicParticle memory a, PDPoolIndex memory b, Value x, Time /* ignored */) internal pure
         returns (BasicParticle memory m, PDPoolIndex memory n) {
         if (Unit.unwrap(b.total_units) != 0) {
             Value nx = x.div(b.total_units).mul(b.total_units);
-            m = a.settle(t).shift1(nx.inv());
-            n = b.settle(t);
-            n.wrapped_particle = n.wrapped_particle.shift1(nx.div(b.total_units));
+            m = a.shift1(nx.inv());
+            n = b.clone();
+            n.wrapped_particle = b.wrapped_particle.shift1(nx.div(b.total_units));
         } else {
-            m = a.settle(t);
-            n = b.settle(t);
+            m = a.clone();
+            n = b.clone();
         }
     }
 

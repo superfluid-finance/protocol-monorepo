@@ -212,9 +212,13 @@ namespace SemanticMoney {
             let (quotient, remainder) = unsigned_div_rem(r_mul_otu, new_total_units);
             let nr = quotient;
             let er = remainder;
-            let (wp_with_new_fr, _) = setFlow1(nr, settled_pool_member_mu.pdPoolIndex.wrapped_particle);
+            let (wp_with_new_fr, _) = setFlow1(
+                nr, settled_pool_member_mu.pdPoolIndex.wrapped_particle
+            );
             let (settled_u_index) = settle(u_index, time);
-            let (u_index_with_new_fr, _) = setFlow1(settled_u_index.rtb_flow_rate + er, settled_u_index);
+            let (u_index_with_new_fr, _) = setFlow1(
+                settled_u_index.rtb_flow_rate + er, settled_u_index
+            );
 
             let newPoolIndex = PDPoolIndex(new_total_units, wp_with_new_fr);
             let newPoolMember = PDPoolMember(
@@ -222,11 +226,16 @@ namespace SemanticMoney {
             );
             return (p_index=newPoolIndex, pool_member=newPoolMember, u_index=u_index_with_new_fr);
         } else {
-            let er = settled_pool_member_mu.pdPoolIndex.wrapped_particle.rtb_flow_rate * old_total_units;
+            let er = settled_pool_member_mu.pdPoolIndex.wrapped_particle.rtb_flow_rate *
+                old_total_units;
             let nr = 0;
-            let (wp_with_new_fr, _) = setFlow1(nr, settled_pool_member_mu.pdPoolIndex.wrapped_particle);
+            let (wp_with_new_fr, _) = setFlow1(
+                nr, settled_pool_member_mu.pdPoolIndex.wrapped_particle
+            );
             let (settled_u_index) = settle(u_index, time);
-            let (u_index_with_new_fr, _) = setFlow1(settled_u_index.rtb_flow_rate + er, settled_u_index);
+            let (u_index_with_new_fr, _) = setFlow1(
+                settled_u_index.rtb_flow_rate + er, settled_u_index
+            );
 
             let newPoolIndex = PDPoolIndex(new_total_units, wp_with_new_fr);
             let newPoolMember = PDPoolMember(
@@ -274,7 +283,9 @@ namespace SemanticMoney {
             let (settled_p_index) = settle_for_pool_index(p_index, time);
             let (setFlow1_on_u_index, _) = setFlow1(0, settled_u_index);
             let (setFlow1_on_wrapped_particle, _) = setFlow1(0, settled_p_index.wrapped_particle);
-            let newPoolIndex = PDPoolIndex(settled_p_index.total_units, setFlow1_on_wrapped_particle);
+            let newPoolIndex = PDPoolIndex(
+                settled_p_index.total_units, setFlow1_on_wrapped_particle
+            );
             return (u_index=setFlow1_on_u_index, p_index=newPoolIndex);
         }
     }

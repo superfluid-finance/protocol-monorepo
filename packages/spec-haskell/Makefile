@@ -141,8 +141,12 @@ lint:
 	for i in $$PWD/pkgs/*/*.cabal;do cd $$(dirname $$i);pwd;cabal -vnormal check || exit 1;done
 	hlint pkgs
 
+
+repl-sm:
+	$(CABAL_TEST) repl semantic-money-test
+
 repl-simple:
-	$(CABAL) repl superfluid-protocol-system-simple
+	$(CABAL_TEST) repl superfluid-protocol-system-simple-test
 
 cloc:
 	@echo '**** Core Source Files ****'

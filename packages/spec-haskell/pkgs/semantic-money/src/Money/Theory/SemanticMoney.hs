@@ -52,9 +52,7 @@ class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
     shift1      :: v -> ix -> (ix, v)
     -- (constant) flow 1-primitive
     getFlowRate :: ix -> v
-    setFlow1    :: v -> ix -> (ix, v)
-    shiftFlow1  :: v -> ix -> (ix, v)
-    shiftFlow1 v a = setFlow1 (v + getFlowRate a) a
+    flow1    :: v -> ix -> (ix, v)
 
 class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
       , MonetaryUnit mt t v mp, Index mt t v u mp, Monoid mp
@@ -65,26 +63,19 @@ class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
 -- polymorphic 2-primitives
 --
 
--- 2-primitive higher order function
-prim2 :: (Index mt t v u a, Index mt t v u b)
-       => ((a, b) -> (a, b)) -> t -> (a, b) -> (a, b)
-prim2 op t' (a, b) = op (settle t' a, settle t' b)
-
 -- shift2, right side biased
 shift2 :: (Index mt t v u a, Index mt t v u b)
        => v -> t -> (a, b) -> (a, b)
-shift2 amount = prim2 op
-    where op (a, b) = let (b', amount') = shift1 amount b
-                          (a', _) = shift1 (-amount') a
-                      in (a', b')
+shift2 amount _ (a, b) = let (b', amount') = shift1 amount b
+                             (a', _) = shift1 (-amount') a
+                         in (a', b')
 
 -- flow2, right side biased
 flow2 :: (Index mt t v u a, Index mt t v u b)
       => v -> t -> (a, b) -> (a, b)
-flow2 flowRate = prim2 op
-    where op (a, b) = let (b', flowRate') = setFlow1 flowRate b
-                          (a', _) = setFlow1 (-flowRate') a
-                      in (a', b')
+flow2 flowRate t' (a, b) = let (b', flowRate') = flow1 flowRate (settle t' b)
+                               (a', _) = flow1 (-flowRate') (settle t' a)
+                           in (a', b')
 
 --
 -- Univeral Index
@@ -129,8 +120,8 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
 
     getFlowRate (PDPoolIndex _ mpi) = getFlowRate mpi
 
-    setFlow1 r' a@(PDPoolIndex tu mpi) = (a { pdidx_wp = mpi' }, r'' `mt_v_mul_u` tu)
-        where (mpi', r'') = if tu == 0 then (mpi, 0) else setFlow1 (r' `mt_v_div_u` tu) mpi
+    flow1 r' a@(PDPoolIndex tu mpi) = (a { pdidx_wp = mpi' }, r'' `mt_v_mul_u` tu)
+        where (mpi', r'') = if tu == 0 then (mpi, 0) else flow1 (r' `mt_v_div_u` tu) mpi
 
 data PDPoolMember mt wp = PDPoolMember { pdpm_owned_unit    :: MT_UNIT mt
                                        , pdpm_settled_value :: MT_VALUE mt
@@ -206,12 +197,12 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
 
     getFlowRate = rtb_flow_rate
 
-    setFlow1 r' a = (a { rtb_flow_rate = r' }, r')
+    flow1 r' a = (a { rtb_flow_rate = r' }, r')
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
          ) => MonetaryParticle mt t v u (BasicParticle mt) where
     align2 u u' (b, a) = (b', a')
         where r = getFlowRate b
               (r', er') = if u' == 0 then (0, r `mt_v_mul_u` u) else r `mt_v_mul_u_qr_u` (u, u')
-              b' = (fst . setFlow1 r') b
-              a' = (fst . shiftFlow1 er') a
+              b' = fst . flow1 r' $ b
+              a' = fst . flow1 (er' + getFlowRate a) $ a

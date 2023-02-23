@@ -62,6 +62,7 @@ contract SuperToken is IERC20 {
     mapping (bytes32 flowAddress => FlowRate) public flowRates;
     mapping (Pool pool => bool exist) public pools;
     mapping (address owner => EnumerableMap.AddressToUintMap) internal _connectionsMap;
+    mapping(address => mapping(address => uint256)) private _allowances;
 
     ////////////////////////////////////////////////////////////////////////////////
     // ERC20 operations
@@ -84,23 +85,35 @@ contract SuperToken is IERC20 {
     }
 
     function transfer(address to, uint256 amount) external returns (bool) {
-        return transferFrom(msg.sender, to, amount);
-    }
-
-    function transferFrom(address from, address to, uint256 amount) public returns (bool) {
-        // FIXME: plug permission controls
-        require(msg.sender == from);
-        // Make updates
-        (uIndexes[from], uIndexes[to]) = uIndexes[from].shift2(uIndexes[to], Value.wrap(int256(amount)));
+        address owner = msg.sender;
+        _transfer(owner, to, amount);
         return true;
     }
 
-    function allowance(address /*owner*/, address /*spender*/) external pure returns (uint256) {
-        revert("TODO");
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        return _transferFrom(from, to, amount);
     }
 
-    function approve(address /*spender*/, uint256 /*amount*/) external pure returns (bool) {
-        revert("TODO");
+    function _transferFrom(address from, address to, uint256 amount) internal returns (bool) {
+        address spender = msg.sender;
+        _spendAllowance(from, spender, amount);
+        _transfer(from, to, amount);
+        return true;
+    }
+
+    function _transfer(address from, address to, uint256 amount) internal {
+        // Make updates
+        (uIndexes[from], uIndexes[to]) = uIndexes[from].shift2(uIndexes[to], Value.wrap(int256(amount)));
+    }
+
+    function allowance(address owner, address spender) external view returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        address owner = msg.sender;
+        _approve(owner, spender, amount);
+        return true;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -111,7 +124,7 @@ contract SuperToken is IERC20 {
     function iTransfer(address from, address to, Value amount) external
         returns (bool success) {
         require(Value.unwrap(amount) >= 0, "don't even try");
-        return transferFrom(from, to, uint256(Value.unwrap(amount)));
+        return _transferFrom(from, to, uint256(Value.unwrap(amount)));
     }
 
     function flow(address from, address to, FlowId flowId, FlowRate flowRate) external
@@ -129,7 +142,6 @@ contract SuperToken is IERC20 {
     function distribute(address from, Pool to, Value reqAmount) external
         returns (bool success, Value actualAmount) {
         require(pools[to], "Not a pool!");
-        Time t = Time.wrap(uint32(block.timestamp));
         // FIXME: plug permission controls
         require(msg.sender == from);
         require(to.distributor() == from, "Not the distributor!");
@@ -196,8 +208,54 @@ contract SuperToken is IERC20 {
     }
 
     ////////////////////////////////////////////////////////////////////////////////
-    // Permission Controls
+    // ERC20-style approval/allowance System for shift2
     ////////////////////////////////////////////////////////////////////////////////
 
-    // TODO
+    /**
+     * @dev Sets `amount` as the allowance of `spender` over the `owner` s tokens.
+     *
+     * This internal function is equivalent to `approve`, and can be used to
+     * e.g. set automatic allowances for certain subsystems, etc.
+     *
+     * Emits an {Approval} event.
+     *
+     * Requirements:
+     *
+     * - `owner` cannot be the zero address.
+     * - `spender` cannot be the zero address.
+     */
+    function _approve(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
+
+        _allowances[owner][spender] = amount;
+        emit Approval(owner, spender, amount);
+    }
+
+    /**
+     * @dev Updates `owner` s allowance for `spender` based on spent `amount`.
+     *
+     * Does not update the allowance amount in case of infinite allowance.
+     * Revert if not enough allowance is available.
+     *
+     * Might emit an {Approval} event.
+     */
+    function _spendAllowance(
+        address owner,
+        address spender,
+        uint256 amount
+    ) internal virtual {
+        uint256 currentAllowance = _allowances[owner][spender];
+        if (currentAllowance != type(uint256).max) {
+            require(currentAllowance >= amount, "ERC20: insufficient allowance");
+            unchecked {
+                _approve(owner, spender, currentAllowance - amount);
+            }
+        }
+    }
+
 }

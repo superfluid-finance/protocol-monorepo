@@ -34,7 +34,7 @@ contract SuperTokenTest is Test {
         token = new SuperToken();
         for (uint i = 1; i < N_TESTERS; ++i) {
             vm.startPrank(admin);
-            token.transferFrom(admin, TEST_ACCOUNTS[i], type(uint64).max);
+            token.transfer(TEST_ACCOUNTS[i], type(uint64).max);
             vm.stopPrank();
         }
     }
@@ -43,7 +43,7 @@ contract SuperTokenTest is Test {
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
         vm.startPrank(alice);
-        token.transferFrom(alice, bob, x);
+        token.transfer(bob, x);
         vm.stopPrank();
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);

@@ -55,8 +55,8 @@ contract SemanticMoneyTest is Test {
         Time t2 = t1.add(Time.wrap(m2));
         Time t3 = t2.add(Time.wrap(m3));
 
-        (a, b) = a.shift2(b, Value.wrap(x1), t1);
-        (a, b) = a.shift2(b, Value.wrap(x2), t2);
+        (a, b) = a.shift2(b, Value.wrap(x1));
+        (a, b) = a.shift2(b, Value.wrap(x2));
         assertEq(Value.unwrap(a.rtb(t3).add(b.rtb(t3))), 0);
     }
 
@@ -80,7 +80,7 @@ contract SemanticMoneyTest is Test {
         Time t3 = t2.add(Time.wrap(m3));
 
         (a, b) = a.flow2(b, FlowRate.wrap(r1), t1);
-        (a, b) = a.shift2(b, Value.wrap(x2), t2);
+        (a, b) = a.shift2(b, Value.wrap(x2));
         assertEq(Value.unwrap(a.rtb(t3).add(b.rtb(t3))), 0);
     }
 
@@ -91,7 +91,7 @@ contract SemanticMoneyTest is Test {
         Time t2 = t1.add(Time.wrap(m2));
         Time t3 = t2.add(Time.wrap(m3));
 
-        (a, b) = a.shift2(b, Value.wrap(x1), t1);
+        (a, b) = a.shift2(b, Value.wrap(x1));
         (a, b) = a.flow2(b, FlowRate.wrap(r2), t2);
         assertEq(Value.unwrap(a.rtb(t3).add(b.rtb(t3))), 0);
     }
@@ -131,13 +131,13 @@ contract SemanticMoneyTest is Test {
         assertEq(Unit.unwrap(d.b.total_units), u1);
         assertEq(Unit.unwrap(d.b1.owned_unit), u1);
 
-        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x2), d.t2);
+        (d.a, d.b, ) = d.a.shift2(d.b, Value.wrap(x2));
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
         assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
         assertEq(Unit.unwrap(d.b1.owned_unit), u2);
 
-        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x4), d.t4);
+        (d.a, d.b, ) = d.a.shift2(d.b, Value.wrap(x4));
 
         assertEq(Value.unwrap(d.a.rtb(d.t5)
                               .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
@@ -156,13 +156,13 @@ contract SemanticMoneyTest is Test {
         assertEq(Unit.unwrap(d.b.total_units), u1);
         assertEq(Unit.unwrap(d.b1.owned_unit), u1);
 
-        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
+        (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
         assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
         assertEq(Unit.unwrap(d.b1.owned_unit), u2);
 
-        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
+        (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
 
         assertEq(Value.unwrap(d.a.rtb(d.t5)
                               .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
@@ -181,13 +181,13 @@ contract SemanticMoneyTest is Test {
         assertEq(Unit.unwrap(d.b.total_units), u1);
         assertEq(Unit.unwrap(d.b1.owned_unit), u1);
 
-        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x2), d.t2);
+        (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x2));
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
         assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
         assertEq(Unit.unwrap(d.b1.owned_unit), u2);
 
-        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
+        (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
 
         assertEq(Value.unwrap(d.a.rtb(d.t5)
                               .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
@@ -206,13 +206,13 @@ contract SemanticMoneyTest is Test {
         assertEq(Unit.unwrap(d.b.total_units), u1);
         assertEq(Unit.unwrap(d.b1.owned_unit), u1);
 
-        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
+        (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
         assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
         assertEq(Unit.unwrap(d.b1.owned_unit), u2);
 
-        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x4), d.t4);
+        (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x4));
 
         assertEq(Value.unwrap(d.a.rtb(d.t5)
                               .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
@@ -231,13 +231,13 @@ contract SemanticMoneyTest is Test {
         assertEq(Unit.unwrap(d.b.total_units), u1);
         assertEq(Unit.unwrap(d.b1.owned_unit), u1);
 
-        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x2), d.t2);
+        (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x2));
 
         (d.b, d.b2, d.a) = PDPoolMemberMU(d.b, d.b2).pool_member_update(d.a, Unit.wrap(u2), d.t3);
         assertEq(Unit.unwrap(d.b.total_units), uint256(u1) + uint256(u2));
         assertEq(Unit.unwrap(d.b2.owned_unit), u2);
 
-        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x4), d.t4);
+        (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x4));
 
         assertEq(Value.unwrap(d.a.rtb(d.t5)
                               .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
@@ -257,13 +257,13 @@ contract SemanticMoneyTest is Test {
         assertEq(Unit.unwrap(d.b.total_units), u1);
         assertEq(Unit.unwrap(d.b1.owned_unit), u1);
 
-        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
+        (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
 
         (d.b, d.b2, d.a) = PDPoolMemberMU(d.b, d.b2).pool_member_update(d.a, Unit.wrap(u2), d.t3);
         assertEq(Unit.unwrap(d.b.total_units), uint256(u1) + uint256(u2));
         assertEq(Unit.unwrap(d.b2.owned_unit), u2);
 
-        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
+        (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
 
         assertEq(Value.unwrap(d.a.rtb(d.t5)
                               .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
@@ -283,13 +283,13 @@ contract SemanticMoneyTest is Test {
         assertEq(Unit.unwrap(d.b.total_units), u1);
         assertEq(Unit.unwrap(d.b1.owned_unit), u1);
 
-        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x2), d.t2);
+        (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x2));
 
         (d.b, d.b2, d.a) = PDPoolMemberMU(d.b, d.b2).pool_member_update(d.a, Unit.wrap(u2), d.t3);
         assertEq(Unit.unwrap(d.b.total_units), uint256(u1) + uint256(u2));
         assertEq(Unit.unwrap(d.b2.owned_unit), u2);
 
-        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
+        (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
 
         assertEq(Value.unwrap(d.a.rtb(d.t5)
                               .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))
@@ -309,13 +309,13 @@ contract SemanticMoneyTest is Test {
         assertEq(Unit.unwrap(d.b.total_units), u1);
         assertEq(Unit.unwrap(d.b1.owned_unit), u1);
 
-        (d.a, d.b) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
+        (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
 
         (d.b, d.b2, d.a) = PDPoolMemberMU(d.b, d.b2).pool_member_update(d.a, Unit.wrap(u2), d.t3);
         assertEq(Unit.unwrap(d.b.total_units), uint256(u1) + uint256(u2));
         assertEq(Unit.unwrap(d.b2.owned_unit), u2);
 
-        (d.a, d.b) = d.a.shift2(d.b, Value.wrap(x4), d.t4);
+        (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x4));
 
         assertEq(Value.unwrap(d.a.rtb(d.t5)
                               .add(PDPoolMemberMU(d.b, d.b1).rtb(d.t5))

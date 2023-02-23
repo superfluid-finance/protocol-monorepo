@@ -51,7 +51,7 @@ contract SuperTokenTest is Test {
         assertEq(b2 - b1, x);
     }
 
-    function testERC20Transfer(uint32 r, uint16 t2) external {
+    function testFlow(uint32 r, uint16 t2) external {
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
         uint256 t1 = block.timestamp;
@@ -61,12 +61,75 @@ contract SuperTokenTest is Test {
         vm.warp(t1 + uint256(t2));
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
-        emit log_named_uint("a1 - a2", a1 - a2);
-        emit log_named_uint("r", r);
-        emit log_named_uint("t2", t2);
-        emit log_named_uint("r * t2", uint256(r) * uint256(t2));
+        /* emit log_named_uint("a1 - a2", a1 - a2); */
+        /* emit log_named_uint("r", r); */
+        /* emit log_named_uint("t2", t2); */
+        /* emit log_named_uint("r * t2", uint256(r) * uint256(t2)); */
         assertEq(a1 - a2, uint256(r) * uint256(t2));
         assertEq(b2 - b1, uint256(r) * uint256(t2));
+    }
+
+    function testDistribute(uint32 u1, uint32 u2, uint64 x) external {
+        uint tu = uint(u1) + uint(u2);
+        vm.assume(tu > 0);
+        uint x1 = uint(x) / tu * tu;
+        uint256 a1 = token.balanceOf(alice);
+        uint256 b1 = token.balanceOf(bob);
+        uint256 c1 = token.balanceOf(carol);
+
+        vm.startPrank(alice);
+        Pool pl = token.createPool();
+        pl.updatePoolMember(bob, Unit.wrap(u1));
+        pl.updatePoolMember(carol, Unit.wrap(u2));
+        token.distribute(alice, pl, Value.wrap(int(uint(x))));
+        vm.stopPrank();
+
+        vm.startPrank(bob);
+        token.connectPool(pl);
+        vm.stopPrank();
+
+        vm.startPrank(carol);
+        token.connectPool(pl);
+        vm.stopPrank();
+
+        uint256 a2 = token.balanceOf(alice);
+        uint256 b2 = token.balanceOf(bob);
+        uint256 c2 = token.balanceOf(carol);
+        assertEq(a1 - a2, x1);
+        assertEq(b2 - b1 + c2 - c1, x1);
+    }
+
+    function testDistributeFlow(uint32 u1, uint32 u2, uint32 r, uint16 t2) external {
+        uint tu = uint(u1) + uint(u2);
+        vm.assume(tu > 0);
+        int r1 = int(uint(r) / tu * tu);
+        uint256 t1 = block.timestamp;
+
+        uint256 a1 = token.balanceOf(alice);
+        uint256 b1 = token.balanceOf(bob);
+        uint256 c1 = token.balanceOf(carol);
+
+        vm.startPrank(alice);
+        Pool pl = token.createPool();
+        pl.updatePoolMember(bob, Unit.wrap(u1));
+        pl.updatePoolMember(carol, Unit.wrap(u2));
+        token.distributeFlow(alice, pl, FlowId.wrap(0), FlowRate.wrap(int128(uint128(r))));
+        vm.stopPrank();
+
+        vm.startPrank(bob);
+        token.connectPool(pl);
+        vm.stopPrank();
+
+        vm.startPrank(carol);
+        token.connectPool(pl);
+        vm.stopPrank();
+
+        vm.warp(t1 + uint256(t2));
+        uint256 a2 = token.balanceOf(alice);
+        uint256 b2 = token.balanceOf(bob);
+        uint256 c2 = token.balanceOf(carol);
+        assertEq(a1 - a2, uint256(r1) * uint256(t2));
+        assertEq(b2 - b1 + c2 - c1, uint256(r1) * uint256(t2));
     }
 
 }

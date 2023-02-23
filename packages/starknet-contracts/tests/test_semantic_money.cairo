@@ -418,17 +418,22 @@ func setup_flow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
             ou_1 = strategy.integers(0, 100), # owned unit for first pd member,
             ou_2 = strategy.integers(0, 100), # owned unit for second pd member,
             ou_3 = strategy.integers(0, 100), # owned unit for third pd member,
-            fr = strategy.felts(), # default flow rate
-            fr_new = strategy.felts(), # flow rate of flow,
+            fr = strategy.integers(-10000000000000000000000, 10000000000000000000000), # default flow rate
+            fr_new = strategy.integers(-10000000000000000000000, 10000000000000000000000), # flow rate of flow,
             sv = strategy.felts(), # settled value for universal index
             sv_wrapped = strategy.felts(), # settled value in wrapped particle
             sv_synced = strategy.felts(), # settled value in synced particle
             sv_for_member_1 = strategy.felts(), # settled value for first pd member
-            sv_for_member_2 = strategy.felts(), # settled value for first pd member
+            sv_for_member_2 = strategy.felts(), # settled value for second pd member
+            sv_for_member_3 = strategy.felts(), # settled value for third pd member
             t1 = strategy.integers(1, 100), # time 1
             t2 = strategy.integers(101, 200), # time 2
-            t3 = strategy.integers(201, 300), # time 2
-            t4 = strategy.integers(301, 400), # time 2
+            t3 = strategy.integers(201, 300), # time 3
+            t4 = strategy.integers(301, 400), # time 4
+            t5 = strategy.integers(401, 500), # time 5
+            t6 = strategy.integers(501, 600), # time 6
+            t7 = strategy.integers(601, 700), # time 7
+            t8 = strategy.integers(701, 800), # time 8
         )
     %}
     return ();
@@ -447,84 +452,94 @@ func test_flow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     sv_synced: felt,
     sv_for_member_1: felt,
     sv_for_member_2: felt,
+    sv_for_member_3: felt,
     t1: felt,
     t2: felt,
     t3: felt,
     t4: felt,
+    t5: felt,
+    t6: felt,
+    t7: felt,
+    t8: felt,
 ) {
     alloc_locals;
+    %{ assume(ids.fr * ids.tu <= 35826760283823081323735869139555149560624823914174224752208832238969029904) %}
+    %{ assume(ids.fr_new * ids.tu <= 35826760283823081323735869139555149560624823914174224752208832238969029904) %}
+
     let u_index = BasicParticle(t1, sv, fr);
     let p_index = PDPoolIndex(tu, BasicParticle(t1, sv_wrapped, fr));
     let pool_member_1 = PDPoolMember(ou_1, sv_for_member_1, BasicParticle(t1, sv_synced, fr));
+
     let pool_member_mu = PDPoolMemberMU(p_index, pool_member_1);
+    let (p_index, pool_member_1, u_index) = SemanticMoney.pool_member_update(
+        pool_member_mu, u_index, ou_1, t2
+    );
+    assert p_index.total_units = (tu - ou_1) + ou_1;
+    assert p_index.wrapped_particle.rtb_settled_at = t2;
+    assert pool_member_1.owned_unit = ou_1;
+    assert pool_member_1.synced_particle.rtb_settled_at = t2;
 
-    // let (p_index, pool_member_1, u_index) = SemanticMoney.pool_member_update(
-    //     pool_member_mu, u_index, ou_1, t2
-    // );
-    // assert p_index.total_units = (tu - ou_1) + ou_1;
-    // assert p_index.wrapped_particle.rtb_settled_at = t2;
-    // assert pool_member_1.owned_unit = ou_1;
-    // assert pool_member_1.synced_particle.rtb_settled_at = t2;
-    // assert pool_member_1.settled_value = sv_for_member_1;
+    let (_u_index, _p_index) = SemanticMoney.flow2_pd(u_index, p_index, fr_new, t3);
+    assert _u_index.rtb_flow_rate = u_index.rtb_flow_rate - (
+        (fr_new / p_index.total_units) * p_index.total_units
+    );
+    assert _p_index.wrapped_particle.rtb_flow_rate = p_index.wrapped_particle.rtb_flow_rate + (
+        ((fr_new / p_index.total_units) * p_index.total_units) / p_index.total_units
+    );  // Per Unit
+    assert _u_index.rtb_settled_at = t3;
+    assert _p_index.wrapped_particle.rtb_settled_at = t3;
 
-    // let value = 100;
-    // let time = 20;
-    // let (u_index, p_index) = SemanticMoney.flow2_pd(u_index, p_index, value, time);
-    // assert u_index.rtb_flow_rate = -value;
-    // assert u_index.rtb_settled_at = time;
-    // assert p_index.wrapped_particle.rtb_flow_rate = 20;  // Per Unit
-    // assert p_index.wrapped_particle.rtb_settled_at = time;
+    let pool_member_mu = PDPoolMemberMU(_p_index, pool_member_1);
+    let (realtime_balance_of_pool_member_mu_1) = SemanticMoney.realtime_balance_of_pool_member_mu(
+        pool_member_mu, t4
+    );
+    let (balance_for_wrapped_particle) = SemanticMoney.realtime_balance_of(
+        _p_index.wrapped_particle, t4
+    );
+    let (balance_for_synced_particle) = SemanticMoney.realtime_balance_of(
+        pool_member_1.synced_particle, t2
+    );
+    assert realtime_balance_of_pool_member_mu_1 = (
+        (balance_for_wrapped_particle - balance_for_synced_particle) * ou_1
+    ) + pool_member_1.settled_value;
 
-    // let time = 40;
-    // let pool_member_mu = PDPoolMemberMU(p_index, pool_member_1);
-    // let (realtime_balance_of_pool_member_mu_1) = SemanticMoney.realtime_balance_of_pool_member_mu(
-    //     pool_member_mu, time
-    // );
-    // assert realtime_balance_of_pool_member_mu_1 = 2000;
+    let pool_member_2 = PDPoolMember(ou_2, sv_for_member_2, BasicParticle(t5, sv_synced, fr));
+    let pool_member_mu = PDPoolMemberMU(_p_index, pool_member_2);
+    let (p_index, pool_member_2, u_index) = SemanticMoney.pool_member_update(
+        pool_member_mu, _u_index, ou_2, t6
+    );
+    assert p_index.total_units = (_p_index.total_units - ou_2) + ou_2;
+    assert p_index.wrapped_particle.rtb_settled_at = t6;
+    assert pool_member_2.owned_unit = ou_2;
+    assert pool_member_2.synced_particle.rtb_settled_at = t6;
 
-    // let unit = 5;
-    // let time = 60;
-    // let pool_member_2 = PDPoolMember(0, 0, BasicParticle(0, 0, 0));
-    // let pool_member_mu = PDPoolMemberMU(p_index, pool_member_2);
-    // let (p_index, pool_member_2, u_index) = SemanticMoney.pool_member_update(
-    //     pool_member_mu, u_index, unit, time
-    // );
-    // assert p_index.total_units = 10;
-    // assert p_index.wrapped_particle.rtb_settled_at = time;
-    // assert pool_member_2.owned_unit = unit;
-    // assert pool_member_2.synced_particle.rtb_settled_at = time;
-    // assert pool_member_2.settled_value = 0;
+    let pool_member_mu = PDPoolMemberMU(p_index, pool_member_2);
+    let (realtime_balance_of_pool_member_mu_2) = SemanticMoney.realtime_balance_of_pool_member_mu(
+        pool_member_mu, t7
+    );
+    let (balance_for_wrapped_particle) = SemanticMoney.realtime_balance_of(
+        p_index.wrapped_particle, t7
+    );
+    let (balance_for_synced_particle) = SemanticMoney.realtime_balance_of(
+        pool_member_2.synced_particle, t6
+    );
+    assert realtime_balance_of_pool_member_mu_2 = (
+        (balance_for_wrapped_particle - balance_for_synced_particle) * ou_2
+    ) + pool_member_2.settled_value;
 
-    // let time = 80;
-    // let pool_member_mu = PDPoolMemberMU(p_index, pool_member_2);
-    // let (realtime_balance_of_pool_member_mu_2) = SemanticMoney.realtime_balance_of_pool_member_mu(
-    //     pool_member_mu, time
-    // );
-    // assert realtime_balance_of_pool_member_mu_2 = 1000;
-    // let pool_member_mu = PDPoolMemberMU(p_index, pool_member_1);
-    // let (realtime_balance_of_pool_member_mu_1) = SemanticMoney.realtime_balance_of_pool_member_mu(
-    //     pool_member_mu, time
-    // );
-    // assert realtime_balance_of_pool_member_mu_1 = 5000;
-
-    // let (realtime_balance_of_u_index) = SemanticMoney.realtime_balance_of(u_index, time);
-    // assert realtime_balance_of_u_index + realtime_balance_of_pool_member_mu_1 +
-    //     realtime_balance_of_pool_member_mu_2 = 0;
-
-    // Test for Alignment
-    // let unit = 3;
-    // let time = 100;
-    // let pool_member_3 = PDPoolMember(0, 0, BasicParticle(0, 0, 0));
-    // let pool_member_mu = PDPoolMemberMU(p_index, pool_member_3);
-    // let (p_index, pool_member_3, u_index) = SemanticMoney.pool_member_update(
-    //     pool_member_mu, u_index, unit, time
-    // );
-    // assert p_index.total_units = 13;
-    // assert p_index.wrapped_particle.rtb_settled_at = time;
-    // assert pool_member_3.owned_unit = unit;
-    // assert pool_member_3.synced_particle.rtb_settled_at = time;
-    // assert pool_member_3.settled_value = 0;
-    // assert u_index.rtb_flow_rate = -91;
+    let pool_member_mu = PDPoolMemberMU(p_index, pool_member_1);
+    let (realtime_balance_of_pool_member_mu_1) = SemanticMoney.realtime_balance_of_pool_member_mu(
+        pool_member_mu, t7
+    );
+    let (balance_for_wrapped_particle) = SemanticMoney.realtime_balance_of(
+        p_index.wrapped_particle, t7
+    );
+    let (balance_for_synced_particle) = SemanticMoney.realtime_balance_of(
+        pool_member_1.synced_particle, t2
+    );
+    assert realtime_balance_of_pool_member_mu_1 = (
+        (balance_for_wrapped_particle - balance_for_synced_particle) * ou_1
+    ) + pool_member_1.settled_value;
     return ();
 }
 

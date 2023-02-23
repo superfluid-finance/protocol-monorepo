@@ -221,11 +221,11 @@ namespace SemanticMoney {
             let (quotient, remainder) = unsigned_div_rem(r_mul_otu, new_total_units);
             let nr = quotient;
             let er = remainder;
-            let (wp_with_new_fr, _) = setFlow1(
+            let (wp_with_new_fr, _) = shiftFlow1(
                 nr, settled_pool_member_mu.pdPoolIndex.wrapped_particle
             );
             let (settled_u_index) = settle(u_index, time);
-            let (u_index_with_new_fr, _) = setFlow1(
+            let (u_index_with_new_fr, _) = shiftFlow1(
                 settled_u_index.rtb_flow_rate + er, settled_u_index
             );
 
@@ -238,11 +238,11 @@ namespace SemanticMoney {
             let er = settled_pool_member_mu.pdPoolIndex.wrapped_particle.rtb_flow_rate *
                 old_total_units;
             let nr = 0;
-            let (wp_with_new_fr, _) = setFlow1(
+            let (wp_with_new_fr, _) = shiftFlow1(
                 nr, settled_pool_member_mu.pdPoolIndex.wrapped_particle
             );
             let (settled_u_index) = settle(u_index, time);
-            let (u_index_with_new_fr, _) = setFlow1(
+            let (u_index_with_new_fr, _) = shiftFlow1(
                 settled_u_index.rtb_flow_rate + er, settled_u_index
             );
 
@@ -280,22 +280,24 @@ namespace SemanticMoney {
         if (p_index.total_units != 0) {
             let nr = (value / p_index.total_units) * p_index.total_units;
             let (settled_u_index) = settle(u_index, time);
-            let (setFlow1_on_u_index, _) = setFlow1(-nr, settled_u_index);
+            let (shiftFlow1_on_u_index, _) = shiftFlow1(-nr, settled_u_index);
             let (settled_p_index) = settle_for_pool_index(p_index, time);
-            let (setFlow1_on_wrapped_particle, _) = setFlow1(
+            let (shiftFlow1_on_wrapped_particle, _) = shiftFlow1(
                 nr / p_index.total_units, settled_p_index.wrapped_particle
             );
-            let _p_index = PDPoolIndex(p_index.total_units, setFlow1_on_wrapped_particle);
-            return (u_index=setFlow1_on_u_index, p_index=_p_index);
+            let _p_index = PDPoolIndex(p_index.total_units, shiftFlow1_on_wrapped_particle);
+            return (u_index=shiftFlow1_on_u_index, p_index=_p_index);
         } else {
             let (settled_u_index) = settle(u_index, time);
             let (settled_p_index) = settle_for_pool_index(p_index, time);
-            let (setFlow1_on_u_index, _) = setFlow1(0, settled_u_index);
-            let (setFlow1_on_wrapped_particle, _) = setFlow1(0, settled_p_index.wrapped_particle);
-            let newPoolIndex = PDPoolIndex(
-                settled_p_index.total_units, setFlow1_on_wrapped_particle
+            let (shiftFlow1_on_u_index, _) = shiftFlow1(0, settled_u_index);
+            let (shiftFlow1_on_wrapped_particle, _) = shiftFlow1(
+                0, settled_p_index.wrapped_particle
             );
-            return (u_index=setFlow1_on_u_index, p_index=newPoolIndex);
+            let newPoolIndex = PDPoolIndex(
+                settled_p_index.total_units, shiftFlow1_on_wrapped_particle
+            );
+            return (u_index=shiftFlow1_on_u_index, p_index=newPoolIndex);
         }
     }
 }

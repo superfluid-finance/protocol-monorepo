@@ -63,19 +63,26 @@ class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
 -- polymorphic 2-primitives
 --
 
+-- 2-primitive higher order function
+prim2 :: (Index mt t v u a, Index mt t v u b)
+       => ((a, b) -> (a, b)) -> t -> (a, b) -> (a, b)
+prim2 op t' (a, b) = op (settle t' a, settle t' b)
+
 -- shift2, right side biased
 shift2 :: (Index mt t v u a, Index mt t v u b)
        => v -> t -> (a, b) -> (a, b)
-shift2 amount _ (a, b) = let (b', amount') = shift1 amount b
-                             (a', _) = shift1 (-amount') a
-                         in (a', b')
+shift2 amount = prim2 op
+    where op (a, b) = let (b', amount') = shift1 amount b
+                          (a', _) = shift1 (-amount') a
+                      in (a', b')
 
 -- flow2, right side biased
 flow2 :: (Index mt t v u a, Index mt t v u b)
       => v -> t -> (a, b) -> (a, b)
-flow2 flowRate t' (a, b) = let (b', flowRate') = flow1 flowRate (settle t' b)
-                               (a', _) = flow1 (-flowRate') (settle t' a)
-                           in (a', b')
+flow2 flowRate = prim2 op
+    where op (a, b) = let (b', flowRate') = flow1 flowRate b
+                          (a', _) = flow1 (-flowRate') a
+                      in (a', b')
 
 --
 -- Univeral Index

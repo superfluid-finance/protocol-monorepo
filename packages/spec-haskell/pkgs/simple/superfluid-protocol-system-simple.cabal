@@ -36,7 +36,7 @@ library
         bytestring,
         superfluid-protocol-spec-core ==0.0.1.0
 
-test-suite superfluid-protocol-system-simple-test
+test-suite superfluid-protocol-system-simple-test-suite
     type:             exitcode-stdio-1.0
     main-is:          Tests.hs
     hs-source-dirs:   test

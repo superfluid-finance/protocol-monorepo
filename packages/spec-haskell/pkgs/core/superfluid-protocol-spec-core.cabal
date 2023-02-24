@@ -57,7 +57,7 @@ library
         transformers >=0.2,
         microlens >0.4.11
 
-test-suite tests
+test-suite superfluid-protocol-spec-core-test-suite
     type:             exitcode-stdio-1.0
     main-is:          Tests.hs
     hs-source-dirs:

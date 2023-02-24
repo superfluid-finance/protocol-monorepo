@@ -13,14 +13,13 @@ category:      Money
 
 build-type:    Simple
 
-common warnings
+common optiongs
+    default-language: GHC2021
     ghc-options:
         -Wall
-        -Wno-missing-signatures
 
 library
-    import:           warnings
-    default-language: GHC2021
+    import:           optiongs
     hs-source-dirs:   src
     exposed-modules:
         Money.Theory.SemanticMoney
@@ -30,9 +29,8 @@ library
         base >=4.16.0.0 && <5,
         data-default
 
-test-suite semantic-money-test
-    import:           warnings
-    default-language: GHC2021
+test-suite semantic-money-test-suite
+    import:           optiongs
     type:             exitcode-stdio-1.0
     other-modules:
         Money.Theory.TestMonetaryTypes

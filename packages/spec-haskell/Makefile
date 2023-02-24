@@ -8,10 +8,12 @@ TEST_PROP_NUM_RUNS ?= 1000
 TEST_BUILDDIR ?= dist-test
 TEST_COVERAGE_BUILDDIR ?= dist-coverage
 DOCS_BUILDDIR ?= dist-docs
+WASM_BUILDDIR ?= dist-wasm
 
 CABAL_TEST     = $(CABAL) --builddir=$(TEST_BUILDDIR)
 CABAL_COVERAGE = $(CABAL) --builddir=$(TEST_COVERAGE_BUILDDIR)
 CABAL_DOCS     = $(CABAL) --builddir=$(DOCS_BUILDDIR)
+CABAL_WASM     = $(CABAL) --builddir=$(WASM_BUILDDIR)
 
 TEST_OPTIONS = \
 	--test-show-details=$(TEST_SHOW_DETAILS_MODE) \
@@ -29,6 +31,17 @@ build:
 
 build-test:
 	$(CABAL_TEST) v2-build all
+
+build-wasm: 
+	$(CABAL_WASM) v2-build -v --with-compiler wasm32-wasi-ghc --with-hc-pkg wasm32-wasi-ghc-pkg semantic-money
+	wasm32-wasi-ghc \
+		-odir $(PWD)/$(WASM_BUILDDIR)/wasm -hidir $(PWD)/$(WASM_BUILDDIR)/wasm -stubdir $(PWD)/$(WASM_BUILDDIR)/wasm \
+		-o $(PWD)/$(WASM_BUILDDIR)/semantic-money.wasm -no-hs-main \
+		-optl-mexec-model=reactor -optl-Wl,--export=hs_init,--export=uu_flow2 \
+		-ipkgs/semantic-money/src \
+		-package-db ~/.cabal/store/ghc-$$(wasm32-wasi-ghc --numeric-version)/package.db \
+		-package data-default \
+		pkgs/semantic-money/wasm/Exports.hs
 
 clean:
 	rm -rf $(DOCS_BUILDDIR)
@@ -143,10 +156,10 @@ lint:
 
 
 repl-sm:
-	$(CABAL_TEST) repl semantic-money-test
+	$(CABAL_TEST) repl semantic-money-test-suite
 
 repl-simple:
-	$(CABAL_TEST) repl superfluid-protocol-system-simple-test
+	$(CABAL_TEST) repl superfluid-protocol-system-simple-test-suite
 
 cloc:
 	@echo '**** Core Source Files ****'

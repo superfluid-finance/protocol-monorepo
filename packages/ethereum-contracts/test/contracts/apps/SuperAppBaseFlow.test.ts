@@ -1,7 +1,7 @@
 // npx hardhat test test/contracts/apps/SuperAppBaseFlow.test.ts
 
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
-import {assert, expect, ethers, web3} from "hardhat";
+import {assert, ethers, expect} from "hardhat";
 
 import {
     ConstantFlowAgreementV1,
@@ -24,20 +24,13 @@ describe("SuperAppBaseFlow testing", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
-    let owner;
-    let tokenDeployment;
-    let dai;
-    let daix;
-
-    let superToken: SuperTokenMock,
-        superToken2: SuperTokenMock,
+    let cfa: ConstantFlowAgreementV1,
+        ida: InstantDistributionAgreementV1,
         host: Superfluid,
-        cfa: ConstantFlowAgreementV1,
-        ida: InstantDistributionAgreementV1
+        superAppBaseFlowTester: SuperAppBaseFlowTester,
+        superToken: SuperTokenMock,
+        superToken2: SuperTokenMock
     let alice: SignerWithAddress, bob: SignerWithAddress;
-    let cfaLibraryMock: SuperTokenLibraryCFAMock;
-    let cfaLibrarySuperAppMock: SuperTokenLibraryCFASuperAppMock;
-    let superAppBaseFlowTester: SuperAppBaseFlowTester;
 
     before(async () => {
 
@@ -138,7 +131,7 @@ describe("SuperAppBaseFlow testing", function () {
             );
 
             assert.equal(
-                await superAppBaseFlowTester._isAcceptedSuperToken(superToken.address),
+                await superAppBaseFlowTester.isAcceptedSuperToken(superToken.address),
                 true,
                 "token acceptance not set"
             );
@@ -152,7 +145,7 @@ describe("SuperAppBaseFlow testing", function () {
             );
 
             assert.equal(
-                await superAppBaseFlowTester._isAcceptedSuperToken(superToken.address),
+                await superAppBaseFlowTester.isAcceptedSuperToken(superToken.address),
                 false,
                 "token acceptance not set"
             );
@@ -463,12 +456,6 @@ describe("SuperAppBaseFlow testing", function () {
                 "0x"
             );
 
-            // sender in callback should be same in before and after
-            await expect(
-                await superAppBaseFlowTester.afterSenderHolder()
-            ).to.eq(
-                await superAppBaseFlowTester.beforeSenderHolder()
-            );
             // sender in callback should be alice
             await expect(
                 await superAppBaseFlowTester.afterSenderHolder()
@@ -532,12 +519,6 @@ describe("SuperAppBaseFlow testing", function () {
                 "0x"
             );
 
-            // sender in callback should be same in before and after
-            await expect(
-                await superAppBaseFlowTester.afterSenderHolder()
-            ).to.eq(
-                await superAppBaseFlowTester.beforeSenderHolder()
-            );
             // sender in callback should be alice
             await expect(
                 await superAppBaseFlowTester.afterSenderHolder()
@@ -601,17 +582,12 @@ describe("SuperAppBaseFlow testing", function () {
                 "0x"
             );
 
-            // sender in callback should be same in before and after
-            await expect(
-                await superAppBaseFlowTester.afterSenderHolder()
-            ).to.eq(
-                await superAppBaseFlowTester.beforeSenderHolder()
-            );
-            // receiver in callback should be same in before and after
+
+            // receiver in callback should be super app
             await expect(
                 await superAppBaseFlowTester.afterReceiverHolder()
             ).to.eq(
-                await superAppBaseFlowTester.beforeReceiverHolder()
+                superAppBaseFlowTester.address
             );
             // sender in callback should be alice
             await expect(
@@ -669,17 +645,17 @@ describe("SuperAppBaseFlow testing", function () {
                 "0x"
             );
 
-            // sender in callback should be same in before and after
+            // sender in callback should be super app
             await expect(
                 await superAppBaseFlowTester.afterSenderHolder()
             ).to.eq(
-                await superAppBaseFlowTester.beforeSenderHolder()
+                superAppBaseFlowTester.address
             );
-            // receiver in callback should be same in before and after
+            // receiver in callback should be alice
             await expect(
                 await superAppBaseFlowTester.afterReceiverHolder()
             ).to.eq(
-                await superAppBaseFlowTester.beforeReceiverHolder()
+                alice.address
             );
             // sender in callback should be **superapp**
             await expect(

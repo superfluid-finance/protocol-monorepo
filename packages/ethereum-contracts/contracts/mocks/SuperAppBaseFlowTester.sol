@@ -4,9 +4,6 @@ pragma solidity >= 0.8.0;
 import { SuperAppBaseFlowMock, ISuperfluid, ISuperToken, SuperAppDefinitions } from "./SuperAppBaseFlowMock.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
-error ErraticSender();
-error ErraticReceiver();
-
 contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
     using SuperTokenV1Library for ISuperToken;
 
@@ -22,9 +19,11 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
 
     constructor(
         ISuperfluid host
-    ) SuperAppBaseFlowMock(
+    ) SuperAppBaseFlowMock (
         host,
-        0
+        true,
+        true,
+        true
     ) {
         lastUpdateHolder = 0; // appeasing linter
     }
@@ -43,49 +42,21 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
 
     // CREATE
 
-    function beforeFlowCreated(
-        ISuperToken superToken,
-        address sender,
-        bytes calldata /*ctx*/
-    ) internal view override returns(bytes memory) {
-        (uint256 lastUpdate, int96 flowRate,,) = superToken.getFlowInfo(sender, address(this));
-        return abi.encode(
-            lastUpdate,
-            flowRate,
-            sender
-        );
-    }
-
     function afterFlowCreated(
         ISuperToken /*superToken*/,
         address sender,
         bytes calldata callBackData,
         bytes calldata ctx
     ) internal override returns(bytes memory) {
-
-        (uint256 lastUpdate, int96 flowRate, address sender_) = abi.decode(callBackData, (uint256,int96,address));
+        (uint256 lastUpdate, int96 flowRate) = abi.decode(callBackData, (uint256,int96));
         
         lastUpdateHolder = lastUpdate;
         oldFlowRateHolder = flowRate;
         afterSenderHolder = sender;
-        beforeSenderHolder = sender_;
         return ctx;
     }
 
     // UPDATE
-
-    function beforeFlowUpdated(
-        ISuperToken superToken,
-        address sender,
-        bytes calldata /*ctx*/
-    ) internal view override returns(bytes memory) {
-        (uint256 lastUpdate, int96 flowRate,,) = superToken.getFlowInfo(sender, address(this));
-        return abi.encode(
-            lastUpdate,
-            flowRate,
-            sender
-        );
-    }
 
     function afterFlowUpdated(
         ISuperToken /*superToken*/,
@@ -93,31 +64,15 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
         bytes calldata callBackData,
         bytes calldata ctx
     ) internal override returns(bytes memory) {
-        (uint256 lastUpdate, int96 flowRate, address sender_) = abi.decode(callBackData, (uint256,int96,address));
+        (uint256 lastUpdate, int96 flowRate) = abi.decode(callBackData, (uint256,int96));
         
         lastUpdateHolder = lastUpdate;
         oldFlowRateHolder = flowRate;
         afterSenderHolder = sender;
-        beforeSenderHolder = sender_;
         return ctx;
     }
 
     // DELETE
-
-    function beforeFlowDeleted(
-        ISuperToken superToken,
-        address sender,
-        address receiver,
-        bytes calldata /*ctx*/
-    ) internal view override returns (bytes memory /*callbackData*/) {
-        (uint256 lastUpdate, int96 flowRate,,) = superToken.getFlowInfo(sender, receiver);
-        return abi.encode(
-            lastUpdate,
-            flowRate,
-            sender,
-            receiver
-        );
-    }
 
     function afterFlowDeleted(
         ISuperToken /*superToken*/,
@@ -126,19 +81,12 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
         bytes calldata callBackData,
         bytes calldata ctx
     ) internal override returns (bytes memory newCtx) {
-        (
-            uint256 lastUpdate, 
-            int96 flowRate, 
-            address sender_, 
-            address receiver_
-        ) = abi.decode(callBackData, (uint256,int96,address,address));
+        (uint256 lastUpdate, int96 flowRate) = abi.decode(callBackData, (uint256,int96));
 
         lastUpdateHolder = lastUpdate;
         oldFlowRateHolder = flowRate;
         afterSenderHolder = sender;
-        beforeSenderHolder = sender_;
         afterReceiverHolder = receiver;
-        beforeReceiverHolder = receiver_;
         return ctx;
     }
 

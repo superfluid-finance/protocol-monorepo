@@ -1,7 +1,7 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import unsigned_div_rem, signed_div_rem
+from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.bool import TRUE
 
@@ -221,11 +221,11 @@ namespace SemanticMoney {
             let (quotient, remainder) = unsigned_div_rem(r_mul_otu, new_total_units);
             let nr = quotient;
             let er = remainder;
-            let (wp_with_new_fr, _) = shiftFlow1(
+            let (wp_with_new_fr, _) = setFlow1(
                 nr, settled_pool_member_mu.pdPoolIndex.wrapped_particle
             );
             let (settled_u_index) = settle(u_index, time);
-            let (u_index_with_new_fr, _) = shiftFlow1(
+            let (u_index_with_new_fr, _) = setFlow1(
                 settled_u_index.rtb_flow_rate + er, settled_u_index
             );
 
@@ -238,11 +238,11 @@ namespace SemanticMoney {
             let er = settled_pool_member_mu.pdPoolIndex.wrapped_particle.rtb_flow_rate *
                 old_total_units;
             let nr = 0;
-            let (wp_with_new_fr, _) = shiftFlow1(
+            let (wp_with_new_fr, _) = setFlow1(
                 nr, settled_pool_member_mu.pdPoolIndex.wrapped_particle
             );
             let (settled_u_index) = settle(u_index, time);
-            let (u_index_with_new_fr, _) = shiftFlow1(
+            let (u_index_with_new_fr, _) = setFlow1(
                 settled_u_index.rtb_flow_rate + er, settled_u_index
             );
 

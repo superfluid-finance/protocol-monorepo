@@ -23,7 +23,8 @@ contract Pool is Ownable {
         distributor = distributor_;
     }
 
-    // NOTE: solidity public function for field doesn't support struct, adding it here manually.
+    // NOTE: Solidity public function for the storage fields do not support structs.
+    //       They are added manually instead.
 
     function getIndex() external view returns (PDPoolIndex memory) { return _index; }
     function setIndex(PDPoolIndex calldata index) onlyOwner external { _index = index; }

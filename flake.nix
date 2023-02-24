@@ -3,12 +3,15 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    flakeUtils.url = "github:numtide/flake-utils";
+    flake-utils.url = "github:numtide/flake-utils";
     foundry.url = "github:shazow/foundry.nix/monthly";
+    foundry.inputs.nixpkgs.follows = "nixpkgs";
+    ghc-wasm.url = "gitlab:ghc/ghc-wasm-meta?host=gitlab.haskell.org";
+    ghc-wasm.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flakeUtils, foundry } :
-  flakeUtils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, flake-utils, foundry, ghc-wasm } :
+  flake-utils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs { inherit system; };
     # minimem development shell
@@ -36,6 +39,7 @@
       # for haskell spec
       cabal-install
       ghc
+      ghc-wasm.packages.${system}.default
       ghcPackages.haskell-language-server
       hlint
       stylish-haskell

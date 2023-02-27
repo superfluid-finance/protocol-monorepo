@@ -14,7 +14,7 @@ import {
     toBN,
     WrapperSuperToken,
 } from "../src";
-import { deployContractsAndToken } from "@superfluid-finance/ethereum-contracts/dev-scripts/deployContractsAndToken";
+import { deployContractsAndToken } from "@superfluid-finance/ethereum-contracts/dev-scripts/deploy-contracts-and-token";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { expect } from "chai";

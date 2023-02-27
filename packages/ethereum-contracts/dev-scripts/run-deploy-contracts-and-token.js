@@ -1,7 +1,7 @@
 const {Framework} = require("@superfluid-finance/sdk-core");
 const fs = require("fs");
 const {ethers} = require("hardhat");
-const {deployContractsAndToken} = require("./deployContractsAndToken");
+const {deployContractsAndToken} = require("./deploy-contracts-and-token");
 
 deployContractsAndToken()
     .then(async (deployer) => {

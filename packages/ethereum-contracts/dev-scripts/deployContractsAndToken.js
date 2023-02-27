@@ -1,4 +1,5 @@
 const {ethers} = require("hardhat");
+const testResolverArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/TestResolver.sol/TestResolver.json");
 
 const {
     deployTestFramework,
@@ -8,8 +9,13 @@ async function deployContractsAndToken() {
     const [Deployer] = await ethers.getSigners();
 
     const deployer = await deployTestFramework();
+    const framework = await deployer.getFramework();
 
-    console.log("Deploying Wrapper Super Token...");
+    const resolver = await ethers.getContractAt(
+        testResolverArtifact.abi,
+        framework.resolver
+    );
+
     await deployer
         .connect(Deployer)
         .deployWrapperSuperToken(
@@ -19,12 +25,10 @@ async function deployContractsAndToken() {
             ethers.utils.parseUnits("1000000000000")
         );
 
-    console.log("Deploying Native Asset Super Token...");
     await deployer
         .connect(Deployer)
         .deployNativeAssetSuperToken("Super ETH", "ETHx");
 
-    console.log("Deploying Pure Super Token...");
     await deployer
         .connect(Deployer)
         .deployPureSuperToken(
@@ -32,6 +36,35 @@ async function deployContractsAndToken() {
             "MRx",
             ethers.utils.parseUnits("1000000000000")
         );
+
+    const fDAIAddress = await resolver.get("tokens.test.fDAI");
+    const fDAIxAddress = await resolver.get("supertokens.test.fDAIx");
+    const ethxAddress = await resolver.get("supertokens.test.ETHx");
+    const mrxAddress = await resolver.get("supertokens.test.MRx");
+    const tokenDeploymentOutput = {
+        wrapperSuperTokenData: {
+            wrapperSuperTokenName: "Super Fake DAI",
+            wrapperSuperTokenSymbol: "fDAIx",
+            wrapperSuperTokenAddress: fDAIxAddress,
+            wrapperSuperTokenUnderlyingToken: {
+                underlyingTokenAddress: fDAIAddress,
+                underlyingTokenSymbol: "fDAI",
+                underlyingTokenName: "Fake DAI",
+            },
+        },
+        nativeAssetSuperTokenData: {
+            name: "Super ETH",
+            symbol: "ETHx",
+            nativeAssetSuperTokenAddress: ethxAddress,
+        },
+        pureSuperTokenData: {
+            name: "Mr.Token",
+            symbol: "MRx",
+            pureSuperTokenAddress: mrxAddress,
+        },
+    };
+    console.log("Token Deployment Output:", tokenDeploymentOutput);
+
     return deployer;
 }
 

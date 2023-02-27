@@ -18,9 +18,7 @@ deployContractsAndToken()
         const nativeAssetSuperToken = await framework.loadNativeAssetSuperToken(
             "ETHx"
         );
-
-        // create json output
-        const JSONOutput = JSON.stringify({
+        const deploymentOutput = {
             network: "mainnet",
             testNetwork: "hardhat",
             hostStartBlock: 0,
@@ -30,7 +28,14 @@ deployContractsAndToken()
             superTokenFactoryAddress: frameworkAddresses.superTokenFactory,
             resolverV1Address: frameworkAddresses.resolver,
             nativeAssetSuperTokenAddress: nativeAssetSuperToken.address,
-        });
+        };
+
+        // create json output
+        const JSONOutput = JSON.stringify(deploymentOutput);
+
+        // console addresses
+        delete deploymentOutput.nativeAssetSuperTokenAddress;
+        console.log("Framework Deployment Output:", deploymentOutput);
 
         // write to hardhat.json in packages/subgraph for local testing
         const writeToDir =

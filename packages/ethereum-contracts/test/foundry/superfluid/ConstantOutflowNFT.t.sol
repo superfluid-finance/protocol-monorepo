@@ -292,7 +292,6 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
     function test_Revert_When_Create_Flow_Overflows_Because_Timestamp_Is_Greater_Than_Uint32_Max()
         public
     {
-        int96 flowRate = 42069;
         address flowSender = alice;
         address flowReceiver = bob;
 
@@ -311,7 +310,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
     ) public {
         assume_Caller_Is_Not_Other_Address(
             caller,
-            address(constantOutflowNFTProxy)
+            address(sf.cfa)
         );
         vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
         vm.prank(caller);
@@ -323,9 +322,8 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
     ) public {
         assume_Caller_Is_Not_Other_Address(
             caller,
-            address(constantOutflowNFTProxy)
+            address(sf.cfa)
         );
-        vm.assume(caller != address(sf.cfa));
         vm.prank(caller);
         vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
         constantOutflowNFTProxy.onUpdate(address(1), address(2));
@@ -336,7 +334,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
     ) public {
         assume_Caller_Is_Not_Other_Address(
             caller,
-            address(constantOutflowNFTProxy)
+            address(sf.cfa)
         );
         vm.prank(caller);
         vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);

@@ -446,14 +446,17 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             "Governance registers IDA"
         )(superfluid.address, ida.address);
     } else {
+        // NOTE that we are reusing the existing deployed external library
+        // here as an optimization, this assumes that we do not change the 
+        // library code.
         // link library in order to avoid spurious code change detections
         let slotsBitmapLibraryAddress = ZERO_ADDRESS;
         try {
-            slotsBitmapLibraryAddress = await (
-                await InstantDistributionAgreementV1.at(
-                    await superfluid.getAgreementClass.call(IDAv1_TYPE)
-                )
-            ).SLOTS_BITMAP_LIBRARY_ADDRESS.call();
+            const IDAv1 = await InstantDistributionAgreementV1.at(
+                await superfluid.getAgreementClass.call(IDAv1_TYPE)
+            );
+            slotsBitmapLibraryAddress =
+                await IDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS.call();
             if (process.env.IS_HARDHAT) {
                 if (slotsBitmapLibraryAddress !== ZERO_ADDRESS) {
                     const lib = await SlotsBitmapLibrary.at(
@@ -559,20 +562,60 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         : SuperTokenFactory;
 
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
-    await deployExternalLibraryAndLink(
-        SuperfluidNFTDeployerLibrary,
-        "SuperfluidNFTDeployerLibrary",
-        "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS",
-        SuperTokenLogic
-    );
+    const factoryAddress = await superfluid.getSuperTokenFactory.call();
+
+    // deploy new SuperfluidNFTDeployerLibrary if factory is not deployed
+    // link it to SuperToken logic contract
+    if (factoryAddress === ZERO_ADDRESS) {
+        await deployExternalLibraryAndLink(
+            SuperfluidNFTDeployerLibrary,
+            "SuperfluidNFTDeployerLibrary",
+            "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS",
+            SuperTokenLogic
+        );
+    } else {
+        // NOTE that we are reusing the existing deployed external library
+        // here as an optimization, this assumes that we do not change the
+        // library code.
+        // link existing deployed external library to SuperToken logic contract
+        let superfluidNFTDeployerLibraryAddress = ZERO_ADDRESS;
+        try {
+            // get factory contract
+            const factoryContract = await SuperTokenFactoryLogic.at(
+                factoryAddress
+            );
+            const superTokenContract = await SuperToken.at(
+                await factoryContract.getSuperTokenLogic.call()
+            );
+            superfluidNFTDeployerLibraryAddress =
+                await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
+            if (process.env.IS_HARDHAT) {
+                if (superfluidNFTDeployerLibraryAddress !== ZERO_ADDRESS) {
+                    const lib = await SuperfluidNFTDeployerLibrary.at(
+                        superfluidNFTDeployerLibraryAddress
+                    );
+                    SuperTokenLogic.link(lib);
+                }
+            } else {
+                SuperTokenLogic.link(
+                    "SuperfluidNFTDeployerLibrary",
+                    superfluidNFTDeployerLibraryAddress
+                );
+            }
+        } catch (e) {
+            console.warn(
+                "Cannot get superfluidNFTDeployerLibrary address",
+                e.toString()
+            );
+        }
+    }
+
     const superTokenFactoryNewLogicAddress = await deployContractIf(
         web3,
         SuperTokenFactoryLogic,
         async () => {
             // check if super token factory or super token logic changed
             try {
-                const factoryAddress =
-                    await superfluid.getSuperTokenFactory.call();
                 if (factoryAddress === ZERO_ADDRESS) return true;
                 const factory = await SuperTokenFactoryLogic.at(factoryAddress);
                 const superTokenLogicAddress =

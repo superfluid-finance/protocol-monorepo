@@ -45,6 +45,7 @@ contract SuperToken is
     using SafeERC20 for IERC20;
 
     uint8 constant private _STANDARD_DECIMALS = 18;
+    address public constant SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS = address(SuperfluidNFTDeployerLibrary);
 
     // solhint-disable-next-line var-name-mixedcase
     IConstantOutflowNFT immutable public CONSTANT_OUTFLOW_NFT_LOGIC;

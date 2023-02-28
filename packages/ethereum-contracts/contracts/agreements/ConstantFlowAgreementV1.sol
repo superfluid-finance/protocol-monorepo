@@ -461,7 +461,6 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-
         IConstantOutflowNFT constantOutflowNFT = ISuperToken(
             address(flowVars.token)
         ).constantOutflowNFT();
@@ -499,9 +498,15 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        IConstantOutflowNFT(
-            address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
-        ).onUpdate(flowVars.sender, flowVars.receiver);
+        IConstantOutflowNFT constantOutflowNFT = ISuperToken(
+            address(flowVars.token)
+        ).constantOutflowNFT();
+
+        if (constantOutflowNFT.flowDataByTokenId(uint256(flowParams.flowId)).flowSender != address(0)) {
+            IConstantOutflowNFT(
+                address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
+            ).onUpdate(flowVars.sender, flowVars.receiver);
+        }
     }
 
     function _deleteFlow(

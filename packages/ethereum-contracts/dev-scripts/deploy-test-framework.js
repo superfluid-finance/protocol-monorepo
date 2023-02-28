@@ -20,7 +20,9 @@ const ERC1820_PAYLOAD =
     "1ba01820182018201820182018201820182018201820182018201820182018201820a01820182018201820182018201820182018201820182018201820182018201820";
 
 async function deployERC1820(provider) {
-    console.log("Deploying ERC1820...");
+    if (process.env.DEBUG_CONSOLE === true) {
+        console.log("Deploying ERC1820...");
+    }
     const code = await provider.send("eth_getCode", [
         ERC1820_ADDRESS,
         "latest",
@@ -37,7 +39,9 @@ async function deployERC1820(provider) {
         ]);
         await provider.send("eth_sendRawTransaction", [ERC1820_PAYLOAD]);
 
-        console.log("ERC1820 registry successfully deployed");
+        if (process.env.DEBUG_CONSOLE === true) {
+            console.log("ERC1820 registry successfully deployed");
+        }
     }
 }
 
@@ -47,14 +51,18 @@ const _getFactoryAndReturnDeployedContract = async (
     signerOrOptions,
     ...args
 ) => {
-    console.log(`Deploying ${contractName}...`);
+    if (process.env.DEBUG_CONSOLE === true) {
+        console.log(`Deploying ${contractName}...`);
+    }
     const ContractFactory = await ethers.getContractFactoryFromArtifact(
         artifact,
         signerOrOptions
     );
     const contract = await ContractFactory.deploy(...args);
     await contract.deployed();
-    console.log(`${contractName} Deployed At:`, contract.address);
+    if (process.env.DEBUG_CONSOLE === true) {
+        console.log(`${contractName} Deployed At:`, contract.address);
+    }
     return contract;
 };
 

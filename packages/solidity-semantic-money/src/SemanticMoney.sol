@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 
 type Time     is uint32;
 type Value    is int256;
 type FlowRate is int128;
-type Unit     is uint128;
+type Unit     is int128;
 
 library MonetaryTypes {
     using MonetaryTypes for Time;
@@ -13,6 +13,9 @@ library MonetaryTypes {
     using MonetaryTypes for FlowRate;
     using MonetaryTypes for Unit;
 
+    ////////////////////////////////////////////////////////////
+    // Time
+    ////////////////////////////////////////////////////////////
     function add(Time a, Time b) internal pure returns (Time) {
         return Time.wrap(Time.unwrap(a) + Time.unwrap(b));
     }
@@ -33,36 +36,10 @@ library MonetaryTypes {
         return Value.wrap(Value.unwrap(a) - Value.unwrap(b));
     }
     function mul(Value a, Unit b) internal pure returns (Value) {
-        return Value.wrap(Value.unwrap(a) * int256(uint256(Unit.unwrap(b))));
+        return Value.wrap(Value.unwrap(a) * int256(Unit.unwrap(b)));
     }
     function div(Value a, Unit b) internal pure returns (Value) {
-        return Value.wrap(Value.unwrap(a) / int256(uint256(Unit.unwrap(b))));
-    }
-
-    ////////////////////////////////////////////////////////////
-    // FlowRate
-    ////////////////////////////////////////////////////////////
-    function add(FlowRate a, FlowRate b) internal pure returns (FlowRate) {
-        return FlowRate.wrap(FlowRate.unwrap(a) + FlowRate.unwrap(b));
-    }
-    function sub(FlowRate a, FlowRate b) internal pure returns (FlowRate) {
-        return FlowRate.wrap(FlowRate.unwrap(a) - FlowRate.unwrap(b));
-    }
-    function inv(FlowRate r) internal pure returns (FlowRate) {
-        return FlowRate.wrap(-FlowRate.unwrap(r));
-    }
-    function mul(FlowRate r, Time t) internal pure returns (Value) {
-        return Value.wrap(FlowRate.unwrap(r) * int(uint(Time.unwrap(t))));
-    }
-    function mul(FlowRate r, Unit u) internal pure returns (FlowRate) {
-        return FlowRate.wrap(FlowRate.unwrap(r) * int128(Unit.unwrap(u)));
-    }
-    function div(FlowRate a, Unit b) internal pure returns (FlowRate) {
-        return FlowRate.wrap(FlowRate.unwrap(a) / int128(uint128(Unit.unwrap(b))));
-    }
-    function quotRem(FlowRate r, Unit u) internal pure returns (FlowRate nr, FlowRate er) {
-        nr = FlowRate.wrap(FlowRate.unwrap(r) / int128(Unit.unwrap(u)));
-        er = FlowRate.wrap(FlowRate.unwrap(r) % int128(Unit.unwrap(u)));
+        return Value.wrap(Value.unwrap(a) / int256(Unit.unwrap(b)));
     }
 
     ////////////////////////////////////////////////////////////
@@ -78,6 +55,33 @@ library MonetaryTypes {
     function mul_u_qr_u(FlowRate r, Unit u1, Unit u2) internal pure returns (FlowRate nr, FlowRate er) {
         return r.mul(u1).quotRem(u2);
     }
+
+    ////////////////////////////////////////////////////////////
+    // FlowRate, and multiplications with Time and Unit
+    ////////////////////////////////////////////////////////////
+    function add(FlowRate a, FlowRate b) internal pure returns (FlowRate) {
+        return FlowRate.wrap(FlowRate.unwrap(a) + FlowRate.unwrap(b));
+    }
+    function sub(FlowRate a, FlowRate b) internal pure returns (FlowRate) {
+        return FlowRate.wrap(FlowRate.unwrap(a) - FlowRate.unwrap(b));
+    }
+    function inv(FlowRate r) internal pure returns (FlowRate) {
+        return FlowRate.wrap(-FlowRate.unwrap(r));
+    }
+    function mul(FlowRate r, Time t) internal pure returns (Value) {
+        return Value.wrap(FlowRate.unwrap(r) * int(uint(Time.unwrap(t))));
+    }
+    function mul(FlowRate r, Unit u) internal pure returns (FlowRate) {
+        return FlowRate.wrap(FlowRate.unwrap(r) * Unit.unwrap(u));
+    }
+    function div(FlowRate a, Unit b) internal pure returns (FlowRate) {
+        return FlowRate.wrap(FlowRate.unwrap(a) / Unit.unwrap(b));
+    }
+    function quotRem(FlowRate r, Unit u) internal pure returns (FlowRate nr, FlowRate er) {
+        nr = FlowRate.wrap(FlowRate.unwrap(r) / Unit.unwrap(u));
+        er = FlowRate.wrap(FlowRate.unwrap(r) % Unit.unwrap(u));
+    }
+
 }
 
 /**

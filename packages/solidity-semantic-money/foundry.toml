@@ -2,7 +2,7 @@
 root = '../..'
 src = 'packages/solidity-semantic-money'
 out = 'packages/solidity-semantic-money/out'
-solc_version = '0.8.18'
+solc_version = '0.8.19'
 remappings = [
     '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',
     '@openzeppelin/=node_modules/@openzeppelin/',

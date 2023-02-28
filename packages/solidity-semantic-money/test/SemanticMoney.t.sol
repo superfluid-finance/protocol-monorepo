@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 import "../src/SemanticMoney.sol";
@@ -119,9 +119,9 @@ contract SemanticMoneyTest is Test {
 
     }
 
-    function test_UPDP_1Member_Shift2Shift2(uint16 m1, uint64 u1, // update unit
+    function test_UPDP_1Member_Shift2Shift2(uint16 m1, int64 u1, // update unit
                                             uint16 m2, int64 x2,  // distribute
-                                            uint16 m3, uint64 u2, // update unit
+                                            uint16 m3, int64 u2, // update unit
                                             uint16 m4, int64 x4,  // distribute
                                             uint16 m5) external {
         UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
@@ -134,7 +134,7 @@ contract SemanticMoneyTest is Test {
         (d.a, d.b, ) = d.a.shift2(d.b, Value.wrap(x2));
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
-        assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
+        assertEq(Unit.unwrap(d.b.total_units), u2);
         assertEq(Unit.unwrap(d.b1.owned_unit), u2);
 
         (d.a, d.b, ) = d.a.shift2(d.b, Value.wrap(x4));
@@ -144,9 +144,9 @@ contract SemanticMoneyTest is Test {
                              ), 0);
     }
 
-    function test_UPDP_1Member_Flow2Flow2(uint16 m1, uint64 u1, // update unit
+    function test_UPDP_1Member_Flow2Flow2(uint16 m1, int64 u1, // update unit
                                           uint16 m2, int64 r2,  // distribute flow
-                                          uint16 m3, uint64 u2, // update unit
+                                          uint16 m3, int64 u2, // update unit
                                           uint16 m4, int64 r4,  // distribute flow
                                           uint16 m5) external {
         UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
@@ -159,7 +159,7 @@ contract SemanticMoneyTest is Test {
         (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
-        assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
+        assertEq(Unit.unwrap(d.b.total_units), u2);
         assertEq(Unit.unwrap(d.b1.owned_unit), u2);
 
         (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
@@ -169,9 +169,9 @@ contract SemanticMoneyTest is Test {
                              ), 0);
     }
 
-    function test_UPDP_1Member_Shift2Flow2(uint16 m1, uint64 u1, // update unit
+    function test_UPDP_1Member_Shift2Flow2(uint16 m1, int64 u1, // update unit
                                            uint16 m2, int64 x2,  // distribute
-                                           uint16 m3, uint64 u2, // update unit
+                                           uint16 m3, int64 u2, // update unit
                                            uint16 m4, int64 r4,  // distribute flow
                                            uint16 m5) external {
         UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
@@ -184,7 +184,7 @@ contract SemanticMoneyTest is Test {
         (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x2));
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
-        assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
+        assertEq(Unit.unwrap(d.b.total_units), u2);
         assertEq(Unit.unwrap(d.b1.owned_unit), u2);
 
         (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
@@ -194,9 +194,9 @@ contract SemanticMoneyTest is Test {
                              ), 0);
     }
 
-    function test_UPDP_1Member_Flow2Shift2(uint16 m1, uint64 u1, // update unit
+    function test_UPDP_1Member_Flow2Shift2(uint16 m1, int64 u1, // update unit
                                            uint16 m2, int64 r2,  // distribute flow
-                                           uint16 m3, uint64 u2, // update unit
+                                           uint16 m3, int64 u2, // update unit
                                            uint16 m4, int64 x4,  // distribute
                                            uint16 m5) external {
         UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
@@ -209,7 +209,7 @@ contract SemanticMoneyTest is Test {
         (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
-        assertEq(Unit.unwrap(d.b.total_units), uint256(u2));
+        assertEq(Unit.unwrap(d.b.total_units), u2);
         assertEq(Unit.unwrap(d.b1.owned_unit), u2);
 
         (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x4));
@@ -219,9 +219,9 @@ contract SemanticMoneyTest is Test {
                              ), 0);
     }
 
-    function test_UPDP_2Members_Shift2Shift2(uint16 m1, uint64 u1, // update unit for member 1
+    function test_UPDP_2Members_Shift2Shift2(uint16 m1, int64 u1, // update unit for member 1
                                              uint16 m2, int64 x2,  // distribute
-                                             uint16 m3, uint64 u2, // update unit for member 2
+                                             uint16 m3, int64 u2, // update unit for member 2
                                              uint16 m4, int64 x4,  // distribute
                                              uint16 m5) external {
         UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
@@ -234,7 +234,7 @@ contract SemanticMoneyTest is Test {
         (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x2));
 
         (d.b, d.b2, d.a) = PDPoolMemberMU(d.b, d.b2).pool_member_update(d.a, Unit.wrap(u2), d.t3);
-        assertEq(Unit.unwrap(d.b.total_units), uint256(u1) + uint256(u2));
+        assertEq(Unit.unwrap(d.b.total_units), int256(u1) + int256(u2));
         assertEq(Unit.unwrap(d.b2.owned_unit), u2);
 
         (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x4));
@@ -245,9 +245,9 @@ contract SemanticMoneyTest is Test {
                              ), 0);
     }
 
-    function test_UPDP_2Members_Flow2Flow2(uint16 m1, uint64 u1, // update unit for member 1
+    function test_UPDP_2Members_Flow2Flow2(uint16 m1, int64 u1, // update unit for member 1
                                            uint16 m2, int64 r2,  // distribute flow
-                                           uint16 m3, uint64 u2, // update unit for member 2
+                                           uint16 m3, int64 u2, // update unit for member 2
                                            uint16 m4, int64 r4,  // distribute flow
                                            uint16 m5) external {
         UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
@@ -260,7 +260,7 @@ contract SemanticMoneyTest is Test {
         (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
 
         (d.b, d.b2, d.a) = PDPoolMemberMU(d.b, d.b2).pool_member_update(d.a, Unit.wrap(u2), d.t3);
-        assertEq(Unit.unwrap(d.b.total_units), uint256(u1) + uint256(u2));
+        assertEq(Unit.unwrap(d.b.total_units), int256(u1) + int256(u2));
         assertEq(Unit.unwrap(d.b2.owned_unit), u2);
 
         (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
@@ -271,9 +271,9 @@ contract SemanticMoneyTest is Test {
                              ), 0);
     }
 
-    function test_UPDP_2Members_Shift2Flow2(uint16 m1, uint64 u1, // update unit for member 1
+    function test_UPDP_2Members_Shift2Flow2(uint16 m1, int64 u1, // update unit for member 1
                                             uint16 m2, int64 x2,  // distribute
-                                            uint16 m3, uint64 u2, // update unit for member 2
+                                            uint16 m3, int64 u2, // update unit for member 2
                                             uint16 m4, int64 r4,  // distribute flow
                                             uint16 m5) external {
         UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
@@ -286,7 +286,7 @@ contract SemanticMoneyTest is Test {
         (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x2));
 
         (d.b, d.b2, d.a) = PDPoolMemberMU(d.b, d.b2).pool_member_update(d.a, Unit.wrap(u2), d.t3);
-        assertEq(Unit.unwrap(d.b.total_units), uint256(u1) + uint256(u2));
+        assertEq(Unit.unwrap(d.b.total_units), int256(u1) + int256(u2));
         assertEq(Unit.unwrap(d.b2.owned_unit), u2);
 
         (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r4), d.t4);
@@ -297,10 +297,10 @@ contract SemanticMoneyTest is Test {
                              ), 0);
     }
 
-    function test_UPDP_2Members_Flow2Shift2(uint16 m1, uint64 u1, // update unit for member 1
-                                            uint16 m2, int64 r2,  // distribute flow
-                                            uint16 m3, uint64 u2, // update unit for member 2
-                                            uint16 m4, int64 x4,  // distribute
+    function test_UPDP_2Members_Flow2Shift2(uint16 m1, int64 u1, // update unit for member 1
+                                            uint16 m2, int64 r2, // distribute flow
+                                            uint16 m3, int64 u2, // update unit for member 2
+                                            uint16 m4, int64 x4, // distribute
                                             uint16 m5) external {
         UPDP_2Members_Data memory d = new_UPDP_2Members_Data(m1, m2, m3, m4, m5);
 
@@ -312,7 +312,7 @@ contract SemanticMoneyTest is Test {
         (d.a, d.b,) = d.a.flow2(d.b, FlowRate.wrap(r2), d.t2);
 
         (d.b, d.b2, d.a) = PDPoolMemberMU(d.b, d.b2).pool_member_update(d.a, Unit.wrap(u2), d.t3);
-        assertEq(Unit.unwrap(d.b.total_units), uint256(u1) + uint256(u2));
+        assertEq(Unit.unwrap(d.b.total_units), int256(u1) + int256(u2));
         assertEq(Unit.unwrap(d.b2.owned_unit), u2);
 
         (d.a, d.b,) = d.a.shift2(d.b, Value.wrap(x4));

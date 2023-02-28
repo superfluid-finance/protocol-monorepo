@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
@@ -31,6 +31,7 @@ contract Pool is Ownable {
     function getMember(address member) external view returns (PDPoolMember memory) { return _members[member]; }
 
     function updatePoolMember(address member, Unit unit) external returns (bool) {
+        require(Unit.unwrap(unit) >= 0, "Negative unit number not supported");
         require(msg.sender == distributor, "not the distributor!");
         Time t = Time.wrap(uint32(block.timestamp));
         BasicParticle memory p;
@@ -38,6 +39,8 @@ contract Pool is Ownable {
         SuperToken(owner()).absorb(distributor, p);
         return true;
     }
+
+    // claim()
 }
 
 /**
@@ -127,6 +130,8 @@ contract SuperToken is IERC20 {
         require(Value.unwrap(amount) >= 0, "don't even try");
         return _transferFrom(from, to, uint256(Value.unwrap(amount)));
     }
+
+    // flowRef??? = keccack256(abi.encode(block.chainId, from, to, subFlowId));
 
     function flow(address from, address to, FlowId flowId, FlowRate flowRate) external
         returns (bool success) {

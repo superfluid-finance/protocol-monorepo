@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 import "../src/SuperToken.sol";
@@ -69,8 +69,10 @@ contract SuperTokenTest is Test {
         assertEq(b2 - b1, uint256(r) * uint256(t2));
     }
 
-    function testDistribute(uint32 u1, uint32 u2, uint64 x) external {
-        uint tu = uint(u1) + uint(u2);
+    function testDistribute(int32 u1, int32 u2, uint64 x) external {
+        vm.assume(u1 >= 0);
+        vm.assume(u2 >= 0);
+        uint tu = uint(int(u1) + int(u2));
         vm.assume(tu > 0);
         uint x1 = uint(x) / tu * tu;
         uint256 a1 = token.balanceOf(alice);
@@ -99,8 +101,10 @@ contract SuperTokenTest is Test {
         assertEq(b2 - b1 + c2 - c1, x1);
     }
 
-    function testDistributeFlow(uint32 u1, uint32 u2, uint32 r, uint16 t2) external {
-        uint tu = uint(u1) + uint(u2);
+    function testDistributeFlow(int32 u1, int32 u2, uint32 r, uint16 t2) external {
+        vm.assume(u1 >= 0);
+        vm.assume(u2 >= 0);
+        uint tu = uint(int(u1) + int(u2));
         vm.assume(tu > 0);
         int r1 = int(uint(r) / tu * tu);
         uint256 t1 = block.timestamp;

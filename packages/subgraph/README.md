@@ -124,7 +124,7 @@ yarn build
 Now go to to `packages/ethereum-contracts` and run the following command to deploy contracts:
 
 ```bash
-npx hardhat run dev-scripts/runDeployContractsAndToken.js
+npx hardhat run dev-scripts/run-deploy-contracts-and-token.js
 ```
 
 This deploys the SuperFluid framework and tokens to your local hardhat node.

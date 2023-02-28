@@ -1,6 +1,19 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.18;
 
+import { Test } from "forge-std/Test.sol";
+
+import {
+    SuperfluidFrameworkDeployer,
+    TestResolver,
+    SuperfluidLoader
+} from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import {
+    ERC1820RegistryCompiled
+} from "../../contracts/libs/ERC1820RegistryCompiled.sol";
+import {
+    SuperTokenDeployer
+} from "../../contracts/utils/SuperTokenDeployer.sol";
 import {
     CFAv1Library,
     IDAv1Library,
@@ -14,10 +27,17 @@ import {
     TestToken,
     SuperToken
 } from "../../contracts/utils/SuperTokenDeployer.sol";
-import { DeployerBaseTest } from "./DeployerBase.t.sol";
 
-contract FoundrySuperfluidTester is DeployerBaseTest {
+contract FoundrySuperfluidTester is Test {
     using SuperTokenV1Library for SuperToken;
+
+    SuperfluidFrameworkDeployer internal immutable sfDeployer;
+    SuperTokenDeployer internal immutable superTokenDeployer;
+
+    SuperfluidFrameworkDeployer.Framework internal sf;
+    TestResolver internal resolver;
+    address internal constant admin = address(0x420);
+
 
     uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
@@ -41,11 +61,43 @@ contract FoundrySuperfluidTester is DeployerBaseTest {
     uint256 private _expectedTotalSupply;
 
     constructor(uint8 nTesters) {
+        // etch erc1820
+        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
+
+        // deploy SuperfluidFrameworkDeployer
+        // which deploys in its constructor:
+        // - TestGovernance
+        // - Host
+        // - CFA
+        // - IDA
+        // - SuperTokenFactory
+        // - Resolver
+        // - SuperfluidLoader
+        // - CFAv1Forwarder
+        sfDeployer = new SuperfluidFrameworkDeployer();
+        sf = sfDeployer.getFramework();
+
+        resolver = sf.resolver;
+
+        // deploy SuperTokenDeployer
+        superTokenDeployer = new SuperTokenDeployer(
+            address(sf.superTokenFactory),
+            address(sf.resolver)
+        );
+
+        // transfer ownership of TestGovernance to superTokenDeployer
+        // governance ownership is required for initializing the NFT
+        // contracts on the SuperToken
+        sfDeployer.transferOwnership(address(superTokenDeployer));
+
+        // add superTokenDeployer as admin to the resolver so it can register the SuperTokens
+        sf.resolver.addAdmin(address(superTokenDeployer));
+
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
         N_TESTERS = nTesters;
     }
 
-    function setUp() public virtual override {
+    function setUp() public virtual {
         (token, superToken) = superTokenDeployer.deployWrapperSuperToken(
             "FTT",
             "FTT",

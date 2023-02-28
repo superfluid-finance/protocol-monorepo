@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.18;
 
-import { DeployerBaseTest } from "./DeployerBase.t.sol";
+import { FoundrySuperfluidTester } from "./FoundrySuperfluidTester.sol";
 
 import {
     IPureSuperToken,
@@ -14,7 +14,9 @@ import {
     ERC1820RegistryCompiled
 } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
 
-contract SuperTokenDeployerTest is DeployerBaseTest {
+contract SuperTokenDeployerTest is FoundrySuperfluidTester {
+
+    constructor() FoundrySuperfluidTester(1) {}
     function setUp() public virtual override {
         super.setUp();
     }

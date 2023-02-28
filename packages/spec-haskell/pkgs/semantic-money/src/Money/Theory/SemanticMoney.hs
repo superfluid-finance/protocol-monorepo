@@ -13,9 +13,9 @@ import           Data.Kind    (Type)
 -- Note:
 --   * Index related types through associated type families.
 --   * Use type family dependencies to make these types to the index type injective.
-class ( Integral (MT_TIME  mt) -- NonNegative
+class ( Integral (MT_TIME  mt)
       , Integral (MT_VALUE mt)
-      , Integral (MT_UNIT  mt) -- NonNegative
+      , Integral (MT_UNIT  mt)
       ) => MonetaryTypes mt where
     mt_v_mul_t :: MT_VALUE mt -> MT_TIME mt -> MT_VALUE mt
     mt_v_mul_t v t = v * (fromInteger . toInteger) t
@@ -180,7 +180,8 @@ deriving instance MonetaryTypes mt => Eq (BasicParticle mt)
 
 instance MonetaryTypes mt => Semigroup (BasicParticle mt) where
     a@(BasicParticle t1 _ _) <> b@(BasicParticle t2 _ _) = BasicParticle t' (sv1 + sv2) (r1 + r2)
-        where t' = max t1 t2
+        -- to support negative time value while abiding the monoidal laws
+        where t' = if abs t1 > abs t2 then t1 else t2
               (BasicParticle _ sv1 r1) = settle t' a
               (BasicParticle _ sv2 r2) = settle t' b
 

@@ -16,7 +16,7 @@ type TestPDPoolIndex = PDPoolIndex TestMonetaryTypes TesBasicParticle
 type TestPDPoolMember = PDPoolMember TestMonetaryTypes TesBasicParticle
 type TestPDPoolMemberMU = PDPoolMemberMU TestMonetaryTypes TesBasicParticle
 
-foreign export ccall uu_flow2 :: Int -> Int
-uu_flow2 x = x + 42
+foreign export ccall uu_flow2 :: Int -> IO Int
+uu_flow2 x = pure $ x + 42
 
 main = pure ()

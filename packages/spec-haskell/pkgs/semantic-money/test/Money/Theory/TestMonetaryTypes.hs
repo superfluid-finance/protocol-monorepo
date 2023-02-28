@@ -9,7 +9,7 @@ import           Money.Theory.SemanticMoney
 
 newtype TestTime = TestTime Integer deriving (Enum, Eq, Ord, Num, Real, Integral, Show)
 instance Arbitrary TestTime where
-    arbitrary = TestTime . getNonNegative <$> arbitrary
+    arbitrary = TestTime <$> arbitrary
 
 newtype TestMValue = TestMValue Integer deriving (Enum, Eq, Ord, Num, Real, Integral, Show)
 instance Arbitrary TestMValue where
@@ -17,7 +17,7 @@ instance Arbitrary TestMValue where
 
 newtype TestMUnit = TestMUnit Integer deriving (Enum, Eq, Ord, Num, Real, Integral, Show)
 instance Arbitrary TestMUnit where
-    arbitrary = TestMUnit . getNonNegative <$> arbitrary
+    arbitrary = TestMUnit <$> arbitrary
 
 data TestMonetaryTypes
 instance MonetaryTypes TestMonetaryTypes where

@@ -31,16 +31,20 @@ namespace ISuperToken {
     func approve(spender: felt, amount: felt) -> (success: felt) {
     }
 
-    func iTransfer(senderAddress: felt, receiverAddress: felt, amount: felt){
+    func iTransfer(senderAddress: felt, receiverAddress: felt, amount: felt) {
     }
 
-    func flow(senderAddress: felt, receiverAddress: felt, flowId: felt, flowRate: felt) -> (success: felt) {
+    func flow(senderAddress: felt, receiverAddress: felt, flowId: felt, flowRate: felt) -> (
+        success: felt
+    ) {
     }
 
     func distribute(senderAddress: felt, poolAddress: felt, reqAmount: felt) {
     }
 
-    func distributeFlow(senderAddress: felt, receiverAddress: felt, flowId: felt, reqFlowRate: felt) -> (success: felt, actualFlowRate: felt){
+    func distributeFlow(
+        senderAddress: felt, receiverAddress: felt, flowId: felt, reqFlowRate: felt
+    ) -> (success: felt, actualFlowRate: felt) {
     }
 
     func connectPool(to: felt) -> (success: felt) {
@@ -57,5 +61,4 @@ namespace ISuperToken {
 
     func absorb(account: felt, particle: BasicParticle) {
     }
-
 }

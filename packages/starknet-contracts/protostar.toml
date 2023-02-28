@@ -5,8 +5,7 @@ cairo-path = ["lib/cairo_contracts/src"]
 
 [contracts]
 SuperToken = ["src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo"]
-ISuperToken = ["src/interfaces/ISuperToken.cairo"]
-IPool = ["src/interfaces/IPool.cairo"]
+Pool = ["src/pools/PoolImpl.cairo"]
 
 [profile.devnet.project]
 gateway-url = "http://127.0.0.1:5050/"

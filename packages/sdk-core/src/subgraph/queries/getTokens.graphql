@@ -14,5 +14,9 @@ query getTokens($where: Token_filter! = {}, $skip: Int! = 0, $first: Int! = 10, 
         isListed
         isNativeAssetSuperToken
         underlyingAddress
+        rewardAddress
+        liquidationPeriod
+        patricianPeriod
+        minimumDeposit
     }
 }

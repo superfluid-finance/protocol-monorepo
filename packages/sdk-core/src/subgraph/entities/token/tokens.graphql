@@ -17,5 +17,9 @@ query tokens($first: Int = 10, $orderBy: Token_orderBy = id, $orderDirection: Or
         name
         symbol
         underlyingAddress
+        rewardAddress
+        liquidationPeriod
+        patricianPeriod
+        minimumDeposit
     }
 }

@@ -1,4 +1,9 @@
-import { Address, BlockNumber, Timestamp } from "../../mappedSubgraphTypes";
+import {
+    Address,
+    BigNumber,
+    BlockNumber,
+    Timestamp,
+} from "../../mappedSubgraphTypes";
 import { Token_Filter, Token_OrderBy } from "../../schema.generated";
 import {
     RelevantAddressesIntermediate,
@@ -22,6 +27,10 @@ export interface Token {
     name: string;
     symbol: string;
     underlyingAddress: Address;
+    rewardAddress: Address;
+    liquidationPeriod: BigNumber;
+    patricianPeriod: BigNumber;
+    minimumDeposit: BigNumber;
 }
 
 export type TokenListQuery = SubgraphListQuery<Token_Filter, Token_OrderBy>;

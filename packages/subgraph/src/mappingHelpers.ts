@@ -166,25 +166,24 @@ export function getOrInitSuperToken(
     const defaultGovernanceConfigs = DefaultGovernanceConfigs.load(
         ZERO_ADDRESS.toHexString()
     );
-    const configExists = defaultGovernanceConfigs != null;
 
     // we set to default governance configs if they are not set either 
     // in initialization OR via governance events in subsequent token retrievals
     // this handles any assumptions regarding the order of events
     // token creation events vs. governance config setting events
-    if (token.rewardAddress.equals(ZERO_ADDRESS) && configExists) {
+    if (token.rewardAddress.equals(ZERO_ADDRESS) && defaultGovernanceConfigs != null) {
         token.rewardAddress = defaultGovernanceConfigs.rewardAddress;
     }
 
-    if (token.liquidationPeriod.equals(BIG_INT_ZERO) && configExists) {
+    if (token.liquidationPeriod.equals(BIG_INT_ZERO) && defaultGovernanceConfigs != null) {
         token.liquidationPeriod = defaultGovernanceConfigs.liquidationPeriod;
     }
 
-    if (token.patricianPeriod.equals(BIG_INT_ZERO) && configExists) {
+    if (token.patricianPeriod.equals(BIG_INT_ZERO) && defaultGovernanceConfigs != null) {
         token.patricianPeriod = defaultGovernanceConfigs.patricianPeriod;
     }
 
-    if (token.minimumDeposit.equals(BIG_INT_ZERO) && configExists) {
+    if (token.minimumDeposit.equals(BIG_INT_ZERO) && defaultGovernanceConfigs != null) {
         token.minimumDeposit = defaultGovernanceConfigs.minimumDeposit;
     }
 

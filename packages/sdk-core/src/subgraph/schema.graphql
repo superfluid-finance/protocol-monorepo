@@ -564,10 +564,34 @@ type AccountTokenSnapshotLog {
   totalNumberOfActiveStreams: Int!
 
   """
+  The count of active outgoing streams from this account.
+  
+  """
+  activeOutgoingStreamCount: Int!
+
+  """
+  The count of active incoming streams to this account.
+  
+  """
+  activeIncomingStreamCount: Int!
+
+  """
   The current (as of timestamp) count of closed streams.
   
   """
   totalNumberOfClosedStreams: Int!
+
+  """
+  The count of closed outgoing streams by `account`.
+  
+  """
+  inactiveOutgoingStreamCount: Int!
+
+  """
+  The count of closed incoming streams by `account`.
+  
+  """
+  inactiveIncomingStreamCount: Int!
 
   """
   The current (as of timestamp) number of subscriptions with units allocated to them tied to this `account`.
@@ -723,6 +747,22 @@ input AccountTokenSnapshotLog_filter {
   totalNumberOfActiveStreams_lte: Int
   totalNumberOfActiveStreams_in: [Int!]
   totalNumberOfActiveStreams_not_in: [Int!]
+  activeOutgoingStreamCount: Int
+  activeOutgoingStreamCount_not: Int
+  activeOutgoingStreamCount_gt: Int
+  activeOutgoingStreamCount_lt: Int
+  activeOutgoingStreamCount_gte: Int
+  activeOutgoingStreamCount_lte: Int
+  activeOutgoingStreamCount_in: [Int!]
+  activeOutgoingStreamCount_not_in: [Int!]
+  activeIncomingStreamCount: Int
+  activeIncomingStreamCount_not: Int
+  activeIncomingStreamCount_gt: Int
+  activeIncomingStreamCount_lt: Int
+  activeIncomingStreamCount_gte: Int
+  activeIncomingStreamCount_lte: Int
+  activeIncomingStreamCount_in: [Int!]
+  activeIncomingStreamCount_not_in: [Int!]
   totalNumberOfClosedStreams: Int
   totalNumberOfClosedStreams_not: Int
   totalNumberOfClosedStreams_gt: Int
@@ -731,6 +771,22 @@ input AccountTokenSnapshotLog_filter {
   totalNumberOfClosedStreams_lte: Int
   totalNumberOfClosedStreams_in: [Int!]
   totalNumberOfClosedStreams_not_in: [Int!]
+  inactiveOutgoingStreamCount: Int
+  inactiveOutgoingStreamCount_not: Int
+  inactiveOutgoingStreamCount_gt: Int
+  inactiveOutgoingStreamCount_lt: Int
+  inactiveOutgoingStreamCount_gte: Int
+  inactiveOutgoingStreamCount_lte: Int
+  inactiveOutgoingStreamCount_in: [Int!]
+  inactiveOutgoingStreamCount_not_in: [Int!]
+  inactiveIncomingStreamCount: Int
+  inactiveIncomingStreamCount_not: Int
+  inactiveIncomingStreamCount_gt: Int
+  inactiveIncomingStreamCount_lt: Int
+  inactiveIncomingStreamCount_gte: Int
+  inactiveIncomingStreamCount_lte: Int
+  inactiveIncomingStreamCount_in: [Int!]
+  inactiveIncomingStreamCount_not_in: [Int!]
   totalSubscriptionsWithUnits: Int
   totalSubscriptionsWithUnits_not: Int
   totalSubscriptionsWithUnits_gt: Int
@@ -897,7 +953,11 @@ enum AccountTokenSnapshotLog_orderBy {
   triggeredByEventName
   maybeCriticalAtTimestamp
   totalNumberOfActiveStreams
+  activeOutgoingStreamCount
+  activeIncomingStreamCount
   totalNumberOfClosedStreams
+  inactiveOutgoingStreamCount
+  inactiveIncomingStreamCount
   totalSubscriptionsWithUnits
   totalApprovedSubscriptions
   balance

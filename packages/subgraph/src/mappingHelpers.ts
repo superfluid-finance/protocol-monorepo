@@ -542,8 +542,16 @@ export function _createAccountTokenSnapshotLogEntity(
     // Account token snapshot state
     atsLog.totalNumberOfActiveStreams =
         accountTokenSnapshot.totalNumberOfActiveStreams;
+    atsLog.activeIncomingStreamCount =
+        accountTokenSnapshot.activeIncomingStreamCount;
+    atsLog.activeOutgoingStreamCount =
+        accountTokenSnapshot.activeOutgoingStreamCount;
     atsLog.totalNumberOfClosedStreams =
         accountTokenSnapshot.totalNumberOfClosedStreams;
+    atsLog.inactiveIncomingStreamCount =
+        accountTokenSnapshot.inactiveIncomingStreamCount;
+    atsLog.inactiveOutgoingStreamCount =
+        accountTokenSnapshot.inactiveOutgoingStreamCount;
     atsLog.totalSubscriptionsWithUnits =
         accountTokenSnapshot.totalSubscriptionsWithUnits;
     atsLog.totalApprovedSubscriptions =

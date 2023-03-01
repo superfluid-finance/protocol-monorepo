@@ -38,7 +38,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             BIG_INT_ZERO,       // previousSenderFlowRate
             BIG_INT_ZERO,       // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
     });
 
@@ -56,7 +57,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             BIG_INT_ZERO,       // previousSenderFlowRate
             BIG_INT_ZERO,       // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
 
         // update flow: increase flow rate
@@ -73,7 +75,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             increasedFlowRate,  // flowRate
             initialFlowRate,    // previousSenderFlowRate
             initialFlowRate,    // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
 
         // update flow: decrease flow rate
@@ -89,7 +92,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             increasedFlowRate,  // previousSenderFlowRate
             increasedFlowRate,  // previousReceiverFlowRate
-            true // isListed
+            true,               // isListed,
+            ""                  // userData
         );
     });
 
@@ -107,7 +111,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             BIG_INT_ZERO,       // previousSenderFlowRate
             BIG_INT_ZERO,       // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
 
         // update flow: increase flow rate
@@ -124,7 +129,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             increasedFlowRate,  // flowRate
             initialFlowRate,    // previousSenderFlowRate
             initialFlowRate,    // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
 
 
@@ -141,7 +147,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             BIG_INT_ZERO,       // flowRate
             increasedFlowRate,  // previousSenderFlowRate
             increasedFlowRate,  // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
     });
 

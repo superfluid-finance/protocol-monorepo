@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
     Account,
@@ -246,6 +246,7 @@ export function getOrInitStream(event: FlowUpdated): Stream {
         stream.streamedUntilUpdatedAt = BigInt.fromI32(0);
         stream.updatedAtTimestamp = currentTimestamp;
         stream.updatedAtBlockNumber = event.block.number;
+        stream.userData = Bytes.empty();
 
         // Check if token exists and create here if not.
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)

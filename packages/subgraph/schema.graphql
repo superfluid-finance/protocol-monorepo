@@ -1574,6 +1574,12 @@ type Stream @entity {
     token: Token!
     sender: Account!
     receiver: Account!
+    
+    """
+    The `userData` stored on the Stream is the last `userData` that was set in a `FlowUpdatedEvent`,
+    for this particular stream. To see the historical `userData` for this stream, you can query the `flowUpdatedEvents` field.
+    """
+    userData: Bytes!
 
     flowUpdatedEvents: [FlowUpdatedEvent!]! @derivedFrom(field: "stream")
     streamPeriods: [StreamPeriod!]! @derivedFrom(field: "stream")

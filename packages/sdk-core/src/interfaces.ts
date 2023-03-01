@@ -7,10 +7,6 @@ import {
 } from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers, Overrides } from "ethers";
 
-// TODO (0xdavinchee): reorganize this
-// Maybe moving these into categorical files
-// makes more sense than stuffing them all here
-
 // read request interfaces
 export interface IAccountTokenSnapshotFilter {
     readonly account?: string;
@@ -39,11 +35,6 @@ export interface ISuperTokenRequestFilter {
     readonly isListed?: boolean;
 }
 
-// TODO: Major Cleanup needed for SuperToken interfaces
-// along with IDA/CFA interfaces
-// A better thought out inheritance pattern - SuperToken is parent
-// CFA/IDA inherits and tacks on superToken property
-
 export interface IShouldUseCallAgreement {
     readonly shouldUseCallAgreement?: boolean;
 }
@@ -53,22 +44,23 @@ interface EthersParams {
 }
 
 // write request interfaces
-export interface ISuperTokenModifyFlowParams
+export interface ConstantFlowAgreementCallParams
     extends IShouldUseCallAgreement,
-        EthersParams {
-    readonly flowRate?: string;
-    readonly receiver: string;
-    readonly sender?: string;
-    readonly userData?: string;
-}
+        EthersParams {}
 export interface ISuperTokenCreateFlowParams
-    extends ISuperTokenModifyFlowParams {
+    extends ConstantFlowAgreementCallParams {
+    readonly sender?: string;
+    readonly receiver: string;
     readonly flowRate: string;
+    readonly userData: string;
 }
 export type ISuperTokenUpdateFlowParams = ISuperTokenCreateFlowParams;
 export interface ISuperTokenDeleteFlowParams
-    extends ISuperTokenModifyFlowParams {
+    extends ConstantFlowAgreementCallParams {
     readonly sender: string;
+    readonly receiver: string;
+    readonly flowRate: string;
+    readonly userData: string;
 }
 
 export interface ISuperTokenCreateFlowByOperatorParams
@@ -125,17 +117,12 @@ export interface ISuperTokenUpdateSubscriptionUnitsParams extends EthersParams {
     readonly userData?: string;
 }
 
-export interface IModifyFlowParams
-    extends IShouldUseCallAgreement,
-        EthersParams {
-    readonly flowRate?: string;
-    readonly receiver: string;
-    readonly sender?: string;
-    readonly userData?: string;
+export interface ICreateFlowParams extends ConstantFlowAgreementCallParams {
     readonly superToken: string;
-}
-export interface ICreateFlowParams extends IModifyFlowParams {
+    readonly sender?: string;
+    readonly receiver: string;
     readonly flowRate: string;
+    readonly userData: string;
 }
 export interface ICreateFlowByOperatorParams extends ICreateFlowParams {
     readonly sender: string;
@@ -144,8 +131,11 @@ export interface ICreateFlowByOperatorParams extends ICreateFlowParams {
 export type IUpdateFlowParams = ICreateFlowParams;
 export type IUpdateFlowByOperatorParams = ICreateFlowByOperatorParams;
 
-export interface IDeleteFlowParams extends IModifyFlowParams {
+export interface IDeleteFlowParams extends ConstantFlowAgreementCallParams {
+    readonly superToken: string;
     readonly sender: string;
+    readonly receiver: string;
+    readonly userData: string;
 }
 
 export interface ISuperTokenUpdateFlowOperatorPermissionsParams

@@ -313,6 +313,7 @@ export default abstract class SuperToken extends ERC20Token {
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
+     * @param shouldUseCallAgreement whether or not to use host.callAgreement
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
@@ -328,6 +329,7 @@ export default abstract class SuperToken extends ERC20Token {
      * @param receiver The receiver of the flow.
      * @param flowRate The specified flow rate.
      * @param userData Extra user data provided.
+     * @param shouldUseCallAgreement whether or not to use host.callAgreement
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
@@ -343,6 +345,7 @@ export default abstract class SuperToken extends ERC20Token {
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
+     * @param shouldUseCallAgreement whether or not to use host.callAgreement
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
@@ -361,6 +364,7 @@ export default abstract class SuperToken extends ERC20Token {
      * @param permission The permissions to set.
      * @param flowRateAllowance The flowRateAllowance granted to the flow operator.
      * @param userData Extra user data provided.
+     * @param shouldUseCallAgreement whether or not to use host.callAgreement
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
@@ -377,6 +381,7 @@ export default abstract class SuperToken extends ERC20Token {
      * Give flow operator full control - max flow rate and create/update/delete permissions.
      * @param flowOperator The permission grantee address
      * @param userData Extra user data provided.
+     * @param shouldUseCallAgreement whether or not to use host.callAgreement
      * @param overrides ethers overrides object for more control over the transaction sent.
      */
     authorizeFlowOperatorWithFullControl(
@@ -392,6 +397,7 @@ export default abstract class SuperToken extends ERC20Token {
      * Revoke flow operator control - set flow rate to 0 with no permissions.
      * @param flowOperator The permission grantee address
      * @param userData Extra user data provided.
+     * @param shouldUseCallAgreement whether or not to use host.callAgreement
      * @param overrides ethers overrides object for more control over the transaction sent.
      */
     revokeFlowOperatorWithFullControl(
@@ -409,6 +415,7 @@ export default abstract class SuperToken extends ERC20Token {
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
+     * @param shouldUseCallAgreement whether or not to use host.callAgreement
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
@@ -427,6 +434,7 @@ export default abstract class SuperToken extends ERC20Token {
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
+     * @param shouldUseCallAgreement whether or not to use host.callAgreement
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
@@ -444,6 +452,7 @@ export default abstract class SuperToken extends ERC20Token {
      * @param sender The sender of the flow.
      * @param receiver The receiver of the flow.
      * @param userData Extra user data provided.
+     * @param shouldUseCallAgreement whether or not to use host.callAgreement
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */

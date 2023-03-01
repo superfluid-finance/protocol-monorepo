@@ -7,7 +7,7 @@ from starkware.cairo.common.bool import TRUE
 
 from openzeppelin.access.ownable.library import Ownable
 
-from src.tokens.ERC20x.SuperToken.library import SuperToken
+from src.tokens.ERC20x.SuperToken.library import SuperToken, BasicParticle
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -77,6 +77,59 @@ func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     sender: felt, recipient: felt, amount: felt
 ) -> (success: felt) {
     return SuperToken.transfer_from(sender, recipient, amount);
+}
+
+@external
+func iTransfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    sender: felt, recipient: felt, amount: felt
+) -> (success: felt) {
+    return SuperToken.i_transfer(sender, recipient, amount);
+}
+
+@external
+func flow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    sender: felt, recipient: felt, flow_id: felt, flow_rate: felt
+) -> (success: felt) {
+    return SuperToken.flow(sender, recipient, flow_id, flow_rate);
+}
+
+@external
+func distribute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    sender: felt, poolAddress: felt, reqAmount: felt
+) -> (success: felt, actualAmount: felt) {
+    return SuperToken.distribute(sender, poolAddress, reqAmount);
+}
+
+@external
+func distribute_flow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    sender: felt, poolAddress: felt, reqFlowRate: felt
+) -> (success: felt, actualFlowRate: felt) {
+    return SuperToken.distribute_flow(sender, poolAddress, reqFlowRate);
+}
+
+@external
+func connectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (success: felt) {
+    return SuperToken.connectPool(to);
+}
+
+@external
+func disconnectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (success: felt) {
+    return SuperToken.disconnectPool(to);
+}
+
+@external
+func connectPoolEnum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(pool: felt, dbConnect: felt) -> (success: felt) {
+    return SuperToken.connectPoolEnum(pool, dbConnect);
+}
+
+@external
+func createPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (pool: felt) {
+    return SuperToken.createPool();
+}
+
+@external
+func absorb{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(account: felt, particle: BasicParticle) {
+    return SuperToken.absorb(account, particle);        
 }
 
 @external

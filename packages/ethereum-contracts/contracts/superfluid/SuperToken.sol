@@ -432,8 +432,7 @@ contract SuperToken is
 
     function decreaseAllowance(address spender, uint256 subtractedValue)
         public override returns (bool) {
-        _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue,
-            "SuperToken: decreased allowance below zero"));
+        _approve(msg.sender, spender, _allowances[msg.sender][spender] - subtractedValue);
         return true;
     }
 
@@ -674,6 +673,28 @@ contract SuperToken is
         onlyHost
     {
         _approve(account, spender, amount);
+    }
+
+    function operationIncreaseAllowance(
+        address account,
+        address spender,
+        uint256 addedValue
+    )
+        external override
+        onlyHost
+    {
+        _approve(account, spender, _allowances[account][spender] + addedValue);
+    }
+
+    function operationDecreaseAllowance(
+        address account,
+        address spender,
+        uint256 subtractedValue
+    ) 
+        external override
+        onlyHost
+    {
+        _approve(account, spender, _allowances[account][spender] - subtractedValue);
     }
 
     function operationTransferFrom(

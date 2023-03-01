@@ -804,6 +804,20 @@ contract Superfluid is
                     recipient,
                     amount,
                     userData);
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE) {
+                (address spender, uint256 addedValue) =
+                    abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationIncreaseAllowance(
+                    msgSender,
+                    spender,
+                    addedValue);
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC20_DECREASE_ALLOWANCE) {
+                (address spender, uint256 subtractedValue) =
+                    abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationDecreaseAllowance(
+                    msgSender,
+                    spender,
+                    subtractedValue);
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE) {
                 ISuperToken(operations[i].target).operationUpgrade(
                     msgSender,

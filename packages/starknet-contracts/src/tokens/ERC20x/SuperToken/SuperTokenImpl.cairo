@@ -86,22 +86,6 @@ func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: f
 }
 
 @external
-func createFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    receiver: felt, flow_rate: felt
-) -> (success: felt) {
-    SuperToken.createFlow(receiver, flow_rate);
-    return (success=TRUE);
-}
-
-@external
-func updateFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    receiver: felt, flow_rate: felt
-) -> (success: felt) {
-    SuperToken.updateFlow(receiver, flow_rate);
-    return (success=TRUE);
-}
-
-@external
 func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     spender: felt, amount: felt
 ) -> (success: felt) {

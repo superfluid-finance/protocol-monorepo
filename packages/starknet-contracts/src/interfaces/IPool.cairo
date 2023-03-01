@@ -4,6 +4,10 @@ from src.utils.SemanticMoney import PDPoolMember, PDPoolIndex
 
 @contract_interface
 namespace IPool {
+
+    func distributor() -> (address: felt) {
+    }
+
     func getIndex() -> (index: PDPoolIndex) {
     }
 

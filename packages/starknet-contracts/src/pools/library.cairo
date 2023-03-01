@@ -41,6 +41,13 @@ namespace Pool {
         return ();
     }
 
+    func distributor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+        address: felt
+    ) {
+        let (address) = Pool_distributor.read();
+        return (address=address);
+    }
+
     func getIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
         index: PDPoolIndex
     ) {

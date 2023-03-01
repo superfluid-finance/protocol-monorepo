@@ -19,6 +19,11 @@ func getIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}()
     return Pool.getIndex();
 }
 
+@view
+func distributor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (address: felt) {
+    return Pool.distributor();
+}
+
 @external
 func setIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(index: PDPoolIndex) {
     Pool.setIndex(index);

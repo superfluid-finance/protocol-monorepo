@@ -163,6 +163,31 @@ export function getOrInitSuperToken(
         return token as Token;
     }
 
+    const defaultGovernanceConfigs = DefaultGovernanceConfigs.load(
+        ZERO_ADDRESS.toHexString()
+    );
+    const configExists = defaultGovernanceConfigs != null;
+
+    // we set to default governance configs if they are not set either 
+    // in initialization OR via governance events in subsequent token retrievals
+    // this handles any assumptions regarding the order of events
+    // token creation events vs. governance config setting events
+    if (token.rewardAddress.equals(ZERO_ADDRESS) && configExists) {
+        token.rewardAddress = defaultGovernanceConfigs.rewardAddress;
+    }
+
+    if (token.liquidationPeriod.equals(BIG_INT_ZERO) && configExists) {
+        token.liquidationPeriod = defaultGovernanceConfigs.liquidationPeriod;
+    }
+
+    if (token.patricianPeriod.equals(BIG_INT_ZERO) && configExists) {
+        token.patricianPeriod = defaultGovernanceConfigs.patricianPeriod;
+    }
+
+    if (token.minimumDeposit.equals(BIG_INT_ZERO) && configExists) {
+        token.minimumDeposit = defaultGovernanceConfigs.minimumDeposit;
+    }
+
     // @note - this is currently being called every single time to handle list/unlist of tokens
     // because we don't have the Resolver Set event on some networks
     // We can remove this once we have migrated data to a new resolver which emits this event on

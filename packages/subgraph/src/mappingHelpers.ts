@@ -488,6 +488,10 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
         accountTokenSnapshot.updatedAtBlockNumber = block.number;
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;
+        accountTokenSnapshot.activeIncomingStreamCount = 0;
+        accountTokenSnapshot.activeOutgoingStreamCount = 0;
+        accountTokenSnapshot.inactiveIncomingStreamCount = 0;
+        accountTokenSnapshot.inactiveOutgoingStreamCount = 0;
         accountTokenSnapshot.totalNumberOfClosedStreams = 0;
         accountTokenSnapshot.totalSubscriptionsWithUnits = 0;
         accountTokenSnapshot.isLiquidationEstimateOptimistic = false;
@@ -944,6 +948,10 @@ export function updateAggregateEntitiesStreamData(
 
     senderATS.totalNumberOfActiveStreams =
         senderATS.totalNumberOfActiveStreams + totalNumberOfActiveStreamsDelta;
+    senderATS.activeOutgoingStreamCount =
+        senderATS.activeOutgoingStreamCount + totalNumberOfActiveStreamsDelta;
+    senderATS.inactiveOutgoingStreamCount =
+        senderATS.inactiveOutgoingStreamCount + totalNumberOfClosedStreamsDelta;
 
     senderATS.totalNumberOfClosedStreams =
         senderATS.totalNumberOfClosedStreams + totalNumberOfClosedStreamsDelta;
@@ -973,6 +981,11 @@ export function updateAggregateEntitiesStreamData(
     receiverATS.totalNumberOfActiveStreams =
         receiverATS.totalNumberOfActiveStreams +
         totalNumberOfActiveStreamsDelta;
+    receiverATS.activeIncomingStreamCount =
+        receiverATS.activeIncomingStreamCount + totalNumberOfActiveStreamsDelta;
+    receiverATS.inactiveIncomingStreamCount =
+        receiverATS.inactiveIncomingStreamCount +
+        totalNumberOfClosedStreamsDelta;
 
     receiverATS.totalNumberOfClosedStreams =
         receiverATS.totalNumberOfClosedStreams +

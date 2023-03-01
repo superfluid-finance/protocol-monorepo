@@ -14,6 +14,10 @@ import { getStreamID } from "../src/utils";
  * @param symbol token symbol
  * @param isListed whether the token is listed
  * @param underlyingAddress the underlying token address
+ * @param rewardAddress the reward token address
+ * @param liquidationPeriod the liquidation period
+ * @param patricianPeriod the patrician period
+ * @param minimumDeposit the minimum deposit
  * @returns Token
  */
 export function createSuperToken(
@@ -23,7 +27,11 @@ export function createSuperToken(
     name: string,
     symbol: string,
     isListed: boolean,
-    underlyingAddress: Address
+    underlyingAddress: Address,
+    rewardAddress: Address,
+    liquidationPeriod: BigInt, 
+    patricianPeriod: BigInt,
+    minimumDeposit: BigInt
 ): Token {
     const tokenId = tokenAddress.toHex();
     let currentTimestamp = block.timestamp;
@@ -44,6 +52,11 @@ export function createSuperToken(
 
     token.underlyingAddress = underlyingAddress;
     token.underlyingToken = underlyingAddress.toHex();
+
+    token.rewardAddress = rewardAddress;
+    token.liquidationPeriod = liquidationPeriod;
+    token.patricianPeriod = patricianPeriod;
+    token.minimumDeposit = minimumDeposit;
     
     token.save();
     return token as Token;

@@ -1,9 +1,10 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
     assert,
     beforeEach,
     clearStore,
     describe,
+    newMockEvent,
     test,
 } from "matchstick-as/assembly/index";
 import {
@@ -12,24 +13,33 @@ import {
     handleCFAv1LiquidationPeriodChanged,
     handlePPPConfigurationChanged,
     handleTrustedForwarderChanged,
+    handleSuperTokenMinimumDepositChanged,
 } from "../../src/mappings/superfluidGovernance";
+import { BIG_INT_ZERO } from "../../src/utils";
 import { assertEventBaseProperties } from "../assertionHelpers";
 import {
     charlie,
+    DEFAULT_DECIMALS,
     hostAddress,
     LIQUIDATION_PERIOD,
     maticXAddress,
+    maticXName,
+    maticXSymbol,
     PATRICIAN_PERIOD,
     TRUE,
 } from "../constants";
 import { keccak256String } from "../converters";
+import { createSuperToken } from "../mockedEntities";
 import {
     createConfigChangedEvent,
     createRewardAddressChangedEvent,
     createCFAv1LiquidationPeriodChangedEvent,
     createPPPConfigurationChangedEvent,
     createTrustedForwarderChangedEvent,
+    createSuperTokenMinimumDepositChangedEvent,
 } from "./superfluidGovernance.helper";
+
+const STRING_ZERO_ADDRESS = Address.zero().toHexString();
 
 describe("SuperfluidGovernance Mapper Unit Tests", () => {
     describe("Event Entity Mapping Tests", () => {
@@ -37,7 +47,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             clearStore();
         });
 
-        test("handleConfigChanged() - Should create a new ConfigChangedEvent entity", () => {
+        test("handleConfigChanged() - Should create ConfigChangedEvent entity", () => {
             const host = hostAddress;
             const superToken = maticXAddress;
             const key = keccak256String(
@@ -67,7 +77,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             assert.fieldEquals("ConfigChangedEvent", id, "value", value.toString());
         });
 
-        test("handleRewardAddressChanged() - Should create a new RewardAddressChangedEvent entity", () => {
+        test("handleRewardAddressChanged() - Should create RewardAddressChangedEvent entity", () => {
             const host = hostAddress;
             const superToken = maticXAddress;
             const isKeySet = true;
@@ -92,7 +102,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             assert.fieldEquals("RewardAddressChangedEvent", id, "rewardAddress", rewardAddress);
         });
 
-        test("handleCFAv1LiquidationPeriodChanged() - Should create a new CFAv1LiquidationPeriodChangedEvent entity", () => {
+        test("handleCFAv1LiquidationPeriodChanged() - Should create CFAv1LiquidationPeriodChangedEvent entity", () => {
             const host = hostAddress;
             const superToken = maticXAddress;
             const isKeySet = true;
@@ -116,7 +126,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             assert.fieldEquals("CFAv1LiquidationPeriodChangedEvent", id, "liquidationPeriod", LIQUIDATION_PERIOD.toString());
         });
 
-        test("handlePPPConfigurationChanged() - Should create a new PPPConfigurationChangedEvent entity", () => {
+        test("handlePPPConfigurationChanged() - Should create PPPConfigurationChangedEvent entity", () => {
             const host = hostAddress;
             const superToken = maticXAddress;
             const isKeySet = true;
@@ -141,7 +151,7 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             assert.fieldEquals("PPPConfigurationChangedEvent", id, "patricianPeriod", PATRICIAN_PERIOD.toString());
         });
 
-        test("handleTrustedForwarderChanged() - Should create a new TrustedForwarderChangedEvent entity", () => {
+        test("handleTrustedForwarderChanged() - Should create TrustedForwarderChangedEvent entity", () => {
             const host = hostAddress;
             const superToken = maticXAddress;
             const isKeySet = true;
@@ -167,6 +177,208 @@ describe("SuperfluidGovernance Mapper Unit Tests", () => {
             assert.fieldEquals("TrustedForwarderChangedEvent", id, "isKeySet", TRUE);
             assert.fieldEquals("TrustedForwarderChangedEvent", id, "forwarder", forwarder);
             assert.fieldEquals("TrustedForwarderChangedEvent", id, "enabled", TRUE);
+        });
+
+        test("handleSuperTokenMinimumDepositChanged() - Should create SuperTokenMinimumDepositChangedEvent entity", () => {
+            const host = hostAddress;
+            const superToken = maticXAddress;
+            const isKeySet = true;
+            const minimumDeposit = BigInt.fromI32(69);
+
+            const superTokenMinimumDepositChangedEvent = createSuperTokenMinimumDepositChangedEvent(
+                host,
+                superToken,
+                isKeySet,
+                minimumDeposit
+            );
+
+            handleSuperTokenMinimumDepositChanged(superTokenMinimumDepositChangedEvent);
+
+            const id = assertEventBaseProperties(
+                superTokenMinimumDepositChangedEvent,
+                "SuperTokenMinimumDepositChanged"
+            );
+
+            assert.fieldEquals("SuperTokenMinimumDepositChangedEvent", id, "host", host);
+            assert.fieldEquals("SuperTokenMinimumDepositChangedEvent", id, "superToken", superToken);
+            assert.fieldEquals("SuperTokenMinimumDepositChangedEvent", id, "isKeySet", TRUE);
+            assert.fieldEquals("SuperTokenMinimumDepositChangedEvent", id, "minimumDeposit", minimumDeposit.toString());
+        });
+    });
+
+    describe("Higher Order Level Entity Mapping Tests", () => {
+        beforeEach(() => {
+            clearStore();
+
+            const mockEvent = newMockEvent();
+            createSuperToken(
+                Address.fromString(maticXAddress),
+                mockEvent.block,
+                DEFAULT_DECIMALS,
+                maticXName,
+                maticXSymbol,
+                false,
+                Address.zero(),
+                Address.zero(),
+                BIG_INT_ZERO,
+                BIG_INT_ZERO,
+                BIG_INT_ZERO
+            );
+        });
+
+        test("handleRewardAddressChanged() - Should modify Token entity field: rewardAddress", () => {
+            const host = hostAddress;
+            const superToken = maticXAddress;
+            const isKeySet = true;
+            const rewardAddress = charlie;
+
+            assert.fieldEquals("Token", maticXAddress, "rewardAddress", Address.zero().toHexString());
+
+            const rewardAddressChangedEvent = createRewardAddressChangedEvent(
+                host,
+                superToken,
+                isKeySet,
+                rewardAddress
+            );
+
+            handleRewardAddressChanged(rewardAddressChangedEvent);
+
+            assert.fieldEquals("Token", maticXAddress, "rewardAddress", charlie);
+        });
+
+        test("handleRewardAddressChanged() - Should create DefaultGovernanceConfigs entity and modify field: rewardAddress", () => {
+            const host = hostAddress;
+            const isKeySet = true;
+            const superToken = STRING_ZERO_ADDRESS;
+            const rewardAddress = charlie;
+
+            const rewardAddressChangedEvent = createRewardAddressChangedEvent(
+                host,
+                STRING_ZERO_ADDRESS,
+                isKeySet,
+                rewardAddress
+            );
+
+            handleRewardAddressChanged(rewardAddressChangedEvent);
+
+            assert.fieldEquals("DefaultGovernanceConfigs", superToken, "rewardAddress", charlie);
+        });
+
+        test("handleCFAv1LiquidationPeriodChanged() - Should modify Token entity field: liquidationPeriod", () => {
+            const host = hostAddress;
+            const superToken = maticXAddress;
+            const isKeySet = true;
+
+            assert.fieldEquals("Token", maticXAddress, "liquidationPeriod", BIG_INT_ZERO.toString());
+
+            const cfaV1LiquidationPeriodChangedEvent = createCFAv1LiquidationPeriodChangedEvent(
+                host,
+                superToken,
+                isKeySet,
+                LIQUIDATION_PERIOD
+            );
+
+            handleCFAv1LiquidationPeriodChanged(cfaV1LiquidationPeriodChangedEvent);
+
+            assert.fieldEquals("Token", maticXAddress, "liquidationPeriod", LIQUIDATION_PERIOD.toString());
+        });
+
+        test("handleCFAv1LiquidationPeriodChanged() - Should create DefaultGovernanceConfigs entity and modify field: liquidationPeriod", () => {
+            const host = hostAddress;
+            const superToken = STRING_ZERO_ADDRESS;
+            const isKeySet = true;
+
+            assert.fieldEquals("Token", maticXAddress, "liquidationPeriod", BIG_INT_ZERO.toString());
+
+            const cfaV1LiquidationPeriodChangedEvent = createCFAv1LiquidationPeriodChangedEvent(
+                host,
+                superToken,
+                isKeySet,
+                LIQUIDATION_PERIOD
+            );
+
+            handleCFAv1LiquidationPeriodChanged(cfaV1LiquidationPeriodChangedEvent);
+
+            assert.fieldEquals("DefaultGovernanceConfigs", STRING_ZERO_ADDRESS, "liquidationPeriod", LIQUIDATION_PERIOD.toString());
+        });
+
+        test("handlePPPConfigurationChanged() - Should create DefaultGovernanceConfigs entity and modify fields: liquidationPeriod and patricianPeriod", () => {
+            const host = hostAddress;
+            const superToken = maticXAddress;
+            const isKeySet = true;
+
+            assert.fieldEquals("Token", maticXAddress, "liquidationPeriod", BIG_INT_ZERO.toString());
+            assert.fieldEquals("Token", maticXAddress, "patricianPeriod", BIG_INT_ZERO.toString());
+
+            const pppConfigurationChangedEvent = createPPPConfigurationChangedEvent(
+                host,
+                superToken,
+                isKeySet,
+                LIQUIDATION_PERIOD,
+                PATRICIAN_PERIOD
+            );
+
+            handlePPPConfigurationChanged(pppConfigurationChangedEvent);
+
+            assert.fieldEquals("Token", maticXAddress, "liquidationPeriod", LIQUIDATION_PERIOD.toString());
+            assert.fieldEquals("Token", maticXAddress, "patricianPeriod", PATRICIAN_PERIOD.toString());
+        });
+
+        test("handlePPPConfigurationChanged() - Should modify Token entity fields: liquidationPeriod and patricianPeriod", () => {
+            const host = hostAddress;
+            const superToken = STRING_ZERO_ADDRESS;
+            const isKeySet = true;
+
+            const pppConfigurationChangedEvent = createPPPConfigurationChangedEvent(
+                host,
+                superToken,
+                isKeySet,
+                LIQUIDATION_PERIOD,
+                PATRICIAN_PERIOD
+            );
+
+            handlePPPConfigurationChanged(pppConfigurationChangedEvent);
+
+            assert.fieldEquals("DefaultGovernanceConfigs", STRING_ZERO_ADDRESS, "liquidationPeriod", LIQUIDATION_PERIOD.toString());
+            assert.fieldEquals("DefaultGovernanceConfigs", STRING_ZERO_ADDRESS, "patricianPeriod", PATRICIAN_PERIOD.toString());
+        });
+
+        test("handleSuperTokenMinimumDepositChanged() - Should modify Token entity field: minimumDeposit", () => {
+            const host = hostAddress;
+            const superToken = maticXAddress;
+            const isKeySet = true;
+            const minimumDeposit = BigInt.fromI32(69);
+
+            assert.fieldEquals("Token", maticXAddress, "minimumDeposit", BIG_INT_ZERO.toString());
+
+            const SuperTokenMinimumDepositChangedEvent = createSuperTokenMinimumDepositChangedEvent(
+                host,
+                superToken,
+                isKeySet,
+                minimumDeposit
+            );
+
+            handleSuperTokenMinimumDepositChanged(SuperTokenMinimumDepositChangedEvent);
+
+            assert.fieldEquals("Token", maticXAddress, "minimumDeposit", minimumDeposit.toString());
+        });
+
+        test("handleSuperTokenMinimumDepositChanged() - Should create DefaultGovernanceConfigs entity and modify field: minimumDeposit", () => {
+            const host = hostAddress;
+            const superToken = STRING_ZERO_ADDRESS;
+            const isKeySet = true;
+            const minimumDeposit = BigInt.fromI32(69);
+
+            const SuperTokenMinimumDepositChangedEvent = createSuperTokenMinimumDepositChangedEvent(
+                host,
+                superToken,
+                isKeySet,
+                minimumDeposit
+            );
+
+            handleSuperTokenMinimumDepositChanged(SuperTokenMinimumDepositChangedEvent);
+
+            assert.fieldEquals("DefaultGovernanceConfigs", STRING_ZERO_ADDRESS, "minimumDeposit", minimumDeposit.toString());
         });
     });
 });

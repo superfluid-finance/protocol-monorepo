@@ -4,6 +4,7 @@ import {
     Account,
     AccountTokenSnapshot,
     AccountTokenSnapshotLog,
+    DefaultGovernanceConfigs,
     FlowOperator,
     Index,
     IndexSubscription,
@@ -105,6 +106,25 @@ export function getOrInitSuperToken(
         token.name = "";
         token.symbol = "";
 
+        const defaultGovernanceConfigs = DefaultGovernanceConfigs.load(
+            ZERO_ADDRESS.toHexString()
+        );
+
+        // if default governance configs are unset, we initialize these to empty
+        if (defaultGovernanceConfigs == null) {
+            token.rewardAddress = ZERO_ADDRESS;
+            token.liquidationPeriod = BIG_INT_ZERO;
+            token.patricianPeriod = BIG_INT_ZERO;
+            token.minimumDeposit = BIG_INT_ZERO;
+        } else {
+            // otherwise, we use the default governance configs on token initialization
+            token.rewardAddress = defaultGovernanceConfigs.rewardAddress;
+            token.liquidationPeriod =
+                defaultGovernanceConfigs.liquidationPeriod;
+            token.patricianPeriod = defaultGovernanceConfigs.patricianPeriod;
+            token.minimumDeposit = defaultGovernanceConfigs.minimumDeposit;
+        }
+
         const nativeAssetSuperTokenAddress = getNativeAssetSuperTokenAddress();
         token.isNativeAssetSuperToken = tokenAddress.equals(
             nativeAssetSuperTokenAddress
@@ -154,6 +174,34 @@ export function getOrInitSuperToken(
     return token as Token;
 }
 
+export function getOrInitDefaultGovernanceConfigs(
+    block: ethereum.Block
+): DefaultGovernanceConfigs {
+    let defaultGovernanceConfigs = DefaultGovernanceConfigs.load(
+        ZERO_ADDRESS.toHexString()
+    );
+
+    if (defaultGovernanceConfigs == null) {
+        defaultGovernanceConfigs = new DefaultGovernanceConfigs(
+            ZERO_ADDRESS.toHexString()
+        );
+        defaultGovernanceConfigs.createdAtTimestamp = block.timestamp;
+        defaultGovernanceConfigs.createdAtBlockNumber = block.number;
+        defaultGovernanceConfigs.rewardAddress = ZERO_ADDRESS;
+        defaultGovernanceConfigs.liquidationPeriod = BIG_INT_ZERO;
+        defaultGovernanceConfigs.patricianPeriod = BIG_INT_ZERO;
+        defaultGovernanceConfigs.minimumDeposit = BIG_INT_ZERO;
+    }
+
+    // always update updatedAt fields because we update this entity
+    // whenever we retrieve it
+    defaultGovernanceConfigs.updatedAtTimestamp = block.timestamp;
+    defaultGovernanceConfigs.updatedAtBlockNumber = block.number;
+    defaultGovernanceConfigs.save();
+
+    return defaultGovernanceConfigs as DefaultGovernanceConfigs;
+}
+
 /**
  * Create a token entity for regular ERC20 tokens.
  * These are the underlying tokens for
@@ -178,6 +226,13 @@ export function getOrInitToken(
     token.isSuperToken = false;
     token.isNativeAssetSuperToken = false;
     token.isListed = false;
+
+    // This is unset for the underlying ERC20.
+    token.rewardAddress = ZERO_ADDRESS;
+    token.liquidationPeriod = BIG_INT_ZERO;
+    token.patricianPeriod = BIG_INT_ZERO;
+    token.minimumDeposit = BIG_INT_ZERO;
+
     token = handleTokenRPCCalls(token, resolverAddress);
     token.save();
 }

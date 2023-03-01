@@ -941,6 +941,32 @@ type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
     patricianPeriod: BigInt!
 }
 
+type SuperTokenMinimumDepositChangedEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    The address of the governance contract the event was emitted from.
+    """
+    governanceAddress: Bytes!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+    host: Bytes!
+    superToken: Bytes!
+    isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
+    minimumDeposit: BigInt!
+}
+
 type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
@@ -1662,6 +1688,43 @@ type StreamPeriod @entity {
     totalAmountStreamed: BigInt
 }
 
+"""
+DefaultGovernanceConfigs: A higher order entity that represents the default governance configs.
+When a config is set in governance with superToken field as address(0), it will be used as the default config.
+"""
+type DefaultGovernanceConfigs @entity {
+    """
+    ID will always be address(0): 0x0000000000000000000000000000000000000000
+    """
+    id: ID!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlockNumber: BigInt!
+
+    """
+    The default address that receives liquidation rewards for tokens with an unset rewardAddress prior to 3Ps and the TOGA address after 3Ps.
+    """
+    rewardAddress: Bytes!
+    
+    """
+    The default liquidation period (buffer amount required for a token) for tokens with an unset liquidation period.
+    This field can be used to calculate the liquidation buffer (or deposit) amount for a token: `liquidationBufferAmount = liquidationPeriod * flowRate`.
+    Note that if `minimumDeposit` is set, the liquidation buffer amount will be the greater of the two values.
+    """
+    liquidationPeriod: BigInt!
+
+    """
+    The default patrician period, the patrician period is the window in which a patrician receives all rewards for a liquidation, no matter the liquidating account.
+    """
+    patricianPeriod: BigInt!
+
+    """
+    The default minimum deposit amount for tokens with an unset minimum deposit.
+    """
+    minimumDeposit: BigInt!
+}
+
 ####################
 #  Helper Entities #
 ####################
@@ -1713,6 +1776,28 @@ type Token @entity {
     The underlying ERC20 token for a ERC20WrapperSuperToken otherwise null.
     """
     underlyingToken: Token
+
+    """
+    The address that receives liquidation rewards for `Token` with `id`.
+    """
+    rewardAddress: Bytes!
+    
+    """
+    The liquidation period for `Token` with `id`.
+    This field can be used to calculate the liquidation buffer (or deposit) amount for a token: `liquidationBufferAmount = liquidationPeriod * flowRate`.
+    Note that if `minimumDeposit` is set, the liquidation buffer amount will be the greater of the two values.
+    """
+    liquidationPeriod: BigInt!
+
+    """
+    The patrician period  for `Token` with `id`, the patrician period is the window in which a patrician receives all rewards for a liquidation, no matter the liquidating account.
+    """
+    patricianPeriod: BigInt!
+
+    """
+    The minimum deposit amount for `Token` with `id`.
+    """
+    minimumDeposit: BigInt!
 }
 
 type ResolverEntry @entity {

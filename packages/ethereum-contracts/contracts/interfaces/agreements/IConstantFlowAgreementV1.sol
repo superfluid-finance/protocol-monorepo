@@ -111,6 +111,19 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         external virtual
         returns(bytes memory newCtx);
 
+    function increaseFlowRateAllowance(
+        ISuperfluidToken token,
+        address flowOperator,
+        int96 flowRateAllowanceDelta, // delta, it is strange because it can be negative
+        bytes calldata ctx
+    ) external virtual returns(bytes memory newCtx);
+
+    function decreaseFlowRateAllowance(
+        ISuperfluidToken token,
+        address flowOperator,
+        int96 flowRateAllowanceDelta, // delta, it is strange because it can be negative
+        bytes calldata ctx
+    ) external virtual returns(bytes memory newCtx);
     /**
      * @dev msgSender from `ctx` grants `flowOperator` all permissions with flowRateAllowance as type(int96).max
      * @param token Super token address
@@ -406,6 +419,14 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         address indexed flowOperator,
         uint8 permissions,
         int96 flowRateAllowance
+    );
+
+    event FlowOperatorAllowanceUpdated(
+        ISuperfluidToken indexed token,
+        address indexed sender,
+        address indexed flowOperator,
+        int96 oldFlowRateAllowance,
+        int96 newFlowRateAllowance
     );
 
     /**

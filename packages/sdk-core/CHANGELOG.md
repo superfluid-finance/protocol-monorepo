@@ -3,6 +3,11 @@ All notable changes to the SDK-core will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+## Changed
+- removed `flowRate` as a parameter for delete flow
+
 ## [0.6.2] - 2023-02-07
 ### Added
 - `streamId` to `FlowUpdatedEvent` when querying from Subgraph

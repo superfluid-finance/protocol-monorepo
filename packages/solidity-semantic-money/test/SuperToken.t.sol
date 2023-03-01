@@ -5,12 +5,6 @@ import "forge-std/Test.sol";
 import "../src/SuperToken.sol";
 
 contract SuperTokenTest is Test {
-    using MonetaryTypes for Time;
-    using MonetaryTypes for Value;
-    using MonetaryTypes for FlowRate;
-    using SemanticMoney for BasicParticle;
-    using SemanticMoney for PDPoolMemberMU;
-
     address internal constant admin = address(0x420);
     address internal constant alice = address(0x421);
     address internal constant bob = address(0x422);

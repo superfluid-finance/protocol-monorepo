@@ -2,15 +2,35 @@
 pragma solidity 0.8.19;
 
 ////////////////////////////////////////////////////////////////////////////////
-// Monetary Types and Their Library
+// Monetary Types and Their Helpers
 ////////////////////////////////////////////////////////////////////////////////
 
 /// Time value represented by uint32 unix timestamp.
-type Time     is uint32;
+type Time is uint32;
+function mt_t_add_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) + Time.unwrap(b)); }
+function mt_t_sub_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) - Time.unwrap(b)); }
+using { mt_t_add_t as +, mt_t_sub_t as - } for Time global;
+
 /// Monetary value represented with signed integer.
-type Value    is int256;
+type Value is int256;
+function mt_v_add_v(Value a, Value b) pure returns (Value) {
+    return Value.wrap(Value.unwrap(a) + Value.unwrap(b));
+}
+function mt_v_sub_v(Value a, Value b) pure returns (Value) {
+    return Value.wrap(Value.unwrap(a) - Value.unwrap(b));
+}
+using { mt_v_add_v as +, mt_v_sub_v as - } for Value global;
+
 /// Unit value represented with half the size of `Value`.
-type Unit     is int128;
+type Unit is int128;
+function mt_u_add_u(Unit a, Unit b) pure returns (Unit) {
+    return Unit.wrap(Unit.unwrap(a) + Unit.unwrap(b));
+}
+function mt_u_sub_u(Unit a, Unit b) pure returns (Unit) {
+    return Unit.wrap(Unit.unwrap(a) - Unit.unwrap(b));
+}
+using { mt_u_add_u as +, mt_u_sub_u as - } for Unit global;
+
 /**
  * @dev FlowRate value represented with half the size of `Value`.
  *
@@ -18,37 +38,24 @@ type Unit     is int128;
  * or `Unit` does not exceed the range of `Value`.
  */
 type FlowRate is int128;
+function mt_r_add_r(FlowRate a, FlowRate b) pure returns (FlowRate) {
+    return FlowRate.wrap(FlowRate.unwrap(a) + FlowRate.unwrap(b));
+}
+function mt_r_sub_r(FlowRate a, FlowRate b) pure returns (FlowRate) {
+    return FlowRate.wrap(FlowRate.unwrap(a) - FlowRate.unwrap(b));
+}
+using { mt_r_add_r as +, mt_r_sub_r as - } for FlowRate global;
 
 /**
- * @dev The helper library that works with the monetary types
+ * @dev Additional helper functions for the monetary types
+ *
+ * Note that due to solidity current limitations, operators for mixed user defined value types
+ * are not supported, hence the need of this library.
+ * Read more at: https://github.com/ethereum/solidity/issues/11969#issuecomment-1448445474
  */
-library MonetaryTypes {
-    using MonetaryTypes for Time;
-    using MonetaryTypes for Value;
-    using MonetaryTypes for FlowRate;
-    using MonetaryTypes for Unit;
-
-    ////////////////////////////////////////////////////////////
-    // Time
-    ////////////////////////////////////////////////////////////
-    function add(Time a, Time b) internal pure returns (Time) {
-        return Time.wrap(Time.unwrap(a) + Time.unwrap(b));
-    }
-    function sub(Time a, Time b) internal pure returns (Time) {
-        return Time.wrap(Time.unwrap(a) - Time.unwrap(b));
-    }
-
-    ////////////////////////////////////////////////////////////
-    // Value
-    ////////////////////////////////////////////////////////////
+library AdditionalMonetaryTypeHelpers {
     function inv(Value x) internal pure returns (Value) {
         return Value.wrap(-Value.unwrap(x));
-    }
-    function add(Value a, Value b) internal pure returns (Value) {
-        return Value.wrap(Value.unwrap(a) + Value.unwrap(b));
-    }
-    function sub(Value a, Value b) internal pure returns (Value) {
-        return Value.wrap(Value.unwrap(a) - Value.unwrap(b));
     }
     function mul(Value a, Unit b) internal pure returns (Value) {
         return Value.wrap(Value.unwrap(a) * int256(Unit.unwrap(b)));
@@ -57,39 +64,13 @@ library MonetaryTypes {
         return Value.wrap(Value.unwrap(a) / int256(Unit.unwrap(b)));
     }
 
-    ////////////////////////////////////////////////////////////
-    // Unit
-    ////////////////////////////////////////////////////////////
-    function add(Unit a, Unit b) internal pure returns (Unit) {
-        return Unit.wrap(Unit.unwrap(a) + Unit.unwrap(b));
-    }
-    function sub(Unit a, Unit b) internal pure returns (Unit) {
-        return Unit.wrap(Unit.unwrap(a) - Unit.unwrap(b));
-    }
-
-    ////////////////////////////////////////////////////////////
-    // FlowRate
-    ////////////////////////////////////////////////////////////
-    function add(FlowRate a, FlowRate b) internal pure returns (FlowRate) {
-        return FlowRate.wrap(FlowRate.unwrap(a) + FlowRate.unwrap(b));
-    }
-    function sub(FlowRate a, FlowRate b) internal pure returns (FlowRate) {
-        return FlowRate.wrap(FlowRate.unwrap(a) - FlowRate.unwrap(b));
-    }
     function inv(FlowRate r) internal pure returns (FlowRate) {
         return FlowRate.wrap(-FlowRate.unwrap(r));
     }
 
-    ////////////////////////////////////////////////////////////
-    // FlowRate & Time
-    ////////////////////////////////////////////////////////////
     function mul(FlowRate r, Time t) internal pure returns (Value) {
         return Value.wrap(FlowRate.unwrap(r) * int(uint(Time.unwrap(t))));
     }
-
-    ////////////////////////////////////////////////////////////
-    // FlowRate & Unit
-    ////////////////////////////////////////////////////////////
     function mul(FlowRate r, Unit u) internal pure returns (FlowRate) {
         return FlowRate.wrap(FlowRate.unwrap(r) * Unit.unwrap(u));
     }
@@ -105,6 +86,10 @@ library MonetaryTypes {
         return r.mul(u1).quotRem(u2);
     }
 }
+using AdditionalMonetaryTypeHelpers for Time global;
+using AdditionalMonetaryTypeHelpers for Value global;
+using AdditionalMonetaryTypeHelpers for FlowRate global;
+using AdditionalMonetaryTypeHelpers for Unit global;
 
 ////////////////////////////////////////////////////////////////////////////////
 // Basic particle
@@ -164,15 +149,6 @@ struct PDPoolMemberMU {
  *   `UniversalIndex-to-ProportionalDistributionPoolIndex`.
  */
 library SemanticMoney {
-    using MonetaryTypes for Time;
-    using MonetaryTypes for Value;
-    using MonetaryTypes for FlowRate;
-    using MonetaryTypes for Unit;
-    using SemanticMoney for BasicParticle;
-    using SemanticMoney for PDPoolIndex;
-    using SemanticMoney for PDPoolMember;
-    using SemanticMoney for PDPoolMemberMU;
-
     //
     // Basic Particle Operations
     //
@@ -194,12 +170,12 @@ library SemanticMoney {
 
     /// Monetary unit rtb function for basic particle/universal index.
     function rtb(BasicParticle memory a, Time t) internal pure returns (Value v) {
-        return a.flow_rate.mul(t.sub(a.settled_at)).add(a.settled_value);
+        return a.flow_rate.mul(t - a.settled_at) + a.settled_value;
     }
 
     function shift1(BasicParticle memory a, Value x) internal pure returns (BasicParticle memory b) {
         b = a.clone();
-        b.settled_value = b.settled_value.add(x); // TODO b.add_to(x);
+        b.settled_value = b.settled_value + x;
     }
 
     function flow1(BasicParticle memory a, FlowRate r) internal pure returns (BasicParticle memory b) {
@@ -221,8 +197,8 @@ library SemanticMoney {
         BasicParticle memory a1 = a.settle(t);
         BasicParticle memory b1 = b.settle(t);
         c.settled_at = t;
-        c.settled_value = a1.settled_value.add(b1.settled_value);
-        c.flow_rate = a1.flow_rate.add(b1.flow_rate);
+        c.settled_value = a1.settled_value + b1.settled_value;
+        c.flow_rate = a1.flow_rate + b1.flow_rate;
     }
 
     //
@@ -305,8 +281,7 @@ library SemanticMoney {
         // TODO b.i doesn't actually change, some optimization may be desired
         b.i = a.i.clone();
         b.m = a.m.clone();
-        b.m.settled_value = a.i.wrapped_particle.rtb(t)
-            .sub(a.m.synced_particle.rtb(t))
+        b.m.settled_value = (a.i.wrapped_particle.rtb(t) - a.m.synced_particle.rtb(t))
             .mul(a.m.owned_unit);
     }
 
@@ -314,10 +289,9 @@ library SemanticMoney {
     function rtb(PDPoolMemberMU memory a, Time t) internal pure
         returns (Value v)
     {
-        return a.i.wrapped_particle.rtb(t)
-            .sub(a.m.synced_particle.rtb(a.m.synced_particle.settled_at))
-            .mul(a.m.owned_unit)
-            .add(a.m.settled_value);
+        return a.m.settled_value +
+            (a.i.wrapped_particle.rtb(t) - a.m.synced_particle.rtb(a.m.synced_particle.settled_at))
+            .mul(a.m.owned_unit);
     }
 
     /// Update the unit amount of the member of the pool
@@ -326,7 +300,7 @@ library SemanticMoney {
         returns (PDPoolIndex memory p, PDPoolMember memory p1, BasicParticle memory b)
     {
         Unit oldTotalUnit = b1.i.total_units;
-        Unit newTotalUnit = oldTotalUnit.add(u).sub(b1.m.owned_unit);
+        Unit newTotalUnit = oldTotalUnit + u - b1.m.owned_unit;
         PDPoolMemberMU memory b1s = PDPoolMemberMU(b1.i.settle(t), b1.m).settle(t);
 
         // align "a" because of the change of total units of the pool
@@ -341,12 +315,16 @@ library SemanticMoney {
         }
         b1s.i.wrapped_particle = b1s.i.wrapped_particle.flow1(nr);
         b1s.i.total_units = newTotalUnit;
-        b = a.settle(t).flow1(a.flow_rate.add(er));
+        b = a.settle(t).flow1(a.flow_rate + er);
 
         p = b1s.i;
         p1 = b1s.m;
         p1.owned_unit = u;
         p1.synced_particle = b1s.i.wrapped_particle.clone();
     }
-
 }
+
+using SemanticMoney for BasicParticle global;
+using SemanticMoney for PDPoolIndex global;
+using SemanticMoney for PDPoolMember global;
+using SemanticMoney for PDPoolMemberMU global;

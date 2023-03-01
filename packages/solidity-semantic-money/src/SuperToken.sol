@@ -13,8 +13,6 @@ type FlowId is uint32;
  * @dev A proportional distribution pool.
  */
 contract Pool is Ownable {
-    using SemanticMoney for PDPoolMemberMU;
-
     address public distributor;
     PDPoolIndex internal _index;
     mapping (address member => PDPoolMember member_data) internal _members;
@@ -52,11 +50,6 @@ contract Pool is Ownable {
  * - no permission control for account going negative.
  */
 contract SuperToken is IERC20 {
-    using MonetaryTypes for Time;
-    using MonetaryTypes for FlowRate;
-    using MonetaryTypes for Value;
-    using SemanticMoney for BasicParticle;
-    using SemanticMoney for PDPoolMemberMU;
     using EnumerableMap for EnumerableMap.AddressToUintMap;
 
     // immutable internal Pool _POOL_IMPLEMENTATION;

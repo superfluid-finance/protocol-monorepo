@@ -85,6 +85,11 @@
     };
     devShells.ci-spec-ghc925 = ci-spec "ghc925";
     devShells.ci-spec-ghc944 = ci-spec "ghc944";
+    devShells.ci-hot-fuzz = with pkgs; mkShell {
+      buildInputs = [
+        slither-analyzer
+        echidna
+      ];
+    };
   });
 }
-

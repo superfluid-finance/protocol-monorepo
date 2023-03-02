@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";

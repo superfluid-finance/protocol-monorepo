@@ -129,10 +129,10 @@ contract ForkPolygonERC20xCFANFTDeployment is ForkSmokeTest {
         vm.startPrank(governanceOwner);
 
         // Deploy new constant outflow nft logic
-        ConstantOutflowNFT newConstantOutflowNFTLogic = new ConstantOutflowNFT();
+        ConstantOutflowNFT newConstantOutflowNFTLogic = new ConstantOutflowNFT(sfFramework.cfaV1);
 
         // Deploy new constant inflow nft logic
-        ConstantInflowNFT newConstantInflowNFTLogic = new ConstantInflowNFT();
+        ConstantInflowNFT newConstantInflowNFTLogic = new ConstantInflowNFT(sfFramework.cfaV1);
 
         // Deploy new super token logic
         SuperToken newSuperTokenLogic = new SuperToken(

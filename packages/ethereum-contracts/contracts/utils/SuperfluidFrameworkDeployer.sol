@@ -124,10 +124,10 @@ contract SuperfluidFrameworkDeployer {
         testGovernance.registerAgreementClass(host, address(idaV1));
 
         // Deploy canonical Constant Outflow NFT logic contract
-        ConstantOutflowNFT constantOutflowNFTLogic = new ConstantOutflowNFT();
+        ConstantOutflowNFT constantOutflowNFTLogic = new ConstantOutflowNFT(cfaV1);
 
         // Deploy canonical Constant Inflow NFT logic contract
-        ConstantInflowNFT constantInflowNFTLogic = new ConstantInflowNFT();
+        ConstantInflowNFT constantInflowNFTLogic = new ConstantInflowNFT(cfaV1);
 
         // Deploy canonical SuperToken logic contract
         SuperToken superTokenLogic = SuperToken(

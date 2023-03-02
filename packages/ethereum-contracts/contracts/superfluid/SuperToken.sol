@@ -117,13 +117,6 @@ contract SuperToken is
         // immediately initialize (castrate) the logic contracts
         UUPSProxiable(address(CONSTANT_OUTFLOW_NFT_LOGIC)).castrate();
         UUPSProxiable(address(CONSTANT_INFLOW_NFT_LOGIC)).castrate();
-
-        // emit logic contract creation event
-        // note that creation here means the setting of the nft logic contracts
-        // as the canonical nft logic contracts for the Superfluid framework and not the
-        // actual creation of the logic contracts themselves
-        emit ConstantOutflowNFTLogicCreated(CONSTANT_OUTFLOW_NFT_LOGIC);
-        emit ConstantInflowNFTLogicCreated(CONSTANT_INFLOW_NFT_LOGIC);
     }
 
     
@@ -762,7 +755,12 @@ contract SuperToken is
      * ERC20x-specific Functions
      *************************************************************************/
 
-    /// @inheritdoc ISuperToken
+    /**
+     * @notice This deploys a UUPSProxy contract, initializes the proxy with the
+     * canonical logic contract and sets the proxy on the SuperToken contract.
+     * @dev This should only be used for existing SuperToken's and can only be called
+     * by the owner of governance.
+     */
     function deployAndSetNFTProxyContracts()
         external
         returns (
@@ -787,6 +785,11 @@ contract SuperToken is
             IPoolMemberNFT
         )
     {
+        if (
+            address(constantOutflowNFT) != address(0) ||
+            address(constantInflowNFT) != address(0)
+        ) revert SUPER_TOKEN_NFT_PROXY_ALREADY_SET();
+
         (
             address constantOutflowNFTProxyAddress,
             address constantInflowNFTProxyAddress
@@ -810,32 +813,6 @@ contract SuperToken is
             IPoolAdminNFT(address(0)),
             IPoolMemberNFT(address(0))
         );
-    }
-
-    /// @inheritdoc ISuperToken
-    function getFlow(
-        address sender,
-        address receiver
-    )
-        external
-        view
-        returns (
-            uint256 timestamp,
-            int96 flowRate,
-            uint256 deposit,
-            uint256 owedDeposit
-        )
-    {
-        IConstantFlowAgreementV1 cfaV1 = IConstantFlowAgreementV1(
-            address(
-                _host.getAgreementClass(
-                    keccak256(
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                    )
-                )
-            )
-        );
-        return cfaV1.getFlow(ISuperfluidToken(address(this)), sender, receiver);
     }
 
     /**************************************************************************

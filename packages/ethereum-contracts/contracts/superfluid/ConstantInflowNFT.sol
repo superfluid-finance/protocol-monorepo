@@ -3,23 +3,27 @@ pragma solidity 0.8.18;
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
+    IConstantFlowAgreementV1
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
     IConstantOutflowNFT
 } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import {
     IConstantInflowNFT
 } from "../interfaces/superfluid/IConstantInflowNFT.sol";
-import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
+import { FlowNFTBase } from "./FlowNFTBase.sol";
 
 /// @title ConstantInflowNFT Contract (CIF NFT)
 /// @author Superfluid
 /// @notice The ConstantInflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract does not hold any storage, but references the ConstantOutflowNFT contract storage.
-contract ConstantInflowNFT is CFAv1NFTBase {
-
+contract ConstantInflowNFT is FlowNFTBase {
     /**************************************************************************
      * Custom Errors
      *************************************************************************/
     error CIF_NFT_ONLY_CONSTANT_OUTFLOW(); // 0xe81ef57a
+
+    constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}
 
     function proxiableUUID() public pure override returns (bytes32) {
         return
@@ -52,26 +56,17 @@ contract ConstantInflowNFT is CFAv1NFTBase {
 
     function flowDataByTokenId(
         uint256 tokenId
-    ) public view override returns (CFAv1NFTFlowData memory flowData) {
+    ) public view override returns (FlowNFTData memory flowData) {
         IConstantOutflowNFT constantOutflowNFT = superToken
             .constantOutflowNFT();
         flowData = constantOutflowNFT.flowDataByTokenId(tokenId);
     }
 
-    function _safeTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory // data
-    ) internal virtual override {
-        _transfer(from, to, tokenId);
-    }
-
-    /// @inheritdoc CFAv1NFTBase
+    /// @inheritdoc FlowNFTBase
     function _ownerOf(
         uint256 tokenId
     ) internal view virtual override returns (address) {
-        CFAv1NFTFlowData memory flowData = flowDataByTokenId(tokenId);
+        FlowNFTData memory flowData = flowDataByTokenId(tokenId);
         return flowData.flowReceiver;
     }
 
@@ -90,7 +85,7 @@ contract ConstantInflowNFT is CFAv1NFTBase {
     }
 
     function _burn(uint256 tokenId) internal {
-        CFAv1NFTFlowData memory flowData = flowDataByTokenId(tokenId);
+        FlowNFTData memory flowData = flowDataByTokenId(tokenId);
         emit Transfer(flowData.flowReceiver, address(0), tokenId);
     }
 

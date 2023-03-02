@@ -5,7 +5,6 @@ import {
     FoundrySuperfluidTester,
     SuperToken
 } from "../FoundrySuperfluidTester.sol";
-import { CFAv1BaseTest } from "../superfluid/CFAv1NFTBase.t.sol";
 import {
     ISuperfluidToken
 } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";

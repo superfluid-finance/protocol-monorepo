@@ -546,9 +546,15 @@ export default class TestEnvironment {
 
     deployNFTContracts = async () => {
         const constantOutflowNFTLogic =
-            await this.deployContract<ConstantOutflowNFT>("ConstantOutflowNFT");
+            await this.deployContract<ConstantOutflowNFT>(
+                "ConstantOutflowNFT",
+                this.contracts.cfa.address
+            );
         const constantInflowNFTLogic =
-            await this.deployContract<ConstantInflowNFT>("ConstantInflowNFT");
+            await this.deployContract<ConstantInflowNFT>(
+                "ConstantInflowNFT",
+                this.contracts.cfa.address
+            );
         return {constantOutflowNFTLogic, constantInflowNFTLogic};
     };
 

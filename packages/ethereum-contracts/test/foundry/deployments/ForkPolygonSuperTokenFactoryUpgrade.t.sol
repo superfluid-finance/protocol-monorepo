@@ -108,8 +108,8 @@ contract ForkPolygonSuperTokenFactoryUpgradeTest is ForkSmokeTest {
         // Prank as governance owner
         vm.startPrank(governanceOwner);
 
-        ConstantOutflowNFT constantOutflowNFT = new ConstantOutflowNFT();
-        ConstantInflowNFT constantInflowNFT = new ConstantInflowNFT();
+        ConstantOutflowNFT constantOutflowNFT = new ConstantOutflowNFT(sfFramework.cfaV1);
+        ConstantInflowNFT constantInflowNFT = new ConstantInflowNFT(sfFramework.cfaV1);
 
         // As part of the new ops flow, we deploy a new SuperToken logic contract
         // and as part of the new NFT ops flow, we deploy new NFT logic contracts

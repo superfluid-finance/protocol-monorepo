@@ -5,7 +5,7 @@ import {
     IERC721Metadata
 } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { ISuperToken } from "./ISuperToken.sol";
-import "./ICFAv1NFTBase.sol";
+import "./IFlowNFTBase.sol";
 
 interface IConstantInflowNFT is IERC721Metadata {
     /**************************************************************************

@@ -9,7 +9,7 @@ import {
 
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import {
-    CFAv1NFTBase,
+    FlowNFTBase,
     ConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import {
@@ -17,12 +17,12 @@ import {
     FoundrySuperfluidTester
 } from "../FoundrySuperfluidTester.sol";
 import {
-    ICFAv1NFTBase
-} from "../../../contracts/interfaces/superfluid/ICFAv1NFTBase.sol";
-import { CFAv1BaseTest } from "./CFAv1NFTBase.t.sol";
+    IFlowNFTBase
+} from "../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
+import { FlowNFTBaseTest } from "./FlowNFTBase.t.sol";
 import { ConstantOutflowNFTMock } from "./CFAv1NFTMock.t.sol";
 
-contract ConstantOutflowNFTTest is CFAv1BaseTest {
+contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     using CFAv1Library for CFAv1Library.InitData;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -41,47 +41,21 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
     function test_Fuzz_Revert_If_Owner_Of_For_Non_Existent_Token(
         uint256 _tokenId
     ) public {
-        vm.expectRevert(ICFAv1NFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
         constantOutflowNFTProxy.ownerOf(_tokenId);
     }
 
     function test_Fuzz_Revert_If_Get_Approved_For_Non_Existent_Token(
         uint256 _tokenId
     ) public {
-        vm.expectRevert(ICFAv1NFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
         constantOutflowNFTProxy.getApproved(_tokenId);
-    }
-
-    function test_Fuzz_Revert_If_Not_Inflow_NFT_Calling_Inflow_Transfer_Mint(
-        address _flowSender,
-        address _flowReceiver
-    ) public {
-        vm.expectRevert(
-            ConstantOutflowNFT.COF_NFT_ONLY_CONSTANT_INFLOW.selector
-        );
-        uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
-        constantOutflowNFTProxy.inflowTransferMint(
-            _flowSender,
-            _flowReceiver,
-            nftId
-        );
-    }
-
-    function test_Fuzz_Revert_If_Not_Inflow_NFT_Calling_Inflow_Transfer_Burn(
-        address _flowSender,
-        address _flowReceiver
-    ) public {
-        vm.expectRevert(
-            ConstantOutflowNFT.COF_NFT_ONLY_CONSTANT_INFLOW.selector
-        );
-        uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
-        constantOutflowNFTProxy.inflowTransferBurn(nftId);
     }
 
     function test_Fuzz_Revert_If_Internal_Burn_Non_Existent_Token(
         uint256 _tokenId
     ) public {
-        vm.expectRevert(ICFAv1NFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
         constantOutflowNFTProxy.mockBurn(_tokenId);
     }
 
@@ -135,7 +109,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
 
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-        vm.expectRevert(ICFAv1NFTBase.CFA_NFT_APPROVE_TO_CALLER.selector);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_APPROVE_TO_CALLER.selector);
         vm.prank(_flowSender);
         constantOutflowNFTProxy.setApprovalForAll(_flowSender, true);
     }
@@ -151,7 +125,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
 
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-        vm.expectRevert(ICFAv1NFTBase.CFA_NFT_APPROVE_TO_CURRENT_OWNER.selector);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_APPROVE_TO_CURRENT_OWNER.selector);
         vm.prank(_flowSender);
         constantOutflowNFTProxy.approve(_flowSender, nftId);
     }
@@ -173,7 +147,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
         vm.expectRevert(
-            ICFAv1NFTBase
+            IFlowNFTBase
                 .CFA_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL
                 .selector
         );
@@ -208,11 +182,11 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         );
 
         vm.prank(_flowSender);
-        vm.expectRevert(ICFAv1NFTBase.CFA_NFT_TRANSFER_IS_NOT_ALLOWED.selector);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_TRANSFER_IS_NOT_ALLOWED.selector);
         constantOutflowNFTProxy.transferFrom(_flowSender, _flowReceiver, nftId);
 
         vm.prank(_flowSender);
-        vm.expectRevert(ICFAv1NFTBase.CFA_NFT_TRANSFER_IS_NOT_ALLOWED.selector);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_TRANSFER_IS_NOT_ALLOWED.selector);
         constantOutflowNFTProxy.safeTransferFrom(
             _flowSender,
             _flowReceiver,
@@ -220,7 +194,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         );
 
         vm.prank(_flowSender);
-        vm.expectRevert(ICFAv1NFTBase.CFA_NFT_TRANSFER_IS_NOT_ALLOWED.selector);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_TRANSFER_IS_NOT_ALLOWED.selector);
         constantOutflowNFTProxy.safeTransferFrom(
             _flowSender,
             _flowReceiver,
@@ -256,7 +230,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         );
 
         vm.expectRevert(
-            ICFAv1NFTBase
+            IFlowNFTBase
                 .CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL
                 .selector
         );
@@ -264,7 +238,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         constantOutflowNFTProxy.transferFrom(_flowSender, _flowReceiver, nftId);
 
         vm.expectRevert(
-            ICFAv1NFTBase
+            IFlowNFTBase
                 .CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL
                 .selector
         );
@@ -276,7 +250,7 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
         );
 
         vm.expectRevert(
-            ICFAv1NFTBase
+            IFlowNFTBase
                 .CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL
                 .selector
         );
@@ -457,39 +431,6 @@ contract ConstantOutflowNFTTest is CFAv1BaseTest {
 
         constantOutflowNFTProxy.mockBurn(nftId);
         assert_Flow_Data_State_IsEmpty(nftId);
-    }
-
-    function test_Fuzz_Passing_Inflow_Mint_Is_Called_By_Inflow_NFT(
-        address _flowSender,
-        address _flowReceiver
-    ) public {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
-            _flowSender,
-            _flowReceiver
-        );
-        uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
-
-        vm.prank(address(constantInflowNFTProxy));
-        constantOutflowNFTProxy.inflowTransferMint(
-            _flowSender,
-            _flowReceiver,
-            nftId
-        );
-    }
-
-    function test_Fuzz_Passing_Inflow_Burn_Is_Called_By_Inflow_NFT(
-        address _flowSender,
-        address _flowReceiver
-    ) public {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
-            _flowSender,
-            _flowReceiver
-        );
-        uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
-        constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-
-        vm.prank(address(constantInflowNFTProxy));
-        constantOutflowNFTProxy.inflowTransferBurn(nftId);
     }
 
     function test_Fuzz_Passing_Approve(

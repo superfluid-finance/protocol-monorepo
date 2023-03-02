@@ -53,10 +53,10 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
 
     /// @notice Mapping for token approvals
     /// @dev tokenID => approved address mapping
-    mapping(uint256 tokenId => address approvedAddress) internal _tokenApprovals;
+    mapping(uint256 => address) internal _tokenApprovals;
 
     /// @notice Mapping for operator approvals
-    mapping(address owner => mapping(address operator => bool hasOperatorApproval)) internal _operatorApprovals;
+    mapping(address => mapping(address => bool)) internal _operatorApprovals;
 
     /// @notice This allows us to add new storage variables in the base contract
     /// without having to worry about messing up the storage layout that exists in COFNFT or CIFNFT.

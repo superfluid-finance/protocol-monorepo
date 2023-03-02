@@ -288,6 +288,9 @@ export async function _shouldChangeFlow({
 
     // calculate additional expected balance changes per liquidation rules
     if (isDeleteFlow) {
+        const superTokenContract = await testenv.sf.contracts.ISuperToken.at(
+            superToken.address
+        );
         if (isSenderCritical) {
             console.log("validating liquidation rules...");
             // the tx itself may move the balance more
@@ -359,7 +362,7 @@ export async function _shouldChangeFlow({
                 );
                 await expectEvent.inTransaction(
                     tx.tx,
-                    testenv.sf.contracts.ISuperToken,
+                    superTokenContract,
                     "AgreementLiquidatedV2",
                     {
                         agreementClass: testenv.contracts.cfa.address,
@@ -373,6 +376,20 @@ export async function _shouldChangeFlow({
                             .mul(toBN(-1))
                             .toString(),
                         liquidationTypeData,
+                    }
+                );
+                // targetAccount (sender) transferring remaining deposit to
+                // rewardAccount / liquidatorAccount depending on isPatricianPeriod
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    superTokenContract,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.sender,
+                        to: isPatricianPeriod
+                            ? cfaDataModel.roles.reward
+                            : cfaDataModel.roles.agent,
+                        value: expectedRewardAmount.toString(),
                     }
                 );
             } else {
@@ -421,7 +438,7 @@ export async function _shouldChangeFlow({
                 );
                 await expectEvent.inTransaction(
                     tx.tx,
-                    testenv.sf.contracts.ISuperToken,
+                    superTokenContract,
                     "AgreementLiquidatedV2",
                     {
                         agreementClass: testenv.contracts.cfa.address,
@@ -432,6 +449,31 @@ export async function _shouldChangeFlow({
                         targetAccountBalanceDelta:
                             expectedBailoutAmount.toString(),
                         liquidationTypeData,
+                    }
+                );
+
+                // reward account transferring the single flow deposit to the
+                // liquidator (agent)
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    superTokenContract,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.reward,
+                        to: cfaDataModel.roles.agent,
+                        value: expectedRewardAmount.toString(),
+                    }
+                );
+
+                // reward account bailing out the targetAccount (sender)
+                await expectEvent.inTransaction(
+                    tx.tx,
+                    superTokenContract,
+                    "Transfer",
+                    {
+                        from: cfaDataModel.roles.reward,
+                        to: cfaDataModel.roles.sender,
+                        value: expectedBailoutAmount.toString(),
                     }
                 );
             }

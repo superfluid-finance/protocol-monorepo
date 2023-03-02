@@ -157,6 +157,10 @@ contract SuperToken is
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host)) revert SUPER_TOKEN_ONLY_HOST();
         UUPSProxiable._updateCodeAddress(newAddress);
+
+        // this allows us to deploy and set the nft proxy contracts for existing
+        // supertokens that are in the wild
+        _deployAndSetNFTProxyContracts();
     }
 
     /**************************************************************************
@@ -755,27 +759,6 @@ contract SuperToken is
      * ERC20x-specific Functions
      *************************************************************************/
 
-    /**
-     * @notice This deploys a UUPSProxy contract, initializes the proxy with the
-     * canonical logic contract and sets the proxy on the SuperToken contract.
-     * @dev This should only be used for existing SuperToken's and can only be called
-     * by the owner of governance.
-     */
-    function deployAndSetNFTProxyContracts()
-        external
-        returns (
-            IConstantOutflowNFT,
-            IConstantInflowNFT,
-            IPoolAdminNFT,
-            IPoolMemberNFT
-        )
-    {
-        Ownable gov = Ownable(address(_host.getGovernance()));
-        if (msg.sender != gov.owner()) revert SUPER_TOKEN_ONLY_GOV_OWNER();
-
-        return _deployAndSetNFTProxyContracts();
-    }
-
     function _deployAndSetNFTProxyContracts()
         internal
         returns (
@@ -786,33 +769,36 @@ contract SuperToken is
         )
     {
         if (
-            address(constantOutflowNFT) != address(0) ||
-            address(constantInflowNFT) != address(0)
-        ) revert SUPER_TOKEN_NFT_PROXY_ALREADY_SET();
-
-        (
-            address constantOutflowNFTProxyAddress,
-            address constantInflowNFTProxyAddress
-        ) = SuperfluidNFTDeployerLibrary.deployNFTProxyContractsAndInitialize(
-                SuperToken(address(this)),
-                address(CONSTANT_OUTFLOW_NFT_LOGIC),
-                address(CONSTANT_INFLOW_NFT_LOGIC)
+            address(constantOutflowNFT) == address(0) &&
+            address(constantInflowNFT) == address(0)
+        ) {
+            (
+                address constantOutflowNFTProxyAddress,
+                address constantInflowNFTProxyAddress
+            ) = SuperfluidNFTDeployerLibrary
+                    .deployNFTProxyContractsAndInitialize(
+                        SuperToken(address(this)),
+                        address(CONSTANT_OUTFLOW_NFT_LOGIC),
+                        address(CONSTANT_INFLOW_NFT_LOGIC)
+                    );
+            constantOutflowNFT = IConstantOutflowNFT(
+                constantOutflowNFTProxyAddress
             );
-        constantOutflowNFT = IConstantOutflowNFT(
-            constantOutflowNFTProxyAddress
-        );
-        constantInflowNFT = IConstantInflowNFT(constantInflowNFTProxyAddress);
+            constantInflowNFT = IConstantInflowNFT(
+                constantInflowNFTProxyAddress
+            );
 
-        // emit NFT proxy creation events
-        emit ConstantOutflowNFTCreated(constantOutflowNFT);
-        emit ConstantInflowNFTCreated(constantInflowNFT);
+            // emit NFT proxy creation events
+            emit ConstantOutflowNFTCreated(constantOutflowNFT);
+            emit ConstantInflowNFTCreated(constantInflowNFT);
 
-        return (
-            constantOutflowNFT,
-            constantInflowNFT,
-            IPoolAdminNFT(address(0)),
-            IPoolMemberNFT(address(0))
-        );
+            return (
+                constantOutflowNFT,
+                constantInflowNFT,
+                IPoolAdminNFT(address(0)),
+                IPoolMemberNFT(address(0))
+            );
+        }
     }
 
     /**************************************************************************

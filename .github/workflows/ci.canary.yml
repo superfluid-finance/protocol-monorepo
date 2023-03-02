@@ -131,11 +131,23 @@ jobs:
           node-version: 16.x
           cache: "yarn"
 
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
       - name: Run coverage test
         run: |
           yarn install --frozen-lockfile
           yarn build
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+
+      - name: Clean up and merge coverage artifacts
+        run: |
+          # extract coverage for NFT contracts from forge coverage
+          lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol'
+          # merge hardhat and forge coverage files
+          lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o lcov.info
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v3

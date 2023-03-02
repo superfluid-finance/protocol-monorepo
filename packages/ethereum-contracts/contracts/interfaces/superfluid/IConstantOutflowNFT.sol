@@ -5,7 +5,7 @@ import {
     IERC721Metadata
 } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { ISuperToken } from "./ISuperToken.sol";
-import "./ICFAv1NFTBase.sol";
+import "./IFlowNFTBase.sol";
 
 interface IConstantOutflowNFT is IERC721Metadata {
     /**************************************************************************
@@ -17,7 +17,7 @@ interface IConstantOutflowNFT is IERC721Metadata {
     /// @return flowData the flow data associated with `tokenId`
     function flowDataByTokenId(
         uint256 tokenId
-    ) external view returns (ICFAv1NFTBase.CFAv1NFTFlowData memory flowData);
+    ) external view returns (IFlowNFTBase.FlowNFTData memory flowData);
 
     /**************************************************************************
      * Write Functions

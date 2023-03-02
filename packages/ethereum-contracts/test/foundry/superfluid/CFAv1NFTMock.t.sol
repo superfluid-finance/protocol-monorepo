@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.18;
 
+import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
+    constructor(IConstantFlowAgreementV1 _cfaV1) ConstantOutflowNFT(_cfaV1) {}
+
     /// @dev a mock mint function that exposes the internal _mint function
     function mockMint(
         address _to,
@@ -26,6 +29,8 @@ contract ConstantOutflowNFTMock is ConstantOutflowNFT {
 }
 
 contract ConstantInflowNFTMock is ConstantInflowNFT {
+    constructor(IConstantFlowAgreementV1 _cfaV1) ConstantInflowNFT(_cfaV1) {}
+
     /// @dev a mock mint function to emit the mint Transfer event
     function mockMint(address _to, uint256 _newTokenId) public {
         _mint(_to, _newTokenId);
@@ -42,9 +47,9 @@ contract ConstantInflowNFTMock is ConstantInflowNFT {
     }
 
     /// @dev this exposes the internal flow data by token id for testing purposes
-    function mockCFAv1NFTFlowDataByTokenId(
+    function mockFlowNFTDataByTokenId(
         uint256 _tokenId
-    ) public view returns (CFAv1NFTFlowData memory flowData) {
+    ) public view returns (FlowNFTData memory flowData) {
         return flowDataByTokenId(_tokenId);
     }
 }

@@ -465,10 +465,7 @@ contract ConstantFlowAgreementV1 is
             address(flowVars.token)
         ).constantOutflowNFT();
 
-        // check for existence if NFT exists, if it does, we don't execute hook
-        if (constantOutflowNFT.flowDataByTokenId(uint256(flowId)).flowSender == address(0)) {
-            constantOutflowNFT.onCreate(flowVars.sender, flowVars.receiver);
-        }
+        constantOutflowNFT.onCreate(flowVars.sender, flowVars.receiver);
     }
 
     function _updateFlow(
@@ -498,15 +495,10 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        IConstantOutflowNFT constantOutflowNFT = ISuperToken(
-            address(flowVars.token)
-        ).constantOutflowNFT();
-
-        if (constantOutflowNFT.flowDataByTokenId(uint256(flowParams.flowId)).flowSender != address(0)) {
-            IConstantOutflowNFT(
-                address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
-            ).onUpdate(flowVars.sender, flowVars.receiver);
-        }
+        ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate(
+            flowVars.sender,
+            flowVars.receiver
+        );
     }
 
     function _deleteFlow(
@@ -618,16 +610,9 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
-        IConstantOutflowNFT constantOutflowNFT = IConstantOutflowNFT(
+        IConstantOutflowNFT(
             address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
-        );
-        uint256 tokenId = constantOutflowNFT.getTokenId(
-            flowVars.sender,
-            flowVars.receiver
-        );
-        if (constantOutflowNFT.flowDataByTokenId(tokenId).flowSender != address(0)) {
-            constantOutflowNFT.onDelete(flowVars.sender, flowVars.receiver);
-        }
+        ).onDelete(flowVars.sender, flowVars.receiver);
     }
 
     /**************************************************************************

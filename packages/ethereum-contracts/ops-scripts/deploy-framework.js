@@ -15,6 +15,7 @@ const {
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./libs/common");
+const { ethers } = require("hardhat");
 
 let resetSuperfluidFramework;
 let resolver;
@@ -675,16 +676,25 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // or if constant outflow nft logic or constant inflow nft logic has changed
         async () => {
             let superTokenFactoryLogic;
+            const cfaV1Address = await superfluid.getAgreementClass.call(
+                ethers.utils.solidityKeccak256(
+                    ["string"],
+                    [
+                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1",
+                    ]
+                )
+            );
+
             // deploy constant outflow nft logic contract
             const constantOutflowNFTLogic = await web3tx(
                 ConstantOutflowNFT.new,
                 "ConstantOutflowNFT.new"
-            )();
+            )(cfaV1Address);
             // deploy constant inflow nft logic contract
             const constantInflowNFTLogic = await web3tx(
                 ConstantInflowNFT.new,
                 "ConstantInflowNFT.new"
-            )();
+            )(cfaV1Address);
             // deploy super token logic contract
             // it now takes the nft logic contracts as parameters
             const superTokenLogic = useMocks

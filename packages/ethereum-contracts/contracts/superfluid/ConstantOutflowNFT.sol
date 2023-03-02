@@ -4,21 +4,25 @@ pragma solidity 0.8.18;
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
+    IConstantFlowAgreementV1
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
     IConstantInflowNFT
 } from "../interfaces/superfluid/IConstantInflowNFT.sol";
 import {
     IConstantOutflowNFT
 } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
-import { CFAv1NFTBase } from "./CFAv1NFTBase.sol";
+import { FlowNFTBase } from "./FlowNFTBase.sol";
 
 /// @title ConstantOutflowNFT contract (COF NFT)
 /// @author Superfluid
 /// @notice The ConstantOutflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract uses mint/burn interface for flow creation/deletion and holds the actual storage for both NFTs.
-contract ConstantOutflowNFT is CFAv1NFTBase {
-    /// @notice A mapping from token id to CFAv1NFTFlowData = { address sender, uint32 flowStartDate, address receiver}
+contract ConstantOutflowNFT is FlowNFTBase {
+    /// @notice A mapping from token id to FlowNFTData
+    /// FlowNFTData: { address flowSender, uint32 flowStartDate, address flowReceiver}
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
-    mapping(uint256 => CFAv1NFTFlowData) internal _flowDataByTokenId;
+    mapping(uint256 => FlowNFTData) internal _flowDataByTokenId;
 
     /**************************************************************************
      * Custom Errors
@@ -30,6 +34,8 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     error COF_NFT_ONLY_CFA();                       // 0x054fae59
     error COF_NFT_OVERFLOW();                       // 0xb398aeb1
     error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
+
+    constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}
 
     // note that this is used so we don't upgrade to wrong logic contract
     function proxiableUUID() public pure override returns (bytes32) {
@@ -44,7 +50,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     /// @return flowData the flow data associated with `tokenId`
     function flowDataByTokenId(
         uint256 tokenId
-    ) public view override returns (CFAv1NFTFlowData memory flowData) {
+    ) public view override returns (FlowNFTData memory flowData) {
         flowData = _flowDataByTokenId[tokenId];
     }
 
@@ -52,81 +58,58 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     /// @dev This function mints the COF NFT to the flow sender and mints the CIF NFT to the flow receiver
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver
+    /// NOTE: We do an existence check in here to determine whether or not to execute the hook
     function onCreate(
         address flowSender,
         address flowReceiver
-    ) external onlyCFAv1 {
+    ) external onlyFlowAgreements {
         uint256 newTokenId = _getTokenId(flowSender, flowReceiver);
-        _mint(flowSender, flowReceiver, newTokenId);
+        if (_flowDataByTokenId[newTokenId].flowSender == address(0)) {
+            _mint(flowSender, flowReceiver, newTokenId);
 
-        IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
-        constantInflowNFT.mint(flowReceiver, newTokenId);
+            IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
+            constantInflowNFT.mint(flowReceiver, newTokenId);
+        }
     }
 
     /// @notice Hook called by CFA contract on flow update
     /// @dev This function triggers the metadata update of both COF and CIF NFTs
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver
+    /// NOTE: We do an existence check in here to determine whether or not to execute the hook
     function onUpdate(
         address flowSender,
         address flowReceiver
-    ) external onlyCFAv1 {
+    ) external onlyFlowAgreements {
         uint256 tokenId = _getTokenId(flowSender, flowReceiver);
+        if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
+            _triggerMetadataUpdate(tokenId);
 
-        _triggerMetadataUpdate(tokenId);
-
-        IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
-        constantInflowNFT.triggerMetadataUpdate(tokenId);
+            IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
+            constantInflowNFT.triggerMetadataUpdate(tokenId);
+        }
     }
 
     /// @notice Hook called by CFA contract on flow deletion
     /// @dev This function burns the COF NFT and burns the CIF NFT
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver
+    /// NOTE: We do an existence check in here to determine whether or not to execute the hook
     function onDelete(
         address flowSender,
         address flowReceiver
-    ) external onlyCFAv1 {
+    ) external onlyFlowAgreements {
         uint256 tokenId = _getTokenId(flowSender, flowReceiver);
-        // must "burn" inflow NFT first because we clear storage when burning outflow NFT
-        IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
-        constantInflowNFT.burn(tokenId);
+        if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
+            // must "burn" inflow NFT first because we clear storage when burning outflow NFT
+            IConstantInflowNFT constantInflowNFT = superToken.constantInflowNFT();
+            constantInflowNFT.burn(tokenId);
 
-        _burn(tokenId);
+            _burn(tokenId);
+        }
     }
 
-    /// @notice Handles the mint of ConstantOutflowNFT when an inflow NFT user transfers their NFT.
-    /// @dev Only callable by ConstantInflowNFT
-    /// @param to the receiver of the newly minted token
-    /// @param flowReceiver the flow receiver (owner of the InflowNFT)
-    /// @param newTokenId the new token id to be minted when an inflowNFT is minted
-    function inflowTransferMint(
-        address to,
-        address flowReceiver,
-        uint256 newTokenId
-    ) external onlyConstantInflowNFT {
-        _mint(to, flowReceiver, newTokenId);
-    }
-
-    /// @notice Handles the burn of ConstantOutflowNFT when an inflow NFT user transfers their NFT.
-    /// @dev Only callable by ConstantInflowNFT
-    /// @param tokenId the token id to burn when an inflow NFT is transferred
-    function inflowTransferBurn(
-        uint256 tokenId
-    ) external onlyConstantInflowNFT {
-        _burn(tokenId);
-    }
-
-    function _safeTransfer(
-        address from,
-        address to,
-        uint256 tokenId,
-        bytes memory // data
-    ) internal virtual override {
-        _transfer(from, to, tokenId);
-    }
-
-    /// @inheritdoc CFAv1NFTBase
+    /// @inheritdoc FlowNFTBase
     function _ownerOf(
         uint256 tokenId
     ) internal view virtual override returns (address) {
@@ -170,7 +153,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         }
 
         // update mapping for new NFT to be minted
-        _flowDataByTokenId[newTokenId] = CFAv1NFTFlowData(
+        _flowDataByTokenId[newTokenId] = FlowNFTData(
             to,
             uint32(block.timestamp),
             flowReceiver
@@ -184,7 +167,7 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
     /// @dev `tokenId` must exist AND we emit a {Transfer} event
     /// @param tokenId the id of the token we are destroying
     function _burn(uint256 tokenId) internal {
-        address owner = CFAv1NFTBase.ownerOf(tokenId);
+        address owner = FlowNFTBase.ownerOf(tokenId);
 
         // clear approvals from the previous owner
         delete _tokenApprovals[tokenId];
@@ -196,16 +179,8 @@ contract ConstantOutflowNFT is CFAv1NFTBase {
         emit Transfer(owner, address(0), tokenId);
     }
 
-    modifier onlyConstantInflowNFT() {
-        address constantInflowNFT = address(superToken.constantInflowNFT());
-        if (msg.sender != constantInflowNFT) {
-            revert COF_NFT_ONLY_CONSTANT_INFLOW();
-        }
-        _;
-    }
-
-    modifier onlyCFAv1() {
-        if (msg.sender != address(cfaV1)) {
+    modifier onlyFlowAgreements() {
+        if (msg.sender != address(CONSTANT_FLOW_AGREEMENT_V1)) {
             revert COF_NFT_ONLY_CFA();
         }
         _;

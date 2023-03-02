@@ -8,22 +8,22 @@ import {
     IERC721MetadataUpgradeable
 } from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ICFAv1NFTBase } from "../interfaces/superfluid/ICFAv1NFTBase.sol";
+import { IFlowNFTBase } from "../interfaces/superfluid/IFlowNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-/// @title CFAv1NFTBase abstract contract
+/// @title FlowNFTBase abstract contract
 /// @author Superfluid
 /// @notice The abstract contract to be inherited by the Constant Flow NFTs.
-/// @dev This contract inherits from ICFAv1NFTBase which inherits from
+/// @dev This contract inherits from IFlowNFTBase which inherits from
 /// IERC721MetadataUpgradeable and holds shared storage and functions for the two NFT contracts.
 /// This contract is upgradeable and it inherits from our own ad-hoc UUPSProxiable contract which allows.
 /// NOTE: the storage gap allows us to add an additional 16 storage variables to this contract without breaking child
 /// COFNFT or CIFNFT storage.
-abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
+abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     using Strings for uint256;
 
     string public constant BASE_URI =
@@ -41,6 +41,11 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
     /// - add any new variables before _gap and NOT decrement the length of the _gap array
     /// Go to CFAv1NFTUpgradability.t.sol for the tests and make sure to add new tests for upgrades.
 
+    /// @notice ConstantFlowAgreementV1 contract address
+    /// @dev This is the address of the CFAv1 contract cached so we don't have to
+    /// do an external call for every flow created.
+    IConstantFlowAgreementV1 public immutable CONSTANT_FLOW_AGREEMENT_V1;
+
     ISuperToken public superToken;
 
     string internal _name;
@@ -48,16 +53,10 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
 
     /// @notice Mapping for token approvals
     /// @dev tokenID => approved address mapping
-    mapping(uint256 => address) internal _tokenApprovals;
+    mapping(uint256 tokenId => address approvedAddress) internal _tokenApprovals;
 
     /// @notice Mapping for operator approvals
-    /// @dev owner => operator => approved boolean mapping
-    mapping(address => mapping(address => bool)) internal _operatorApprovals;
-
-    /// @notice ConstantFlowAgreementV1 contract address
-    /// @dev This is the address of the CFAv1 contract cached so we don't have to
-    /// do an external call for every flow created.
-    IConstantFlowAgreementV1 public cfaV1;
+    mapping(address owner => mapping(address operator => bool hasOperatorApproval)) internal _operatorApprovals;
 
     /// @notice This allows us to add new storage variables in the base contract
     /// without having to worry about messing up the storage layout that exists in COFNFT or CIFNFT.
@@ -67,7 +66,8 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
     /// We use this pattern in SuperToken.sol and favor this over the OpenZeppelin pattern
     /// as this prevents silly footgunning.
     /// See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-    uint256 internal _reserve6;
+    uint256 internal _reserve5;
+    uint256 private _reserve6;
     uint256 private _reserve7;
     uint256 private _reserve8;
     uint256 private _reserve9;
@@ -84,6 +84,12 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
     uint256 private _reserve20;
     uint256 internal _reserve21;
 
+    constructor(
+        IConstantFlowAgreementV1 cfaV1Contract
+    ) {
+        CONSTANT_FLOW_AGREEMENT_V1 = cfaV1Contract;
+    }
+
     function initialize(
         ISuperToken superTokenContract,
         string memory nftName,
@@ -93,18 +99,8 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
         initializer // OpenZeppelin Initializable
     {
         superToken = superTokenContract;
-
         _name = nftName;
         _symbol = nftSymbol;
-        cfaV1 = IConstantFlowAgreementV1(
-            address(
-                ISuperfluid(superToken.getHost()).getAgreementClass(
-                    keccak256(
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
-                    )
-                )
-            )
-        );
     }
 
     function updateCode(address newAddress) external override {
@@ -131,9 +127,9 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
         bytes4 interfaceId
     ) external pure virtual override returns (bool) {
         return
-            interfaceId == type(IERC165Upgradeable).interfaceId ||
-            interfaceId == type(IERC721Upgradeable).interfaceId ||
-            interfaceId == type(IERC721MetadataUpgradeable).interfaceId;
+            interfaceId == 0x01ffc9a7 || // ERC165 Interface ID for ERC165
+            interfaceId == 0x80ac58cd || // ERC165 Interface ID for ERC721
+            interfaceId == 0x5b5e139f; // ERC165 Interface ID for ERC721Metadata
     }
 
     /// @inheritdoc IERC721Upgradeable
@@ -176,15 +172,15 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
     function tokenURI(
         uint256 tokenId
     ) external view virtual override returns (string memory) {
-        CFAv1NFTFlowData memory flowData = flowDataByTokenId(tokenId);
+        FlowNFTData memory flowData = flowDataByTokenId(tokenId);
         address superTokenAddress = address(superToken);
 
         string memory superTokenSymbol = superToken.symbol();
 
-        (uint256 startDate, int96 flowRate) = _getFlow(
-            flowData.flowSender,
-            flowData.flowReceiver
-        );
+        (
+            uint256 startDate,
+            int96 flowRate, ,
+        ) = CONSTANT_FLOW_AGREEMENT_V1.getFlow(superToken, flowData.flowSender, flowData.flowReceiver);
 
         return
             string(
@@ -221,7 +217,7 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
 
     /// @inheritdoc IERC721Upgradeable
     function approve(address to, uint256 tokenId) public virtual override {
-        address owner = CFAv1NFTBase.ownerOf(tokenId);
+        address owner = FlowNFTBase.ownerOf(tokenId);
         if (to == owner) {
             revert CFA_NFT_APPROVE_TO_CURRENT_OWNER();
         }
@@ -233,7 +229,7 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
         _approve(to, tokenId);
     }
 
-    /// @inheritdoc ICFAv1NFTBase
+    /// @inheritdoc IFlowNFTBase
     function getTokenId(
         address sender,
         address receiver
@@ -318,7 +314,7 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
         address spender,
         uint256 tokenId
     ) internal view returns (bool) {
-        address owner = CFAv1NFTBase.ownerOf(tokenId);
+        address owner = FlowNFTBase.ownerOf(tokenId);
         return (spender == owner ||
             isApprovedForAll(owner, spender) ||
             getApproved(tokenId) == spender);
@@ -363,19 +359,12 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
         emit ApprovalForAll(owner, operator, approved);
     }
 
-    function _getFlow(
-        address sender,
-        address receiver
-    ) internal view returns (uint256 timestamp, int96 flowRate) {
-        (timestamp, flowRate, , ) = superToken.getFlow(sender, receiver);
-    }
-
     /// @dev Returns the flow data of the `tokenId`. Does NOT revert if token doesn't exist.
     /// @param tokenId the token id whose existence we're checking
-    /// @return flowData the CFAv1NFTFlowData struct for `tokenId`
+    /// @return flowData the FlowNFTData struct for `tokenId`
     function flowDataByTokenId(
         uint256 tokenId
-    ) public view virtual returns (CFAv1NFTFlowData memory flowData);
+    ) public view virtual returns (FlowNFTData memory flowData);
 
     /// @dev Returns the owner of the `tokenId`. Does NOT revert if token doesn't exist.
     /// @param tokenId the token id whose existence we're checking
@@ -392,6 +381,8 @@ abstract contract CFAv1NFTBase is UUPSProxiable, ICFAv1NFTBase {
         address from,
         address to,
         uint256 tokenId,
-        bytes memory data
-    ) internal virtual;
+        bytes memory // data
+    ) internal virtual {
+        _transfer(from, to, tokenId);
+    }
 }

@@ -33,6 +33,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     error SUPER_TOKEN_MINT_TO_ZERO_ADDRESS();                    // 0x0d243157
     error SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS();              // 0xeecd6c9b
     error SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS();                // 0xe219bd39
+    error SUPER_TOKEN_NFT_PROXY_ALREADY_SET();                   // 0x6bef249d
 
     /**
      * @dev Initialize the contract
@@ -522,59 +523,6 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     function constantInflowNFT() external view returns (IConstantInflowNFT);
     function poolAdminNFT() external view returns (IPoolAdminNFT);
     function poolMemberNFT() external view returns (IPoolMemberNFT);
-
-    /**
-     * @dev Gets the flow data between sender-receiver for the Super Token
-     * @param sender the flow sender
-     * @param receiver the flow receiver
-     * @return timestamp the last updated timestamp of the flow 
-     * @return flowRate the flow rate of the flow 
-     * @return deposit the deposit of the flow 
-     * @return owedDeposit the owed deposit of the flow 
-     */
-    function getFlow(
-        address sender,
-        address receiver
-    )
-        external
-        view
-        returns (
-            uint256 timestamp,
-            int96 flowRate,
-            uint256 deposit,
-            uint256 owedDeposit
-        );
-    
-    /**
-     * @notice This deploys a UUPSProxy contract, initializes the proxy with the
-     * canonical logic contract and sets the proxy on the SuperToken contract.
-     * @dev This should only be used for existing SuperToken's and can only be called
-     * by the owner of governance.
-     */
-    function deployAndSetNFTProxyContracts()
-        external
-        returns (
-            IConstantOutflowNFT,
-            IConstantInflowNFT,
-            IPoolAdminNFT,
-            IPoolMemberNFT
-        );
-
-    /**
-     * @dev Constant Outflow NFT logic created event
-     * @param constantOutflowNFTLogic constant outflow nft logic address
-     */
-    event ConstantOutflowNFTLogicCreated(
-        IConstantOutflowNFT indexed constantOutflowNFTLogic
-    );
-
-    /**
-     * @dev Constant Inflow NFT logic created event
-     * @param constantInflowNFTLogic constant inflow nft logic address
-     */
-    event ConstantInflowNFTLogicCreated(
-        IConstantInflowNFT indexed constantInflowNFTLogic
-    );
 
     /**
      * @dev Constant Outflow NFT proxy created event

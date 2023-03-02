@@ -10,7 +10,8 @@ from starkware.cairo.common.math import assert_not_zero, assert_le, assert_nn
 from starkware.cairo.common.math_cmp import is_not_zero
 from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.bitwise import bitwise_not
-from starkware.cairo.common.hash import hash2
+from starkware.cairo.common.hash_chain import hash_chain
+from starkware.cairo.common.alloc import alloc
 
 from openzeppelin.utils.constants.library import UINT8_MAX
 
@@ -153,14 +154,17 @@ namespace SuperToken {
     func flow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         sender: felt, recipient: felt, flow_id: felt, flow_rate: felt
     ) -> (success: felt) {
+        alloc_locals;
         let (caller) = get_caller_address();
         with_attr error_message("SuperToken: invalid sender!") {
             assert_nn(caller - sender);
             assert_nn(sender - caller);
         }
-        let (_hash) = hash2(sender, recipient);
-        let (flowAddress) = hash2(_hash, flow_id);
-
+        let (local data_ptr: felt*) = alloc();
+        assert [data_ptr] = sender;
+        assert [data_ptr + 1] = recipient;
+        assert [data_ptr + 2] = flow_id;
+        let (flowAddress) = hash_chain{hash_ptr=pedersen_ptr}(data_ptr);
         let (senderIndex) = SuperToken_universal_indexes.read(sender);
         let (recipientIndex) = SuperToken_universal_indexes.read(recipient);
         let (timestamp) = get_block_timestamp();

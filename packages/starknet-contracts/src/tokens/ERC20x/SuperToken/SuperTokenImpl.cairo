@@ -101,7 +101,7 @@ func distribute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 }
 
 @external
-func distribute_flow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func distributeFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     sender: felt, poolAddress: felt, reqFlowRate: felt
 ) -> (success: felt, actualFlowRate: felt) {
     return SuperToken.distribute_flow(sender, poolAddress, reqFlowRate);

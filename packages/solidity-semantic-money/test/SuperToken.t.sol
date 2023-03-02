@@ -19,6 +19,7 @@ contract SuperTokenTest is Test {
 
     address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
     SuperToken internal token;
+    Pool internal pl;
 
     constructor () {
         N_TESTERS = TEST_ACCOUNTS.length;
@@ -31,6 +32,9 @@ contract SuperTokenTest is Test {
             token.transfer(TEST_ACCOUNTS[i], type(uint64).max);
             vm.stopPrank();
         }
+        vm.startPrank(alice);
+        pl = token.createPool();
+        vm.stopPrank();
     }
 
     function testERC20Transfer(uint32 x) external {
@@ -74,7 +78,6 @@ contract SuperTokenTest is Test {
         uint256 c1 = token.balanceOf(carol);
 
         vm.startPrank(alice);
-        Pool pl = token.createPool();
         pl.updatePoolMember(bob, Unit.wrap(u1));
         pl.updatePoolMember(carol, Unit.wrap(u2));
         token.distribute(alice, pl, Value.wrap(int(uint(x))));
@@ -108,7 +111,6 @@ contract SuperTokenTest is Test {
         uint256 c1 = token.balanceOf(carol);
 
         vm.startPrank(alice);
-        Pool pl = token.createPool();
         pl.updatePoolMember(bob, Unit.wrap(u1));
         pl.updatePoolMember(carol, Unit.wrap(u2));
         token.distributeFlow(alice, pl, FlowId.wrap(0), FlowRate.wrap(int128(uint128(r))));

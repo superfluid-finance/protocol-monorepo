@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
+import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
@@ -50,7 +50,7 @@ contract Pool is Ownable {
  * - no permission control for account going negative.
  */
 contract SuperToken is IERC20 {
-    using EnumerableMap for EnumerableMap.AddressToUintMap;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     // immutable internal Pool _POOL_IMPLEMENTATION;
     //FlowId constant public ALL_FLOWS_FLOW_ID = FlowId.wrap(type(uint32).max);
@@ -58,7 +58,7 @@ contract SuperToken is IERC20 {
     mapping (address owner => BasicParticle) public uIndexes;
     mapping (bytes32 flowAddress => FlowRate) public flowRates;
     mapping (Pool pool => bool exist) public pools;
-    mapping (address owner => EnumerableMap.AddressToUintMap) internal _connectionsMap;
+    mapping (address owner => EnumerableSet.AddressSet) internal _connectionsMap;
     mapping(address => mapping(address => uint256)) private _allowances;
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -73,9 +73,9 @@ contract SuperToken is IERC20 {
     function balanceOf(address account) external view returns (uint256) {
         Time t = Time.wrap(uint32(block.timestamp));
         int256 x = Value.unwrap(uIndexes[account].rtb(t));
-        EnumerableMap.AddressToUintMap storage connections = _connectionsMap[account];
+        EnumerableSet.AddressSet storage connections = _connectionsMap[account];
         for (uint i = 0; i < connections.length(); ++i) {
-            (address p,) = connections.at(i);
+            address p = connections.at(i);
             x += Value.unwrap(PDPoolMemberMU(Pool(p).getIndex(), Pool(p).getMember(account)).rtb(t));
         }
         return x > 0 ? uint256(x) : 0;
@@ -180,7 +180,7 @@ contract SuperToken is IERC20 {
     function connectPool(Pool to, bool doConnect) public
         returns (bool success) {
         if (doConnect) {
-            _connectionsMap[msg.sender].set(address(to), 0);
+            _connectionsMap[msg.sender].add(address(to));
         } else {
             _connectionsMap[msg.sender].remove(address(to));
         }

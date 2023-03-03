@@ -517,3 +517,13 @@ export interface ERC20IncreaseAllowanceParams extends EthersParams {
 }
 
 export type ERC20DecreaseAllowanceParams = ERC20IncreaseAllowanceParams;
+
+export interface SuperTokenFlowRateAllowanceParams extends EthersParams {
+    readonly flowOperator: string;
+    readonly flowRateAllowanceDelta: string;
+    readonly userData?: string;
+}
+export interface FlowRateAllowanceParams
+    extends SuperTokenFlowRateAllowanceParams {
+    readonly superToken: string;
+}

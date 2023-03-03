@@ -45,6 +45,7 @@ import {
     IWeb3Index,
     IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
+    SuperTokenFlowRateAllowanceParams,
 } from "./interfaces";
 import {
     getSanitizedTimestamp,
@@ -390,6 +391,36 @@ export default abstract class SuperToken extends ERC20Token {
     };
 
     /** ### CFA ACL Write Functions (byOperator) ### */
+
+    /**
+     * Increase the flow rate allowance for an ACL operator.
+     * @param flowOperator The operator of the flow.
+     * @param flowRateAllowanceDelta The amount to increase the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    increaseFlowRateAllowance(
+        params: SuperTokenFlowRateAllowanceParams
+    ): Operation {
+        return this.cfaV1.increaseFlowRateAllowance({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
+
+    /**
+     * Decrease the flow rate allowance for an ACL operator.
+     * @param flowOperator The operator of the flow.
+     * @param flowRateAllowanceDelta The amount to decrease the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    decreaseFlowRateAllowance(params: SuperTokenFlowRateAllowanceParams) {
+        return this.cfaV1.decreaseFlowRateAllowance({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
 
     /**
      * Update permissions for a flow operator as a sender.

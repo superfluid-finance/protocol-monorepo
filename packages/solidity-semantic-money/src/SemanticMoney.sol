@@ -323,7 +323,6 @@ library SemanticMoney {
         p1.synced_particle = b1s.i.wrapped_particle.clone();
     }
 }
-
 using SemanticMoney for BasicParticle global;
 using SemanticMoney for PDPoolIndex global;
 using SemanticMoney for PDPoolMember global;

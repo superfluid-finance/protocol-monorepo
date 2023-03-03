@@ -129,7 +129,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
 
     /**
      * @dev msgSender from `ctx` decreases flow rate allowance for the `flowOperator` by `flowRateAllowanceDelta`
-     * * @dev if `flowRateAllowanceDelta` is negative, we revert with CFA_ACL_NO_NEGATIVE_ALLOWANCE
+     * @dev if `flowRateAllowanceDelta` is negative, we revert with CFA_ACL_NO_NEGATIVE_ALLOWANCE
      * @param token Super token address
      * @param flowOperator The permission grantee address
      * @param flowRateAllowanceDelta The flow rate allowance delta

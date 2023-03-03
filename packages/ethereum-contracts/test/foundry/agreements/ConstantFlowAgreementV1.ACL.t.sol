@@ -13,7 +13,7 @@ import {
     SuperTokenV1Library
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
-contract ConstantFlowAgreementV1ACLTests is FoundrySuperfluidTester {
+contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
 
     constructor() FoundrySuperfluidTester(3) {}

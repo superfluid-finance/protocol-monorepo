@@ -57,7 +57,10 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Prepare subgraph manifest"
-        run: ./tasks/prepare-manifest.sh ${{ inputs.network }}
+        # note that this step is only used for generating an arbitrary subgraph.yaml
+        # and addresses.ts file for the yarn codegen step below
+        # the actual addresses will be retrieved during the actual deployment of the subgraph
+        run: ./tasks/prepare-manifest.sh
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Generate meta.ignore.ts file"

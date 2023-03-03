@@ -821,10 +821,13 @@ contract ConstantFlowAgreementV1 is
         bytes calldata ctx
     ) public override returns (bytes memory newCtx) {
         newCtx = ctx;
-        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+
         // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
         // authorizeTokenAccess:
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+
         if (currentContext.msgSender == flowOperator) revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+        if (flowRateAllowanceDelta < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
         
         (
             bytes32 flowOperatorId,
@@ -860,12 +863,15 @@ contract ConstantFlowAgreementV1 is
         bytes calldata ctx
     ) public override returns (bytes memory newCtx) {
         newCtx = ctx;
-        ISuperfluid.Context memory currentContext = AgreementLibrary
-            .authorizeTokenAccess(token, ctx);
+
         // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
         // authorizeTokenAccess:
-        if (currentContext.msgSender == flowOperator)
-            revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+        ISuperfluid.Context memory currentContext = AgreementLibrary
+            .authorizeTokenAccess(token, ctx);
+
+        if (currentContext.msgSender == flowOperator) revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+        if (flowRateAllowanceDelta < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
+
         (
             ,
             uint8 oldPermissions,
@@ -874,9 +880,9 @@ contract ConstantFlowAgreementV1 is
         FlowOperatorData memory flowOperatorData;
         flowOperatorData.permissions = oldPermissions;
 
-        // @note this will revert if it overflows
+        // @note this will revert if it underflows
         flowOperatorData.flowRateAllowance =
-            oldFlowRateAllowance +
+            oldFlowRateAllowance -
             flowRateAllowanceDelta;
 
         bytes32 flowOperatorId = _generateFlowOperatorId(

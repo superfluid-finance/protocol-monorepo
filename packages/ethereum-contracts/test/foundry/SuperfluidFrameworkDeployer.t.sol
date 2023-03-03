@@ -50,9 +50,6 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
     }
 
     function test_Passing_Transfer_Ownership() public {
-        // transfer ownership back to superTokenDeployer
-        superTokenDeployer.transferOwnership(address(sfDeployer));
-
         assertEq(sf.governance.owner(), address(sfDeployer));
         sfDeployer.transferOwnership(address(superTokenDeployer));
         assertEq(sf.governance.owner(), address(superTokenDeployer));

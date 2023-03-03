@@ -2,10 +2,10 @@
 pragma solidity 0.8.18;
 
 import {
-    IERC165Upgradeable,
-    IERC721Upgradeable,
-    IERC721MetadataUpgradeable
-} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+    IERC165,
+    IERC721,
+    IERC721Metadata
+} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import {
@@ -174,7 +174,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         );
 
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-        assert_Flow_Data_State_IsExpected(
+        assert_NFT_Flow_Data_State_IsExpected(
             nftId,
             _flowSender,
             uint32(block.timestamp),
@@ -222,7 +222,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         );
 
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-        assert_Flow_Data_State_IsExpected(
+        assert_NFT_Flow_Data_State_IsExpected(
             nftId,
             _flowSender,
             uint32(block.timestamp),
@@ -321,19 +321,19 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     function test_Passing_Contract_Supports_Expected_Interfaces() public {
         assertEq(
             constantOutflowNFTProxy.supportsInterface(
-                type(IERC165Upgradeable).interfaceId
+                type(IERC165).interfaceId
             ),
             true
         );
         assertEq(
             constantOutflowNFTProxy.supportsInterface(
-                type(IERC721Upgradeable).interfaceId
+                type(IERC721).interfaceId
             ),
             true
         );
         assertEq(
             constantOutflowNFTProxy.supportsInterface(
-                type(IERC721MetadataUpgradeable).interfaceId
+                type(IERC721Metadata).interfaceId
             ),
             true
         );
@@ -396,7 +396,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         );
 
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-        assert_Flow_Data_State_IsExpected(
+        assert_NFT_Flow_Data_State_IsExpected(
             nftId,
             _flowSender,
             uint32(block.timestamp),
@@ -415,7 +415,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
 
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-        assert_Flow_Data_State_IsExpected(
+        assert_NFT_Flow_Data_State_IsExpected(
             nftId,
             _flowSender,
             uint32(block.timestamp),
@@ -430,7 +430,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         );
 
         constantOutflowNFTProxy.mockBurn(nftId);
-        assert_Flow_Data_State_IsEmpty(nftId);
+        assert_NFT_Flow_Data_State_IsEmpty(nftId);
     }
 
     function test_Fuzz_Passing_Approve(
@@ -446,7 +446,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
 
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
-        assert_Flow_Data_State_IsExpected(
+        assert_NFT_Flow_Data_State_IsExpected(
             nftId,
             _flowSender,
             uint32(block.timestamp),
@@ -528,7 +528,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         vm.prank(flowSender);
         sf.cfaLib.updateFlow(flowReceiver, superTokenMock, flowRate + 333);
 
-        assert_Flow_Data_State_IsExpected(
+        assert_NFT_Flow_Data_State_IsExpected(
             nftId,
             flowSender,
             uint32(block.timestamp),
@@ -567,6 +567,6 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         vm.prank(flowSender);
         sf.cfaLib.deleteFlow(flowSender, flowReceiver, superTokenMock);
 
-        assert_Flow_Data_State_IsEmpty(nftId);
+        assert_NFT_Flow_Data_State_IsEmpty(nftId);
     }
 }

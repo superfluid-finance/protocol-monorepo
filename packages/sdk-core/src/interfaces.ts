@@ -510,3 +510,10 @@ export interface IWeb3GovernanceParams {
     readonly rewardAddress: string;
     readonly minimumDeposit: string;
 }
+
+export interface ERC20IncreaseAllowanceParams extends EthersParams {
+    readonly spender: string;
+    readonly amount: string;
+}
+
+export type ERC20DecreaseAllowanceParams = ERC20IncreaseAllowanceParams;

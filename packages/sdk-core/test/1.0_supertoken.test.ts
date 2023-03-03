@@ -270,6 +270,50 @@ makeSuite("SuperToken Tests", (testEnv: TestEnvironment) => {
                 .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
         });
 
+        it("Should be able to increaseAllowance", async () => {
+            const amount = ethers.utils.parseUnits("1000").toString();
+            await expect(
+                testEnv.wrapperSuperToken.increaseAllowance({
+                    spender: testEnv.bob.address,
+                    amount,
+                }).exec(testEnv.alice)
+            )
+                .to.emit(
+                    testEnv.wrapperSuperToken.contract.connect(
+                        testEnv.alice
+                    ),
+                    "Approval"
+                )
+                .withArgs(
+                    testEnv.alice.address,
+                    testEnv.bob.address,
+                    amount
+                );
+        });
+
+        it("Should be able to decreaseAllowance", async () => {
+            const amount = ethers.utils.parseUnits("1000").toString();
+            await testEnv.wrapperSuperToken
+                .increaseAllowance({
+                    spender: testEnv.bob.address,
+                    amount,
+                })
+                .exec(testEnv.alice);
+            await expect(
+                testEnv.wrapperSuperToken
+                    .decreaseAllowance({
+                        spender: testEnv.bob.address,
+                        amount,
+                    })
+                    .exec(testEnv.alice)
+            )
+                .to.emit(
+                    testEnv.wrapperSuperToken.contract.connect(testEnv.alice),
+                    "Approval"
+                )
+                .withArgs(testEnv.alice.address, testEnv.bob.address, "0");
+        });
+
         it("Should be able to approve + upgrade", async () => {
             await shouldDowngrade(testEnv, testEnv.alice);
             const amount = ethers.utils.parseUnits("1000").toString();

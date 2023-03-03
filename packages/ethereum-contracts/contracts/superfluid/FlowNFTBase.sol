@@ -44,6 +44,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     /// @notice ConstantFlowAgreementV1 contract address
     /// @dev This is the address of the CFAv1 contract cached so we don't have to
     /// do an external call for every flow created.
+    // solhint-disable-next-line var-name-mixedcase
     IConstantFlowAgreementV1 public immutable CONSTANT_FLOW_AGREEMENT_V1;
 
     ISuperToken public superToken;

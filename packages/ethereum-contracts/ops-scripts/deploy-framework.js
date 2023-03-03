@@ -15,7 +15,7 @@ const {
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./libs/common");
-const { ethers } = require("hardhat");
+const { ethers } = require("ethers");
 
 let resetSuperfluidFramework;
 let resolver;

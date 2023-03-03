@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable not-rely-on-time
-pragma solidity 0.8.19;
+pragma solidity 0.8.18;
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
@@ -35,6 +35,7 @@ contract ConstantOutflowNFT is FlowNFTBase {
     error COF_NFT_OVERFLOW();                       // 0xb398aeb1
     error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
 
+    // solhint-disable-next-line no-empty-blocks
     constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}
 
     // note that this is used so we don't upgrade to wrong logic contract

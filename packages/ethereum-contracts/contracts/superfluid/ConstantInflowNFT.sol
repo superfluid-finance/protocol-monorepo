@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+pragma solidity 0.8.18;
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
@@ -23,6 +23,7 @@ contract ConstantInflowNFT is FlowNFTBase {
      *************************************************************************/
     error CIF_NFT_ONLY_CONSTANT_OUTFLOW(); // 0xe81ef57a
 
+    // solhint-disable-next-line no-empty-blocks
     constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}
 
     function proxiableUUID() public pure override returns (bytes32) {

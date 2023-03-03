@@ -835,15 +835,13 @@ contract ConstantFlowAgreementV1 is
             int96 oldFlowRateAllowance
         ) = getFlowOperatorData(token, currentContext.msgSender, flowOperator);
 
-        FlowOperatorData memory flowOperatorData;
-        flowOperatorData.permissions = oldPermissions;
-
         // @note this will revert if it overflows
-        flowOperatorData.flowRateAllowance = oldFlowRateAllowance + flowRateAllowanceDelta;
-
-        token.updateAgreementData(
+        int96 newFlowRateAllowance = oldFlowRateAllowance + flowRateAllowanceDelta;
+        _updateFlowRateAllowance(
+            token,
             flowOperatorId,
-            _encodeFlowOperatorData(flowOperatorData)
+            oldPermissions,
+            newFlowRateAllowance
         );
 
         emit FlowOperatorAllowanceUpdated(
@@ -851,7 +849,7 @@ contract ConstantFlowAgreementV1 is
             currentContext.msgSender,
             flowOperator,
             oldFlowRateAllowance,
-            flowOperatorData.flowRateAllowance
+            newFlowRateAllowance
         );
     }
 
@@ -873,25 +871,19 @@ contract ConstantFlowAgreementV1 is
         if (flowRateAllowanceDelta < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
 
         (
-            ,
+            bytes32 flowOperatorId,
             uint8 oldPermissions,
             int96 oldFlowRateAllowance
         ) = getFlowOperatorData(token, currentContext.msgSender, flowOperator);
-        FlowOperatorData memory flowOperatorData;
-        flowOperatorData.permissions = oldPermissions;
-
+        
+        
         // @note this will revert if it underflows
-        flowOperatorData.flowRateAllowance =
-            oldFlowRateAllowance -
-            flowRateAllowanceDelta;
-
-        bytes32 flowOperatorId = _generateFlowOperatorId(
-            currentContext.msgSender,
-            flowOperator
-        );
-        token.updateAgreementData(
+        int96 newFlowRateAllowance = oldFlowRateAllowance - flowRateAllowanceDelta;
+        _updateFlowRateAllowance(
+            token,
             flowOperatorId,
-            _encodeFlowOperatorData(flowOperatorData)
+            oldPermissions,
+            newFlowRateAllowance
         );
 
         emit FlowOperatorAllowanceUpdated(
@@ -899,7 +891,7 @@ contract ConstantFlowAgreementV1 is
             currentContext.msgSender,
             flowOperator,
             oldFlowRateAllowance,
-            flowOperatorData.flowRateAllowance
+            newFlowRateAllowance
         );
     }
 

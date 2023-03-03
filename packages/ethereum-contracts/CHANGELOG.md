@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+- New ACL functions: `increaseFlowRateAllowance` and `decreaseFlowRateAllowance`
+- Support for `increaseAllowance` and `decreaseAllowance` in `batchCall`
+
 ### [v1.5.1] - 2023-02-28
 
 ### Added

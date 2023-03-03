@@ -3,10 +3,10 @@ pragma solidity >=0.8.4;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import {
-    IERC165Upgradeable,
-    IERC721Upgradeable,
-    IERC721MetadataUpgradeable
-} from "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
+    IERC165,
+    IERC721,
+    IERC721Metadata
+} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { IFlowNFTBase } from "../interfaces/superfluid/IFlowNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
@@ -17,9 +17,9 @@ import {
 
 /// @title FlowNFTBase abstract contract
 /// @author Superfluid
-/// @notice The abstract contract to be inherited by the Constant Flow NFTs.
+/// @notice The abstract contract to be inherited by the Flow NFTs.
 /// @dev This contract inherits from IFlowNFTBase which inherits from
-/// IERC721MetadataUpgradeable and holds shared storage and functions for the two NFT contracts.
+/// IERC721Metadata and holds shared storage and functions for the two NFT contracts.
 /// This contract is upgradeable and it inherits from our own ad-hoc UUPSProxiable contract which allows.
 /// NOTE: the storage gap allows us to add an additional 16 storage variables to this contract without breaking child
 /// COFNFT or CIFNFT storage.
@@ -119,11 +119,11 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         _triggerMetadataUpdate(tokenId);
     }
 
-    /// @notice This contract supports IERC165Upgradeable, IERC721Upgradeable and IERC721MetadataUpgradeable
+    /// @notice This contract supports IERC165, IERC721 and IERC721Metadata
     /// @dev This is part of the Standard Interface Detection EIP: https://eips.ethereum.org/EIPS/eip-165
     /// @param interfaceId the XOR of all function selectors in the interface
     /// @return boolean true if the interface is supported
-    /// @inheritdoc IERC165Upgradeable
+    /// @inheritdoc IERC165
     function supportsInterface(
         bytes4 interfaceId
     ) external pure virtual override returns (bool) {
@@ -133,7 +133,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
             interfaceId == 0x5b5e139f; // ERC165 Interface ID for ERC721Metadata
     }
 
-    /// @inheritdoc IERC721Upgradeable
+    /// @inheritdoc IERC721
     function ownerOf(
         uint256 tokenId
     ) public view virtual override returns (address) {
@@ -216,7 +216,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
             );
     }
 
-    /// @inheritdoc IERC721Upgradeable
+    /// @inheritdoc IERC721
     function approve(address to, uint256 tokenId) public virtual override {
         address owner = FlowNFTBase.ownerOf(tokenId);
         if (to == owner) {
@@ -245,7 +245,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         tokenId = uint256(keccak256(abi.encode(sender, receiver)));
     }
 
-    /// @inheritdoc IERC721Upgradeable
+    /// @inheritdoc IERC721
     function getApproved(
         uint256 tokenId
     ) public view virtual override returns (address) {
@@ -254,7 +254,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         return _tokenApprovals[tokenId];
     }
 
-    /// @inheritdoc IERC721Upgradeable
+    /// @inheritdoc IERC721
     function setApprovalForAll(
         address operator,
         bool approved
@@ -262,7 +262,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         _setApprovalForAll(msg.sender, operator, approved);
     }
 
-    /// @inheritdoc IERC721Upgradeable
+    /// @inheritdoc IERC721
     function isApprovedForAll(
         address owner,
         address operator
@@ -270,7 +270,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         return _operatorApprovals[owner][operator];
     }
 
-    /// @inheritdoc IERC721Upgradeable
+    /// @inheritdoc IERC721
     function transferFrom(
         address from,
         address to,
@@ -283,7 +283,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         _transfer(from, to, tokenId);
     }
 
-    /// @inheritdoc IERC721Upgradeable
+    /// @inheritdoc IERC721
     function safeTransferFrom(
         address from,
         address to,
@@ -292,7 +292,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         safeTransferFrom(from, to, tokenId, "");
     }
 
-    /// @inheritdoc IERC721Upgradeable
+    /// @inheritdoc IERC721
     function safeTransferFrom(
         address from,
         address to,

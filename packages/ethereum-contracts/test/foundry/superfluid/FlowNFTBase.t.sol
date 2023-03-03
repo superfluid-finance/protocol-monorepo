@@ -124,7 +124,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Assertion Helpers
     //////////////////////////////////////////////////////////////////////////*/
-    function assert_Flow_Data_State_IsExpected(
+    function assert_NFT_Flow_Data_State_IsExpected(
         uint256 _tokenId,
         address _expectedFlowSender,
         uint32 _expectedFlowStartDate,
@@ -159,8 +159,8 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function assert_Flow_Data_State_IsEmpty(uint256 _tokenId) public {
-        assert_Flow_Data_State_IsExpected(_tokenId, address(0), 0, address(0));
+    function assert_NFT_Flow_Data_State_IsEmpty(uint256 _tokenId) public {
+        assert_NFT_Flow_Data_State_IsExpected(_tokenId, address(0), 0, address(0));
     }
 
     function assert_OwnerOf(
@@ -169,9 +169,6 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         address _expectedOwner,
         bool _isOutflow
     ) public {
-        FlowNFTBase.FlowNFTData memory flowData = constantOutflowNFTProxy
-            .flowDataByTokenId(_tokenId);
-
         address actualOwner = _isOutflow
             ? ConstantOutflowNFTMock(address(_nftContract)).mockOwnerOf(
                 _tokenId
@@ -288,7 +285,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         vm.startPrank(_flowSender);
         superTokenMock.createFlow(_flowReceiver, _flowRate);
         vm.stopPrank();
-        assert_Flow_Data_State_IsExpected(
+        assert_NFT_Flow_Data_State_IsExpected(
             nftId,
             _flowSender,
             uint32(block.timestamp),

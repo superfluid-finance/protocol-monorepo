@@ -144,7 +144,7 @@ contract SuperToken is
         // initialize the proxies, pointing to the canonical NFT logic contracts
         // set in the constructor
         // link the deployed NFT proxies to the SuperToken
-        _deployAndSetNFTProxyContracts();
+        _deployAndSetNFTProxyContractsIfUnset();
 
         // help tools like explorers detect the token contract
         emit Transfer(address(0), address(0), 0);
@@ -159,8 +159,8 @@ contract SuperToken is
         UUPSProxiable._updateCodeAddress(newAddress);
 
         // this allows us to deploy and set the nft proxy contracts for existing
-        // supertokens that are in the wild
-        _deployAndSetNFTProxyContracts();
+        // supertokens that are in the wild only if the nft proxy contracts are unset
+        _deployAndSetNFTProxyContractsIfUnset();
     }
 
     /**************************************************************************
@@ -759,15 +759,7 @@ contract SuperToken is
      * ERC20x-specific Functions
      *************************************************************************/
 
-    function _deployAndSetNFTProxyContracts()
-        internal
-        returns (
-            IConstantOutflowNFT,
-            IConstantInflowNFT,
-            IPoolAdminNFT,
-            IPoolMemberNFT
-        )
-    {
+    function _deployAndSetNFTProxyContractsIfUnset() internal {
         if (
             address(constantOutflowNFT) == address(0) &&
             address(constantInflowNFT) == address(0)
@@ -791,13 +783,6 @@ contract SuperToken is
             // emit NFT proxy creation events
             emit ConstantOutflowNFTCreated(constantOutflowNFT);
             emit ConstantInflowNFTCreated(constantInflowNFT);
-
-            return (
-                constantOutflowNFT,
-                constantInflowNFT,
-                IPoolAdminNFT(address(0)),
-                IPoolMemberNFT(address(0))
-            );
         }
     }
 

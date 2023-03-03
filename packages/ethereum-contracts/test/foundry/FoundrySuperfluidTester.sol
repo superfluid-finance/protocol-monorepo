@@ -50,8 +50,7 @@ contract FoundrySuperfluidTester is Test {
     address internal constant grace = address(0x427);
     address internal constant heidi = address(0x428);
     address internal constant ivan = address(0x429);
-    address internal constant defaultRewardAddress = address(69);
-    address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan,defaultRewardAddress];
+    address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
 
     uint internal immutable N_TESTERS;
 
@@ -70,6 +69,9 @@ contract FoundrySuperfluidTester is Test {
         // - Host
         // - CFA
         // - IDA
+        // - ConstantOutflowNFT logic
+        // - ConstantInflowNFT logic
+        // - SuperToken logic
         // - SuperTokenFactory
         // - Resolver
         // - SuperfluidLoader
@@ -84,11 +86,6 @@ contract FoundrySuperfluidTester is Test {
             address(sf.superTokenFactory),
             address(sf.resolver)
         );
-
-        // transfer ownership of TestGovernance to superTokenDeployer
-        // governance ownership is required for initializing the NFT
-        // contracts on the SuperToken
-        sfDeployer.transferOwnership(address(superTokenDeployer));
 
         // add superTokenDeployer as admin to the resolver so it can register the SuperTokens
         sf.resolver.addAdmin(address(superTokenDeployer));
@@ -194,16 +191,16 @@ contract FoundrySuperfluidTester is Test {
         int96 senderNetFlowBefore,
         int96 receiverNetFlowBefore
     ) internal {
-        int96 senderFlowAfter = superToken.getNetFlowRate(flowSender);
-        int96 receiverFlowAfter = superToken.getNetFlowRate(flowReceiver);
+        int96 senderNetFlowAfter = superToken.getNetFlowRate(flowSender);
+        int96 receiverNetFlowAfter = superToken.getNetFlowRate(flowReceiver);
 
         assertEq(
-            senderFlowAfter,
+            senderNetFlowAfter,
             senderNetFlowBefore - flowRateDelta,
             "sender net flow after"
         );
         assertEq(
-            receiverFlowAfter,
+            receiverNetFlowAfter,
             receiverNetFlowBefore + flowRateDelta,
             "receiver net flow after"
         );
@@ -253,7 +250,7 @@ contract FoundrySuperfluidTester is Test {
     /// @dev Flow rate must be greater than 0 and less than or equal to int32.max
     function assume_Valid_Flow_Rate(
         uint32 a
-    ) internal returns (int96 flowRate) {
+    ) internal pure returns (int96 flowRate) {
         vm.assume(a > 0);
         vm.assume(a <= uint32(type(int32).max));
         flowRate = int96(int32(a));

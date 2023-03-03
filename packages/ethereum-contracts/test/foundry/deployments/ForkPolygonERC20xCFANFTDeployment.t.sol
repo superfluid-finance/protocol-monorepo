@@ -141,12 +141,23 @@ contract ForkPolygonERC20xCFANFTDeployment is ForkSmokeTest {
             IConstantInflowNFT(address(newConstantInflowNFTLogic))
         );
 
+        // expect revert when trying to initialize the logic contracts
+        // they are castrated in the SuperToken's constructor
+        vm.expectRevert("Initializable: contract is already initialized");
+        newConstantOutflowNFTLogic.initialize(ethX, "gm", "henlo");
+        vm.expectRevert("Initializable: contract is already initialized");
+        newConstantInflowNFTLogic.initialize(ethX, "gm", "henlo");
+
         // the first upgrade of SuperTokenFactory is to add in updateLogicContracts
         // there is a separate PR open for this currently
         SuperTokenFactory newLogic = new SuperTokenFactory(
             sfFramework.host,
             newSuperTokenLogic
         );
+
+        vm.expectRevert("Initializable: contract is already initialized");
+        newSuperTokenLogic.initialize(IERC20(address(0)), 18, "gm", "henlo");
+
         sfFramework.governance.updateContracts(
             sfFramework.host,
             address(0),
@@ -156,12 +167,6 @@ contract ForkPolygonERC20xCFANFTDeployment is ForkSmokeTest {
 
         newLogic = new SuperTokenFactory(sfFramework.host, newSuperTokenLogic);
 
-        // SuperTokenFactory.updateCode
-        // _updateCodeAddress(newAddress): this upgrades the SuperTokenFactory logic
-        // this.updateLogicContracts()
-        // _updateSuperTokenLogic(): this deploys and sets the new SuperToken logic in SuperTokenFactory
-        // _updateConstantOutflowNFTLogic(): deploy and set constant outflow nft logic contract
-        // _updateConstantInflowNFTLogic(): deploy and set constant inflow nft logic contract
         sfFramework.governance.updateContracts(
             sfFramework.host,
             address(0),
@@ -180,20 +185,6 @@ contract ForkPolygonERC20xCFANFTDeployment is ForkSmokeTest {
         assertFalse(superTokenFactoryLogicPre == superTokenFactoryLogicPost);
         assertFalse(superTokenLogicPre == superTokenLogicPost);
 
-        // assert that NFT logic contracts are set in SuperTokenFactory
-        // IConstantOutflowNFT constantOutflowNFTLogic = superTokenFactory
-        //     .getConstantOutflowNFTLogic();
-        // IConstantInflowNFT constantInflowNFTLogic = superTokenFactory
-        //     .getConstantInflowNFTLogic();
-        // assertFalse(address(constantOutflowNFTLogic) == address(0));
-        // assertFalse(address(constantInflowNFTLogic) == address(0));
-
-        // expect revert when trying to initialize the logic contracts
-        // vm.expectRevert("Initializable: contract is already initialized");
-        // constantOutflowNFTLogic.initialize(ethX, "gm", "henlo");
-        // vm.expectRevert("Initializable: contract is already initialized");
-        // constantInflowNFTLogic.initialize(ethX, "gm", "henlo");
-
         vm.stopPrank();
 
         // create update and delete flows after updating SuperTokenFactory logic
@@ -202,22 +193,6 @@ contract ForkPolygonERC20xCFANFTDeployment is ForkSmokeTest {
         helper_Create_Update_Delete_Flow();
         {
             vm.startPrank(governanceOwner);
-            // deploy the outflow and inflow nft PROXY contracts
-            // and initialize the proxies in the same txn
-            // we would do this for all supertokens on each network
-            // @note TODO we probably want to have a batch for this?
-            // (
-            //     IConstantOutflowNFT constantOutflowNFTProxy,
-            //     IConstantInflowNFT constantInflowNFTProxy,
-            //     ,
-
-            // ) = superTokenFactory.deployNFTProxyContractsAndInititialize(
-            //         ethX,
-            //         address(constantOutflowNFTLogic),
-            //         address(constantInflowNFTLogic),
-            //         address(0),
-            //         address(0)
-            //     );
 
             ISuperToken[] memory superTokens = new ISuperToken[](1);
             superTokens[0] = ethX;
@@ -231,14 +206,6 @@ contract ForkPolygonERC20xCFANFTDeployment is ForkSmokeTest {
 
             assertEq(address(ethX.constantOutflowNFT()), address(0));
             assertEq(address(ethX.constantInflowNFT()), address(0));
-
-            // link the NFT contracts to the SuperToken
-            // ethX.setNFTProxyContracts(
-            //     address(constantOutflowNFTProxy),
-            //     address(constantInflowNFTProxy),
-            //     address(0),
-            //     address(0)
-            // );
 
             // validate that the NFT contracts are set in the SuperToken
             assertFalse(address(ethX.constantOutflowNFT()) == address(0));

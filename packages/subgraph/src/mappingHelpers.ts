@@ -106,25 +106,6 @@ export function getOrInitSuperToken(
         token.name = "";
         token.symbol = "";
 
-        const defaultGovernanceConfig = DefaultGovernanceConfig.load(
-            ZERO_ADDRESS.toHexString()
-        );
-
-        // if default governance configs are unset, we initialize these to empty
-        if (defaultGovernanceConfig == null) {
-            token.rewardAddress = ZERO_ADDRESS;
-            token.liquidationPeriod = BIG_INT_ZERO;
-            token.patricianPeriod = BIG_INT_ZERO;
-            token.minimumDeposit = BIG_INT_ZERO;
-        } else {
-            // otherwise, we use the default governance configs on token initialization
-            token.rewardAddress = defaultGovernanceConfig.rewardAddress;
-            token.liquidationPeriod =
-                defaultGovernanceConfig.liquidationPeriod;
-            token.patricianPeriod = defaultGovernanceConfig.patricianPeriod;
-            token.minimumDeposit = defaultGovernanceConfig.minimumDeposit;
-        }
-
         const nativeAssetSuperTokenAddress = getNativeAssetSuperTokenAddress();
         token.isNativeAssetSuperToken = tokenAddress.equals(
             nativeAssetSuperTokenAddress
@@ -161,32 +142,6 @@ export function getOrInitSuperToken(
             getOrInitToken(address, block, resolverAddress);
         }
         return token as Token;
-    }
-
-    const defaultGovernanceConfig = DefaultGovernanceConfig.load(
-        ZERO_ADDRESS.toHexString()
-    );
-
-    // we set to default governance configs if they are not set either 
-    // in initialization OR via governance events in subsequent token retrievals
-    // this handles any assumptions regarding the order of events
-    // token creation events vs. governance config setting events
-    if (defaultGovernanceConfig != null) {
-        if (token.rewardAddress.equals(ZERO_ADDRESS)) {
-            token.rewardAddress = defaultGovernanceConfig.rewardAddress;
-        }
-    
-        if (token.liquidationPeriod.equals(BIG_INT_ZERO)) {
-            token.liquidationPeriod = defaultGovernanceConfig.liquidationPeriod;
-        }
-    
-        if (token.patricianPeriod.equals(BIG_INT_ZERO)) {
-            token.patricianPeriod = defaultGovernanceConfig.patricianPeriod;
-        }
-    
-        if (token.minimumDeposit.equals(BIG_INT_ZERO)) {
-            token.minimumDeposit = defaultGovernanceConfig.minimumDeposit;
-        }
     }
 
     // @note - this is currently being called every single time to handle list/unlist of tokens

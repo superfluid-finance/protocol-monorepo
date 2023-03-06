@@ -43,49 +43,6 @@ jobs:
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
-  TEMP-essential-build-and-test:
-    name: Build and test essential packages of dev branch
-
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [14.x, 16.x]
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - name: Show contexts
-        run: |
-          echo github.event_name: ${{ github.event_name }}
-          echo github.sha: ${{ github.sha }}
-          echo github.repository: ${{ github.repository }}
-          echo github.ref: ${{ github.ref }}
-          echo github.head_ref: ${{ github.head_ref }}
-          echo github.base_ref: ${{ github.base_ref }}
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
-      - name: Install, lint, build, and test
-        run: |
-          yarn install --frozen-lockfile
-          yarn lint
-          yarn build
-          yarn test
-        env:
-          POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
-          SUBGRAPH_RELEASE_TAG: dev
-
   test-ethereum-contracts:
     name: Build and test ethereum-contracts (Feature Branch)
 

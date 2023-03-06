@@ -42,10 +42,6 @@ jobs:
         run: yarn build
         working-directory: ${{ env.ethereum-contracts-working-directory }}
 
-      - name: "Build SDK-Core"
-        run: yarn build
-        working-directory: ${{ env.sdk-core-working-directory }}
-
       - name: "Deploy Framework and Tokens"
         run: npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost
         working-directory: ${{ env.ethereum-contracts-working-directory }}
@@ -64,9 +60,14 @@ jobs:
         run: docker-compose up &
         working-directory: ${{ env.subgraph-working-directory }}
 
+      - name: "Build and deploy local subgraph"
+        run: yarn build-and-deploy-local
+        working-directory: ${{ env.subgraph-working-directory }}
+
       - name: "Run test suite"
         run: |
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
+          yarn build
           yarn test
         working-directory: ${{ env.sdk-core-working-directory }}
         env:

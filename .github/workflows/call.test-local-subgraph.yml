@@ -82,5 +82,5 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run subgraph integration test suite"
-        run: yarn test
+        run: yarn test --network localhost
         working-directory: ${{ env.subgraph-working-directory }}

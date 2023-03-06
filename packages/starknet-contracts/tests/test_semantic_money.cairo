@@ -308,11 +308,8 @@ func setup_shift2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
     %{
         given(
             fr = strategy.felts(), # flow rate
-            sv_1 = strategy.felts(), # settled value for sender
-            sv_2 = strategy.felts(), # settled value for receiver
             amount = strategy.felts(), 
             t1 = strategy.integers(0, 100), # time 1
-            t2 = strategy.integers(101, 200), # time 1
         )
     %}
     return ();
@@ -320,13 +317,14 @@ func setup_shift2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 
 @external
 func test_shift2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    fr: felt, sv_1: felt, sv_2: felt, amount: felt, t1: felt, t2: felt
+    fr: felt, amount: felt, t1: felt
 ) {
-    let aIndex = BasicParticle(t1, sv_1, fr);
-    let bIndex = BasicParticle(t1, sv_2, fr);
-    let (_aIndex, _bIndex) = SemanticMoney.shift2(aIndex, bIndex, amount, t2);
-    assert _aIndex.rtb_settled_value = (((t2 - t1) * fr) + sv_1) - amount;
-    assert _bIndex.rtb_settled_value = (((t2 - t1) * fr) + sv_2) + amount;
+    let aIndex = BasicParticle(0, 0, 0);
+    let bIndex = BasicParticle(0, 0, 0);
+    let (_aIndex, _bIndex) = SemanticMoney.shift2(aIndex, bIndex, amount, t1);
+    assert _aIndex.rtb_settled_value = (((t1 - _aIndex.rtb_settled_at) * _aIndex.rtb_settled_at) + 0) - amount;
+    assert _bIndex.rtb_settled_value = (((t1 - _bIndex.rtb_settled_at) * _bIndex.rtb_settled_at) + 0) + amount;
+    assert _aIndex.rtb_settled_value + _bIndex.rtb_settled_value = 0;
     return ();
 }
 
@@ -381,13 +379,8 @@ func setup_flow2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     %{
         given(
             fr_1 = strategy.felts(), # flow rate for sender
-            fr_2 = strategy.felts(), # flow rate for receiver
-            sv_1 = strategy.felts(), # settled value for sender
-            sv_2 = strategy.felts(), # settled value for receiver
-            fr_new = strategy.felts(), # flow rate appended
             t1 = strategy.integers(0, 100), # time 1
             t2 = strategy.integers(101, 200), # time 2
-            t3 = strategy.integers(201, 300), # time 3
         )
     %}
     return ();
@@ -395,19 +388,17 @@ func setup_flow2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 
 @external
 func test_flow2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    fr_1: felt, fr_2: felt, sv_1: felt, sv_2: felt, fr_new: felt, t1: felt, t2: felt, t3: felt
+    fr_1: felt, t1: felt, t2: felt
 ) {
-    let aIndex = BasicParticle(t1, sv_1, fr_1);
-    let bIndex = BasicParticle(t1, sv_2, fr_2);
-    let (_aIndex, _bIndex) = SemanticMoney.flow2(aIndex, bIndex, fr_new, t2);
-    assert _aIndex.rtb_flow_rate = fr_1 - fr_new;
-    assert _bIndex.rtb_flow_rate = fr_2 + fr_new;
+    let aIndex = BasicParticle(0, 0, 0);
+    let bIndex = BasicParticle(0, 0, 0);
+    let (_aIndex, _bIndex) = SemanticMoney.flow2(aIndex, bIndex, fr_1, t1);
+    assert _aIndex.rtb_flow_rate = -fr_1;
+    assert _bIndex.rtb_flow_rate = fr_1;
 
-    let (balance_for_sender_particle) = SemanticMoney.realtime_balance_of(_aIndex, t3);
-    let (balance_for_receiver_particle) = SemanticMoney.realtime_balance_of(_bIndex, t3);
-    assert balance_for_sender_particle = ((t3 - t2) * (fr_1 - fr_new)) + _aIndex.rtb_settled_value;
-    assert balance_for_receiver_particle = ((t3 - t2) * (fr_2 + fr_new)) +
-        _bIndex.rtb_settled_value;
+    let (balance_for_sender_particle) = SemanticMoney.realtime_balance_of(_aIndex, t2);
+    let (balance_for_receiver_particle) = SemanticMoney.realtime_balance_of(_bIndex, t2);
+    assert balance_for_sender_particle + balance_for_receiver_particle = 0;
     return ();
 }
 

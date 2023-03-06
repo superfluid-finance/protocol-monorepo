@@ -51,7 +51,6 @@ namespace Pool {
     func getIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
         index: PDPoolIndex
     ) {
-        Ownable.assert_only_owner();
         let (index) = Pool_index.read();
         return (index=index);
     }
@@ -81,8 +80,7 @@ namespace Pool {
         let (caller) = get_caller_address();
         let (distributor) = Pool_distributor.read();
         with_attr error_message("Pool: not the distributor!") {
-            assert_nn(caller - distributor);
-            assert_nn(distributor - caller);
+            assert caller = distributor;
         }
         let (index) = Pool_index.read();
         let (member_data) = Pool_members.read(member);

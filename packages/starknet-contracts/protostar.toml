@@ -6,6 +6,7 @@ cairo-path = ["lib/cairo_contracts/src"]
 [contracts]
 SuperToken = ["src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo"]
 Pool = ["src/pools/PoolImpl.cairo"]
+EnumerableSet = ["src/utils/EnumerableSet.cairo"]
 
 [profile.devnet.project]
 gateway-url = "http://127.0.0.1:5050/"

@@ -7,7 +7,6 @@ import {
     testQueryClassFunctions,
 } from "../previous-versions-testing/queryTests";
 import { getSubgraphEndpoint } from "../previous-versions-testing/queryTests";
-import { expect } from "chai";
 
 describe("Subgraph Tests", () => {
     let query: Query;
@@ -49,16 +48,11 @@ describe("Subgraph Tests", () => {
             if (process.env.SUBGRAPH_ENDPOINT === "") {
                 await Promise.all(
                     resolverDataArray.map(async (x) => {
-                        const isNotFeatureEndpoint =
-                            process.env.SUBGRAPH_RELEASE_TAG !== "feature";
-
-                        if (isNotFeatureEndpoint) {
-                            const query = new Query({
-                                customSubgraphQueriesEndpoint:
-                                    x.subgraphAPIEndpoint,
-                            });
-                            await testGetAllEventsQuery(query);
-                        }
+                        const query = new Query({
+                            customSubgraphQueriesEndpoint:
+                                x.subgraphAPIEndpoint,
+                        });
+                        await testGetAllEventsQuery(query);
                     })
                 );
             } else {

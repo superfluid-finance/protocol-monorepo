@@ -13,7 +13,6 @@ import {
     PPPConfigurationChangedEvent,
     TrustedForwarderChangedEvent,
     Token,
-    DefaultGovernanceConfig,
     SuperTokenMinimumDepositChangedEvent,
 } from "../../generated/schema";
 import { createEventID, initializeEventEntity, ZERO_ADDRESS } from "../utils";
@@ -48,18 +47,8 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
 
     // Update reward address for token or default governance configs
     if (event.params.superToken.equals(ZERO_ADDRESS)) {
-        let defaultGovernanceConfig = DefaultGovernanceConfig.load(
-            ZERO_ADDRESS.toHexString()
-        );
-        if (defaultGovernanceConfig) {
-            defaultGovernanceConfig.rewardAddress = event.params.rewardAddress;
-        } else {
-            defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(
-                event.block
-            );
-            defaultGovernanceConfig.rewardAddress = event.params.rewardAddress;
-        }
-
+        const defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(event.block);
+        defaultGovernanceConfig.rewardAddress = event.params.rewardAddress;
         defaultGovernanceConfig.save();
     } else {
         const token = Token.load(event.params.superToken.toHexString());
@@ -92,20 +81,8 @@ export function handleCFAv1LiquidationPeriodChanged(
 
     // Update cfav1 liquidation period for token or default governance configs
     if (event.params.superToken.equals(ZERO_ADDRESS)) {
-        let defaultGovernanceConfig = DefaultGovernanceConfig.load(
-            ZERO_ADDRESS.toHexString()
-        );
-        if (defaultGovernanceConfig) {
-            defaultGovernanceConfig.liquidationPeriod =
-                event.params.liquidationPeriod;
-        } else {
-            defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(
-                event.block
-            );
-            defaultGovernanceConfig.liquidationPeriod =
-                event.params.liquidationPeriod;
-        }
-
+        const defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(event.block);
+        defaultGovernanceConfig.liquidationPeriod = event.params.liquidationPeriod;
         defaultGovernanceConfig.save();
     } else {
         const token = Token.load(event.params.superToken.toHexString());
@@ -133,24 +110,9 @@ export function handlePPPConfigurationChanged(
 
     // Update cfav1 liquidation period and patrician period for token or default governance configs
     if (event.params.superToken.equals(ZERO_ADDRESS)) {
-        let defaultGovernanceConfig = DefaultGovernanceConfig.load(
-            ZERO_ADDRESS.toHexString()
-        );
-        if (defaultGovernanceConfig) {
-            defaultGovernanceConfig.liquidationPeriod =
-                event.params.liquidationPeriod;
-            defaultGovernanceConfig.patricianPeriod =
-                event.params.patricianPeriod;
-        } else {
-            defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(
-                event.block
-            );
-            defaultGovernanceConfig.liquidationPeriod =
-                event.params.liquidationPeriod;
-            defaultGovernanceConfig.patricianPeriod =
-                event.params.patricianPeriod;
-        }
-
+        const defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(event.block);
+        defaultGovernanceConfig.liquidationPeriod = event.params.liquidationPeriod;
+        defaultGovernanceConfig.patricianPeriod = event.params.patricianPeriod;
         defaultGovernanceConfig.save();
     } else {
         const token = Token.load(event.params.superToken.toHexString());
@@ -194,20 +156,8 @@ export function handleSuperTokenMinimumDepositChanged(
 
     // Update minimum deposit for token or default governance configs
     if (event.params.superToken.equals(ZERO_ADDRESS)) {
-        let defaultGovernanceConfig = DefaultGovernanceConfig.load(
-            ZERO_ADDRESS.toHexString()
-        );
-        if (defaultGovernanceConfig) {
-            defaultGovernanceConfig.minimumDeposit =
-                event.params.minimumDeposit;
-        } else {
-            defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(
-                event.block
-            );
-            defaultGovernanceConfig.minimumDeposit =
-                event.params.minimumDeposit;
-        }
-
+        const defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(event.block);
+        defaultGovernanceConfig.minimumDeposit = event.params.minimumDeposit;
         defaultGovernanceConfig.save();
     } else {
         const token = Token.load(event.params.superToken.toHexString());

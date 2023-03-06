@@ -2713,11 +2713,11 @@ enum CustomSuperTokenCreatedEvent_orderBy {
 }
 
 """
-DefaultGovernanceConfigs: A higher order entity that represents the default governance configs.
+DefaultGovernanceConfig: A higher order entity that represents the default governance configs.
 When a config is set in governance with superToken field as address(0), it will be used as the default config.
 
 """
-type DefaultGovernanceConfigs {
+type DefaultGovernanceConfig {
   """
   ID will always be address(0): 0x0000000000000000000000000000000000000000
   
@@ -2758,7 +2758,7 @@ type DefaultGovernanceConfigs {
   minimumDeposit: BigInt!
 }
 
-input DefaultGovernanceConfigs_filter {
+input DefaultGovernanceConfig_filter {
   id: ID
   id_not: ID
   id_gt: ID
@@ -2834,7 +2834,7 @@ input DefaultGovernanceConfigs_filter {
   _change_block: BlockChangedFilter
 }
 
-enum DefaultGovernanceConfigs_orderBy {
+enum DefaultGovernanceConfig_orderBy {
   id
   createdAtTimestamp
   createdAtBlockNumber
@@ -8459,12 +8459,8 @@ type Query {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [StreamPeriod!]!
-  defaultGovernanceConfigs(
-    skip: Int = 0
-    first: Int = 100
-    orderBy: DefaultGovernanceConfigs_orderBy
-    orderDirection: OrderDirection
-    where: DefaultGovernanceConfigs_filter
+  defaultGovernanceConfig(
+    id: ID!
 
     """
     The block at which the query should be executed. Can either be a `{ hash:
@@ -8480,7 +8476,29 @@ type Query {
     Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
-  ): [DefaultGovernanceConfigs!]!
+  ): DefaultGovernanceConfig
+  defaultGovernanceConfigs(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: DefaultGovernanceConfig_orderBy
+    orderDirection: OrderDirection
+    where: DefaultGovernanceConfig_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [DefaultGovernanceConfig!]!
   streamRevision(
     id: ID!
 
@@ -12487,12 +12505,8 @@ type Subscription {
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
   ): [StreamPeriod!]!
-  defaultGovernanceConfigs(
-    skip: Int = 0
-    first: Int = 100
-    orderBy: DefaultGovernanceConfigs_orderBy
-    orderDirection: OrderDirection
-    where: DefaultGovernanceConfigs_filter
+  defaultGovernanceConfig(
+    id: ID!
 
     """
     The block at which the query should be executed. Can either be a `{ hash:
@@ -12508,7 +12522,29 @@ type Subscription {
     Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
     """
     subgraphError: _SubgraphErrorPolicy_! = deny
-  ): [DefaultGovernanceConfigs!]!
+  ): DefaultGovernanceConfig
+  defaultGovernanceConfigs(
+    skip: Int = 0
+    first: Int = 100
+    orderBy: DefaultGovernanceConfig_orderBy
+    orderDirection: OrderDirection
+    where: DefaultGovernanceConfig_filter
+
+    """
+    The block at which the query should be executed. Can either be a `{ hash:
+    Bytes }` value containing a block hash, a `{ number: Int }` containing the
+    block number, or a `{ number_gte: Int }` containing the minimum block
+    number. In the case of `number_gte`, the query will be executed on the
+    latest block only if the subgraph has progressed to or past the minimum
+    block number. Defaults to the latest block when omitted.
+    """
+    block: Block_height
+
+    """
+    Set to `allow` to receive data even if the subgraph has skipped over errors while syncing.
+    """
+    subgraphError: _SubgraphErrorPolicy_! = deny
+  ): [DefaultGovernanceConfig!]!
   streamRevision(
     id: ID!
 

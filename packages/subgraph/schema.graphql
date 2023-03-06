@@ -1689,10 +1689,10 @@ type StreamPeriod @entity {
 }
 
 """
-DefaultGovernanceConfigs: A higher order entity that represents the default governance configs.
+DefaultGovernanceConfig: A higher order entity that represents the default governance configs.
 When a config is set in governance with superToken field as address(0), it will be used as the default config.
 """
-type DefaultGovernanceConfigs @entity {
+type DefaultGovernanceConfig @entity {
     """
     ID will always be address(0): 0x0000000000000000000000000000000000000000
     """

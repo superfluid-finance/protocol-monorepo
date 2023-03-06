@@ -4,7 +4,7 @@ import {
     Account,
     AccountTokenSnapshot,
     AccountTokenSnapshotLog,
-    DefaultGovernanceConfigs,
+    DefaultGovernanceConfig,
     FlowOperator,
     Index,
     IndexSubscription,
@@ -106,23 +106,23 @@ export function getOrInitSuperToken(
         token.name = "";
         token.symbol = "";
 
-        const defaultGovernanceConfigs = DefaultGovernanceConfigs.load(
+        const defaultGovernanceConfig = DefaultGovernanceConfig.load(
             ZERO_ADDRESS.toHexString()
         );
 
         // if default governance configs are unset, we initialize these to empty
-        if (defaultGovernanceConfigs == null) {
+        if (defaultGovernanceConfig == null) {
             token.rewardAddress = ZERO_ADDRESS;
             token.liquidationPeriod = BIG_INT_ZERO;
             token.patricianPeriod = BIG_INT_ZERO;
             token.minimumDeposit = BIG_INT_ZERO;
         } else {
             // otherwise, we use the default governance configs on token initialization
-            token.rewardAddress = defaultGovernanceConfigs.rewardAddress;
+            token.rewardAddress = defaultGovernanceConfig.rewardAddress;
             token.liquidationPeriod =
-                defaultGovernanceConfigs.liquidationPeriod;
-            token.patricianPeriod = defaultGovernanceConfigs.patricianPeriod;
-            token.minimumDeposit = defaultGovernanceConfigs.minimumDeposit;
+                defaultGovernanceConfig.liquidationPeriod;
+            token.patricianPeriod = defaultGovernanceConfig.patricianPeriod;
+            token.minimumDeposit = defaultGovernanceConfig.minimumDeposit;
         }
 
         const nativeAssetSuperTokenAddress = getNativeAssetSuperTokenAddress();
@@ -163,7 +163,7 @@ export function getOrInitSuperToken(
         return token as Token;
     }
 
-    const defaultGovernanceConfigs = DefaultGovernanceConfigs.load(
+    const defaultGovernanceConfig = DefaultGovernanceConfig.load(
         ZERO_ADDRESS.toHexString()
     );
 
@@ -171,20 +171,22 @@ export function getOrInitSuperToken(
     // in initialization OR via governance events in subsequent token retrievals
     // this handles any assumptions regarding the order of events
     // token creation events vs. governance config setting events
-    if (token.rewardAddress.equals(ZERO_ADDRESS) && defaultGovernanceConfigs != null) {
-        token.rewardAddress = defaultGovernanceConfigs.rewardAddress;
-    }
-
-    if (token.liquidationPeriod.equals(BIG_INT_ZERO) && defaultGovernanceConfigs != null) {
-        token.liquidationPeriod = defaultGovernanceConfigs.liquidationPeriod;
-    }
-
-    if (token.patricianPeriod.equals(BIG_INT_ZERO) && defaultGovernanceConfigs != null) {
-        token.patricianPeriod = defaultGovernanceConfigs.patricianPeriod;
-    }
-
-    if (token.minimumDeposit.equals(BIG_INT_ZERO) && defaultGovernanceConfigs != null) {
-        token.minimumDeposit = defaultGovernanceConfigs.minimumDeposit;
+    if (defaultGovernanceConfig != null) {
+        if (token.rewardAddress.equals(ZERO_ADDRESS)) {
+            token.rewardAddress = defaultGovernanceConfig.rewardAddress;
+        }
+    
+        if (token.liquidationPeriod.equals(BIG_INT_ZERO)) {
+            token.liquidationPeriod = defaultGovernanceConfig.liquidationPeriod;
+        }
+    
+        if (token.patricianPeriod.equals(BIG_INT_ZERO)) {
+            token.patricianPeriod = defaultGovernanceConfig.patricianPeriod;
+        }
+    
+        if (token.minimumDeposit.equals(BIG_INT_ZERO)) {
+            token.minimumDeposit = defaultGovernanceConfig.minimumDeposit;
+        }
     }
 
     // @note - this is currently being called every single time to handle list/unlist of tokens
@@ -198,32 +200,32 @@ export function getOrInitSuperToken(
     return token as Token;
 }
 
-export function getOrInitDefaultGovernanceConfigs(
+export function getOrInitDefaultGovernanceConfig(
     block: ethereum.Block
-): DefaultGovernanceConfigs {
-    let defaultGovernanceConfigs = DefaultGovernanceConfigs.load(
+): DefaultGovernanceConfig {
+    let defaultGovernanceConfig = DefaultGovernanceConfig.load(
         ZERO_ADDRESS.toHexString()
     );
 
-    if (defaultGovernanceConfigs == null) {
-        defaultGovernanceConfigs = new DefaultGovernanceConfigs(
+    if (defaultGovernanceConfig == null) {
+        defaultGovernanceConfig = new DefaultGovernanceConfig(
             ZERO_ADDRESS.toHexString()
         );
-        defaultGovernanceConfigs.createdAtTimestamp = block.timestamp;
-        defaultGovernanceConfigs.createdAtBlockNumber = block.number;
-        defaultGovernanceConfigs.rewardAddress = ZERO_ADDRESS;
-        defaultGovernanceConfigs.liquidationPeriod = BIG_INT_ZERO;
-        defaultGovernanceConfigs.patricianPeriod = BIG_INT_ZERO;
-        defaultGovernanceConfigs.minimumDeposit = BIG_INT_ZERO;
+        defaultGovernanceConfig.createdAtTimestamp = block.timestamp;
+        defaultGovernanceConfig.createdAtBlockNumber = block.number;
+        defaultGovernanceConfig.rewardAddress = ZERO_ADDRESS;
+        defaultGovernanceConfig.liquidationPeriod = BIG_INT_ZERO;
+        defaultGovernanceConfig.patricianPeriod = BIG_INT_ZERO;
+        defaultGovernanceConfig.minimumDeposit = BIG_INT_ZERO;
     }
 
     // always update updatedAt fields because we update this entity
     // whenever we retrieve it
-    defaultGovernanceConfigs.updatedAtTimestamp = block.timestamp;
-    defaultGovernanceConfigs.updatedAtBlockNumber = block.number;
-    defaultGovernanceConfigs.save();
+    defaultGovernanceConfig.updatedAtTimestamp = block.timestamp;
+    defaultGovernanceConfig.updatedAtBlockNumber = block.number;
+    defaultGovernanceConfig.save();
 
-    return defaultGovernanceConfigs as DefaultGovernanceConfigs;
+    return defaultGovernanceConfig as DefaultGovernanceConfig;
 }
 
 /**

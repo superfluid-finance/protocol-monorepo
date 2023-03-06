@@ -300,7 +300,7 @@ templates:
       file: ./src/mappings/superfluidGovernance.ts
       entities:
         - ConfigChangedEvent
-        - DefaultGovernanceConfigs
+        - DefaultGovernanceConfig
         - CFAv1LiquidationPeriodChangedEvent
         - RewardAddressChangedEvent
         - PPPConfigurationChanged

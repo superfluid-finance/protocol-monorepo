@@ -16,6 +16,11 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    env:
+      ethereum-contracts-working-directory: ./packages/ethereum-contracts
+      subgraph-working-directory: ./packages/subgraph
+      sdk-core-working-directory: ./packages/sdk-core
+
     steps:
       - uses: actions/checkout@v3
 
@@ -35,7 +40,7 @@ jobs:
 
       - name: "Build contracts"
         run: yarn build
-        working-directory: ./packages/ethereum-contracts
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
 
       - name: "Build SDK-Core"
         run: yarn build
@@ -43,7 +48,7 @@ jobs:
 
       - name: "Deploy Framework and Tokens"
         run: npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost
-        working-directory: ./packages/ethereum-contracts
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
 
       - name: "Prepare files for local testing"
         run: yarn prepare-local
@@ -63,7 +68,7 @@ jobs:
         run: |
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
           yarn test
-        working-directory: ./packages/sdk-core
+        working-directory: ${{ env.sdk-core-working-directory }}
         env:
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
           SUBGRAPH_ENDPOINT: ${{ inputs.subgraph-endpoint }}

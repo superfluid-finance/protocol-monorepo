@@ -9,7 +9,7 @@ on:
       # - "**.md" commented-out because README updates should go to the packages
       - ".github/workflows/ci.canary.yml"
       - "codecov.yml"
-      - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
+      - ".github/workflows/call.test-local-subgraph.yml"
 
 jobs:
   essential-build-and-test:
@@ -59,10 +59,8 @@ jobs:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
 
   test-subgraph:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-local-subgraph.yml@dev
     name: Build and Test Subgraph (Development Branch)
-    with:
-      run-sdk-core-tests: false
 
   test-sdk-core:
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@dev

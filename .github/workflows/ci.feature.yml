@@ -172,12 +172,10 @@ jobs:
 
   # subgraph integration test
   test-subgraph:
-    uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
+    uses: ./.github/workflows/call.test-local-subgraph.yml
     name: Build and Test Subgraph (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_subgraph
-    with:
-      run-sdk-core-tests: false
 
   # sdk-core integration test + local subgraph w/ local sdk-core
   test-sdk-core:

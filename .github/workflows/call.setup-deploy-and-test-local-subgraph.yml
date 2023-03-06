@@ -3,9 +3,6 @@ name: Reusable Workflow | Setup, Deploy and Test Local Subgraph
 on:
   workflow_call:
     inputs:
-      subgraph-release:
-        required: true
-        type: string
       run-sdk-core-tests:
         required: true
         type: boolean
@@ -103,18 +100,9 @@ jobs:
       - name: "Run SDK-Core tests and test subgraph query with local subgraph"
         if: inputs.run-sdk-core-tests == true
         run: |
-          yarn generate-graphql-schema:${{ inputs.subgraph-release }}
-          yarn generate
+          yarn generate-graphql-schema:local
+          yarn build
           npx hardhat test
         working-directory: ${{ env.sdk-core-working-directory }}
         env:
-          SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
-
-      # test local subgraph schema against sdk-core schema representation
-      # this will break if there is an inconsistency between the subgraph schema
-      # and the sdk-core schema (if not all events are mapped)
-      - name: "Test new local subgraph schema against existing SDK-Core build"
-        run: |
-          npx get-graphql-schema http://localhost:8000/subgraphs/name/superfluid-test > src/subgraph/schema.graphql
-          yarn build
-        working-directory: ${{ env.sdk-core-working-directory }}
+          SUBGRAPH_ENDPOINT: http://localhost:8000/subgraphs/name/superfluid-test

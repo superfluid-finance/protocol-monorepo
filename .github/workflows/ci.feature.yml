@@ -43,6 +43,49 @@ jobs:
       - name: Check changeset
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
+  TEMP-essential-build-and-test:
+    name: Build and test essential packages of dev branch
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Show contexts
+        run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: ${{ github.ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.base_ref: ${{ github.base_ref }}
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "yarn"
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Install, lint, build, and test
+        run: |
+          yarn install --frozen-lockfile
+          yarn lint
+          yarn build
+          yarn test
+        env:
+          POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
+          SUBGRAPH_RELEASE_TAG: dev
+
   test-ethereum-contracts:
     name: Build and test ethereum-contracts (Feature Branch)
 
@@ -134,36 +177,16 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_subgraph
     with:
-      subgraph-release: ''
       run-sdk-core-tests: false
 
-  # sdk-core integration test + feature subgraph w/ feature sdk-core
+  # sdk-core integration test + local subgraph w/ local sdk-core
   test-sdk-core:
-    uses: ./.github/workflows/call.test-sdk-core.yml
+    uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
     name: Build and Test SDK-Core (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_sdk_core
     with:
-      subgraph-release: feature
-
-  # test latest and previous version of sdk-core with current subgraph
-  test-subgraph-on-previous-sdk-core-versions:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs with Previous SDK-Core Versions
-    needs: [check]
-    if: needs.check.outputs.build_subgraph || needs.check.outputs.build_sdk_core
-    with:
-      subgraph-release: feature
-      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
-
-  # test query and local/deployed subgraph schemas in sync and query works
-  test-query-schema-against-deployed-feature-subgraphs:
-    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
-    name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs
-    needs: [check]
-    if: needs.check.outputs.build_sdk_core
-    with:
-      subgraph-release: feature
+      run-sdk-core-tests: true
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml
@@ -183,7 +206,6 @@ jobs:
            , test-hot-fuzz
            , test-sdk-core
            , test-subgraph
-           , test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs
            , test-automation-contracts
            ]
 
@@ -207,6 +229,4 @@ jobs:
           check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
           check_result sdk-core ${{ needs.test-sdk-core.result }}
           check_result subgraph ${{ needs.test-subgraph.result }}
-          check_result subgraph-on-previous-sdk-core-versions ${{ needs.test-subgraph-on-previous-sdk-core-versions.result }}
-          check_result query-schema-against-deployed-feature-subgraph ${{ needs.test-query-schema-against-deployed-feature-subgraphs.result }}
           check_result automation-contracts ${{ needs.test-automation-contracts.result }}

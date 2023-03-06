@@ -36,7 +36,6 @@ jobs:
     uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
     name: Build and Test Subgraph (Release Branch)
     with:
-      subgraph-release: dev
       run-sdk-core-tests: true
 
   # B. run subgraph integration tests
@@ -47,7 +46,6 @@ jobs:
     uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
     name: Build and Test Subgraph (Release Branch)
     with:
-      subgraph-release: ''
       run-sdk-core-tests: false
 
   # C. check previous versions of sdk-core with indexed dev endpoints

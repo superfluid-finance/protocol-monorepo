@@ -49,7 +49,6 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn lint
-          yarn --cwd packages/sdk-core generate-graphql-schema:dev
           yarn build
           yarn test
         env:
@@ -63,22 +62,13 @@ jobs:
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
     name: Build and Test Subgraph (Development Branch)
     with:
-      subgraph-release: ''
       run-sdk-core-tests: false
 
-  test-subgraph-on-previous-sdk-core-versions:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Query Schema and Queries Against Local and Deployed Dev Subgraphs with Previous SDK-Core Versions
+  test-sdk-core:
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
+    name: Build and Test Subgraph (Development Branch)
     with:
-      subgraph-release: dev
-      subgraph-endpoint: ''
-
-  # test query and subgraph schemas are in sync and query works
-  test-query-schema-against-deployed-dev-subgraphs:
-    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
-    name: "Test Query Schema and Queries Against Local and Deployed Dev Subgraphs"
-    with:
-      subgraph-release: dev
+      run-sdk-core-tests: true
 
   check:
     name: Checking what packages need to be built
@@ -99,7 +89,7 @@ jobs:
   deploy-subgraph-changes:
     uses: ./.github/workflows/call.deploy-subgraph.yml
     name: "Deploy Subgraph to all dev endpoints"
-    needs: [check, test-subgraph, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-dev-subgraphs]
+    needs: [check, test-subgraph]
     if: needs.check.outputs.build_subgraph
     with:
       release_branch: dev

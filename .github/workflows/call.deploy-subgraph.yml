@@ -45,11 +45,11 @@ jobs:
 
   build-and-test-local-subgraph:
     uses: ./.github/workflows/call.test-local-subgraph.yml
-    name: Build and Test Subgraph (Release Branch)
+    name: Run Subgraph Unit and Integration Tests
 
   build-and-test-local-subgraph-against-previous-sdk-core-releases:
     uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Query Schema and Queries Against Local Subgraph against Previous SDK-Core Versions
+    name: Test Local Subgraph against SDK-Core previous and current releases
     with:
       subgraph-release: ''
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test

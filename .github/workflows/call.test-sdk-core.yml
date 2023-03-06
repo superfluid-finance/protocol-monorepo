@@ -72,6 +72,7 @@ jobs:
       - name: "Run test suite"
         run: |
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
+          ./tasks/setupTestEnvironment.sh
           npx hardhat test --network localhost
         working-directory: ${{ env.sdk-core-working-directory }}
         env:

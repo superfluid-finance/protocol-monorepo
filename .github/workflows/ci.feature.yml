@@ -141,7 +141,7 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_sdk_core
     with:
-      subgraph-release: local
+      subgraph-release: v1
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   test-spec-haskell:

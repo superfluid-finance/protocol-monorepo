@@ -20,7 +20,9 @@ func getIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}()
 }
 
 @view
-func distributor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (address: felt) {
+func distributor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+    address: felt
+) {
     return Pool.distributor();
 }
 

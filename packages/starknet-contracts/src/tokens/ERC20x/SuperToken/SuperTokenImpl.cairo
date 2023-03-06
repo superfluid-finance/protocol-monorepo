@@ -108,17 +108,23 @@ func distributeFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 }
 
 @external
-func connectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (success: felt) {
+func connectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (
+    success: felt
+) {
     return SuperToken.connectPool(to);
 }
 
 @external
-func disconnectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (success: felt) {
+func disconnectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (
+    success: felt
+) {
     return SuperToken.disconnectPool(to);
 }
 
 @external
-func connectPoolEnum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(pool: felt, dbConnect: felt) -> (success: felt) {
+func connectPoolEnum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    pool: felt, dbConnect: felt
+) -> (success: felt) {
     return SuperToken.connectPoolEnum(pool, dbConnect);
 }
 
@@ -128,8 +134,10 @@ func createPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 }
 
 @external
-func absorb{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(account: felt, particle: BasicParticle) {
-    return SuperToken.absorb(account, particle);        
+func absorb{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    account: felt, particle: BasicParticle
+) {
+    return SuperToken.absorb(account, particle);
 }
 
 @external

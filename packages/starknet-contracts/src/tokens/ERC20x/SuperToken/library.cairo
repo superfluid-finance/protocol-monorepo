@@ -233,15 +233,21 @@ namespace SuperToken {
         return (success=TRUE, actualFlowRate=actualFlowRate);
     }
 
-    func connectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (success: felt) {
+    func connectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (
+        success: felt
+    ) {
         return connectPoolEnum(to, TRUE);
     }
 
-    func disconnectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (success: felt) {
+    func disconnectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        to: felt
+    ) -> (success: felt) {
         return connectPoolEnum(to, FALSE);
     }
 
-    func connectPoolEnum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(pool: felt, dbConnect: felt) -> (success: felt) {
+    func connectPoolEnum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        pool: felt, dbConnect: felt
+    ) -> (success: felt) {
         // TODO: Add Connection Map
         return (success=TRUE);
     }
@@ -249,18 +255,21 @@ namespace SuperToken {
     // Generalized Payment Primitives ends here
     // //////////////////////////////////////////////////////////////////////////////
 
-
-    ////////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////
     // Pool Operations starts here
-    ////////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////
 
-    func createPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (pool: felt) {
+    func createPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+        pool: felt
+    ) {
         let (caller) = get_caller_address();
         SuperToken_pools.write(caller, TRUE);
         return (pool=caller);
     }
 
-    func absorb{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(account: felt, particle: BasicParticle) {
+    func absorb{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        account: felt, particle: BasicParticle
+    ) {
         let (caller) = get_caller_address();
         let (poolExist) = SuperToken_pools.read(caller);
         with_attr error_message("SuperToken: Only absorbing from pools!") {
@@ -269,12 +278,12 @@ namespace SuperToken {
         let (u_index) = SuperToken_universal_indexes.read(account);
         let (new_u_index) = SemanticMoney.mappend(u_index, particle);
         SuperToken_universal_indexes.write(account, new_u_index);
-        return ();        
+        return ();
     }
 
-    ////////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////
     // Pool Operations ends here
-    ////////////////////////////////////////////////////////////////////////////////
+    // //////////////////////////////////////////////////////////////////////////////
 
     func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         spender: felt, amount: felt

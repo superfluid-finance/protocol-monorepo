@@ -58,11 +58,6 @@ jobs:
           ./tasks/startHardhatNode.sh start
         working-directory: ${{ env.sdk-core-working-directory }}
 
-      - name: "Build SDK-Core"
-        # build sdk-core because of auto linking to dependency
-        run: yarn build
-        working-directory: ${{ env.sdk-core-working-directory }}
-
       - name: "Deploy Framework and Tokens"
         run: npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost
         working-directory: ./packages/ethereum-contracts

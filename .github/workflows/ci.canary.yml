@@ -65,10 +65,11 @@ jobs:
       run-sdk-core-tests: false
 
   test-sdk-core:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
-    name: Build and Test Subgraph (Development Branch)
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@dev
+    name: Build and Test SDK-Core (Development Branch)
     with:
-      run-sdk-core-tests: true
+      subgraph-release: local
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   check:
     name: Checking what packages need to be built

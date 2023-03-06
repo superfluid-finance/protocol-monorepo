@@ -181,12 +181,13 @@ jobs:
 
   # sdk-core integration test + local subgraph w/ local sdk-core
   test-sdk-core:
-    uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
+    uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_sdk_core
     with:
-      run-sdk-core-tests: true
+      subgraph-release: local
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml

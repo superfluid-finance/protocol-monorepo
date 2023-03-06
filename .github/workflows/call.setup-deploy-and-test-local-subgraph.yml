@@ -94,7 +94,7 @@ jobs:
       # test local subgraph w/ SDK-core
       - name: "Setup subgraph test environment"
         if: inputs.run-sdk-core-tests == true
-        run: ./tasks/testenv-ctl.sh start
+        run: yarn build-and-deploy-local
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run SDK-Core tests and test subgraph query with local subgraph"

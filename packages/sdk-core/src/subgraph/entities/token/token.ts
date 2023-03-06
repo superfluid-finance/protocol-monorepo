@@ -27,10 +27,10 @@ export interface Token {
     name: string;
     symbol: string;
     underlyingAddress: Address;
-    rewardAddress: Address;
-    liquidationPeriod: BigNumber;
-    patricianPeriod: BigNumber;
-    minimumDeposit: BigNumber;
+    rewardAddress: Address | null;
+    liquidationPeriod: BigNumber | null;
+    patricianPeriod: BigNumber | null;
+    minimumDeposit: BigNumber | null;
 }
 
 export type TokenListQuery = SubgraphListQuery<Token_Filter, Token_OrderBy>;
@@ -61,6 +61,10 @@ export class TokenQueryHandler extends SubgraphQueryHandler<
             ...x,
             createdAtBlockNumber: Number(x.createdAtBlockNumber),
             createdAtTimestamp: Number(x.createdAtTimestamp),
+            rewardAddress: x.rewardAddress ? x.rewardAddress : null,
+            liquidationPeriod: x.liquidationPeriod ? x.liquidationPeriod : null,
+            patricianPeriod: x.patricianPeriod ? x.patricianPeriod : null,
+            minimumDeposit: x.minimumDeposit ? x.minimumDeposit : null,
         }));
 
     requestDocument = TokensDocument;

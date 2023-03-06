@@ -14523,32 +14523,36 @@ type Token {
 
   """
   The address that receives liquidation rewards for `Token` with `id`.
+  NOTE: if undefined, it means this config has not been set for this token specifically.
   
   """
-  rewardAddress: Bytes!
+  rewardAddress: Bytes
 
   """
   The liquidation period for `Token` with `id`.
   This field can be used to calculate the liquidation buffer (or deposit) amount
   for a token: `liquidationBufferAmount = liquidationPeriod * flowRate`.
   Note that if `minimumDeposit` is set, the liquidation buffer amount will be the greater of the two values.
+  NOTE: if undefined, it means this config has not been set for this token specifically.
   
   """
-  liquidationPeriod: BigInt!
+  liquidationPeriod: BigInt
 
   """
   The patrician period  for `Token` with `id`, the patrician period is the
   window in which a patrician receives all rewards for a liquidation, no matter
   the liquidating account.
+  NOTE: if undefined, it means this config has not been set for this token specifically.
   
   """
-  patricianPeriod: BigInt!
+  patricianPeriod: BigInt
 
   """
   The minimum deposit amount for `Token` with `id`.
+  NOTE: if undefined, it means this config has not been set for this token specifically.
   
   """
-  minimumDeposit: BigInt!
+  minimumDeposit: BigInt
 }
 
 input Token_filter {

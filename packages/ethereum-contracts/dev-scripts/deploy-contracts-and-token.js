@@ -65,7 +65,7 @@ async function deployContractsAndToken() {
     };
     console.log("Token Deployment Output:", tokenDeploymentOutput);
 
-    return deployer;
+    return {deployer, tokenDeploymentOutput};
 }
 
 module.exports = {

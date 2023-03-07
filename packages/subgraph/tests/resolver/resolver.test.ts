@@ -6,7 +6,14 @@ import {
     describe,
     test,
 } from "matchstick-as/assembly/index";
-import { DEFAULT_DECIMALS, DEFAULT_REWARD_ADDRESS, FALSE, LIQUIDATION_PERIOD, maticXAddress, maticXName, maticXSymbol, PATRICIAN_PERIOD, TRUE } from "../constants";
+import {
+    DEFAULT_DECIMALS,
+    FALSE,
+    maticXAddress,
+    maticXName,
+    maticXSymbol,
+    TRUE,
+} from "../constants";
 import {
     assertEventBaseProperties,
     assertHigherOrderBaseProperties,
@@ -16,7 +23,6 @@ import { handleSet } from "../../src/mappings/resolver";
 import { stringToBytes } from "../converters";
 import { createSuperToken } from "../mockedEntities";
 import { Address } from "@graphprotocol/graph-ts";
-import { BIG_INT_ZERO } from "../../src/utils";
 
 /**
  * Creates a Set Event, executes handleSet and asserts ResolverEntry fields based on params
@@ -111,11 +117,7 @@ describe("Resolver Mapper Unit Tests", () => {
                 maticXName,
                 maticXSymbol,
                 false,
-                Address.zero(),
-                DEFAULT_REWARD_ADDRESS,
-                LIQUIDATION_PERIOD,
-                PATRICIAN_PERIOD,
-                BIG_INT_ZERO
+                Address.zero()
             );
             const target = Address.fromString(maticXAddress);
             assert.fieldEquals("Token", maticXAddress, "isListed", FALSE);
@@ -133,11 +135,7 @@ describe("Resolver Mapper Unit Tests", () => {
                 maticXName,
                 maticXSymbol,
                 false,
-                Address.zero(),
-                DEFAULT_REWARD_ADDRESS,
-                LIQUIDATION_PERIOD,
-                PATRICIAN_PERIOD,
-                BIG_INT_ZERO
+                Address.zero()
             );
             const token = Address.fromString(maticXAddress);
             let target = Address.fromString(maticXAddress);

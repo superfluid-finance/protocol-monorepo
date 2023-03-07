@@ -12,12 +12,11 @@ import {
     RewardAddressChangedEvent,
     PPPConfigurationChangedEvent,
     TrustedForwarderChangedEvent,
-    Token,
     SuperTokenMinimumDepositChangedEvent,
 } from "../../generated/schema";
-import { createEventID, initializeEventEntity, ZERO_ADDRESS } from "../utils";
+import { createEventID, initializeEventEntity } from "../utils";
 import { TOGA } from "../../generated/templates";
-import { getOrInitDefaultGovernanceConfig } from "../mappingHelpers";
+import { getOrInitTokenGovernanceConfig } from "../mappingHelpers";
 
 export function handleConfigChanged(event: ConfigChanged): void {
     const eventId = createEventID("ConfigChanged", event);
@@ -46,17 +45,14 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
     ev.save();
 
     // Update reward address for token or default governance configs
-    if (event.params.superToken.equals(ZERO_ADDRESS)) {
-        const defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(event.block);
-        defaultGovernanceConfig.rewardAddress = event.params.rewardAddress;
-        defaultGovernanceConfig.save();
-    } else {
-        const token = Token.load(event.params.superToken.toHexString());
-        if (token) {
-            token.rewardAddress = event.params.rewardAddress;
-            token.save();
-        }
-    }
+    const governanceConfig = getOrInitTokenGovernanceConfig(
+        event.block,
+        event.params.superToken
+    );
+    governanceConfig.rewardAddress = event.params.rewardAddress;
+    governanceConfig.updatedAtBlockNumber = event.block.number;
+    governanceConfig.updatedAtTimestamp = event.block.timestamp;
+    governanceConfig.save();
 
     // Create data source template for new TOGA contract
     // and start indexing events
@@ -80,17 +76,14 @@ export function handleCFAv1LiquidationPeriodChanged(
     ev.save();
 
     // Update cfav1 liquidation period for token or default governance configs
-    if (event.params.superToken.equals(ZERO_ADDRESS)) {
-        const defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(event.block);
-        defaultGovernanceConfig.liquidationPeriod = event.params.liquidationPeriod;
-        defaultGovernanceConfig.save();
-    } else {
-        const token = Token.load(event.params.superToken.toHexString());
-        if (token) {
-            token.liquidationPeriod = event.params.liquidationPeriod;
-            token.save();
-        }
-    }
+    const governanceConfig = getOrInitTokenGovernanceConfig(
+        event.block,
+        event.params.superToken
+    );
+    governanceConfig.liquidationPeriod = event.params.liquidationPeriod;
+    governanceConfig.updatedAtBlockNumber = event.block.number;
+    governanceConfig.updatedAtTimestamp = event.block.timestamp;
+    governanceConfig.save();
 }
 
 export function handlePPPConfigurationChanged(
@@ -109,19 +102,15 @@ export function handlePPPConfigurationChanged(
     ev.save();
 
     // Update cfav1 liquidation period and patrician period for token or default governance configs
-    if (event.params.superToken.equals(ZERO_ADDRESS)) {
-        const defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(event.block);
-        defaultGovernanceConfig.liquidationPeriod = event.params.liquidationPeriod;
-        defaultGovernanceConfig.patricianPeriod = event.params.patricianPeriod;
-        defaultGovernanceConfig.save();
-    } else {
-        const token = Token.load(event.params.superToken.toHexString());
-        if (token) {
-            token.liquidationPeriod = event.params.liquidationPeriod;
-            token.patricianPeriod = event.params.patricianPeriod;
-            token.save();
-        }
-    }
+    const governanceConfig = getOrInitTokenGovernanceConfig(
+        event.block,
+        event.params.superToken
+    );
+    governanceConfig.liquidationPeriod = event.params.liquidationPeriod;
+    governanceConfig.patricianPeriod = event.params.patricianPeriod;
+    governanceConfig.updatedAtBlockNumber = event.block.number;
+    governanceConfig.updatedAtTimestamp = event.block.timestamp;
+    governanceConfig.save();
 }
 
 export function handleTrustedForwarderChanged(
@@ -155,15 +144,12 @@ export function handleSuperTokenMinimumDepositChanged(
     ev.save();
 
     // Update minimum deposit for token or default governance configs
-    if (event.params.superToken.equals(ZERO_ADDRESS)) {
-        const defaultGovernanceConfig = getOrInitDefaultGovernanceConfig(event.block);
-        defaultGovernanceConfig.minimumDeposit = event.params.minimumDeposit;
-        defaultGovernanceConfig.save();
-    } else {
-        const token = Token.load(event.params.superToken.toHexString());
-        if (token) {
-            token.minimumDeposit = event.params.minimumDeposit;
-            token.save();
-        }
-    }
+    const governanceConfig = getOrInitTokenGovernanceConfig(
+        event.block,
+        event.params.superToken
+    );
+    governanceConfig.minimumDeposit = event.params.minimumDeposit;
+    governanceConfig.updatedAtBlockNumber = event.block.number;
+    governanceConfig.updatedAtTimestamp = event.block.timestamp;
+    governanceConfig.save();
 }

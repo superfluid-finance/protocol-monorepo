@@ -4,7 +4,6 @@ import {
     Account,
     AccountTokenSnapshot,
     AccountTokenSnapshotLog,
-    DefaultGovernanceConfig,
     FlowOperator,
     Index,
     IndexSubscription,
@@ -12,6 +11,7 @@ import {
     Stream,
     StreamRevision,
     Token,
+    TokenGovernanceConfig,
     TokenStatistic,
     TokenStatisticLog,
 } from "../generated/schema";
@@ -155,32 +155,54 @@ export function getOrInitSuperToken(
     return token as Token;
 }
 
-export function getOrInitDefaultGovernanceConfig(
-    block: ethereum.Block
-): DefaultGovernanceConfig {
-    let defaultGovernanceConfig = DefaultGovernanceConfig.load(
-        ZERO_ADDRESS.toHexString()
-    );
-
-    if (defaultGovernanceConfig == null) {
-        defaultGovernanceConfig = new DefaultGovernanceConfig(
+export function getOrInitTokenGovernanceConfig(
+    block: ethereum.Block,
+    superTokenAddress: Address
+): TokenGovernanceConfig {
+    if (superTokenAddress.equals(ZERO_ADDRESS)) {
+        let governanceConfig = TokenGovernanceConfig.load(
             ZERO_ADDRESS.toHexString()
         );
-        defaultGovernanceConfig.createdAtTimestamp = block.timestamp;
-        defaultGovernanceConfig.createdAtBlockNumber = block.number;
-        defaultGovernanceConfig.rewardAddress = ZERO_ADDRESS;
-        defaultGovernanceConfig.liquidationPeriod = BIG_INT_ZERO;
-        defaultGovernanceConfig.patricianPeriod = BIG_INT_ZERO;
-        defaultGovernanceConfig.minimumDeposit = BIG_INT_ZERO;
+        if (governanceConfig == null) {
+            governanceConfig = new TokenGovernanceConfig(
+                ZERO_ADDRESS.toHexString()
+            );
+            governanceConfig.createdAtTimestamp = block.timestamp;
+            governanceConfig.createdAtBlockNumber = block.number;
+            governanceConfig.updatedAtBlockNumber = block.number;
+            governanceConfig.updatedAtTimestamp = block.timestamp;
+            governanceConfig.isDefault = true;
+            governanceConfig.rewardAddress = ZERO_ADDRESS;
+            governanceConfig.liquidationPeriod = BIG_INT_ZERO;
+            governanceConfig.patricianPeriod = BIG_INT_ZERO;
+            governanceConfig.minimumDeposit = BIG_INT_ZERO;
+
+            governanceConfig.save();
+        }
+        return governanceConfig;
+    } else {
+        let governanceConfig = TokenGovernanceConfig.load(
+            superTokenAddress.toHexString()
+        );
+        if (governanceConfig == null) {
+            governanceConfig = new TokenGovernanceConfig(
+                superTokenAddress.toHexString()
+            );
+            governanceConfig.createdAtTimestamp = block.timestamp;
+            governanceConfig.createdAtBlockNumber = block.number;
+            governanceConfig.updatedAtBlockNumber = block.number;
+            governanceConfig.updatedAtTimestamp = block.timestamp;
+            governanceConfig.isDefault = false;
+            governanceConfig.rewardAddress = null;
+            governanceConfig.liquidationPeriod = null;
+            governanceConfig.patricianPeriod = null;
+            governanceConfig.minimumDeposit = null;
+            governanceConfig.token = superTokenAddress.toHexString();
+
+            governanceConfig.save();
+        }
+        return governanceConfig;
     }
-
-    // always update updatedAt fields because we update this entity
-    // whenever we retrieve it
-    defaultGovernanceConfig.updatedAtTimestamp = block.timestamp;
-    defaultGovernanceConfig.updatedAtBlockNumber = block.number;
-    defaultGovernanceConfig.save();
-
-    return defaultGovernanceConfig as DefaultGovernanceConfig;
 }
 
 /**
@@ -207,12 +229,6 @@ export function getOrInitToken(
     token.isSuperToken = false;
     token.isNativeAssetSuperToken = false;
     token.isListed = false;
-
-    // This is unset for the underlying ERC20.
-    token.rewardAddress = ZERO_ADDRESS;
-    token.liquidationPeriod = BIG_INT_ZERO;
-    token.patricianPeriod = BIG_INT_ZERO;
-    token.minimumDeposit = BIG_INT_ZERO;
 
     token = handleTokenRPCCalls(token, resolverAddress);
     token.save();
@@ -282,7 +298,7 @@ export function getOrInitStream(event: FlowUpdated): Stream {
         stream.streamedUntilUpdatedAt = BigInt.fromI32(0);
         stream.updatedAtTimestamp = currentTimestamp;
         stream.updatedAtBlockNumber = event.block.number;
-        stream.userData = Bytes.empty();
+        stream.userData = event.params.userData;
 
         // Check if token exists and create here if not.
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)

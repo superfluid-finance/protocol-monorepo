@@ -28,10 +28,6 @@ export function createSuperToken(
     symbol: string,
     isListed: boolean,
     underlyingAddress: Address,
-    rewardAddress: Address,
-    liquidationPeriod: BigInt, 
-    patricianPeriod: BigInt,
-    minimumDeposit: BigInt
 ): Token {
     const tokenId = tokenAddress.toHex();
     let currentTimestamp = block.timestamp;
@@ -52,11 +48,6 @@ export function createSuperToken(
 
     token.underlyingAddress = underlyingAddress;
     token.underlyingToken = underlyingAddress.toHex();
-
-    token.rewardAddress = rewardAddress;
-    token.liquidationPeriod = liquidationPeriod;
-    token.patricianPeriod = patricianPeriod;
-    token.minimumDeposit = minimumDeposit;
     
     token.save();
     return token as Token;

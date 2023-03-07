@@ -61,10 +61,26 @@ export class TokenQueryHandler extends SubgraphQueryHandler<
             ...x,
             createdAtBlockNumber: Number(x.createdAtBlockNumber),
             createdAtTimestamp: Number(x.createdAtTimestamp),
-            rewardAddress: x.rewardAddress ? x.rewardAddress : null,
-            liquidationPeriod: x.liquidationPeriod ? x.liquidationPeriod : null,
-            patricianPeriod: x.patricianPeriod ? x.patricianPeriod : null,
-            minimumDeposit: x.minimumDeposit ? x.minimumDeposit : null,
+            rewardAddress:
+                x.governanceConfig == null ||
+                x.governanceConfig.rewardAddress == null
+                    ? null
+                    : x.governanceConfig.rewardAddress,
+            liquidationPeriod:
+                x.governanceConfig == null ||
+                x.governanceConfig.liquidationPeriod == null
+                    ? null
+                    : x.governanceConfig.liquidationPeriod,
+            patricianPeriod:
+                x.governanceConfig == null ||
+                x.governanceConfig.patricianPeriod == null
+                    ? null
+                    : x.governanceConfig.patricianPeriod,
+            minimumDeposit:
+                x.governanceConfig == null ||
+                x.governanceConfig.minimumDeposit == null
+                    ? null
+                    : x.governanceConfig.minimumDeposit,
         }));
 
     requestDocument = TokensDocument;

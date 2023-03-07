@@ -1689,40 +1689,51 @@ type StreamPeriod @entity {
 }
 
 """
-DefaultGovernanceConfig: A higher order entity that represents the default governance configs.
-When a config is set in governance with superToken field as address(0), it will be used as the default config.
+TokenGovernanceConfig: A higher order entity that represents the governance configs for a token.
+If `id` is `address(0)`, it will be used as the default config.
 """
-type DefaultGovernanceConfig @entity {
+type TokenGovernanceConfig @entity {
     """
-    ID will always be address(0): 0x0000000000000000000000000000000000000000
+    id is the address of the SuperToken
+    NOTE: the zero address is reserved for the default config for all tokens with unset configs.
     """
     id: ID!
     createdAtTimestamp: BigInt!
     createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
-
-    """
-    The default address that receives liquidation rewards for tokens with an unset rewardAddress prior to 3Ps and the TOGA address after 3Ps.
-    """
-    rewardAddress: Bytes!
     
     """
-    The default liquidation period (buffer amount required for a token) for tokens with an unset liquidation period.
+    If true, `id` is `address(0)` and this is the default config for all tokens with unset configs.
+    """
+    isDefault: Boolean!
+
+    """
+    The (default or token-specific) address that receives liquidation rewards for a token prior to 3Ps and the TOGA address after 3Ps.
+    """
+    rewardAddress: Bytes
+    
+    """
+    The (default or token-specific) liquidation period (buffer amount required for a token).
     This field can be used to calculate the liquidation buffer (or deposit) amount for a token: `liquidationBufferAmount = liquidationPeriod * flowRate`.
     Note that if `minimumDeposit` is set, the liquidation buffer amount will be the greater of the two values.
     """
-    liquidationPeriod: BigInt!
+    liquidationPeriod: BigInt
 
     """
-    The default patrician period, the patrician period is the window in which a patrician receives all rewards for a liquidation, no matter the liquidating account.
+    The (default or token-specific) patrician period, the patrician period is the window in which a patrician receives all rewards for a liquidation, no matter the liquidating account.
     """
-    patricianPeriod: BigInt!
+    patricianPeriod: BigInt
 
     """
-    The default minimum deposit amount for tokens with an unset minimum deposit.
+    The (default or token-specific) minimum deposit amount.
     """
-    minimumDeposit: BigInt!
+    minimumDeposit: BigInt
+    
+    """
+    A reverse lookup to the token it is associated with and null if it is the default config.
+    """
+    token: Token
 }
 
 ####################
@@ -1778,30 +1789,8 @@ type Token @entity {
     underlyingToken: Token
 
     """
-    The address that receives liquidation rewards for `Token` with `id`.
-    NOTE: if undefined, it means this config has not been set for this token specifically.
     """
-    rewardAddress: Bytes
-    
-    """
-    The liquidation period for `Token` with `id`.
-    This field can be used to calculate the liquidation buffer (or deposit) amount for a token: `liquidationBufferAmount = liquidationPeriod * flowRate`.
-    Note that if `minimumDeposit` is set, the liquidation buffer amount will be the greater of the two values.
-    NOTE: if undefined, it means this config has not been set for this token specifically.
-    """
-    liquidationPeriod: BigInt
-
-    """
-    The patrician period  for `Token` with `id`, the patrician period is the window in which a patrician receives all rewards for a liquidation, no matter the liquidating account.
-    NOTE: if undefined, it means this config has not been set for this token specifically.
-    """
-    patricianPeriod: BigInt
-
-    """
-    The minimum deposit amount for `Token` with `id`.
-    NOTE: if undefined, it means this config has not been set for this token specifically.
-    """
-    minimumDeposit: BigInt
+    governanceConfig: TokenGovernanceConfig
 }
 
 type ResolverEntry @entity {

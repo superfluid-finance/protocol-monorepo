@@ -18,6 +18,7 @@ echo ---
 
 function setBuildAll() {
     BUILD_ETHEREUM_CONTRACTS=1
+    BUILD_HOT_FUZZ=1
     BUILD_SDK_CORE=1
     BUILD_SDK_REDUX=1
     BUILD_SPEC_HASKELL=1
@@ -31,21 +32,30 @@ function setBuildAll() {
 if ! [ -z "$GITHUB_ENV" ];then
     # if ci workflows changed
     if grep -E "^.github/workflows/ci.*.yml$" changed-files.list;then
+        echo "CI workflows changed."
         setBuildAll
     fi
     # if call (reusable) workflows changed
     if grep -E "^.github/workflows/call.*.yml$" changed-files.list;then
+        echo "Call workflows changed."
         setBuildAll
     fi
     # if root package.json changed, rebuild everything
     if grep -E "^package.json$" changed-files.list;then
+        echo "Root package.json changed."
         setBuildAll
     fi
     # if specified ethereum-contracts folders and files changed
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_SUBGRAPH=1
-        echo Ethereum contracts and Subgraph will be tested.
+        BUILD_HOT_FUZZ=1
+        echo Ethereum contracts, HotFuzz and Subgraph will be tested.
+    fi
+    # if specified hot-fuzz folders and files changed
+    if grep -E "^packages/hot-fuzz/(contracts/|scripts/|*.js|*.yaml|hot-fuzz|package.json)" changed-files.list;then
+        BUILD_HOT_FUZZ=1
+        echo HotFuzz will be tested.
     fi
     # if specified sdk-core folders and files changed
     if grep -E "^packages/sdk-core/(src/|test/|package.json|tsconfig.*)" changed-files.list;then
@@ -81,6 +91,7 @@ if ! [ -z "$GITHUB_ENV" ];then
     fi
 
     echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}" >> $GITHUB_ENV
+    echo "BUILD_HOT_FUZZ=${BUILD_HOT_FUZZ}" >> $GITHUB_ENV
     echo "BUILD_SDK_CORE=${BUILD_SDK_CORE}" >> $GITHUB_ENV
     echo "BUILD_SDK_REDUX=${BUILD_SDK_REDUX}" >> $GITHUB_ENV
     echo "BUILD_SUBGRAPH=${BUILD_SUBGRAPH}" >> $GITHUB_ENV

@@ -968,6 +968,9 @@ fragment flowUpdatedEvent on FlowUpdatedEvent {
     flowRate
     flowOperator
     deposit
+    stream {
+        id
+    }
 }
 
 fragment flowOperatorUpdatedEvent on FlowOperatorUpdatedEvent {

@@ -6,12 +6,20 @@ on:
       subgraph-release:
         required: true
         type: string
+      subgraph-endpoint:
+        required: true
+        type: string
 
 jobs:
   test-sdk-core:
     name: Test SDK-Core
 
     runs-on: ubuntu-latest
+
+    env:
+      ethereum-contracts-working-directory: ./packages/ethereum-contracts
+      subgraph-working-directory: ./packages/subgraph
+      sdk-core-working-directory: ./packages/sdk-core
 
     steps:
       - uses: actions/checkout@v3
@@ -27,13 +35,46 @@ jobs:
 
       - name: "Build contracts"
         run: yarn build
-        working-directory: ./packages/ethereum-contracts
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
+
+      - name: "Start hardhat node"
+        run: |
+          ./tasks/startHardhatNode.sh start
+        working-directory: ${{ env.sdk-core-working-directory }}
+
+      - name: "Build SDK-Core"
+        # build sdk-core because of auto linking to dependency
+        run: yarn build
+        working-directory: ${{ env.sdk-core-working-directory }}
+
+      - name: "Deploy Framework and Tokens"
+        run: npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost
+        working-directory: ${{ env.ethereum-contracts-working-directory }}
+
+      - name: "Prepare files for local testing"
+        run: yarn prepare-local
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Run setup-graph-node"
+        run: |
+          chmod +x ./tasks/setup-graph-node.sh
+          ./tasks/setup-graph-node.sh
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Docker compose"
+        run: docker-compose up &
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Build and deploy local subgraph"
+        run: yarn build-and-deploy-local
+        working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run test suite"
         run: |
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
-          yarn build
-          yarn test
-        working-directory: ./packages/sdk-core
+          ./tasks/setupTestEnvironment.sh
+          npx hardhat test --network localhost
+        working-directory: ${{ env.sdk-core-working-directory }}
         env:
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
+          SUBGRAPH_ENDPOINT: ${{ inputs.subgraph-endpoint }}

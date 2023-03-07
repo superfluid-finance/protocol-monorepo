@@ -77,6 +77,7 @@ export interface FlowUpdatedEvent extends EventBase {
     flowRate: string;
     flowOperator: string;
     deposit: string;
+    streamId: string; // `Stream.id` from Subgraph, composed of: senderAddress-receiverAddress-tokenAddress-revisionIndex
 }
 
 export interface FlowOperatorUpdatedEvent extends EventBase {

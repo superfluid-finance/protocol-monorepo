@@ -46,6 +46,10 @@ const config: HardhatUserConfig = {
             url: process.env.BSC_MAINNET_PROVIDER_URL || "",
             chainId: 56,
         },
+        "celo-mainnet": {
+            url: process.env.CELO_MAINNET_PROVIDER_URL || "",
+            chainId: 42220,
+        },
         goerli: {
             url: process.env.GOERLI_PROVIDER_URL || "",
             chainId: 5,

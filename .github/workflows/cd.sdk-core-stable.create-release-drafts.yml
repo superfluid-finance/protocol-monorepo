@@ -13,10 +13,27 @@ on:
 
 jobs:
 
+  test-sdk-core-query-schema-against-deployed-v1-subgraphs:
+    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
+    name: Test SDK-Core Query Schema and Queries Against Deployed V1 Subgraphs
+    with:
+      subgraph-release: v1
+
+  test-sdk-core-with-v1-release-subgraph:
+    uses: ./.github/workflows/call.test-sdk-core.yml
+    name: Build and Test SDK-Core (Release branch)
+    with:
+      subgraph-release: v1
+      subgraph-endpoint: ''
+
   create-release-draft:
     name: Create Release Draft
 
     runs-on: ubuntu-latest
+
+    needs: [ test-query-schema-against-deployed-v1-subgraphs
+           , build-and-test-live-v1-subgraph-current-release
+           ]
 
     steps:
       - uses: actions/checkout@v3

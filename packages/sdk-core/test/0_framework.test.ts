@@ -130,7 +130,7 @@ makeSuite("Framework Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should be able to create a framework with injected hardhat ethers", async () => {
-            const chainId = hre.network.config.chainId!;
+            const chainId = (await testEnv.provider.getNetwork()).chainId;
             await Framework.create({
                 chainId,
                 provider: hre.ethers,

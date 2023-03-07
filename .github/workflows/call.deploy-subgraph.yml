@@ -35,6 +35,8 @@ jobs:
 
     steps:
       - name: Show contexts
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
           echo github.event_name: ${{ github.event_name }}
           echo github.sha: ${{ github.sha }}

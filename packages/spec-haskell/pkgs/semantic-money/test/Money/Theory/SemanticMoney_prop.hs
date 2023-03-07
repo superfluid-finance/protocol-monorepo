@@ -23,7 +23,6 @@ bp_monoid_laws = describe "basic particle monoidal laws" $ do
     it "uidx monoid identity law" $ property bp_monoid_identity
     it "uidx monoid associativity law" $ property bp_monoid_assoc
 
-
 --------------------------------------------------------------------------------
 -- Settle idempotency, constant rtb laws for all monetary units
 --------------------------------------------------------------------------------
@@ -78,13 +77,13 @@ one2one_tests = describe "1to1 2-primitives" $ do
 --------------------------------------------------------------------------------
 
 updp_u1_f1_u1_f2 f1 f2 t1 u1 t2 {- f1 -} t3 {- f2 -} t4 u2 t5 =
-    0 == rtb a'' t5 + pdpMemberRTB (b'', b1') t5
+    0 == rtb a'' t5 + rtb (b'', b1') t5
     where (a, (b, b1)) = pdpUpdateMember2 u1 t1 (def :: (TestUniversalIndex, TestPDPoolMemberMU))
           (a', b') = f2 t3 (f1 t2 (a, b))
           (a'', (b'', b1')) = pdpUpdateMember2 u2 t4 (a', (b', b1))
 
 updp_u1_f1_u2_f2 f1 f2 t1 u1 t2 {- f1 -} t3 u2 t4 {- f2 -} t5 =
-    0 == rtb a''' t5 + pdpMemberRTB (b''', b1) t5 + pdpMemberRTB (b''', b2) t5
+    0 == rtb a''' t5 + rtb (b''', b1) t5 + rtb (b''', b2) t5
     where (a, (b, b1)) = pdpUpdateMember2 u1 t1 (def :: TestUniversalIndex, def :: TestPDPoolMemberMU)
           (a', b') = f1 t2 (a, b)
           (a'', (b'', b2)) = pdpUpdateMember2 u2 t3 (a', (b', def :: TestPDPoolMember))
@@ -119,7 +118,7 @@ uu_flow2 t1 r1 t2 r2 t3 =
           (_, b') = flow2 r2 t2 (flow2 r1 t1 (a, b))
 
 updp_flow2 t1 r1 t2 r2 t3 =
-    r1 `mt_v_mul_t` (t2 - t1) + r2 `mt_v_mul_t` (t3 - t2) == pdpMemberRTB (b', b1) t3
+    r1 `mt_v_mul_t` (t2 - t1) + r2 `mt_v_mul_t` (t3 - t2) == rtb (b', b1) t3
     where (a, (b, b1)) = pdpUpdateMember2 1 t1 (def :: (TestUniversalIndex, TestPDPoolMemberMU))
           (_, b') = flow2 r2 t2 (flow2 r1 t1 (a, b))
 

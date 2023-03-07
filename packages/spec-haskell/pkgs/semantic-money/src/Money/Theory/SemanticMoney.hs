@@ -117,7 +117,7 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
          , MonetaryUnit mt t v wp) => MonetaryUnit mt t v (PDPoolIndex mt wp) where
     settle t' a@(PDPoolIndex _ mpi) = a { pdidx_wp = settle t' mpi }
     settledAt (PDPoolIndex _ mpi) = settledAt mpi
-    rtb (PDPoolIndex tu mpi) t' = rtb mpi t' `mt_v_mul_u` tu
+    rtb (PDPoolIndex _ mpi) = rtb mpi
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
          , MonetaryParticle mt t v u wp) => Index mt t v u (PDPoolIndex mt wp) where
@@ -159,21 +159,9 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
 
     settledAt (_, PDPoolMember _ _ mps)= settledAt mps
 
-    rtb mu t' = pdpIndexRTB mu t' + pdpMemberRTB mu t'
-
-pdpIndexRTB :: ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
-               , MonetaryUnit mt t v wp
-               , mu ~ PDPoolMemberMU mt wp
-               ) => mu -> t -> v
-pdpIndexRTB (pdidx, _) = rtb pdidx
-
-pdpMemberRTB :: ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
-                , MonetaryUnit mt t v wp
-                , mu ~ PDPoolMemberMU mt wp
-                ) => mu -> t -> v
-pdpMemberRTB (PDPoolIndex _ mpi, PDPoolMember u sv mps) t' = sv +
-        -- let ti = rtb_settled_at mpi
-        --     ts = rtb_settled_at mps
+    rtb (PDPoolIndex _ mpi, PDPoolMember u sv mps) t' = sv +
+        -- let ti = bp_settled_at mpi
+        --     ts = bp_settled_at mps
         -- in (rtb mpi t' - rtb mps ti) -- include index's current accruals for the member
         -- +  (rtb mps ti - rtb mps ts) -- cancel out-of-sync member's rtb between [ts:ti]
         -- =>
@@ -183,9 +171,9 @@ pdpMemberRTB (PDPoolIndex _ mpi, PDPoolMember u sv mps) t' = sv +
 -- Particles: building block for indexes
 --
 
-data BasicParticle mt = BasicParticle { rtb_settled_at    :: MT_TIME  mt
-                                      , rtb_settled_value :: MT_VALUE mt
-                                      , rtb_flow_rate     :: MT_VALUE mt
+data BasicParticle mt = BasicParticle { bp_settled_at    :: MT_TIME  mt
+                                      , bp_settled_value :: MT_VALUE mt
+                                      , bp_flow_rate     :: MT_VALUE mt
                                       }
 
 deriving instance MonetaryTypes mt => Eq (BasicParticle mt)
@@ -204,20 +192,20 @@ instance MonetaryTypes mt => Default (BasicParticle mt) where def = mempty
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
          ) => MonetaryUnit mt t v (BasicParticle mt) where
-    settle t' a = a { rtb_settled_at = t'
-                    , rtb_settled_value = rtb a t'
+    settle t' a = a { bp_settled_at = t'
+                    , bp_settled_value = rtb a t'
                     }
-    settledAt = rtb_settled_at
+    settledAt = bp_settled_at
     rtb (BasicParticle t s r) t' = r `mt_v_mul_t` (t' - t) + s
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
          ) => Index mt t v u (BasicParticle mt) where
 
-    shift1 x a = (a { rtb_settled_value = rtb_settled_value a + x }, x)
+    shift1 x a = (a { bp_settled_value = bp_settled_value a + x }, x)
 
-    getFlowRate = rtb_flow_rate
+    getFlowRate = bp_flow_rate
 
-    flow1 r' a = (a { rtb_flow_rate = r' }, r')
+    flow1 r' a = (a { bp_flow_rate = r' }, r')
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
          ) => MonetaryParticle mt t v u (BasicParticle mt) where

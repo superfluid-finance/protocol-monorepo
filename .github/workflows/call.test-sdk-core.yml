@@ -66,16 +66,16 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Build and deploy local subgraph"
-        run: yarn build-and-deploy-local
+        run: |
+          yarn build-and-deploy-local 
+          # artificial slow down to give the subgraph time to sync
+          sleep 30
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run test suite"
         run: |
-          npx hardhat compile
-          # artificial slow down to give the subgraph time to sync
-          yarn build
-          yarn generate-graphql-schema:${{ inputs.subgraph-release }}
           yarn generate:graphql-types
+          ./tasks/setupTestEnvironment.sh
           npx hardhat test --network localhost
         working-directory: ${{ env.sdk-core-working-directory }}
         env:

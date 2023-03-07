@@ -844,11 +844,11 @@ contract ConstantFlowAgreementV1 is
             newFlowRateAllowance
         );
 
-        emit FlowOperatorAllowanceUpdated(
+        emit FlowOperatorUpdated(
             token,
             currentContext.msgSender,
             flowOperator,
-            oldFlowRateAllowance,
+            oldPermissions,
             newFlowRateAllowance
         );
     }
@@ -886,11 +886,11 @@ contract ConstantFlowAgreementV1 is
             newFlowRateAllowance
         );
 
-        emit FlowOperatorAllowanceUpdated(
+        emit FlowOperatorUpdated(
             token,
             currentContext.msgSender,
             flowOperator,
-            oldFlowRateAllowance,
+            oldPermissions,
             newFlowRateAllowance
         );
     }

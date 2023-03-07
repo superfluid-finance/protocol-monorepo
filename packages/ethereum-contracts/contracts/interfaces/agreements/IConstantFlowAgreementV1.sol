@@ -440,14 +440,6 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         int96 flowRateAllowance
     );
 
-    event FlowOperatorAllowanceUpdated(
-        ISuperfluidToken indexed token,
-        address indexed sender,
-        address indexed flowOperator,
-        int96 oldFlowRateAllowance,
-        int96 newFlowRateAllowance
-    );
-
     /**
      * @dev Flow updated event
      * @param token Super token address

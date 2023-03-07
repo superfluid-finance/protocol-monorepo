@@ -68,6 +68,8 @@ contract BatchLiquidator {
 // this can make a significant difference in tx fees on L2s
 contract BatchLiquidatorV2 {
 
+    error ARRAY_SIZES_DIFFERENT();
+
     address public immutable host;
     address public immutable cfa;
 
@@ -86,14 +88,15 @@ contract BatchLiquidatorV2 {
         address superToken,
         address[] calldata senders, address[] calldata receivers
     ) external {
-        require(senders.length == receivers.length, "arrays different sizes");
+        uint256 length = senders.length;
+        if(length != receivers.length) revert ARRAY_SIZES_DIFFERENT();
 
-        for (uint i = 0; i < senders.length; ++i) {
-            bool success;
+        uint256 i;
+        for (; i < length;) {
             // We tolerate any errors occured during liquidations.
             // It could be due to flow had been liquidated by others.
             // solhint-disable-next-line avoid-low-level-calls
-            (success, ) = address(host).call(
+            address(host).call(
                 abi.encodeCall(
                     ISuperfluid(host).callAgreement,
                     (
@@ -111,8 +114,40 @@ contract BatchLiquidatorV2 {
                     )
                 )
             );
+            unchecked { i++; }
         }
 
+        // If the liquidation(s) resulted in any super token
+        // rewards, send them all to the sender instead of having them
+        // locked in the contract
+        {
+            uint256 balance = ERC20(superToken).balanceOf(address(this));
+            if (balance > 0) {
+                ERC20(superToken).transferFrom(address(this), msg.sender, balance);
+            }
+        }
+    }
+
+    function deleteFlow(address superToken, address sender, address receiver) external {
+        // solhint-disable-next-line avoid-low-level-calls
+        address(host).call(
+            abi.encodeCall(
+                ISuperfluid(host).callAgreement,
+                (
+                    ISuperAgreement(cfa),
+                    abi.encodeCall(
+                        IConstantFlowAgreementV1(cfa).deleteFlow,
+                        (
+                            ISuperToken(superToken),
+                            sender,
+                            receiver,
+                            new bytes(0)
+                        )
+                    ),
+                    new bytes(0)
+                )
+            )
+        );
         // If the liquidation(s) resulted in any super token
         // rewards, send them all to the sender instead of having them
         // locked in the contract

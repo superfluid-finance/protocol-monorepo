@@ -37,7 +37,7 @@ jobs:
             echo "subgraph changed: $NEW_SUBGRAPH_VERSION"
           fi
 
-          echo "::set-output name=NEW_SUBGRAPH_VERSION::$NEW_SUBGRAPH_VERSION"
+          echo "NEW_SUBGRAPH_VERSION=$NEW_SUBGRAPH_VERSION" >> $GITHUB_OUTPUT
 
       - name: Create subgraph stable release draft
         if: env.PUBLISHED_SUBGRAPH_VERSION == 1

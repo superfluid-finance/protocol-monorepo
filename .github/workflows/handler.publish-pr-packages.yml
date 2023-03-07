@@ -25,12 +25,14 @@ jobs:
           node-version: 16.x
 
       - name: Show context
+        env:
+          HEAD_REF: ${{ github.head_ref }}
         run: |
           echo github.event_name: ${{ github.event_name }}
           echo github.sha: ${{ github.sha }}
           echo github.repository: ${{ github.repository }}
           echo github.ref: ${{ github.ref }}
-          echo github.head_ref: ${{ github.head_ref }}
+          echo github.head_ref: $HEAD_REF
           echo github.base_ref: ${{ github.base_ref }}
 
       - name: Download artifact
@@ -47,8 +49,8 @@ jobs:
           n_packages=$(ls pr-packages/$pr_number | wc -l)
           echo pr_number: $pr_number
           echo n_packages: $n_packages
-          echo "::set-output name=pr_number::$pr_number"
-          echo "::set-output name=n_packages::$n_packages"
+          echo "pr_number=$pr_number" >> $GITHUB_OUTPUT
+          echo "n_packages=$n_packages" >> $GITHUB_OUTPUT
 
       - name: Publish to github
         run: |

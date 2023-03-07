@@ -59,7 +59,8 @@ jobs:
           tasks/npm-publish.sh packages/sdk-core/ latest
 
           PUBLISHED_VERSION=`jq -r .version packages/sdk-core/package.json`
-          echo "::set-output name=PUBLISHED_VERSION::$PUBLISHED_VERSION"
+          
+          echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> $GITHUB_OUTPUT
 
           # Build documentation with redirect from root
           yarn --cwd packages/sdk-core doc:html
@@ -103,7 +104,8 @@ jobs:
           tasks/npm-publish.sh packages/sdk-redux/ latest
 
           PUBLISHED_VERSION=`jq -r .version packages/sdk-redux/package.json`
-          echo "::set-output name=PUBLISHED_VERSION::$PUBLISHED_VERSION"
+          
+          echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> $GITHUB_OUTPUT
 
           # Build documentation with redirect from root
           yarn --cwd packages/sdk-redux doc:html

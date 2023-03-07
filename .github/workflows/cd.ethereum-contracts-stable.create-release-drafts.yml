@@ -40,7 +40,7 @@ jobs:
             echo ethereum-contracts unchanged: $PUBLISHED_ETHEREUM_CONTRACTS_VERSION
           fi
 
-          echo "::set-output name=NEW_ETHEREUM_CONTRACTS_VERSION::$NEW_ETHEREUM_CONTRACTS_VERSION"
+          echo "name=NEW_ETHEREUM_CONTRACTS_VERSION" >> $NEW_ETHEREUM_CONTRACTS_VERSION
 
       - name: Create ethereum-contracts release draft
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1

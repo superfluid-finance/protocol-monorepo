@@ -31,8 +31,8 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    needs: [ test-query-schema-against-deployed-v1-subgraphs
-           , build-and-test-live-v1-subgraph-current-release
+    needs: [ test-sdk-core-query-schema-against-deployed-v1-subgraphs
+           , test-sdk-core-with-v1-release-subgraph
            ]
 
     steps:
@@ -57,7 +57,7 @@ jobs:
             echo sdk-core unchanged: $PUBLISHED_SDK_CORE_VERSION
           fi
 
-          echo "::set-output name=NEW_SDK_CORE_VERSION::$NEW_SDK_CORE_VERSION"
+          echo "NEW_SDK_CORE_VERSION=$NEW_SDK_CORE_VERSION" >> $GITHUB_OUTPUT
 
       - name: Create sdk-core stable release draft
         if: env.PUBLISHED_SDK_CORE_VERSION == 1

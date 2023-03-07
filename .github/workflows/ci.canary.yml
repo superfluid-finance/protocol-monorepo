@@ -149,79 +149,12 @@ jobs:
             packages/ethereum-contracts/coverage/
 
   coverage-sdk-core:
-    name: Run coverage test of sdk-core on dev branch
-
-    runs-on: ubuntu-latest
-
-    env:
-      ethereum-contracts-working-directory: ./packages/ethereum-contracts
-      subgraph-working-directory: ./packages/subgraph
-      sdk-core-working-directory: ./packages/sdk-core
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: "yarn"
-
-      - name: "Install dependencies"
-        run: yarn install --frozen-lockfile
-
-      - name: "Build contracts"
-        run: yarn build
-        working-directory: ${{ env.ethereum-contracts-working-directory }}
-
-      - name: "Start hardhat node"
-        run: |
-          ./tasks/startHardhatNode.sh start
-        working-directory: ${{ env.sdk-core-working-directory }}
-
-      - name: "Build SDK-Core"
-        # build sdk-core because of auto linking to dependency
-        run: yarn build
-        working-directory: ${{ env.sdk-core-working-directory }}
-
-      - name: "Deploy Framework and Tokens"
-        run: npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost
-        working-directory: ${{ env.ethereum-contracts-working-directory }}
-
-      - name: "Prepare files for local testing"
-        run: yarn prepare-local
-        working-directory: ${{ env.subgraph-working-directory }}
-
-      - name: "Run setup-graph-node"
-        run: |
-          chmod +x ./tasks/setup-graph-node.sh
-          ./tasks/setup-graph-node.sh
-        working-directory: ${{ env.subgraph-working-directory }}
-
-      - name: "Docker compose"
-        run: docker-compose up &
-        working-directory: ${{ env.subgraph-working-directory }}
-
-      - name: "Build and deploy local subgraph"
-        run: |
-          yarn build-and-deploy-local 
-          # artificial slow down to give the subgraph time to sync
-          sleep 30
-        working-directory: ${{ env.subgraph-working-directory }}
-
-      - name: Run coverage test
-        run: |
-          yarn workspace @superfluid-finance/sdk-core test-coverage
-        env:
-          SUBGRAPH_RELEASE_TAG: local
-          SUBGRAPH_ENDPOINT: http://localhost:8000/subgraphs/name/superfluid-test
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sdk-core-coverage
-          path: |
-            packages/sdk-core/coverage/
+    uses: ./.github/workflows/call.test-automation-contracts.yml
+    name: Build and Test Automation Contracts (Canary Branch)
+    with: 
+      subgraph-release: local
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+      run-coverage-tests: true
 
   publish-coverage-reports:
     name: Publish coverage reports

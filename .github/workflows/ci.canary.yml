@@ -29,11 +29,12 @@ jobs:
       - name: Show contexts
         env:
           HEAD_REF: ${{ github.head_ref }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           echo github.event_name: ${{ github.event_name }}
           echo github.sha: ${{ github.sha }}
           echo github.repository: ${{ github.repository }}
-          echo github.ref: ${{ github.ref }}
+          echo github.ref: "$GITHUB_REF"
           echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
       - name: Use Node.js ${{ matrix.node-version }}

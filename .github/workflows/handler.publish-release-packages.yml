@@ -26,14 +26,16 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Parse Tag
+        env:
+          GITHUB_REF: ${{ github.ref }}
         run: |
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/ethereum-contracts@";then
+          if echo -n "$GITHUB_REF" | grep -qE "refs/tags/ethereum-contracts@";then
             echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> "$GITHUB_ENV"
           fi
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-core@";then
+          if echo -n "$GITHUB_REF" | grep -qE "refs/tags/sdk-core@";then
             echo "PUBLISH_SDK_CORE=1" >> "$GITHUB_ENV"
           fi
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-redux@";then
+          if echo -n "$GITHUB_REF" | grep -qE "refs/tags/sdk-redux@";then
             echo "PUBLISH_SDK_REDUX=1" >> "$GITHUB_ENV"
           fi
 

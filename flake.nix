@@ -3,12 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    flakeUtils.url = "github:numtide/flake-utils";
+    flake-utils.url = "github:numtide/flake-utils";
     foundry.url = "github:shazow/foundry.nix/monthly";
+    foundry.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flakeUtils, foundry } :
-  flakeUtils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, flake-utils, foundry } :
+  flake-utils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs { inherit system; };
     # minimem development shell

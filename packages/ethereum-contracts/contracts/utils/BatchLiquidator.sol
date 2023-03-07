@@ -64,3 +64,63 @@ contract BatchLiquidator {
     }
 }
 
+// v2 reduces calldata by having host and cfa hardcoded
+// this can make a significant difference in tx fees on L2s
+contract BatchLiquidatorV2 {
+
+    address public immutable host;
+    address public immutable cfa;
+
+    constructor(address host_, address cfa_) {
+        host = host_;
+        cfa = cfa_;
+    }
+
+    /**
+     * @dev Delete flows in batch
+     * @param superToken - The super token the flows belong to.
+     * @param senders - List of senders.
+     * @param receivers - Corresponding list of receivers.
+     */
+    function deleteFlows(
+        address superToken,
+        address[] calldata senders, address[] calldata receivers
+    ) external {
+        require(senders.length == receivers.length, "arrays different sizes");
+
+        for (uint i = 0; i < senders.length; ++i) {
+            bool success;
+            // We tolerate any errors occured during liquidations.
+            // It could be due to flow had been liquidated by others.
+            // solhint-disable-next-line avoid-low-level-calls
+            (success, ) = address(host).call(
+                abi.encodeCall(
+                    ISuperfluid(host).callAgreement,
+                    (
+                        ISuperAgreement(cfa),
+                        abi.encodeCall(
+                            IConstantFlowAgreementV1(cfa).deleteFlow,
+                            (
+                                ISuperToken(superToken),
+                                senders[i],
+                                receivers[i],
+                                new bytes(0)
+                            )
+                        ),
+                        new bytes(0)
+                    )
+                )
+            );
+        }
+
+        // If the liquidation(s) resulted in any super token
+        // rewards, send them all to the sender instead of having them
+        // locked in the contract
+        {
+            uint256 balance = ERC20(superToken).balanceOf(address(this));
+            if (balance > 0) {
+                ERC20(superToken).transferFrom(address(this), msg.sender, balance);
+            }
+        }
+    }
+}

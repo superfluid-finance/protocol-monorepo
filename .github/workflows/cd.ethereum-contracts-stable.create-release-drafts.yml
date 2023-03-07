@@ -40,7 +40,7 @@ jobs:
             echo ethereum-contracts unchanged: "$PUBLISHED_ETHEREUM_CONTRACTS_VERSION"
           fi
 
-          echo "name=NEW_ETHEREUM_CONTRACTS_VERSION" >> "$NEW_ETHEREUM_CONTRACTS_VERSION"
+          echo "NEW_ETHEREUM_CONTRACTS_VERSION=$NEW_ETHEREUM_CONTRACTS_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create ethereum-contracts release draft
         if: env.PUBLISH_ETHEREUM_CONTRACTS == 1

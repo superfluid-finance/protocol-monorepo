@@ -59,12 +59,8 @@ contract ToySuperTokenTest is Test {
         vm.warp(t1 + uint256(t2));
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
-        /* emit log_named_uint("a1 - a2", a1 - a2); */
-        /* emit log_named_uint("r", r); */
-        /* emit log_named_uint("t2", t2); */
-        /* emit log_named_uint("r * t2", uint256(r) * uint256(t2)); */
-        assertEq(a1 - a2, uint256(r) * uint256(t2));
-        assertEq(b2 - b1, uint256(r) * uint256(t2));
+        assertEq(a1 - a2, uint256(r) * uint256(t2), "e1");
+        assertEq(b2 - b1, uint256(r) * uint256(t2), "e2");
     }
 
     function testDistribute(int32 u1, int32 u2, uint64 x) external {
@@ -94,8 +90,8 @@ contract ToySuperTokenTest is Test {
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
         uint256 c2 = token.balanceOf(carol);
-        assertEq(a1 - a2, x1);
-        assertEq(b2 - b1 + c2 - c1, x1);
+        assertEq(a1 - a2, x1, "e1");
+        assertEq(b2 - b1 + c2 - c1, x1, "e2");
     }
 
     function testDistributeFlowBothConnected(int32 u1, int32 u2, uint32 r, uint16 t2) external {

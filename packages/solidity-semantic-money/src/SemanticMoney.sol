@@ -235,11 +235,6 @@ library SemanticMoney {
         m.wrapped_particle = m.wrapped_particle.settle(t);
     }
 
-    function rtb(PDPoolIndex memory a, Time t) internal pure returns (Value v) {
-        return a.wrapped_particle.rtb(t).mul(a.total_units);
-    }
-
-
     function shift2(BasicParticle memory a, PDPoolIndex memory b, Value x) internal pure
         returns (BasicParticle memory m, PDPoolIndex memory n, Value x1) {
         if (Unit.unwrap(b.total_units) != 0) {

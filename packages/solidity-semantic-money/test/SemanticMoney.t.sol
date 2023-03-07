@@ -37,7 +37,7 @@ contract SemanticMoneyTest is Test {
         assertTrue(_eqBasicParticle(p1.mappend(p2).mappend(p3), p1.mappend(p2.mappend(p3))));
     }
 
-    function test_u_settle_twice(BasicParticle memory p, uint16 m) external {
+    function test_u_settle_idempotency(BasicParticle memory p, uint16 m) external {
         _assumeSafeParticle(p);
 
         Time t1 = p.settled_at + Time.wrap(m);
@@ -47,12 +47,13 @@ contract SemanticMoneyTest is Test {
         assertTrue(_eqBasicParticle(p1, p2));
     }
 
-    function test_u_constant_rtb(BasicParticle memory p, uint16 m1, uint16 m2) external {
+    function test_u_constant_rtb(BasicParticle memory p, uint16 m1, uint16 m2, uint16 m3) external {
         _assumeSafeParticle(p);
 
         Time t1 = p.settled_at + Time.wrap(m1);
         Time t2 = t1 + Time.wrap(m2);
-        assertEq(Value.unwrap(p.settle(t1).rtb(t2)), Value.unwrap(p.settle(t2).rtb(t2)));
+        Time t3 = t2 + Time.wrap(m3);
+        assertEq(Value.unwrap(p.settle(t1).rtb(t3)), Value.unwrap(p.settle(t2).rtb(t3)));
     }
 
     // Universal Index to Universal Index 2-primitives properties
@@ -156,13 +157,13 @@ contract SemanticMoneyTest is Test {
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u1), d.t1);
         assertEq(Value.unwrap(d.b1.synced_particle.settled_value), 0);
         assertEq(Unit.unwrap(d.b.total_units), u1);
-        assertEq(Unit.unwrap(d.b1.owned_unit), u1);
+        assertEq(Unit.unwrap(d.b1.owned_units), u1);
 
         (d.a, d.b) = op1(d.a, d.b, d.t2,v2);
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
         assertEq(Unit.unwrap(d.b.total_units), u2);
-        assertEq(Unit.unwrap(d.b1.owned_unit), u2);
+        assertEq(Unit.unwrap(d.b1.owned_units), u2);
 
         (d.a, d.b) = op2(d.a, d.b, d.t4,v4);
 
@@ -221,13 +222,13 @@ contract SemanticMoneyTest is Test {
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u1), d.t1);
         assertEq(Value.unwrap(d.b1.synced_particle.settled_value), 0);
         assertEq(Unit.unwrap(d.b.total_units), u1);
-        assertEq(Unit.unwrap(d.b1.owned_unit), u1);
+        assertEq(Unit.unwrap(d.b1.owned_units), u1);
 
         (d.a, d.b) = op1(d.a, d.b, d.t2, v2);
 
         (d.b, d.b2, d.a) = PDPoolMemberMU(d.b, d.b2).pool_member_update(d.a, Unit.wrap(u2), d.t3);
         assertEq(Unit.unwrap(d.b.total_units), int256(u1) + int256(u2));
-        assertEq(Unit.unwrap(d.b2.owned_unit), u2);
+        assertEq(Unit.unwrap(d.b2.owned_units), u2);
 
         (d.a, d.b) = op2(d.a, d.b, d.t4, v4);
 

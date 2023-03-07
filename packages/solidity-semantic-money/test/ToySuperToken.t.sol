@@ -2,9 +2,9 @@
 pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
-import "../src/SuperToken.sol";
+import "../src/ToySuperToken.sol";
 
-contract SuperTokenTest is Test {
+contract ToySuperTokenTest is Test {
     address internal constant admin = address(0x420);
     address internal constant alice = address(0x421);
     address internal constant bob = address(0x422);
@@ -18,15 +18,15 @@ contract SuperTokenTest is Test {
     uint internal immutable N_TESTERS;
 
     address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
-    SuperToken internal token;
-    Pool internal pl;
+    ToySuperToken internal token;
+    ToySuperTokenPool internal pl;
 
     constructor () {
         N_TESTERS = TEST_ACCOUNTS.length;
     }
 
     function setUp() public {
-        token = new SuperToken();
+        token = new ToySuperToken();
         for (uint i = 1; i < N_TESTERS; ++i) {
             vm.startPrank(admin);
             token.transfer(TEST_ACCOUNTS[i], type(uint64).max);
@@ -78,8 +78,8 @@ contract SuperTokenTest is Test {
         uint256 c1 = token.balanceOf(carol);
 
         vm.startPrank(alice);
-        pl.updatePoolMember(bob, Unit.wrap(u1));
-        pl.updatePoolMember(carol, Unit.wrap(u2));
+        pl.updateMember(bob, Unit.wrap(u1));
+        pl.updateMember(carol, Unit.wrap(u2));
         token.distribute(alice, pl, Value.wrap(int(uint(x))));
         vm.stopPrank();
 
@@ -98,7 +98,7 @@ contract SuperTokenTest is Test {
         assertEq(b2 - b1 + c2 - c1, x1);
     }
 
-    function testDistributeFlow(int32 u1, int32 u2, uint32 r, uint16 t2) external {
+    function testDistributeFlowBothConnected(int32 u1, int32 u2, uint32 r, uint16 t2) external {
         vm.assume(u1 >= 0);
         vm.assume(u2 >= 0);
         uint tu = uint(int(u1) + int(u2));
@@ -109,12 +109,15 @@ contract SuperTokenTest is Test {
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
         uint256 c1 = token.balanceOf(carol);
+        uint256 p1 = token.balanceOf(address(pl));
 
         vm.startPrank(alice);
-        pl.updatePoolMember(bob, Unit.wrap(u1));
-        pl.updatePoolMember(carol, Unit.wrap(u2));
+        pl.updateMember(bob, Unit.wrap(u1));
+        pl.updateMember(carol, Unit.wrap(u2));
         token.distributeFlow(alice, pl, FlowId.wrap(0), FlowRate.wrap(int128(uint128(r))));
         vm.stopPrank();
+
+        assertEq(Unit.unwrap(pl.pendingUnits()), int(tu), "e1");
 
         vm.startPrank(bob);
         token.connectPool(pl);
@@ -124,12 +127,51 @@ contract SuperTokenTest is Test {
         token.connectPool(pl);
         vm.stopPrank();
 
+        assertEq(Unit.unwrap(pl.pendingUnits()), 0, "e2");
+
         vm.warp(t1 + uint256(t2));
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
         uint256 c2 = token.balanceOf(carol);
-        assertEq(a1 - a2, uint256(r1) * uint256(t2));
-        assertEq(b2 - b1 + c2 - c1, uint256(r1) * uint256(t2));
+        uint256 p2 = token.balanceOf(address(pl));
+        assertEq(a1 - a2, uint256(r1) * uint256(t2), "e3");
+        assertEq(b2 - b1 + c2 - c1 + p2 - p1, uint256(r1) * uint256(t2), "e4");
     }
 
+    function testDistributeFlowWithSomeConnected(int32 u1, int32 u2, uint32 r, uint16 t2) external {
+        vm.assume(u1 >= 0);
+        vm.assume(u2 >= 0);
+        uint tu = uint(int(u1) + int(u2));
+        vm.assume(tu > 0);
+        int r1 = int(uint(r) / tu * tu);
+        uint256 t1 = block.timestamp;
+
+        uint256 a1 = token.balanceOf(alice);
+        uint256 b1 = token.balanceOf(bob);
+        uint256 c1 = token.balanceOf(carol);
+        uint256 p1 = token.balanceOf(address(pl));
+
+        vm.startPrank(alice);
+        pl.updateMember(bob, Unit.wrap(u1));
+        pl.updateMember(carol, Unit.wrap(u2));
+        token.distributeFlow(alice, pl, FlowId.wrap(0), FlowRate.wrap(int128(uint128(r))));
+        vm.stopPrank();
+
+        assertEq(Unit.unwrap(pl.pendingUnits()), int(tu), "e1");
+
+        vm.startPrank(bob);
+        token.connectPool(pl);
+        vm.stopPrank();
+
+        assertEq(Unit.unwrap(pl.pendingUnits()), int(u2), "e2");
+
+        vm.warp(t1 + uint256(t2));
+        uint256 a2 = token.balanceOf(alice);
+        uint256 b2 = token.balanceOf(bob);
+        uint256 c2 = token.balanceOf(carol);
+        uint256 p2 = token.balanceOf(address(pl));
+        assertEq(a1 - a2, uint256(r1) * uint256(t2), "e3");
+        assertEq(c2 - c1, 0, "e4");
+        assertEq(b2 - b1 + c2 - c1 + p2 - p1, uint256(r1) * uint256(t2), "e5");
+    }
 }

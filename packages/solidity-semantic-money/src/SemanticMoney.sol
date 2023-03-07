@@ -121,7 +121,7 @@ struct PDPoolIndex {
  * @dev Proportional distribution pool member data.
  */
 struct PDPoolMember {
-    Unit          owned_unit;
+    Unit          owned_units;
     Value         settled_value;
     // It is a copy of the wrapped_particle of the index at the time an operation is performed.
     BasicParticle synced_particle;
@@ -235,6 +235,11 @@ library SemanticMoney {
         m.wrapped_particle = m.wrapped_particle.settle(t);
     }
 
+    function rtb(PDPoolIndex memory a, Time t) internal pure returns (Value v) {
+        return a.wrapped_particle.rtb(t).mul(a.total_units);
+    }
+
+
     function shift2(BasicParticle memory a, PDPoolIndex memory b, Value x) internal pure
         returns (BasicParticle memory m, PDPoolIndex memory n, Value x1) {
         if (Unit.unwrap(b.total_units) != 0) {
@@ -269,7 +274,7 @@ library SemanticMoney {
 
     /// Pure data clone function.
     function clone(PDPoolMember memory a) internal pure returns (PDPoolMember memory b) {
-        b.owned_unit = a.owned_unit;
+        b.owned_units = a.owned_units;
         b.settled_value = a.settled_value;
         b.synced_particle = a.synced_particle.clone();
     }
@@ -282,7 +287,7 @@ library SemanticMoney {
         b.i = a.i.clone();
         b.m = a.m.clone();
         b.m.settled_value = (a.i.wrapped_particle.rtb(t) - a.m.synced_particle.rtb(t))
-            .mul(a.m.owned_unit);
+            .mul(a.m.owned_units);
     }
 
     /// Monetary unit rtb function for pool member.
@@ -291,7 +296,7 @@ library SemanticMoney {
     {
         return a.m.settled_value +
             (a.i.wrapped_particle.rtb(t) - a.m.synced_particle.rtb(a.m.synced_particle.settled_at))
-            .mul(a.m.owned_unit);
+            .mul(a.m.owned_units);
     }
 
     /// Update the unit amount of the member of the pool
@@ -300,7 +305,7 @@ library SemanticMoney {
         returns (PDPoolIndex memory p, PDPoolMember memory p1, BasicParticle memory b)
     {
         Unit oldTotalUnit = b1.i.total_units;
-        Unit newTotalUnit = oldTotalUnit + u - b1.m.owned_unit;
+        Unit newTotalUnit = oldTotalUnit + u - b1.m.owned_units;
         PDPoolMemberMU memory b1s = PDPoolMemberMU(b1.i.settle(t), b1.m).settle(t);
 
         // align "a" because of the change of total units of the pool
@@ -319,7 +324,7 @@ library SemanticMoney {
 
         p = b1s.i;
         p1 = b1s.m;
-        p1.owned_unit = u;
+        p1.owned_units = u;
         p1.synced_particle = b1s.i.wrapped_particle.clone();
     }
 }

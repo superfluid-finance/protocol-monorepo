@@ -72,7 +72,9 @@ export const initializeTestEnvironment = async () => {
     const signers = await ethers.getSigners();
 
     console.log("Deploy Superfluid Test Framework...");
-    testEnv.superfluidFrameworkDeployer = await deployContractsAndToken() as SuperfluidFrameworkDeployer;
+    const result = await deployContractsAndToken();
+    testEnv.superfluidFrameworkDeployer =
+        result.deployer as SuperfluidFrameworkDeployer;
 
     console.log("Initialize Signers...");
     [testEnv.alice, testEnv.bob, testEnv.charlie] = signers;
@@ -127,7 +129,7 @@ export const initializeTestEnvironment = async () => {
                 testEnv.wrapperSuperToken.address,
                 testEnv.constants.INITIAL_TOKEN_BALANCE
             );
-        
+
         // distribute pure super tokens from deployer
         await testEnv.pureSuperToken
             .transfer({
@@ -135,7 +137,7 @@ export const initializeTestEnvironment = async () => {
                 receiver: user.address,
             })
             .exec(testEnv.alice);
-        
+
         // upgrade wrapper super token
         await testEnv.wrapperSuperToken
             .upgrade({

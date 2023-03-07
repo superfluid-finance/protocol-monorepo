@@ -3,7 +3,7 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {BigNumber, BigNumberish, ContractTransaction} from "ethers";
 import {ethers, expect} from "hardhat";
 
-import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
+import {expectCustomError} from "../../utils/expectRevert";
 import {toBN} from "../utils/helpers";
 
 export function shouldBehaveLikeERC20(
@@ -177,12 +177,11 @@ export function shouldBehaveLikeERC20(
                         const amount = initialSupply;
 
                         it("reverts", async function () {
-                            await expectRevertedWith(
+                            await expect(
                                 this.token
                                     .connect(spenderSigner)
-                                    .transferFrom(tokenOwner, to, amount),
-                                "SuperToken: transfer amount exceeds allowance"
-                            );
+                                    .transferFrom(tokenOwner, to, amount)
+                            ).to.be.revertedWithPanic("0x11");
                         });
                     });
 

@@ -6,8 +6,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Unreleased
 
 ### Added
-- New ACL functions: `increaseFlowRateAllowance` and `decreaseFlowRateAllowance`
-- Support for `increaseAllowance` and `decreaseAllowance` in `batchCall`
+- New ACL functions: `increaseFlowRateAllowance` and `decreaseFlowRateAllowance` in `ConstantFlowAgreementV1.sol`
+- Support for `superToken.increaseAllowance` and `superToken.decreaseAllowance` in `batchCall` in `Superfluid.sol`
 
 ### [v1.5.1] - 2023-02-28
 

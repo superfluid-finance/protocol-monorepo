@@ -159,7 +159,19 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
 
     settledAt (_, PDPoolMember _ _ mps)= settledAt mps
 
-    rtb (PDPoolIndex _ mpi, PDPoolMember u sv mps) t' = sv +
+    rtb mu t' = pdpIndexRTB mu t' + pdpMemberRTB mu t'
+
+pdpIndexRTB :: ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
+               , MonetaryUnit mt t v wp
+               , mu ~ PDPoolMemberMU mt wp
+               ) => mu -> t -> v
+pdpIndexRTB (pdidx, _) = rtb pdidx
+
+pdpMemberRTB :: ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
+                , MonetaryUnit mt t v wp
+                , mu ~ PDPoolMemberMU mt wp
+                ) => mu -> t -> v
+pdpMemberRTB (PDPoolIndex _ mpi, PDPoolMember u sv mps) t' = sv +
         -- let ti = rtb_settled_at mpi
         --     ts = rtb_settled_at mps
         -- in (rtb mpi t' - rtb mps ti) -- include index's current accruals for the member

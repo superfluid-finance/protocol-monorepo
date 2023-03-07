@@ -149,8 +149,8 @@ jobs:
             packages/ethereum-contracts/coverage/
 
   coverage-sdk-core:
-    uses: ./.github/workflows/call.test-automation-contracts.yml
-    name: Build and Test Automation Contracts (Canary Branch)
+    uses: ./.github/workflows/call.test-sdk-core.yml@dev
+    name: Build and Test SDK-Core Coverage (Canary Branch)
     with: 
       subgraph-release: local
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test

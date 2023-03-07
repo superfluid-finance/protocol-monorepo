@@ -69,7 +69,7 @@ jobs:
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@dev
     name: Build and Test SDK-Core (Development Branch)
     with:
-      subgraph-release: v1
+      subgraph-release: local
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   check:

@@ -65,7 +65,7 @@ jobs:
           # Build documentation with redirect from root
           yarn --cwd packages/sdk-core doc:html
           mkdir sdk-core-redirect
-          printf '<!DOCTYPE html><html><head><title>Redirecting...</title><meta charset="UTF-8"><meta http-equiv="refresh" content="0;URL='https://refs.superfluid.finance/sdk-core@$PUBLISHED_VERSION'" /><meta http-equiv="Cache-Control" content="no-store" /></head><body><p>Redirecting to latest documentation...</p></body></html>' \
+          printf '<!DOCTYPE html><html><head><title>Redirecting...</title><meta charset="UTF-8"><meta http-equiv="refresh" content="0;URL=%s" /><meta http-equiv="Cache-Control" content="no-store" /></head><body><p>Redirecting to latest documentation...</p></body></html>' "https://refs.superfluid.finance/sdk-core@$PUBLISHED_VERSION" \
           > sdk-core-redirect/index.html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -110,7 +110,7 @@ jobs:
           # Build documentation with redirect from root
           yarn --cwd packages/sdk-redux doc:html
           mkdir sdk-redux-redirect
-          printf '<!DOCTYPE html><html><head><title>Redirecting...</title><meta charset="UTF-8"><meta http-equiv="refresh" content="0;URL='https://refs.superfluid.finance/sdk-redux@$PUBLISHED_VERSION'" /><meta http-equiv="Cache-Control" content="no-store" /></head><body><p>Redirecting to latest documentation...</p></body></html>' \
+          printf '<!DOCTYPE html><html><head><title>Redirecting...</title><meta charset="UTF-8"><meta http-equiv="refresh" content="0;URL=%s" /><meta http-equiv="Cache-Control" content="no-store" /></head><body><p>Redirecting to latest documentation...</p></body></html>' "https://refs.superfluid.finance/sdk-redux@$PUBLISHED_VERSION" \
           > sdk-redux-redirect/index.html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

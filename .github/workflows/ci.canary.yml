@@ -278,7 +278,7 @@ jobs:
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           preId=dev.${shortRev}
-          yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
+          yarn lerna version prerelease --yes --no-git-tag-version --preid "${preId}"
 
       - name: Publish to npm
         run: |

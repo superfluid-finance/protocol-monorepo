@@ -54,7 +54,7 @@ jobs:
             echo "PUBLISHED_SDK_CORE_VERSION=1" >> "$GITHUB_ENV"
             echo "sdk-core changed: $PUBLISHED_SDK_CORE_VERSION -> $NEW_SDK_CORE_VERSION"
           else
-            echo sdk-core unchanged: $PUBLISHED_SDK_CORE_VERSION
+            echo sdk-core unchanged: "$PUBLISHED_SDK_CORE_VERSION"
           fi
 
           echo "NEW_SDK_CORE_VERSION=$NEW_SDK_CORE_VERSION" >> "$GITHUB_OUTPUT"

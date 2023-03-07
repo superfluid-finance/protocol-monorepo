@@ -37,7 +37,7 @@ jobs:
             echo "PUBLISHED_SDK_REDUX_VERSION=1" >> "$GITHUB_ENV"
             echo "sdk-redux changed: $PUBLISHED_SDK_REDUX_VERSION -> $NEW_SDK_REDUX_VERSION"
           else
-            echo sdk-redux unchanged: $PUBLISHED_SDK_REDUX_VERSION
+            echo sdk-redux unchanged: "$PUBLISHED_SDK_REDUX_VERSION"
           fi
 
           echo "NEW_SDK_REDUX_VERSION=$NEW_SDK_REDUX_VERSION" >> "$GITHUB_OUTPUT"

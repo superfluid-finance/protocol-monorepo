@@ -107,7 +107,7 @@ jobs:
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
-          yarn deploy:to-satsuma ${versionLabel} ${{ inputs.network }}
+          yarn deploy:to-satsuma "${versionLabel}" ${{ inputs.network }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

@@ -57,7 +57,7 @@ jobs:
           prNumber=${{ github.event.number }}
           shortRev=$(git rev-parse --short ${{ github.sha }})
           preId=PR${prNumber}.${shortRev}
-          yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
+          yarn lerna version prerelease --yes --no-git-tag-version --preid "${preId}"
 
       - name: Create packages
         if: env.PUBLISH_PR_ARTIFACT == 1
@@ -68,9 +68,9 @@ jobs:
           for d in packages/ethereum-contracts packages/sdk-core packages/sdk-redux; do (
             cd "$d"
             tgz=$(npm pack)
-            cp $tgz "../../$dirName/"
+            cp "$tgz" "../../$dirName/"
           ) done
-          cd $dirName
+          cd "$dirName"
           sha="${{ github.event.pull_request.head.sha }}"
           for f in * ; do
             mv -- "$f" "${f%.tgz}-${sha:0:7}.tgz"

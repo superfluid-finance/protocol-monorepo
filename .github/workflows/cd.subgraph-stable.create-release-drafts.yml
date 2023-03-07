@@ -30,7 +30,7 @@ jobs:
         run: |
           # subgraph
           NEW_SUBGRAPH_VERSION=$(jq -r .version packages/subgraph/package.json)
-          if git tag | grep -e "^subgraph" | grep v$NEW_SUBGRAPH_VERSION;then
+          if git tag | grep -e "^subgraph" | grep v"$NEW_SUBGRAPH_VERSION";then
             echo subgraph version exists
           else
             echo "PUBLISHED_SUBGRAPH_VERSION=1" >> "$GITHUB_ENV"

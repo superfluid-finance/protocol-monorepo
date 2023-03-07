@@ -71,8 +71,11 @@ jobs:
 
       - name: "Run test suite"
         run: |
+          npx hardhat compile
+          # artificial slow down to give the subgraph time to sync
+          yarn build
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
-          ./tasks/setupTestEnvironment.sh
+          yarn generate:graphql-types
           npx hardhat test --network localhost
         working-directory: ${{ env.sdk-core-working-directory }}
         env:

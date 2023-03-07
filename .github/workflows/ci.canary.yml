@@ -27,12 +27,15 @@ jobs:
           submodules: recursive
 
       - name: Show contexts
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           echo github.event_name: ${{ github.event_name }}
           echo github.sha: ${{ github.sha }}
           echo github.repository: ${{ github.repository }}
-          echo github.ref: ${{ github.ref }}
-          echo github.head_ref: ${{ github.head_ref }}
+          echo github.ref: "$GITHUB_REF"
+          echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -66,7 +69,7 @@ jobs:
     uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@dev
     name: Build and Test SDK-Core (Development Branch)
     with:
-      subgraph-release: v1
+      subgraph-release: local
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   check:
@@ -276,7 +279,7 @@ jobs:
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           preId=dev.${shortRev}
-          yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
+          yarn lerna version prerelease --yes --no-git-tag-version --preid "${preId}"
 
       - name: Publish to npm
         run: |

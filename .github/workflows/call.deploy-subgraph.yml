@@ -35,12 +35,15 @@ jobs:
 
     steps:
       - name: Show contexts
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           echo github.event_name: ${{ github.event_name }}
           echo github.sha: ${{ github.sha }}
           echo github.repository: ${{ github.repository }}
-          echo github.ref: ${{ github.ref }}
-          echo github.head_ref: ${{ github.head_ref }}
+          echo github.ref: "$GITHUB_REF"
+          echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
 
   build-and-test-local-subgraph:
@@ -58,7 +61,7 @@ jobs:
     name: Deploy Subgraph
 
     runs-on: ubuntu-latest
-    needs: [ build-and-test-dev-endpoint-subgraph
+    needs: [ build-and-test-local-subgraph
            , build-and-test-local-subgraph-against-previous-sdk-core-releases
            ]
 
@@ -105,7 +108,7 @@ jobs:
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
-          yarn deploy:to-satsuma ${versionLabel} ${{ inputs.network }}
+          yarn deploy:to-satsuma "${versionLabel}" ${{ inputs.network }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

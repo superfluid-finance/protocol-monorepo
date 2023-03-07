@@ -27,10 +27,6 @@ export interface Token {
     name: string;
     symbol: string;
     underlyingAddress: Address;
-    rewardAddress: Address | null;
-    liquidationPeriod: BigNumber | null;
-    patricianPeriod: BigNumber | null;
-    minimumDeposit: BigNumber | null;
 }
 
 export type TokenListQuery = SubgraphListQuery<Token_Filter, Token_OrderBy>;
@@ -61,26 +57,6 @@ export class TokenQueryHandler extends SubgraphQueryHandler<
             ...x,
             createdAtBlockNumber: Number(x.createdAtBlockNumber),
             createdAtTimestamp: Number(x.createdAtTimestamp),
-            rewardAddress:
-                x.governanceConfig == null ||
-                x.governanceConfig.rewardAddress == null
-                    ? null
-                    : x.governanceConfig.rewardAddress,
-            liquidationPeriod:
-                x.governanceConfig == null ||
-                x.governanceConfig.liquidationPeriod == null
-                    ? null
-                    : x.governanceConfig.liquidationPeriod,
-            patricianPeriod:
-                x.governanceConfig == null ||
-                x.governanceConfig.patricianPeriod == null
-                    ? null
-                    : x.governanceConfig.patricianPeriod,
-            minimumDeposit:
-                x.governanceConfig == null ||
-                x.governanceConfig.minimumDeposit == null
-                    ? null
-                    : x.governanceConfig.minimumDeposit,
         }));
 
     requestDocument = TokensDocument;

@@ -149,7 +149,7 @@ jobs:
             packages/ethereum-contracts/coverage/
 
   coverage-sdk-core:
-    uses: ./.github/workflows/call.test-sdk-core.yml@dev
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@dev
     name: Build and Test SDK-Core Coverage (Canary Branch)
     with: 
       subgraph-release: local

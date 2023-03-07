@@ -58,7 +58,7 @@ jobs:
     name: Deploy Subgraph
 
     runs-on: ubuntu-latest
-    needs: [ build-and-test-dev-endpoint-subgraph
+    needs: [ build-and-test-local-subgraph
            , build-and-test-local-subgraph-against-previous-sdk-core-releases
            ]
 

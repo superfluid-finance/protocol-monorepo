@@ -1,9 +1,4 @@
-import {
-    Address,
-    BigNumber,
-    BlockNumber,
-    Timestamp,
-} from "../../mappedSubgraphTypes";
+import { Address, BlockNumber, Timestamp } from "../../mappedSubgraphTypes";
 import { Token_Filter, Token_OrderBy } from "../../schema.generated";
 import {
     RelevantAddressesIntermediate,

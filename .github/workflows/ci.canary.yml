@@ -9,7 +9,7 @@ on:
       # - "**.md" commented-out because README updates should go to the packages
       - ".github/workflows/ci.canary.yml"
       - "codecov.yml"
-      - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
+      - ".github/workflows/call.test-local-subgraph.yml"
 
 jobs:
   essential-build-and-test:
@@ -27,12 +27,15 @@ jobs:
           submodules: recursive
 
       - name: Show contexts
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           echo github.event_name: ${{ github.event_name }}
           echo github.sha: ${{ github.sha }}
           echo github.repository: ${{ github.repository }}
-          echo github.ref: ${{ github.ref }}
-          echo github.head_ref: ${{ github.head_ref }}
+          echo github.ref: "$GITHUB_REF"
+          echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -49,7 +52,6 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn lint
-          yarn --cwd packages/sdk-core generate-graphql-schema:dev
           yarn build
           yarn test
         env:
@@ -60,25 +62,15 @@ jobs:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
 
   test-subgraph:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-local-subgraph.yml@dev
     name: Build and Test Subgraph (Development Branch)
-    with:
-      subgraph-release: ''
-      run-sdk-core-tests: false
 
-  test-subgraph-on-previous-sdk-core-versions:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Query Schema and Queries Against Local and Deployed Dev Subgraphs with Previous SDK-Core Versions
+  test-sdk-core:
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@dev
+    name: Build and Test SDK-Core (Development Branch)
     with:
-      subgraph-release: dev
-      subgraph-endpoint: ''
-
-  # test query and subgraph schemas are in sync and query works
-  test-query-schema-against-deployed-dev-subgraphs:
-    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
-    name: "Test Query Schema and Queries Against Local and Deployed Dev Subgraphs"
-    with:
-      subgraph-release: dev
+      subgraph-release: local
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   check:
     name: Checking what packages need to be built
@@ -99,7 +91,7 @@ jobs:
   deploy-subgraph-changes:
     uses: ./.github/workflows/call.deploy-subgraph.yml
     name: "Deploy Subgraph to all dev endpoints"
-    needs: [check, test-subgraph, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-dev-subgraphs]
+    needs: [check, test-subgraph]
     if: needs.check.outputs.build_subgraph
     with:
       release_branch: dev
@@ -287,7 +279,7 @@ jobs:
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           preId=dev.${shortRev}
-          yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
+          yarn lerna version prerelease --yes --no-git-tag-version --preid "${preId}"
 
       - name: Publish to npm
         run: |

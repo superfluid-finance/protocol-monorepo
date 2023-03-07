@@ -21,7 +21,7 @@ function testSchemaAndQueries() {
     # attempt to generate types with schema.graphql generated in previous step and .graphql files in entities folders
     yarn generate:graphql-types
     # attempt to run queries with desired endpoint
-    export SUBGRAPH_ENDPOINT=$SUBGRAPH_ENDPOINT && npx hardhat test previous-versions-testing/runQueryTests.ts
+    export SUBGRAPH_ENDPOINT=$SUBGRAPH_ENDPOINT && npx hardhat test previous-versions-testing/queryTests.ts
 }
 
 # for sdk-core releases: test deployed subgraphs

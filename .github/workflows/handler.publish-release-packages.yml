@@ -28,13 +28,13 @@ jobs:
       - name: Parse Tag
         run: |
           if echo -n "${{ github.ref }}" | grep -qE "refs/tags/ethereum-contracts@";then
-            echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
+            echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> "$GITHUB_ENV"
           fi
           if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-core@";then
-            echo "PUBLISH_SDK_CORE=1" >> $GITHUB_ENV
+            echo "PUBLISH_SDK_CORE=1" >> "$GITHUB_ENV"
           fi
           if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-redux@";then
-            echo "PUBLISH_SDK_REDUX=1" >> $GITHUB_ENV
+            echo "PUBLISH_SDK_REDUX=1" >> "$GITHUB_ENV"
           fi
 
       - name: Install dependencies
@@ -58,9 +58,9 @@ jobs:
           yarn --cwd packages/sdk-core build
           tasks/npm-publish.sh packages/sdk-core/ latest
 
-          PUBLISHED_VERSION=`jq -r .version packages/sdk-core/package.json`
+          PUBLISHED_VERSION=$(jq -r .version packages/sdk-core/package.json)
           
-          echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> $GITHUB_OUTPUT
+          echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> "$GITHUB_OUTPUT"
 
           # Build documentation with redirect from root
           yarn --cwd packages/sdk-core doc:html
@@ -103,9 +103,9 @@ jobs:
           yarn --cwd packages/sdk-redux build
           tasks/npm-publish.sh packages/sdk-redux/ latest
 
-          PUBLISHED_VERSION=`jq -r .version packages/sdk-redux/package.json`
+          PUBLISHED_VERSION=$(jq -r .version packages/sdk-redux/package.json)
           
-          echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> $GITHUB_OUTPUT
+          echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> "$GITHUB_OUTPUT"
 
           # Build documentation with redirect from root
           yarn --cwd packages/sdk-redux doc:html

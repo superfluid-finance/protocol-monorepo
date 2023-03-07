@@ -48,16 +48,16 @@ jobs:
         id: check_versions
         run: |
           # sdk-core
-          PUBLISHED_SDK_CORE_VERSION=`npm show @superfluid-finance/sdk-core@latest version`
-          NEW_SDK_CORE_VERSION=`jq -r .version packages/sdk-core/package.json`
+          PUBLISHED_SDK_CORE_VERSION=$(npm show @superfluid-finance/sdk-core@latest version)
+          NEW_SDK_CORE_VERSION=$(jq -r .version packages/sdk-core/package.json)
           if [ "$PUBLISHED_SDK_CORE_VERSION" != "$NEW_SDK_CORE_VERSION" ];then
-            echo "PUBLISHED_SDK_CORE_VERSION=1" >> $GITHUB_ENV
+            echo "PUBLISHED_SDK_CORE_VERSION=1" >> "$GITHUB_ENV"
             echo "sdk-core changed: $PUBLISHED_SDK_CORE_VERSION -> $NEW_SDK_CORE_VERSION"
           else
             echo sdk-core unchanged: $PUBLISHED_SDK_CORE_VERSION
           fi
 
-          echo "NEW_SDK_CORE_VERSION=$NEW_SDK_CORE_VERSION" >> $GITHUB_OUTPUT
+          echo "NEW_SDK_CORE_VERSION=$NEW_SDK_CORE_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create sdk-core stable release draft
         if: env.PUBLISHED_SDK_CORE_VERSION == 1

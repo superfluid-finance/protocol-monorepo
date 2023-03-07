@@ -32,7 +32,7 @@ jobs:
           echo github.sha: ${{ github.sha }}
           echo github.repository: ${{ github.repository }}
           echo github.ref: ${{ github.ref }}
-          echo github.head_ref: $HEAD_REF
+          echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
 
       - name: Download artifact
@@ -49,8 +49,8 @@ jobs:
           n_packages=$(ls pr-packages/$pr_number | wc -l)
           echo pr_number: $pr_number
           echo n_packages: $n_packages
-          echo "pr_number=$pr_number" >> $GITHUB_OUTPUT
-          echo "n_packages=$n_packages" >> $GITHUB_OUTPUT
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "n_packages=$n_packages" >> "$GITHUB_OUTPUT"
 
       - name: Publish to github
         run: |

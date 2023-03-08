@@ -16,6 +16,7 @@ import           Data.Kind    (Type)
 class ( Integral (MT_TIME  mt)
       , Integral (MT_VALUE mt)
       , Integral (MT_UNIT  mt)
+      -- FIXME add FlowRate type
       ) => MonetaryTypes mt where
     mt_v_mul_t :: MT_VALUE mt -> MT_TIME mt -> MT_VALUE mt
     mt_v_mul_t v t = v * (fromInteger . toInteger) t
@@ -36,9 +37,10 @@ class ( Integral (MT_TIME  mt)
 
 class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
       ) => MonetaryUnit mt t v mu | mu -> mt where
-    settle    :: t -> mu -> mu
-    settledAt :: mu -> t
-    rtb       :: mu -> t -> v
+    settle      :: t -> mu -> mu
+    settledAt   :: mu -> t
+    getFlowRate :: mu -> v
+    rtb         :: mu -> t -> v
 
  -- * On right side biased operations:
  --   1) Right side produces error term with which left side is adjusted accordingly.
@@ -46,12 +48,8 @@ class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
 
 class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
       , MonetaryUnit mt t v ix
-      , Default ix
       ) => Index mt t v u ix | ix -> mt where
-    -- shift 1-primitive
     shift1      :: v -> ix -> (ix, v)
-    -- (constant) flow 1-primitive
-    getFlowRate :: ix -> v
     flow1    :: v -> ix -> (ix, v)
 
 class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
@@ -117,6 +115,7 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
          , MonetaryUnit mt t v wp) => MonetaryUnit mt t v (PDPoolIndex mt wp) where
     settle t' a@(PDPoolIndex _ mpi) = a { pdidx_wp = settle t' mpi }
     settledAt (PDPoolIndex _ mpi) = settledAt mpi
+    getFlowRate (PDPoolIndex _ mpi) = getFlowRate mpi
     rtb (PDPoolIndex _ mpi) = rtb mpi
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
@@ -124,8 +123,6 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
 
     shift1 x a@(PDPoolIndex tu mpi) = (a { pdidx_wp = mpi' }, x' `mt_v_mul_u` tu)
         where (mpi', x') = if tu == 0 then (mpi, 0) else shift1 (x `mt_v_div_u` tu) mpi
-
-    getFlowRate (PDPoolIndex _ mpi) = getFlowRate mpi
 
     flow1 r' a@(PDPoolIndex tu mpi) = (a { pdidx_wp = mpi' }, r'' `mt_v_mul_u` tu)
         where (mpi', r'') = if tu == 0 then (mpi, 0) else flow1 (r' `mt_v_div_u` tu) mpi
@@ -145,11 +142,11 @@ pdpUpdateMember2 :: ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_
                     , mu ~ PDPoolMemberMU mt wp
                     ) => u -> t -> (a, mu) -> (a, mu)
 pdpUpdateMember2 u' t' (a, (b, pm))  = (a'', (b'', pm''))
-    where (PDPoolIndex tu mpi, pm'1@(PDPoolMember u _ _)) = settle t' (b, pm)
+    where (PDPoolIndex tu mpi, pm'@(PDPoolMember u _ _)) = settle t' (b, pm)
           tu' = tu + u' - u
           (mpi', a'') = align2 tu tu' (mpi, settle t' a)
           b''  = PDPoolIndex tu' mpi'
-          pm'' = pm'1 { pdpm_owned_unit = u', pdpm_synced_wp = mpi' }
+          pm'' = pm' { pdpm_owned_unit = u', pdpm_synced_wp = mpi' }
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
          , MonetaryUnit mt t v wp) => MonetaryUnit mt t v (PDPoolMemberMU mt wp) where
@@ -157,7 +154,9 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
         where sv' = (rtb mpi t' - rtb mps t') `mt_v_mul_u` u
               pm' = pm { pdpm_settled_value = sv' }
 
-    settledAt (_, PDPoolMember _ _ mps)= settledAt mps
+    settledAt (PDPoolIndex _ mpi, _) = settledAt mpi
+
+    getFlowRate (PDPoolIndex _ mpi, PDPoolMember u _ _) = getFlowRate mpi `mt_v_mul_u` u
 
     rtb (PDPoolIndex _ mpi, PDPoolMember u sv mps) t' = sv +
         -- let ti = bp_settled_at mpi
@@ -176,7 +175,7 @@ data BasicParticle mt = BasicParticle { bp_settled_at    :: MT_TIME  mt
                                       , bp_flow_rate     :: MT_VALUE mt
                                       }
 
-deriving instance MonetaryTypes mt => Eq (BasicParticle mt)
+deriving stock instance MonetaryTypes mt => Eq (BasicParticle mt)
 
 instance MonetaryTypes mt => Semigroup (BasicParticle mt) where
     a@(BasicParticle t1 _ _) <> b@(BasicParticle t2 _ _) = BasicParticle t' (sv1 + sv2) (r1 + r2)
@@ -188,23 +187,19 @@ instance MonetaryTypes mt => Semigroup (BasicParticle mt) where
 instance MonetaryTypes mt => Monoid (BasicParticle mt) where
     mempty = BasicParticle 0 0 0
 
-instance MonetaryTypes mt => Default (BasicParticle mt) where def = mempty
-
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
          ) => MonetaryUnit mt t v (BasicParticle mt) where
     settle t' a = a { bp_settled_at = t'
                     , bp_settled_value = rtb a t'
                     }
     settledAt = bp_settled_at
+    getFlowRate = bp_flow_rate
     rtb (BasicParticle t s r) t' = r `mt_v_mul_t` (t' - t) + s
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
          ) => Index mt t v u (BasicParticle mt) where
 
     shift1 x a = (a { bp_settled_value = bp_settled_value a + x }, x)
-
-    getFlowRate = bp_flow_rate
-
     flow1 r' a = (a { bp_flow_rate = r' }, r')
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt

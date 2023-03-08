@@ -11,46 +11,54 @@ import           Money.Theory.TestMonetaryTypes
 
 
 --------------------------------------------------------------------------------
--- Monoidal laws for basic particle
---------------------------------------------------------------------------------
-
-bp_monoid_identity a = a == a <> (mempty :: TestUniversalIndex) &&
-                         a == (mempty :: TestUniversalIndex) <> a
-
-bp_monoid_assoc a b c = ((a :: TestUniversalIndex) <> b) <> c == a <> (b <> c)
-
-bp_monoid_laws = describe "basic particle monoidal laws" $ do
-    it "uidx monoid identity law" $ property bp_monoid_identity
-    it "uidx monoid associativity law" $ property bp_monoid_assoc
-
---------------------------------------------------------------------------------
--- Settle idempotency, constant rtb laws for all monetary units
+-- Monetary Units Laws: settle-idempotency, constant-rtb
 --------------------------------------------------------------------------------
 
 mu_settle_idempotency :: ( MonetaryUnit TestMonetaryTypes TestTime TestMValue mu
                       , Eq mu
                       ) => mu -> TestTime -> Bool
-mu_settle_idempotency a t = settle t a == settle t (settle t a)
+mu_settle_idempotency a t = settle t a == settle t (settle t a) && settledAt (settle t a) == t
 mu_constant_rtb :: ( MonetaryUnit TestMonetaryTypes TestTime TestMValue mu
                    ) => mu -> TestTime -> TestTime -> TestTime -> Bool
 mu_constant_rtb a t1 t2 t3 = rtb (settle t2 a) t3 == rtb (settle t1 a) t3
 
-uuidx_settle_idempotency (a :: TestUniversalIndex) = mu_settle_idempotency a
-uuidx_constant_rtb (a :: TestUniversalIndex) = mu_constant_rtb a
+bp_settle_idempotency (a :: TesBasicParticle) = mu_settle_idempotency a
+bp_constant_rtb (a :: TesBasicParticle) = mu_constant_rtb a
+uidx_settle_idempotency (a :: TestUniversalIndex) = mu_settle_idempotency a
+uidx_constant_rtb (a :: TestUniversalIndex) = mu_constant_rtb a
 pdidx_settle_idempotency (a :: TestPDPoolIndex) = mu_settle_idempotency a
 pdidx_constant_rtb (a :: TestPDPoolIndex) = mu_constant_rtb a
 pdmb_settle_idempotency (a :: TestPDPoolMemberMU) = mu_settle_idempotency a
 pdmb_constant_rtb (a :: TestPDPoolIndex) u1 t1 = mu_constant_rtb b
-    -- adding a new member to an existing gindex
+    -- adding a new member to an existing index
     where (_, b) = pdpUpdateMember2 u1 t1 (a, (a, def))
 
 mu_laws = describe "monetary unit laws" $ do
-    it "uidx settle idempotency" $ property uuidx_settle_idempotency
-    it "uidx constant rtb" $ property uuidx_constant_rtb
+    it "bp settle idempotency" $ property bp_settle_idempotency
+    it "bp constant rtb" $ property bp_constant_rtb
+    it "uidx settle idempotency" $ property uidx_settle_idempotency
+    it "uidx constant rtb" $ property uidx_constant_rtb
     it "pdidx settle idempotency" $ property pdidx_settle_idempotency
-    it "pdidx contant rtb" $ property pdidx_constant_rtb
+    it "pdidx constant rtb" $ property pdidx_constant_rtb
     it "pdmb settle idempotency" $ property pdmb_settle_idempotency
     it "pdmb contant rtb" $ property pdmb_constant_rtb
+
+--------------------------------------------------------------------------------
+-- Monoidal Laws For Basic Particles and Universal Indexes
+--------------------------------------------------------------------------------
+
+bp_monoid_identity a = a == a <> (mempty :: TesBasicParticle) &&
+                         a == (mempty :: TesBasicParticle) <> a
+bp_monoid_assoc a b c = ((a :: TesBasicParticle) <> b) <> c == a <> (b <> c)
+uidx_monoid_identity a = a == a <> (mempty :: TestUniversalIndex) &&
+                         a == (mempty :: TestUniversalIndex) <> a
+uidx_monoid_assoc a b c = ((a :: TestUniversalIndex) <> b) <> c == a <> (b <> c)
+
+mp_monoid_laws = describe "monetary particles monoidal laws" $ do
+    it "bp monoid identity law" $ property bp_monoid_identity
+    it "bp monoid associativity law" $ property bp_monoid_assoc
+    it "uidx monoid identity law" $ property uidx_monoid_identity
+    it "uidx monoid associativity law" $ property uidx_monoid_assoc
 
 --------------------------------------------------------------------------------
 -- 1to1 2-primitives
@@ -77,12 +85,14 @@ one2one_tests = describe "1to1 2-primitives" $ do
 --------------------------------------------------------------------------------
 
 updp_u1_f1_u1_f2 f1 f2 t1 u1 t2 {- f1 -} t3 {- f2 -} t4 u2 t5 =
+    pdidx_total_units b'' == u2 &&
     0 == rtb a'' t5 + rtb (b'', b1') t5
     where (a, (b, b1)) = pdpUpdateMember2 u1 t1 (def :: (TestUniversalIndex, TestPDPoolMemberMU))
           (a', b') = f2 t3 (f1 t2 (a, b))
           (a'', (b'', b1')) = pdpUpdateMember2 u2 t4 (a', (b', b1))
 
 updp_u1_f1_u2_f2 f1 f2 t1 u1 t2 {- f1 -} t3 u2 t4 {- f2 -} t5 =
+    pdidx_total_units b''' == u1 + u2 &&
     0 == rtb a''' t5 + rtb (b''', b1) t5 + rtb (b''', b2) t5
     where (a, (b, b1)) = pdpUpdateMember2 u1 t1 (def :: TestUniversalIndex, def :: TestPDPoolMemberMU)
           (a', b') = f1 t2 (a, b)
@@ -113,22 +123,24 @@ one2n_pd_tests = describe "1toN proportional distribution 2-primitives" $ do
 --------------------------------------------------------------------------------
 
 uu_flow2 t1 r1 t2 r2 t3 =
+    getFlowRate b' == r2 && getFlowRate a' == -r2 &&
     r1 `mt_v_mul_t` (t2 - t1) + r2 `mt_v_mul_t` (t3 - t2) == rtb b' t3
-    where (a, b) = (def :: TestUniversalIndex, def :: TestUniversalIndex)
-          (_, b') = flow2 r2 t2 (flow2 r1 t1 (a, b))
+    where (a, b) = (mempty :: TestUniversalIndex, mempty :: TestUniversalIndex)
+          (a', b') = flow2 r2 t2 (flow2 r1 t1 (a, b))
 
 updp_flow2 t1 r1 t2 r2 t3 =
+    getFlowRate b' == r2 && getFlowRate a' == -r2 && getFlowRate (b', b1) == r2 &&
     r1 `mt_v_mul_t` (t2 - t1) + r2 `mt_v_mul_t` (t3 - t2) == rtb (b', b1) t3
     where (a, (b, b1)) = pdpUpdateMember2 1 t1 (def :: (TestUniversalIndex, TestPDPoolMemberMU))
-          (_, b') = flow2 r2 t2 (flow2 r1 t1 (a, b))
+          (a', b') = flow2 r2 t2 (flow2 r1 t1 (a, b))
 
 flow2_tests = describe "flow2 tests" $ do
     it "uidx:uidx flow2" $ property uu_flow2
     it "uidx:pdidx flow2" $ property updp_flow2
 
 tests = describe "Semantic money properties" $ do
-    bp_monoid_laws
     mu_laws
+    mp_monoid_laws
     one2one_tests
     one2n_pd_tests
     flow2_tests

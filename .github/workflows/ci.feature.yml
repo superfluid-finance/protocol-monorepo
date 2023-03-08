@@ -146,6 +146,7 @@ jobs:
     with:
       subgraph-release: local
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+      run-coverage-tests: false
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml

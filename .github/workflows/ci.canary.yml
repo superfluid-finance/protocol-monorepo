@@ -62,15 +62,16 @@ jobs:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
 
   test-subgraph:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-local-subgraph.yml@dev
+    uses: ./.github/workflows/call.test-local-subgraph.yml
     name: Build and Test Subgraph (Development Branch)
 
   test-sdk-core:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@dev
+    uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core (Development Branch)
     with:
       subgraph-release: local
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+      run-coverage-tests: false
 
   check:
     name: Checking what packages need to be built
@@ -134,12 +135,15 @@ jobs:
           yarn build
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
-      - name: Clean up and merge coverage artifacts
-        run: |
-          # extract coverage for NFT contracts from forge coverage
-          lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol'
-          # merge hardhat and forge coverage files
-          lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o lcov.info
+      # - name: Install lcov
+      #   run: sudo apt-get -y install lcov
+
+      # - name: Clean up and merge coverage artifacts
+      #   run: |
+      #     # extract coverage for NFT contracts from forge coverage
+      #     lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol'
+      #     # merge hardhat and forge coverage files
+      #     lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o packages/ethereum-contracts/coverage/lcov.info
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v3
@@ -149,34 +153,12 @@ jobs:
             packages/ethereum-contracts/coverage/
 
   coverage-sdk-core:
-    name: Run coverage test of sdk-core on dev branch
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: "yarn"
-
-      - name: Run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn workspace @superfluid-finance/sdk-core generate-graphql-schema:dev
-          yarn build
-          yarn workspace @superfluid-finance/sdk-core test-coverage
-        env:
-          SUBGRAPH_RELEASE_TAG: dev
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sdk-core-coverage
-          path: |
-            packages/sdk-core/coverage/
+    uses: ./.github/workflows/call.test-sdk-core.yml
+    name: Build and Test SDK-Core Coverage (Canary Branch)
+    with: 
+      subgraph-release: local
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+      run-coverage-tests: true
 
   publish-coverage-reports:
     name: Publish coverage reports
@@ -270,7 +252,6 @@ jobs:
       - name: Build
         run: |
           yarn --cwd packages/sdk-core set-default-subgraph-release-tag
-          yarn --cwd packages/sdk-core generate-graphql-schema:dev
           yarn build
         env:
           SUBGRAPH_RELEASE_TAG: dev

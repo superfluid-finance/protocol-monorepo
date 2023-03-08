@@ -92,8 +92,8 @@ jobs:
 
     runs-on: ubuntu-latest
 
-    # needs: [check]
-    # if: needs.check.outputs.build_ethereum_contracts
+    needs: [check]
+    if: needs.check.outputs.build_ethereum_contracts
 
     steps:
       - uses: actions/checkout@v3
@@ -104,30 +104,19 @@ jobs:
           node-version: 16.x
           cache: "yarn"
 
-      # - name: Install and build
-      #   run: |
-      #     yarn install --frozen-lockfile
-      #     yarn build
-
-      # - name: Install Foundry
-      #   uses: foundry-rs/foundry-toolchain@v1
-      #   with:
-      #     version: nightly
-
-      # - name: Run coverage test
-      #   run: |
-      #     yarn workspace @superfluid-finance/ethereum-contracts test-coverage
-      
-      - name: Install lcov
-        run: sudo apt-get -y install lcov
-
-      - name: Clean up and merge coverage artifacts
+      - name: Install and build
         run: |
-          lcov --help
-          # extract coverage for NFT contracts from forge coverage
-          # lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol'
-          # # merge hardhat and forge coverage files
-          # lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o lcov.info
+          yarn install --frozen-lockfile
+          yarn build
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
+
+      - name: Run coverage test
+        run: |
+          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml

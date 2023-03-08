@@ -62,15 +62,16 @@ jobs:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
 
   test-subgraph:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-local-subgraph.yml@dev
+    uses: ./.github/workflows/call.test-local-subgraph.yml
     name: Build and Test Subgraph (Development Branch)
 
   test-sdk-core:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@dev
+    uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core (Development Branch)
     with:
       subgraph-release: local
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+      run-coverage-tests: false
 
   check:
     name: Checking what packages need to be built
@@ -149,7 +150,7 @@ jobs:
             packages/ethereum-contracts/coverage/
 
   coverage-sdk-core:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@dev
+    uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core Coverage (Canary Branch)
     with: 
       subgraph-release: local

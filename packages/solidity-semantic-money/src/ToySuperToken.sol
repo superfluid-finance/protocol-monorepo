@@ -14,13 +14,14 @@ import "@superfluid-finance/solidity-semantic-money/src/ISuperToken.sol";
  */
 contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     PDPoolIndex internal _index;
-    address public distributor;
+    address public absorber;
+    mapping (address distributor => bool allowed) _allowedDistributors;
     mapping (address member => PDPoolMember member_data) internal _members;
-    mapping (address member => Value) internal _claimedValue;
+    mapping (address member => Value claimed_value) internal _claimedValues;
     Unit public pendingUnits;
 
-    constructor (address distributor_) Ownable() {
-        distributor = distributor_;
+    constructor (address firstDistributor) Ownable() {
+        _updateDistributor(firstDistributor, true);
     }
 
     function getPendingDistribution() external view returns (Value) {
@@ -29,7 +30,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     }
 
     function distributionAllowedFrom(address account) override external view returns (bool) {
-        return account == distributor;
+        return _allowedDistributors[account];
     }
 
     function getIndex() override external view returns (PDPoolIndex memory) {
@@ -38,7 +39,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
 
     function updateMember(address memberAddr, Unit unit) external returns (bool) {
         require(Unit.unwrap(unit) >= 0, "Negative unit number not supported");
-        require(msg.sender == distributor, "not the distributor!");
+        require(_allowedDistributors[msg.sender], "Not a allowed distributor");
         Time t = Time.wrap(uint32(block.timestamp));
 
         // update pool's pending units
@@ -50,7 +51,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         BasicParticle memory p;
         (_index, _members[memberAddr], p) = PDPoolMemberMU(_index, _members[memberAddr])
             .pool_member_update(p, unit, t);
-        assert(ISuperToken(owner()).absorb(distributor, p));
+        assert(ISuperToken(owner()).absorb(absorber, p));
 
         // additional side effects of triggering claimAll
         claimAll(t, memberAddr);
@@ -59,13 +60,13 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     }
 
     function getClaimable(Time t, address memberAddr) override public view returns (Value) {
-        return PDPoolMemberMU(_index, _members[memberAddr]).rtb(t) - _claimedValue[memberAddr];
+        return PDPoolMemberMU(_index, _members[memberAddr]).rtb(t) - _claimedValues[memberAddr];
     }
 
     function claimAll(Time t, address memberAddr) override public returns (bool) {
         Value c = getClaimable(t, memberAddr);
         assert(ISuperToken(owner()).iTransfer(address(this), memberAddr, c));
-        _claimedValue[memberAddr] = c;
+        _claimedValues[memberAddr] = c;
         return true;
     }
 
@@ -90,6 +91,15 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         // additional side effects of triggering claimAll
         claimAll(t, memberAddr);
         return true;
+    }
+
+    function _updateDistributor(address distributor, bool allowed) internal {
+        require(allowed || absorber != distributor, "Cannot revoke current absorber");
+        _allowedDistributors[distributor] = allowed;
+        // always replace the current absorber with the new distributor;
+        if (allowed) {
+            absorber = distributor;
+        }
     }
 }
 

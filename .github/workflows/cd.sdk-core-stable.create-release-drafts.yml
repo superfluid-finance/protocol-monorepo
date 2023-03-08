@@ -25,6 +25,7 @@ jobs:
     with:
       subgraph-release: v1
       subgraph-endpoint: ''
+      run-coverage-tests: false
 
   create-release-draft:
     name: Create Release Draft

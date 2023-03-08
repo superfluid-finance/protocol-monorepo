@@ -45,8 +45,8 @@ jobs:
       - name: Get PR data
         id: pr
         run: |
-          find pr-packages -type f
-          pr_number=$(find pr-packages -maxdepth 1 -type d -printf '%f\n')
+          ls -R pr-packages
+          pr_number=$(ls pr-packages)
           # find num of files and print a dot for each file and count the dots
           n_packages=$(find "pr-packages/$pr_number" -maxdepth 1 -type f -printf '.' | wc -c)
           echo pr_number: "$pr_number"

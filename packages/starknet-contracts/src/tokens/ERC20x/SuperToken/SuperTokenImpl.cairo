@@ -11,10 +11,10 @@ from src.tokens.ERC20x.SuperToken.library import SuperToken, BasicParticle
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    name: felt, symbol: felt, decimals: felt, initial_supply: felt
+    name: felt, symbol: felt, decimals: felt, initial_supply: felt, pool_class_hash: felt
 ) {
     let (caller) = get_caller_address();
-    SuperToken.initializer(name, symbol, decimals);
+    SuperToken.initializer(name, symbol, decimals, pool_class_hash);
     SuperToken._mint(caller, initial_supply);
     return ();
 }

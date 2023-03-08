@@ -12,10 +12,11 @@ from starkware.cairo.common.bool import TRUE, FALSE
 from starkware.cairo.common.bitwise import bitwise_not
 from starkware.cairo.common.hash_chain import hash_chain
 from starkware.cairo.common.alloc import alloc
+from starkware.starknet.common.syscalls import deploy
 
 from openzeppelin.utils.constants.library import UINT8_MAX
 
-from src.utils.SemanticMoney import SemanticMoney, BasicParticle
+from src.utils.SemanticMoney import SemanticMoney, BasicParticle, PDPoolMemberMU
 from src.interfaces.IPool import IPool
 
 //
@@ -33,6 +34,14 @@ func Approval(owner: felt, spender: felt, value: felt) {
 //
 // Storage
 //
+
+@storage_var
+func SuperToken_salt() -> (value: felt) {
+}
+
+@storage_var
+func SuperToken_pool_class_hash() -> (value: felt) {
+}
 
 @storage_var
 func SuperToken_name() -> (name: felt) {
@@ -59,7 +68,19 @@ func SuperToken_flow_rates(address: felt) -> (flow_rate: felt) {
 }
 
 @storage_var
-func SuperToken_pools(address: felt) -> (bool: felt) {
+func SuperToken_pool_length() -> (value: felt) {
+}
+
+@storage_var
+func SuperToken_pools(index: felt) -> (pool: felt) {
+}
+
+@storage_var
+func SuperToken_pool_indexes(pool: felt) -> (index: felt) {
+}
+
+@storage_var
+func SuperToken_connection_map(account: felt, index: felt) -> (bool: felt) {
 }
 
 namespace SuperToken {
@@ -68,7 +89,7 @@ namespace SuperToken {
     //
 
     func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        name: felt, symbol: felt, decimals: felt
+        name: felt, symbol: felt, decimals: felt, pool_class_hash: felt
     ) {
         SuperToken_name.write(name);
         SuperToken_symbol.write(symbol);
@@ -76,6 +97,7 @@ namespace SuperToken {
             assert_le(decimals, UINT8_MAX);
         }
         SuperToken_decimals.write(decimals);
+        SuperToken_pool_class_hash.write(pool_class_hash);
         return ();
     }
 
@@ -108,10 +130,35 @@ namespace SuperToken {
     func balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         account: felt
     ) -> (balance: felt) {
+        alloc_locals;
         let (accountIndex) = SuperToken_universal_indexes.read(account);
         let (timestamp) = get_block_timestamp();
         let (realtime_balance) = SemanticMoney.realtime_balance_of(accountIndex, timestamp);
-        return (balance=realtime_balance);
+        let (length) = SuperToken_pool_length.read();
+        let (pool_balance) = pool_balance_of(account, length, 0);
+        let balance = realtime_balance + pool_balance;
+        return (balance=balance);
+    }
+
+    func pool_balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        account: felt, pool_length: felt, sum: felt
+    ) -> (balance: felt) {
+        if(pool_length == 0){
+            return (balance=sum);
+        }
+        let (pool) = SuperToken_pools.read(pool_length);
+        let (connected) = SuperToken_connection_map.read(account, pool_length);
+        if(connected == TRUE){
+            let (index) = IPool.getIndex(contract_address=pool);
+            let (member) = IPool.getMember(contract_address=pool, memberAddress=account);
+            let pd_member_mu = PDPoolMemberMU(index, member);
+            let (timestamp) = get_block_timestamp();
+            let (balance) = SemanticMoney.realtime_balance_of_pool_member_mu(pd_member_mu, timestamp);
+            let sum = balance;
+            return pool_balance_of(account, pool_length - 1, sum);
+        } else {
+            return pool_balance_of(account, pool_length - 1, sum);
+        }
     }
 
     func allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -157,8 +204,7 @@ namespace SuperToken {
         alloc_locals;
         let (caller) = get_caller_address();
         with_attr error_message("SuperToken: invalid sender!") {
-            assert_nn(caller - sender);
-            assert_nn(sender - caller);
+            assert caller = sender;
         }
         let (local data_ptr: felt*) = alloc();
         assert [data_ptr] = sender;
@@ -181,19 +227,18 @@ namespace SuperToken {
         sender: felt, poolAddress: felt, reqAmount: felt
     ) -> (success: felt, actualAmount: felt) {
         alloc_locals;
-        let (poolExist) = SuperToken_pools.read(poolAddress);
+        let (poolIndex) = SuperToken_pool_indexes.read(poolAddress);
+        let (pool) = SuperToken_pools.read(poolIndex);
         with_attr error("SuperToken: Pool does not exist") {
-            assert_not_zero(poolExist);
+            assert_not_zero(pool);
         }
         let (caller) = get_caller_address();
         with_attr error_message("SuperToken: invalid sender!") {
-            assert_nn(caller - sender);
-            assert_nn(sender - caller);
+            assert caller = sender;
         }
         let (distributor) = IPool.distributor(contract_address=poolAddress);
         with_attr error_message("SuperToken: invalid distributor!") {
-            assert_nn(sender - distributor);
-            assert_nn(distributor - sender);
+           assert sender = distributor;
         }
         let (index) = IPool.getIndex(contract_address=poolAddress);
         let (senderIndex) = SuperToken_universal_indexes.read(sender);
@@ -209,19 +254,18 @@ namespace SuperToken {
         sender: felt, poolAddress: felt, reqFlowRate: felt
     ) -> (success: felt, actualFlowRate: felt) {
         alloc_locals;
-        let (poolExist) = SuperToken_pools.read(poolAddress);
+        let (poolIndex) = SuperToken_pool_indexes.read(poolAddress);
+        let (pool) = SuperToken_pools.read(poolIndex);
         with_attr error("SuperToken: Pool does not exist") {
-            assert_not_zero(poolExist);
+            assert_not_zero(pool);
         }
         let (caller) = get_caller_address();
         with_attr error_message("SuperToken: invalid sender!") {
-            assert_nn(caller - sender);
-            assert_nn(sender - caller);
+            assert caller = sender;
         }
         let (distributor) = IPool.distributor(contract_address=poolAddress);
         with_attr error_message("SuperToken: invalid distributor!") {
-            assert_nn(sender - distributor);
-            assert_nn(distributor - sender);
+            assert sender = distributor;
         }
         let (index) = IPool.getIndex(contract_address=poolAddress);
         let (senderIndex) = SuperToken_universal_indexes.read(sender);
@@ -236,19 +280,36 @@ namespace SuperToken {
     func connectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (
         success: felt
     ) {
+        let (caller) = get_caller_address();
+        let (connected) = SuperToken_connection_map.read(caller, to);
+        with_attr error_message("SuperToken: already connected") {
+            assert connected = FALSE;
+        }
         return connectPoolEnum(to, TRUE);
     }
 
     func disconnectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         to: felt
     ) -> (success: felt) {
+        let (caller) = get_caller_address();
+        let (connected) = SuperToken_connection_map.read(caller, to);
+        with_attr error_message("SuperToken: no connections") {
+            assert connected = TRUE;
+        }
         return connectPoolEnum(to, FALSE);
     }
 
     func connectPoolEnum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         pool: felt, dbConnect: felt
     ) -> (success: felt) {
-        // TODO: Add Connection Map
+        alloc_locals;
+        let (caller) = get_caller_address();
+        let (poolIndex) = SuperToken_pool_indexes.read(pool);
+        if(dbConnect == TRUE){
+            SuperToken_connection_map.write(caller, poolIndex, TRUE);
+        } else {
+            SuperToken_connection_map.write(caller, poolIndex, FALSE);
+        }
         return (success=TRUE);
     }
     // //////////////////////////////////////////////////////////////////////////////
@@ -263,8 +324,21 @@ namespace SuperToken {
         pool: felt
     ) {
         let (caller) = get_caller_address();
-        SuperToken_pools.write(caller, TRUE);
-        return (pool=caller);
+        let (class_hash) = SuperToken_pool_class_hash.read();
+        let (current_salt) = SuperToken_salt.read();
+        let (contract_address) = deploy(
+            class_hash=class_hash,
+            contract_address_salt=current_salt,
+            constructor_calldata_size=1,
+            constructor_calldata=cast(new (caller,), felt*),
+            deploy_from_zero=FALSE,
+        );
+        SuperToken_salt.write(current_salt + 1);
+        let (pool_length) = SuperToken_pool_length.read();
+        SuperToken_pool_length.write(pool_length + 1);
+        SuperToken_pool_indexes.write(pool_length + 1, contract_address);
+        SuperToken_pools.write(pool_length + 1, contract_address);
+        return (pool=contract_address);
     }
 
     func absorb{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

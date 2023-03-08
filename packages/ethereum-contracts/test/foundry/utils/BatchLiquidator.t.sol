@@ -2,12 +2,12 @@
 pragma solidity 0.8.18;
 
 import "../FoundrySuperfluidTester.sol";
-import { BatchLiquidatorV2 } from "@superfluid-finance/ethereum-contracts/contracts/utils/BatchLiquidator.sol";
+import { BatchLiquidator } from "@superfluid-finance/ethereum-contracts/contracts/utils/BatchLiquidator.sol";
 
-contract BatchLiquidator is FoundrySuperfluidTester {
+contract BatchLiquidatorTest is FoundrySuperfluidTester {
     using CFAv1Library for CFAv1Library.InitData;
 
-    BatchLiquidatorV2 batchLiquidator;
+    BatchLiquidator batchLiquidator;
     address liquidator = address(0x1234);
 
     int96 FLOW_RATE = 10000000000;
@@ -17,7 +17,7 @@ contract BatchLiquidator is FoundrySuperfluidTester {
 
     function setUp() public override {
         super.setUp();
-        batchLiquidator = new BatchLiquidatorV2(address(sf.host), address(sf.cfa));
+        batchLiquidator = new BatchLiquidator(address(sf.host), address(sf.cfa));
     }
 
 
@@ -58,7 +58,7 @@ contract BatchLiquidator is FoundrySuperfluidTester {
     function testRevertIfArrayLengthsDontMatch() public {
         address[] memory senders = new address[](8);
         address[] memory receivers = new address[](7);
-        vm.expectRevert(BatchLiquidatorV2.ARRAY_SIZES_DIFFERENT.selector);
+        vm.expectRevert(BatchLiquidator.ARRAY_SIZES_DIFFERENT.selector);
         batchLiquidator.deleteFlows(address(superToken), senders, receivers);
     }
 

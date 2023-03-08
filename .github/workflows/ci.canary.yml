@@ -149,34 +149,12 @@ jobs:
             packages/ethereum-contracts/coverage/
 
   coverage-sdk-core:
-    name: Run coverage test of sdk-core on dev branch
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: "yarn"
-
-      - name: Run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn workspace @superfluid-finance/sdk-core generate-graphql-schema:dev
-          yarn build
-          yarn workspace @superfluid-finance/sdk-core test-coverage
-        env:
-          SUBGRAPH_RELEASE_TAG: dev
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sdk-core-coverage
-          path: |
-            packages/sdk-core/coverage/
+    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.test-sdk-core.yml@dev
+    name: Build and Test SDK-Core Coverage (Canary Branch)
+    with: 
+      subgraph-release: local
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+      run-coverage-tests: true
 
   publish-coverage-reports:
     name: Publish coverage reports
@@ -270,7 +248,6 @@ jobs:
       - name: Build
         run: |
           yarn --cwd packages/sdk-core set-default-subgraph-release-tag
-          yarn --cwd packages/sdk-core generate-graphql-schema:dev
           yarn build
         env:
           SUBGRAPH_RELEASE_TAG: dev

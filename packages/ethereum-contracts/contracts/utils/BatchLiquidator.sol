@@ -90,9 +90,7 @@ contract BatchLiquidatorV2 {
     ) external {
         uint256 length = senders.length;
         if(length != receivers.length) revert ARRAY_SIZES_DIFFERENT();
-
-        uint256 i;
-        for (; i < length;) {
+        for (uint256 i; i < length;) {
             // We tolerate any errors occured during liquidations.
             // It could be due to flow had been liquidated by others.
             // solhint-disable-next-line avoid-low-level-calls
@@ -128,9 +126,10 @@ contract BatchLiquidatorV2 {
         }
     }
 
+    // single flow delete with check for success
     function deleteFlow(address superToken, address sender, address receiver) external {
-        // solhint-disable-next-line avoid-low-level-calls
-        address(host).call(
+        /* solhint-disable */
+        (bool success, bytes memory returndata) = address(host).call(
             abi.encodeCall(
                 ISuperfluid(host).callAgreement,
                 (
@@ -148,6 +147,14 @@ contract BatchLiquidatorV2 {
                 )
             )
         );
+        if (!success) {
+            if (returndata.length == 0) revert();
+            // solhint-disable
+            assembly {
+                revert(add(32, returndata), mload(returndata))
+            }
+        }
+        /* solhint-enable */
         // If the liquidation(s) resulted in any super token
         // rewards, send them all to the sender instead of having them
         // locked in the contract

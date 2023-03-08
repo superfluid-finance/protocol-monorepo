@@ -1,10 +1,11 @@
+{-# LANGUAGE DeriveAnyClass         #-}
 {-# LANGUAGE DerivingStrategies     #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE TypeFamilyDependencies #-}
 
 module Money.Theory.SemanticMoney where
 
-import           Data.Default
+import           Data.Default (Default (..))
 import           Data.Kind    (Type)
 
 
@@ -47,13 +48,13 @@ class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
  --   2) The adjustment must not produce new error term, or otherwise it would require recursive adjustments.
 
 class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
-      , MonetaryUnit mt t v ix
+      , MonetaryUnit mt t v ix, Monoid ix
       ) => Index mt t v u ix | ix -> mt where
-    shift1      :: v -> ix -> (ix, v)
-    flow1    :: v -> ix -> (ix, v)
+    shift1 :: v -> ix -> (ix, v)
+    flow1  :: v -> ix -> (ix, v)
 
 class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
-      , MonetaryUnit mt t v mp, Index mt t v u mp, Monoid mp
+      , MonetaryUnit mt t v mp, Index mt t v u mp
       ) => MonetaryParticle mt t v u mp where
     -- align 2-primitive, right side biased
     align2 :: forall a. Index mt t v u a => u -> u -> (mp, a) -> (mp, a)
@@ -93,8 +94,6 @@ deriving newtype instance ( MonetaryTypes mt
                           , Semigroup wp ) => Semigroup (UniversalIndex mt wp)
 deriving newtype instance ( MonetaryTypes mt
                           , Monoid wp ) => Monoid (UniversalIndex mt wp)
-instance ( MonetaryTypes mt
-         , Monoid wp ) => Default (UniversalIndex mt wp) where def = UniversalIndex mempty
 deriving newtype instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
                           , MonetaryUnit mt t v wp ) => MonetaryUnit mt t v (UniversalIndex mt wp)
 deriving newtype instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
@@ -108,9 +107,6 @@ deriving newtype instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u
 data PDPoolIndex mt wp = PDPoolIndex { pdidx_total_units :: MT_UNIT mt
                                      , pdidx_wp          :: wp -- wrapped particle
                                      }
-instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
-         , Monoid wp ) => Default (PDPoolIndex mt wp) where def = PDPoolIndex 0 mempty
-
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
          , MonetaryUnit mt t v wp) => MonetaryUnit mt t v (PDPoolIndex mt wp) where
     settle t' a@(PDPoolIndex _ mpi) = a { pdidx_wp = settle t' mpi }
@@ -118,9 +114,17 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
     getFlowRate (PDPoolIndex _ mpi) = getFlowRate mpi
     rtb (PDPoolIndex _ mpi) = rtb mpi
 
+instance (MonetaryTypes mt, Semigroup wp) => Semigroup (PDPoolIndex mt wp) where
+    -- The binary operator supports negative unit values while abiding the monoidal laws.
+    -- The practical semantics of values of mixed-sign is not of the concern of this specification.
+    (PDPoolIndex u1 a) <> (PDPoolIndex u2 b) = PDPoolIndex u' (a <> b)
+        where u' | abs u2 > abs u1 = u2 | abs u2 == abs u1 = abs u1 | otherwise = u1
+
+instance (MonetaryTypes mt, Monoid wp) => Monoid (PDPoolIndex mt wp) where
+    mempty = PDPoolIndex 0 mempty
+
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
          , MonetaryParticle mt t v u wp) => Index mt t v u (PDPoolIndex mt wp) where
-
     shift1 x a@(PDPoolIndex tu mpi) = (a { pdidx_wp = mpi' }, x' `mt_v_mul_u` tu)
         where (mpi', x') = if tu == 0 then (mpi, 0) else shift1 (x `mt_v_div_u` tu) mpi
 
@@ -133,7 +137,6 @@ data PDPoolMember mt wp = PDPoolMember { pdpm_owned_unit    :: MT_UNIT mt
                                        }
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
          , Monoid wp ) => Default (PDPoolMember mt wp) where def = PDPoolMember 0 0 mempty
-
 type PDPoolMemberMU mt wp = (PDPoolIndex mt wp, PDPoolMember mt wp)
 
 pdpUpdateMember2 :: ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
@@ -179,8 +182,9 @@ deriving stock instance MonetaryTypes mt => Eq (BasicParticle mt)
 
 instance MonetaryTypes mt => Semigroup (BasicParticle mt) where
     a@(BasicParticle t1 _ _) <> b@(BasicParticle t2 _ _) = BasicParticle t' (sv1 + sv2) (r1 + r2)
-        -- to support negative time value while abiding the monoidal laws
-        where t' = if abs t1 > abs t2 then t1 else t2
+        -- The binary operator supports negative time values while abiding the monoidal laws.
+        -- The practical semantics of values of mixed-sign is not of the concern of this specification.
+        where t' | abs t2 > abs t1 = t2 | abs t2 == abs t1 = abs t1 | otherwise = t1
               (BasicParticle _ sv1 r1) = settle t' a
               (BasicParticle _ sv2 r2) = settle t' b
 

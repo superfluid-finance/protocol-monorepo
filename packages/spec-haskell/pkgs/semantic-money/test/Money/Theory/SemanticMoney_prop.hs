@@ -1,3 +1,5 @@
+{- HLINT ignore "Monoid law, left identity"  -}
+{- HLINT ignore "Monoid law, right identity"  -}
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 
 module Money.Theory.SemanticMoney_prop (tests) where
@@ -44,21 +46,23 @@ mu_laws = describe "monetary unit laws" $ do
     it "pdmb contant rtb" $ property pdmb_constant_rtb
 
 --------------------------------------------------------------------------------
--- Monoidal Laws For Basic Particles and Universal Indexes
+-- Monoidal Laws For Basic Particles and Indexes
 --------------------------------------------------------------------------------
 
-bp_monoid_identity a = a == a <> (mempty :: TesBasicParticle) &&
-                         a == (mempty :: TesBasicParticle) <> a
-bp_monoid_assoc a b c = ((a :: TesBasicParticle) <> b) <> c == a <> (b <> c)
-uidx_monoid_identity a = a == a <> (mempty :: TestUniversalIndex) &&
-                         a == (mempty :: TestUniversalIndex) <> a
-uidx_monoid_assoc a b c = ((a :: TestUniversalIndex) <> b) <> c == a <> (b <> c)
+bp_monoid_identity (a :: TesBasicParticle) = a == a <> mempty && a == mempty <> a
+bp_monoid_assoc (a :: TesBasicParticle) b c = (a <> b) <> c == a <> (b <> c)
+uidx_monoid_identity (a :: TestUniversalIndex) = a == a <> mempty && a == mempty <> a
+uidx_monoid_assoc (a :: TestUniversalIndex) b c = (a <> b) <> c == a <> (b <> c)
+pdidx_monoid_identity (a :: TestPDPoolIndex) = a == a <> mempty && a == mempty <> a
+pdidx_monoid_assoc (a :: TestPDPoolIndex) b c = (a <> b) <> c == a <> (b <> c)
 
 mp_monoid_laws = describe "monetary particles monoidal laws" $ do
     it "bp monoid identity law" $ property bp_monoid_identity
     it "bp monoid associativity law" $ property bp_monoid_assoc
     it "uidx monoid identity law" $ property uidx_monoid_identity
     it "uidx monoid associativity law" $ property uidx_monoid_assoc
+    it "pdidx monoid identity law" $ property pdidx_monoid_identity
+    it "pdidx monoid associativity law" $ property pdidx_monoid_assoc
 
 --------------------------------------------------------------------------------
 -- 1to1 2-primitives
@@ -66,7 +70,7 @@ mp_monoid_laws = describe "monetary particles monoidal laws" $ do
 
 uu_f1_f2 f1 f2 t1 {- f1 -} t2 {- f2 -} t3 =
     0 == rtb a' t3 + rtb b' t3
-    where (a, b) = (def :: TestUniversalIndex, def :: TestUniversalIndex)
+    where (a, b) = (mempty :: TestUniversalIndex, mempty :: TestUniversalIndex)
           (a', b') = f2 t2 (f1 t1 (a, b))
 
 uu_shift2_shift2 x1 x2 = uu_f1_f2 (shift2 x1) (shift2 x2)
@@ -87,14 +91,14 @@ one2one_tests = describe "1to1 2-primitives" $ do
 updp_u1_f1_u1_f2 f1 f2 t1 u1 t2 {- f1 -} t3 {- f2 -} t4 u2 t5 =
     pdidx_total_units b'' == u2 &&
     0 == rtb a'' t5 + rtb (b'', b1') t5
-    where (a, (b, b1)) = pdpUpdateMember2 u1 t1 (def :: (TestUniversalIndex, TestPDPoolMemberMU))
+    where (a, (b, b1)) = pdpUpdateMember2 u1 t1 (mempty :: TestUniversalIndex, (mempty :: TestPDPoolIndex, def))
           (a', b') = f2 t3 (f1 t2 (a, b))
           (a'', (b'', b1')) = pdpUpdateMember2 u2 t4 (a', (b', b1))
 
 updp_u1_f1_u2_f2 f1 f2 t1 u1 t2 {- f1 -} t3 u2 t4 {- f2 -} t5 =
     pdidx_total_units b''' == u1 + u2 &&
     0 == rtb a''' t5 + rtb (b''', b1) t5 + rtb (b''', b2) t5
-    where (a, (b, b1)) = pdpUpdateMember2 u1 t1 (def :: TestUniversalIndex, def :: TestPDPoolMemberMU)
+    where (a, (b, b1)) = pdpUpdateMember2 u1 t1 (mempty :: TestUniversalIndex, (mempty :: TestPDPoolIndex, def))
           (a', b') = f1 t2 (a, b)
           (a'', (b'', b2)) = pdpUpdateMember2 u2 t3 (a', (b', def :: TestPDPoolMember))
           (a''', b''') = f2 t4 (a'', b'')
@@ -131,7 +135,7 @@ uu_flow2 t1 r1 t2 r2 t3 =
 updp_flow2 t1 r1 t2 r2 t3 =
     getFlowRate b' == r2 && getFlowRate a' == -r2 && getFlowRate (b', b1) == r2 &&
     r1 `mt_v_mul_t` (t2 - t1) + r2 `mt_v_mul_t` (t3 - t2) == rtb (b', b1) t3
-    where (a, (b, b1)) = pdpUpdateMember2 1 t1 (def :: (TestUniversalIndex, TestPDPoolMemberMU))
+    where (a, (b, b1)) = pdpUpdateMember2 1 t1 (mempty :: TestUniversalIndex, (mempty :: TestPDPoolIndex, def))
           (a', b') = flow2 r2 t2 (flow2 r1 t1 (a, b))
 
 flow2_tests = describe "flow2 tests" $ do

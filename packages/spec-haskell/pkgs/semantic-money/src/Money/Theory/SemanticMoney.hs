@@ -83,6 +83,11 @@ flow2 flowRate = prim2 op
                           (a', _) = flow1 (-flowRate') a
                       in (a', b')
 
+-- shiftFlow2, right side biased
+shiftFlow2 :: (Index mt t v u a, Index mt t v u b)
+           => v -> t -> (a, b) -> (a, b)
+shiftFlow2 flowRateDelta t (a, b) = flow2 (- getFlowRate a + flowRateDelta) t (a, b)
+
 --
 -- Univeral Index
 --

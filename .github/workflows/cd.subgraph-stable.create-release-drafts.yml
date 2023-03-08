@@ -29,15 +29,15 @@ jobs:
         id: check_versions
         run: |
           # subgraph
-          NEW_SUBGRAPH_VERSION=`jq -r .version packages/subgraph/package.json`
-          if git tag | grep -e "^subgraph" | grep v$NEW_SUBGRAPH_VERSION;then
+          NEW_SUBGRAPH_VERSION=$(jq -r .version packages/subgraph/package.json)
+          if git tag | grep -e "^subgraph" | grep v"$NEW_SUBGRAPH_VERSION";then
             echo subgraph version exists
           else
-            echo "PUBLISHED_SUBGRAPH_VERSION=1" >> $GITHUB_ENV
+            echo "PUBLISHED_SUBGRAPH_VERSION=1" >> "$GITHUB_ENV"
             echo "subgraph changed: $NEW_SUBGRAPH_VERSION"
           fi
 
-          echo "::set-output name=NEW_SUBGRAPH_VERSION::$NEW_SUBGRAPH_VERSION"
+          echo "NEW_SUBGRAPH_VERSION=$NEW_SUBGRAPH_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create subgraph stable release draft
         if: env.PUBLISHED_SUBGRAPH_VERSION == 1

@@ -26,15 +26,17 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Parse Tag
+        env:
+          GITHUB_REF: ${{ github.ref }}
         run: |
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/ethereum-contracts@";then
-            echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> $GITHUB_ENV
+          if echo -n "$GITHUB_REF" | grep -qE "refs/tags/ethereum-contracts@";then
+            echo "PUBLISH_ETHEREUM_CONTRACTS=1" >> "$GITHUB_ENV"
           fi
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-core@";then
-            echo "PUBLISH_SDK_CORE=1" >> $GITHUB_ENV
+          if echo -n "$GITHUB_REF" | grep -qE "refs/tags/sdk-core@";then
+            echo "PUBLISH_SDK_CORE=1" >> "$GITHUB_ENV"
           fi
-          if echo -n "${{ github.ref }}" | grep -qE "refs/tags/sdk-redux@";then
-            echo "PUBLISH_SDK_REDUX=1" >> $GITHUB_ENV
+          if echo -n "$GITHUB_REF" | grep -qE "refs/tags/sdk-redux@";then
+            echo "PUBLISH_SDK_REDUX=1" >> "$GITHUB_ENV"
           fi
 
       - name: Install dependencies
@@ -58,13 +60,14 @@ jobs:
           yarn --cwd packages/sdk-core build
           tasks/npm-publish.sh packages/sdk-core/ latest
 
-          PUBLISHED_VERSION=`jq -r .version packages/sdk-core/package.json`
-          echo "::set-output name=PUBLISHED_VERSION::$PUBLISHED_VERSION"
+          PUBLISHED_VERSION=$(jq -r .version packages/sdk-core/package.json)
+          
+          echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> "$GITHUB_OUTPUT"
 
           # Build documentation with redirect from root
           yarn --cwd packages/sdk-core doc:html
           mkdir sdk-core-redirect
-          printf '<!DOCTYPE html><html><head><title>Redirecting...</title><meta charset="UTF-8"><meta http-equiv="refresh" content="0;URL='https://refs.superfluid.finance/sdk-core@$PUBLISHED_VERSION'" /><meta http-equiv="Cache-Control" content="no-store" /></head><body><p>Redirecting to latest documentation...</p></body></html>' \
+          printf '<!DOCTYPE html><html><head><title>Redirecting...</title><meta charset="UTF-8"><meta http-equiv="refresh" content="0;URL=%s" /><meta http-equiv="Cache-Control" content="no-store" /></head><body><p>Redirecting to latest documentation...</p></body></html>' "https://refs.superfluid.finance/sdk-core@$PUBLISHED_VERSION" \
           > sdk-core-redirect/index.html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -102,13 +105,14 @@ jobs:
           yarn --cwd packages/sdk-redux build
           tasks/npm-publish.sh packages/sdk-redux/ latest
 
-          PUBLISHED_VERSION=`jq -r .version packages/sdk-redux/package.json`
-          echo "::set-output name=PUBLISHED_VERSION::$PUBLISHED_VERSION"
+          PUBLISHED_VERSION=$(jq -r .version packages/sdk-redux/package.json)
+          
+          echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> "$GITHUB_OUTPUT"
 
           # Build documentation with redirect from root
           yarn --cwd packages/sdk-redux doc:html
           mkdir sdk-redux-redirect
-          printf '<!DOCTYPE html><html><head><title>Redirecting...</title><meta charset="UTF-8"><meta http-equiv="refresh" content="0;URL='https://refs.superfluid.finance/sdk-redux@$PUBLISHED_VERSION'" /><meta http-equiv="Cache-Control" content="no-store" /></head><body><p>Redirecting to latest documentation...</p></body></html>' \
+          printf '<!DOCTYPE html><html><head><title>Redirecting...</title><meta charset="UTF-8"><meta http-equiv="refresh" content="0;URL=%s" /><meta http-equiv="Cache-Control" content="no-store" /></head><body><p>Redirecting to latest documentation...</p></body></html>' "https://refs.superfluid.finance/sdk-redux@$PUBLISHED_VERSION" \
           > sdk-redux-redirect/index.html
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

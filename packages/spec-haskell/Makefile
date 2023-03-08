@@ -19,6 +19,8 @@ TEST_OPTIONS = \
 
 default: build
 
+.PHONY: check
+
 #
 # Build
 #
@@ -79,7 +81,7 @@ $(YELLOWPAPER_ROOT)/tex/lhsfmt.tex:
 
 
 .SECONDEXPANSION:
-$(YELLOWPAPER_ROOT)/tex/%.lhs.tex: packages/core/src/Money/Theory/%.lhs
+$(YELLOWPAPER_ROOT)/tex/%.lhs.tex: pkgs/core/src/Money/Theory/%.lhs
 	./utils/lhs2tex.sh "$<" > "$@"
 
 .SECONDEXPANSION:
@@ -135,31 +137,32 @@ freeze:
 	rm -f cabal.project.freeze
 	$(CABAL) v2-freeze
 
-hlint:
-	hlint packages
+lint:
+	for i in $$PWD/pkgs/*/*.cabal;do cd $$(dirname $$i);pwd;cabal -vnormal check || exit 1;done
+	hlint pkgs
 
 repl-simple:
 	$(CABAL) repl superfluid-protocol-system-simple
 
 cloc:
 	@echo '**** Core Source Files ****'
-	cloc packages/core/src/
+	cloc pkgs/core/src/
 	@echo
 
 	@echo '**** Simple System Source Files ****'
-	cloc packages/simple/src/
+	cloc pkgs/simple/src/
 	@echo
 
 	@echo '**** Validator Source Files ****'
-	cloc packages/validator/src/
+	cloc pkgs/validator/src/
 	@echo
 
 	@echo '**** Internal Source ****'
-	cloc packages/src-internal/
+	cloc pkgs/src-internal/
 	@echo
 
 	@echo '**** Test Files ****'
-	cloc packages/*/test
+	cloc pkgs/*/test
 	@echo
 
-.PHONY: dev freeze hlint repl-* cloc
+.PHONY: dev freeze lint repl-* cloc

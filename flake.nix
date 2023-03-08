@@ -3,12 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    flakeUtils.url = "github:numtide/flake-utils";
+    flake-utils.url = "github:numtide/flake-utils";
     foundry.url = "github:shazow/foundry.nix/monthly";
+    foundry.inputs.nixpkgs.follows = "nixpkgs";
   };
 
-  outputs = { self, nixpkgs, flakeUtils, foundry } :
-  flakeUtils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, flake-utils, foundry } :
+  flake-utils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs { inherit system; };
     # minimem development shell
@@ -25,6 +26,9 @@
       echidna
     ];
     # for developing specification
+    ghcVer = "ghc944";
+    ghc = pkgs.haskell.compiler.${ghcVer};
+    ghcPackages = pkgs.haskell.packages.${ghcVer};
     specInputs = with pkgs; [
       # for nodejs ecosystem
       yarn
@@ -32,8 +36,8 @@
       nodePackages.nodemon
       # for haskell spec
       cabal-install
-      haskell.compiler.ghc94
-      haskell.packages.ghc94.haskell-language-server
+      ghc
+      ghcPackages.haskell-language-server
       hlint
       stylish-haskell
       # sage math
@@ -41,7 +45,7 @@
       # testing tooling
       gnuplot
       # yellowpaper pipeline tooling
-      haskellPackages.lhs2tex
+      ghcPackages.lhs2tex
       python39Packages.pygments
       (texlive.combine {
         inherit (texlive)
@@ -51,6 +55,14 @@
         collection-fontsrecommended collection-fontsextra;
       })
     ];
+    ci-spec = ghcVer : with pkgs; mkShell {
+      buildInputs = [
+        gnumake
+        cabal-install
+        haskell.compiler.${ghcVer}
+        hlint
+      ];
+    };
   in {
     devShells.default = with pkgs; mkShell {
       buildInputs = minimumEVMDevInputs;
@@ -60,13 +72,21 @@
         ++ whitehatInputs;
     };
     devShells.spec = with pkgs; mkShell {
-      buildInputs = specInputs;
+      buildInputs = minimumEVMDevInputs
+        ++ specInputs;
     };
     devShells.full = with pkgs; mkShell {
       buildInputs = minimumEVMDevInputs
       ++ whitehatInputs
       ++ specInputs;
     };
+    devShells.ci-spec-ghc925 = ci-spec "ghc925";
+    devShells.ci-spec-ghc944 = ci-spec "ghc944";
+    devShells.ci-hot-fuzz = with pkgs; mkShell {
+      buildInputs = [
+        slither-analyzer
+        echidna
+      ];
+    };
   });
 }
-

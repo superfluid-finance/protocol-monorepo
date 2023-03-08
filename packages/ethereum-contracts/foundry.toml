@@ -1,6 +1,5 @@
 [profile.default]
 root = '../..'
-libs = ['lib']
 src = 'packages/ethereum-contracts'
 remappings = [
     '@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/',

@@ -87,7 +87,7 @@ jobs:
           # NOTE: This is currently unset and fork tests are not being run
           POLYGON_MAINNET_ARCHIVE_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_ARCHIVE_PROVIDER_URL }}
 
-  temp-coverage-ethereum-contracts:
+  coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)
 
     runs-on: ubuntu-latest

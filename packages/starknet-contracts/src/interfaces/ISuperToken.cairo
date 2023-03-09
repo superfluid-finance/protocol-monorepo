@@ -28,6 +28,9 @@ namespace ISuperToken {
     func transferFrom(sender: felt, receiver: felt, amount: felt) -> (success: felt) {
     }
 
+    func mint(receiver: felt, amount: felt) {
+    }
+
     func approve(spender: felt, amount: felt) -> (success: felt) {
     }
 
@@ -39,11 +42,13 @@ namespace ISuperToken {
     ) {
     }
 
-    func distribute(senderAddress: felt, poolAddress: felt, reqAmount: felt) {
+    func distribute(senderAddress: felt, poolAddress: felt, reqAmount: felt) -> (
+        success: felt, actualAmount: felt
+    ) {
     }
 
     func distributeFlow(
-        senderAddress: felt, receiverAddress: felt, flowId: felt, reqFlowRate: felt
+        senderAddress: felt, poolAddress: felt, flowId: felt, reqFlowRate: felt
     ) -> (success: felt, actualFlowRate: felt) {
     }
 

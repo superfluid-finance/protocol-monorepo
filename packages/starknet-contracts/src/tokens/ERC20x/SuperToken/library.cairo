@@ -143,17 +143,19 @@ namespace SuperToken {
     func pool_balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         account: felt, pool_length: felt, sum: felt
     ) -> (balance: felt) {
-        if(pool_length == 0){
+        if (pool_length == 0) {
             return (balance=sum);
         }
         let (pool) = SuperToken_pools.read(pool_length);
         let (connected) = SuperToken_connection_map.read(account, pool_length);
-        if(connected == TRUE){
+        if (connected == TRUE) {
             let (index) = IPool.getIndex(contract_address=pool);
             let (member) = IPool.getMember(contract_address=pool, memberAddress=account);
             let pd_member_mu = PDPoolMemberMU(index, member);
             let (timestamp) = get_block_timestamp();
-            let (balance) = SemanticMoney.realtime_balance_of_pool_member_mu(pd_member_mu, timestamp);
+            let (balance) = SemanticMoney.realtime_balance_of_pool_member_mu(
+                pd_member_mu, timestamp
+            );
             let sum = balance;
             return pool_balance_of(account, pool_length - 1, sum);
         } else {
@@ -206,11 +208,12 @@ namespace SuperToken {
         with_attr error_message("SuperToken: invalid sender!") {
             assert caller = sender;
         }
-        let (local data_ptr: felt*) = alloc();
-        assert [data_ptr] = sender;
-        assert [data_ptr + 1] = recipient;
-        assert [data_ptr + 2] = flow_id;
-        let (flowAddress) = hash_chain{hash_ptr=pedersen_ptr}(data_ptr);
+        // TODO: Fix hashing
+        // let (local data_ptr: felt*) = alloc();
+        // assert [data_ptr] = sender;
+        // assert [data_ptr + 1] = recipient;
+        // assert [data_ptr + 2] = flow_id;
+        // let (flowAddress) = hash_chain{hash_ptr=pedersen_ptr}(data_ptr);
         let (senderIndex) = SuperToken_universal_indexes.read(sender);
         let (recipientIndex) = SuperToken_universal_indexes.read(recipient);
         let (timestamp) = get_block_timestamp();
@@ -219,7 +222,8 @@ namespace SuperToken {
         );
         SuperToken_universal_indexes.write(sender, newSenderIndex);
         SuperToken_universal_indexes.write(recipient, newRecipientIndex);
-        SuperToken_flow_rates.write(flowAddress, flow_rate);
+        // TODO: Fix hashing
+        SuperToken_flow_rates.write(0, flow_rate);
         return (success=TRUE);
     }
 
@@ -236,22 +240,23 @@ namespace SuperToken {
         with_attr error_message("SuperToken: invalid sender!") {
             assert caller = sender;
         }
-        let (distributor) = IPool.distributor(contract_address=poolAddress);
+        let (distributor) = IPool.distributor(contract_address=pool);
         with_attr error_message("SuperToken: invalid distributor!") {
-           assert sender = distributor;
+            assert sender = distributor;
         }
-        let (index) = IPool.getIndex(contract_address=poolAddress);
+        let (index) = IPool.getIndex(contract_address=pool);
         let (senderIndex) = SuperToken_universal_indexes.read(sender);
         let (timestamp) = get_block_timestamp();
         let (newSenderIndex, newPoolIndex, actualAmount) = SemanticMoney.shift2_pd(
             senderIndex, index, reqAmount, timestamp
         );
-        IPool.setIndex(contract_address=poolAddress, index=newPoolIndex);
+        SuperToken_universal_indexes.write(sender, newSenderIndex);
+        IPool.setIndex(contract_address=pool, index=newPoolIndex);
         return (success=TRUE, actualAmount=actualAmount);
     }
 
     func distribute_flow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        sender: felt, poolAddress: felt, reqFlowRate: felt
+        sender: felt, poolAddress: felt, flow_id: felt, reqFlowRate: felt
     ) -> (success: felt, actualFlowRate: felt) {
         alloc_locals;
         let (poolIndex) = SuperToken_pool_indexes.read(poolAddress);
@@ -263,17 +268,26 @@ namespace SuperToken {
         with_attr error_message("SuperToken: invalid sender!") {
             assert caller = sender;
         }
-        let (distributor) = IPool.distributor(contract_address=poolAddress);
+        let (distributor) = IPool.distributor(contract_address=pool);
         with_attr error_message("SuperToken: invalid distributor!") {
             assert sender = distributor;
         }
-        let (index) = IPool.getIndex(contract_address=poolAddress);
+        // TODO: Fix hashing
+        // let (local data_ptr: felt*) = alloc();
+        // assert [data_ptr] = sender;
+        // assert [data_ptr + 1] = recipient;
+        // assert [data_ptr + 2] = flow_id;
+        // let (flowAddress) = hash_chain{hash_ptr=pedersen_ptr}(data_ptr);
+        let (index) = IPool.getIndex(contract_address=pool);
         let (senderIndex) = SuperToken_universal_indexes.read(sender);
         let (timestamp) = get_block_timestamp();
         let (newSenderIndex, newPoolIndex, actualFlowRate) = SemanticMoney.flow2_pd(
             senderIndex, index, reqFlowRate, timestamp
         );
-        IPool.setIndex(contract_address=poolAddress, index=newPoolIndex);
+        SuperToken_universal_indexes.write(sender, newSenderIndex);
+        // TODO: Fix hashing
+        SuperToken_flow_rates.write(0, actualFlowRate);
+        IPool.setIndex(contract_address=pool, index=newPoolIndex);
         return (success=TRUE, actualFlowRate=actualFlowRate);
     }
 
@@ -305,7 +319,7 @@ namespace SuperToken {
         alloc_locals;
         let (caller) = get_caller_address();
         let (poolIndex) = SuperToken_pool_indexes.read(pool);
-        if(dbConnect == TRUE){
+        if (dbConnect == TRUE) {
             SuperToken_connection_map.write(caller, poolIndex, TRUE);
         } else {
             SuperToken_connection_map.write(caller, poolIndex, FALSE);
@@ -336,7 +350,7 @@ namespace SuperToken {
         SuperToken_salt.write(current_salt + 1);
         let (pool_length) = SuperToken_pool_length.read();
         SuperToken_pool_length.write(pool_length + 1);
-        SuperToken_pool_indexes.write(pool_length + 1, contract_address);
+        SuperToken_pool_indexes.write(contract_address, pool_length + 1);
         SuperToken_pools.write(pool_length + 1, contract_address);
         return (pool=contract_address);
     }
@@ -345,9 +359,10 @@ namespace SuperToken {
         account: felt, particle: BasicParticle
     ) {
         let (caller) = get_caller_address();
-        let (poolExist) = SuperToken_pools.read(caller);
+        let (poolIndex) = SuperToken_pool_indexes.read(caller);
+        let (pool) = SuperToken_pools.read(poolIndex);
         with_attr error_message("SuperToken: Only absorbing from pools!") {
-            assert_not_zero(poolExist);
+            assert_not_zero(pool);
         }
         let (u_index) = SuperToken_universal_indexes.read(account);
         let (new_u_index) = SemanticMoney.mappend(u_index, particle);
@@ -411,7 +426,6 @@ namespace SuperToken {
         with_attr error_message("SuperToken: amount is negative") {
             assert_nn(amount);
         }
-
         with_attr error_message("SuperToken: cannot mint to the zero address") {
             assert_not_zero(recipient);
         }

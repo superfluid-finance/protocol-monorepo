@@ -1,20 +1,19 @@
-%lang starknet
+// %lang starknet
 
-from starkware.cairo.common.cairo_builtins import HashBuiltin
+// from starkware.cairo.common.cairo_builtins import HashBuiltin
 
-struct Data {
-    key: felt;
-    value: felt;
-}
+// struct Data {
+//     key: felt;
+//     value: felt;
+// }
 
-namespace BitMap {
+// namespace BitMap {
 
-    func set{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        set: Set, value: felt
-    ) -> (data: Data, index: felt) {
-        let bucket = index / (2 ** 8); // Right-Shift
-        let mask = 1 * (2 ** (index / (2 ** 251)));
-    }
+// func set{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+//         set: Set, value: felt
+//     ) -> (data: Data, index: felt) {
+//         let bucket = index / (251); // Right-Shift
+//         let mask = 1 * (2 ** (index / (2 ** 251)));
+//     }
 
-}
-
+// }

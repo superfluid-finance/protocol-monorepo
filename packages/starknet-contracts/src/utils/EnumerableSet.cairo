@@ -9,9 +9,7 @@ struct Set {
     length: felt,
 }
 
-
 namespace EnumerableSet {
-
     func add{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         set: Set, value: felt
     ) -> (set: Set, success: felt) {

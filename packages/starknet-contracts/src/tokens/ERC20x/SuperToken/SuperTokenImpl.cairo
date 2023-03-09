@@ -11,11 +11,10 @@ from src.tokens.ERC20x.SuperToken.library import SuperToken, BasicParticle
 
 @constructor
 func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    name: felt, symbol: felt, decimals: felt, initial_supply: felt, pool_class_hash: felt
+    name: felt, symbol: felt, decimals: felt, pool_class_hash: felt
 ) {
     let (caller) = get_caller_address();
     SuperToken.initializer(name, symbol, decimals, pool_class_hash);
-    SuperToken._mint(caller, initial_supply);
     return ();
 }
 
@@ -102,9 +101,9 @@ func distribute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 
 @external
 func distributeFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    sender: felt, poolAddress: felt, reqFlowRate: felt
+    sender: felt, poolAddress: felt, flow_id: felt, reqFlowRate: felt
 ) -> (success: felt, actualFlowRate: felt) {
-    return SuperToken.distribute_flow(sender, poolAddress, reqFlowRate);
+    return SuperToken.distribute_flow(sender, poolAddress, flow_id, reqFlowRate);
 }
 
 @external
@@ -119,13 +118,6 @@ func disconnectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     success: felt
 ) {
     return SuperToken.disconnectPool(to);
-}
-
-@external
-func connectPoolEnum{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    pool: felt, dbConnect: felt
-) -> (success: felt) {
-    return SuperToken.connectPoolEnum(pool, dbConnect);
 }
 
 @external

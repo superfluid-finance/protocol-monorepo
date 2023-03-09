@@ -14,32 +14,35 @@ import "@superfluid-finance/solidity-semantic-money/src/ISuperToken.sol";
  */
 contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     PDPoolIndex internal _index;
-    address public absorber;
-    mapping (address distributor => bool allowed) _allowedDistributors;
+    address public admin;
     mapping (address member => PDPoolMember member_data) internal _members;
     mapping (address member => Value claimed_value) internal _claimedValues;
     Unit public pendingUnits;
 
-    constructor (address firstDistributor) Ownable() {
-        _updateDistributor(firstDistributor, true);
+    constructor (address admin_)
+        Ownable()
+    {
+        admin = admin_;
     }
 
-    function getPendingDistribution() external view returns (Value) {
+    function getPendingDistribution() external view
+        returns (Value)
+    {
         Time t = Time.wrap(uint32(block.timestamp));
         return _index.wrapped_particle.rtb(t).mul(pendingUnits);
     }
 
-    function distributionAllowedFrom(address account) override external view returns (bool) {
-        return _allowedDistributors[account];
-    }
-
-    function getIndex() override external view returns (PDPoolIndex memory) {
+    function getIndex() override external view
+        returns (PDPoolIndex memory)
+    {
         return _index;
     }
 
-    function updateMember(address memberAddr, Unit unit) external returns (bool) {
+    function updateMember(address memberAddr, Unit unit) external
+        returns (bool)
+    {
         require(Unit.unwrap(unit) >= 0, "Negative unit number not supported");
-        require(_allowedDistributors[msg.sender], "Not a allowed distributor");
+        require(admin == msg.sender, "Not pool admin");
         Time t = Time.wrap(uint32(block.timestamp));
 
         // update pool's pending units
@@ -51,7 +54,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         BasicParticle memory p;
         (_index, _members[memberAddr], p) = PDPoolMemberMU(_index, _members[memberAddr])
             .pool_member_update(p, unit, t);
-        assert(ISuperToken(owner()).absorb(absorber, p));
+        assert(ISuperToken(owner()).absorbParticleFromPool(admin, p));
 
         // additional side effects of triggering claimAll
         claimAll(t, memberAddr);
@@ -59,7 +62,9 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         return true;
     }
 
-    function getClaimable(Time t, address memberAddr) override public view returns (Value) {
+    function getClaimable(Time t, address memberAddr) override public view
+        returns (Value)
+    {
         return PDPoolMemberMU(_index, _members[memberAddr]).rtb(t) - _claimedValues[memberAddr];
     }
 
@@ -76,13 +81,15 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     }
 
     function operatorSetIndex(PDPoolIndex calldata index) override external
-        onlyOwner returns (bool) {
+        onlyOwner returns (bool)
+    {
         _index = index;
         return true;
     }
 
     function operatorConnectMember(Time t, address memberAddr, bool doConnect) override external
-        onlyOwner returns (bool) {
+        onlyOwner returns (bool)
+    {
         if (doConnect) {
             pendingUnits = pendingUnits - _members[memberAddr].owned_units;
         } else {
@@ -91,15 +98,6 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         // additional side effects of triggering claimAll
         claimAll(t, memberAddr);
         return true;
-    }
-
-    function _updateDistributor(address distributor, bool allowed) internal {
-        require(allowed || absorber != distributor, "Cannot revoke current absorber");
-        _allowedDistributors[distributor] = allowed;
-        // always replace the current absorber with the new distributor;
-        if (allowed) {
-            absorber = distributor;
-        }
     }
 }
 
@@ -199,9 +197,10 @@ contract ToySuperToken is ISuperToken {
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
         // FIXME: plug permission controls
-        require(msg.sender == from);
+        require(msg.sender == from, "No flow permission");
         // Make updates
-        (uIndexes[from], uIndexes[to]) = uIndexes[from].flow2(uIndexes[to], flowRate, t);
+        FlowRate flowRateDelta = flowRate - flowRates[flowAddress];
+        (uIndexes[from], uIndexes[to]) = uIndexes[from].shiftFlow2a(uIndexes[to], flowRateDelta, t);
         flowRates[flowAddress] = flowRate;
         return true;
     }
@@ -211,7 +210,6 @@ contract ToySuperToken is ISuperToken {
         require(pools[to], "Not a pool!");
         // FIXME: plug permission controls
         require(msg.sender == from);
-        require(to.distributionAllowedFrom(from), "Not the distributor!");
         // Make updates
         PDPoolIndex memory pdidx = to.getIndex();
         (uIndexes[from], pdidx, actualAmount) = uIndexes[from].shift2(pdidx, reqAmount);
@@ -225,13 +223,14 @@ contract ToySuperToken is ISuperToken {
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
         // FIXME: plug permission controls
-        require(msg.sender == from);
-        require(to.distributionAllowedFrom(from), "Not the distributor!");
+        require(msg.sender == from, "No flow permission");
         // Make updates
+        FlowRate oldFlowRate = uIndexes[from].flow_rate.inv();
         PDPoolIndex memory pdidx = to.getIndex();
-        (uIndexes[from], pdidx, actualFlowRate) = uIndexes[from].flow2(pdidx, reqFlowRate, t);
+        (uIndexes[from], pdidx, actualFlowRate) = uIndexes[from].shiftFlow2b
+            (pdidx, reqFlowRate - flowRates[flowAddress], t);
         to.operatorSetIndex(pdidx);
-        flowRates[flowAddress] = actualFlowRate;
+        flowRates[flowAddress] = flowRates[flowAddress] + actualFlowRate - oldFlowRate;
         success = true;
     }
 
@@ -239,7 +238,9 @@ contract ToySuperToken is ISuperToken {
     // Pool Operations
     ////////////////////////////////////////////////////////////////////////////////
 
-    function createPool() external returns (ToySuperTokenPool pool) {
+    function createPool() external
+        returns (ToySuperTokenPool pool)
+    {
         pool = new ToySuperTokenPool(msg.sender);
         pools[pool] = true;
         // approve the pool to use its own fund, it is required by ERC20 approval system
@@ -278,7 +279,7 @@ contract ToySuperToken is ISuperToken {
     }
 
     /// This is used by the pool to adjust flow rate
-    function absorb(address account, BasicParticle calldata p) override external returns (bool) {
+    function absorbParticleFromPool(address account, BasicParticle calldata p) override external returns (bool) {
         require(pools[ToySuperTokenPool(msg.sender)], "Only absorbing from pools");
         uIndexes[account] = uIndexes[account].mappend(p);
         return true;

@@ -52,6 +52,6 @@ interface ISuperToken is IERC20 {
         returns (bool);
 
     /// This is used by the pool to adjust flow rate
-    function absorb(address account, BasicParticle calldata p) external
+    function absorbParticleFromPool(address account, BasicParticle calldata p) external
         returns (bool);
 }

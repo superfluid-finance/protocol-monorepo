@@ -9,8 +9,6 @@ import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 interface ISuperTokenPool {
     function getPendingDistribution() external view returns (Value);
 
-    function distributionAllowedFrom(address account) external view returns (bool);
-
     function getIndex() external view returns (PDPoolIndex memory);
 
     function getClaimable(Time t, address memberAddr) external view returns (Value);
@@ -19,6 +17,6 @@ interface ISuperTokenPool {
 
     function operatorSetIndex(PDPoolIndex calldata index) external returns (bool);
 
-   // WARNING for operators: it is undefined behavior if member is already connected or disconnected
+    // WARNING for operators: it is undefined behavior if member is already connected or disconnected
     function operatorConnectMember(Time t, address memberAddr, bool doConnect) external returns (bool);
 }

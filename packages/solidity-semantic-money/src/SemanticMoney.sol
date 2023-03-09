@@ -191,7 +191,8 @@ library SemanticMoney {
 
     /// Monoid binary operator for basic particle/universal index.
     function mappend(BasicParticle memory a, BasicParticle memory b)
-        internal pure returns (BasicParticle memory c) {
+        internal pure returns (BasicParticle memory c)
+    {
         // Note that the original spec abides the monoid laws even when time value is negative.
         Time t = Time.unwrap(a.settled_at) > Time.unwrap(b.settled_at) ? a.settled_at : b.settled_at;
         BasicParticle memory a1 = a.settle(t);
@@ -206,15 +207,39 @@ library SemanticMoney {
     //
 
     function shift2(BasicParticle memory a, BasicParticle memory b, Value x) internal pure
-        returns (BasicParticle memory m, BasicParticle memory n) {
+        returns (BasicParticle memory m, BasicParticle memory n)
+    {
         m = a.shift1(x.inv());
         n = b.shift1(x);
     }
 
     function flow2(BasicParticle memory a, BasicParticle memory b, FlowRate r, Time t) internal pure
-        returns (BasicParticle memory m, BasicParticle memory n) {
+        returns (BasicParticle memory m, BasicParticle memory n)
+    {
         m = a.settle(t).flow1(r.inv());
         n = b.settle(t).flow1(r);
+    }
+
+    function shiftFlow2a(BasicParticle memory a, BasicParticle memory b, FlowRate dr, Time t) internal pure
+        returns (BasicParticle memory m, BasicParticle memory n)
+    {
+        BasicParticle memory mempty;
+        BasicParticle memory b1;
+        BasicParticle memory b2;
+        ( , b1) = a.flow2(mempty, a.flow_rate, t);
+        (m, b2) = a.flow2(mempty, a.flow_rate.inv() + dr, t);
+        n = b.mappend(b1).mappend(b2);
+    }
+
+    function shiftFlow2b(BasicParticle memory a, BasicParticle memory b, FlowRate dr, Time t) internal pure
+        returns (BasicParticle memory m, BasicParticle memory n)
+    {
+        BasicParticle memory mempty;
+        BasicParticle memory a1;
+        BasicParticle memory a2;
+        (a1,  ) = mempty.flow2(b, b.flow_rate.inv(), t);
+        (a2, n) = mempty.flow2(b, b.flow_rate + dr, t);
+        m = a.mappend(a1).mappend(a2);
     }
 
     //
@@ -222,7 +247,9 @@ library SemanticMoney {
     //
 
     /// Pure data clone function.
-    function clone(PDPoolIndex memory a) internal pure returns (PDPoolIndex memory b) {
+    function clone(PDPoolIndex memory a) internal pure
+        returns (PDPoolIndex memory b)
+    {
         b.total_units = a.total_units;
         b.wrapped_particle = a.wrapped_particle.clone();
     }
@@ -236,7 +263,8 @@ library SemanticMoney {
     }
 
     function shift2(BasicParticle memory a, PDPoolIndex memory b, Value x) internal pure
-        returns (BasicParticle memory m, PDPoolIndex memory n, Value x1) {
+        returns (BasicParticle memory m, PDPoolIndex memory n, Value x1)
+    {
         if (Unit.unwrap(b.total_units) != 0) {
             x1 = x.div(b.total_units).mul(b.total_units);
             m = a.shift1(x1.inv());
@@ -263,12 +291,26 @@ library SemanticMoney {
         }
     }
 
+    function shiftFlow2b(BasicParticle memory a, PDPoolIndex memory b, FlowRate dr, Time t) internal pure
+        returns (BasicParticle memory m, PDPoolIndex memory n, FlowRate r1)
+    {
+        BasicParticle memory mempty;
+        BasicParticle memory a1;
+        BasicParticle memory a2;
+        FlowRate r = b.wrapped_particle.flow_rate.mul(b.total_units);
+        (a1,  ,   ) = mempty.flow2(b, r.inv(), t);
+        (a2, n, r1) = mempty.flow2(b, r + dr, t);
+        m = a.mappend(a1).mappend(a2);
+    }
+
     //
     // Proportional Distribution Pool Member Operations
     //
 
     /// Pure data clone function.
-    function clone(PDPoolMember memory a) internal pure returns (PDPoolMember memory b) {
+    function clone(PDPoolMember memory a) internal pure
+        returns (PDPoolMember memory b)
+    {
         b.owned_units = a.owned_units;
         b.settled_value = a.settled_value;
         b.synced_particle = a.synced_particle.clone();
@@ -295,8 +337,7 @@ library SemanticMoney {
     }
 
     /// Update the unit amount of the member of the pool
-    function pool_member_update(PDPoolMemberMU memory b1, BasicParticle memory a, Unit u, Time t)
-        internal pure
+    function pool_member_update(PDPoolMemberMU memory b1, BasicParticle memory a, Unit u, Time t) internal pure
         returns (PDPoolIndex memory p, PDPoolMember memory p1, BasicParticle memory b)
     {
         Unit oldTotalUnit = b1.i.total_units;

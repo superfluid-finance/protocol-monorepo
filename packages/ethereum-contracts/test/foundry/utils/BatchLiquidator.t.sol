@@ -11,7 +11,6 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
     address liquidator = address(0x1234);
 
     int96 FLOW_RATE = 10000000000;
-    uint256 FOUR_HOURS = 4 * 60 * 60;
 
     constructor () FoundrySuperfluidTester(5) { }
 
@@ -46,11 +45,10 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
         vm.startPrank(liquidator);
         uint256 balance = superToken.balanceOf(liquidator);
-        vm.warp(FOUR_HOURS); // jump 4 hours
+        vm.warp(4 hours); // jump 4 hours
         batchLiquidator.deleteFlow(address(superToken), alice, bob);
         _assertNoFlow(alice, bob);
 
-        uint256 balanceAfter = superToken.balanceOf(liquidator);
         assertTrue(superToken.balanceOf(liquidator) > balance);
         vm.stopPrank();
     }
@@ -75,9 +73,9 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
         vm.startPrank(liquidator);
         uint256 balance = superToken.balanceOf(liquidator);
-        vm.warp(FOUR_HOURS); // jump 4 hours
-        address[] memory senders = new address[](4);
-        address[] memory receivers = new address[](4);
+        vm.warp(4 hours); // jump 4 hours
+        address[] memory senders = new address[](3);
+        address[] memory receivers = new address[](3);
         senders[0] = alice;
         senders[1] = carol;
         senders[2] = dan;
@@ -105,9 +103,9 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
         vm.startPrank(liquidator);
         uint256 balance = superToken.balanceOf(liquidator);
-        vm.warp(FOUR_HOURS); // jump 4 hours
-        address[] memory senders = new address[](4);
-        address[] memory receivers = new address[](4);
+        vm.warp(4 hours); // jump 4 hours
+        address[] memory senders = new address[](3);
+        address[] memory receivers = new address[](3);
         senders[0] = alice;
         senders[1] = carol; // carol has no flow
         senders[2] = dan;

@@ -5,7 +5,13 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
-### [v1.5.1] - 2023-02-28
+### Breaking
+- `BatchLiquidator.deleteFlows` doesn't take host and CFA address as argument anymore. This makes L2 solvency operations considerably cheaper.
+
+### Changed
+- Added `BatchLiquidator.deleteFlow` for cheaper liquidation of singular flows on L2s.
+
+## [v1.5.1] - 2023-02-28
 
 ### Added
 - bump solc to 0.8.18
@@ -20,7 +26,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 - `_superTokenLogic` field in `SuperTokenFactory` contract is now a public immutable field and is no longer a storage variable: `_superTokenLogicDeprecated`
 
-### [v1.5.0] - 2022-12-19
+## [v1.5.0] - 2022-12-19
 ### Added
 - `batchCall` supports new `send` batch operation
 - Added `downgradeTo` function in `SuperToken.sol`
@@ -37,7 +43,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `upgradeTo` logic changed to revert if `data` is not empty and `to` is a contract and is not a registered ERC777 recipient
 - `MAX_APP_CALLBACK_LEVEL` is public again
 
-### [v1.4.3] - 2022-10-27
+## [v1.4.3] - 2022-10-27
 ### Added
 
 - `createCanonicalERC20Wrapper` added for creating ERC20 Wrapper Super tokens which will be added to a canonical wrapper super token list based on naming convention and semi-upgradeability. This will be the recommended way of creating ERC20 Wrapper moving forward.

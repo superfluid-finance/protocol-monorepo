@@ -19,7 +19,7 @@ interface ISuperToken is IERC20 {
     //function realtimeBalanceOf(address account) returns (int256 avb, int256 deposit, int256 ...) {
     //}
 
-    function iTransfer(address from, address to, Value amount) external
+    function shift(address from, address to, Value amount) external
         returns (bool);
 
     function flow(address from, address to, FlowId flowId, FlowRate flowRate) external

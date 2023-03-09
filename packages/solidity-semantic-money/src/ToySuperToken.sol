@@ -70,7 +70,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
 
     function claimAll(Time t, address memberAddr) override public returns (bool) {
         Value c = getClaimable(t, memberAddr);
-        assert(ISuperToken(owner()).iTransfer(address(this), memberAddr, c));
+        assert(ISuperToken(owner()).shift(address(this), memberAddr, c));
         _claimedValues[memberAddr] = c;
         return true;
     }
@@ -151,24 +151,12 @@ contract ToySuperToken is ISuperToken {
 
     function transfer(address to, uint256 amount) override external returns (bool) {
         address owner = msg.sender;
-        _transfer(owner, to, amount);
+        _shift(owner, to, Value.wrap(int256(amount)), false); // FIXME safeCast
         return true;
     }
 
     function transferFrom(address from, address to, uint256 amount) override external returns (bool) {
-        return _transferFrom(from, to, amount);
-    }
-
-    function _transferFrom(address from, address to, uint256 amount) internal returns (bool) {
-        address spender = msg.sender;
-        _spendAllowance(from, spender, amount);
-        _transfer(from, to, amount);
-        return true;
-    }
-
-    function _transfer(address from, address to, uint256 amount) internal {
-        // Make updates
-        (uIndexes[from], uIndexes[to]) = uIndexes[from].shift2(uIndexes[to], Value.wrap(int256(amount)));
+        return _shift(from, to, Value.wrap(int256(amount)), true); // FIXME safeCast
     }
 
     function allowance(address owner, address spender) override external view returns (uint256) {
@@ -183,17 +171,33 @@ contract ToySuperToken is ISuperToken {
 
     ////////////////////////////////////////////////////////////////////////////////
     // Generalized Payment Primitives
+    //
+    // FIXME require(from != to)
     ////////////////////////////////////////////////////////////////////////////////
 
-    // This is the non-ERC20 version of instant transfer, that can trigger actions defined by "to"
-    function iTransfer(address from, address to, Value amount) override external
-        returns (bool success) {
+    function _shift(address from, address to, Value amount, bool checkAllowance) internal
+        returns (bool success)
+    {
+        require(!pools[ISuperTokenPool(to)], "Is a pool!");
         require(Value.unwrap(amount) >= 0, "don't even try");
-        return _transferFrom(from, to, uint256(Value.unwrap(amount)));
+        address spender = msg.sender;
+        if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount))); // FIXME SafeCast
+        // Make updates
+        (uIndexes[from], uIndexes[to]) = uIndexes[from].shift2(uIndexes[to], amount);
+        return true;
+    }
+
+    // This is the non-ERC20 version of instant transfer, that can trigger actions defined by "to"
+    function shift(address from, address to, Value amount) override external
+        returns (bool success)
+    {
+        return _shift(from, to, amount, from != to);
     }
 
     function flow(address from, address to, FlowId flowId, FlowRate flowRate) override external
-        returns (bool success) {
+        returns (bool success)
+    {
+        require(!pools[ISuperTokenPool(to)], "Is a pool!");
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
         // FIXME: plug permission controls
@@ -206,7 +210,8 @@ contract ToySuperToken is ISuperToken {
     }
 
     function distribute(address from, ISuperTokenPool to, Value reqAmount) override external
-        returns (bool success, Value actualAmount) {
+        returns (bool success, Value actualAmount)
+    {
         require(pools[to], "Not a pool!");
         // FIXME: plug permission controls
         require(msg.sender == from);
@@ -218,7 +223,8 @@ contract ToySuperToken is ISuperToken {
     }
 
     function distributeFlow(address from, ISuperTokenPool to, FlowId flowId, FlowRate reqFlowRate) override external
-        returns (bool success, FlowRate actualFlowRate) {
+        returns (bool success, FlowRate actualFlowRate)
+    {
         require(pools[to], "Not a pool!");
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));

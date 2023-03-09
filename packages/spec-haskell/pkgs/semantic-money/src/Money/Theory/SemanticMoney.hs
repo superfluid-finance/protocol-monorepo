@@ -142,7 +142,7 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
         where (mpi', x') = if tu == 0 then (mpi, 0) else shift1 (x `mt_v_div_u` tu) mpi
 
     flow1 r' a@(PDPoolIndex tu mpi) = (a { pdidx_wp = mpi' }, r'' `mt_v_mul_u` tu)
-        where (mpi', r'') = if tu == 0 then (mpi, 0) else flow1 (r' `mt_v_div_u` tu) mpi
+        where (mpi', r'') = if tu == 0 then flow1 0 mpi else flow1 (r' `mt_v_div_u` tu) mpi
 
 data PDPoolMember mt wp = PDPoolMember { pdpm_owned_unit    :: MT_UNIT mt
                                        , pdpm_settled_value :: MT_VALUE mt

@@ -578,6 +578,26 @@ query rewardAddressChangedEvents(
     }
 }
 
+query superTokenMinimumDepositChangedEvents(
+    $first: Int
+    $skip: Int
+    $where: SuperTokenMinimumDepositChangedEvent_filter
+    $orderBy: SuperTokenMinimumDepositChangedEvent_orderBy
+    $orderDirection: OrderDirection
+    $block: Block_height
+) {
+    superTokenMinimumDepositChangedEvents(
+        first: $first
+        skip: $skip
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        where: $where
+        block: $block
+    ) {
+        ...superTokenMinimumDepositChangedEvent
+    }
+}
+
 query trustedForwarderChangedEvents(
     $first: Int
     $skip: Int
@@ -904,6 +924,9 @@ query events(
         }
         ... on RewardAddressChangedEvent {
             ...rewardAddressChangedEvent
+        }
+        ... on SuperTokenMinimumDepositChangedEvent {
+            ...superTokenMinimumDepositChangedEvent
         }
         ... on TrustedForwarderChangedEvent {
             ...trustedForwarderChangedEvent
@@ -1233,6 +1256,15 @@ fragment rewardAddressChangedEvent on RewardAddressChangedEvent {
     ...eventFields
     superToken
     rewardAddress
+    isKeySet
+    host
+    governanceAddress
+}
+
+fragment superTokenMinimumDepositChangedEvent on SuperTokenMinimumDepositChangedEvent {
+    ...eventFields
+    superToken
+    minimumDeposit
     isKeySet
     host
     governanceAddress

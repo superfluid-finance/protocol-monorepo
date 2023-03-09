@@ -3,6 +3,15 @@ All notable changes to the SDK-core will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Added
+- Add support for `activeOutgoingStreamCount`, `activeIncomingStreamCount`, `inactiveOutgoingStreamCount`, `inactiveIncomingStreamCount` properties in query for `AccountTokenSnapshot` entity
+- Add support for `rewardAddress`, `liquidationPeriod`, `patricianPeriod`, and `minimumDeposit` properties in query for `Token` entity
+- Add support for `userData` property in query for `Stream` entity
+
+### Changed
+- `.exec` or `.execForward` will throw an error if the operations array is empty
+
 ## [0.6.2] - 2023-02-07
 ### Added
 - `streamId` to `FlowUpdatedEvent` when querying from Subgraph

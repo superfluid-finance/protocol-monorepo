@@ -58,6 +58,7 @@ export type OtherEvents =
     | SuperTokenLogicUpdatedEvent
     | PPPConfigurationChangedEvent
     | TrustedForwarderChangedEvent
+    | SuperTokenMinimumDepositChangedEvent
     | UnknownEvent;
 
 export type AllEvents = AccountEvents | OtherEvents;
@@ -396,6 +397,15 @@ export interface TrustedForwarderChangedEvent extends EventBase {
     isKeySet: boolean;
     forwarder: string;
     enabled: boolean;
+}
+
+export interface SuperTokenMinimumDepositChangedEvent extends EventBase {
+    name: "SuperTokenMinimumDepositChanged";
+    host: string;
+    governanceAddress: string;
+    superToken: string;
+    isKeySet: boolean;
+    minimumDeposit: string;
 }
 
 export interface NewPICEvent extends EventBase {

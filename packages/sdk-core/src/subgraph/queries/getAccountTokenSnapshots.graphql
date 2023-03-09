@@ -10,7 +10,11 @@ query getAccountTokenSnapshots($where: AccountTokenSnapshot_filter! = {}, $skip:
         updatedAtTimestamp
         updatedAtBlockNumber
         totalNumberOfActiveStreams
+        activeOutgoingStreamCount
+        activeIncomingStreamCount
         totalNumberOfClosedStreams
+        inactiveOutgoingStreamCount
+        inactiveIncomingStreamCount
         totalSubscriptionsWithUnits
         totalApprovedSubscriptions
         balanceUntilUpdatedAt

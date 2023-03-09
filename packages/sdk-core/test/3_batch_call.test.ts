@@ -116,6 +116,14 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
         }
     });
 
+    it("Should throw an error if attempting to batch no operations", async () => {
+        try {
+            await testEnv.sdkFramework.batchCall([]).exec(testEnv.alice);
+        } catch (err: any) {
+            expect(err.message).to.not.be.undefined;
+        }
+    });
+
     it("Should be able to create and execute a batch call (approve + transferFrom)", async () => {
         const amount = ethers.utils.parseUnits("1000").toString();
         const approveOp = testEnv.wrapperSuperToken.approve({

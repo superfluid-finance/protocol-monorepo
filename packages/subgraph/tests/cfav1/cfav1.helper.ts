@@ -104,13 +104,14 @@ export function createFlowOperatorUpdatedEvent(
     flowRate: BigInt,
     previousSenderFlowRate: BigInt,
     previousReceiverFlowRate: BigInt,
-    isListed: boolean
+    isListed: boolean,
+    stringUserData: string
 ): FlowUpdated {
     const oldFlowRate = previousSenderFlowRate.abs();
     const flowRateDelta = flowRate.minus(previousSenderFlowRate);
     const totalSenderFlowRate = previousSenderFlowRate.minus(flowRateDelta);
     const totalReceiverFlowRate = previousReceiverFlowRate.plus(flowRateDelta);
-    const userData = stringToBytes("");
+    const userData = stringToBytes(stringUserData);
 
     const deposit = getDeposit(flowRate);
 

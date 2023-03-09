@@ -4,6 +4,7 @@ import {
     CFAv1LiquidationPeriodChanged,
     TrustedForwarderChanged,
     PPPConfigurationChanged,
+    SuperTokenMinimumDepositChanged,
 } from "../../generated/templates/SuperfluidGovernance/SuperfluidGovernanceBase";
 import {
     CFAv1LiquidationPeriodChangedEvent,
@@ -11,9 +12,11 @@ import {
     RewardAddressChangedEvent,
     PPPConfigurationChangedEvent,
     TrustedForwarderChangedEvent,
+    SuperTokenMinimumDepositChangedEvent,
 } from "../../generated/schema";
 import { createEventID, initializeEventEntity } from "../utils";
 import { TOGA } from "../../generated/templates";
+import { getOrInitTokenGovernanceConfig } from "../mappingHelpers";
 
 export function handleConfigChanged(event: ConfigChanged): void {
     const eventId = createEventID("ConfigChanged", event);
@@ -41,6 +44,16 @@ export function handleRewardAddressChanged(event: RewardAddressChanged): void {
     ev.rewardAddress = event.params.rewardAddress;
     ev.save();
 
+    // Update reward address for token or default governance configs
+    const governanceConfig = getOrInitTokenGovernanceConfig(
+        event.block,
+        event.params.superToken
+    );
+    governanceConfig.rewardAddress = event.params.rewardAddress;
+    governanceConfig.updatedAtBlockNumber = event.block.number;
+    governanceConfig.updatedAtTimestamp = event.block.timestamp;
+    governanceConfig.save();
+
     // Create data source template for new TOGA contract
     // and start indexing events
     // @note The subgraph will start capturing TOGA events
@@ -61,6 +74,16 @@ export function handleCFAv1LiquidationPeriodChanged(
     ev.isKeySet = event.params.isKeySet;
     ev.liquidationPeriod = event.params.liquidationPeriod;
     ev.save();
+
+    // Update cfav1 liquidation period for token or default governance configs
+    const governanceConfig = getOrInitTokenGovernanceConfig(
+        event.block,
+        event.params.superToken
+    );
+    governanceConfig.liquidationPeriod = event.params.liquidationPeriod;
+    governanceConfig.updatedAtBlockNumber = event.block.number;
+    governanceConfig.updatedAtTimestamp = event.block.timestamp;
+    governanceConfig.save();
 }
 
 export function handlePPPConfigurationChanged(
@@ -77,6 +100,17 @@ export function handlePPPConfigurationChanged(
     ev.liquidationPeriod = event.params.liquidationPeriod;
     ev.patricianPeriod = event.params.patricianPeriod;
     ev.save();
+
+    // Update cfav1 liquidation period and patrician period for token or default governance configs
+    const governanceConfig = getOrInitTokenGovernanceConfig(
+        event.block,
+        event.params.superToken
+    );
+    governanceConfig.liquidationPeriod = event.params.liquidationPeriod;
+    governanceConfig.patricianPeriod = event.params.patricianPeriod;
+    governanceConfig.updatedAtBlockNumber = event.block.number;
+    governanceConfig.updatedAtTimestamp = event.block.timestamp;
+    governanceConfig.save();
 }
 
 export function handleTrustedForwarderChanged(
@@ -93,4 +127,29 @@ export function handleTrustedForwarderChanged(
     ev.forwarder = event.params.forwarder;
     ev.enabled = event.params.enabled;
     ev.save();
+}
+
+export function handleSuperTokenMinimumDepositChanged(
+    event: SuperTokenMinimumDepositChanged
+): void {
+    const eventId = createEventID("SuperTokenMinimumDepositChanged", event);
+    const ev = new SuperTokenMinimumDepositChangedEvent(eventId);
+    initializeEventEntity(ev, event, []);
+
+    ev.governanceAddress = event.address;
+    ev.host = event.params.host;
+    ev.superToken = event.params.superToken;
+    ev.isKeySet = event.params.isKeySet;
+    ev.minimumDeposit = event.params.minimumDeposit;
+    ev.save();
+
+    // Update minimum deposit for token or default governance configs
+    const governanceConfig = getOrInitTokenGovernanceConfig(
+        event.block,
+        event.params.superToken
+    );
+    governanceConfig.minimumDeposit = event.params.minimumDeposit;
+    governanceConfig.updatedAtBlockNumber = event.block.number;
+    governanceConfig.updatedAtTimestamp = event.block.timestamp;
+    governanceConfig.save();
 }

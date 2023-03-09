@@ -23,7 +23,11 @@ query accountTokenSnapshotLogs($first: Int = 10, $skip: Int = 0, $orderBy: Accou
         totalInflowRate
         totalNetFlowRate
         totalNumberOfActiveStreams
+        activeOutgoingStreamCount
+        activeIncomingStreamCount
         totalNumberOfClosedStreams
+        inactiveOutgoingStreamCount
+        inactiveIncomingStreamCount
         totalSubscriptionsWithUnits
         totalOutflowRate
         transactionHash

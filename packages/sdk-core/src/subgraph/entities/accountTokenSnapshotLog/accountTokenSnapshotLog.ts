@@ -37,7 +37,11 @@ export interface AccountTokenSnapshotLog {
     totalInflowRate: BigNumber;
     totalNetFlowRate: BigNumber;
     totalNumberOfActiveStreams: number;
+    activeOutgoingStreamCount: number;
+    activeIncomingStreamCount: number;
     totalNumberOfClosedStreams: number;
+    inactiveOutgoingStreamCount: number;
+    inactiveIncomingStreamCount: number;
     totalSubscriptionsWithUnits: number;
     totalOutflowRate: BigNumber;
     triggeredByEventName: string;

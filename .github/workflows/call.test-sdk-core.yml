@@ -9,6 +9,9 @@ on:
       subgraph-endpoint:
         required: true
         type: string
+      run-coverage-tests:
+        required: true
+        type: boolean
 
 jobs:
   test-sdk-core:
@@ -24,10 +27,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: "yarn"
 
       - name: "Install dependencies"
@@ -73,6 +76,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run test suite"
+        if: inputs.run-coverage-tests == false
         run: |
           yarn generate-graphql-schema:${{ inputs.subgraph-release }}
           ./tasks/setupTestEnvironment.sh
@@ -81,3 +85,20 @@ jobs:
         env:
           SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
           SUBGRAPH_ENDPOINT: ${{ inputs.subgraph-endpoint }}
+
+      - name: "Run coverage test"
+        if: inputs.run-coverage-tests == true
+        run: |
+          yarn workspace @superfluid-finance/sdk-core test-coverage
+        working-directory: ${{ env.sdk-core-working-directory }}
+        env:
+          SUBGRAPH_RELEASE_TAG: ${{ inputs.subgraph-release }}
+          SUBGRAPH_ENDPOINT: ${{ inputs.subgraph-endpoint }}
+
+      - name: "Create coverage artifact"
+        if: inputs.run-coverage-tests == true
+        uses: actions/upload-artifact@v3
+        with:
+          name: sdk-core-coverage
+          path: |
+            packages/sdk-core/coverage/

@@ -19,10 +19,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
 
       - name: Show context
         env:
@@ -45,8 +45,8 @@ jobs:
       - name: Get PR data
         id: pr
         run: |
-          find pr-packages -type f
-          pr_number=$(find pr-packages -maxdepth 1 -type d -printf '%f\n')
+          ls -R pr-packages
+          pr_number=$(ls pr-packages)
           # find num of files and print a dot for each file and count the dots
           n_packages=$(find "pr-packages/$pr_number" -maxdepth 1 -type f -printf '.' | wc -c)
           echo pr_number: "$pr_number"

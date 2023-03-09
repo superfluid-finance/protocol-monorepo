@@ -25,6 +25,7 @@ jobs:
     with:
       subgraph-release: v1
       subgraph-endpoint: ''
+      run-coverage-tests: false
 
   create-release-draft:
     name: Create Release Draft
@@ -38,10 +39,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org/
 
       - name: Check package versions

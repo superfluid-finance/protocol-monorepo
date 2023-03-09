@@ -288,6 +288,39 @@ templates:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
           receipt: true
+        - event: ConstantOutflowNFTCreated(indexed address)
+          handler: handleConstantOutflowNFTCreated
+          receipt: true
+        - event: ConstantInflowNFTCreated(indexed address)
+          handler: handleConstantInflowNFTCreated
+          receipt: true
+  - name: ConstantFlowNFT
+    kind: ethereum/contract
+    network: {{ network }}
+    source:
+      abi: IFlowNFTBase
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/constantFlowNFT.ts
+      entities:
+      abis:
+        - name: IFlowNFTBase
+          file: ./abis/IFlowNFTBase.json
+      eventHandlers:
+        - event: Transfer(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
+          handler: handleTransfer
+          receipt: true
+        - event: Approval(indexed address,bytes32,indexed address,indexed address,address,uint256,int256,bytes)
+          handler: handleApproval
+          receipt: true
+        - event: ApprovalForAll(indexed address,indexed address,bool)
+          handler: handleApprovalForAll
+          receipt: true
+        - event: MetadataUpdate(uint256)
+          handler: handleMetadataUpdate
+          receipt: true
   - kind: ethereum/contract
     name: SuperfluidGovernance
     network: {{ network }}

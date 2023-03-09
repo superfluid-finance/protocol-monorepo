@@ -482,7 +482,8 @@ type SubscriptionApprovedEvent implements Event @entity(immutable: true) {
     subscription: IndexSubscription!
 }
 
-type SubscriptionDistributionClaimedEvent implements Event @entity(immutable: true) {
+type SubscriptionDistributionClaimedEvent implements Event
+    @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -835,7 +836,8 @@ type SetEvent implements Event @entity(immutable: true) {
 }
 
 #     SuperfluidGovernance    #
-type CFAv1LiquidationPeriodChangedEvent implements Event @entity(immutable: true) {
+type CFAv1LiquidationPeriodChangedEvent implements Event
+    @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -1214,6 +1216,105 @@ type TokenUpgradedEvent implements Event @entity(immutable: true) {
     amount: BigInt!
 }
 
+type ConstantOutflowNFTCreated implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `constantOutflowNFT`
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    constantOutflowNFT: Bytes!
+    token: Bytes!
+}
+
+type ConstantInflowNFTCreated implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `constantInflowNFT`
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    constantInflowNFT: Bytes!
+    token: Bytes!
+}
+
+#     NFTs    #
+type ApprovalEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+}
+
+type ApprovalForAllEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+}
+
+type MetadataUpdateEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+}
+
 #     SuperTokenFactory    #
 
 type CustomSuperTokenCreatedEvent implements Event @entity(immutable: true) {
@@ -1565,7 +1666,7 @@ type Stream @entity {
     deposit: BigInt!
 
     """
-    The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. 
+    The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`.
     The formula to get the current streamed amount is:
     `streamedUntilUpdatedAt + ((currentTime in seconds) - updatedAtTimestamp) * currentFlowRate`.
     """
@@ -1707,6 +1808,36 @@ type Token @entity {
     The underlying ERC20 token for a ERC20WrapperSuperToken otherwise null.
     """
     underlyingToken: Token
+}
+
+"""
+ConstantInflowNFT: A higher order entity that represents a Constant Inflow NFT.
+"""
+type ConstantInflowNFT @entity {
+    """
+    ID: the address of the constant inflow nft proxy
+    """
+    id: ID!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
+    token: Token!
+    name: String!
+    symbol: String!
+}
+
+"""
+ConstantOutflowNFT: A higher order entity that represents a Constant Outflow NFT.
+"""
+type ConstantOutflowNFT @entity {
+    """
+    ID: the address of the constant outflow nft proxy
+    """
+    id: ID!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
+    token: Token!
+    name: String!
+    symbol: String!
 }
 
 type ResolverEntry @entity {
@@ -1872,7 +2003,7 @@ type AccountTokenSnapshotLog @entity {
 
     """
     The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block`.
-    This can be obtained by: `totalInflowRate - totalOutflowRate` 
+    This can be obtained by: `totalInflowRate - totalOutflowRate`
     """
     totalNetFlowRate: BigInt!
 

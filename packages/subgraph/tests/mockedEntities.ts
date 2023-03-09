@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { Stream, StreamRevision, Token } from "../generated/schema";
 import { getNativeAssetSuperTokenAddress } from "../src/addresses";
 import { getStreamID } from "../src/utils";
@@ -14,6 +14,10 @@ import { getStreamID } from "../src/utils";
  * @param symbol token symbol
  * @param isListed whether the token is listed
  * @param underlyingAddress the underlying token address
+ * @param rewardAddress the reward token address
+ * @param liquidationPeriod the liquidation period
+ * @param patricianPeriod the patrician period
+ * @param minimumDeposit the minimum deposit
  * @returns Token
  */
 export function createSuperToken(
@@ -23,7 +27,7 @@ export function createSuperToken(
     name: string,
     symbol: string,
     isListed: boolean,
-    underlyingAddress: Address
+    underlyingAddress: Address,
 ): Token {
     const tokenId = tokenAddress.toHex();
     let currentTimestamp = block.timestamp;
@@ -70,7 +74,8 @@ export function createStream(
     block: ethereum.Block,
     currentFlowRate: BigInt,
     deposit: BigInt,
-    streamedUntilUpdatedAt: BigInt
+    streamedUntilUpdatedAt: BigInt,
+    userData: Bytes
 ): Stream {
     const streamId = getStreamID(
         senderAddress,
@@ -92,6 +97,7 @@ export function createStream(
     stream.token = tokenAddress.toHex();
     stream.sender = senderAddress.toHex();
     stream.receiver = receiverAddress.toHex();
+    stream.userData = userData;
     stream.save();
     return stream;
 }

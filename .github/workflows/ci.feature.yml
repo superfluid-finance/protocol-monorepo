@@ -30,12 +30,15 @@ jobs:
 
     steps:
       - name: Show contexts
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           echo github.event_name: ${{ github.event_name }}
           echo github.sha: ${{ github.sha }}
           echo github.repository: ${{ github.repository }}
-          echo github.ref: ${{ github.ref }}
-          echo github.head_ref: ${{ github.head_ref }}
+          echo github.ref: "$GITHUB_REF"
+          echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
 
       - uses: actions/checkout@v3
@@ -53,7 +56,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [16.x, 18.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -95,10 +98,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: "yarn"
 
       - name: Install and build
@@ -141,8 +144,9 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_sdk_core
     with:
-      subgraph-release: v1
+      subgraph-release: local
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+      run-coverage-tests: false
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml

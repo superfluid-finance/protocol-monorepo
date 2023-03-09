@@ -6,7 +6,14 @@ import {
     describe,
     test,
 } from "matchstick-as/assembly/index";
-import { DEFAULT_DECIMALS, FALSE, maticXAddress, maticXName, maticXSymbol, TRUE } from "../constants";
+import {
+    DEFAULT_DECIMALS,
+    FALSE,
+    maticXAddress,
+    maticXName,
+    maticXSymbol,
+    TRUE,
+} from "../constants";
 import {
     assertEventBaseProperties,
     assertHigherOrderBaseProperties,

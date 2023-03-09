@@ -6,6 +6,7 @@ import {
     CFAv1LiquidationPeriodChanged,
     PPPConfigurationChanged,
     TrustedForwarderChanged,
+    SuperTokenMinimumDepositChanged,
 } from "../../generated/templates/SuperfluidGovernance/SuperfluidGovernanceBase";
 import {
     getAddressEventParam,
@@ -147,4 +148,31 @@ export function createTrustedForwarderChangedEvent(
     newTrustedForwarderChangedEvent.parameters.push(enabledParam);
 
     return newTrustedForwarderChangedEvent;
+}
+
+export function createSuperTokenMinimumDepositChangedEvent(
+    host: string,
+    superToken: string,
+    isKeySet: boolean,
+    minimumDeposit: BigInt
+): SuperTokenMinimumDepositChanged {
+    const newSuperTokenMinimumDepositChangedEvent =
+        changetype<SuperTokenMinimumDepositChanged>(newMockEvent());
+
+    newSuperTokenMinimumDepositChangedEvent.parameters = new Array();
+    const hostParam = getAddressEventParam("host", host);
+    const superTokenParam = getAddressEventParam("superToken", superToken);
+    const isKeySetParam = getBooleanEventParam("isKeySet", isKeySet);
+    const minimumDepositParam = getBigIntEventParam(
+        "minimumDeposit",
+        minimumDeposit
+    );
+    newSuperTokenMinimumDepositChangedEvent.parameters.push(hostParam);
+    newSuperTokenMinimumDepositChangedEvent.parameters.push(superTokenParam);
+    newSuperTokenMinimumDepositChangedEvent.parameters.push(isKeySetParam);
+    newSuperTokenMinimumDepositChangedEvent.parameters.push(
+        minimumDepositParam
+    );
+
+    return newSuperTokenMinimumDepositChangedEvent;
 }

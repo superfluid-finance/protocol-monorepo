@@ -1,4 +1,4 @@
-import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
     Account,
@@ -11,6 +11,7 @@ import {
     Stream,
     StreamRevision,
     Token,
+    TokenGovernanceConfig,
     TokenStatistic,
     TokenStatisticLog,
 } from "../generated/schema";
@@ -154,6 +155,56 @@ export function getOrInitSuperToken(
     return token as Token;
 }
 
+export function getOrInitTokenGovernanceConfig(
+    block: ethereum.Block,
+    superTokenAddress: Address
+): TokenGovernanceConfig {
+    if (superTokenAddress.equals(ZERO_ADDRESS)) {
+        let governanceConfig = TokenGovernanceConfig.load(
+            ZERO_ADDRESS.toHexString()
+        );
+        if (governanceConfig == null) {
+            governanceConfig = new TokenGovernanceConfig(
+                ZERO_ADDRESS.toHexString()
+            );
+            governanceConfig.createdAtTimestamp = block.timestamp;
+            governanceConfig.createdAtBlockNumber = block.number;
+            governanceConfig.updatedAtBlockNumber = block.number;
+            governanceConfig.updatedAtTimestamp = block.timestamp;
+            governanceConfig.isDefault = true;
+            governanceConfig.rewardAddress = ZERO_ADDRESS;
+            governanceConfig.liquidationPeriod = BIG_INT_ZERO;
+            governanceConfig.patricianPeriod = BIG_INT_ZERO;
+            governanceConfig.minimumDeposit = BIG_INT_ZERO;
+
+            governanceConfig.save();
+        }
+        return governanceConfig;
+    } else {
+        let governanceConfig = TokenGovernanceConfig.load(
+            superTokenAddress.toHexString()
+        );
+        if (governanceConfig == null) {
+            governanceConfig = new TokenGovernanceConfig(
+                superTokenAddress.toHexString()
+            );
+            governanceConfig.createdAtTimestamp = block.timestamp;
+            governanceConfig.createdAtBlockNumber = block.number;
+            governanceConfig.updatedAtBlockNumber = block.number;
+            governanceConfig.updatedAtTimestamp = block.timestamp;
+            governanceConfig.isDefault = false;
+            governanceConfig.rewardAddress = null;
+            governanceConfig.liquidationPeriod = null;
+            governanceConfig.patricianPeriod = null;
+            governanceConfig.minimumDeposit = null;
+            governanceConfig.token = superTokenAddress.toHexString();
+
+            governanceConfig.save();
+        }
+        return governanceConfig;
+    }
+}
+
 /**
  * Create a token entity for regular ERC20 tokens.
  * These are the underlying tokens for
@@ -178,6 +229,7 @@ export function getOrInitToken(
     token.isSuperToken = false;
     token.isNativeAssetSuperToken = false;
     token.isListed = false;
+
     token = handleTokenRPCCalls(token, resolverAddress);
     token.save();
 }
@@ -246,6 +298,7 @@ export function getOrInitStream(event: FlowUpdated): Stream {
         stream.streamedUntilUpdatedAt = BigInt.fromI32(0);
         stream.updatedAtTimestamp = currentTimestamp;
         stream.updatedAtBlockNumber = event.block.number;
+        stream.userData = event.params.userData;
 
         // Check if token exists and create here if not.
         // handles chain "native" tokens (e.g. ETH, MATIC, xDAI)
@@ -432,6 +485,10 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
         accountTokenSnapshot.updatedAtBlockNumber = block.number;
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;
+        accountTokenSnapshot.activeIncomingStreamCount = 0;
+        accountTokenSnapshot.activeOutgoingStreamCount = 0;
+        accountTokenSnapshot.inactiveIncomingStreamCount = 0;
+        accountTokenSnapshot.inactiveOutgoingStreamCount = 0;
         accountTokenSnapshot.totalNumberOfClosedStreams = 0;
         accountTokenSnapshot.totalSubscriptionsWithUnits = 0;
         accountTokenSnapshot.isLiquidationEstimateOptimistic = false;
@@ -482,8 +539,16 @@ export function _createAccountTokenSnapshotLogEntity(
     // Account token snapshot state
     atsLog.totalNumberOfActiveStreams =
         accountTokenSnapshot.totalNumberOfActiveStreams;
+    atsLog.activeIncomingStreamCount =
+        accountTokenSnapshot.activeIncomingStreamCount;
+    atsLog.activeOutgoingStreamCount =
+        accountTokenSnapshot.activeOutgoingStreamCount;
     atsLog.totalNumberOfClosedStreams =
         accountTokenSnapshot.totalNumberOfClosedStreams;
+    atsLog.inactiveIncomingStreamCount =
+        accountTokenSnapshot.inactiveIncomingStreamCount;
+    atsLog.inactiveOutgoingStreamCount =
+        accountTokenSnapshot.inactiveOutgoingStreamCount;
     atsLog.totalSubscriptionsWithUnits =
         accountTokenSnapshot.totalSubscriptionsWithUnits;
     atsLog.totalApprovedSubscriptions =
@@ -888,6 +953,10 @@ export function updateAggregateEntitiesStreamData(
 
     senderATS.totalNumberOfActiveStreams =
         senderATS.totalNumberOfActiveStreams + totalNumberOfActiveStreamsDelta;
+    senderATS.activeOutgoingStreamCount =
+        senderATS.activeOutgoingStreamCount + totalNumberOfActiveStreamsDelta;
+    senderATS.inactiveOutgoingStreamCount =
+        senderATS.inactiveOutgoingStreamCount + totalNumberOfClosedStreamsDelta;
 
     senderATS.totalNumberOfClosedStreams =
         senderATS.totalNumberOfClosedStreams + totalNumberOfClosedStreamsDelta;
@@ -917,6 +986,11 @@ export function updateAggregateEntitiesStreamData(
     receiverATS.totalNumberOfActiveStreams =
         receiverATS.totalNumberOfActiveStreams +
         totalNumberOfActiveStreamsDelta;
+    receiverATS.activeIncomingStreamCount =
+        receiverATS.activeIncomingStreamCount + totalNumberOfActiveStreamsDelta;
+    receiverATS.inactiveIncomingStreamCount =
+        receiverATS.inactiveIncomingStreamCount +
+        totalNumberOfClosedStreamsDelta;
 
     receiverATS.totalNumberOfClosedStreams =
         receiverATS.totalNumberOfClosedStreams +

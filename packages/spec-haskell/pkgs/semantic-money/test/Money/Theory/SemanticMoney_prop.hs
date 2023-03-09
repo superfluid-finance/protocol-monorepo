@@ -126,35 +126,49 @@ one2n_pd_tests = describe "1toN proportional distribution 2-primitives" $ do
 -- (Constant Rate) Flow 2-Primitive
 --------------------------------------------------------------------------------
 
-uu_flow2 t1 r1 t2 r2 t3 =
-    getFlowRate b' == r2 && getFlowRate a' == -r2 &&
-    r1 `mt_v_mul_t` (t2 - t1) + r2 `mt_v_mul_t` (t3 - t2) == rtb b' t3
-    where (a, b) = (mempty :: TestUniversalIndex, mempty :: TestUniversalIndex)
-          (a', b') = flow2 r2 t2 (flow2 r1 t1 (a, b))
+uu_flow2 (a :: TestUniversalIndex) (b :: TestUniversalIndex) t1 r1 t2 r2 t3 =
+    flowRate b' == r2 && flowRate a' == -r2 &&
+    r1 `mt_v_mul_t` (t2 - t1) + r2 `mt_v_mul_t` (t3 - t2) == rtb b' t3 - rtb b t1
+    where (a', b') = flow2 r2 t2 (flow2 r1 t1 (a, b))
 
-uu_shiftFlow2 t1 r1 t2 r2 t3 =
-    getFlowRate b' == r1 + r2 && getFlowRate a' == -r1 -r2 &&
-    r1 `mt_v_mul_t` (t2 - t1) + (r1 + r2) `mt_v_mul_t` (t3 - t2) == rtb b' t3
-    where (a, b) = (mempty :: TestUniversalIndex, mempty :: TestUniversalIndex)
-          (a', b') = shiftFlow2 r2 t2 (shiftFlow2 r1 t1 (a, b))
+updp_flow2 (a :: TestUniversalIndex) t1 r1 t2 r2 t3 =
+    flowRate b'' == r2 && flowRate a'' == -r2 &&
+    flowRate (b'', b1') == r2 &&
+    r1 `mt_v_mul_t` (t2 - t1) + r2 `mt_v_mul_t` (t3 - t2) == rtb (b'', b1') t3 - rtb (b', b1') t1
+    where (a', (b', b1')) = pdpUpdateMember2 1 t1 (a, (mempty :: TestPDPoolIndex, def))
+          (a'', b'') = flow2 r2 t2 (flow2 r1 t1 (a', b'))
 
-updp_flow2 t1 r1 t2 r2 t3 =
-    getFlowRate b' == r2 && getFlowRate a' == -r2 && getFlowRate (b', b1) == r2 &&
-    r1 `mt_v_mul_t` (t2 - t1) + r2 `mt_v_mul_t` (t3 - t2) == rtb (b', b1) t3
-    where (a, (b, b1)) = pdpUpdateMember2 1 t1 (mempty :: TestUniversalIndex, (mempty :: TestPDPoolIndex, def))
-          (a', b') = flow2 r2 t2 (flow2 r1 t1 (a, b))
+uu_shiftFlow2a (a :: TestUniversalIndex) (b :: TestUniversalIndex) t1 r1 t2 r2 t3 =
+    flowRate b' - flowRate b == r1 + r2 && flowRate a' - flowRate a == -r1 -r2 &&
+    rtb b' t3 - rtb b t3 == rtb a t3 - rtb a' t3 &&
+    -- for shift flow semantics: rtb b' t3 - (rtb b t3 - rtb b t1) - rtb b t1 == rtb b' t3 - rtb b t3
+    r1 `mt_v_mul_t` (t2 - t1) + (r1 + r2) `mt_v_mul_t` (t3 - t2) == rtb b' t3 - rtb b t3
+    where (a', b') = shiftFlow2a r2 t2 (shiftFlow2a r1 t1 (a, b))
 
-updp_shiftFlow2 t1 r1 t2 r2 t3 =
-    getFlowRate b' == r1 + r2 && getFlowRate a' == -r1 -r2 && getFlowRate (b', b1) == r1 + r2 &&
-    r1 `mt_v_mul_t` (t2 - t1) + (r1 + r2) `mt_v_mul_t` (t3 - t2) == rtb (b', b1) t3
-    where (a, (b, b1)) = pdpUpdateMember2 1 t1 (mempty :: TestUniversalIndex, (mempty :: TestPDPoolIndex, def))
-          (a', b') = shiftFlow2 r2 t2 (shiftFlow2 r1 t1 (a, b))
+uu_shiftFlow2b (a :: TestUniversalIndex) (b :: TestUniversalIndex) t1 r1 t2 r2 t3 =
+    flowRate b' - flowRate b == r1 + r2 && flowRate a' - flowRate a == -r1 -r2 &&
+    rtb b' t3 - rtb b t3 == rtb a t3 - rtb a' t3 &&
+    -- ditto
+    r1 `mt_v_mul_t` (t2 - t1) + (r1 + r2) `mt_v_mul_t` (t3 - t2) == rtb b' t3 - rtb b t3
+    where (a', b') = shiftFlow2b r2 t2 (shiftFlow2b r1 t1 (a, b))
+
+-- NOTE: updp_shiftFlow2a is an invalid property due to right side biansed error term adjustment.
+
+updp_shiftFlow2b (a :: TestUniversalIndex) t1 r1 t2 r2 t3 =
+    flowRate b'' - flowRate b' == r1 + r2 && flowRate a'' - flowRate a' == -r1 -r2 &&
+    flowRate (b'', b1') == r1 + r2 &&
+    rtb (b'', b1') t3 - rtb (b', b1') t3 == rtb a' t3 - rtb a'' t3 &&
+    -- ditto
+    r1 `mt_v_mul_t` (t2 - t1) + (r1 + r2) `mt_v_mul_t` (t3 - t2) == rtb (b'', b1') t3 - rtb (b', b1') t3
+    where (a', (b', b1')) = pdpUpdateMember2 1 t1 (a, (mempty :: TestPDPoolIndex, def))
+          (a'', b'') = shiftFlow2b r2 t2 (shiftFlow2b r1 t1 (a', b'))
 
 flow2_tests = describe "flow2 tests" $ do
     it "uidx:uidx flow2" $ property uu_flow2
-    it "uidx:uidx shiftFlow2" $ property uu_shiftFlow2
     it "uidx:pdidx flow2" $ property updp_flow2
-    it "uidx:pdidx shiftFlow2" $ property updp_shiftFlow2
+    it "uidx:uidx shiftFlow2a" $ property uu_shiftFlow2a
+    it "uidx:uidx shiftFlow2b" $ property uu_shiftFlow2b
+    it "uidx:pdidx shiftFlow2b" $ property updp_shiftFlow2b
 
 tests = describe "Semantic money properties" $ do
     mu_laws

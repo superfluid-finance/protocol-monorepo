@@ -37,10 +37,10 @@ class ( Integral (MT_TIME  mt)
 
 class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
       ) => MonetaryUnit mt t v mu | mu -> mt where
-    settle      :: t -> mu -> mu
-    settledAt   :: mu -> t
-    getFlowRate :: mu -> v
-    rtb         :: mu -> t -> v
+    settle    :: t -> mu -> mu
+    settledAt :: mu -> t
+    flowRate  :: mu -> v
+    rtb       :: mu -> t -> v
 
  -- * On right side biased operations:
  --   1) Right side produces error term with which left side is adjusted accordingly.
@@ -63,29 +63,38 @@ class ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
 
 -- 2-primitive higher order function
 prim2 :: (Index mt t v u a, Index mt t v u b)
-       => ((a, b) -> (a, b)) -> t -> (a, b) -> (a, b)
+      => ((a, b) -> (a, b)) -> t -> (a, b) -> (a, b)
 prim2 op t' (a, b) = op (settle t' a, settle t' b)
 
--- shift2, right side biased
+-- shift2, right side biased error term adjustment
 shift2 :: (Index mt t v u a, Index mt t v u b)
        => v -> t -> (a, b) -> (a, b)
 shift2 amount = prim2 op
     where op (a, b) = let (b', amount') = shift1 amount b
                           (a', _) = shift1 (-amount') a
-                      in (a', b')
+                      in  (a', b')
 
--- flow2, right side biased
+-- flow2, right side biased error term adjustment
 flow2 :: (Index mt t v u a, Index mt t v u b)
       => v -> t -> (a, b) -> (a, b)
-flow2 flowRate = prim2 op
-    where op (a, b) = let (b', flowRate') = flow1 flowRate b
-                          (a', _) = flow1 (-flowRate') a
-                      in (a', b')
+flow2 r = prim2 op
+    where op (a, b) = let (b', r') = flow1 r b
+                          (a', _) = flow1 (-r') a
+                      in  (a', b')
 
--- shiftFlow2, right side biased
-shiftFlow2 :: (Index mt t v u a, Index mt t v u b)
-           => v -> t -> (a, b) -> (a, b)
-shiftFlow2 flowRateDelta t (a, b) = flow2 (- getFlowRate a + flowRateDelta) t (a, b)
+-- shiftFlow2 for the left side (a), right side biased error term adjustment
+shiftFlow2a :: (Index mt t v u a, Index mt t v u b)
+            => v -> t -> (a, b) -> (a, b)
+shiftFlow2a dr t (a, b) = let ( _, b1) = flow2 (flowRate a) t (a, mempty)
+                              (a', b2) = flow2 (-flowRate a + dr) t (a, mempty)
+                          in  (a', b <> b1 <> b2)
+
+-- shiftFlow2 for the right side (b), right side biased error term adjustment
+shiftFlow2b :: (Index mt t v u a, Index mt t v u b)
+            => v -> t -> (a, b) -> (a, b)
+shiftFlow2b dr t (a, b) = let (a1,  _) = flow2 (-flowRate b) t (mempty, b)
+                              (a2, b') = flow2 (flowRate b + dr) t (mempty, b)
+                          in  (a <> a1 <> a2, b')
 
 --
 -- Univeral Index
@@ -115,14 +124,14 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
          , MonetaryUnit mt t v wp) => MonetaryUnit mt t v (PDPoolIndex mt wp) where
     settle t' a@(PDPoolIndex _ mpi) = a { pdidx_wp = settle t' mpi }
     settledAt (PDPoolIndex _ mpi) = settledAt mpi
-    getFlowRate (PDPoolIndex _ mpi) = getFlowRate mpi
+    flowRate (PDPoolIndex _ mpi) = flowRate mpi
     rtb (PDPoolIndex _ mpi) = rtb mpi
 
 instance (MonetaryTypes mt, Semigroup wp) => Semigroup (PDPoolIndex mt wp) where
     -- The binary operator supports negative unit values while abiding the monoidal laws.
     -- The practical semantics of values of mixed-sign is not of the concern of this specification.
     (PDPoolIndex u1 a) <> (PDPoolIndex u2 b) = PDPoolIndex u' (a <> b)
-        where u' | abs u2 > abs u1 = u2 | abs u2 == abs u1 = abs u1 | otherwise = u1
+        where u' | u1 == 0 = u2 | u2 == 0 = u1 | otherwise = max u1 u2
 
 instance (MonetaryTypes mt, Monoid wp) => Monoid (PDPoolIndex mt wp) where
     mempty = PDPoolIndex 0 mempty
@@ -163,7 +172,7 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
 
     settledAt (PDPoolIndex _ mpi, _) = settledAt mpi
 
-    getFlowRate (PDPoolIndex _ mpi, PDPoolMember u _ _) = getFlowRate mpi `mt_v_mul_u` u
+    flowRate (PDPoolIndex _ mpi, PDPoolMember u _ _) = flowRate mpi `mt_v_mul_u` u
 
     rtb (PDPoolIndex _ mpi, PDPoolMember u sv mps) t' = sv +
         -- let ti = bp_settled_at mpi
@@ -188,7 +197,7 @@ instance MonetaryTypes mt => Semigroup (BasicParticle mt) where
     a@(BasicParticle t1 _ _) <> b@(BasicParticle t2 _ _) = BasicParticle t' (sv1 + sv2) (r1 + r2)
         -- The binary operator supports negative time values while abiding the monoidal laws.
         -- The practical semantics of values of mixed-sign is not of the concern of this specification.
-        where t' | abs t2 > abs t1 = t2 | abs t2 == abs t1 = abs t1 | otherwise = t1
+        where t' | t1 == 0 = t2 | t2 == 0 = t1 | otherwise = max t1 t2
               (BasicParticle _ sv1 r1) = settle t' a
               (BasicParticle _ sv2 r2) = settle t' b
 
@@ -201,7 +210,7 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
                     , bp_settled_value = rtb a t'
                     }
     settledAt = bp_settled_at
-    getFlowRate = bp_flow_rate
+    flowRate = bp_flow_rate
     rtb (BasicParticle t s r) t' = r `mt_v_mul_t` (t' - t) + s
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
@@ -213,7 +222,7 @@ instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt, u ~ MT_UNIT mt
          ) => MonetaryParticle mt t v u (BasicParticle mt) where
     align2 u u' (b, a) = (b', a')
-        where r = getFlowRate b
+        where r = flowRate b
               (r', er') = if u' == 0 then (0, r `mt_v_mul_u` u) else r `mt_v_mul_u_qr_u` (u, u')
               b' = fst . flow1 r' $ b
-              a' = fst . flow1 (er' + getFlowRate a) $ a
+              a' = fst . flow1 (er' + flowRate a) $ a

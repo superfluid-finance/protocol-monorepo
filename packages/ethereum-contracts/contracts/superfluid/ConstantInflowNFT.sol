@@ -11,13 +11,13 @@ import {
 import {
     IConstantInflowNFT
 } from "../interfaces/superfluid/IConstantInflowNFT.sol";
-import { FlowNFTBase } from "./FlowNFTBase.sol";
+import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 
 /// @title ConstantInflowNFT Contract (CIF NFT)
 /// @author Superfluid
 /// @notice The ConstantInflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract does not hold any storage, but references the ConstantOutflowNFT contract storage.
-contract ConstantInflowNFT is FlowNFTBase {
+contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
     /**************************************************************************
      * Custom Errors
      *************************************************************************/
@@ -57,7 +57,12 @@ contract ConstantInflowNFT is FlowNFTBase {
 
     function flowDataByTokenId(
         uint256 tokenId
-    ) public view override returns (FlowNFTData memory flowData) {
+    )
+        public
+        view
+        override(FlowNFTBase, IFlowNFTBase)
+        returns (FlowNFTData memory flowData)
+    {
         IConstantOutflowNFT constantOutflowNFT = superToken
             .constantOutflowNFT();
         flowData = constantOutflowNFT.flowDataByTokenId(tokenId);

@@ -24,8 +24,12 @@ query accountTokenSnapshots($first: Int = 10, $skip: Int = 0, $orderBy: AccountT
         totalApprovedSubscriptions
         totalNetFlowRate
         totalNumberOfActiveStreams
+        activeOutgoingStreamCount
+        activeIncomingStreamCount
         totalOutflowRate
         totalNumberOfClosedStreams
+        inactiveOutgoingStreamCount
+        inactiveIncomingStreamCount
         totalSubscriptionsWithUnits
         updatedAtBlockNumber
         updatedAtTimestamp

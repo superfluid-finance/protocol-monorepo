@@ -32,10 +32,14 @@ export interface AccountTokenSnapshot {
     totalApprovedSubscriptions: number;
     totalNetFlowRate: BigNumber;
     totalNumberOfActiveStreams: number;
+    activeOutgoingStreamCount: number;
+    activeIncomingStreamCount: number;
     totalOutflowRate: BigNumber;
     maybeCriticalAtTimestamp: Timestamp | null;
     isLiquidationEstimateOptimistic: boolean;
     totalNumberOfClosedStreams: number;
+    inactiveOutgoingStreamCount: number;
+    inactiveIncomingStreamCount: number;
     totalSubscriptionsWithUnits: number;
     updatedAtBlockNumber: BlockNumber;
     updatedAtTimestamp: Timestamp;
@@ -84,6 +88,10 @@ export class AccountTokenSnapshotQueryHandler extends SubgraphQueryHandler<
                     : null,
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
             updatedAtTimestamp: Number(x.updatedAtTimestamp),
+            activeIncomingStreamCount: Number(x.activeIncomingStreamCount),
+            activeOutgoingStreamCount: Number(x.activeOutgoingStreamCount),
+            inactiveIncomingStreamCount: Number(x.inactiveIncomingStreamCount),
+            inactiveOutgoingStreamCount: Number(x.inactiveOutgoingStreamCount),
         }));
 
     requestDocument = AccountTokenSnapshotsDocument;

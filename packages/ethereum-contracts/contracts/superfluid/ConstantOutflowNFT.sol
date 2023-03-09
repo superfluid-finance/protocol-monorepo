@@ -32,7 +32,6 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     error COF_NFT_MINT_TO_ZERO_ADDRESS();           // 0x43d05e51
     error COF_NFT_ONLY_CONSTANT_INFLOW();           // 0xa495a718
     error COF_NFT_ONLY_CFA();                       // 0x054fae59
-    error COF_NFT_OVERFLOW();                       // 0xb398aeb1
     error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
 
     // solhint-disable-next-line no-empty-blocks
@@ -156,9 +155,6 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
 
         if (_exists(newTokenId)) {
             revert COF_NFT_TOKEN_ALREADY_EXISTS();
-        }
-        if (block.timestamp != uint256(uint32(block.timestamp))) {
-            revert COF_NFT_OVERFLOW();
         }
 
         // update mapping for new NFT to be minted

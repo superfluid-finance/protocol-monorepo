@@ -263,22 +263,6 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         );
     }
 
-    function test_Revert_When_Create_Flow_Overflows_Because_Timestamp_Is_Greater_Than_Uint32_Max()
-        public
-    {
-        address flowSender = alice;
-        address flowReceiver = bob;
-
-        vm.warp(type(uint64).max);
-
-        vm.expectRevert(ConstantOutflowNFT.COF_NFT_OVERFLOW.selector);
-        constantOutflowNFTProxy.mockMint(
-            flowSender,
-            flowReceiver,
-            helper_Get_NFT_ID(flowSender, flowReceiver)
-        );
-    }
-
     function test_Fuzz_Revert_If_On_Create_Is_Not_Called_By_CFAv1(
         address caller
     ) public {

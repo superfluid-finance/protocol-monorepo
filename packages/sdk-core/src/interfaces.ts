@@ -510,3 +510,29 @@ export interface IWeb3GovernanceParams {
     readonly rewardAddress: string;
     readonly minimumDeposit: string;
 }
+
+export interface NFTApproveParams extends EthersParams {
+    readonly approved: string;
+    readonly tokenId: string;
+}
+
+export interface NFTSetApprovalForAllParams extends EthersParams {
+    readonly operator: string;
+    readonly approved: boolean;
+}
+
+export interface TransferFromParams extends EthersParams {
+    readonly from: string;
+    readonly to: string;
+    readonly tokenId: string;
+}
+
+export interface SafeTransferFromParams extends TransferFromParams {
+    readonly data: string;
+}
+
+export interface NFTFlowData {
+    readonly flowSender: string;
+    readonly flowStartDate: Date;
+    readonly flowReceiver: string;
+}

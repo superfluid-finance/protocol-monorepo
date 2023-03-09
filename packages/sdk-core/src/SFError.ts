@@ -5,6 +5,7 @@ export type ErrorType =
     | "SUPERTOKEN_INITIALIZATION"
     | "CREATE_SIGNER"
     | "SUPERTOKEN_READ"
+    | "NFT_READ"
     | "CFAV1_READ"
     | "IDAV1_READ"
     | "INVALID_ADDRESS"

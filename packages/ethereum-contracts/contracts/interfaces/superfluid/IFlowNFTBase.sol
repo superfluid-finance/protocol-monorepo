@@ -22,6 +22,13 @@ interface IFlowNFTBase is IERC721Metadata {
         address flowReceiver;
     }
 
+    /// @notice An external function for querying flow data by `tokenId``
+    /// @param tokenId the token id
+    /// @return flowData the flow data associated with `tokenId`
+    function flowDataByTokenId(
+        uint256 tokenId
+    ) external view returns (FlowNFTData memory flowData);
+
     function initialize(
         ISuperToken superToken,
         string memory nftName,
@@ -37,6 +44,8 @@ interface IFlowNFTBase is IERC721Metadata {
         address flowSender,
         address flowReceiver
     ) external view returns (uint256);
+
+    function triggerMetadataUpdate(uint256 tokenId) external;
 
     /**************************************************************************
      * Custom Errors

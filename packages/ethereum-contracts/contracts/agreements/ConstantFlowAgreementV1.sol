@@ -461,11 +461,12 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        IConstantOutflowNFT constantOutflowNFT = ISuperToken(
+        // for now, we are aware that this will break super tokens with custom super token logic
+        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
+        // which was previously in place for the previous marketing NFT
+        ISuperToken(
             address(flowVars.token)
-        ).constantOutflowNFT();
-
-        constantOutflowNFT.onCreate(flowVars.sender, flowVars.receiver);
+        ).constantOutflowNFT().onCreate(flowVars.sender, flowVars.receiver);
     }
 
     function _updateFlow(
@@ -495,6 +496,9 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
+        // for now, we are aware that this will break super tokens with custom super token logic
+        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
+        // which was previously in place for the previous marketing NFT
         ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate(
             flowVars.sender,
             flowVars.receiver
@@ -610,6 +614,9 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
+        // for now, we are aware that this will break super tokens with custom super token logic
+        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
+        // which was previously in place for the previous marketing NFT
         IConstantOutflowNFT(
             address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
         ).onDelete(flowVars.sender, flowVars.receiver);

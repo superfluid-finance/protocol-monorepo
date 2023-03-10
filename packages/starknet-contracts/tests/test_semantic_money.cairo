@@ -17,30 +17,30 @@ func test_m_append{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     let a = BasicParticle(5, 10, 10);
     let b = BasicParticle(10, 10, 10);
     let (newBasicParticle) = SemanticMoney.mappend(a, b);
-    assert newBasicParticle.rtb_flow_rate = 20;
-    assert newBasicParticle.rtb_settled_at = 10;
-    assert newBasicParticle.rtb_settled_value = 70;
+    assert newBasicParticle.flow_rate = 20;
+    assert newBasicParticle.settled_at = 10;
+    assert newBasicParticle.settled_value = 70;
 
     // if `settled_at` of a and b are same
     let a = BasicParticle(10, 10, 10);
     let b = BasicParticle(10, 10, 10);
     let (newBasicParticle) = SemanticMoney.mappend(a, b);
-    assert newBasicParticle.rtb_flow_rate = 20;
-    assert newBasicParticle.rtb_settled_at = 10;
-    assert newBasicParticle.rtb_settled_value = 20;
+    assert newBasicParticle.flow_rate = 20;
+    assert newBasicParticle.settled_at = 10;
+    assert newBasicParticle.settled_value = 20;
 
     // if `settled_at` of a of greater
     let a = BasicParticle(20, 10, 10);
     let b = BasicParticle(10, 10, 10);
     let (newBasicParticle) = SemanticMoney.mappend(a, b);
-    assert newBasicParticle.rtb_flow_rate = 20;
-    assert newBasicParticle.rtb_settled_at = 20;
-    assert newBasicParticle.rtb_settled_value = 120;
+    assert newBasicParticle.flow_rate = 20;
+    assert newBasicParticle.settled_at = 20;
+    assert newBasicParticle.settled_value = 120;
 
     let (_newBasicParticle) = SemanticMoney.mappend(b, newBasicParticle);
-    assert _newBasicParticle.rtb_flow_rate = 30;
-    assert _newBasicParticle.rtb_settled_at = 20;
-    assert _newBasicParticle.rtb_settled_value = 230;
+    assert _newBasicParticle.flow_rate = 30;
+    assert _newBasicParticle.settled_at = 20;
+    assert _newBasicParticle.settled_value = 230;
     return ();
 }
 
@@ -162,8 +162,6 @@ func setup_settle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
             sv = strategy.felts(), # settled value
             t1 = strategy.integers(1, 100), # time 1
             t2 = strategy.integers(101, 200), # time 2
-            t3 = strategy.integers(201, 300), # time 3
-            t4 = strategy.integers(301, 400), # time 4
         )
     %}
     return ();
@@ -171,22 +169,12 @@ func setup_settle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 
 @external
 func test_settle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    fr: felt, sv: felt, t1: felt, t2: felt, t3: felt, t4: felt
+    fr: felt, sv: felt, t1: felt, t2: felt
 ) {
     let index = BasicParticle(t1, sv, fr);
     let (newIndex) = SemanticMoney.settle(index, t2);
-    assert newIndex.rtb_settled_value = ((t2 - t1) * fr) + sv;
-    assert newIndex.rtb_settled_at = t2;
-
-    let (_newIndex) = SemanticMoney.settle(newIndex, t3);
-    assert _newIndex.rtb_settled_value = ((t3 - t2) * fr) + ((t2 - t1) * fr) + sv;
-    assert _newIndex.rtb_settled_at = t3;
-
-    let (__newIndex) = SemanticMoney.settle(newIndex, t4);
-    assert __newIndex.rtb_settled_value = ((t4 - t3) * fr) + (
-        ((t3 - t2) * fr) + ((t2 - t1) * fr) + sv
-    );
-    assert __newIndex.rtb_settled_at = t4;
+    assert newIndex.settled_value = ((t2 - t1) * fr) + sv;
+    assert newIndex.settled_at = t2;
     return ();
 }
 
@@ -214,18 +202,18 @@ func test_settle_for_pool_index{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, 
 ) {
     let poolIndex = PDPoolIndex(tu, BasicParticle(t1, sv, fr));
     let (settled_pool_index) = SemanticMoney.settle_for_pool_index(poolIndex, t2);
-    assert settled_pool_index.wrapped_particle.rtb_settled_at = t2;
-    assert settled_pool_index.wrapped_particle.rtb_settled_value = ((t2 - t1) * fr) + sv;
+    assert settled_pool_index.wrapped_particle.settled_at = t2;
+    assert settled_pool_index.wrapped_particle.settled_value = ((t2 - t1) * fr) + sv;
 
     let (_settled_pool_index) = SemanticMoney.settle_for_pool_index(settled_pool_index, t3);
-    assert _settled_pool_index.wrapped_particle.rtb_settled_at = t3;
-    assert _settled_pool_index.wrapped_particle.rtb_settled_value = ((t3 - t2) * fr) + (
+    assert _settled_pool_index.wrapped_particle.settled_at = t3;
+    assert _settled_pool_index.wrapped_particle.settled_value = ((t3 - t2) * fr) + (
         ((t2 - t1) * fr) + sv
     );
 
     let (__settled_pool_index) = SemanticMoney.settle_for_pool_index(_settled_pool_index, t4);
-    assert __settled_pool_index.wrapped_particle.rtb_settled_at = t4;
-    assert __settled_pool_index.wrapped_particle.rtb_settled_value = ((t4 - t3) * fr) + (
+    assert __settled_pool_index.wrapped_particle.settled_at = t4;
+    assert __settled_pool_index.wrapped_particle.settled_value = ((t4 - t3) * fr) + (
         (t3 - t2) * fr
     ) + (((t2 - t1) * fr) + sv);
     return ();
@@ -298,7 +286,7 @@ func test_shift1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 ) {
     let index = BasicParticle(t1, sv, fr);
     let (newIndex, _amount) = SemanticMoney.shift1(amount, index);
-    assert newIndex.rtb_settled_value = amount + sv;
+    assert newIndex.settled_value = amount + sv;
     assert _amount = amount;
     return ();
 }
@@ -322,18 +310,14 @@ func test_shift2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     let aIndex = BasicParticle(0, 0, 0);
     let bIndex = BasicParticle(0, 0, 0);
     let (_aIndex, _bIndex) = SemanticMoney.shift2(aIndex, bIndex, amount, t1);
-    assert _aIndex.rtb_settled_value = (
-        ((t1 - _aIndex.rtb_settled_at) * _aIndex.rtb_settled_at) + 0
-    ) - amount;
-    assert _bIndex.rtb_settled_value = (
-        ((t1 - _bIndex.rtb_settled_at) * _bIndex.rtb_settled_at) + 0
-    ) + amount;
-    assert _aIndex.rtb_settled_value + _bIndex.rtb_settled_value = 0;
+    assert _aIndex.settled_value = (((t1 - _aIndex.settled_at) * _aIndex.flow_rate) + 0) - amount;
+    assert _bIndex.settled_value = (((t1 - _bIndex.settled_at) * _bIndex.flow_rate) + 0) + amount;
+    assert _aIndex.settled_value + _bIndex.settled_value = 0;
     return ();
 }
 
 @external
-func setup_setFlow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+func setup_flow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     %{
         given(
             fr = strategy.felts(), # flow rate
@@ -346,35 +330,12 @@ func setup_setFlow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
 }
 
 @external
-func test_setFlow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func test_flow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     fr: felt, sv: felt, fr_1: felt, t1: felt
 ) {
     let index = BasicParticle(t1, sv, fr);
-    let (newIndex, _) = SemanticMoney.setFlow1(fr_1, index);
-    assert newIndex.rtb_flow_rate = fr_1;
-    return ();
-}
-
-@external
-func setup_shiftFlow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-    %{
-        given(
-            fr = strategy.felts(), # flow rate
-            sv = strategy.felts(), # settled value
-            fr_1 = strategy.felts(), # new flow rate
-            t1 = strategy.integers(0, 100), # time 
-        )
-    %}
-    return ();
-}
-
-@external
-func test_shiftFlow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    fr: felt, sv: felt, fr_1: felt, t1: felt
-) {
-    let index = BasicParticle(t1, sv, fr);
-    let (newIndex, _) = SemanticMoney.shiftFlow1(fr_1, index);
-    assert newIndex.rtb_flow_rate = fr_1 + fr;
+    let (newIndex, _) = SemanticMoney.flow1(fr_1, index);
+    assert newIndex.flow_rate = fr_1;
     return ();
 }
 
@@ -397,12 +358,41 @@ func test_flow2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
     let aIndex = BasicParticle(0, 0, 0);
     let bIndex = BasicParticle(0, 0, 0);
     let (_aIndex, _bIndex) = SemanticMoney.flow2(aIndex, bIndex, fr_1, t1);
-    assert _aIndex.rtb_flow_rate = -fr_1;
-    assert _bIndex.rtb_flow_rate = fr_1;
+    assert _aIndex.flow_rate = -fr_1;
+    assert _bIndex.flow_rate = fr_1;
 
     let (balance_for_sender_particle) = SemanticMoney.realtime_balance_of(_aIndex, t2);
     let (balance_for_receiver_particle) = SemanticMoney.realtime_balance_of(_bIndex, t2);
     assert balance_for_sender_particle + balance_for_receiver_particle = 0;
+    return ();
+}
+
+@external
+func setup_shiftFlow2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    %{
+        given(
+            fr1 = strategy.felts(), # flow rate
+            fr2 = strategy.felts(), # flow rate
+            fr3 = strategy.felts(), # flow rate
+            sv1 = strategy.felts(), # settled value
+            sv2 = strategy.felts(), # settled value
+            t1 = strategy.integers(0, 100), # time 
+            t2 = strategy.integers(101, 200), # time 
+            t3 = strategy.integers(201, 300), # time 
+        )
+    %}
+    return ();
+}
+
+@external
+func test_shiftFlow2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    fr1: felt, fr2: felt, fr3: felt, sv1: felt, sv2: felt, t1: felt, t2: felt, t3: felt
+) {
+    let aIndex = BasicParticle(t1, sv1, fr1);
+    let bIndex = BasicParticle(t2, sv2, fr2);
+    let (newAIndex, newBIndex) = SemanticMoney.shiftFlow2(aIndex, bIndex, fr3, t3);
+    assert newAIndex.flow_rate = fr1 - fr3;
+    assert newBIndex.flow_rate = fr2 + fr3;
     return ();
 }
 
@@ -453,14 +443,14 @@ func test_flow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     );
 
     let (_u_index, _p_index, _) = SemanticMoney.flow2_pd(u_index, p_index, fr, t2);
-    assert _u_index.rtb_flow_rate = u_index.rtb_flow_rate - (
+    assert _u_index.flow_rate = u_index.flow_rate - (
         (fr / p_index.total_units) * p_index.total_units
     );
-    assert _p_index.wrapped_particle.rtb_flow_rate = p_index.wrapped_particle.rtb_flow_rate + (
+    assert _p_index.wrapped_particle.flow_rate = p_index.wrapped_particle.flow_rate + (
         ((fr / p_index.total_units) * p_index.total_units) / p_index.total_units
     );  // Per Unit
-    assert _u_index.rtb_settled_at = t2;
-    assert _p_index.wrapped_particle.rtb_settled_at = t2;
+    assert _u_index.settled_at = t2;
+    assert _p_index.wrapped_particle.settled_at = t2;
 
     let pool_member_mu = PDPoolMemberMU(_p_index, pool_member_1);
     let (realtime_balance_of_pool_member_mu_1) = SemanticMoney.realtime_balance_of_pool_member_mu(
@@ -517,6 +507,37 @@ func test_flow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 }
 
 @external
+func setup_shifFlow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    %{
+        given(
+            tu = strategy.integers(1, 1000), # time
+            fr1 = strategy.felts(), # flow rate
+            fr2 = strategy.felts(), # flow rate
+            fr3 = strategy.felts(), # flow rate
+            sv1 = strategy.felts(), # settled value
+            sv2 = strategy.felts(), # settled value
+            t1 = strategy.integers(0, 100), # time 
+            t2 = strategy.integers(101, 200), # time 
+            t3 = strategy.integers(201, 300), # time 
+        )
+    %}
+    return ();
+}
+
+@external
+func test_shifFlow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    tu: felt, fr1: felt, fr2: felt, fr3: felt, sv1: felt, sv2: felt, t1: felt, t2: felt, t3: felt
+) {
+    alloc_locals;
+    let u_index = BasicParticle(t1, sv1, fr1);
+    let p_index = PDPoolIndex(tu, BasicParticle(t2, sv2, fr2));
+    let (newUIndex, newPoolIndex, _) = SemanticMoney.shiftFlow_pd(u_index, p_index, fr3, t3);
+    assert newUIndex.flow_rate = fr1 - fr3;
+    assert newPoolIndex.wrapped_particle.flow_rate = fr2 + (fr3 / tu);
+    return ();
+}
+
+@external
 func setup_shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     %{
         given(
@@ -567,15 +588,14 @@ func test_shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     );
 
     let (_u_index, _p_index, _) = SemanticMoney.shift2_pd(u_index, p_index, amount, t2);
-    assert _u_index.rtb_settled_value = (
-        ((t2 - t1) * u_index.rtb_flow_rate) + u_index.rtb_settled_value
-    ) - ((amount / p_index.total_units) * p_index.total_units);
-    assert _u_index.rtb_settled_at = t2;
-    assert _p_index.wrapped_particle.rtb_settled_value = (
-        ((t2 - t1) * p_index.wrapped_particle.rtb_flow_rate) +
-        p_index.wrapped_particle.rtb_settled_value
+    assert _u_index.settled_value = (((t2 - t1) * u_index.flow_rate) + u_index.settled_value) - (
+        (amount / p_index.total_units) * p_index.total_units
+    );
+    assert _u_index.settled_at = t2;
+    assert _p_index.wrapped_particle.settled_value = (
+        ((t2 - t1) * p_index.wrapped_particle.flow_rate) + p_index.wrapped_particle.settled_value
     ) + (((amount / p_index.total_units) * p_index.total_units) / p_index.total_units);  // Per Unit
-    assert _p_index.wrapped_particle.rtb_settled_at = t2;
+    assert _p_index.wrapped_particle.settled_at = t2;
 
     let pool_member_mu = PDPoolMemberMU(_p_index, pool_member_1);
     let (realtime_balance_of_pool_member_mu_1) = SemanticMoney.realtime_balance_of_pool_member_mu(
@@ -626,15 +646,14 @@ func test_shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     ) + pool_member_1.settled_value;
 
     let (_u_index, _p_index, _) = SemanticMoney.shift2_pd(u_index, p_index, amount, t6);
-    assert _u_index.rtb_settled_value = (
-        ((t6 - t4) * u_index.rtb_flow_rate) + u_index.rtb_settled_value
-    ) - ((amount / p_index.total_units) * p_index.total_units);
-    assert _u_index.rtb_settled_at = t6;
-    assert _p_index.wrapped_particle.rtb_settled_value = (
-        ((t6 - t4) * p_index.wrapped_particle.rtb_flow_rate) +
-        p_index.wrapped_particle.rtb_settled_value
+    assert _u_index.settled_value = (((t6 - t4) * u_index.flow_rate) + u_index.settled_value) - (
+        (amount / p_index.total_units) * p_index.total_units
+    );
+    assert _u_index.settled_at = t6;
+    assert _p_index.wrapped_particle.settled_value = (
+        ((t6 - t4) * p_index.wrapped_particle.flow_rate) + p_index.wrapped_particle.settled_value
     ) + (((amount / p_index.total_units) * p_index.total_units) / p_index.total_units);  // Per Unit
-    assert _p_index.wrapped_particle.rtb_settled_at = t6;
+    assert _p_index.wrapped_particle.settled_at = t6;
 
     let pool_member_mu = PDPoolMemberMU(_p_index, pool_member_2);
     let (realtime_balance_of_pool_member_mu_2) = SemanticMoney.realtime_balance_of_pool_member_mu(

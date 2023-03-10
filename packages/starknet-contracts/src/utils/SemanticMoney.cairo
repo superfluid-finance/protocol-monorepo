@@ -6,9 +6,9 @@ from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.bool import TRUE
 
 struct BasicParticle {
-    rtb_settled_at: felt,
-    rtb_settled_value: felt,
-    rtb_flow_rate: felt,
+    settled_at: felt,
+    settled_value: felt,
+    flow_rate: felt,
 }
 
 struct PDPoolIndex {
@@ -36,25 +36,23 @@ namespace SemanticMoney {
         a: BasicParticle, b: BasicParticle
     ) -> (c: BasicParticle) {
         alloc_locals;
-        let a_is_less_than_or_equal_to_b = is_le(a.rtb_settled_at, b.rtb_settled_at);
+        let a_is_less_than_or_equal_to_b = is_le(a.settled_at, b.settled_at);
         if (a_is_less_than_or_equal_to_b == TRUE) {
-            let (settledBasicParticleForA) = settle(a, b.rtb_settled_at);
-            let (settledBasicParticleForB) = settle(b, b.rtb_settled_at);
+            let (settledBasicParticleForA) = settle(a, b.settled_at);
+            let (settledBasicParticleForB) = settle(b, b.settled_at);
             let c = BasicParticle(
-                b.rtb_settled_at,
-                settledBasicParticleForA.rtb_settled_value +
-                settledBasicParticleForB.rtb_settled_value,
-                a.rtb_flow_rate + b.rtb_flow_rate,
+                b.settled_at,
+                settledBasicParticleForA.settled_value + settledBasicParticleForB.settled_value,
+                a.flow_rate + b.flow_rate,
             );
             return (c=c);
         } else {
-            let (settledBasicParticleForA) = settle(a, a.rtb_settled_at);
-            let (settledBasicParticleForB) = settle(b, a.rtb_settled_at);
+            let (settledBasicParticleForA) = settle(a, a.settled_at);
+            let (settledBasicParticleForB) = settle(b, a.settled_at);
             let c = BasicParticle(
-                a.rtb_settled_at,
-                settledBasicParticleForA.rtb_settled_value +
-                settledBasicParticleForB.rtb_settled_value,
-                a.rtb_flow_rate + b.rtb_flow_rate,
+                a.settled_at,
+                settledBasicParticleForA.settled_value + settledBasicParticleForB.settled_value,
+                a.flow_rate + b.flow_rate,
             );
             return (c=c);
         }
@@ -63,17 +61,17 @@ namespace SemanticMoney {
     func realtime_balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         index: BasicParticle, time: felt
     ) -> (balance: felt) {
-        let timeDelta = time - index.rtb_settled_at;
-        let balance = (timeDelta * index.rtb_flow_rate) + index.rtb_settled_value;
+        let timeDelta = time - index.settled_at;
+        let balance = (timeDelta * index.flow_rate) + index.settled_value;
         return (balance=balance);
     }
 
     func settle{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         index: BasicParticle, time: felt
     ) -> (index: BasicParticle) {
-        let timeDelta = time - index.rtb_settled_at;
-        let newSettledValue = (timeDelta * index.rtb_flow_rate) + index.rtb_settled_value;
-        let newBasicParticle = BasicParticle(time, newSettledValue, index.rtb_flow_rate);
+        let timeDelta = time - index.settled_at;
+        let newSettledValue = (timeDelta * index.flow_rate) + index.settled_value;
+        let newBasicParticle = BasicParticle(time, newSettledValue, index.flow_rate);
         return (index=newBasicParticle);
     }
 
@@ -81,7 +79,7 @@ namespace SemanticMoney {
         amount: felt, index: BasicParticle
     ) -> (index: BasicParticle, amount: felt) {
         let newBasicParticle = BasicParticle(
-            index.rtb_settled_at, index.rtb_settled_value + amount, index.rtb_flow_rate
+            index.settled_at, index.settled_value + amount, index.flow_rate
         );
         return (index=newBasicParticle, amount=amount);
     }
@@ -89,29 +87,16 @@ namespace SemanticMoney {
     func shift2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         a: BasicParticle, b: BasicParticle, amount: felt, time: felt
     ) -> (a: BasicParticle, b: BasicParticle) {
-        let (settledBasicParticleForA) = settle(a, time);
-        let (settledBasicParticleForB) = settle(b, time);
         // This right-biased. That is: the `amount` argument of shift1 for a is dependent on the `amount` return by shift1 for b (RHS)
-        let (bBasicParticle, _amount) = shift1(amount, settledBasicParticleForB);
-        let (aBasicParticle, _) = shift1(-_amount, settledBasicParticleForA);
+        let (bBasicParticle, _amount) = shift1(amount, b);
+        let (aBasicParticle, _) = shift1(-_amount, a);
         return (a=aBasicParticle, b=bBasicParticle);
     }
 
-    func setFlow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    func flow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         flow_rate: felt, index: BasicParticle
     ) -> (index: BasicParticle, flow_rate: felt) {
-        let newBasicParticle = BasicParticle(
-            index.rtb_settled_at, index.rtb_settled_value, flow_rate
-        );
-        return (index=newBasicParticle, flow_rate=flow_rate);
-    }
-
-    func shiftFlow1{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        flow_rate: felt, index: BasicParticle
-    ) -> (index: BasicParticle, flow_rate: felt) {
-        let newBasicParticle = BasicParticle(
-            index.rtb_settled_at, index.rtb_settled_value, index.rtb_flow_rate + flow_rate
-        );
+        let newBasicParticle = BasicParticle(index.settled_at, index.settled_value, flow_rate);
         return (index=newBasicParticle, flow_rate=flow_rate);
     }
 
@@ -120,10 +105,22 @@ namespace SemanticMoney {
     ) -> (a: BasicParticle, b: BasicParticle) {
         let (settledBasicParticleForA) = settle(a, time);
         let (settledBasicParticleForB) = settle(b, time);
-        // This is right-biased. That is: the `flow_rate` argument of shiftFlow1 for a is dependent on the `flow_rate` returned by  shiftFlow1 for b (RHS)
-        let (bBasicParticle, _flow_rate) = shiftFlow1(flow_rate, settledBasicParticleForB);
-        let (aBasicParticle, _) = shiftFlow1(-_flow_rate, settledBasicParticleForA);
+        // This is right-biased. That is: the `flow_rate` argument of flow1 for a is dependent on the `flow_rate` returned by  flow1 for b (RHS)
+        let (bBasicParticle, _flow_rate) = flow1(flow_rate, settledBasicParticleForB);
+        let (aBasicParticle, _) = flow1(-_flow_rate, settledBasicParticleForA);
         return (a=aBasicParticle, b=bBasicParticle);
+    }
+
+    func shiftFlow2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        a: BasicParticle, b: BasicParticle, flow_rate: felt, time: felt
+    ) -> (m: BasicParticle, n: BasicParticle) {
+        alloc_locals;
+        let mempty = BasicParticle(0, 0, 0);
+        let (_, b1) = flow2(a, mempty, a.flow_rate, time);
+        let (m, b2) = flow2(a, mempty, -a.flow_rate + flow_rate, time);
+        let (b_and_b1) = mappend(b, b1);
+        let (n) = mappend(b_and_b1, b2);
+        return (m=m, n=n);
     }
 
     // Pool Operations
@@ -133,9 +130,7 @@ namespace SemanticMoney {
     ) -> (index: PDPoolIndex) {
         let clonedPoolIndex = PDPoolIndex(
             index.total_units,
-            BasicParticle(
-                index.wrapped_particle.rtb_settled_at, index.rtb_settled_value, index.rtb_flow_rate
-            ),
+            BasicParticle(index.wrapped_particle.settled_at, index.settled_value, index.flow_rate),
         );
         return (index=clonedPoolIndex);
     }
@@ -164,7 +159,7 @@ namespace SemanticMoney {
         );
         let (realtime_balance_of_synced_particle) = realtime_balance_of(
             poolMemberMU.pdPoolMember.synced_particle,
-            poolMemberMU.pdPoolMember.synced_particle.rtb_settled_at,
+            poolMemberMU.pdPoolMember.synced_particle.settled_at,
         );
         let balance = (
             (realtime_balance_of_wrapped_particle - realtime_balance_of_synced_particle) *
@@ -215,19 +210,17 @@ namespace SemanticMoney {
         let (settled_pool_member_mu) = settle_for_pool_member_mu(newPoolMemberMU, time);
 
         if (new_total_units != 0) {
-            let nr = settled_pool_member_mu.pdPoolIndex.wrapped_particle.rtb_flow_rate;
+            let nr = settled_pool_member_mu.pdPoolIndex.wrapped_particle.flow_rate;
             let er = 0;
             let r_mul_otu = nr * old_total_units;
             let (quotient, remainder) = unsigned_div_rem(r_mul_otu, new_total_units);
             let nr = quotient;
             let er = remainder;
-            let (wp_with_new_fr, _) = setFlow1(
+            let (wp_with_new_fr, _) = flow1(
                 nr, settled_pool_member_mu.pdPoolIndex.wrapped_particle
             );
             let (settled_u_index) = settle(u_index, time);
-            let (u_index_with_new_fr, _) = setFlow1(
-                settled_u_index.rtb_flow_rate + er, settled_u_index
-            );
+            let (u_index_with_new_fr, _) = flow1(settled_u_index.flow_rate + er, settled_u_index);
 
             let newPoolIndex = PDPoolIndex(new_total_units, wp_with_new_fr);
             let newPoolMember = PDPoolMember(
@@ -235,16 +228,14 @@ namespace SemanticMoney {
             );
             return (p_index=newPoolIndex, pool_member=newPoolMember, u_index=u_index_with_new_fr);
         } else {
-            let er = settled_pool_member_mu.pdPoolIndex.wrapped_particle.rtb_flow_rate *
+            let er = settled_pool_member_mu.pdPoolIndex.wrapped_particle.flow_rate *
                 old_total_units;
             let nr = 0;
-            let (wp_with_new_fr, _) = setFlow1(
+            let (wp_with_new_fr, _) = flow1(
                 nr, settled_pool_member_mu.pdPoolIndex.wrapped_particle
             );
             let (settled_u_index) = settle(u_index, time);
-            let (u_index_with_new_fr, _) = setFlow1(
-                settled_u_index.rtb_flow_rate + er, settled_u_index
-            );
+            let (u_index_with_new_fr, _) = flow1(settled_u_index.flow_rate + er, settled_u_index);
 
             let newPoolIndex = PDPoolIndex(new_total_units, wp_with_new_fr);
             let newPoolMember = PDPoolMember(
@@ -256,7 +247,7 @@ namespace SemanticMoney {
 
     func shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         u_index: BasicParticle, p_index: PDPoolIndex, value: felt, time: felt
-    ) -> (u_index: BasicParticle, p_index: PDPoolIndex, value: felt) {
+    ) -> (u_index: BasicParticle, p_index: PDPoolIndex, actualAmount: felt) {
         if (p_index.total_units != 0) {
             let nx = (value / p_index.total_units) * p_index.total_units;
             let (settled_u_index) = settle(u_index, time);
@@ -266,38 +257,47 @@ namespace SemanticMoney {
                 nx / p_index.total_units, settled_p_index.wrapped_particle
             );
             let newPoolIndex = PDPoolIndex(settled_p_index.total_units, shift1_on_wrapped_particle);
-            return (u_index=shift1_on_u_index, p_index=newPoolIndex, value=nx);
+            return (u_index=shift1_on_u_index, p_index=newPoolIndex, actualAmount=nx);
         } else {
             let (u_index) = settle(u_index, time);
             let (p_index) = settle_for_pool_index(p_index, time);
-            return (u_index=u_index, p_index=p_index, value=value);
+            return (u_index=u_index, p_index=p_index, actualAmount=0);
         }
     }
 
     func flow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         u_index: BasicParticle, p_index: PDPoolIndex, value: felt, time: felt
-    ) -> (u_index: BasicParticle, p_index: PDPoolIndex, value: felt) {
+    ) -> (u_index: BasicParticle, p_index: PDPoolIndex, actualFlowRate: felt) {
         if (p_index.total_units != 0) {
             let nr = (value / p_index.total_units) * p_index.total_units;
             let (settled_u_index) = settle(u_index, time);
-            let (shiftFlow1_on_u_index, _) = shiftFlow1(-nr, settled_u_index);
+            let (flow1_on_u_index, _) = flow1(-nr, settled_u_index);
             let (settled_p_index) = settle_for_pool_index(p_index, time);
-            let (shiftFlow1_on_wrapped_particle, _) = shiftFlow1(
+            let (flow1_on_wrapped_particle, _) = flow1(
                 nr / p_index.total_units, settled_p_index.wrapped_particle
             );
-            let _p_index = PDPoolIndex(p_index.total_units, shiftFlow1_on_wrapped_particle);
-            return (u_index=shiftFlow1_on_u_index, p_index=_p_index, value=nr);
+            let _p_index = PDPoolIndex(p_index.total_units, flow1_on_wrapped_particle);
+            return (u_index=flow1_on_u_index, p_index=_p_index, actualFlowRate=nr);
         } else {
             let (settled_u_index) = settle(u_index, time);
             let (settled_p_index) = settle_for_pool_index(p_index, time);
-            let (shiftFlow1_on_u_index, _) = shiftFlow1(0, settled_u_index);
-            let (shiftFlow1_on_wrapped_particle, _) = shiftFlow1(
-                0, settled_p_index.wrapped_particle
-            );
-            let newPoolIndex = PDPoolIndex(
-                settled_p_index.total_units, shiftFlow1_on_wrapped_particle
-            );
-            return (u_index=shiftFlow1_on_u_index, p_index=newPoolIndex, value=value);
+            let (flow1_on_u_index, _) = flow1(0, settled_u_index);
+            let (flow1_on_wrapped_particle, _) = flow1(0, settled_p_index.wrapped_particle);
+            let newPoolIndex = PDPoolIndex(settled_p_index.total_units, flow1_on_wrapped_particle);
+            return (u_index=flow1_on_u_index, p_index=newPoolIndex, actualFlowRate=0);
         }
+    }
+
+    func shiftFlow_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        a: BasicParticle, b: PDPoolIndex, flow_rate: felt, time: felt
+    ) -> (m: BasicParticle, n: PDPoolIndex, actualFlowRate: felt) {
+        alloc_locals;
+        let mempty = BasicParticle(0, 0, 0);
+        let _flow_rate = b.wrapped_particle.flow_rate * b.total_units;
+        let (a1, _, _) = flow2_pd(mempty, b, -_flow_rate, time);
+        let (a2, n, actualFlowRate) = flow2_pd(mempty, b, _flow_rate + flow_rate, time);
+        let (a_and_a1) = mappend(a, a1);
+        let (m) = mappend(a_and_a1, a2);
+        return (m=m, n=n, actualFlowRate=actualFlowRate);
     }
 }

@@ -19,6 +19,11 @@ interface ISuperToken is IERC20 {
     //function realtimeBalanceOf(address account) returns (int256 avb, int256 deposit, int256 ...) {
     //}
 
+    // REVIEW NOTES:
+    // - flowAddress naming concern: uniquely obtained AppId? flowId (renaming input to flowSubId)?
+    // - nFlows/totalFlowRate between sender and receiver is lost.
+    // - in v1 separation of outgoing/incoming is lost.
+
     function shift(address from, address to, Value amount) external
         returns (bool);
 
@@ -35,6 +40,9 @@ interface ISuperToken is IERC20 {
     // Pool Operations
     ////////////////////////////////////////////////////////////////////////////////
 
+    // REVIEW NOTES:
+    // - connectPool has implied side effects and claimAll.
+
     function connectPool(ISuperTokenPool to) external
         returns (bool);
 
@@ -44,12 +52,12 @@ interface ISuperToken is IERC20 {
     function connectPool(ISuperTokenPool to, bool doConnect) external
         returns (bool);
 
+    function isMemberConnected(ISuperTokenPool pool, address memberAddr) external view
+        returns (bool);
+
     ////////////////////////////////////////////////////////////////////////////////
     // Pool Owner Operations
     ////////////////////////////////////////////////////////////////////////////////
-
-    function isMemberConnected(ISuperTokenPool pool, address memberAddr) external view
-        returns (bool);
 
     /// This is used by the pool to adjust flow rate
     function absorbParticleFromPool(address account, BasicParticle calldata p) external

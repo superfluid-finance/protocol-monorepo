@@ -7,14 +7,14 @@ import "../src/ToySuperToken.sol";
 contract ToySuperTokenTest is Test {
     address internal constant admin = address(0x420);
     address internal constant alice = address(0x421);
-    address internal constant bob = address(0x422);
+    address internal constant bob   = address(0x422);
     address internal constant carol = address(0x423);
-    address internal constant dan = address(0x424);
-    address internal constant eve = address(0x425);
+    address internal constant dan   = address(0x424);
+    address internal constant eve   = address(0x425);
     address internal constant frank = address(0x426);
     address internal constant grace = address(0x427);
     address internal constant heidi = address(0x428);
-    address internal constant ivan = address(0x429);
+    address internal constant ivan  = address(0x429);
     uint internal immutable N_TESTERS;
 
     address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
@@ -37,7 +37,7 @@ contract ToySuperTokenTest is Test {
         vm.stopPrank();
     }
 
-    function test_transfer(uint32 x) external {
+    function test_erc20_transfer(uint32 x) external {
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
         vm.startPrank(alice);
@@ -194,7 +194,7 @@ contract ToySuperTokenTest is Test {
         assertEq(b2 - b1 + c2 - c1 + p2 - p1, a1 - a2, "e5");
     }
 
-    function testTwoDistributors(int32 u1, uint32 r1, uint32 r2, uint16 t2) external {
+    function test_2to1_distributeflow(int32 u1, uint32 r1, uint32 r2, uint16 t2) external {
         vm.assume(u1 > 0);
         uint tu = uint(int(u1));
         int rr1 = int(uint(r1) / tu * tu);

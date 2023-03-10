@@ -106,7 +106,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
  *
  * Features:
  * - Pure super token, no ERC20 wrapping business.
- * - Negative account is allowed,
+ * - Negative account is allowed.
  * - no permission control for account going negative.
  */
 contract ToySuperToken is ISuperToken {
@@ -197,11 +197,17 @@ contract ToySuperToken is ISuperToken {
     function flow(address from, address to, FlowId flowId, FlowRate flowRate) override external
         returns (bool success)
     {
+        /// check inputs
+        // require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed.");
         require(!pools[ISuperTokenPool(to)], "Is a pool!");
+
+        /// prepare local variables (let bindings)
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
+
         // FIXME: plug permission controls
         require(msg.sender == from, "No flow permission");
+
         // Make updates
         FlowRate flowRateDelta = flowRate - flowRates[flowAddress];
         (uIndexes[from], uIndexes[to]) = uIndexes[from].shiftFlow2a(uIndexes[to], flowRateDelta, t);
@@ -225,11 +231,17 @@ contract ToySuperToken is ISuperToken {
     function distributeFlow(address from, ISuperTokenPool to, FlowId flowId, FlowRate reqFlowRate) override external
         returns (bool success, FlowRate actualFlowRate)
     {
+        /// check inputs
+        // require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed.");
         require(pools[to], "Not a pool!");
+
+        /// prepare local variables
         Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
+        bytes32 flowAddress = keccak256(abi.encode(from, to, flowId)); // TODO maybe flowRef
+
         // FIXME: plug permission controls
         require(msg.sender == from, "No flow permission");
+
         // Make updates
         FlowRate oldFlowRate = uIndexes[from].flow_rate.inv();
         PDPoolIndex memory pdidx = to.getIndex();

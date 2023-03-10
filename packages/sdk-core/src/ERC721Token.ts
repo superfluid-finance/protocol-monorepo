@@ -1,17 +1,24 @@
 import {
     IERC721Metadata,
     IERC721Metadata__factory,
+    IFlowNFTBase,
 } from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
 import Operation from "./Operation";
 import { SFError } from "./SFError";
 import {
-    NFTApproveParams,
+    ERC721ApproveParams,
+    ERC721BalanceOfParams,
+    ERC721GetApprovedParams,
+    ERC721IsApprovedForAllParams,
+    ERC721OwnerOfParams,
+    ERC721SafeTransferFromParams,
+    ERC721SetApprovalForAllParams,
+    ERC721TokenURIParams,
+    ERC721TransferFromParams,
     NFTFlowData,
-    NFTSetApprovalForAllParams,
-    SafeTransferFromParams,
-    TransferFromParams,
+    ProviderOrSigner,
 } from "./interfaces";
 import { getSanitizedTimestamp, normalizeAddress } from "./utils";
 
@@ -36,17 +43,11 @@ export default class ERC721MetadataToken {
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {Promise<string>} the token balance of `owner`
      */
-    balanceOf = async ({
-        owner,
-        providerOrSigner,
-    }: {
-        owner: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }): Promise<string> => {
+    balanceOf = async (params: ERC721BalanceOfParams): Promise<string> => {
         try {
-            const normalizedOwner = normalizeAddress(owner);
+            const normalizedOwner = normalizeAddress(params.owner);
             const balanceOf = await this.contract
-                .connect(providerOrSigner)
+                .connect(params.providerOrSigner)
                 .balanceOf(normalizedOwner);
             return balanceOf.toString();
         } catch (err) {
@@ -65,17 +66,11 @@ export default class ERC721MetadataToken {
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {string} the address of the owner of the NFT
      */
-    ownerOf = async ({
-        tokenId,
-        providerOrSigner,
-    }: {
-        tokenId: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }): Promise<string> => {
+    ownerOf = async (params: ERC721OwnerOfParams): Promise<string> => {
         try {
             const ownerOf = await this.contract
-                .connect(providerOrSigner)
-                .ownerOf(tokenId);
+                .connect(params.providerOrSigner)
+                .ownerOf(params.tokenId);
             return ownerOf.toString();
         } catch (err) {
             throw new SFError({
@@ -90,21 +85,14 @@ export default class ERC721MetadataToken {
      * Returns the approved address for a single NFT, or the zero address if there is none.
      * @param tokenId the token id
      * @param providerOrSigner a provider or signer for executing a web3 call
-     * @returns {bool}
+     * @returns {string} the approved address for this NFT, or the zero address if there is none
      */
-    getApproved = async ({
-        tokenId,
-        providerOrSigner,
-    }: {
-        tokenId: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }): Promise<string> => {
+    getApproved = async (params: ERC721GetApprovedParams): Promise<string> => {
         try {
             const approved = await this.contract
-
-                .connect(providerOrSigner)
-                .getApproved(tokenId);
-            return approved.toString();
+                .connect(params.providerOrSigner)
+                .getApproved(params.tokenId);
+            return approved;
         } catch (err) {
             throw new SFError({
                 type: "NFT_READ",
@@ -121,21 +109,14 @@ export default class ERC721MetadataToken {
      * @param providerOrSigner a provider or signer for executing a web3 call
      * @returns {bool}
      */
-    isApprovedForAll = async ({
-        owner,
-        operator,
-        providerOrSigner,
-    }: {
-        owner: string;
-        operator: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }): Promise<boolean> => {
+    isApprovedForAll = async (
+        params: ERC721IsApprovedForAllParams
+    ): Promise<boolean> => {
         try {
-            const normalizedOwner = normalizeAddress(owner);
-            const normalizedOperator = normalizeAddress(operator);
+            const normalizedOwner = normalizeAddress(params.owner);
+            const normalizedOperator = normalizeAddress(params.operator);
             const approved = await this.contract
-
-                .connect(providerOrSigner)
+                .connect(params.providerOrSigner)
                 .isApprovedForAll(normalizedOwner, normalizedOperator);
             return approved;
         } catch (err) {
@@ -155,7 +136,7 @@ export default class ERC721MetadataToken {
     name = async ({
         providerOrSigner,
     }: {
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+        providerOrSigner: ProviderOrSigner;
     }): Promise<string> => {
         try {
             const name = await this.contract.connect(providerOrSigner).name();
@@ -177,7 +158,7 @@ export default class ERC721MetadataToken {
     symbol = async ({
         providerOrSigner,
     }: {
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+        providerOrSigner: ProviderOrSigner;
     }): Promise<string> => {
         try {
             const symbol = await this.contract
@@ -198,18 +179,11 @@ export default class ERC721MetadataToken {
      * @param tokenId the token id
      * @returns {string}
      */
-    tokenURI = async ({
-        tokenId,
-        providerOrSigner,
-    }: {
-        tokenId: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }): Promise<string> => {
+    tokenURI = async (params: ERC721TokenURIParams): Promise<string> => {
         try {
             const uri = await this.contract
-
-                .connect(providerOrSigner)
-                .tokenURI(tokenId);
+                .connect(params.providerOrSigner)
+                .tokenURI(params.tokenId);
             return uri;
         } catch (err) {
             throw new SFError({
@@ -229,7 +203,7 @@ export default class ERC721MetadataToken {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */
-    approve = (params: NFTApproveParams): Operation => {
+    approve = (params: ERC721ApproveParams): Operation => {
         const normalizedReceiver = normalizeAddress(params.approved);
         const txn = this.contract.populateTransaction.approve(
             normalizedReceiver,
@@ -245,7 +219,7 @@ export default class ERC721MetadataToken {
      * @param approved The approved status.
      * @returns {Operation} An instance of Operation which can be executed.
      */
-    setApprovalForAll = (params: NFTSetApprovalForAllParams): Operation => {
+    setApprovalForAll = (params: ERC721SetApprovalForAllParams): Operation => {
         const normalizedOperator = normalizeAddress(params.operator);
         const txn = this.contract.populateTransaction.setApprovalForAll(
             normalizedOperator,
@@ -263,7 +237,7 @@ export default class ERC721MetadataToken {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */
-    transferFrom = (params: TransferFromParams): Operation => {
+    transferFrom = (params: ERC721TransferFromParams): Operation => {
         const normalizedFrom = normalizeAddress(params.from);
         const normalizedTo = normalizeAddress(params.to);
         const txn = this.contract.populateTransaction.transferFrom(
@@ -284,7 +258,7 @@ export default class ERC721MetadataToken {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */
-    safeTransferFrom = (params: TransferFromParams): Operation => {
+    safeTransferFrom = (params: ERC721TransferFromParams): Operation => {
         const normalizedFrom = normalizeAddress(params.from);
         const normalizedTo = normalizeAddress(params.to);
         const txn = this.contract.populateTransaction[
@@ -302,7 +276,9 @@ export default class ERC721MetadataToken {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed.
      */
-    safeTransferFromWithData = (params: SafeTransferFromParams): Operation => {
+    safeTransferFromWithData = (
+        params: ERC721SafeTransferFromParams
+    ): Operation => {
         const normalizedFrom = normalizeAddress(params.from);
         const normalizedTo = normalizeAddress(params.to);
         const txn = this.contract.populateTransaction[
@@ -322,11 +298,9 @@ export default class ERC721MetadataToken {
      * @param params NFTFlowData
      * @returns {NFTFlowData} sanitized NFTFlowData
      */
-    _sanitizeNFTFlowData = (params: {
-        flowSender: string;
-        flowStartDate: number;
-        flowReceiver: string;
-    }): NFTFlowData => {
+    _sanitizeNFTFlowData = (
+        params: IFlowNFTBase.FlowNFTDataStructOutput
+    ): NFTFlowData => {
         return {
             flowSender: params.flowSender,
             flowStartDate: getSanitizedTimestamp(params.flowStartDate),

@@ -6,7 +6,13 @@ import { ethers } from "ethers";
 
 import Operation from "./Operation";
 import { SFError } from "./SFError";
-import { IBaseSuperTokenParams, ITransferFromParams } from "./interfaces";
+import {
+    ERC20AllowanceParams,
+    ERC20BalanceOfParams,
+    IBaseSuperTokenParams,
+    ITransferFromParams,
+    ProviderOrSigner,
+} from "./interfaces";
 import { normalizeAddress } from "./utils";
 
 export default class ERC20Token {
@@ -35,11 +41,7 @@ export default class ERC20Token {
         owner,
         spender,
         providerOrSigner,
-    }: {
-        owner: string;
-        spender: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }): Promise<string> => {
+    }: ERC20AllowanceParams): Promise<string> => {
         const normalizedOwner = normalizeAddress(owner);
         const normalizedSpender = normalizeAddress(spender);
         try {
@@ -65,10 +67,7 @@ export default class ERC20Token {
     balanceOf = async ({
         account,
         providerOrSigner,
-    }: {
-        account: string;
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
-    }): Promise<string> => {
+    }: ERC20BalanceOfParams): Promise<string> => {
         try {
             const normalizedAccount = normalizeAddress(account);
             const balanceOf = await this.contract
@@ -92,7 +91,7 @@ export default class ERC20Token {
     name = async ({
         providerOrSigner,
     }: {
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+        providerOrSigner: ProviderOrSigner;
     }): Promise<string> => {
         try {
             const name = await this.contract.connect(providerOrSigner).name();
@@ -114,7 +113,7 @@ export default class ERC20Token {
     symbol = async ({
         providerOrSigner,
     }: {
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+        providerOrSigner: ProviderOrSigner;
     }): Promise<string> => {
         try {
             const symbol = await this.contract
@@ -138,7 +137,7 @@ export default class ERC20Token {
     totalSupply = async ({
         providerOrSigner,
     }: {
-        providerOrSigner: ethers.providers.Provider | ethers.Signer;
+        providerOrSigner: ProviderOrSigner;
     }): Promise<string> => {
         try {
             const totalSupply = await this.contract

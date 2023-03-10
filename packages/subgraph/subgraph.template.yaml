@@ -305,14 +305,17 @@ templates:
       language: wasm/assemblyscript
       file: ./src/mappings/constantFlowNFT.ts
       entities:
+        - ApprovalEvent
+        - ApprovalForAllEvent
+        - MetadataUpdateEvent
       abis:
         - name: IFlowNFTBase
           file: ./abis/IFlowNFTBase.json
       eventHandlers:
-        - event: Transfer(address,indexed address,bytes32,indexed address,indexed address,uint256,uint256)
+        - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
           receipt: true
-        - event: Approval(indexed address,bytes32,indexed address,indexed address,address,uint256,int256,bytes)
+        - event: Approval(indexed address,indexed address,indexed uint256)
           handler: handleApproval
           receipt: true
         - event: ApprovalForAll(indexed address,indexed address,bool)

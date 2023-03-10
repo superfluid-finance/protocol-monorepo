@@ -122,7 +122,7 @@ contract ForkPolygonSuperTokenFactoryUpgradeTest is ForkSmokeTest {
         // Deploy the new super token factory logic contract, note that we pass in
         // the new super token logic contract, this is set as an immutable field in
         // the constructor
-        SuperTokenFactoryUpdateLogicContractsTester newLogic = new SuperTokenFactoryUpdateLogicContractsTester(
+        SuperTokenFactory newLogic = new SuperTokenFactory(
                 host,
                 newSuperTokenLogic
             );
@@ -134,6 +134,11 @@ contract ForkPolygonSuperTokenFactoryUpgradeTest is ForkSmokeTest {
             new address[](0),
             address(newLogic)
         );
+
+        // update super token logic for ethX
+        ISuperToken[] memory tokens = new ISuperToken[](1);
+        tokens[0] = ethX;
+        governance.batchUpdateSuperTokenLogic(host, tokens);
 
         // get the addresses of the super token factory logic and super token logic post update
         address superTokenFactoryLogicPost = host.getSuperTokenFactoryLogic();
@@ -155,16 +160,6 @@ contract ForkPolygonSuperTokenFactoryUpgradeTest is ForkSmokeTest {
         // expect revert when trying to initialize the logic contracts
         vm.expectRevert("Initializable: contract is already initialized");
         SuperTokenFactory(superTokenFactoryLogicPost).initialize();
-
-        vm.stopPrank();
-
-        // the mock contract adds a new storage variable and sets it to 69
-        assertEq(
-            SuperTokenFactoryUpdateLogicContractsTester(
-                address(superTokenFactory)
-            ).newVariable(),
-            0
-        );
 
         vm.stopPrank();
 

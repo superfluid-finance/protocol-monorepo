@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.18;
 
+import {stdError} from "forge-std/Test.sol";
+
 import {
     BatchOperation,
     ISuperfluid,
@@ -43,8 +45,23 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         superToken.operationDecreaseAllowance(notHost, alice, 100);
     }
 
-    function test_Passing_If_Operation_Increase_Allowance_Is_Called_By_Host(
-    ) public {
+    function test_Revert_If_Operation_Decrease_Allowance_Underflows() public {
+        vm.expectRevert("SuperToken: decreased allowance below zero");
+        vm.prank(address(sf.host));
+        superToken.operationDecreaseAllowance(alice, bob, 1);
+    }
+
+    function test_Revert_If_Operation_Increase_Allowance_Overflows() public {
+        vm.startPrank(address(sf.host));
+        superToken.operationIncreaseAllowance(alice, bob, type(uint256).max);
+        vm.expectRevert(stdError.arithmeticError);
+        superToken.operationIncreaseAllowance(alice, bob, 1);
+        vm.stopPrank();
+    }
+
+    function test_Passing_If_Operation_Increase_Allowance_Is_Called_By_Host()
+        public
+    {
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
 
         vm.prank(address(sf.host));
@@ -54,8 +71,9 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore + 100);
     }
 
-    function test_Passing_If_Operation_Decrease_Allowance_Is_Called_By_Host(
-    ) public {
+    function test_Passing_If_Operation_Decrease_Allowance_Is_Called_By_Host()
+        public
+    {
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
 
         vm.startPrank(address(sf.host));
@@ -81,7 +99,10 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         vm.prank(alice);
         sf.host.batchCall(ops);
         uint256 aliceToBobAllowanceAfter = superToken.allowance(alice, bob);
-        assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore + allowanceAmount);
+        assertEq(
+            aliceToBobAllowanceAfter,
+            aliceToBobAllowanceBefore + allowanceAmount
+        );
     }
 
     function test_Passing_Decrease_Allowance_Batch_Call(
@@ -103,7 +124,10 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         vm.prank(alice);
         sf.host.batchCall(ops);
         uint256 aliceToBobAllowanceAfter = superToken.allowance(alice, bob);
-        assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore - decreaseAllowanceAmount);
+        assertEq(
+            aliceToBobAllowanceAfter,
+            aliceToBobAllowanceBefore - decreaseAllowanceAmount
+        );
     }
 
     function test_Passing_Increase_Decrease_Transfer_From_Batch_Call() public {

@@ -695,7 +695,8 @@ contract SuperToken is
         external override
         onlyHost
     {
-        _approve(account, spender, _allowances[account][spender] - subtractedValue);
+        _approve(account, spender, _allowances[account][spender].sub(subtractedValue,
+            "SuperToken: decreased allowance below zero"));
     }
 
     function operationTransferFrom(

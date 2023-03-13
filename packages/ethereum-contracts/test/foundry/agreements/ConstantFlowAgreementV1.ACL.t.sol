@@ -267,28 +267,18 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
 
     function test_Revert_If_Increase_Flow_Rate_Allowance_Overflows() public {
         vm.startPrank(alice);
-        helper_Increase_Flow_Rate_Allowance(
-            superToken,
-            bob,
-            type(int96).max
-        );
+        helper_Increase_Flow_Rate_Allowance(superToken, bob, type(int96).max);
         vm.expectRevert("CallUtils: target panicked: 0x11");
-        helper_Increase_Flow_Rate_Allowance(
-            superToken,
-            bob,
-            1
-        );
+        helper_Increase_Flow_Rate_Allowance(superToken, bob, 1);
         vm.stopPrank();
     }
 
     function test_Revert_If_Decrease_Flow_Rate_Allowance_Underflows() public {
         vm.startPrank(alice);
-        vm.expectRevert("CallUtils: target panicked: 0x01");
-        helper_Decrease_Flow_Rate_Allowance(
-            superToken,
-            bob,
-            1
+        vm.expectRevert(
+            IConstantFlowAgreementV1.CFA_ACL_NO_NEGATIVE_ALLOWANCE.selector
         );
+        helper_Decrease_Flow_Rate_Allowance(superToken, bob, 10);
         vm.stopPrank();
     }
 }

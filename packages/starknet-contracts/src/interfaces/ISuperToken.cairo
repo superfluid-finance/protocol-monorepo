@@ -34,7 +34,11 @@ namespace ISuperToken {
     func approve(spender: felt, amount: felt) -> (success: felt) {
     }
 
-    func iTransfer(senderAddress: felt, receiverAddress: felt, amount: felt) {
+    // //////////////////////////////////////////////////////////////////////////////
+    // Generalized Payment Primitives
+    // //////////////////////////////////////////////////////////////////////////////
+
+    func shift(senderAddress: felt, receiverAddress: felt, amount: felt) -> (success: felt) {
     }
 
     func flow(senderAddress: felt, receiverAddress: felt, flowId: felt, flowRate: felt) -> (
@@ -52,6 +56,10 @@ namespace ISuperToken {
     ) -> (success: felt, actualFlowRate: felt) {
     }
 
+    // //////////////////////////////////////////////////////////////////////////////
+    // Pool Operations
+    // //////////////////////////////////////////////////////////////////////////////
+
     func connectPool(to: felt) -> (success: felt) {
     }
 
@@ -61,9 +69,16 @@ namespace ISuperToken {
     func connectPoolEnum(to: felt, connect: felt) -> (success: felt) {
     }
 
+    // //////////////////////////////////////////////////////////////////////////////
+    // Pool Owner Operations
+    // //////////////////////////////////////////////////////////////////////////////
+
     func createPool() -> (pool: felt) {
     }
 
-    func absorb(account: felt, particle: BasicParticle) {
+    func isMemberConnected(pool: felt, memberAddress: felt) -> (success: felt) {
+    }
+
+    func absorbParticleFromPool(account: felt, particle: BasicParticle) -> (success: felt) {
     }
 }

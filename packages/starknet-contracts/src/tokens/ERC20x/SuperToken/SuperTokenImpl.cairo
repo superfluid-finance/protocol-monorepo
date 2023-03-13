@@ -79,10 +79,10 @@ func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 }
 
 @external
-func iTransfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func shift{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     sender: felt, recipient: felt, amount: felt
 ) -> (success: felt) {
-    return SuperToken.i_transfer(sender, recipient, amount);
+    return SuperToken.shift(sender, recipient, amount);
 }
 
 @external
@@ -125,11 +125,17 @@ func createPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
     return SuperToken.createPool();
 }
 
+func isMemberConnected{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    pool: felt, memberAddress: felt
+) -> (success: felt) {
+    return SuperToken.isMemberConnected(pool, memberAddress);
+}
+
 @external
-func absorb{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt, particle: BasicParticle
 ) {
-    return SuperToken.absorb(account, particle);
+    return SuperToken.absorbParticleFromPool(account, particle);
 }
 
 @external

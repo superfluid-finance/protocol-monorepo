@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+- bump solc to 0.8.19
+
 ### Breaking
 - `BatchLiquidator.deleteFlows` doesn't take host and CFA address as argument anymore. This makes L2 solvency operations considerably cheaper.
 

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import "../FoundrySuperfluidTester.sol";
 import { BatchLiquidator } from "@superfluid-finance/ethereum-contracts/contracts/utils/BatchLiquidator.sol";

@@ -73,6 +73,67 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
             receiver = testEnv.users[5];
         });
 
+        it("Should be able to increase flow rate allowance", async () => {
+            const flowOperatorDataBefore =
+                await testEnv.wrapperSuperToken.getFlowOperatorData({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    providerOrSigner: sender,
+                });
+            const flowRateAllowanceDelta = getPerSecondFlowRateByMonth("100");
+            await testEnv.wrapperSuperToken
+                .increaseFlowRateAllowance({
+                    flowRateAllowanceDelta,
+                    flowOperator: flowOperator.address,
+                })
+                .exec(sender);
+            const flowOperatorDataAfter =
+                await testEnv.wrapperSuperToken.getFlowOperatorData({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    providerOrSigner: sender,
+                });
+            expect(flowOperatorDataAfter.flowRateAllowance).to.equal(
+                toBN(flowOperatorDataBefore.flowRateAllowance)
+                    .add(toBN(flowRateAllowanceDelta))
+                    .toString()
+            );
+        });
+
+        it("Should be able to decrease flow rate allowance", async () => {
+            const flowRateAllowanceDelta = getPerSecondFlowRateByMonth("100");
+            await testEnv.wrapperSuperToken
+                .increaseFlowRateAllowance({
+                    flowRateAllowanceDelta,
+                    flowOperator: flowOperator.address,
+                })
+                .exec(sender);
+            const flowOperatorDataBefore =
+                await testEnv.wrapperSuperToken.getFlowOperatorData({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    providerOrSigner: sender,
+                });
+            const decreaseFlowRateAllowanceDelta = getPerSecondFlowRateByMonth("31");
+            await testEnv.wrapperSuperToken
+                .decreaseFlowRateAllowance({
+                    flowRateAllowanceDelta: decreaseFlowRateAllowanceDelta,
+                    flowOperator: flowOperator.address,
+                })
+                .exec(sender);
+            const flowOperatorDataAfter =
+                await testEnv.wrapperSuperToken.getFlowOperatorData({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    providerOrSigner: sender,
+                });
+            expect(flowOperatorDataAfter.flowRateAllowance).to.equal(
+                toBN(flowOperatorDataBefore.flowRateAllowance)
+                    .sub(toBN(decreaseFlowRateAllowanceDelta))
+                    .toString()
+            );
+        });
+
         context(
             "Should be able to update flow operator permissions",
             async () => {

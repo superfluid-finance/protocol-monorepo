@@ -181,7 +181,9 @@ export function shouldBehaveLikeERC20(
                                 this.token
                                     .connect(spenderSigner)
                                     .transferFrom(tokenOwner, to, amount)
-                            ).to.be.revertedWithPanic("0x11");
+                            ).to.be.revertedWith(
+                                "SuperToken: transfer amount exceeds allowance"
+                            );
                         });
                     });
 

@@ -17,6 +17,7 @@ import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
 
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
@@ -33,6 +34,7 @@ contract SuperToken is
     ISuperToken
 {
 
+    using SafeMath for uint256;
     using SafeCast for uint256;
     using Address for address;
     using ERC777Helper for ERC777Helper.Operators;
@@ -165,7 +167,7 @@ contract SuperToken is
             _approve(
                 holder,
                 spender,
-                _allowances[holder][spender] - amount);
+                _allowances[holder][spender].sub(amount, "SuperToken: transfer amount exceeds allowance"));
         }
 
         return true;
@@ -430,7 +432,8 @@ contract SuperToken is
 
     function decreaseAllowance(address spender, uint256 subtractedValue)
         public override returns (bool) {
-        _approve(msg.sender, spender, _allowances[msg.sender][spender] - subtractedValue);
+        _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue,
+            "SuperToken: decreased allowance below zero"));
         return true;
     }
 

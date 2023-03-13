@@ -72,7 +72,9 @@ describe("SuperToken's ERC20 compliance", function () {
                             this.token
                                 .connect(aliceSigner)
                                 .decreaseAllowance(spender, amount)
-                        ).to.be.revertedWithPanic("0x11");
+                        ).to.be.revertedWith(
+                            "SuperToken: decreased allowance below zero"
+                        );
                     });
                 });
 
@@ -122,7 +124,9 @@ describe("SuperToken's ERC20 compliance", function () {
                                     spender,
                                     approvedAmount.add(1)
                                 )
-                        ).to.be.revertedWithPanic("0x11");
+                        ).to.be.revertedWith(
+                            "SuperToken: decreased allowance below zero"
+                        );
                     });
                 });
             }
@@ -149,7 +153,9 @@ describe("SuperToken's ERC20 compliance", function () {
                     this.token
                         .connect(aliceSigner)
                         .decreaseAllowance(spender, amount)
-                ).to.be.revertedWithPanic("0x11");
+                ).to.be.revertedWith(
+                    "SuperToken: decreased allowance below zero"
+                );
             });
         });
     });

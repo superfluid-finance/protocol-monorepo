@@ -3,7 +3,7 @@ import {BigNumber} from "ethers";
 import {ethers, expect} from "hardhat";
 
 import TestEnvironment from "../../TestEnvironment";
-import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
+import {expectCustomError} from "../../utils/expectRevert";
 import {toBN} from "../utils/helpers";
 
 import {
@@ -68,10 +68,11 @@ describe("SuperToken's ERC20 compliance", function () {
             function shouldDecreaseApproval(amount: BigNumber) {
                 describe("when there was no approved amount before", function () {
                     it("reverts", async function () {
-                        await expectRevertedWith(
+                        await expect(
                             this.token
                                 .connect(aliceSigner)
-                                .decreaseAllowance(spender, amount),
+                                .decreaseAllowance(spender, amount)
+                        ).to.be.revertedWith(
                             "SuperToken: decreased allowance below zero"
                         );
                     });
@@ -116,13 +117,14 @@ describe("SuperToken's ERC20 compliance", function () {
                     });
 
                     it("reverts when more than the full allowance is removed", async function () {
-                        await expectRevertedWith(
+                        await expect(
                             this.token
                                 .connect(aliceSigner)
                                 .decreaseAllowance(
                                     spender,
                                     approvedAmount.add(1)
-                                ),
+                                )
+                        ).to.be.revertedWith(
                             "SuperToken: decreased allowance below zero"
                         );
                     });
@@ -147,10 +149,11 @@ describe("SuperToken's ERC20 compliance", function () {
             const spender = ZERO_ADDRESS;
 
             it("reverts", async function () {
-                await expectRevertedWith(
+                await expect(
                     this.token
                         .connect(aliceSigner)
-                        .decreaseAllowance(spender, amount),
+                        .decreaseAllowance(spender, amount)
+                ).to.be.revertedWith(
                     "SuperToken: decreased allowance below zero"
                 );
             });

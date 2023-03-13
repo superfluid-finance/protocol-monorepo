@@ -4,7 +4,11 @@ All notable changes to the SDK-core will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
-### Added
+
+## Added
+- `increaseAllowance` and `decreaseAllowance` functions to SuperToken class
+- Batch call support for `increaseAllowance` and `decreaseAllowance`
+- `increaseFlowRateAllowance` and `decreaseFlowRateAllowance` functions to CFAv1 class
 - Add support for `activeOutgoingStreamCount`, `activeIncomingStreamCount`, `inactiveOutgoingStreamCount`, `inactiveIncomingStreamCount` properties in query for `AccountTokenSnapshot` entity
 - Add support for `rewardAddress`, `liquidationPeriod`, `patricianPeriod`, and `minimumDeposit` properties in query for `Token` entity
 - Add support for `userData` property in query for `Stream` entity

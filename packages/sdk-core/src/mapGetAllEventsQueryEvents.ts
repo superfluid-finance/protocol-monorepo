@@ -610,6 +610,22 @@ export const mapGetAllEventsQueryEvents = (
                     forwarder: x.forwarder,
                     enabled: x.enabled,
                 });
+            case "SuperTokenMinimumDepositChangedEvent":
+                return typeGuard<events.SuperTokenMinimumDepositChangedEvent>({
+                    name: "SuperTokenMinimumDepositChanged",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                    host: x.host,
+                    governanceAddress: x.governanceAddress,
+                    superToken: x.superToken,
+                    isKeySet: x.isKeySet,
+                    minimumDeposit: x.minimumDeposit,
+                });
             case "NewPICEvent":
                 return typeGuard<events.NewPICEvent>({
                     name: "NewPIC",

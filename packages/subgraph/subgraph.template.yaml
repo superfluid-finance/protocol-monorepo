@@ -300,9 +300,11 @@ templates:
       file: ./src/mappings/superfluidGovernance.ts
       entities:
         - ConfigChangedEvent
+        - DefaultGovernanceConfig
         - CFAv1LiquidationPeriodChangedEvent
         - RewardAddressChangedEvent
         - PPPConfigurationChanged
+        - SuperTokenMinimumDepositChangedEvent
         - TrustedForwarderChangedEvent
       abis:
         - name: SuperfluidGovernanceBase
@@ -319,6 +321,9 @@ templates:
           receipt: true
         - event: PPPConfigurationChanged(indexed address,indexed address,bool,uint256,uint256)
           handler: handlePPPConfigurationChanged
+          receipt: true
+        - event: SuperTokenMinimumDepositChanged(indexed address,indexed address,bool,uint256)
+          handler: handleSuperTokenMinimumDepositChanged
           receipt: true
         - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
           handler: handleTrustedForwarderChanged

@@ -145,6 +145,12 @@ export default class BatchCall {
     exec = async (
         signer: ethers.Signer
     ): Promise<ethers.ContractTransaction> => {
+        if (this.getOperationStructArrayPromises.length === 0) {
+            throw new SFError({
+                type: "BATCH_CALL_ERROR",
+                message: "There are no operations to execute in the batch.",
+            });
+        }
         const operationStructArray = await Promise.all(
             this.getOperationStructArrayPromises
         );
@@ -164,6 +170,12 @@ export default class BatchCall {
     execForward = async (
         signer: ethers.Signer
     ): Promise<ethers.ContractTransaction> => {
+        if (this.getOperationStructArrayPromises.length === 0) {
+            throw new SFError({
+                type: "BATCH_CALL_ERROR",
+                message: "There are no operations to execute in the batch.",
+            });
+        }
         const operationStructArray = await Promise.all(
             this.getOperationStructArrayPromises
         );

@@ -1,8 +1,9 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 
 export const TRUE = "true";
 export const FALSE = "false";
 export const DEFAULT_DECIMALS = 18;
+export const DEFAULT_REWARD_ADDRESS = Address.fromString("0x0000000000000000000000000000000000000045");
 export const LIQUIDATION_PERIOD = BigInt.fromI32(14400);
 export const PATRICIAN_PERIOD = BigInt.fromI32(1800);
 export const FAKE_INITIAL_BALANCE = BigInt.fromI32(1000);

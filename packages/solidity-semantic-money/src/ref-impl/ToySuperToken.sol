@@ -3,8 +3,8 @@ pragma solidity 0.8.19;
 
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import "./ISuperToken.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
-import "@superfluid-finance/solidity-semantic-money/src/ISuperToken.sol";
 
 /**
  * @dev A toy implementation for proportional distribution pool.

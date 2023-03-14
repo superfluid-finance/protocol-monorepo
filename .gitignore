@@ -28,3 +28,7 @@ package-lock.json
 *-workspace
 .npmrc
 
+# certora stuff
+.certora_internal/
+.certora_recent_jobs.json
+.zip-output-url.txt

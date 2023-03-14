@@ -179,7 +179,7 @@ contract ToySuperToken is ISuperToken {
         // initial value from universal index
         available = uIndexes[account].rtb(t);
 
-        // pending distributions from pool
+        pending distributions from pool
         if (pools[ISuperTokenPool(account)]) {
             // NB! Please ask solidity designer why "+=" is not derived for overloaded operator custom types
             available = available + ISuperTokenPool(account).getPendingDistribution();
@@ -189,7 +189,7 @@ contract ToySuperToken is ISuperToken {
         EnumerableSet.AddressSet storage connections = _connectionsMap[account];
         for (uint i = 0; i < connections.length(); ++i) {
             address p = connections.at(i);
-            available = available + ToySuperTokenPool(p).getClaimable(t, account);
+            //available = available + ToySuperTokenPool(p).getClaimable(t, account);
         }
 
         // TODO: buffer based solvency
@@ -218,16 +218,23 @@ contract ToySuperToken is ISuperToken {
     function flow(address from, address to, FlowId flowId, FlowRate flowRate) override external
         returns (bool success)
     {
-        /// check inputs
-        // require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed.");
-        require(!pools[ISuperTokenPool(to)], "Is a pool!");
-
-        /// prepare local variables (let bindings)
         Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
 
         // FIXME: plug permission controls
         require(msg.sender == from, "No flow permission");
+
+        return _flow(t, from, to, flowId, flowRate);
+    }
+
+    function _flow(Time t, address from, address to, FlowId flowId, FlowRate flowRate) public
+        returns (bool success)
+    {
+        /// check inputs
+        // require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed.");
+        //require(!pools[ISuperTokenPool(to)], "Is a pool!");
+
+        /// prepare local variables (let bindings)
+        bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
 
         // Make updates
         FlowRate flowRateDelta = flowRate - flowRates[flowAddress];

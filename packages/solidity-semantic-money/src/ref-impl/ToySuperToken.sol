@@ -179,17 +179,15 @@ contract ToySuperToken is ISuperToken {
         // initial value from universal index
         available = uIndexes[account].rtb(t);
 
-        // pending distributions from pool
-        if (pools[ISuperTokenPool(account)]) {
+        if (pools[ISuperTokenPool(account)]) { // pending distributions from pool
             // NB! Please ask solidity designer why "+=" is not derived for overloaded operator custom types
             available = available + ISuperTokenPool(account).getPendingDistribution();
-        }
-
-        // pool-connected balance
-        EnumerableSet.AddressSet storage connections = _connectionsMap[account];
-        for (uint i = 0; i < connections.length(); ++i) {
-            address p = connections.at(i);
-            available = available + ToySuperTokenPool(p).getClaimable(t, account);
+        } else { // pool-connected balance
+            EnumerableSet.AddressSet storage connections = _connectionsMap[account];
+            for (uint i = 0; i < connections.length(); ++i) {
+                address p = connections.at(i);
+                available = available + ToySuperTokenPool(p).getClaimable(t, account);
+            }
         }
 
         // TODO: buffer based solvency

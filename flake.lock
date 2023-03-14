@@ -1,36 +1,29 @@
 {
   "nodes": {
+    "certora": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1678809915,
+        "narHash": "sha256-IpJKepESt2qFZdw87Z+52Q4Bx0MXgoPDdx2XRxHfHCQ=",
+        "owner": "hellwolf",
+        "repo": "certora.nix",
+        "rev": "2e83c5feb8552982a1dfa949b736dca0c7fa1848",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hellwolf",
+        "repo": "certora.nix",
+        "type": "github"
+      }
+    },
     "flake-utils": {
-      "locked": {
-        "lastModified": 1676283394,
-        "narHash": "sha256-XX2f9c3iySLCw54rJ/CZs+ZK6IQy7GXNY4nSOyu2QG4=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "3db36a8b464d0c4532ba1c7dda728f4576d6d073",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "flake-utils_2": {
-      "locked": {
-        "lastModified": 1644229661,
-        "narHash": "sha256-1YdnJAsNy69bpcjuoKdOYQX0YxZBiCYZo4Twxerqv7k=",
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "rev": "3cecb5b042f7f209c56ffd8371b2711a290ec797",
-        "type": "github"
-      },
-      "original": {
-        "owner": "numtide",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "flake-utils_3": {
       "locked": {
         "lastModified": 1676283394,
         "narHash": "sha256-XX2f9c3iySLCw54rJ/CZs+ZK6IQy7GXNY4nSOyu2QG4=",
@@ -47,7 +40,9 @@
     },
     "foundry": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
+        "flake-utils": [
+          "flake-utils"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -69,7 +64,9 @@
     },
     "ghc-wasm": {
       "inputs": {
-        "flake-utils": "flake-utils_3",
+        "flake-utils": [
+          "flake-utils"
+        ],
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -108,10 +105,35 @@
     },
     "root": {
       "inputs": {
+        "certora": "certora",
         "flake-utils": "flake-utils",
         "foundry": "foundry",
         "ghc-wasm": "ghc-wasm",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "solc": "solc"
+      }
+    },
+    "solc": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1678815398,
+        "narHash": "sha256-PkMj8P3qx62F+pPB/nExpcWiVbU35JuroAMt2BPaFrQ=",
+        "owner": "hellwolf",
+        "repo": "solc.nix",
+        "rev": "01defa17517d3f2269a7573997ec5f5299997a19",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hellwolf",
+        "repo": "solc.nix",
+        "type": "github"
       }
     }
   },

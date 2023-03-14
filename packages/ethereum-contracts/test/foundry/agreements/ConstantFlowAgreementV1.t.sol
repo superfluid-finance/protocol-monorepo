@@ -1,13 +1,15 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import "../FoundrySuperfluidTester.sol";
-
+import {
+    CFAv1Library,
+    FoundrySuperfluidTester
+} from "../FoundrySuperfluidTester.sol";
 
 contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
     using CFAv1Library for CFAv1Library.InitData;
 
-    constructor () FoundrySuperfluidTester(3) { }
+    constructor() FoundrySuperfluidTester(3) {}
 
     function testAlice2Bob(uint32 a) public {
         vm.assume(a > 0);

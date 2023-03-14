@@ -22,6 +22,8 @@ const batchOperationTypeStringToTypeMap = new Map<BatchOperationType, number>([
     ["ERC20_APPROVE", 1],
     ["ERC20_TRANSFER_FROM", 2],
     ["ERC777_SEND", 3],
+    ["ERC20_INCREASE_ALLOWANCE", 4],
+    ["ERC20_DECREASE_ALLOWANCE", 5],
     ["SUPERTOKEN_UPGRADE", 101],
     ["SUPERTOKEN_DOWNGRADE", 102],
     ["SUPERFLUID_CALL_AGREEMENT", 201],

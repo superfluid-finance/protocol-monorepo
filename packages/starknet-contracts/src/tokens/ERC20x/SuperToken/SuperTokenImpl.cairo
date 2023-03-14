@@ -125,6 +125,7 @@ func createPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
     return SuperToken.createPool();
 }
 
+@view
 func isMemberConnected{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     pool: felt, memberAddress: felt
 ) -> (success: felt) {
@@ -134,7 +135,7 @@ func isMemberConnected{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 @external
 func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt, particle: BasicParticle
-) {
+) -> (success: felt) {
     return SuperToken.absorbParticleFromPool(account, particle);
 }
 

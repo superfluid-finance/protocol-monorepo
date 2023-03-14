@@ -87,9 +87,8 @@ namespace SemanticMoney {
     func shift2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         a: BasicParticle, b: BasicParticle, amount: felt, time: felt
     ) -> (a: BasicParticle, b: BasicParticle) {
-        // This right-biased. That is: the `amount` argument of shift1 for a is dependent on the `amount` return by shift1 for b (RHS)
-        let (bBasicParticle, _amount) = shift1(amount, b);
-        let (aBasicParticle, _) = shift1(-_amount, a);
+        let (bBasicParticle, _) = shift1(amount, b);
+        let (aBasicParticle, _) = shift1(-amount, a);
         return (a=aBasicParticle, b=bBasicParticle);
     }
 
@@ -105,9 +104,8 @@ namespace SemanticMoney {
     ) -> (a: BasicParticle, b: BasicParticle) {
         let (settledBasicParticleForA) = settle(a, time);
         let (settledBasicParticleForB) = settle(b, time);
-        // This is right-biased. That is: the `flow_rate` argument of flow1 for a is dependent on the `flow_rate` returned by  flow1 for b (RHS)
-        let (bBasicParticle, _flow_rate) = flow1(flow_rate, settledBasicParticleForB);
-        let (aBasicParticle, _) = flow1(-_flow_rate, settledBasicParticleForA);
+        let (bBasicParticle, _) = flow1(flow_rate, settledBasicParticleForB);
+        let (aBasicParticle, _) = flow1(-flow_rate, settledBasicParticleForA);
         return (a=aBasicParticle, b=bBasicParticle);
     }
 

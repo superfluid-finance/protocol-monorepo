@@ -33,10 +33,10 @@ func getClaimable{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 }
 
 @external
-func updatePoolMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func updateMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     member: felt, unit: felt
 ) -> (success: felt) {
-    return Pool.updatePoolMember(member, unit);
+    return Pool.updateMember(member, unit);
 }
 
 @external

@@ -83,7 +83,7 @@ namespace Pool {
         return (member_data=member_data);
     }
 
-    func updatePoolMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    func updateMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         member: felt, unit: felt
     ) -> (success: felt) {
         alloc_locals;
@@ -96,8 +96,9 @@ namespace Pool {
             assert caller = admin;
         }
         let (contract_address) = get_contract_address();
+        let (owner) = Ownable.owner();
         let (connected) = ISuperToken.isMemberConnected(
-            contract_address=caller, pool=contract_address, memberAddress=member
+            contract_address=owner, pool=contract_address, memberAddress=member
         );
 
         // update pool's pending units`
@@ -117,7 +118,6 @@ namespace Pool {
             );
             Pool_index.write(index);
             Pool_members.write(member, member_data);
-            let (owner) = Ownable.owner();
             let (absorbed) = ISuperToken.absorbParticleFromPool(
                 contract_address=owner, account=admin, particle=particle
             );
@@ -138,7 +138,6 @@ namespace Pool {
             );
             Pool_index.write(index);
             Pool_members.write(member, member_data);
-            let (owner) = Ownable.owner();
             let (absorbed) = ISuperToken.absorbParticleFromPool(
                 contract_address=owner, account=admin, particle=particle
             );

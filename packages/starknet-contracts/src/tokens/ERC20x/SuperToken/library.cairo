@@ -20,7 +20,7 @@ from openzeppelin.utils.constants.library import UINT8_MAX
 from src.utils.SemanticMoney import SemanticMoney, BasicParticle, PDPoolMemberMU
 from src.interfaces.ISuperTokenPool import ISuperTokenPool
 
-const UNSIGNED_FELT_MAX = 2 ** 251;
+const UNSIGNED_FELT_MAX = 2 ** 120;
 
 //
 // Events
@@ -140,8 +140,8 @@ namespace SuperToken {
         let (length) = SuperToken_pool_length.read();
         let (pool_balance) = pool_balance_of(account, length, 0);
         let balance = realtime_balance + pool_balance;
-        let is_less_than_zero = is_le(balance, 0);
-        if (is_less_than_zero == TRUE) {
+        let is_less_than_or_equals_zero = is_le(balance, 0);
+        if (is_less_than_or_equals_zero == TRUE) {
             return (balance=0);
         } else {
             return (balance=balance);
@@ -178,14 +178,14 @@ namespace SuperToken {
         recipient: felt, amount: felt
     ) -> (success: felt) {
         let (sender) = get_caller_address();
-        _shift(sender, recipient, amount, 0);
+        _shift(sender, recipient, amount, FALSE);
         return (success=TRUE);
     }
 
     func transfer_from{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         sender: felt, recipient: felt, amount: felt
     ) -> (success: felt) {
-        _shift(sender, recipient, amount, 1);
+        _shift(sender, recipient, amount, TRUE);
         return (success=TRUE);
     }
 
@@ -198,9 +198,9 @@ namespace SuperToken {
     ) -> (success: felt) {
         let (spender) = get_caller_address();
         if (spender == sender) {
-            _shift(sender, recipient, amount, 0);
+            _shift(sender, recipient, amount, FALSE);
         } else {
-            _shift(sender, recipient, amount, 1);
+            _shift(sender, recipient, amount, TRUE);
         }
         return (success=TRUE);
     }
@@ -223,8 +223,9 @@ namespace SuperToken {
         let (hash_sender_and_recipient) = hash2{hash_ptr=pedersen_ptr}(sender, recipient);
         let (flowAddress) = hash2{hash_ptr=pedersen_ptr}(hash_sender_and_recipient, flow_id);
 
-        let (senderFlowRate) = SuperToken_flow_rates.read(flowAddress);
-        let flowRateDelta = senderFlowRate - flow_rate;
+        let (_flowRate) = SuperToken_flow_rates.read(flowAddress);
+        let flowRateDelta = flow_rate - _flowRate;
+
         let (senderIndex) = SuperToken_universal_indexes.read(sender);
         let (recipientIndex) = SuperToken_universal_indexes.read(recipient);
         let (timestamp) = get_block_timestamp();
@@ -378,7 +379,7 @@ namespace SuperToken {
 
     func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         account: felt, particle: BasicParticle
-    ) {
+    ) -> (success: felt) {
         let (caller) = get_caller_address();
         let (poolIndex) = SuperToken_pool_indexes.read(caller);
         let (pool) = SuperToken_pools.read(poolIndex);
@@ -388,7 +389,7 @@ namespace SuperToken {
         let (u_index) = SuperToken_universal_indexes.read(account);
         let (new_u_index) = SemanticMoney.mappend(u_index, particle);
         SuperToken_universal_indexes.write(account, new_u_index);
-        return ();
+        return (success=TRUE);
     }
 
     // //////////////////////////////////////////////////////////////////////////////
@@ -471,8 +472,8 @@ namespace SuperToken {
         with_attr error_message("SuperToken: recepient is a pool!") {
             assert_not_equal(is_a_pool, 1);
         }
-        with_attr error_message("SuperToken: amount is zero!") {
-            assert_not_zero(amount);
+        with_attr error_message("SuperToken: amount is negative!") {
+            assert_nn(amount);
         }
         let (spender) = get_caller_address();
         if (checkAllowance == TRUE) {

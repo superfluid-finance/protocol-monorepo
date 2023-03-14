@@ -129,24 +129,8 @@ contract ToySuperToken is ISuperToken {
 
     function balanceOf(address account) override external view returns (uint256) {
         Time t = Time.wrap(uint32(block.timestamp));
-
-        // initial value from universal index
-        Value x = uIndexes[account].rtb(t);
-
-        // pending distributions from pool
-        if (pools[ISuperTokenPool(account)]) {
-            // NB! Please ask solidity designer why "+=" is not derived for overloaded operator custom types
-            x = x + ISuperTokenPool(account).getPendingDistribution();
-        }
-
-        // pool-connected balance
-        EnumerableSet.AddressSet storage connections = _connectionsMap[account];
-        for (uint i = 0; i < connections.length(); ++i) {
-            address p = connections.at(i);
-            x = x + ToySuperTokenPool(p).getClaimable(t, account);
-        }
-
-        return Value.unwrap(x) > 0 ? uint256(Value.unwrap(x)) : 0;
+        (Value avb, ) = realtimeBalanceVectorAt(account, t);
+        return Value.unwrap(avb) > 0 ? uint256(Value.unwrap(avb)) : 0;
     }
 
     function transfer(address to, uint256 amount) override external returns (bool) {
@@ -174,6 +158,43 @@ contract ToySuperToken is ISuperToken {
     //
     // FIXME require(from != to)
     ////////////////////////////////////////////////////////////////////////////////
+
+    function realtimeBalanceOf(address account) override external view
+        returns (Value rtb)
+    {
+        Time t = Time.wrap(uint32(block.timestamp));
+        return realtimeBalanceAt(account, t);
+    }
+
+    function realtimeBalanceAt(address account, Time t) override public view
+        returns (Value rtb)
+    {
+        (Value available, Value deposit) = realtimeBalanceVectorAt(account, t);
+        rtb = available - deposit;
+    }
+
+    function realtimeBalanceVectorAt(address account, Time t) override public view
+        returns (Value available, Value deposit)
+    {
+        // initial value from universal index
+        available = uIndexes[account].rtb(t);
+
+        // pending distributions from pool
+        if (pools[ISuperTokenPool(account)]) {
+            // NB! Please ask solidity designer why "+=" is not derived for overloaded operator custom types
+            available = available + ISuperTokenPool(account).getPendingDistribution();
+        }
+
+        // pool-connected balance
+        EnumerableSet.AddressSet storage connections = _connectionsMap[account];
+        for (uint i = 0; i < connections.length(); ++i) {
+            address p = connections.at(i);
+            available = available + ToySuperTokenPool(p).getClaimable(t, account);
+        }
+
+        // TODO: buffer based solvency
+        deposit = Value.wrap(0);
+    }
 
     function _shift(address from, address to, Value amount, bool checkAllowance) internal
         returns (bool success)

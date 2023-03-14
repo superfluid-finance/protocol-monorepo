@@ -16,8 +16,11 @@ interface ISuperToken is IERC20 {
     // Generalized Payment Primitives
     ////////////////////////////////////////////////////////////////////////////////
 
-    //function realtimeBalanceOf(address account) returns (int256 avb, int256 deposit, int256 ...) {
-    //}
+    function realtimeBalanceOf(address account) external view returns (Value rtb);
+
+    function realtimeBalanceAt(address account, Time t) external view returns (Value rtb);
+
+    function realtimeBalanceVectorAt(address account, Time t) external view returns (Value available, Value deposit);
 
     // REVIEW NOTES:
     // - flowAddress naming concern: uniquely obtained AppId? flowId (renaming input to flowSubId)?

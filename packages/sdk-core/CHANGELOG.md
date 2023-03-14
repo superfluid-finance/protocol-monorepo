@@ -12,6 +12,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Add support for `activeOutgoingStreamCount`, `activeIncomingStreamCount`, `inactiveOutgoingStreamCount`, `inactiveIncomingStreamCount` properties in query for `AccountTokenSnapshot` entity
 - Add support for `rewardAddress`, `liquidationPeriod`, `patricianPeriod`, and `minimumDeposit` properties in query for `Token` entity
 - Add support for `userData` property in query for `Stream` entity
+- Add `index` (the Subgraph entity ID) field to Index events when querying from Subgraph
 
 ### Changed
 - `.exec` or `.execForward` will throw an error if the operations array is empty

@@ -40,9 +40,11 @@ contract ToySuperTokenTest is Test {
     function test_erc20_transfer(uint32 x) external {
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
+
         vm.startPrank(alice);
         token.transfer(bob, x);
         vm.stopPrank();
+
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
         assertEq(a1 - a2, x);
@@ -54,14 +56,18 @@ contract ToySuperTokenTest is Test {
         uint256 b1 = token.balanceOf(bob);
         uint256 c1 = token.balanceOf(carol);
         uint256 t1 = block.timestamp;
+
         vm.startPrank(alice);
         token.flow(alice, bob, FlowId.wrap(0), FlowRate.wrap(int64(uint64(r1))));
         token.flow(alice, carol, FlowId.wrap(0), FlowRate.wrap(int64(uint64(r2))));
         vm.stopPrank();
+
         vm.warp(t1 + uint256(t2));
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
         uint256 c2 = token.balanceOf(carol);
+        assertEq(-FlowRate.unwrap(token.getNetFlowRate(alice)),
+                 FlowRate.unwrap(token.getNetFlowRate(bob) + token.getNetFlowRate(carol)));
         assertEq(a1 - a2, (uint256(r1) + uint256(r2)) * uint256(t2), "e1");
         assertEq(a1 - a2, b2 - b1 + c2 - c1, "e2");
     }
@@ -81,6 +87,8 @@ contract ToySuperTokenTest is Test {
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
         uint256 c2 = token.balanceOf(carol);
+        assertEq(FlowRate.unwrap(token.getNetFlowRate(alice) + token.getNetFlowRate(bob)),
+                 -FlowRate.unwrap(token.getNetFlowRate(carol)));
         assertEq(a1 - a2, uint256(r1) * uint256(t2), "e1");
         assertEq(b1 - b2, uint256(r2) * uint256(t2), "e2");
         assertEq(c2 - c1, a1 - a2 + b1 - b2, "e3");

@@ -22,6 +22,10 @@ interface ISuperToken is IERC20 {
 
     function realtimeBalanceVectorAt(address account, Time t) external view returns (Value available, Value deposit);
 
+    function getNetFlowRate(address account) external view returns (FlowRate);
+
+    function getFlowRate(address from, address to, FlowId flowId) external view returns (FlowRate);
+
     // REVIEW NOTES:
     // - flowAddress naming concern: uniquely obtained AppId? flowId (renaming input to flowSubId)?
     // - nFlows/totalFlowRate between sender and receiver is lost.
@@ -57,6 +61,9 @@ interface ISuperToken is IERC20 {
 
     function isMemberConnected(ISuperTokenPool pool, address memberAddr) external view
         returns (bool);
+
+    function getNumConnections(address account) external view
+        returns (uint);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Pool Owner Operations

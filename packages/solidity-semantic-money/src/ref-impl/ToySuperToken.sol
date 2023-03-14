@@ -194,6 +194,17 @@ contract ToySuperToken is ISuperToken {
         deposit = Value.wrap(0);
     }
 
+    function getNetFlowRate(address account) override external view returns (FlowRate)
+    {
+        return uIndexes[account].flow_rate;
+    }
+
+    function getFlowRate(address from, address to, FlowId flowId) override external view returns (FlowRate)
+    {
+        bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
+        return flowRates[flowAddress];
+    }
+
     function _shift(address from, address to, Value amount, bool checkAllowance) internal
         returns (bool success)
     {
@@ -213,25 +224,18 @@ contract ToySuperToken is ISuperToken {
         return _shift(from, to, amount, from != to);
     }
 
-    function flow(address from, address to, FlowId flowId, FlowRate flowRate) override external
-        returns (bool success)
-    {
-        Time t = Time.wrap(uint32(block.timestamp));
-
-        // FIXME: plug permission controls
-        require(msg.sender == from, "No flow permission");
-
-        return _flow(t, from, to, flowId, flowRate);
-    }
-
-    function _flow(Time t, address from, address to, FlowId flowId, FlowRate flowRate) public
+    function flow(address from, address to, FlowId flowId, FlowRate flowRate) public
         returns (bool success)
     {
         /// check inputs
         // require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed.");
-        //require(!pools[ISuperTokenPool(to)], "Is a pool!");
+
+        // FIXME: plug permission controls
+        require(msg.sender == from, "No flow permission");
+        require(!pools[ISuperTokenPool(to)], "Is a pool!");
 
         /// prepare local variables (let bindings)
+        Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
 
         // Make updates
@@ -320,6 +324,10 @@ contract ToySuperToken is ISuperToken {
 
     function isMemberConnected(ISuperTokenPool to, address memberAddr) override external view returns (bool) {
         return _connectionsMap[memberAddr].contains(address(to));
+    }
+
+    function getNumConnections(address account) override external view returns (uint) {
+        return _connectionsMap[account].length();
     }
 
     /// This is used by the pool to adjust flow rate

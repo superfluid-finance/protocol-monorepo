@@ -780,8 +780,9 @@ describe("SuperToken's Non Standard Functions", function () {
             );
 
             // specified spender is different than holder without allowance reverts
-            await expectRevertedWith(
-                customToken.callSelfTransferFrom(alice, bob, bob, 100),
+            await expect(
+                customToken.callSelfTransferFrom(alice, bob, bob, 100)
+            ).to.be.revertedWith(
                 "SuperToken: transfer amount exceeds allowance"
             );
 

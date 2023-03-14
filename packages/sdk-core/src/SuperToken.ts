@@ -15,6 +15,8 @@ import { SFError } from "./SFError";
 import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {
+    ERC20DecreaseAllowanceParams,
+    ERC20IncreaseAllowanceParams,
     ERC777SendParams,
     IConfig,
     IRealtimeBalanceOfParams,
@@ -43,6 +45,7 @@ import {
     IWeb3Index,
     IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
+    SuperTokenFlowRateAllowanceParams,
 } from "./interfaces";
 import {
     getSanitizedTimestamp,
@@ -306,6 +309,40 @@ export default abstract class SuperToken extends ERC20Token {
         });
     };
 
+    /** ### ERC20 Write Functions ### */
+
+    /**
+     * Increases the allowance of `spender` by `amount`.
+     * @param spender the spender
+     * @param amount the amount to increase the allowance by
+     * @returns {Operation}  An instance of Operation which can be executed or batched.
+     */
+    increaseAllowance = (params: ERC20IncreaseAllowanceParams): Operation => {
+        const spender = normalizeAddress(params.spender);
+        const txn = this.contract.populateTransaction.increaseAllowance(
+            spender,
+            params.amount,
+            params.overrides || {}
+        );
+        return new Operation(txn, "ERC20_INCREASE_ALLOWANCE");
+    };
+
+    /**
+     * Decreases the allowance of `spender` by `amount`.
+     * @param spender the spender
+     * @param amount the amount to decrease the allowance by
+     * @returns {Operation}  An instance of Operation which can be executed or batched.
+     */
+    decreaseAllowance = (params: ERC20DecreaseAllowanceParams): Operation => {
+        const spender = normalizeAddress(params.spender);
+        const txn = this.contract.populateTransaction.decreaseAllowance(
+            spender,
+            params.amount,
+            params.overrides || {}
+        );
+        return new Operation(txn, "ERC20_DECREASE_ALLOWANCE");
+    };
+
     /** ### CFA Write Functions ### */
 
     /**
@@ -354,6 +391,36 @@ export default abstract class SuperToken extends ERC20Token {
     };
 
     /** ### CFA ACL Write Functions (byOperator) ### */
+
+    /**
+     * Increase the flow rate allowance for an ACL operator.
+     * @param flowOperator The operator of the flow.
+     * @param flowRateAllowanceDelta The amount to increase the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    increaseFlowRateAllowance(
+        params: SuperTokenFlowRateAllowanceParams
+    ): Operation {
+        return this.cfaV1.increaseFlowRateAllowance({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
+
+    /**
+     * Decrease the flow rate allowance for an ACL operator.
+     * @param flowOperator The operator of the flow.
+     * @param flowRateAllowanceDelta The amount to decrease the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    decreaseFlowRateAllowance(params: SuperTokenFlowRateAllowanceParams) {
+        return this.cfaV1.decreaseFlowRateAllowance({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
 
     /**
      * Update permissions for a flow operator as a sender.

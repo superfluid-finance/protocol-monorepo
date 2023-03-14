@@ -93,6 +93,7 @@ export interface IndexCreatedEvent extends EventBase {
     name: "IndexCreated";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     userData: string;
 }
@@ -101,6 +102,7 @@ export interface IndexDistributionClaimedEvent extends EventBase {
     name: "IndexDistributionClaimed";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     subscriber: string;
     amount: string;
@@ -110,6 +112,7 @@ export interface IndexSubscribedEvent extends EventBase {
     name: "IndexSubscribed";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     subscriber: string;
 }
@@ -118,6 +121,7 @@ export interface IndexUnitsUpdatedEvent extends EventBase {
     name: "IndexUnitsUpdated";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     subscriber: string;
     units: string;
@@ -129,6 +133,7 @@ export interface IndexUnsubscribedEvent extends EventBase {
     name: "IndexUnsubscribed";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     subscriber: string;
     userData: string;
@@ -138,6 +143,7 @@ export interface IndexUpdatedEvent extends EventBase {
     name: "IndexUpdated";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     oldIndexValue: string;
     newIndexValue: string;

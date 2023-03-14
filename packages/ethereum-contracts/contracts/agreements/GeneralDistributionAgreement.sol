@@ -87,14 +87,6 @@ contract GeneralDistributionAgreementV1 is
         }
     }
 
-    // Hemingway Bridge: look at ToySuperToken
-    // to understand what the normal path of pool creation->pool connection->pool distribution
-    // try to prototype this as fast as possible
-    // Instead of it being done via ToySuperToken,
-    // it is done via Host -> Agreement -> SuperToken
-    // So architect accordingly
-    // 
-
     function createPool(
         ISuperfluidToken token
     ) external returns (SuperTokenPool pool) {

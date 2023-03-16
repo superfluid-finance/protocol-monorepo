@@ -57,7 +57,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         assert(ISuperToken(owner()).absorbParticleFromPool(admin, p));
 
         // additional side effects of triggering claimAll
-        claimAll(t, memberAddr);
+        _claimAll(t, memberAddr);
 
         return true;
     }
@@ -68,16 +68,28 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         return PDPoolMemberMU(_index, _members[memberAddr]).rtb(t) - _claimedValues[memberAddr];
     }
 
-    function claimAll(Time t, address memberAddr) override public returns (bool) {
+    function getClaimable(address memberAddr) override external view
+        returns (Value)
+    {
+        Time t = Time.wrap(uint32(block.timestamp));
+        return getClaimable(t, memberAddr);
+    }
+
+    function _claimAll(Time t, address memberAddr) internal returns (bool) {
         Value c = getClaimable(t, memberAddr);
         assert(ISuperToken(owner()).shift(address(this), memberAddr, c));
-        _claimedValues[memberAddr] = c;
+        _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;
         return true;
     }
 
-    function claimAll() external returns (bool) {
+    function claimAll(address memberAddr) override public returns (bool) {
         Time t = Time.wrap(uint32(block.timestamp));
-        return claimAll(t, msg.sender);
+        return _claimAll(t, memberAddr);
+    }
+
+    function claimAll() override external returns (bool) {
+        Time t = Time.wrap(uint32(block.timestamp));
+        return _claimAll(t, msg.sender);
     }
 
     function operatorSetIndex(PDPoolIndex calldata index) override external
@@ -96,7 +108,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
             pendingUnits = pendingUnits + _members[memberAddr].owned_units;
         }
         // additional side effects of triggering claimAll
-        claimAll(t, memberAddr);
+        _claimAll(t, memberAddr);
         return true;
     }
 }

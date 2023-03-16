@@ -13,7 +13,11 @@ interface ISuperTokenPool {
 
     function getClaimable(Time t, address memberAddr) external view returns (Value);
 
-    function claimAll(Time t, address memberAddr) external returns (bool);
+    function getClaimable(address memberAddr) external view returns (Value);
+
+    function claimAll(address memberAddr) external returns (bool);
+
+    function claimAll() external returns (bool);
 
     function operatorSetIndex(PDPoolIndex calldata index) external returns (bool);
 

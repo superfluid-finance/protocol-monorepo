@@ -2,6 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.starknet.common.syscalls import get_contract_address, get_block_timestamp
+from starkware.cairo.common.math import unsigned_div_rem
 
 from src.tokens.ERC20x.SuperToken.library import SuperToken
 from src.utils.SemanticMoney import (
@@ -32,7 +33,7 @@ func __setup__{syscall_ptr: felt*}() {
     let (contract_address) = get_contract_address();
     %{
         declare("./src/pools/PoolImpl.cairo")
-        context.supertoken_contract_address = deploy_contract("./src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo", [1539470638642759296633, 21332, 18, 524240933577613431689919163345126223950080805481049702978908196600880894530]).contract_address
+        context.supertoken_contract_address = deploy_contract("./src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo", [1539470638642759296633, 21332, 18, 810198982325606706107357857813304160470730752607585716855658327973812862486]).contract_address
         context.MINT_AMOUNT = 1000000000000000000
     %}
     return ();
@@ -206,6 +207,7 @@ func setup_distribute1to2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
             u2 = strategy.integers(0, 1000000),
             account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
             account2 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
+            account3 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000)
         )
     %}
     return ();
@@ -213,9 +215,12 @@ func setup_distribute1to2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_
 
 @external
 func test_distribute1to2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    amount: felt, u1: felt, u2: felt, account1: felt, account2: felt
+    amount: felt, u1: felt, u2: felt, account1: felt, account2: felt, account3: felt
 ) {
+    alloc_locals;
     %{ assume(ids.account1 != ids.account2) %}
+    %{ assume(ids.account2 != ids.account3) %}
+    %{ assume(ids.account1 != ids.account3) %}
     let tu = u1 + u2;
     %{ assume(ids.tu > 0) %}
 
@@ -225,38 +230,71 @@ func test_distribute1to2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
         ids.supertoken_contract_address = context.supertoken_contract_address
         ids.MINT_AMOUNT = context.MINT_AMOUNT
     %}
-    let (contract_address) = get_contract_address();
     ISuperToken.mint(
-        contract_address=supertoken_contract_address, receiver=contract_address, amount=MINT_AMOUNT
+        contract_address=supertoken_contract_address, receiver=account1, amount=MINT_AMOUNT
     );
     let (balance) = ISuperToken.balanceOf(
-        contract_address=supertoken_contract_address, account=contract_address
+        contract_address=supertoken_contract_address, account=account1
     );
     assert balance = MINT_AMOUNT;
 
-    let (contract_address) = get_contract_address();
+    %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
     let (pool) = ISuperToken.createPool(contract_address=supertoken_contract_address);
-    ISuperTokenPool.updateMember(contract_address=pool, memberAddress=account1, unit=u1);
-    ISuperTokenPool.updateMember(contract_address=pool, memberAddress=account2, unit=u2);
+    %{ stop_prank_callable() %}
 
-    ISuperToken.distribute(contract_address=supertoken_contract_address, senderAddress=contract_address, poolAddress=pool, reqAmount=amount);
+    let (pool_index) = ISuperTokenPool.getIndex(contract_address=pool);
+    let (pool_member_data_1) = ISuperTokenPool.getMember(
+        contract_address=pool, memberAddress=account2
+    );
+    let (pool_member_data_2) = ISuperTokenPool.getMember(
+        contract_address=pool, memberAddress=account3
+    );
+
+    %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
+    ISuperTokenPool.updateMember(contract_address=pool, memberAddress=account2, unit=u1);
+    ISuperTokenPool.updateMember(contract_address=pool, memberAddress=account3, unit=u2);
+    %{ stop_prank_callable() %}
 
     %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
-    ISuperToken.connectPool(contract_address=supertoken_contract_address, to=pool);
+    ISuperToken.distribute(
+        contract_address=supertoken_contract_address,
+        senderAddress=account1,
+        poolAddress=pool,
+        reqAmount=amount,
+    );
     %{ stop_prank_callable() %}
+
+    let (pool_index) = ISuperTokenPool.getIndex(contract_address=pool);
+    let (pool_member_data_1) = ISuperTokenPool.getMember(
+        contract_address=pool, memberAddress=account2
+    );
+    let (pool_member_data_2) = ISuperTokenPool.getMember(
+        contract_address=pool, memberAddress=account3
+    );
+
+    let tu = u1 + u2;
+    let (quotient, _) = unsigned_div_rem(amount, tu);
+    let actualAmount = quotient * tu;
 
     %{ stop_prank_callable = start_prank(ids.account2, ids.supertoken_contract_address) %}
     ISuperToken.connectPool(contract_address=supertoken_contract_address, to=pool);
     %{ stop_prank_callable() %}
 
-    let (balanceOfContract) = ISuperToken.balanceOf(
-        contract_address=supertoken_contract_address, account=contract_address
-    );
+    %{ stop_prank_callable = start_prank(ids.account3, ids.supertoken_contract_address) %}
+    ISuperToken.connectPool(contract_address=supertoken_contract_address, to=pool);
+    %{ stop_prank_callable() %}
+
     let (balanceOfAccount1) = ISuperToken.balanceOf(
         contract_address=supertoken_contract_address, account=account1
     );
     let (balanceOfAccount2) = ISuperToken.balanceOf(
         contract_address=supertoken_contract_address, account=account2
     );
+    let (balanceOfAccount3) = ISuperToken.balanceOf(
+        contract_address=supertoken_contract_address, account=account3
+    );
+    assert balanceOfAccount1 = MINT_AMOUNT - actualAmount;
+    assert balanceOfAccount2 = actualAmount/tu * u1;
+    assert balanceOfAccount3 = actualAmount/tu * u2;
     return ();
 }

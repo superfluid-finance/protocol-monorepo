@@ -83,7 +83,7 @@ func SuperToken_pool_indexes(pool: felt) -> (index: felt) {
 }
 
 @storage_var
-func SuperToken_connection_map(account: felt, index: felt) -> (bool: felt) {
+func SuperToken_connection_map(account: felt, index: felt) -> (connected: felt) {
 }
 
 namespace SuperToken {
@@ -297,6 +297,7 @@ namespace SuperToken {
     func connectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt) -> (
         success: felt
     ) {
+        alloc_locals;
         let (caller) = get_caller_address();
         let (connected) = SuperToken_connection_map.read(caller, to);
         with_attr error_message("SuperToken: already connected") {
@@ -308,6 +309,7 @@ namespace SuperToken {
     func disconnectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         to: felt
     ) -> (success: felt) {
+        alloc_locals;
         let (caller) = get_caller_address();
         let (connected) = SuperToken_connection_map.read(caller, to);
         with_attr error_message("SuperToken: no connections") {
@@ -326,13 +328,13 @@ namespace SuperToken {
         if (dbConnect == TRUE) {
             SuperToken_connection_map.write(caller, poolIndex, TRUE);
             let (connected) = ISuperTokenPool.operatorConnectMember(
-                contract_address=pool, time=timestamp, memberAddress=caller, dbConnect=TRUE
+                contract_address=pool, memberAddress=caller, dbConnect=TRUE
             );
             assert connected = TRUE;
         } else {
             SuperToken_connection_map.write(caller, poolIndex, FALSE);
             let (disconnected) = ISuperTokenPool.operatorConnectMember(
-                contract_address=pool, time=timestamp, memberAddress=caller, dbConnect=FALSE
+                contract_address=pool, memberAddress=caller, dbConnect=FALSE
             );
             assert disconnected = TRUE;
         }

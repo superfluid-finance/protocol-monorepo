@@ -6,8 +6,8 @@ from starkware.starknet.common.syscalls import (
     get_block_timestamp,
     get_contract_address,
 )
-from starkware.cairo.common.math import assert_nn
-from starkware.cairo.common.bool import TRUE
+from starkware.cairo.common.math import assert_nn, assert_not_zero
+from starkware.cairo.common.bool import TRUE, FALSE
 
 from openzeppelin.access.ownable.library import Ownable
 
@@ -33,7 +33,7 @@ func Pool_members(member: felt) -> (member_data: PDPoolMember) {
 }
 
 @storage_var
-func Pool_claimed_values(member: felt) -> (values: felt) {
+func Pool_claimed_values(member: felt) -> (value: felt) {
 }
 
 @storage_var
@@ -64,8 +64,13 @@ namespace Pool {
     func getIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
         index: PDPoolIndex
     ) {
-        let (index) = Pool_index.read();
-        return (index=index);
+        return Pool_index.read();
+    }
+
+    func getMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        member: felt
+    ) -> (member_data: PDPoolMember) {
+        return Pool_members.read(member);
     }
 
     func operatorSetIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -74,13 +79,6 @@ namespace Pool {
         Ownable.assert_only_owner();
         Pool_index.write(index);
         return (success=TRUE);
-    }
-
-    func getMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        member: felt
-    ) -> (member_data: PDPoolMember) {
-        let (member_data) = Pool_members.read(member);
-        return (member_data=member_data);
     }
 
     func updateMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -102,7 +100,7 @@ namespace Pool {
         );
 
         // update pool's pending units`
-        if (connected == TRUE) {
+        if (connected == FALSE) {
             let (pendingUnits) = Pool_pending_units.read();
             let (member_data) = Pool_members.read(member);
             Pool_pending_units.write(pendingUnits - member_data.owned_unit + unit);
@@ -124,6 +122,7 @@ namespace Pool {
             assert absorbed = TRUE;
 
             // additional side effects of triggering claimAll
+            // %{ print(f"Called by Update Member") %}
             _claimAll(timestamp, member);
             return (success=TRUE);
         } else {
@@ -158,13 +157,18 @@ namespace Pool {
         let (realtime_balance) = SemanticMoney.realtime_balance_of_pool_member_mu(
             pd_member_mu, time
         );
-        let (claimed_values) = Pool_claimed_values.read(memberAddress);
-        return (value=realtime_balance - claimed_values);
+        // %{ print(f"Realtime Balance: {ids.realtime_balance} for Account: {ids.memberAddress} at Time: {ids.time}") %}
+        let (claimed_value) = Pool_claimed_values.read(memberAddress);
+        // %{ print(f"Claimed Value: {ids.claimed_value} for Account: {ids.memberAddress} at Time: {ids.time}") %}
+        let claimable = realtime_balance - claimed_value;
+        // %{ print(f"Claimable: {ids.claimable} for Account: {ids.memberAddress} at Time: {ids.time}") %}
+        return (value=claimable);
     }
 
     func _claimAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         time: felt, memberAddress: felt
     ) -> (success: felt) {
+        alloc_locals;
         let (value) = getClaimable(time, memberAddress);
         let (owner) = Ownable.owner();
         let (contract_address) = get_contract_address();
@@ -175,13 +179,15 @@ namespace Pool {
             amount=value,
         );
         assert sent = TRUE;
-        Pool_claimed_values.write(memberAddress, value);
+        let (initialClaimedValue) = Pool_claimed_values.read(memberAddress);
+        Pool_claimed_values.write(memberAddress, value + initialClaimedValue);
         return (success=TRUE);
     }
 
     func claimAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
         success: felt
     ) {
+        alloc_locals;
         let (timestamp) = get_block_timestamp();
         let (caller) = get_contract_address();
         return _claimAll(timestamp, caller);
@@ -190,6 +196,7 @@ namespace Pool {
     func operatorConnectMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         time: felt, memberAddress: felt, dbConnect: felt
     ) -> (success: felt) {
+        alloc_locals;
         Ownable.assert_only_owner();
         if (dbConnect == TRUE) {
             let (pendingUnits) = Pool_pending_units.read();
@@ -200,8 +207,8 @@ namespace Pool {
             let (member_data) = Pool_members.read(memberAddress);
             Pool_pending_units.write(pendingUnits + member_data.owned_unit);
         }
-        let (timestamp) = get_block_timestamp();
-        _claimAll(timestamp, memberAddress);
+        // %{ print(f"Called by Operator Connect Member") %}
+        _claimAll(time, memberAddress);
         return (success=TRUE);
     }
 }

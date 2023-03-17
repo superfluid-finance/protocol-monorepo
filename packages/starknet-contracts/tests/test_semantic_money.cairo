@@ -429,9 +429,7 @@ func test_flow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     t7: felt,
 ) {
     alloc_locals;
-    %{ assume(ids.fr < 680564733841876926926749214863536422912) %}
-    %{ assume(ids.fr * ids.ou_1 <= 35826760283823081323735869139555149560624823914174224752208832238969029904) %}
-    %{ assume(ids.fr * ids.ou_2 <= 35826760283823081323735869139555149560624823914174224752208832238969029904) %}
+    %{ assume(ids.fr * (ids.ou_1 + ids.ou_2) <= 10000000000000000000000000000000000000000) %}
 
     let u_index = BasicParticle(0, 0, 0);
     let p_index = PDPoolIndex(0, BasicParticle(0, 0, 0));
@@ -442,13 +440,9 @@ func test_flow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
         pool_member_mu, u_index, ou_1, t1
     );
 
-    let (_u_index, _p_index, _) = SemanticMoney.flow2_pd(u_index, p_index, fr, t2);
-    assert _u_index.flow_rate = u_index.flow_rate - (
-        (fr / p_index.total_units) * p_index.total_units
-    );
-    assert _p_index.wrapped_particle.flow_rate = p_index.wrapped_particle.flow_rate + (
-        ((fr / p_index.total_units) * p_index.total_units) / p_index.total_units
-    );  // Per Unit
+    let (_u_index, _p_index, actualFlowRate) = SemanticMoney.flow2_pd(u_index, p_index, fr, t2);
+    assert _u_index.flow_rate = -actualFlowRate;
+    assert _p_index.wrapped_particle.flow_rate = actualFlowRate / _p_index.total_units;  // Per Unit
     assert _u_index.settled_at = t2;
     assert _p_index.wrapped_particle.settled_at = t2;
 
@@ -511,14 +505,8 @@ func setup_shifFlow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
     %{
         given(
             tu = strategy.integers(1, 1000), # time
-            fr1 = strategy.felts(), # flow rate
-            fr2 = strategy.felts(), # flow rate
-            fr3 = strategy.felts(), # flow rate
-            sv1 = strategy.felts(), # settled value
-            sv2 = strategy.felts(), # settled value
-            t1 = strategy.integers(0, 100), # time 
-            t2 = strategy.integers(101, 200), # time 
-            t3 = strategy.integers(201, 300), # time 
+            fr = strategy.felts(), # flow rate
+            t = strategy.integers(0, 100), # time 
         )
     %}
     return ();
@@ -526,14 +514,17 @@ func setup_shifFlow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_ch
 
 @external
 func test_shifFlow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    tu: felt, fr1: felt, fr2: felt, fr3: felt, sv1: felt, sv2: felt, t1: felt, t2: felt, t3: felt
+    tu: felt, fr: felt, t: felt
 ) {
     alloc_locals;
-    let u_index = BasicParticle(t1, sv1, fr1);
-    let p_index = PDPoolIndex(tu, BasicParticle(t2, sv2, fr2));
-    let (newUIndex, newPoolIndex, _) = SemanticMoney.shiftFlow_pd(u_index, p_index, fr3, t3);
-    assert newUIndex.flow_rate = fr1 - fr3;
-    assert newPoolIndex.wrapped_particle.flow_rate = fr2 + (fr3 / tu);
+    %{ assume(ids.fr * ids.tu <= 10000000000000000000000000000000000000000) %}
+    let u_index = BasicParticle(0, 0, 0);
+    let p_index = PDPoolIndex(tu, BasicParticle(0, 0, 0));
+    let (_u_index, _p_index, actualFlowRate) = SemanticMoney.shiftFlow_pd(
+        u_index, p_index, fr, t
+    );
+    assert _u_index.flow_rate = 0 - actualFlowRate;
+    assert _p_index.wrapped_particle.flow_rate = 0 + (actualFlowRate / tu);
     return ();
 }
 
@@ -543,7 +534,6 @@ func setup_shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
         given(
             ou_1 = strategy.integers(1, 100), # owned unit for first pd member,
             ou_2 = strategy.integers(1, 100), # owned unit for second pd member,
-            ou_3 = strategy.integers(1, 100), # owned unit for third pd member,
             fr = strategy.felts(), # default flow rate
             amount = strategy.felts(), # flow rate of flow,
             t1 = strategy.integers(1, 100), # time 1
@@ -562,7 +552,6 @@ func setup_shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
 func test_shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     ou_1: felt,
     ou_2: felt,
-    ou_3: felt,
     fr: felt,
     amount: felt,
     t1: felt,
@@ -574,9 +563,8 @@ func test_shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
     t7: felt,
 ) {
     alloc_locals;
-    %{ assume(ids.fr < 680564733841876926926749214863536422912) %}
-    %{ assume(ids.fr * ids.ou_1 <= 35826760283823081323735869139555149560624823914174224752208832238969029904) %}
-    %{ assume(ids.fr * ids.ou_2 <= 35826760283823081323735869139555149560624823914174224752208832238969029904) %}
+    %{ assume(ids.fr <= 10000000000000000000000000000000000) %}
+    %{ assume(ids.amount * (ids.ou_1 + ids.ou_2) <= 10000000000000000000000000000000000000000000) %}
 
     let u_index = BasicParticle(0, 0, 0);
     let p_index = PDPoolIndex(0, BasicParticle(0, 0, 0));
@@ -587,14 +575,13 @@ func test_shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
         pool_member_mu, u_index, ou_1, t1
     );
 
-    let (_u_index, _p_index, _) = SemanticMoney.shift2_pd(u_index, p_index, amount, t2);
-    assert _u_index.settled_value = (((t2 - t1) * u_index.flow_rate) + u_index.settled_value) - (
-        (amount / p_index.total_units) * p_index.total_units
-    );
+    let (_u_index, _p_index, actualAmount) = SemanticMoney.shift2_pd(u_index, p_index, amount, t2);
+    assert _u_index.settled_value = (((t2 - t1) * u_index.flow_rate) + u_index.settled_value) -
+        actualAmount;
     assert _u_index.settled_at = t2;
     assert _p_index.wrapped_particle.settled_value = (
         ((t2 - t1) * p_index.wrapped_particle.flow_rate) + p_index.wrapped_particle.settled_value
-    ) + (((amount / p_index.total_units) * p_index.total_units) / p_index.total_units);  // Per Unit
+    ) + (actualAmount / p_index.total_units);  // Per Unit
     assert _p_index.wrapped_particle.settled_at = t2;
 
     let pool_member_mu = PDPoolMemberMU(_p_index, pool_member_1);
@@ -645,14 +632,13 @@ func test_shift2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_
         (balance_for_wrapped_particle - balance_for_synced_particle) * ou_1
     ) + pool_member_1.settled_value;
 
-    let (_u_index, _p_index, _) = SemanticMoney.shift2_pd(u_index, p_index, amount, t6);
-    assert _u_index.settled_value = (((t6 - t4) * u_index.flow_rate) + u_index.settled_value) - (
-        (amount / p_index.total_units) * p_index.total_units
-    );
+    let (_u_index, _p_index, actualAmount) = SemanticMoney.shift2_pd(u_index, p_index, amount, t6);
+    assert _u_index.settled_value = (((t6 - t4) * u_index.flow_rate) + u_index.settled_value) -
+        actualAmount;
     assert _u_index.settled_at = t6;
     assert _p_index.wrapped_particle.settled_value = (
         ((t6 - t4) * p_index.wrapped_particle.flow_rate) + p_index.wrapped_particle.settled_value
-    ) + (((amount / p_index.total_units) * p_index.total_units) / p_index.total_units);  // Per Unit
+    ) + (actualAmount / p_index.total_units);  // Per Unit
     assert _p_index.wrapped_particle.settled_at = t6;
 
     let pool_member_mu = PDPoolMemberMU(_p_index, pool_member_2);

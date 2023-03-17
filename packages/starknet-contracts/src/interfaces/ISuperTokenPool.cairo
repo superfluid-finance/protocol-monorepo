@@ -1,6 +1,6 @@
 %lang starknet
 
-from src.utils.SemanticMoney import PDPoolMember, PDPoolIndex
+from src.utils.SemanticMoney import PDPoolIndex, PDPoolMember
 
 @contract_interface
 namespace ISuperTokenPool {
@@ -23,8 +23,9 @@ namespace ISuperTokenPool {
     }
 
     // WARNING for operators: it is undefined behavior if member is already connected or disconnected
-    func operatorConnectMember(time: felt, memberAddress: felt, dbConnect: felt) -> (
-        success: felt
-    ) {
+    func operatorConnectMember(memberAddress: felt, dbConnect: felt) -> (success: felt) {
+    }
+
+    func getMember(memberAddress: felt) -> (member_data: PDPoolMember) {
     }
 }

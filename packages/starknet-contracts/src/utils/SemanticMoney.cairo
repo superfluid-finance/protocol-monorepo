@@ -247,7 +247,8 @@ namespace SemanticMoney {
         u_index: BasicParticle, p_index: PDPoolIndex, value: felt, time: felt
     ) -> (u_index: BasicParticle, p_index: PDPoolIndex, actualAmount: felt) {
         if (p_index.total_units != 0) {
-            let nx = (value / p_index.total_units) * p_index.total_units;
+            let (quotient, _) = unsigned_div_rem(value, p_index.total_units);
+            let nx = (quotient * p_index.total_units);
             let (settled_u_index) = settle(u_index, time);
             let (shift1_on_u_index, _) = shift1(-nx, settled_u_index);
             let (settled_p_index) = settle_for_pool_index(p_index, time);
@@ -267,7 +268,8 @@ namespace SemanticMoney {
         u_index: BasicParticle, p_index: PDPoolIndex, value: felt, time: felt
     ) -> (u_index: BasicParticle, p_index: PDPoolIndex, actualFlowRate: felt) {
         if (p_index.total_units != 0) {
-            let nr = (value / p_index.total_units) * p_index.total_units;
+            let (quotient, _) = unsigned_div_rem(value, p_index.total_units);
+            let nr = quotient * p_index.total_units;
             let (settled_u_index) = settle(u_index, time);
             let (flow1_on_u_index, _) = flow1(-nr, settled_u_index);
             let (settled_p_index) = settle_for_pool_index(p_index, time);

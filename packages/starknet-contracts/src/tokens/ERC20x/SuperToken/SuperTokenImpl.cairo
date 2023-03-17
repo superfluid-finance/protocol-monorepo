@@ -60,6 +60,41 @@ func allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     return SuperToken.allowance(owner, spender);
 }
 
+@view
+func realtimeBalanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    account: felt
+) -> (rtb: felt) {
+    return SuperToken.realtime_balance_of(account);
+}
+
+@view
+func realtimeBalanceAt{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    account: felt, time: felt
+) -> (rtb: felt) {
+    return SuperToken.realtime_balance_at(account, time);
+}
+
+@view
+func realtimeBalanceVectorAt{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    account: felt, time: felt
+) -> (available: felt, deposit: felt) {
+    return SuperToken.realtime_balance_vector_at(account, time);
+}
+
+@view
+func getNetFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    account: felt
+) -> (flow_rate: felt) {
+    return SuperToken.get_net_flow_rate(account);
+}
+
+@view
+func getFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    _from: felt, to: felt, flowId: felt
+) -> (flow_rate: felt) {
+    return SuperToken.get_flow_rate(_from, to, flowId);
+}
+
 //
 // Externals
 //

@@ -184,7 +184,7 @@ namespace SuperToken {
         return SuperToken_flow_rates.read(flowHash);
     }
 
-    func realtime_balance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    func realtime_balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         account: felt
     ) -> (rtb: felt) {
         let (timestamp) = get_block_timestamp();

@@ -38,10 +38,10 @@ namespace ISuperToken {
     // Generalized Payment Primitives
     // //////////////////////////////////////////////////////////////////////////////
 
-    func realtimeBalanceOf(account: felt) -> (balance: felt) {
+    func realtimeBalanceOf(account: felt) -> (rtb: felt) {
     }
 
-    func realtimeBalanceAt(account: felt, time: felt) -> (balance: felt) {
+    func realtimeBalanceAt(account: felt, time: felt) -> (rtb: felt) {
     }
 
     func realtimeBalanceVectorAt(account: felt, time: felt) -> (available: felt, deposit: felt) {

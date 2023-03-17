@@ -294,7 +294,7 @@ func test_distribute1to2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
         contract_address=supertoken_contract_address, account=account3
     );
     assert balanceOfAccount1 = MINT_AMOUNT - actualAmount;
-    assert balanceOfAccount2 = actualAmount/tu * u1;
-    assert balanceOfAccount3 = actualAmount/tu * u2;
+    assert balanceOfAccount2 = actualAmount / tu * u1;
+    assert balanceOfAccount3 = actualAmount / tu * u2;
     return ();
 }

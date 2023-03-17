@@ -157,11 +157,8 @@ namespace Pool {
         let (realtime_balance) = SemanticMoney.realtime_balance_of_pool_member_mu(
             pd_member_mu, time
         );
-        // %{ print(f"Realtime Balance: {ids.realtime_balance} for Account: {ids.memberAddress} at Time: {ids.time}") %}
         let (claimed_value) = Pool_claimed_values.read(memberAddress);
-        // %{ print(f"Claimed Value: {ids.claimed_value} for Account: {ids.memberAddress} at Time: {ids.time}") %}
         let claimable = realtime_balance - claimed_value;
-        // %{ print(f"Claimable: {ids.claimable} for Account: {ids.memberAddress} at Time: {ids.time}") %}
         return (value=claimable);
     }
 

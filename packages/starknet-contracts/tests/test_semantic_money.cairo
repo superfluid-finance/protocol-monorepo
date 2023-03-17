@@ -520,9 +520,7 @@ func test_shifFlow2_pd{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     %{ assume(ids.fr * ids.tu <= 10000000000000000000000000000000000000000) %}
     let u_index = BasicParticle(0, 0, 0);
     let p_index = PDPoolIndex(tu, BasicParticle(0, 0, 0));
-    let (_u_index, _p_index, actualFlowRate) = SemanticMoney.shiftFlow_pd(
-        u_index, p_index, fr, t
-    );
+    let (_u_index, _p_index, actualFlowRate) = SemanticMoney.shiftFlow_pd(u_index, p_index, fr, t);
     assert _u_index.flow_rate = 0 - actualFlowRate;
     assert _p_index.wrapped_particle.flow_rate = 0 + (actualFlowRate / tu);
     return ();

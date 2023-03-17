@@ -67,7 +67,7 @@ func SuperToken_universal_indexes(address: felt) -> (index: BasicParticle) {
 }
 
 @storage_var
-func SuperToken_flow_rates(address: felt) -> (flow_rate: felt) {
+func SuperToken_flow_rates(hash: felt) -> (flow_rate: felt) {
 }
 
 @storage_var
@@ -134,37 +134,13 @@ namespace SuperToken {
         account: felt
     ) -> (balance: felt) {
         alloc_locals;
-        let (accountIndex) = SuperToken_universal_indexes.read(account);
         let (timestamp) = get_block_timestamp();
-        let (realtime_balance) = SemanticMoney.realtime_balance_of(accountIndex, timestamp);
-        let (length) = SuperToken_pool_length.read();
-        let (pool_balance) = pool_balance_of(account, length, 0);
-        let balance = realtime_balance + pool_balance;
-        let is_less_than_or_equals_zero = is_le(balance, 0);
+        let (available, _) = realtime_balance_vector_at(account, timestamp);
+        let is_less_than_or_equals_zero = is_le(available, 0);
         if (is_less_than_or_equals_zero == TRUE) {
             return (balance=0);
         } else {
-            return (balance=balance);
-        }
-    }
-
-    func pool_balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        account: felt, pool_length: felt, sum: felt
-    ) -> (balance: felt) {
-        if (pool_length == 0) {
-            return (balance=sum);
-        }
-        let (pool) = SuperToken_pools.read(pool_length);
-        let (connected) = SuperToken_connection_map.read(account, pool_length);
-        if (connected == TRUE) {
-            let (timestamp) = get_block_timestamp();
-            let (balance) = ISuperTokenPool.getClaimable(
-                contract_address=pool, time=timestamp, memberAddress=account
-            );
-            let _sum = sum + balance;
-            return pool_balance_of(account, pool_length - 1, _sum);
-        } else {
-            return pool_balance_of(account, pool_length - 1, sum);
+            return (balance=available);
         }
     }
 
@@ -192,6 +168,79 @@ namespace SuperToken {
     // //////////////////////////////////////////////////////////////////////////////
     // Generalized Payment Primitives starts here
     // //////////////////////////////////////////////////////////////////////////////
+
+    func get_net_flow_rate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        account: felt
+    ) -> (flow_rate: felt) {
+        let (accountIndex) = SuperToken_universal_indexes.read(account);
+        return (flow_rate=accountIndex.flow_rate);
+    }
+
+    func get_flow_rate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        _from: felt, to: felt, flow_id: felt
+    ) -> (flow_rate: felt) {
+        let (hash_from_and_to) = hash2{hash_ptr=pedersen_ptr}(_from, to);
+        let (flowHash) = hash2{hash_ptr=pedersen_ptr}(hash_from_and_to, flow_id);
+        return SuperToken_flow_rates.read(flowHash);
+    }
+
+    func realtime_balance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        account: felt
+    ) -> (rtb: felt) {
+        let (timestamp) = get_block_timestamp();
+        return realtime_balance_at(account, timestamp);
+    }
+
+    func realtime_balance_at{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        account: felt, time: felt
+    ) -> (rtb: felt) {
+        let (available, deposit) = realtime_balance_vector_at(account, time);
+        return (rtb = available - deposit);
+    }
+
+    func realtime_balance_vector_at{
+        syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+    }(account: felt, time: felt) -> (available: felt, deposit: felt) {
+        alloc_locals;
+        let (accountIndex) = SuperToken_universal_indexes.read(account);
+        let (available) = SemanticMoney.realtime_balance_of(accountIndex, time);
+        let (pool_index) = SuperToken_pool_indexes.read(account);
+        let is_a_pool = is_not_zero(pool_index);
+        if (is_a_pool == TRUE) {
+            let (pendingDistribution) = ISuperTokenPool.getPendingDistribution(
+                contract_address=account
+            );
+            let balance = available + pendingDistribution;
+            // TODO: Buffer based solvency
+            return (available=balance, deposit=0);
+        } else {
+            let (length) = SuperToken_pool_length.read();
+            let (pool_balance) = pool_balance_of(account, length, 0);
+            let balance = available + pool_balance;
+            // TODO: Buffer based solvency
+            return (available=balance, deposit=0);
+        }
+    }
+
+    func pool_balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        account: felt, pool_length: felt, sum: felt
+    ) -> (balance: felt) {
+        if (pool_length == 0) {
+            return (balance=sum);
+        }
+        let (pool) = SuperToken_pools.read(pool_length);
+        let (connected) = SuperToken_connection_map.read(account, pool_length);
+        if (connected == TRUE) {
+            let (timestamp) = get_block_timestamp();
+            let (balance) = ISuperTokenPool.getClaimable(
+                contract_address=pool, time=timestamp, memberAddress=account
+            );
+            let _sum = sum + balance;
+            return pool_balance_of(account, pool_length - 1, _sum);
+        } else {
+            return pool_balance_of(account, pool_length - 1, sum);
+        }
+    }
 
     func shift{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         sender: felt, recipient: felt, amount: felt
@@ -221,9 +270,9 @@ namespace SuperToken {
         }
 
         let (hash_sender_and_recipient) = hash2{hash_ptr=pedersen_ptr}(sender, recipient);
-        let (flowAddress) = hash2{hash_ptr=pedersen_ptr}(hash_sender_and_recipient, flow_id);
+        let (flowHash) = hash2{hash_ptr=pedersen_ptr}(hash_sender_and_recipient, flow_id);
 
-        let (_flowRate) = SuperToken_flow_rates.read(flowAddress);
+        let (_flowRate) = SuperToken_flow_rates.read(flowHash);
         let flowRateDelta = flow_rate - _flowRate;
 
         let (senderIndex) = SuperToken_universal_indexes.read(sender);
@@ -234,7 +283,7 @@ namespace SuperToken {
         );
         SuperToken_universal_indexes.write(sender, newSenderIndex);
         SuperToken_universal_indexes.write(recipient, newRecipientIndex);
-        SuperToken_flow_rates.write(flowAddress, flow_rate);
+        SuperToken_flow_rates.write(flowHash, flow_rate);
         return (success=TRUE);
     }
 
@@ -278,8 +327,8 @@ namespace SuperToken {
         }
 
         let (hash_sender_and_poolAddress) = hash2{hash_ptr=pedersen_ptr}(sender, poolAddress);
-        let (flowAddress) = hash2{hash_ptr=pedersen_ptr}(hash_sender_and_poolAddress, flow_id);
-        let (senderFlowRate) = SuperToken_flow_rates.read(flowAddress);
+        let (flowHash) = hash2{hash_ptr=pedersen_ptr}(hash_sender_and_poolAddress, flow_id);
+        let (senderFlowRate) = SuperToken_flow_rates.read(flowHash);
 
         let (index) = ISuperTokenPool.getIndex(contract_address=pool);
         let (senderIndex) = SuperToken_universal_indexes.read(sender);
@@ -289,7 +338,7 @@ namespace SuperToken {
             senderIndex, index, reqFlowRate - senderFlowRate, timestamp
         );
         SuperToken_universal_indexes.write(sender, newSenderIndex);
-        SuperToken_flow_rates.write(flowAddress, senderFlowRate + actualFlowRate - oldFlowRate);
+        SuperToken_flow_rates.write(flowHash, senderFlowRate + actualFlowRate - oldFlowRate);
         ISuperTokenPool.operatorSetIndex(contract_address=pool, index=newPoolIndex);
         return (success=TRUE, actualFlowRate=actualFlowRate);
     }

@@ -195,7 +195,7 @@ namespace SuperToken {
         account: felt, time: felt
     ) -> (rtb: felt) {
         let (available, deposit) = realtime_balance_vector_at(account, time);
-        return (rtb = available - deposit);
+        return (rtb=available - deposit);
     }
 
     func realtime_balance_vector_at{

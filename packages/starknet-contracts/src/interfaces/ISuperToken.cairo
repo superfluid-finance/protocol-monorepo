@@ -38,6 +38,21 @@ namespace ISuperToken {
     // Generalized Payment Primitives
     // //////////////////////////////////////////////////////////////////////////////
 
+    func realtimeBalanceOf(account: felt) -> (balance: felt) {
+    }
+
+    func realtimeBalanceAt(account: felt, time: felt) -> (balance: felt) {
+    }
+
+    func realtimeBalanceVectorAt(account: felt, time: felt) -> (available: felt, deposit: felt) {
+    }
+
+    func getNetFlowRate(account: felt) -> (flow_rate: felt) {
+    }
+
+    func getFlowRate(_from: felt, to: felt, flowId: felt) -> (flow_rate: felt) {
+    }
+
     func shift(senderAddress: felt, receiverAddress: felt, amount: felt) -> (success: felt) {
     }
 

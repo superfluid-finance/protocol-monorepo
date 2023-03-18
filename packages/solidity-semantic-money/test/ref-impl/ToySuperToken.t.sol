@@ -2,7 +2,8 @@
 pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
-import "../src/ref-impl/ToySuperToken.sol";
+import "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.sol";
+
 
 contract ToySuperTokenTest is Test {
     address internal constant admin = address(0x420);

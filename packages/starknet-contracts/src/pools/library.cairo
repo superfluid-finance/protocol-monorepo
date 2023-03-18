@@ -73,6 +73,12 @@ namespace Pool {
         return Pool_members.read(member);
     }
 
+    func getPendingUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+        value: felt
+    ) {
+        return Pool_pending_units.read();
+    }
+
     func operatorSetIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         index: PDPoolIndex
     ) -> (success: felt) {

@@ -19,6 +19,20 @@ func getIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}()
 }
 
 @view
+func getPendingUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+    value: felt
+) {
+    return Pool.getPendingUnits();
+}
+
+@view
+func getMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    memberAddress: felt
+) -> (member_data: PDPoolMember) {
+    return Pool.getMember(memberAddress);
+}
+
+@view
 func getPendingDistribution{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
     value: felt
 ) {
@@ -61,11 +75,4 @@ func operatorConnectMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range
 ) -> (success: felt) {
     let (timestamp) = get_block_timestamp();
     return Pool.operatorConnectMember(timestamp, memberAddress, dbConnect);
-}
-
-@view
-func getMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    memberAddress: felt
-) -> (member_data: PDPoolMember) {
-    return Pool.getMember(memberAddress);
 }

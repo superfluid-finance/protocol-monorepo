@@ -4,10 +4,29 @@ from src.utils.SemanticMoney import PDPoolIndex, PDPoolMember
 
 @contract_interface
 namespace ISuperTokenPool {
+
+    func getTotalUnits() -> (value: felt) {
+    }
+
+    func getDistributionFlowRate() -> (flow_rate: felt) {
+    }
+
+    func getPendingDistributionFlowRate() -> (flow_rate: felt) {
+    }
+
+    func getPendingUnits() -> (value: felt) {
+    }
+
     func getPendingDistribution() -> (value: felt) {
     }
 
     func getIndex() -> (index: PDPoolIndex) {
+    }
+
+    func getUnits(memberAddress: felt) -> (value: felt) {
+    }
+
+    func getMemberFlowRate(memberAddress: felt) -> (flow_rate: felt){
     }
 
     func getClaimable(time: felt, memberAddress: felt) -> (value: felt) {

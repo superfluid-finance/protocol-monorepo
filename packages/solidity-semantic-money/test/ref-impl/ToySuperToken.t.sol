@@ -162,12 +162,18 @@ contract ToySuperTokenTest is Test {
         assertEq(b2 - b1 + c2 - c1, a1 - a2, "e3");
     }
 
-    function test_1to2_distributeflow_bothconnected(uint32 u1, uint32 u2, uint32 r, uint16 dt2) external {
+    function test_1to2_distributeflow_bothconnected(uint32 u1, uint32 u2, uint32 r1,
+                                                    uint16 dt2, uint32 r2,
+                                                    uint16 dt3) external {
         Unit uu1 = Unit.wrap(int128(uint128((u1))));
         Unit uu2 = Unit.wrap(int128(uint128((u2))));
-        FlowRate rr = FlowRate.wrap(int64(uint64(r)));
+        FlowRate rr1 = FlowRate.wrap(int64(uint64(r1)));
+        FlowRate rr2 = FlowRate.wrap(int64(uint64(r2)));
         uint256 tu = uint(uint128(Unit.unwrap(uu1 + uu2)));
-        int256 rrr; if (tu == 0) rrr = 0; else rrr = int256(uint256(r) / tu * tu);
+        int256 rrr1; if (tu == 0) rrr1 = 0; else rrr1 = int256(uint256(r1) / tu * tu);
+        int256 rrr2; if (tu == 0) rrr2 = 0; else rrr2 = int256(uint256(r2) / tu * tu);
+        Time t2 = Time.wrap(uint32(block.timestamp) + dt2);
+        Time t3 = t2 + Time.wrap(dt3);
 
         ToySuperTokenPool pl = _createPool(alice);
 
@@ -181,7 +187,7 @@ contract ToySuperTokenTest is Test {
         pl.updateMember(carol, uu2);
         assertEq(pl.getClaimable(bob), Value.wrap(0), "e1.1");
         assertEq(pl.getClaimable(carol), Value.wrap(0), "e1.2");
-        token.distributeFlow(alice, pl, FlowId.wrap(0), rr);
+        token.distributeFlow(alice, pl, FlowId.wrap(0), rr1);
         vm.stopPrank();
 
         assertEq(Unit.unwrap(pl.pendingUnits()), int(tu), "e2");
@@ -196,7 +202,26 @@ contract ToySuperTokenTest is Test {
 
         assertEq(pl.pendingUnits(), Unit.wrap(0), "e3.1");
 
-        vm.warp(uint32(block.timestamp) + dt2);
+        {
+            FlowRate ar2 = token.getNetFlowRate(alice);
+            FlowRate br2 = token.getNetFlowRate(bob);
+            FlowRate cr2 = token.getNetFlowRate(carol);
+            FlowRate pr2 = token.getNetFlowRate(address(pl));
+
+            assertEq(pl.getDistributionFlowRate(), FlowRate.wrap(int128(rrr1)), "e4.1");
+            assertEq(ar2, FlowRate.wrap(-int128(rrr1)), "e4.2");
+            assertEq(br2 + cr2, FlowRate.wrap(int128(rrr1)), "e4.3");
+            assertEq(pr2, FlowRate.wrap(0), "e4.4");
+            assertEq(ar2 + br2 + cr2 + pr2, FlowRate.wrap(0), "e4.5");
+        }
+
+        vm.warp(uint256(Time.unwrap(t2)));
+
+        vm.startPrank(alice);
+        token.distributeFlow(alice, pl, FlowId.wrap(0), rr2);
+        vm.stopPrank();
+
+        vm.warp(uint256(Time.unwrap(t3)));
 
         {
             FlowRate ar2 = token.getNetFlowRate(alice);
@@ -204,14 +229,11 @@ contract ToySuperTokenTest is Test {
             FlowRate cr2 = token.getNetFlowRate(carol);
             FlowRate pr2 = token.getNetFlowRate(address(pl));
 
-            emit log_named_int("alice nr", FlowRate.unwrap(token.getNetFlowRate(alice)));
-            emit log_named_int("bob nr", FlowRate.unwrap(token.getNetFlowRate(bob)));
-            emit log_named_int("carol nr", FlowRate.unwrap(token.getNetFlowRate(carol)));
-            assertEq(pl.getDistributionFlowRate(), FlowRate.wrap(int128(rrr)), "e4.1");
-            assertEq(ar2, FlowRate.wrap(-int128(rrr)), "e4.2");
-            assertEq(br2 + cr2, FlowRate.wrap(int128(rrr)), "e4.3");
-            assertEq(pr2, FlowRate.wrap(0), "e4.4");
-            assertEq(ar2 + br2 + cr2 + pr2, FlowRate.wrap(0), "e4.5");
+            assertEq(pl.getDistributionFlowRate(), FlowRate.wrap(int128(rrr2)), "e5.1");
+            assertEq(ar2, FlowRate.wrap(-int128(rrr2)), "e5.2");
+            assertEq(br2 + cr2, FlowRate.wrap(int128(rrr2)), "e5.3");
+            assertEq(pr2, FlowRate.wrap(0), "e5.4");
+            assertEq(ar2 + br2 + cr2 + pr2, FlowRate.wrap(0), "e5.5");
         }
         {
             uint256 a2 = token.balanceOf(alice);
@@ -219,8 +241,8 @@ contract ToySuperTokenTest is Test {
             uint256 c2 = token.balanceOf(carol);
             uint256 p2 = token.balanceOf(address(pl));
 
-            assertEq(a1 - a2, uint256(rrr) * uint256(dt2), "e5.1");
-            assertEq(b2 - b1 + c2 - c1 + p2 - p1, a1 - a2, "e5.2");
+            assertEq(a1 - a2, uint256(rrr1) * uint256(dt2) + uint256(rrr2) * uint256(dt3), "e6.1");
+            assertEq(b2 - b1 + c2 - c1 + p2 - p1, a1 - a2, "e6.2");
             assertEq(pl.getClaimable(carol) + pl.getClaimable(bob), Value.wrap(int256(a1 - a2)), "e6.1");
         }
     }

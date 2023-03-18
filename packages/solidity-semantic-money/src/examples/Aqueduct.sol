@@ -13,6 +13,7 @@ library AqueductLibrary {
     struct SideState {
         FlowRate totalInFlowRate;
     }
+
     function clone(SideState memory a) internal pure returns (SideState memory b) {
         b.totalInFlowRate = a.totalInFlowRate;
     }
@@ -82,7 +83,6 @@ contract Aqueduct {
             FlowRate dr0 = a.pool.getDistributionFlowRate();
             (,FlowRate dr1) = a.token.distributeFlow(address(this), a.pool, SWAP_DISTRIBUTE_FLOW_ID,
                                                      drr);
-
             _adjustFlowRemainder(a, from, dr0, dr1, r1 - r0);
         }
 
@@ -102,7 +102,6 @@ contract Aqueduct {
             // solve ar1 in: r = (dr1 - dr0) + (ar1 - ar0) + (0 - br0)
             // =>
             FlowRate ar1 = r + dr0 - dr1 + ar0 + br0;
-            require(FlowRate.unwrap(ar1) >= 0, "ZZ 1!!!");
             a.token.flow(address(this), a.remFlowReceiver, ADJUSTMENT_FLOW_ID, FlowRate.wrap(0));
             a.token.flow(address(this), from, ADJUSTMENT_FLOW_ID, ar1);
             a.remFlowReceiver = from;
@@ -110,7 +109,6 @@ contract Aqueduct {
             // solve ar1 in: r = (dr1 - dr0) + (ar1 - ar0)
             // =>
             FlowRate ar1 = r + dr0 - dr1 + ar0;
-            require(FlowRate.unwrap(ar1) >= 0, "ZZ 1!!!");
             a.token.flow(address(this), from, ADJUSTMENT_FLOW_ID, ar1);
         }
     }

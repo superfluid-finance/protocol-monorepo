@@ -82,7 +82,6 @@ contract Aqueduct {
             FlowRate dr0 = a.pool.getDistributionFlowRate();
             (,FlowRate dr1) = a.token.distributeFlow(address(this), a.pool, SWAP_DISTRIBUTE_FLOW_ID,
                                                      drr);
-
             _adjustFlowRemainder(a, from, dr0, dr1, r1 - r0);
         }
 

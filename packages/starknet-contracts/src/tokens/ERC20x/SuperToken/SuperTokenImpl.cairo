@@ -167,6 +167,13 @@ func isMemberConnected{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     return SuperToken.isMemberConnected(pool, memberAddress);
 }
 
+@view
+func getNumConnections{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    account: felt
+) -> (value: felt) {
+    return SuperToken.getNumConnections(account);
+}
+
 @external
 func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt, particle: BasicParticle

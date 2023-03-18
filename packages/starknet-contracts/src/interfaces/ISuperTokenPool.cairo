@@ -4,7 +4,6 @@ from src.utils.SemanticMoney import PDPoolIndex, PDPoolMember
 
 @contract_interface
 namespace ISuperTokenPool {
-
     func getTotalUnits() -> (value: felt) {
     }
 
@@ -26,7 +25,7 @@ namespace ISuperTokenPool {
     func getUnits(memberAddress: felt) -> (value: felt) {
     }
 
-    func getMemberFlowRate(memberAddress: felt) -> (flow_rate: felt){
+    func getMemberFlowRate(memberAddress: felt) -> (flow_rate: felt) {
     }
 
     func getClaimable(time: felt, memberAddress: felt) -> (value: felt) {

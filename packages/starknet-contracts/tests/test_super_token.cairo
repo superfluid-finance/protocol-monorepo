@@ -304,9 +304,7 @@ func setup_distribute1to2flow_both_connected{
 @external
 func test_distribute1to2flow_both_connected{
     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
-}(
-    fr: felt, u1: felt, u2: felt, account1: felt, account2: felt, account3: felt, t1: felt
-) {
+}(fr: felt, u1: felt, u2: felt, account1: felt, account2: felt, account3: felt, t1: felt) {
     alloc_locals;
     %{ assume(ids.account1 != ids.account2) %}
     %{ assume(ids.account2 != ids.account3) %}

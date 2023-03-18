@@ -86,6 +86,10 @@ func SuperToken_pool_indexes(pool: felt) -> (index: felt) {
 func SuperToken_connection_map(account: felt, index: felt) -> (connected: felt) {
 }
 
+@storage_var
+func SuperToken_connected_pool_length(account: felt) -> (value: felt) {
+}
+
 namespace SuperToken {
     //
     // Initializer
@@ -172,8 +176,24 @@ namespace SuperToken {
     func get_net_flow_rate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         account: felt
     ) -> (flow_rate: felt) {
+        alloc_locals;
         let (accountIndex) = SuperToken_universal_indexes.read(account);
-        return (flow_rate=accountIndex.flow_rate);
+        let flow_rate = accountIndex.flow_rate;
+        let (pool_index) = SuperToken_pool_indexes.read(account);
+        let is_a_pool = is_not_zero(pool_index);
+
+        if (is_a_pool == TRUE) {
+            let (pendingDistributionFlowRate) = ISuperTokenPool.getPendingDistributionFlowRate(
+                contract_address=account
+            );
+            let nr = flow_rate + pendingDistributionFlowRate;
+            return (flow_rate=nr);
+        }
+
+        let (length) = SuperToken_pool_length.read();
+        let (pool_flow_rate) = pool_flow_rate_of(account, length, 0);
+        let nr = flow_rate + pool_flow_rate;
+        return (flow_rate=nr);
     }
 
     func get_flow_rate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -236,6 +256,26 @@ namespace SuperToken {
                 contract_address=pool, time=timestamp, memberAddress=account
             );
             let _sum = sum + balance;
+            return pool_balance_of(account, pool_length - 1, _sum);
+        } else {
+            return pool_balance_of(account, pool_length - 1, sum);
+        }
+    }
+
+    func pool_flow_rate_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        account: felt, pool_length: felt, sum: felt
+    ) -> (balance: felt) {
+        if (pool_length == 0) {
+            return (balance=sum);
+        }
+        let (pool) = SuperToken_pools.read(pool_length);
+        let (connected) = SuperToken_connection_map.read(account, pool_length);
+        if (connected == TRUE) {
+            let (timestamp) = get_block_timestamp();
+            let (flow_rate) = ISuperTokenPool.getMemberFlowRate(
+                contract_address=pool, memberAddress=account
+            );
+            let _sum = sum + flow_rate;
             return pool_balance_of(account, pool_length - 1, _sum);
         } else {
             return pool_balance_of(account, pool_length - 1, sum);
@@ -380,12 +420,16 @@ namespace SuperToken {
                 contract_address=pool, memberAddress=caller, dbConnect=TRUE
             );
             assert connected = TRUE;
+            let (connectedPoolLength) = SuperToken_connected_pool_length.read(caller);
+            SuperToken_connected_pool_length.write(caller, connectedPoolLength + 1);
         } else {
             SuperToken_connection_map.write(caller, poolIndex, FALSE);
             let (disconnected) = ISuperTokenPool.operatorConnectMember(
                 contract_address=pool, memberAddress=caller, dbConnect=FALSE
             );
             assert disconnected = TRUE;
+            let (connectedPoolLength) = SuperToken_connected_pool_length.read(caller);
+            SuperToken_connected_pool_length.write(caller, connectedPoolLength - 1);
         }
         return (success=TRUE);
     }
@@ -426,6 +470,12 @@ namespace SuperToken {
         let (poolIndex) = SuperToken_pool_indexes.read(pool);
         let (isMemberConnected) = SuperToken_connection_map.read(memberAddress, poolIndex);
         return (success=isMemberConnected);
+    }
+
+    func getNumConnections{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        account: felt
+    ) -> (value: felt) {
+        return SuperToken_connected_pool_length.read(account);
     }
 
     func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

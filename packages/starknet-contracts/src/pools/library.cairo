@@ -67,25 +67,32 @@ namespace Pool {
         return Pool_index.read();
     }
 
-    func getTotalUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (value: felt){
+    func getTotalUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+        value: felt
+    ) {
         let (index) = Pool_index.read();
         return (value=index.total_units);
     }
 
-    func getUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(memberAddress: felt) -> (value: felt){
+    func getUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        memberAddress: felt
+    ) -> (value: felt) {
         let (member_data) = Pool_members.read(memberAddress);
         return (value=member_data.owned_unit);
     }
 
-    func getDistributionFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (flow_rate: felt){
+    func getDistributionFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        ) -> (flow_rate: felt) {
         let (index) = Pool_index.read();
-        return (flow_rate = index.wrapped_particle.flow_rate * index.total_units);
+        return (flow_rate=index.wrapped_particle.flow_rate * index.total_units);
     }
 
-    func getPendingDistributionFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (flow_rate: felt){
+    func getPendingDistributionFlowRate{
+        syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+    }() -> (flow_rate: felt) {
         let (index) = Pool_index.read();
         let (pendingUnits) = Pool_pending_units.read();
-        return (flow_rate = index.wrapped_particle.flow_rate * pendingUnits);
+        return (flow_rate=index.wrapped_particle.flow_rate * pendingUnits);
     }
 
     func getMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -94,13 +101,15 @@ namespace Pool {
         return Pool_members.read(member);
     }
 
-    func getMemberFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(memberAddress: felt) -> (flow_rate: felt){
+    func getMemberFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        memberAddress: felt
+    ) -> (flow_rate: felt) {
         let (member_data) = Pool_members.read(memberAddress);
-        if (member_data.owned_unit == 0){
+        if (member_data.owned_unit == 0) {
             return (flow_rate=0);
         } else {
             let (index) = Pool_index.read();
-            return (flow_rate = index.wrapped_particle.flow_rate * member_data.owned_unit);
+            return (flow_rate=index.wrapped_particle.flow_rate * member_data.owned_unit);
         }
     }
 

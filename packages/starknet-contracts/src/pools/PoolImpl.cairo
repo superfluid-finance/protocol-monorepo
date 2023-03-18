@@ -26,22 +26,30 @@ func getPendingUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
 }
 
 @view
-func getTotalUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (value: felt){
+func getTotalUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+    value: felt
+) {
     return Pool.getTotalUnits();
 }
 
 @view
-func getUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(memberAddress: felt) -> (value: felt){
+func getUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    memberAddress: felt
+) -> (value: felt) {
     return Pool.getUnits(memberAddress);
 }
 
 @view
-func getDistributionFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (flow_rate: felt){
+func getDistributionFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+    flow_rate: felt
+) {
     return Pool.getDistributionFlowRate();
 }
 
 @view
-func getPendingDistributionFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (flow_rate: felt){
+func getPendingDistributionFlowRate{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}() -> (flow_rate: felt) {
     return Pool.getPendingDistributionFlowRate();
 }
 
@@ -53,7 +61,9 @@ func getMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 }
 
 @view
-func getMemberFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(memberAddress: felt) -> (flow_rate: felt){
+func getMemberFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    memberAddress: felt
+) -> (flow_rate: felt) {
     return Pool.getMemberFlowRate(memberAddress);
 }
 

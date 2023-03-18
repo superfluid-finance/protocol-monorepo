@@ -226,7 +226,7 @@ contract ToySuperTokenTest is Test {
     }
 
     function test_1to2_distributeflow_oneconnected(uint32 u1, uint32 u2, uint32 r, uint16 dt2) external {
-        Unit uu1 = Unit.wrap(int128(uint128((u1))) );
+        Unit uu1 = Unit.wrap(int128(uint128((u1))));
         Unit uu2 = Unit.wrap(int128(uint128((u2))));
         FlowRate rr = FlowRate.wrap(int64(uint64(r)));
         uint256 tu = uint(uint128(Unit.unwrap(uu1 + uu2)));

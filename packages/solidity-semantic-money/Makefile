@@ -1,17 +1,17 @@
-FOUNDRY_OPTS ?= -vv
+TEST_OPTS ?= -vv
 DEV_TARGET ?= test-all
 
 dev:
-	nodemon -e sol -x make $(DEV_TARGET)
+	nodemon -e sol -x sh -- -c "make $(DEV_TARGET) || exit 1"
 
 test-all:
-	forge test $(FOUNDRY_OPTS)
+	forge test $(TEST_OPTS)
 
 test-ToySuperToken:
-	forge test --match-contract ToySuperTokenTest $(FOUNDRY_OPTS)
+	forge test --match-contract ToySuperTokenTest $(TEST_OPTS)
 
 test-Aqueduct:
-	forge test --match-contract AqueductTest $(FOUNDRY_OPTS)
+	forge test --match-contract AqueductTest $(TEST_OPTS)
 
 verify-ToySuperToken:
 	certoraRun \
@@ -21,4 +21,4 @@ verify-ToySuperToken:
 		--packages @openzeppelin=../../node_modules/@openzeppelin @superfluid-finance/solidity-semantic-money/src=src \
 		--solc solc-0.8.19
 
-.PHONY: build-* test-* dev-* verify-*
+.PHONY: build-* dev test-* verify-*

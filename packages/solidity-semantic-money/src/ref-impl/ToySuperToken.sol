@@ -251,7 +251,7 @@ contract ToySuperToken is ISuperToken {
         returns (bool success)
     {
         require(!pools[ISuperTokenPool(to)], "Is a pool!");
-        require(Value.unwrap(amount) >= 0, "don't even try");
+        require(Value.unwrap(amount) >= 0, "Negative amount not allowed!");
         address spender = msg.sender;
         if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount))); // FIXME SafeCast
         // Make updates
@@ -270,13 +270,12 @@ contract ToySuperToken is ISuperToken {
         returns (bool success)
     {
         /// check inputs
-        // require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed.");
+        require(from != to, "No blue elephant!");
+        require(!pools[ISuperTokenPool(to)], "Is a pool!");
+        require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed!");
 
         // FIXME: plug permission controls
-        require(from != to, "No blue elephant!");
         require(msg.sender == from, "No flow permission!");
-        require(!pools[ISuperTokenPool(to)], "Is a pool!");
-        //require(FlowRate.unwrap(flowRate) >= 0, "how dare you!");
 
         /// prepare local variables (let bindings)
         Time t = Time.wrap(uint32(block.timestamp));
@@ -292,9 +291,13 @@ contract ToySuperToken is ISuperToken {
     function distribute(address from, ISuperTokenPool to, Value reqAmount) override external
         returns (bool success, Value actualAmount)
     {
+        /// check inputs
         require(pools[to], "Not a pool!");
+        require(Value.unwrap(reqAmount) >= 0, "Negative amount not allowed!!");
+
         // FIXME: plug permission controls
         require(msg.sender == from);
+
         // Make updates
         PDPoolIndex memory pdidx = to.getIndex();
         (uIndexes[from], pdidx, actualAmount) = uIndexes[from].shift2(pdidx, reqAmount);
@@ -306,9 +309,8 @@ contract ToySuperToken is ISuperToken {
         returns (bool success, FlowRate actualFlowRate)
     {
         /// check inputs
-        // require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed.");
         require(pools[to], "Not a pool!!");
-        require(FlowRate.unwrap(reqFlowRate) >= 0, "how dare you!!");
+        require(FlowRate.unwrap(reqFlowRate) >= 0, "Negative amount not allowed!!");
 
         /// prepare local variables
         Time t = Time.wrap(uint32(block.timestamp));
@@ -318,12 +320,11 @@ contract ToySuperToken is ISuperToken {
         require(msg.sender == from, "No flow permission!!");
 
         // Make updates
-        FlowRate oldFlowRate = uIndexes[from].flow_rate.inv();
         PDPoolIndex memory pdidx = to.getIndex();
         (uIndexes[from], pdidx, actualFlowRate) = uIndexes[from].shiftFlow2b
             (pdidx, reqFlowRate - flowRates[flowAddress], t);
         to.operatorSetIndex(pdidx);
-        flowRates[flowAddress] = flowRates[flowAddress] + actualFlowRate - oldFlowRate;
+        flowRates[flowAddress] = actualFlowRate;
         success = true;
     }
 

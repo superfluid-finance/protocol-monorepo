@@ -177,22 +177,15 @@ namespace SemanticMoney {
     func settle_for_pool_member_mu{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         poolMemberMU: PDPoolMemberMU, time: felt
     ) -> (poolMemberMU: PDPoolMemberMU) {
-        let (realtime_balance_of_wrapped_particle) = realtime_balance_of(
-            poolMemberMU.pdPoolIndex.wrapped_particle, time
-        );
-        let (realtime_balance_of_synced_particle) = realtime_balance_of(
-            poolMemberMU.pdPoolMember.synced_particle, time
-        );
-        let new_settled_value = (
-            realtime_balance_of_wrapped_particle - realtime_balance_of_synced_particle
-        ) * poolMemberMU.pdPoolMember.owned_unit;
+        let (newSettledPoolIndex) = settle_for_pool_index(poolMemberMU.pdPoolIndex, time);
+        let (new_settled_value) = realtime_balance_of_pool_member_mu(poolMemberMU, time);
         let newPoolMemberMU = PDPoolMemberMU(
-            poolMemberMU.pdPoolIndex,
+            newSettledPoolIndex,
             PDPoolMember(
                 poolMemberMU.pdPoolMember.owned_unit,
                 new_settled_value,
-                poolMemberMU.pdPoolMember.synced_particle,
-            ),
+                newSettledPoolIndex.wrapped_particle,
+            )
         );
         return (poolMemberMU=newPoolMemberMU);
     }

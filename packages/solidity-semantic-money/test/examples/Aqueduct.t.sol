@@ -94,7 +94,7 @@ contract AqueductTest is Test {
         assertEq(Value.unwrap(xb2), 0, "e2");
     }
 
-    function test_1lp_1taker(uint64 r1, uint64 r2, uint16 dt2, uint64 r3, uint16 dt3) external {
+    function test_1lp_2taker(uint64 r1, uint64 r2, uint16 dt2, uint64 r3, uint16 dt3) external {
         Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
         Time t3 = t2 + Time.wrap(uint32(dt3));
         FlowRate rr1 = FlowRate.wrap(int128(uint128(r1)));
@@ -106,12 +106,12 @@ contract AqueductTest is Test {
         Value bl1 = token1.realtimeBalanceOf(bob);
         Value br1 = token2.realtimeBalanceOf(bob);
 
-        _flowWithCallback(token1, alice, rr1);
-        _flowWithCallback(token2, alice, rr2);
+        _flowWithCallback(token1, bob, rr3);
 
         vm.warp(Time.unwrap(t2));
 
-        _flowWithCallback(token1, bob, rr3);
+        _flowWithCallback(token1, alice, rr1);
+        _flowWithCallback(token2, alice, rr2);
 
         vm.warp(Time.unwrap(t3));
 
@@ -151,13 +151,34 @@ contract AqueductTest is Test {
         assertEq(al2 - al1, bl1 - bl2, "e2.1");
         assertEq(ar1 - ar2, br2 - br1, "e2.2");
 
-        if (int128(uint128(r1)) > Unit.unwrap(AqueductLibrary.INIT_UNITS) &&
-            int128(uint128(r2)) > Unit.unwrap(AqueductLibrary.INIT_UNITS) &&
-            int128(uint128(r3)) > Unit.unwrap(AqueductLibrary.INIT_UNITS) &&
+        // Minimum swap condition: r2 / (r1 + r3) > 0
+        if (uint(r1) + uint(r3) > 0 && r3 > 0 && uint(r2) >= uint(r1) + uint(r3) &&
             dt2 > 0 && dt3 > 0) {
             assertTrue(Value.unwrap(bl2 - bl1) < 0, "e3.1");
             assertTrue(Value.unwrap(br2 - br1) > 0, "e3.2");
         }
     }
 
+    struct Step {
+        uint8  u;
+        uint8  t;
+        uint64 r;
+        uint16 dt;
+    }
+    function test_random_seqs(Step[] memory steps) external {
+        vm.assume(steps.length < 10);
+        for (uint i = 0; i < steps.length; ++i) {
+            Step memory s = steps[i];
+            uint u = 1 + s.u % 5;
+            FlowRate r = FlowRate.wrap(int128(uint128(s.r)));
+            _flowWithCallback(s.t % 2 == 0 ? token1 : token2, TEST_ACCOUNTS[u], r);
+            vm.warp(block.timestamp + s.dt);
+            emit log_named_uint("timestamp", block.timestamp);
+            emit log_named_uint("tester", u);
+            emit log_named_uint("token", s.t % 2 + 1);
+            emit log_named_int("flow rate", FlowRate.unwrap(r));
+        }
+        assertEq(token1.realtimeBalanceOf(address(x)), Value.wrap(0), "e1.1");
+        assertEq(token2.realtimeBalanceOf(address(x)), Value.wrap(0), "e1.1");
+    }
 }

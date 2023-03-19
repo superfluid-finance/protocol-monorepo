@@ -196,9 +196,7 @@ namespace SemanticMoney {
         alloc_locals;
         let old_total_units = poolMemberMU.pdPoolIndex.total_units;
         let new_total_units = (old_total_units + unit) - poolMemberMU.pdPoolMember.owned_unit;
-        let (settled_pool_index) = settle_for_pool_index(poolMemberMU.pdPoolIndex, time);
-        let newPoolMemberMU = PDPoolMemberMU(settled_pool_index, poolMemberMU.pdPoolMember);
-        let (settled_pool_member_mu) = settle_for_pool_member_mu(newPoolMemberMU, time);
+        let (settled_pool_member_mu) = settle_for_pool_member_mu(poolMemberMU, time);
 
         if (new_total_units != 0) {
             let nr = settled_pool_member_mu.pdPoolIndex.wrapped_particle.flow_rate;

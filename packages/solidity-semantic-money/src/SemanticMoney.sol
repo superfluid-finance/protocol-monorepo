@@ -320,11 +320,10 @@ library SemanticMoney {
     function settle(PDPoolMemberMU memory a, Time t) internal pure
         returns (PDPoolMemberMU memory b)
     {
-        // TODO b.i doesn't actually change, some optimization may be desired
-        b.i = a.i.clone();
+        b.i = a.i.settle(t);
         b.m = a.m.clone();
-        b.m.settled_value = (a.i.wrapped_particle.rtb(t) - a.m.synced_particle.rtb(t))
-            .mul(a.m.owned_units);
+        b.m.settled_value = a.rtb(t);
+        b.m.synced_particle = b.i.wrapped_particle;
     }
 
     /// Monetary unit rtb function for pool member.
@@ -342,7 +341,7 @@ library SemanticMoney {
     {
         Unit oldTotalUnit = b1.i.total_units;
         Unit newTotalUnit = oldTotalUnit + u - b1.m.owned_units;
-        PDPoolMemberMU memory b1s = PDPoolMemberMU(b1.i.settle(t), b1.m).settle(t);
+        PDPoolMemberMU memory b1s = b1.settle(t);
 
         // align "a" because of the change of total units of the pool
         FlowRate nr = b1s.i.wrapped_particle.flow_rate;

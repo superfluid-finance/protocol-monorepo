@@ -83,7 +83,6 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
 
         // additional side effects of triggering claimAll
         _claimAll(t, memberAddr);
-
         return true;
     }
 
@@ -98,8 +97,14 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     }
 
     function _claimAll(Time t, address memberAddr) internal returns (bool) {
-        Value c = getClaimable(t, memberAddr);
+        PDPoolMemberMU memory mu = PDPoolMemberMU(_index, _members[memberAddr]).settle(t);
+        Value c = mu.rtb(t) - _claimedValues[memberAddr];
+
+        require(Value.unwrap(c) >= 0, "DEBUG _claimAll: c >= 0");
         assert(ISuperToken(owner()).shift(address(this), memberAddr, c));
+
+        _index = mu.i;
+        _members[memberAddr] = mu.m;
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;
         return true;
     }
@@ -114,13 +119,14 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     function operatorConnectMember(Time t, address memberAddr, bool doConnect) override external
         onlyOwner returns (bool)
     {
+        // trigger side effects of triggering claimAll
+        _claimAll(t, memberAddr);
+
         if (doConnect) {
             pendingUnits = pendingUnits - _members[memberAddr].owned_units;
         } else {
             pendingUnits = pendingUnits + _members[memberAddr].owned_units;
         }
-        // additional side effects of triggering claimAll
-        _claimAll(t, memberAddr);
         return true;
     }
 }
@@ -317,7 +323,7 @@ contract ToySuperToken is ISuperToken {
     {
         /// check inputs
         require(pools[to], "Not a pool!!");
-        require(FlowRate.unwrap(reqFlowRate) >= 0, "Negative amount not allowed!!");
+        require(FlowRate.unwrap(reqFlowRate) >= 0, "Negative flow rate not allowed!!");
 
         /// prepare local variables
         Time t = Time.wrap(uint32(block.timestamp));

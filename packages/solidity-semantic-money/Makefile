@@ -7,6 +7,9 @@ dev:
 test-all:
 	forge test $(TEST_OPTS)
 
+test-SemanticMoney:
+	forge test --match-contract SemanticMoney $(TEST_OPTS)
+
 test-ToySuperToken:
 	forge test --match-contract ToySuperTokenTest $(TEST_OPTS)
 

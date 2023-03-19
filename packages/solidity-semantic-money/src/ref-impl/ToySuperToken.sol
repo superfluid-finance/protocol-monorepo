@@ -119,14 +119,14 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     function operatorConnectMember(Time t, address memberAddr, bool doConnect) override external
         onlyOwner returns (bool)
     {
-        // trigger side effects of triggering claimAll
-        _claimAll(t, memberAddr);
-
         if (doConnect) {
             pendingUnits = pendingUnits - _members[memberAddr].owned_units;
         } else {
             pendingUnits = pendingUnits + _members[memberAddr].owned_units;
         }
+
+        // trigger side effects of triggering claimAll
+        _claimAll(t, memberAddr);
         return true;
     }
 }

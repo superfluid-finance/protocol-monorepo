@@ -8,8 +8,6 @@ import "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.s
  * @dev Aqueduct - a zero-intermediate liquidity market maker (ZILMM)
  */
 library AqueductLibrary {
-    Unit constant INIT_UNITS = Unit.wrap(1e9);
-
     struct SideState {
         FlowRate totalInFlowRate;
     }

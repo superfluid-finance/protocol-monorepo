@@ -166,11 +166,12 @@ pdpUpdateMember2 u' t' (a, (b, pm))  = (a'', (b'', pm''))
 
 instance ( MonetaryTypes mt, t ~ MT_TIME mt, v ~ MT_VALUE mt
          , MonetaryUnit mt t v wp) => MonetaryUnit mt t v (PDPoolMemberMU mt wp) where
-    settle t' (pix@(PDPoolIndex _ mpi), pm@(PDPoolMember u _ mps)) = (settle t' pix, pm')
-        where sv' = (rtb mpi t' - rtb mps t') `mt_v_mul_u` u
-              pm' = pm { pdpm_settled_value = sv' }
+    settle t' (pix, pm) = (pix', pm')
+        where sv' = rtb (pix, pm) t'
+              pix'@(PDPoolIndex _ mpi') = settle t' pix
+              pm' = pm { pdpm_settled_value = sv', pdpm_synced_wp = mpi' }
 
-    settledAt (PDPoolIndex _ mpi, _) = settledAt mpi
+    settledAt (_, PDPoolMember _ _ mps) = settledAt mps
 
     flowRate (PDPoolIndex _ mpi, PDPoolMember u _ _) = flowRate mpi `mt_v_mul_u` u
 

@@ -19,10 +19,15 @@ import           Money.Theory.TestMonetaryTypes
 mu_settle_idempotency :: ( MonetaryUnit TestMonetaryTypes TestTime TestMValue mu
                       , Eq mu
                       ) => mu -> TestTime -> Bool
-mu_settle_idempotency a t = settle t a == settle t (settle t a) && settledAt (settle t a) == t
+mu_settle_idempotency a t =
+    settledAt (settle t a) == t &&
+    settle t a == settle t (settle t a)
 mu_constant_rtb :: ( MonetaryUnit TestMonetaryTypes TestTime TestMValue mu
                    ) => mu -> TestTime -> TestTime -> TestTime -> Bool
-mu_constant_rtb a t1 t2 t3 = rtb (settle t2 a) t3 == rtb (settle t1 a) t3
+mu_constant_rtb a t1 t2 t3 =
+    rtb (settle t1 a) t3 == rtb a t3 &&
+    rtb (settle t2 a) t3 == rtb a t3 &&
+    rtb (settle t2 (settle t1 a)) t3 == rtb a t3
 
 bp_settle_idempotency (a :: TesBasicParticle) = mu_settle_idempotency a
 bp_constant_rtb (a :: TesBasicParticle) = mu_constant_rtb a
@@ -31,9 +36,10 @@ uidx_constant_rtb (a :: TestUniversalIndex) = mu_constant_rtb a
 pdidx_settle_idempotency (a :: TestPDPoolIndex) = mu_settle_idempotency a
 pdidx_constant_rtb (a :: TestPDPoolIndex) = mu_constant_rtb a
 pdmb_settle_idempotency (a :: TestPDPoolMemberMU) = mu_settle_idempotency a
-pdmb_constant_rtb (a :: TestPDPoolIndex) u1 t1 = mu_constant_rtb b
-    -- adding a new member to an existing index
-    where (_, b) = pdpUpdateMember2 u1 t1 (a, (a, def))
+pdmb_constant_rtb (a :: TestPDPoolIndex) t1 u1 t2 u2 = mu_constant_rtb b''
+    -- adding two members to an existing index
+    where (a', b') = pdpUpdateMember2 u1 t1 (a, (a, def))
+          (_, b'') = pdpUpdateMember2 u2 t2 (a', b')
 
 mu_laws = describe "monetary unit laws" $ do
     it "bp settle idempotency" $ property bp_settle_idempotency

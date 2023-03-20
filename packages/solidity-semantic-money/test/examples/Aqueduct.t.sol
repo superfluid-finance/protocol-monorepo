@@ -166,13 +166,13 @@ contract AqueductTest is Test {
         uint16 dt; // time delta
     }
     function test_random_seqs(Step[] memory steps) external {
-        uint noStepsLimit = vm.envUint("NO_FOUNDRY_TEST_STEPS_LIMIT");
+        uint noStepsLimit = vm.envOr("NO_FOUNDRY_TEST_STEPS_LIMIT", uint256(0));
         if (noStepsLimit == 0) {
             vm.assume(steps.length < 20);
         }
         for (uint i = 0; i < steps.length; ++i) {
             Step memory s = steps[i];
-            uint u = 1 + s.u % 5;
+            uint u = 1 + s.u % 5; // a pool of 5 testers
             FlowRate r = FlowRate.wrap(int128(uint128(s.r)));
             _flowWithCallback(s.t % 2 == 0 ? token1 : token2, TEST_ACCOUNTS[u], r);
             vm.warp(block.timestamp + s.dt);

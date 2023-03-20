@@ -26,6 +26,15 @@ contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     function mockOwnerOf(uint256 _tokenId) public view returns (address) {
         return _ownerOf(_tokenId);
     }
+
+    /// @dev This exposes the _tokenApprovals storage without the requireMinted call
+    function mockGetApproved(uint256 _tokenId)
+        public
+        view
+        returns (address)
+    {
+        return _tokenApprovals[_tokenId];
+    }
 }
 
 contract ConstantInflowNFTMock is ConstantInflowNFT {
@@ -51,5 +60,14 @@ contract ConstantInflowNFTMock is ConstantInflowNFT {
         uint256 _tokenId
     ) public view returns (FlowNFTData memory flowData) {
         return flowDataByTokenId(_tokenId);
+    }
+
+    /// @dev This exposes the _tokenApprovals storage without the requireMinted call
+    function mockGetApproved(uint256 _tokenId)
+        public
+        view
+        returns (address)
+    {
+        return _tokenApprovals[_tokenId];
     }
 }

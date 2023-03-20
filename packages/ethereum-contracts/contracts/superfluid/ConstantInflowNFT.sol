@@ -90,8 +90,11 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
         emit Transfer(address(0), to, newTokenId);
     }
 
-    function _burn(uint256 tokenId) internal {
+    function _burn(uint256 tokenId) internal override {
         FlowNFTData memory flowData = flowDataByTokenId(tokenId);
+
+        super._burn(tokenId);
+
         emit Transfer(flowData.flowReceiver, address(0), tokenId);
     }
 

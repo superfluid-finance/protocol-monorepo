@@ -171,11 +171,10 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @notice Destroys token with `tokenId` and clears approvals from previous owner.
     /// @dev `tokenId` must exist AND we emit a {Transfer} event
     /// @param tokenId the id of the token we are destroying
-    function _burn(uint256 tokenId) internal {
+    function _burn(uint256 tokenId) internal override {
         address owner = FlowNFTBase.ownerOf(tokenId);
 
-        // clear approvals from the previous owner
-        delete _tokenApprovals[tokenId];
+        super._burn(tokenId);
 
         // remove previous tokenId flow data mapping
         delete _flowDataByTokenId[tokenId];

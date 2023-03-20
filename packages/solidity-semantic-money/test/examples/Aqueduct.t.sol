@@ -160,13 +160,16 @@ contract AqueductTest is Test {
     }
 
     struct Step {
-        uint8  u;
-        uint8  t;
-        uint64 r;
-        uint16 dt;
+        uint8  u; // which user
+        uint8  t; // token 1 or token 2
+        uint64 r; // flow rate
+        uint16 dt; // time delta
     }
     function test_random_seqs(Step[] memory steps) external {
-        vm.assume(steps.length < 10);
+        uint noStepsLimit = vm.envUint("NO_FOUNDRY_TEST_STEPS_LIMIT");
+        if (noStepsLimit == 0) {
+            vm.assume(steps.length < 20);
+        }
         for (uint i = 0; i < steps.length; ++i) {
             Step memory s = steps[i];
             uint u = 1 + s.u % 5;
@@ -179,6 +182,6 @@ contract AqueductTest is Test {
             emit log_named_int("flow rate", FlowRate.unwrap(r));
         }
         assertEq(token1.realtimeBalanceOf(address(x)), Value.wrap(0), "e1.1");
-        assertEq(token2.realtimeBalanceOf(address(x)), Value.wrap(0), "e1.1");
+        assertEq(token2.realtimeBalanceOf(address(x)), Value.wrap(0), "e1.2");
     }
 }

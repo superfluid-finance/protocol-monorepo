@@ -270,14 +270,18 @@ namespace SuperToken {
         if (pool_length == 0) {
             return (balance=sum);
         }
-        let (pool) = SuperToken_pools.read(pool_length);
         let (connected) = SuperToken_connection_map.read(account, pool_length);
-        let (timestamp) = get_block_timestamp();
-        let (balance) = ISuperTokenPool.getClaimable(
-            contract_address=pool, time=timestamp, memberAddress=account
-        );
-        let _sum = sum + balance;
-        return pool_balance_of(account, pool_length - 1, _sum);
+        if (connected == TRUE){
+            let (pool) = SuperToken_pools.read(pool_length);
+            let (timestamp) = get_block_timestamp();
+            let (balance) = ISuperTokenPool.getClaimable(
+                contract_address=pool, time=timestamp, memberAddress=account
+            );
+            let _sum = sum + balance;
+            return pool_balance_of(account, pool_length - 1, _sum);
+        } else {
+            return pool_balance_of(account, pool_length - 1, sum);
+        }
     }
 
     func pool_flow_rate_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -286,14 +290,17 @@ namespace SuperToken {
         if (pool_length == 0) {
             return (flow_rate=sum);
         }
-        let (pool) = SuperToken_pools.read(pool_length);
         let (connected) = SuperToken_connection_map.read(account, pool_length);
-        let (timestamp) = get_block_timestamp();
-        let (flow_rate) = ISuperTokenPool.getMemberFlowRate(
-            contract_address=pool, memberAddress=account
-        );
-        let _sum = sum + flow_rate;
-        return pool_flow_rate_of(account, pool_length - 1, _sum);
+        if (connected == TRUE){
+            let (pool) = SuperToken_pools.read(pool_length);
+            let (flow_rate) = ISuperTokenPool.getMemberFlowRate(
+                contract_address=pool, memberAddress=account
+            );
+            let _sum = sum + flow_rate;
+            return pool_flow_rate_of(account, pool_length - 1, _sum);
+        } else {
+            return pool_flow_rate_of(account, pool_length - 1, sum);
+        }
     }
 
     func shift{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

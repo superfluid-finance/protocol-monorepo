@@ -31,7 +31,7 @@ namespace ISuperTokenPool {
     func getClaimable(time: felt, memberAddress: felt) -> (value: felt) {
     }
 
-    func claimAll(time: felt, memberAddress: felt) -> (success: felt) {
+    func claimAll() -> (success: felt) {
     }
 
     func updateMember(memberAddress: felt, unit: felt) -> (success: felt) {

@@ -6,21 +6,40 @@
     flake-utils.url = "github:numtide/flake-utils";
     foundry.url = "github:shazow/foundry.nix/monthly";
     foundry.inputs.nixpkgs.follows = "nixpkgs";
+    foundry.inputs.flake-utils.follows = "flake-utils";
+    # solc static binary compilers
+    solc.url = "github:hellwolf/solc.nix";
+    solc.inputs.nixpkgs.follows = "nixpkgs";
+    solc.inputs.flake-utils.follows = "flake-utils";
+    # certora tools
+    certora.url = "github:hellwolf/certora.nix";
+    certora.inputs.nixpkgs.follows = "nixpkgs";
+    certora.inputs.flake-utils.follows = "flake-utils";
+    # TODO use ghc 9.6 when available
     ghc-wasm.url = "gitlab:ghc/ghc-wasm-meta?host=gitlab.haskell.org";
     ghc-wasm.inputs.nixpkgs.follows = "nixpkgs";
+    ghc-wasm.inputs.flake-utils.follows = "flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, foundry, ghc-wasm } :
+  outputs = { self, nixpkgs, flake-utils, solc, foundry, certora, ghc-wasm } :
   flake-utils.lib.eachDefaultSystem (system:
   let
-    pkgs = import nixpkgs { inherit system; };
+    pkgs = import nixpkgs {
+      inherit system;
+      overlays = [
+        solc.overlay
+        foundry.overlay
+      ];
+    };
+
     # minimem development shell
     minimumEVMDevInputs = with pkgs; [
       # for nodejs ecosystem
       yarn
-      nodejs-16_x
+      nodejs-18_x
       # for solidity development
-      foundry.defaultPackage.${system}
+      solc_0_8_19
+      foundry-bin
     ];
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
@@ -43,6 +62,8 @@
       ghcPackages.haskell-language-server
       hlint
       stylish-haskell
+      # certora
+      python3
       # sage math
       sage
       # testing tooling
@@ -57,7 +78,7 @@
         collection-bibtexextra collection-mathscience
         collection-fontsrecommended collection-fontsextra;
       })
-    ];
+    ] ++ certora.devInputs.${system};
     ci-spec = ghcVer : with pkgs; mkShell {
       buildInputs = [
         gnumake

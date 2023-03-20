@@ -14,9 +14,9 @@ import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
  */
 contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     PDPoolIndex internal _index;
-    address public admin;
     mapping (address member => PDPoolMember member_data) internal _members;
     mapping (address member => Value claimed_value) internal _claimedValues;
+    address public admin;
     Unit public pendingUnits;
 
     constructor (address admin_)
@@ -25,23 +25,48 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         admin = admin_;
     }
 
-    function getPendingDistribution() external view
-        returns (Value)
-    {
+    function getIndex() override external view returns (PDPoolIndex memory) {
+        return _index;
+    }
+
+    function getTotalUnits() override external view returns (Unit) {
+        return _index.total_units;
+    }
+
+    function getUnits(address memberAddr) override external view returns (Unit) {
+        return _members[memberAddr].owned_units;
+    }
+
+    function getDistributionFlowRate() override external view returns (FlowRate) {
+        return _index.wrapped_particle.flow_rate.mul(_index.total_units);
+    }
+
+    function getPendingDistributionFlowRate() override external view returns (FlowRate) {
+        return _index.wrapped_particle.flow_rate.mul(pendingUnits);
+    }
+
+    function getMemberFlowRate(address memberAddr) override external view returns (FlowRate) {
+        Unit u = _members[memberAddr].owned_units;
+        if (Unit.unwrap(u) == 0) return FlowRate.wrap(0);
+        else return _index.wrapped_particle.flow_rate.mul(u);
+    }
+
+    function getPendingDistribution() external view returns (Value) {
         Time t = Time.wrap(uint32(block.timestamp));
         return _index.wrapped_particle.rtb(t).mul(pendingUnits);
     }
 
-    function getIndex() override external view
-        returns (PDPoolIndex memory)
-    {
-        return _index;
+    function getClaimable(Time t, address memberAddr) override public view returns (Value) {
+        return PDPoolMemberMU(_index, _members[memberAddr]).rtb(t) - _claimedValues[memberAddr];
     }
 
-    function updateMember(address memberAddr, Unit unit) external
-        returns (bool)
-    {
-        require(Unit.unwrap(unit) >= 0, "Negative unit number not supported");
+    function getClaimable(address memberAddr) override external view returns (Value) {
+        Time t = Time.wrap(uint32(block.timestamp));
+        return getClaimable(t, memberAddr);
+    }
+
+    function updateMember(address memberAddr, Unit unit) override external returns (bool) {
+        require(Unit.unwrap(unit) >= 0, "Negative unit amount not supported");
         require(admin == msg.sender, "Not pool admin");
         Time t = Time.wrap(uint32(block.timestamp));
 
@@ -57,27 +82,26 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         assert(ISuperToken(owner()).absorbParticleFromPool(admin, p));
 
         // additional side effects of triggering claimAll
-        claimAll(t, memberAddr);
+        _claimAll(t, memberAddr);
 
         return true;
     }
 
-    function getClaimable(Time t, address memberAddr) override public view
-        returns (Value)
-    {
-        return PDPoolMemberMU(_index, _members[memberAddr]).rtb(t) - _claimedValues[memberAddr];
+    function claimAll(address memberAddr) override public returns (bool) {
+        Time t = Time.wrap(uint32(block.timestamp));
+        return _claimAll(t, memberAddr);
     }
 
-    function claimAll(Time t, address memberAddr) override public returns (bool) {
+    function claimAll() override external returns (bool) {
+        Time t = Time.wrap(uint32(block.timestamp));
+        return _claimAll(t, msg.sender);
+    }
+
+    function _claimAll(Time t, address memberAddr) internal returns (bool) {
         Value c = getClaimable(t, memberAddr);
         assert(ISuperToken(owner()).shift(address(this), memberAddr, c));
-        _claimedValues[memberAddr] = c;
+        _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;
         return true;
-    }
-
-    function claimAll() external returns (bool) {
-        Time t = Time.wrap(uint32(block.timestamp));
-        return claimAll(t, msg.sender);
     }
 
     function operatorSetIndex(PDPoolIndex calldata index) override external
@@ -96,7 +120,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
             pendingUnits = pendingUnits + _members[memberAddr].owned_units;
         }
         // additional side effects of triggering claimAll
-        claimAll(t, memberAddr);
+        _claimAll(t, memberAddr);
         return true;
     }
 }
@@ -113,10 +137,10 @@ contract ToySuperToken is ISuperToken {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     mapping (address owner => BasicParticle) public uIndexes;
-    mapping (bytes32 flowAddress => FlowRate) public flowRates;
+    mapping (bytes32 flowHash => FlowRate) public flowRates;
     mapping (ISuperTokenPool pool => bool exist) public pools;
-    mapping (address owner => EnumerableSet.AddressSet) internal _connectionsMap;
-    mapping (address => mapping(address => uint256)) private _allowances;
+    mapping (address owner => EnumerableSet.AddressSet poolConnections) private _poolConnectionsMap;
+    mapping (address owner => mapping(address => uint256) allowances) private _allowances;
 
     ////////////////////////////////////////////////////////////////////////////////
     // ERC20 operations
@@ -129,24 +153,8 @@ contract ToySuperToken is ISuperToken {
 
     function balanceOf(address account) override external view returns (uint256) {
         Time t = Time.wrap(uint32(block.timestamp));
-
-        // initial value from universal index
-        Value x = uIndexes[account].rtb(t);
-
-        // pending distributions from pool
-        if (pools[ISuperTokenPool(account)]) {
-            // NB! Please ask solidity designer why "+=" is not derived for overloaded operator custom types
-            x = x + ISuperTokenPool(account).getPendingDistribution();
-        }
-
-        // pool-connected balance
-        EnumerableSet.AddressSet storage connections = _connectionsMap[account];
-        for (uint i = 0; i < connections.length(); ++i) {
-            address p = connections.at(i);
-            x = x + ToySuperTokenPool(p).getClaimable(t, account);
-        }
-
-        return Value.unwrap(x) > 0 ? uint256(Value.unwrap(x)) : 0;
+        (Value avb, ) = realtimeBalanceVectorAt(account, t);
+        return Value.unwrap(avb) > 0 ? uint256(Value.unwrap(avb)) : 0;
     }
 
     function transfer(address to, uint256 amount) override external returns (bool) {
@@ -172,14 +180,85 @@ contract ToySuperToken is ISuperToken {
     ////////////////////////////////////////////////////////////////////////////////
     // Generalized Payment Primitives
     //
-    // FIXME require(from != to)
+    // FIXME require(from != to), as honeyport for F/V
     ////////////////////////////////////////////////////////////////////////////////
+
+    function realtimeBalanceOf(address account) override external view
+        returns (Value rtb)
+    {
+        Time t = Time.wrap(uint32(block.timestamp));
+        return realtimeBalanceAt(account, t);
+    }
+
+    function realtimeBalanceAt(address account, Time t) override public view
+        returns (Value rtb)
+    {
+        (Value available, Value deposit) = realtimeBalanceVectorAt(account, t);
+        rtb = available - deposit;
+    }
+
+    function realtimeBalanceVectorAt(address account, Time t) override public view
+        returns (Value available, Value deposit)
+    {
+        // initial value from universal index
+        available = uIndexes[account].rtb(t);
+
+        // pending distributions from pool
+        if (pools[ISuperTokenPool(account)]) {
+            // NB! Please ask solidity designer why "+=" is not derived for overloaded operator custom types
+            available = available + ISuperTokenPool(account).getPendingDistribution();
+        }
+
+        // pool-connected balance
+        {
+            EnumerableSet.AddressSet storage connections = _poolConnectionsMap[account];
+            for (uint i = 0; i < connections.length(); ++i) {
+                ISuperTokenPool p = ISuperTokenPool(connections.at(i));
+                available = available + p.getClaimable(t, account);
+            }
+        }
+
+        // TODO: buffer based solvency
+        deposit = Value.wrap(0);
+    }
+
+    function getNetFlowRate(address account) override external view returns (FlowRate nr)
+    {
+        nr = uIndexes[account].flow_rate;
+
+        // pool distribution flow rate
+        if (pools[ISuperTokenPool(account)]) {
+            nr = nr + ISuperTokenPool(account).getPendingDistributionFlowRate();
+        }
+
+        // pool-connected flows
+        {
+            EnumerableSet.AddressSet storage connections = _poolConnectionsMap[account];
+            for (uint i = 0; i < connections.length(); ++i) {
+                ISuperTokenPool p = ISuperTokenPool(connections.at(i));
+                nr = nr + p.getMemberFlowRate(account);
+            }
+        }
+    }
+
+    function getFlowHash(address from, address to, FlowId flowId) public pure returns (bytes32) {
+        return keccak256(abi.encode(from, to, "flow", flowId));
+    }
+
+    function getDistributionFlowHash(address from, ISuperTokenPool to, FlowId flowId) public pure returns (bytes32) {
+        return keccak256(abi.encode(from, address(to), "distributionflow", flowId));
+    }
+
+    function getFlowRate(address from, address to, FlowId flowId) override external view returns (FlowRate)
+    {
+        return flowRates[getFlowHash(from, to, flowId)];
+    }
 
     function _shift(address from, address to, Value amount, bool checkAllowance) internal
         returns (bool success)
     {
         require(!pools[ISuperTokenPool(to)], "Is a pool!");
-        require(Value.unwrap(amount) >= 0, "don't even try");
+        require(Value.unwrap(amount) >= 0, "Negative amount not allowed!");
         address spender = msg.sender;
         if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount))); // FIXME SafeCast
         // Make updates
@@ -194,33 +273,38 @@ contract ToySuperToken is ISuperToken {
         return _shift(from, to, amount, from != to);
     }
 
-    function flow(address from, address to, FlowId flowId, FlowRate flowRate) override external
+    function flow(address from, address to, FlowId flowId, FlowRate flowRate) public
         returns (bool success)
     {
         /// check inputs
-        // require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed.");
+        require(from != to, "No blue elephant!");
         require(!pools[ISuperTokenPool(to)], "Is a pool!");
+        require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed!");
+
+        // FIXME: plug permission controls
+        require(msg.sender == from, "No flow permission!");
 
         /// prepare local variables (let bindings)
         Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 flowAddress = keccak256(abi.encode(from, to, flowId));
-
-        // FIXME: plug permission controls
-        require(msg.sender == from, "No flow permission");
+        bytes32 flowHash = getFlowHash(from, to, flowId);
 
         // Make updates
-        FlowRate flowRateDelta = flowRate - flowRates[flowAddress];
+        FlowRate flowRateDelta = flowRate - flowRates[flowHash];
         (uIndexes[from], uIndexes[to]) = uIndexes[from].shiftFlow2a(uIndexes[to], flowRateDelta, t);
-        flowRates[flowAddress] = flowRate;
+        flowRates[flowHash] = flowRate;
         return true;
     }
 
     function distribute(address from, ISuperTokenPool to, Value reqAmount) override external
         returns (bool success, Value actualAmount)
     {
+        /// check inputs
         require(pools[to], "Not a pool!");
+        require(Value.unwrap(reqAmount) >= 0, "Negative amount not allowed!!");
+
         // FIXME: plug permission controls
         require(msg.sender == from);
+
         // Make updates
         PDPoolIndex memory pdidx = to.getIndex();
         (uIndexes[from], pdidx, actualAmount) = uIndexes[from].shift2(pdidx, reqAmount);
@@ -232,23 +316,22 @@ contract ToySuperToken is ISuperToken {
         returns (bool success, FlowRate actualFlowRate)
     {
         /// check inputs
-        // require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed.");
-        require(pools[to], "Not a pool!");
+        require(pools[to], "Not a pool!!");
+        require(FlowRate.unwrap(reqFlowRate) >= 0, "Negative amount not allowed!!");
 
         /// prepare local variables
         Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 flowAddress = keccak256(abi.encode(from, to, flowId)); // TODO maybe flowRef
+        bytes32 flowHash = getDistributionFlowHash(from, to, flowId);
 
         // FIXME: plug permission controls
-        require(msg.sender == from, "No flow permission");
+        require(msg.sender == from, "No flow permission!!");
 
         // Make updates
-        FlowRate oldFlowRate = uIndexes[from].flow_rate.inv();
         PDPoolIndex memory pdidx = to.getIndex();
         (uIndexes[from], pdidx, actualFlowRate) = uIndexes[from].shiftFlow2b
-            (pdidx, reqFlowRate - flowRates[flowAddress], t);
+            (pdidx, reqFlowRate - flowRates[flowHash], t);
         to.operatorSetIndex(pdidx);
-        flowRates[flowAddress] = flowRates[flowAddress] + actualFlowRate - oldFlowRate;
+        flowRates[flowHash] = actualFlowRate;
         success = true;
     }
 
@@ -276,16 +359,19 @@ contract ToySuperToken is ISuperToken {
     }
 
     function connectPool(ISuperTokenPool to, bool doConnect) override public
-        returns (bool success) {
+        returns (bool success)
+    {
+        require(pools[to], "Not a pool!!");
+
         Time t = Time.wrap(uint32(block.timestamp));
         if (doConnect) {
-            if (!_connectionsMap[msg.sender].contains(address(to))) {
-                _connectionsMap[msg.sender].add(address(to));
+            if (!_poolConnectionsMap[msg.sender].contains(address(to))) {
+                _poolConnectionsMap[msg.sender].add(address(to));
                 assert(to.operatorConnectMember(t, msg.sender, true));
             }
         } else {
-            if (_connectionsMap[msg.sender].contains(address(to))) {
-                _connectionsMap[msg.sender].remove(address(to));
+            if (_poolConnectionsMap[msg.sender].contains(address(to))) {
+                _poolConnectionsMap[msg.sender].remove(address(to));
                 assert(to.operatorConnectMember(t, msg.sender, false));
             }
         }
@@ -293,7 +379,11 @@ contract ToySuperToken is ISuperToken {
     }
 
     function isMemberConnected(ISuperTokenPool to, address memberAddr) override external view returns (bool) {
-        return _connectionsMap[memberAddr].contains(address(to));
+        return _poolConnectionsMap[memberAddr].contains(address(to));
+    }
+
+    function getNumConnections(address account) override external view returns (uint) {
+        return _poolConnectionsMap[account].length();
     }
 
     /// This is used by the pool to adjust flow rate

@@ -1,8 +1,10 @@
 [profile.default]
 root = '../..'
-src = 'packages/solidity-semantic-money'
+src = 'packages/solidity-semantic-money/src'
+test = 'packages/solidity-semantic-money/test'
 out = 'packages/solidity-semantic-money/out'
 solc_version = '0.8.19'
+via_ir = true # though this is so slow!
 remappings = [
     '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',
     '@openzeppelin/=node_modules/@openzeppelin/',

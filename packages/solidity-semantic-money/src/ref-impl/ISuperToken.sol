@@ -16,8 +16,15 @@ interface ISuperToken is IERC20 {
     // Generalized Payment Primitives
     ////////////////////////////////////////////////////////////////////////////////
 
-    //function realtimeBalanceOf(address account) returns (int256 avb, int256 deposit, int256 ...) {
-    //}
+    function realtimeBalanceOf(address account) external view returns (Value rtb);
+
+    function realtimeBalanceAt(address account, Time t) external view returns (Value rtb);
+
+    function realtimeBalanceVectorAt(address account, Time t) external view returns (Value available, Value deposit);
+
+    function getNetFlowRate(address account) external view returns (FlowRate);
+
+    function getFlowRate(address from, address to, FlowId flowId) external view returns (FlowRate);
 
     // REVIEW NOTES:
     // - flowAddress naming concern: uniquely obtained AppId? flowId (renaming input to flowSubId)?
@@ -54,6 +61,9 @@ interface ISuperToken is IERC20 {
 
     function isMemberConnected(ISuperTokenPool pool, address memberAddr) external view
         returns (bool);
+
+    function getNumConnections(address account) external view
+        returns (uint);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Pool Owner Operations

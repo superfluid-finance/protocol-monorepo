@@ -449,6 +449,18 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         uint256 amount
     ) external;
 
+    function operationIncreaseAllowance(
+        address account,
+        address spender,
+        uint256 addedValue
+    ) external;
+
+    function operationDecreaseAllowance(
+        address account,
+        address spender,
+        uint256 subtractedValue
+    ) external;
+
     /**
     * @dev Perform ERC20 transferFrom by host contract.
     * @param account The account to spend sender's funds.

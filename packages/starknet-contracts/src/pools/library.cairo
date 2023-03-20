@@ -131,7 +131,7 @@ namespace Pool {
         member: felt, unit: felt
     ) -> (success: felt) {
         alloc_locals;
-        with_attr error_message("Pool: unit is negative") {
+        with_attr error_message("Pool: negative unit not allowed") {
             assert_nn(unit);
         }
         let (caller) = get_caller_address();
@@ -212,7 +212,18 @@ namespace Pool {
         time: felt, memberAddress: felt
     ) -> (success: felt) {
         alloc_locals;
-        let (value) = getClaimable(time, memberAddress);
+        let (index) = Pool_index.read();
+        let (member_data) = Pool_members.read(memberAddress);
+        let pdMemberMU = PDPoolMemberMU(index, member_data);
+        let (settled_pdMemberMU) = SemanticMoney.settle_for_pool_member_mu(pdMemberMU, time);
+        let (rtb_of_pdMemberMU) = SemanticMoney.realtime_balance_of_pool_member_mu(
+            settled_pdMemberMU, time
+        );
+        let (claimed_value) = Pool_claimed_values.read(memberAddress);
+        let value = rtb_of_pdMemberMU - claimed_value;
+        with_attr error_message("Pool: value is negative") {
+            assert_nn(value);
+        }
         let (owner) = Ownable.owner();
         let (contract_address) = get_contract_address();
         let (sent) = ISuperToken.shift(
@@ -224,6 +235,8 @@ namespace Pool {
         assert sent = TRUE;
         let (initialClaimedValue) = Pool_claimed_values.read(memberAddress);
         Pool_claimed_values.write(memberAddress, value + initialClaimedValue);
+        Pool_members.write(memberAddress, settled_pdMemberMU.pdPoolMember);
+        Pool_index.write(settled_pdMemberMU.pdPoolIndex);
         return (success=TRUE);
     }
 

@@ -185,7 +185,7 @@ namespace SemanticMoney {
                 poolMemberMU.pdPoolMember.owned_unit,
                 new_settled_value,
                 newSettledPoolIndex.wrapped_particle,
-            )
+            ),
         );
         return (poolMemberMU=newPoolMemberMU);
     }

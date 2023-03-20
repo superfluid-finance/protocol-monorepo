@@ -257,9 +257,12 @@ func test_settle_for_pool_member_mu{
     let (settled_poolMemberMU) = SemanticMoney.settle_for_pool_member_mu(poolMemberMU, t2);
 
     assert settled_poolMemberMU.pdPoolIndex.wrapped_particle.settled_at = t2;
-    assert settled_poolMemberMU.pdPoolIndex.wrapped_particle.settled_value = ((t2 - t1) * fr) + sv_wrapped;
-    assert settled_poolMemberMU.pdPoolMember.synced_particle.settled_at = settled_poolMemberMU.pdPoolIndex.wrapped_particle.settled_at;
-    assert settled_poolMemberMU.pdPoolMember.synced_particle.settled_value = settled_poolMemberMU.pdPoolIndex.wrapped_particle.settled_value;
+    assert settled_poolMemberMU.pdPoolIndex.wrapped_particle.settled_value = ((t2 - t1) * fr) +
+        sv_wrapped;
+    assert settled_poolMemberMU.pdPoolMember.synced_particle.settled_at = settled_poolMemberMU.pdPoolIndex.wrapped_particle.settled_at
+        ;
+    assert settled_poolMemberMU.pdPoolMember.synced_particle.settled_value = settled_poolMemberMU.pdPoolIndex.wrapped_particle.settled_value
+        ;
     let (balanceOfPDMemberMU) = SemanticMoney.realtime_balance_of_pool_member_mu(poolMemberMU, t2);
     assert settled_poolMemberMU.pdPoolMember.settled_value = balanceOfPDMemberMU;
     return ();

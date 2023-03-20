@@ -97,14 +97,8 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     }
 
     function _claimAll(Time t, address memberAddr) internal returns (bool) {
-        PDPoolMemberMU memory mu = PDPoolMemberMU(_index, _members[memberAddr]).settle(t);
-        Value c = mu.rtb(t) - _claimedValues[memberAddr];
-
-        require(Value.unwrap(c) >= 0, "DEBUG _claimAll: c >= 0");
+        Value c = getClaimable(t, memberAddr);
         assert(ISuperToken(owner()).shift(address(this), memberAddr, c));
-
-        _index = mu.i;
-        _members[memberAddr] = mu.m;
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;
         return true;
     }
@@ -247,12 +241,12 @@ contract ToySuperToken is ISuperToken {
         }
     }
 
-    function getFlowHash(address from, address to, FlowId flowId) public pure returns (bytes32) {
-        return keccak256(abi.encode(from, to, "flow", flowId));
+    function getFlowHash(address from, address to, FlowId flowId) public view returns (bytes32) {
+        return keccak256(abi.encode(block.chainid, "flow", from, to, flowId));
     }
 
-    function getDistributionFlowHash(address from, ISuperTokenPool to, FlowId flowId) public pure returns (bytes32) {
-        return keccak256(abi.encode(from, address(to), "distributionflow", flowId));
+    function getDistributionFlowHash(address from, ISuperTokenPool to, FlowId flowId) public view returns (bytes32) {
+        return keccak256(abi.encode(block.chainid, "distributionflow", from, address(to), flowId));
     }
 
     function getFlowRate(address from, address to, FlowId flowId) override external view returns (FlowRate)

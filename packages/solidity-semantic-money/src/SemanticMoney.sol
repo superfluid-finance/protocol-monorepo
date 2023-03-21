@@ -367,3 +367,6 @@ using SemanticMoney for BasicParticle global;
 using SemanticMoney for PDPoolIndex global;
 using SemanticMoney for PDPoolMember global;
 using SemanticMoney for PDPoolMemberMU global;
+
+/// Return a monoidal empty value for BasicParticle
+function bp_mempty() pure returns (BasicParticle memory) {}

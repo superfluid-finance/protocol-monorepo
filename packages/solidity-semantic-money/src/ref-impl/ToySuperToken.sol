@@ -79,7 +79,11 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         BasicParticle memory p;
         (_index, _members[memberAddr], p) = PDPoolMemberMU(_index, _members[memberAddr])
             .pool_member_update(p, unit, t);
-        assert(ISuperToken(owner()).absorbParticleFromPool(admin, p));
+        {
+            address[] memory addrs = new address[](1);addrs[0] = admin;
+            BasicParticle[] memory ps = new BasicParticle[](1);ps[0] = p;
+            assert(ISuperToken(owner()).absorbParticlesFromPool(addrs, ps));
+        }
 
         // additional side effects of triggering claimAll
         _claimAll(t, memberAddr);
@@ -98,7 +102,13 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
 
     function _claimAll(Time t, address memberAddr) internal returns (bool) {
         Value c = getClaimable(t, memberAddr);
-        assert(ISuperToken(owner()).shift(address(this), memberAddr, c));
+        // do a shift2 balance from the pool to the member
+        {
+            address[] memory addrs = new address[](2);addrs[0] = address(this);addrs[1] = memberAddr;
+            BasicParticle[] memory ps = new BasicParticle[](2);
+            (ps[0], ps[1]) = bp_mempty().shift2(bp_mempty(), c);
+            assert(ISuperToken(owner()).absorbParticlesFromPool(addrs, ps));
+        }
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;
         return true;
     }
@@ -387,9 +397,14 @@ contract ToySuperToken is ISuperToken {
     }
 
     /// This is used by the pool to adjust flow rate
-    function absorbParticleFromPool(address account, BasicParticle calldata p) override external returns (bool) {
+    function absorbParticlesFromPool(address[] calldata accounts, BasicParticle[] calldata ps) override external
+        returns (bool)
+    {
         require(pools[ToySuperTokenPool(msg.sender)], "Only absorbing from pools");
-        uIndexes[account] = uIndexes[account].mappend(p);
+        assert(accounts.length == ps.length);
+        for (uint i = 0; i < accounts.length; i++) {
+            uIndexes[accounts[i]] = uIndexes[accounts[i]].mappend(ps[i]);
+        }
         return true;
     }
 

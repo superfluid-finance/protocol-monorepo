@@ -6,8 +6,6 @@ import {assert, ethers, expect} from "hardhat";
 import {
     ConstantFlowAgreementV1,
     Superfluid,
-    SuperTokenLibraryCFAMock,
-    SuperTokenLibraryCFASuperAppMock,
     SuperTokenMock,
     SuperAppBaseFlowTester,
     InstantDistributionAgreementV1
@@ -246,11 +244,11 @@ describe("SuperAppBaseFlow testing", function () {
                 "0x47DE"
             );   
 
-            // afterContextHolder shouldn't have reached modification
+            // afterSenderHolder shouldn't have reached modification
             await expect(
-                await superAppBaseFlowTester.connect(alice).afterCtxHolder()
+                await superAppBaseFlowTester.connect(alice).afterSenderHolder()
             ).to.eq(
-                "0x"
+                ethers.constants.AddressZero
             );
 
         });
@@ -260,34 +258,37 @@ describe("SuperAppBaseFlow testing", function () {
         it("3.1 - create flow", async () => {
 
             // create flow
-            await host
-            .connect(alice)
-            .callAgreement(
-                cfa.address,
-                t.agreementHelper.cfaInterface.encodeFunctionData(
-                    "createFlow",
-                    [
-                        superToken.address,
-                        superAppBaseFlowTester.address,
-                        flowRate,
-                        "0x"
-                    ]
-                ),
-                "0x"
-            );
-
-            // context shouldn't reach modification from beforeFlowCreated 
             await expect(
-                await superAppBaseFlowTester.afterCtxHolder()
-            ).to.eq(
-                "0x"
+                host
+                .connect(alice)
+                .callAgreement(
+                    cfa.address,
+                    t.agreementHelper.cfaInterface.encodeFunctionData(
+                        "createFlow",
+                        [
+                            superToken.address,
+                            superAppBaseFlowTester.address,
+                            flowRate,
+                            "0x"
+                        ]
+                    ),
+                    "0x"
+                )
+            ).to.be.revertedWithCustomError(
+                superAppBaseFlowTester,
+                "UnacceptedSuperToken"
             );
 
         });
     });
 
     describe("4 - Unaccepted Agreement", async function () {
-        it("4.1 - create flow", async () => {
+        it("4.1 - after created", async () => {
+
+            await superAppBaseFlowTester.connect(alice).setAcceptedSuperToken(
+                superToken.address,
+                true
+            );
 
             // issue shares (a "agreement creation")
             await host
@@ -307,21 +308,20 @@ describe("SuperAppBaseFlow testing", function () {
                 "0x"
             );
 
-            // context shouldn't reach modification from beforeFlowCreated 
+            // afterSenderHolder shouldn't reach modification from afterFlowCreated 
             await expect(
-                await superAppBaseFlowTester.afterCtxHolder()
+                await superAppBaseFlowTester.afterSenderHolder()
             ).to.eq(
-                "0x"
-            );
-            // creation callback should have been triggered
-            await expect(
-                await superAppBaseFlowTester.callbackHolder()
-            ).to.eq(
-                "create"
+                ethers.constants.AddressZero
             );
 
         });
-        it("4.2 - update flow", async () => {
+        it("4.2 - after updated", async () => {
+
+            await superAppBaseFlowTester.connect(alice).setAcceptedSuperToken(
+                superToken.address,
+                true
+            );
 
             // issue shares (a "agreement creation")
             await host
@@ -341,9 +341,9 @@ describe("SuperAppBaseFlow testing", function () {
                 "0x"
             );
 
-            await superAppBaseFlowTester.connect(alice).clearHolders();
+            // await superAppBaseFlowTester.connect(alice).clearHolders();
 
-            // issue shares (a "agreement update"... hopefully)
+            // issue shares (an "agreement update"... hopefully)
             await host
             .connect(alice)
             .callAgreement(
@@ -361,21 +361,20 @@ describe("SuperAppBaseFlow testing", function () {
                 "0x"
             );
 
-            // context shouldn't reach modification from beforeFlowCreated 
+            // afterSenderHolder shouldn't reach modification from afterFlowUpdated 
             await expect(
-                await superAppBaseFlowTester.afterCtxHolder()
+                await superAppBaseFlowTester.afterSenderHolder()
             ).to.eq(
-                "0x"
-            );
-            // update callback should have been triggered
-            await expect(
-                await superAppBaseFlowTester.callbackHolder()
-            ).to.eq(
-                "update"
+                ethers.constants.AddressZero
             );
 
         });
-        it("4.3 - delete flow", async () => {
+        it("4.3 - after deleted", async () => {
+
+            await superAppBaseFlowTester.connect(alice).setAcceptedSuperToken(
+                superToken.address,
+                true
+            );
 
             // update subscription
             await host
@@ -395,8 +394,6 @@ describe("SuperAppBaseFlow testing", function () {
                 "0x"
             );
 
-            await superAppBaseFlowTester.connect(alice).clearHolders();
-
             // delete subscription
             await host
             .connect(alice)
@@ -415,17 +412,11 @@ describe("SuperAppBaseFlow testing", function () {
                 "0x"
             );
 
-            // context shouldn't reach modification from beforeFlowDeleted 
+            // afterSenderHolder shouldn't reach modification from afterFlowDeleted 
             await expect(
-                await superAppBaseFlowTester.afterCtxHolder()
+                await superAppBaseFlowTester.afterSenderHolder()
             ).to.eq(
-                "0x"
-            );
-            // creation callback should have been triggered
-            await expect(
-                await superAppBaseFlowTester.callbackHolder()
-            ).to.eq(
-                "delete"
+                ethers.constants.AddressZero
             );
 
         });
@@ -468,12 +459,6 @@ describe("SuperAppBaseFlow testing", function () {
             ).to.eq(
                 "0"
             );
-            // old update timestamp to be zero
-            await expect(
-                await superAppBaseFlowTester.lastUpdateHolder()
-            ).to.eq(
-                "0"
-            );
 
         });
         it("5.2 - update flow", async () => {
@@ -499,8 +484,6 @@ describe("SuperAppBaseFlow testing", function () {
                 ),
                 "0x"
             );
-
-            const lastUpdate = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
 
             // update flow
             await host
@@ -531,12 +514,6 @@ describe("SuperAppBaseFlow testing", function () {
             ).to.eq(
                 flowRate
             );
-            // old update timestamp to be last update
-            await expect(
-                await superAppBaseFlowTester.lastUpdateHolder()
-            ).to.eq(
-                lastUpdate
-            );
 
         });
         it("5.3 - delete flow", async () => {
@@ -562,8 +539,6 @@ describe("SuperAppBaseFlow testing", function () {
                 ),
                 "0x"
             );
-
-            const lastUpdate = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
 
             // delete flow
             await host
@@ -601,12 +576,6 @@ describe("SuperAppBaseFlow testing", function () {
             ).to.eq(
                 flowRate
             );
-            // old update timestamp to be last update
-            await expect(
-                await superAppBaseFlowTester.lastUpdateHolder()
-            ).to.eq(
-                lastUpdate
-            );
 
         });
         it("5.4 - rogue delete", async () => {
@@ -625,8 +594,6 @@ describe("SuperAppBaseFlow testing", function () {
                 alice.address,
                 flowRate
             );
-
-            const lastUpdate = (await ethers.provider.getBlock(await ethers.provider.getBlockNumber())).timestamp;
 
             // delete flow
             await host
@@ -668,12 +635,6 @@ describe("SuperAppBaseFlow testing", function () {
                 await superAppBaseFlowTester.oldFlowRateHolder()
             ).to.eq(
                 flowRate
-            );
-            // old update timestamp to be last update
-            await expect(
-                await superAppBaseFlowTester.lastUpdateHolder()
-            ).to.eq(
-                lastUpdate
             );
             
         })

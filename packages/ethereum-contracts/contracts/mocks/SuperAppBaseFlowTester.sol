@@ -1,31 +1,27 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity >= 0.8.0;
 
-import { SuperAppBaseFlowMock, ISuperfluid, ISuperToken, SuperAppDefinitions } from "./SuperAppBaseFlowMock.sol";
+// import { SuperAppBaseFlowMock, ISuperfluid, ISuperToken, SuperAppDefinitions } from "./SuperAppBaseFlowMock.sol";
+import { SuperAppBaseFlow, ISuperToken, ISuperfluid } from "../apps/SuperAppBaseFlow.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
-contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
+contract SuperAppBaseFlowTester is SuperAppBaseFlow {
     using SuperTokenV1Library for ISuperToken;
 
-    uint256 public lastUpdateHolder;
 
     int96 public oldFlowRateHolder;
-
     address public afterSenderHolder;
-    address public beforeSenderHolder;
-
     address public afterReceiverHolder;
-    address public beforeReceiverHolder;
 
     constructor(
         ISuperfluid host
-    ) SuperAppBaseFlowMock (
+    ) SuperAppBaseFlow (
         host,
         true,
         true,
         true
     ) {
-        lastUpdateHolder = 0; // appeasing linter
+        oldFlowRateHolder = 0; // appeasing linter
     }
 
     // SETTING ACCEPTED SUPER TOKENS
@@ -45,15 +41,12 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
     function afterFlowCreated(
         ISuperToken /*superToken*/,
         address sender,
-        bytes calldata callBackData,
         bytes calldata ctx
     ) internal override returns(bytes memory) {
-        (uint256 lastUpdate, int96 flowRate) = abi.decode(callBackData, (uint256,int96));
         
-        lastUpdateHolder = lastUpdate;
-        oldFlowRateHolder = flowRate;
         afterSenderHolder = sender;
         return ctx;
+        
     }
 
     // UPDATE
@@ -61,15 +54,14 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
     function afterFlowUpdated(
         ISuperToken /*superToken*/,
         address sender,
-        bytes calldata callBackData,
+        int96 oldFlowRate,
         bytes calldata ctx
     ) internal override returns(bytes memory) {
-        (uint256 lastUpdate, int96 flowRate) = abi.decode(callBackData, (uint256,int96));
         
-        lastUpdateHolder = lastUpdate;
-        oldFlowRateHolder = flowRate;
+        oldFlowRateHolder = oldFlowRate;
         afterSenderHolder = sender;
         return ctx;
+
     }
 
     // DELETE
@@ -78,16 +70,15 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlowMock {
         ISuperToken /*superToken*/,
         address sender,
         address receiver,
-        bytes calldata callBackData,
+        int96 oldFlowRate,
         bytes calldata ctx
     ) internal override returns (bytes memory newCtx) {
-        (uint256 lastUpdate, int96 flowRate) = abi.decode(callBackData, (uint256,int96));
 
-        lastUpdateHolder = lastUpdate;
-        oldFlowRateHolder = flowRate;
+        oldFlowRateHolder = oldFlowRate;
         afterSenderHolder = sender;
         afterReceiverHolder = receiver;
         return ctx;
+
     }
 
 }

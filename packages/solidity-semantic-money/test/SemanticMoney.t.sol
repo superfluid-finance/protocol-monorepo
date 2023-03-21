@@ -5,58 +5,74 @@ import "forge-std/Test.sol";
 import "../src/SemanticMoney.sol";
 
 contract SemanticMoneyTest is Test {
-    function setUp() public {
-    }
 
     // make the overflow errors go away for test cases
-    function _assumeSafeParticle(BasicParticle memory p) internal pure {
+    function limitToSafeParticle(BasicParticle memory p) internal pure {
         p.settled_at = Time.wrap(Time.unwrap(p.settled_at) >> 2);
         p.settled_value = Value.wrap(Value.unwrap(p.settled_value) >> 2);
         p.flow_rate = FlowRate.wrap(FlowRate.unwrap(p.flow_rate) >> 2);
     }
 
-    function _eqBasicParticle(BasicParticle memory a, BasicParticle memory b) internal pure returns (bool) {
-        return
-            Time.unwrap(a.settled_at) == Time.unwrap(b.settled_at) &&
-            Value.unwrap(a.settled_value) == Value.unwrap(b.settled_value) &&
-            FlowRate.unwrap(a.flow_rate) == FlowRate.unwrap(b.flow_rate);
+    function assertEq(FlowRate a, FlowRate b, string memory e) internal {
+        assertEq(FlowRate.unwrap(a), FlowRate.unwrap(b), e);
+    }
+    function assertEq(Unit a, Unit b, string memory e) internal {
+        assertEq(Unit.unwrap(a), Unit.unwrap(b), e);
+    }
+    function assertEq(Value a, Value b, string memory e) internal {
+        assertEq(Value.unwrap(a), Value.unwrap(b), e);
+    }
+    function assertEq(Time a, Time b, string memory e) internal {
+        assertEq(Time.unwrap(a), Time.unwrap(b), e);
+    }
+    function assertEq(BasicParticle memory a, BasicParticle memory b, string memory e) internal {
+        assertEq(a.settled_at, b.settled_at, e);
+        assertEq(a.settled_value, b.settled_value, e);
+        assertEq(a.flow_rate, b.flow_rate, e);
     }
 
-    // Basic Particle/Universal Index Properties
-    //
+    ////////////////////////////////////////////////////////////////////////////////
+    // Particle/Universal Index Properties: Monoidal Laws & Monetary Unit Laws
+    ////////////////////////////////////////////////////////////////////////////////
+
     function test_u_monoid_identity(BasicParticle memory p1) external {
         BasicParticle memory id;
-        assertTrue(_eqBasicParticle(p1, p1.mappend(id)));
-        assertTrue(_eqBasicParticle(p1, id.mappend(p1)));
+        assertEq(p1, p1.mappend(id), "e1");
+        assertEq(p1, id.mappend(p1), "e2");
     }
 
     function test_u_monoid_assoc(BasicParticle memory p1, BasicParticle memory p2, BasicParticle memory p3) external {
-        _assumeSafeParticle(p1);
-        _assumeSafeParticle(p2);
-        _assumeSafeParticle(p3);
-        assertTrue(_eqBasicParticle(p1.mappend(p2).mappend(p3), p1.mappend(p2.mappend(p3))));
+        limitToSafeParticle(p1);
+        limitToSafeParticle(p2);
+        limitToSafeParticle(p3);
+        assertEq(p1.mappend(p2).mappend(p3), p1.mappend(p2.mappend(p3)), "e2");
     }
 
     function test_u_settle_idempotency(BasicParticle memory p, uint16 m) external {
-        _assumeSafeParticle(p);
+        limitToSafeParticle(p);
 
         Time t1 = p.settled_at + Time.wrap(m);
         BasicParticle memory p1 = p.settle(t1);
         BasicParticle memory p2 = p1.settle(t1);
-        assertEq(Time.unwrap(p1.settled_at), Time.unwrap(t1));
-        assertTrue(_eqBasicParticle(p1, p2));
+        assertEq(p1.settled_at, t1, "e1");
+        assertEq(p1, p2, "e2");
     }
 
     function test_u_constant_rtb(BasicParticle memory p, uint16 m1, uint16 m2, uint16 m3) external {
-        _assumeSafeParticle(p);
+        limitToSafeParticle(p);
 
         Time t1 = p.settled_at + Time.wrap(m1);
         Time t2 = t1 + Time.wrap(m2);
         Time t3 = t2 + Time.wrap(m3);
-        assertEq(Value.unwrap(p.settle(t1).rtb(t3)), Value.unwrap(p.settle(t2).rtb(t3)));
+        assertEq(p.settle(t1).rtb(t3), p.rtb(t3), "e1");
+        assertEq(p.settle(t2).rtb(t3), p.rtb(t3), "e2");
+        assertEq(p.settle(t1).settle(t2).rtb(t3), p.rtb(t3), "e3");
     }
 
-    // Universal Index to Universal Index 2-primitives properties
+    ////////////////////////////////////////////////////////////////////////////////
+    // Universal Index to Universal Index 2-primitives Properties
+    ////////////////////////////////////////////////////////////////////////////////
+
     function uu_shift2(BasicParticle memory a, BasicParticle memory b, Time /* t */, int64 v)
         internal pure returns (BasicParticle memory, BasicParticle memory){
         return a.shift2(b, Value.wrap(v));

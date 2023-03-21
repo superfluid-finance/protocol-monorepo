@@ -123,7 +123,7 @@ contract ToySuperTokenTest is Test {
         assertEq(c2 - c1, a1 - a2 + b1 - b2, "e3.3");
     }
 
-    function test_1to2_distribute(uint32 u1, uint32 u2, uint64 x) external {
+    function test_1to2_instdistribute(uint32 u1, uint32 u2, uint64 x) external {
         Unit uu1 = Unit.wrap(int128(uint128((u1))));
         Unit uu2 = Unit.wrap(int128(uint128((u2))));
         Value xx = Value.wrap(int(uint(x)));
@@ -158,6 +158,10 @@ contract ToySuperTokenTest is Test {
 
         assertEq(Value.unwrap(pl.getClaimable(t, bob)), 0, "e1.1");
         assertEq(Value.unwrap(pl.getClaimable(t, carol)), 0, "e1.2");
+
+        emit log_named_uint("a2", a2);
+        emit log_named_uint("b2", b2);
+        emit log_named_uint("c2", c2);
         assertEq(a1 - a2, xxx, "e2");
         assertEq(b2 - b1 + c2 - c1, a1 - a2, "e3");
     }

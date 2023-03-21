@@ -1,10 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
+// solhint-disable not-rely-on-time
+
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import "./ISuperToken.sol";
-import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+import { FlowId, ISuperToken, ISuperTokenPool } from "./ISuperToken.sol";
+import {
+    Time, Value, FlowRate, Unit,
+    BasicParticle, bp_mempty,
+    PDPoolIndex, PDPoolMember, PDPoolMemberMU
+} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 
 /**
  * @dev A toy implementation for proportional distribution pool.
@@ -66,8 +72,8 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     }
 
     function updateMember(address memberAddr, Unit unit) override external returns (bool) {
-        require(Unit.unwrap(unit) >= 0, "Negative unit amount not supported");
-        require(admin == msg.sender, "Not pool admin");
+        require(Unit.unwrap(unit) >= 0, "No negative unit amount!");
+        require(admin == msg.sender, "Not pool admin!");
         Time t = Time.wrap(uint32(block.timestamp));
 
         // update pool's pending units
@@ -268,7 +274,7 @@ contract ToySuperToken is ISuperToken {
         returns (bool success)
     {
         require(!pools[ISuperTokenPool(to)], "Is a pool!");
-        require(Value.unwrap(amount) >= 0, "Negative amount not allowed!");
+        require(Value.unwrap(amount) >= 0, "Negative amount!");
         address spender = msg.sender;
         if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount))); // FIXME SafeCast
         // Make updates
@@ -289,7 +295,7 @@ contract ToySuperToken is ISuperToken {
         /// check inputs
         require(from != to, "No blue elephant!");
         require(!pools[ISuperTokenPool(to)], "Is a pool!");
-        require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate not allowed!");
+        require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate!");
 
         // FIXME: plug permission controls
         require(msg.sender == from, "No flow permission!");
@@ -313,7 +319,7 @@ contract ToySuperToken is ISuperToken {
         require(Value.unwrap(reqAmount) >= 0, "Negative amount not allowed!!");
 
         // FIXME: plug permission controls
-        require(msg.sender == from);
+        require(msg.sender == from, "No distribute flow permission!");
 
         // Make updates
         PDPoolIndex memory pdidx = to.getIndex();
@@ -400,7 +406,7 @@ contract ToySuperToken is ISuperToken {
     function absorbParticlesFromPool(address[] calldata accounts, BasicParticle[] calldata ps) override external
         returns (bool)
     {
-        require(pools[ToySuperTokenPool(msg.sender)], "Only absorbing from pools");
+        require(pools[ToySuperTokenPool(msg.sender)], "Only absorbing from pools!");
         assert(accounts.length == ps.length);
         for (uint i = 0; i < accounts.length; i++) {
             uIndexes[accounts[i]] = uIndexes[accounts[i]].mappend(ps[i]);

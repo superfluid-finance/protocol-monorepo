@@ -1,0 +1,11 @@
+{
+    "extends": ["solhint:recommended"],
+    "rules": {
+        "func-visibility" : ["error", { "ignoreConstructors": true }],
+        "max-line-length": ["error", 120],
+        "func-param-name-mixedcase": "error",
+        "modifier-name-mixedcase": "error",
+        "reason-string": ["error", { "maxLength": 64 } ],
+        "compiler-version": ["off"]
+    }
+}

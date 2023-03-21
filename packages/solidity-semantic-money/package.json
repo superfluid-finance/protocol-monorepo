@@ -1,0 +1,39 @@
+{
+  "name": "@superfluid-finance/solidity-semantic-money",
+  "version": "0.1.0",
+  "description": "Semantic money implementation in solidity.",
+  "main": "index.js",
+  "directories": {
+    "src": "src",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "make test-all",
+    "lint": "run-s lint:*",
+    "lint:sol": "solhint -w 0 `find src -name *.sol` && echo '✔  Your .sol files look good.'",
+    "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
+    "pre-commit:lint": "yarn lint"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "4.8.0"
+  },
+  "devDependencies": {
+    "solhint": "3.4.1"
+  },
+  "repository": {
+      "type": "git",
+      "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
+      "directory": "packages/solidity-semantic-money"
+  },
+  "keywords": [
+    "money",
+    "finance",
+    "semantic money",
+    "solidity"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
+  },
+  "homepage": "https://github.com/superfluid-finance/protocol-monorepo#readme"
+}

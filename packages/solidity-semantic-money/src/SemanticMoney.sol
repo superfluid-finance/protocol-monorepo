@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
+// solhint-disable func-name-mixedcase
+// Notes: This library use mixed case functions extensively for monetary types and global functions.
+// solhint-disable var-name-mixedcase
+// Notes: This library use mixed case variables extensively for struct fields.
+
 ////////////////////////////////////////////////////////////////////////////////
 // Monetary Types and Their Helpers
 ////////////////////////////////////////////////////////////////////////////////
@@ -369,4 +374,6 @@ using SemanticMoney for PDPoolMember global;
 using SemanticMoney for PDPoolMemberMU global;
 
 /// Return a monoidal empty value for BasicParticle
-function bp_mempty() pure returns (BasicParticle memory) {}
+function bp_mempty() pure returns (BasicParticle memory)
+// solhint-disable-next-line no-empty-blocks
+{}

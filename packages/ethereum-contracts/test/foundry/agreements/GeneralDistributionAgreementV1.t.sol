@@ -4,13 +4,13 @@ pragma solidity 0.8.19;
 import "../FoundrySuperfluidTester.sol";
 import { console } from "forge-std/console.sol";
 import {
-    FlowId,
     GeneralDistributionAgreementV1
 } from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
 import {
     ISuperfluidToken
 } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import {
+    ISuperTokenPool,
     SuperTokenPool
 } from "../../../contracts/superfluid/SuperTokenPool.sol";
 
@@ -23,6 +23,39 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         super.setUp();
         vm.prank(alice);
         pool = sf.gda.createPool(alice, superToken);
+    }
+
+    function helper_Connect_Pool(ISuperTokenPool _pool) internal {
+        sf.host.callAgreement(
+            sf.gda,
+            abi.encodeCall(
+                sf.gda.connectPool,
+                (_pool, true, "")
+            ),
+            new bytes(0)
+        );
+    }
+
+    function helper_Disonnect_Pool(ISuperTokenPool _pool) internal {
+        sf.host.callAgreement(
+            sf.gda,
+            abi.encodeCall(
+                sf.gda.disconnectPool,
+                (_pool, "")
+            ),
+            new bytes(0)
+        );
+    }
+
+    function helper_Disconnect_Pool(ISuperTokenPool _pool) internal {
+        sf.host.callAgreement(
+            sf.gda,
+            abi.encodeCall(
+                sf.gda.disconnectPool,
+                (_pool, new bytes(0))
+            ),
+            new bytes(0)
+        );
     }
 
     function _helper_Distribute(
@@ -43,14 +76,13 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function _helper_Distribute_Flow(
         ISuperfluidToken _superToken,
         SuperTokenPool _pool,
-        FlowId flowId,
         int96 requestedFlowRate
     ) internal {
         sf.host.callAgreement(
             sf.gda,
             abi.encodeCall(
                 sf.gda.distributeFlow,
-                (_superToken, _pool, flowId, requestedFlowRate, new bytes(0))
+                (_superToken, _pool, requestedFlowRate, new bytes(0))
             ),
             new bytes(0)
         );
@@ -63,14 +95,14 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function test_Connect_Pool() public {
         vm.startPrank(bob);
-        sf.gda.connectPool(pool);
+        helper_Connect_Pool(pool);
         vm.stopPrank();
     }
 
     function test_Disconnect_Pool() public {
         vm.startPrank(bob);
-        sf.gda.connectPool(pool);
-        sf.gda.disconnectPool(pool);
+        helper_Connect_Pool(pool);
+        helper_Disonnect_Pool(pool);
         vm.stopPrank();
     }
 
@@ -91,7 +123,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function test_Distribute_To_Connected_Member() public {
         vm.startPrank(bob);
-        sf.gda.connectPool(pool);
+        helper_Connect_Pool(pool);
         vm.stopPrank();
 
         vm.startPrank(alice);
@@ -108,26 +140,39 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function test_Distribute_Flow_To_Connected_Member() public {
         vm.startPrank(bob);
-        sf.gda.connectPool(pool);
+        helper_Connect_Pool(pool);
+        vm.stopPrank();
+
+        vm.startPrank(carol);
+        helper_Connect_Pool(pool);
         vm.stopPrank();
 
         vm.startPrank(alice);
         pool.updateMember(bob, 1);
-        _helper_Distribute_Flow(superToken, pool, FlowId.wrap(0), 100);
+        pool.updateMember(carol, 1);
+        _helper_Distribute_Flow(superToken, pool, 100);
         vm.stopPrank();
         vm.warp(block.timestamp + 1);
-        (int256 rtb, , ) = sf.gda.realtimeBalanceOf(
+        (int256 bobRTB, , ) = sf.gda.realtimeBalanceOf(
             superToken,
             bob,
             block.timestamp
         );
-        assert(rtb == 100);
+        assert(bobRTB == 50);
+
+        (int256 carolRTB, , ) = sf.gda.realtimeBalanceOf(
+            superToken,
+            carol,
+            block.timestamp
+        );
+        assert(carolRTB == 50);
     }
 
     function test_Distribute_Flow_To_Unconnected_Member() public {
         vm.startPrank(alice);
         pool.updateMember(bob, 1);
-        _helper_Distribute_Flow(superToken, pool, FlowId.wrap(0), 100);
+        pool.updateMember(carol, 1);
+        _helper_Distribute_Flow(superToken, pool, 100);
         vm.stopPrank();
         vm.warp(block.timestamp + 1);
         (int256 rtb, , ) = sf.gda.realtimeBalanceOf(

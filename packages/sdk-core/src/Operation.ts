@@ -46,29 +46,30 @@ export default class Operation {
         signer: ethers.Signer,
         gasLimitMultiplier = 1.2
     ): Promise<ethers.providers.TransactionResponse> => {
-        const populatedTransaction = await this.getPopulatedTransactionRequest(
+        const signedTxn = await this.getSignedTransaction(
             signer,
             gasLimitMultiplier
         );
-        return await signer.sendTransaction(populatedTransaction);
+
+        signer._checkProvider("sendTransaction");
+        // @note we are explicitly stating the provider exists because of the above check
+        return await signer.provider!.sendTransaction(signedTxn);
     };
 
     /**
      * Get the populated transaction by awaiting `populateTransactionPromise`.
      * @description Note that we need to populate the txn with the signer.
      * NOTE: we use the forwarder populated promise if this exists
-     * @returns {Promise<TransactionRequest>}
+
      */
     getPopulatedTransactionRequest = async (
         signer: ethers.Signer,
         gasLimitMultiplier = 1.2
-    ): Promise<TransactionRequest> => {
+    ) => {
         const txnToPopulate = this.forwarderPopulatedPromise
             ? await this.forwarderPopulatedPromise
             : await this.populateTransactionPromise;
-        const signerPopulatedTransaction = await signer.populateTransaction(
-            txnToPopulate
-        );
+        const gasLimit = await signer.estimateGas(txnToPopulate);
 
         // if gasLimit exists, an Overrides object has been passed or the user has explicitly set
         // a gasLimit for their transaction prior to execution and so we keep it as is else we apply
@@ -76,15 +77,13 @@ export default class Operation {
         return txnToPopulate.gasLimit
             ? txnToPopulate
             : {
-                  ...signerPopulatedTransaction,
+                  ...txnToPopulate,
                   gasLimit:
                       // @note if gasLimit is null, this function will throw due to
                       // conversion to BigNumber, so we must round this number
                       // we can be more conservative by using Math.ceil instead of Math.round
                       Math.ceil(
-                          Number(
-                              signerPopulatedTransaction.gasLimit?.toString()
-                          ) * gasLimitMultiplier
+                          Number(gasLimit.toString()) * gasLimitMultiplier
                       ),
               };
     };
@@ -93,9 +92,13 @@ export default class Operation {
      * @param signer The signer of the transaction
      * @returns {Promise<string>} Fully serialized, signed transaction
      */
-    getSignedTransaction = async (signer: ethers.Signer): Promise<string> => {
+    getSignedTransaction = async (
+        signer: ethers.Signer,
+        gasLimitMultiplier = 1.2
+    ): Promise<string> => {
         const populatedTransaction = await this.getPopulatedTransactionRequest(
-            signer
+            signer,
+            gasLimitMultiplier
         );
         const signedTxn = await signer.signTransaction(populatedTransaction);
         return signedTxn;

@@ -3,7 +3,6 @@ import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISu
 import { Resolver } from "../generated/ResolverV1/Resolver";
 import {
     IndexSubscription,
-    StreamRevision,
     Token,
     TokenStatistic,
 } from "../generated/schema";

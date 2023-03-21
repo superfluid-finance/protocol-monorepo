@@ -167,6 +167,7 @@ export const mapGetAllEventsQueryEvents = (
                     sender: x.sender,
                     flowOperator: x.flowOperator,
                     deposit: x.deposit,
+                    streamId: x.stream.id,
                 });
             case "FlowOperatorUpdatedEvent":
                 return typeGuard<events.FlowOperatorUpdatedEvent>({
@@ -207,6 +208,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                     token: x.token,
+                    index: x.index.id,
                     indexId: x.indexId,
                     publisher: x.publisher,
                     userData: x.userData,
@@ -223,6 +225,7 @@ export const mapGetAllEventsQueryEvents = (
                     logIndex: Number(x.logIndex),
                     token: x.token,
                     amount: x.amount,
+                    index: x.index.id,
                     indexId: x.indexId,
                     publisher: x.publisher,
                     subscriber: x.subscriber,
@@ -238,6 +241,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                     token: x.token,
+                    index: x.index.id,
                     indexId: x.indexId,
                     publisher: x.publisher,
                     subscriber: x.subscriber,
@@ -253,6 +257,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                     token: x.token,
+                    index: x.index.id,
                     indexId: x.indexId,
                     publisher: x.publisher,
                     subscriber: x.subscriber,
@@ -271,6 +276,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                     token: x.token,
+                    index: x.index.id,
                     indexId: x.indexId,
                     publisher: x.publisher,
                     subscriber: x.subscriber,
@@ -287,6 +293,7 @@ export const mapGetAllEventsQueryEvents = (
                     timestamp: Number(x.timestamp),
                     logIndex: Number(x.logIndex),
                     token: x.token,
+                    index: x.index.id,
                     indexId: x.indexId,
                     newIndexValue: x.newIndexValue,
                     oldIndexValue: x.oldIndexValue,
@@ -608,6 +615,22 @@ export const mapGetAllEventsQueryEvents = (
                     isKeySet: x.isKeySet,
                     forwarder: x.forwarder,
                     enabled: x.enabled,
+                });
+            case "SuperTokenMinimumDepositChangedEvent":
+                return typeGuard<events.SuperTokenMinimumDepositChangedEvent>({
+                    name: "SuperTokenMinimumDepositChanged",
+                    id: x.id,
+                    blockNumber: Number(x.blockNumber),
+                    transactionHash: x.transactionHash,
+                    gasPrice: x.gasPrice,
+                    order: Number(x.order),
+                    timestamp: Number(x.timestamp),
+                    logIndex: Number(x.logIndex),
+                    host: x.host,
+                    governanceAddress: x.governanceAddress,
+                    superToken: x.superToken,
+                    isKeySet: x.isKeySet,
+                    minimumDeposit: x.minimumDeposit,
                 });
             case "NewPICEvent":
                 return typeGuard<events.NewPICEvent>({

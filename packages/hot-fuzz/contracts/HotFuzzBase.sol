@@ -6,8 +6,8 @@ pragma solidity >= 0.8.0;
 import {
     Superfluid,
     ConstantFlowAgreementV1,
+    IConstantFlowAgreementHook,
     InstantDistributionAgreementV1,
-    ERC20PresetMinterPauser,
     SuperToken,
     SuperfluidFrameworkDeployer
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
@@ -16,6 +16,7 @@ import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
 import {
     IERC20,
+    TestToken,
     ISuperToken,
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
@@ -32,7 +33,7 @@ contract HotFuzzBase {
     SuperfluidFrameworkDeployer private immutable _sfDeployer;
     SuperfluidFrameworkDeployer.Framework internal sf;
 
-    ERC20PresetMinterPauser internal immutable token;
+    TestToken  internal immutable token;
     SuperToken internal immutable superToken;
     uint internal immutable nTesters;
 
@@ -45,7 +46,7 @@ contract HotFuzzBase {
         _sfDeployer = new SuperfluidFrameworkDeployer();
         sf = _sfDeployer.getFramework();
 
-        (token, superToken) = _sfDeployer.deployWrapperSuperToken("HOTfuzz Token", "HOTT");
+        (token, superToken) = _sfDeployer.deployWrapperSuperToken("HOTFuzz Token", "HOTT", 18, type(uint256).max);
         nTesters = nTesters_;
         otherAccounts = new address[](0);
     }

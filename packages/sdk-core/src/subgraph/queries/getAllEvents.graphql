@@ -23,6 +23,9 @@ query getAllEvents(
             flowRate
             flowOperator
             deposit
+            stream {
+                id
+            }
         }
         ... on FlowOperatorUpdatedEvent {
             ...eventFields
@@ -279,6 +282,15 @@ query getAllEvents(
             enabled
             superToken
         }
+        ... on SuperTokenMinimumDepositChangedEvent {
+            ...eventFields
+            isKeySet
+            host
+            governanceAddress
+            minimumDeposit
+            superToken
+        }
+        
         ... on AgreementLiquidatedByEvent {
             ...eventFields
             token

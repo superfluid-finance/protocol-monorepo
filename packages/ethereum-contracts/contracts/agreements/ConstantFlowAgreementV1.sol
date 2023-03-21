@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.16;
+pragma solidity 0.8.19;
 
 import { IConstantFlowAgreementHook } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import {
@@ -813,6 +813,90 @@ contract ConstantFlowAgreementV1 is
         emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, flowRateAllowance);
     }
 
+    /// @dev IConstantFlowAgreementV1.increaseFlowRateAllowance implementation
+    function increaseFlowRateAllowance(
+        ISuperfluidToken token,
+        address flowOperator,
+        int96 addedFlowRateAllowance, // flowRateBudget
+        bytes calldata ctx
+    ) public override returns (bytes memory newCtx) {
+        newCtx = ctx;
+
+        // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
+        // authorizeTokenAccess:
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+
+        if (currentContext.msgSender == flowOperator) revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+        if (addedFlowRateAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
+        
+        (
+            bytes32 flowOperatorId,
+            uint8 oldPermissions,
+            int96 oldFlowRateAllowance
+        ) = getFlowOperatorData(token, currentContext.msgSender, flowOperator);
+
+        // @note this will revert if it overflows
+        int96 newFlowRateAllowance = oldFlowRateAllowance + addedFlowRateAllowance;
+        _updateFlowRateAllowance(
+            token,
+            flowOperatorId,
+            oldPermissions,
+            newFlowRateAllowance
+        );
+
+        emit FlowOperatorUpdated(
+            token,
+            currentContext.msgSender,
+            flowOperator,
+            oldPermissions,
+            newFlowRateAllowance
+        );
+    }
+
+    /// @dev IConstantFlowAgreementV1.decreaseFlowRateAllowance implementation
+    function decreaseFlowRateAllowance(
+        ISuperfluidToken token,
+        address flowOperator,
+        int96 subtractedFlowRateAllowance, // flowRateBudget
+        bytes calldata ctx
+    ) public override returns (bytes memory newCtx) {
+        newCtx = ctx;
+
+        // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
+        // authorizeTokenAccess:
+        ISuperfluid.Context memory currentContext = AgreementLibrary
+            .authorizeTokenAccess(token, ctx);
+
+        if (currentContext.msgSender == flowOperator) revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+        if (subtractedFlowRateAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
+
+        (
+            bytes32 flowOperatorId,
+            uint8 oldPermissions,
+            int96 oldFlowRateAllowance
+        ) = getFlowOperatorData(token, currentContext.msgSender, flowOperator);
+        
+        int96 newFlowRateAllowance = oldFlowRateAllowance - subtractedFlowRateAllowance;
+
+        // @note this defends against negative allowance
+        if (newFlowRateAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
+
+        _updateFlowRateAllowance(
+            token,
+            flowOperatorId,
+            oldPermissions,
+            newFlowRateAllowance
+        );
+
+        emit FlowOperatorUpdated(
+            token,
+            currentContext.msgSender,
+            flowOperator,
+            oldPermissions,
+            newFlowRateAllowance
+        );
+    }
+
     /// @dev IConstantFlowAgreementV1.authorizeFlowOperatorWithFullControl implementation
     function authorizeFlowOperatorWithFullControl(
         ISuperfluidToken token,
@@ -1545,6 +1629,7 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns(bytes32[] memory data)
     {
+        // last line of defence against negative flowRateAllowance
         assert(flowOperatorData.flowRateAllowance >= 0); // flowRateAllowance must not be less than 0
         data = new bytes32[](1);
         data[0] = bytes32(

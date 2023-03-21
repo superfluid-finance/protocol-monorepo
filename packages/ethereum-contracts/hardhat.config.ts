@@ -48,6 +48,8 @@ const chainIds = {
 
     "bsc-mainnet": 56,
 
+    "celo-mainnet": 42220,
+
     localhost: 31337,
     hardhat: 31337,
 };
@@ -66,7 +68,7 @@ function createNetworkConfig(
 
 const config: HardhatUserConfig = {
     solidity: {
-        version: "0.8.16",
+        version: "0.8.19",
         settings: {
             optimizer: {
                 enabled: true,
@@ -118,6 +120,10 @@ const config: HardhatUserConfig = {
         "avalanche-fuji": {
             ...createNetworkConfig("avalanche-fuji"),
             url: process.env.AVALANCHE_PROVIDER_URL || "",
+        },
+        "celo-mainnet": {
+            ...createNetworkConfig("celo-mainnet"),
+            url: process.env.CELO_MAINNET_PROVIDER_URL || "",
         },
         coverage: {
             url: "http://127.0.0.1:8555",

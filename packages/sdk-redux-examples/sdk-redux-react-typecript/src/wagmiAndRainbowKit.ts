@@ -2,14 +2,18 @@ import {
   getDefaultWallets
 } from '@rainbow-me/rainbowkit';
 import {
-  chain,
   configureChains,
   createClient
 } from 'wagmi';
+import {
+  polygon,
+  polygonMumbai,
+  goerli
+} from 'wagmi/chains'
 import { publicProvider } from 'wagmi/providers/public';
 
 export const { chains, provider } = configureChains(
-  [chain.polygon, chain.polygonMumbai, chain.goerli],
+  [polygon, polygonMumbai, goerli],
   [
     publicProvider()
   ]

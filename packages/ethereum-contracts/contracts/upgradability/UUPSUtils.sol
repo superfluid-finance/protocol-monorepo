@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.16;
+pragma solidity 0.8.19;
 
 /**
  * @title UUPS (Universal Upgradeable Proxy Standard) Shared Library

@@ -1,20 +1,23 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.16;
+pragma solidity 0.8.19;
 
 import { SuperTokenMock } from "./SuperTokenMock.sol";
 import {
-    SuperTokenFactoryBase,
-    ISuperfluid
+    ISuperfluid,
+    ISuperToken,
+    SuperToken,
+    SuperTokenFactoryBase
 } from "../superfluid/SuperTokenFactory.sol";
 
 contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
-
     constructor(
-        ISuperfluid host
+        ISuperfluid host,
+        ISuperToken superTokenLogic
     )
-        SuperTokenFactoryBase(host)
-        // solhint-disable-next-line no-empty-blocks
+        SuperTokenFactoryBase(host, superTokenLogic)
+    // solhint-disable-next-line no-empty-blocks
     {
+
     }
 
     // @dev Make sure the storage layout never change over the course of the development
@@ -24,73 +27,72 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
 
         // Initializable bool _initialized and bool _initialized
 
-        assembly { slot:= _superTokenLogic.slot offset := _superTokenLogic.offset }
-        require (slot == 0 && offset == 2, "_superTokenLogic changed location");
+        assembly { slot:= _superTokenLogicDeprecated.slot offset := _superTokenLogicDeprecated.offset }
+        require (slot == 0 && offset == 2, "_superTokenLogicDeprecated changed location");
 
         assembly { slot := _canonicalWrapperSuperTokens.slot offset := _canonicalWrapperSuperTokens.offset }
         require(slot == 1 && offset == 0, "_canonicalWrapperSuperTokens changed location");
     }
 
-    // dummy impl
-    function createSuperTokenLogic(ISuperfluid)
-        external pure override
-        returns (address)
-    {
-        return address(0);
+    function createSuperTokenLogic(
+        ISuperfluid // host
+    ) external override returns (address) {
+        return address(_SUPER_TOKEN_LOGIC);
     }
 }
 
-// spliting this off because the contract is getting bigger
-contract SuperTokenFactoryMockHelper {
-    function create(ISuperfluid host, uint256 waterMark)
-        external
-        returns (address logic)
-    {
-        SuperTokenMock superToken = new SuperTokenMock(host, waterMark);
-        return address(superToken);
-    }
-}
-
-contract SuperTokenFactoryMock is SuperTokenFactoryBase
-{
-    SuperTokenFactoryMockHelper immutable private _helper;
+contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
+    uint256 public newVariable;
 
     constructor(
         ISuperfluid host,
-        SuperTokenFactoryMockHelper helper
+        ISuperToken superTokenLogic
     )
-        SuperTokenFactoryBase(host)
+        SuperTokenFactoryBase(host, superTokenLogic)
+    // solhint-disable-next-line no-empty-blocks
     {
-        _helper = helper;
+
     }
 
-    function createSuperTokenLogic(ISuperfluid host)
-        external override
-        returns (address logic)
-    {
-        return _helper.create(host, 0);
+    function createSuperTokenLogic(
+        ISuperfluid // host
+    ) external override returns (address) {
+        return address(_SUPER_TOKEN_LOGIC);
     }
 }
 
-contract SuperTokenFactoryMock42 is SuperTokenFactoryBase
-{
-
-    SuperTokenFactoryMockHelper immutable private _helper;
-
+contract SuperTokenFactoryMock is SuperTokenFactoryBase {
     constructor(
         ISuperfluid host,
-        SuperTokenFactoryMockHelper helper
+        ISuperToken superTokenLogic
     )
-        SuperTokenFactoryBase(host)
+        SuperTokenFactoryBase(host, superTokenLogic)
+    // solhint-disable-next-line no-empty-blocks
     {
-        _helper = helper;
+
     }
 
-    function createSuperTokenLogic(ISuperfluid host)
-        external override
-        returns (address logic)
+    function createSuperTokenLogic(
+        ISuperfluid // host
+    ) external override returns (address) {
+        return address(_SUPER_TOKEN_LOGIC);
+    }
+}
+
+contract SuperTokenFactoryMock42 is SuperTokenFactoryBase {
+    constructor(
+        ISuperfluid host,
+        ISuperToken superTokenLogic
+    )
+        SuperTokenFactoryBase(host, superTokenLogic)
+    // solhint-disable-next-line no-empty-blocks
     {
-        return _helper.create(host, 42);
+
     }
 
+    function createSuperTokenLogic(
+        ISuperfluid // host
+    ) external override returns (address) {
+        return address(_SUPER_TOKEN_LOGIC);
+    }
 }

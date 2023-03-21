@@ -21,26 +21,26 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           registry-url: https://registry.npmjs.org/
 
       - name: Check package versions
         id: check_versions
         run: |
           # sdk-redux
-          PUBLISHED_SDK_REDUX_VERSION=`npm show @superfluid-finance/sdk-redux@latest version`
-          NEW_SDK_REDUX_VERSION=`jq -r .version packages/sdk-redux/package.json`
+          PUBLISHED_SDK_REDUX_VERSION=$(npm show @superfluid-finance/sdk-redux@latest version)
+          NEW_SDK_REDUX_VERSION=$(jq -r .version packages/sdk-redux/package.json)
           if [ "$PUBLISHED_SDK_REDUX_VERSION" != "$NEW_SDK_REDUX_VERSION" ];then
-            echo "PUBLISHED_SDK_REDUX_VERSION=1" >> $GITHUB_ENV
+            echo "PUBLISHED_SDK_REDUX_VERSION=1" >> "$GITHUB_ENV"
             echo "sdk-redux changed: $PUBLISHED_SDK_REDUX_VERSION -> $NEW_SDK_REDUX_VERSION"
           else
-            echo sdk-redux unchanged: $PUBLISHED_SDK_REDUX_VERSION
+            echo sdk-redux unchanged: "$PUBLISHED_SDK_REDUX_VERSION"
           fi
 
-          echo "::set-output name=NEW_SDK_REDUX_VERSION::$NEW_SDK_REDUX_VERSION"
+          echo "NEW_SDK_REDUX_VERSION=$NEW_SDK_REDUX_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Create sdk-redux stable release draft
         if: env.PUBLISHED_SDK_REDUX_VERSION == 1

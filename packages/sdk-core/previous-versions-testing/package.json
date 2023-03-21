@@ -3,7 +3,7 @@
     "version": "0.0.1",
     "license": "MIT",
     "scripts": {
-        "run-query-tests": "npx hardhat test ./runQueryTests.ts"
+        "run-query-tests": "npx hardhat test ./queryTests.ts"
     },
     "devDependencies": {
         "@superfluid-finance/sdk-core": "0.4.3"

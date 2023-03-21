@@ -9,7 +9,7 @@ on:
       # - "**.md" commented-out because README updates should go to the packages
       - ".github/workflows/ci.canary.yml"
       - "codecov.yml"
-      - ".github/workflows/call.setup-deploy-and-test-local-subgraph.yml"
+      - ".github/workflows/call.test-local-subgraph.yml"
 
 jobs:
   essential-build-and-test:
@@ -19,7 +19,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x]
+        node-version: [14.x, 16.x, 18.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -27,12 +27,15 @@ jobs:
           submodules: recursive
 
       - name: Show contexts
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           echo github.event_name: ${{ github.event_name }}
           echo github.sha: ${{ github.sha }}
           echo github.repository: ${{ github.repository }}
-          echo github.ref: ${{ github.ref }}
-          echo github.head_ref: ${{ github.head_ref }}
+          echo github.ref: "$GITHUB_REF"
+          echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v3
@@ -49,33 +52,26 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn lint
-          yarn --cwd packages/sdk-core generate-graphql-schema:dev
           yarn build
           yarn test
         env:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
           SUBGRAPH_RELEASE_TAG: dev
 
+  test-hot-fuzz:
+    uses: ./.github/workflows/call.test-hot-fuzz.yml
+
   test-subgraph:
-    uses: superfluid-finance/protocol-monorepo/.github/workflows/call.setup-deploy-and-test-local-subgraph.yml@dev
+    uses: ./.github/workflows/call.test-local-subgraph.yml
     name: Build and Test Subgraph (Development Branch)
-    with:
-      subgraph-release: ''
-      run-sdk-core-tests: false
 
-  test-subgraph-on-previous-sdk-core-versions:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Query Schema and Queries Against Local and Deployed Dev Subgraphs with Previous SDK-Core Versions
+  test-sdk-core:
+    uses: ./.github/workflows/call.test-sdk-core.yml
+    name: Build and Test SDK-Core (Development Branch)
     with:
-      subgraph-release: dev
-      subgraph-endpoint: ''
-
-  # test query and subgraph schemas are in sync and query works
-  test-query-schema-against-deployed-dev-subgraphs:
-    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
-    name: "Test Query Schema and Queries Against Local and Deployed Dev Subgraphs"
-    with:
-      subgraph-release: dev
+      subgraph-release: local
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+      run-coverage-tests: false
 
   check:
     name: Checking what packages need to be built
@@ -96,7 +92,7 @@ jobs:
   deploy-subgraph-changes:
     uses: ./.github/workflows/call.deploy-subgraph.yml
     name: "Deploy Subgraph to all dev endpoints"
-    needs: [check, test-subgraph, test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-dev-subgraphs]
+    needs: [check, test-subgraph]
     if: needs.check.outputs.build_subgraph
     with:
       release_branch: dev
@@ -114,7 +110,7 @@ jobs:
     uses: ./.github/workflows/call.test-automation-contracts.yml
     name: Build and Test Automation Contracts (Canary Branch)
 
-  ethereum-contracts-coverage:
+  coverage-ethereum-contracts:
     name: Run coverage test of ethereum-contracts of dev branch
 
     runs-on: ubuntu-latest
@@ -122,17 +118,32 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: "yarn"
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: nightly
 
       - name: Run coverage test
         run: |
           yarn install --frozen-lockfile
           yarn build
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+
+      # - name: Install lcov
+      #   run: sudo apt-get -y install lcov
+
+      # - name: Clean up and merge coverage artifacts
+      #   run: |
+      #     # extract coverage for NFT contracts from forge coverage
+      #     lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol'
+      #     # merge hardhat and forge coverage files
+      #     lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o packages/ethereum-contracts/coverage/lcov.info
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v3
@@ -141,39 +152,17 @@ jobs:
           path: |
             packages/ethereum-contracts/coverage/
 
-  sdk-core-coverage:
-    name: Run coverage test of sdk-core on dev branch
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 16.x
-          cache: "yarn"
-
-      - name: Run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn workspace @superfluid-finance/sdk-core generate-graphql-schema:dev
-          yarn build
-          yarn workspace @superfluid-finance/sdk-core test-coverage
-        env:
-          SUBGRAPH_RELEASE_TAG: dev
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: sdk-core-coverage
-          path: |
-            packages/sdk-core/coverage/
+  coverage-sdk-core:
+    uses: ./.github/workflows/call.test-sdk-core.yml
+    name: Build and Test SDK-Core Coverage (Canary Branch)
+    with: 
+      subgraph-release: local
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+      run-coverage-tests: true
 
   publish-coverage-reports:
     name: Publish coverage reports
-    needs: [ethereum-contracts-coverage, sdk-core-coverage]
+    needs: [coverage-ethereum-contracts, coverage-sdk-core]
 
     runs-on: ubuntu-latest
     env:
@@ -208,20 +197,52 @@ jobs:
           flags: sdk-core
           fail_ci_if_error: true
 
+  all-packages-tested:
+    name: All packages tested (Dev Branch)
+    runs-on: ubuntu-latest
+    needs: [ essential-build-and-test
+           , test-spec-haskell
+           , test-hot-fuzz
+           , test-subgraph
+           , coverage-ethereum-contracts
+           , coverage-sdk-core
+           ]
+    steps:
+      - name: Test Results
+        run: |
+          function check_result() {
+            local package_name="$1"
+            local result="$2"
+            if [ "$result" == "skipped" ];then
+              echo "Skipped $package_name package."
+            else
+              echo "Checking if $package_name package test passes..."
+              test "$result" == "success"
+              echo "Passed."
+            fi
+          }
+          check_result essential-build-and-test ${{ needs.essential-build-and-test.result }}
+          check_result spec-haskell ${{ needs.test-spec-haskell.result }}
+          check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
+          check_result subgraph ${{ needs.test-subgraph.result }}
+          check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
+          check_result sdk-core-coverage ${{ needs.coverage-sdk-core.result }}
+
+
   publish-npm-packages:
     name: Publish canary packages to registries
 
-    needs: [essential-build-and-test, test-subgraph, test-spec-haskell, ethereum-contracts-coverage, sdk-core-coverage]
+    needs: [all-packages-tested]
 
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: "yarn"
           registry-url: https://registry.npmjs.org/
 
@@ -231,7 +252,6 @@ jobs:
       - name: Build
         run: |
           yarn --cwd packages/sdk-core set-default-subgraph-release-tag
-          yarn --cwd packages/sdk-core generate-graphql-schema:dev
           yarn build
         env:
           SUBGRAPH_RELEASE_TAG: dev
@@ -240,7 +260,7 @@ jobs:
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           preId=dev.${shortRev}
-          yarn lerna version prerelease --yes --no-git-tag-version --preid ${preId}
+          yarn lerna version prerelease --yes --no-git-tag-version --preid "${preId}"
 
       - name: Publish to npm
         run: |
@@ -254,10 +274,10 @@ jobs:
   publish-sdk-html-docs:
     name: Publish canary HTML docs
 
-    needs: [publish-npm-packages]
+    needs: [all-packages-tested]
 
     runs-on: ubuntu-latest
-    
+
     steps:
       - uses: actions/checkout@v3
 
@@ -266,10 +286,10 @@ jobs:
           repository: superfluid-finance/build-scripts
           path: build-scripts
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: "yarn"
           registry-url: https://registry.npmjs.org/
 
@@ -279,7 +299,6 @@ jobs:
       - name: Build
         run: |
           yarn --cwd packages/sdk-core set-default-subgraph-release-tag
-          yarn --cwd packages/sdk-core generate-graphql-schema:dev
           yarn build
         env:
           SUBGRAPH_RELEASE_TAG: dev
@@ -312,7 +331,7 @@ jobs:
   upgrade-contracts:
     name: Upgrade ethereum-contracts on goerli testnet (protocol release version "test")
 
-    needs: [publish-npm-packages]
+    needs: [all-packages-tested]
 
     runs-on: ubuntu-latest
 
@@ -324,10 +343,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 18.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.x
+          node-version: 18.x
           cache: "yarn"
 
       - name: Build

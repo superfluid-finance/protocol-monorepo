@@ -3097,11 +3097,6 @@
     find-up "^4.1.0"
     fs-extra "^8.1.0"
 
-"@openzeppelin/contracts@4.7.0":
-  version "4.7.0"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.0.tgz#3092d70ea60e3d1835466266b1d68ad47035a2d5"
-  integrity sha512-52Qb+A1DdOss8QvJrijYYPSf32GUg2pGaG/yCxtaA3cu4jduouTdg4XZSMLW9op54m1jH7J8hoajhHKOPsoJFw==
-
 "@openzeppelin/contracts@4.7.3":
   version "4.7.3"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.3.tgz#939534757a81f8d69cc854c7692805684ff3111e"
@@ -3469,8 +3464,8 @@
     stack-trace "0.0.10"
 
 "@superfluid-finance/metadata@git+https://github.com/superfluid-finance/metadata.git":
-  version "1.1.0"
-  resolved "git+https://github.com/superfluid-finance/metadata.git#69f9e0dc756f5e55164e9a270b8c0c61c0284aae"
+  version "1.1.1"
+  resolved "git+https://github.com/superfluid-finance/metadata.git#694c4d79159e5aa1f61bf258c2afcc93fed00df2"
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"

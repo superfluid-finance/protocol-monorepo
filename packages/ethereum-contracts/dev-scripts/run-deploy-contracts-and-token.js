@@ -1,26 +1,11 @@
-const {Framework} = require("@superfluid-finance/sdk-core");
 const fs = require("fs");
-const {ethers} = require("hardhat");
-const {deployContractsAndToken} = require("./deployContractsAndToken");
+const {deployContractsAndToken} = require("./deploy-contracts-and-token");
 
 deployContractsAndToken()
-    .then(async (deployer) => {
+    .then(async ({deployer, tokenDeploymentOutput}) => {
         const frameworkAddresses = await deployer.getFramework();
 
-        const framework = await Framework.create({
-            chainId: ethers.provider.network.chainId,
-            resolverAddress: frameworkAddresses.resolver,
-            provider: ethers.provider,
-            protocolReleaseVersion: "test",
-        });
-
-        // get native asset super token address
-        const nativeAssetSuperToken = await framework.loadNativeAssetSuperToken(
-            "ETHx"
-        );
-
-        // create json output
-        const JSONOutput = JSON.stringify({
+        const deploymentOutput = {
             network: "mainnet",
             testNetwork: "hardhat",
             hostStartBlock: 0,
@@ -29,8 +14,17 @@ deployContractsAndToken()
             idaAddress: frameworkAddresses.ida,
             superTokenFactoryAddress: frameworkAddresses.superTokenFactory,
             resolverV1Address: frameworkAddresses.resolver,
-            nativeAssetSuperTokenAddress: nativeAssetSuperToken.address,
-        });
+            nativeAssetSuperTokenAddress:
+                tokenDeploymentOutput.nativeAssetSuperTokenData
+                    .nativeAssetSuperTokenAddress,
+        };
+
+        // create json output
+        const JSONOutput = JSON.stringify(deploymentOutput);
+
+        // console addresses
+        delete deploymentOutput.nativeAssetSuperTokenAddress;
+        console.log("Framework Deployment Output:", deploymentOutput);
 
         // write to hardhat.json in packages/subgraph for local testing
         const writeToDir =

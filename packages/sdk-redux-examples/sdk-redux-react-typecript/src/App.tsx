@@ -100,7 +100,7 @@ function App() {
                     <p>Available chains (name, chainId):</p>
                     <ul>
                         {chains.map((chain) => (
-                            <li>
+                            <li key={chain.id}>
                                 {chain.name}: {chain.id}
                             </li>
                         ))}

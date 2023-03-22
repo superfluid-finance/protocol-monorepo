@@ -236,20 +236,25 @@ library SuperfluidGovernanceConfigs {
             forwarder));
     }
 
-    function getAppRegistrationConfigKey(address deployer, string memory registrationKey) internal pure returns (bytes32) {
+    function getAppRegistrationConfigKey(address deployer, string memory registrationKey) internal pure
+        returns (bytes32)
+    {
         return keccak256(abi.encode(
             "org.superfluid-finance.superfluid.appWhiteListing.registrationKey",
             deployer,
             registrationKey));
     }
 
-    function getAppFactoryConfigKey(address factory) internal pure returns (bytes32) {
+    function getAppFactoryConfigKey(address factory) internal pure returns (bytes32)
+    {
         return keccak256(abi.encode(
             "org.superfluid-finance.superfluid.appWhiteListing.factory",
             factory));
     }
 
-    function decodePPPConfig(uint256 pppConfig) internal pure returns (uint256 liquidationPeriod, uint256 patricianPeriod) {
+    function decodePPPConfig(uint256 pppConfig) internal pure
+        returns (uint256 liquidationPeriod, uint256 patricianPeriod)
+    {
         liquidationPeriod = (pppConfig >> 32) & type(uint32).max;
         patricianPeriod = pppConfig & type(uint32).max;
     }

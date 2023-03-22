@@ -6,7 +6,6 @@ import {
     SuperTokenFactory,
     SuperTokenFactoryMock42,
     SuperTokenFactoryStorageLayoutTester,
-    SuperTokenFactoryUpdateLogicContractsTester,
     SuperTokenMock,
     TestGovernance,
     TestToken,
@@ -61,11 +60,17 @@ describe("SuperTokenFactory Contract", function () {
 
     describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
-            const superTokenLogic = await t.deployContract<SuperToken>(
-                "SuperTokenMock",
-                superfluid.address,
-                "0"
-            );
+            const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+                await t.deployNFTContracts();
+            const superTokenLogic =
+                await t.deployExternalLibraryAndLink<SuperTokenMock>(
+                    "SuperfluidNFTDeployerLibrary",
+                    "SuperTokenMock",
+                    superfluid.address,
+                    "0",
+                    constantOutflowNFTLogic.address,
+                    constantInflowNFTLogic.address
+                );
             const tester =
                 await t.deployContract<SuperTokenFactoryStorageLayoutTester>(
                     "SuperTokenFactoryStorageLayoutTester",
@@ -120,11 +125,6 @@ describe("SuperTokenFactory Contract", function () {
                 await factory.getSuperTokenLogic()
             );
 
-            // we need to call this here because we are not castrating the super token
-            // logic contract after upgrades anymore.
-            // we do it in the SuperTokenFactory constructor now
-            await superTokenLogic.initialize(ZERO_ADDRESS, 0, "", "");
-
             await expectRevertedWith(
                 superTokenLogic.initialize(ZERO_ADDRESS, 0, "", ""),
                 "Initializable: contract is already initialized"
@@ -135,11 +135,17 @@ describe("SuperTokenFactory Contract", function () {
     describe("#2 createERC20Wrapper", () => {
         context("#2.a Mock factory", () => {
             async function updateSuperTokenFactory() {
-                const superTokenLogic = await t.deployContract<SuperTokenMock>(
-                    "SuperTokenMock",
-                    superfluid.address,
-                    42
-                );
+                const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+                    await t.deployNFTContracts();
+                const superTokenLogic =
+                    await t.deployExternalLibraryAndLink<SuperTokenMock>(
+                        "SuperfluidNFTDeployerLibrary",
+                        "SuperTokenMock",
+                        superfluid.address,
+                        42,
+                        constantOutflowNFTLogic.address,
+                        constantInflowNFTLogic.address
+                    );
                 const factory2Logic =
                     await t.deployContract<SuperTokenFactoryMock42>(
                         "SuperTokenFactoryMock42",
@@ -241,13 +247,19 @@ describe("SuperTokenFactory Contract", function () {
 
         context("#2.b Production Factory", () => {
             it("#2.b.1 use production factory to create different super tokens", async () => {
-                const superTokenLogic = await t.deployContract<SuperToken>(
-                    "SuperToken",
-                    superfluid.address
-                );
+                const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+                    await t.deployNFTContracts();
+                const superTokenLogic =
+                    await t.deployExternalLibraryAndLink<SuperToken>(
+                        "SuperfluidNFTDeployerLibrary",
+                        "SuperToken",
+                        superfluid.address,
+                        constantOutflowNFTLogic.address,
+                        constantInflowNFTLogic.address
+                    );
                 const factory2Logic =
-                    await t.deployContract<SuperTokenFactoryUpdateLogicContractsTester>(
-                        "SuperTokenFactoryUpdateLogicContractsTester",
+                    await t.deployContract<SuperTokenFactoryMock42>(
+                        "SuperTokenFactoryMock42",
                         superfluid.address,
                         superTokenLogic.address
                     );

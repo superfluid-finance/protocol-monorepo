@@ -3,20 +3,23 @@ pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 
-import { ERC1820RegistryCompiled } from "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
-import { SlotsBitmapLibrary } from "@superfluid-finance/ethereum-contracts/contracts/libs/SlotsBitmapLibrary.sol";
-import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import { ISuperfluidToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidToken.sol";
-import { ISuperTokenFactory } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperTokenFactory.sol";
+import { ERC1820RegistryCompiled } from "../../../contracts/libs/ERC1820RegistryCompiled.sol";
+import { SlotsBitmapLibrary } from "../../../contracts/libs/SlotsBitmapLibrary.sol";
+import { ISuperToken } from "../../../contracts/interfaces/superfluid/ISuperToken.sol";
+import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperTokenFactory } from "../../../contracts/interfaces/superfluid/ISuperTokenFactory.sol";
+import { SuperfluidFrameworkDeployer } from "../../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import {
+    TestResolver,
     TestToken,
     SuperToken,
-    SuperTokenFactory,
-    SuperfluidFrameworkDeployer
-} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
+    SuperTokenDeployer,
+    SuperTokenFactory
+} from "../../../contracts/utils/SuperTokenDeployer.sol";
 
 contract SlotsBitmapLibraryProperties is Test {
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
+    SuperTokenDeployer internal immutable superTokenDeployer;
     TestToken private token;
     ISuperToken private immutable superToken;
     address constant subscriber = address(1);
@@ -35,10 +38,21 @@ contract SlotsBitmapLibraryProperties is Test {
         // Deploy ERC1820
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
         sfDeployer = new SuperfluidFrameworkDeployer();
-        (token, superToken) = sfDeployer.deployWrapperSuperToken(
+        vm.stopPrank();
+        SuperfluidFrameworkDeployer.Framework memory sf = sfDeployer.getFramework();
+        vm.prank(address(sfDeployer));
+        superTokenDeployer = new SuperTokenDeployer(
+            address(sf.superTokenFactory),
+            address(sf.resolver)
+        );
+        sfDeployer.transferOwnership(address(superTokenDeployer));
+        TestResolver resolver = TestResolver(sf.resolver);
+        resolver.addAdmin(address(superTokenDeployer));
+
+        vm.startPrank(subscriber);
+        (token, superToken) = superTokenDeployer.deployWrapperSuperToken(
             "Test Token", "TST", 18, type(uint256).max
         );
-
         vm.stopPrank();
     }
 

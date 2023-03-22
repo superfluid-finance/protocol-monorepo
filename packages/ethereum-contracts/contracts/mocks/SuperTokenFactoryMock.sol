@@ -33,12 +33,6 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
         assembly { slot := _canonicalWrapperSuperTokens.slot offset := _canonicalWrapperSuperTokens.offset }
         require(slot == 1 && offset == 0, "_canonicalWrapperSuperTokens changed location");
     }
-
-    function createSuperTokenLogic(
-        ISuperfluid // host
-    ) external override returns (address) {
-        return address(_SUPER_TOKEN_LOGIC);
-    }
 }
 
 contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
@@ -51,13 +45,6 @@ contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
         SuperTokenFactoryBase(host, superTokenLogic)
     // solhint-disable-next-line no-empty-blocks
     {
-
-    }
-
-    function createSuperTokenLogic(
-        ISuperfluid // host
-    ) external override returns (address) {
-        return address(_SUPER_TOKEN_LOGIC);
     }
 }
 
@@ -71,12 +58,6 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase {
     {
 
     }
-
-    function createSuperTokenLogic(
-        ISuperfluid // host
-    ) external override returns (address) {
-        return address(_SUPER_TOKEN_LOGIC);
-    }
 }
 
 contract SuperTokenFactoryMock42 is SuperTokenFactoryBase {
@@ -88,11 +69,5 @@ contract SuperTokenFactoryMock42 is SuperTokenFactoryBase {
     // solhint-disable-next-line no-empty-blocks
     {
 
-    }
-
-    function createSuperTokenLogic(
-        ISuperfluid // host
-    ) external override returns (address) {
-        return address(_SUPER_TOKEN_LOGIC);
     }
 }

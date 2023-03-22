@@ -15,4 +15,5 @@ interface IPureSuperTokenCustom {
  * @title Pure Super Token interface
  * @author Superfluid
  */
+// solhint-disable-next-line no-empty-blocks
 interface IPureSuperToken is IPureSuperTokenCustom, ISuperToken {}

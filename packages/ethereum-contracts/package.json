@@ -52,7 +52,7 @@
         "test:contracts:foundry": "yarn run-forge test --hardhat --no-match-contract Fork",
         "test:contracts:solc-compatibility": "test/test-solc-compatibility.sh",
         "test:deployment:scripts-js-hardhat": "yarn run-hardhat test test/ops-scripts/deployment.test.js",
-        "test:deployment:scripts-js-truffle": "yarn run-truffle test test/ops-scripts/deployment.test.js",
+        "disabled-test:deployment:scripts-js-truffle": "yarn run-truffle test test/ops-scripts/deployment.test.js",
         "test:deployment:scripts-bash": "test/ops-scripts/deployment.test.sh",
         "test-coverage": "run-s test-coverage:*",
         "test-coverage:hardhat": "yarn run-hardhat coverage --testfiles testsuites/all-contracts.js --solcoverjs ./.solcover.js",

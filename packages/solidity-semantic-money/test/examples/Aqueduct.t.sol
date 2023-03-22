@@ -151,7 +151,7 @@ contract AqueductTest is Test {
         assertEq(al2 - al1, bl1 - bl2, "e2.1");
         assertEq(ar1 - ar2, br2 - br1, "e2.2");
 
-        // Minimum swap condition: r2 / (r1 + r3) > 0
+        // Minimum swap condition: r2.div(r1 + r3) >= 1
         if (uint(r1) + uint(r3) > 0 && r3 > 0 && uint(r2) >= uint(r1) + uint(r3) &&
             dt2 > 0 && dt3 > 0) {
             assertTrue(Value.unwrap(bl2 - bl1) < 0, "e3.1");

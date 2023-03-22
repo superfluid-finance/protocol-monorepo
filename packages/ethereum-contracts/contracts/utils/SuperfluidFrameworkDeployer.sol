@@ -13,6 +13,14 @@ import {
     ConstantFlowAgreementV1
 } from "../agreements/ConstantFlowAgreementV1.sol";
 import {
+    ConstantOutflowNFT,
+    IConstantOutflowNFT
+} from "../superfluid/ConstantOutflowNFT.sol";
+import {
+    ConstantInflowNFT,
+    IConstantInflowNFT
+} from "../superfluid/ConstantInflowNFT.sol";
+import {
     InstantDistributionAgreementV1
 } from "../agreements/InstantDistributionAgreementV1.sol";
 import {
@@ -20,6 +28,7 @@ import {
 } from "../agreements/GeneralDistributionAgreementV1.sol";
 import {
     ISuperTokenFactory,
+    SuperToken,
     SuperTokenFactory,
     ERC20WithTokenInfo
 } from "../superfluid/SuperTokenFactory.sol";
@@ -28,21 +37,16 @@ import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 import { SETHProxy } from "../tokens/SETH.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
+
 import {
     IConstantFlowAgreementHook
 } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
-import { IPureSuperToken } from "../interfaces/tokens/IPureSuperToken.sol";
-import { ISETH } from "../interfaces/tokens/ISETH.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
-import { TestToken } from "./TestToken.sol";
 
 /// @title Superfluid Framework Deployer
 /// @notice This is NOT for deploying public nets, but rather only for tesing envs
 contract SuperfluidFrameworkDeployer {
-    string public constant RESOLVER_BASE_SUPER_TOKEN_KEY = "supertokens.test.";
-    string public constant RESOLVER_BASE_TOKEN_KEY = "tokens.test.";
-
     struct Framework {
         TestGovernance governance;
         Superfluid host;
@@ -56,6 +60,8 @@ contract SuperfluidFrameworkDeployer {
         SuperfluidLoader superfluidLoader;
         CFAv1Forwarder cfaV1Forwarder;
     }
+
+    address public constant DEFAULT_REWARD_ADDRESS = address(69);
 
     TestGovernance internal testGovernance;
     Superfluid internal host;
@@ -89,15 +95,14 @@ contract SuperfluidFrameworkDeployer {
         address[] memory trustedForwarders = new address[](0);
         testGovernance.initialize(
             host,
-            address(69),
+            DEFAULT_REWARD_ADDRESS,
             4 hours,
             30 minutes,
             trustedForwarders
         );
 
         // Deploy ConstantFlowAgreementV1
-        // TODO @note Once we have the actual implementation for the hook contract,
-        // we will need to deploy it and put it here
+        // @note TODO hook contract is no more-should be deleted
 
         cfaV1 = SuperfluidCFAv1DeployerLibrary.deployConstantFlowAgreementV1(
             host,
@@ -130,10 +135,19 @@ contract SuperfluidFrameworkDeployer {
 
         // Register GeneralDistributionAgreementV1 with Governance
         testGovernance.registerAgreementClass(host, address(gdaV1));
+        // Deploy canonical Constant Outflow NFT logic contract
+        ConstantOutflowNFT constantOutflowNFTLogic = new ConstantOutflowNFT(cfaV1);
+
+        // Deploy canonical Constant Inflow NFT logic contract
+        ConstantInflowNFT constantInflowNFTLogic = new ConstantInflowNFT(cfaV1);
 
         // Deploy canonical SuperToken logic contract
         SuperToken superTokenLogic = SuperToken(
-            SuperTokenDeployerLibrary.deploySuperTokenLogic(host)
+            SuperTokenDeployerLibrary.deploySuperTokenLogic(
+                host,
+                IConstantOutflowNFT(address(constantOutflowNFTLogic)),
+                IConstantInflowNFT(address(constantInflowNFTLogic))
+            )
         );
 
         // Deploy SuperTokenFactory
@@ -186,112 +200,11 @@ contract SuperfluidFrameworkDeployer {
         return sf;
     }
 
-    /// @notice Deploys an ERC20 and a Wrapper Super Token for the ERC20 and lists both in the resolver
-    /// @dev SuperToken name and symbol format: `Super ${_underlyingSymbol}` and `${_underlyingSymbol}x`, respectively
-    /// @param _underlyingName The underlying token name
-    /// @param _underlyingSymbol The token symbol
-    /// @return underlyingToken and superToken
-    function deployWrapperSuperToken(
-        string calldata _underlyingName,
-        string calldata _underlyingSymbol,
-        uint8 _decimals,
-        uint256 _mintLimit
-    ) external returns (TestToken underlyingToken, SuperToken superToken) {
-        underlyingToken = new TestToken(
-            _underlyingName,
-            _underlyingSymbol,
-            _decimals,
-            _mintLimit
-        );
-        superToken = SuperToken(
-            address(
-                superTokenFactory.createERC20Wrapper(
-                    ERC20WithTokenInfo(address(underlyingToken)),
-                    ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
-                    string.concat("Super ", _underlyingSymbol),
-                    string.concat(_underlyingSymbol, "x")
-                )
-            )
-        );
-
-        // list underlying token in resolver
-        _handleResolverList(
-            true,
-            string.concat(RESOLVER_BASE_TOKEN_KEY, underlyingToken.symbol()),
-            address(underlyingToken)
-        );
-
-        // list super token in resolver
-        _handleResolverList(
-            true,
-            string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, superToken.symbol()),
-            address(superToken)
-        );
-    }
-
-    /// @notice Deploys a Native Asset Super Token and lists it in the resolver
-    /// @dev e.g. ETHx, MATICx, AVAXx, etc. The underlying is the Native Asset.
-    /// @param _name The token name
-    /// @param _symbol The token symbol
-    /// @return nativeAssetSuperToken
-    function deployNativeAssetSuperToken(
-        string calldata _name,
-        string calldata _symbol
-    ) external returns (ISETH nativeAssetSuperToken) {
-        SETHProxy sethProxy = new SETHProxy();
-        nativeAssetSuperToken = ISETH(address(sethProxy));
-        superTokenFactory.initializeCustomSuperToken(address(sethProxy));
-        nativeAssetSuperToken.initialize(
-            IERC20(address(0)),
-            18,
-            _name,
-            _symbol
-        );
-
-        _handleResolverList(
-            true,
-            string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, _symbol),
-            address(nativeAssetSuperToken)
-        );
-    }
-
-    /// @notice Deploys a Pure Super Token and lists it in the resolver
-    /// @dev We specify the initial supply (because non-downgradeable) on creation and send it to the deployer
-    /// @param _name The token name
-    /// @param _symbol The token symbol
-    /// @param _initialSupply The initial token supply of the pure super token
-    /// @return pureSuperToken
-    function deployPureSuperToken(
-        string calldata _name,
-        string calldata _symbol,
-        uint256 _initialSupply
-    ) external returns (IPureSuperToken pureSuperToken) {
-        PureSuperToken pureSuperTokenProxy = new PureSuperToken();
-        superTokenFactory.initializeCustomSuperToken(
-            address(pureSuperTokenProxy)
-        );
-        pureSuperTokenProxy.initialize(_name, _symbol, _initialSupply);
-
-        pureSuperToken = IPureSuperToken(address(pureSuperTokenProxy));
-
-        _handleResolverList(
-            true,
-            string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, _symbol),
-            address(pureSuperToken)
-        );
-
-        // transfer initial supply to deployer
-        pureSuperToken.transfer(msg.sender, _initialSupply);
-    }
-
-    function _handleResolverList(
-        bool _listOnResolver,
-        string memory _resolverKey,
-        address _superTokenAddress
-    ) internal {
-        if (_listOnResolver) {
-            testResolver.set(_resolverKey, address(_superTokenAddress));
-        }
+    /// @notice Transfer ownership of the TestGovernance contract
+    /// @dev This function allows you to transfer ownership of TestGovernance when testing
+    /// @param newOwner the new owner of the TestGovernance contract
+    function transferOwnership(address newOwner) public {
+        testGovernance.transferOwnership(newOwner);
     }
 }
 
@@ -389,9 +302,11 @@ library SuperTokenDeployerLibrary {
     /// @notice Deploy a SuperToken logic contract
     /// @param host the address of the host contract
     function deploySuperTokenLogic(
-        ISuperfluid host
+        ISuperfluid host,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     ) external returns (address) {
-        return address(new SuperToken(host));
+        return address(new SuperToken(host, constantOutflowNFT, constantInflowNFT));
     }
 }
 

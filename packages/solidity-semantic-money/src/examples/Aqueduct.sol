@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.sol";
+import {
+    Time, FlowRate, Value, Unit, FlowId,
+    ToySuperToken, ToySuperTokenPool
+} from "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.sol";
 
 
 /**
@@ -32,8 +35,8 @@ library AqueductLibrary {
 contract Aqueduct {
     using AqueductLibrary for AqueductLibrary.SideState;
 
-    FlowId constant SWAP_DISTRIBUTE_FLOW_ID = FlowId.wrap(0);
-    FlowId constant ADJUSTMENT_FLOW_ID = FlowId.wrap(0);
+    FlowId constant public SWAP_DISTRIBUTE_FLOW_ID = FlowId.wrap(0);
+    FlowId constant public ADJUSTMENT_FLOW_ID = FlowId.wrap(0);
 
     struct Side {
         ToySuperToken token;

@@ -2,8 +2,11 @@
 pragma solidity >= 0.8.4;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./ISuperTokenPool.sol";
-import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+import { ISuperTokenPool } from "./ISuperTokenPool.sol";
+import {
+    Time, FlowRate, Value, Unit,
+    BasicParticle
+} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 
 
 type FlowId is uint32;

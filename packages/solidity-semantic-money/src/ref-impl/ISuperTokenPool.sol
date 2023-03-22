@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >= 0.8.4;
 
-import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+import {
+    Time, Value, FlowRate, Unit,
+    BasicParticle, PDPoolIndex
+} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 
 /**
  * @dev The interface for any super token pool regardless of the distribution schemes.

@@ -23,6 +23,7 @@ import {
     Unit
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { SuperTokenPool } from "../superfluid/SuperTokenPool.sol";
+import { SuperTokenPoolDeployerLibrary } from "../libs/SuperTokenPoolDeployerLibrary.sol";
 import {
     IGeneralDistributionAgreementV1,
     ISuperfluidToken
@@ -112,7 +113,7 @@ contract GeneralDistributionAgreementV1 is
         address admin,
         ISuperfluidToken token
     ) external override returns (SuperTokenPool pool) {
-        pool = new SuperTokenPool(
+        pool = SuperTokenPoolDeployerLibrary.deploy(
             admin,
             GeneralDistributionAgreementV1(address(this)),
             token

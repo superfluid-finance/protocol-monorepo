@@ -10,11 +10,13 @@ import {
     ISuperfluid,
     ISuperfluidGovernance,
     ISuperApp,
+    ISuperToken,
     FlowOperatorDefinitions,
     SuperAppDefinitions,
     ContextDefinitions,
     SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
@@ -468,27 +470,12 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        if (address(constantFlowAgreementHook) != address(0))  {
-            uint256 gasLeftBefore = gasleft();
-            try constantFlowAgreementHook.onCreate{ gas: CFA_HOOK_GAS_LIMIT }(
-                flowVars.token,
-                IConstantFlowAgreementHook.CFAHookParams({
-                    sender: flowParams.sender,
-                    receiver: flowParams.receiver,
-                    flowOperator: flowParams.flowOperator,
-                    flowRate: flowParams.flowRate
-                })
-            )
-            // solhint-disable-next-line no-empty-blocks
-            {} catch {
-// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
-// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
-// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
-                if (gasleft() <= gasLeftBefore / 63) {
-                    revert CFA_HOOK_OUT_OF_GAS();
-                }
-            }
-        }
+        // for now, we are aware that this will break super tokens with custom super token logic
+        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
+        // which was previously in place for the previous marketing NFT
+        ISuperToken(
+            address(flowVars.token)
+        ).constantOutflowNFT().onCreate(flowVars.sender, flowVars.receiver);
     }
 
     function _updateFlow(
@@ -518,27 +505,13 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        // @note See comment in _createFlow
-        if (address(constantFlowAgreementHook) != address(0))  {
-            uint256 gasLeftBefore = gasleft();
-            // solhint-disable-next-line no-empty-blocks
-            try constantFlowAgreementHook.onUpdate{ gas: CFA_HOOK_GAS_LIMIT }(
-                flowVars.token,
-                IConstantFlowAgreementHook.CFAHookParams({
-                    sender: flowParams.sender,
-                    receiver: flowParams.receiver,
-                    flowOperator: flowParams.flowOperator,
-                    flowRate: flowParams.flowRate
-                }),
-                oldFlowData.flowRate
-            // solhint-disable-next-line no-empty-blocks
-            ) {} catch {
-                // @note See comment in onCreate
-                if (gasleft() <= gasLeftBefore / 63) {
-                    revert CFA_HOOK_OUT_OF_GAS();
-                }
-            }
-        }
+        // for now, we are aware that this will break super tokens with custom super token logic
+        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
+        // which was previously in place for the previous marketing NFT
+        ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate(
+            flowVars.sender,
+            flowVars.receiver
+        );
     }
 
     function _deleteFlow(
@@ -650,26 +623,14 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
-        // @note See comment in _createFlow
-        if (address(constantFlowAgreementHook) != address(0))  {
-            uint256 gasLeftBefore = gasleft();
-            try constantFlowAgreementHook.onDelete{ gas: CFA_HOOK_GAS_LIMIT }(
-                flowVars.token,
-                IConstantFlowAgreementHook.CFAHookParams({
-                    sender: flowParams.sender,
-                    receiver: flowParams.receiver,
-                    flowOperator: flowParams.flowOperator,
-                    flowRate: flowParams.flowRate
-                }),
-                oldFlowData.flowRate
-            // solhint-disable-next-line no-empty-blocks
-            ) {} catch {
-                // @note See comment in onCreate
-                if (gasleft() <= gasLeftBefore / 63) {
-                    revert CFA_HOOK_OUT_OF_GAS();
-                }
-            }
-        }
+        // for now, we are aware that this will break super tokens with custom super token logic
+        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
+        // which was previously in place for the previous marketing NFT
+        
+        ISuperToken(address(flowVars.token)).constantOutflowNFT().onDelete(
+            flowVars.sender,
+            flowVars.receiver
+        );
     }
 
     /**************************************************************************

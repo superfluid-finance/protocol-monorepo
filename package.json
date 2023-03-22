@@ -70,6 +70,7 @@
     },
     "workspaces": {
         "packages": [
+            "packages/solidity-semantic-money",
             "packages/ethereum-contracts",
             "packages/js-sdk",
             "packages/sdk-core",

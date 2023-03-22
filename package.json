@@ -9,8 +9,11 @@
     "npmClient": "yarn",
     "license": "MIT",
     "scripts": {
-        "prepare": "tasks/git-submodule-init.sh lib/forge-std",
-        "git:submodule:cleanup": "git submodule deinit --all --force",
+        "prepare": "yarn init",
+        "git:submodule:init": "git submodule update --init --recursive",
+        "git:submodule:update": "git submodule update --recursive",
+        "git:submodule:sync": "git submodule update --remote --recursive;git submodule sync",
+        "git:submodule:deinit": "git submodule deinit --all --force",
         "lint": "yarn workspaces run lint",
         "build": "yarn build-essentials #synonym of build-essentials",
         "build-essentials": "set -e;for i in ethereum-contracts js-sdk sdk-core sdk-redux;do yarn workspace @superfluid-finance/$i build;done",

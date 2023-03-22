@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import "../libs/SemanticMoney.sol";
+import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
     ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluidToken.sol";

@@ -21,7 +21,7 @@ import {
     SemanticMoney,
     FlowRate,
     Unit
-} from "../libs/SemanticMoney.sol";
+} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { SuperTokenPool } from "../superfluid/SuperTokenPool.sol";
 import {
     IGeneralDistributionAgreementV1,

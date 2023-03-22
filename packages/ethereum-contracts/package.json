@@ -81,7 +81,8 @@
         "@truffle/contract": "4.6.18",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.1.5",
-        "stack-trace": "0.0.10"
+        "stack-trace": "0.0.10",
+        "@superfluid-finance/solidity-semantic-money": "0.1.0"
     },
     "devDependencies": {
         "@nomiclabs/hardhat-truffle5": "^2.0.7",

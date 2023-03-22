@@ -2,13 +2,10 @@
 pragma solidity ^0.8.0;
 
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import { ISuperfluid, FlowOperatorDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import { SuperfluidFrameworkDeployer, SuperfluidTester, Superfluid, ConstantFlowAgreementV1, CFAv1Library, SuperTokenFactory } from "../test/SuperfluidTester.sol";
-import { ERC1820RegistryCompiled } from "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
+import { FlowOperatorDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import { SuperfluidTester, CFAv1Library } from "../test/SuperfluidTester.sol";
 import { IFlowScheduler } from "./../contracts/interface/IFlowScheduler.sol";
 import { FlowScheduler } from "./../contracts/FlowScheduler.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
 
 /// @title Example Super Token Test
 /// @author ctle-vn, SuperfluidTester taken from jtriley.eth
@@ -52,31 +49,13 @@ contract FlowSchedulerTest is SuperfluidTester {
         bytes userData
     );
 
-    SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperfluidFrameworkDeployer.Framework internal sf;
-    ISuperfluid host;
-    ConstantFlowAgreementV1 cfa;
-    FlowScheduler internal flowScheduler;
-    uint256 private _expectedTotalSupply = 0;
-
     /// @dev This is required by solidity for using the CFAv1Library in the tester
     using CFAv1Library for CFAv1Library.InitData;
 
-    constructor() SuperfluidTester(3) {
-        vm.startPrank(admin);
-        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
-        sfDeployer = new SuperfluidFrameworkDeployer();
-        sf = sfDeployer.getFramework();
-        host = sf.host;
-        cfa = sf.cfa;
-        vm.stopPrank();
-
-        /// @dev Example Flow Scheduler to test
-        flowScheduler = new FlowScheduler(host, "");
-    }
+    constructor() SuperfluidTester(3) {}
 
     function setUp() public virtual {
-        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
 
         for (uint32 i = 0; i < N_TESTERS; ++i) {
             token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);

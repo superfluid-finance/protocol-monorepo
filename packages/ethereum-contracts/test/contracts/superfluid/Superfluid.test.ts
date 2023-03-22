@@ -14,7 +14,6 @@ import {
     SuperfluidMock,
     SuperToken,
     SuperTokenFactory,
-    SuperTokenFactoryUpdateLogicContractsTester,
     SuperTokenMock,
     TestGovernance,
 } from "../../../typechain-types";
@@ -434,12 +433,16 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                const superTokenLogicFactory = await ethers.getContractFactory(
-                    "SuperToken"
-                );
-                const superTokenLogic = await superTokenLogicFactory.deploy(
-                    superfluid.address
-                );
+                const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+                    await t.deployNFTContracts();
+                const superTokenLogic =
+                    await t.deployExternalLibraryAndLink<SuperToken>(
+                        "SuperfluidNFTDeployerLibrary",
+                        "SuperToken",
+                        superfluid.address,
+                        constantOutflowNFTLogic.address,
+                        constantInflowNFTLogic.address
+                    );
                 const factory2LogicFactory = await ethers.getContractFactory(
                     "SuperTokenFactory"
                 );
@@ -467,16 +470,23 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.3 update super token factory double check if new code is called", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                const superTokenLogic = await t.deployContract<SuperToken>(
-                    "SuperToken",
-                    superfluid.address
-                );
-                const factory2Logic =
-                    await t.deployContract<SuperTokenFactoryUpdateLogicContractsTester>(
-                        "SuperTokenFactoryUpdateLogicContractsTester",
+                const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+                    await t.deployNFTContracts();
+                const superTokenLogic =
+                    await t.deployExternalLibraryAndLink<SuperToken>(
+                        "SuperfluidNFTDeployerLibrary",
+                        "SuperToken",
                         superfluid.address,
-                        superTokenLogic.address
+                        constantOutflowNFTLogic.address,
+                        constantInflowNFTLogic.address
                     );
+                const factory2LogicFactory = await ethers.getContractFactory(
+                    "SuperTokenFactoryUpdateLogicContractsTester"
+                );
+                const factory2Logic = await factory2LogicFactory.deploy(
+                    superfluid.address,
+                    superTokenLogic.address
+                );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -2642,10 +2652,16 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic()
                 );
-                const superTokenLogic = await t.deployContract<SuperToken>(
-                    "SuperToken",
-                    superfluid.address
-                );
+                const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+                    await t.deployNFTContracts();
+                const superTokenLogic =
+                    await t.deployExternalLibraryAndLink<SuperToken>(
+                        "SuperfluidNFTDeployerLibrary",
+                        "SuperToken",
+                        superfluid.address,
+                        constantOutflowNFTLogic.address,
+                        constantInflowNFTLogic.address
+                    );
                 const factory2Logic = await t.deployContract<SuperTokenFactory>(
                     "SuperTokenFactory",
                     superfluid.address,

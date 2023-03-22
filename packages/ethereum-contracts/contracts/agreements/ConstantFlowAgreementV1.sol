@@ -25,24 +25,33 @@ import { AgreementLibrary } from "./AgreementLibrary.sol";
  * @author Superfluid
  * @dev Please read IConstantFlowAgreementV1 for implementation notes.
  * @dev For more technical notes, please visit protocol-monorepo wiki area.
+ * 
+ * Storage Layout Notes
+ * Agreement State
+ * NOTE The Agreement State slot is computed with the following function:
+ * keccak256(abi.encode("AgreementState", msg.sender, account, slotId))
+ * slotId           = 0
+ * msg.sender       = address of CFAv1
+ * account          = context.msgSender 
+ * Flow Agreement State stores the global FlowData state for an account.
+ * 
+ * 
+ * Agreement Data
+ * NOTE The Agreement Data slot is calculated with the following function:
+ * keccak256(abi.encode("AgreementData", agreementClass, agreementId))
+ * agreementClass   = address of CFAv1
+ * agreementId      = FlowId | FlowOperatorId
+ * 
+ * FlowId           = keccak256(abi.encode(flowSender, flowReceiver))
+ * FlowId stores FlowData between a flowSender and flowReceiver.
+ * 
+ * FlowOperatorId   = keccak256(abi.encode("flowOperator", flowSender, flowOperator))
+ * FlowOperatorId stores FlowOperatorData between a flowSender and flowOperator.
  */
 contract ConstantFlowAgreementV1 is
     AgreementBase,
     IConstantFlowAgreementV1
 {
-
-    /**
-     * E_NO_SENDER_CREATE - sender cannot create as flowOperator
-     * E_NO_SENDER_UPDATE - sender cannot update as flowOperator
-     * E_NO_SENDER_DELETE - sender cannot delete as flowOperator
-     * E_EXCEED_FLOW_RATE_ALLOWANCE - flowRateAllowance exceeeded
-     * E_NO_OPERATOR_CREATE_FLOW - operator does not have permissions to create flow
-     * E_NO_OPERATOR_UPDATE_FLOW - operator does not have permissions to update flow
-     * E_NO_OPERATOR_DELETE_FLOW - operator does not have permissions to delete flow
-     * E_NO_SENDER_FLOW_OPERATOR - sender cannot set themselves as the flow operator
-     * E_NO_NEGATIVE_ALLOWANCE - sender cannot set a negative allowance
-     */
-
     /**
      * @dev Default minimum deposit value
      *

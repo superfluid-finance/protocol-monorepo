@@ -4,7 +4,7 @@ import {assert, ethers, web3} from "hardhat";
 import {
     // CFALibrarySuperAppMock,
     ConstantFlowAgreementV1,
-    Superfluid,
+    SuperfluidMock,
     SuperTokenLibraryCFAMock,
     SuperTokenLibraryCFASuperAppMock,
     SuperTokenMock,
@@ -28,12 +28,70 @@ const callbackFunctionIndex = {
     REVOKE_FLOW_OPERATOR_WITH_FULL_CONTROL: 8,
 };
 
+// @note this function was added and is used to deploy a mock super token
+// and the associated cfa NFT contracts and attach them to the
+// super token. This was done because the tests which use this
+// are not using the super token from test environment and are not
+// reverting to snapshot and are therefore reliant on deploying a
+// new super token each time.
+export const deploySuperTokenAndNFTContractsAndInitialize = async (
+    t: TestEnvironment
+) => {
+    const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+        await t.deployNFTContracts();
+    const superToken = await t.deployExternalLibraryAndLink<SuperTokenMock>(
+        "SuperfluidNFTDeployerLibrary",
+        "SuperTokenMock",
+        t.contracts.superfluid.address,
+        "69",
+        constantOutflowNFTLogic.address,
+        constantInflowNFTLogic.address
+    );
+
+    const uupsFactory = await ethers.getContractFactory("UUPSProxy");
+    const symbol = await superToken.symbol();
+
+    const outflowNFTLogicAddress =
+        await superToken.CONSTANT_OUTFLOW_NFT_LOGIC();
+    const outflowNFTProxy = await uupsFactory.deploy();
+    await outflowNFTProxy.initializeProxy(outflowNFTLogicAddress);
+    const outflowNFT = await ethers.getContractAt(
+        "ConstantOutflowNFT",
+        outflowNFTProxy.address
+    );
+    await outflowNFT.initialize(
+        superToken.address,
+        symbol + " Outflow NFT",
+        symbol + " COF"
+    );
+
+    const inflowNFTLogicAddress = await superToken.CONSTANT_INFLOW_NFT_LOGIC();
+    const inflowNFTProxy = await uupsFactory.deploy();
+    await inflowNFTProxy.initializeProxy(inflowNFTLogicAddress);
+    const inflowNFT = await ethers.getContractAt(
+        "ConstantInflowNFT",
+        inflowNFTProxy.address
+    );
+    await inflowNFT.initialize(
+        superToken.address,
+        symbol + " Inflow NFT",
+        symbol + " CIF"
+    );
+    await superToken.setNFTProxyContracts(
+        outflowNFT.address,
+        inflowNFT.address,
+        ethers.constants.AddressZero,
+        ethers.constants.AddressZero
+    );
+    return superToken;
+};
+
 describe("CFAv1 Library testing", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
     let superToken: SuperTokenMock,
-        host: Superfluid,
+        host: SuperfluidMock,
         cfa: ConstantFlowAgreementV1;
     let alice: string, bob: string;
     let aliceSigner: SignerWithAddress;
@@ -59,10 +117,8 @@ describe("CFAv1 Library testing", function () {
     });
 
     beforeEach(async () => {
-        const SuperTokenMockFactory = await ethers.getContractFactory(
-            "SuperTokenMock"
-        );
-        superToken = await SuperTokenMockFactory.deploy(host.address, "69");
+        superToken = await deploySuperTokenAndNFTContractsAndInitialize(t);
+
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");
 

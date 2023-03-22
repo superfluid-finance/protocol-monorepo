@@ -13,6 +13,8 @@ import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { SuperToken } from "../superfluid/SuperToken.sol";
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
+import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
+import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,
@@ -51,7 +53,7 @@ abstract contract SuperTokenFactoryBase is
     /// @dev (2) prevent address retrieval issues if we ever choose to modify the bytecode of the UUPSProxy contract
     /// @dev NOTE: address(0) key points to the NativeAssetSuperToken on the network.
     mapping(address => address) internal _canonicalWrapperSuperTokens;
-    
+
     /// NOTE: Whenever modifying the storage layout here it is important to update the validateStorageLayout
     /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     /// behaviors/layout when upgrading
@@ -67,15 +69,13 @@ abstract contract SuperTokenFactoryBase is
         // SuperToken logic is now deployed prior to new factory logic deployment
         // and passed in as a parameter to SuperTokenFactory constructor
         _SUPER_TOKEN_LOGIC = superTokenLogic;
-        
-        // @note this function call is commented out on the first upgrade
-        // https://polygonscan.com/address/0x092462ef87bdd081a6346102b0be134ff63da01b#code
-        // the logic contract has _updateSuperTokenLogic and uses: this.createSuperTokenLogic
-        // which calls .castrate() on the logic contract, so if we call it here again,
-        // it will revert the first time, however we MUST uncomment it after subsequent 
-        // updates to the logic contract so that the super token logic contract is initialized
-        // here 
-        // UUPSProxiable(address(_SUPER_TOKEN_LOGIC)).castrate();
+
+        UUPSProxiable(address(_SUPER_TOKEN_LOGIC)).castrate();
+
+        // emit SuperTokenLogicCreated event
+        // note that creation here means the setting of the super token logic contract
+        // as the canonical super token logic for the Superfluid framework and not the
+        // actual contract creation
         emit SuperTokenLogicCreated(_SUPER_TOKEN_LOGIC);
     }
 
@@ -105,6 +105,9 @@ abstract contract SuperTokenFactoryBase is
         return keccak256("org.superfluid-finance.contracts.SuperTokenFactory.implementation");
     }
 
+    /// @notice Updates the logic contract for the SuperTokenFactory
+    /// @dev This function updates the logic contract for the SuperTokenFactory
+    /// @param newAddress the new address of the SuperTokenFactory logic contract
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host)) {
             revert SUPER_TOKEN_FACTORY_ONLY_HOST();
@@ -122,8 +125,6 @@ abstract contract SuperTokenFactoryBase is
     {
         return _SUPER_TOKEN_LOGIC;
     }
-
-    function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
 
     /// @inheritdoc ISuperTokenFactory
     function createCanonicalERC20Wrapper(ERC20WithTokenInfo _underlyingToken)
@@ -317,7 +318,6 @@ abstract contract SuperTokenFactoryBase is
     }
 }
 
-
 contract SuperTokenFactory is SuperTokenFactoryBase
 {
     /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
@@ -332,18 +332,5 @@ contract SuperTokenFactory is SuperTokenFactoryBase
         SuperTokenFactoryBase(host, superTokenLogic)
         // solhint-disable-next-line no-empty-blocks
     {
-    }
-
-    /// DEPRECATED
-    /// This function will return the super token logic
-    /// that was set in the constructor
-    /// TO BE DELETED IN THE NEXT UPGRADE
-    function createSuperTokenLogic(
-        ISuperfluid // host
-        )
-        external override
-        returns (address)
-    {
-        return address(_SUPER_TOKEN_LOGIC);
     }
 }

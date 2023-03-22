@@ -5,8 +5,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+## [v1.5.2] - 2023-03-14
+
 ### Added
 - bump solc to 0.8.19
+- New ACL functions: `increaseFlowRateAllowance` and `decreaseFlowRateAllowance` in `ConstantFlowAgreementV1.sol`
+- Support for `superToken.increaseAllowance` and `superToken.decreaseAllowance` in `batchCall` in `Superfluid.sol`
 
 ### Breaking
 - `BatchLiquidator.deleteFlows` doesn't take host and CFA address as argument anymore. This makes L2 solvency operations considerably cheaper.
@@ -18,8 +22,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 - bump solc to 0.8.18
-- New ACL functions: `increaseFlowRateAllowance` and `decreaseFlowRateAllowance` in `ConstantFlowAgreementV1.sol`
-- Support for `superToken.increaseAllowance` and `superToken.decreaseAllowance` in `batchCall` in `Superfluid.sol`
 
 ### Breaking
 - `SuperTokenFactory` contract no longer takes `SuperTokenHelper` contract in its constructor

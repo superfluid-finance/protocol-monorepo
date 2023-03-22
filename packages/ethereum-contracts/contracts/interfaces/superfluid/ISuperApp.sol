@@ -118,7 +118,8 @@ interface ISuperApp {
     * @param agreementId The agreementId
     * @param agreementData The agreement data (non-compressed)
     * @param ctx The context data.
-    * @return cbdata A free format in memory data the app can use to pass arbitary information to the after-hook callback.
+    * @return cbdata A free format in memory data the app can use to pass arbitary information to
+    *         the after-hook callback.
     *
     * @custom:note 
     * - It will be invoked with `staticcall`, no state changes are permitted.

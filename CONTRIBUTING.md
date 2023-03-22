@@ -144,5 +144,19 @@ Arguments:
 ```
 * [Relevant StackOverflow question](https://stackoverflow.com/questions/67475457/why-cant-i-just-run-npm-install-via-a-child-process-exec-call-npm-exit-243-wit)
 
+## Git Submodule Workflow Helpers
+
+Git submodule is required for external dependences such as `lib/forge-std`.
+
+These workflow helpers are included for the ease of its learning curve:
+
+- `yarn git:submodule:init`: a clean checkout the repo should always do this first.
+  - Note that it is triggered as part of the [npm prepare life cycle script](https://docs.npmjs.com/cli/v6/using-npm/scripts).
+    So you don't need to worry about it usually.
+- `yarn git:submodule:update`: an updated code may require you to update the submodule too.
+  This command help you to keep your code base and its submodules in sync with everyone else.
+- `yarn git:submodule:sync`: should you want to sync with the upstream of the submodule, do this.
+- `yarn git:submodule:deinit`: starting over, this should be the last resort for you to try to reset and resync things.
+
 #### Solutions
 * Re-install Node.js through other means than Snap Store.

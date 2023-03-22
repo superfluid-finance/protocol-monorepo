@@ -9,7 +9,7 @@
     "npmClient": "yarn",
     "license": "MIT",
     "scripts": {
-        "prepare": "yarn init",
+        "prepare": "yarn git:submodule:update",
         "git:submodule:init": "git submodule update --init --recursive",
         "git:submodule:update": "git submodule update --recursive",
         "git:submodule:sync": "git submodule update --remote --recursive;git submodule sync",

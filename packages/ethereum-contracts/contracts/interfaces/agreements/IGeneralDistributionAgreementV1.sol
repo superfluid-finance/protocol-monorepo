@@ -13,9 +13,41 @@ import {
  * @author Superfluid
  */
 abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
+    // Custom Errors
     error NO_NEGATIVE_UNITS();
     error NOT_POOL_ADMIN();
     error ONLY_SUPER_TOKEN_POOL();
+
+    // Events
+    event DistributionFlowUpdated(
+        ISuperfluidToken indexed token,
+        SuperTokenPool indexed pool,
+        address indexed distributor,
+        uint32 distributedAt,
+        int96 oldFlowRate,
+        int96 newFlowRate
+    );
+
+    event PoolCreated(
+        ISuperfluidToken indexed token,
+        address indexed admin,
+        ISuperTokenPool pool
+    );
+
+    event PoolConnectionUpdated(
+        ISuperfluidToken indexed token,
+        address indexed account,
+        ISuperTokenPool indexed pool,
+        bool connected
+    );
+
+    event UniversalIndexUpdated(
+        ISuperfluidToken indexed token,
+        address indexed account,
+        uint32 settledAt,
+        int256 settledValue,
+        int96 flowRate
+    );
 
     /// @dev ISuperAgreement.agreementType implementation
     function agreementType() external pure override returns (bytes32) {

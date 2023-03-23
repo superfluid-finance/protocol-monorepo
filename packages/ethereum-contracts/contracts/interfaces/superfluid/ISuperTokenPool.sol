@@ -7,6 +7,19 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  * @dev The interface for any super token pool regardless of the distribution schemes.
  */
 interface ISuperTokenPool {
+    // Custom Errors
+    error SUPER_TOKEN_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
+    error SUPER_TOKEN_POOL_NOT_POOL_ADMIN();
+
+    // Events
+    event PoolIndexUpdated(
+        ISuperfluidToken indexed token,
+        int128 totalUnits,
+        uint32 wpSettledAt,
+        int256 wpSettledValue,
+        int96 wpFlowRate
+    );
+
     function _superToken() external view returns (ISuperfluidToken);
 
     function getTotalUnits() external view returns (int128);

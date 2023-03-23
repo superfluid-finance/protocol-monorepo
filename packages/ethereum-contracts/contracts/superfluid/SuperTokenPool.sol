@@ -20,9 +20,6 @@ import {
 contract SuperTokenPool is Ownable, ISuperTokenPool {
     using SemanticMoney for BasicParticle;
 
-    error SUPER_TOKEN_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
-    error SUPER_TOKEN_POOL_NOT_POOL_ADMIN();
-
     GeneralDistributionAgreementV1 internal immutable _gda;
     ISuperfluidToken public immutable _superToken;
     PDPoolIndex internal _index;

@@ -23,7 +23,9 @@ import {
     Unit
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { SuperTokenPool } from "../superfluid/SuperTokenPool.sol";
-import { SuperTokenPoolDeployerLibrary } from "../libs/SuperTokenPoolDeployerLibrary.sol";
+import {
+    SuperTokenPoolDeployerLibrary
+} from "../libs/SuperTokenPoolDeployerLibrary.sol";
 import {
     IGeneralDistributionAgreementV1,
     ISuperfluidToken
@@ -49,7 +51,8 @@ contract GeneralDistributionAgreementV1 is
     using EnumerableSet for EnumerableSet.AddressSet;
     using SemanticMoney for BasicParticle;
 
-    mapping(address owner => EnumerableSet.AddressSet connections) internal _connectionsMap;
+    mapping(address owner => EnumerableSet.AddressSet connections)
+        internal _connectionsMap;
     mapping(bytes32 flowAddress => FlowRate flowRate) public flowRates;
     mapping(ISuperTokenPool pool => bool exists) public pools;
 
@@ -68,7 +71,6 @@ contract GeneralDistributionAgreementV1 is
     {
         (, BasicParticle memory uIndexData) = _getUniversalIndexData(
             token,
-            
             _getUniversalIndexId(account)
         );
 
@@ -76,7 +78,9 @@ contract GeneralDistributionAgreementV1 is
 
         // pending distributions from pool
         if (pools[ISuperTokenPool(account)]) {
-            x = x + Value.wrap(ISuperTokenPool(account).getPendingDistribution());
+            x =
+                x +
+                Value.wrap(ISuperTokenPool(account).getPendingDistribution());
         }
 
         // pool-connected balance
@@ -86,13 +90,20 @@ contract GeneralDistributionAgreementV1 is
             ];
             for (uint256 i = 0; i < connections.length(); ++i) {
                 address p = connections.at(i);
-                x = x + Value.wrap(ISuperTokenPool(p).getClaimable(uint32(time), account));
+                x =
+                    x +
+                    Value.wrap(
+                        ISuperTokenPool(p).getClaimable(uint32(time), account)
+                    );
             }
         }
 
         dynamicBalance = Value.unwrap(x) > int256(0)
             ? int256(Value.unwrap(x))
             : int256(0);
+
+        deposit = 0;
+        owedDeposit = 0;
     }
 
     function getNetFlowRate(
@@ -102,9 +113,7 @@ contract GeneralDistributionAgreementV1 is
     function getFlowRate(
         address from,
         address to
-    ) external view override returns (int96) {
-
-    }
+    ) external view override returns (int96) {}
 
     // test view function conditions where net flow rate makes sense given pending distribution
     // balance of the pool will capture pending flow rate
@@ -119,6 +128,8 @@ contract GeneralDistributionAgreementV1 is
             token
         );
         pools[pool] = true;
+
+        emit PoolCreated(token, admin, pool);
         // why do I need to approve the pool to spend its own tokens?
     }
 
@@ -143,8 +154,9 @@ contract GeneralDistributionAgreementV1 is
         bool doConnect,
         bytes calldata ctx
     ) public returns (bytes memory newCtx) {
+        ISuperfluidToken token = pool._superToken();
         ISuperfluid.Context memory currentContext = AgreementLibrary
-            .authorizeTokenAccess(pool._superToken(), ctx);
+            .authorizeTokenAccess(token, ctx);
         address msgSender = currentContext.msgSender;
         newCtx = ctx;
         if (doConnect) {
@@ -170,12 +182,14 @@ contract GeneralDistributionAgreementV1 is
                 );
             }
         }
+
+        emit PoolConnectionUpdated(token, msgSender, pool, doConnect);
     }
 
     function isMemberConnected(
         address pool,
         address member
-    ) external override view returns (bool) {
+    ) external view override returns (bool) {
         return _connectionsMap[member].contains(pool);
     }
 
@@ -217,7 +231,7 @@ contract GeneralDistributionAgreementV1 is
             // update account particle
             _updateUniversalIndex(
                 token,
-                _getUniversalIndexId(accounts[i]),
+                accounts[i],
                 accountParticle.mappend(ps[i])
             );
         }
@@ -239,7 +253,7 @@ contract GeneralDistributionAgreementV1 is
         PDPoolIndex memory pdidx = pool.getIndex();
 
         bytes32 senderUniversalIndexId = _getUniversalIndexId(
-            address(currentContext.msgSender)
+            currentContext.msgSender
         );
         (, BasicParticle memory fromUIndexData) = _getUniversalIndexData(
             token,
@@ -251,7 +265,7 @@ contract GeneralDistributionAgreementV1 is
             pdidx,
             Value.wrap(int256(requestedAmount))
         );
-        _updateUniversalIndex(token, senderUniversalIndexId, fromUIndexData);
+        _updateUniversalIndex(token, currentContext.msgSender, fromUIndexData);
         assert(pool.operatorSetIndex(pdidx));
     }
 
@@ -267,10 +281,13 @@ contract GeneralDistributionAgreementV1 is
         newCtx = ctx;
 
         Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 distributionFlowAddress = _getDistributionFlowId(currentContext.msgSender, pool);
+        bytes32 distributionFlowAddress = _getDistributionFlowId(
+            currentContext.msgSender,
+            pool
+        );
 
         bytes32 senderUniversalIndexId = _getUniversalIndexId(
-            address(currentContext.msgSender)
+            currentContext.msgSender
         );
         (, BasicParticle memory fromUIndexData) = _getUniversalIndexData(
             token,
@@ -283,18 +300,47 @@ contract GeneralDistributionAgreementV1 is
         FlowRate actualFlowRate;
         (fromUIndexData, pdidx, actualFlowRate) = fromUIndexData.shiftFlow2b(
             pdidx,
-            FlowRate.wrap(requestedFlowRate) - flowRates[distributionFlowAddress],
+            FlowRate.wrap(requestedFlowRate) -
+                flowRates[distributionFlowAddress],
             t
         );
         pool.operatorSetIndex(pdidx);
-        flowRates[distributionFlowAddress] =
-            flowRates[distributionFlowAddress] +
-            actualFlowRate -
-            oldFlowRate;
+        {
+            flowRates[distributionFlowAddress] =
+                flowRates[distributionFlowAddress] +
+                actualFlowRate -
+                oldFlowRate;
+
+            emit DistributionFlowUpdated(
+                token,
+                pool,
+                currentContext.msgSender,
+                uint32(block.timestamp),
+                int96(FlowRate.unwrap(oldFlowRate)),
+                int96( // newFlowRate
+                    FlowRate.unwrap(
+                        flowRates[distributionFlowAddress] +
+                            actualFlowRate -
+                            oldFlowRate
+                    )
+                )
+            );
+        }
     }
 
-    function _getDistributionFlowId(address from, ISuperTokenPool pool) internal view returns (bytes32) {
-        return keccak256(abi.encode(block.chainid, "distributionflow", from, address(pool)));
+    function _getDistributionFlowId(
+        address from,
+        ISuperTokenPool pool
+    ) internal view returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    block.chainid,
+                    "distributionflow",
+                    from,
+                    address(pool)
+                )
+            );
     }
 
     function _encodeUniversalIndex(
@@ -332,12 +378,25 @@ contract GeneralDistributionAgreementV1 is
         }
     }
 
+    /// @dev Updates Universal Index and emits the UniversalIndexUpdated event
+    /// @param token the super token
+    /// @param account the accounts universal index being updated
+    /// @param particle the particle used to update the universal index
     function _updateUniversalIndex(
         ISuperfluidToken token,
-        bytes32 universalIndexId,
+        address account,
         BasicParticle memory particle
     ) private {
         bytes32[] memory data = _encodeUniversalIndex(particle);
+        bytes32 universalIndexId = _getUniversalIndexId(account);
         token.updateAgreementData(universalIndexId, data);
+
+        emit UniversalIndexUpdated(
+            token,
+            account,
+            Time.unwrap(particle.settled_at),
+            Value.unwrap(particle.settled_value),
+            int96(FlowRate.unwrap(particle.flow_rate))
+        );
     }
 }

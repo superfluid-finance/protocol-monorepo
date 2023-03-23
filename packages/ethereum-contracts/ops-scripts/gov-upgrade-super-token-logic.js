@@ -82,7 +82,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                             "Super token is from a different universe"
                         );
                     }
-                    if (superTokenAddress === "0x1b0714fcd232e0bc3c515ccc7ede5ce19e39c1d6") {
+                    if (
+                        superTokenAddress.toLowerCase() ===
+                            "0x1b0714fcd232e0bc3c515ccc7ede5ce19e39c1d6" ||
+                        superTokenAddress.toLowerCase() ===
+                            "0x1b4a41740b5ef7fbbd4b30793a80635709aa5d8d"
+                    ) {
                         return undefined;
                     }
                     const superTokenLogic = await (

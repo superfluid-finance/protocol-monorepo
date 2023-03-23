@@ -590,26 +590,30 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             );
             superfluidNFTDeployerLibraryAddress =
                 await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
+            // if the library is not deployed, deploy it and link it to SuperToken logic contract
             if (superfluidNFTDeployerLibraryAddress === ZERO_ADDRESS) {
-                await deployExternalLibraryAndLink(
-                    SuperfluidNFTDeployerLibrary,
-                    "SuperfluidNFTDeployerLibrary",
-                    "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS",
-                    SuperTokenLogic
-                );
-            }
-            if (process.env.IS_HARDHAT) {
-                if (superfluidNFTDeployerLibraryAddress !== ZERO_ADDRESS) {
+                const superfluidNFTDeployerLibrary =
+                    await deployExternalLibraryAndLink(
+                        SuperfluidNFTDeployerLibrary,
+                        "SuperfluidNFTDeployerLibrary",
+                        "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS",
+                        SuperTokenLogic
+                    );
+                superfluidNFTDeployerLibraryAddress =
+                    superfluidNFTDeployerLibrary.address;
+            // else link the preexisting contract
+            } else {
+                if (process.env.IS_HARDHAT) {
                     const lib = await SuperfluidNFTDeployerLibrary.at(
                         superfluidNFTDeployerLibraryAddress
                     );
                     SuperTokenLogic.link(lib);
+                } else {
+                    SuperTokenLogic.link(
+                        "SuperfluidNFTDeployerLibrary",
+                        superfluidNFTDeployerLibraryAddress
+                    );
                 }
-            } else {
-                SuperTokenLogic.link(
-                    "SuperfluidNFTDeployerLibrary",
-                    superfluidNFTDeployerLibraryAddress
-                );
             }
         } catch (e) {
             console.warn(

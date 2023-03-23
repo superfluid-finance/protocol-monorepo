@@ -565,12 +565,13 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
     const factoryAddress = await superfluid.getSuperTokenFactory.call();
     let superfluidNFTDeployerLibraryAddress = ZERO_ADDRESS;
+    
+    // get factory contract
+    const factoryContract = await SuperTokenFactoryLogic.at(factoryAddress);
+
     const superTokenContract = await SuperToken.at(
         await factoryContract.getSuperTokenLogic.call()
     );
-
-    // get factory contract
-    const factoryContract = await SuperTokenFactoryLogic.at(factoryAddress);
 
     try {
         superfluidNFTDeployerLibraryAddress =

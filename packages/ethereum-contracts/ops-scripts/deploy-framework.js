@@ -564,10 +564,26 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
     const factoryAddress = await superfluid.getSuperTokenFactory.call();
+    let superfluidNFTDeployerLibraryAddress = ZERO_ADDRESS;
+    const superTokenContract = await SuperToken.at(
+        await factoryContract.getSuperTokenLogic.call()
+    );
 
-    // deploy new SuperfluidNFTDeployerLibrary if factory is not deployed
+    // get factory contract
+    const factoryContract = await SuperTokenFactoryLogic.at(factoryAddress);
+
+    try {
+        superfluidNFTDeployerLibraryAddress =
+            await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
+    } catch {
+        console.warn(
+            "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS does not exist on SuperToken contract yet - deployment required."
+        );
+    }
+
+    // deploy new SuperfluidNFTDeployerLibrary if it is not deployed
     // link it to SuperToken logic contract
-    if (factoryAddress === ZERO_ADDRESS) {
+    if (superfluidNFTDeployerLibraryAddress === ZERO_ADDRESS) {
         await deployExternalLibraryAndLink(
             SuperfluidNFTDeployerLibrary,
             "SuperfluidNFTDeployerLibrary",
@@ -579,17 +595,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // here as an optimization, this assumes that we do not change the
         // library code.
         // link existing deployed external library to SuperToken logic contract
-        let superfluidNFTDeployerLibraryAddress = ZERO_ADDRESS;
+
         try {
-            // get factory contract
-            const factoryContract = await SuperTokenFactoryLogic.at(
-                factoryAddress
-            );
-            const superTokenContract = await SuperToken.at(
-                await factoryContract.getSuperTokenLogic.call()
-            );
-            superfluidNFTDeployerLibraryAddress =
-                await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
             // if the library is not deployed, deploy it and link it to SuperToken logic contract
             if (superfluidNFTDeployerLibraryAddress === ZERO_ADDRESS) {
                 const superfluidNFTDeployerLibrary =

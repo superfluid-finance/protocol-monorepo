@@ -82,6 +82,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                             "Super token is from a different universe"
                         );
                     }
+                    if (superTokenAddress === "0x1b0714fcd232e0bc3c515ccc7ede5ce19e39c1d6") {
+                        return undefined;
+                    }
                     const superTokenLogic = await (
                         await UUPSProxiable.at(superTokenAddress)
                     ).getCodeAddress();

@@ -15,7 +15,7 @@ const {
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./libs/common");
-const { ethers } = require("ethers");
+const {ethers} = require("ethers");
 
 let resetSuperfluidFramework;
 let resolver;
@@ -448,7 +448,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         )(superfluid.address, ida.address);
     } else {
         // NOTE that we are reusing the existing deployed external library
-        // here as an optimization, this assumes that we do not change the 
+        // here as an optimization, this assumes that we do not change the
         // library code.
         // link library in order to avoid spurious code change detections
         let slotsBitmapLibraryAddress = ZERO_ADDRESS;
@@ -590,6 +590,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             );
             superfluidNFTDeployerLibraryAddress =
                 await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
+            if (superfluidNFTDeployerLibraryAddress === ZERO_ADDRESS) {
+                await deployExternalLibraryAndLink(
+                    SuperfluidNFTDeployerLibrary,
+                    "SuperfluidNFTDeployerLibrary",
+                    "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS",
+                    SuperTokenLogic
+                );
+            }
             if (process.env.IS_HARDHAT) {
                 if (superfluidNFTDeployerLibraryAddress !== ZERO_ADDRESS) {
                     const lib = await SuperfluidNFTDeployerLibrary.at(

@@ -99,7 +99,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                         console.log(
                             `SuperToken@${superToken.address} (${symbol}) logic is up to date.`
                         );
-                        return undefined;
+                        return superTokenAddress;
                     }
                 } catch {
                     console.warn(

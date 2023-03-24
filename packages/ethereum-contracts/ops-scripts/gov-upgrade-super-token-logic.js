@@ -107,7 +107,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                         console.log(
                             `SuperToken@${superToken.address} (${symbol}) logic is up to date.`
                         );
-                        return superTokenAddress;
+                        return undefined;
                     }
                 } catch {
                     console.warn(
@@ -123,6 +123,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         console.log(
             `Batch upgrading ${tokensToBeUpgraded.length} super tokens`
         );
+        await sendGovernanceAction(sf, (gov) =>
+            gov.batchUpdateSuperTokenLogic(sf.host.address, tokensToBeUpgraded)
+        );
+        // @note TEMP DO IT TWICE FOR MUMBAI
+        // the first time it is to get the code to initialize the NFT proxies there
+        // the second time is to actually execute that code in updateCode
         await sendGovernanceAction(sf, (gov) =>
             gov.batchUpdateSuperTokenLogic(sf.host.address, tokensToBeUpgraded)
         );

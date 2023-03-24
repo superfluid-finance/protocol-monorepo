@@ -6,6 +6,7 @@ import {
     BasicParticle, PDPoolIndex
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 
+
 /**
  * @dev The interface for any super token pool regardless of the distribution schemes.
  */
@@ -38,4 +39,17 @@ interface ISuperTokenPool {
 
     // WARNING for operators: it is undefined behavior if member is already connected or disconnected
     function operatorConnectMember(Time t, address memberAddr, bool doConnect) external returns (bool);
+}
+
+/**
+ * @dev The interface for the admin of a super token pool admin
+ */
+interface ISuperTokenPoolAdmin {
+    /// Check if an address is connected to the pool
+    function isMemberConnected(ISuperTokenPool pool, address memberAddr) external view
+        returns (bool);
+
+    /// This is used by the pool to adjust flow rate
+    function absorbParticlesFromPool(address[] calldata accounts, BasicParticle[] calldata ps) external
+        returns (bool);
 }

@@ -1,10 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
+
 import {
-    Time, FlowRate, Value, Unit, FlowId,
-    ToySuperToken, ToySuperTokenPool
+    Time, FlowRate, Value, Unit
+} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+import {
+    FlowId, ToySuperToken
 } from "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.sol";
+import {
+    ToySuperTokenPool
+} from "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperTokenPool.sol";
 
 
 /**

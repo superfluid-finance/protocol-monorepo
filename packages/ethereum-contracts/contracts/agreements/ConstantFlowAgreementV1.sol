@@ -470,12 +470,21 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        // for now, we are aware that this will break super tokens with custom super token logic
-        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
-        // which was previously in place for the previous marketing NFT
-        ISuperToken(
-            address(flowVars.token)
-        ).constantOutflowNFT().onCreate(flowVars.sender, flowVars.receiver);
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onCreate{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
+// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
+// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
+            if (gasleft() <= gasLeftBefore / 63) {
+                revert CFA_HOOK_OUT_OF_GAS();
+            }
+        }
     }
 
     function _updateFlow(
@@ -505,13 +514,21 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        // for now, we are aware that this will break super tokens with custom super token logic
-        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
-        // which was previously in place for the previous marketing NFT
-        ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate(
-            flowVars.sender,
-            flowVars.receiver
-        );
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
+// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
+// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
+            if (gasleft() <= gasLeftBefore / 63) {
+                revert CFA_HOOK_OUT_OF_GAS();
+            }
+        }
     }
 
     function _deleteFlow(
@@ -623,14 +640,21 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
-        // for now, we are aware that this will break super tokens with custom super token logic
-        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
-        // which was previously in place for the previous marketing NFT
-        
-        ISuperToken(address(flowVars.token)).constantOutflowNFT().onDelete(
-            flowVars.sender,
-            flowVars.receiver
-        );
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onDelete{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
+// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
+// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
+            if (gasleft() <= gasLeftBefore / 63) {
+                revert CFA_HOOK_OUT_OF_GAS();
+            }
+        }
     }
 
     /**************************************************************************

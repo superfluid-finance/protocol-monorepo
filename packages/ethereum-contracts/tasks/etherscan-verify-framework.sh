@@ -82,15 +82,20 @@ if [ ! -z "$SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY" ]; then
     try_verify SuperTokenFactory@${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY} --custom-proxy UUPSProxy
 fi
 
+echo CONSTANT_OUTFLOW_NFT_LOGIC
+if [ ! -z "$CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS" ]; then
+    try_verify ConstantOutflowNFT@${CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS} --forceConstructorArgs string:${$CFA_LOGIC}
+fi
+
+echo CONSTANT_INFLOW_NFT_LOGIC
+if [ ! -z "$CONSTANT_INFLOW_NFT_LOGIC_ADDRESS" ]; then
+    try_verify ConstantInflowNFT@${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS} --forceConstructorArgs string:${$CFA_LOGIC}
+fi
+
 echo SUPERFLUID_SUPER_TOKEN_LOGIC
 if [ ! -z "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
-    if [ -z "$NO_FORCE_CONSTRUCTOR_ARGS" ]; then
-        # it is required to provide the constructor arguments manually, because the super token logic is created through a contract not an EOA
-        SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS=$(node -e 'console.log("'${SUPERFLUID_HOST_PROXY}'".toLowerCase().slice(2).padStart(64, "0"))')
-        try_verify SuperToken@${SUPERFLUID_SUPER_TOKEN_LOGIC} --forceConstructorArgs string:${SUPERFLUID_SUPER_TOKEN_LOGIC_CONSTRUCTOR_ARGS}
-    else
-        echo "!!! WARNING !!! Cannot verify super token logic due to forceConstructorArgs not supported."
-    fi
+    # the super token logic is created through an EOA and not a contract, so we don't have to provide the constructor arguments manually
+    try_verify SuperToken@${SUPERFLUID_SUPER_TOKEN_LOGIC}
 fi
 
 echo CFA
@@ -104,6 +109,11 @@ fi
 echo SlotsBitmapLibrary
 if [ ! -z "$SLOTS_BITMAP_LIBRARY_ADDRESS" ]; then
     try_verify SlotsBitmapLibrary@${SLOTS_BITMAP_LIBRARY_ADDRESS}
+fi
+
+echo SuperfluidNFTDeployerLibrary
+if [ ! -z "$SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS" ]; then
+    try_verify SuperfluidNFTDeployerLibrary@${SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS}
 fi
 
 echo IDA

@@ -415,6 +415,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         } else {
             contract.link(externalLibraryName, externalLibrary.address);
         }
+        console.log(externalLibraryName, "address", externalLibrary.address);
         return externalLibrary;
     };
 
@@ -565,7 +566,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
     const factoryAddress = await superfluid.getSuperTokenFactory.call();
     let superfluidNFTDeployerLibraryAddress = ZERO_ADDRESS;
-    
+
     // get factory contract
     const factoryContract = await SuperTokenFactoryLogic.at(factoryAddress);
 
@@ -710,11 +711,15 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 ConstantOutflowNFT.new,
                 "ConstantOutflowNFT.new"
             )(cfaV1Address);
+            output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS: ${constantOutflowNFTLogic.address}\n`;
+
             // deploy constant inflow nft logic contract
             const constantInflowNFTLogic = await web3tx(
                 ConstantInflowNFT.new,
                 "ConstantInflowNFT.new"
             )(cfaV1Address);
+            output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS: ${constantOutflowNFTLogic.address}\n`;
+
             // deploy super token logic contract
             // it now takes the nft logic contracts as parameters
             const superTokenLogic = useMocks

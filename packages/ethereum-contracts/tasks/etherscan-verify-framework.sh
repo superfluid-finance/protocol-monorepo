@@ -11,9 +11,6 @@ set -x
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
 
-echo TRUFFLE_NETWORK=$TRUFFLE_NETWORK
-echo ADDRESSES_VARS=$ADDRESSES_VARS
-
 # network specifics
 case $TRUFFLE_NETWORK in
     eth-goerli | \
@@ -44,18 +41,16 @@ case $TRUFFLE_NETWORK in
         fi
 esac
 
-echo "Reading addresses vars..."
 source "$ADDRESSES_VARS"
-echo NETWORK_ID=$NETWORK_ID
 
 FAILED_VERIFICATIONS=()
 function try_verify() {
+    echo # newline for better readability
     npx truffle run --network $TRUFFLE_NETWORK verify "$@"
     # NOTE: append using length so that having spaces in the element is not a problem
     [ $? != 0 ] && FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$@"
 }
 
-echo SUPERFLUID_HOST
 if [ ! -z "$SUPERFLUID_HOST_LOGIC" ]; then
     # verify the logic contract. May or may not be already set as a proxy implementation
     try_verify Superfluid@${SUPERFLUID_HOST_LOGIC}
@@ -65,7 +60,6 @@ if [ ! -z "$SUPERFLUID_HOST_PROXY" ]; then
     try_verify Superfluid@${SUPERFLUID_HOST_PROXY} --custom-proxy UUPSProxy
 fi
 
-echo SUPERFLUID_GOVERNANCE
 if [ ! -z "$SUPERFLUID_GOVERNANCE" ]; then
     if [ ! -z "$IS_TESTNET" ];then
         try_verify TestGovernance@${SUPERFLUID_GOVERNANCE}
@@ -74,7 +68,6 @@ if [ ! -z "$SUPERFLUID_GOVERNANCE" ]; then
     fi
 fi
 
-echo SUPERFLUID_SUPER_TOKEN_FACTORY
 if [ ! -z "$SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC" ]; then
     try_verify SuperTokenFactory@${SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC}
 fi
@@ -82,7 +75,7 @@ if [ ! -z "$SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY" ]; then
     try_verify SuperTokenFactory@${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY} --custom-proxy UUPSProxy
 fi
 
-echo SUPERFLUID_SUPER_TOKEN_LOGIC
+# deprecated deployment method through factory
 if [ ! -z "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
     if [ -z "$NO_FORCE_CONSTRUCTOR_ARGS" ]; then
         # it is required to provide the constructor arguments manually, because the super token logic is created through a contract not an EOA
@@ -93,7 +86,10 @@ if [ ! -z "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
     fi
 fi
 
-echo CFA
+if [ ! -z "$SUPER_TOKEN_LOGIC" ]; then
+    try_verify SuperToken@${SUPER_TOKEN_LOGIC}
+fi
+
 if [ ! -z "$CFA_LOGIC" ]; then
     try_verify ConstantFlowAgreementV1@${CFA_LOGIC}
 fi
@@ -101,12 +97,10 @@ if [ ! -z "$CFA_PROXY" ]; then
     try_verify ConstantFlowAgreementV1@${CFA_PROXY} --custom-proxy UUPSProxy
 fi
 
-echo SlotsBitmapLibrary
 if [ ! -z "$SLOTS_BITMAP_LIBRARY_ADDRESS" ]; then
     try_verify SlotsBitmapLibrary@${SLOTS_BITMAP_LIBRARY_ADDRESS}
 fi
 
-echo IDA
 # NOTE: do library linking ourselves
 cp -f build/contracts/InstantDistributionAgreementV1.json build/contracts/InstantDistributionAgreementV1.json.bak
 jq -s '.[0] * .[1]' \
@@ -132,7 +126,6 @@ fi
 mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
 
 if [ ! -z "$SUPER_TOKEN_NATIVE_COIN" ];then
-    echo SUPER_TOKEN_NATIVE_COIN
     # special case: verify only the proxy
     # it is expected to point to a SuperToken logic contract which is already verified
     try_verify SETHProxy@${SUPER_TOKEN_NATIVE_COIN}

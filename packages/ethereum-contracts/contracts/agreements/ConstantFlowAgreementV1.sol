@@ -18,9 +18,9 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { AgreementBase } from "./AgreementBase.sol";
-
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
+import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 
 /**
  * @title ConstantFlowAgreementV1 contract
@@ -75,6 +75,7 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
+    // @note this variable is deprecated and no longer used
     IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
 
     // An arbitrarily chosen safety limit for the external calls to protect against out-of-gas grief exploits.
@@ -478,12 +479,7 @@ contract ConstantFlowAgreementV1 is
             }(flowVars.sender, flowVars.receiver)
         // solhint-disable-next-line no-empty-blocks
         {} catch {
-// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
-// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
-// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
-            if (gasleft() <= gasLeftBefore / 63) {
-                revert CFA_HOOK_OUT_OF_GAS();
-            }
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
         }
     }
 
@@ -522,12 +518,7 @@ contract ConstantFlowAgreementV1 is
             }(flowVars.sender, flowVars.receiver)
         // solhint-disable-next-line no-empty-blocks
         {} catch {
-// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
-// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
-// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
-            if (gasleft() <= gasLeftBefore / 63) {
-                revert CFA_HOOK_OUT_OF_GAS();
-            }
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
         }
     }
 
@@ -648,12 +639,7 @@ contract ConstantFlowAgreementV1 is
             }(flowVars.sender, flowVars.receiver)
         // solhint-disable-next-line no-empty-blocks
         {} catch {
-// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
-// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
-// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
-            if (gasleft() <= gasLeftBefore / 63) {
-                revert CFA_HOOK_OUT_OF_GAS();
-            }
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
         }
     }
 

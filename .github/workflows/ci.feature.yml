@@ -87,48 +87,6 @@ jobs:
           # NOTE: This is currently unset and fork tests are not being run
           POLYGON_MAINNET_ARCHIVE_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_ARCHIVE_PROVIDER_URL }}
 
-  test-canary-coverage-ethereum-contracts:
-    name: Run coverage test of ethereum-contracts of dev branch
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18.x
-          cache: "yarn"
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
-      - name: Run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
-
-      - name: Install lcov
-        run: sudo apt-get -y install lcov
-
-      - name: Clean up and merge coverage artifacts
-        run: |
-          # extract coverage for NFT contracts from forge coverage
-          lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol'
-          # merge hardhat and forge coverage files
-          lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o packages/ethereum-contracts/coverage/lcov.info
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ethereum-contracts-coverage
-          path: |
-            packages/ethereum-contracts/coverage/
-
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)
 

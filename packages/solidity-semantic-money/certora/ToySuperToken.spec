@@ -27,6 +27,13 @@ methods {
 ghost gh_totalFlowRate() returns int128 {
     init_state axiom gh_totalFlowRate() == 0;
 }
+
+hook Sstore _poolFlowRates.(offset 0) int128 r1 (int128 r0) STORAGE {
+    havoc gh_totalFlowRate assuming
+        to_mathint(gh_totalFlowRate@new()) ==
+        to_mathint(gh_totalFlowRate@old()) + (to_mathint(r1) - to_mathint(r0));
+}
+
 hook Sstore uIndexes[KEY address a].(offset 64) int128 r1 (int128 r0) STORAGE {
     havoc gh_totalFlowRate assuming
         to_mathint(gh_totalFlowRate@new()) ==
@@ -34,11 +41,7 @@ hook Sstore uIndexes[KEY address a].(offset 64) int128 r1 (int128 r0) STORAGE {
 }
 
 invariant zero_net_flow_rate() gh_totalFlowRate() == 0
-    filtered { f ->
-               f.selector != 0x57587b39 && // absorbParticlesFromPool(address[],(uint32,int256,int128)[])
-               f.selector != distribute(address,address,int256).selector &&
-               f.selector != distributeFlow(address,address,uint32,int128).selector
-             }
+    filtered { f -> f.selector != 0x57587b39 /* absorbParticlesFromPool(address[],(uint32,int256,int128)[]) */ }
 
 //function valid_pool_state(address a) returns bool {
 //}

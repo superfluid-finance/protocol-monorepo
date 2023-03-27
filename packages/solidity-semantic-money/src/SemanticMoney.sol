@@ -123,7 +123,7 @@ using AdditionalMonetaryTypeHelpers for Unit global;
 // Basic particle
 ////////////////////////////////////////////////////////////////////////////////
 /**
- * @dev Basic particle: the building block for payment primitives.
+ * @title Basic particle: the building block for payment primitives.
  */
 struct BasicParticle {
     Time     settled_at;

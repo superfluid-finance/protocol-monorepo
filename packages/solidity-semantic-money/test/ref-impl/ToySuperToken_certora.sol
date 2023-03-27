@@ -9,19 +9,11 @@ contract ToySuperTokenPoolCertora is ToySuperTokenPool {
 }
 
 contract ToySuperTokenCertora is ToySuperToken {
-    using EnumerableSet for EnumerableSet.AddressSet;
+    mapping (address pool => FlowRate flowRate) private _poolFlowRates;
 
-    function distribute(address from, uint poolId, Value reqAmount) external
-        returns (bool success, Value actualAmount)
-    {
-        require(poolId < _pools.length(), "Invalid poolId");
-        return distribute(from, ISuperTokenPool(_pools.at(poolId)), reqAmount);
+    function _setPDPIndex(address pool, PDPoolIndex memory p) internal virtual override {
+        ToySuperToken._setPDPIndex(pool, p);
+        _poolFlowRates[pool] = ToySuperTokenPool(pool).getDistributionFlowRate();
     }
 
-    function distributeFlow(address from, uint poolId, FlowId flowId, FlowRate reqFlowRate) external
-        returns (bool success, FlowRate actualFlowRate)
-    {
-        require(poolId < _pools.length(), "Invalid poolId");
-        return distributeFlow(from, ISuperTokenPool(_pools.at(poolId)), flowId, reqFlowRate);
-    }
 }

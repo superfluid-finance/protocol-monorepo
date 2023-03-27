@@ -7,6 +7,9 @@ All notable changes to the SDK-redux will be documented in this file.
 - Rename `signer` to `signerAddress`
 - Removed `waitForConfirmation`
 
+### Changes
+- Use a simpler type for `initiateNewTransactionTrackingThunk.transactionResponse`
+
 ## [0.4.0] - 2022-10-31
 
 ### Changes

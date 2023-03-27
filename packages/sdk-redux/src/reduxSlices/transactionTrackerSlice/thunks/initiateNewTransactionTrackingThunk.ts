@@ -1,5 +1,5 @@
 import {createAsyncThunk} from '@reduxjs/toolkit';
-import {ethers} from 'ethers';
+import {ethers, Transaction} from 'ethers';
 
 import {getTransactionTrackerSlice} from '../../../sdkReduxConfig';
 import {TransactionTitle} from '../transactionTitle';
@@ -15,7 +15,8 @@ export const initiateNewTransactionTrackingThunk = createAsyncThunk<
     void,
     {
         chainId: number;
-        transactionResponse: ethers.providers.TransactionResponse;
+        // NOTE: Using simpler type that TransactionResponse which is not returned when the TX is sent "unchecked".
+        transactionResponse: {hash: string} & Transaction;
         signerAddress: string;
         title: TransactionTitle;
         extraData: Record<string, unknown>;

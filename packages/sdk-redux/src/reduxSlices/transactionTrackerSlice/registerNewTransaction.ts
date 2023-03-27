@@ -1,11 +1,8 @@
 import {ThunkDispatch} from '@reduxjs/toolkit';
 import {ethers} from 'ethers';
 
-import {getFramework} from '../../sdkReduxConfig';
-
 import {initiateNewTransactionTrackingThunk} from './thunks/initiateNewTransactionTrackingThunk';
 import {TransactionTitle} from './transactionTitle';
-import {waitForOneConfirmation} from './waitForOneConfirmation';
 
 export interface RegisterNewTransactionArg {
     /**
@@ -15,10 +12,6 @@ export interface RegisterNewTransactionArg {
     chainId: number;
     signer: string;
     transactionResponse: ethers.providers.TransactionResponse;
-    /**
-     * Whether to wait for one transaction confirmation.
-     */
-    waitForConfirmation: boolean;
     /**
      * For dispatching redux thunks.
      */
@@ -37,8 +30,7 @@ export interface RegisterNewTransactionArg {
  * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
  */
 export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => {
-    const {chainId, signer, transactionResponse, waitForConfirmation, dispatch, title, extraData} = arg;
-    const framework = await getFramework(chainId);
+    const {chainId, signer, transactionResponse, dispatch, title, extraData} = arg;
 
     dispatch(
         initiateNewTransactionTrackingThunk({
@@ -49,10 +41,6 @@ export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => 
             extraData: extraData ?? {},
         })
     );
-
-    if (waitForConfirmation) {
-        await waitForOneConfirmation(framework.settings.provider, transactionResponse.hash);
-    }
 };
 
 export const registerNewTransactionAndReturnQueryFnResult = async (arg: RegisterNewTransactionArg) => {

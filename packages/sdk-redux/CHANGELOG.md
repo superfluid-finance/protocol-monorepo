@@ -3,6 +3,9 @@ All notable changes to the SDK-redux will be documented in this file.
 
 ## [Unreleased]
 
+### Breaking
+- Removed `waitForConfirmation`
+
 ## [0.4.0] - 2022-10-31
 
 ### Changes

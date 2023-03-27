@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { BigNumber, ethers } from "ethers";
 
 export type BatchOperationType =
     | "UNSUPPORTED" // 0
@@ -61,27 +61,27 @@ export default class Operation {
     getPopulatedTransactionRequest = async (
         signer: ethers.Signer,
         gasLimitMultiplier = 1.2
-    ) => {
-        const txnToPopulate = this.forwarderPopulatedPromise
+    ): Promise<ethers.PopulatedTransaction> => {
+        const populatedTransaction = this.forwarderPopulatedPromise
             ? await this.forwarderPopulatedPromise
             : await this.populateTransactionPromise;
-        const gasLimit = await signer.estimateGas(txnToPopulate);
 
         // if gasLimit exists, an Overrides object has been passed or the user has explicitly set
         // a gasLimit for their transaction prior to execution and so we keep it as is else we apply
         // a specified or the default (1.2) multiplier on the gas limit.
-        return txnToPopulate.gasLimit
-            ? txnToPopulate
-            : {
-                  ...txnToPopulate,
-                  gasLimit:
-                      // @note if gasLimit is null, this function will throw due to
-                      // conversion to BigNumber, so we must round this number
-                      // we can be more conservative by using Math.ceil instead of Math.round
-                      Math.ceil(
-                          Number(gasLimit.toString()) * gasLimitMultiplier
-                      ),
-              };
+        if (!populatedTransaction.gasLimit) {
+            const estimatedGasLimit = await signer.estimateGas(
+                populatedTransaction
+            );
+            const gasLimit = BigNumber.from(
+                Math.ceil(
+                    Number(estimatedGasLimit.toString()) * gasLimitMultiplier
+                )
+            );
+            populatedTransaction.gasLimit = gasLimit;
+        }
+
+        return populatedTransaction;
     };
     /**
      * Signs the populated transaction via the provided signer (what you intend on sending to the network).

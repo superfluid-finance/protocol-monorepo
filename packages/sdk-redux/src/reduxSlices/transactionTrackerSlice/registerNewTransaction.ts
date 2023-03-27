@@ -10,7 +10,7 @@ export interface RegisterNewTransactionArg {
      * WARNING: Don't pass `chainId` off of ether's `TransactionResponse` because it's not set correctly on timely manner.
      */
     chainId: number;
-    signer: string;
+    signerAddress: string;
     transactionResponse: ethers.providers.TransactionResponse;
     /**
      * For dispatching redux thunks.
@@ -30,12 +30,12 @@ export interface RegisterNewTransactionArg {
  * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
  */
 export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => {
-    const {chainId, signer, transactionResponse, dispatch, title, extraData} = arg;
+    const {chainId, signerAddress, transactionResponse, dispatch, title, extraData} = arg;
 
     dispatch(
         initiateNewTransactionTrackingThunk({
             chainId,
-            signer,
+            signerAddress,
             transactionResponse,
             title,
             extraData: extraData ?? {},

@@ -4,6 +4,7 @@ All notable changes to the SDK-redux will be documented in this file.
 ## [Unreleased]
 
 ### Breaking
+- Rename `signer` to `signerAddress`
 - Removed `waitForConfirmation`
 
 ## [0.4.0] - 2022-10-31

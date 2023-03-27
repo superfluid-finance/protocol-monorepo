@@ -102,10 +102,13 @@ library AdditionalMonetaryTypeHelpers {
     function div(FlowRate a, Unit b) internal pure returns (FlowRate) {
         return FlowRate.wrap(FlowRate.unwrap(a) / Unit.unwrap(b));
     }
+    function rem(FlowRate a, Unit b) internal pure returns (FlowRate) {
+        return FlowRate.wrap(FlowRate.unwrap(a) % Unit.unwrap(b));
+    }
     function quotrem(FlowRate r, Unit u) internal pure returns (FlowRate nr, FlowRate er) {
         // quotient and remainder
-        nr = FlowRate.wrap(FlowRate.unwrap(r) / Unit.unwrap(u));
-        er = FlowRate.wrap(FlowRate.unwrap(r) % Unit.unwrap(u));
+        nr = r.div(u);
+        er = r.rem(u);
     }
     function mul_quotrem(FlowRate r, Unit u1, Unit u2) internal pure returns (FlowRate nr, FlowRate er) {
         return r.mul(u1).quotrem(u2);

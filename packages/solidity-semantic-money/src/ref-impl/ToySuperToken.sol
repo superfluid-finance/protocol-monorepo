@@ -7,8 +7,9 @@ import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableS
 import { FlowId, ISuperToken } from "./ISuperToken.sol";
 import {
     Time, Value, FlowRate, Unit,
-    BasicParticle, mempty_basic_particle,
-    PDPoolIndex, PDPoolMember, PDPoolMemberMU
+    BasicParticle,
+    PDPoolIndex, PDPoolMember, PDPoolMemberMU,
+    TokenMonad
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
     ISuperTokenPool, ToySuperTokenPool
@@ -23,7 +24,7 @@ import {
  * - Negative account is allowed.
  * - no permission control for account going negative.
  */
-contract ToySuperToken is ISuperToken {
+contract ToySuperToken is ISuperToken, TokenMonad {
     using EnumerableSet for EnumerableSet.AddressSet;
 
     mapping (address owner => BasicParticle) public uIndexes;
@@ -147,12 +148,16 @@ contract ToySuperToken is ISuperToken {
     function _shift(address from, address to, Value amount, bool checkAllowance) internal
         returns (bool success)
     {
+        /// check inputs
         require(!_pools.contains(to), "Is a pool!");
         require(Value.unwrap(amount) >= 0, "Negative amount!");
+
+        /// prepare local variables (let bindings)
         address spender = msg.sender;
         if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount))); // FIXME SafeCast
+
         // Make updates
-        (uIndexes[from], uIndexes[to]) = uIndexes[from].shift2(uIndexes[to], amount);
+        _doShift(from, to, amount);
         return true;
     }
 
@@ -167,7 +172,6 @@ contract ToySuperToken is ISuperToken {
         returns (bool success)
     {
         /// check inputs
-        require(from != to, "No blue elephant!");
         require(!_pools.contains(to), "Is a pool!");
         require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate!");
 
@@ -179,9 +183,7 @@ contract ToySuperToken is ISuperToken {
         bytes32 flowHash = getFlowHash(from, to, flowId);
 
         // Make updates
-        FlowRate flowRateDelta = flowRate - flowRates[flowHash];
-        (uIndexes[from], uIndexes[to]) = uIndexes[from].shift_flow2a(uIndexes[to], flowRateDelta, t);
-        flowRates[flowHash] = flowRate;
+        _doFlow(from, to, flowHash, flowRate, t);
         return true;
     }
 
@@ -196,9 +198,7 @@ contract ToySuperToken is ISuperToken {
         require(msg.sender == from, "No distribute flow permission!");
 
         // Make updates
-        PDPoolIndex memory pdidx = to.getIndex();
-        (uIndexes[from], pdidx, actualAmount) = uIndexes[from].shift2(pdidx, reqAmount);
-        assert(to.operatorSetIndex(pdidx));
+        actualAmount = _doDistribute(from, address(to), reqAmount);
         success = true;
     }
 
@@ -217,11 +217,7 @@ contract ToySuperToken is ISuperToken {
         require(msg.sender == from, "No flow permission!!");
 
         // Make updates
-        PDPoolIndex memory pdidx = to.getIndex();
-        (uIndexes[from], pdidx, actualFlowRate) = uIndexes[from].shift_flow2b
-            (pdidx, reqFlowRate - flowRates[flowHash], t);
-        to.operatorSetIndex(pdidx);
-        flowRates[flowHash] = actualFlowRate;
+        actualFlowRate = _doDistributeFlow(from, address(to), flowHash, reqFlowRate, t);
         success = true;
     }
 
@@ -340,6 +336,33 @@ contract ToySuperToken is ISuperToken {
                 _approve(owner, spender, currentAllowance - amount);
             }
         }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Token Monad Overrides
+    ////////////////////////////////////////////////////////////////////////////////
+
+    function _getUIndex(address owner) internal view virtual override returns (BasicParticle memory) {
+        return uIndexes[owner];
+    }
+    function _setUIndex(address owner, BasicParticle memory p) internal virtual override {
+        uIndexes[owner] = p;
+    }
+    function _getPDPIndex(address pool) internal view virtual override returns (PDPoolIndex memory) {
+        return ISuperTokenPool(pool).getIndex();
+    }
+    function _setPDPIndex(address pool, PDPoolIndex memory p) internal virtual override {
+        assert(ISuperTokenPool(pool).operatorSetIndex(p));
+    }
+    function _getFlowRate(bytes32 flowHash) internal view virtual override
+        returns (FlowRate)
+    {
+        return flowRates[flowHash];
+    }
+    function _setFlowInfo(bytes32 flowHash, address /*from*/, address /*to*/, FlowRate flowRate)
+        internal virtual override
+    {
+        flowRates[flowHash] = flowRate;
     }
 
 }

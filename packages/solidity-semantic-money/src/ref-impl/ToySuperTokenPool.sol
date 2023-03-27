@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 
 import {
     Time, Value, FlowRate, Unit,
-    BasicParticle, mempty_basic_particle,
+    BasicParticle,
     PDPoolIndex, PDPoolMember, PDPoolMemberMU
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
@@ -21,7 +21,7 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
  *       hence their public getter are added manually instead.
  */
 contract ToySuperTokenPool is Ownable, ISuperTokenPool {
-    PDPoolIndex internal _index;
+    PDPoolIndex internal _pdpIndex;
     mapping (address member => PDPoolMember member_data) internal _members;
     mapping (address member => Value claimed_value) internal _claimedValues;
     address public admin;
@@ -34,11 +34,11 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     }
 
     function getIndex() override external view returns (PDPoolIndex memory) {
-        return _index;
+        return _pdpIndex;
     }
 
     function getTotalUnits() override external view returns (Unit) {
-        return _index.total_units;
+        return _pdpIndex.total_units;
     }
 
     function getUnits(address memberAddr) override external view returns (Unit) {
@@ -46,26 +46,26 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     }
 
     function getDistributionFlowRate() override external view returns (FlowRate) {
-        return _index.wrapped_particle.flow_rate.mul(_index.total_units);
+        return _pdpIndex.wrapped_particle.flow_rate.mul(_pdpIndex.total_units);
     }
 
     function getPendingDistributionFlowRate() override external view returns (FlowRate) {
-        return _index.wrapped_particle.flow_rate.mul(pendingUnits);
+        return _pdpIndex.wrapped_particle.flow_rate.mul(pendingUnits);
     }
 
     function getMemberFlowRate(address memberAddr) override external view returns (FlowRate) {
         Unit u = _members[memberAddr].owned_units;
         if (Unit.unwrap(u) == 0) return FlowRate.wrap(0);
-        else return _index.wrapped_particle.flow_rate.mul(u);
+        else return _pdpIndex.wrapped_particle.flow_rate.mul(u);
     }
 
     function getPendingDistribution() external view returns (Value) {
         Time t = Time.wrap(uint32(block.timestamp));
-        return _index.wrapped_particle.rtb(t).mul(pendingUnits);
+        return _pdpIndex.wrapped_particle.rtb(t).mul(pendingUnits);
     }
 
     function getClaimable(Time t, address memberAddr) override public view returns (Value) {
-        return PDPoolMemberMU(_index, _members[memberAddr]).rtb(t) - _claimedValues[memberAddr];
+        return PDPoolMemberMU(_pdpIndex, _members[memberAddr]).rtb(t) - _claimedValues[memberAddr];
     }
 
     function getClaimable(address memberAddr) override external view returns (Value) {
@@ -85,7 +85,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
 
         // update pool member's units
         BasicParticle memory p;
-        (_index, _members[memberAddr], p) = PDPoolMemberMU(_index, _members[memberAddr])
+        (_pdpIndex, _members[memberAddr], p) = PDPoolMemberMU(_pdpIndex, _members[memberAddr])
             .pool_member_update(p, unit, t);
         {
             address[] memory addrs = new address[](1);addrs[0] = admin;
@@ -114,7 +114,8 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         {
             address[] memory addrs = new address[](2);addrs[0] = address(this);addrs[1] = memberAddr;
             BasicParticle[] memory ps = new BasicParticle[](2);
-            (ps[0], ps[1]) = mempty_basic_particle().shift2(mempty_basic_particle(), c);
+            BasicParticle memory mempty;
+            (ps[0], ps[1]) = mempty.shift2(mempty, c);
             assert(ISuperTokenPoolAdmin(owner()).absorbParticlesFromPool(addrs, ps));
         }
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;
@@ -124,7 +125,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
     function operatorSetIndex(PDPoolIndex calldata index) override external
         onlyOwner returns (bool)
     {
-        _index = index;
+        _pdpIndex = index;
         return true;
     }
 

@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Changed
+- `getPopulatedTransactionRequest` doesn't user the signer to populate the transaction anymore as `signer.sendTransaction` does it already. The double `signer.populateTransaction` was causing issues with some wallets (e.g. Rainbow Wallet)
+
 ## [0.6.3] - 2023-03-14
 
 ### Added

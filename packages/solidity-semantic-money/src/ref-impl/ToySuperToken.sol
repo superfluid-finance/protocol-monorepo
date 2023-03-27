@@ -10,10 +10,10 @@ import {
     BasicParticle,
     PDPoolIndex, PDPoolMember, PDPoolMemberMU,
     TokenMonad
-} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+} from "../SemanticMoney.sol";
 import {
     ISuperTokenPool, ToySuperTokenPool
-} from "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperTokenPool.sol";
+} from "./ToySuperTokenPool.sol";
 
 
 /**

@@ -8,7 +8,7 @@ import {
 import {
     Time, FlowRate, Value, Unit,
     BasicParticle
-} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+} from "../SemanticMoney.sol";
 
 
 type FlowId is uint32;

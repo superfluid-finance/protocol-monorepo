@@ -7,7 +7,7 @@ import {
     Time, Value, FlowRate, Unit,
     BasicParticle,
     PDPoolIndex, PDPoolMember, PDPoolMemberMU
-} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+} from "../SemanticMoney.sol";
 import {
     ISuperTokenPool, ISuperTokenPoolAdmin
 } from "./ISuperTokenPool.sol";

@@ -4,7 +4,7 @@ pragma solidity >= 0.8.4;
 import {
     Time, Value, FlowRate, Unit,
     BasicParticle, PDPoolIndex
-} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+} from "../SemanticMoney.sol";
 
 
 /**

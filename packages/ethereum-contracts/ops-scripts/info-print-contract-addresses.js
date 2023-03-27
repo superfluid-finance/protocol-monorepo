@@ -47,7 +47,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
-    const {ISuperToken, UUPSProxiable, ISuperTokenFactory} = sf.contracts;
+    const ISuperToken = artifacts.require("ISuperToken");
+    const UUPSProxiable = artifacts.require("UUPSProxiable");
+    const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 
     output += `NETWORK_ID=${networkId}\n`;
     output += `SUPERFLUID_LOADER=${sf.loader.address}\n`;

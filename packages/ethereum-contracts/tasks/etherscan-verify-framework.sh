@@ -84,12 +84,12 @@ fi
 
 echo CONSTANT_OUTFLOW_NFT_LOGIC
 if [ ! -z "$CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantOutflowNFT@${CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS} --forceConstructorArgs string:${$CFA_LOGIC}
+    try_verify ConstantOutflowNFT@${CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS} 
 fi
 
 echo CONSTANT_INFLOW_NFT_LOGIC
 if [ ! -z "$CONSTANT_INFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantInflowNFT@${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS} --forceConstructorArgs string:${$CFA_LOGIC}
+    try_verify ConstantInflowNFT@${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS} 
 fi
 
 echo SUPERFLUID_SUPER_TOKEN_LOGIC

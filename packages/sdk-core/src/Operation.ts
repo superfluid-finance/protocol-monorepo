@@ -1,4 +1,3 @@
-import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
 
 export type BatchOperationType =
@@ -46,14 +45,11 @@ export default class Operation {
         signer: ethers.Signer,
         gasLimitMultiplier = 1.2
     ): Promise<ethers.providers.TransactionResponse> => {
-        const signedTxn = await this.getSignedTransaction(
+        const populatedTransaction = await this.getPopulatedTransactionRequest(
             signer,
             gasLimitMultiplier
         );
-
-        signer._checkProvider("sendTransaction");
-        // @note we are explicitly stating the provider exists because of the above check
-        return await signer.provider!.sendTransaction(signedTxn);
+        return await signer.sendTransaction(populatedTransaction);
     };
 
     /**

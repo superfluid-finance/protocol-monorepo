@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from "ethers";
+import { ethers } from "ethers";
 
 export type BatchOperationType =
     | "UNSUPPORTED" // 0
@@ -73,12 +73,15 @@ export default class Operation {
             const estimatedGasLimit = await signer.estimateGas(
                 populatedTransaction
             );
-            const gasLimit = BigNumber.from(
-                Math.ceil(
-                    Number(estimatedGasLimit.toString()) * gasLimitMultiplier
-                )
+
+            // BigNumber doesn't support multiplication with decimals.
+            const multiplierWithoutDecimals = Math.round(
+                gasLimitMultiplier * 100
             );
-            populatedTransaction.gasLimit = gasLimit;
+
+            populatedTransaction.gasLimit = estimatedGasLimit
+                .div(100)
+                .mul(multiplierWithoutDecimals);
         }
 
         return populatedTransaction;

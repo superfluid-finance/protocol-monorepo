@@ -30,6 +30,8 @@ import {
 import { IConfig, IContracts, ISignerConstructorOptions } from "./interfaces";
 import { isEthersProvider, isInjectedWeb3 } from "./utils";
 
+const V1 = "v1";
+
 type SupportedProvider =
     | ethers.providers.Provider
     | HardhatEthersHelpers
@@ -117,13 +119,13 @@ export default class Framework {
     static create = async (options: IFrameworkOptions) => {
         validateFrameworkConstructorOptions({
             ...options,
-            protocolReleaseVersion: options.protocolReleaseVersion || "v1",
+            protocolReleaseVersion: options.protocolReleaseVersion || V1,
         });
 
         const networkName = getNetworkName(options);
         const chainId =
             options.chainId || networkNameToChainIdMap.get(networkName)!;
-        const releaseVersion = options.protocolReleaseVersion || "v1";
+        const releaseVersion = options.protocolReleaseVersion || V1;
 
         const customSubgraphQueriesEndpoint =
             options.customSubgraphQueriesEndpoint ||
@@ -168,13 +170,16 @@ export default class Framework {
             const baseSettings = {
                 chainId,
                 customSubgraphQueriesEndpoint,
-                protocolReleaseVersion: options.protocolReleaseVersion || "v1",
+                protocolReleaseVersion: options.protocolReleaseVersion || V1,
                 provider,
                 networkName,
             };
 
             // supported networks scenario
-            if (networkData != null) {
+            if (
+                networkData != null &&
+                baseSettings.protocolReleaseVersion === V1
+            ) {
                 const settings: IFrameworkSettings = {
                     ...baseSettings,
                     config: {

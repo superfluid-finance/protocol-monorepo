@@ -54,12 +54,11 @@ export default class Operation {
 
     /**
      * Get the populated transaction by awaiting `populateTransactionPromise`.
-     * @description Note that we need to populate the txn with the signer.
+     * `providerOrSigner` is used for gas estimation if necessary.
      * NOTE: we use the forwarder populated promise if this exists
-
      */
     getPopulatedTransactionRequest = async (
-        signer: ethers.Signer,
+        providerOrSigner: ethers.providers.Provider | ethers.Signer,
         gasLimitMultiplier = 1.2
     ): Promise<ethers.PopulatedTransaction> => {
         const populatedTransaction = this.forwarderPopulatedPromise
@@ -70,18 +69,22 @@ export default class Operation {
         // a gasLimit for their transaction prior to execution and so we keep it as is else we apply
         // a specified or the default (1.2) multiplier on the gas limit.
         if (!populatedTransaction.gasLimit) {
-            const estimatedGasLimit = await signer.estimateGas(
+            const estimatedGasLimit = await providerOrSigner.estimateGas(
                 populatedTransaction
             );
 
-            // BigNumber doesn't support multiplication with decimals.
-            const multiplierWithoutDecimals = Math.round(
-                gasLimitMultiplier * 100
-            );
+            // NOTE: BigNumber doesn't support multiplication with decimals.
+            const commonDenominator = 100;
+            const multipliedGasLimit =
+                gasLimitMultiplier === 1 // No need to modify estimated gas limit when multiplier is 1.
+                    ? estimatedGasLimit
+                    : estimatedGasLimit
+                          .div(commonDenominator)
+                          .mul(
+                              Math.round(gasLimitMultiplier * commonDenominator)
+                          );
 
-            populatedTransaction.gasLimit = estimatedGasLimit
-                .div(100)
-                .mul(multiplierWithoutDecimals);
+            populatedTransaction.gasLimit = multipliedGasLimit;
         }
 
         return populatedTransaction;
@@ -99,8 +102,13 @@ export default class Operation {
             signer,
             gasLimitMultiplier
         );
-        const signedTxn = await signer.signTransaction(populatedTransaction);
-        return signedTxn;
+        const signerPopulatedTransaction = await signer.populateTransaction(
+            populatedTransaction
+        );
+        const signedTransaction = await signer.signTransaction(
+            signerPopulatedTransaction
+        );
+        return signedTransaction;
     };
 
     /**

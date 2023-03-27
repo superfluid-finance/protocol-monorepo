@@ -82,6 +82,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                             "Super token is from a different universe"
                         );
                     }
+                    if (
+                        superTokenAddress.toLowerCase() ===
+                            "0x1b0714fcd232e0bc3c515ccc7ede5ce19e39c1d6" ||
+                        superTokenAddress.toLowerCase() ===
+                            "0x1b4a41740b5ef7fbbd4b30793a80635709aa5d8d"
+                    ) {
+                        return undefined;
+                    }
                     const superTokenLogic = await (
                         await UUPSProxiable.at(superTokenAddress)
                     ).getCodeAddress();
@@ -115,6 +123,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         console.log(
             `Batch upgrading ${tokensToBeUpgraded.length} super tokens`
         );
+        await sendGovernanceAction(sf, (gov) =>
+            gov.batchUpdateSuperTokenLogic(sf.host.address, tokensToBeUpgraded)
+        );
+        // @note TEMP DO IT TWICE FOR MUMBAI
+        // the first time it is to get the code to initialize the NFT proxies there
+        // the second time is to actually execute that code in updateCode
         await sendGovernanceAction(sf, (gov) =>
             gov.batchUpdateSuperTokenLogic(sf.host.address, tokensToBeUpgraded)
         );

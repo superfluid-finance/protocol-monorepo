@@ -24,6 +24,16 @@ interface ISuperTokenFactory {
     error SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED();  // 0x478b8e83
     error SUPER_TOKEN_FACTORY_ZERO_ADDRESS();                   // 0x305c9e82
 
+    /**************************************************************************
+    * Immutable Variables
+    **************************************************************************/
+
+    /**
+     * @notice Get the canonical super token logic.
+     * @dev Is the same as `getSuperTokenLogic`
+     */
+    function _SUPER_TOKEN_LOGIC() external returns(ISuperToken superTokenLogic);
+
     /**
      * @dev Get superfluid host contract address
      */
@@ -33,7 +43,8 @@ interface ISuperTokenFactory {
     function initialize() external;
 
     /**
-     * @dev Get the current super token logic used by the factory
+     * @notice Get the canonical super token logic.
+     * @dev Is the same as `_SUPER_TOKEN_LOGIC`
      */
     function getSuperTokenLogic() external view returns (ISuperToken superToken);
 

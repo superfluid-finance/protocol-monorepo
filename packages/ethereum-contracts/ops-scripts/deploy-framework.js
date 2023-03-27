@@ -15,7 +15,7 @@ const {
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./libs/common");
-const { ethers } = require("ethers");
+const {ethers} = require("ethers");
 
 let resetSuperfluidFramework;
 let resolver;
@@ -415,6 +415,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         } else {
             contract.link(externalLibraryName, externalLibrary.address);
         }
+        console.log(externalLibraryName, "address", externalLibrary.address);
         return externalLibrary;
     };
 
@@ -448,7 +449,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         )(superfluid.address, ida.address);
     } else {
         // NOTE that we are reusing the existing deployed external library
-        // here as an optimization, this assumes that we do not change the 
+        // here as an optimization, this assumes that we do not change the
         // library code.
         // link library in order to avoid spurious code change detections
         let slotsBitmapLibraryAddress = ZERO_ADDRESS;
@@ -564,10 +565,27 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
     const factoryAddress = await superfluid.getSuperTokenFactory.call();
+    let superfluidNFTDeployerLibraryAddress = ZERO_ADDRESS;
 
-    // deploy new SuperfluidNFTDeployerLibrary if factory is not deployed
+    // get factory contract
+    const factoryContract = await SuperTokenFactoryLogic.at(factoryAddress);
+
+    const superTokenContract = await SuperToken.at(
+        await factoryContract.getSuperTokenLogic.call()
+    );
+
+    try {
+        superfluidNFTDeployerLibraryAddress =
+            await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
+    } catch {
+        console.warn(
+            "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS does not exist on SuperToken contract yet - deployment required."
+        );
+    }
+
+    // deploy new SuperfluidNFTDeployerLibrary if it is not deployed
     // link it to SuperToken logic contract
-    if (factoryAddress === ZERO_ADDRESS) {
+    if (superfluidNFTDeployerLibraryAddress === ZERO_ADDRESS) {
         await deployExternalLibraryAndLink(
             SuperfluidNFTDeployerLibrary,
             "SuperfluidNFTDeployerLibrary",
@@ -579,29 +597,32 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // here as an optimization, this assumes that we do not change the
         // library code.
         // link existing deployed external library to SuperToken logic contract
-        let superfluidNFTDeployerLibraryAddress = ZERO_ADDRESS;
+
         try {
-            // get factory contract
-            const factoryContract = await SuperTokenFactoryLogic.at(
-                factoryAddress
-            );
-            const superTokenContract = await SuperToken.at(
-                await factoryContract.getSuperTokenLogic.call()
-            );
-            superfluidNFTDeployerLibraryAddress =
-                await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
-            if (process.env.IS_HARDHAT) {
-                if (superfluidNFTDeployerLibraryAddress !== ZERO_ADDRESS) {
+            // if the library is not deployed, deploy it and link it to SuperToken logic contract
+            if (superfluidNFTDeployerLibraryAddress === ZERO_ADDRESS) {
+                const superfluidNFTDeployerLibrary =
+                    await deployExternalLibraryAndLink(
+                        SuperfluidNFTDeployerLibrary,
+                        "SuperfluidNFTDeployerLibrary",
+                        "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS",
+                        SuperTokenLogic
+                    );
+                superfluidNFTDeployerLibraryAddress =
+                    superfluidNFTDeployerLibrary.address;
+            // else link the preexisting contract
+            } else {
+                if (process.env.IS_HARDHAT) {
                     const lib = await SuperfluidNFTDeployerLibrary.at(
                         superfluidNFTDeployerLibraryAddress
                     );
                     SuperTokenLogic.link(lib);
+                } else {
+                    SuperTokenLogic.link(
+                        "SuperfluidNFTDeployerLibrary",
+                        superfluidNFTDeployerLibraryAddress
+                    );
                 }
-            } else {
-                SuperTokenLogic.link(
-                    "SuperfluidNFTDeployerLibrary",
-                    superfluidNFTDeployerLibraryAddress
-                );
             }
         } catch (e) {
             console.warn(
@@ -690,11 +711,15 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 ConstantOutflowNFT.new,
                 "ConstantOutflowNFT.new"
             )(cfaV1Address);
+            output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS: ${constantOutflowNFTLogic.address}\n`;
+
             // deploy constant inflow nft logic contract
             const constantInflowNFTLogic = await web3tx(
                 ConstantInflowNFT.new,
                 "ConstantInflowNFT.new"
             )(cfaV1Address);
+            output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS: ${constantOutflowNFTLogic.address}\n`;
+
             // deploy super token logic contract
             // it now takes the nft logic contracts as parameters
             const superTokenLogic = useMocks

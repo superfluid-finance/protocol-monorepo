@@ -1,10 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
+
+/*******************************************************************************
+ * On Coding Style: Functional Programming In Solidity
+ *
+ * This library is a translation of the Haskell Specification of Semantic Money.
+ *
+ * All functions are pure functions, more so than the "pure" solidity function
+ * in that memory input data are always cloned. This makes true referential
+ * transparency for all functions defined here.
+ *
+ * To visually inform the library users about this paradigm, the coding style
+ * is deliberately chosen to go against the commonly recommended solhint sets.
+ * Namely:
+ *
+ * - All library and "free range" function names are in snake_cases.
+ * - All struct variables are in snake_cases.
+ * - All types are in capitalized CamelCases.
+ * - Comments are scarce, and written only for solidity specifics. This is to
+ *   minimize regurgitation of the facts and keep original the original
+ *   information where it belongs to. The clarity of the semantics and grunular
+ *   of the API should compensate for that controversial take.
+ */
 // solhint-disable func-name-mixedcase
-// Notes: This library use mixed case functions extensively for monetary types and global functions.
 // solhint-disable var-name-mixedcase
-// Notes: This library use mixed case variables extensively for struct fields.
 
 ////////////////////////////////////////////////////////////////////////////////
 // Monetary Types and Their Helpers
@@ -82,13 +102,13 @@ library AdditionalMonetaryTypeHelpers {
     function div(FlowRate a, Unit b) internal pure returns (FlowRate) {
         return FlowRate.wrap(FlowRate.unwrap(a) / Unit.unwrap(b));
     }
-    function quotRem(FlowRate r, Unit u) internal pure returns (FlowRate nr, FlowRate er) {
+    function quotrem(FlowRate r, Unit u) internal pure returns (FlowRate nr, FlowRate er) {
         // quotient and remainder
         nr = FlowRate.wrap(FlowRate.unwrap(r) / Unit.unwrap(u));
         er = FlowRate.wrap(FlowRate.unwrap(r) % Unit.unwrap(u));
     }
-    function mul_quotRem(FlowRate r, Unit u1, Unit u2) internal pure returns (FlowRate nr, FlowRate er) {
-        return r.mul(u1).quotRem(u2);
+    function mul_quotrem(FlowRate r, Unit u1, Unit u2) internal pure returns (FlowRate nr, FlowRate er) {
+        return r.mul(u1).quotrem(u2);
     }
 }
 using AdditionalMonetaryTypeHelpers for Time global;
@@ -107,6 +127,10 @@ struct BasicParticle {
     Value    settled_value;
     FlowRate flow_rate;
 }
+
+/// Return a monoidal empty value (identity element) for BasicParticle
+// solhint-disable-next-line no-empty-blocks
+function mempty_basic_particle() pure returns (BasicParticle memory) {}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Proportional Distribution Pool Data Structures.
@@ -225,7 +249,11 @@ library SemanticMoney {
         n = b.settle(t).flow1(r);
     }
 
-    function shiftFlow2a(BasicParticle memory a, BasicParticle memory b, FlowRate dr, Time t) internal pure
+    // Note: This note that all shift_flow variants have the same code "shape".
+    //
+    //       This should not be a surprise because they should be one polymorphic function had
+    //       solidity support some sort of parametric polymorphism.
+    function shift_flow2a(BasicParticle memory a, BasicParticle memory b, FlowRate dr, Time t) internal pure
         returns (BasicParticle memory m, BasicParticle memory n)
     {
         BasicParticle memory mempty;
@@ -236,7 +264,9 @@ library SemanticMoney {
         n = b.mappend(b1).mappend(b2);
     }
 
-    function shiftFlow2b(BasicParticle memory a, BasicParticle memory b, FlowRate dr, Time t) internal pure
+    // Note: This is functionally identity to shift_flow2a for (BasicParticle, BasicParticle).
+    //       This is a included to keep fidelity with the specification.
+    function shift_flow2b(BasicParticle memory a, BasicParticle memory b, FlowRate dr, Time t) internal pure
         returns (BasicParticle memory m, BasicParticle memory n)
     {
         BasicParticle memory mempty;
@@ -296,7 +326,7 @@ library SemanticMoney {
         }
     }
 
-    function shiftFlow2b(BasicParticle memory a, PDPoolIndex memory b, FlowRate dr, Time t) internal pure
+    function shift_flow2b(BasicParticle memory a, PDPoolIndex memory b, FlowRate dr, Time t) internal pure
         returns (BasicParticle memory m, PDPoolIndex memory n, FlowRate r1)
     {
         BasicParticle memory mempty;
@@ -352,7 +382,7 @@ library SemanticMoney {
         FlowRate nr = b1s.i.wrapped_particle.flow_rate;
         FlowRate er;
         if (Unit.unwrap(newTotalUnit) != 0) {
-            (nr, er) = nr.mul_quotRem(oldTotalUnit, newTotalUnit);
+            (nr, er) = nr.mul_quotrem(oldTotalUnit, newTotalUnit);
             er = er;
         } else {
             er = nr.mul(oldTotalUnit);
@@ -372,8 +402,3 @@ using SemanticMoney for BasicParticle global;
 using SemanticMoney for PDPoolIndex global;
 using SemanticMoney for PDPoolMember global;
 using SemanticMoney for PDPoolMemberMU global;
-
-/// Return a monoidal empty value for BasicParticle
-function bp_mempty() pure returns (BasicParticle memory)
-// solhint-disable-next-line no-empty-blocks
-{}

@@ -24,6 +24,8 @@ verify-ToySuperToken:
 		--verify ToySuperTokenCertora:certora/ToySuperToken.spec \
 		--packages @openzeppelin=../../node_modules/@openzeppelin @superfluid-finance/solidity-semantic-money/src=src \
 		--solc solc-0.8.19 \
+		--optimistic_loop \
+	 	--loop_iter 3 \
 		$(CERTORA_OPTS)
 
 .PHONY: build-* dev test-* verify-*

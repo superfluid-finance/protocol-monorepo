@@ -7,7 +7,7 @@ import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableS
 import { FlowId, ISuperToken } from "./ISuperToken.sol";
 import {
     Time, Value, FlowRate, Unit,
-    BasicParticle, bp_mempty,
+    BasicParticle, mempty_basic_particle,
     PDPoolIndex, PDPoolMember, PDPoolMemberMU
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
@@ -180,7 +180,7 @@ contract ToySuperToken is ISuperToken {
 
         // Make updates
         FlowRate flowRateDelta = flowRate - flowRates[flowHash];
-        (uIndexes[from], uIndexes[to]) = uIndexes[from].shiftFlow2a(uIndexes[to], flowRateDelta, t);
+        (uIndexes[from], uIndexes[to]) = uIndexes[from].shift_flow2a(uIndexes[to], flowRateDelta, t);
         flowRates[flowHash] = flowRate;
         return true;
     }
@@ -218,7 +218,7 @@ contract ToySuperToken is ISuperToken {
 
         // Make updates
         PDPoolIndex memory pdidx = to.getIndex();
-        (uIndexes[from], pdidx, actualFlowRate) = uIndexes[from].shiftFlow2b
+        (uIndexes[from], pdidx, actualFlowRate) = uIndexes[from].shift_flow2b
             (pdidx, reqFlowRate - flowRates[flowHash], t);
         to.operatorSetIndex(pdidx);
         flowRates[flowHash] = actualFlowRate;

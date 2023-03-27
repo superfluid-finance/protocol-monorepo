@@ -3,6 +3,8 @@
 // flycheck-mode: nil
 // end:
 
+import "Setup.spec"
+
 methods {
     pools(address p) returns (bool) envfree;
     isMemberConnected(address p, address m) returns (bool) envfree;
@@ -14,10 +16,12 @@ methods {
 
     flow(uint32, address a, address b, uint32 i, int128 r) returns (bool);
 
+    getIndex() returns ((int128,(uint32,int256,int128))) => DISPATCHER(true);
+    operatorSetIndex((int128,(uint32,int256,int128))) returns (bool) => DISPATCHER(true);
     getPendingDistribution() returns (int256) => DISPATCHER(true);
     getClaimable(uint32, address) returns (int256) => DISPATCHER(true);
-    operatorSetIndex((int128,(uint32,int256,int128))) returns (bool) => DISPATCHER(true);
     operatorConnectMember(uint32,address,bool) returns (bool) => DISPATCHER(true);
+    absorbParticlesFromPool(address[],(uint32,int256,int128)[]) returns (bool) => DISPATCHER(true);
 }
 
 ghost gh_totalFlowRate() returns int128 {

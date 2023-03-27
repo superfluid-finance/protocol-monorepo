@@ -5,7 +5,7 @@ pragma solidity 0.8.19;
 
 import {
     Time, Value, FlowRate, Unit,
-    BasicParticle, bp_mempty,
+    BasicParticle, mempty_basic_particle,
     PDPoolIndex, PDPoolMember, PDPoolMemberMU
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
@@ -114,7 +114,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         {
             address[] memory addrs = new address[](2);addrs[0] = address(this);addrs[1] = memberAddr;
             BasicParticle[] memory ps = new BasicParticle[](2);
-            (ps[0], ps[1]) = bp_mempty().shift2(bp_mempty(), c);
+            (ps[0], ps[1]) = mempty_basic_particle().shift2(mempty_basic_particle(), c);
             assert(ISuperTokenPoolAdmin(owner()).absorbParticlesFromPool(addrs, ps));
         }
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;

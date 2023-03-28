@@ -1,6 +1,6 @@
-#+title: Streaming Invoice
+#+title: Streaming Invoice Templates
 
-Split your clients' /incoming/ superfluid streams to settle your /outgoing/ invoice.
+A collection of smart contract templates for settling your clients’ /incoming superfluid streams/ against your /outgoing invoices/, aka. *streaming invoice templates*.
 
 * How To Use (Using Etherscan)
 1) Select a suitable invoice template from ~StreamingInvoiceTemplates~ contract.

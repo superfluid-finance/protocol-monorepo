@@ -16,6 +16,7 @@ All notable changes to the SDK-redux will be documented in this file.
 ### Changes
 - Use a simpler type for `initiateNewTransactionTrackingThunk.transactionResponse`
 - Use `wait` from the TransactionResponse to track the transaction more reliably
+- When `trySerializeTransaction` fails, use a warning over an error
 
 ## [0.4.0] - 2022-10-31
 

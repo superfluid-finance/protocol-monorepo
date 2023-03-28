@@ -2,11 +2,13 @@
 pragma solidity >= 0.8.4;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { ISuperTokenPool } from "./ISuperTokenPool.sol";
+import {
+    ISuperTokenPool, ISuperTokenPoolAdmin
+} from "./ISuperTokenPool.sol";
 import {
     Time, FlowRate, Value, Unit,
     BasicParticle
-} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+} from "../SemanticMoney.sol";
 
 
 type FlowId is uint32;
@@ -14,7 +16,7 @@ type FlowId is uint32;
 /**
  * @dev The interface for super token: the ERC20x token that supports generalized payment primitives.
  */
-interface ISuperToken is IERC20 {
+interface ISuperToken is IERC20, ISuperTokenPoolAdmin {
     ////////////////////////////////////////////////////////////////////////////////
     // Generalized Payment Primitives
     ////////////////////////////////////////////////////////////////////////////////
@@ -53,6 +55,9 @@ interface ISuperToken is IERC20 {
     // REVIEW NOTES:
     // - connectPool has implied side effects and claimAll.
 
+    function isPool(address p) external view
+        returns (bool);
+
     function connectPool(ISuperTokenPool to) external
         returns (bool);
 
@@ -62,17 +67,6 @@ interface ISuperToken is IERC20 {
     function connectPool(ISuperTokenPool to, bool doConnect) external
         returns (bool);
 
-    function isMemberConnected(ISuperTokenPool pool, address memberAddr) external view
-        returns (bool);
-
     function getNumConnections(address account) external view
         returns (uint);
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // Pool Owner Operations
-    ////////////////////////////////////////////////////////////////////////////////
-
-    /// This is used by the pool to adjust flow rate
-    function absorbParticlesFromPool(address[] calldata accounts, BasicParticle[] calldata ps) external
-        returns (bool);
 }

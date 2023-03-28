@@ -1,4 +1,5 @@
 TEST_OPTS ?= -vv
+CERTORA_OPTS ?=
 DEV_TARGET ?= test-all
 
 dev:
@@ -18,10 +19,13 @@ test-Aqueduct:
 
 verify-ToySuperToken:
 	certoraRun \
-		src/ref-impl/ToySuperToken.sol:ToySuperTokenPool \
-		src/ref-impl/ToySuperToken.sol:ToySuperToken \
-		--verify ToySuperToken:certora/ToySuperToken.spec \
+		test/ref-impl/ToySuperToken_certora.sol:ToySuperTokenCertora \
+		test/ref-impl/ToySuperToken_certora.sol:ToySuperTokenPoolCertora \
+		--verify ToySuperTokenCertora:certora/ToySuperToken.spec \
 		--packages @openzeppelin=../../node_modules/@openzeppelin @superfluid-finance/solidity-semantic-money/src=src \
-		--solc solc-0.8.19
+		--solc solc-0.8.19 \
+		--optimistic_loop \
+	 	--loop_iter 3 \
+		$(CERTORA_OPTS)
 
 .PHONY: build-* dev test-* verify-*

@@ -5,6 +5,8 @@
 
 import "Setup.spec"
 
+using ToySuperTokenPoolCertora as p1
+
 methods {
     isPool(address p) returns (bool) envfree;
     isMemberConnected(address p, address m) returns (bool) envfree;
@@ -25,27 +27,44 @@ methods {
     absorbParticlesFromPool(address[],(uint32,int256,int128)[]) returns (bool) => DISPATCHER(true);
 }
 
-ghost gh_totalFlowRate() returns int128 {
-    init_state axiom gh_totalFlowRate() == 0;
+ghost totalFlowRate() returns int128 {
+    init_state axiom totalFlowRate() == 0;
 }
 
-hook Sstore _poolFlowRates[KEY address a].(offset 0) int128 r1 (int128 r0) STORAGE {
-    havoc gh_totalFlowRate assuming
-        to_mathint(gh_totalFlowRate@new()) ==
-        to_mathint(gh_totalFlowRate@old()) + (to_mathint(r1) - to_mathint(r0));
+ghost mapping(address => int256) accountFlowRates {
+    init_state axiom forall address owner. accountFlowRates[owner] == 0;
+}
+hook Sstore uIndexes[KEY address owner].flow_rate int128 r1 (int128 r0) STORAGE {
+    havoc totalFlowRate assuming
+        to_mathint(totalFlowRate@new()) ==
+        to_mathint(totalFlowRate@old()) + (to_mathint(r1) - to_mathint(r0));
 }
 
-hook Sstore uIndexes[KEY address a].flow_rate int128 r1 (int128 r0) STORAGE {
-    havoc gh_totalFlowRate assuming
-        to_mathint(gh_totalFlowRate@new()) ==
-        to_mathint(gh_totalFlowRate@old()) + (to_mathint(r1) - to_mathint(r0));
+ghost pool1_UnitFlowRates() returns int128 {
+    init_state axiom pool1_UnitFlowRates() == 0;
+}
+hook Sstore p1._pdpIndex.(offset 96) int128 ur1 (int128 ur0) STORAGE {
+    havoc pool1_UnitFlowRates assuming to_mathint(pool1_UnitFlowRates@new()) == to_mathint(ur1);
+    havoc totalFlowRate assuming to_mathint(totalFlowRate@new()) ==
+        to_mathint(totalFlowRate@old())
+        + (to_mathint(pool1_TotalUnits()) * to_mathint(ur1) - to_mathint(pool1_TotalUnits()) * to_mathint(ur0));
 }
 
-invariant zero_net_flow_rate() gh_totalFlowRate() == 0
+ghost pool1_TotalUnits() returns int128 {
+    init_state axiom pool1_TotalUnits() == 0;
+}
+hook Sstore p1._pdpIndex.(offset 0) int128 u1 (int128 u0) STORAGE {
+    havoc pool1_TotalUnits assuming to_mathint(pool1_TotalUnits@new()) == to_mathint(u1);
+    havoc totalFlowRate assuming to_mathint(totalFlowRate@new()) ==
+        to_mathint(totalFlowRate@old())
+        + (to_mathint(pool1_UnitFlowRates()) * to_mathint(u1) - to_mathint(pool1_UnitFlowRates()) * to_mathint(u0));
+}
+
+invariant zero_net_flow_rate() totalFlowRate() == 0
     filtered { f -> f.selector != 0x57587b39 /* absorbParticlesFromPool(address[],(uint32,int256,int128)[]) */
                && f.selector != operatorSetIndex((int128,(uint32,int256,int128))).selector
                && f.selector != operatorConnectMember(uint32,address,bool).selector }
-//    { preserved { require forall address a. isPool(a) == false; } }
+//{ preserved { require forall address a. (a == p1 && isPool(a) == true) || isPool(a) == false; } }
 
 // rule check_poolless_1to1_flow() {
 //      env e1;

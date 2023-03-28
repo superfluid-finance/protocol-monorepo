@@ -4,7 +4,6 @@ pragma solidity >=0.8.4;
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
 import {
-    SuperTokenPool,
     ISuperTokenPool
 } from "../../superfluid/SuperTokenPool.sol";
 
@@ -21,7 +20,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     // Events
     event DistributionFlowUpdated(
         ISuperfluidToken indexed token,
-        SuperTokenPool indexed pool,
+        ISuperTokenPool indexed pool,
         address indexed distributor,
         uint32 distributedAt,
         int96 oldFlowRate,
@@ -72,12 +71,12 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     function createPool(
         address admin,
         ISuperfluidToken token
-    ) external virtual returns (SuperTokenPool pool);
+    ) external virtual returns (ISuperTokenPool pool);
 
-    // function connectPool(
-    //     ISuperTokenPool pool,
-    //     bytes calldata ctx
-    // ) external virtual returns (bytes memory newCtx);
+    function connectPool(
+        ISuperTokenPool pool,
+        bytes calldata ctx
+    ) external virtual returns (bytes memory newCtx);
 
     function disconnectPool(
         ISuperTokenPool pool,
@@ -101,14 +100,14 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
 
     function distribute(
         ISuperfluidToken token,
-        SuperTokenPool pool,
+        ISuperTokenPool pool,
         uint256 requestedAmount,
         bytes calldata ctx
     ) external virtual returns (bytes memory newCtx);
 
     function distributeFlow(
         ISuperfluidToken token,
-        SuperTokenPool pool,
+        ISuperTokenPool pool,
         int96 requestedFlowRate,
         bytes calldata ctx
     ) external virtual returns (bytes memory newCtx);

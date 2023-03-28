@@ -4,7 +4,8 @@ pragma solidity 0.8.19;
 import "../FoundrySuperfluidTester.sol";
 import { console } from "forge-std/console.sol";
 import {
-    GeneralDistributionAgreementV1
+    GeneralDistributionAgreementV1,
+    IGeneralDistributionAgreementV1
 } from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
 import {
     ISuperfluidToken
@@ -22,15 +23,16 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function setUp() public override {
         super.setUp();
         vm.prank(alice);
-        pool = sf.gda.createPool(alice, superToken);
+        pool = SuperTokenPool(address(sf.gda.createPool(alice, superToken)));
     }
 
     function helper_Connect_Pool(ISuperTokenPool _pool) internal {
         sf.host.callAgreement(
             sf.gda,
-            abi.encodeCall(
-                sf.gda.connectPool,
-                (_pool, true, "")
+            abi.encodeWithSelector(
+                IGeneralDistributionAgreementV1.connectPool.selector,
+                _pool,
+                ""
             ),
             new bytes(0)
         );
@@ -39,10 +41,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function helper_Disonnect_Pool(ISuperTokenPool _pool) internal {
         sf.host.callAgreement(
             sf.gda,
-            abi.encodeCall(
-                sf.gda.disconnectPool,
-                (_pool, "")
-            ),
+            abi.encodeCall(sf.gda.disconnectPool, (_pool, "")),
             new bytes(0)
         );
     }
@@ -50,10 +49,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function helper_Disconnect_Pool(ISuperTokenPool _pool) internal {
         sf.host.callAgreement(
             sf.gda,
-            abi.encodeCall(
-                sf.gda.disconnectPool,
-                (_pool, new bytes(0))
-            ),
+            abi.encodeCall(sf.gda.disconnectPool, (_pool, new bytes(0))),
             new bytes(0)
         );
     }
@@ -90,7 +86,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function test_Create_Pool() public {
         vm.prank(alice);
-        SuperTokenPool localPool = sf.gda.createPool(alice, superToken);
+        SuperTokenPool localPool = SuperTokenPool(
+            address(sf.gda.createPool(alice, superToken))
+        );
     }
 
     function test_Connect_Pool() public {
@@ -167,6 +165,52 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         );
         assert(carolRTB == 50);
     }
+
+    // function test_Distribute_Flow_To_Connected_Member_Then_Distribute_Zero_Flow_Rate() public {
+    //     vm.startPrank(bob);
+    //     helper_Connect_Pool(pool);
+    //     vm.stopPrank();
+
+    //     vm.startPrank(carol);
+    //     helper_Connect_Pool(pool);
+    //     vm.stopPrank();
+
+    //     vm.startPrank(alice);
+    //     pool.updateMember(bob, 1);
+    //     pool.updateMember(carol, 1);
+    //     _helper_Distribute_Flow(superToken, pool, 100);
+    //     vm.stopPrank();
+    //     vm.warp(block.timestamp + 1);
+    //     (int256 bobRTB, , ) = sf.gda.realtimeBalanceOf(
+    //         superToken,
+    //         bob,
+    //         block.timestamp
+    //     );
+    //     assert(bobRTB == 50);
+
+    //     (int256 carolRTB, , ) = sf.gda.realtimeBalanceOf(
+    //         superToken,
+    //         carol,
+    //         block.timestamp
+    //     );
+    //     assert(carolRTB == 50);
+
+    //     _helper_Distribute_Flow(superToken, pool, 0);
+
+    //     (bobRTB, , ) = sf.gda.realtimeBalanceOf(
+    //         superToken,
+    //         bob,
+    //         block.timestamp
+    //     );
+    //     assert(bobRTB == 0);
+
+    //     (carolRTB, , ) = sf.gda.realtimeBalanceOf(
+    //         superToken,
+    //         carol,
+    //         block.timestamp
+    //     );
+    //     assert(carolRTB == 0);
+    // }
 
     function test_Distribute_Flow_To_Unconnected_Member() public {
         vm.startPrank(alice);

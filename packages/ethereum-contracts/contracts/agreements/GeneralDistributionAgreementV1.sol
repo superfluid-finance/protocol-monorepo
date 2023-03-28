@@ -12,24 +12,17 @@ import {
     ContextDefinitions,
     SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import {
-    BasicParticle,
-    PDPoolMember,
-    Value,
-    Time,
-    PDPoolIndex,
-    SemanticMoney,
-    FlowRate,
-    Unit
-} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { SuperTokenPool } from "../superfluid/SuperTokenPool.sol";
 import {
     SuperTokenPoolDeployerLibrary
 } from "../libs/SuperTokenPoolDeployerLibrary.sol";
 import {
-    IGeneralDistributionAgreementV1,
-    ISuperfluidToken
+    IGeneralDistributionAgreementV1
 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
+import {
+    ISuperfluidToken
+} from "../interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperTokenPool } from "../interfaces/superfluid/ISuperTokenPool.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
@@ -113,7 +106,15 @@ contract GeneralDistributionAgreementV1 is
     function getFlowRate(
         address from,
         address to
-    ) external view override returns (int96) {}
+    ) external view override returns (int96) {
+        return (
+            int96(
+                FlowRate.unwrap(
+                    flowRates[_getDistributionFlowId(from, ISuperTokenPool(to))]
+                )
+            )
+        );
+    }
 
     // test view function conditions where net flow rate makes sense given pending distribution
     // balance of the pool will capture pending flow rate
@@ -121,11 +122,15 @@ contract GeneralDistributionAgreementV1 is
     function createPool(
         address admin,
         ISuperfluidToken token
-    ) external override returns (SuperTokenPool pool) {
-        pool = SuperTokenPoolDeployerLibrary.deploy(
-            admin,
-            GeneralDistributionAgreementV1(address(this)),
-            token
+    ) external override returns (ISuperTokenPool pool) {
+        pool = ISuperTokenPool(
+            address(
+                SuperTokenPoolDeployerLibrary.deploy(
+                    admin,
+                    GeneralDistributionAgreementV1(address(this)),
+                    token
+                )
+            )
         );
         pools[pool] = true;
 
@@ -134,10 +139,10 @@ contract GeneralDistributionAgreementV1 is
     }
 
     // @note This is same as approveSubscription
-    function connectPoole(
+    function connectPool(
         ISuperTokenPool pool,
         bytes calldata ctx
-    ) external returns (bytes memory newCtx) {
+    ) external override returns (bytes memory newCtx) {
         return connectPool(pool, true, ctx);
     }
 
@@ -200,7 +205,7 @@ contract GeneralDistributionAgreementV1 is
     // -------- ------------------ ------------------ ------------------
     // WORD 1: |     flowRate     |     settledAt    |       free       |
     // -------- ------------------ ------------------ ------------------
-    //         |       128b       |       32b        |        96b       |
+    //         |        96b       |       32b        |        128b      |
     // -------- ------------------ ------------------ ------------------
     // WORD 2: |                      settledValue                      |
     // -------- ------------------ ------------------ ------------------
@@ -209,7 +214,7 @@ contract GeneralDistributionAgreementV1 is
 
     function _getUniversalIndexId(
         address account
-    ) private pure returns (bytes32) {
+    ) internal pure returns (bytes32) {
         return keccak256(abi.encode("universalIndex", account));
     }
 
@@ -240,7 +245,7 @@ contract GeneralDistributionAgreementV1 is
 
     function distribute(
         ISuperfluidToken token,
-        SuperTokenPool pool,
+        ISuperTokenPool pool,
         uint256 requestedAmount,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
@@ -249,8 +254,9 @@ contract GeneralDistributionAgreementV1 is
         newCtx = ctx;
 
         // msg.sender cannot be equal to pool
+        SuperTokenPool poolContract = SuperTokenPool(address(pool));
 
-        PDPoolIndex memory pdidx = pool.getIndex();
+        PDPoolIndex memory pdidx = poolContract.getIndex();
 
         bytes32 senderUniversalIndexId = _getUniversalIndexId(
             currentContext.msgSender
@@ -266,12 +272,12 @@ contract GeneralDistributionAgreementV1 is
             Value.wrap(int256(requestedAmount))
         );
         _updateUniversalIndex(token, currentContext.msgSender, fromUIndexData);
-        assert(pool.operatorSetIndex(pdidx));
+        assert(poolContract.operatorSetIndex(pdidx));
     }
 
     function distributeFlow(
         ISuperfluidToken token,
-        SuperTokenPool pool,
+        ISuperTokenPool pool,
         int96 requestedFlowRate,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
@@ -295,7 +301,7 @@ contract GeneralDistributionAgreementV1 is
         );
 
         FlowRate oldFlowRate = fromUIndexData.flow_rate.inv();
-        PDPoolIndex memory pdidx = pool.getIndex();
+        PDPoolIndex memory pdidx = SuperTokenPool(address(pool)).getIndex();
 
         FlowRate actualFlowRate;
         (fromUIndexData, pdidx, actualFlowRate) = fromUIndexData.shiftFlow2b(
@@ -304,7 +310,12 @@ contract GeneralDistributionAgreementV1 is
                 flowRates[distributionFlowAddress],
             t
         );
-        pool.operatorSetIndex(pdidx);
+
+        // @note we need to handle the fact that flow rate can be negative here,
+        // leads to some strange behavior when casting to uint and back to int.
+        _updateUniversalIndex(token, currentContext.msgSender, fromUIndexData);
+
+        SuperTokenPool(address(pool)).operatorSetIndex(pdidx);
         {
             flowRates[distributionFlowAddress] =
                 flowRates[distributionFlowAddress] +
@@ -345,25 +356,18 @@ contract GeneralDistributionAgreementV1 is
 
     function _encodeUniversalIndex(
         BasicParticle memory p
-    ) private pure returns (bytes32[] memory data) {
+    ) internal pure returns (bytes32[] memory data) {
         data = new bytes32[](2);
         data[0] = bytes32(
-            (uint256(int256(FlowRate.unwrap(p.flow_rate))) << 128) |
+            (uint256(int256(FlowRate.unwrap(p.flow_rate))) << 160) |
                 (uint256(Time.unwrap(p.settled_at)) << 96)
         );
         data[1] = bytes32(uint256(Value.unwrap(p.settled_value)));
     }
 
-    function _getUniversalIndexData(
-        ISuperfluidToken token,
-        bytes32 universalIndexId
-    ) private view returns (bool exists, BasicParticle memory particle) {
-        bytes32[] memory data = token.getAgreementData(
-            address(this),
-            universalIndexId,
-            2
-        );
-
+    function _decodeUniversalIndexData(
+        bytes32[] memory data
+    ) internal view returns (bool exists, BasicParticle memory particle) {
         uint256 wordA = uint256(data[0]);
         uint256 wordB = uint256(data[1]);
 
@@ -371,11 +375,28 @@ contract GeneralDistributionAgreementV1 is
 
         if (exists) {
             particle = BasicParticle({
+                flow_rate: FlowRate.wrap(
+                    int96(
+                        int256(wordA >> 160) & int256(uint256(type(uint96).max))
+                    )
+                ),
                 settled_at: Time.wrap(uint32(wordA >> 96)),
-                flow_rate: FlowRate.wrap(int96(int256(wordA))),
                 settled_value: Value.wrap(int256(wordB))
             });
         }
+    }
+
+    function _getUniversalIndexData(
+        ISuperfluidToken token,
+        bytes32 universalIndexId
+    ) internal view returns (bool exists, BasicParticle memory particle) {
+        bytes32[] memory data = token.getAgreementData(
+            address(this),
+            universalIndexId,
+            2
+        );
+
+        return _decodeUniversalIndexData(data);
     }
 
     /// @dev Updates Universal Index and emits the UniversalIndexUpdated event
@@ -386,10 +407,12 @@ contract GeneralDistributionAgreementV1 is
         ISuperfluidToken token,
         address account,
         BasicParticle memory particle
-    ) private {
-        bytes32[] memory data = _encodeUniversalIndex(particle);
+    ) internal {
         bytes32 universalIndexId = _getUniversalIndexId(account);
-        token.updateAgreementData(universalIndexId, data);
+        token.updateAgreementData(
+            universalIndexId,
+            _encodeUniversalIndex(particle)
+        );
 
         emit UniversalIndexUpdated(
             token,

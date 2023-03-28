@@ -636,17 +636,21 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         web3,
         SuperTokenFactoryLogic,
         async () => {
+            console.log("checking if SuperTokenFactory needs to be redeployed...");
             // check if super token factory or super token logic changed
             try {
                 if (factoryAddress === ZERO_ADDRESS) return true;
                 const factory = await SuperTokenFactoryLogic.at(factoryAddress);
+                console.log("   factory.getSuperTokenLogic.call()");
                 const superTokenLogicAddress =
                     await factory.getSuperTokenLogic.call();
                 const superTokenLogic = await SuperTokenLogic.at(
                     superTokenLogicAddress
                 );
+                console.log("   superTokenLogic.CONSTANT_OUTFLOW_NFT_LOGIC()");
                 const constantOutflowNFTLogicAddress =
                     await superTokenLogic.CONSTANT_OUTFLOW_NFT_LOGIC();
+                console.log("   superTokenLogic.CONSTANT_INFLOW_NFT_LOGIC()");
                 const constantInflowNFTLogicAddress =
                     await superTokenLogic.CONSTANT_INFLOW_NFT_LOGIC();
                 const superTokenFactoryCodeChanged = await codeChanged(
@@ -686,7 +690,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     superTokenFactoryCodeChanged || superTokenLogicCodeChanged
                 );
             } catch (e) {
-                console.log(e.toString());
+                console.log(`   re-deploying SuperTokenFactory because checks didn't pass ${e.toString()}`);
                 // recreate contract on any errors
                 return true;
             }
@@ -711,14 +715,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 ConstantOutflowNFT.new,
                 "ConstantOutflowNFT.new"
             )(cfaV1Address);
-            output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS: ${constantOutflowNFTLogic.address}\n`;
+            output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${constantOutflowNFTLogic.address}\n`;
 
             // deploy constant inflow nft logic contract
             const constantInflowNFTLogic = await web3tx(
                 ConstantInflowNFT.new,
                 "ConstantInflowNFT.new"
             )(cfaV1Address);
-            output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS: ${constantOutflowNFTLogic.address}\n`;
+            output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS=${constantInflowNFTLogic.address}\n`;
 
             // deploy super token logic contract
             // it now takes the nft logic contracts as parameters
@@ -734,6 +738,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                       constantOutflowNFTLogic.address,
                       constantInflowNFTLogic.address
                   );
+
+            console.log(`SuperToken new logic code address ${superTokenLogic.address}`);
+            output += `SUPER_TOKEN_LOGIC=${superTokenLogic.address}\n`;
+
             superTokenFactoryLogic = await web3tx(
                 SuperTokenFactoryLogic.new,
                 "SuperTokenFactoryLogic.new"

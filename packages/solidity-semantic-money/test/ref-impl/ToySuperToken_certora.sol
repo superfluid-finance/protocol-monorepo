@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.sol";
+import "../../src/ref-impl/ToySuperToken.sol";
 
 
 contract ToySuperTokenPoolCertora is ToySuperTokenPool {

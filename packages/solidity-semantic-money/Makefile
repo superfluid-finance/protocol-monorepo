@@ -26,6 +26,9 @@ verify-ToySuperToken:
 		--solc solc-0.8.19 \
 		--optimistic_loop \
 	 	--loop_iter 3 \
+		--settings -depth=60 \
+		--settings -mediumTimeout=300 \
+		--settings -t=1200 \
 		$(CERTORA_OPTS)
 
 .PHONY: build-* dev test-* verify-*

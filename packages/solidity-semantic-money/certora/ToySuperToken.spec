@@ -34,6 +34,9 @@ ghost totalFlowRate() returns int128 {
 ghost mapping(address => int256) accountFlowRates {
     init_state axiom forall address owner. accountFlowRates[owner] == 0;
 }
+hook Sload int128 r uIndexes[KEY address owner].flow_rate STORAGE {
+    require to_mathint(accountFlowRates[owner]) == to_mathint(r);
+}
 hook Sstore uIndexes[KEY address owner].flow_rate int128 r1 (int128 r0) STORAGE {
     havoc totalFlowRate assuming
         to_mathint(totalFlowRate@new()) ==
@@ -42,6 +45,9 @@ hook Sstore uIndexes[KEY address owner].flow_rate int128 r1 (int128 r0) STORAGE 
 
 ghost pool1_UnitFlowRates() returns int128 {
     init_state axiom pool1_UnitFlowRates() == 0;
+}
+hook Sload int128 ur p1._pdpIndex.(offset 96) STORAGE {
+    require pool1_UnitFlowRates() == ur;
 }
 hook Sstore p1._pdpIndex.(offset 96) int128 ur1 (int128 ur0) STORAGE {
     havoc pool1_UnitFlowRates assuming to_mathint(pool1_UnitFlowRates@new()) == to_mathint(ur1);
@@ -52,6 +58,9 @@ hook Sstore p1._pdpIndex.(offset 96) int128 ur1 (int128 ur0) STORAGE {
 
 ghost pool1_TotalUnits() returns int128 {
     init_state axiom pool1_TotalUnits() == 0;
+}
+hook Sload int128 u p1._pdpIndex.(offset 0) STORAGE {
+    require pool1_TotalUnits() == u;
 }
 hook Sstore p1._pdpIndex.(offset 0) int128 u1 (int128 u0) STORAGE {
     havoc pool1_TotalUnits assuming to_mathint(pool1_TotalUnits@new()) == to_mathint(u1);
@@ -64,6 +73,7 @@ invariant zero_net_flow_rate() totalFlowRate() == 0
     filtered { f -> f.selector != 0x57587b39 /* absorbParticlesFromPool(address[],(uint32,int256,int128)[]) */
                && f.selector != operatorSetIndex((int128,(uint32,int256,int128))).selector
                && f.selector != operatorConnectMember(uint32,address,bool).selector }
+
 //{ preserved { require forall address a. (a == p1 && isPool(a) == true) || isPool(a) == false; } }
 
 // rule check_poolless_1to1_flow() {

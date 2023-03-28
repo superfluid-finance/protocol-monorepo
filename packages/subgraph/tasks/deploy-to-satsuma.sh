@@ -15,6 +15,10 @@
 
 graph="../../node_modules/@graphprotocol/graph-cli"
 
+# prepare the manifest before deploying to satsuma
+./tasks/prepare-manifest.sh $2
+
+# deploy to satsuma
 graph deploy $2 \
     --version-label $1 \
     --node https://app.satsuma.xyz/api/subgraphs/deploy \

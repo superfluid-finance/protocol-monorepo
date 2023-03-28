@@ -4,6 +4,9 @@ All notable changes to the SDK-redux will be documented in this file.
 ## [Unreleased]
 
 ### Breaking
+- Handle replaced transaction tracking
+
+### Breaking
 - Rename `signer` to `signerAddress`
 - Removed `waitForConfirmation`
 

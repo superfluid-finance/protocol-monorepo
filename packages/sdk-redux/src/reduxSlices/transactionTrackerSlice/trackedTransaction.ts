@@ -2,7 +2,7 @@ import {ethers} from 'ethers';
 
 import {TransactionTitle} from './transactionTitle';
 
-export type TransactionStatus = 'Pending' | 'Succeeded' | 'Failed' | 'Unknown';
+export type TransactionStatus = 'Pending' | 'Succeeded' | 'Failed' | 'Replaced' | 'Unknown';
 
 // "Redux" stuff needs to be serializable. Blockchain transaction object is unserializable.
 export interface TrackedTransaction {

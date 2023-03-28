@@ -15,6 +15,8 @@ import {TransactionTrackerReducer, transactionTrackerSlicePrefix} from '../trans
 import {trySerializeTransaction} from '../trySerializeTransaction';
 import {waitForOneConfirmation} from '../waitForOneConfirmation';
 
+import {initiateNewTransactionTrackingThunk} from './initiateNewTransactionTrackingThunk';
+
 /**
  * Used for tracking a transaction that has already been put into the redux store.
  */
@@ -89,7 +91,36 @@ export const trackPendingTransactionThunk = createAsyncThunk<
                 });
             })
             .catch((ethersError: EthersError) => {
-                notifyOfError(ethersError, {chainId, hash: transactionHash}, dispatch);
+                // Read more:
+                // https://docs.ethers.org/v5/api/providers/types/#providers-TransactionResponse
+                // https://docs.ethers.org/v5/api/utils/logger/#errors--transaction-replaced
+                if (ethersError?.replacement) {
+                    // Mark replaced transaction as replaced.
+                    dispatch(
+                        getTransactionTrackerSlice().actions.updateTransaction({
+                            id: transactionHash,
+                            changes: {
+                                status: 'Replaced',
+                                ethersErrorCode: ethersError.code,
+                                ethersErrorMessage: ethersError.message,
+                            },
+                        })
+                    );
+
+                    // Track the new transaction.
+                    dispatch(
+                        initiateNewTransactionTrackingThunk({
+                            chainId,
+                            transactionResponse: ethersError.replacement,
+                            // Carry over the data from the replaced transaction:
+                            signerAddress: transaction.signerAddress,
+                            title: transaction.title,
+                            extraData: transaction.extraData,
+                        })
+                    );
+                } else {
+                    notifyOfError(ethersError, {chainId, hash: transactionHash}, dispatch);
+                }
             });
     }
 );

@@ -1,6 +1,6 @@
-#+title: Streaming Invoice Templates
+#+title:  Auto Unwrap Helper Contract Templates MVP
 
-A collection of smart contract templates for settling your clients’ /incoming superfluid streams/ against your /outgoing invoices/, aka. *streaming invoice templates*.
+A collection of smart contract templates for settling incoming superfluid streams to deposit & exchange addresses through super token unwrapping.
 
 * How To Use (Using Etherscan)
 1) Select a suitable invoice template from ~StreamingInvoiceTemplates~ contract.

@@ -1,7 +1,8 @@
 import {createAsyncThunk} from '@reduxjs/toolkit';
-import {ethers, Transaction} from 'ethers';
+import {ethers} from 'ethers';
 
 import {getTransactionTrackerSlice} from '../../../sdkReduxConfig';
+import {NewTransactionResponse} from '../registerNewTransaction';
 import {TransactionTitle} from '../transactionTitle';
 import {transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
 import {trySerializeTransaction} from '../trySerializeTransaction';
@@ -16,7 +17,7 @@ export const initiateNewTransactionTrackingThunk = createAsyncThunk<
     {
         chainId: number;
         // NOTE: Using simpler type that TransactionResponse which is not returned when the TX is sent "unchecked".
-        transactionResponse: {hash: string} & Transaction;
+        transactionResponse: NewTransactionResponse;
         signerAddress: string;
         title: TransactionTitle;
         extraData: Record<string, unknown>;
@@ -39,5 +40,5 @@ export const initiateNewTransactionTrackingThunk = createAsyncThunk<
         })
     );
 
-    dispatch(trackPendingTransactionThunk({transactionHash, chainId: arg.chainId}));
+    dispatch(trackPendingTransactionThunk({transactionHash, chainId: arg.chainId, wait: arg.transactionResponse.wait}));
 });

@@ -4,14 +4,16 @@ All notable changes to the SDK-redux will be documented in this file.
 ## [Unreleased]
 
 ### Breaking
-- Handle replaced transaction tracking
+- Handle replaced/repriced transaction tracking
 
 ### Breaking
 - Rename `signer` to `signerAddress`
 - Removed `waitForConfirmation`
+- Don't export `waitForOneConfirmation`
 
 ### Changes
 - Use a simpler type for `initiateNewTransactionTrackingThunk.transactionResponse`
+- Use `wait` from the TransactionResponse to track the transaction more reliably
 
 ## [0.4.0] - 2022-10-31
 

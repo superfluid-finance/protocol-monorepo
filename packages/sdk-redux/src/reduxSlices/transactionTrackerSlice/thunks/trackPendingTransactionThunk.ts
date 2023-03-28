@@ -10,10 +10,10 @@ import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 import {createGeneralTags} from '../../rtkQuery/cacheTags/CacheTagTypes';
 import {EthersError} from '../ethersError';
+import {NewTransactionResponse} from '../registerNewTransaction';
 import {transactionTrackerSelectors} from '../transactionTrackerAdapter';
 import {TransactionTrackerReducer, transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
 import {trySerializeTransaction} from '../trySerializeTransaction';
-import {waitForOneConfirmation} from '../waitForOneConfirmation';
 
 import {initiateNewTransactionTrackingThunk} from './initiateNewTransactionTrackingThunk';
 
@@ -25,10 +25,11 @@ export const trackPendingTransactionThunk = createAsyncThunk<
     {
         chainId: number;
         transactionHash: string;
+        wait?: NewTransactionResponse['wait'];
     }
 >(
     `${transactionTrackerSlicePrefix}/trackPendingTransaction`,
-    async ({chainId, transactionHash}, {getState, dispatch}) => {
+    async ({chainId, transactionHash, wait}, {getState, dispatch}) => {
         const state = getState() as {[transactionTrackerSlicePrefix]: TransactionTrackerReducer};
 
         const transaction = transactionTrackerSelectors.selectById(state, transactionHash);
@@ -37,8 +38,11 @@ export const trackPendingTransactionThunk = createAsyncThunk<
         }
 
         const framework = await getFramework(chainId);
+        const waitForOneConfirmation = wait
+            ? () => wait(1)
+            : () => framework.settings.provider.waitForTransaction(transactionHash, 1, MillisecondTimes.TenMinutes);
 
-        await waitForOneConfirmation(framework.settings.provider, transactionHash)
+        await waitForOneConfirmation()
             .then(async (transactionReceipt: ethers.providers.TransactionReceipt) => {
                 // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
 

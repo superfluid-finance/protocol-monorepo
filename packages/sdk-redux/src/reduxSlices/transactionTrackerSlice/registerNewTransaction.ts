@@ -1,8 +1,13 @@
 import {ThunkDispatch} from '@reduxjs/toolkit';
-import {ethers} from 'ethers';
+import {ethers, Transaction} from 'ethers';
 
 import {initiateNewTransactionTrackingThunk} from './thunks/initiateNewTransactionTrackingThunk';
 import {TransactionTitle} from './transactionTitle';
+
+/**
+ * A simpler TransactionResponse type, similar to wagmi's SendTransactionResult,
+ */
+export type NewTransactionResponse = Pick<ethers.providers.TransactionResponse, 'hash' | 'wait'> & Transaction;
 
 export interface RegisterNewTransactionArg {
     /**

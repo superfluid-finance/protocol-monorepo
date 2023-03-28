@@ -3,6 +3,8 @@ All notable changes to the SDK-redux will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.0] - 2023-03-29
+
 ### Breaking
 - Handle replaced/repriced transaction tracking
 

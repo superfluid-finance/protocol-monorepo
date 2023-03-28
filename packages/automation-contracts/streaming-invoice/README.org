@@ -1,0 +1,33 @@
+#+title: Streaming Invoice
+
+Split your clients' /incoming/ superfluid streams to settle your /outgoing/ invoice.
+
+* How To Use (Using Etherscan)
+1) Select a suitable invoice template from ~StreamingInvoiceTemplates~ contract.
+2) Invoke its template factory function, e.g. ~createGenericInvoice~, from Etherscan.
+   a) Obtain the address of the instance of the template from the UI (e.g. event log).
+   b) Make sure set the invoice target address to your treasury address, such as coinbase deposit address.
+3) Request your client to send a /Superfluid Stream/ to the streaming invoice contract.
+4) Invoke a ~settleInvoice~ method from the streaming invoice contract.
+5) Watch your money go up.
+* Web3 APIs
+** Contract: StreamingInvoiceTemplates
+*** Method: ~createGenericStreamingInvoice~
+- Description: create a new ~GenericServiceInvoice~
+- Parameters:
+  - description: description of the invoice.
+  - payee: destination address for the receivable tokens.
+  - amount: receivable amount for the invoice.
+  - unwrap: should the contract unwrap the super token before withdrawn.
+  - token: accepted super token address.
+  - admin: the designated invoice admin, along with the ~msg.sender~.
+- Logs:
+  ~GenericServiceInvoiceCreated(address invoice)~
+** Contract: GenericStreamingInvoice
+*** Requirements:
+1) Any address can send a superfluid stream to the invoice.
+2) Only designated super tokens can be withdrawn, unwrapped (optionally) and sent to the payee.
+3) Any other tokens can be withdrawn by the admins.
+4) Any excess amount of the designated super tokens can be withdrawn by the admins.
+*** Method: ~withdraw~
+- Description: withdraw the designated super token to the payee up to the designated amount accumulatively.

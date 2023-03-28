@@ -10,8 +10,21 @@ Split your clients' /incoming/ superfluid streams to settle your /outgoing/ invo
 3) Request your client to send a /Superfluid Stream/ to the streaming invoice contract.
 4) Invoke a ~settleInvoice~ method from the streaming invoice contract.
 5) Watch your money go up.
+* How To Use (Using Request Finance Streaming Invoice)
+1) Invoke ~createSuperTokenLounge~ using ~StreamingInvoiceTemplates~ contract (e.g. using Etherscan).
+2) Setup a request finance streaming invoice that sends to the lounge contract per the [[https://mirror.xyz/theaccountantquits.eth/a3EumIvAY-fW9yziaO1s-Yeka8n_qVCOOLUCyeSPbvs][guide]].
+3) Invoke ~releaseAll~ from ~SuperTokenLounge~ (e.g. using Etherscan).
 * Web3 APIs
 ** Contract: StreamingInvoiceTemplates
+*** Method: ~createSuperTokenLounge~
+- Description: create a simple SuperTokenLounge where all your super tokens will be unwrapped to a destination.
+- Parameters:
+  - Description: description of the invoice.
+  - Payee: destination address for the receivable tokens.
+  - token: accepted super token address.
+  - admin: the designated invoice admin, along with the ~msg.sender~.
+- Logs:
+  ~SuperTokenLoungeCreated(address lounge)~
 *** Method: ~createGenericStreamingInvoice~
 - Description: create a new ~GenericServiceInvoice~
 - Parameters:
@@ -23,6 +36,12 @@ Split your clients' /incoming/ superfluid streams to settle your /outgoing/ invo
   - admin: the designated invoice admin, along with the ~msg.sender~.
 - Logs:
   ~GenericServiceInvoiceCreated(address invoice)~
+** Contract: SuperTokenLounge
+*** Requirements:
+1) Anyone can unwrap designated super tokens to payee any time.
+2) Admins can withdraw any other ERC20s to the invoice admin any time.
+*** Method: ~releaseAll~
+- Description: release the designated super tokens to payee unwrapped.
 ** Contract: GenericStreamingInvoice
 *** Requirements:
 1) Any address can send a superfluid stream to the invoice.

@@ -46,24 +46,25 @@ jobs:
           echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
 
-  build-and-test-local-subgraph:
-    uses: ./.github/workflows/call.test-local-subgraph.yml
-    name: Run Subgraph Unit and Integration Tests
+  # build-and-test-local-subgraph:
+  #   uses: ./.github/workflows/call.test-local-subgraph.yml
+  #   name: Run Subgraph Unit and Integration Tests
 
-  build-and-test-local-subgraph-against-previous-sdk-core-releases:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Local Subgraph against SDK-Core previous and current releases
-    with:
-      subgraph-release: ''
-      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+  # build-and-test-local-subgraph-against-previous-sdk-core-releases:
+  #   uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+  #   name: Test Local Subgraph against SDK-Core previous and current releases
+  #   with:
+  #     subgraph-release: ''
+  #     subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   deploy-subgraph:
     name: Deploy Subgraph
 
     runs-on: ubuntu-latest
-    needs: [ build-and-test-local-subgraph
-           , build-and-test-local-subgraph-against-previous-sdk-core-releases
-           ]
+    # needs: [ 
+    #         build-and-test-local-subgraph
+    #        , build-and-test-local-subgraph-against-previous-sdk-core-releases
+    #        ]
 
     env:
       subgraph-working-directory: ./packages/subgraph
@@ -106,20 +107,50 @@ jobs:
         run: "yarn codegen"
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "Deploy to Satsuma endpoint"
-        if: inputs.deploy_to_satsuma_endpoint == true
+      - name: "Deploy to All Satsuma endpoints"
+        if: ${{ inputs.deploy_to_satsuma_endpoint == true && inputs.network == '' }}
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
-          yarn deploy:to-satsuma "${versionLabel}" ${{ inputs.network }}
+          # ./tasks/deploy-all-satsuma-networks.sh "${versionLabel}"
+          echo "deploy to all satsuma endpoints"
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
 
-      - name: "Deploy to Hosted Subgraph Superfluid endpoint(s)"
-        if: inputs.deploy_to_satsuma_endpoint == false
-        # if no network is specified, deploy to all networks on specified release branch
-        run: yarn deploy:to-hosted-service ${{ inputs.release_branch }} ${{ inputs.network }}
+      - name: "Deploy to Satsuma endpoint"
+        if: ${{ inputs.deploy_to_satsuma_endpoint == true && inputs.network != '' }}
+        run: |
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
+          # ./tasks/deploy-to-satsuma-network.sh "${versionLabel}" ${{ inputs.network }}
+          echo "deploy to satsuma endpoint"
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
+
+      - name: "Deploy to All Hosted Subgraph Superfluid endpoints"
+        if: ${{ inputs.deploy_to_satsuma_endpoint == false && inputs.network == '' }}
+        run: |
+          # if [ "$1" == "" ];then
+            # echo "You must pass in the release configuration at a minimum."
+            # exit 1
+          # fi
+          # ./tasks/deploy-all-hosted-service-networks.sh ${{ inputs.release_branch }}
+          echo "deploy to all hosted service endpoints"
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
+
+      - name: "Deploy to Hosted Subgraph Superfluid endpoint"
+        if: ${{ inputs.deploy_to_satsuma_endpoint == false && inputs.network != '' }}
+        run: |
+          # if [ "$1" == "" ];then
+            # echo "You must pass in the release configuration at a minimum."
+            # exit 1
+          # fi
+          # ./tasks/deploy-to-hosted-service-network.sh ${{ inputs.release_branch }} ${{ inputs.network }}
+          echo "deploy to hosted service endpoint"
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}

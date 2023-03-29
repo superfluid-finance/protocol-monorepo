@@ -1,0 +1,55 @@
+# Handler Workflow Summary
+# This handler workflow file can be used to deploy our production subgraphs.
+# It will deploy to all networks on both the Hosted Service and Satsuma.
+# This takes a satsuma_version_label and will set it for all networks on Satsuma.
+# When we add a new hosted solution (self-hosted, graph studio), we should create a
+# new call.deploy-<solution>-subgraph.yml file and add it here.
+
+name: Handler | Deploy Production Subgraph
+env:
+  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      satsuma_version_label:
+        required: true
+        type: string
+        description: 'The version label for Satsuma endpoint (e.g. v0.0.x)'
+jobs:
+  build-and-test-local-subgraph:
+    uses: ./.github/workflows/call.test-local-subgraph.yml
+    name: Run Subgraph Unit and Integration Tests
+
+  build-and-test-local-subgraph-against-previous-sdk-core-releases:
+    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+    name: Test Local Subgraph against SDK-Core previous and current releases
+    with:
+      subgraph-release: ''
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+
+  deploy-hosted-service-subgraph:
+    uses: ./.github/workflows/call.deploy-hosted-service-subgraph.yml
+    needs: [ 
+            build-and-test-local-subgraph
+           , build-and-test-local-subgraph-against-previous-sdk-core-releases
+           ]
+    name: Deploy Hosted Service Subgraph
+    with:
+      release_branch: "v1"
+      network: ""
+    secrets:
+      THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
+
+  deploy-satsuma-subgraph:
+    uses: ./.github/workflows/call.deploy-satsuma-subgraph.yml
+    needs: [ 
+            build-and-test-local-subgraph
+           , build-and-test-local-subgraph-against-previous-sdk-core-releases
+           ]
+    name: Deploy Satsuma Subgraph
+    with:
+      satsuma_version_label: ${{ github.event.inputs.satsuma_version_label }}
+      network: ""
+    secrets:
+      SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

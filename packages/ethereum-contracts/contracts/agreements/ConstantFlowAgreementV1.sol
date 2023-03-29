@@ -474,11 +474,15 @@ contract ConstantFlowAgreementV1 is
         uint256 gasLeftBefore = gasleft();
     
         try
-            ISuperToken(address(flowVars.token)).constantOutflowNFT().onCreate{
-                gas: CFA_HOOK_GAS_LIMIT
-            }(flowVars.sender, flowVars.receiver)
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onCreate(
+                flowVars.token,
+                flowVars.sender,
+                flowVars.receiver
+            )
         // solhint-disable-next-line no-empty-blocks
-        {} catch {
+        {
+
+        } catch {
             SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
         }
     }
@@ -515,7 +519,7 @@ contract ConstantFlowAgreementV1 is
         try
             ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate{
                 gas: CFA_HOOK_GAS_LIMIT
-            }(flowVars.sender, flowVars.receiver)
+            }(flowVars.token, flowVars.sender, flowVars.receiver)
         // solhint-disable-next-line no-empty-blocks
         {} catch {
             SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
@@ -636,7 +640,7 @@ contract ConstantFlowAgreementV1 is
         try
             ISuperToken(address(flowVars.token)).constantOutflowNFT().onDelete{
                 gas: CFA_HOOK_GAS_LIMIT
-            }(flowVars.sender, flowVars.receiver)
+            }(flowVars.token, flowVars.sender, flowVars.receiver)
         // solhint-disable-next-line no-empty-blocks
         {} catch {
             SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);

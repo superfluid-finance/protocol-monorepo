@@ -1,9 +1,23 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
-
-import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { ConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
-import { ConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import {
+    UUPSProxiable
+} from "../../../contracts/upgradability/UUPSProxiable.sol";
+import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import {
+    ISuperfluid
+} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+import {
+    IConstantFlowAgreementV1
+} from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    ConstantOutflowNFT,
+    IConstantOutflowNFT
+} from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
+import {
+    ConstantInflowNFT,
+    IConstantInflowNFT
+} from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     constructor(IConstantFlowAgreementV1 _cfaV1) ConstantOutflowNFT(_cfaV1) {}
@@ -28,11 +42,7 @@ contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     }
 
     /// @dev This exposes the _tokenApprovals storage without the requireMinted call
-    function mockGetApproved(uint256 _tokenId)
-        public
-        view
-        returns (address)
-    {
+    function mockGetApproved(uint256 _tokenId) public view returns (address) {
         return _tokenApprovals[_tokenId];
     }
 }
@@ -63,11 +73,26 @@ contract ConstantInflowNFTMock is ConstantInflowNFT {
     }
 
     /// @dev This exposes the _tokenApprovals storage without the requireMinted call
-    function mockGetApproved(uint256 _tokenId)
-        public
-        view
-        returns (address)
-    {
+    function mockGetApproved(uint256 _tokenId) public view returns (address) {
         return _tokenApprovals[_tokenId];
+    }
+}
+
+/// @title NFTFreeRiderSuperToken
+/// @author Superfluid
+/// @notice This SuperToken arbitrarily sets the ConstantOutflowNFT and ConstantInflowNFT proxies
+contract NFTFreeRiderSuperToken is SuperToken {
+    constructor(
+        ISuperfluid host,
+        IConstantOutflowNFT outflowNFTLogic,
+        IConstantInflowNFT inflowNFTLogic
+    ) SuperToken(host, outflowNFTLogic, inflowNFTLogic) {}
+
+    function setNFTProxyContractsArbitrarily(
+        IConstantOutflowNFT outflowNFTProxy,
+        IConstantInflowNFT inflowNFTProxy
+    ) external {
+        constantOutflowNFT = outflowNFTProxy;
+        constantInflowNFT = inflowNFTProxy;
     }
 }

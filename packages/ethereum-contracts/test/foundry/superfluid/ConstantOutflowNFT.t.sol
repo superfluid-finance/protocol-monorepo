@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {
     IERC165,
     IERC721,
@@ -10,8 +11,12 @@ import {
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import {
     FlowNFTBase,
-    ConstantOutflowNFT
+    ConstantOutflowNFT,
+    IConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
+import {
+    ConstantInflowNFT
+} from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import {
     CFAv1Library,
     FoundrySuperfluidTester
@@ -20,10 +25,18 @@ import {
     IFlowNFTBase
 } from "../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
 import { FlowNFTBaseTest } from "./FlowNFTBase.t.sol";
-import { ConstantOutflowNFTMock } from "./CFAv1NFTMock.t.sol";
+import {
+    ConstantOutflowNFTMock,
+    NFTFreeRiderSuperToken
+} from "./CFAv1NFTMock.t.sol";
+import { TestToken } from "../../../contracts/utils/TestToken.sol";
+import {
+    SuperTokenV1Library
+} from "../../../contracts/apps/SuperTokenV1Library.sol";
 
 contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     using CFAv1Library for CFAv1Library.InitData;
+    using SuperTokenV1Library for NFTFreeRiderSuperToken;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     Revert Tests
@@ -64,7 +77,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     ) public {
         uint256 nftId = helper_Get_NFT_ID(address(0), _flowReceiver);
         vm.expectRevert(
-            ConstantOutflowNFT.COF_NFT_MINT_TO_ZERO_ADDRESS.selector
+            IConstantOutflowNFT.COF_NFT_MINT_TO_ZERO_ADDRESS.selector
         );
         constantOutflowNFTProxy.mockMint(address(0), _flowReceiver, nftId);
     }
@@ -81,7 +94,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
         vm.expectRevert(
-            ConstantOutflowNFT.COF_NFT_TOKEN_ALREADY_EXISTS.selector
+            IConstantOutflowNFT.COF_NFT_TOKEN_ALREADY_EXISTS.selector
         );
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
     }
@@ -93,7 +106,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
 
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowSender);
         vm.expectRevert(
-            ConstantOutflowNFT.COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME.selector
+            IConstantOutflowNFT.COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME.selector
         );
         constantOutflowNFTProxy.mockMint(_flowSender, _flowSender, nftId);
     }
@@ -267,9 +280,9 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         address caller
     ) public {
         assume_Caller_Is_Not_Other_Address(caller, address(sf.cfa));
-        vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
+        vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
         vm.prank(caller);
-        constantOutflowNFTProxy.onCreate(address(1), address(2));
+        constantOutflowNFTProxy.onCreate(superToken, address(1), address(2));
     }
 
     function test_Fuzz_Revert_If_On_Update_Is_Not_Called_By_CFAv1(
@@ -277,8 +290,8 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     ) public {
         assume_Caller_Is_Not_Other_Address(caller, address(sf.cfa));
         vm.prank(caller);
-        vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
-        constantOutflowNFTProxy.onUpdate(address(1), address(2));
+        vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
+        constantOutflowNFTProxy.onUpdate(superToken, address(1), address(2));
     }
 
     function test_Fuzz_Revert_If_On_Delete_Is_Not_Called_By_CFAv1(
@@ -286,9 +299,84 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     ) public {
         assume_Caller_Is_Not_Other_Address(caller, address(sf.cfa));
         vm.prank(caller);
-        vm.expectRevert(ConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
-        constantOutflowNFTProxy.onDelete(address(1), address(2));
+        vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
+        constantOutflowNFTProxy.onDelete(superToken, address(1), address(2));
     }
+
+    function helper_Create_Bad_Super_Token() public returns (NFTFreeRiderSuperToken nftFreeRiderToken) {
+        uint256 initialAmount = 10000 ether;
+        TestToken testToken = new TestToken("Test", "TS", 18, initialAmount);
+        // we deploy mock NFT contracts for the tests to access internal functions
+        ConstantOutflowNFT constantOutflowNFTLogics = new ConstantOutflowNFT(
+            sf.cfa
+        );
+        ConstantInflowNFT constantInflowNFTLogics = new ConstantInflowNFT(
+            sf.cfa
+        );
+        nftFreeRiderToken = new NFTFreeRiderSuperToken(
+            sf.host,
+            constantOutflowNFTLogics,
+            constantInflowNFTLogics
+        );
+        nftFreeRiderToken.initialize(IERC20(testToken), 18, "Super Test", "TSx");
+        nftFreeRiderToken.setNFTProxyContractsArbitrarily(
+            superToken.constantOutflowNFT(),
+            superToken.constantInflowNFT()
+        );
+    }
+
+    function test_Fuzz_Revert_If_On_Create_Is_Called_By_Bad_Super_Token() public {
+        NFTFreeRiderSuperToken nftFreeRiderToken = helper_Create_Bad_Super_Token();
+        vm.expectRevert(IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector);
+        vm.startPrank(address(sf.cfa));
+        constantOutflowNFTProxy.onCreate(nftFreeRiderToken, address(1), address(2));
+        vm.stopPrank();
+    }
+    function test_Fuzz_Revert_If_On_Update_Is_Called_By_Bad_Super_Token() public {
+        NFTFreeRiderSuperToken nftFreeRiderToken = helper_Create_Bad_Super_Token();
+        vm.expectRevert(IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector);
+        vm.startPrank(address(sf.cfa));
+        constantOutflowNFTProxy.onUpdate(nftFreeRiderToken, address(1), address(2));
+        vm.stopPrank();
+    }
+    function test_Fuzz_Revert_If_On_Delete_Is_Called_By_Bad_Super_Token() public {
+        NFTFreeRiderSuperToken nftFreeRiderToken = helper_Create_Bad_Super_Token();
+        vm.expectRevert(IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector);
+        vm.startPrank(address(sf.cfa));
+        constantOutflowNFTProxy.onDelete(nftFreeRiderToken, address(1), address(2));
+        vm.stopPrank();
+    }
+    
+    // @note This function does not revert unless you comment out the try/catch in ConstantFlowAgreementV1.sol
+    // function test_Revert_If_Free_Rider_NFT_Attempts_To_Create_Flow() public {
+    //     uint256 initialAmount = 10000 ether;
+    //     TestToken testToken = new TestToken("Test", "TS", 18, initialAmount);
+    //     // we deploy mock NFT contracts for the tests to access internal functions
+    //     ConstantOutflowNFT constantOutflowNFTLogics = new ConstantOutflowNFT(
+    //         sf.cfa
+    //     );
+    //     ConstantInflowNFT constantInflowNFTLogics = new ConstantInflowNFT(
+    //         sf.cfa
+    //     );
+    //     NFTFreeRiderSuperToken nftFreeRiderToken = new NFTFreeRiderSuperToken(
+    //         sf.host,
+    //         constantOutflowNFTLogics,
+    //         constantInflowNFTLogics
+    //     );
+    //     nftFreeRiderToken.initialize(IERC20(testToken), 18, "Super Test", "TSx");
+    //     nftFreeRiderToken.setNFTProxyContractsArbitrarily(
+    //         superToken.constantOutflowNFT(),
+    //         superToken.constantInflowNFT()
+    //     );
+    //     vm.startPrank(alice);
+    //     testToken.mint(alice, initialAmount);
+    //     testToken.approve(address(nftFreeRiderToken), initialAmount);
+    //     nftFreeRiderToken.upgrade(initialAmount);
+    //     // vm.expectRevert(IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector);
+    //     sf.cfaLib.createFlow(bob, nftFreeRiderToken, 1);
+
+    //     vm.stopPrank();
+    // }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     Passing Tests

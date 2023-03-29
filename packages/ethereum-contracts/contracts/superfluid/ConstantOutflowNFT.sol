@@ -2,7 +2,7 @@
 // solhint-disable not-rely-on-time
 pragma solidity 0.8.19;
 
-import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
+import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
@@ -23,16 +23,6 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// FlowNFTData: { address flowSender, uint32 flowStartDate, address flowReceiver}
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
     mapping(uint256 => FlowNFTData) internal _flowDataByTokenId;
-
-    /**************************************************************************
-     * Custom Errors
-     *************************************************************************/
-
-    error COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME(); // 0x0d1d1161
-    error COF_NFT_MINT_TO_ZERO_ADDRESS();           // 0x43d05e51
-    error COF_NFT_ONLY_CONSTANT_INFLOW();           // 0xa495a718
-    error COF_NFT_ONLY_CFA();                       // 0x054fae59
-    error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
 
     // solhint-disable-next-line no-empty-blocks
     constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}
@@ -65,9 +55,11 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @param flowReceiver the flow receiver
     /// NOTE: We do an existence check in here to determine whether or not to execute the hook
     function onCreate(
+        ISuperfluidToken superToken_,
         address flowSender,
         address flowReceiver
     ) external onlyFlowAgreements {
+        if (address(superToken_) != address(superToken)) revert COF_NFT_INVALID_SUPER_TOKEN();
         uint256 newTokenId = _getTokenId(flowSender, flowReceiver);
         if (_flowDataByTokenId[newTokenId].flowSender == address(0)) {
             _mint(flowSender, flowReceiver, newTokenId);
@@ -84,9 +76,11 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @param flowReceiver the flow receiver
     /// NOTE: We do an existence check in here to determine whether or not to execute the hook
     function onUpdate(
+        ISuperfluidToken superToken_,
         address flowSender,
         address flowReceiver
     ) external onlyFlowAgreements {
+        if (address(superToken_) != address(superToken)) revert COF_NFT_INVALID_SUPER_TOKEN();
         uint256 tokenId = _getTokenId(flowSender, flowReceiver);
         if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
             _triggerMetadataUpdate(tokenId);
@@ -103,9 +97,11 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @param flowReceiver the flow receiver
     /// NOTE: We do an existence check in here to determine whether or not to execute the hook
     function onDelete(
+        ISuperfluidToken superToken_,
         address flowSender,
         address flowReceiver
     ) external onlyFlowAgreements {
+        if (address(superToken_) != address(superToken)) revert COF_NFT_INVALID_SUPER_TOKEN();
         uint256 tokenId = _getTokenId(flowSender, flowReceiver);
         if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
             // must "burn" inflow NFT first because we clear storage when burning outflow NFT

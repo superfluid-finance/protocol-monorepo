@@ -18,10 +18,6 @@ import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 /// @notice The ConstantInflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract does not hold any storage, but references the ConstantOutflowNFT contract storage.
 contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
-    /**************************************************************************
-     * Custom Errors
-     *************************************************************************/
-    error CIF_NFT_ONLY_CONSTANT_OUTFLOW(); // 0xe81ef57a
 
     // solhint-disable-next-line no-empty-blocks
     constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}

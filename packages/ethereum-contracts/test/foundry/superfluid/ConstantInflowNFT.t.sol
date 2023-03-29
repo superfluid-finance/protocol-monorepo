@@ -14,7 +14,8 @@ import {
 } from "../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
 import {
     FlowNFTBase,
-    ConstantInflowNFT
+    ConstantInflowNFT,
+    IConstantInflowNFT
 } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { FlowNFTBaseTest } from "./FlowNFTBase.t.sol";
 
@@ -210,7 +211,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
             address(constantOutflowNFTProxy)
         );
         vm.expectRevert(
-            ConstantInflowNFT.CIF_NFT_ONLY_CONSTANT_OUTFLOW.selector
+            IConstantInflowNFT.CIF_NFT_ONLY_CONSTANT_OUTFLOW.selector
         );
         constantInflowNFTProxy.mint(address(0), 69);
     }
@@ -223,7 +224,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
             address(constantOutflowNFTProxy)
         );
         vm.expectRevert(
-            ConstantInflowNFT.CIF_NFT_ONLY_CONSTANT_OUTFLOW.selector
+            IConstantInflowNFT.CIF_NFT_ONLY_CONSTANT_OUTFLOW.selector
         );
         constantInflowNFTProxy.burn(69);
     }

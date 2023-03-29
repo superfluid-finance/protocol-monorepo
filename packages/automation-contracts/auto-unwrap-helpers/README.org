@@ -25,7 +25,6 @@ A collection of smart contract templates for settling incoming superfluid stream
   - admin: the designated invoice admin, along with the ~msg.sender~.
 - Logs:
   ~SuperTokenLoungeCreated(address lounge)~
-*** Method: ~createGenericStreamingInvoice~
 - Description: create a new ~GenericServiceInvoice~
 - Parameters:
   - description: description of the invoice.

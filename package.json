@@ -78,7 +78,8 @@
             "packages/subgraph",
             "packages/hot-fuzz",
             "packages/automation-contracts/scheduler",
-            "packages/automation-contracts/autowrap"
+            "packages/automation-contracts/autowrap",
+            "packages/automation-contracts/auto-unwrap-helpers"
         ],
         "nohoist": [
             "**/webpack",

@@ -1,0 +1,13 @@
+[profile.default]
+root = '../../..'
+src  = 'packages/automation-contracts/auto-unwrap-helpers/src'
+test = 'packages/automation-contracts/auto-unwrap-helpers/test'
+out  = 'packages/automation-contracts/auto-unwrap-helpers/out'
+solc_version = '0.8.19'
+# via_ir = true # though this is so slow!
+remappings = [
+    '@superfluid-finance/automation-contracts/auto-unwrap-helpers/src/=packages/automation-contracts/auto-unwrap-helpers/src/',
+    '@superfluid-finance/ethereum-contracts/=packages/ethereum-contracts/',
+    '@openzeppelin/=node_modules/@openzeppelin/',
+    'ds-test/=lib/forge-std/lib/ds-test/src/',
+    'forge-std/=lib/forge-std/src/']

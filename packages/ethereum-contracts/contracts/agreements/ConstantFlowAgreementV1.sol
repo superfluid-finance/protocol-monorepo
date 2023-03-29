@@ -445,6 +445,94 @@ contract ConstantFlowAgreementV1 is
         if (flowParams.flowRate <= 0) revert CFA_INVALID_FLOW_RATE();
     }
 
+    
+    /**
+     * @notice Checks whether or not the NFT hook can be called.
+     * @param token the super token that is being streamed
+     * @return constantOutflowNFTAddress the address returned by low level call
+     */
+    function _canCallNFTHook(
+        ISuperfluidToken token
+    ) internal returns (address constantOutflowNFTAddress) {
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory data) = address(token).call(
+            abi.encodeWithSelector(ISuperToken.constantOutflowNFT.selector)
+        );
+
+        if (success) {
+            constantOutflowNFTAddress = abi.decode(data, (address));
+        }
+    }
+
+    function _handleOnCreateHook(
+        _StackVars_createOrUpdateFlow memory flowVars
+    ) internal {
+        uint256 gasLeftBefore = gasleft();
+
+        address constantOutflowNFTAddress = _canCallNFTHook(flowVars.token);
+
+        if (constantOutflowNFTAddress != address(0)) {
+            try
+                IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(
+                    flowVars.token,
+                    flowVars.sender,
+                    flowVars.receiver
+                )
+            // solhint-disable-next-line no-empty-blocks
+            {
+
+            } catch {
+                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+            }
+        }
+    }
+
+    function _handleOnUpdateHook(
+        _StackVars_createOrUpdateFlow memory flowVars
+    ) internal {
+        uint256 gasLeftBefore = gasleft();
+
+        address constantOutflowNFTAddress = _canCallNFTHook(flowVars.token);
+
+        if (constantOutflowNFTAddress != address(0)) {
+            try
+                IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(
+                    flowVars.token,
+                    flowVars.sender,
+                    flowVars.receiver
+                )
+            // solhint-disable-next-line no-empty-blocks
+            {
+
+            } catch {
+                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+            }
+        }
+    }
+
+    function _handleOnDeleteHook(
+        _StackVars_createOrUpdateFlow memory flowVars
+    ) internal {
+        uint256 gasLeftBefore = gasleft();
+
+        address constantOutflowNFTAddress = _canCallNFTHook(flowVars.token);
+
+        if (constantOutflowNFTAddress != address(0)) {
+            try
+                IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(
+                    flowVars.token,
+                    flowVars.sender,
+                    flowVars.receiver
+                )
+            // solhint-disable-next-line no-empty-blocks
+            {
+
+            } catch {
+                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+            }
+        }
+    }
+
     function _createFlow(
         _StackVars_createOrUpdateFlow memory flowVars,
         bytes calldata ctx,
@@ -470,21 +558,7 @@ contract ConstantFlowAgreementV1 is
         }
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
-
-        uint256 gasLeftBefore = gasleft();
-    
-        try
-            ISuperToken(address(flowVars.token)).constantOutflowNFT().onCreate(
-                flowVars.token,
-                flowVars.sender,
-                flowVars.receiver
-            )
-        // solhint-disable-next-line no-empty-blocks
-        {
-
-        } catch {
-            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-        }
+        _handleOnCreateHook(flowVars);
     }
 
     function _updateFlow(
@@ -514,16 +588,7 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        uint256 gasLeftBefore = gasleft();
-    
-        try
-            ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate{
-                gas: CFA_HOOK_GAS_LIMIT
-            }(flowVars.token, flowVars.sender, flowVars.receiver)
-        // solhint-disable-next-line no-empty-blocks
-        {} catch {
-            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-        }
+        _handleOnUpdateHook(flowVars);
     }
 
     function _deleteFlow(
@@ -635,16 +700,7 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
-        uint256 gasLeftBefore = gasleft();
-    
-        try
-            ISuperToken(address(flowVars.token)).constantOutflowNFT().onDelete{
-                gas: CFA_HOOK_GAS_LIMIT
-            }(flowVars.token, flowVars.sender, flowVars.receiver)
-        // solhint-disable-next-line no-empty-blocks
-        {} catch {
-            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-        }
+        _handleOnDeleteHook(flowVars);
     }
 
     /**************************************************************************

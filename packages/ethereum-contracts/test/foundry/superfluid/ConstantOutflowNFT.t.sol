@@ -27,7 +27,8 @@ import {
 import { FlowNFTBaseTest } from "./FlowNFTBase.t.sol";
 import {
     ConstantOutflowNFTMock,
-    NFTFreeRiderSuperToken
+    NFTFreeRiderSuperTokenMock,
+    NoNFTSuperTokenMock
 } from "./CFAv1NFTMock.t.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import {
@@ -36,7 +37,7 @@ import {
 
 contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     using CFAv1Library for CFAv1Library.InitData;
-    using SuperTokenV1Library for NFTFreeRiderSuperToken;
+    using SuperTokenV1Library for NFTFreeRiderSuperTokenMock;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     Revert Tests
@@ -303,7 +304,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         constantOutflowNFTProxy.onDelete(superToken, address(1), address(2));
     }
 
-    function helper_Create_Bad_Super_Token() public returns (NFTFreeRiderSuperToken nftFreeRiderToken) {
+    function helper_Create_Bad_Super_Token() public returns (NFTFreeRiderSuperTokenMock nftFreeRiderToken) {
         uint256 initialAmount = 10000 ether;
         TestToken testToken = new TestToken("Test", "TS", 18, initialAmount);
         // we deploy mock NFT contracts for the tests to access internal functions
@@ -313,7 +314,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         ConstantInflowNFT constantInflowNFTLogics = new ConstantInflowNFT(
             sf.cfa
         );
-        nftFreeRiderToken = new NFTFreeRiderSuperToken(
+        nftFreeRiderToken = new NFTFreeRiderSuperTokenMock(
             sf.host,
             constantOutflowNFTLogics,
             constantInflowNFTLogics
@@ -326,21 +327,21 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     }
 
     function test_Fuzz_Revert_If_On_Create_Is_Called_By_Bad_Super_Token() public {
-        NFTFreeRiderSuperToken nftFreeRiderToken = helper_Create_Bad_Super_Token();
+        NFTFreeRiderSuperTokenMock nftFreeRiderToken = helper_Create_Bad_Super_Token();
         vm.expectRevert(IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector);
         vm.startPrank(address(sf.cfa));
         constantOutflowNFTProxy.onCreate(nftFreeRiderToken, address(1), address(2));
         vm.stopPrank();
     }
     function test_Fuzz_Revert_If_On_Update_Is_Called_By_Bad_Super_Token() public {
-        NFTFreeRiderSuperToken nftFreeRiderToken = helper_Create_Bad_Super_Token();
+        NFTFreeRiderSuperTokenMock nftFreeRiderToken = helper_Create_Bad_Super_Token();
         vm.expectRevert(IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector);
         vm.startPrank(address(sf.cfa));
         constantOutflowNFTProxy.onUpdate(nftFreeRiderToken, address(1), address(2));
         vm.stopPrank();
     }
     function test_Fuzz_Revert_If_On_Delete_Is_Called_By_Bad_Super_Token() public {
-        NFTFreeRiderSuperToken nftFreeRiderToken = helper_Create_Bad_Super_Token();
+        NFTFreeRiderSuperTokenMock nftFreeRiderToken = helper_Create_Bad_Super_Token();
         vm.expectRevert(IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector);
         vm.startPrank(address(sf.cfa));
         constantOutflowNFTProxy.onDelete(nftFreeRiderToken, address(1), address(2));
@@ -358,7 +359,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     //     ConstantInflowNFT constantInflowNFTLogics = new ConstantInflowNFT(
     //         sf.cfa
     //     );
-    //     NFTFreeRiderSuperToken nftFreeRiderToken = new NFTFreeRiderSuperToken(
+    //     NFTFreeRiderSuperTokenMock nftFreeRiderToken = new NFTFreeRiderSuperTokenMock(
     //         sf.host,
     //         constantOutflowNFTLogics,
     //         constantInflowNFTLogics
@@ -646,5 +647,29 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         sf.cfaLib.deleteFlow(flowSender, flowReceiver, superTokenMock);
 
         assert_NFT_Flow_Data_State_IsEmpty(nftId);
+    }
+
+    function test_Passing_Create_Update_Delete_Flow_No_NFT_Token() public {
+        uint256 initialAmount = 10000 ether;
+        TestToken testToken = new TestToken("Test", "TS", 18, initialAmount);
+        NoNFTSuperTokenMock NoNFTSuperTokenMock = new NoNFTSuperTokenMock(sf.host);
+        NoNFTSuperTokenMock.initialize(testToken, 18, "Super Test", "TSx");
+        vm.startPrank(alice);
+        testToken.mint(alice, initialAmount);
+        testToken.approve(address(NoNFTSuperTokenMock), initialAmount);
+        NoNFTSuperTokenMock.upgrade(initialAmount);
+        sf.cfaLib.createFlow(bob, NoNFTSuperTokenMock, 100);
+        (, int96 flowRate, ,) = sf.cfa.getFlow(NoNFTSuperTokenMock, alice, bob);
+        assertEq(flowRate, 100);
+        sf.cfaLib.updateFlow(bob, NoNFTSuperTokenMock, 150);
+        (, flowRate, ,) = sf.cfa.getFlow(NoNFTSuperTokenMock, alice, bob);
+        assertEq(flowRate, 150);
+        sf.cfaLib.updateFlow(bob, NoNFTSuperTokenMock, 90);
+        (, flowRate, ,) = sf.cfa.getFlow(NoNFTSuperTokenMock, alice, bob);
+        assertEq(flowRate, 90);
+        sf.cfaLib.deleteFlow(alice, bob, NoNFTSuperTokenMock);
+        (, flowRate, ,) = sf.cfa.getFlow(NoNFTSuperTokenMock, alice, bob);
+        assertEq(flowRate, 0);
+        vm.stopPrank();
     }
 }

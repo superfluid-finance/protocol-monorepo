@@ -1,9 +1,16 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
+
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {
     UUPSProxiable
 } from "../../../contracts/upgradability/UUPSProxiable.sol";
 import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import { ERC777Helper } from "../../../contracts/libs/ERC777Helper.sol";
+import {
+    SuperfluidToken
+} from "../../../contracts/superfluid/SuperfluidToken.sol";
 import {
     ISuperfluid
 } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
@@ -78,10 +85,11 @@ contract ConstantInflowNFTMock is ConstantInflowNFT {
     }
 }
 
-/// @title NFTFreeRiderSuperToken
+/// @title NFTFreeRiderSuperTokenMock
 /// @author Superfluid
-/// @notice This SuperToken arbitrarily sets the ConstantOutflowNFT and ConstantInflowNFT proxies
-contract NFTFreeRiderSuperToken is SuperToken {
+/// @notice This SuperToken has a function which sets the ConstantOutflowNFT and ConstantInflowNFT proxies.
+/// This contract is used to test that it cannot arbitrarily mint NFTs of other SuperTokens.
+contract NFTFreeRiderSuperTokenMock is SuperToken {
     constructor(
         ISuperfluid host,
         IConstantOutflowNFT outflowNFTLogic,
@@ -94,5 +102,139 @@ contract NFTFreeRiderSuperToken is SuperToken {
     ) external {
         constantOutflowNFT = outflowNFTProxy;
         constantInflowNFT = inflowNFTProxy;
+    }
+}
+
+/// @title NoNFTSuperTokenMock
+/// @author Superfluid
+/// @notice Minimal SuperToken implementation to test flow creation if no NFT proxy contract variable exists.
+/// Storage layout is made to mimic SuperToken.
+contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
+    using SafeERC20 for IERC20;
+
+    /// @dev The underlying ERC20 token
+    IERC20 internal _underlyingToken;
+
+    /// @dev Decimals of the underlying token
+    uint8 internal _underlyingDecimals;
+
+    /// @dev TokenInfo Name property
+    string internal _name;
+
+    /// @dev TokenInfo Symbol property
+    string internal _symbol;
+
+    /// @dev ERC20 Allowances Storage
+    mapping(address => mapping (address => uint256)) internal _allowances;
+
+    /// @dev ERC777 operators support data
+    ERC777Helper.Operators internal _operators;
+
+    constructor(ISuperfluid host) SuperfluidToken(host) {}
+        
+    /// @dev Initialize the Super Token proxy
+    function initialize(
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string calldata n,
+        string calldata s
+    )
+        external
+        initializer // OpenZeppelin Initializable
+    {
+        _underlyingToken = underlyingToken;
+        _underlyingDecimals = underlyingDecimals;
+
+        _name = n;
+        _symbol = s;
+
+        // register interfaces
+        ERC777Helper.register(address(this));
+    }
+
+    /// @dev ISuperToken.upgrade implementation
+    function upgrade(uint256 amount) external {
+        _upgrade(msg.sender, msg.sender, msg.sender, amount, "", "");
+    }
+
+    /**
+     * @dev Handle decimal differences between underlying token and super token
+     */
+    function _toUnderlyingAmount(uint256 amount)
+        private view
+        returns (uint256 underlyingAmount, uint256 adjustedAmount)
+    {
+        uint256 factor;
+        if (_underlyingDecimals < 18) {
+            // if underlying has less decimals
+            // one can upgrade less "granualar" amount of tokens
+            factor = 10 ** (18 - _underlyingDecimals);
+            underlyingAmount = amount / factor;
+            // remove precision errors
+            adjustedAmount = underlyingAmount * factor;
+        } else if (_underlyingDecimals > 18) {
+            // if underlying has more decimals
+            // one can upgrade more "granualar" amount of tokens
+            factor = 10 ** (_underlyingDecimals - 18);
+            underlyingAmount = amount * factor;
+            adjustedAmount = amount;
+        } else {
+            underlyingAmount = adjustedAmount = amount;
+        }
+    }
+
+    function _upgrade(
+        address operator,
+        address account,
+        address to,
+        uint256 amount,
+        bytes memory userData,
+        bytes memory operatorData
+    ) private {
+        if (address(_underlyingToken) == address(0)) revert();
+
+        (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
+
+        uint256 amountBefore = _underlyingToken.balanceOf(address(this));
+        _underlyingToken.safeTransferFrom(account, address(this), underlyingAmount);
+        uint256 amountAfter = _underlyingToken.balanceOf(address(this));
+        uint256 actualUpgradedAmount = amountAfter - amountBefore;
+        if (underlyingAmount != actualUpgradedAmount) revert();
+
+        _mint(operator, to, adjustedAmount,
+            // if `userData.length` than 0, we requireReceptionAck
+            userData.length != 0, userData, operatorData);
+        // emit TokenUpgraded(to, adjustedAmount);
+    }
+    
+    /// dummy impl
+    function _mint(
+        address, // operator,
+        address account,
+        uint256 amount,
+        bool, // requireReceptionAck,
+        bytes memory, // userData,
+        bytes memory // operatorData
+    )
+        internal
+    {
+        if (account == address(0)) {
+            revert();
+        }
+
+        SuperfluidToken._mint(account, amount);
+
+        // _callTokensReceived(operator, address(0), account, amount, userData, operatorData, requireReceptionAck);
+
+        // emit Minted(operator, account, amount, userData, operatorData);
+        // emit Transfer(address(0), account, amount);
+    }
+
+    function proxiableUUID() public pure override returns (bytes32) {
+        return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
+    }
+
+    function updateCode(address newAddress) external override {
+        // dummy impl
     }
 }

@@ -4,7 +4,6 @@ DEV_TARGET ?= test-all
 CERTORA_OPTS = \
 	--optimistic_loop \
 	--loop_iter 3 \
-	--settings -t=3000 \
 	--packages @openzeppelin=../../node_modules/@openzeppelin @superfluid-finance/solidity-semantic-money/src=src \
 	--solc solc-0.8.19
 

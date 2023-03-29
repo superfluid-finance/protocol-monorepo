@@ -38,8 +38,6 @@
         "prepare-local:sf-meta": "yarn generate-sf-meta-local",
         "build-and-deploy-local": "yarn codegen && yarn create-local && yarn deploy-local",
         "watch": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --watch",
-        "deploy:to-hosted-service": "./tasks/deploy-to-hosted-service.sh",
-        "deploy:to-satsuma": "./tasks/deploy-to-satsuma.sh",
         "lint": "run-s lint:*",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",

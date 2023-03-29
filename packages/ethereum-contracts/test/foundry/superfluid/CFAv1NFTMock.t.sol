@@ -204,7 +204,6 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
         _mint(operator, to, adjustedAmount,
             // if `userData.length` than 0, we requireReceptionAck
             userData.length != 0, userData, operatorData);
-        // emit TokenUpgraded(to, adjustedAmount);
     }
     
     /// dummy impl
@@ -223,11 +222,6 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
         }
 
         SuperfluidToken._mint(account, amount);
-
-        // _callTokensReceived(operator, address(0), account, amount, userData, operatorData, requireReceptionAck);
-
-        // emit Minted(operator, account, amount, userData, operatorData);
-        // emit Transfer(address(0), account, amount);
     }
 
     function proxiableUUID() public pure override returns (bytes32) {

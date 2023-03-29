@@ -40,11 +40,11 @@ if ! [ -z "$GITHUB_ENV" ];then
         echo "Call workflows changed."
         setBuildAll
     fi
-    # if root package.json changed, rebuild everything
-    if grep -E "^package.json|yarn.lock$" changed-files.list;then
-        echo "Root package.json changed."
-        setBuildAll
-    fi
+    # DISABLED: if root package.json and yarn.lock changed, rebuild everything
+    # if grep -E "^package.json|yarn.lock$" changed-files.list;then
+    #     echo "Root package.json changed."
+    #     setBuildAll
+    # fi
     # if specified ethereum-contracts folders and files changed
     if grep -E "^packages/ethereum-contracts/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_ETHEREUM_CONTRACTS=1

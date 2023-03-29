@@ -1,7 +1,4 @@
-//  -*- c++ -*-
-// Local variables:
-// flycheck-mode: nil
-// end:
+// -*- mode: c++; eval: (flycheck-mode -1); -*-
 
 methods {
     mul(int256 a, int128 b) returns (int256) envfree => mul_vu_cvl(a, b)
@@ -12,6 +9,24 @@ methods {
     mul(int128 a, int128 b) returns (int128) envfree => mul_fu_cvl(a, b)
     div(int128 a, int128 b) returns (int128) envfree => div_fu_cvl(a, b)
     rem(int128 a, int128 b) returns (int128) envfree => rem_fu_cvl(a, b)
+
+    isPool(address p) returns (bool) envfree;
+    isMemberConnected(address p, address m) returns (bool) envfree;
+    getNumConnections(address a) returns (uint) envfree;
+
+    realtimeBalanceAt(address, uint32) returns (int256) envfree;
+    getNetFlowRate(address) returns (int128) envfree;
+    getFlowRate(address, address, uint32) returns (int128) envfree;
+
+    flow(uint32, address a, address b, uint32 i, int128 r) returns (bool);
+
+    getIndex() returns ((int128,(uint32,int256,int128))) => DISPATCHER(true);
+    getDistributionFlowRate() returns (int128) => DISPATCHER(true);
+    operatorSetIndex((int128,(uint32,int256,int128))) returns (bool) => DISPATCHER(true);
+    getPendingDistribution() returns (int256) => DISPATCHER(true);
+    getClaimable(uint32, address) returns (int256) => DISPATCHER(true);
+    operatorConnectMember(uint32,address,bool) returns (bool) => DISPATCHER(true);
+    absorbParticlesFromPool(address[],(uint32,int256,int128)[]) returns (bool) => DISPATCHER(true);
 }
 
 ghost int256 mul_vu;

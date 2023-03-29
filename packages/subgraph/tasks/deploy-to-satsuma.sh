@@ -15,12 +15,6 @@
 
 graph="../../node_modules/@graphprotocol/graph-cli"
 
-# prepare the manifest prior to deployment
-# this generates the subgraph.yaml and
-# inputs the correct addresses for the specified network ($2)
-/tasks/prepare-manifest.sh $2
-
-# deploy the subgraph to the satsuma endpoint ($2)
 graph deploy $2 \
     --version-label $1 \
     --node https://app.satsuma.xyz/api/subgraphs/deploy \

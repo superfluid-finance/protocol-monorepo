@@ -72,40 +72,40 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: "Install node"
-        uses: "actions/setup-node@v3"
-        with:
-          node-version: "16"
-          cache: "yarn"
+      # - name: "Install node"
+      #   uses: "actions/setup-node@v3"
+      #   with:
+      #     node-version: "16"
+      #     cache: "yarn"
 
-      - name: "Install dependencies"
-        run: yarn install --frozen-lockfile
+      # - name: "Install dependencies"
+      #   run: yarn install --frozen-lockfile
 
-      - name: "Build contracts"
-        run: yarn build
-        working-directory: ./packages/ethereum-contracts
+      # - name: "Build contracts"
+      #   run: yarn build
+      #   working-directory: ./packages/ethereum-contracts
 
-      - name: "Get ABI"
-        run: node scripts/getAbi.js
-        working-directory: ${{ env.subgraph-working-directory }}
+      # - name: "Get ABI"
+      #   run: node scripts/getAbi.js
+      #   working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "Prepare subgraph manifest"
-        # note that this step is only used for generating an arbitrary subgraph.yaml
-        # and addresses.ts file for the yarn codegen step below
-        # the actual addresses will be retrieved during the actual deployment of the subgraph
-        run: ./tasks/prepare-manifest.sh matic
-        working-directory: ${{ env.subgraph-working-directory }}
+      # - name: "Prepare subgraph manifest"
+      #   # note that this step is only used for generating an arbitrary subgraph.yaml
+      #   # and addresses.ts file for the yarn codegen step below
+      #   # the actual addresses will be retrieved during the actual deployment of the subgraph
+      #   run: ./tasks/prepare-manifest.sh matic
+      #   working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "Generate meta.ignore.ts file"
-        run: "yarn generate-sf-meta"
-        working-directory: ${{ env.subgraph-working-directory }}
-        env:
-          COMMIT_HASH: ${{ github.sha }}
-          CONFIGURATION: ${{ inputs.release_branch }}
+      # - name: "Generate meta.ignore.ts file"
+      #   run: "yarn generate-sf-meta"
+      #   working-directory: ${{ env.subgraph-working-directory }}
+      #   env:
+      #     COMMIT_HASH: ${{ github.sha }}
+      #     CONFIGURATION: ${{ inputs.release_branch }}
 
-      - name: "Generate AssemblyScript types"
-        run: "yarn codegen"
-        working-directory: ${{ env.subgraph-working-directory }}
+      # - name: "Generate AssemblyScript types"
+      #   run: "yarn codegen"
+      #   working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Deploy to All Satsuma endpoints"
         if: ${{ inputs.deploy_to_satsuma_endpoint == true && inputs.network == '' }}

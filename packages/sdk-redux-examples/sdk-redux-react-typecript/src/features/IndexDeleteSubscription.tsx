@@ -15,12 +15,9 @@ export const IndexDeleteSubscription: FC = (): ReactElement => {
     const [publisherAddress, setPublisherAddress] = useState<string>("");
     const [indexId, setIndexId] = useState<string>("");
     const [userDataBytes, setUserDataBytes] = useState<string>("");
-    const [waitForConfirmation, setWaitForConfirmation] =
-        useState<boolean>(false);
 
     const handleOperation = (e: SyntheticEvent) => {
         trigger({
-            waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
             indexId,
@@ -66,13 +63,6 @@ export const IndexDeleteSubscription: FC = (): ReactElement => {
                                 label="User Data"
                                 onChange={(e) =>
                                     setUserDataBytes(e.currentTarget.value)
-                                }
-                            />
-                            <Switch
-                                value={waitForConfirmation}
-                                title="Wait for confirmation"
-                                onChange={() =>
-                                    setWaitForConfirmation(!waitForConfirmation)
                                 }
                             />
                             <Button

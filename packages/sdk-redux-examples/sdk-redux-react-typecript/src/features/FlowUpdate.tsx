@@ -15,8 +15,6 @@ export const FlowUpdate: FC = (): ReactElement => {
     const [superToken, setSuperToken] = useState<string>("");
     const [flowRate, setFlowRate] = useState<string>("");
     const [userDataBytes, setUserDataBytes] = useState<string>("");
-    const [waitForConfirmation, setWaitForConfirmation] =
-        useState<boolean>(false);
 
     const handleUpdateStream = (e: SyntheticEvent) => {
         updateFlow({
@@ -25,7 +23,6 @@ export const FlowUpdate: FC = (): ReactElement => {
             chainId,
             superTokenAddress: superToken,
             flowRateWei: flowRate,
-            waitForConfirmation,
             userDataBytes: userDataBytes,
             signer
         } as FlowUpdateMutation);
@@ -67,13 +64,6 @@ export const FlowUpdate: FC = (): ReactElement => {
                                 label="User Data"
                                 onChange={(e) =>
                                     setUserDataBytes(e.currentTarget.value)
-                                }
-                            />
-                            <Switch
-                                value={waitForConfirmation}
-                                title="Wait for confirmation"
-                                onChange={() =>
-                                    setWaitForConfirmation(!waitForConfirmation)
                                 }
                             />
                             <Button

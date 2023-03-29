@@ -110,8 +110,8 @@ jobs:
       - name: "Deploy to All Satsuma endpoints"
         if: ${{ inputs.deploy_to_satsuma_endpoint == true && inputs.network == '' }}
         run: |
-          shortRev=$(git rev-parse --short ${{ github.sha }})
-          versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
+          # shortRev=$(git rev-parse --short ${{ github.sha }})
+          # versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
           # ./tasks/deploy-all-satsuma-networks.sh "${versionLabel}"
           echo "deploy to all satsuma endpoints"
         working-directory: ${{ env.subgraph-working-directory }}
@@ -121,8 +121,8 @@ jobs:
       - name: "Deploy to Satsuma endpoint"
         if: ${{ inputs.deploy_to_satsuma_endpoint == true && inputs.network != '' }}
         run: |
-          shortRev=$(git rev-parse --short ${{ github.sha }})
-          versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
+          # shortRev=$(git rev-parse --short ${{ github.sha }})
+          # versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
           # ./tasks/deploy-to-satsuma-network.sh "${versionLabel}" ${{ inputs.network }}
           echo "deploy to satsuma endpoint"
         working-directory: ${{ env.subgraph-working-directory }}

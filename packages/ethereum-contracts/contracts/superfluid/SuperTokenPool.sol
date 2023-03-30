@@ -155,7 +155,8 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
             addresses[0] = address(this);
             addresses[1] = memberAddr;
             BasicParticle[] memory ps = new BasicParticle[](2);
-            (ps[0], ps[1]) = bp_mempty().shift2(bp_mempty(), wrappedClaimable);
+            BasicParticle memory mempty;
+            (ps[0], ps[1]) = mempty.shift2(mempty, wrappedClaimable);
             assert(_gda.absorbParticlesFromPool(_superToken, addresses, ps));
         }
         _claimedValues[memberAddr] = wrappedClaimable;

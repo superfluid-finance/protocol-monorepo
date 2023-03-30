@@ -304,7 +304,7 @@ contract GeneralDistributionAgreementV1 is
         PDPoolIndex memory pdidx = SuperTokenPool(address(pool)).getIndex();
 
         FlowRate actualFlowRate;
-        (fromUIndexData, pdidx, actualFlowRate) = fromUIndexData.shiftFlow2b(
+        (fromUIndexData, pdidx, actualFlowRate) = fromUIndexData.shift_flow2b(
             pdidx,
             FlowRate.wrap(requestedFlowRate) -
                 flowRates[distributionFlowAddress],

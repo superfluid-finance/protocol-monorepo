@@ -14,5 +14,6 @@ if [ "$2" == "" ];then
     ./tasks/deploy-all-networks.sh $1
 else
     # else we deploy to the specified network ($1 = release, $2 = network)
+    ./tasks/prepare-manifest.sh $2
     ./tasks/deploy-to-hosted-service-network.sh $1 $2
 fi

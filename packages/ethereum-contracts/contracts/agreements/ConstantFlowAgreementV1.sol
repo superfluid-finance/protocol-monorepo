@@ -10,39 +10,50 @@ import {
     ISuperfluid,
     ISuperfluidGovernance,
     ISuperApp,
+    ISuperToken,
     FlowOperatorDefinitions,
     SuperAppDefinitions,
     ContextDefinitions,
     SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { AgreementBase } from "./AgreementBase.sol";
-
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
+import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 
 /**
  * @title ConstantFlowAgreementV1 contract
  * @author Superfluid
  * @dev Please read IConstantFlowAgreementV1 for implementation notes.
  * @dev For more technical notes, please visit protocol-monorepo wiki area.
+ * 
+ * Storage Layout Notes
+ * Agreement State
+ * NOTE The Agreement State slot is computed with the following function:
+ * keccak256(abi.encode("AgreementState", msg.sender, account, slotId))
+ * slotId           = 0
+ * msg.sender       = address of CFAv1
+ * account          = context.msgSender 
+ * Flow Agreement State stores the global FlowData state for an account.
+ * 
+ * 
+ * Agreement Data
+ * NOTE The Agreement Data slot is calculated with the following function:
+ * keccak256(abi.encode("AgreementData", agreementClass, agreementId))
+ * agreementClass   = address of CFAv1
+ * agreementId      = FlowId | FlowOperatorId
+ * 
+ * FlowId           = keccak256(abi.encode(flowSender, flowReceiver))
+ * FlowId stores FlowData between a flowSender and flowReceiver.
+ * 
+ * FlowOperatorId   = keccak256(abi.encode("flowOperator", flowSender, flowOperator))
+ * FlowOperatorId stores FlowOperatorData between a flowSender and flowOperator.
  */
 contract ConstantFlowAgreementV1 is
     AgreementBase,
     IConstantFlowAgreementV1
 {
-
-    /**
-     * E_NO_SENDER_CREATE - sender cannot create as flowOperator
-     * E_NO_SENDER_UPDATE - sender cannot update as flowOperator
-     * E_NO_SENDER_DELETE - sender cannot delete as flowOperator
-     * E_EXCEED_FLOW_RATE_ALLOWANCE - flowRateAllowance exceeeded
-     * E_NO_OPERATOR_CREATE_FLOW - operator does not have permissions to create flow
-     * E_NO_OPERATOR_UPDATE_FLOW - operator does not have permissions to update flow
-     * E_NO_OPERATOR_DELETE_FLOW - operator does not have permissions to delete flow
-     * E_NO_SENDER_FLOW_OPERATOR - sender cannot set themselves as the flow operator
-     * E_NO_NEGATIVE_ALLOWANCE - sender cannot set a negative allowance
-     */
-
     /**
      * @dev Default minimum deposit value
      *
@@ -64,6 +75,7 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
+    // @note this variable is deprecated and no longer used
     IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
 
     // An arbitrarily chosen safety limit for the external calls to protect against out-of-gas grief exploits.
@@ -459,26 +471,15 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        if (address(constantFlowAgreementHook) != address(0))  {
-            uint256 gasLeftBefore = gasleft();
-            try constantFlowAgreementHook.onCreate{ gas: CFA_HOOK_GAS_LIMIT }(
-                flowVars.token,
-                IConstantFlowAgreementHook.CFAHookParams({
-                    sender: flowParams.sender,
-                    receiver: flowParams.receiver,
-                    flowOperator: flowParams.flowOperator,
-                    flowRate: flowParams.flowRate
-                })
-            )
-            // solhint-disable-next-line no-empty-blocks
-            {} catch {
-// If the CFA hook actually runs out of gas, not just hitting the safety gas limit, we revert the whole transaction.
-// This solves an issue where the gas estimaton didn't provide enough gas by default for the CFA hook to succeed.
-// See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2
-                if (gasleft() <= gasLeftBefore / 63) {
-                    revert CFA_HOOK_OUT_OF_GAS();
-                }
-            }
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onCreate{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
         }
     }
 
@@ -509,26 +510,15 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        // @note See comment in _createFlow
-        if (address(constantFlowAgreementHook) != address(0))  {
-            uint256 gasLeftBefore = gasleft();
-            // solhint-disable-next-line no-empty-blocks
-            try constantFlowAgreementHook.onUpdate{ gas: CFA_HOOK_GAS_LIMIT }(
-                flowVars.token,
-                IConstantFlowAgreementHook.CFAHookParams({
-                    sender: flowParams.sender,
-                    receiver: flowParams.receiver,
-                    flowOperator: flowParams.flowOperator,
-                    flowRate: flowParams.flowRate
-                }),
-                oldFlowData.flowRate
-            // solhint-disable-next-line no-empty-blocks
-            ) {} catch {
-                // @note See comment in onCreate
-                if (gasleft() <= gasLeftBefore / 63) {
-                    revert CFA_HOOK_OUT_OF_GAS();
-                }
-            }
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
         }
     }
 
@@ -641,25 +631,15 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
-        // @note See comment in _createFlow
-        if (address(constantFlowAgreementHook) != address(0))  {
-            uint256 gasLeftBefore = gasleft();
-            try constantFlowAgreementHook.onDelete{ gas: CFA_HOOK_GAS_LIMIT }(
-                flowVars.token,
-                IConstantFlowAgreementHook.CFAHookParams({
-                    sender: flowParams.sender,
-                    receiver: flowParams.receiver,
-                    flowOperator: flowParams.flowOperator,
-                    flowRate: flowParams.flowRate
-                }),
-                oldFlowData.flowRate
-            // solhint-disable-next-line no-empty-blocks
-            ) {} catch {
-                // @note See comment in onCreate
-                if (gasleft() <= gasLeftBefore / 63) {
-                    revert CFA_HOOK_OUT_OF_GAS();
-                }
-            }
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onDelete{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
         }
     }
 

@@ -16,12 +16,9 @@ export const IndexUpdateSubscriptionUnits: FC = (): ReactElement => {
     const [indexId, setIndexId] = useState<string>("");
     const [unitsNumber, setUnitsNumber] = useState<string>("");
     const [userDataBytes, setUserDataBytes] = useState<string>("");
-    const [waitForConfirmation, setWaitForConfirmation] =
-        useState<boolean>(false);
 
     const handleOperation = (e: SyntheticEvent) => {
         update({
-            waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
             indexId,
@@ -74,13 +71,6 @@ export const IndexUpdateSubscriptionUnits: FC = (): ReactElement => {
                                 label="User Data"
                                 onChange={(e) =>
                                     setUserDataBytes(e.currentTarget.value)
-                                }
-                            />
-                            <Switch
-                                value={waitForConfirmation}
-                                title="Wait for confirmation"
-                                onChange={() =>
-                                    setWaitForConfirmation(!waitForConfirmation)
                                 }
                             />
                             <Button

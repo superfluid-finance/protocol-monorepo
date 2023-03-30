@@ -11,7 +11,8 @@ export const trySerializeTransaction = (
     try {
         return ethers.utils.serializeTransaction(transaction, signature);
     } catch (error) {
-        console.error(error);
+        // This tends to happen with Gnosis Safe which changes the transaction response structure.
+        console.warn(error);
     }
     return undefined;
 };

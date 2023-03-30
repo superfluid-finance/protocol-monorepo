@@ -9,6 +9,7 @@ contract SuperAppBaseCFATester is SuperAppBaseCFA {
     using SuperTokenV1Library for ISuperToken;
 
     int96 public oldFlowRateHolder;
+    uint256 public lastUpdateHolder;
     address public afterSenderHolder;
     address public afterReceiverHolder;
 

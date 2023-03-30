@@ -16,7 +16,7 @@ export interface RegisterNewTransactionArg {
      */
     chainId: number;
     signerAddress: string;
-    transactionResponse: ethers.providers.TransactionResponse;
+    transactionResponse: NewTransactionResponse;
     /**
      * For dispatching redux thunks.
      */

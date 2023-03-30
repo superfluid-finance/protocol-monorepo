@@ -36,7 +36,7 @@ interface ISuperTokenPool {
 
     function getClaimable(uint32 time, address memberAddr) external view returns (int256);
 
-    function getClaimable(address memberAddr) external view returns (int256);
+    function getClaimableNow(address memberAddr) external view returns (int256 claimableBalance, uint256 timestamp);
 
     function updateMember(address memberAddr, int128 unit) external returns (bool);    
 

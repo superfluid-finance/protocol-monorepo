@@ -68,7 +68,12 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
         override
         returns (int96)
     {
-        return int96(FlowRate.unwrap(_index.wrapped_particle.flow_rate.mul(pendingUnits)));
+        return
+            int96(
+                FlowRate.unwrap(
+                    _index.wrapped_particle.flow_rate.mul(pendingUnits)
+                )
+            );
     }
 
     function getMemberFlowRate(
@@ -76,7 +81,11 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
     ) external view override returns (int96) {
         Unit u = _members[memberAddr].owned_units;
         if (Unit.unwrap(u) == 0) return 0;
-        else return int96(FlowRate.unwrap(_index.wrapped_particle.flow_rate.mul(u)));
+        else
+            return
+                int96(
+                    FlowRate.unwrap(_index.wrapped_particle.flow_rate.mul(u))
+                );
     }
 
     function getPendingDistribution() external view returns (int256) {
@@ -84,8 +93,18 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
         return Value.unwrap(_index.wrapped_particle.rtb(t).mul(pendingUnits));
     }
 
-    function getClaimable(address memberAddr) override external view returns (int256) {
-        return getClaimable(uint32(block.timestamp), memberAddr);
+    function getClaimableNow(
+        address memberAddr
+    )
+        external
+        view
+        override
+        returns (int256 claimableBalance, uint256 timestamp)
+    {
+        return (
+            getClaimable(uint32(block.timestamp), memberAddr),
+            block.timestamp
+        );
     }
 
     function getClaimable(
@@ -113,13 +132,18 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
 
         // update pool's pending units
         if (!_gda.isMemberConnected(address(this), memberAddr)) {
-            pendingUnits = pendingUnits - _members[memberAddr].owned_units + wrappedUnit;
+            pendingUnits =
+                pendingUnits -
+                _members[memberAddr].owned_units +
+                wrappedUnit;
         }
 
         // update pool member's units
         BasicParticle memory p;
-        (_index, _members[memberAddr], p) = PDPoolMemberMU(_index, _members[memberAddr])
-            .pool_member_update(p, wrappedUnit, t);
+        (_index, _members[memberAddr], p) = PDPoolMemberMU(
+            _index,
+            _members[memberAddr]
+        ).pool_member_update(p, wrappedUnit, t);
         {
             address[] memory addresses = new address[](1);
             addresses[0] = admin;
@@ -155,8 +179,8 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
             addresses[0] = address(this);
             addresses[1] = memberAddr;
             BasicParticle[] memory ps = new BasicParticle[](2);
-            BasicParticle memory mempty;
-            (ps[0], ps[1]) = mempty.shift2(mempty, wrappedClaimable);
+            BasicParticle memory mempty1;
+            (ps[0], ps[1]) = mempty1.shift2(mempty1, wrappedClaimable);
             assert(_gda.absorbParticlesFromPool(_superToken, addresses, ps));
         }
         _claimedValues[memberAddr] = wrappedClaimable;

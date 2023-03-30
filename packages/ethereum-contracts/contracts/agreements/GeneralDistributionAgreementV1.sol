@@ -367,7 +367,7 @@ contract GeneralDistributionAgreementV1 is
 
     function _decodeUniversalIndexData(
         bytes32[] memory data
-    ) internal view returns (bool exists, BasicParticle memory particle) {
+    ) internal pure returns (bool exists, BasicParticle memory particle) {
         uint256 wordA = uint256(data[0]);
         uint256 wordB = uint256(data[1]);
 

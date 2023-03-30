@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.sol";
+import "../../src/ref-impl/ToySuperToken.sol";
 
 
 contract ToySuperTokenPoolCertora is ToySuperTokenPool {
@@ -9,11 +9,4 @@ contract ToySuperTokenPoolCertora is ToySuperTokenPool {
 }
 
 contract ToySuperTokenCertora is ToySuperToken {
-    mapping (address pool => FlowRate flowRate) private _poolFlowRates;
-
-    function _setPDPIndex(address pool, PDPoolIndex memory p) internal virtual override {
-        ToySuperToken._setPDPIndex(pool, p);
-        _poolFlowRates[pool] = ToySuperTokenPool(pool).getDistributionFlowRate();
-    }
-
 }

@@ -3,13 +3,13 @@ pragma solidity 0.8.19;
 
 import "forge-std/console.sol";
 import "../FoundrySuperfluidTester.sol";
-import { SuperAppBaseFlow } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBaseFlow.sol";
-import { SuperAppBaseFlowTester } from "@superfluid-finance/ethereum-contracts/contracts/mocks/SuperAppBaseFlowTester.sol";
+import { SuperAppBaseCFA } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBaseCFA.sol";
+import { SuperAppBaseCFATester } from "@superfluid-finance/ethereum-contracts/contracts/mocks/SuperAppBaseCFATester.sol";
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
-contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
-    SuperAppBaseFlowTester superApp;
+contract SuperAppBaseCFATest is FoundrySuperfluidTester {
+    SuperAppBaseCFATester superApp;
     ISuperToken otherSuperToken;
 
     constructor () FoundrySuperfluidTester(3) { }
@@ -17,7 +17,7 @@ contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
     function setUp() public override virtual {
         super.setUp();
         vm.startPrank(admin);
-        superApp = new SuperAppBaseFlowTester(sf.host);
+        superApp = new SuperAppBaseCFATester(sf.host);
         superApp.setAcceptedSuperToken(superToken, true);
         otherSuperToken = sfDeployer.deployPureSuperToken("FTT", "FTT", 1e27);
         otherSuperToken.transfer(alice, 1e21);
@@ -47,7 +47,7 @@ contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
     function testFlowOfNotAcceptedSuperTokenToSuperApp() public {
         vm.startPrank(alice);
         vm.expectRevert();
-        //vm.expectRevert(SuperAppBaseFlow.NotAcceptedSuperToken.selector);
+        vm.expectRevert(SuperAppBaseCFA.NotAcceptedSuperToken.selector);
         sf.host.callAgreement(
             sf.cfa,
             abi.encodeCall(

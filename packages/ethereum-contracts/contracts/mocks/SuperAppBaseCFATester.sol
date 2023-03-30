@@ -1,33 +1,32 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity >= 0.8.0;
 
-// import { SuperAppBaseFlowMock, ISuperfluid, ISuperToken, SuperAppDefinitions } from "./SuperAppBaseFlowMock.sol";
-import { SuperAppBaseFlow, ISuperToken, ISuperfluid } from "../apps/SuperAppBaseFlow.sol";
+import { ISuperfluid, ISuperToken, ISuperApp, SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
+import { SuperAppBaseCFA } from "../apps/SuperAppBaseCFA.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
-contract SuperAppBaseFlowTester is SuperAppBaseFlow {
+contract SuperAppBaseCFATester is SuperAppBaseCFA {
     using SuperTokenV1Library for ISuperToken;
-
 
     int96 public oldFlowRateHolder;
     address public afterSenderHolder;
     address public afterReceiverHolder;
 
-    constructor(
-        ISuperfluid host
-    ) SuperAppBaseFlow (
-        host,
-        true,
-        true,
-        true
-    ) {
-        oldFlowRateHolder = 0; // appeasing linter
+    mapping(ISuperToken => bool) internal _acceptedSuperTokens;
+
+    constructor(ISuperfluid host) SuperAppBaseCFA (host, true, true, true) {
+        lastUpdateHolder = 0; // appeasing linter
     }
 
     // SETTING ACCEPTED SUPER TOKENS
 
     function setAcceptedSuperToken(ISuperToken acceptedSuperToken, bool accepted) public {
         _acceptedSuperTokens[acceptedSuperToken] = accepted;
+    }
+
+    // override filtering function
+    function isAcceptedSuperToken(ISuperToken superToken) public view override returns (bool) {
+        return _acceptedSuperTokens[superToken];
     }
 
     // ARBITRARY START STREAM
@@ -38,47 +37,44 @@ contract SuperAppBaseFlowTester is SuperAppBaseFlow {
 
     // CREATE
 
-    function afterFlowCreated(
+    function onFlowCreated(
         ISuperToken /*superToken*/,
         address sender,
         bytes calldata ctx
     ) internal override returns(bytes memory) {
-        
         afterSenderHolder = sender;
         return ctx;
-        
     }
 
     // UPDATE
 
-    function afterFlowUpdated(
+    function onFlowUpdated(
         ISuperToken /*superToken*/,
         address sender,
-        int96 oldFlowRate,
+        int96 previousFlowRate,
+        uint256 lastUpdated,
         bytes calldata ctx
     ) internal override returns(bytes memory) {
-        
-        oldFlowRateHolder = oldFlowRate;
+        lastUpdateHolder = lastUpdated;
+        oldFlowRateHolder = previousFlowRate;
         afterSenderHolder = sender;
         return ctx;
-
     }
 
     // DELETE
 
-    function afterFlowDeleted(
+    function onFlowDeleted(
         ISuperToken /*superToken*/,
         address sender,
         address receiver,
-        int96 oldFlowRate,
+        int96 previousFlowRate,
+        uint256 lastUpdated,
         bytes calldata ctx
     ) internal override returns (bytes memory newCtx) {
-
-        oldFlowRateHolder = oldFlowRate;
+        lastUpdateHolder = lastUpdated;
+        oldFlowRateHolder = previousFlowRate;
         afterSenderHolder = sender;
         afterReceiverHolder = receiver;
         return ctx;
-
     }
-
 }

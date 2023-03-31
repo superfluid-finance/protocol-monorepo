@@ -24,7 +24,6 @@ contract SuperAppBaseCFATest is FoundrySuperfluidTester {
         super.setUp();
         vm.startPrank(admin);
         superApp = new SuperAppBaseCFATester(sf.host, true, true, true);
-        superApp.setAcceptedSuperToken(superToken, true);
         superAppAddress = address(superApp);
         otherSuperToken = superTokenDeployer.deployPureSuperToken("FTT", "FTT", 1e27);
         otherSuperToken.transfer(alice, 1e21);
@@ -89,13 +88,54 @@ contract SuperAppBaseCFATest is FoundrySuperfluidTester {
         assertEq(noopMask, configWord, "noopMask");
     }
 
-    function testSetAcceptedToken() public {
-        assertTrue(superApp.isAcceptedSuperToken(superToken), "primary SuperToken accepted");
-        assertFalse(superApp.isAcceptedSuperToken(otherSuperToken), "other SuperToken not accepted");
-        superApp.setAcceptedSuperToken(otherSuperToken, true);
-        assertTrue(superApp.isAcceptedSuperToken(otherSuperToken), "other SuperToken now accepted");
+    function testAllowAllSuperTokensByDefault() public {
+        assertTrue(superApp.isAcceptedSuperToken(superToken), "unrestricted: primary SuperToken accepted");
+        assertTrue(superApp.isAcceptedSuperToken(otherSuperToken), "unrestricted: other SuperToken accepted");
     }
 
+    function testRestrictAllowedSuperTokens() public {
+        // Using the setter activates the filter, ONLY this token shall be accepted now
+        superApp.setAcceptedSuperToken(superToken, true);
+        assertTrue(superApp.isAcceptedSuperToken(superToken), "restricted: primary SuperToken accepted");
+        assertFalse(superApp.isAcceptedSuperToken(otherSuperToken), "restricted: other SuperToken not accepted");
+        superApp.setAcceptedSuperToken(otherSuperToken, true); // both shall now be accepted
+        assertTrue(superApp.isAcceptedSuperToken(otherSuperToken), "restricted: other SuperToken now accepted");
+    }
+
+    function testUnauthorizedHost() public {
+        vm.startPrank(eve);
+
+        vm.expectRevert(SuperAppBaseCFA.UnauthorizedHost.selector);
+        superApp.afterAgreementCreated(superToken, address(sf.cfa), "0x", "0x", "0x", "0x");
+
+        vm.expectRevert(SuperAppBaseCFA.UnauthorizedHost.selector);
+        superApp.afterAgreementUpdated(superToken, address(sf.cfa), "0x", "0x", "0x", "0x");
+
+        // termination callback doesn't revert, but should have no side effects
+        superApp.afterAgreementTerminated(superToken, address(sf.cfa), "0x", "0x", "0x", "0x");
+        assertEq(superApp.afterSenderHolder(), address(0));
+
+        vm.stopPrank();
+    }
+
+    function testNotAcceptedAgreement() public {
+        vm.startPrank(address(sf.host));
+
+        // correct host, but wrong agreement (ida instead of cfa)
+        superApp.afterAgreementCreated(superToken, address(sf.ida), "0x", "0x", "0x", "0x");
+        // should have no side effects
+        assertEq(superApp.afterSenderHolder(), address(0));
+
+        superApp.afterAgreementUpdated(superToken, address(sf.ida), "0x", "0x", "0x", "0x");
+        assertEq(superApp.afterSenderHolder(), address(0));
+
+        superApp.afterAgreementTerminated(superToken, address(sf.ida), "0x", "0x", "0x", "0x");
+        assertEq(superApp.afterSenderHolder(), address(0));
+
+        vm.stopPrank();
+    }
+
+    // test create flow
     function testCreateFlowToSuperApp() public {
         vm.startPrank(alice);
         superToken.createFlow(superAppAddress, 100);
@@ -135,6 +175,8 @@ contract SuperAppBaseCFATest is FoundrySuperfluidTester {
 
     function testFlowOfNotAcceptedSuperTokenToSuperApp() public {
         vm.startPrank(alice);
+        // enable the filter
+        superApp.setAcceptedSuperToken(superToken, true);
         vm.expectRevert(SuperAppBaseCFA.NotAcceptedSuperToken.selector);
         sf.host.callAgreement(
             sf.cfa,

@@ -14,6 +14,8 @@ contract SuperAppBaseCFATester is SuperAppBaseCFA {
     address public afterReceiverHolder;
 
     mapping(ISuperToken => bool) internal _acceptedSuperTokens;
+    // irreversibly set to true once the setter is invoked
+    bool internal _restrictAcceptedSuperTokens;
 
     constructor(
         ISuperfluid host,
@@ -27,12 +29,16 @@ contract SuperAppBaseCFATester is SuperAppBaseCFA {
     // SETTING ACCEPTED SUPER TOKENS
 
     function setAcceptedSuperToken(ISuperToken acceptedSuperToken, bool accepted) public {
+        _restrictAcceptedSuperTokens = true;
         _acceptedSuperTokens[acceptedSuperToken] = accepted;
     }
 
     // override filtering function
     function isAcceptedSuperToken(ISuperToken superToken) public view override returns (bool) {
-        return _acceptedSuperTokens[superToken];
+        return _restrictAcceptedSuperTokens ?
+            _acceptedSuperTokens[superToken] :
+            super.isAcceptedSuperToken(superToken);
+        // fallback to the default impl allows us to easily test it
     }
 
     // ARBITRARY START STREAM

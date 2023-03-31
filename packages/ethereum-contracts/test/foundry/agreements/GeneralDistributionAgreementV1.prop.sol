@@ -21,7 +21,7 @@ contract GeneralDistributionAgreementV1Properties is
         int96 flowRate,
         uint32 settledAt,
         int256 settledValue
-    ) public view {
+    ) public {
         vm.assume(flowRate >= 0);
         vm.assume(settledAt > 0);
         vm.assume(settledValue > 0);
@@ -35,17 +35,17 @@ contract GeneralDistributionAgreementV1Properties is
             encodedData
         );
 
-        assert(
-            FlowRate.unwrap(original.flow_rate) ==
+        assertEq(
+            FlowRate.unwrap(original.flow_rate),
                 FlowRate.unwrap(decoded.flow_rate)
         );
         console.logInt(Value.unwrap(original.settled_value));
         console.logInt(Value.unwrap(decoded.settled_value));
-        assert(
-            Time.unwrap(original.settled_at) == Time.unwrap(decoded.settled_at)
+        assertEq(
+            Time.unwrap(original.settled_at), Time.unwrap(decoded.settled_at)
         );
-        assert(
-            Value.unwrap(original.settled_value) ==
+        assertEq(
+            Value.unwrap(original.settled_value),
                 Value.unwrap(decoded.settled_value)
         );
     }

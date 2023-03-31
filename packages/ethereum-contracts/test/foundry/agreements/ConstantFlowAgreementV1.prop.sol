@@ -139,7 +139,7 @@ contract ConstantFlowAgreementV1Properties is Test {
     }
 
     function testFlowDataEncoding(uint32 timestamp, int96 flowRate, uint64 depositClipped, uint64 owedDepositClipped)
-        public view
+        public
     {
         ConstantFlowAgreementV1.FlowData memory a = ConstantFlowAgreementV1.FlowData({
             timestamp: uint256(timestamp),
@@ -150,10 +150,10 @@ contract ConstantFlowAgreementV1Properties is Test {
         bool exist;
         ConstantFlowAgreementV1.FlowData memory b;
         (exist, b) = cfa.decodeFlowData(wordA);
-        assert(a.timestamp == b.timestamp);
-        assert(a.flowRate == b.flowRate);
-        assert(a.deposit == b.deposit);
-        assert(a.owedDeposit == b.owedDeposit);
+        assertEq(a.timestamp, b.timestamp);
+        assertEq(a.flowRate, b.flowRate);
+        assertEq(a.deposit, b.deposit);
+        assertEq(a.owedDeposit, b.owedDeposit);
     }
 
     function testFlowOperatorDataEncoding(uint8 permissions, int96 flowRateAllowance) public {
@@ -166,7 +166,7 @@ contract ConstantFlowAgreementV1Properties is Test {
         bool exist;
         ConstantFlowAgreementV1.FlowOperatorData memory b;
         (exist, b) = cfa.decodeFlowOperatorData(wordA);
-        assert(a.permissions == b.permissions);
-        assert(a.flowRateAllowance == b.flowRateAllowance);
+        assertEq(a.permissions, b.permissions);
+        assertEq(a.flowRateAllowance, b.flowRateAllowance);
     }
 }

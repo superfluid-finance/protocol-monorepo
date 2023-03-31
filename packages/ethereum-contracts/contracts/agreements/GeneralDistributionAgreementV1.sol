@@ -51,57 +51,95 @@ contract GeneralDistributionAgreementV1 is
 
     constructor(ISuperfluid host) AgreementBase(address(host)) {}
 
-    /// @dev ISuperAgreement.realtimeBalanceOf implementation
-    function realtimeBalanceOf(
+    function realtimeBalanceVectorAt(
         ISuperfluidToken token,
         address account,
         uint256 time
-    )
-        external
-        view
-        override
-        returns (int256 dynamicBalance, uint256 deposit, uint256 owedDeposit)
-    {
+    ) public view override returns (int256 available, int256 deposit) {
         (, BasicParticle memory uIndexData) = _getUniversalIndexData(
             token,
             _getUniversalIndexId(account)
         );
 
-        Value x = uIndexData.rtb(Time.wrap(uint32(time)));
+        available = Value.unwrap(uIndexData.rtb(Time.wrap(uint32(time))));
 
-        // pending distributions from pool
-        if (pools[ISuperTokenPool(account)]) {
-            x =
-                x +
-                Value.wrap(ISuperTokenPool(account).getPendingDistribution());
+        if (_isPool(account)) {
+            available =
+                available +
+                ISuperTokenPool(account).getPendingDistribution();
         }
 
-        // pool-connected balance
         {
             EnumerableSet.AddressSet storage connections = _connectionsMap[
                 account
             ];
             for (uint256 i = 0; i < connections.length(); ++i) {
                 address p = connections.at(i);
-                x =
-                    x +
-                    Value.wrap(
-                        ISuperTokenPool(p).getClaimable(uint32(time), account)
-                    );
+                available =
+                    available +
+                    ISuperTokenPool(p).getClaimable(uint32(time), account);
             }
         }
 
-        dynamicBalance = Value.unwrap(x) > int256(0)
-            ? int256(Value.unwrap(x))
-            : int256(0);
-
         deposit = 0;
+    }
+
+    function realtimeBalanceOf(
+        ISuperfluidToken token,
+        address account,
+        uint256 time
+    )
+        public
+        view
+        override
+        returns (int256 rtb, uint256 dep, uint256 owedDeposit)
+    {
+        (int256 available, int256 deposit) = realtimeBalanceVectorAt(
+            token,
+            account,
+            time
+        );
+        rtb = available - deposit;
+
+        // @note this is currently just 0
+        dep = uint256(deposit);
         owedDeposit = 0;
     }
 
-    function getNetFlowRate(
+    /// @dev ISuperAgreement.realtimeBalanceOf implementation
+    function realtimeBalanceOfNow(
+        ISuperfluidToken token,
         address account
-    ) external view override returns (int96) {}
+    ) external view override returns (int256 rtb) {
+        (rtb, , ) = realtimeBalanceOf(token, account, block.timestamp);
+    }
+
+    function getNetFlowRate(
+        ISuperfluidToken token,
+        address account
+    ) external view override returns (int96 netFlowRate) {
+        (, BasicParticle memory uIndexData) = _getUniversalIndexData(
+            token,
+            _getUniversalIndexId(account)
+        );
+        netFlowRate = int96(FlowRate.unwrap(uIndexData.flow_rate));
+
+        if (_isPool(account)) {
+            netFlowRate =
+                netFlowRate +
+                ISuperTokenPool(account).getPendingDistributionFlowRate();
+        }
+
+        {
+            EnumerableSet.AddressSet storage connections = _connectionsMap[
+                account
+            ];
+            for (uint i = 0; i < connections.length(); ++i) {
+                ISuperTokenPool p = ISuperTokenPool(connections.at(i));
+                netFlowRate = netFlowRate + p.getMemberFlowRate(account);
+            }
+        }
+    }
 
     function getFlowRate(
         address from,
@@ -114,6 +152,30 @@ contract GeneralDistributionAgreementV1 is
                 )
             )
         );
+    }
+
+    function getFlowDistributionActualFlowRate(
+        ISuperfluidToken token,
+        address from,
+        ISuperTokenPool to,
+        int96 requestedFlowRate
+    ) external view override returns (int96 finalFlowRate) {
+        Time t = Time.wrap(uint32(block.timestamp));
+        bytes32 distributionFlowAddress = _getDistributionFlowId(from, to);
+
+        (, BasicParticle memory fromUIndexData) = _getUniversalIndexData(
+            token,
+            _getUniversalIndexId(from)
+        );
+
+        PDPoolIndex memory pdpIndex = _getPDPIndex(address(to));
+
+        FlowRate actualFlowRate;
+        FlowRate flowRateDelta = FlowRate.wrap(requestedFlowRate) -
+            _getFlowRate(distributionFlowAddress);
+        (fromUIndexData, pdpIndex, actualFlowRate) = fromUIndexData
+            .shift_flow2b(pdpIndex, flowRateDelta, t);
+        finalFlowRate = int96(FlowRate.unwrap(actualFlowRate));
     }
 
     // test view function conditions where net flow rate makes sense given pending distribution
@@ -277,7 +339,7 @@ contract GeneralDistributionAgreementV1 is
 
     function distributeFlow(
         ISuperfluidToken token,
-        ISuperTokenPool pool,
+        ISuperTokenPool to,
         int96 requestedFlowRate,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
@@ -289,42 +351,38 @@ contract GeneralDistributionAgreementV1 is
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 distributionFlowAddress = _getDistributionFlowId(
             currentContext.msgSender,
-            pool
+            to
         );
 
-        bytes32 senderUniversalIndexId = _getUniversalIndexId(
-            currentContext.msgSender
-        );
         (, BasicParticle memory fromUIndexData) = _getUniversalIndexData(
             token,
-            senderUniversalIndexId
+            _getUniversalIndexId(currentContext.msgSender)
         );
 
         FlowRate oldFlowRate = fromUIndexData.flow_rate.inv();
-        PDPoolIndex memory pdidx = SuperTokenPool(address(pool)).getIndex();
+        PDPoolIndex memory pdpIndex = _getPDPIndex(address(to));
 
         FlowRate actualFlowRate;
-        (fromUIndexData, pdidx, actualFlowRate) = fromUIndexData.shift_flow2b(
-            pdidx,
-            FlowRate.wrap(requestedFlowRate) -
-                flowRates[distributionFlowAddress],
-            t
-        );
+        FlowRate flowRateDelta = FlowRate.wrap(requestedFlowRate) -
+            _getFlowRate(distributionFlowAddress);
+        (fromUIndexData, pdpIndex, actualFlowRate) = fromUIndexData
+            .shift_flow2b(pdpIndex, flowRateDelta, t);
 
         // @note we need to handle the fact that flow rate can be negative here,
         // leads to some strange behavior when casting to uint and back to int.
         _updateUniversalIndex(token, currentContext.msgSender, fromUIndexData);
-
-        SuperTokenPool(address(pool)).operatorSetIndex(pdidx);
+        _setPDPIndex(address(to), pdpIndex);
         {
-            flowRates[distributionFlowAddress] =
-                flowRates[distributionFlowAddress] +
-                actualFlowRate -
-                oldFlowRate;
+            _setFlowInfo(
+                distributionFlowAddress,
+                currentContext.msgSender,
+                address(to),
+                actualFlowRate
+            );
 
             emit DistributionFlowUpdated(
                 token,
-                pool,
+                to,
                 currentContext.msgSender,
                 uint32(block.timestamp),
                 int96(FlowRate.unwrap(oldFlowRate)),
@@ -421,5 +479,34 @@ contract GeneralDistributionAgreementV1 is
             Value.unwrap(particle.settled_value),
             int96(FlowRate.unwrap(particle.flow_rate))
         );
+    }
+
+    function _isPool(address pool) internal view virtual returns (bool) {
+        return pools[ISuperTokenPool(pool)];
+    }
+
+    function _getFlowRate(
+        bytes32 flowHash
+    ) internal view virtual returns (FlowRate) {
+        return flowRates[flowHash];
+    }
+
+    function _setFlowInfo(
+        bytes32 flowHash,
+        address /*from*/,
+        address /*to*/,
+        FlowRate flowRate
+    ) internal virtual {
+        flowRates[flowHash] = flowRate;
+    }
+
+    function _getPDPIndex(
+        address pool
+    ) internal view virtual returns (PDPoolIndex memory) {
+        return SuperTokenPool(pool).getIndex();
+    }
+
+    function _setPDPIndex(address pool, PDPoolIndex memory p) internal virtual {
+        assert(SuperTokenPool(pool).operatorSetIndex(p));
     }
 }

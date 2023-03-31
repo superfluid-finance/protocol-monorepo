@@ -3,9 +3,7 @@ pragma solidity >=0.8.4;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
-import {
-    ISuperTokenPool
-} from "../../superfluid/SuperTokenPool.sol";
+import { ISuperTokenPool } from "../../superfluid/SuperTokenPool.sol";
 
 /**
  * @title General Distribution Agreement interface
@@ -57,6 +55,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     }
 
     function getNetFlowRate(
+        ISuperfluidToken token,
         address account
     ) external view virtual returns (int96);
 
@@ -64,6 +63,24 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
         address from,
         address to
     ) external view virtual returns (int96);
+
+    function getFlowDistributionActualFlowRate(
+        ISuperfluidToken token,
+        address from,
+        ISuperTokenPool to,
+        int96 requestedFlowRate
+    ) external view virtual returns (int96 finalFlowRate);
+
+    function realtimeBalanceVectorAt(
+        ISuperfluidToken token,
+        address account,
+        uint256 time
+    ) public view virtual returns (int256 available, int256 deposit);
+
+    function realtimeBalanceOfNow(
+        ISuperfluidToken token,
+        address account
+    ) external view virtual returns (int256 rtb);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Pool Operations

@@ -15,7 +15,12 @@ contract SuperAppBaseCFATester is SuperAppBaseCFA {
 
     mapping(ISuperToken => bool) internal _acceptedSuperTokens;
 
-    constructor(ISuperfluid host) SuperAppBaseCFA (host, true, true, true) {
+    constructor(
+        ISuperfluid host,
+        bool activateOnCreated,
+        bool activateOnUpdated,
+        bool activateOnDeleted
+    ) SuperAppBaseCFA (host, activateOnCreated, activateOnUpdated, activateOnDeleted) {
         lastUpdateHolder = 0; // appeasing linter
     }
 

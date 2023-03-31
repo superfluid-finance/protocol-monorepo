@@ -5,11 +5,17 @@ import "forge-std/console.sol";
 import "../FoundrySuperfluidTester.sol";
 import { SuperAppBaseCFA } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBaseCFA.sol";
 import { SuperAppBaseCFATester } from "@superfluid-finance/ethereum-contracts/contracts/mocks/SuperAppBaseCFATester.sol";
-import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import { ISuperToken, ISuperApp, SuperAppDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
 contract SuperAppBaseCFATest is FoundrySuperfluidTester {
+
+    using SuperTokenV1Library for SuperToken;
+    using SuperTokenV1Library for ISuperToken;
+
     SuperAppBaseCFATester superApp;
+    address superAppAddress;
     ISuperToken otherSuperToken;
 
     constructor () FoundrySuperfluidTester(3) { }
@@ -17,11 +23,70 @@ contract SuperAppBaseCFATest is FoundrySuperfluidTester {
     function setUp() public override virtual {
         super.setUp();
         vm.startPrank(admin);
-        superApp = new SuperAppBaseCFATester(sf.host);
+        superApp = new SuperAppBaseCFATester(sf.host, true, true, true);
         superApp.setAcceptedSuperToken(superToken, true);
-        otherSuperToken = sfDeployer.deployPureSuperToken("FTT", "FTT", 1e27);
+        superAppAddress = address(superApp);
+        otherSuperToken = superTokenDeployer.deployPureSuperToken("FTT", "FTT", 1e27);
         otherSuperToken.transfer(alice, 1e21);
         vm.stopPrank();
+    }
+
+    function _genManifest(bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted) internal pure returns (uint256) {
+
+        uint256 callBackDefinitions = SuperAppDefinitions.APP_LEVEL_FINAL
+        | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
+
+        if (!activateOnCreated) {
+            callBackDefinitions |= SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
+        }
+
+        if (!activateOnUpdated) {
+            callBackDefinitions |= SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
+        }
+
+        if (!activateOnDeleted) {
+            callBackDefinitions |= SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
+            | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
+        }
+
+        return callBackDefinitions;
+    }
+
+    function _deploySuperAppAndGetConfig(bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted) internal returns (SuperAppBaseCFATester, uint256 configWord) {
+        SuperAppBaseCFATester mySuperApp = new SuperAppBaseCFATester(sf.host, activateOnCreated, activateOnUpdated, activateOnDeleted);
+        uint256 appConfig = _genManifest(activateOnCreated, activateOnUpdated, activateOnDeleted);
+        return (mySuperApp, appConfig);
+    }
+
+    function testOnFlagsSetAppManifest() public {
+        //all onOperations
+        (SuperAppBaseCFATester mySuperApp, uint256 configWord) = _deploySuperAppAndGetConfig(true, true, true);
+        (bool isSuperApp,,uint256 noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));
+        configWord = configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
+        assertTrue(isSuperApp, "isSuperApp");
+        assertEq(noopMask, configWord, "noopMask");
+
+        // activateOnUpdated and activateOnDeleted
+        (mySuperApp, configWord) = _deploySuperAppAndGetConfig(false, true, true);
+        (isSuperApp,,noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));
+        configWord = configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
+        assertTrue(isSuperApp, "isSuperApp");
+        assertEq(noopMask, configWord, "noopMask");
+
+        // activateOnDeleted
+        (mySuperApp, configWord) = _deploySuperAppAndGetConfig(false, false, true);
+        (isSuperApp,,noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));
+        configWord = configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
+        assertTrue(isSuperApp, "isSuperApp");
+        assertEq(noopMask, configWord, "noopMask");
+
+        // no Operations
+        (mySuperApp, configWord) = _deploySuperAppAndGetConfig(false, false, false);
+        (isSuperApp,,noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));
+        configWord = configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
+        assertTrue(isSuperApp, "isSuperApp");
+        assertEq(noopMask, configWord, "noopMask");
     }
 
     function testSetAcceptedToken() public {
@@ -31,22 +96,45 @@ contract SuperAppBaseCFATest is FoundrySuperfluidTester {
         assertTrue(superApp.isAcceptedSuperToken(otherSuperToken), "other SuperToken now accepted");
     }
 
-    function testFlowToSuperApp() public {
+    function testCreateFlowToSuperApp() public {
         vm.startPrank(alice);
-        sf.host.callAgreement(
-            sf.cfa,
-            abi.encodeCall(
-                sf.cfa.createFlow,
-                (superToken, address(superApp), int96(69), new bytes(0))
-            ),
-            new bytes(0) // userData
-        );
+        superToken.createFlow(superAppAddress, 100);
+        assertEq(superToken.getFlowRate(alice, superAppAddress), 100);
+        assertEq(superApp.afterSenderHolder(), alice);
+        vm.stopPrank();
+    }
+
+    // test update flow
+    function testUpdateFlowToSuperApp() public {
+        vm.startPrank(alice);
+        superToken.createFlow(superAppAddress, 100);
+        assertEq(superToken.getFlowRate(alice, superAppAddress), 100);
+        assertEq(superApp.afterSenderHolder(), alice);
+        assertEq(superApp.oldFlowRateHolder(), 0);
+        superToken.updateFlow(superAppAddress, 200);
+        assertEq(superToken.getFlowRate(alice, superAppAddress), 200);
+        assertEq(superApp.afterSenderHolder(), alice);
+        assertEq(superApp.oldFlowRateHolder(), 100);
+        vm.stopPrank();
+    }
+
+    // test delete flow
+    function testDeleteFlowToSuperApp() public {
+        vm.startPrank(alice);
+        superToken.createFlow(superAppAddress, 100);
+        assertEq(superToken.getFlowRate(alice, superAppAddress), 100);
+        assertEq(superApp.afterSenderHolder(), alice);
+        assertEq(superApp.oldFlowRateHolder(), 0);
+        superToken.deleteFlow(alice, superAppAddress);
+        assertEq(superToken.getFlowRate(alice, superAppAddress), 0);
+        assertEq(superApp.afterSenderHolder(), alice);
+        assertEq(superApp.afterReceiverHolder(), superAppAddress);
+        assertEq(superApp.oldFlowRateHolder(), 100);
         vm.stopPrank();
     }
 
     function testFlowOfNotAcceptedSuperTokenToSuperApp() public {
         vm.startPrank(alice);
-        vm.expectRevert();
         vm.expectRevert(SuperAppBaseCFA.NotAcceptedSuperToken.selector);
         sf.host.callAgreement(
             sf.cfa,

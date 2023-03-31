@@ -7,6 +7,8 @@ import { SuperTokenV1Library } from "./SuperTokenV1Library.sol";
 abstract contract SuperAppBaseCFA is ISuperApp {
     using SuperTokenV1Library for ISuperToken;
 
+    bytes32 public constant CFAV1_TYPE = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
+
     ISuperfluid public host;
 
     /// @dev Thrown when the callback caller is not the host.
@@ -24,25 +26,27 @@ abstract contract SuperAppBaseCFA is ISuperApp {
      */
     constructor(
         ISuperfluid host_,
-        bool activateCreatedCallback,
-        bool activateUpdatedCallback,
-        bool activateDeletedCallback
+        bool activateOnCreated,
+        bool activateOnUpdated,
+        bool activateOnDeleted
     ) {
         host = host_;
+
+
 
         uint256 callBackDefinitions = SuperAppDefinitions.APP_LEVEL_FINAL
             | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
 
-        if ( !activateCreatedCallback ) {
+        if (!activateOnCreated) {
             callBackDefinitions |= SuperAppDefinitions.AFTER_AGREEMENT_CREATED_NOOP;
         }
 
-        if ( !activateUpdatedCallback ) {
+        if (!activateOnUpdated) {
             callBackDefinitions |= SuperAppDefinitions.BEFORE_AGREEMENT_UPDATED_NOOP
                 | SuperAppDefinitions.AFTER_AGREEMENT_UPDATED_NOOP;
         }
 
-        if ( !activateDeletedCallback ) {
+        if (!activateOnDeleted) {
             callBackDefinitions |= SuperAppDefinitions.BEFORE_AGREEMENT_TERMINATED_NOOP
                 | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
         }
@@ -233,7 +237,7 @@ abstract contract SuperAppBaseCFA is ISuperApp {
         }
 
         (address sender, address receiver) = abi.decode(agreementData, (address, address));
-        (int96 previousFlowRate, uint256 lastUpdated) = abi.decode(cbdata, (int96, uint256));
+        (uint256 lastUpdated, int96 previousFlowRate) = abi.decode(cbdata, (uint256, int96));
 
         return
             onFlowDeleted(
@@ -256,12 +260,6 @@ abstract contract SuperAppBaseCFA is ISuperApp {
      *      Current implementation expects ConstantFlowAgreement
      */
     function isAcceptedAgreement(address agreementClass) internal view virtual returns (bool) {
-        return
-            agreementClass ==
-            address(
-                host.getAgreementClass(
-                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                )
-            );
+        return agreementClass == address(host.getAgreementClass(CFAV1_TYPE));
     }
 }

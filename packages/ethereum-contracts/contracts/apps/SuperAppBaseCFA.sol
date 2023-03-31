@@ -32,8 +32,6 @@ abstract contract SuperAppBaseCFA is ISuperApp {
     ) {
         host = host_;
 
-
-
         uint256 callBackDefinitions = SuperAppDefinitions.APP_LEVEL_FINAL
             | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
 

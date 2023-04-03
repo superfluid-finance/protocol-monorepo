@@ -92,6 +92,10 @@ if [ -n "$GITHUB_ENV" ];then
         echo Automation Contracts will be tested.
     fi
 
+    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ];then
+        echo "PR packages will be published."
+        PUBLISH_PR_ARTIFACT=1
+    fi
     {
         echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}"
         echo "BUILD_HOT_FUZZ=${BUILD_HOT_FUZZ}"
@@ -100,9 +104,6 @@ if [ -n "$GITHUB_ENV" ];then
         echo "BUILD_SUBGRAPH=${BUILD_SUBGRAPH}"
         echo "BUILD_SPEC_HASKELL=${BUILD_SPEC_HASKELL}"
         echo "BUILD_AUTOMATION_CONTRACTS=${BUILD_AUTOMATION_CONTRACTS}"
-        if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ];then
-            echo PR packages will be published.
-            echo "PUBLISH_PR_ARTIFACT=1"
-        fi
+        echo "PUBLISH_PR_ARTIFACT=${PUBLISH_PR_ARTIFACT}"
     } >> "$GITHUB_ENV"
 fi

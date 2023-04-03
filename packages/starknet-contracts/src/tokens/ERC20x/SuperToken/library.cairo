@@ -20,8 +20,6 @@ from openzeppelin.utils.constants.library import UINT8_MAX
 from src.utils.SemanticMoney import SemanticMoney, BasicParticle, PDPoolMemberMU
 from src.interfaces.ISuperTokenPool import ISuperTokenPool
 
-const UNSIGNED_FELT_MAX = 2 ** 120;
-
 //
 // Events
 //
@@ -33,6 +31,23 @@ func Transfer(from_: felt, to: felt, value: felt) {
 @event
 func Approval(owner: felt, spender: felt, value: felt) {
 }
+
+@event
+func PoolCreated(admin: felt, poolAddress: felt) {
+}
+
+@event
+func FlowCreated(sender: felt, recipient: felt, flowId: felt, flowRate: felt) {
+}
+
+@event
+func FlowDistributed(sender: felt, poolAddress: felt, flowId: felt, flowRate: felt) {
+}
+
+@event
+func Distributed(sender: felt, poolAddress: felt, amount: felt) {
+}
+
 
 //
 // Storage
@@ -347,6 +362,7 @@ namespace SuperToken {
         SuperToken_universal_indexes.write(sender, newSenderIndex);
         SuperToken_universal_indexes.write(recipient, newRecipientIndex);
         SuperToken_flow_rates.write(flowHash, flow_rate);
+        FlowCreated.emit(sender, recipient, flow_id, flow_rate);
         return (success=TRUE);
     }
 
@@ -374,6 +390,7 @@ namespace SuperToken {
         );
         SuperToken_universal_indexes.write(sender, newSenderIndex);
         ISuperTokenPool.operatorSetIndex(contract_address=pool, index=newPoolIndex);
+        Distributed.emit(sender, poolAddress, actualAmount);
         return (success=TRUE, actualAmount=actualAmount);
     }
 
@@ -408,6 +425,7 @@ namespace SuperToken {
         SuperToken_universal_indexes.write(sender, newSenderIndex);
         SuperToken_flow_rates.write(flowHash, actualFlowRate);
         ISuperTokenPool.operatorSetIndex(contract_address=pool, index=newPoolIndex);
+        FlowDistributed.emit(sender, poolAddress, flow_id, actualFlowRate);
         return (success=TRUE, actualFlowRate=actualFlowRate);
     }
 
@@ -488,7 +506,7 @@ namespace SuperToken {
         SuperToken_pool_length.write(pool_length + 1);
         SuperToken_pool_indexes.write(contract_address, pool_length + 1);
         SuperToken_pools.write(pool_length + 1, contract_address);
-        _approve(contract_address, contract_address, UNSIGNED_FELT_MAX);
+        PoolCreated.emit(caller, contract_address);
         return (pool=contract_address);
     }
 

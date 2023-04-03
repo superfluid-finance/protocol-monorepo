@@ -10,4 +10,5 @@ jobs:
         run: |
           bash <(curl https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
           ./actionlint -color
+          # ./tasks/shellcheck-all-shell-scripts.sh
         shell: bash

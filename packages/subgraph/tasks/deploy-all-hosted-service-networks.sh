@@ -10,5 +10,5 @@ HOSTED_SERVICE_NETWORKS=( $($JQ -r .[] ./networks.json) )
 [ $? == 0 ] || exit 1
 
 for i in "${HOSTED_SERVICE_NETWORKS[@]}";do
-    ./tasks/deploy-to-hosted-service-network.sh $1 $i
+    ./tasks/deploy-to-hosted-service-network.sh "$1" "$i"
 done

@@ -13,7 +13,7 @@
 #   --node http://app.satsuma.xyz/api/subgraphs/deploy \
 #   --deploy-key <DEPLOY_KEY>
 
-graph="npx --package=@graphprotocol/graph-cli graph"
+GRAPH="npx --package=@graphprotocol/graph-cli -- graph"
 
 # prepare the manifest prior to deployment
 # this generates the subgraph.yaml and
@@ -21,7 +21,7 @@ graph="npx --package=@graphprotocol/graph-cli graph"
 ./tasks/prepare-manifest.sh "$2"
 
 # deploy the subgraph to the satsuma endpoint ($2)
-$graph deploy "$2" \
+$GRAPH deploy "$2" \
     --version-label "$1" \
     --node https://app.satsuma.xyz/api/subgraphs/deploy \
     --deploy-key "$SATSUMA_DEPLOY_KEY"

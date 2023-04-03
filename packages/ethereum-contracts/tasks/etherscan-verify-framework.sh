@@ -48,7 +48,7 @@ FAILED_VERIFICATIONS=()
 function try_verify() {
     echo # newline for better readability
     npx truffle run --network "$TRUFFLE_NETWORK" verify "$@" ||
-        FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$@"
+        FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$*"
         # NOTE: append using length so that having spaces in the element is not a problem
 }
 

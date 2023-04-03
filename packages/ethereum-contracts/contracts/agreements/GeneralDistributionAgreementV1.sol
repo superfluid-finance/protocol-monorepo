@@ -197,7 +197,6 @@ contract GeneralDistributionAgreementV1 is
         pools[pool] = true;
 
         emit PoolCreated(token, admin, pool);
-        // why do I need to approve the pool to spend its own tokens?
     }
 
     // @note This is same as approveSubscription

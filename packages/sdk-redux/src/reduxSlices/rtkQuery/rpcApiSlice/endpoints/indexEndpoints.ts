@@ -30,8 +30,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await arg.signer.getAddress(),
-                waitForConfirmation: !!arg.waitForConfirmation,
+                signerAddress: await arg.signer.getAddress(),
                 dispatch: queryApi.dispatch,
                 title: 'Create Index',
                 extraData: arg.transactionExtraData,
@@ -55,8 +54,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await arg.signer.getAddress(),
-                waitForConfirmation: !!arg.waitForConfirmation,
+                signerAddress: await arg.signer.getAddress(),
                 dispatch: queryApi.dispatch,
                 title: 'Distribute Index',
                 extraData: arg.transactionExtraData,
@@ -81,8 +79,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await arg.signer.getAddress(),
-                waitForConfirmation: !!arg.waitForConfirmation,
+                signerAddress: await arg.signer.getAddress(),
                 dispatch: queryApi.dispatch,
                 title: 'Update Index Subscription Units',
                 extraData: arg.transactionExtraData,
@@ -106,8 +103,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await arg.signer.getAddress(),
-                waitForConfirmation: !!arg.waitForConfirmation,
+                signerAddress: await arg.signer.getAddress(),
                 dispatch: queryApi.dispatch,
                 title: 'Approve Index Subscription',
                 extraData: arg.transactionExtraData,
@@ -132,8 +128,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await arg.signer.getAddress(),
-                waitForConfirmation: !!arg.waitForConfirmation,
+                signerAddress: await arg.signer.getAddress(),
                 dispatch: queryApi.dispatch,
                 title: 'Claim from Index Subscription',
                 extraData: arg.transactionExtraData,
@@ -158,8 +153,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await arg.signer.getAddress(),
-                waitForConfirmation: !!arg.waitForConfirmation,
+                signerAddress: await arg.signer.getAddress(),
                 dispatch: queryApi.dispatch,
                 title: 'Delete Index Subscription',
                 extraData: arg.transactionExtraData,
@@ -183,8 +177,7 @@ export const createIndexEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await arg.signer.getAddress(),
-                waitForConfirmation: !!arg.waitForConfirmation,
+                signerAddress: await arg.signer.getAddress(),
                 dispatch: queryApi.dispatch,
                 title: 'Revoke Index Subscription',
                 extraData: arg.transactionExtraData,

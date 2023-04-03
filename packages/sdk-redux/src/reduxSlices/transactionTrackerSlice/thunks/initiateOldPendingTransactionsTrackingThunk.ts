@@ -21,7 +21,7 @@ export const initiateOldPendingTransactionsTrackingThunk = createAsyncThunk<
 
     const transactions = transactionTrackerSelectors
         .selectAll(state)
-        .filter((x) => x.signer === signerAddress && arg.chainIds.includes(x.chainId) && x.status === 'Pending');
+        .filter((x) => x.signerAddress === signerAddress && arg.chainIds.includes(x.chainId) && x.status === 'Pending');
 
     transactions.forEach((x) => dispatch(trackPendingTransactionThunk({chainId: x.chainId, transactionHash: x.hash})));
 });

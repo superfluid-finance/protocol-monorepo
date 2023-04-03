@@ -14,8 +14,6 @@ export const DeleteStream: FC = (): ReactElement => {
     const [receiver, setReceiver] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
     const [userDataBytes, setUserDataBytes] = useState<string>("");
-    const [waitForConfirmation, setWaitForConfirmation] =
-        useState<boolean>(false);
 
     const handleDeleteStream = (e: SyntheticEvent) => {
         deleteFlow({
@@ -23,7 +21,6 @@ export const DeleteStream: FC = (): ReactElement => {
             receiverAddress: receiver,
             chainId,
             superTokenAddress: superToken,
-            waitForConfirmation,
             userDataBytes,
             signer
         } as FlowDeleteMutation);
@@ -57,13 +54,6 @@ export const DeleteStream: FC = (): ReactElement => {
                                 label="User Data"
                                 onChange={(e) =>
                                     setUserDataBytes(e.currentTarget.value)
-                                }
-                            />
-                            <Switch
-                                value={waitForConfirmation}
-                                title="Wait for confirmation"
-                                onChange={() =>
-                                    setWaitForConfirmation(!waitForConfirmation)
                                 }
                             />
                             <Button

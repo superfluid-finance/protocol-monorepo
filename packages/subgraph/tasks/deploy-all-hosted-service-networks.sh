@@ -3,7 +3,7 @@
 # args
 # $1 = the configuration (v1, dev, feature)
 
-JQ="../../node_modules/node-jq/bin/jq"
+JQ="npx --package=node-jq -- jq"
 
 # TODO: get the networks from metadata.json networks file
 # shellcheck disable=SC2207

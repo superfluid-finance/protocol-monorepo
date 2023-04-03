@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-JQ="npx --package=node-jq jq --"
+JQ="npx --package=node-jq -- jq"
 
 # make sure that if any step fails, the script fails
 set -xe

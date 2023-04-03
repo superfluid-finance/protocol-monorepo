@@ -2,17 +2,17 @@
 
 set -e
 
-if ! which docker 2>&1 > /dev/null; then
+if ! which docker >/dev/null 2>&1 ; then
     echo "Please install 'docker' first"
     exit 1
 fi
 
-if ! which docker-compose 2>&1 > /dev/null; then
+if ! which docker-compose >/dev/null 2>&1; then
     echo "Please install 'docker-compose' first"
     exit 1
 fi
 
-if ! which jq 2>&1 > /dev/null; then
+if ! which jq >/dev/null 2>&1; then
     echo "Please install 'jq' first"
     exit 1
 fi

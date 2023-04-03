@@ -2,7 +2,7 @@
 # $1 = the configuration (v1, dev, feature)
 # $2 = the network
 
-graph="npx --package=@graphprotocol/graph-cli graph"
+GRAPH="npx --package=@graphprotocol/graph-cli -- graph"
 
 # prepare the manifest prior to deployment
 # this generates the subgraph.yaml and
@@ -10,7 +10,7 @@ graph="npx --package=@graphprotocol/graph-cli graph"
 ./tasks/prepare-manifest.sh "$2"
 
 # deploy the subgraph to the hosted service (protocol-$1-$2)
-$graph deploy \
+$GRAPH deploy \
     --product hosted-service \
     superfluid-finance/protocol-"$1"-"$2" \
     --node https://api.thegraph.com/deploy/ \

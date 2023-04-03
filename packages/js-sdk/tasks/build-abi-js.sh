@@ -3,7 +3,7 @@
 
 cd "$(dirname "$0")/.." || exit 1
 
-JQ="npx --package=node-jq jq --"
+JQ="npx --package=node-jq -- jq"
 
 CONTRACTS=( $($JQ -r .[] ./src/contracts.json) ) || exit 2
 

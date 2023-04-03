@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-JQ="../../node_modules/node-jq/bin/jq"
+JQ="npx --package=node-jq -- jq"
 
 # make sure that if any step fails, the script fails
 set -xe
@@ -12,12 +12,13 @@ if [ "$SUBGRAPH_RELEASE_TAG" == "feature" ];then
 fi
 
 if [ "$SUBGRAPH_RELEASE_TAG" == "dev" ] || [ "$SUBGRAPH_RELEASE_TAG" == "v1" ];then
+    # shellcheck disable=SC2207
     NETWORKS=( $($JQ -r .[] ../subgraph/networks.json) )
 fi
 
 function testSchemaAndQueries() {
     # generate schema.graphql with desired endpoint
-    npx get-graphql-schema $SUBGRAPH_ENDPOINT > src/subgraph/schema.graphql
+    npx get-graphql-schema "$SUBGRAPH_ENDPOINT" > src/subgraph/schema.graphql
     # attempt to generate types with schema.graphql generated in previous step and .graphql files in entities folders
     yarn generate:graphql-types
     # attempt to run queries with desired endpoint

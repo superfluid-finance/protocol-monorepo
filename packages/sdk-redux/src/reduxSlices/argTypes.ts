@@ -38,14 +38,6 @@ export interface BaseSuperTokenMutation {
     /** SuperToken the mutation will affect. */
     superTokenAddress: string;
     /**
-     * Whether to wait for one confirmation to the transaction or not.
-     *
-     * If set to `true` then the mutation will be blocking, i.e. the react hook / redux thunk will return control flow after first confirmation for the transaction broadcast.
-     * If set to `false` then the mutation will not be blocking, i.e. the react hook / redux thunk will not return.
-     */
-    waitForConfirmation: boolean | NothingBoolean;
-
-    /**
      * Custom data to included in transaction tracking. Has to be serializable for redux!
      */
     transactionExtraData?: Record<string, unknown>;

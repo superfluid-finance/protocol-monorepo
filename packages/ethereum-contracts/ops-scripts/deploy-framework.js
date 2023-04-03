@@ -558,29 +558,30 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             agreementsToUpdate.push(idaNewLogicAddress);
     }
 
-    // deploy new super token factory logic
+    // deploy new super token factory logic (depends on SuperToken logic, which links to nft deployer library)
     const SuperTokenFactoryLogic = useMocks
         ? SuperTokenFactoryMock
         : SuperTokenFactory;
 
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
-    const factoryAddress = await superfluid.getSuperTokenFactory.call();
+
     let superfluidNFTDeployerLibraryAddress = ZERO_ADDRESS;
 
-    // get factory contract
-    const factoryContract = await SuperTokenFactoryLogic.at(factoryAddress);
-
-    const superTokenContract = await SuperToken.at(
-        await factoryContract.getSuperTokenLogic.call()
-    );
-
-    try {
-        superfluidNFTDeployerLibraryAddress =
-            await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
-    } catch {
-        console.warn(
-            "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS does not exist on SuperToken contract yet - deployment required."
+    const factoryAddress = await superfluid.getSuperTokenFactory.call();
+    if (factoryAddress !== ZERO_ADDRESS) {
+        const factoryContract = await SuperTokenFactoryLogic.at(factoryAddress);
+        const superTokenContract = await SuperToken.at(
+            await factoryContract.getSuperTokenLogic.call()
         );
+
+        try {
+            superfluidNFTDeployerLibraryAddress =
+                await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
+        } catch {
+            console.warn(
+                "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS does not exist on SuperToken contract yet - deployment required."
+            );
+        }
     }
 
     // deploy new SuperfluidNFTDeployerLibrary if it is not deployed

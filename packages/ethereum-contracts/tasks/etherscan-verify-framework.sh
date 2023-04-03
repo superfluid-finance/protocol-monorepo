@@ -114,18 +114,11 @@ if [ ! -z "$CONSTANT_INFLOW_NFT_LOGIC_ADDRESS" ]; then
     try_verify ConstantInflowNFT@${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS} 
 fi
 
-if [ ! -z "$SUPER_TOKEN_LOGIC" ]; then
+if [ ! -z "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
     link_library "SuperToken" "SuperfluidNFTDeployerLibrary" ${SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS}
     try_verify SuperToken@${SUPER_TOKEN_LOGIC}
     mv -f build/contracts/SuperToken.json.bak build/contracts/SuperToken.json
 fi
-
-# SuperToken logic deployed by factory contract (legacy method used before 1.5.1)
-if [ ! -z "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
-    # the super token logic is created through an EOA and not a contract, so we don't have to provide the constructor arguments manually
-    try_verify SuperToken@${SUPERFLUID_SUPER_TOKEN_LOGIC}
-fi
-
 
 if [ ! -z "$CFA_LOGIC" ]; then
     try_verify ConstantFlowAgreementV1@${CFA_LOGIC}

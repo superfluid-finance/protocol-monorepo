@@ -740,7 +740,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                   );
 
             console.log(`SuperToken new logic code address ${superTokenLogic.address}`);
-            output += `SUPER_TOKEN_LOGIC=${superTokenLogic.address}\n`;
+            output += `SUPERFLUID_SUPER_TOKEN_LOGIC=${superTokenLogic.address}\n`;
 
             superTokenFactoryLogic = await web3tx(
                 SuperTokenFactoryLogic.new,

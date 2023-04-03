@@ -47,9 +47,9 @@ source "$ADDRESSES_VARS"
 FAILED_VERIFICATIONS=()
 function try_verify() {
     echo # newline for better readability
-    npx truffle run --network $TRUFFLE_NETWORK verify "$@"
-    # NOTE: append using length so that having spaces in the element is not a problem
-    [ $? != 0 ] && FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$@"
+    npx truffle run --network "$TRUFFLE_NETWORK" verify "$@" ||
+        FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$@"
+        # NOTE: append using length so that having spaces in the element is not a problem
 }
 
 function link_library() {
@@ -76,11 +76,11 @@ EOF
 
 
 if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantOutflowNFT@${CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS}
+    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS}"
 fi
 
 if [ -n "$CONSTANT_INFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantInflowNFT@${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS}
+    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS}"
 fi
 
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
@@ -94,51 +94,51 @@ fi
 
 if [ -n "$SUPERFLUID_GOVERNANCE" ]; then
     if [ -n "$IS_TESTNET" ];then
-        try_verify TestGovernance@${SUPERFLUID_GOVERNANCE}
+        try_verify TestGovernance@"${SUPERFLUID_GOVERNANCE}"
     else
         try_verify SuperfluidGovernanceII@"${SUPERFLUID_GOVERNANCE}" --custom-proxy SuperfluidGovernanceIIProxy
     fi
 fi
 
 if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC" ]; then
-    try_verify SuperTokenFactory@${SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC}
+    try_verify SuperTokenFactory@"${SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC}"
 fi
 if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY" ]; then
     try_verify SuperTokenFactory@"${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY}" --custom-proxy UUPSProxy
 fi
 
 if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantOutflowNFT@${CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS} 
+    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS}"
 fi
 
 if [ -n "$CONSTANT_INFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantInflowNFT@${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS} 
+    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS}"
 fi
 
 if [ -n "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
-    link_library "SuperToken" "SuperfluidNFTDeployerLibrary" ${SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS}
-    try_verify SuperToken@${SUPER_TOKEN_LOGIC}
+    link_library "SuperToken" "SuperfluidNFTDeployerLibrary" "${SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS}"
+    try_verify SuperToken@"${SUPERFLUID_SUPER_TOKEN_LOGIC}"
     mv -f build/contracts/SuperToken.json.bak build/contracts/SuperToken.json
 fi
 
 if [ -n "$CFA_LOGIC" ]; then
-    try_verify ConstantFlowAgreementV1@${CFA_LOGIC}
+    try_verify ConstantFlowAgreementV1@"${CFA_LOGIC}"
 fi
 if [ -n "$CFA_PROXY" ]; then
     try_verify ConstantFlowAgreementV1@"${CFA_PROXY}" --custom-proxy UUPSProxy
 fi
 
 if [ -n "$SLOTS_BITMAP_LIBRARY_ADDRESS" ]; then
-    try_verify SlotsBitmapLibrary@${SLOTS_BITMAP_LIBRARY_ADDRESS}
+    try_verify SlotsBitmapLibrary@"${SLOTS_BITMAP_LIBRARY_ADDRESS}"
 fi
 
 if [ -n "$SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS" ]; then
-    try_verify SuperfluidNFTDeployerLibrary@${SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS}
+    try_verify SuperfluidNFTDeployerLibrary@"${SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS}"
 fi
 
-link_library "InstantDistributionAgreementV1" "SlotsBitmapLibrary" ${SLOTS_BITMAP_LIBRARY_ADDRESS}
+link_library "InstantDistributionAgreementV1" "SlotsBitmapLibrary" "${SLOTS_BITMAP_LIBRARY_ADDRESS}"
 if [ -n "$IDA_LOGIC" ]; then
-    try_verify InstantDistributionAgreementV1@${IDA_LOGIC}
+    try_verify InstantDistributionAgreementV1@"${IDA_LOGIC}"
 fi
 if [ -n "$IDA_PROXY" ]; then
     try_verify InstantDistributionAgreementV1@"${IDA_PROXY}" --custom-proxy UUPSProxy

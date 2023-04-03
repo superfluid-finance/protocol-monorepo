@@ -95,11 +95,11 @@ async function deployContractIfCodeChanged(
  *                  (overriding env: ENABLE_APP_WHITELISTING)
  * @param {boolean} options.resetSuperfluidFramework Reset the superfluid framework deployment
  *                  (overriding env: RESET_SUPERFLUID_FRAMEWORK)
- * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
+ * @param {string} options.protocolReleaseVersion Specify the protocol release version to be used
  *                  (overriding env: RELEASE_VERSION)
- * @param {boolean} options.outputFile Name of file where to log addresses of newly deployed contracts
+ * @param {string} options.outputFile Name of file where to log addresses of newly deployed contracts
  *                  (overriding env: OUTPUT_FILE)
- * @param {boolean} options.cfaHookContract Address of the contract to be set up as CFA hooks receiver
+ * @param {Address} options.cfaHookContract Address of the contract to be set up as CFA hooks receiver
  *                  (overriding env: CFA_HOOK_CONTRACT)
  *
  * Usage: npx truffle exec ops-scripts/deploy-framework.js

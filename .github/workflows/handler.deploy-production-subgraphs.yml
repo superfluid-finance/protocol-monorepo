@@ -37,7 +37,7 @@ jobs:
     name: Deploy Hosted Service Subgraph
     with:
       release_branch: "v1"
-      network: ""
+      network: "all"
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
@@ -50,6 +50,6 @@ jobs:
     name: Deploy Satsuma Subgraph
     with:
       satsuma_version_label: ${{ github.event.inputs.satsuma_version_label }}
-      network: ""
+      network: "all"
     secrets:
       SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

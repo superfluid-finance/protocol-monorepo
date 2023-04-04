@@ -19,7 +19,7 @@ on:
       network:
         required: true
         type: string
-        description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or "" for all networks.'
+        description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or `all` for all networks.'
 jobs:
   build-and-test-local-subgraph:
     uses: ./.github/workflows/call.test-local-subgraph.yml

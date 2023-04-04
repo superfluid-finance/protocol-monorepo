@@ -85,7 +85,7 @@ namespace SemanticMoney {
     }
 
     func shift2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        a: BasicParticle, b: BasicParticle, amount: felt, time: felt
+        a: BasicParticle, b: BasicParticle, amount: felt
     ) -> (a: BasicParticle, b: BasicParticle) {
         let (bBasicParticle, _) = shift1(amount, b);
         let (aBasicParticle, _) = shift1(-amount, a);

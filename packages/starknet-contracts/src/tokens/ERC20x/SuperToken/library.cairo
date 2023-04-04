@@ -48,7 +48,6 @@ func FlowDistributed(sender: felt, poolAddress: felt, flowId: felt, flowRate: fe
 func Distributed(sender: felt, poolAddress: felt, amount: felt) {
 }
 
-
 //
 // Storage
 //
@@ -286,7 +285,7 @@ namespace SuperToken {
             return (balance=sum);
         }
         let (connected) = SuperToken_connection_map.read(account, pool_length);
-        if (connected == TRUE){
+        if (connected == TRUE) {
             let (pool) = SuperToken_pools.read(pool_length);
             let (timestamp) = get_block_timestamp();
             let (balance) = ISuperTokenPool.getClaimable(
@@ -306,7 +305,7 @@ namespace SuperToken {
             return (flow_rate=sum);
         }
         let (connected) = SuperToken_connection_map.read(account, pool_length);
-        if (connected == TRUE){
+        if (connected == TRUE) {
             let (pool) = SuperToken_pools.read(pool_length);
             let (flow_rate) = ISuperTokenPool.getMemberFlowRate(
                 contract_address=pool, memberAddress=account
@@ -525,18 +524,26 @@ namespace SuperToken {
     }
 
     func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        account: felt, particle: BasicParticle
+        accounts_len: felt, accounts: felt*, particles_len: felt, particles: BasicParticle*
     ) -> (success: felt) {
+        with_attr error_message("SuperToken: account len != particle length") {
+            assert accounts_len = particles_len;
+        }
+        if (accounts_len == 0) {
+            return (success=TRUE);
+        }
         let (caller) = get_caller_address();
         let (poolIndex) = SuperToken_pool_indexes.read(caller);
         let (pool) = SuperToken_pools.read(poolIndex);
         with_attr error_message("SuperToken: Only absorbing from pools!") {
             assert_not_zero(pool);
         }
-        let (u_index) = SuperToken_universal_indexes.read(account);
-        let (new_u_index) = SemanticMoney.mappend(u_index, particle);
-        SuperToken_universal_indexes.write(account, new_u_index);
-        return (success=TRUE);
+        let (u_index) = SuperToken_universal_indexes.read([accounts]);
+        let (new_u_index) = SemanticMoney.mappend(u_index, [particles]);
+        SuperToken_universal_indexes.write([accounts], new_u_index);
+        return absorbParticleFromPool(
+            accounts_len - 1, accounts + 1, particles_len - 1, particles + 1
+        );
     }
 
     // //////////////////////////////////////////////////////////////////////////////
@@ -600,9 +607,8 @@ namespace SuperToken {
         }
         let (zeroAddressIndex) = SuperToken_universal_indexes.read(0);
         let (recipientIndex) = SuperToken_universal_indexes.read(recipient);
-        let (timestamp) = get_block_timestamp();
         let (newZeroAddressIndex, newRecipientIndex) = SemanticMoney.shift2(
-            zeroAddressIndex, recipientIndex, amount, timestamp
+            zeroAddressIndex, recipientIndex, amount
         );
         SuperToken_universal_indexes.write(0, newZeroAddressIndex);
         SuperToken_universal_indexes.write(recipient, newRecipientIndex);
@@ -627,9 +633,8 @@ namespace SuperToken {
             _spend_allowance(sender, spender, amount);
             let (senderIndex) = SuperToken_universal_indexes.read(sender);
             let (recipientIndex) = SuperToken_universal_indexes.read(recipient);
-            let (timestamp) = get_block_timestamp();
             let (newSenderIndex, newRecipientIndex) = SemanticMoney.shift2(
-                senderIndex, recipientIndex, amount, timestamp
+                senderIndex, recipientIndex, amount
             );
             SuperToken_universal_indexes.write(sender, newSenderIndex);
             SuperToken_universal_indexes.write(recipient, newRecipientIndex);
@@ -637,9 +642,8 @@ namespace SuperToken {
         } else {
             let (senderIndex) = SuperToken_universal_indexes.read(sender);
             let (recipientIndex) = SuperToken_universal_indexes.read(recipient);
-            let (timestamp) = get_block_timestamp();
             let (newSenderIndex, newRecipientIndex) = SemanticMoney.shift2(
-                senderIndex, recipientIndex, amount, timestamp
+                senderIndex, recipientIndex, amount
             );
             SuperToken_universal_indexes.write(sender, newSenderIndex);
             SuperToken_universal_indexes.write(recipient, newRecipientIndex);

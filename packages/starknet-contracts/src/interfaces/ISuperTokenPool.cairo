@@ -1,6 +1,6 @@
 %lang starknet
 
-from src.utils.SemanticMoney import PDPoolIndex, PDPoolMember
+from src.utils.SemanticMoney import PDPoolIndex, PDPoolMember, BasicParticle
 
 @contract_interface
 namespace ISuperTokenPool {
@@ -45,5 +45,16 @@ namespace ISuperTokenPool {
     }
 
     func getMember(memberAddress: felt) -> (member_data: PDPoolMember) {
+    }
+}
+
+@contract_interface
+namespace ISuperTokenPoolAdmin {
+    func isMemberConnected(pool: felt, memberAddress: felt) -> (success: felt) {
+    }
+
+    func absorbParticleFromPool(
+        accounts_len: felt, accounts: felt*, particles_len: felt, particles: BasicParticle*
+    ) -> (success: felt) {
     }
 }

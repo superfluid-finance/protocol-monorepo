@@ -91,12 +91,6 @@ namespace ISuperToken {
     func createPool() -> (pool: felt) {
     }
 
-    func isMemberConnected(pool: felt, memberAddress: felt) -> (success: felt) {
-    }
-
     func getNumConnections(account: felt) -> (value: felt) {
-    }
-
-    func absorbParticleFromPool(account: felt, particle: BasicParticle) -> (success: felt) {
     }
 }

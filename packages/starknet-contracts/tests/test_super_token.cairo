@@ -14,7 +14,7 @@ from src.utils.SemanticMoney import (
     PDPoolMemberMU,
 )
 from src.interfaces.ISuperToken import ISuperToken
-from src.interfaces.ISuperTokenPool import ISuperTokenPool
+from src.interfaces.ISuperTokenPool import ISuperTokenPool, ISuperTokenPoolAdmin
 
 from protostar.asserts import (
     assert_eq,
@@ -34,7 +34,7 @@ func __setup__{syscall_ptr: felt*}() {
     let (contract_address) = get_contract_address();
     %{
         declare("./src/pools/PoolImpl.cairo")
-        context.supertoken_contract_address = deploy_contract("./src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo", [1539470638642759296633, 21332, 18, 2801161203046557823982391097092222806238698918723442311430766744217641814402]).contract_address
+        context.supertoken_contract_address = deploy_contract("./src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo", [1539470638642759296633, 21332, 18, 1967013752834806001269811315755539563695215919214241724661593146835538551452]).contract_address
         context.MINT_AMOUNT = 1000000000000000000
     %}
     return ();
@@ -341,7 +341,7 @@ func test_distribute1to2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
     );
     %{ stop_prank_callable() %}
 
-    let (isConnectedToPool) = ISuperToken.isMemberConnected(
+    let (isConnectedToPool) = ISuperTokenPoolAdmin.isMemberConnected(
         contract_address=supertoken_contract_address, pool=pool, memberAddress=account2
     );
     let (connectedPools) = ISuperToken.getNumConnections(
@@ -354,7 +354,7 @@ func test_distribute1to2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
     ISuperToken.connectPool(contract_address=supertoken_contract_address, to=pool);
     %{ stop_prank_callable() %}
 
-    let (isConnectedToPool) = ISuperToken.isMemberConnected(
+    let (isConnectedToPool) = ISuperTokenPoolAdmin.isMemberConnected(
         contract_address=supertoken_contract_address, pool=pool, memberAddress=account2
     );
     let (connectedPools) = ISuperToken.getNumConnections(
@@ -363,7 +363,7 @@ func test_distribute1to2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
     assert isConnectedToPool = TRUE;
     assert connectedPools = 1;
 
-    let (isConnectedToPool) = ISuperToken.isMemberConnected(
+    let (isConnectedToPool) = ISuperTokenPoolAdmin.isMemberConnected(
         contract_address=supertoken_contract_address, pool=pool, memberAddress=account3
     );
     let (connectedPools) = ISuperToken.getNumConnections(
@@ -376,7 +376,7 @@ func test_distribute1to2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_c
     ISuperToken.connectPool(contract_address=supertoken_contract_address, to=pool);
     %{ stop_prank_callable() %}
 
-    let (isConnectedToPool) = ISuperToken.isMemberConnected(
+    let (isConnectedToPool) = ISuperTokenPoolAdmin.isMemberConnected(
         contract_address=supertoken_contract_address, pool=pool, memberAddress=account3
     );
     let (connectedPools) = ISuperToken.getNumConnections(

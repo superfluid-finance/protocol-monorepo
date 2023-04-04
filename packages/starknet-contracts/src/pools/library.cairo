@@ -8,6 +8,7 @@ from starkware.starknet.common.syscalls import (
 )
 from starkware.cairo.common.math import assert_nn, assert_not_zero
 from starkware.cairo.common.bool import TRUE, FALSE
+from starkware.cairo.common.alloc import alloc
 
 from openzeppelin.access.ownable.library import Ownable
 
@@ -19,6 +20,7 @@ from src.utils.SemanticMoney import (
     BasicParticle,
 )
 from src.interfaces.ISuperToken import ISuperToken
+from src.interfaces.ISuperTokenPool import ISuperTokenPoolAdmin
 
 @storage_var
 func Pool_admin() -> (address: felt) {
@@ -141,7 +143,7 @@ namespace Pool {
         }
         let (contract_address) = get_contract_address();
         let (owner) = Ownable.owner();
-        let (connected) = ISuperToken.isMemberConnected(
+        let (connected) = ISuperTokenPoolAdmin.isMemberConnected(
             contract_address=owner, pool=contract_address, memberAddress=member
         );
 
@@ -162,13 +164,23 @@ namespace Pool {
             );
             Pool_index.write(index);
             Pool_members.write(member, member_data);
-            let (absorbed) = ISuperToken.absorbParticleFromPool(
-                contract_address=owner, account=admin, particle=particle
+
+            let (local accounts: felt*) = alloc();
+            assert [accounts] = admin;
+
+            let (local particles: BasicParticle*) = alloc();
+            assert [particles] = particle;
+
+            let (absorbed) = ISuperTokenPoolAdmin.absorbParticleFromPool(
+                contract_address=owner,
+                accounts_len=1,
+                accounts=accounts,
+                particles_len=1,
+                particles=particles,
             );
             assert absorbed = TRUE;
 
             // additional side effects of triggering claimAll
-            // %{ print(f"Called by Update Member") %}
             _claimAll(timestamp, member);
             return (success=TRUE);
         } else {
@@ -183,8 +195,19 @@ namespace Pool {
             );
             Pool_index.write(index);
             Pool_members.write(member, member_data);
-            let (absorbed) = ISuperToken.absorbParticleFromPool(
-                contract_address=owner, account=admin, particle=particle
+
+            let (local accounts: felt*) = alloc();
+            assert [accounts] = admin;
+
+            let (local particles: BasicParticle*) = alloc();
+            assert [particles] = particle;
+
+            let (absorbed) = ISuperTokenPoolAdmin.absorbParticleFromPool(
+                contract_address=owner,
+                accounts_len=1,
+                accounts=accounts,
+                particles_len=1,
+                particles=particles,
             );
             assert absorbed = TRUE;
 
@@ -238,6 +261,32 @@ namespace Pool {
         Pool_members.write(memberAddress, settled_pdMemberMU.pdPoolMember);
         Pool_index.write(settled_pdMemberMU.pdPoolIndex);
         return (success=TRUE);
+        // let empty_particle = BasicParticle(0, 0, 0);
+        // let (value) = getClaimable(time, memberAddress);
+        // let (a, b) = SemanticMoney.shift2(empty_particle, empty_particle, value);
+
+        // let (local particles: BasicParticle*) = alloc();
+        // assert [particles] = a;
+        // assert [particles + 1] = b;
+
+        // let (local accounts: felt*) = alloc();
+        // let (contract_address) = get_contract_address();
+        // assert [accounts] = contract_address;
+        // assert [accounts + 1] = memberAddress;
+
+        // let (absorbed) = ISuperTokenPoolAdmin.absorbParticleFromPool(
+        //     contract_address=owner,
+        //     accounts_len=2,
+        //     accounts=accounts,
+        //     particles_len=2,
+        //     particles=particles,
+        // );
+        // assert absorbed = TRUE;
+
+        // let (initialClaimedValue) = Pool_claimed_values.read(memberAddress);
+        // Pool_claimed_values.write(memberAddress, value + initialClaimedValue);
+
+        // return (success = TRUE);
     }
 
     func claimAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (

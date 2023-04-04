@@ -14,8 +14,6 @@ export const SuperTokenUpgrade: FC = (): ReactElement => {
 
     const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
-    const [waitForConfirmation, setWaitForConfirmation] =
-        useState<boolean>(false);
 
     const {
         data: availableAllowance,
@@ -34,7 +32,6 @@ export const SuperTokenUpgrade: FC = (): ReactElement => {
 
     const handleUpgradeToSuperToken = (e: SyntheticEvent) => {
         upgradeToSuperToken({
-            waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
             amountWei: amount,
@@ -68,13 +65,6 @@ export const SuperTokenUpgrade: FC = (): ReactElement => {
                                 label="Amount"
                                 onChange={(e) =>
                                     setAmount(e.currentTarget.value)
-                                }
-                            />
-                            <Switch
-                                value={waitForConfirmation}
-                                title="Wait for confirmation"
-                                onChange={() =>
-                                    setWaitForConfirmation(!waitForConfirmation)
                                 }
                             />
                             <Button

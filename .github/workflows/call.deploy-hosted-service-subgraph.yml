@@ -1,4 +1,4 @@
-name: Reusable Workflow | Deploy Subgraph
+name: Reusable Workflow | Deploy Subgraph to Hosted Service
 
 on:
   workflow_call:
@@ -7,25 +7,14 @@ on:
         required: true
         type: string
         description: 'The subgraph release: feature, dev, v1'
-      deploy_to_satsuma_endpoint:
-        required: true
-        type: boolean
-        description: 'Whether we want to deploy to Satsuma endpoint'
       network:
         required: true
         type: string
-        description: 'The network we want to deploy to (matic, mumbai, etc)'
-      satsuma_version_label:
-        required: false
-        type: string
-        description: 'The version label for Satsuma endpoint'
+        description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or `all` for all networks.'
     secrets:
-      SATSUMA_DEPLOY_KEY:
-        description: 'Satsuma deploy key for deploying subgraphs'
-        required: false
       THE_GRAPH_ACCESS_TOKEN:
         description: 'The Graph access token for deploying subgraphs'
-        required: false
+        required: true
 
 jobs:
   show-contexts:
@@ -46,25 +35,10 @@ jobs:
           echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
 
-  build-and-test-local-subgraph:
-    uses: ./.github/workflows/call.test-local-subgraph.yml
-    name: Run Subgraph Unit and Integration Tests
-
-  build-and-test-local-subgraph-against-previous-sdk-core-releases:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Local Subgraph against SDK-Core previous and current releases
-    with:
-      subgraph-release: ''
-      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
-
   deploy-subgraph:
-    name: Deploy Subgraph
+    name: Deploy Hosted Service Subgraph
 
     runs-on: ubuntu-latest
-    needs: [ build-and-test-local-subgraph
-           , build-and-test-local-subgraph-against-previous-sdk-core-releases
-           ]
-
     env:
       subgraph-working-directory: ./packages/subgraph
 
@@ -89,10 +63,10 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Prepare subgraph manifest"
-        # note that this step is only used for generating an arbitrary subgraph.yaml
+        # This step is required for generating an arbitrary subgraph.yaml
         # and addresses.ts file for the yarn codegen step below
-        # the actual addresses will be retrieved during the actual deployment of the subgraph
-        run: ./tasks/prepare-manifest.sh matic
+        # using a mock.json networks file.
+        run: ./tasks/prepare-manifest.sh mock
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Generate meta.ignore.ts file"
@@ -106,20 +80,23 @@ jobs:
         run: "yarn codegen"
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "Deploy to Satsuma endpoint"
-        if: inputs.deploy_to_satsuma_endpoint == true
+      - name: Ensure release_branch property is passed
         run: |
-          shortRev=$(git rev-parse --short ${{ github.sha }})
-          versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
-          yarn deploy:to-satsuma "${versionLabel}" ${{ inputs.network }}
+          if [ "${{ inputs.release_branch }}" == "" ];then
+            echo "You must pass in the release_branch at a minimum."
+            exit 1
+          fi
+
+      - name: "Deploy to All Hosted Subgraph Superfluid endpoints"
+        if: inputs.network == 'all'
+        run: ./tasks/deploy-all-hosted-service-networks.sh ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
-          SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
+          THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
-      - name: "Deploy to Hosted Subgraph Superfluid endpoint(s)"
-        if: inputs.deploy_to_satsuma_endpoint == false
-        # if no network is specified, deploy to all networks on specified release branch
-        run: yarn deploy:to-hosted-service ${{ inputs.release_branch }} ${{ inputs.network }}
+      - name: "Deploy to Hosted Subgraph Superfluid endpoint"
+        if: inputs.network != 'all'
+        run: ./tasks/deploy-to-hosted-service-network.sh ${{ inputs.release_branch }} ${{ inputs.network }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}

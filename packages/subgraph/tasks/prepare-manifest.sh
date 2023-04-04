@@ -3,8 +3,7 @@
 # args
 # $1 = the network
 
-mustache="../../node_modules/mustache/bin/mustache"
-NETWORK=$1
+mustache="npx mustache"
 
-npx mustache config/$NETWORK.json subgraph.template.yaml > subgraph.yaml
-npx mustache config/$NETWORK.json src/addresses.template.ts > src/addresses.ts
+$mustache config/"$1".json subgraph.template.yaml > subgraph.yaml
+$mustache config/"$1".json src/addresses.template.ts > src/addresses.ts

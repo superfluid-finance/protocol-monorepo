@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd "$(dirname "$0")"/..
+cd "$(dirname "$0")"/.. || exit 1
 CLOC="cloc --by-file-by-lang"
 
 $CLOC \
@@ -8,4 +8,3 @@ $CLOC \
     --exclude-dir typechain,abi \
     --exclude-ext=generated.ts \
     src
-

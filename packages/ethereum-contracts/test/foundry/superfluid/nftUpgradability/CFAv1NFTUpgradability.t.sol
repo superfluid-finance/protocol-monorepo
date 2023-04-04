@@ -11,6 +11,9 @@ import {
     ConstantInflowNFT
 } from "../../../../contracts/superfluid/ConstantInflowNFT.sol";
 import {
+    IFlowNFTBase
+} from "../../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
+import {
     ConstantOutflowNFT
 } from "../../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { FlowNFTBaseTest } from "../FlowNFTBase.t.sol";
@@ -61,6 +64,24 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
                 sf.cfa
             );
         constantOutflowNFTBaseStorageLayoutMock.validateStorageLayout();
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Revert Tests
+    //////////////////////////////////////////////////////////////////////////*/
+    function test_Revert_NFT_Contracts_Cannot_Be_Upgraded_By_Non_Host(
+        address notHost
+    ) public {
+        vm.assume(notHost != address(sf.host));
+        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(sf.cfa);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_ONLY_HOST.selector);
+        vm.prank(notHost);
+        constantOutflowNFTProxy.updateCode(address(newOutflowLogic));
+
+        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(sf.cfa);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_ONLY_HOST.selector);
+        vm.prank(notHost);
+        constantInflowNFTProxy.updateCode(address(newInflowLogic));
     }
 
     /*//////////////////////////////////////////////////////////////////////////

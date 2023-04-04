@@ -18,9 +18,9 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { AgreementBase } from "./AgreementBase.sol";
-
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
+import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 
 /**
  * @title ConstantFlowAgreementV1 contract
@@ -75,6 +75,7 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
+    // @note this variable is deprecated and no longer used
     IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
 
     // An arbitrarily chosen safety limit for the external calls to protect against out-of-gas grief exploits.
@@ -470,12 +471,16 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        // for now, we are aware that this will break super tokens with custom super token logic
-        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
-        // which was previously in place for the previous marketing NFT
-        ISuperToken(
-            address(flowVars.token)
-        ).constantOutflowNFT().onCreate(flowVars.sender, flowVars.receiver);
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onCreate{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+        }
     }
 
     function _updateFlow(
@@ -505,13 +510,16 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        // for now, we are aware that this will break super tokens with custom super token logic
-        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
-        // which was previously in place for the previous marketing NFT
-        ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate(
-            flowVars.sender,
-            flowVars.receiver
-        );
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+        }
     }
 
     function _deleteFlow(
@@ -623,14 +631,16 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
-        // for now, we are aware that this will break super tokens with custom super token logic
-        // which choose not to upgrade, in order to fix this, we must use the old try/catch logic
-        // which was previously in place for the previous marketing NFT
-        
-        ISuperToken(address(flowVars.token)).constantOutflowNFT().onDelete(
-            flowVars.sender,
-            flowVars.receiver
-        );
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onDelete{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+        }
     }
 
     /**************************************************************************

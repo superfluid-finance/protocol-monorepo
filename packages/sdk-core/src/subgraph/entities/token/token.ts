@@ -18,6 +18,7 @@ export interface Token {
     decimals: number;
     id: Address;
     isListed: boolean;
+    isNativeAssetSuperToken: boolean;
     isSuperToken: boolean;
     name: string;
     symbol: string;

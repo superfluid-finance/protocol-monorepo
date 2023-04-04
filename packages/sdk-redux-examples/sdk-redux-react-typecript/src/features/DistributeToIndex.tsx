@@ -14,12 +14,9 @@ export const DistributeToIndex: FC = (): ReactElement => {
     const [indexId, setIndexId] = useState<string>("");
     const [amountWei, setAmountWei] = useState<string>("");
     const [userDataBytes, setUserDataBytes] = useState<string>("");
-    const [waitForConfirmation, setWaitForConfirmation] =
-        useState<boolean>(false);
 
     const handleOperation = (e: SyntheticEvent) => {
         distribute({
-            waitForConfirmation,
             chainId,
             superTokenAddress: superToken,
             indexId,
@@ -64,13 +61,6 @@ export const DistributeToIndex: FC = (): ReactElement => {
                                 label="Amount"
                                 onChange={(e) =>
                                     setAmountWei(e.currentTarget.value)
-                                }
-                            />
-                            <Switch
-                                value={waitForConfirmation}
-                                title="Wait for confirmation"
-                                onChange={() =>
-                                    setWaitForConfirmation(!waitForConfirmation)
                                 }
                             />
                             <Button

@@ -38,7 +38,6 @@ interface ISuperTokenFactory {
 
     /**
      * @notice Get the canonical super token logic.
-     * @dev Is the same as `_SUPER_TOKEN_LOGIC`
      */
     function getSuperTokenLogic() external view returns (ISuperToken superToken);
 

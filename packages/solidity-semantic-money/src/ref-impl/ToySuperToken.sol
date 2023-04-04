@@ -92,7 +92,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         returns (Value available, Value deposit)
     {
         // initial value from universal index
-        available = _getUIndex(account).rtb(t);
+        available = _getUIndex(new bytes(0), account).rtb(t);
 
         // pending distributions from pool
         if (_isPool(account)) {
@@ -115,7 +115,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
 
     function getNetFlowRate(address account) override external view returns (FlowRate nr)
     {
-        nr = _getUIndex(account).flow_rate;
+        nr = _getUIndex(new bytes(0), account).flow_rate;
 
         // pool distribution flow rate
         if (_isPool(account)) {
@@ -142,7 +142,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
 
     function getFlowRate(address from, address to, FlowId flowId) override external view returns (FlowRate)
     {
-        return _getFlowRate(getFlowHash(from, to, flowId));
+        return _getFlowRate(new bytes(0), getFlowHash(from, to, flowId));
     }
 
     function _shift(address from, address to, Value amount, bool checkAllowance) internal
@@ -157,7 +157,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount))); // FIXME SafeCast
 
         // Make updates
-        _doShift(from, to, amount);
+        _doShift(new bytes(0), from, to, amount);
         return true;
     }
 
@@ -183,7 +183,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         bytes32 flowHash = getFlowHash(from, to, flowId);
 
         // Make updates
-        _doFlow(from, to, flowHash, flowRate, t);
+        _doFlow(new bytes(0), from, to, flowHash, flowRate, t);
         return true;
     }
 
@@ -198,7 +198,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         require(msg.sender == from, "No distribute flow permission!");
 
         // Make updates
-        actualAmount = _doDistribute(from, address(to), reqAmount);
+        actualAmount = _doDistribute(new bytes(0), from, address(to), reqAmount);
         success = true;
     }
 
@@ -217,7 +217,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         require(msg.sender == from, "No flow permission!!");
 
         // Make updates
-        actualFlowRate = _doDistributeFlow(from, address(to), flowHash, reqFlowRate, t);
+        actualFlowRate = _doDistributeFlow(new bytes(0), from, address(to), flowHash, reqFlowRate, t);
         success = true;
     }
 
@@ -281,7 +281,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         require(_isPool(msg.sender), "Only absorbing from pools!");
         assert(accounts.length == ps.length);
         for (uint i = 0; i < accounts.length; i++) {
-            _setUIndex(accounts[i], _getUIndex(accounts[i]).mappend(ps[i]));
+            _setUIndex(new bytes(0), accounts[i], _getUIndex(new bytes(0), accounts[i]).mappend(ps[i]));
         }
         return true;
     }
@@ -352,27 +352,34 @@ contract ToySuperToken is ISuperToken, TokenMonad {
     // Token Monad Overrides
     ////////////////////////////////////////////////////////////////////////////////
 
-    function _getUIndex(address owner) internal view virtual override returns (BasicParticle memory) {
+    function _getUIndex(bytes memory /*eff*/, address owner)
+        internal view virtual override returns (BasicParticle memory)
+    {
         return uIndexes[owner];
     }
-    function _setUIndex(address owner, BasicParticle memory p) internal virtual override {
+    function _setUIndex(bytes memory /*eff*/, address owner, BasicParticle memory p)
+        internal virtual override
+    {
         uIndexes[owner] = p;
     }
-    function _getPDPIndex(address pool) internal view virtual override returns (PDPoolIndex memory) {
+    function _getPDPIndex(bytes memory /*eff*/, address pool)
+        internal view virtual override returns (PDPoolIndex memory)
+    {
         return ISuperTokenPool(pool).getIndex();
     }
-    function _setPDPIndex(address pool, PDPoolIndex memory p) internal virtual override {
+    function _setPDPIndex(bytes memory /*eff*/, address pool, PDPoolIndex memory p)
+        internal virtual override
+    {
         assert(ISuperTokenPool(pool).operatorSetIndex(p));
     }
-    function _getFlowRate(bytes32 flowHash) internal view virtual override
-        returns (FlowRate)
+    function _getFlowRate(bytes memory /*eff*/, bytes32 flowHash)
+        internal view virtual override returns (FlowRate)
     {
         return flowRates[flowHash];
     }
-    function _setFlowInfo(bytes32 flowHash, address /*from*/, address /*to*/, FlowRate flowRate)
+    function _setFlowInfo(bytes memory /*eff*/, bytes32 flowHash, address /*from*/, address /*to*/, FlowRate flowRate)
         internal virtual override
     {
         flowRates[flowHash] = flowRate;
     }
-
 }

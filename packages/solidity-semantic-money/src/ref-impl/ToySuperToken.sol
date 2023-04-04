@@ -229,6 +229,10 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         return _isPool(p);
     }
 
+    function getNumConnections(address account) override external view returns (uint) {
+        return _poolConnectionsMap[account].length();
+    }
+
     function createPool() external
         returns (ToySuperTokenPool pool)
     {
@@ -268,10 +272,6 @@ contract ToySuperToken is ISuperToken, TokenMonad {
 
     function isMemberConnected(ISuperTokenPool to, address memberAddr) override external view returns (bool) {
         return _poolConnectionsMap[memberAddr].contains(address(to));
-    }
-
-    function getNumConnections(address account) override external view returns (uint) {
-        return _poolConnectionsMap[account].length();
     }
 
     /// This is used by the pool to adjust flow rate
@@ -361,6 +361,9 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         internal virtual override
     {
         uIndexes[owner] = p;
+        /* uIndexes[owner].settled_at = p.settled_at; */
+        /* uIndexes[owner].settled_value = p.settled_value; */
+        /* uIndexes[owner].flow_rate = p.flow_rate; */
     }
     function _getPDPIndex(bytes memory /*eff*/, address pool)
         internal view virtual override returns (PDPoolIndex memory)

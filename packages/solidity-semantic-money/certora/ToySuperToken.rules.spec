@@ -14,6 +14,8 @@ rule check_poolless_1to1_flow() {
     // setup basic assumptions
     require isPool(a) == false;
     require isPool(b) == false;
+    require getNumConnections(a) == 0;
+    require getNumConnections(b) == 0;
 
     int128 ar1 = getNetFlowRate(a);
     int128 br1 = getNetFlowRate(b);

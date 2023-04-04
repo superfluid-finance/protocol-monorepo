@@ -1,17 +1,18 @@
 // -*- mode: c++; eval: (flycheck-mode -1); -*-
 
 methods {
-    mul(int256 a, int128 b) returns (int256) envfree => mul_vu_cvl(a, b)
-    div(int256 a, int128 b) returns (int256) envfree => div_vu_cvl(a, b)
+    // Monetary Types
+    mul(int256 a, int128 b) returns (int256) envfree => mul_vu_cvl(a, b);
+    div(int256 a, int128 b) returns (int256) envfree => div_vu_cvl(a, b);
 
-    mul(int128 a, uint32 b) returns (int256) envfree => mul_ft_cvl(a, b)
+    mul(int128 a, uint32 b) returns (int256) envfree => mul_ft_cvl(a, b);
 
-    mul(int128 a, int128 b) returns (int128) envfree => mul_fu_cvl(a, b)
-    div(int128 a, int128 b) returns (int128) envfree => div_fu_cvl(a, b)
-    rem(int128 a, int128 b) returns (int128) envfree => rem_fu_cvl(a, b)
+    mul(int128 a, int128 b) returns (int128) envfree => mul_fu_cvl(a, b);
+    div(int128 a, int128 b) returns (int128) envfree => div_fu_cvl(a, b);
+    rem(int128 a, int128 b) returns (int128) envfree => rem_fu_cvl(a, b);
 
+    // ISuperToken
     isPool(address p) returns (bool) envfree;
-    isMemberConnected(address p, address m) returns (bool) envfree;
     getNumConnections(address a) returns (uint) envfree;
 
     realtimeBalanceAt(address, uint32) returns (int256) envfree;
@@ -20,13 +21,20 @@ methods {
 
     flow(uint32, address a, address b, uint32 i, int128 r) returns (bool);
 
+    // ISuperTokenPoolAdmin
+    isMemberConnected(address p, address m) returns (bool) envfree;
+    absorbParticlesFromPool(address[],(uint32,int256,int128)[]) returns (bool) => DISPATCHER(true);
+
+    // ISuperTokenPool
     getIndex() returns ((int128,(uint32,int256,int128))) => DISPATCHER(true);
+    getTotalUnits() returns (int128) => DISPATCHER(true);
     getDistributionFlowRate() returns (int128) => DISPATCHER(true);
-    operatorSetIndex((int128,(uint32,int256,int128))) returns (bool) => DISPATCHER(true);
+    getPendingDistributionFlowRate() returns (int128) => DISPATCHER(true);
+    getMemberFlowRate(address) returns (int128) => DISPATCHER(true);
     getPendingDistribution() returns (int256) => DISPATCHER(true);
     getClaimable(uint32, address) returns (int256) => DISPATCHER(true);
+    operatorSetIndex((int128,(uint32,int256,int128))) returns (bool) => DISPATCHER(true);
     operatorConnectMember(uint32,address,bool) returns (bool) => DISPATCHER(true);
-    absorbParticlesFromPool(address[],(uint32,int256,int128)[]) returns (bool) => DISPATCHER(true);
 }
 
 ghost int256 mul_vu;

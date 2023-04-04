@@ -15,7 +15,7 @@ const {
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./libs/common");
-const {ethers} = require("ethers");
+const { ethers } = require("ethers");
 
 let resetSuperfluidFramework;
 let resolver;
@@ -415,7 +415,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         } else {
             contract.link(externalLibraryName, externalLibrary.address);
         }
-        console.log(externalLibraryName, "address", externalLibrary.address);
         return externalLibrary;
     };
 
@@ -449,7 +448,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         )(superfluid.address, ida.address);
     } else {
         // NOTE that we are reusing the existing deployed external library
-        // here as an optimization, this assumes that we do not change the
+        // here as an optimization, this assumes that we do not change the 
         // library code.
         // link library in order to avoid spurious code change detections
         let slotsBitmapLibraryAddress = ZERO_ADDRESS;
@@ -565,26 +564,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
     const factoryAddress = await superfluid.getSuperTokenFactory.call();
-    let superfluidNFTDeployerLibraryAddress = ZERO_ADDRESS;
 
-    // get factory contract
-    const factoryContract = await SuperTokenFactoryLogic.at(factoryAddress);
-
-    const superTokenContract = await SuperToken.at(
-        await factoryContract.getSuperTokenLogic.call()
-    );
-
-    try {
-        superfluidNFTDeployerLibraryAddress =
-            await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
-    } catch {
-        console.warn(
-            "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS does not exist on SuperToken contract yet - deployment required."
-        );
-    }
-    // deploy new SuperfluidNFTDeployerLibrary if it is not deployed
+    // deploy new SuperfluidNFTDeployerLibrary if factory is not deployed
     // link it to SuperToken logic contract
-    if (superfluidNFTDeployerLibraryAddress === ZERO_ADDRESS) {
+    if (factoryAddress === ZERO_ADDRESS) {
         await deployExternalLibraryAndLink(
             SuperfluidNFTDeployerLibrary,
             "SuperfluidNFTDeployerLibrary",
@@ -598,30 +581,27 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // link existing deployed external library to SuperToken logic contract
         let superfluidNFTDeployerLibraryAddress = ZERO_ADDRESS;
         try {
-            // if the library is not deployed, deploy it and link it to SuperToken logic contract
-            if (superfluidNFTDeployerLibraryAddress === ZERO_ADDRESS) {
-                const superfluidNFTDeployerLibrary =
-                    await deployExternalLibraryAndLink(
-                        SuperfluidNFTDeployerLibrary,
-                        "SuperfluidNFTDeployerLibrary",
-                        "SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS",
-                        SuperTokenLogic
-                    );
-                superfluidNFTDeployerLibraryAddress =
-                    superfluidNFTDeployerLibrary.address;
-                // else link the preexisting contract
-            } else {
-                if (process.env.IS_HARDHAT) {
+            // get factory contract
+            const factoryContract = await SuperTokenFactoryLogic.at(
+                factoryAddress
+            );
+            const superTokenContract = await SuperToken.at(
+                await factoryContract.getSuperTokenLogic.call()
+            );
+            superfluidNFTDeployerLibraryAddress =
+                await superTokenContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS.call();
+            if (process.env.IS_HARDHAT) {
+                if (superfluidNFTDeployerLibraryAddress !== ZERO_ADDRESS) {
                     const lib = await SuperfluidNFTDeployerLibrary.at(
                         superfluidNFTDeployerLibraryAddress
                     );
                     SuperTokenLogic.link(lib);
-                } else {
-                    SuperTokenLogic.link(
-                        "SuperfluidNFTDeployerLibrary",
-                        superfluidNFTDeployerLibraryAddress
-                    );
                 }
+            } else {
+                SuperTokenLogic.link(
+                    "SuperfluidNFTDeployerLibrary",
+                    superfluidNFTDeployerLibraryAddress
+                );
             }
         } catch (e) {
             console.warn(

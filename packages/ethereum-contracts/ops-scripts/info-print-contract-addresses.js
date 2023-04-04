@@ -47,7 +47,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
-    const ISuperToken = artifacts.require("ISuperToken");
+    const SuperToken = artifacts.require("SuperToken");
     const UUPSProxiable = artifacts.require("UUPSProxiable");
     const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 
@@ -85,7 +85,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     ).getSuperTokenLogic();
     output += `SUPERFLUID_SUPER_TOKEN_LOGIC=${superTokenLogicAddress}\n`;
 
-    const superTokenLogicContract = await ISuperToken.at(superTokenLogicAddress);
+    const superTokenLogicContract = await SuperToken.at(superTokenLogicAddress);
 
     const constantOutflowNFTLogic =
         await superTokenLogicContract.CONSTANT_OUTFLOW_NFT_LOGIC();

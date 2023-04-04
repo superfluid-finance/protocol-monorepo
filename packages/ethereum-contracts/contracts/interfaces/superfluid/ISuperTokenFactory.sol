@@ -29,12 +29,6 @@ interface ISuperTokenFactory {
     **************************************************************************/
 
     /**
-     * @notice Get the canonical super token logic.
-     * @dev Is the same as `getSuperTokenLogic`
-     */
-    function _SUPER_TOKEN_LOGIC() external view returns(ISuperToken superTokenLogic);
-
-    /**
      * @dev Get superfluid host contract address
      */
     function getHost() external view returns(address host);

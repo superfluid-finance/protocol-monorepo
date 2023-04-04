@@ -46,11 +46,6 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     ) external;
 
     /**************************************************************************
-    * Constants
-    *************************************************************************/
-    function SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS() external view returns (address);
-
-    /**************************************************************************
     * Immutable variables
     *************************************************************************/
     function CONSTANT_OUTFLOW_NFT_LOGIC() external view returns (IConstantOutflowNFT);

@@ -573,3 +573,19 @@ export interface ERC721IsApprovedForAllParams {
 export type ERC721OwnerOfParams = ERC721TokenIdQueryParams;
 export type ERC721GetApprovedParams = ERC721TokenIdQueryParams;
 export type ERC721TokenURIParams = ERC721TokenIdQueryParams;
+export interface ERC20IncreaseAllowanceParams extends EthersParams {
+    readonly spender: string;
+    readonly amount: string;
+}
+
+export type ERC20DecreaseAllowanceParams = ERC20IncreaseAllowanceParams;
+
+export interface SuperTokenFlowRateAllowanceParams extends EthersParams {
+    readonly flowOperator: string;
+    readonly flowRateAllowanceDelta: string;
+    readonly userData?: string;
+}
+export interface FlowRateAllowanceParams
+    extends SuperTokenFlowRateAllowanceParams {
+    readonly superToken: string;
+}

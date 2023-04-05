@@ -39,7 +39,8 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             BIG_INT_ZERO,       // previousSenderFlowRate
             BIG_INT_ZERO,       // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            "henlo"             // userData
         );
 
         const id = getStreamID(
@@ -67,6 +68,7 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
         assert.fieldEquals("Stream", id, "token", flowUpdatedEvent.params.token.toHexString());
         assert.fieldEquals("Stream", id, "sender", flowUpdatedEvent.params.sender.toHexString());
         assert.fieldEquals("Stream", id, "receiver", flowUpdatedEvent.params.receiver.toHexString());
+        assert.fieldEquals("Stream", id, "userData", flowUpdatedEvent.params.userData.toHexString());
     });
 
     test("handleFlowOperatorUpdated() - Should create a new FlowOperator entity", () => {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
@@ -90,8 +90,11 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
         emit Transfer(address(0), to, newTokenId);
     }
 
-    function _burn(uint256 tokenId) internal {
+    function _burn(uint256 tokenId) internal override {
         FlowNFTData memory flowData = flowDataByTokenId(tokenId);
+
+        super._burn(tokenId);
+
         emit Transfer(flowData.flowReceiver, address(0), tokenId);
     }
 

@@ -1,0 +1,102 @@
+name: Reusable Workflow | Deploy Subgraph to Satsuma
+
+on:
+  workflow_call:
+    inputs:
+      network:
+        required: true
+        type: string
+        description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or `all` for all networks.'
+      satsuma_version_label:
+        required: true
+        type: string
+        description: 'The version label for Satsuma endpoint (e.g. v0.0.x)'
+    secrets:
+      SATSUMA_DEPLOY_KEY:
+        description: 'Satsuma deploy key for deploying subgraphs'
+        required: true
+
+jobs:
+  show-contexts:
+    name: Show Contexts
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Show contexts
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          echo github.event_name: ${{ github.event_name }}
+          echo github.sha: ${{ github.sha }}
+          echo github.repository: ${{ github.repository }}
+          echo github.ref: "$GITHUB_REF"
+          echo github.head_ref: "$HEAD_REF"
+          echo github.base_ref: ${{ github.base_ref }}
+
+  deploy-subgraph:
+    name: Deploy Satsuma Subgraph
+
+    runs-on: ubuntu-latest
+
+    env:
+      subgraph-working-directory: ./packages/subgraph
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: "Install node"
+        uses: "actions/setup-node@v3"
+        with:
+          node-version: "16"
+          cache: "yarn"
+
+      - name: "Install dependencies"
+        run: yarn install --frozen-lockfile
+
+      - name: "Build contracts"
+        run: yarn build
+        working-directory: ./packages/ethereum-contracts
+
+      - name: "Get ABI"
+        run: node scripts/getAbi.js
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Prepare subgraph manifest"
+        # This step is required for generating an arbitrary subgraph.yaml
+        # and addresses.ts file for the yarn codegen step below
+        # the actual addresses will be retrieved during the actual deployment of the subgraph
+        run: ./tasks/prepare-manifest.sh matic
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Generate meta.ignore.ts file"
+        run: "yarn generate-sf-meta"
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          COMMIT_HASH: ${{ github.sha }}
+          CONFIGURATION: ${{ inputs.satsuma_version_label }}
+
+      - name: "Generate AssemblyScript types"
+        run: "yarn codegen"
+        working-directory: ${{ env.subgraph-working-directory }}
+
+      - name: "Deploy to All Satsuma endpoints"
+        if: inputs.network == 'all'
+        run: |
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
+          ./tasks/deploy-all-satsuma-networks.sh "${versionLabel}"
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
+
+      - name: "Deploy to Satsuma endpoint"
+        if: inputs.network != 'all'
+        run: |
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
+          ./tasks/deploy-to-satsuma-network.sh "${versionLabel}" ${{ inputs.network }}
+        working-directory: ${{ env.subgraph-working-directory }}
+        env:
+          SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import { IConstantFlowAgreementHook } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import {
@@ -18,33 +18,42 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { AgreementBase } from "./AgreementBase.sol";
-
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
+import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 
 /**
  * @title ConstantFlowAgreementV1 contract
  * @author Superfluid
  * @dev Please read IConstantFlowAgreementV1 for implementation notes.
  * @dev For more technical notes, please visit protocol-monorepo wiki area.
+ * 
+ * Storage Layout Notes
+ * Agreement State
+ * NOTE The Agreement State slot is computed with the following function:
+ * keccak256(abi.encode("AgreementState", msg.sender, account, slotId))
+ * slotId           = 0
+ * msg.sender       = address of CFAv1
+ * account          = context.msgSender 
+ * Flow Agreement State stores the global FlowData state for an account.
+ * 
+ * 
+ * Agreement Data
+ * NOTE The Agreement Data slot is calculated with the following function:
+ * keccak256(abi.encode("AgreementData", agreementClass, agreementId))
+ * agreementClass   = address of CFAv1
+ * agreementId      = FlowId | FlowOperatorId
+ * 
+ * FlowId           = keccak256(abi.encode(flowSender, flowReceiver))
+ * FlowId stores FlowData between a flowSender and flowReceiver.
+ * 
+ * FlowOperatorId   = keccak256(abi.encode("flowOperator", flowSender, flowOperator))
+ * FlowOperatorId stores FlowOperatorData between a flowSender and flowOperator.
  */
 contract ConstantFlowAgreementV1 is
     AgreementBase,
     IConstantFlowAgreementV1
 {
-
-    /**
-     * E_NO_SENDER_CREATE - sender cannot create as flowOperator
-     * E_NO_SENDER_UPDATE - sender cannot update as flowOperator
-     * E_NO_SENDER_DELETE - sender cannot delete as flowOperator
-     * E_EXCEED_FLOW_RATE_ALLOWANCE - flowRateAllowance exceeeded
-     * E_NO_OPERATOR_CREATE_FLOW - operator does not have permissions to create flow
-     * E_NO_OPERATOR_UPDATE_FLOW - operator does not have permissions to update flow
-     * E_NO_OPERATOR_DELETE_FLOW - operator does not have permissions to delete flow
-     * E_NO_SENDER_FLOW_OPERATOR - sender cannot set themselves as the flow operator
-     * E_NO_NEGATIVE_ALLOWANCE - sender cannot set a negative allowance
-     */
-
     /**
      * @dev Default minimum deposit value
      *
@@ -66,6 +75,7 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
+    // @note this variable is deprecated and no longer used
     IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
 
     // An arbitrarily chosen safety limit for the external calls to protect against out-of-gas grief exploits.
@@ -461,11 +471,16 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        IConstantOutflowNFT constantOutflowNFT = ISuperToken(
-            address(flowVars.token)
-        ).constantOutflowNFT();
-
-        constantOutflowNFT.onCreate(flowVars.sender, flowVars.receiver);
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onCreate{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+        }
     }
 
     function _updateFlow(
@@ -495,10 +510,16 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate(
-            flowVars.sender,
-            flowVars.receiver
-        );
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+        }
     }
 
     function _deleteFlow(
@@ -610,9 +631,16 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
-        IConstantOutflowNFT(
-            address(ISuperToken(address(flowVars.token)).constantOutflowNFT())
-        ).onDelete(flowVars.sender, flowVars.receiver);
+        uint256 gasLeftBefore = gasleft();
+    
+        try
+            ISuperToken(address(flowVars.token)).constantOutflowNFT().onDelete{
+                gas: CFA_HOOK_GAS_LIMIT
+            }(flowVars.sender, flowVars.receiver)
+        // solhint-disable-next-line no-empty-blocks
+        {} catch {
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+        }
     }
 
     /**************************************************************************
@@ -763,6 +791,90 @@ contract ConstantFlowAgreementV1 is
         token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
 
         emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, flowRateAllowance);
+    }
+
+    /// @dev IConstantFlowAgreementV1.increaseFlowRateAllowance implementation
+    function increaseFlowRateAllowance(
+        ISuperfluidToken token,
+        address flowOperator,
+        int96 addedFlowRateAllowance, // flowRateBudget
+        bytes calldata ctx
+    ) public override returns (bytes memory newCtx) {
+        newCtx = ctx;
+
+        // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
+        // authorizeTokenAccess:
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+
+        if (currentContext.msgSender == flowOperator) revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+        if (addedFlowRateAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
+        
+        (
+            bytes32 flowOperatorId,
+            uint8 oldPermissions,
+            int96 oldFlowRateAllowance
+        ) = getFlowOperatorData(token, currentContext.msgSender, flowOperator);
+
+        // @note this will revert if it overflows
+        int96 newFlowRateAllowance = oldFlowRateAllowance + addedFlowRateAllowance;
+        _updateFlowRateAllowance(
+            token,
+            flowOperatorId,
+            oldPermissions,
+            newFlowRateAllowance
+        );
+
+        emit FlowOperatorUpdated(
+            token,
+            currentContext.msgSender,
+            flowOperator,
+            oldPermissions,
+            newFlowRateAllowance
+        );
+    }
+
+    /// @dev IConstantFlowAgreementV1.decreaseFlowRateAllowance implementation
+    function decreaseFlowRateAllowance(
+        ISuperfluidToken token,
+        address flowOperator,
+        int96 subtractedFlowRateAllowance, // flowRateBudget
+        bytes calldata ctx
+    ) public override returns (bytes memory newCtx) {
+        newCtx = ctx;
+
+        // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
+        // authorizeTokenAccess:
+        ISuperfluid.Context memory currentContext = AgreementLibrary
+            .authorizeTokenAccess(token, ctx);
+
+        if (currentContext.msgSender == flowOperator) revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+        if (subtractedFlowRateAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
+
+        (
+            bytes32 flowOperatorId,
+            uint8 oldPermissions,
+            int96 oldFlowRateAllowance
+        ) = getFlowOperatorData(token, currentContext.msgSender, flowOperator);
+        
+        int96 newFlowRateAllowance = oldFlowRateAllowance - subtractedFlowRateAllowance;
+
+        // @note this defends against negative allowance
+        if (newFlowRateAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
+
+        _updateFlowRateAllowance(
+            token,
+            flowOperatorId,
+            oldPermissions,
+            newFlowRateAllowance
+        );
+
+        emit FlowOperatorUpdated(
+            token,
+            currentContext.msgSender,
+            flowOperator,
+            oldPermissions,
+            newFlowRateAllowance
+        );
     }
 
     /// @dev IConstantFlowAgreementV1.authorizeFlowOperatorWithFullControl implementation
@@ -1497,6 +1609,7 @@ contract ConstantFlowAgreementV1 is
         internal pure
         returns(bytes32[] memory data)
     {
+        // last line of defence against negative flowRateAllowance
         assert(flowOperatorData.flowRateAllowance >= 0); // flowRateAllowance must not be less than 0
         data = new bytes32[](1);
         data[0] = bytes32(

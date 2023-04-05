@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
@@ -26,6 +26,14 @@ contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     function mockOwnerOf(uint256 _tokenId) public view returns (address) {
         return _ownerOf(_tokenId);
     }
+    /// @dev This exposes the _tokenApprovals storage without the requireMinted call
+    function mockGetApproved(uint256 _tokenId)
+        public
+        view
+        returns (address)
+    {
+        return _tokenApprovals[_tokenId];
+    }
 }
 
 contract ConstantInflowNFTMock is ConstantInflowNFT {
@@ -51,5 +59,13 @@ contract ConstantInflowNFTMock is ConstantInflowNFT {
         uint256 _tokenId
     ) public view returns (FlowNFTData memory flowData) {
         return flowDataByTokenId(_tokenId);
+    }
+    /// @dev This exposes the _tokenApprovals storage without the requireMinted call
+    function mockGetApproved(uint256 _tokenId)
+        public
+        view
+        returns (address)
+    {
+        return _tokenApprovals[_tokenId];
     }
 }

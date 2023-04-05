@@ -3,6 +3,26 @@ All notable changes to the SDK-core will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+- `getPopulatedTransactionRequest` doesn't use the signer to populate the transaction anymore as `signer.sendTransaction` does it already. The double `signer.populateTransaction` was causing issues with some wallets (e.g. Rainbow Wallet)
+- Map `isNativeAssetSuperToken` to `Token` from Subgraph
+
+## [0.6.3] - 2023-03-14
+
+### Added
+- `increaseAllowance` and `decreaseAllowance` functions to SuperToken class
+- Batch call support for `increaseAllowance` and `decreaseAllowance`
+- `increaseFlowRateAllowance` and `decreaseFlowRateAllowance` functions to CFAv1 class
+- Add support for `activeOutgoingStreamCount`, `activeIncomingStreamCount`, `inactiveOutgoingStreamCount`, `inactiveIncomingStreamCount` properties in query for `AccountTokenSnapshot` entity
+- Add support for `rewardAddress`, `liquidationPeriod`, `patricianPeriod`, and `minimumDeposit` properties in query for `Token` entity
+- Add support for `userData` property in query for `Stream` entity
+- Add `index` (the Subgraph entity ID) field to Index events when querying from Subgraph
+
+### Changed
+- `.exec` or `.execForward` will throw an error if the operations array is empty
+
 ## [0.6.2] - 2023-02-07
 ### Added
 - `streamId` to `FlowUpdatedEvent` when querying from Subgraph
@@ -271,7 +291,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
   - New `SuperToken` class with `SuperToken` CRUD functionality and an underlying `Token` class with basic `ERC20` functionality
   - New `BatchCall` class for creating and executing batch calls with supported `Operation's`
 
-[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.2...HEAD
+[Unreleased]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.3...HEAD
+[0.6.3]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.2...sdk-core%40v0.6.3
 [0.6.2]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.1...sdk-core%40v0.6.2
 [0.6.1]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.6.0...sdk-core%40v0.6.1
 [0.6.0]: https://github.com/superfluid-finance/protocol-monorepo/compare/sdk-core%40v0.5.9...sdk-core%40v0.6.0

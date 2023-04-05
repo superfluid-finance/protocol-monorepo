@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
@@ -26,6 +26,45 @@ import { AgreementLibrary } from "./AgreementLibrary.sol";
  * @dev Please read IInstantDistributionAgreementV1 for implementation notes.
  * @dev For more technical notes, please visit protocol-monorepo wiki area.
  *
+ * Storage Layout Notes
+ * Agreement State
+ * NOTE The Agreement State slot is computed with the following function:
+ * keccak256(abi.encode("AgreementState", msg.sender, account, slotId))
+ * Publisher Deposit State Slot
+ * slotId           = _PUBLISHER_DEPOSIT_STATE_SLOT_ID or 1 << 32 or 4294967296
+ * msg.sender       = address of IDAv1
+ * account          = context.msgSender 
+ * Publisher Deposit State stores deposit state for a publisher, this is the pending value.
+ * 
+ * Subscriber Subscription Data Slot Id Start
+ * slotId           = _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START or 1 << 128 or 340282366920938463463374607431768211456
+ * msg.sender       = address of IDAv1
+ * account          = context.msgSender
+ * Subscriber Subscription Data Slot Id Start indicates the starting slot for where we begin to store the indexes a 
+ * subscriber is a part of.
+ * 
+ * Slots Bitmap Data Slot
+ * slotId           = _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID or 0
+ * msg.sender       = address of IDAv1
+ * account          = context.msgSender
+ * Slots Bitmap Data Slot stores the bitmap of the slots that are "enabled" for a subscriber. 
+ * This is used as an optimization to only get the data (index id's) for the slots that are "enabled".
+ * 
+ * 
+ * Agreement Data
+ * NOTE The Agreement Data slot is calculated with the following function:
+ * keccak256(abi.encode("AgreementData", agreementClass, agreementId))
+ * agreementClass   = address of IDAv1
+ * agreementId      = PublisherId | SubscriptionId
+ * 
+ * PublisherId      = keccak256(abi.encode("publisher", publisher, indexId))
+ * publisher        = "owner" of the index
+ * indexId          = arbitrary value for allowing multiple indexes by the same token-publisher pair
+ * PublisherId stores IndexData for an Index.
+ * 
+ * SubscriptionId   = keccak256(abi.encode("subscriber", subscriber, iId))
+ * iId              = PublisherId, the index this particular subscriber is subscribed to
+ * SubscriptionId stores SubscriptionData for a subscriber to an Index.
  */
 contract InstantDistributionAgreementV1 is
     AgreementBase,

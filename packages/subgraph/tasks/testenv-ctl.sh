@@ -13,5 +13,5 @@ if [ "$CMD" == "start" ];then
     yarn build-and-deploy-local
 elif [ "$CMD" == "stop" ];then
     cd ../sdk-core
-    ./tasks/startHardhatNode.sh $CMD
+    ./tasks/startHardhatNode.sh "$CMD"
 fi

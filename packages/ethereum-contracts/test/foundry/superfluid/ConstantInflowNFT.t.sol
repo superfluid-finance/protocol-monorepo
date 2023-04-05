@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import {
     IERC165,
@@ -76,9 +76,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
 
-        vm.expectRevert(
-            IFlowNFTBase.CFA_NFT_APPROVE_TO_CURRENT_OWNER.selector
-        );
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_APPROVE_TO_CURRENT_OWNER.selector);
 
         vm.prank(_flowReceiver);
         constantInflowNFTProxy.approve(_flowReceiver, nftId);
@@ -235,15 +233,11 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
     //////////////////////////////////////////////////////////////////////////*/
     function test_Passing_Contract_Supports_Expected_Interfaces() public {
         assertEq(
-            constantInflowNFTProxy.supportsInterface(
-                type(IERC165).interfaceId
-            ),
+            constantInflowNFTProxy.supportsInterface(type(IERC165).interfaceId),
             true
         );
         assertEq(
-            constantInflowNFTProxy.supportsInterface(
-                type(IERC721).interfaceId
-            ),
+            constantInflowNFTProxy.supportsInterface(type(IERC721).interfaceId),
             true
         );
         assertEq(
@@ -369,14 +363,14 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         address _flowSender,
         address _flowReceiver,
         address _approvedAccount
-    ) public {
+    ) public returns (uint256 nftId) {
         assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
             _flowSender,
             _flowReceiver
         );
         vm.assume(_flowReceiver != _approvedAccount);
 
-        uint256 nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
+        nftId = helper_Get_NFT_ID(_flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(_flowSender, _flowReceiver, nftId);
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
@@ -402,6 +396,20 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         );
     }
 
+    function test_Fuzz_Passing_Approve_Then_Burn(
+        address _flowSender,
+        address _flowReceiver,
+        address _approvedAccount
+    ) public {
+        uint256 nftId = test_Fuzz_Passing_Approve(
+            _flowSender,
+            _flowReceiver,
+            _approvedAccount
+        );
+        constantInflowNFTProxy.mockBurn(nftId);
+
+        assertEq(constantInflowNFTProxy.mockGetApproved(nftId), address(0));
+    }
     function test_Fuzz_Passing_Set_Approval_For_All(
         address _tokenOwner,
         address _operator,

@@ -1,11 +1,12 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-P=$(echo packages/*/package.json package.json)
+P=$(echo package.json packages/*/package.json packages/*/*/package.json)
 # find duplicated devDependencies in packages
-jq -r '.devDependencies | keys | .[]' $P | \
+echo "$P" | xargs -- jq -r ".devDependencies | keys | .[]" | \
     sort | uniq -c | \
-    grep -ve '^ *1' | awk '{print $2}' | while read i;do
-    echo $i
-    grep '"'$i'"' $P
+    grep -ve '^ *1' | awk '{print $2}' | while read -r i;do
+    echo "$i"
+    echo "$P" | xargs -- grep "\"$i\""
     echo
+    exit 42
 done

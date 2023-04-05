@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
+
+// solhint-disable max-states-count
+// Notes: SueperToken is rich with states, disable this default rule here.
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
@@ -715,6 +718,29 @@ contract SuperToken is
         onlyHost
     {
         _approve(account, spender, amount);
+    }
+
+    function operationIncreaseAllowance(
+        address account,
+        address spender,
+        uint256 addedValue
+    )
+        external override
+        onlyHost
+    {
+        _approve(account, spender, _allowances[account][spender] + addedValue);
+    }
+
+    function operationDecreaseAllowance(
+        address account,
+        address spender,
+        uint256 subtractedValue
+    ) 
+        external override
+        onlyHost
+    {
+        _approve(account, spender, _allowances[account][spender].sub(subtractedValue,
+            "SuperToken: decreased allowance below zero"));
     }
 
     function operationTransferFrom(

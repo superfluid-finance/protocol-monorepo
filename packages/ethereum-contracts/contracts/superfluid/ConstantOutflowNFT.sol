@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 // solhint-disable not-rely-on-time
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
@@ -32,7 +32,6 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     error COF_NFT_MINT_TO_ZERO_ADDRESS();           // 0x43d05e51
     error COF_NFT_ONLY_CONSTANT_INFLOW();           // 0xa495a718
     error COF_NFT_ONLY_CFA();                       // 0x054fae59
-    error COF_NFT_OVERFLOW();                       // 0xb398aeb1
     error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
 
     // solhint-disable-next-line no-empty-blocks
@@ -157,9 +156,6 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         if (_exists(newTokenId)) {
             revert COF_NFT_TOKEN_ALREADY_EXISTS();
         }
-        if (block.timestamp != uint256(uint32(block.timestamp))) {
-            revert COF_NFT_OVERFLOW();
-        }
 
         // update mapping for new NFT to be minted
         _flowDataByTokenId[newTokenId] = FlowNFTData(
@@ -175,11 +171,10 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @notice Destroys token with `tokenId` and clears approvals from previous owner.
     /// @dev `tokenId` must exist AND we emit a {Transfer} event
     /// @param tokenId the id of the token we are destroying
-    function _burn(uint256 tokenId) internal {
+    function _burn(uint256 tokenId) internal override {
         address owner = FlowNFTBase.ownerOf(tokenId);
 
-        // clear approvals from the previous owner
-        delete _tokenApprovals[tokenId];
+        super._burn(tokenId);
 
         // remove previous tokenId flow data mapping
         delete _flowDataByTokenId[tokenId];

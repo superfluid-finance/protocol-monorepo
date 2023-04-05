@@ -58,6 +58,7 @@ export type OtherEvents =
     | SuperTokenLogicUpdatedEvent
     | PPPConfigurationChangedEvent
     | TrustedForwarderChangedEvent
+    | SuperTokenMinimumDepositChangedEvent
     | UnknownEvent;
 
 export type AllEvents = AccountEvents | OtherEvents;
@@ -92,6 +93,7 @@ export interface IndexCreatedEvent extends EventBase {
     name: "IndexCreated";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     userData: string;
 }
@@ -100,6 +102,7 @@ export interface IndexDistributionClaimedEvent extends EventBase {
     name: "IndexDistributionClaimed";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     subscriber: string;
     amount: string;
@@ -109,6 +112,7 @@ export interface IndexSubscribedEvent extends EventBase {
     name: "IndexSubscribed";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     subscriber: string;
 }
@@ -117,6 +121,7 @@ export interface IndexUnitsUpdatedEvent extends EventBase {
     name: "IndexUnitsUpdated";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     subscriber: string;
     units: string;
@@ -128,6 +133,7 @@ export interface IndexUnsubscribedEvent extends EventBase {
     name: "IndexUnsubscribed";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     subscriber: string;
     userData: string;
@@ -137,6 +143,7 @@ export interface IndexUpdatedEvent extends EventBase {
     name: "IndexUpdated";
     token: string;
     publisher: string;
+    index: string;
     indexId: string;
     oldIndexValue: string;
     newIndexValue: string;
@@ -396,6 +403,15 @@ export interface TrustedForwarderChangedEvent extends EventBase {
     isKeySet: boolean;
     forwarder: string;
     enabled: boolean;
+}
+
+export interface SuperTokenMinimumDepositChangedEvent extends EventBase {
+    name: "SuperTokenMinimumDepositChanged";
+    host: string;
+    governanceAddress: string;
+    superToken: string;
+    isKeySet: boolean;
+    minimumDeposit: string;
 }
 
 export interface NewPICEvent extends EventBase {

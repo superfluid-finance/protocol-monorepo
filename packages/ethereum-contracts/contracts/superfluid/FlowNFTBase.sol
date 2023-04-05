@@ -179,7 +179,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         string memory superTokenSymbol = superToken.symbol();
 
         (
-            uint256 startDate,
+            uint256 lastUpdatedAt,
             int96 flowRate, ,
         ) = CONSTANT_FLOW_AGREEMENT_V1.getFlow(superToken, flowData.flowSender, flowData.flowReceiver);
 
@@ -211,7 +211,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
                     "&flowRate=",
                     uint256(uint96(flowRate)).toString(),
                     "&start_date=",
-                    startDate.toString()
+                    lastUpdatedAt.toString()
                 )
             );
     }
@@ -385,5 +385,11 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         bytes memory // data
     ) internal virtual {
         _transfer(from, to, tokenId);
+    }
+    /// @dev Deletes the tokenApprovals for `tokenId`
+    /// @param tokenId the token id whose approvals we're clearing
+    function _burn(uint256 tokenId) internal virtual {
+        // clear approvals from the previous owner
+        delete _tokenApprovals[tokenId];
     }
 }

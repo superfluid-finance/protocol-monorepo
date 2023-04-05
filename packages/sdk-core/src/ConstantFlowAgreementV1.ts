@@ -10,6 +10,7 @@ import Host from "./Host";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
 import {
+    FlowRateAllowanceParams,
     ICreateFlowByOperatorParams,
     ICreateFlowParams,
     IDeleteFlowParams,
@@ -342,6 +343,62 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /** ### CFA ACL Write Functions (byOperator) ### */
+
+    /**
+     * Increase the flow rate allowance for an ACL operator.
+     * @param superToken The token to be flowed.
+     * @param flowOperator The operator of the flow.
+     * @param flowRateAllowanceDelta The amount to increase the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    increaseFlowRateAllowance(params: FlowRateAllowanceParams): Operation {
+        const normalizedToken = normalizeAddress(params.superToken);
+        const normalizedFlowOperator = normalizeAddress(params.flowOperator);
+        const callData = cfaInterface.encodeFunctionData(
+            "increaseFlowRateAllowance",
+            [
+                normalizedToken,
+                normalizedFlowOperator,
+                params.flowRateAllowanceDelta,
+                "0x",
+            ]
+        );
+        return this.host.callAgreement(
+            this.contract.address,
+            callData,
+            params.userData,
+            params.overrides
+        );
+    }
+
+    /**
+     * Decrease the flow rate allowance for an ACL operator.
+     * @param superToken The token to be flowed.
+     * @param flowOperator The operator of the flow.
+     * @param flowRateAllowanceDelta The amount to decrease the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    decreaseFlowRateAllowance(params: FlowRateAllowanceParams): Operation {
+        const normalizedToken = normalizeAddress(params.superToken);
+        const normalizedFlowOperator = normalizeAddress(params.flowOperator);
+        const callData = cfaInterface.encodeFunctionData(
+            "decreaseFlowRateAllowance",
+            [
+                normalizedToken,
+                normalizedFlowOperator,
+                params.flowRateAllowanceDelta,
+                "0x",
+            ]
+        );
+        return this.host.callAgreement(
+            this.contract.address,
+            callData,
+            params.userData,
+            params.overrides
+        );
+    }
 
     /**
      * Update permissions for a flow operator as a sender.

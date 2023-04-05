@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import {
@@ -256,8 +256,8 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     function helper_Get_NFT_ID(
         address _flowSender,
         address _flowReceiver
-    ) public pure returns (uint256) {
-        return uint256(keccak256(abi.encode(_flowSender, _flowReceiver)));
+    ) public view returns (uint256) {
+        return constantOutflowNFTLogic.getTokenId(_flowSender, _flowReceiver);
     }
 
     function helper_Create_Flow_And_Assert_NFT_Invariants(

@@ -90,6 +90,7 @@ export function handleFlowUpdated(event: FlowUpdated): void {
     stream.updatedAtTimestamp = currentTimestamp;
     stream.updatedAtBlockNumber = event.block.number;
     stream.deposit = newDeposit;
+    stream.userData = event.params.userData;
     stream.save();
 
     const flowRateDelta = flowRate.minus(oldFlowRate);

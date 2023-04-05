@@ -361,9 +361,6 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         internal virtual override
     {
         uIndexes[owner] = p;
-        /* uIndexes[owner].settled_at = p.settled_at; */
-        /* uIndexes[owner].settled_value = p.settled_value; */
-        /* uIndexes[owner].flow_rate = p.flow_rate; */
     }
     function _getPDPIndex(bytes memory /*eff*/, address pool)
         internal view virtual override returns (PDPoolIndex memory)

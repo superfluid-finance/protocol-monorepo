@@ -44,7 +44,7 @@ abstract contract TokenMonad {
     {
         BasicParticle memory mempty;
         FlowRate flowRateDelta = flowRate - _getFlowRate(eff, flowHash);
-        (BasicParticle memory a, BasicParticle memory b) = mempty.shift_flow2a(mempty, flowRateDelta, t);
+        (BasicParticle memory a, BasicParticle memory b) = mempty.flow2(mempty, flowRateDelta, t);
         // using mappend so that it works when from == to, why not
         _setUIndex(eff, from, _getUIndex(eff, from).mappend(a));
         _setUIndex(eff, to, _getUIndex(eff, to).mappend(b));

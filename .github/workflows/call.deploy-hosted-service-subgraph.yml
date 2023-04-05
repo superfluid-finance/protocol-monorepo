@@ -10,7 +10,7 @@ on:
       network:
         required: true
         type: string
-        description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or "" for all networks.'
+        description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or `all` for all networks.'
     secrets:
       THE_GRAPH_ACCESS_TOKEN:
         description: 'The Graph access token for deploying subgraphs'
@@ -88,14 +88,14 @@ jobs:
           fi
 
       - name: "Deploy to All Hosted Subgraph Superfluid endpoints"
-        if: inputs.network == ''
+        if: inputs.network == 'all'
         run: ./tasks/deploy-all-hosted-service-networks.sh ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
       - name: "Deploy to Hosted Subgraph Superfluid endpoint"
-        if: inputs.network != ''
+        if: inputs.network != 'all'
         run: ./tasks/deploy-to-hosted-service-network.sh ${{ inputs.release_branch }} ${{ inputs.network }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:

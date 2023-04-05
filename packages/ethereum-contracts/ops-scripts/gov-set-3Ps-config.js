@@ -12,7 +12,7 @@ const {
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
- * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
+ * @param {string} options.protocolReleaseVersion Specify the protocol release version to be used
  *
  * Usage: npx truffle exec ops-scripts/gov-set-3Ps-config.js : {TOKEN ADDRESS} {LIQUIDATION PERIOD} {PATRICIAN PERIOD}
  *        use TOKEN ADDRESS 0x0000000000000000000000000000000000000000 to set a default/fallback value

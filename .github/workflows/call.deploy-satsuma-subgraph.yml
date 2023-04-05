@@ -6,7 +6,7 @@ on:
       network:
         required: true
         type: string
-        description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or "" for all networks.'
+        description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or `all` for all networks.'
       satsuma_version_label:
         required: true
         type: string
@@ -82,7 +82,7 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Deploy to All Satsuma endpoints"
-        if: inputs.network == ''
+        if: inputs.network == 'all'
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
@@ -92,7 +92,7 @@ jobs:
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
 
       - name: "Deploy to Satsuma endpoint"
-        if: inputs.network != ''
+        if: inputs.network != 'all'
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
           versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}

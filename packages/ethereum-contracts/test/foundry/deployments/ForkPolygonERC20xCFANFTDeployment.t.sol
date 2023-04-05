@@ -204,12 +204,12 @@ contract ForkPolygonERC20xCFANFTDeployment is ForkSmokeTest {
                 superTokens
             );
 
-            assertEq(address(ethX.constantOutflowNFT()), address(0));
-            assertEq(address(ethX.constantInflowNFT()), address(0));
+            assertEq(address(ethX.CONSTANT_OUTFLOW_NFT_PROXY()), address(0));
+            assertEq(address(ethX.CONSTANT_INFLOW_NFT_PROXY()), address(0));
 
             // validate that the NFT contracts are set in the SuperToken
-            assertFalse(address(ethX.constantOutflowNFT()) == address(0));
-            assertFalse(address(ethX.constantInflowNFT()) == address(0));
+            assertFalse(address(ethX.CONSTANT_OUTFLOW_NFT_PROXY()) == address(0));
+            assertFalse(address(ethX.CONSTANT_INFLOW_NFT_PROXY()) == address(0));
 
             vm.stopPrank();
         }

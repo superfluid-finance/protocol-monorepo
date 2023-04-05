@@ -2,7 +2,9 @@
 // solhint-disable not-rely-on-time
 pragma solidity 0.8.19;
 
-import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import {
+    ISuperfluidToken
+} from "../interfaces/superfluid/ISuperfluidToken.sol";
 import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
@@ -13,6 +15,7 @@ import {
     IConstantOutflowNFT
 } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 /// @title ConstantOutflowNFT contract (COF NFT)
 /// @author Superfluid
@@ -20,7 +23,7 @@ import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 /// @dev This contract uses mint/burn interface for flow creation/deletion and holds the actual storage for both NFTs.
 contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @notice A mapping from token id to FlowNFTData
-    /// FlowNFTData: { address flowSender, uint32 flowStartDate, address flowReceiver}
+    /// FlowNFTData: { address flowSender, uint32 flowStartDate, address flowReceiver, address superTokenProxy }
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
     mapping(uint256 => FlowNFTData) internal _flowDataByTokenId;
 
@@ -51,62 +54,91 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
 
     /// @notice Hook called by CFA contract on flow creation
     /// @dev This function mints the COF NFT to the flow sender and mints the CIF NFT to the flow receiver
+    /// @param superTokenProxy the SuperToken proxy contract address
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver
     /// NOTE: We do an existence check in here to determine whether or not to execute the hook
     function onCreate(
-        ISuperfluidToken superToken_,
+        ISuperfluidToken superTokenProxy,
         address flowSender,
         address flowReceiver
-    ) external onlyFlowAgreements {
-        if (address(superToken_) != address(superToken)) revert COF_NFT_INVALID_SUPER_TOKEN();
-        uint256 newTokenId = _getTokenId(flowSender, flowReceiver);
+    )
+        external
+        onlyFlowAgreements
+        onlyCanonicalSuperTokenLogic(address(superTokenProxy))
+    {
+        uint256 newTokenId = _getTokenId(
+            address(superTokenProxy),
+            flowSender,
+            flowReceiver
+        );
         if (_flowDataByTokenId[newTokenId].flowSender == address(0)) {
-            _mint(flowSender, flowReceiver, newTokenId);
+            _mint(
+                address(superTokenProxy),
+                flowSender,
+                flowReceiver,
+                newTokenId
+            );
 
-            IConstantInflowNFT constantInflowNFT = superToken
-                .constantInflowNFT();
+            IConstantInflowNFT constantInflowNFT = superTokenLogic
+                .CONSTANT_INFLOW_NFT_PROXY();
             constantInflowNFT.mint(flowReceiver, newTokenId);
         }
     }
 
     /// @notice Hook called by CFA contract on flow update
     /// @dev This function triggers the metadata update of both COF and CIF NFTs
+    /// @param superTokenProxy the SuperToken proxy contract address
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver
     /// NOTE: We do an existence check in here to determine whether or not to execute the hook
     function onUpdate(
-        ISuperfluidToken superToken_,
+        ISuperfluidToken superTokenProxy,
         address flowSender,
         address flowReceiver
-    ) external onlyFlowAgreements {
-        if (address(superToken_) != address(superToken)) revert COF_NFT_INVALID_SUPER_TOKEN();
-        uint256 tokenId = _getTokenId(flowSender, flowReceiver);
+    )
+        external
+        onlyFlowAgreements
+        onlyCanonicalSuperTokenLogic(address(superTokenProxy))
+    {
+        uint256 tokenId = _getTokenId(
+            address(superTokenProxy),
+            flowSender,
+            flowReceiver
+        );
         if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
             _triggerMetadataUpdate(tokenId);
 
-            IConstantInflowNFT constantInflowNFT = superToken
-                .constantInflowNFT();
+            IConstantInflowNFT constantInflowNFT = superTokenLogic
+                .CONSTANT_INFLOW_NFT_PROXY();
             constantInflowNFT.triggerMetadataUpdate(tokenId);
         }
     }
 
     /// @notice Hook called by CFA contract on flow deletion
     /// @dev This function burns the COF NFT and burns the CIF NFT
+    /// @param superTokenProxy the SuperToken proxy contract address
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver
     /// NOTE: We do an existence check in here to determine whether or not to execute the hook
     function onDelete(
-        ISuperfluidToken superToken_,
+        ISuperfluidToken superTokenProxy,
         address flowSender,
         address flowReceiver
-    ) external onlyFlowAgreements {
-        if (address(superToken_) != address(superToken)) revert COF_NFT_INVALID_SUPER_TOKEN();
-        uint256 tokenId = _getTokenId(flowSender, flowReceiver);
+    )
+        external
+        onlyFlowAgreements
+        onlyCanonicalSuperTokenLogic(address(superTokenProxy))
+    {
+        uint256 tokenId = _getTokenId(
+            address(superTokenProxy),
+            flowSender,
+            flowReceiver
+        );
         if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
             // must "burn" inflow NFT first because we clear storage when burning outflow NFT
-            IConstantInflowNFT constantInflowNFT = superToken
-                .constantInflowNFT();
+            IConstantInflowNFT constantInflowNFT = superTokenLogic
+                .CONSTANT_INFLOW_NFT_PROXY();
             constantInflowNFT.burn(tokenId);
 
             _burn(tokenId);
@@ -133,10 +165,12 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @notice Mints `newTokenId` and transfers it to `to`
     /// @dev `newTokenId` must not exist `to` cannot be `address(0)` and we emit a {Transfer} event.
     /// `to` cannot be equal to `flowReceiver`.
+    /// @param superTokenProxy the SuperToken proxy
     /// @param to the receiver of the newly minted outflow nft (flow sender)
     /// @param flowReceiver the flow receiver (owner of the InflowNFT)
     /// @param newTokenId the new token id to be minted
     function _mint(
+        address superTokenProxy,
         address to,
         address flowReceiver,
         uint256 newTokenId
@@ -157,7 +191,8 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         _flowDataByTokenId[newTokenId] = FlowNFTData(
             to,
             uint32(block.timestamp),
-            flowReceiver
+            flowReceiver,
+            superTokenProxy
         );
 
         // emit mint of new outflow token with newTokenId
@@ -182,6 +217,16 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     modifier onlyFlowAgreements() {
         if (msg.sender != address(CONSTANT_FLOW_AGREEMENT_V1)) {
             revert COF_NFT_ONLY_CFA();
+        }
+        _;
+    }
+
+    modifier onlyCanonicalSuperTokenLogic(address superTokenProxy) {
+        address superTokenProxyLogic = UUPSProxiable(superTokenProxy)
+            .getCodeAddress();
+
+        if (address(superTokenProxyLogic) != address(superTokenLogic)) {
+            revert COF_NFT_INVALID_SUPER_TOKEN();
         }
         _;
     }

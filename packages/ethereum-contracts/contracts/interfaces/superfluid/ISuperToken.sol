@@ -48,8 +48,8 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**************************************************************************
     * Immutable variables
     *************************************************************************/
-    function CONSTANT_OUTFLOW_NFT_LOGIC() external view returns (IConstantOutflowNFT);
-    function CONSTANT_INFLOW_NFT_LOGIC() external view returns (IConstantInflowNFT);
+    function CONSTANT_OUTFLOW_NFT_PROXY() external view returns (IConstantOutflowNFT);
+    function CONSTANT_INFLOW_NFT_PROXY() external view returns (IConstantInflowNFT);
 
     /**************************************************************************
     * TokenInfo & ERC777
@@ -526,31 +526,6 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     *  - onlyHost
     */
     function operationDowngrade(address account, uint256 amount) external;
-
-    /**************************************************************************
-    * ERC20x-specific Functions
-    *************************************************************************/
-
-    function constantOutflowNFT() external view returns (IConstantOutflowNFT);
-    function constantInflowNFT() external view returns (IConstantInflowNFT);
-    function poolAdminNFT() external view returns (IPoolAdminNFT);
-    function poolMemberNFT() external view returns (IPoolMemberNFT);
-
-    /**
-     * @dev Constant Outflow NFT proxy created event
-     * @param constantOutflowNFT constant outflow nft address
-     */
-    event ConstantOutflowNFTCreated(
-        IConstantOutflowNFT indexed constantOutflowNFT
-    );
-
-    /**
-     * @dev Constant Inflow NFT proxy created event
-     * @param constantInflowNFT constant inflow nft address
-     */
-    event ConstantInflowNFTCreated(
-        IConstantInflowNFT indexed constantInflowNFT
-    );
 
     /**************************************************************************
     * Function modifiers for access control and parameter validations

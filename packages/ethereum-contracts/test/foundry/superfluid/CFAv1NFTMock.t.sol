@@ -31,11 +31,12 @@ contract ConstantOutflowNFTMock is ConstantOutflowNFT {
 
     /// @dev a mock mint function that exposes the internal _mint function
     function mockMint(
+        address _superTokenProxy,
         address _to,
         address _flowReceiver,
         uint256 _newTokenId
     ) public {
-        _mint(_to, _flowReceiver, _newTokenId);
+        _mint(_superTokenProxy, _to, _flowReceiver, _newTokenId);
     }
 
     /// @dev a mock burn function that exposes the internal _burn function
@@ -92,17 +93,9 @@ contract ConstantInflowNFTMock is ConstantInflowNFT {
 contract NFTFreeRiderSuperTokenMock is SuperToken {
     constructor(
         ISuperfluid host,
-        IConstantOutflowNFT outflowNFTLogic,
-        IConstantInflowNFT inflowNFTLogic
-    ) SuperToken(host, outflowNFTLogic, inflowNFTLogic) {}
-
-    function setNFTProxyContractsArbitrarily(
         IConstantOutflowNFT outflowNFTProxy,
         IConstantInflowNFT inflowNFTProxy
-    ) external {
-        constantOutflowNFT = outflowNFTProxy;
-        constantInflowNFT = inflowNFTProxy;
-    }
+    ) SuperToken(host, outflowNFTProxy, inflowNFTProxy) {}
 }
 
 /// @title NoNFTSuperTokenMock

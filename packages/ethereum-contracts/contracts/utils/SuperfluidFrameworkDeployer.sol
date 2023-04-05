@@ -33,7 +33,8 @@ import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 import { SETHProxy } from "../tokens/SETH.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
-
+import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import {
     IConstantFlowAgreementHook
 } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
@@ -126,15 +127,29 @@ contract SuperfluidFrameworkDeployer {
         // Deploy canonical Constant Outflow NFT logic contract
         ConstantOutflowNFT constantOutflowNFTLogic = new ConstantOutflowNFT(cfaV1);
 
+        // Initialize COFNFT logic contract
+        UUPSProxiable(constantOutflowNFTLogic).castrate();
+
+        // Deploy canonical Constant Outflow NFT proxy contract
+        UUPSProxy constantOutflowNFTProxy = new UUPSProxy();
+        constantOutflowNFTProxy.initializeProxy(address(constantOutflowNFTLogic));
+
         // Deploy canonical Constant Inflow NFT logic contract
         ConstantInflowNFT constantInflowNFTLogic = new ConstantInflowNFT(cfaV1);
+
+        // Initialize CIFNFT logic contract
+        UUPSProxiable(constantInflowNFTLogic).castrate();
+
+        // Deploy canonical Constant Outflow NFT proxy contract
+        UUPSProxy constantInflowNFTProxy = new UUPSProxy();
+        constantInflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
 
         // Deploy canonical SuperToken logic contract
         SuperToken superTokenLogic = SuperToken(
             SuperTokenDeployerLibrary.deploySuperTokenLogic(
                 host,
-                IConstantOutflowNFT(address(constantOutflowNFTLogic)),
-                IConstantInflowNFT(address(constantInflowNFTLogic))
+                IConstantOutflowNFT(address(constantOutflowNFTProxy)),
+                IConstantInflowNFT(address(constantInflowNFTProxy))
             )
         );
 

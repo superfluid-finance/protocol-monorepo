@@ -18,7 +18,6 @@ import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 /// @notice The ConstantInflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract does not hold any storage, but references the ConstantOutflowNFT contract storage.
 contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
-
     // solhint-disable-next-line no-empty-blocks
     constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}
 
@@ -59,8 +58,8 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
         override(FlowNFTBase, IFlowNFTBase)
         returns (FlowNFTData memory flowData)
     {
-        IConstantOutflowNFT constantOutflowNFT = superToken
-            .constantOutflowNFT();
+        IConstantOutflowNFT constantOutflowNFT = superTokenLogic
+            .CONSTANT_OUTFLOW_NFT_PROXY();
         flowData = constantOutflowNFT.flowDataByTokenId(tokenId);
     }
 
@@ -95,8 +94,9 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
     }
 
     modifier onlyConstantOutflowNFT() {
-        address constantOutflowNFT = address(superToken.constantOutflowNFT());
-        if (msg.sender != constantOutflowNFT) {
+        if (
+            msg.sender != address(superTokenLogic.CONSTANT_OUTFLOW_NFT_PROXY())
+        ) {
             revert CIF_NFT_ONLY_CONSTANT_OUTFLOW();
         }
         _;

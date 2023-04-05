@@ -36,8 +36,8 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
 
         // Initializable._initializing (bool) 1byte
 
-        assembly { slot := superToken.slot offset := superToken.offset }
-        if (slot != 0 || offset != 2) revert STORAGE_LOCATION_CHANGED("superToken");
+        assembly { slot := superTokenLogic.slot offset := superTokenLogic.offset }
+        if (slot != 0 || offset != 2) revert STORAGE_LOCATION_CHANGED("superTokenLogic");
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
@@ -111,8 +111,8 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT {
 
         // Initializable._initializing (bool) 1byte
 
-        assembly { slot := superToken.slot offset := superToken.offset }
-        if (slot != 0 || offset != 2) revert STORAGE_LOCATION_CHANGED("superToken");
+        assembly { slot := superTokenLogic.slot offset := superTokenLogic.offset }
+        if (slot != 0 || offset != 2) revert STORAGE_LOCATION_CHANGED("superTokenLogic");
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
@@ -176,8 +176,8 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT {
 
         // Initializable._initializing (bool) 1byte
 
-        assembly { slot := superToken.slot offset := superToken.offset }
-        if (slot != 0 || offset != 2) revert STORAGE_LOCATION_CHANGED("superToken");
+        assembly { slot := superTokenLogic.slot offset := superTokenLogic.offset }
+        if (slot != 0 || offset != 2) revert STORAGE_LOCATION_CHANGED("superTokenLogic");
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");

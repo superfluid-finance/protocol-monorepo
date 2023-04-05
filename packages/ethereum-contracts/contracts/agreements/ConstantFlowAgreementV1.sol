@@ -453,9 +453,9 @@ contract ConstantFlowAgreementV1 is
      */
     function _canCallNFTHook(
         ISuperfluidToken token
-    ) internal returns (address constantOutflowNFTAddress) {
+    ) internal view returns (address constantOutflowNFTAddress) {
         // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory data) = address(token).call(
+        (bool success, bytes memory data) = address(token).staticcall(
             abi.encodeWithSelector(ISuperToken.constantOutflowNFT.selector)
         );
 

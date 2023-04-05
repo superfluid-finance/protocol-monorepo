@@ -53,6 +53,13 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function testSingleLiquidationRevert() public {
+        vm.startPrank(liquidator);
+        vm.expectRevert();
+        batchLiquidator.deleteFlow(address(superToken), alice, bob);
+        vm.stopPrank();
+    }
+
     function testRevertIfArrayLengthsDontMatch() public {
         address[] memory senders = new address[](8);
         address[] memory receivers = new address[](7);

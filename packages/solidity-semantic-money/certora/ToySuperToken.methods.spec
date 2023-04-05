@@ -2,14 +2,14 @@
 
 methods {
     // Monetary Types
-    mul(int256 a, int128 b) returns (int256) envfree => mul_vu_cvl(a, b);
-    div(int256 a, int128 b) returns (int256) envfree => div_vu_cvl(a, b);
+    mul(int256 a, int128 b) returns (int256) => mul_vu_cvl(a, b);
+    div(int256 a, int128 b) returns (int256) => div_vu_cvl(a, b);
 
-    mul(int128 a, uint32 b) returns (int256) envfree => mul_ft_cvl(a, b);
+    mul(int128 a, uint32 b) returns (int256) => mul_ft_cvl(a, b);
 
-    mul(int128 a, int128 b) returns (int128) envfree => mul_fu_cvl(a, b);
-    div(int128 a, int128 b) returns (int128) envfree => div_fu_cvl(a, b);
-    rem(int128 a, int128 b) returns (int128) envfree => rem_fu_cvl(a, b);
+    mul(int128 a, int128 b) returns (int128) => mul_fu_cvl(a, b);
+    div(int128 a, int128 b) returns (int128) => div_fu_cvl(a, b);
+    rem(int128 a, int128 b) returns (int128) => rem_fu_cvl(a, b);
 
     // ISuperToken
     isPool(address p) returns (bool) envfree;
@@ -19,11 +19,11 @@ methods {
     getNetFlowRate(address) returns (int128) envfree;
     getFlowRate(address, address, uint32) returns (int128) envfree;
 
-    flow(uint32, address a, address b, uint32 i, int128 r) returns (bool);
+    flow(address a, address b, uint32 i, int128 r) returns (bool);
 
     // ISuperTokenPoolAdmin
     isMemberConnected(address p, address m) returns (bool) envfree;
-    absorbParticlesFromPool(address[],(uint32,int256,int128)[]) returns (bool) => DISPATCHER(true);
+    absorbParticlesFromPool(address[],(uint32,int256,int128)[]) returns (bool);// => DISPATCHER(true);
 
     // ISuperTokenPool
     getIndex() returns ((int128,(uint32,int256,int128))) => DISPATCHER(true);

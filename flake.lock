@@ -10,11 +10,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1678809915,
-        "narHash": "sha256-IpJKepESt2qFZdw87Z+52Q4Bx0MXgoPDdx2XRxHfHCQ=",
+        "lastModified": 1680817488,
+        "narHash": "sha256-8d+La0dlY4bkygbSIFIoCz1Q8yykg5FDEevvGrtHSQ0=",
         "owner": "hellwolf",
         "repo": "certora.nix",
-        "rev": "2e83c5feb8552982a1dfa949b736dca0c7fa1848",
+        "rev": "ba279b9e9e92b4f9b462c17ed2ec2084ec62b9eb",
         "type": "github"
       },
       "original": {

@@ -8,7 +8,7 @@ import {
 } from "./SemanticMoney.sol";
 
 /**
- * @title Monadic interface for Semantic Money.
+ * @title Monadic interface for Semantic Money as abstract contract.
  *
  * Note:
  *

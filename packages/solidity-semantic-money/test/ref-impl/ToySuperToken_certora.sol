@@ -5,7 +5,9 @@ import "../../src/ref-impl/ToySuperToken.sol";
 
 
 contract ToySuperTokenPoolCertora is ToySuperTokenPool {
-    constructor (address admin) ToySuperTokenPool(admin) {}
+    constructor (address admin) {
+        initialize(admin);
+    }
 }
 
 contract ToySuperTokenCertora is ToySuperToken {

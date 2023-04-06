@@ -3,6 +3,7 @@ pragma solidity 0.8.19;
 
 // solhint-disable not-rely-on-time
 
+import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import {
     Time, Value, FlowRate, Unit,
     BasicParticle,
@@ -11,7 +12,6 @@ import {
 import {
     ISuperTokenPool, ISuperTokenPoolAdmin
 } from "./ISuperTokenPool.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 
 
 /**
@@ -20,16 +20,20 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
  * NOTE: Solidity public getter function for the storage fields do not support structs,
  *       hence their public getter are added manually instead.
  */
-contract ToySuperTokenPool is Ownable, ISuperTokenPool {
+contract ToySuperTokenPool is Initializable, ISuperTokenPool {
+    address public immutable POOL_ADMIN;
+
+    address public admin;
     PDPoolIndex internal _pdpIndex;
     mapping (address member => PDPoolMember member_data) internal _members;
     mapping (address member => Value claimed_value) internal _claimedValues;
-    address public admin;
     Unit public pendingUnits;
 
-    constructor (address admin_)
-        Ownable()
-    {
+    constructor () {
+        POOL_ADMIN = msg.sender;
+    }
+
+    function initialize(address admin_) public initializer() {
         admin = admin_;
     }
 
@@ -79,7 +83,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         Time t = Time.wrap(uint32(block.timestamp));
 
         // update pool's pending units
-        if (!ISuperTokenPoolAdmin(owner()).isMemberConnected(this, memberAddr)) {
+        if (!ISuperTokenPoolAdmin(POOL_ADMIN).isMemberConnected(this, memberAddr)) {
             pendingUnits = pendingUnits - _members[memberAddr].owned_units + unit;
         }
 
@@ -90,7 +94,7 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
         {
             address[] memory addrs = new address[](1);addrs[0] = admin;
             BasicParticle[] memory ps = new BasicParticle[](1);ps[0] = p;
-            assert(ISuperTokenPoolAdmin(owner()).absorbParticlesFromPool(addrs, ps));
+            assert(ISuperTokenPoolAdmin(POOL_ADMIN).absorbParticlesFromPool(addrs, ps));
         }
 
         // additional side effects of triggering claimAll
@@ -116,22 +120,26 @@ contract ToySuperTokenPool is Ownable, ISuperTokenPool {
             BasicParticle[] memory ps = new BasicParticle[](2);
             BasicParticle memory mempty;
             (ps[0], ps[1]) = mempty.shift2(mempty, c);
-            assert(ISuperTokenPoolAdmin(owner()).absorbParticlesFromPool(addrs, ps));
+            assert(ISuperTokenPoolAdmin(POOL_ADMIN).absorbParticlesFromPool(addrs, ps));
         }
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;
         return true;
     }
 
     function operatorSetIndex(PDPoolIndex calldata index) override external
-        onlyOwner returns (bool)
+        returns (bool)
     {
+        assert(POOL_ADMIN == msg.sender);
+
         _pdpIndex = index;
         return true;
     }
 
     function operatorConnectMember(Time t, address memberAddr, bool doConnect) override external
-        onlyOwner returns (bool)
+        returns (bool)
     {
+        assert(POOL_ADMIN == msg.sender);
+
         if (doConnect) {
             pendingUnits = pendingUnits - _members[memberAddr].owned_units;
         } else {

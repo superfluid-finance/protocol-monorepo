@@ -4,6 +4,8 @@ pragma solidity 0.8.19;
 // solhint-disable not-rely-on-time
 
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
 import { FlowId, ISuperToken } from "./ISuperToken.sol";
 import {
     Time, Value, FlowRate, Unit,
@@ -27,11 +29,17 @@ import {
 contract ToySuperToken is ISuperToken, TokenMonad {
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    ToySuperTokenPool public immutable POOL_CONTRACT_MASTER_COPY;
+
     mapping (address owner => BasicParticle) public uIndexes;
     mapping (bytes32 flowHash => FlowRate) public flowRates;
     mapping (address pool => bool exist) private _poolExistenceFlags;
     mapping (address owner => EnumerableSet.AddressSet poolConnections) private _poolConnectionsMap;
     mapping (address owner => mapping(address => uint256) allowances) private _allowances;
+
+    constructor () {
+        POOL_CONTRACT_MASTER_COPY = new ToySuperTokenPool();
+    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // ERC20 operations
@@ -50,12 +58,12 @@ contract ToySuperToken is ISuperToken, TokenMonad {
 
     function transfer(address to, uint256 amount) override external returns (bool) {
         address owner = msg.sender;
-        _shift(owner, to, Value.wrap(int256(amount)), false); // FIXME safeCast
+        _shift(owner, to, Value.wrap(SafeCast.toInt256(amount)), false);
         return true;
     }
 
     function transferFrom(address from, address to, uint256 amount) override external returns (bool) {
-        return _shift(from, to, Value.wrap(int256(amount)), true); // FIXME safeCast
+        return _shift(from, to, Value.wrap(SafeCast.toInt256(amount)), true);
     }
 
     function allowance(address owner, address spender) override external view returns (uint256) {
@@ -70,8 +78,6 @@ contract ToySuperToken is ISuperToken, TokenMonad {
 
     ////////////////////////////////////////////////////////////////////////////////
     // Generalized Payment Primitives
-    //
-    // FIXME require(from != to), as honeyport for F/V
     ////////////////////////////////////////////////////////////////////////////////
 
     function realtimeBalanceOf(address account) override external view
@@ -149,12 +155,13 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         returns (bool success)
     {
         /// check inputs
-        require(!_isPool(to), "Is a pool!");
-        require(Value.unwrap(amount) >= 0, "Negative amount!");
+        require(!_isPool(to), "Use distribute to pool");
+        require(Value.unwrap(amount) >= 0, "Amount must not be negative");
 
         /// prepare local variables (let bindings)
         address spender = msg.sender;
-        if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount))); // FIXME SafeCast
+        // NOTE: uint256 casting is safe: amount is required to be non negative
+        if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount)));
 
         // Make updates
         _doShift(new bytes(0), from, to, amount);
@@ -172,11 +179,12 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         returns (bool success)
     {
         /// check inputs
-        require(!_isPool(to), "Is a pool!");
-        require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate!");
+        require(!_isPool(to), "Use distributeFlow to pool");
+        require(FlowRate.unwrap(flowRate) >= 0, "Flow rate must not be negative");
+        require(from != to, "Shall not send flow to oneself");
 
-        // FIXME: plug permission controls
-        require(msg.sender == from, "No flow permission!");
+        // TODO: plug permission controls
+        require(msg.sender == from, "No flow permission");
 
         /// prepare local variables (let bindings)
         Time t = Time.wrap(uint32(block.timestamp));
@@ -191,11 +199,11 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         returns (bool success, Value actualAmount)
     {
         /// check inputs
-        require(_isPool(address(to)), "Not a pool!");
-        require(Value.unwrap(reqAmount) >= 0, "Negative amount not allowed!!");
+        require(_isPool(address(to)), "Distribute to pool only");
+        require(Value.unwrap(reqAmount) >= 0, "Requested amount must not be negative");
 
-        // FIXME: plug permission controls
-        require(msg.sender == from, "No distribute flow permission!");
+        // TODO: plug permission controls
+        require(msg.sender == from, "No distribute permission");
 
         // Make updates
         actualAmount = _doDistribute(new bytes(0), from, address(to), reqAmount);
@@ -206,15 +214,15 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         returns (bool success, FlowRate actualFlowRate)
     {
         /// check inputs
-        require(_isPool(address(to)), "Not a pool!!");
-        require(FlowRate.unwrap(reqFlowRate) >= 0, "Negative flow rate not allowed!!");
+        require(_isPool(address(to)), "Distribute flow to pool only");
+        require(FlowRate.unwrap(reqFlowRate) >= 0, "Requested flow rate must not be negative");
 
         /// prepare local variables
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowHash = getDistributionFlowHash(from, to, flowId);
 
-        // FIXME: plug permission controls
-        require(msg.sender == from, "No flow permission!!");
+        // TODO: plug permission controls
+        require(msg.sender == from, "No distribute flow permission");
 
         // Make updates
         actualFlowRate = _doDistributeFlow(new bytes(0), from, address(to), flowHash, reqFlowRate, t);
@@ -236,7 +244,8 @@ contract ToySuperToken is ISuperToken, TokenMonad {
     function createPool() external
         returns (ToySuperTokenPool pool)
     {
-        pool = new ToySuperTokenPool(msg.sender);
+        pool = ToySuperTokenPool(Clones.clone(address(POOL_CONTRACT_MASTER_COPY)));
+        pool.initialize(msg.sender);
         _registerPool(address(pool));
     }
 

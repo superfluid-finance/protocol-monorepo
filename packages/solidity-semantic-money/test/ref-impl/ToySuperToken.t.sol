@@ -50,21 +50,34 @@ contract ToySuperTokenTest is Test {
         assertEq(Value.unwrap(a), Value.unwrap(b), e);
     }
 
-    function test_erc20_transfer(uint32 x) external {
-        uint256 a1 = token.balanceOf(alice);
-        uint256 b1 = token.balanceOf(bob);
+    function test_erc20_transfer(uint32 x1, uint32 x2) external {
+        Value a1 = token.realtimeBalanceOf(alice);
+        Value b1 = token.realtimeBalanceOf(bob);
 
         vm.startPrank(alice);
-        token.transfer(bob, x);
+        token.transfer(bob, x1);
         vm.stopPrank();
 
-        uint256 a2 = token.balanceOf(alice);
-        uint256 b2 = token.balanceOf(bob);
-        assertEq(a1 - a2, x);
-        assertEq(b2 - b1, x);
+        vm.startPrank(bob);
+        token.transfer(alice, x2);
+        vm.stopPrank();
+
+        Value a2 = token.realtimeBalanceOf(alice);
+        Value b2 = token.realtimeBalanceOf(bob);
+        assertEq(Value.unwrap(a2 - a1), int256(uint256(x2)) - int256(uint256(x1)));
+        assertEq(b2 - b1, a1 - a2, "e1");
     }
 
-    function test_1to1_flow_updates(uint32 r1, uint32 r2, uint16 dt2, uint16 dt3) external {
+    function test_erc20_self_transfer(uint32 x1) external {
+        Value a1 = token.realtimeBalanceOf(alice);
+        vm.startPrank(alice);
+        token.transfer(alice, x1);
+        vm.stopPrank();
+        Value a2 = token.realtimeBalanceOf(alice);
+        assertEq(a1, a2, "e1");
+    }
+
+    function test_1to1_flow_update(uint32 r1, uint32 r2, uint16 dt2, uint16 dt3) external {
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
         FlowRate rr1 = FlowRate.wrap(int64(uint64(r1)));

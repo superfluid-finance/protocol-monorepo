@@ -129,6 +129,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver
@@ -291,6 +292,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver
@@ -338,6 +340,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver
@@ -354,6 +357,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
 
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver
@@ -375,6 +379,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver

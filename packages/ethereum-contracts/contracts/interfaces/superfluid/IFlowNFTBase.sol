@@ -9,13 +9,17 @@ import { ISuperToken } from "./ISuperToken.sol";
 interface IFlowNFTBase is IERC721Metadata {
     // FlowNFTData struct storage packing:
     // b = bits
-    // WORD 1: | flowId
-    //         | 256b
-    // WORD 2: | superToken      | FREE
+    // WORD 1: | superToken      | FREE
     //         | 160b            | 96b
+    // WORD 2: | flowSender      | FREE
+    //         | 160b            | 96b
+    // WORD 3: | flowReceiver    | flowStartDate | FREE
+    //         | 160b            | 32b           | 64b
     struct FlowNFTData {
-        bytes32 flowId; // keccak(abi.encode(flowSender, flowReceiver))
         address superToken;
+        address flowSender;
+        address flowReceiver;
+        uint32 flowStartDate;
     }
 
     /**************************************************************************

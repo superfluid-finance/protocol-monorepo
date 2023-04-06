@@ -186,14 +186,12 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
             revert COF_NFT_TOKEN_ALREADY_EXISTS();
         }
 
-        // @note This is the CFA FlowId
-        // Refer to ConstantFlowAgreementV1._generateFlowId(address sender, address receiver)
-        bytes32 flowId = keccak256(abi.encode(flowSender, flowReceiver));
-
         // update mapping for new NFT to be minted
         _flowDataByTokenId[newTokenId] = FlowNFTData(
-            flowId,
-            superToken
+            superToken,
+            flowSender,
+            flowReceiver,
+            uint32(block.timestamp) // flowStartDate
         );
 
         // emit mint of new outflow token with newTokenId

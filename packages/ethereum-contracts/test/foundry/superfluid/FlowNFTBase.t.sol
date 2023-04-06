@@ -122,12 +122,15 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     //////////////////////////////////////////////////////////////////////////*/
     function assert_NFT_Flow_Data_State_IsExpected(
         uint256 _tokenId,
+        address _expectedSuperToken,
         address _expectedFlowSender,
         uint32 _expectedFlowStartDate,
         address _expectedFlowReceiver
     ) public {
         FlowNFTBase.FlowNFTData memory flowData = constantOutflowNFTProxy
             .flowDataByTokenId(_tokenId);
+
+        assertEq(flowData.superToken, _expectedSuperToken);
 
         // assert flow sender is equal to expected flow sender
         assertEq(flowData.flowSender, _expectedFlowSender);
@@ -158,6 +161,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     function assert_NFT_Flow_Data_State_IsEmpty(uint256 _tokenId) public {
         assert_NFT_Flow_Data_State_IsExpected(
             _tokenId,
+            address(0),
             address(0),
             0,
             address(0)
@@ -298,6 +302,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         vm.stopPrank();
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver

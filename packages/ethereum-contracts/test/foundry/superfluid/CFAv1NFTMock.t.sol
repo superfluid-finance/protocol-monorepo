@@ -86,18 +86,6 @@ contract ConstantInflowNFTMock is ConstantInflowNFT {
     }
 }
 
-/// @title NFTFreeRiderSuperTokenMock
-/// @author Superfluid
-/// @notice This SuperToken has a function which sets the ConstantOutflowNFT and ConstantInflowNFT proxies.
-/// This contract is used to test that it cannot arbitrarily mint NFTs of other SuperTokens.
-contract NFTFreeRiderSuperTokenMock is SuperToken {
-    constructor(
-        ISuperfluid host,
-        IConstantOutflowNFT outflowNFTProxy,
-        IConstantInflowNFT inflowNFTProxy
-    ) SuperToken(host, outflowNFTProxy, inflowNFTProxy) {}
-}
-
 /// @title NoNFTSuperTokenMock
 /// @author Superfluid
 /// @notice Minimal SuperToken implementation to test flow creation if no NFT proxy contract variable exists.

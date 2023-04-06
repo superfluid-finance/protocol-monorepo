@@ -433,16 +433,14 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+                const {constantOutflowNFTProxy, constantInflowNFTProxy} =
                     await t.deployNFTContracts();
-                const superTokenLogic =
-                    await t.deployExternalLibraryAndLink<SuperToken>(
-                        "SuperfluidNFTDeployerLibrary",
-                        "SuperToken",
-                        superfluid.address,
-                        constantOutflowNFTLogic.address,
-                        constantInflowNFTLogic.address
-                    );
+                const superTokenLogic = await t.deployContract<SuperToken>(
+                    "SuperToken",
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
+                );
                 const factory2LogicFactory = await ethers.getContractFactory(
                     "SuperTokenFactory"
                 );
@@ -470,16 +468,14 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.3 update super token factory double check if new code is called", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+                const {constantOutflowNFTProxy, constantInflowNFTProxy} =
                     await t.deployNFTContracts();
-                const superTokenLogic =
-                    await t.deployExternalLibraryAndLink<SuperToken>(
-                        "SuperfluidNFTDeployerLibrary",
-                        "SuperToken",
-                        superfluid.address,
-                        constantOutflowNFTLogic.address,
-                        constantInflowNFTLogic.address
-                    );
+                const superTokenLogic = await t.deployContract<SuperToken>(
+                    "SuperToken",
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
+                );
                 const factory2LogicFactory = await ethers.getContractFactory(
                     "SuperTokenFactoryUpdateLogicContractsTester"
                 );
@@ -2652,16 +2648,14 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic()
                 );
-                const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+                const {constantOutflowNFTProxy, constantInflowNFTProxy} =
                     await t.deployNFTContracts();
-                const superTokenLogic =
-                    await t.deployExternalLibraryAndLink<SuperToken>(
-                        "SuperfluidNFTDeployerLibrary",
-                        "SuperToken",
-                        superfluid.address,
-                        constantOutflowNFTLogic.address,
-                        constantInflowNFTLogic.address
-                    );
+                const superTokenLogic = await t.deployContract<SuperToken>(
+                    "SuperToken",
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
+                );
                 const factory2Logic = await t.deployContract<SuperTokenFactory>(
                     "SuperTokenFactory",
                     superfluid.address,

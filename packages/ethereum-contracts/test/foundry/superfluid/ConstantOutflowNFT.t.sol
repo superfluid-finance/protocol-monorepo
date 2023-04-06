@@ -27,7 +27,6 @@ import {
 import { FlowNFTBaseTest } from "./FlowNFTBase.t.sol";
 import {
     ConstantOutflowNFTMock,
-    NFTFreeRiderSuperTokenMock,
     NoNFTSuperTokenMock
 } from "./CFAv1NFTMock.t.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
@@ -37,7 +36,6 @@ import {
 
 contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     using CFAv1Library for CFAv1Library.InitData;
-    using SuperTokenV1Library for NFTFreeRiderSuperTokenMock;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     Revert Tests
@@ -258,6 +256,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         );
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver
@@ -315,6 +314,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         );
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver
@@ -380,105 +380,6 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_FLOW_AGREEMENTS.selector);
         constantOutflowNFTProxy.onDelete(superToken, address(1), address(2));
     }
-
-    function helper_Create_Bad_Super_Token()
-        public
-        returns (NFTFreeRiderSuperTokenMock nftFreeRiderToken)
-    {
-        uint256 initialAmount = 10000 ether;
-        TestToken testToken = new TestToken("Test", "TS", 18, initialAmount);
-        // we deploy mock NFT contracts for the tests to access internal functions
-        nftFreeRiderToken = new NFTFreeRiderSuperTokenMock(
-            sf.host,
-            superToken.CONSTANT_OUTFLOW_NFT_PROXY(),
-            superToken.CONSTANT_INFLOW_NFT_PROXY()
-        );
-        nftFreeRiderToken.initialize(
-            IERC20(testToken),
-            18,
-            "Super Test",
-            "TSx"
-        );
-    }
-
-    function test_Fuzz_Revert_If_On_Create_Is_Called_By_Bad_Super_Token()
-        public
-    {
-        NFTFreeRiderSuperTokenMock nftFreeRiderToken = helper_Create_Bad_Super_Token();
-        vm.expectRevert(
-            IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector
-        );
-        vm.startPrank(address(sf.cfa));
-        constantOutflowNFTProxy.onCreate(
-            nftFreeRiderToken,
-            address(1),
-            address(2)
-        );
-        vm.stopPrank();
-    }
-
-    function test_Fuzz_Revert_If_On_Update_Is_Called_By_Bad_Super_Token()
-        public
-    {
-        NFTFreeRiderSuperTokenMock nftFreeRiderToken = helper_Create_Bad_Super_Token();
-        vm.expectRevert(
-            IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector
-        );
-        vm.startPrank(address(sf.cfa));
-        constantOutflowNFTProxy.onUpdate(
-            nftFreeRiderToken,
-            address(1),
-            address(2)
-        );
-        vm.stopPrank();
-    }
-
-    function test_Fuzz_Revert_If_On_Delete_Is_Called_By_Bad_Super_Token()
-        public
-    {
-        NFTFreeRiderSuperTokenMock nftFreeRiderToken = helper_Create_Bad_Super_Token();
-        vm.expectRevert(
-            IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector
-        );
-        vm.startPrank(address(sf.cfa));
-        constantOutflowNFTProxy.onDelete(
-            nftFreeRiderToken,
-            address(1),
-            address(2)
-        );
-        vm.stopPrank();
-    }
-
-    // @note This function does not revert unless you comment out the try/catch in ConstantFlowAgreementV1.sol
-    // function test_Revert_If_Free_Rider_NFT_Attempts_To_Create_Flow() public {
-    //     uint256 initialAmount = 10000 ether;
-    //     TestToken testToken = new TestToken("Test", "TS", 18, initialAmount);
-    //     // we deploy mock NFT contracts for the tests to access internal functions
-    //     ConstantOutflowNFT constantOutflowNFTLogics = new ConstantOutflowNFT(
-    //         sf.cfa
-    //     );
-    //     ConstantInflowNFT constantInflowNFTLogics = new ConstantInflowNFT(
-    //         sf.cfa
-    //     );
-    //     NFTFreeRiderSuperTokenMock nftFreeRiderToken = new NFTFreeRiderSuperTokenMock(
-    //         sf.host,
-    //         constantOutflowNFTLogics,
-    //         constantInflowNFTLogics
-    //     );
-    //     nftFreeRiderToken.initialize(IERC20(testToken), 18, "Super Test", "TSx");
-    //     nftFreeRiderToken.setNFTProxyContractsArbitrarily(
-    //         superToken.CONSTANT_OUTFLOW_NFT_PROXY(),
-    //         superToken.CONSTANT_INFLOW_NFT_PROXY()
-    //     );
-    //     vm.startPrank(alice);
-    //     testToken.mint(alice, initialAmount);
-    //     testToken.approve(address(nftFreeRiderToken), initialAmount);
-    //     nftFreeRiderToken.upgrade(initialAmount);
-    //     // vm.expectRevert(IConstantOutflowNFT.COF_NFT_INVALID_SUPER_TOKEN.selector);
-    //     sf.cfaLib.createFlow(bob, nftFreeRiderToken, 1);
-
-    //     vm.stopPrank();
-    // }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     Passing Tests
@@ -566,6 +467,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         );
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver
@@ -594,6 +496,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         );
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver
@@ -634,6 +537,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         );
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             _flowSender,
             uint32(block.timestamp),
             _flowReceiver
@@ -735,6 +639,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
 
         assert_NFT_Flow_Data_State_IsExpected(
             nftId,
+            address(superTokenMock),
             flowSender,
             uint32(block.timestamp),
             flowReceiver

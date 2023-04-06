@@ -28,7 +28,6 @@ import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNF
 import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
 import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
-import { SuperfluidNFTDeployerLibrary } from "../libs/SuperfluidNFTDeployerLibrary.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -48,7 +47,6 @@ contract SuperToken is
     using SafeERC20 for IERC20;
 
     uint8 constant private _STANDARD_DECIMALS = 18;
-    address public constant SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS = address(SuperfluidNFTDeployerLibrary);
 
     // solhint-disable-next-line var-name-mixedcase
     IConstantOutflowNFT immutable public CONSTANT_OUTFLOW_NFT_PROXY;
@@ -128,8 +126,8 @@ contract SuperToken is
                 "Constant Inflow NFT",
                 "CIF"
             );
-            emit ConstantOutflowNFTCreated(address(constantOutflowNFTProxy));
-            emit ConstantInflowNFTCreated(address(constantInflowNFTProxy));
+            emit ConstantOutflowNFTCreated(constantOutflowNFTProxy);
+            emit ConstantInflowNFTCreated(constantInflowNFTProxy);
         }
     }
 

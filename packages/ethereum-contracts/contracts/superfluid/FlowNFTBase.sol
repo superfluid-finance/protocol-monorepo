@@ -194,8 +194,8 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
 
         string memory superTokenSymbol = _superToken.symbol();
 
-        (uint256 lastUpdatedAt, int96 flowRate, , ) = CONSTANT_FLOW_AGREEMENT_V1
-            .getFlowByID(_superToken, flowData.flowId);
+        (, int96 flowRate, , ) = CONSTANT_FLOW_AGREEMENT_V1
+            .getFlow(_superToken, flowData.flowSender, flowData.flowReceiver);
 
         return
             string(
@@ -214,20 +214,19 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
                     uint256(18).toString(),
                     "&sender=",
                     Strings.toHexString(
-                        // @note this is currently unretrievable
-                        uint256(uint160(address(0))),
+                        uint256(uint160(flowData.flowSender)),
                         20
                     ),
                     "&receiver=",
                     Strings.toHexString(
-                        // @note this is currently unretrievable
-                        uint256(uint160(address(0))),
+                        uint256(uint160(flowData.flowReceiver)),
                         20
                     ),
                     "&flowRate=",
                     uint256(uint96(flowRate)).toString(),
                     "&start_date=",
-                    lastUpdatedAt.toString()
+                    // @note upcasting is safe
+                    uint256(flowData.flowStartDate).toString()
                 )
             );
     }

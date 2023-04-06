@@ -3,20 +3,60 @@
 import "ToySuperToken.methods.spec"
 
 
-function require_poolless(address a, address b) {
+function require_poolless(address a) {
     require isPool(a) == false;
-    require isPool(b) == false;
     require getNumConnections(a) == 0;
-    require getNumConnections(b) == 0;
 }
 
-rule balance_move_at_constant_flow_rate() {
+rule poolless_transfer_balance_moves() {
+    env e1;
+    address a = e1.msg.sender;
+    address b;
+    uint256 x; // transfer amount
+    uint32 t1; require t1 == e1.block.timestamp;
+
+    require a != b;
+    require_poolless(a);
+    require_poolless(b);
+
+    int256 a1 = realtimeBalanceAt(a, t1);
+
+    bool successful = transfer(e1, b, x);
+    assert successful;
+
+    int256 a2 = realtimeBalanceAt(a, t1);
+
+    assert to_mathint(a1) - to_mathint(a2) == to_mathint(x);
+}
+
+rule poolless_transfer_constant_balance_sum() {
+    env e1;
+    address a = e1.msg.sender;
+    address b;
+    uint256 x; // transfer amount
+    uint32 t1; require t1 == e1.block.timestamp;
+
+    require_poolless(a);
+    require_poolless(b);
+
+    int256 a1 = realtimeBalanceAt(a, t1);
+    int256 b1 = realtimeBalanceAt(b, t1);
+
+    bool successful = transfer(e1, b, x);
+    assert successful;
+
+    int256 a2 = realtimeBalanceAt(a, t1);
+    int256 b2 = realtimeBalanceAt(b, t1);
+
+    assert to_mathint(a1) - to_mathint(a2) == to_mathint(b2) - to_mathint(b1);
+}
+
+rule poolless_balance_move_at_constant_flow_rate() {
     address a;
     uint32 t1;
     uint32 dt2; uint32 t2 = t1 + dt2;
 
-    require isPool(a) == false;
-    require getNumConnections(a) == 0;
+    require_poolless(a);
 
     int128 r = getNetFlowRate(a);
     int256 v1 = realtimeBalanceAt(a, t1);
@@ -35,7 +75,8 @@ rule poolless_flow_constant_flowrate_sum() {
     uint32 t1; require t1 == e1.block.timestamp;
     uint32 dt2; uint32 t2 = t1 + dt2;
 
-    require_poolless(a, b);
+    require_poolless(a);
+    require_poolless(b);
 
     int128 r0 = getFlowRate(a, b, i);
     int128 ar1 = getNetFlowRate(a);

@@ -19,11 +19,12 @@ methods {
     getNetFlowRate(address) returns (int128) envfree;
     getFlowRate(address, address, uint32) returns (int128) envfree;
 
-    flow(address a, address b, uint32 i, int128 r) returns (bool);
+    //transfer(address to, uint256 amount) returns (bool);
+    //flow(address from, address to, uint32 i, int128 r) returns (bool);
 
     // ISuperTokenPoolAdmin
     isMemberConnected(address p, address m) returns (bool) envfree;
-    absorbParticlesFromPool(address[],(uint32,int256,int128)[]) returns (bool);// => DISPATCHER(true);
+    // absorbParticlesFromPool(address[],(uint32,int256,int128)[]) returns (bool);// => DISPATCHER(true);
 
     // ISuperTokenPool
     getIndex() returns ((int128,(uint32,int256,int128))) => DISPATCHER(true);

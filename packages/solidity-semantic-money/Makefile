@@ -8,20 +8,25 @@ CERTORA_OPTS = \
 	--loop_iter 3 \
 	--settings -t=2000 \
 
+	#--solc_args "['--optimize', '--via-ir']" \
+
 dev:
 	nodemon -e sol -x sh -- -c "make $(DEV_TARGET) || exit 1"
 
+build-all:
+	forge build --sizes
+
 test-all:
-	forge test $(TEST_OPTS)
+	FOUNDRY_PROFILE=test forge test $(TEST_OPTS)
 
 test-SemanticMoney:
-	forge test --match-contract SemanticMoney $(TEST_OPTS)
+	FOUNDRY_PROFILE=test forge test --match-contract SemanticMoney $(TEST_OPTS)
 
 test-ToySuperToken:
-	forge test --match-contract ToySuperTokenTest $(TEST_OPTS)
+	FOUNDRY_PROFILE=test forge test --match-contract ToySuperTokenTest $(TEST_OPTS)
 
 test-Aqueduct:
-	forge test --match-contract AqueductTest $(TEST_OPTS)
+	FOUNDRY_PROFILE=test forge test --match-contract AqueductTest $(TEST_OPTS)
 
 verify-ToySuperToken-invariances:
 	certoraRun \

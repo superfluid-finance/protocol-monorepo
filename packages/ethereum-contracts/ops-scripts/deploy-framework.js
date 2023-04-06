@@ -735,7 +735,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 );
                 cifNFTProxyAddress = cifNFTProxy.address;
             } else {
-                console.log({cofNFTProxyAddress});
                 const newCOFNFTLogic = await deployContractIfCodeChanged(
                     web3,
                     ConstantOutflowNFT,
@@ -754,7 +753,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         cfaV1Address.toLowerCase().slice(2).padStart(64, "0"),
                     ]
                 );
-                await newCOFNFTLogic.castrate();
                 const newCIFNFTLogic = await deployContractIfCodeChanged(
                     web3,
                     ConstantInflowNFT,
@@ -773,7 +771,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         cfaV1Address.toLowerCase().slice(2).padStart(64, "0"),
                     ]
                 );
-                await newCIFNFTLogic.castrate();
                 // TODO: if the nft logic code changes we must update:
                 // - nft proxy logic contract addresses 
                 // - if SuperToken logic address changes

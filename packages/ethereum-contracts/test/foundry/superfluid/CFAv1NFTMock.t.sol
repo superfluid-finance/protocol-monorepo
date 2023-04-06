@@ -31,12 +31,12 @@ contract ConstantOutflowNFTMock is ConstantOutflowNFT {
 
     /// @dev a mock mint function that exposes the internal _mint function
     function mockMint(
-        address _superTokenProxy,
+        address _superToken,
         address _to,
         address _flowReceiver,
         uint256 _newTokenId
     ) public {
-        _mint(_superTokenProxy, _to, _flowReceiver, _newTokenId);
+        _mint(_superToken, _to, _flowReceiver, _newTokenId);
     }
 
     /// @dev a mock burn function that exposes the internal _burn function

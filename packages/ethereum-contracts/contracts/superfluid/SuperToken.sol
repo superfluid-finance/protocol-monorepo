@@ -112,6 +112,8 @@ contract SuperToken is
         CONSTANT_OUTFLOW_NFT_PROXY = constantOutflowNFTProxy;
         CONSTANT_INFLOW_NFT_PROXY = constantInflowNFTProxy;
         
+        // @note this initializes the NFT proxies the very first time 
+        // that they are created
         if (
             address(constantOutflowNFTProxy.superTokenLogic()) == address(0) ||
             address(constantInflowNFTProxy.superTokenLogic()) == address(0)
@@ -126,6 +128,8 @@ contract SuperToken is
                 "Constant Inflow NFT",
                 "CIF"
             );
+            emit ConstantOutflowNFTCreated(address(constantOutflowNFTProxy));
+            emit ConstantInflowNFTCreated(address(constantInflowNFTProxy));
         }
     }
 
@@ -161,6 +165,18 @@ contract SuperToken is
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host)) revert SUPER_TOKEN_ONLY_HOST();
         UUPSProxiable._updateCodeAddress(newAddress);
+
+        // @note This is another check to ensure that when updating to a new SuperToken logic contract
+        // that we have passed the correct NFT proxy contracts in the construction of the new SuperToken
+        // logic contract
+        if (
+            CONSTANT_OUTFLOW_NFT_PROXY !=
+            SuperToken(newAddress).CONSTANT_OUTFLOW_NFT_PROXY() ||
+            CONSTANT_INFLOW_NFT_PROXY !=
+            SuperToken(newAddress).CONSTANT_INFLOW_NFT_PROXY()
+        ) {
+            revert SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED();
+        }
     }
 
     /**************************************************************************

@@ -13,7 +13,7 @@ interface IConstantOutflowNFT is IFlowNFTBase {
     error COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME(); // 0x0d1d1161
     error COF_NFT_MINT_TO_ZERO_ADDRESS();           // 0x43d05e51
     error COF_NFT_ONLY_CONSTANT_INFLOW();           // 0xa495a718
-    error COF_NFT_ONLY_CFA();                       // 0x054fae59
+    error COF_NFT_ONLY_FLOW_AGREEMENTS();           // 0xd367b64f
     error COF_NFT_TOKEN_ALREADY_EXISTS();           // 0xe2480183
 
 

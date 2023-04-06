@@ -12,6 +12,9 @@ import { IFlowNFTBase } from "../interfaces/superfluid/IFlowNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
+    ISuperTokenFactory
+} from "../interfaces/superfluid/ISuperTokenFactory.sol";
+import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
@@ -105,11 +108,21 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     }
 
     function updateCode(address newAddress) external override {
-        if (msg.sender != address(superTokenLogic.getHost())) {
+        ISuperfluid host = ISuperfluid(superTokenLogic.getHost());
+        if (msg.sender != address(host)) {
             revert CFA_NFT_ONLY_HOST();
         }
 
         UUPSProxiable._updateCodeAddress(newAddress);
+
+        // get canonical logic address via host => supertokenfactory logic.
+        ISuperToken canonicalSuperTokenLogic = ISuperTokenFactory(
+            host.getSuperTokenFactoryLogic()
+        ).getSuperTokenLogic();
+
+        // @note we must update the SuperTokenLogic contract first and
+        // set it as the canonical one in the framework
+        superTokenLogic = canonicalSuperTokenLogic;
     }
 
     /// @notice Emits the MetadataUpdate event with `tokenId` as the argument.
@@ -175,14 +188,14 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     ) external view virtual override returns (string memory) {
         FlowNFTData memory flowData = flowDataByTokenId(tokenId);
 
-        ISuperToken _superToken = ISuperToken(flowData.superTokenProxy);
+        ISuperToken _superToken = ISuperToken(flowData.superToken);
 
         address superTokenAddress = address(_superToken);
 
         string memory superTokenSymbol = _superToken.symbol();
 
         (uint256 lastUpdatedAt, int96 flowRate, , ) = CONSTANT_FLOW_AGREEMENT_V1
-            .getFlow(_superToken, flowData.flowSender, flowData.flowReceiver);
+            .getFlowByID(_superToken, flowData.flowId);
 
         return
             string(
@@ -201,12 +214,14 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
                     uint256(18).toString(),
                     "&sender=",
                     Strings.toHexString(
-                        uint256(uint160(flowData.flowSender)),
+                        // @note this is currently unretrievable
+                        uint256(uint160(address(0))),
                         20
                     ),
                     "&receiver=",
                     Strings.toHexString(
-                        uint256(uint160(flowData.flowReceiver)),
+                        // @note this is currently unretrievable
+                        uint256(uint160(address(0))),
                         20
                     ),
                     "&flowRate=",
@@ -233,20 +248,20 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
 
     /// @inheritdoc IFlowNFTBase
     function getTokenId(
-        address superTokenProxy,
+        address superToken,
         address sender,
         address receiver
     ) external view returns (uint256 tokenId) {
-        tokenId = _getTokenId(superTokenProxy, sender, receiver);
+        tokenId = _getTokenId(superToken, sender, receiver);
     }
 
     function _getTokenId(
-        address superTokenProxy,
+        address superToken,
         address sender,
         address receiver
     ) internal view returns (uint256 tokenId) {
         tokenId = uint256(
-            keccak256(abi.encode(block.chainid, superTokenProxy, sender, receiver))
+            keccak256(abi.encode(block.chainid, superToken, sender, receiver))
         );
     }
 

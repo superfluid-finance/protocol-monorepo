@@ -461,6 +461,11 @@ contract ConstantFlowAgreementV1 is
         );
 
         if (success) {
+            // @note We are aware this may revert if a Custom SuperToken's
+            // CONSTANT_OUTFLOW_NFT_PROXY does not return data that can be
+            // decoded to an address. This would mean it was intentionally
+            // done by the creator of the Custom SuperToken logic and is
+            // fully expected to revert in that case as the author desired.
             constantOutflowNFTAddress = abi.decode(data, (address));
         }
     }

@@ -255,13 +255,13 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
     function helper_Get_NFT_ID(
-        address _superTokenProxy,
+        address _superToken,
         address _flowSender,
         address _flowReceiver
     ) public view returns (uint256) {
         return
             constantOutflowNFTProxy.getTokenId(
-                _superTokenProxy,
+                _superToken,
                 _flowSender,
                 _flowReceiver
             );

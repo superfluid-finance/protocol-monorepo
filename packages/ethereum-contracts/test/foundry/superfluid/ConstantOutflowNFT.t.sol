@@ -358,7 +358,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         address caller
     ) public {
         assume_Caller_Is_Not_Other_Address(caller, address(sf.cfa));
-        vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
+        vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_FLOW_AGREEMENTS.selector);
         vm.prank(caller);
         constantOutflowNFTProxy.onCreate(superToken, address(1), address(2));
     }
@@ -368,7 +368,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     ) public {
         assume_Caller_Is_Not_Other_Address(caller, address(sf.cfa));
         vm.prank(caller);
-        vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
+        vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_FLOW_AGREEMENTS.selector);
         constantOutflowNFTProxy.onUpdate(superToken, address(1), address(2));
     }
 
@@ -377,7 +377,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     ) public {
         assume_Caller_Is_Not_Other_Address(caller, address(sf.cfa));
         vm.prank(caller);
-        vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_CFA.selector);
+        vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_FLOW_AGREEMENTS.selector);
         constantOutflowNFTProxy.onDelete(superToken, address(1), address(2));
     }
 

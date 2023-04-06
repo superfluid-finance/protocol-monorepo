@@ -9,20 +9,13 @@ import { ISuperToken } from "./ISuperToken.sol";
 interface IFlowNFTBase is IERC721Metadata {
     // FlowNFTData struct storage packing:
     // b = bits
-    // WORD 1: | flowSender      | flowStartDate | FREE
-    //         | 160b            | 32b           | 64b
-    // WORD 2: | flowReceiver    | FREE
+    // WORD 1: | flowId
+    //         | 256b
+    // WORD 2: | superToken      | FREE
     //         | 160b            | 96b
-    // WORD 3: | superTokenProxy | FREE
-    //         | 160b            | 96b
-    // @note Using 32 bits for flowStartDate is future proof "enough":
-    // 2 ** 32 - 1 = 4294967295 seconds
-    // Will overflow after: Sun Feb 07 2106 08:28:15
     struct FlowNFTData {
-        address flowSender;
-        uint32 flowStartDate;
-        address flowReceiver;
-        address superTokenProxy;
+        bytes32 flowId; // keccak(abi.encode(flowSender, flowReceiver))
+        address superToken;
     }
 
     /**************************************************************************
@@ -64,13 +57,13 @@ interface IFlowNFTBase is IERC721Metadata {
     ) external view returns (FlowNFTData memory flowData);
 
     /// @notice An external function for computing the deterministic tokenId
-    /// @dev tokenId = uint256(keccak256(abi.encode(block.chainId, superTokenProxy, flowSender, flowReceiver)))
-    /// @param superTokenProxy the super token proxy
+    /// @dev tokenId = uint256(keccak256(abi.encode(block.chainId, superToken, flowSender, flowReceiver)))
+    /// @param superToken the super token
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver
     /// @return tokenId the tokenId
     function getTokenId(
-        address superTokenProxy,
+        address superToken,
         address flowSender,
         address flowReceiver
     ) external view returns (uint256);

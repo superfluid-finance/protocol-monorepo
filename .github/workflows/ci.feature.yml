@@ -118,6 +118,24 @@ jobs:
         run: |
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
+      - name: Install lcov
+        run: sudo apt-get -y install lcov
+
+      - name: Clean up and merge coverage artifacts
+        run: |
+          # extract coverage for NFT contracts from forge coverage
+          lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol' 'packages/ethereum-contracts/contracts/apps/SuperAppBaseCFA.sol' 'packages/ethereum-contracts/contracts/utils/BatchLiquidator.sol' 'packages/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol'
+          # merge hardhat and forge coverage files
+          lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o packages/ethereum-contracts/coverage/lcov.info
+
+      - name: Upload ethereum-contracts-coverage to codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: packages/ethereum-contracts/coverage/lcov.info
+          name: ethereum-contracts-coverage
+          flags: ethereum-contracts
+          fail_ci_if_error: true
+
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
     needs: [ check ]

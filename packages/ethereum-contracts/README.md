@@ -38,8 +38,15 @@ Prerequisites: You need node.js v12+ and yarn installed.
 
 Once you have set up your project, cd into its base directory and add the npm package:
 
+##### hardhat
 ```sh
 $ yarn add @superfluid-finance/ethereum-contracts
+```
+
+##### foundry
+
+```sh
+$ forge install @superfluid-finance/ethereum-contracts
 ```
 
 ### Smart Contract

@@ -1,14 +1,13 @@
 TEST_OPTS ?= -vv
-CERTORA_OPTS ?=
 DEV_TARGET ?= test-all
 CERTORA_OPTS = \
 	--packages @openzeppelin=../../node_modules/@openzeppelin @superfluid-finance/solidity-semantic-money/src=src \
 	--solc solc-0.8.19 \
+	--solc_args "['--via-ir', '--optimize']" \
 	--optimistic_loop \
 	--loop_iter 3 \
 	--settings -t=2000 \
 
-	#--solc_args "['--optimize', '--via-ir']" \
 
 dev:
 	nodemon -e sol -x sh -- -c "make $(DEV_TARGET) || exit 1"

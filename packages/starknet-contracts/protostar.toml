@@ -4,8 +4,9 @@ lib-path = "lib"
 cairo-path = ["lib/cairo_contracts/src"]
 
 [contracts]
-SuperToken = ["src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo"]
-Pool = ["src/pools/PoolImpl.cairo"]
+# SuperToken = ["src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo"]
+# Pool = ["src/pools/PoolImpl.cairo"]
+Aqueduct = ["src/examples/aqueduct/library.cairo"]
 
 [profile.devnet.project]
 gateway-url = "http://127.0.0.1:5050/"

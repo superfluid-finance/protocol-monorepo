@@ -50,18 +50,63 @@ contract ToySuperTokenTest is Test {
         assertEq(Value.unwrap(a), Value.unwrap(b), e);
     }
 
-    function test_erc20_transfer(uint32 x) external {
-        uint256 a1 = token.balanceOf(alice);
-        uint256 b1 = token.balanceOf(bob);
+    function test_erc20_transfer(uint32 x1, uint32 x2) external {
+        Value a1 = token.realtimeBalanceOf(alice);
+        Value b1 = token.realtimeBalanceOf(bob);
 
         vm.startPrank(alice);
-        token.transfer(bob, x);
+        token.transfer(bob, x1);
         vm.stopPrank();
+
+        vm.startPrank(bob);
+        token.transfer(alice, x2);
+        vm.stopPrank();
+
+        Value a2 = token.realtimeBalanceOf(alice);
+        Value b2 = token.realtimeBalanceOf(bob);
+        assertEq(Value.unwrap(a2 - a1), int256(uint256(x2)) - int256(uint256(x1)));
+        assertEq(b2 - b1, a1 - a2, "e1");
+    }
+
+    function test_erc20_self_transfer(uint32 x1) external {
+        Value a1 = token.realtimeBalanceOf(alice);
+        vm.startPrank(alice);
+        token.transfer(alice, x1);
+        vm.stopPrank();
+        Value a2 = token.realtimeBalanceOf(alice);
+        assertEq(a1, a2, "e1");
+    }
+
+    function test_1to1_flow_update(uint32 r1, uint32 r2, uint16 dt2, uint16 dt3) external {
+        uint256 a1 = token.balanceOf(alice);
+        uint256 b1 = token.balanceOf(bob);
+        FlowRate rr1 = FlowRate.wrap(int64(uint64(r1)));
+        FlowRate rr2 = FlowRate.wrap(int64(uint64(r2)));
+        Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
+        Time t3 = t2 + Time.wrap(uint32(dt3));
+
+        vm.startPrank(alice);
+        token.flow(alice, bob, FlowId.wrap(0), rr1);
+        vm.stopPrank();
+        assertEq(token.getNetFlowRate(alice), rr1.inv(), "e1.1");
+        assertEq(token.getNetFlowRate(bob), rr1, "e1.2");
+        assertEq(token.getFlowRate(alice, bob, FlowId.wrap(0)), rr1, "e1.3");
+
+        vm.warp(Time.unwrap(t2));
+
+        vm.startPrank(alice);
+        token.flow(alice, bob, FlowId.wrap(0), rr2);
+        vm.stopPrank();
+        assertEq(token.getNetFlowRate(alice), rr2.inv(), "e2.1");
+        assertEq(token.getNetFlowRate(bob), rr2, "e2.2");
+        assertEq(token.getFlowRate(alice, bob, FlowId.wrap(0)), rr2, "e2.3");
+
+        vm.warp(Time.unwrap(t3));
 
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
-        assertEq(a1 - a2, x);
-        assertEq(b2 - b1, x);
+        assertEq(a1 - a2, uint256(r1) * uint256(dt2) + uint256(r2) * uint256(dt3), "e3.1");
+        assertEq(a1 - a2, b2 - b1, "e3.2");
     }
 
     function test_1to2_flow(uint32 r1, uint32 r2, uint16 t2) external {

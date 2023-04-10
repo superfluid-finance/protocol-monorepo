@@ -58,6 +58,9 @@ interface ISuperToken is IERC20, ISuperTokenPoolAdmin {
     function isPool(address p) external view
         returns (bool);
 
+    function getNumConnections(address account) external view
+        returns (uint);
+
     function connectPool(ISuperTokenPool to) external
         returns (bool);
 
@@ -66,7 +69,4 @@ interface ISuperToken is IERC20, ISuperTokenPoolAdmin {
 
     function connectPool(ISuperTokenPool to, bool doConnect) external
         returns (bool);
-
-    function getNumConnections(address account) external view
-        returns (uint);
 }

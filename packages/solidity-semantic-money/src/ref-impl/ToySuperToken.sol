@@ -4,6 +4,8 @@ pragma solidity 0.8.19;
 // solhint-disable not-rely-on-time
 
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
 import { FlowId, ISuperToken } from "./ISuperToken.sol";
 import {
     Time, Value, FlowRate, Unit,
@@ -26,11 +28,17 @@ import {
 contract ToySuperToken is ISuperToken, TokenMonad {
     using EnumerableSet for EnumerableSet.AddressSet;
 
+    ToySuperTokenPool public immutable POOL_CONTRACT_MASTER_COPY;
+
     mapping (address owner => BasicParticle) public uIndexes;
     mapping (bytes32 flowHash => FlowRate) public flowRates;
     mapping (address pool => bool exist) private _poolExistenceFlags;
     mapping (address owner => EnumerableSet.AddressSet poolConnections) private _poolConnectionsMap;
     mapping (address owner => mapping(address => uint256) allowances) private _allowances;
+
+    constructor () {
+        POOL_CONTRACT_MASTER_COPY = new ToySuperTokenPool();
+    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // ERC20 operations
@@ -49,12 +57,12 @@ contract ToySuperToken is ISuperToken, TokenMonad {
 
     function transfer(address to, uint256 amount) override external returns (bool) {
         address owner = msg.sender;
-        _shift(owner, to, Value.wrap(int256(amount)), false); // FIXME safeCast
+        _shift(owner, to, Value.wrap(SafeCast.toInt256(amount)), false);
         return true;
     }
 
     function transferFrom(address from, address to, uint256 amount) override external returns (bool) {
-        return _shift(from, to, Value.wrap(int256(amount)), true); // FIXME safeCast
+        return _shift(from, to, Value.wrap(SafeCast.toInt256(amount)), true);
     }
 
     function allowance(address owner, address spender) override external view returns (uint256) {
@@ -69,8 +77,6 @@ contract ToySuperToken is ISuperToken, TokenMonad {
 
     ////////////////////////////////////////////////////////////////////////////////
     // Generalized Payment Primitives
-    //
-    // FIXME require(from != to), as honeyport for F/V
     ////////////////////////////////////////////////////////////////////////////////
 
     function realtimeBalanceOf(address account) override external view
@@ -91,7 +97,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         returns (Value available, Value deposit)
     {
         // initial value from universal index
-        available = _getUIndex(account).rtb(t);
+        available = _getUIndex(new bytes(0), account).rtb(t);
 
         // pending distributions from pool
         if (_isPool(account)) {
@@ -114,7 +120,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
 
     function getNetFlowRate(address account) override external view returns (FlowRate nr)
     {
-        nr = _getUIndex(account).flow_rate;
+        nr = _getUIndex(new bytes(0), account).flow_rate;
 
         // pool distribution flow rate
         if (_isPool(account)) {
@@ -141,22 +147,23 @@ contract ToySuperToken is ISuperToken, TokenMonad {
 
     function getFlowRate(address from, address to, FlowId flowId) override external view returns (FlowRate)
     {
-        return _getFlowRate(getFlowHash(from, to, flowId));
+        return _getFlowRate(new bytes(0), getFlowHash(from, to, flowId));
     }
 
     function _shift(address from, address to, Value amount, bool checkAllowance) internal
         returns (bool success)
     {
         /// check inputs
-        require(!_isPool(to), "Is a pool!");
-        require(Value.unwrap(amount) >= 0, "Negative amount!");
+        require(!_isPool(to), "Use distribute to pool");
+        require(Value.unwrap(amount) >= 0, "Amount must not be negative");
 
         /// prepare local variables (let bindings)
         address spender = msg.sender;
-        if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount))); // FIXME SafeCast
+        // NOTE: uint256 casting is safe: amount is required to be non negative
+        if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount)));
 
         // Make updates
-        _doShift(from, to, amount);
+        _doShift(new bytes(0), from, to, amount);
         return true;
     }
 
@@ -171,18 +178,19 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         returns (bool success)
     {
         /// check inputs
-        require(!_isPool(to), "Is a pool!");
-        require(FlowRate.unwrap(flowRate) >= 0, "Negative flow rate!");
+        require(!_isPool(to), "Use distributeFlow to pool");
+        require(FlowRate.unwrap(flowRate) >= 0, "Flow rate must not be negative");
+        require(from != to, "Shall not send flow to oneself");
 
-        // FIXME: plug permission controls
-        require(msg.sender == from, "No flow permission!");
+        // TODO: plug permission controls
+        require(msg.sender == from, "No flow permission");
 
         /// prepare local variables (let bindings)
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowHash = getFlowHash(from, to, flowId);
 
         // Make updates
-        _doFlow(from, to, flowHash, flowRate, t);
+        _doFlow(new bytes(0), from, to, flowHash, flowRate, t);
         return true;
     }
 
@@ -190,14 +198,14 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         returns (bool success, Value actualAmount)
     {
         /// check inputs
-        require(_isPool(address(to)), "Not a pool!");
-        require(Value.unwrap(reqAmount) >= 0, "Negative amount not allowed!!");
+        require(_isPool(address(to)), "Distribute to pool only");
+        require(Value.unwrap(reqAmount) >= 0, "Requested amount must not be negative");
 
-        // FIXME: plug permission controls
-        require(msg.sender == from, "No distribute flow permission!");
+        // TODO: plug permission controls
+        require(msg.sender == from, "No distribute permission");
 
         // Make updates
-        actualAmount = _doDistribute(from, address(to), reqAmount);
+        actualAmount = _doDistribute(new bytes(0), from, address(to), reqAmount);
         success = true;
     }
 
@@ -205,18 +213,18 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         returns (bool success, FlowRate actualFlowRate)
     {
         /// check inputs
-        require(_isPool(address(to)), "Not a pool!!");
-        require(FlowRate.unwrap(reqFlowRate) >= 0, "Negative flow rate not allowed!!");
+        require(_isPool(address(to)), "Distribute flow to pool only");
+        require(FlowRate.unwrap(reqFlowRate) >= 0, "Requested flow rate must not be negative");
 
         /// prepare local variables
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowHash = getDistributionFlowHash(from, to, flowId);
 
-        // FIXME: plug permission controls
-        require(msg.sender == from, "No flow permission!!");
+        // TODO: plug permission controls
+        require(msg.sender == from, "No distribute flow permission");
 
         // Make updates
-        actualFlowRate = _doDistributeFlow(from, address(to), flowHash, reqFlowRate, t);
+        actualFlowRate = _doDistributeFlow(new bytes(0), from, address(to), flowHash, reqFlowRate, t);
         success = true;
     }
 
@@ -228,10 +236,15 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         return _isPool(p);
     }
 
+    function getNumConnections(address account) override external view returns (uint) {
+        return _poolConnectionsMap[account].length();
+    }
+
     function createPool() external
         returns (ToySuperTokenPool pool)
     {
-        pool = new ToySuperTokenPool(msg.sender);
+        pool = ToySuperTokenPool(Clones.clone(address(POOL_CONTRACT_MASTER_COPY)));
+        pool.initialize(msg.sender);
         _registerPool(address(pool));
     }
 
@@ -269,10 +282,6 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         return _poolConnectionsMap[memberAddr].contains(address(to));
     }
 
-    function getNumConnections(address account) override external view returns (uint) {
-        return _poolConnectionsMap[account].length();
-    }
-
     /// This is used by the pool to adjust flow rate
     function absorbParticlesFromPool(address[] calldata accounts, BasicParticle[] calldata ps) override external
         returns (bool)
@@ -280,7 +289,7 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         require(_isPool(msg.sender), "Only absorbing from pools!");
         assert(accounts.length == ps.length);
         for (uint i = 0; i < accounts.length; i++) {
-            _setUIndex(accounts[i], _getUIndex(accounts[i]).mappend(ps[i]));
+            _setUIndex(new bytes(0), accounts[i], _getUIndex(new bytes(0), accounts[i]).mappend(ps[i]));
         }
         return true;
     }
@@ -351,27 +360,34 @@ contract ToySuperToken is ISuperToken, TokenMonad {
     // Token Monad Overrides
     ////////////////////////////////////////////////////////////////////////////////
 
-    function _getUIndex(address owner) internal view virtual override returns (BasicParticle memory) {
+    function _getUIndex(bytes memory /*eff*/, address owner)
+        internal view virtual override returns (BasicParticle memory)
+    {
         return uIndexes[owner];
     }
-    function _setUIndex(address owner, BasicParticle memory p) internal virtual override {
+    function _setUIndex(bytes memory /*eff*/, address owner, BasicParticle memory p)
+        internal virtual override
+    {
         uIndexes[owner] = p;
     }
-    function _getPDPIndex(address pool) internal view virtual override returns (PDPoolIndex memory) {
+    function _getPDPIndex(bytes memory /*eff*/, address pool)
+        internal view virtual override returns (PDPoolIndex memory)
+    {
         return ISuperTokenPool(pool).getIndex();
     }
-    function _setPDPIndex(address pool, PDPoolIndex memory p) internal virtual override {
+    function _setPDPIndex(bytes memory /*eff*/, address pool, PDPoolIndex memory p)
+        internal virtual override
+    {
         assert(ISuperTokenPool(pool).operatorSetIndex(p));
     }
-    function _getFlowRate(bytes32 flowHash) internal view virtual override
-        returns (FlowRate)
+    function _getFlowRate(bytes memory /*eff*/, bytes32 flowHash)
+        internal view virtual override returns (FlowRate)
     {
         return flowRates[flowHash];
     }
-    function _setFlowInfo(bytes32 flowHash, address /*from*/, address /*to*/, FlowRate flowRate)
+    function _setFlowInfo(bytes memory /*eff*/, bytes32 flowHash, address /*from*/, address /*to*/, FlowRate flowRate)
         internal virtual override
     {
         flowRates[flowHash] = flowRate;
     }
-
 }

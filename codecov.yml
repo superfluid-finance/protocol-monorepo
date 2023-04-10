@@ -26,3 +26,17 @@ flags:
     paths: packages/ethereum-contracts
   sdk-core:
     paths: packages/sdk-core
+
+ignore:
+  # ignore all files in the mocks folder
+  - "packages/ethereum-contracts/contracts/mocks/*.sol"
+
+  # ignore all SuperAppBase* files in the apps folder
+  # (we override the functions in these contract in the inheriting contract)
+  - "packages/ethereum-contracts/contracts/apps/SuperAppBase*.sol"
+
+  # ignore all *Deployer files in the utils folder (used for testing)
+  - "packages/ethereum-contracts/contracts/utils/*Deployer.sol"
+
+  # ignore all Test* files in the utils folder (used for testing)
+  - "packages/ethereum-contracts/contracts/utils/Test*.sol"

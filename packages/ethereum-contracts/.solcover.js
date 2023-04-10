@@ -1,10 +1,18 @@
+// This file is used by solidity-coverage to configure the coverage report.
+
 module.exports = {
     providerOptions: {
         network_id: 8555,
     },
     skipFiles: [
         "mocks/",
+        // we skip the coverage for the SuperAppBase contracts because
+        // we override the functions in child contracts
         "apps/SuperAppBase.sol",
+        "apps/SuperAppBaseCFA.sol",
+
+        // we skip the coverage for these contracts because they are
+        // only used for testing
         "utils/SuperfluidFrameworkDeployer",
         "utils/SuperTokenDeployer",
         "utils/TestToken",

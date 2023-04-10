@@ -29,7 +29,7 @@ flags:
 
 ignore:
   # ignore all files in the mocks folder
-  - "packages/ethereum-contracts/contracts/mocks/*.sol"
+  - "packages/ethereum-contracts/contracts/mocks"
 
   # ignore all SuperAppBase* files in the apps folder
   # (we override the functions in these contract in the inheriting contract)

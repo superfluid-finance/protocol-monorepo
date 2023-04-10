@@ -564,9 +564,9 @@ export default class TestEnvironment {
             superTokenLogicAddress
         );
         const constantOutflowNFTProxyLogicAddress =
-            await superTokenLogic.CONSTANT_OUTFLOW_NFT_PROXY();
+            await superTokenLogic.CONSTANT_OUTFLOW_NFT();
         const constantInflowNFTProxyLogicAddress =
-            await superTokenLogic.CONSTANT_INFLOW_NFT_PROXY();
+            await superTokenLogic.CONSTANT_INFLOW_NFT();
 
         if (
             constantOutflowNFTProxyLogicAddress ===

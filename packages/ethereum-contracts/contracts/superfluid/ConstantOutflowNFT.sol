@@ -82,7 +82,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
             );
 
             IConstantInflowNFT constantInflowNFT = superTokenLogic
-                .CONSTANT_INFLOW_NFT_PROXY();
+                .CONSTANT_INFLOW_NFT();
             constantInflowNFT.mint(flowReceiver, newTokenId);
         }
     }
@@ -110,7 +110,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
             _triggerMetadataUpdate(tokenId);
 
             IConstantInflowNFT constantInflowNFT = superTokenLogic
-                .CONSTANT_INFLOW_NFT_PROXY();
+                .CONSTANT_INFLOW_NFT();
             constantInflowNFT.triggerMetadataUpdate(tokenId);
         }
     }
@@ -137,7 +137,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
             // must "burn" inflow NFT first because we clear storage when burning outflow NFT
             IConstantInflowNFT constantInflowNFT = superTokenLogic
-                .CONSTANT_INFLOW_NFT_PROXY();
+                .CONSTANT_INFLOW_NFT();
             constantInflowNFT.burn(tokenId);
 
             _burn(tokenId);

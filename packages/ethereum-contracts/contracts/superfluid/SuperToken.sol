@@ -49,10 +49,10 @@ contract SuperToken is
     uint8 constant private _STANDARD_DECIMALS = 18;
 
     // solhint-disable-next-line var-name-mixedcase
-    IConstantOutflowNFT immutable public CONSTANT_OUTFLOW_NFT_PROXY;
+    IConstantOutflowNFT immutable public CONSTANT_OUTFLOW_NFT;
     
     // solhint-disable-next-line var-name-mixedcase
-    IConstantInflowNFT immutable public CONSTANT_INFLOW_NFT_PROXY;
+    IConstantInflowNFT immutable public CONSTANT_INFLOW_NFT;
 
     /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
        Always double-check that new
@@ -94,11 +94,14 @@ contract SuperToken is
     uint256 private _reserve29;
     uint256 private _reserve30;
     uint256 internal _reserve31;
+    
+    // NOTE: You cannot add more storage here. Refer to CustomSuperTokenBase.sol
+    // to see the hard-coded storage padding used by SETH and PureSuperToken
 
     constructor(
         ISuperfluid host,
-        IConstantOutflowNFT constantOutflowNFTProxy,
-        IConstantInflowNFT constantInflowNFTProxy
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
         SuperfluidToken(host)
         // solhint-disable-next-line no-empty-blocks
@@ -107,27 +110,27 @@ contract SuperToken is
         // deployment of the logic contract.
 
         // set the immutable canonical NFT proxy addresses
-        CONSTANT_OUTFLOW_NFT_PROXY = constantOutflowNFTProxy;
-        CONSTANT_INFLOW_NFT_PROXY = constantInflowNFTProxy;
+        CONSTANT_OUTFLOW_NFT = constantOutflowNFT;
+        CONSTANT_INFLOW_NFT = constantInflowNFT;
         
         // @note this initializes the NFT proxies the very first time 
         // that they are created
         if (
-            address(constantOutflowNFTProxy.superTokenLogic()) == address(0) ||
-            address(constantInflowNFTProxy.superTokenLogic()) == address(0)
+            address(constantOutflowNFT.superTokenLogic()) == address(0) ||
+            address(constantInflowNFT.superTokenLogic()) == address(0)
         ) {
-            constantOutflowNFTProxy.initialize(
+            constantOutflowNFT.initialize(
                 ISuperToken(address(this)),
                 "Constant Outflow NFT",
                 "COF"
             );
-            constantInflowNFTProxy.initialize(
+            constantInflowNFT.initialize(
                 ISuperToken(address(this)),
                 "Constant Inflow NFT",
                 "CIF"
             );
-            emit ConstantOutflowNFTCreated(constantOutflowNFTProxy);
-            emit ConstantInflowNFTCreated(constantInflowNFTProxy);
+            emit ConstantOutflowNFTCreated(constantOutflowNFT);
+            emit ConstantInflowNFTCreated(constantInflowNFT);
         }
     }
 
@@ -168,10 +171,10 @@ contract SuperToken is
         // that we have passed the correct NFT proxy contracts in the construction of the new SuperToken
         // logic contract
         if (
-            CONSTANT_OUTFLOW_NFT_PROXY !=
-            SuperToken(newAddress).CONSTANT_OUTFLOW_NFT_PROXY() ||
-            CONSTANT_INFLOW_NFT_PROXY !=
-            SuperToken(newAddress).CONSTANT_INFLOW_NFT_PROXY()
+            CONSTANT_OUTFLOW_NFT !=
+            SuperToken(newAddress).CONSTANT_OUTFLOW_NFT() ||
+            CONSTANT_INFLOW_NFT !=
+            SuperToken(newAddress).CONSTANT_INFLOW_NFT()
         ) {
             revert SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED();
         }

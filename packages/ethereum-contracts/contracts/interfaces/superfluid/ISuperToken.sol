@@ -48,8 +48,8 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**************************************************************************
     * Immutable variables
     *************************************************************************/
-    function CONSTANT_OUTFLOW_NFT_PROXY() external view returns (IConstantOutflowNFT);
-    function CONSTANT_INFLOW_NFT_PROXY() external view returns (IConstantInflowNFT);
+    function CONSTANT_OUTFLOW_NFT() external view returns (IConstantOutflowNFT);
+    function CONSTANT_INFLOW_NFT() external view returns (IConstantInflowNFT);
 
     /**************************************************************************
     * TokenInfo & ERC777

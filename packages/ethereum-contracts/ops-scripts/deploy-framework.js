@@ -665,9 +665,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         superTokenLogicAddress
                     );
                     cofNFTProxyAddress =
-                        await superTokenLogic.CONSTANT_OUTFLOW_NFT_PROXY.call();
+                        await superTokenLogic.CONSTANT_OUTFLOW_NFT.call();
                     cifNFTProxyAddress =
-                        await superTokenLogic.CONSTANT_INFLOW_NFT_PROXY.call();
+                        await superTokenLogic.CONSTANT_INFLOW_NFT.call();
                 } catch (err) {
                     console.error("Unable to get nft proxy addresses");
                 }
@@ -682,7 +682,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 // flowNFTLogicArtifact:
                 // flowNFTType: "ConstantOutflowNFT" | "ConstantInflowNFT"
                 // logicOutput: "CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS" | "CONSTANT_INFLOW_NFT_LOGIC_ADDRESS"
-                // proxyOutput: "CONSTANT_OUTFLOW_NFT_PROXY_ADDRESS" | "CONSTANT_INFLOW_NFT_PROXY_ADDRESS"
+                // proxyOutput: "CONSTANT_OUTFLOW_NFT_ADDRESS" | "CONSTANT_INFLOW_NFT_ADDRESS"
                 const deployFlowNFTProxyAndLogicAndRegister = async (
                     flowNFTLogicArtifact,
                     flowNFTType,
@@ -721,7 +721,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const cofNFTProxy = await deployFlowNFTProxyAndLogicAndRegister(
                     ConstantOutflowNFT,
                     "ConstantOutflowNFT",
-                    "CONSTANT_OUTFLOW_NFT_PROXY_ADDRESS",
+                    "CONSTANT_OUTFLOW_NFT_ADDRESS",
                     "CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS"
                 );
                 cofNFTProxyAddress = cofNFTProxy.address;
@@ -730,7 +730,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const cifNFTProxy = await deployFlowNFTProxyAndLogicAndRegister(
                     ConstantInflowNFT,
                     "ConstantInflowNFT",
-                    "CONSTANT_INFLOW_NFT_PROXY_ADDRESS",
+                    "CONSTANT_INFLOW_NFT_ADDRESS",
                     "CONSTANT_INFLOW_NFT_LOGIC_ADDRESS"
                 );
                 cifNFTProxyAddress = cifNFTProxy.address;

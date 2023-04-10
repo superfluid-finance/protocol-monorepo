@@ -107,12 +107,12 @@ if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY" ]; then
     try_verify SuperTokenFactory@"${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY}" --custom-proxy UUPSProxy
 fi
 
-if [ -n "$CONSTANT_OUTFLOW_NFT_PROXY_ADDRESS" ]; then
-    try_verify ConstantOutflowNFTProxy@"${CONSTANT_OUTFLOW_NFT_PROXY_ADDRESS}" --custom-proxy UUPSProxy
+if [ -n "$CONSTANT_OUTFLOW_NFT_ADDRESS" ]; then
+    try_verify ConstantOutflowNFTProxy@"${CONSTANT_OUTFLOW_NFT_ADDRESS}" --custom-proxy UUPSProxy
 fi
 
-if [ -n "$CONSTANT_INFLOW_NFT_PROXY_ADDRESS" ]; then
-    try_verify ConstantInflowNFTProxy@"${CONSTANT_INFLOW_NFT_PROXY_ADDRESS}" --custom-proxy UUPSProxy
+if [ -n "$CONSTANT_INFLOW_NFT_ADDRESS" ]; then
+    try_verify ConstantInflowNFTProxy@"${CONSTANT_INFLOW_NFT_ADDRESS}" --custom-proxy UUPSProxy
 fi
 
 if [ -n "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then

@@ -448,7 +448,7 @@ contract ConstantFlowAgreementV1 is
     
     /**
      * @notice Checks whether or not the NFT hook can be called.
-     * @dev A staticcall, so `CONSTANT_OUTFLOW_NFT_PROXY` must be a view otherwise the assumption is that it reverts
+     * @dev A staticcall, so `CONSTANT_OUTFLOW_NFT` must be a view otherwise the assumption is that it reverts
      * @param token the super token that is being streamed
      * @return constantOutflowNFTAddress the address returned by low level call
      */
@@ -457,12 +457,12 @@ contract ConstantFlowAgreementV1 is
     ) internal view returns (address constantOutflowNFTAddress) {
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory data) = address(token).staticcall(
-            abi.encodeWithSelector(ISuperToken.CONSTANT_OUTFLOW_NFT_PROXY.selector)
+            abi.encodeWithSelector(ISuperToken.CONSTANT_OUTFLOW_NFT.selector)
         );
 
         if (success) {
             // @note We are aware this may revert if a Custom SuperToken's
-            // CONSTANT_OUTFLOW_NFT_PROXY does not return data that can be
+            // CONSTANT_OUTFLOW_NFT does not return data that can be
             // decoded to an address. This would mean it was intentionally
             // done by the creator of the Custom SuperToken logic and is
             // fully expected to revert in that case as the author desired.

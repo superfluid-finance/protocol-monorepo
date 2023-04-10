@@ -88,8 +88,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const superTokenLogicContract = await SuperToken.at(superTokenLogicAddress);
 
     const constantOutflowNFTProxyAddress =
-        await superTokenLogicContract.CONSTANT_OUTFLOW_NFT_PROXY();
-    output += `CONSTANT_OUTFLOW_NFT_PROXY_ADDRESS=${constantOutflowNFTProxyAddress}\n`;
+        await superTokenLogicContract.CONSTANT_OUTFLOW_NFT();
+    output += `CONSTANT_OUTFLOW_NFT_ADDRESS=${constantOutflowNFTProxyAddress}\n`;
 
     const constantOutflowNFTLogicAddress = await (
         await UUPSProxiable.at(constantOutflowNFTProxyAddress)
@@ -97,8 +97,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${constantOutflowNFTLogicAddress}\n`;
 
     const constantInflowNFTProxyAddress =
-        await superTokenLogicContract.CONSTANT_INFLOW_NFT_PROXY();
-    output += `CONSTANT_INFLOW_NFT_PROXY_ADDRESS=${constantInflowNFTProxyAddress}\n`;
+        await superTokenLogicContract.CONSTANT_INFLOW_NFT();
+    output += `CONSTANT_INFLOW_NFT_ADDRESS=${constantInflowNFTProxyAddress}\n`;
 
     const constantInflowNFTLogicAddress = await (
         await UUPSProxiable.at(constantInflowNFTProxyAddress)

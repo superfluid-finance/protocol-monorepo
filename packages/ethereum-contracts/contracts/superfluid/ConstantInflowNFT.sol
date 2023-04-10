@@ -59,7 +59,7 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
         returns (FlowNFTData memory flowData)
     {
         IConstantOutflowNFT constantOutflowNFT = superTokenLogic
-            .CONSTANT_OUTFLOW_NFT_PROXY();
+            .CONSTANT_OUTFLOW_NFT();
         flowData = constantOutflowNFT.flowDataByTokenId(tokenId);
     }
 
@@ -95,7 +95,7 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
 
     modifier onlyConstantOutflowNFT() {
         if (
-            msg.sender != address(superTokenLogic.CONSTANT_OUTFLOW_NFT_PROXY())
+            msg.sender != address(superTokenLogic.CONSTANT_OUTFLOW_NFT())
         ) {
             revert CIF_NFT_ONLY_CONSTANT_OUTFLOW();
         }

@@ -125,9 +125,9 @@ using AdditionalMonetaryTypeHelpers for Unit global;
  * @title Basic particle: the building block for payment primitives.
  */
 struct BasicParticle {
-    Time     settled_at;
-    Value    settled_value;
-    FlowRate flow_rate;
+    Time     _settled_at;
+    FlowRate _flow_rate;
+    Value    _settled_value;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +141,7 @@ struct BasicParticle {
 struct PDPoolIndex {
     Unit          total_units;
     // The value here are usually measured per unit
-    BasicParticle wrapped_particle;
+    BasicParticle _wrapped_particle;
 }
 
 /**
@@ -149,9 +149,9 @@ struct PDPoolIndex {
  */
 struct PDPoolMember {
     Unit          owned_units;
-    Value         settled_value;
+    Value         _settled_value;
     // It is a copy of the wrapped_particle of the index at the time an operation is performed.
-    BasicParticle synced_particle;
+    BasicParticle _synced_particle;
 }
 
 /**
@@ -183,31 +183,39 @@ library SemanticMoney {
     /// Pure data clone function.
     function clone(BasicParticle memory a) internal pure returns (BasicParticle memory b) {
         // TODO memcpy
-        b.settled_at = a.settled_at;
-        b.settled_value = a.settled_value;
-        b.flow_rate = a.flow_rate;
+        b._settled_at = a._settled_at;
+        b._flow_rate = a._flow_rate;
+        b._settled_value = a._settled_value;
+    }
+
+    function settled_at(BasicParticle memory a) internal pure returns (Time) {
+        return a._settled_at;
     }
 
     /// Monetary unit settle function for basic particle/universal index.
     function settle(BasicParticle memory a, Time t) internal pure returns (BasicParticle memory b) {
         b = a.clone();
-        b.settled_value = rtb(a, t);
-        b.settled_at = t;
+        b._settled_value = rtb(a, t);
+        b._settled_at = t;
+    }
+
+    function flow_rate(BasicParticle memory a) internal pure returns (FlowRate) {
+        return a._flow_rate;
     }
 
     /// Monetary unit rtb function for basic particle/universal index.
     function rtb(BasicParticle memory a, Time t) internal pure returns (Value v) {
-        return a.flow_rate.mul(t - a.settled_at) + a.settled_value;
+        return a._flow_rate.mul(t - a._settled_at) + a._settled_value;
     }
 
     function shift1(BasicParticle memory a, Value x) internal pure returns (BasicParticle memory b) {
         b = a.clone();
-        b.settled_value = b.settled_value + x;
+        b._settled_value = b._settled_value + x;
     }
 
     function flow1(BasicParticle memory a, FlowRate r) internal pure returns (BasicParticle memory b) {
         b = a.clone();
-        b.flow_rate = r;
+        b._flow_rate = r;
     }
 
     //
@@ -221,18 +229,150 @@ library SemanticMoney {
         internal pure returns (BasicParticle memory c)
     {
         // Note that the original spec abides the monoid laws even when time value is negative.
-        Time t = Time.unwrap(a.settled_at) > Time.unwrap(b.settled_at) ? a.settled_at : b.settled_at;
+        Time t = Time.unwrap(a._settled_at) > Time.unwrap(b._settled_at) ? a._settled_at : b._settled_at;
         BasicParticle memory a1 = a.settle(t);
         BasicParticle memory b1 = b.settle(t);
-        c.settled_at = t;
-        c.settled_value = a1.settled_value + b1.settled_value;
-        c.flow_rate = a1.flow_rate + b1.flow_rate;
+        c._settled_at = t;
+        c._settled_value = a1._settled_value + b1._settled_value;
+        c._flow_rate = a1._flow_rate + b1._flow_rate;
     }
 
     //
-    // Universal Index to Universal Index 2-primitives
+    // Proportional Distribution Pool Index Operations
     //
 
+    /// Pure data clone function.
+    function clone(PDPoolIndex memory a) internal pure
+        returns (PDPoolIndex memory b)
+    {
+        b.total_units = a.total_units;
+        b._wrapped_particle = a._wrapped_particle.clone();
+    }
+
+    function settled_at(PDPoolIndex memory a) internal pure returns (Time) {
+        return a._wrapped_particle.settled_at();
+    }
+
+    /// Monetary unit settle function for pool index.
+    function settle(PDPoolIndex memory a, Time t) internal pure
+        returns (PDPoolIndex memory m)
+    {
+        m = a.clone();
+        m._wrapped_particle = m._wrapped_particle.settle(t);
+    }
+
+    function flow_rate(PDPoolIndex memory a) internal pure returns (FlowRate) {
+        return a._wrapped_particle._flow_rate.mul(a.total_units);
+    }
+
+    function flow_rate_per_unit(PDPoolIndex memory a) internal pure returns (FlowRate) {
+        return a._wrapped_particle.flow_rate();
+    }
+
+    function rtb_per_unit(PDPoolIndex memory a, Time t) internal pure returns (Value) {
+        return a._wrapped_particle.rtb(t);
+    }
+
+    function shift1(PDPoolIndex memory a, Value x) internal pure
+        returns (PDPoolIndex memory m, Value x1)
+    {
+        m = a.clone();
+        if (Unit.unwrap(a.total_units) != 0) {
+            x1 = x.div(a.total_units).mul(a.total_units);
+            m._wrapped_particle = a._wrapped_particle.shift1(x1.div(a.total_units));
+        }
+    }
+
+    function flow1(PDPoolIndex memory a, FlowRate r) internal pure
+        returns (PDPoolIndex memory m, FlowRate r1)
+    {
+        m = a.clone();
+        if (Unit.unwrap(a.total_units) != 0) {
+            r1 = r.div(a.total_units).mul(a.total_units);
+            m._wrapped_particle = m._wrapped_particle.flow1(r1.div(a.total_units));
+        }
+    }
+
+    //
+    // Proportional Distribution Pool Member Operations
+    //
+
+    /// Pure data clone function.
+    function clone(PDPoolMember memory a) internal pure
+        returns (PDPoolMember memory b)
+    {
+        b.owned_units = a.owned_units;
+        b._settled_value = a._settled_value;
+        b._synced_particle = a._synced_particle.clone();
+    }
+
+    /// Monetary unit settle function for pool member.
+    function settle(PDPoolMemberMU memory a, Time t) internal pure
+        returns (PDPoolMemberMU memory b)
+    {
+        b.i = a.i.settle(t);
+        b.m = a.m.clone();
+        b.m._settled_value = a.rtb(t);
+        b.m._synced_particle = b.i._wrapped_particle;
+    }
+
+    /// Monetary unit rtb function for pool member.
+    function rtb(PDPoolMemberMU memory a, Time t) internal pure
+        returns (Value v)
+    {
+        return a.m._settled_value +
+            (a.i._wrapped_particle.rtb(t)
+             - a.m._synced_particle.rtb(a.m._synced_particle.settled_at())
+            ).mul(a.m.owned_units);
+    }
+
+    /// Update the unit amount of the member of the pool
+    function pool_member_update(PDPoolMemberMU memory b1, BasicParticle memory a, Unit u, Time t) internal pure
+        returns (PDPoolIndex memory p, PDPoolMember memory p1, BasicParticle memory b)
+    {
+        Unit oldTotalUnit = b1.i.total_units;
+        Unit newTotalUnit = oldTotalUnit + u - b1.m.owned_units;
+        PDPoolMemberMU memory b1s = b1.settle(t);
+
+        // align "a" because of the change of total units of the pool
+        FlowRate nr = b1s.i._wrapped_particle._flow_rate;
+        FlowRate er;
+        if (Unit.unwrap(newTotalUnit) != 0) {
+            (nr, er) = nr.mul_quotrem(oldTotalUnit, newTotalUnit);
+            er = er;
+        } else {
+            er = nr.mul(oldTotalUnit);
+            nr = FlowRate.wrap(0);
+        }
+        b1s.i._wrapped_particle = b1s.i._wrapped_particle.flow1(nr);
+        b1s.i.total_units = newTotalUnit;
+        b = a.settle(t).flow1(a._flow_rate + er);
+
+        p = b1s.i;
+        p1 = b1s.m;
+        p1.owned_units = u;
+        p1._synced_particle = b1s.i._wrapped_particle.clone();
+    }
+
+    //
+    // Instances of 2-primitives:
+    //
+    // Applying 2-primitives:
+    //
+    //   1) shift2
+    //   2) flow2 (and its related: shift_flow2)
+    //
+    // over:
+    //
+    //   a) Universal Index to Universal Index
+    //   b) Universal Index to Proportional Distribution Index
+    //
+    // totals FOUR general payment primitives.
+    //
+    // NB! Some code will look very similar, since without generic programming (or some form of parametric polymorphism)
+    // in solidity the code duplications is inevitable.
+
+    // the identity implementations for shift2a & shift2b
     function shift2(BasicParticle memory a, BasicParticle memory b, Value x) internal pure
         returns (BasicParticle memory m, BasicParticle memory n)
     {
@@ -247,81 +387,44 @@ library SemanticMoney {
         n = b.settle(t).flow1(r);
     }
 
-    // Note: This note that all shift_flow variants have the same code "shape".
-    //
-    //       This should not be a surprise because they should be one polymorphic function had
-    //       solidity support some sort of parametric polymorphism.
-    function shift_flow2a(BasicParticle memory a, BasicParticle memory b, FlowRate dr, Time t) internal pure
-        returns (BasicParticle memory m, BasicParticle memory n)
-    {
-        BasicParticle memory mempty;
-        BasicParticle memory b1;
-        BasicParticle memory b2;
-        ( , b1) = a.flow2(mempty, a.flow_rate, t);
-        (m, b2) = a.flow2(mempty, a.flow_rate.inv() + dr, t);
-        n = b.mappend(b1).mappend(b2);
-    }
-
-    // Note: This is functionally identity to shift_flow2a for (BasicParticle, BasicParticle).
-    //       This is a included to keep fidelity with the specification.
     function shift_flow2b(BasicParticle memory a, BasicParticle memory b, FlowRate dr, Time t) internal pure
         returns (BasicParticle memory m, BasicParticle memory n)
     {
         BasicParticle memory mempty;
         BasicParticle memory a1;
         BasicParticle memory a2;
-        (a1,  ) = mempty.flow2(b, b.flow_rate.inv(), t);
-        (a2, n) = mempty.flow2(b, b.flow_rate + dr, t);
+        FlowRate r = b.flow_rate();
+        (a1,  ) = mempty.flow2(b, r.inv(), t);
+        (a2, n) = mempty.flow2(b, r + dr,  t);
         m = a.mappend(a1).mappend(a2);
     }
 
-    //
-    // Proportional Distribution Pool Index Operations
-    //
-
-    /// Pure data clone function.
-    function clone(PDPoolIndex memory a) internal pure
-        returns (PDPoolIndex memory b)
+    // Note: This is functionally identity to shift_flow2b for (BasicParticle, BasicParticle).
+    //       This is a included to keep fidelity with the semantic money specification.
+    function shift_flow2a(BasicParticle memory a, BasicParticle memory b, FlowRate dr, Time t) internal pure
+        returns (BasicParticle memory m, BasicParticle memory n)
     {
-        b.total_units = a.total_units;
-        b.wrapped_particle = a.wrapped_particle.clone();
+        BasicParticle memory mempty;
+        BasicParticle memory b1;
+        BasicParticle memory b2;
+        FlowRate r = b.flow_rate();
+        ( , b1) = a.flow2(mempty, r, t);
+        (m, b2) = a.flow2(mempty, r.inv() + dr, t);
+        n = b.mappend(b1).mappend(b2);
     }
 
-    /// Monetary unit settle function for pool index.
-    function settle(PDPoolIndex memory a, Time t) internal pure
-        returns (PDPoolIndex memory m)
-    {
-        m = a.clone();
-        m.wrapped_particle = m.wrapped_particle.settle(t);
-    }
-
-    function shift2(BasicParticle memory a, PDPoolIndex memory b, Value x) internal pure
+    function shift2b(BasicParticle memory a, PDPoolIndex memory b, Value x) internal pure
         returns (BasicParticle memory m, PDPoolIndex memory n, Value x1)
     {
-        if (Unit.unwrap(b.total_units) != 0) {
-            x1 = x.div(b.total_units).mul(b.total_units);
-            m = a.shift1(x1.inv());
-            n = b.clone();
-            n.wrapped_particle = b.wrapped_particle.shift1(x1.div(b.total_units));
-        } else {
-            m = a.clone();
-            n = b.clone();
-        }
+        (n, x1) = b.shift1(x);
+        m = a.shift1(x1.inv());
     }
 
     function flow2(BasicParticle memory a, PDPoolIndex memory b, FlowRate r, Time t) internal pure
         returns (BasicParticle memory m, PDPoolIndex memory n, FlowRate r1)
     {
-        if (Unit.unwrap(b.total_units) != 0) {
-            r1 = r.div(b.total_units).mul(b.total_units);
-            m = a.settle(t).flow1(r1.inv());
-            n = b.settle(t);
-            n.wrapped_particle = n.wrapped_particle.flow1(r1.div(b.total_units));
-        } else {
-            m = a.settle(t).flow1(FlowRate.wrap(0));
-            n = b.settle(t);
-            n.wrapped_particle = n.wrapped_particle.flow1(FlowRate.wrap(0));
-        }
+        (n, r1) = b.settle(t).flow1(r);
+        m = a.settle(t).flow1(r1.inv());
     }
 
     function shift_flow2b(BasicParticle memory a, PDPoolIndex memory b, FlowRate dr, Time t) internal pure
@@ -330,70 +433,10 @@ library SemanticMoney {
         BasicParticle memory mempty;
         BasicParticle memory a1;
         BasicParticle memory a2;
-        FlowRate r = b.wrapped_particle.flow_rate.mul(b.total_units);
+        FlowRate r = b.flow_rate();
         (a1,  ,   ) = mempty.flow2(b, r.inv(), t);
-        (a2, n, r1) = mempty.flow2(b, r + dr, t);
+        (a2, n, r1) = mempty.flow2(b, r + dr,  t);
         m = a.mappend(a1).mappend(a2);
-    }
-
-    //
-    // Proportional Distribution Pool Member Operations
-    //
-
-    /// Pure data clone function.
-    function clone(PDPoolMember memory a) internal pure
-        returns (PDPoolMember memory b)
-    {
-        b.owned_units = a.owned_units;
-        b.settled_value = a.settled_value;
-        b.synced_particle = a.synced_particle.clone();
-    }
-
-    /// Monetary unit settle function for pool member.
-    function settle(PDPoolMemberMU memory a, Time t) internal pure
-        returns (PDPoolMemberMU memory b)
-    {
-        b.i = a.i.settle(t);
-        b.m = a.m.clone();
-        b.m.settled_value = a.rtb(t);
-        b.m.synced_particle = b.i.wrapped_particle;
-    }
-
-    /// Monetary unit rtb function for pool member.
-    function rtb(PDPoolMemberMU memory a, Time t) internal pure
-        returns (Value v)
-    {
-        return a.m.settled_value +
-            (a.i.wrapped_particle.rtb(t) - a.m.synced_particle.rtb(a.m.synced_particle.settled_at))
-            .mul(a.m.owned_units);
-    }
-
-    /// Update the unit amount of the member of the pool
-    function pool_member_update(PDPoolMemberMU memory b1, BasicParticle memory a, Unit u, Time t) internal pure
-        returns (PDPoolIndex memory p, PDPoolMember memory p1, BasicParticle memory b)
-    {
-        Unit oldTotalUnit = b1.i.total_units;
-        Unit newTotalUnit = oldTotalUnit + u - b1.m.owned_units;
-        PDPoolMemberMU memory b1s = b1.settle(t);
-
-        // align "a" because of the change of total units of the pool
-        FlowRate nr = b1s.i.wrapped_particle.flow_rate;
-        FlowRate er;
-        if (Unit.unwrap(newTotalUnit) != 0) {
-            (nr, er) = nr.mul_quotrem(oldTotalUnit, newTotalUnit);
-            er = er;
-        } else {
-            er = nr.mul(oldTotalUnit);
-            nr = FlowRate.wrap(0);
-        }
-        b1s.i.wrapped_particle = b1s.i.wrapped_particle.flow1(nr);
-        b1s.i.total_units = newTotalUnit;
-        b = a.settle(t).flow1(a.flow_rate + er);
-
-        p = b1s.i;
-        p1 = b1s.m;
-        p1.owned_units = u;
-        p1.synced_particle = b1s.i.wrapped_particle.clone();
     }
 }
 using SemanticMoney for BasicParticle global;

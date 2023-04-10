@@ -8,9 +8,9 @@ contract SemanticMoneyTest is Test {
 
     // make the overflow errors go away for test cases
     function limitToSafeParticle(BasicParticle memory p) internal pure {
-        p.settled_at = Time.wrap(Time.unwrap(p.settled_at) >> 2);
-        p.settled_value = Value.wrap(Value.unwrap(p.settled_value) >> 2);
-        p.flow_rate = FlowRate.wrap(FlowRate.unwrap(p.flow_rate) >> 2);
+        p._settled_at = Time.wrap(Time.unwrap(p._settled_at) >> 2);
+        p._settled_value = Value.wrap(Value.unwrap(p._settled_value) >> 2);
+        p._flow_rate = FlowRate.wrap(FlowRate.unwrap(p._flow_rate) >> 2);
     }
 
     function assertEq(FlowRate a, FlowRate b, string memory e) internal {
@@ -26,9 +26,9 @@ contract SemanticMoneyTest is Test {
         assertEq(Time.unwrap(a), Time.unwrap(b), e);
     }
     function assertEq(BasicParticle memory a, BasicParticle memory b, string memory e) internal {
-        assertEq(a.settled_at, b.settled_at, e);
-        assertEq(a.settled_value, b.settled_value, e);
-        assertEq(a.flow_rate, b.flow_rate, e);
+        assertEq(a._settled_at, b._settled_at, e);
+        assertEq(a._settled_value, b._settled_value, e);
+        assertEq(a._flow_rate, b._flow_rate, e);
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -48,20 +48,20 @@ contract SemanticMoneyTest is Test {
         assertEq(p1.mappend(p2).mappend(p3), p1.mappend(p2.mappend(p3)), "e2");
     }
 
-    function test_u_settle_idempotency(BasicParticle memory p, uint16 m) external {
+    function test_u_settle_idempotence(BasicParticle memory p, uint16 m) external {
         limitToSafeParticle(p);
 
-        Time t1 = p.settled_at + Time.wrap(m);
+        Time t1 = p.settled_at() + Time.wrap(m);
         BasicParticle memory p1 = p.settle(t1);
         BasicParticle memory p2 = p1.settle(t1);
-        assertEq(p1.settled_at, t1, "e1");
+        assertEq(p1.settled_at(), t1, "e1");
         assertEq(p1, p2, "e2");
     }
 
     function test_u_constant_rtb(BasicParticle memory p, uint16 m1, uint16 m2, uint16 m3) external {
         limitToSafeParticle(p);
 
-        Time t1 = p.settled_at + Time.wrap(m1);
+        Time t1 = p.settled_at() + Time.wrap(m1);
         Time t2 = t1 + Time.wrap(m2);
         Time t3 = t2 + Time.wrap(m3);
         assertEq(p.settle(t1).rtb(t3), p.rtb(t3), "e1");
@@ -132,7 +132,7 @@ contract SemanticMoneyTest is Test {
     // Universal Index to Proportional Distribution Pool
     function updp_shift2(BasicParticle memory a, PDPoolIndex memory b, Time /* t */, int64 v)
         internal pure returns (BasicParticle memory a2, PDPoolIndex memory b2){
-        (a2, b2,) = a.shift2(b, Value.wrap(v));
+        (a2, b2,) = a.shift2b(b, Value.wrap(v));
     }
     function updp_flow2(BasicParticle memory a, PDPoolIndex memory b, Time t, int64 v)
         internal pure returns (BasicParticle memory a2, PDPoolIndex memory b2) {
@@ -171,7 +171,7 @@ contract SemanticMoneyTest is Test {
         d.t5 = d.t4 + Time.wrap(m5);
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u1), d.t1);
-        assertEq(Value.unwrap(d.b1.synced_particle.settled_value), 0);
+        assertEq(Value.unwrap(d.b1._synced_particle._settled_value), 0);
         assertEq(Unit.unwrap(d.b.total_units), u1);
         assertEq(Unit.unwrap(d.b1.owned_units), u1);
 
@@ -236,7 +236,7 @@ contract SemanticMoneyTest is Test {
         d.t5 = d.t4 + Time.wrap(m5);
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u1), d.t1);
-        assertEq(Value.unwrap(d.b1.synced_particle.settled_value), 0);
+        assertEq(Value.unwrap(d.b1._synced_particle._settled_value), 0);
         assertEq(Unit.unwrap(d.b.total_units), u1);
         assertEq(Unit.unwrap(d.b1.owned_units), u1);
 

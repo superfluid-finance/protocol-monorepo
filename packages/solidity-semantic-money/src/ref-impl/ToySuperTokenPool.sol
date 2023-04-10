@@ -50,22 +50,22 @@ contract ToySuperTokenPool is Initializable, ISuperTokenPool {
     }
 
     function getDistributionFlowRate() override external view returns (FlowRate) {
-        return _pdpIndex.wrapped_particle.flow_rate.mul(_pdpIndex.total_units);
+        return _pdpIndex.flow_rate_per_unit().mul(_pdpIndex.total_units);
     }
 
     function getPendingDistributionFlowRate() override external view returns (FlowRate) {
-        return _pdpIndex.wrapped_particle.flow_rate.mul(pendingUnits);
+        return _pdpIndex.flow_rate_per_unit().mul(pendingUnits);
     }
 
     function getMemberFlowRate(address memberAddr) override external view returns (FlowRate) {
         Unit u = _members[memberAddr].owned_units;
         if (Unit.unwrap(u) == 0) return FlowRate.wrap(0);
-        else return _pdpIndex.wrapped_particle.flow_rate.mul(u);
+        else return _pdpIndex.flow_rate_per_unit().mul(u);
     }
 
     function getPendingDistribution() external view returns (Value) {
         Time t = Time.wrap(uint32(block.timestamp));
-        return _pdpIndex.wrapped_particle.rtb(t).mul(pendingUnits);
+        return _pdpIndex.rtb_per_unit(t).mul(pendingUnits);
     }
 
     function getClaimable(Time t, address memberAddr) override public view returns (Value) {

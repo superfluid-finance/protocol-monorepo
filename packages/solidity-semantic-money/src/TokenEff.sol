@@ -88,7 +88,6 @@ library TokenEffLib {
     function flow(TokenEff memory eff, address from, address to, bytes32 flowHash, FlowRate flowRate, Time t)
         internal returns (TokenEff memory)
     {
-        // NOTE: because of get/set FlowRate is not monoidal, it is impossible to support the case where from == to
         FlowRate flowRateDelta = flowRate - eff.getFlowRate(flowHash);
         BasicParticle memory a = eff.getUIndex(from);
         BasicParticle memory b = eff.getUIndex(to);
@@ -103,7 +102,7 @@ library TokenEffLib {
     {
         BasicParticle memory a = eff.getUIndex(from);
         PDPoolIndex memory pdpIndex = eff.getPDPIndex(to);
-        (a, pdpIndex, actualAmount) = a.shift2(pdpIndex, reqAmount);
+        (a, pdpIndex, actualAmount) = a.shift2b(pdpIndex, reqAmount);
         return (eff.setUIndex(from, a)
                 .setPDPIndex(to, pdpIndex)
                 , actualAmount);

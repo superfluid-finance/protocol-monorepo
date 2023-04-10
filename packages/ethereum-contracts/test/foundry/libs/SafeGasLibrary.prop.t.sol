@@ -14,7 +14,7 @@ import "forge-std/Test.sol";
 contract SafeGasLibraryProperties is Test {
 
     function test_SafeGasRevertsAsExpected(uint16 multiple) public {
-        if (multiple > 63) {
+        if (multiple >= 63) {
             vm.expectRevert(SafeGasLibrary.OUT_OF_GAS.selector);
         }
         uint256 gasLeft = gasleft();

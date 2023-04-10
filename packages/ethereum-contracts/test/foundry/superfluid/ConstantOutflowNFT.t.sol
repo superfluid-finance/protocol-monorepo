@@ -687,29 +687,29 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     function test_Passing_Create_Update_Delete_Flow_No_NFT_Token() public {
         uint256 initialAmount = 10000 ether;
         TestToken testToken = new TestToken("Test", "TS", 18, initialAmount);
-        NoNFTSuperTokenMock NoNFTSuperTokenMock = new NoNFTSuperTokenMock(
+        NoNFTSuperTokenMock noNFTSuperTokenMock = new NoNFTSuperTokenMock(
             sf.host
         );
-        NoNFTSuperTokenMock.initialize(testToken, 18, "Super Test", "TSx");
+        noNFTSuperTokenMock.initialize(testToken, 18, "Super Test", "TSx");
         vm.startPrank(alice);
         testToken.mint(alice, initialAmount);
-        testToken.approve(address(NoNFTSuperTokenMock), initialAmount);
-        NoNFTSuperTokenMock.upgrade(initialAmount);
-        sf.cfaLib.createFlow(bob, NoNFTSuperTokenMock, 100);
+        testToken.approve(address(noNFTSuperTokenMock), initialAmount);
+        noNFTSuperTokenMock.upgrade(initialAmount);
+        sf.cfaLib.createFlow(bob, noNFTSuperTokenMock, 100);
         (, int96 flowRate, , ) = sf.cfa.getFlow(
-            NoNFTSuperTokenMock,
+            noNFTSuperTokenMock,
             alice,
             bob
         );
         assertEq(flowRate, 100);
-        sf.cfaLib.updateFlow(bob, NoNFTSuperTokenMock, 150);
-        (, flowRate, , ) = sf.cfa.getFlow(NoNFTSuperTokenMock, alice, bob);
+        sf.cfaLib.updateFlow(bob, noNFTSuperTokenMock, 150);
+        (, flowRate, , ) = sf.cfa.getFlow(noNFTSuperTokenMock, alice, bob);
         assertEq(flowRate, 150);
-        sf.cfaLib.updateFlow(bob, NoNFTSuperTokenMock, 90);
-        (, flowRate, , ) = sf.cfa.getFlow(NoNFTSuperTokenMock, alice, bob);
+        sf.cfaLib.updateFlow(bob, noNFTSuperTokenMock, 90);
+        (, flowRate, , ) = sf.cfa.getFlow(noNFTSuperTokenMock, alice, bob);
         assertEq(flowRate, 90);
-        sf.cfaLib.deleteFlow(alice, bob, NoNFTSuperTokenMock);
-        (, flowRate, , ) = sf.cfa.getFlow(NoNFTSuperTokenMock, alice, bob);
+        sf.cfaLib.deleteFlow(alice, bob, noNFTSuperTokenMock);
+        (, flowRate, , ) = sf.cfa.getFlow(noNFTSuperTokenMock, alice, bob);
         assertEq(flowRate, 0);
         vm.stopPrank();
     }

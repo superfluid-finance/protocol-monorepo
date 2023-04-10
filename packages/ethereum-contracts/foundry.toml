@@ -7,3 +7,6 @@ remappings = [
     'ds-test/=lib/forge-std/lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/']
 out = 'packages/ethereum-contracts/build/foundry/out'
+
+[profile.ci.fuzz]
+runs = 1000

@@ -124,7 +124,7 @@ jobs:
       - name: Clean up and merge coverage artifacts
         run: |
           # extract coverage for NFT contracts from forge coverage
-          # lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol' 'packages/ethereum-contracts/contracts/apps/SuperAppBaseCFA.sol' 'packages/ethereum-contracts/contracts/utils/BatchLiquidator.sol' 'packages/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol'
+          lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol' 'packages/ethereum-contracts/contracts/apps/SuperAppBaseCFA.sol' 'packages/ethereum-contracts/contracts/utils/BatchLiquidator.sol' 'packages/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol'
           # merge hardhat and forge coverage files
           lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o packages/ethereum-contracts/coverage/lcov.info
 

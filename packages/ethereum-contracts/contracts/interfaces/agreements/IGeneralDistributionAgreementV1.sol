@@ -16,11 +16,20 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     error ONLY_SUPER_TOKEN_POOL();
 
     // Events
-    event DistributionFlowUpdated(
+    event InstantDistributionUpdated(
         ISuperfluidToken indexed token,
         ISuperTokenPool indexed pool,
         address indexed distributor,
-        uint32 distributedAt,
+        uint32 distributedAtTimestamp,
+        uint256 requestedAmount,
+        uint256 actualAmount
+    );
+
+    event FlowDistributionUpdated(
+        ISuperfluidToken indexed token,
+        ISuperTokenPool indexed pool,
+        address indexed distributor,
+        uint32 distributedAtTimestamp,
         int96 oldFlowRate,
         int96 newFlowRate
     );
@@ -60,6 +69,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     ) external view virtual returns (int96);
 
     function getFlowRate(
+        ISuperfluidToken token,
         address from,
         address to
     ) external view virtual returns (int96);

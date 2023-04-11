@@ -2553,11 +2553,6 @@
     find-up "^4.1.0"
     fs-extra "^8.1.0"
 
-"@openzeppelin/contracts@4.7.3":
-  version "4.7.3"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.7.3.tgz#939534757a81f8d69cc854c7692805684ff3111e"
-  integrity sha512-dGRS0agJzu8ybo44pCIf3xBaPQN/65AIXNgK8+4gzKd5kbvlqyxryUYVLJv7fK98Seyd2hDZzVEHSWAh0Bt1Yw==
-
 "@openzeppelin/contracts@4.8.0":
   version "4.8.0"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.8.0.tgz#6854c37df205dd2c056bdfa1b853f5d732109109"
@@ -2929,19 +2924,6 @@
   integrity sha512-ESipEcHyRHg4Np4SqBCfcXwyxxna1DgFVz69bgpLV8vzl/NP1DtcKsJ4dJZXWQhY/Z4J2LeKBiOkOVZn9ct33Q==
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
-
-"@superfluid-finance/ethereum-contracts@1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/ethereum-contracts/-/ethereum-contracts-1.4.0.tgz#942747bbb8b5ab752092553973285bb42bc47352"
-  integrity sha512-j552IAThuzdgnxsyQ9ujqsOUZl48PIv51wLARhiSv6l78RwdEnZd7U1/3UXyZuN8i0JARKExOetd9+SDaSRW8Q==
-  dependencies:
-    "@decentral.ee/web3-helpers" "0.5.3"
-    "@openzeppelin/contracts" "4.7.3"
-    "@superfluid-finance/js-sdk" "0.6.3"
-    "@truffle/contract" "4.5.23"
-    ethereumjs-tx "2.1.2"
-    ethereumjs-util "7.1.5"
-    stack-trace "0.0.10"
 
 "@superfluid-finance/metadata@git+https://github.com/superfluid-finance/metadata.git":
   version "1.1.2"

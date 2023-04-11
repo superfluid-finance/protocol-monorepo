@@ -3,7 +3,7 @@ pragma solidity >=0.8.4;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
-import { ISuperTokenPool } from "../../superfluid/SuperTokenPool.sol";
+import { ISuperTokenPool } from "../superfluid/ISuperTokenPool.sol";
 
 /**
  * @title General Distribution Agreement interface

@@ -12,6 +12,7 @@ deployContractsAndToken()
             hostAddress: frameworkAddresses.host,
             cfaAddress: frameworkAddresses.cfa,
             idaAddress: frameworkAddresses.ida,
+            gdaAddress: frameworkAddresses.gda,
             superTokenFactoryAddress: frameworkAddresses.superTokenFactory,
             resolverV1Address: frameworkAddresses.resolver,
             nativeAssetSuperTokenAddress:

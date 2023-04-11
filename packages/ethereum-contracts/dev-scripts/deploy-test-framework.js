@@ -1,10 +1,12 @@
 const {ethers} = require("hardhat");
 
 const SuperfluidNFTDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SuperfluidNFTDeployerLibrary.sol/SuperfluidNFTDeployerLibrary.json");
+const SuperTokenPoolDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SuperTokenPoolDeployerLibrary.sol/SuperTokenPoolDeployerLibrary.json");
 const SuperfluidGovDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidGovDeployerLibrary.json");
 const SuperfluidHostDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidHostDeployerLibrary.json");
 const SuperfluidCFAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidCFAv1DeployerLibrary.json");
 const SuperfluidIDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidIDAv1DeployerLibrary.json");
+const SuperfluidGDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidGDAv1DeployerLibrary.json");
 const SuperTokenDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperTokenDeployerLibrary.json");
 const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidPeripheryDeployerLibrary.json");
 const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
@@ -111,6 +113,26 @@ const deployTestFramework = async () => {
                 },
             }
         );
+
+    const SuperTokenPoolDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "SuperTokenPoolDeployerLibrary",
+            SuperTokenPoolDeployerLibraryArtifact,
+            signer
+        );
+
+    const SuperfluidGDAv1DeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "SuperfluidGDAv1DeployerLibrary",
+            SuperfluidGDAv1DeployerLibraryArtifact,
+            {
+                signer,
+                libraries: {
+                    SuperTokenPoolDeployerLibrary:
+                        SuperTokenPoolDeployerLibrary.address,
+                },
+            }
+        );
     const SuperfluidNFTDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidNFTDeployerLibrary",
@@ -149,6 +171,8 @@ const deployTestFramework = async () => {
                     SuperfluidCFAv1DeployerLibrary.address,
                 SuperfluidIDAv1DeployerLibrary:
                     SuperfluidIDAv1DeployerLibrary.address,
+                SuperfluidGDAv1DeployerLibrary:
+                    SuperfluidGDAv1DeployerLibrary.address,
                 SuperfluidPeripheryDeployerLibrary:
                     SuperfluidPeripheryDeployerLibrary.address,
                 SuperTokenDeployerLibrary: SuperTokenDeployerLibrary.address,

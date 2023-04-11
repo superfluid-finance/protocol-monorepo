@@ -17,7 +17,7 @@ contract GeneralDistributionAgreementV1Properties is
     GeneralDistributionAgreementV1Mock,
     Test
 {
-    function test_Universal_Index_Data_Encoding(
+    function test_Universal_Index_Data_Encode_Decode(
         int96 flowRate,
         uint32 settledAt,
         int256 settledValue
@@ -49,5 +49,35 @@ contract GeneralDistributionAgreementV1Properties is
             Value.unwrap(original._settled_value),
             Value.unwrap(decoded._settled_value)
         );
+    }
+
+    function test_Pool_Encode_Decode(address pool) public {
+        vm.assume(pool != address(0));
+        bytes32[] memory encodedData = _encodePoolData(pool);
+        (, address decoded) = _decodePoolData(uint256(encodedData[0]));
+
+        assertEq(pool, decoded);
+    }
+
+    function test_Flow_Distribution_Data_Encode_Decode(
+        int96 flowRate,
+        uint96 deposit
+    ) public {
+        vm.assume(flowRate >= 0);
+        vm.assume(deposit >= 0);
+        GeneralDistributionAgreementV1.FlowDistributionData
+            memory original = GeneralDistributionAgreementV1
+                .FlowDistributionData({
+                    flowRate: flowRate,
+                    deposit: deposit
+                });
+        bytes32[] memory encodedData = _encodeFlowDistributionData(original);
+        (
+            ,
+            GeneralDistributionAgreementV1.FlowDistributionData memory decoded
+        ) = _decodeFlowDistributionData(uint256(encodedData[0]));
+
+        assertEq(original.flowRate, decoded.flowRate);
+        assertEq(original.deposit, decoded.deposit);
     }
 }

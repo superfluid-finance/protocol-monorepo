@@ -36,11 +36,29 @@ import { AgreementLibrary } from "./AgreementLibrary.sol";
  * @title General Distribution Agreement
  * @author Superfluid
  * @notice
- * // document storage layout of this contract. CFA, IDA in a separate PR
- * event design
- * slots bitmap instead of _connectionsMap
- * add some of this to SuperTokenV1Library
- * connect to NFT contracts (flow nfts, pool admin)
+ *
+ * Storage Layout Notes
+ * Agreement State
+ * NOTE The Agreement State slot is computed with the following function:
+ * keccak256(abi.encode("AgreementState", msg.sender, account, slotId))
+ * slotId               = 0
+ * msg.sender           = address of GDAv1
+ * account              = pool address
+ * Pool Agreement State stores the address of the pool which indicates existence.
+ *
+ *
+ * Agreement Data
+ * NOTE The Agreement Data slot is calculated with the following function:
+ * keccak256(abi.encode("AgreementData", agreementClass, agreementId))
+ * agreementClass       = address of GDAv1
+ * agreementId          = UniversalIndexId | DistributionFlowId
+ *
+ * UniversalIndexId     = keccak256(abi.encode("universalIndex", account))
+ * UniversalIndexId stores a BasicParticle struct for an `account`.
+ *
+ * DistributionFlowId   =
+ * keccak256(abi.encode(block.chainId, "distributionFlow", from, pool))
+ * DistributionFlowId stores FlowDistributionData between a sender (from) and pool.
  */
 contract GeneralDistributionAgreementV1 is
     AgreementBase,
@@ -51,10 +69,14 @@ contract GeneralDistributionAgreementV1 is
     using SafeCast for uint256;
     using SemanticMoney for BasicParticle;
 
+    struct FlowDistributionData {
+        int96 flowRate;
+        uint96 deposit;
+    }
+
     mapping(address owner => EnumerableSet.AddressSet connections)
         internal _connectionsMap;
     mapping(bytes32 flowAddress => FlowRate flowRate) public flowRates;
-    mapping(ISuperTokenPool pool => bool exists) public pools;
 
     constructor(ISuperfluid host) AgreementBase(address(host)) {}
 
@@ -70,7 +92,7 @@ contract GeneralDistributionAgreementV1 is
 
         available = Value.unwrap(uIndexData.rtb(Time.wrap(uint32(time))));
 
-        if (_isPool(account)) {
+        if (_isPool(token, account)) {
             available =
                 available +
                 ISuperTokenPool(account).getPendingDistribution();
@@ -131,7 +153,7 @@ contract GeneralDistributionAgreementV1 is
         );
         netFlowRate = int96(FlowRate.unwrap(uIndexData._flow_rate));
 
-        if (_isPool(account)) {
+        if (_isPool(token, account)) {
             netFlowRate =
                 netFlowRate +
                 ISuperTokenPool(account).getPendingDistributionFlowRate();
@@ -156,9 +178,7 @@ contract GeneralDistributionAgreementV1 is
         return (
             int96(
                 FlowRate.unwrap(
-                    flowRates[
-                        _getDistributionFlowId(token, from, ISuperTokenPool(to))
-                    ]
+                    flowRates[_getDistributionFlowId(from, ISuperTokenPool(to))]
                 )
             )
         );
@@ -171,11 +191,7 @@ contract GeneralDistributionAgreementV1 is
         int96 requestedFlowRate
     ) external view override returns (int96 finalFlowRate) {
         Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 distributionFlowAddress = _getDistributionFlowId(
-            token,
-            from,
-            to
-        );
+        bytes32 distributionFlowAddress = _getDistributionFlowId(from, to);
 
         BasicParticle memory fromUIndexData = _getUIndex(
             abi.encode(token),
@@ -208,7 +224,7 @@ contract GeneralDistributionAgreementV1 is
                 )
             )
         );
-        pools[pool] = true;
+        _setPool(token, address(pool));
 
         emit PoolCreated(token, admin, pool);
     }
@@ -298,8 +314,9 @@ contract GeneralDistributionAgreementV1 is
         address[] calldata accounts,
         BasicParticle[] calldata ps
     ) public returns (bool) {
-        if (pools[ISuperTokenPool(msg.sender)] == false)
+        if (_isPool(token, msg.sender) == false) {
             revert ONLY_SUPER_TOKEN_POOL();
+        }
         assert(accounts.length == ps.length);
 
         bytes memory eff = abi.encode(token);
@@ -352,7 +369,6 @@ contract GeneralDistributionAgreementV1 is
 
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 distributionFlowAddress = _getDistributionFlowId(
-            token,
             currentContext.msgSender,
             to
         );
@@ -391,7 +407,6 @@ contract GeneralDistributionAgreementV1 is
     }
 
     function _getDistributionFlowId(
-        ISuperfluidToken superToken,
         address from,
         ISuperTokenPool pool
     ) internal view returns (bytes32) {
@@ -399,8 +414,7 @@ contract GeneralDistributionAgreementV1 is
             keccak256(
                 abi.encode(
                     block.chainid,
-                    "distributionflow",
-                    address(superToken),
+                    "distributionFlow",
                     from,
                     address(pool)
                 )
@@ -505,8 +519,11 @@ contract GeneralDistributionAgreementV1 is
         flowRates[flowHash] = flowRate;
     }
 
-    function _isPool(address pool) internal view virtual returns (bool) {
-        return pools[ISuperTokenPool(pool)];
+    function _isPool(
+        ISuperfluidToken token,
+        address pool
+    ) internal view virtual returns (bool exists) {
+        exists = _getPoolAgreementState(token, pool);
     }
 
     function _setFlowInfo(
@@ -516,5 +533,95 @@ contract GeneralDistributionAgreementV1 is
         FlowRate flowRate
     ) internal virtual {
         flowRates[flowHash] = flowRate;
+    }
+
+    function _setPool(ISuperfluidToken token, address pool) internal {
+        bytes32[] memory data = _encodePoolData(pool);
+        token.updateAgreementStateSlot(pool, 0, data);
+    }
+
+    // Pool data packing:
+    //
+    // WORD A: | reserved | poolAddress |
+    //         |    96    |     160     |
+    //
+    function _encodePoolData(
+        address pool
+    ) internal pure returns (bytes32[] memory data) {
+        data = new bytes32[](1);
+        data[0] = bytes32(uint256(uint160(pool)));
+    }
+
+    function _decodePoolData(
+        uint256 data
+    ) internal pure returns (bool exist, address pool) {
+        exist = data > 0;
+        if (exist) {
+            pool = address(uint160(data));
+        }
+    }
+
+    function _getPoolAgreementState(
+        ISuperfluidToken token,
+        address pool
+    ) internal view returns (bool exist) {
+        bytes32[] memory data = token.getAgreementStateSlot(
+            address(this),
+            pool,
+            0,
+            1
+        );
+        (exist, ) = _decodePoolData(uint256(data[0]));
+    }
+
+    // FlowDistributionData data packing:
+    //
+    // WORD A: | reserved | deposit | flowRate |
+    //         |    64    |   96    |    96    |
+    //
+    function _encodeFlowDistributionData(
+        FlowDistributionData memory flowDistributionData
+    ) internal pure returns (bytes32[] memory data) {
+        data = new bytes32[](1);
+        data[0] = bytes32(
+            (uint256(uint96(flowDistributionData.flowRate)) << 96) |
+                uint256(flowDistributionData.deposit)
+        );
+    }
+
+    function _decodeFlowDistributionData(
+        uint256 data
+    )
+        internal
+        pure
+        returns (bool exist, FlowDistributionData memory flowDistributionData)
+    {
+        exist = data > 0;
+        if (exist) {
+            flowDistributionData.deposit = uint96(
+                data & uint256(type(uint96).max)
+            );
+            flowDistributionData.flowRate = int96(int256(data >> 96));
+        }
+    }
+
+    function _getFlowDistributionData(
+        ISuperfluidToken token,
+        address from,
+        ISuperTokenPool pool
+    )
+        internal
+        view
+        returns (bool exist, FlowDistributionData memory flowDistributionData)
+    {
+        bytes32[] memory data = token.getAgreementData(
+            address(this),
+            _getDistributionFlowId(from, pool),
+            1
+        );
+
+        (exist, flowDistributionData) = _decodeFlowDistributionData(
+            uint256(data[0])
+        );
     }
 }

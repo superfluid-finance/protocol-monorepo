@@ -76,7 +76,6 @@ contract GeneralDistributionAgreementV1 is
 
     mapping(address owner => EnumerableSet.AddressSet connections)
         internal _connectionsMap;
-    mapping(bytes32 flowAddress => FlowRate flowRate) public flowRates;
 
     constructor(ISuperfluid host) AgreementBase(address(host)) {}
 
@@ -175,13 +174,12 @@ contract GeneralDistributionAgreementV1 is
         address from,
         address to
     ) external view override returns (int96) {
-        return (
-            int96(
-                FlowRate.unwrap(
-                    flowRates[_getDistributionFlowId(from, ISuperTokenPool(to))]
-                )
-            )
+        (, FlowDistributionData memory data) = _getFlowDistributionData(
+            token,
+            from,
+            ISuperTokenPool(to)
         );
+        return data.flowRate;
     }
 
     function getFlowDistributionActualFlowRate(
@@ -202,7 +200,7 @@ contract GeneralDistributionAgreementV1 is
 
         FlowRate actualFlowRate;
         FlowRate flowRateDelta = FlowRate.wrap(requestedFlowRate) -
-            _getFlowRate("", distributionFlowAddress);
+            _getFlowRate(abi.encode(token), distributionFlowAddress);
         (fromUIndexData, pdpIndex, actualFlowRate) = fromUIndexData
             .shift_flow2b(pdpIndex, flowRateDelta, t);
         finalFlowRate = int96(FlowRate.unwrap(actualFlowRate));
@@ -373,6 +371,7 @@ contract GeneralDistributionAgreementV1 is
             to
         );
 
+        // @note it would be nice to have oldflowRate returned from _doDistributeFlow
         BasicParticle memory fromUIndexData = _getUIndex(
             abi.encode(token),
             currentContext.msgSender
@@ -388,6 +387,12 @@ contract GeneralDistributionAgreementV1 is
             t
         );
 
+        FlowRate delta = actualFlowRate - oldFlowRate;
+        FlowRate newFlowRate = _getFlowRate(
+            abi.encode(token),
+            distributionFlowAddress
+        ) + delta;
+
         {
             emit FlowDistributionUpdated(
                 token,
@@ -395,13 +400,7 @@ contract GeneralDistributionAgreementV1 is
                 currentContext.msgSender,
                 uint32(block.timestamp),
                 int96(FlowRate.unwrap(oldFlowRate)),
-                int96( // newFlowRate
-                    FlowRate.unwrap(
-                        flowRates[distributionFlowAddress] +
-                            actualFlowRate -
-                            oldFlowRate
-                    )
-                )
+                int96(FlowRate.unwrap(newFlowRate))
             );
         }
     }
@@ -485,6 +484,8 @@ contract GeneralDistributionAgreementV1 is
             Value.unwrap(p._settled_value),
             int96(FlowRate.unwrap(p._flow_rate))
         );
+
+        return eff;
     }
 
     function _getPDPIndex(
@@ -500,13 +501,20 @@ contract GeneralDistributionAgreementV1 is
         PDPoolIndex memory p
     ) internal override returns (bytes memory) {
         assert(SuperTokenPool(pool).operatorSetIndex(p));
+
+        return eff;
     }
 
     function _getFlowRate(
-        bytes memory,
-        bytes32 flowHash
+        bytes memory eff,
+        bytes32 distributionFlowId
     ) internal view override returns (FlowRate) {
-        return flowRates[flowHash];
+        address token = abi.decode(eff, (address));
+        (, FlowDistributionData memory data) = _getFlowDistributionData(
+            ISuperfluidToken(token),
+            distributionFlowId
+        );
+        return FlowRate.wrap(data.flowRate);
     }
 
     function _setFlowInfo(
@@ -516,7 +524,18 @@ contract GeneralDistributionAgreementV1 is
         address to,
         FlowRate flowRate
     ) internal override returns (bytes memory) {
-        flowRates[flowHash] = flowRate;
+        // @note it would be nice to have int96 as part of this interface for deposit
+        address token = abi.decode(eff, (address));
+        bytes32[] memory data = _encodeFlowDistributionData(
+            FlowDistributionData({
+                flowRate: int96(FlowRate.unwrap(flowRate)),
+                deposit: 0
+            })
+        );
+
+        ISuperfluidToken(token).updateAgreementData(flowHash, data);
+
+        return eff;
     }
 
     function _isPool(
@@ -524,15 +543,6 @@ contract GeneralDistributionAgreementV1 is
         address pool
     ) internal view virtual returns (bool exists) {
         exists = _getPoolAgreementState(token, pool);
-    }
-
-    function _setFlowInfo(
-        bytes32 flowHash,
-        address /*from*/,
-        address /*to*/,
-        FlowRate flowRate
-    ) internal virtual {
-        flowRates[flowHash] = flowRate;
     }
 
     function _setPool(ISuperfluidToken token, address pool) internal {
@@ -603,6 +613,25 @@ contract GeneralDistributionAgreementV1 is
             );
             flowDistributionData.flowRate = int96(int256(data >> 96));
         }
+    }
+
+    function _getFlowDistributionData(
+        ISuperfluidToken token,
+        bytes32 distributionFlowId
+    )
+        internal
+        view
+        returns (bool exist, FlowDistributionData memory flowDistributionData)
+    {
+        bytes32[] memory data = token.getAgreementData(
+            address(this),
+            distributionFlowId,
+            1
+        );
+
+        (exist, flowDistributionData) = _decodeFlowDistributionData(
+            uint256(data[0])
+        );
     }
 
     function _getFlowDistributionData(

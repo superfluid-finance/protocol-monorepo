@@ -1,5 +1,5 @@
 import {ThunkDispatch} from '@reduxjs/toolkit';
-import {ethers, Transaction} from 'ethers';
+import {providers} from 'ethers';
 
 import {initiateNewTransactionTrackingThunk} from './thunks/initiateNewTransactionTrackingThunk';
 import {TransactionTitle} from './transactionTitle';
@@ -7,7 +7,9 @@ import {TransactionTitle} from './transactionTitle';
 /**
  * A simpler TransactionResponse type, similar to wagmi's SendTransactionResult,
  */
-export type NewTransactionResponse = Pick<ethers.providers.TransactionResponse, 'hash' | 'wait'> & Transaction;
+export type NewTransactionResponse = Flatten<
+    Pick<providers.TransactionResponse, 'hash' | 'wait'> & Partial<providers.TransactionResponse>
+>;
 
 export interface RegisterNewTransactionArg {
     /**
@@ -56,4 +58,9 @@ export const registerNewTransactionAndReturnQueryFnResult = async (arg: Register
             chainId: arg.chainId,
         },
     };
+};
+
+// Prefer flattened/spread syntax for IDE-s. Example: `A: { hash: string } vs B: Pick<TransactionResponse, "hash">`. A is the flattened syntax.
+type Flatten<T> = {
+    [K in keyof T]: T[K];
 };

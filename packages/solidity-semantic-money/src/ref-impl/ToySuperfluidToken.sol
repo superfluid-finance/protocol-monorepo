@@ -313,10 +313,11 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     {
         return uIndexes[owner];
     }
-    function _setUIndex(bytes memory /*eff*/, address owner, BasicParticle memory p)
-        internal virtual override returns (bytes memory eff1)
+    function _setUIndex(bytes memory eff, address owner, BasicParticle memory p)
+        internal virtual override returns (bytes memory)
     {
         uIndexes[owner] = p;
+        return eff;
     }
 
     function _getPDPIndex(bytes memory /*eff*/, address pool)
@@ -324,10 +325,11 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     {
         return ISuperfluidPool(pool).getIndex();
     }
-    function _setPDPIndex(bytes memory /*eff*/, address pool, PDPoolIndex memory p)
-        internal virtual override returns (bytes memory eff1)
+    function _setPDPIndex(bytes memory eff, address pool, PDPoolIndex memory p)
+        internal virtual override returns (bytes memory)
     {
         assert(ISuperfluidPool(pool).operatorSetIndex(p));
+        return eff;
     }
 
     function _getFlowRate(bytes memory /*eff*/, bytes32 flowHash)
@@ -335,9 +337,10 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     {
         return flowRates[flowHash];
     }
-    function _setFlowInfo(bytes memory /*eff*/, bytes32 flowHash, address /*from*/, address /*to*/, FlowRate flowRate)
-        internal virtual override returns (bytes memory eff1)
+    function _setFlowInfo(bytes memory eff, bytes32 flowHash, address /*from*/, address /*to*/, FlowRate flowRate)
+        internal virtual override returns (bytes memory)
     {
         flowRates[flowHash] = flowRate;
+        return eff;
     }
 }

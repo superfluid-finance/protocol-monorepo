@@ -175,7 +175,7 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
         return abi.encode(TokenEff(msg.sender, prim, primExtra));
     }
 
-    function _getUIndex(bytes memory eff, address owner)
+    function _getUIndex(bytes memory /*eff*/, address owner)
         internal view virtual override returns (BasicParticle memory)
     {
         return ToySuperfluidToken._getUIndex(new bytes(0), owner);

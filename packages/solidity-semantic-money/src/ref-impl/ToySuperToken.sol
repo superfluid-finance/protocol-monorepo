@@ -3,19 +3,15 @@ pragma solidity 0.8.19;
 
 // solhint-disable not-rely-on-time
 
-import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
-import { FlowId, ISuperToken } from "./ISuperToken.sol";
+
 import {
     Time, Value, FlowRate, Unit,
-    BasicParticle,
-    PDPoolIndex, PDPoolMember, PDPoolMemberMU
-} from "../SemanticMoney.sol";
-import { TokenMonad } from "../TokenMonad.sol";
-import {
-    ISuperTokenPool, ToySuperTokenPool
-} from "./ToySuperTokenPool.sol";
+    BasicParticle, PDPoolIndex, PDPoolMember, PDPoolMemberMU,
+    ISuperfluidPool, ToySuperfluidPool,
+    FlowId, ToySuperfluidToken
+} from "./ToySuperfluidToken.sol";
 
 
 /**
@@ -26,20 +22,8 @@ import {
  * - Negative account is allowed.
  * - no permission control for account going negative.
  */
-contract ToySuperToken is ISuperToken, TokenMonad {
-    using EnumerableSet for EnumerableSet.AddressSet;
-
-    ToySuperTokenPool public immutable POOL_CONTRACT_MASTER_COPY;
-
-    mapping (address owner => BasicParticle) public uIndexes;
-    mapping (bytes32 flowHash => FlowRate) public flowRates;
-    mapping (address pool => bool exist) private _poolExistenceFlags;
-    mapping (address owner => EnumerableSet.AddressSet poolConnections) private _poolConnectionsMap;
+contract ToySuperToken is ToySuperfluidToken, IERC20 {
     mapping (address owner => mapping(address => uint256) allowances) private _allowances;
-
-    constructor () {
-        POOL_CONTRACT_MASTER_COPY = new ToySuperTokenPool();
-    }
 
     ////////////////////////////////////////////////////////////////////////////////
     // ERC20 operations
@@ -57,13 +41,13 @@ contract ToySuperToken is ISuperToken, TokenMonad {
     }
 
     function transfer(address to, uint256 amount) override external returns (bool) {
-        address owner = msg.sender;
-        _shift(owner, to, Value.wrap(SafeCast.toInt256(amount)), false);
-        return true;
+        bytes memory eff = _tokenEff("transfer", new bytes(0));
+        return _shift(eff, msg.sender, msg.sender, to, Value.wrap(SafeCast.toInt256(amount)));
     }
 
     function transferFrom(address from, address to, uint256 amount) override external returns (bool) {
-        return _shift(from, to, Value.wrap(SafeCast.toInt256(amount)), true);
+        bytes memory eff = _tokenEff("transferFrom", new bytes(0));
+        return _shift(eff, msg.sender, from, to, Value.wrap(SafeCast.toInt256(amount)));
     }
 
     function allowance(address owner, address spender) override external view returns (uint256) {
@@ -73,230 +57,6 @@ contract ToySuperToken is ISuperToken, TokenMonad {
     function approve(address spender, uint256 amount) override external returns (bool) {
         address owner = msg.sender;
         _approve(owner, spender, amount);
-        return true;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // Generalized Payment Primitives
-    ////////////////////////////////////////////////////////////////////////////////
-
-    function realtimeBalanceOf(address account) override external view
-        returns (Value rtb)
-    {
-        Time t = Time.wrap(uint32(block.timestamp));
-        return realtimeBalanceAt(account, t);
-    }
-
-    function realtimeBalanceAt(address account, Time t) override public view
-        returns (Value rtb)
-    {
-        (Value available, Value deposit) = realtimeBalanceVectorAt(account, t);
-        rtb = available - deposit;
-    }
-
-    function realtimeBalanceVectorAt(address account, Time t) override public view
-        returns (Value available, Value deposit)
-    {
-        // initial value from universal index
-        available = _getUIndex(new bytes(0), account).rtb(t);
-
-        // pending distributions from pool
-        if (_isPool(account)) {
-            // NB! Please ask solidity designer why "+=" is not derived for overloaded operator custom types
-            available = available + ISuperTokenPool(account).getPendingDistribution();
-        }
-
-        // pool-connected balance
-        {
-            EnumerableSet.AddressSet storage connections = _poolConnectionsMap[account];
-            for (uint i = 0; i < connections.length(); ++i) {
-                ISuperTokenPool p = ISuperTokenPool(connections.at(i));
-                available = available + p.getClaimable(t, account);
-            }
-        }
-
-        // TODO: buffer based solvency
-        deposit = Value.wrap(0);
-    }
-
-    function getNetFlowRate(address account) override external view returns (FlowRate nr)
-    {
-        nr = _getUIndex(new bytes(0), account).flow_rate();
-
-        // pool distribution flow rate
-        if (_isPool(account)) {
-            nr = nr + ISuperTokenPool(account).getPendingDistributionFlowRate();
-        }
-
-        // pool-connected flows
-        {
-            EnumerableSet.AddressSet storage connections = _poolConnectionsMap[account];
-            for (uint i = 0; i < connections.length(); ++i) {
-                ISuperTokenPool p = ISuperTokenPool(connections.at(i));
-                nr = nr + p.getMemberFlowRate(account);
-            }
-        }
-    }
-
-    function getFlowHash(address from, address to, FlowId flowId) public view returns (bytes32) {
-        return keccak256(abi.encode(block.chainid, "flow", from, to, flowId));
-    }
-
-    function getDistributionFlowHash(address from, ISuperTokenPool to, FlowId flowId) public view returns (bytes32) {
-        return keccak256(abi.encode(block.chainid, "distributionflow", from, address(to), flowId));
-    }
-
-    function getFlowRate(address from, address to, FlowId flowId) override external view returns (FlowRate)
-    {
-        return _getFlowRate(new bytes(0), getFlowHash(from, to, flowId));
-    }
-
-    function _shift(address from, address to, Value amount, bool checkAllowance) internal
-        returns (bool success)
-    {
-        /// check inputs
-        require(!_isPool(to), "Use distribute to pool");
-        require(Value.unwrap(amount) >= 0, "Amount must not be negative");
-
-        /// prepare local variables (let bindings)
-        address spender = msg.sender;
-        // NOTE: uint256 casting is safe: amount is required to be non negative
-        if (checkAllowance) _spendAllowance(from, spender, uint256(Value.unwrap(amount)));
-
-        // Make updates
-        bytes memory eff = _tokenEff("shift", new bytes(0));
-        _doShift(eff, from, to, amount);
-        return true;
-    }
-
-    // This is the non-ERC20 version of instant transfer, that can trigger actions defined by "to"
-    function shift(address from, address to, Value amount) override external
-        returns (bool success)
-    {
-        return _shift(from, to, amount, from != to);
-    }
-
-    function flow(address from, address to, FlowId flowId, FlowRate flowRate) public
-        returns (bool success)
-    {
-        /// check inputs
-        require(!_isPool(to), "Use distributeFlow to pool");
-        require(FlowRate.unwrap(flowRate) >= 0, "Flow rate must not be negative");
-        require(from != to, "Shall not send flow to oneself");
-
-        // TODO: plug permission controls
-        require(msg.sender == from, "No flow permission");
-
-        /// prepare local variables (let bindings)
-        Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 flowHash = getFlowHash(from, to, flowId);
-
-        // Make updates
-        bytes memory eff = _tokenEff("flow", new bytes(0));
-        _doFlow(eff, from, to, flowHash, flowRate, t);
-        return true;
-    }
-
-    function distribute(address from, ISuperTokenPool to, Value reqAmount) override public
-        returns (bool success, Value actualAmount)
-    {
-        /// check inputs
-        require(_isPool(address(to)), "Distribute to pool only");
-        require(Value.unwrap(reqAmount) >= 0, "Requested amount must not be negative");
-
-        // TODO: plug permission controls
-        require(msg.sender == from, "No distribute permission");
-
-        // Make updates
-        bytes memory eff = _tokenEff("distribute", new bytes(0));
-        (, actualAmount) = _doDistribute(eff, from, address(to), reqAmount);
-        success = true;
-    }
-
-    function distributeFlow(address from, ISuperTokenPool to, FlowId flowId, FlowRate reqFlowRate) override public
-        returns (bool success, FlowRate actualFlowRate)
-    {
-        /// check inputs
-        require(_isPool(address(to)), "Distribute flow to pool only");
-        require(FlowRate.unwrap(reqFlowRate) >= 0, "Requested flow rate must not be negative");
-
-        /// prepare local variables
-        Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 flowHash = getDistributionFlowHash(from, to, flowId);
-
-        // TODO: plug permission controls
-        require(msg.sender == from, "No distribute flow permission");
-
-        // Make updates
-        bytes memory eff = _tokenEff("distributeFlow", new bytes(0));
-        (, actualFlowRate) = _doDistributeFlow(eff, from, address(to), flowHash, reqFlowRate, t);
-        success = true;
-    }
-
-    ////////////////////////////////////////////////////////////////////////////////
-    // Pool Operations
-    ////////////////////////////////////////////////////////////////////////////////
-
-    function isPool(address p) external view returns (bool) {
-        return _isPool(p);
-    }
-
-    function getNumConnections(address account) override external view returns (uint) {
-        return _poolConnectionsMap[account].length();
-    }
-
-    function createPool() external
-        returns (ToySuperTokenPool pool)
-    {
-        pool = ToySuperTokenPool(Clones.clone(address(POOL_CONTRACT_MASTER_COPY)));
-        pool.initialize(msg.sender);
-        _registerPool(address(pool));
-    }
-
-    function connectPool(ISuperTokenPool to) override external
-        returns (bool success) {
-        return connectPool(to, true);
-    }
-
-    function disconnectPool(ISuperTokenPool to) override external
-        returns (bool success) {
-        return connectPool(to, false);
-    }
-
-    function connectPool(ISuperTokenPool to, bool doConnect) override public
-        returns (bool success)
-    {
-        require(_isPool(address(to)), "Not a pool!!");
-
-        Time t = Time.wrap(uint32(block.timestamp));
-        if (doConnect) {
-            if (!_poolConnectionsMap[msg.sender].contains(address(to))) {
-                _poolConnectionsMap[msg.sender].add(address(to));
-                assert(to.operatorConnectMember(t, msg.sender, true));
-            }
-        } else {
-            if (_poolConnectionsMap[msg.sender].contains(address(to))) {
-                _poolConnectionsMap[msg.sender].remove(address(to));
-                assert(to.operatorConnectMember(t, msg.sender, false));
-            }
-        }
-        return true;
-    }
-
-    function isMemberConnected(ISuperTokenPool to, address memberAddr) override external view returns (bool) {
-        return _poolConnectionsMap[memberAddr].contains(address(to));
-    }
-
-    /// This is used by the pool to adjust flow rate
-    function absorbParticlesFromPool(address[] calldata accounts, BasicParticle[] calldata ps) override external
-        returns (bool)
-    {
-        require(_isPool(msg.sender), "Only absorbing from pools!");
-        assert(accounts.length == ps.length);
-        bytes memory eff = _tokenEff("absorbParticlesFromPool", new bytes(0));
-        for (uint i = 0; i < accounts.length; i++) {
-            _setUIndex(eff, accounts[i], _getUIndex(eff, accounts[i]).mappend(ps[i]));
-        }
         return true;
     }
 
@@ -351,20 +111,58 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         }
     }
 
+    function _acl(address operator, address from, address /* to */,
+                  Value shiftAmount, FlowRate shiftFlowRate)
+        override internal returns (bool)
+    {
+        if (from != operator) {
+            // No ACL support for flows
+            if (FlowRate.unwrap(shiftFlowRate) != 0) return false;
+
+            // NOTE: uint256 casting is safe: amount is required to be non negative
+            _spendAllowance(from, operator, uint256(Value.unwrap(shiftAmount)));
+        }
+        return true;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
-    // Other Internal Functions
+    // Fancier Token Monad Overrides
     ////////////////////////////////////////////////////////////////////////////////
 
-    function _isPool(address pool) internal view virtual returns (bool) {
-        return _poolExistenceFlags[pool];
-    }
-    function _registerPool(address pool) internal virtual {
-        _poolExistenceFlags[pool] = true;
+    function shift(address from, address to, Value amount) override external
+        returns (bool success)
+    {
+        bytes memory eff = _tokenEff("shift", new bytes(0));
+        return _shift(eff, msg.sender, from, to, amount);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////
-    // Token Monad Overrides
-    ////////////////////////////////////////////////////////////////////////////////
+    function flow(address from, address to, FlowId flowId, FlowRate flowRate) override external
+        returns (bool success)
+    {
+        bytes memory eff = _tokenEff("flow", new bytes(0));
+        return _flow(eff, msg.sender, from, to, flowId, flowRate);
+    }
+
+    function distribute(address from, ISuperfluidPool to, Value reqAmount) override external
+        returns (bool success, Value actualAmount)
+    {
+        bytes memory eff = _tokenEff("distribute", new bytes(0));
+        return _distribute(eff, msg.sender, from, to, reqAmount);
+    }
+
+    function distributeFlow(address from, ISuperfluidPool to, FlowId flowId, FlowRate reqFlowRate) override external
+        returns (bool success, FlowRate actualFlowRate)
+    {
+        bytes memory eff = _tokenEff("distributeFlow", new bytes(0));
+        return _distributeFlow(eff, msg.sender, from, to, flowId, reqFlowRate);
+    }
+
+    function absorbParticlesFromPool(address[] calldata accounts, BasicParticle[] calldata ps)
+        override external returns (bool)
+    {
+        bytes memory eff = _tokenEff("absorbParticlesFromPool", new bytes(0));
+        return _absorbParticlesFromPool(eff, accounts, ps);
+    }
 
     struct TokenEff {
         address msgSender;
@@ -377,10 +175,10 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         return abi.encode(TokenEff(msg.sender, prim, primExtra));
     }
 
-    function _getUIndex(bytes memory /*eff*/, address owner)
+    function _getUIndex(bytes memory eff, address owner)
         internal view virtual override returns (BasicParticle memory)
     {
-        return uIndexes[owner];
+        return ToySuperfluidToken._getUIndex(new bytes(0), owner);
     }
     event UIndexSet(address indexed msgSender, string indexed prim, address indexed owner,
                     BasicParticle p, bytes primEtra);
@@ -388,15 +186,15 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         internal virtual override returns (bytes memory)
     {
         (TokenEff memory teff) = abi.decode(eff, (TokenEff));
-        uIndexes[owner] = p;
         emit UIndexSet(teff.msgSender, teff.prim, owner, p, teff.primExtra);
+        ToySuperfluidToken._setUIndex(new bytes(0), owner, p);
         return eff;
     }
 
     function _getPDPIndex(bytes memory /*eff*/, address pool)
         internal view virtual override returns (PDPoolIndex memory)
     {
-        return ISuperTokenPool(pool).getIndex();
+        return ISuperfluidPool(pool).getIndex();
     }
     event PDPIndexSet(address indexed msgSender, string indexed prim, address indexed pool,
                       PDPoolIndex p, bytes primEtra);
@@ -404,8 +202,8 @@ contract ToySuperToken is ISuperToken, TokenMonad {
         internal virtual override returns (bytes memory)
     {
         (TokenEff memory teff) = abi.decode(eff, (TokenEff));
-        assert(ISuperTokenPool(pool).operatorSetIndex(p));
         emit PDPIndexSet(teff.msgSender, teff.prim, pool, p, teff.primExtra);
+        ToySuperfluidToken._setPDPIndex(new bytes(0), pool, p);
         return eff;
     }
 
@@ -416,12 +214,12 @@ contract ToySuperToken is ISuperToken, TokenMonad {
     }
     event FlowInfoSet(address indexed msgSender, string indexed prim, bytes32 indexed flowHash,
                       FlowRate flowRate, bytes primEtra);
-    function _setFlowInfo(bytes memory eff, bytes32 flowHash, address /*from*/, address /*to*/, FlowRate flowRate)
+    function _setFlowInfo(bytes memory eff, bytes32 flowHash, address from, address to, FlowRate flowRate)
         internal virtual override returns (bytes memory)
     {
         (TokenEff memory teff) = abi.decode(eff, (TokenEff));
-        flowRates[flowHash] = flowRate;
         emit FlowInfoSet(teff.msgSender, teff.prim, flowHash, flowRate, teff.primExtra);
+        ToySuperfluidToken._setFlowInfo(new bytes(0), flowHash, from, to, flowRate);
         return eff;
     }
 }

@@ -10,7 +10,7 @@ import {
 /**
  * @dev The interface for any super token pool regardless of the distribution schemes.
  */
-interface ISuperTokenPool {
+interface ISuperfluidPool {
     function getIndex() external view returns (PDPoolIndex memory);
 
     function getTotalUnits() external view returns (Unit);
@@ -44,9 +44,9 @@ interface ISuperTokenPool {
 /**
  * @dev The interface for the admin of a super token pool admin
  */
-interface ISuperTokenPoolAdmin {
+interface ISuperfluidPoolAdmin {
     /// Check if an address is connected to the pool
-    function isMemberConnected(ISuperTokenPool pool, address memberAddr) external view
+    function isMemberConnected(ISuperfluidPool pool, address memberAddr) external view
         returns (bool);
 
     /// This is used by the pool to adjust flow rate

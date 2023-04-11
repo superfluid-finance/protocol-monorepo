@@ -34,7 +34,7 @@ contract ToySuperTokenTest is Test {
         }
     }
 
-    function _createPool(address by) internal returns (ToySuperTokenPool pl) {
+    function _createPool(address by) internal returns (ToySuperfluidPool pl) {
         vm.startPrank(by);
         pl = token.createPool();
         vm.stopPrank();
@@ -175,7 +175,7 @@ contract ToySuperTokenTest is Test {
         uint256 tu = uint(uint128(Unit.unwrap(uu1 + uu2)));
         uint256 xxx;if (tu == 0) xxx = 0; else xxx = uint(x) / tu * tu;
 
-        ToySuperTokenPool pl = _createPool(alice);
+        ToySuperfluidPool pl = _createPool(alice);
 
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
@@ -225,7 +225,7 @@ contract ToySuperTokenTest is Test {
         Time t2 = Time.wrap(uint32(block.timestamp) + dt2);
         Time t3 = t2 + Time.wrap(dt3);
 
-        ToySuperTokenPool pl = _createPool(alice);
+        ToySuperfluidPool pl = _createPool(alice);
 
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
@@ -305,7 +305,7 @@ contract ToySuperTokenTest is Test {
         int256 rrr; if (tu == 0) rrr = 0; else rrr = int256(uint256(r) / tu * tu);
         Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
 
-        ToySuperTokenPool pl = _createPool(alice);
+        ToySuperfluidPool pl = _createPool(alice);
 
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
@@ -363,7 +363,7 @@ contract ToySuperTokenTest is Test {
         int256 rrr2;if (tu == 0) rrr1 = 0;else rrr2 = int(uint(r2) / tu * tu);
         Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
 
-        ToySuperTokenPool pl = _createPool(alice);
+        ToySuperfluidPool pl = _createPool(alice);
 
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
@@ -424,7 +424,7 @@ contract ToySuperTokenTest is Test {
         Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
         Time t3 = t2 + Time.wrap(uint32(dt3));
 
-        ToySuperTokenPool pl = _createPool(alice);
+        ToySuperfluidPool pl = _createPool(alice);
 
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);

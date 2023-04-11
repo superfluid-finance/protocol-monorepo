@@ -6,11 +6,11 @@ import {
     Time, FlowRate, Value, Unit
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
-    FlowId, ToySuperToken
-} from "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.sol";
+    FlowId, ToySuperfluidToken
+} from "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperfluidToken.sol";
 import {
-    ToySuperTokenPool
-} from "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperTokenPool.sol";
+    ToySuperfluidPool
+} from "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperfluidPool.sol";
 
 
 /**
@@ -45,8 +45,8 @@ contract Aqueduct {
     FlowId constant public ADJUSTMENT_FLOW_ID = FlowId.wrap(0);
 
     struct Side {
-        ToySuperToken token;
-        ToySuperTokenPool pool;
+        ToySuperfluidToken token;
+        ToySuperfluidPool pool;
         AqueductLibrary.SideState state;
         address remFlowReceiver;
     }
@@ -54,19 +54,19 @@ contract Aqueduct {
     Side internal _left;
     Side internal _right;
 
-    function token1() external view returns (ToySuperToken) { return _left.token; }
-    function token2() external view returns (ToySuperToken) { return _right.token; }
-    function pool1() external view returns (ToySuperTokenPool) { return _left.pool; }
-    function pool2() external view returns (ToySuperTokenPool) { return _right.pool; }
+    function token1() external view returns (ToySuperfluidToken) { return _left.token; }
+    function token2() external view returns (ToySuperfluidToken) { return _right.token; }
+    function pool1() external view returns (ToySuperfluidPool) { return _left.pool; }
+    function pool2() external view returns (ToySuperfluidPool) { return _right.pool; }
 
-    constructor (ToySuperToken tokenL, ToySuperToken tokenR) {
+    constructor (ToySuperfluidToken tokenL, ToySuperfluidToken tokenR) {
         _left.token = tokenL;
         _left.pool = tokenL.createPool();
         _right.token = tokenR;
         _right.pool = tokenR.createPool();
     }
 
-    function onFlowUpdate(ToySuperToken token, address from, FlowRate ir0, FlowRate ir1) external {
+    function onFlowUpdate(ToySuperfluidToken token, address from, FlowRate ir0, FlowRate ir1) external {
         if (token == _left.token) {
             _onFlowUpdate(_left, _right, from, ir0, ir1);
         } else if (token == _right.token) {

@@ -122,7 +122,7 @@ contract GeneralDistributionAgreementV1 is
             token,
             _getUniversalIndexId(account)
         );
-        netFlowRate = int96(FlowRate.unwrap(uIndexData.flow_rate));
+        netFlowRate = int96(FlowRate.unwrap(uIndexData._flow_rate));
 
         if (_isPool(account)) {
             netFlowRate =
@@ -328,7 +328,7 @@ contract GeneralDistributionAgreementV1 is
         );
 
         // @note might be unsafe casting here from uint256 -> int256
-        (fromUIndexData, pdidx, ) = fromUIndexData.shift2(
+        (fromUIndexData, pdidx, ) = fromUIndexData.shift2b(
             pdidx,
             Value.wrap(int256(requestedAmount))
         );
@@ -358,7 +358,7 @@ contract GeneralDistributionAgreementV1 is
             _getUniversalIndexId(currentContext.msgSender)
         );
 
-        FlowRate oldFlowRate = fromUIndexData.flow_rate.inv();
+        FlowRate oldFlowRate = fromUIndexData._flow_rate.inv();
         PDPoolIndex memory pdpIndex = _getPDPIndex(address(to));
 
         FlowRate actualFlowRate;
@@ -416,10 +416,10 @@ contract GeneralDistributionAgreementV1 is
     ) internal pure returns (bytes32[] memory data) {
         data = new bytes32[](2);
         data[0] = bytes32(
-            (uint256(int256(FlowRate.unwrap(p.flow_rate))) << 160) |
-                (uint256(Time.unwrap(p.settled_at)) << 96)
+            (uint256(int256(FlowRate.unwrap(p._flow_rate))) << 160) |
+                (uint256(Time.unwrap(p._settled_at)) << 96)
         );
-        data[1] = bytes32(uint256(Value.unwrap(p.settled_value)));
+        data[1] = bytes32(uint256(Value.unwrap(p._settled_value)));
     }
 
     function _decodeUniversalIndexData(
@@ -432,13 +432,13 @@ contract GeneralDistributionAgreementV1 is
 
         if (exists) {
             particle = BasicParticle({
-                flow_rate: FlowRate.wrap(
+                _flow_rate: FlowRate.wrap(
                     int96(
                         int256(wordA >> 160) & int256(uint256(type(uint96).max))
                     )
                 ),
-                settled_at: Time.wrap(uint32(wordA >> 96)),
-                settled_value: Value.wrap(int256(wordB))
+                _settled_at: Time.wrap(uint32(wordA >> 96)),
+                _settled_value: Value.wrap(int256(wordB))
             });
         }
     }
@@ -474,9 +474,9 @@ contract GeneralDistributionAgreementV1 is
         emit UniversalIndexUpdated(
             token,
             account,
-            Time.unwrap(particle.settled_at),
-            Value.unwrap(particle.settled_value),
-            int96(FlowRate.unwrap(particle.flow_rate))
+            Time.unwrap(particle._settled_at),
+            Value.unwrap(particle._settled_value),
+            int96(FlowRate.unwrap(particle._flow_rate))
         );
     }
 

@@ -57,7 +57,7 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
         return
             int96(
                 FlowRate.unwrap(
-                    _index.wrapped_particle.flow_rate.mul(_index.total_units)
+                    _index._wrapped_particle._flow_rate.mul(_index.total_units)
                 )
             );
     }
@@ -71,7 +71,7 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
         return
             int96(
                 FlowRate.unwrap(
-                    _index.wrapped_particle.flow_rate.mul(pendingUnits)
+                    _index._wrapped_particle._flow_rate.mul(pendingUnits)
                 )
             );
     }
@@ -84,13 +84,13 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
         else
             return
                 int96(
-                    FlowRate.unwrap(_index.wrapped_particle.flow_rate.mul(u))
+                    FlowRate.unwrap(_index._wrapped_particle._flow_rate.mul(u))
                 );
     }
 
     function getPendingDistribution() external view returns (int256) {
         Time t = Time.wrap(uint32(block.timestamp));
-        return Value.unwrap(_index.wrapped_particle.rtb(t).mul(pendingUnits));
+        return Value.unwrap(_index._wrapped_particle.rtb(t).mul(pendingUnits));
     }
 
     function getClaimableNow(

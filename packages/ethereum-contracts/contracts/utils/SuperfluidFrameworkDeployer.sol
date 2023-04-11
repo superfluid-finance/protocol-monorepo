@@ -24,6 +24,10 @@ import {
     InstantDistributionAgreementV1
 } from "../agreements/InstantDistributionAgreementV1.sol";
 import {
+    GeneralDistributionAgreementV1
+} from "../agreements/GeneralDistributionAgreementV1.sol";
+import {
+    ISuperTokenFactory,
     SuperToken,
     SuperTokenFactory,
     ERC20WithTokenInfo
@@ -49,6 +53,7 @@ contract SuperfluidFrameworkDeployer {
         ConstantFlowAgreementV1 cfa;
         CFAv1Library.InitData cfaLib;
         InstantDistributionAgreementV1 ida;
+        GeneralDistributionAgreementV1 gda;
         IDAv1Library.InitData idaLib;
         SuperTokenFactory superTokenFactory;
         TestResolver resolver;
@@ -62,6 +67,7 @@ contract SuperfluidFrameworkDeployer {
     Superfluid internal host;
     ConstantFlowAgreementV1 internal cfaV1;
     InstantDistributionAgreementV1 internal idaV1;
+    GeneralDistributionAgreementV1 internal gdaV1;
     SuperTokenFactory internal superTokenFactory;
     TestResolver internal testResolver;
     SuperfluidLoader internal superfluidLoader;
@@ -123,6 +129,12 @@ contract SuperfluidFrameworkDeployer {
         // Register InstantDistributionAgreementV1 with Governance
         testGovernance.registerAgreementClass(host, address(idaV1));
 
+        // Deploy GeneralDistributionAgreementV1
+        gdaV1 = SuperfluidGDAv1DeployerLibrary
+            .deployGeneralDistributionAgreementV1(host);
+
+        // Register GeneralDistributionAgreementV1 with Governance
+        testGovernance.registerAgreementClass(host, address(gdaV1));
         // Deploy canonical Constant Outflow NFT logic contract
         ConstantOutflowNFT constantOutflowNFTLogic = new ConstantOutflowNFT(cfaV1);
 
@@ -179,6 +191,7 @@ contract SuperfluidFrameworkDeployer {
             cfaLib: CFAv1Library.InitData(host, cfaV1),
             ida: idaV1,
             idaLib: IDAv1Library.InitData(host, idaV1),
+            gda: gdaV1,
             superTokenFactory: superTokenFactory,
             resolver: testResolver,
             superfluidLoader: superfluidLoader,
@@ -251,6 +264,17 @@ library SuperfluidIDAv1DeployerLibrary {
         ISuperfluid _host
     ) external returns (InstantDistributionAgreementV1) {
         return new InstantDistributionAgreementV1(_host);
+    }
+}
+
+library SuperfluidGDAv1DeployerLibrary {
+    /// @notice deploys the Superfluid GeneralDistributionAgreementV1 Contract
+    /// @param _host Superfluid host address
+    /// @return newly deployed GeneralDistributionAgreementV1 contract
+    function deployGeneralDistributionAgreementV1(
+        ISuperfluid _host
+    ) external returns (GeneralDistributionAgreementV1) {
+        return new GeneralDistributionAgreementV1(_host);
     }
 }
 

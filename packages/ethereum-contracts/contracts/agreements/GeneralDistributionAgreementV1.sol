@@ -5,6 +5,9 @@ import {
     EnumerableSet
 } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import {
+    IBeacon
+} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import {
     ISuperfluid,
@@ -29,6 +32,7 @@ import {
     ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperTokenPool } from "../interfaces/superfluid/ISuperTokenPool.sol";
+import { SlotsBitmapLibrary } from "../libs/SlotsBitmapLibrary.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
@@ -74,10 +78,17 @@ contract GeneralDistributionAgreementV1 is
         uint96 deposit;
     }
 
+    IBeacon immutable superTokenPoolBeacon;
+
     mapping(address owner => EnumerableSet.AddressSet connections)
         internal _connectionsMap;
 
-    constructor(ISuperfluid host) AgreementBase(address(host)) {}
+    constructor(
+        ISuperfluid host,
+        IBeacon superTokenPoolBeacon_
+    ) AgreementBase(address(host)) {
+        superTokenPoolBeacon = superTokenPoolBeacon_;
+    }
 
     function realtimeBalanceVectorAt(
         ISuperfluidToken token,
@@ -216,6 +227,7 @@ contract GeneralDistributionAgreementV1 is
         pool = ISuperTokenPool(
             address(
                 SuperTokenPoolDeployerLibrary.deploy(
+                    address(superTokenPoolBeacon),
                     admin,
                     GeneralDistributionAgreementV1(address(this)),
                     token
@@ -248,7 +260,7 @@ contract GeneralDistributionAgreementV1 is
         bool doConnect,
         bytes calldata ctx
     ) public returns (bytes memory newCtx) {
-        ISuperfluidToken token = pool._superToken();
+        ISuperfluidToken token = pool.superToken();
         ISuperfluid.Context memory currentContext = AgreementLibrary
             .authorizeTokenAccess(token, ctx);
         address msgSender = currentContext.msgSender;

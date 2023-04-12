@@ -8,8 +8,9 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  */
 interface ISuperTokenPool {
     // Custom Errors
-    error SUPER_TOKEN_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
-    error SUPER_TOKEN_POOL_NOT_POOL_ADMIN();
+    error SUPER_TOKEN_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();  // 0xd568f5c5
+    error SUPER_TOKEN_POOL_NOT_POOL_ADMIN();                // 0xe448e00d
+    error SUPER_TOKEN_POOL_NOT_GDA();                       // 0xb3a64080
 
     // Events
     event PoolIndexUpdated(
@@ -20,7 +21,7 @@ interface ISuperTokenPool {
         int96 wpFlowRate
     );
 
-    function _superToken() external view returns (ISuperfluidToken);
+    function superToken() external view returns (ISuperfluidToken);
 
     function getTotalUnits() external view returns (int128);
 

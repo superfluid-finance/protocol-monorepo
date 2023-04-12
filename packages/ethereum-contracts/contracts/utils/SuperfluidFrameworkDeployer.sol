@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
-import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {
+    IBeacon
+} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import {
     ISuperfluid,
     ISuperfluidToken,
@@ -37,7 +40,10 @@ import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 import { SETHProxy } from "../tokens/SETH.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
-
+import { SuperTokenPool } from "../superfluid/SuperTokenPool.sol";
+import {
+    SuperfluidUpgradeableBeacon
+} from "../upgradability/SuperfluidUpgradeableBeacon.sol";
 import {
     IConstantFlowAgreementHook
 } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
@@ -129,14 +135,27 @@ contract SuperfluidFrameworkDeployer {
         // Register InstantDistributionAgreementV1 with Governance
         testGovernance.registerAgreementClass(host, address(idaV1));
 
+        // Deploy SuperTokenPool logic contract
+        SuperTokenPool superTokenPoolLogic = new SuperTokenPool();
+
+        // Initialize the logic contract
+        superTokenPoolLogic.castrate();
+
+        // Deploy SuperTokenPool beacon
+        SuperfluidUpgradeableBeacon superTokenPoolBeacon = new SuperfluidUpgradeableBeacon(
+                address(superTokenPoolLogic)
+            );
+
         // Deploy GeneralDistributionAgreementV1
         gdaV1 = SuperfluidGDAv1DeployerLibrary
-            .deployGeneralDistributionAgreementV1(host);
+            .deployGeneralDistributionAgreementV1(host, superTokenPoolBeacon);
 
         // Register GeneralDistributionAgreementV1 with Governance
         testGovernance.registerAgreementClass(host, address(gdaV1));
         // Deploy canonical Constant Outflow NFT logic contract
-        ConstantOutflowNFT constantOutflowNFTLogic = new ConstantOutflowNFT(cfaV1);
+        ConstantOutflowNFT constantOutflowNFTLogic = new ConstantOutflowNFT(
+            cfaV1
+        );
 
         // Deploy canonical Constant Inflow NFT logic contract
         ConstantInflowNFT constantInflowNFTLogic = new ConstantInflowNFT(cfaV1);
@@ -270,11 +289,13 @@ library SuperfluidIDAv1DeployerLibrary {
 library SuperfluidGDAv1DeployerLibrary {
     /// @notice deploys the Superfluid GeneralDistributionAgreementV1 Contract
     /// @param _host Superfluid host address
+    /// @param _superTokenPoolBeacon SuperToken pool beacon contract address
     /// @return newly deployed GeneralDistributionAgreementV1 contract
     function deployGeneralDistributionAgreementV1(
-        ISuperfluid _host
+        ISuperfluid _host,
+        IBeacon _superTokenPoolBeacon
     ) external returns (GeneralDistributionAgreementV1) {
-        return new GeneralDistributionAgreementV1(_host);
+        return new GeneralDistributionAgreementV1(_host, _superTokenPoolBeacon);
     }
 }
 
@@ -306,7 +327,10 @@ library SuperTokenDeployerLibrary {
         IConstantOutflowNFT constantOutflowNFT,
         IConstantInflowNFT constantInflowNFT
     ) external returns (address) {
-        return address(new SuperToken(host, constantOutflowNFT, constantInflowNFT));
+        return
+            address(
+                new SuperToken(host, constantOutflowNFT, constantInflowNFT)
+            );
     }
 }
 

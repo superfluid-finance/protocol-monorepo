@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
     ISuperfluidToken
@@ -11,31 +10,39 @@ import { ISuperTokenPool } from "../interfaces/superfluid/ISuperTokenPool.sol";
 import {
     GeneralDistributionAgreementV1
 } from "../agreements/GeneralDistributionAgreementV1.sol";
+import { BeaconProxiable } from "../upgradability/BeaconProxiable.sol";
 
 /**
  * @title SuperTokenPool
  * @author Superfluid
  * @notice A SuperTokenPool which can be used to distribute any SuperToken.
  */
-contract SuperTokenPool is Ownable, ISuperTokenPool {
+contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
     using SemanticMoney for BasicParticle;
 
-    GeneralDistributionAgreementV1 internal immutable _gda;
-    ISuperfluidToken public immutable _superToken;
+    GeneralDistributionAgreementV1 internal _gda;
     PDPoolIndex internal _index;
+    ISuperfluidToken public superToken;
     address public admin;
     mapping(address member => PDPoolMember member_data) internal _members;
     mapping(address member => Value claimed_value) internal _claimedValues;
     Unit public pendingUnits;
 
-    constructor(
+    function initialize(
         address admin_,
         GeneralDistributionAgreementV1 gda,
-        ISuperfluidToken superToken
-    ) Ownable() {
+        ISuperfluidToken superToken_
+    ) external initializer {
         admin = admin_;
         _gda = gda;
-        _superToken = superToken;
+        superToken = superToken_;
+    }
+
+    function proxiableUUID() public pure override returns (bytes32) {
+        return
+            keccak256(
+                "org.superfluid-finance.contracts.superfluid.SuperTokenPool.implementation"
+            );
     }
 
     function getIndex() external view returns (PDPoolIndex memory) {
@@ -149,7 +156,7 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
             addresses[0] = admin;
             BasicParticle[] memory ps = new BasicParticle[](1);
             ps[0] = p;
-            assert(_gda.absorbParticlesFromPool(_superToken, addresses, ps));
+            assert(_gda.absorbParticlesFromPool(superToken, addresses, ps));
         }
 
         // additional side effects of triggering claimAll
@@ -181,7 +188,7 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
             BasicParticle[] memory ps = new BasicParticle[](2);
             BasicParticle memory mempty1;
             (ps[0], ps[1]) = mempty1.shift2(mempty1, wrappedClaimable);
-            assert(_gda.absorbParticlesFromPool(_superToken, addresses, ps));
+            assert(_gda.absorbParticlesFromPool(superToken, addresses, ps));
         }
         _claimedValues[memberAddr] = wrappedClaimable;
         return true;
@@ -189,7 +196,7 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
 
     function operatorSetIndex(
         PDPoolIndex calldata index
-    ) external onlyOwner returns (bool) {
+    ) external onlyGDA returns (bool) {
         _index = index;
         return true;
     }
@@ -199,7 +206,7 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
         uint32 time,
         address memberAddr,
         bool doConnect
-    ) external onlyOwner returns (bool) {
+    ) external onlyGDA returns (bool) {
         if (doConnect) {
             pendingUnits = pendingUnits - _members[memberAddr].owned_units;
         } else {
@@ -208,5 +215,10 @@ contract SuperTokenPool is Ownable, ISuperTokenPool {
         // trigger side effects of triggering claimAll
         claimAll(time, memberAddr);
         return true;
+    }
+
+    modifier onlyGDA() {
+        if (msg.sender != address(_gda)) revert SUPER_TOKEN_POOL_NOT_GDA();
+        _;
     }
 }

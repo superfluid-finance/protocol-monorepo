@@ -2,6 +2,9 @@
 pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
+import {
+    IBeacon
+} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 
 import {
@@ -10,7 +13,12 @@ import {
 } from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
 
 contract GeneralDistributionAgreementV1Mock is GeneralDistributionAgreementV1 {
-    constructor() GeneralDistributionAgreementV1(ISuperfluid(address(0))) {}
+    constructor()
+        GeneralDistributionAgreementV1(
+            ISuperfluid(address(0)),
+            IBeacon(address(0))
+        )
+    {}
 }
 
 contract GeneralDistributionAgreementV1Properties is
@@ -67,10 +75,7 @@ contract GeneralDistributionAgreementV1Properties is
         vm.assume(deposit >= 0);
         GeneralDistributionAgreementV1.FlowDistributionData
             memory original = GeneralDistributionAgreementV1
-                .FlowDistributionData({
-                    flowRate: flowRate,
-                    deposit: deposit
-                });
+                .FlowDistributionData({ flowRate: flowRate, deposit: deposit });
         bytes32[] memory encodedData = _encodeFlowDistributionData(original);
         (
             ,

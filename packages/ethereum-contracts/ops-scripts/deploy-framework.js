@@ -582,12 +582,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const superTokenLogic = await SuperTokenLogic.at(
                     superTokenLogicAddress
                 );
-                console.log("   superTokenLogic.CONSTANT_OUTFLOW_NFT_LOGIC()");
-                const constantOutflowNFTLogicAddress =
-                    await superTokenLogic.CONSTANT_OUTFLOW_NFT_LOGIC();
-                console.log("   superTokenLogic.CONSTANT_INFLOW_NFT_LOGIC()");
-                const constantInflowNFTLogicAddress =
-                    await superTokenLogic.CONSTANT_INFLOW_NFT_LOGIC();
+                console.log("   superTokenLogic.CONSTANT_OUTFLOW_NFT()");
+                const constantOutflowNFTAddress =
+                    await superTokenLogic.CONSTANT_OUTFLOW_NFT();
+                console.log("   superTokenLogic.CONSTANT_INFLOW_NFT()");
+                const constantInflowNFTAddress =
+                    await superTokenLogic.CONSTANT_INFLOW_NFT();
                 const superTokenFactoryCodeChanged = await codeChanged(
                     web3,
                     SuperTokenFactoryLogic,
@@ -610,11 +610,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                             .toLowerCase()
                             .slice(2)
                             .padStart(64, "0"),
-                        constantOutflowNFTLogicAddress
+                        constantOutflowNFTAddress
                             .toLowerCase()
                             .slice(2)
                             .padStart(64, "0"),
-                        constantInflowNFTLogicAddress
+                        constantInflowNFTAddress
                             .toLowerCase()
                             .slice(2)
                             .padStart(64, "0"),

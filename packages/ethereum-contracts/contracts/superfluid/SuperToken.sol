@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 // solhint-disable max-states-count
-// Notes: SueperToken is rich with states, disable this default rule here.
+// Notes: SuperToken is rich with states, disable this default rule here.
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";

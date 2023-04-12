@@ -210,16 +210,17 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
     function _getFlowRate(bytes memory /*eff*/, bytes32 flowHash)
         internal view virtual override returns (FlowRate)
     {
-        return flowRates[flowHash];
+        return ToySuperfluidToken._getFlowRate(new bytes(0), flowHash);
     }
     event FlowInfoSet(address indexed msgSender, string indexed prim, bytes32 indexed flowHash,
                       FlowRate flowRate, bytes primEtra);
-    function _setFlowInfo(bytes memory eff, bytes32 flowHash, address from, address to, FlowRate flowRate)
+    function _setFlowInfo(bytes memory eff, bytes32 flowHash, address from, address to,
+                          FlowRate newFlowRate, FlowRate flowRateDelta)
         internal virtual override returns (bytes memory)
     {
         (TokenEff memory teff) = abi.decode(eff, (TokenEff));
-        emit FlowInfoSet(teff.msgSender, teff.prim, flowHash, flowRate, teff.primExtra);
-        ToySuperfluidToken._setFlowInfo(new bytes(0), flowHash, from, to, flowRate);
+        emit FlowInfoSet(teff.msgSender, teff.prim, flowHash, newFlowRate, teff.primExtra);
+        ToySuperfluidToken._setFlowInfo(new bytes(0), flowHash, from, to, newFlowRate, flowRateDelta);
         return eff;
     }
 }

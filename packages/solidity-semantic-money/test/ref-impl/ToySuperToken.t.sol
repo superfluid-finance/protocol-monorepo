@@ -105,8 +105,9 @@ contract ToySuperTokenTest is Test {
 
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
-        assertEq(a1 - a2, uint256(r1) * uint256(dt2) + uint256(r2) * uint256(dt3), "e3.1");
-        assertEq(a1 - a2, b2 - b1, "e3.2");
+        uint256 k2 = token.balanceOf(address(token));
+        assertEq(a1 - a2, k2 + uint256(r1) * uint256(dt2) + uint256(r2) * uint256(dt3), "e3.1");
+        assertEq(a1 - a2, k2 + b2 - b1, "e3.2");
     }
 
     function test_1to2_flow(uint32 r1, uint32 r2, uint16 t2) external {
@@ -126,14 +127,15 @@ contract ToySuperTokenTest is Test {
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
         uint256 c2 = token.balanceOf(carol);
+        uint256 k2 = token.balanceOf(address(token));
 
         assertEq(token.getFlowRate(alice, bob, FlowId.wrap(0)), rr1, "e1.1");
         assertEq(token.getFlowRate(alice, carol, FlowId.wrap(0)), rr2, "e1.2");
         assertEq(token.getFlowRate(bob, carol, FlowId.wrap(0)), FlowRate.wrap(0), "e1.3");
         assertEq(token.getNetFlowRate(alice).inv(),
                  token.getNetFlowRate(bob) + token.getNetFlowRate(carol), "e2");
-        assertEq(a1 - a2, (uint256(r1) + uint256(r2)) * uint256(t2), "e3.1");
-        assertEq(a1 - a2, b2 - b1 + c2 - c1, "e3.2");
+        assertEq(a1 - a2, k2 + (uint256(r1) + uint256(r2)) * uint256(t2), "e3.1");
+        assertEq(a1 - a2, k2 + b2 - b1 + c2 - c1, "e3.2");
     }
 
     function test_2to1_flow(uint32 r1, uint32 r2, uint16 t2) external {
@@ -147,10 +149,12 @@ contract ToySuperTokenTest is Test {
         vm.startPrank(alice);
         token.flow(alice, carol, FlowId.wrap(0), rr1);
         vm.stopPrank();
+        uint256 k1 = token.balanceOf(address(token));
 
         vm.startPrank(bob);
         token.flow(bob, carol, FlowId.wrap(0), rr2);
         vm.stopPrank();
+        uint256 k2 = token.balanceOf(address(token)) - k1;
 
         vm.warp(t1 + uint256(t2));
 
@@ -163,9 +167,9 @@ contract ToySuperTokenTest is Test {
         assertEq(token.getFlowRate(alice, bob, FlowId.wrap(0)), FlowRate.wrap(0), "e1.3");
         assertEq(token.getNetFlowRate(alice) + token.getNetFlowRate(bob),
                  token.getNetFlowRate(carol).inv(), "e2");
-        assertEq(a1 - a2, uint256(r1) * uint256(t2), "e3.1");
-        assertEq(b1 - b2, uint256(r2) * uint256(t2), "e3.2");
-        assertEq(c2 - c1, a1 - a2 + b1 - b2, "e3.3");
+        assertEq(a1 - a2, k1 + uint256(r1) * uint256(t2), "e3.1");
+        assertEq(b1 - b2, k2 + uint256(r2) * uint256(t2), "e3.2");
+        assertEq(a1 - a2 + b1 - b2, k1 + k2 + c2 - c1, "e3.3");
     }
 
     function test_1to2_instdistribute(uint32 u1, uint32 u2, uint64 x) external {

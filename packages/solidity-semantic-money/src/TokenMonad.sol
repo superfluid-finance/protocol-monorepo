@@ -26,7 +26,8 @@ abstract contract TokenMonad {
         internal virtual returns (bytes memory);
     function _getFlowRate(bytes memory, bytes32 flowHash)
         internal view virtual returns (FlowRate);
-    function _setFlowInfo(bytes memory eff, bytes32 flowHash, address from, address to, FlowRate flowRate)
+    function _setFlowInfo(bytes memory eff, bytes32 flowHash, address from, address to,
+                          FlowRate newFlowRate, FlowRate flowRateDelta)
         virtual internal returns (bytes memory);
 
     function _doShift(bytes memory eff, address from, address to, Value amount)
@@ -49,7 +50,7 @@ abstract contract TokenMonad {
         (a, b) = a.shift_flow2b(b, flowRateDelta, t);
         eff = _setUIndex(eff, from, a);
         eff = _setUIndex(eff, to, b);
-        eff = _setFlowInfo(eff, flowHash, from, to, flowRate);
+        eff = _setFlowInfo(eff, flowHash, from, to, flowRate, flowRateDelta);
         return eff;
     }
 
@@ -70,11 +71,12 @@ abstract contract TokenMonad {
     {
         BasicParticle memory a = _getUIndex(eff, from);
         PDPoolIndex memory pdpIndex = _getPDPIndex(eff, to);
-        FlowRate flowRateDelta = reqFlowRate - _getFlowRate(eff, flowHash);
+        FlowRate oldFlowRate = _getFlowRate(eff, flowHash);
+        FlowRate flowRateDelta = reqFlowRate - oldFlowRate;
         (a, pdpIndex, actualFlowRate) = a.shift_flow2b(pdpIndex, flowRateDelta, t);
         eff = _setUIndex(eff, from, a);
         eff = _setPDPIndex(eff, to, pdpIndex);
-        eff = _setFlowInfo(eff, flowHash, from, to, actualFlowRate);
+        eff = _setFlowInfo(eff, flowHash, from, to, actualFlowRate, actualFlowRate - oldFlowRate);
         return (eff, actualFlowRate);
     }
 }

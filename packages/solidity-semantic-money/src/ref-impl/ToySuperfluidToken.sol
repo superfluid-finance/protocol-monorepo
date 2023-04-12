@@ -30,13 +30,33 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
 
     ToySuperfluidPool public immutable POOL_CONTRACT_MASTER_COPY;
 
+    Time public LIQUIDATION_PERIOD = Time.wrap(42 minutes);
+
+    struct AccountData {
+        Value    totalBuffer;
+        FlowRate totalInflowRate;
+        FlowRate totalOutflowRate;
+    }
+
+    struct FlowData {
+        address  from;
+        address  to;
+        FlowRate flowRate;
+        Value    buffer;
+    }
+
     mapping (address owner => BasicParticle) public uIndexes;
-    mapping (bytes32 flowHash => FlowRate) public flowRates;
+    mapping (address owner => AccountData) public accountData;
+    mapping (bytes32 flowHash => FlowData) public flowData;
     mapping (address pool => bool exist) private _poolExistenceFlags;
     mapping (address owner => EnumerableSet.AddressSet poolConnections) private _poolConnectionsMap;
 
     constructor () {
         POOL_CONTRACT_MASTER_COPY = new ToySuperfluidPool();
+    }
+
+    function setLiquidationPeriod(Time a) external {
+        LIQUIDATION_PERIOD = a;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -53,8 +73,8 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     function realtimeBalanceAt(address account, Time t) override public view
         returns (Value rtb)
     {
-        (Value available, Value deposit) = realtimeBalanceVectorAt(account, t);
-        rtb = available - deposit;
+        (Value available, ) = realtimeBalanceVectorAt(account, t);
+        rtb = available;
     }
 
     function realtimeBalanceVectorAt(address account, Time t) override public view
@@ -78,8 +98,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
             }
         }
 
-        // TODO: buffer based solvency
-        deposit = Value.wrap(0);
+        deposit = accountData[account].totalBuffer;
     }
 
     function getNetFlowRate(address account) override external view returns (FlowRate nr) {
@@ -108,6 +127,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         return keccak256(abi.encode(block.chainid, "distributionflow", from, address(to), flowId));
     }
 
+    // getTotalFlowRate(address from, address to)
     function getFlowRate(address from, address to, FlowId flowId) override external view returns (FlowRate) {
         return _getFlowRate(new bytes(0), getFlowHash(from, to, flowId));
     }
@@ -148,9 +168,12 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         /// prepare local variables (let bindings)
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowHash = getFlowHash(from, to, flowId);
+        FlowRate oldFlowRate = _getFlowRate(new bytes(0), flowHash);
 
         // Make updates
-        _doFlow(eff, from, to, flowHash, flowRate, t);
+        eff = _doFlow(eff, from, to, flowHash, flowRate, t);
+        eff = _adjustBuffer(eff, from, flowHash, oldFlowRate, flowRate /* assert(newFlowRate == flowRate) */);
+
         return true;
     }
 
@@ -292,7 +315,6 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         _poolExistenceFlags[pool] = true;
     }
 
-
     ////////////////////////////////////////////////////////////////////////////////
     // ACL Hook
     ////////////////////////////////////////////////////////////////////////////////
@@ -301,7 +323,26 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
                   Value /* shiftAmount */, FlowRate /* shiftFlowRate */)
         virtual internal returns (bool)
     {
-        return operator == from;
+        return operator == from /* || to != address(this) */;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Buffer Based Solvency
+    ////////////////////////////////////////////////////////////////////////////////
+
+    function _adjustBuffer(bytes memory eff,
+                           address from, bytes32 flowHash,
+                           FlowRate /* oldFlowRate */, FlowRate newFlowRate)
+        internal returns (bytes memory)
+    {
+        // not using oldFlowRate in this model
+        // surprising effect: reducing flow rate may require more buffer when liquidation_period adjusted upward
+        Value newBufferAmount = newFlowRate.mul(LIQUIDATION_PERIOD);
+        Value bufferDelta = newBufferAmount - flowData[flowHash].buffer;
+        eff = _doShift(eff, from, address(this), bufferDelta);
+        accountData[from].totalBuffer = accountData[from].totalBuffer + bufferDelta;
+        flowData[flowHash].buffer = newBufferAmount;
+        return eff;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -335,12 +376,15 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     function _getFlowRate(bytes memory /*eff*/, bytes32 flowHash)
         internal view virtual override returns (FlowRate)
     {
-        return flowRates[flowHash];
+        return flowData[flowHash].flowRate;
     }
-    function _setFlowInfo(bytes memory eff, bytes32 flowHash, address /*from*/, address /*to*/, FlowRate flowRate)
+    function _setFlowInfo(bytes memory eff, bytes32 flowHash, address from, address to,
+                          FlowRate newFlowRate, FlowRate flowRateDelta)
         internal virtual override returns (bytes memory)
     {
-        flowRates[flowHash] = flowRate;
+        flowData[flowHash] = FlowData(from, to, newFlowRate, Value.wrap(0) /* to be adjusted later */);
+        accountData[from].totalOutflowRate = accountData[from].totalOutflowRate + flowRateDelta;
+        accountData[to].totalInflowRate = accountData[from].totalInflowRate + flowRateDelta;
         return eff;
     }
 }

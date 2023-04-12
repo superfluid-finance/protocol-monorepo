@@ -2,10 +2,10 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {assert, ethers, expect, web3} from "hardhat";
 
 import {
+    IDAv1LibraryMock,
+    IDAv1LibrarySuperAppMock,
     InstantDistributionAgreementV1,
     SuperfluidMock,
-    SuperTokenLibraryIDAMock,
-    SuperTokenLibraryIDASuperAppMock,
     SuperTokenMock,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
@@ -63,8 +63,8 @@ describe("IDAv1Library testing", function () {
         ida: InstantDistributionAgreementV1,
         alice: string,
         bob: string,
-        superTokenLibIDAMock: SuperTokenLibraryIDAMock,
-        superTokenLibIDASuperAppMock: SuperTokenLibraryIDASuperAppMock,
+        idaV1LibMock: IDAv1LibraryMock,
+        idaV1LibSuperAppMock: IDAv1LibrarySuperAppMock,
         aliceSigner: SignerWithAddress;
 
     before(async () => {
@@ -88,27 +88,28 @@ describe("IDAv1Library testing", function () {
     });
 
     beforeEach(async () => {
-        const superTokenLibIDAMockFactory = await ethers.getContractFactory(
-            "SuperTokenLibraryIDAMock"
+        const idaV1LibMockFactory = await ethers.getContractFactory(
+            "IDAv1LibraryMock"
         );
-        superTokenLibIDAMock = (
-            await superTokenLibIDAMockFactory.deploy()
-        ).connect(aliceSigner);
-        const superTokenLibIDASuperAppMockFactory =
-            await ethers.getContractFactory("SuperTokenLibraryIDASuperAppMock");
-        superTokenLibIDASuperAppMock = (
-            await superTokenLibIDASuperAppMockFactory.deploy(host.address)
+        idaV1LibMock = (await idaV1LibMockFactory.deploy(host.address)).connect(
+            aliceSigner
+        );
+        const idaV1LibSuperAppMockFactory = await ethers.getContractFactory(
+            "IDAv1LibrarySuperAppMock"
+        );
+        idaV1LibSuperAppMock = (
+            await idaV1LibSuperAppMockFactory.deploy(host.address)
         ).connect(aliceSigner);
         await superToken
             .connect(aliceSigner)
             .transfer(
-                superTokenLibIDAMock.address,
+                idaV1LibMock.address,
                 ethers.utils.parseUnits("10", "ether")
             );
         await superToken
             .connect(aliceSigner)
             .transfer(
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 ethers.utils.parseUnits("10", "ether")
             );
     });
@@ -116,16 +117,13 @@ describe("IDAv1Library testing", function () {
     describe("#1 - Non-Callback Index Operations", async function () {
         it("#1.1 - create index", async () => {
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             assert.equal(
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID
                     )
                 ).exist,
@@ -135,7 +133,7 @@ describe("IDAv1Library testing", function () {
 
         it("#1.2 - create index with user data", async () => {
             console.log("Alice create index with user data");
-            await superTokenLibIDAMock.createIndexWithUserDataTest(
+            await idaV1LibMock.createIndexWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
                 toBytes("oh hello")
@@ -145,7 +143,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID
                     )
                 ).exist,
@@ -156,13 +154,10 @@ describe("IDAv1Library testing", function () {
         it("#1.3 - update index value", async () => {
             const indexValue = 1;
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("Alice updates index value");
-            await superTokenLibIDAMock.updateIndexValueTest(
+            await idaV1LibMock.updateIndexValueTest(
                 superToken.address,
                 INDEX_ID,
                 indexValue
@@ -172,7 +167,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID
                     )
                 ).indexValue.toNumber(),
@@ -183,13 +178,10 @@ describe("IDAv1Library testing", function () {
         it("#1.4 - update index value with user data", async () => {
             const indexValue = 1;
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("Alice updates index value with user data");
-            await superTokenLibIDAMock.updateIndexValueWithUserDataTest(
+            await idaV1LibMock.updateIndexValueWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
                 indexValue,
@@ -200,7 +192,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID
                     )
                 ).indexValue.toNumber(),
@@ -213,13 +205,10 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("Alice issues units to Bob");
-            await superTokenLibIDAMock.updateSubscriptionUnitsTest(
+            await idaV1LibMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -227,7 +216,7 @@ describe("IDAv1Library testing", function () {
             );
 
             console.log("Alice distributes");
-            await superTokenLibIDAMock.distributeTest(
+            await idaV1LibMock.distributeTest(
                 superToken.address,
                 INDEX_ID,
                 distribution
@@ -237,7 +226,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID
                     )
                 ).indexValue.toNumber(),
@@ -250,19 +239,16 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("Alice issues units to Bob");
-            await superTokenLibIDAMock.updateSubscriptionUnitsTest(
+            await idaV1LibMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
                 units
             );
             console.log("Alice distributes with user data");
-            await superTokenLibIDAMock.distributeWithUserDataTest(
+            await idaV1LibMock.distributeWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
                 distribution,
@@ -273,21 +259,12 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID
                     )
                 ).indexValue.toNumber(),
                 distribution
             );
-        });
-
-        it("#1.7 - _getHostAndIDA empty cache test", async () => {
-            await expect(
-                superTokenLibIDAMock.listSubscriptionsTest(
-                    superToken.address,
-                    bob
-                )
-            ).to.be.reverted;
         });
     });
 
@@ -307,7 +284,7 @@ describe("IDAv1Library testing", function () {
                 );
 
             console.log("Bob approves subscription");
-            await superTokenLibIDAMock
+            await idaV1LibMock
                 .connect(await ethers.getSigner(bob))
                 .approveSubscriptionTest(superToken.address, alice, INDEX_ID);
 
@@ -317,7 +294,7 @@ describe("IDAv1Library testing", function () {
                         superToken.address,
                         alice,
                         INDEX_ID,
-                        superTokenLibIDAMock.address
+                        idaV1LibMock.address
                     )
                 ).approved,
                 true
@@ -326,7 +303,7 @@ describe("IDAv1Library testing", function () {
 
         it("#2.2 - approve subscription with user data", async () => {
             console.log("Bob approves subscription with user data");
-            await superTokenLibIDAMock
+            await idaV1LibMock
                 .connect(await ethers.getSigner(bob))
                 .approveSubscriptionWithUserDataTest(
                     superToken.address,
@@ -341,7 +318,7 @@ describe("IDAv1Library testing", function () {
                         superToken.address,
                         alice,
                         INDEX_ID,
-                        superTokenLibIDAMock.address
+                        idaV1LibMock.address
                     )
                 ).approved,
                 true
@@ -350,14 +327,14 @@ describe("IDAv1Library testing", function () {
 
         it("#2.3 - revoke subscription", async () => {
             console.log("Bob approves subscription");
-            await superTokenLibIDAMock.approveSubscriptionTest(
+            await idaV1LibMock.approveSubscriptionTest(
                 superToken.address,
                 alice,
                 INDEX_ID
             );
 
             console.log("Bob revokes subscription");
-            await superTokenLibIDAMock.revokeSubscriptionTest(
+            await idaV1LibMock.revokeSubscriptionTest(
                 superToken.address,
                 alice,
                 INDEX_ID
@@ -369,7 +346,7 @@ describe("IDAv1Library testing", function () {
                         superToken.address,
                         alice,
                         INDEX_ID,
-                        superTokenLibIDAMock.address
+                        idaV1LibMock.address
                     )
                 ).approved,
                 false
@@ -378,14 +355,14 @@ describe("IDAv1Library testing", function () {
 
         it("#2.4 - revoke subscription with user data", async () => {
             console.log("Bob approves subscription");
-            await superTokenLibIDAMock.approveSubscriptionTest(
+            await idaV1LibMock.approveSubscriptionTest(
                 superToken.address,
                 alice,
                 INDEX_ID
             );
 
             console.log("Bob revokes subscription with user data");
-            await superTokenLibIDAMock.revokeSubscriptionWithUserDataTest(
+            await idaV1LibMock.revokeSubscriptionWithUserDataTest(
                 superToken.address,
                 alice,
                 INDEX_ID,
@@ -398,7 +375,7 @@ describe("IDAv1Library testing", function () {
                         superToken.address,
                         alice,
                         INDEX_ID,
-                        superTokenLibIDAMock.address
+                        idaV1LibMock.address
                     )
                 ).approved,
                 false
@@ -408,13 +385,10 @@ describe("IDAv1Library testing", function () {
         it("#2.5 - update subscription units", async () => {
             const units = 1;
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("Alice updates Bob's subscription");
-            await superTokenLibIDAMock.updateSubscriptionUnitsTest(
+            await idaV1LibMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -425,7 +399,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID,
                         bob
                     )
@@ -438,13 +412,10 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("Alice updates Bob's subscription with user data");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -456,7 +427,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID,
                         bob
                     )
@@ -468,13 +439,10 @@ describe("IDAv1Library testing", function () {
         it("#2.7 - delete subscription", async () => {
             const units = 1;
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("Alice updates Bob's subscription");
-            await superTokenLibIDAMock.updateSubscriptionUnitsTest(
+            await idaV1LibMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -482,11 +450,11 @@ describe("IDAv1Library testing", function () {
             );
 
             console.log("Alice deletes Bob's subscription");
-            await superTokenLibIDAMock
+            await idaV1LibMock
                 .connect(await ethers.getSigner(bob))
                 .deleteSubscriptionTest(
                     superToken.address,
-                    superTokenLibIDAMock.address,
+                    idaV1LibMock.address,
                     INDEX_ID,
                     bob
                 );
@@ -495,7 +463,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID,
                         bob
                     )
@@ -507,13 +475,10 @@ describe("IDAv1Library testing", function () {
         it("#2.8 - delete subscription with user data", async () => {
             const units = 1;
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("Alice updates Bob's subscription");
-            await superTokenLibIDAMock.updateSubscriptionUnitsTest(
+            await idaV1LibMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -521,11 +486,11 @@ describe("IDAv1Library testing", function () {
             );
 
             console.log("Alice deletes Bob's subscription");
-            await superTokenLibIDAMock
+            await idaV1LibMock
                 .connect(await ethers.getSigner(bob))
                 .deleteSubscriptionWithUserDataTest(
                     superToken.address,
-                    superTokenLibIDAMock.address,
+                    idaV1LibMock.address,
                     INDEX_ID,
                     bob,
                     toBytes("oh hello")
@@ -535,7 +500,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID,
                         bob
                     )
@@ -557,7 +522,7 @@ describe("IDAv1Library testing", function () {
                         [
                             superToken.address,
                             INDEX_ID,
-                            superTokenLibIDAMock.address,
+                            idaV1LibMock.address,
                             units,
                             "0x",
                         ]
@@ -566,20 +531,20 @@ describe("IDAv1Library testing", function () {
                 );
 
             console.log("Bob claims pending units");
-            await superTokenLibIDAMock
+            await idaV1LibMock
                 .connect(await ethers.getSigner(bob))
                 .claimTest(
                     superToken.address,
                     alice,
                     INDEX_ID,
-                    superTokenLibIDAMock.address
+                    idaV1LibMock.address
                 );
 
             const subscription = await ida.getSubscription(
                 superToken.address,
                 alice,
                 INDEX_ID,
-                superTokenLibIDAMock.address
+                idaV1LibMock.address
             );
 
             assert.equal(subscription.units.toNumber(), units);
@@ -598,7 +563,7 @@ describe("IDAv1Library testing", function () {
                         [
                             superToken.address,
                             INDEX_ID,
-                            superTokenLibIDAMock.address,
+                            idaV1LibMock.address,
                             units,
                             "0x",
                         ]
@@ -607,13 +572,13 @@ describe("IDAv1Library testing", function () {
                 );
 
             console.log("Bob claims pending units");
-            await superTokenLibIDAMock
+            await idaV1LibMock
                 .connect(await ethers.getSigner(bob))
                 .claimWithUserDataTest(
                     superToken.address,
                     alice,
                     INDEX_ID,
-                    superTokenLibIDAMock.address,
+                    idaV1LibMock.address,
                     toBytes("oh hello")
                 );
 
@@ -621,7 +586,7 @@ describe("IDAv1Library testing", function () {
                 superToken.address,
                 alice,
                 INDEX_ID,
-                superTokenLibIDAMock.address
+                idaV1LibMock.address
             );
 
             assert.equal(subscription.units.toNumber(), units);
@@ -632,20 +597,17 @@ describe("IDAv1Library testing", function () {
     describe("#3 - View Operations", async function () {
         it("#3.1 - get index", async () => {
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             const index = await ida.getIndex(
                 superToken.address,
-                superTokenLibIDAMock.address,
+                idaV1LibMock.address,
                 INDEX_ID
             );
 
-            const libIndex = await superTokenLibIDAMock.getIndexTest(
+            const libIndex = await idaV1LibMock.getIndexTest(
                 superToken.address,
-                superTokenLibIDAMock.address,
+                idaV1LibMock.address,
                 INDEX_ID
             );
 
@@ -669,12 +631,9 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("Alice updates subscription units");
-            await superTokenLibIDAMock.updateSubscriptionUnitsTest(
+            await idaV1LibMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -683,14 +642,14 @@ describe("IDAv1Library testing", function () {
 
             const distribution = await ida.calculateDistribution(
                 superToken.address,
-                superTokenLibIDAMock.address,
+                idaV1LibMock.address,
                 INDEX_ID,
                 amount
             );
             const distributionLib =
-                await superTokenLibIDAMock.calculateDistributionTest(
+                await idaV1LibMock.calculateDistributionTest(
                     superToken.address,
-                    superTokenLibIDAMock.address,
+                    idaV1LibMock.address,
                     INDEX_ID,
                     amount
                 );
@@ -709,12 +668,9 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("Alice updates subscription units");
-            await superTokenLibIDAMock.updateSubscriptionUnitsTest(
+            await idaV1LibMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -725,11 +681,10 @@ describe("IDAv1Library testing", function () {
                 superToken.address,
                 bob
             );
-            const subscriptionsLib =
-                await superTokenLibIDAMock.listSubscriptionsTest(
-                    superToken.address,
-                    bob
-                );
+            const subscriptionsLib = await idaV1LibMock.listSubscriptionsTest(
+                superToken.address,
+                bob
+            );
 
             expect(subscriptions.publishers).to.eql(
                 subscriptionsLib.publishers
@@ -742,12 +697,9 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("Alice updates subscription units");
-            await superTokenLibIDAMock.updateSubscriptionUnitsTest(
+            await idaV1LibMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -756,17 +708,16 @@ describe("IDAv1Library testing", function () {
 
             const subscription = await ida.getSubscription(
                 superToken.address,
-                superTokenLibIDAMock.address,
+                idaV1LibMock.address,
                 INDEX_ID,
                 bob
             );
-            const subscriptionLib =
-                await superTokenLibIDAMock.getSubscriptionTest(
-                    superToken.address,
-                    superTokenLibIDAMock.address,
-                    INDEX_ID,
-                    bob
-                );
+            const subscriptionLib = await idaV1LibMock.getSubscriptionTest(
+                superToken.address,
+                idaV1LibMock.address,
+                INDEX_ID,
+                bob
+            );
 
             assert.equal(subscription.exist, subscriptionLib.exist);
             assert.equal(subscription.approved, subscriptionLib.approved);
@@ -785,7 +736,7 @@ describe("IDAv1Library testing", function () {
 
             const publisherId = ethers.utils.solidityKeccak256(
                 ["string", "address", "uint32"],
-                ["publisher", superTokenLibIDAMock.address, INDEX_ID]
+                ["publisher", idaV1LibMock.address, INDEX_ID]
             );
             const subscriptionId = ethers.utils.solidityKeccak256(
                 ["string", "address", "bytes32"],
@@ -793,12 +744,9 @@ describe("IDAv1Library testing", function () {
             );
 
             console.log("Alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("Alice updates subscription units");
-            await superTokenLibIDAMock.updateSubscriptionUnitsTest(
+            await idaV1LibMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -809,11 +757,10 @@ describe("IDAv1Library testing", function () {
                 superToken.address,
                 subscriptionId
             );
-            const subscriptionLib =
-                await superTokenLibIDAMock.getSubscriptionByIDTest(
-                    superToken.address,
-                    subscriptionId
-                );
+            const subscriptionLib = await idaV1LibMock.getSubscriptionByIDTest(
+                superToken.address,
+                subscriptionId
+            );
 
             assert.equal(subscription.approved, subscriptionLib.approved);
             assert.equal(
@@ -834,15 +781,12 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(FunctionIndex.CREATE_INDEX, INDEX_ID)
             );
@@ -851,7 +795,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDASuperAppMock.address,
+                        idaV1LibSuperAppMock.address,
                         INDEX_ID
                     )
                 ).exist,
@@ -863,16 +807,13 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(FunctionIndex.CREATE_INDEX_USER_DATA, INDEX_ID)
             );
@@ -881,7 +822,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDASuperAppMock.address,
+                        idaV1LibSuperAppMock.address,
                         INDEX_ID
                     )
                 ).exist,
@@ -893,28 +834,25 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("super app creates index");
-            await superTokenLibIDASuperAppMock.createIndexTest(
+            await idaV1LibSuperAppMock.createIndexTest(
                 superToken.address,
                 INDEX_ID
             );
             console.log("super app adds subscription to bob");
-            await superTokenLibIDASuperAppMock.updateSubscriptionUnitsTest(
+            await idaV1LibSuperAppMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
                 units
             );
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.UPDATE_INDEX,
@@ -929,7 +867,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDASuperAppMock.address,
+                        idaV1LibSuperAppMock.address,
                         INDEX_ID
                     )
                 ).indexValue.toNumber(),
@@ -941,28 +879,25 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("super app creates index");
-            await superTokenLibIDASuperAppMock.createIndexTest(
+            await idaV1LibSuperAppMock.createIndexTest(
                 superToken.address,
                 INDEX_ID
             );
             console.log("super app adds subscription to bob");
-            await superTokenLibIDASuperAppMock.updateSubscriptionUnitsTest(
+            await idaV1LibSuperAppMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
                 units
             );
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.UPDATE_INDEX_USER_DATA,
@@ -977,7 +912,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDASuperAppMock.address,
+                        idaV1LibSuperAppMock.address,
                         INDEX_ID
                     )
                 ).indexValue.toNumber(),
@@ -989,28 +924,25 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("super app creates index");
-            await superTokenLibIDASuperAppMock.createIndexTest(
+            await idaV1LibSuperAppMock.createIndexTest(
                 superToken.address,
                 INDEX_ID
             );
             console.log("super app adds subscription to bob");
-            await superTokenLibIDASuperAppMock.updateSubscriptionUnitsTest(
+            await idaV1LibSuperAppMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
                 units
             );
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.DISTRIBUTE,
@@ -1025,7 +957,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDASuperAppMock.address,
+                        idaV1LibSuperAppMock.address,
                         INDEX_ID
                     )
                 ).indexValue.toNumber(),
@@ -1037,18 +969,15 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("super app creates index");
-            await superTokenLibIDASuperAppMock.createIndexTest(
+            await idaV1LibSuperAppMock.createIndexTest(
                 superToken.address,
                 INDEX_ID
             );
             console.log("super app adds subscription to bob");
-            await superTokenLibIDASuperAppMock.updateSubscriptionUnitsTest(
+            await idaV1LibSuperAppMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -1056,10 +985,10 @@ describe("IDAv1Library testing", function () {
             );
 
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.DISTRIBUTE_USER_DATA,
@@ -1074,7 +1003,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDASuperAppMock.address,
+                        idaV1LibSuperAppMock.address,
                         INDEX_ID
                     )
                 ).indexValue.toNumber(),
@@ -1086,21 +1015,18 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.APPROVE_SUBSCRIPTION,
                     INDEX_ID,
-                    superTokenLibIDAMock.address
+                    idaV1LibMock.address
                 )
             );
 
@@ -1108,7 +1034,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID
                     )
                 ).totalUnitsApproved.toNumber(),
@@ -1120,20 +1046,17 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.APPROVE_SUBSCRIPTION_USER_DATA,
                     INDEX_ID,
-                    superTokenLibIDAMock.address
+                    idaV1LibMock.address
                 )
             );
 
@@ -1141,7 +1064,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getIndex(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID
                     )
                 ).totalUnitsApproved.toNumber(),
@@ -1153,26 +1076,23 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("super app approves subscription");
-            await superTokenLibIDASuperAppMock.approveSubscriptionTest(
+            await idaV1LibSuperAppMock.approveSubscriptionTest(
                 superToken.address,
-                superTokenLibIDAMock.address,
+                idaV1LibMock.address,
                 INDEX_ID
             );
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.REVOKE_SUBSCRIPTION,
                     INDEX_ID,
-                    superTokenLibIDAMock.address
+                    idaV1LibMock.address
                 )
             );
 
@@ -1180,9 +1100,9 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID,
-                        superTokenLibIDASuperAppMock.address
+                        idaV1LibSuperAppMock.address
                     )
                 ).approved,
                 false
@@ -1193,26 +1113,23 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("super app approves subscription");
-            await superTokenLibIDASuperAppMock.approveSubscriptionTest(
+            await idaV1LibSuperAppMock.approveSubscriptionTest(
                 superToken.address,
-                superTokenLibIDAMock.address,
+                idaV1LibMock.address,
                 INDEX_ID
             );
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.REVOKE_SUBSCRIPTION_USER_DATA,
                     INDEX_ID,
-                    superTokenLibIDAMock.address
+                    idaV1LibMock.address
                 )
             );
 
@@ -1220,9 +1137,9 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID,
-                        superTokenLibIDASuperAppMock.address
+                        idaV1LibSuperAppMock.address
                     )
                 ).approved,
                 false
@@ -1233,26 +1150,23 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("super app creates index");
-            await superTokenLibIDASuperAppMock.createIndexTest(
+            await idaV1LibSuperAppMock.createIndexTest(
                 superToken.address,
                 INDEX_ID
             );
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.UPDATE_SUBSCRIPTION,
                     INDEX_ID,
                     undefined,
-                    superTokenLibIDAMock.address,
+                    idaV1LibMock.address,
                     units
                 )
             );
@@ -1261,9 +1175,9 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDASuperAppMock.address,
+                        idaV1LibSuperAppMock.address,
                         INDEX_ID,
-                        superTokenLibIDAMock.address
+                        idaV1LibMock.address
                     )
                 ).units.toNumber(),
                 units
@@ -1274,26 +1188,23 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("super app creates index");
-            await superTokenLibIDASuperAppMock.createIndexTest(
+            await idaV1LibSuperAppMock.createIndexTest(
                 superToken.address,
                 INDEX_ID
             );
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.UPDATE_SUBSCRIPTION_USER_DATA,
                     INDEX_ID,
                     undefined,
-                    superTokenLibIDAMock.address,
+                    idaV1LibMock.address,
                     units
                 )
             );
@@ -1302,9 +1213,9 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDASuperAppMock.address,
+                        idaV1LibSuperAppMock.address,
                         INDEX_ID,
-                        superTokenLibIDAMock.address
+                        idaV1LibMock.address
                     )
                 ).units.toNumber(),
                 units
@@ -1315,32 +1226,29 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("super app creates index");
-            await superTokenLibIDASuperAppMock.createIndexTest(
+            await idaV1LibSuperAppMock.createIndexTest(
                 superToken.address,
                 INDEX_ID
             );
             console.log("super app issues units to bob");
-            await superTokenLibIDASuperAppMock.updateSubscriptionUnitsTest(
+            await idaV1LibSuperAppMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
                 units
             );
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.DELETE_SUBSCRIPTION,
                     INDEX_ID,
-                    superTokenLibIDASuperAppMock.address,
+                    idaV1LibSuperAppMock.address,
                     bob
                 )
             );
@@ -1349,7 +1257,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDASuperAppMock.address,
+                        idaV1LibSuperAppMock.address,
                         INDEX_ID,
                         bob
                     )
@@ -1362,19 +1270,16 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
 
             console.log("super app creates index");
-            await superTokenLibIDASuperAppMock.createIndexTest(
+            await idaV1LibSuperAppMock.createIndexTest(
                 superToken.address,
                 INDEX_ID
             );
 
             console.log("super app issues units to bob");
-            await superTokenLibIDASuperAppMock.updateSubscriptionUnitsTest(
+            await idaV1LibSuperAppMock.updateSubscriptionUnitsTest(
                 superToken.address,
                 INDEX_ID,
                 bob,
@@ -1382,15 +1287,15 @@ describe("IDAv1Library testing", function () {
             );
 
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.DELETE_SUBSCRIPTION,
                     INDEX_ID,
-                    superTokenLibIDASuperAppMock.address,
+                    idaV1LibSuperAppMock.address,
                     bob
                 )
             );
@@ -1399,7 +1304,7 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDASuperAppMock.address,
+                        idaV1LibSuperAppMock.address,
                         INDEX_ID,
                         bob
                     )
@@ -1412,21 +1317,18 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.CLAIM,
                     INDEX_ID,
-                    superTokenLibIDAMock.address,
-                    superTokenLibIDASuperAppMock.address
+                    idaV1LibMock.address,
+                    idaV1LibSuperAppMock.address
                 )
             );
 
@@ -1434,9 +1336,9 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID,
-                        superTokenLibIDASuperAppMock.address
+                        idaV1LibSuperAppMock.address
                     )
                 ).pendingDistribution.toNumber(),
                 0
@@ -1447,21 +1349,18 @@ describe("IDAv1Library testing", function () {
             const units = 1;
 
             console.log("alice creates index");
-            await superTokenLibIDAMock.createIndexTest(
-                superToken.address,
-                INDEX_ID
-            );
+            await idaV1LibMock.createIndexTest(superToken.address, INDEX_ID);
             console.log("alice triggers callback on super app");
-            await superTokenLibIDAMock.updateSubscriptionUnitsWithUserDataTest(
+            await idaV1LibMock.updateSubscriptionUnitsWithUserDataTest(
                 superToken.address,
                 INDEX_ID,
-                superTokenLibIDASuperAppMock.address,
+                idaV1LibSuperAppMock.address,
                 units,
                 userData(
                     FunctionIndex.CLAIM_USER_DATA,
                     INDEX_ID,
-                    superTokenLibIDAMock.address,
-                    superTokenLibIDASuperAppMock.address
+                    idaV1LibMock.address,
+                    idaV1LibSuperAppMock.address
                 )
             );
 
@@ -1469,9 +1368,9 @@ describe("IDAv1Library testing", function () {
                 (
                     await ida.getSubscription(
                         superToken.address,
-                        superTokenLibIDAMock.address,
+                        idaV1LibMock.address,
                         INDEX_ID,
-                        superTokenLibIDASuperAppMock.address
+                        idaV1LibSuperAppMock.address
                     )
                 ).pendingDistribution.toNumber(),
                 0

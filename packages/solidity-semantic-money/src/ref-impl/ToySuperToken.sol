@@ -126,6 +126,25 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
     }
 
     ////////////////////////////////////////////////////////////////////////////////
+    // Buffer Based Solvency
+    ////////////////////////////////////////////////////////////////////////////////
+
+    function _adjustBuffer(bytes memory eff,
+                           address from, bytes32 flowHash,
+                           FlowRate /* oldFlowRate */, FlowRate newFlowRate)
+        override internal returns (bytes memory)
+    {
+        // not using oldFlowRate in this model
+        // surprising effect: reducing flow rate may require more buffer when liquidation_period adjusted upward
+        Value newBufferAmount = newFlowRate.mul(LIQUIDATION_PERIOD);
+        Value bufferDelta = newBufferAmount - flowData[flowHash].buffer;
+        eff = _doShift(eff, from, address(this), bufferDelta);
+        accountData[from].totalBuffer = accountData[from].totalBuffer + bufferDelta;
+        flowData[flowHash].buffer = newBufferAmount;
+        return eff;
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
     // Fancier Token Monad Overrides
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -176,14 +195,14 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
     }
 
     function _getUIndex(bytes memory /*eff*/, address owner)
-        internal view virtual override returns (BasicParticle memory)
+        virtual override internal view returns (BasicParticle memory)
     {
         return ToySuperfluidToken._getUIndex(new bytes(0), owner);
     }
     event UIndexSet(address indexed msgSender, string indexed prim, address indexed owner,
                     BasicParticle p, bytes primEtra);
     function _setUIndex(bytes memory eff, address owner, BasicParticle memory p)
-        internal virtual override returns (bytes memory)
+        virtual override internal returns (bytes memory)
     {
         (TokenEff memory teff) = abi.decode(eff, (TokenEff));
         emit UIndexSet(teff.msgSender, teff.prim, owner, p, teff.primExtra);
@@ -192,7 +211,7 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
     }
 
     function _getPDPIndex(bytes memory /*eff*/, address pool)
-        internal view virtual override returns (PDPoolIndex memory)
+        virtual override internal view returns (PDPoolIndex memory)
     {
         return ISuperfluidPool(pool).getIndex();
     }
@@ -208,7 +227,7 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
     }
 
     function _getFlowRate(bytes memory /*eff*/, bytes32 flowHash)
-        internal view virtual override returns (FlowRate)
+        virtual override internal view returns (FlowRate)
     {
         return ToySuperfluidToken._getFlowRate(new bytes(0), flowHash);
     }

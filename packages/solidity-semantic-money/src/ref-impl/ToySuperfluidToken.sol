@@ -216,6 +216,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         /// prepare local variables
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowHash = getDistributionFlowHash(from, to, flowId);
+        FlowRate oldFlowRate = _getFlowRate(new bytes(0), flowHash);
 
         // permission control
         // FIXME actualFlowRate
@@ -223,6 +224,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
 
         // Make updates
         (, actualFlowRate) = _doDistributeFlow(eff, from, address(to), flowHash, reqFlowRate, t);
+        eff = _adjustBuffer(eff, from, flowHash, oldFlowRate, actualFlowRate);
         success = true;
     }
 
@@ -331,17 +333,10 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     ////////////////////////////////////////////////////////////////////////////////
 
     function _adjustBuffer(bytes memory eff,
-                           address from, bytes32 flowHash,
-                           FlowRate /* oldFlowRate */, FlowRate newFlowRate)
-        internal returns (bytes memory)
+                           address /* from */, bytes32 /* flowHash */,
+                           FlowRate /* oldFlowRate */, FlowRate /* newFlowRate */)
+        virtual internal returns (bytes memory)
     {
-        // not using oldFlowRate in this model
-        // surprising effect: reducing flow rate may require more buffer when liquidation_period adjusted upward
-        Value newBufferAmount = newFlowRate.mul(LIQUIDATION_PERIOD);
-        Value bufferDelta = newBufferAmount - flowData[flowHash].buffer;
-        eff = _doShift(eff, from, address(this), bufferDelta);
-        accountData[from].totalBuffer = accountData[from].totalBuffer + bufferDelta;
-        flowData[flowHash].buffer = newBufferAmount;
         return eff;
     }
 
@@ -350,37 +345,37 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     ////////////////////////////////////////////////////////////////////////////////
 
     function _getUIndex(bytes memory /*eff*/, address owner)
-        internal view virtual override returns (BasicParticle memory)
+        virtual override internal view returns (BasicParticle memory)
     {
         return uIndexes[owner];
     }
     function _setUIndex(bytes memory eff, address owner, BasicParticle memory p)
-        internal virtual override returns (bytes memory)
+        virtual override internal returns (bytes memory)
     {
         uIndexes[owner] = p;
         return eff;
     }
 
     function _getPDPIndex(bytes memory /*eff*/, address pool)
-        internal view virtual override returns (PDPoolIndex memory)
+        virtual override internal view returns (PDPoolIndex memory)
     {
         return ISuperfluidPool(pool).getIndex();
     }
     function _setPDPIndex(bytes memory eff, address pool, PDPoolIndex memory p)
-        internal virtual override returns (bytes memory)
+        virtual override internal returns (bytes memory)
     {
         assert(ISuperfluidPool(pool).operatorSetIndex(p));
         return eff;
     }
 
     function _getFlowRate(bytes memory /*eff*/, bytes32 flowHash)
-        internal view virtual override returns (FlowRate)
+        virtual override internal view returns (FlowRate)
     {
         return flowData[flowHash].flowRate;
     }
     function _setFlowInfo(bytes memory eff, bytes32 flowHash, address from, address to,
                           FlowRate newFlowRate, FlowRate flowRateDelta)
-        internal virtual override returns (bytes memory)
+        virtual override internal returns (bytes memory)
     {
         flowData[flowHash] = FlowData(from, to, newFlowRate, Value.wrap(0) /* to be adjusted later */);
         accountData[from].totalOutflowRate = accountData[from].totalOutflowRate + flowRateDelta;

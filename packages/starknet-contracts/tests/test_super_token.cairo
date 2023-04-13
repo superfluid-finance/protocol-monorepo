@@ -31,7 +31,6 @@ from protostar.asserts import (
 
 @external
 func __setup__{syscall_ptr: felt*}() {
-    let (contract_address) = get_contract_address();
     %{
         declare("./src/pools/PoolImpl.cairo")
         context.supertoken_contract_address = deploy_contract("./src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo", [1539470638642759296633, 21332, 18, 1967013752834806001269811315755539563695215919214241724661593146835538551452]).contract_address

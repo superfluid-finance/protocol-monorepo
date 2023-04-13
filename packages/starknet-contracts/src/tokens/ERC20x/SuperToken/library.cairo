@@ -104,6 +104,19 @@ func SuperToken_connection_map(account: felt, index: felt) -> (connected: felt) 
 func SuperToken_connected_pool_length(account: felt) -> (value: felt) {
 }
 
+struct AccountData {
+    totalBuffer: felt,
+    totalInflowRate: felt,
+    totalOutflowRate: felt,
+}
+
+struct FlowData {
+    _from: felt,
+    to: felt,
+    flowRate: felt,
+    buffer: felt,
+}
+
 const DISTRIBUTE_FLOW_AS_FELT = 133470332451617709077403932975189225335;
 
 namespace SuperToken {

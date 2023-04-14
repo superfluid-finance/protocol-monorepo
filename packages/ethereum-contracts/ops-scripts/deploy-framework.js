@@ -728,7 +728,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const constantOutflowNFT = await ConstantOutflowNFT.at(
                     constantOutflowNFTProxy.address
                 );
-                const constantInflowNFT = await ConstantOutflowNFT.at(
+                const constantInflowNFT = await ConstantInflowNFT.at(
                     constantInflowNFTProxy.address
                 );
 
@@ -756,14 +756,16 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         const cofNFTLogic = await web3tx(
                             ConstantOutflowNFT.new,
                             "ConstantOutflowNFT.new"
-                        )(cfaV1Address);
+                        )(superfluid.address, cifNFTProxyAddress);
                         output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${cofNFTLogic.address}\n`;
                         // castrate flow nft logic contract
                         await cofNFTLogic.castrate();
+                        return cofNFTLogic;
                     },
                     [
                         // See SuperToken constructor parameter
-                        cfaV1Address.toLowerCase().slice(2).padStart(64, "0"),
+                        superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
+                        cifNFTProxyAddress.toLowerCase().slice(2).padStart(64, "0"),
                     ]
                 );
                 const newCIFNFTLogic = await deployContractIfCodeChanged(
@@ -776,14 +778,16 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         const cifNFTLogic = await web3tx(
                             ConstantInflowNFT.new,
                             "ConstantInflowNFT.new"
-                        )(cfaV1Address);
+                        )(superfluid.address, cofNFTProxyAddress);
                         output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS=${cifNFTLogic.address}\n`;
                         // castrate flow nft logic contract
                         await cifNFTLogic.castrate();
+                        return cifNFTLogic;
                     },
                     [
                         // See SuperToken constructor parameter
-                        cfaV1Address.toLowerCase().slice(2).padStart(64, "0"),
+                        superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
+                        cofNFTProxyAddress.toLowerCase().slice(2).padStart(64, "0"),
                     ]
                 );
 

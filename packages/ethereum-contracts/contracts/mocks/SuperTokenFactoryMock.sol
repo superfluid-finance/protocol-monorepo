@@ -9,12 +9,22 @@ import {
     SuperTokenFactoryBase
 } from "../superfluid/SuperTokenFactory.sol";
 
+import { IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+
 contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
     constructor(
         ISuperfluid host,
-        ISuperToken superTokenLogic
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
-        SuperTokenFactoryBase(host, superTokenLogic)
+        SuperTokenFactoryBase(
+            host,
+            superTokenLogic,
+            constantOutflowNFT,
+            constantInflowNFT
+        )
     // solhint-disable-next-line no-empty-blocks
     {
 
@@ -40,20 +50,35 @@ contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
 
     constructor(
         ISuperfluid host,
-        ISuperToken superTokenLogic
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
-        SuperTokenFactoryBase(host, superTokenLogic)
+        SuperTokenFactoryBase(
+            host,
+            superTokenLogic,
+            constantOutflowNFT,
+            constantInflowNFT
+        )
     // solhint-disable-next-line no-empty-blocks
     {
+
     }
 }
 
 contract SuperTokenFactoryMock is SuperTokenFactoryBase {
     constructor(
         ISuperfluid host,
-        ISuperToken superTokenLogic
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
-        SuperTokenFactoryBase(host, superTokenLogic)
+        SuperTokenFactoryBase(
+            host,
+            superTokenLogic,
+            constantOutflowNFT,
+            constantInflowNFT
+        )
     // solhint-disable-next-line no-empty-blocks
     {
 
@@ -63,9 +88,16 @@ contract SuperTokenFactoryMock is SuperTokenFactoryBase {
 contract SuperTokenFactoryMock42 is SuperTokenFactoryBase {
     constructor(
         ISuperfluid host,
-        ISuperToken superTokenLogic
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
-        SuperTokenFactoryBase(host, superTokenLogic)
+        SuperTokenFactoryBase(
+            host,
+            superTokenLogic,
+            constantOutflowNFT,
+            constantInflowNFT
+        )
     // solhint-disable-next-line no-empty-blocks
     {
 

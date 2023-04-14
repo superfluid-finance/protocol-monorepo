@@ -50,9 +50,8 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     // solhint-disable-next-line var-name-mixedcase
     IConstantFlowAgreementV1 public immutable CONSTANT_FLOW_AGREEMENT_V1;
 
-    /// @notice The canonical SuperToken logic contract
-    /// @dev This is the address of the canonical SuperToken contract shared by all SuperToken proxies
-    ISuperToken public superTokenLogic;
+    /// @notice Superfluid host contract address
+    ISuperfluid public immutable HOST;
 
     string internal _name;
     string internal _symbol;
@@ -90,39 +89,37 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     uint256 private _reserve20;
     uint256 internal _reserve21;
 
-    constructor(IConstantFlowAgreementV1 cfaV1Contract) {
-        CONSTANT_FLOW_AGREEMENT_V1 = cfaV1Contract;
+    constructor(ISuperfluid host) {
+        HOST = host;
+        CONSTANT_FLOW_AGREEMENT_V1 = IConstantFlowAgreementV1(
+            address(
+                ISuperfluid(host).getAgreementClass(
+                    //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
+                    0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3
+                )
+            )
+        );
     }
 
     function initialize(
-        ISuperToken canonicalSuperTokenLogic,
         string memory nftName,
         string memory nftSymbol
     )
         external
+        override
         initializer // OpenZeppelin Initializable
     {
-        superTokenLogic = canonicalSuperTokenLogic;
         _name = nftName;
         _symbol = nftSymbol;
     }
 
     function updateCode(address newAddress) external override {
-        ISuperfluid host = ISuperfluid(superTokenLogic.getHost());
-        if (msg.sender != address(host)) {
-            revert CFA_NFT_ONLY_HOST();
+        ISuperTokenFactory superTokenFactory = HOST.getSuperTokenFactory();
+        if (msg.sender != address(superTokenFactory)) {
+            revert CFA_NFT_ONLY_SUPER_TOKEN_FACTORY();
         }
 
         UUPSProxiable._updateCodeAddress(newAddress);
-
-        // get canonical logic address via host => supertokenfactory logic.
-        ISuperToken canonicalSuperTokenLogic = ISuperTokenFactory(
-            host.getSuperTokenFactoryLogic()
-        ).getSuperTokenLogic();
-
-        // @note we must update the SuperTokenLogic contract first and
-        // set it as the canonical one in the framework
-        superTokenLogic = canonicalSuperTokenLogic;
     }
 
     /// @notice Emits the MetadataUpdate event with `tokenId` as the argument.
@@ -194,8 +191,11 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
 
         string memory superTokenSymbol = _superToken.symbol();
 
-        (, int96 flowRate, , ) = CONSTANT_FLOW_AGREEMENT_V1
-            .getFlow(_superToken, flowData.flowSender, flowData.flowReceiver);
+        (, int96 flowRate, , ) = CONSTANT_FLOW_AGREEMENT_V1.getFlow(
+            _superToken,
+            flowData.flowSender,
+            flowData.flowReceiver
+        );
 
         return
             string(

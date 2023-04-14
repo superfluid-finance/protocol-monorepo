@@ -2,7 +2,9 @@
 pragma solidity 0.8.19;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {
+    SafeERC20
+} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {
     UUPSProxiable
 } from "../../../contracts/upgradability/UUPSProxiable.sol";
@@ -27,7 +29,10 @@ import {
 } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
-    constructor(IConstantFlowAgreementV1 _cfaV1) ConstantOutflowNFT(_cfaV1) {}
+    constructor(
+        ISuperfluid host,
+        IConstantInflowNFT constantInflowNFT
+    ) ConstantOutflowNFT(host, constantInflowNFT) {}
 
     /// @dev a mock mint function that exposes the internal _mint function
     function mockMint(
@@ -56,7 +61,10 @@ contract ConstantOutflowNFTMock is ConstantOutflowNFT {
 }
 
 contract ConstantInflowNFTMock is ConstantInflowNFT {
-    constructor(IConstantFlowAgreementV1 _cfaV1) ConstantInflowNFT(_cfaV1) {}
+    constructor(
+        ISuperfluid host,
+        IConstantOutflowNFT constantOutflowNFT
+    ) ConstantInflowNFT(host, constantOutflowNFT) {}
 
     /// @dev a mock mint function to emit the mint Transfer event
     function mockMint(address _to, uint256 _newTokenId) public {
@@ -106,13 +114,13 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
     string internal _symbol;
 
     /// @dev ERC20 Allowances Storage
-    mapping(address => mapping (address => uint256)) internal _allowances;
+    mapping(address => mapping(address => uint256)) internal _allowances;
 
     /// @dev ERC777 operators support data
     ERC777Helper.Operators internal _operators;
 
     constructor(ISuperfluid host) SuperfluidToken(host) {}
-        
+
     /// @dev Initialize the Super Token proxy
     function initialize(
         IERC20 underlyingToken,
@@ -141,10 +149,9 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
     /**
      * @dev Handle decimal differences between underlying token and super token
      */
-    function _toUnderlyingAmount(uint256 amount)
-        private view
-        returns (uint256 underlyingAmount, uint256 adjustedAmount)
-    {
+    function _toUnderlyingAmount(
+        uint256 amount
+    ) private view returns (uint256 underlyingAmount, uint256 adjustedAmount) {
         uint256 factor;
         if (_underlyingDecimals < 18) {
             // if underlying has less decimals
@@ -174,19 +181,32 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
     ) private {
         if (address(_underlyingToken) == address(0)) revert();
 
-        (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
+        (
+            uint256 underlyingAmount,
+            uint256 adjustedAmount
+        ) = _toUnderlyingAmount(amount);
 
         uint256 amountBefore = _underlyingToken.balanceOf(address(this));
-        _underlyingToken.safeTransferFrom(account, address(this), underlyingAmount);
+        _underlyingToken.safeTransferFrom(
+            account,
+            address(this),
+            underlyingAmount
+        );
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
         uint256 actualUpgradedAmount = amountAfter - amountBefore;
         if (underlyingAmount != actualUpgradedAmount) revert();
 
-        _mint(operator, to, adjustedAmount,
+        _mint(
+            operator,
+            to,
+            adjustedAmount,
             // if `userData.length` than 0, we requireReceptionAck
-            userData.length != 0, userData, operatorData);
+            userData.length != 0,
+            userData,
+            operatorData
+        );
     }
-    
+
     /// dummy impl
     function _mint(
         address, // operator,
@@ -195,9 +215,7 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
         bool, // requireReceptionAck,
         bytes memory, // userData,
         bytes memory // operatorData
-    )
-        internal
-    {
+    ) internal {
         if (account == address(0)) {
             revert();
         }
@@ -206,7 +224,10 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
+        return
+            keccak256(
+                "org.superfluid-finance.contracts.SuperToken.implementation"
+            );
     }
 
     function updateCode(address newAddress) external override {

@@ -4,14 +4,19 @@ pragma solidity 0.8.19;
 import { Test } from "forge-std/Test.sol";
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import {
+    UUPSProxiable
+} from "../../../contracts/upgradability/UUPSProxiable.sol";
+import {
     ISuperToken,
     SuperToken
 } from "../../../contracts/superfluid/SuperToken.sol";
 import {
-    ConstantOutflowNFT
+    ConstantOutflowNFT,
+    IConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import {
-    ConstantInflowNFT
+    ConstantInflowNFT,
+    IConstantInflowNFT
 } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 
@@ -22,14 +27,33 @@ contract SuperTokenTest is FoundrySuperfluidTester {
         super.setUp();
     }
 
-    function testRevert_superToken_UpdateCode_Wrong_NFT_Proxies() public {
-        ConstantInflowNFT cifNFTLogic = new ConstantInflowNFT(sf.cfa);
-        ConstantOutflowNFT cofNFTLogic = new ConstantOutflowNFT(sf.cfa);
+    function test_Revert_Super_Token_UpdateCode_Wrong_NFT_Proxies() public {
         UUPSProxy cifProxy = new UUPSProxy();
         UUPSProxy cofProxy = new UUPSProxy();
 
+        ConstantInflowNFT cifNFTLogic = new ConstantInflowNFT(
+            sf.host,
+            IConstantOutflowNFT(address(cofProxy))
+        );
+        ConstantOutflowNFT cofNFTLogic = new ConstantOutflowNFT(
+            sf.host,
+            IConstantInflowNFT(address(cifProxy))
+        );
+
+        cifNFTLogic.castrate();
+        cofNFTLogic.castrate();
+
         cifProxy.initializeProxy(address(cifNFTLogic));
         cofProxy.initializeProxy(address(cofNFTLogic));
+
+        ConstantInflowNFT(address(cofProxy)).initialize(
+            "Constant Outflow NFT",
+            "COF"
+        );
+        ConstantOutflowNFT(address(cifProxy)).initialize(
+            "Constant Inflow NFT",
+            "CIF"
+        );
 
         // both nft proxies incorrect
         SuperToken superTokenLogic = new SuperToken(
@@ -66,6 +90,5 @@ contract SuperTokenTest is FoundrySuperfluidTester {
             ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector
         );
         superToken.updateCode(address(superTokenLogic));
-
     }
 }

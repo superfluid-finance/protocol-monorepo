@@ -549,8 +549,10 @@ export default class TestEnvironment {
     }
 
     deployNFTContracts = async () => {
-        let constantOutflowNFTProxy;
+        let constantOutflowNFT;
         let constantInflowNFTProxy;
+        let cofNFTLogicAddress;
+        let cifNFTLogicAddress;
         const superTokenFactoryLogicAddress =
             await this.contracts.superfluid.getSuperTokenFactoryLogic();
         const superTokenFactory = await ethers.getContractAt(
@@ -563,26 +565,32 @@ export default class TestEnvironment {
             "SuperToken",
             superTokenLogicAddress
         );
-        const constantOutflowNFTProxyLogicAddress =
+        const constantOutflowNFTProxyAddress =
             await superTokenLogic.CONSTANT_OUTFLOW_NFT();
-        const constantInflowNFTProxyLogicAddress =
+        const constantInflowNFTProxyAddress =
             await superTokenLogic.CONSTANT_INFLOW_NFT();
 
         if (
-            constantOutflowNFTProxyLogicAddress ===
-                ethers.constants.AddressZero ||
-            constantInflowNFTProxyLogicAddress === ethers.constants.AddressZero
+            constantOutflowNFTProxyAddress === ethers.constants.AddressZero ||
+            constantInflowNFTProxyAddress === ethers.constants.AddressZero
         ) {
+            const cofProxy = await this.deployContract<UUPSProxy>("UUPSProxy");
+            const cifProxy = await this.deployContract<UUPSProxy>("UUPSProxy");
+
             const constantOutflowNFTLogic =
                 await this.deployContract<ConstantOutflowNFT>(
                     "ConstantOutflowNFT",
-                    this.contracts.cfa.address
+                    this.contracts.superfluid.address,
+                    cifProxy.address
                 );
+            cofNFTLogicAddress = constantOutflowNFTLogic.address;
             const constantInflowNFTLogic =
                 await this.deployContract<ConstantInflowNFT>(
                     "ConstantInflowNFT",
-                    this.contracts.cfa.address
+                    this.contracts.superfluid.address,
+                    cofProxy.address
                 );
+            cifNFTLogicAddress = constantInflowNFTLogic.address;
             const signer = await ethers.getSigner(this.aliases.admin);
             const proxiableCofLogic = UUPSProxiableMock__factory.connect(
                 constantOutflowNFTLogic.address,
@@ -595,11 +603,9 @@ export default class TestEnvironment {
             await proxiableCofLogic.castrate();
             await proxiableCifLogic.castrate();
 
-            const cofProxy = await this.deployContract<UUPSProxy>("UUPSProxy");
-            const cifProxy = await this.deployContract<UUPSProxy>("UUPSProxy");
             await cofProxy.initializeProxy(constantOutflowNFTLogic.address);
             await cifProxy.initializeProxy(constantInflowNFTLogic.address);
-            constantOutflowNFTProxy = ConstantOutflowNFT__factory.connect(
+            constantOutflowNFT = ConstantOutflowNFT__factory.connect(
                 cofProxy.address,
                 signer
             );
@@ -608,17 +614,24 @@ export default class TestEnvironment {
                 signer
             );
         } else {
-            constantOutflowNFTProxy = ConstantOutflowNFT__factory.connect(
-                constantOutflowNFTProxyLogicAddress,
+            constantOutflowNFT = ConstantOutflowNFT__factory.connect(
+                constantOutflowNFTProxyAddress,
                 await ethers.getSigner(this.aliases.admin)
             );
             constantInflowNFTProxy = ConstantInflowNFT__factory.connect(
-                constantInflowNFTProxyLogicAddress,
+                constantInflowNFTProxyAddress,
                 await ethers.getSigner(this.aliases.admin)
             );
+            cofNFTLogicAddress = await constantOutflowNFT.getCodeAddress();
+            cifNFTLogicAddress = await constantInflowNFTProxy.getCodeAddress();
         }
 
-        return {constantOutflowNFTProxy, constantInflowNFTProxy};
+        return {
+            constantOutflowNFTProxy: constantOutflowNFT,
+            constantInflowNFTProxy,
+            cofNFTLogicAddress,
+            cifNFTLogicAddress,
+        };
     };
 
     deployContract = async <T>(contractName: string, ...args: any) => {

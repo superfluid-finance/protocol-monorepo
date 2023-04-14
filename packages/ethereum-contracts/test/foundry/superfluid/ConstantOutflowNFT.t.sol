@@ -44,7 +44,6 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         vm.expectRevert("Initializable: contract is already initialized");
 
         constantOutflowNFTProxy.initialize(
-            superTokenMock,
             string.concat("henlo", OUTFLOW_NFT_NAME_TEMPLATE),
             string.concat("goodbye", OUTFLOW_NFT_SYMBOL_TEMPLATE)
         );
@@ -431,8 +430,6 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     function test_Passing_Constant_Outflow_NFT_Is_Properly_Initialized()
         public
     {
-        string memory symbol = superTokenMock.symbol();
-
         assertEq(constantOutflowNFTProxy.name(), OUTFLOW_NFT_NAME_TEMPLATE);
         assertEq(constantOutflowNFTProxy.symbol(), OUTFLOW_NFT_SYMBOL_TEMPLATE);
     }

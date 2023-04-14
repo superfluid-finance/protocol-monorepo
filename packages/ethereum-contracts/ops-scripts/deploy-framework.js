@@ -651,6 +651,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             // OR it will be the canonical proxy set on the SuperToken
             let cofNFTProxyAddress = ZERO_ADDRESS;
             let cifNFTProxyAddress = ZERO_ADDRESS;
+            let cofNFTLogicAddress = ZERO_ADDRESS;
+            let cifNFTLogicAddress = ZERO_ADDRESS;
 
             // try to get NFT proxy addresses from canonical Super Token logic
             if (factoryAddress !== ZERO_ADDRESS) {
@@ -668,6 +670,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         await superTokenLogic.CONSTANT_OUTFLOW_NFT.call();
                     cifNFTProxyAddress =
                         await superTokenLogic.CONSTANT_INFLOW_NFT.call();
+                    cofNFTLogicAddress = await (
+                        await UUPSProxiable.at(cofNFTProxyAddress)
+                    ).getCodeAddress();
+                    cifNFTLogicAddress = await (
+                        await UUPSProxiable.at(cifNFTProxyAddress)
+                    ).getCodeAddress();
                 } catch (err) {
                     console.error("Unable to get nft proxy addresses");
                 }
@@ -679,66 +687,71 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 cofNFTProxyAddress === ZERO_ADDRESS &&
                 cifNFTProxyAddress === ZERO_ADDRESS
             ) {
-                // flowNFTLogicArtifact:
-                // flowNFTType: "ConstantOutflowNFT" | "ConstantInflowNFT"
-                // logicOutput: "CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS" | "CONSTANT_INFLOW_NFT_LOGIC_ADDRESS"
-                // proxyOutput: "CONSTANT_OUTFLOW_NFT_ADDRESS" | "CONSTANT_INFLOW_NFT_ADDRESS"
-                const deployFlowNFTProxyAndLogicAndRegister = async (
-                    flowNFTLogicArtifact,
-                    flowNFTType,
-                    proxyOutput,
-                    logicOutput
-                ) => {
-                    // deploy flow nft proxy contract
-                    const flowNFTProxy = await web3tx(
-                        UUPSProxy.new,
-                        `Create ${flowNFTType} proxy`
-                    )();
-                    output += `${proxyOutput}=${flowNFTProxy.address}\n`;
+                const constantOutflowNFTProxy = await web3tx(
+                    UUPSProxy.new,
+                    `Create ConstantOutflowNFT proxy`
+                )();
+                output += `CONSTANT_OUTFLOW_NFT_ADDRESS=${constantOutflowNFTProxy.address}\n`;
+                const constantInflowNFTProxy = await web3tx(
+                    UUPSProxy.new,
+                    `Create ConstantOutflowNFT proxy`
+                )();
+                output += `CONSTANT_INFLOW_NFT_ADDRESS=${constantInflowNFTProxy.address}\n`;
 
-                    // deploy flow nft logic contract
-                    const flowNFTLogic = await web3tx(
-                        flowNFTLogicArtifact.new,
-                        `${flowNFTType}.new`
-                    )(cfaV1Address);
-                    output += `${logicOutput}=${flowNFTLogic.address}\n`;
-                    // castrate flow nft logic contract
-                    await flowNFTLogic.castrate();
+                const constantOutflowNFTLogic = await web3tx(
+                    ConstantOutflowNFT.new,
+                    `ConstantOutflowNFT.new`
+                )(superfluid.address, constantInflowNFTProxy.address);
+                output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${constantOutflowNFTLogic.address}\n`;
 
-                    // initialize flow NFT proxy
-                    await flowNFTProxy.initializeProxy(flowNFTLogic.address);
-                    // set address in resolver
-                    await web3tx(
-                        resolver.set,
-                        `Resolver set ${flowNFTType}.${protocolReleaseVersion}`
-                    )(
-                        `${flowNFTType}.${protocolReleaseVersion}`,
-                        flowNFTProxy.address
-                    );
-                    return flowNFTProxy;
-                };
-                // deploy constant outflow nft proxy contract
-                const cofNFTProxy = await deployFlowNFTProxyAndLogicAndRegister(
-                    ConstantOutflowNFT,
-                    "ConstantOutflowNFT",
-                    "CONSTANT_OUTFLOW_NFT_ADDRESS",
-                    "CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS"
+                await constantOutflowNFTLogic.castrate();
+
+                const constantInflowNFTLogic = await web3tx(
+                    ConstantOutflowNFT.new,
+                    `ConstantOutflowNFT.new`
+                )(superfluid.address, constantOutflowNFTProxy.address);
+                output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS=${constantInflowNFTLogic.address}\n`;
+
+                await constantInflowNFTLogic.castrate();
+
+                // set the nft logic addresses (to be consumed by the super token factory logic constructor)
+                cofNFTLogicAddress = constantOutflowNFTLogic.address;
+                cifNFTLogicAddress = constantInflowNFTLogic.address;
+
+                // initialize the nft proxy with the nft logic
+                await constantOutflowNFTProxy.initializeProxy(
+                    constantOutflowNFTLogic.address
                 );
-                cofNFTProxyAddress = cofNFTProxy.address;
-
-                // deploy constant inflow nft proxy contract
-                const cifNFTProxy = await deployFlowNFTProxyAndLogicAndRegister(
-                    ConstantInflowNFT,
-                    "ConstantInflowNFT",
-                    "CONSTANT_INFLOW_NFT_ADDRESS",
-                    "CONSTANT_INFLOW_NFT_LOGIC_ADDRESS"
+                await constantInflowNFTProxy.initializeProxy(
+                    constantInflowNFTLogic.address
                 );
-                cifNFTProxyAddress = cifNFTProxy.address;
+                const constantOutflowNFT = await ConstantOutflowNFT.at(
+                    constantOutflowNFTProxy.address
+                );
+                const constantInflowNFT = await ConstantOutflowNFT.at(
+                    constantInflowNFTProxy.address
+                );
+
+                // initialize the proxy contracts with the nft names
+                await constantOutflowNFT.initialize(
+                    "Constant Outflow NFT",
+                    "COF"
+                );
+                await constantInflowNFT.initialize(
+                    "Constant Inflow NFT",
+                    "CIF"
+                );
+
+                // set the nft proxy addresses (to be consumed by the super token logic constructor)
+                cofNFTProxyAddress = constantOutflowNFTProxy.address;
+                cifNFTProxyAddress = constantInflowNFTProxy.address;
             } else {
                 const newCOFNFTLogic = await deployContractIfCodeChanged(
                     web3,
                     ConstantOutflowNFT,
-                    await (await UUPSProxiable.at(cofNFTProxyAddress)).getCodeAddress(),
+                    await (
+                        await UUPSProxiable.at(cofNFTProxyAddress)
+                    ).getCodeAddress(),
                     async () => {
                         const cofNFTLogic = await web3tx(
                             ConstantOutflowNFT.new,
@@ -756,7 +769,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const newCIFNFTLogic = await deployContractIfCodeChanged(
                     web3,
                     ConstantInflowNFT,
-                    await (await UUPSProxiable.at(cofNFTProxyAddress)).getCodeAddress(),
+                    await (
+                        await UUPSProxiable.at(cofNFTProxyAddress)
+                    ).getCodeAddress(),
                     async () => {
                         const cifNFTLogic = await web3tx(
                             ConstantInflowNFT.new,
@@ -771,10 +786,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         cfaV1Address.toLowerCase().slice(2).padStart(64, "0"),
                     ]
                 );
-                // TODO: if the nft logic code changes we must update:
-                // - nft proxy logic contract addresses 
-                // - if SuperToken logic address changes
-                // - update the NFT proxy superTokenLogic variable
+
+                // set the nft logic addresses (to be consumed by the super token factory logic constructor)
+                cofNFTLogicAddress = newCOFNFTLogic.address;
+                cifNFTLogicAddress = newCIFNFTLogic.address;
             }
 
             // deploy super token logic contract
@@ -800,7 +815,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             superTokenFactoryLogic = await web3tx(
                 SuperTokenFactoryLogic.new,
                 "SuperTokenFactoryLogic.new"
-            )(superfluid.address, superTokenLogic.address);
+            )(
+                superfluid.address,
+                superTokenLogic.address,
+                cofNFTLogicAddress,
+                cifNFTLogicAddress
+            );
             output += `SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC=${superTokenFactoryLogic.address}\n`;
             return superTokenFactoryLogic.address;
         }

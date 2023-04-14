@@ -112,26 +112,9 @@ contract SuperToken is
         // set the immutable canonical NFT proxy addresses
         CONSTANT_OUTFLOW_NFT = constantOutflowNFT;
         CONSTANT_INFLOW_NFT = constantInflowNFT;
-        
-        // @note this initializes the NFT proxies the very first time 
-        // that they are created
-        if (
-            address(constantOutflowNFT.superTokenLogic()) == address(0) ||
-            address(constantInflowNFT.superTokenLogic()) == address(0)
-        ) {
-            constantOutflowNFT.initialize(
-                ISuperToken(address(this)),
-                "Constant Outflow NFT",
-                "COF"
-            );
-            constantInflowNFT.initialize(
-                ISuperToken(address(this)),
-                "Constant Inflow NFT",
-                "CIF"
-            );
-            emit ConstantOutflowNFTCreated(constantOutflowNFT);
-            emit ConstantInflowNFTCreated(constantInflowNFT);
-        }
+
+        emit ConstantOutflowNFTCreated(constantOutflowNFT);
+        emit ConstantInflowNFTCreated(constantInflowNFT);
     }
 
     

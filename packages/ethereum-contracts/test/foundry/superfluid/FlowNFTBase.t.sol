@@ -3,6 +3,9 @@ pragma solidity 0.8.19;
 
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import {
+    UUPSProxiable
+} from "../../../contracts/upgradability/UUPSProxiable.sol";
+import {
     FlowNFTBase,
     ConstantOutflowNFT,
     IConstantOutflowNFT
@@ -23,9 +26,7 @@ import {
     SuperToken,
     SuperTokenMock
 } from "../../../contracts/mocks/SuperTokenMock.sol";
-import {
-    TestToken
-} from "../../../contracts/utils/TestToken.sol";
+import { TestToken } from "../../../contracts/utils/TestToken.sol";
 
 abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperTokenMock;
@@ -69,29 +70,49 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     function setUp() public virtual override {
         super.setUp();
 
-        // we deploy mock NFT contracts for the tests to access internal functions
-        constantOutflowNFTLogic = new ConstantOutflowNFTMock(sf.cfa);
-        constantInflowNFTLogic = new ConstantInflowNFTMock(sf.cfa);
-
         // deploy outflow NFT contract
         UUPSProxy outflowProxy = new UUPSProxy();
+
+        // deploy inflow NFT contract
+        UUPSProxy inflowProxy = new UUPSProxy();
+
+        // we deploy mock NFT contracts for the tests to access internal functions
+        constantOutflowNFTLogic = new ConstantOutflowNFTMock(
+            sf.host,
+            IConstantInflowNFT(address(inflowProxy))
+        );
+        constantInflowNFTLogic = new ConstantInflowNFTMock(
+            sf.host,
+            IConstantOutflowNFT(address(outflowProxy))
+        );
+
+        constantOutflowNFTLogic.castrate();
+        constantInflowNFTLogic.castrate();
+
         // initialize proxy to point at logic
         outflowProxy.initializeProxy(address(constantOutflowNFTLogic));
 
-        constantOutflowNFTProxy = ConstantOutflowNFTMock(address(outflowProxy));
-        // deploy inflow NFT contract
-        UUPSProxy inflowProxy = new UUPSProxy();
         // initialize proxy to point at logic
         inflowProxy.initializeProxy(address(constantInflowNFTLogic));
 
+        constantOutflowNFTProxy = ConstantOutflowNFTMock(address(outflowProxy));
         constantInflowNFTProxy = ConstantInflowNFTMock(address(inflowProxy));
 
+        constantOutflowNFTProxy.initialize("Constant Outflow NFT", "COF");
+
+        constantInflowNFTProxy.initialize("Constant Inflow NFT", "CIF");
+
         // Deploy TestToken
-        TestToken testTokenMock = new TestToken("Mock Test", "MT", 18, 100000000);
+        TestToken testTokenMock = new TestToken(
+            "Mock Test",
+            "MT",
+            18,
+            100000000
+        );
 
         // Deploy SuperToken proxy
         UUPSProxy superTokenMockProxy = new UUPSProxy();
-        
+
         // deploy super token mock for testing with mock constant outflow/inflow NFTs
         SuperTokenMock superTokenMockLogic = new SuperTokenMock(
             sf.host,

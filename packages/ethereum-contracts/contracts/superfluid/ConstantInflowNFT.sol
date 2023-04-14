@@ -11,6 +11,7 @@ import {
 import {
     IConstantInflowNFT
 } from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 
 /// @title ConstantInflowNFT Contract (CIF NFT)
@@ -18,8 +19,15 @@ import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 /// @notice The ConstantInflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract does not hold any storage, but references the ConstantOutflowNFT contract storage.
 contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
+    IConstantOutflowNFT public immutable CONSTANT_OUTFLOW_NFT;
+
     // solhint-disable-next-line no-empty-blocks
-    constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}
+    constructor(
+        ISuperfluid host,
+        IConstantOutflowNFT constantOutflowNFT
+    ) FlowNFTBase(host) {
+        CONSTANT_OUTFLOW_NFT = constantOutflowNFT;
+    }
 
     function proxiableUUID() public pure override returns (bytes32) {
         return
@@ -58,9 +66,7 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
         override(FlowNFTBase, IFlowNFTBase)
         returns (FlowNFTData memory flowData)
     {
-        IConstantOutflowNFT constantOutflowNFT = superTokenLogic
-            .CONSTANT_OUTFLOW_NFT();
-        flowData = constantOutflowNFT.flowDataByTokenId(tokenId);
+        flowData = CONSTANT_OUTFLOW_NFT.flowDataByTokenId(tokenId);
     }
 
     /// @inheritdoc FlowNFTBase
@@ -94,9 +100,7 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
     }
 
     modifier onlyConstantOutflowNFT() {
-        if (
-            msg.sender != address(superTokenLogic.CONSTANT_OUTFLOW_NFT())
-        ) {
+        if (msg.sender != address(CONSTANT_OUTFLOW_NFT)) {
             revert CIF_NFT_ONLY_CONSTANT_OUTFLOW();
         }
         _;

@@ -14,6 +14,7 @@ import {
 import {
     IConstantOutflowNFT
 } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
+import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
@@ -22,13 +23,20 @@ import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 /// @notice The ConstantOutflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract uses mint/burn interface for flow creation/deletion and holds the actual storage for both NFTs.
 contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
+    IConstantInflowNFT public immutable CONSTANT_INFLOW_NFT;
+
     /// @notice A mapping from token id to FlowNFTData
     /// FlowNFTData: { address flowSender, uint32 flowStartDate, address flowReceiver, address superToken }
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
     mapping(uint256 => FlowNFTData) internal _flowDataByTokenId;
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}
+    constructor(
+        ISuperfluid host,
+        IConstantInflowNFT constantInflowNFT
+    ) FlowNFTBase(host) {
+        CONSTANT_INFLOW_NFT = constantInflowNFT;
+    }
 
     // note that this is used so we don't upgrade to wrong logic contract
     function proxiableUUID() public pure override returns (bytes32) {
@@ -62,11 +70,8 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         ISuperfluidToken superToken,
         address flowSender,
         address flowReceiver
-    )
-        external
-        onlyFlowAgreements
-    {
-        // we don't check matching super token because the nft token id 
+    ) external onlyFlowAgreements {
+        // we don't check matching super token because the nft token id
         // is generated based on the superToken
         uint256 newTokenId = _getTokenId(
             address(superToken),
@@ -74,16 +79,9 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
             flowReceiver
         );
         if (_flowDataByTokenId[newTokenId].flowSender == address(0)) {
-            _mint(
-                address(superToken),
-                flowSender,
-                flowReceiver,
-                newTokenId
-            );
+            _mint(address(superToken), flowSender, flowReceiver, newTokenId);
 
-            IConstantInflowNFT constantInflowNFT = superTokenLogic
-                .CONSTANT_INFLOW_NFT();
-            constantInflowNFT.mint(flowReceiver, newTokenId);
+            CONSTANT_INFLOW_NFT.mint(flowReceiver, newTokenId);
         }
     }
 
@@ -97,10 +95,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         ISuperfluidToken superToken,
         address flowSender,
         address flowReceiver
-    )
-        external
-        onlyFlowAgreements
-    {
+    ) external onlyFlowAgreements {
         uint256 tokenId = _getTokenId(
             address(superToken),
             flowSender,
@@ -109,9 +104,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
             _triggerMetadataUpdate(tokenId);
 
-            IConstantInflowNFT constantInflowNFT = superTokenLogic
-                .CONSTANT_INFLOW_NFT();
-            constantInflowNFT.triggerMetadataUpdate(tokenId);
+            CONSTANT_INFLOW_NFT.triggerMetadataUpdate(tokenId);
         }
     }
 
@@ -125,10 +118,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         ISuperfluidToken superToken,
         address flowSender,
         address flowReceiver
-    )
-        external
-        onlyFlowAgreements
-    {
+    ) external onlyFlowAgreements {
         uint256 tokenId = _getTokenId(
             address(superToken),
             flowSender,
@@ -136,9 +126,8 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         );
         if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
             // must "burn" inflow NFT first because we clear storage when burning outflow NFT
-            IConstantInflowNFT constantInflowNFT = superTokenLogic
-                .CONSTANT_INFLOW_NFT();
-            constantInflowNFT.burn(tokenId);
+
+            CONSTANT_INFLOW_NFT.burn(tokenId);
 
             _burn(tokenId);
         }

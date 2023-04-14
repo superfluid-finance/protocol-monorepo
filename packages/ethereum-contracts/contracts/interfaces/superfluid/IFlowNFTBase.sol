@@ -30,7 +30,7 @@ interface IFlowNFTBase is IERC721Metadata {
     error CFA_NFT_APPROVE_TO_CALLER();                              // 0xd3c77329
     error CFA_NFT_APPROVE_TO_CURRENT_OWNER();                       // 0xe4790b25
     error CFA_NFT_INVALID_TOKEN_ID();                               // 0xeab95e3b
-    error CFA_NFT_ONLY_HOST();                                      // 0x2d5a6dfa
+    error CFA_NFT_ONLY_SUPER_TOKEN_FACTORY();                       // 0xebb7505b
     error CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();  // 0x2551d606
     error CFA_NFT_TRANSFER_FROM_INCORRECT_OWNER();                  // 0x5a26c744
     error CFA_NFT_TRANSFER_IS_NOT_ALLOWED();                        // 0xaa747eca
@@ -48,10 +48,6 @@ interface IFlowNFTBase is IERC721Metadata {
     /**************************************************************************
      * View
      *************************************************************************/
-
-    /// @notice The canonical SuperToken logic address
-    /// @return superToken the SuperToken interface
-    function superTokenLogic() external view returns (ISuperToken superToken);
 
     /// @notice An external function for querying flow data by `tokenId``
     /// @param tokenId the token id
@@ -77,7 +73,6 @@ interface IFlowNFTBase is IERC721Metadata {
      *************************************************************************/
 
     function initialize(
-        ISuperToken superToken,
         string memory nftName,
         string memory nftSymbol
     ) external; // initializer;

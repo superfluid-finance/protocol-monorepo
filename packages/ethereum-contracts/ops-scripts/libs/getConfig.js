@@ -221,7 +221,7 @@ module.exports = function getConfig(chainId) {
         43113: {
             // avalanche fuji testnet
             data: {
-                initialBlockNumber: 3220000,
+                initialBlockNumber: 21012000,
                 getLogsRange: 50000,
             },
         },

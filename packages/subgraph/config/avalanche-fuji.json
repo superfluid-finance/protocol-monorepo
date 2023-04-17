@@ -1,10 +1,10 @@
 {
     "network": "fuji",
-    "hostStartBlock": 3233244,
-    "hostAddress": "0xf04F2C525819691ed9ABD3D2B7109E1633795e68",
-    "cfaAddress": "0xED74d30B8034152b0638CB03cc5c3c906dd1c482",
-    "idaAddress": "0x997d745884F54a93E6662b055c5e6c09F688718b",
-    "superTokenFactoryAddress": "0xA25dbEa94C5824892006b30a629213E7Bf238624",
-    "resolverV1Address": "0x141920741bC45b962B59c833cd849bA617F7ef38",
-    "nativeAssetSuperTokenAddress": "0x5735c32c38f5af0fb04a7c77c832ba4d7abffec8"
+    "hostStartBlock": 21012000,
+    "hostAddress": "0x85Fe79b998509B77BF10A8BD4001D58475D29386",
+    "cfaAddress": "0x16843ac25Ccc58Aa7960ba05f61cBB17b36b130A",
+    "idaAddress": "0xA44dEC7A0Dde1a56AeDe4143C1ef89cf5d956782",
+    "superTokenFactoryAddress": "0x1C92042426B6bAAe497bEf461B6d8342D03aEc92",
+    "resolverV1Address": "0xf0ec6A8842Ca72Aec8A4D4573E731242389e18A8",
+    "nativeAssetSuperTokenAddress": "0xfFD0f6d73ee52c68BF1b01C8AfA2529C97ca17F3"
 }

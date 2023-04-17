@@ -98,9 +98,6 @@ async function deployContractIfCodeChanged(
  *                  (overriding env: RELEASE_VERSION)
  * @param {boolean} options.outputFile Name of file where to log addresses of newly deployed contracts
  *                  (overriding env: OUTPUT_FILE)
- * @param {boolean} options.cfaHookContract Address of the contract to be set up as CFA hooks receiver.
- *                  Defaults to keeping the previously set hook contract (can be zero)
- *                  (overriding env: CFA_HOOK_CONTRACT)
  *
  * Usage: npx truffle exec ops-scripts/deploy-framework.js
  */
@@ -117,7 +114,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         appWhiteListing,
         protocolReleaseVersion,
         outputFile,
-        cfaHookContract,
     } = options;
     resetSuperfluidFramework = options.resetSuperfluidFramework;
 
@@ -128,12 +124,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     outputFile = outputFile || process.env.OUTPUT_FILE;
     if (outputFile !== undefined) {
         console.log("output file: ", outputFile);
-    }
-
-    cfaHookContract = cfaHookContract || process.env.CFA_HOOK_CONTRACT;
-
-    if (cfaHookContract !== undefined) {
-        console.log("CFA hook contract", cfaHookContract);
     }
 
     // string to build a list of newly deployed contracts, written to a file if "outputFile" option set
@@ -363,17 +353,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
 
     // list CFA v1
-    const hookContractAddress = cfaHookContract === undefined ?
-        await (await ConstantFlowAgreementV1.at(
-            await superfluid.getAgreementClass.call(CFAv1_TYPE)
-        )).constantFlowAgreementHook() :
-        cfaHookContract;
-
     const deployCFAv1 = async () => {
         const agreement = await web3tx(
             ConstantFlowAgreementV1.new,
             "ConstantFlowAgreementV1.new"
-        )(superfluid.address, hookContractAddress);
+        )(superfluid.address, ZERO_ADDRESS);
 
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
         output += `CFA_LOGIC=${agreement.address}\n`;
@@ -518,7 +502,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         );
 
         // deploy new CFA logic
-        console.log("CFA Hook Contract Address:", hookContractAddress);
         const cfaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
             ConstantFlowAgreementV1,
@@ -531,7 +514,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             [
                 // See SuperToken constructor parameter
                 superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
-                hookContractAddress.toLowerCase().slice(2).padStart(64, "0"),
+                ZERO_ADDRESS.toLowerCase().slice(2).padStart(64, "0"),
             ]
         );
         if (cfaNewLogicAddress !== ZERO_ADDRESS)

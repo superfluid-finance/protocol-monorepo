@@ -69,13 +69,13 @@ contract GeneralDistributionAgreementV1Properties is
 
     function test_Flow_Distribution_Data_Encode_Decode(
         int96 flowRate,
-        uint96 deposit
+        uint96 buffer
     ) public {
         vm.assume(flowRate >= 0);
-        vm.assume(deposit >= 0);
+        vm.assume(buffer >= 0);
         GeneralDistributionAgreementV1.FlowDistributionData
             memory original = GeneralDistributionAgreementV1
-                .FlowDistributionData({ flowRate: flowRate, deposit: deposit });
+                .FlowDistributionData({ flowRate: flowRate, buffer: buffer });
         bytes32[] memory encodedData = _encodeFlowDistributionData(original);
         (
             ,
@@ -83,6 +83,6 @@ contract GeneralDistributionAgreementV1Properties is
         ) = _decodeFlowDistributionData(uint256(encodedData[0]));
 
         assertEq(original.flowRate, decoded.flowRate);
-        assertEq(original.deposit, decoded.deposit);
+        assertEq(original.buffer, decoded.buffer);
     }
 }

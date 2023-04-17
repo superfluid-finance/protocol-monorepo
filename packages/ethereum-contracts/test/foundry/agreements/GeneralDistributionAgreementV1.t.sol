@@ -19,11 +19,13 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     constructor() FoundrySuperfluidTester(2) {}
 
     SuperTokenPool public pool;
+    uint256 public liquidationPeriod;
 
     function setUp() public override {
         super.setUp();
         vm.prank(alice);
         pool = SuperTokenPool(address(sf.gda.createPool(alice, superToken)));
+        (liquidationPeriod, ) = sf.governance.getPPPConfig(sf.host, superToken);
     }
 
     function helper_Connect_Pool(ISuperTokenPool _pool) internal {
@@ -323,9 +325,12 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             requestedDistributionFlowRate
         );
 
-        (int256 distributorRTBBefore, , ) = superToken.realtimeBalanceOf(
-            alice,
-            block.timestamp
+        (int256 distributorRTBBefore, uint256 deposit, ) = superToken
+            .realtimeBalanceOf(alice, block.timestamp);
+        
+        assertEq(
+            deposit,
+            uint256(uint96(actualDistributionFlowRate)) * liquidationPeriod
         );
 
         helper_Connect_To_Pool_And_Assert(allocation);
@@ -353,10 +358,17 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             alice,
             4127346127
         );
-        (distributorRTBBefore, , ) = superToken.realtimeBalanceOf(
+        (distributorRTBBefore, deposit, ) = superToken.realtimeBalanceOf(
             alice,
             block.timestamp
         );
+
+        // @note why is this not working?
+        // is it not the same, bufferDelta + previous?
+        // assertEq(
+        //     deposit,
+        //     uint256(uint96(actualDistributionFlowRate)) * liquidationPeriod
+        // );
 
         helper_Warp_Time_And_Assert_Balances(
             allocation,

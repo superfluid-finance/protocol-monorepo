@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
+import {
+    IERC721Metadata
+} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
     IConstantFlowAgreementV1
@@ -67,6 +70,17 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
         returns (FlowNFTData memory flowData)
     {
         flowData = CONSTANT_OUTFLOW_NFT.flowDataByTokenId(tokenId);
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    )
+        external
+        view
+        override(FlowNFTBase, IERC721Metadata)
+        returns (string memory)
+    {
+        return _tokenURI(tokenId, true);
     }
 
     /// @inheritdoc FlowNFTBase

@@ -3,6 +3,9 @@
 pragma solidity 0.8.19;
 
 import {
+    IERC721Metadata
+} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import {
     ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluidToken.sol";
 import {
@@ -58,6 +61,17 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         returns (FlowNFTData memory flowData)
     {
         flowData = _flowDataByTokenId[tokenId];
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    )
+        external
+        view
+        override(FlowNFTBase, IERC721Metadata)
+        returns (string memory)
+    {
+        return _tokenURI(tokenId, false);
     }
 
     /// @notice Hook called by CFA contract on flow creation

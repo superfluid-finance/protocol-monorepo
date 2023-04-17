@@ -380,6 +380,14 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         constantOutflowNFTProxy.onDelete(superToken, address(1), address(2));
     }
 
+    function test_Revert_Get_No_Flow_Token_URI() public {
+        uint256 nftId = helper_Get_NFT_ID(address(superTokenMock), alice, bob);
+        vm.expectRevert();
+        constantOutflowNFTProxy.tokenURI(nftId);
+        vm.expectRevert();
+        constantInflowNFTProxy.tokenURI(nftId);
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
@@ -411,14 +419,6 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
                 "org.superfluid-finance.contracts.ConstantOutflowNFT.implementation"
             )
         );
-    }
-
-    function test_Passing_Get_No_Flow_Token_URI() public {
-        uint256 nftId = helper_Get_NFT_ID(address(superTokenMock), alice, bob);
-        vm.expectRevert();
-        constantOutflowNFTProxy.tokenURI(nftId);
-        vm.expectRevert();
-        constantInflowNFTProxy.tokenURI(nftId);
     }
 
     function test_Fuzz_Passing_NFT_Balance_Of_Is_Always_One(

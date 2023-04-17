@@ -96,6 +96,10 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("");
     }
+
+    function tokenURI(uint256 tokenId) external view override returns (string memory) {
+        return "";
+    }
 }
 
 

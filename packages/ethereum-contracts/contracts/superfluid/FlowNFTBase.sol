@@ -32,6 +32,15 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     string public constant BASE_URI =
         "https://nft.superfluid.finance/cfa/v1/getmeta";
 
+    /// @notice ConstantFlowAgreementV1 contract address
+    /// @dev This is the address of the CFAv1 contract cached so we don't have to
+    /// do an external call for every flow created.
+    // solhint-disable-next-line var-name-mixedcase
+    IConstantFlowAgreementV1 public immutable CONSTANT_FLOW_AGREEMENT_V1;
+
+    /// @notice Superfluid host contract address
+    ISuperfluid public immutable HOST;
+
     /**************************************************************************
      * Storage variables
      *************************************************************************/
@@ -43,15 +52,6 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     /// - add any new variables after _gap
     /// - add any new variables before _gap and NOT decrement the length of the _gap array
     /// Go to CFAv1NFTUpgradability.t.sol for the tests and make sure to add new tests for upgrades.
-
-    /// @notice ConstantFlowAgreementV1 contract address
-    /// @dev This is the address of the CFAv1 contract cached so we don't have to
-    /// do an external call for every flow created.
-    // solhint-disable-next-line var-name-mixedcase
-    IConstantFlowAgreementV1 public immutable CONSTANT_FLOW_AGREEMENT_V1;
-
-    /// @notice Superfluid host contract address
-    ISuperfluid public immutable HOST;
 
     string internal _name;
     string internal _symbol;
@@ -182,36 +182,41 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     /// @return the token URI
     function tokenURI(
         uint256 tokenId
-    ) external view virtual override returns (string memory) {
+    ) external view virtual returns (string memory);
+
+    function _tokenURI(
+        uint256 tokenId,
+        bool isInflow
+    ) internal view virtual returns (string memory) {
         FlowNFTData memory flowData = flowDataByTokenId(tokenId);
 
-        ISuperToken _superToken = ISuperToken(flowData.superToken);
-
-        address superTokenAddress = address(_superToken);
-
-        string memory superTokenSymbol = _superToken.symbol();
-
         (, int96 flowRate, , ) = CONSTANT_FLOW_AGREEMENT_V1.getFlow(
-            _superToken,
+            ISuperToken(flowData.superToken),
             flowData.flowSender,
             flowData.flowReceiver
+        );
+
+        // @note taking this out to deal with the stack too deep issue
+        // which occurs when you are attempting to abi.encodePacked
+        // too many elements
+        string memory chainId = string.concat(
+            "?chain_id=",
+            block.chainid.toString()
         );
 
         return
             string(
                 abi.encodePacked(
                     BASE_URI,
-                    "?chain_id=",
-                    block.chainid.toString(),
+                    chainId,
                     "&token_address=",
                     Strings.toHexString(
-                        uint256(uint160(superTokenAddress)),
+                        uint256(uint160(flowData.superToken)),
                         20
                     ),
                     "&token_symbol=",
-                    superTokenSymbol,
-                    "&token_decimals=",
-                    uint256(18).toString(),
+                    ISuperToken(flowData.superToken).symbol(),
+                    "&token_decimals=18",
                     "&sender=",
                     Strings.toHexString(
                         uint256(uint160(flowData.flowSender)),
@@ -226,7 +231,9 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
                     uint256(uint96(flowRate)).toString(),
                     "&start_date=",
                     // @note upcasting is safe
-                    uint256(flowData.flowStartDate).toString()
+                    uint256(flowData.flowStartDate).toString(),
+                    "&is_inflow=",
+                    isInflow ? "true" : "false"
                 )
             );
     }

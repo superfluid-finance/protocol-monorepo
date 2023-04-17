@@ -23,6 +23,10 @@ from src.interfaces.ISuperToken import ISuperToken
 from src.interfaces.ISuperTokenPool import ISuperTokenPoolAdmin
 
 @storage_var
+func Pool_POOL_ADMIN() -> (address: felt) {
+}
+
+@storage_var
 func Pool_admin() -> (address: felt) {
 }
 
@@ -48,7 +52,7 @@ namespace Pool {
     //
     func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(admin: felt) {
         let (caller) = get_caller_address();
-        Ownable.initializer(caller);
+        Pool_POOL_ADMIN.write(caller);
         Pool_admin.write(admin);
         return ();
     }
@@ -57,9 +61,9 @@ namespace Pool {
         ) -> (value: felt) {
         let (time) = get_block_timestamp();
         let (index) = Pool_index.read();
-        let (realtime_balance) = SemanticMoney.realtime_balance_of(index.wrapped_particle, time);
+        let (rtb) = SemanticMoney.rtb_per_unit(index, time);
         let (pendingUnits) = Pool_pending_units.read();
-        let pendingDistribution = realtime_balance * pendingUnits;
+        let pendingDistribution = rtb * pendingUnits;
         return (value=pendingDistribution);
     }
 
@@ -86,15 +90,17 @@ namespace Pool {
     func getDistributionFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         ) -> (flow_rate: felt) {
         let (index) = Pool_index.read();
-        return (flow_rate=index.wrapped_particle.flow_rate * index.total_units);
+        let (flow_rate) = SemanticMoney.flow_rate_per_unit(index);
+        return (flow_rate= flow_rate * index.total_units);
     }
 
     func getPendingDistributionFlowRate{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     }() -> (flow_rate: felt) {
         let (index) = Pool_index.read();
+        let (flow_rate) = SemanticMoney.flow_rate_per_unit(index);
         let (pendingUnits) = Pool_pending_units.read();
-        return (flow_rate=index.wrapped_particle.flow_rate * pendingUnits);
+        return (flow_rate= flow_rate * pendingUnits);
     }
 
     func getMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -111,7 +117,8 @@ namespace Pool {
             return (flow_rate=0);
         } else {
             let (index) = Pool_index.read();
-            return (flow_rate=index.wrapped_particle.flow_rate * member_data.owned_unit);
+            let (flow_rate) = SemanticMoney.flow_rate_per_unit(index);
+            return (flow_rate=flow_rate * member_data.owned_unit);
         }
     }
 
@@ -124,7 +131,11 @@ namespace Pool {
     func operatorSetIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         index: PDPoolIndex
     ) -> (success: felt) {
-        Ownable.assert_only_owner();
+        let (caller) = get_caller_address();
+        let (pool_admin) = Pool_POOL_ADMIN.read();
+        with_attr error_message("Pool: caller is not pool admin") {
+            assert pool_admin = caller;
+        }
         Pool_index.write(index);
         return (success=TRUE);
     }
@@ -142,9 +153,9 @@ namespace Pool {
             assert caller = admin;
         }
         let (contract_address) = get_contract_address();
-        let (owner) = Ownable.owner();
+        let (pool_admin) = Pool_POOL_ADMIN.read();
         let (connected) = ISuperTokenPoolAdmin.isMemberConnected(
-            contract_address=owner, pool=contract_address, memberAddress=member
+            contract_address=pool_admin, pool=contract_address, memberAddress=member
         );
 
         // update pool's pending units`
@@ -172,7 +183,7 @@ namespace Pool {
             assert [particles] = particle;
 
             let (absorbed) = ISuperTokenPoolAdmin.absorbParticleFromPool(
-                contract_address=owner,
+                contract_address=pool_admin,
                 accounts_len=1,
                 accounts=accounts,
                 particles_len=1,
@@ -203,7 +214,7 @@ namespace Pool {
             assert [particles] = particle;
 
             let (absorbed) = ISuperTokenPoolAdmin.absorbParticleFromPool(
-                contract_address=owner,
+                contract_address=pool_admin,
                 accounts_len=1,
                 accounts=accounts,
                 particles_len=1,
@@ -235,58 +246,34 @@ namespace Pool {
         time: felt, memberAddress: felt
     ) -> (success: felt) {
         alloc_locals;
-        let (index) = Pool_index.read();
-        let (member_data) = Pool_members.read(memberAddress);
-        let pdMemberMU = PDPoolMemberMU(index, member_data);
-        let (settled_pdMemberMU) = SemanticMoney.settle_for_pool_member_mu(pdMemberMU, time);
-        let (rtb_of_pdMemberMU) = SemanticMoney.realtime_balance_of_pool_member_mu(
-            settled_pdMemberMU, time
-        );
-        let (claimed_value) = Pool_claimed_values.read(memberAddress);
-        let value = rtb_of_pdMemberMU - claimed_value;
-        with_attr error_message("Pool: value is negative") {
-            assert_nn(value);
-        }
-        let (owner) = Ownable.owner();
+        let empty_particle = BasicParticle(0, 0, 0);
+        let (value) = getClaimable(time, memberAddress);
+        let (a, b) = SemanticMoney.shift2(empty_particle, empty_particle, value);
+
+        let (local particles: BasicParticle*) = alloc();
+        assert [particles] = a;
+        assert [particles + 1] = b;
+
+        let (local accounts: felt*) = alloc();
         let (contract_address) = get_contract_address();
-        let (sent) = ISuperToken.shift(
-            contract_address=owner,
-            senderAddress=contract_address,
-            receiverAddress=memberAddress,
-            amount=value,
+        assert [accounts] = contract_address;
+        assert [accounts + 1] = memberAddress;
+
+        let (pool_admin) = Pool_POOL_ADMIN.read();
+
+        let (absorbed) = ISuperTokenPoolAdmin.absorbParticleFromPool(
+            contract_address=pool_admin,
+            accounts_len=2,
+            accounts=accounts,
+            particles_len=2,
+            particles=particles,
         );
-        assert sent = TRUE;
+        assert absorbed = TRUE;
+
         let (initialClaimedValue) = Pool_claimed_values.read(memberAddress);
         Pool_claimed_values.write(memberAddress, value + initialClaimedValue);
-        Pool_members.write(memberAddress, settled_pdMemberMU.pdPoolMember);
-        Pool_index.write(settled_pdMemberMU.pdPoolIndex);
-        return (success=TRUE);
-        // let empty_particle = BasicParticle(0, 0, 0);
-        // let (value) = getClaimable(time, memberAddress);
-        // let (a, b) = SemanticMoney.shift2(empty_particle, empty_particle, value);
 
-        // let (local particles: BasicParticle*) = alloc();
-        // assert [particles] = a;
-        // assert [particles + 1] = b;
-
-        // let (local accounts: felt*) = alloc();
-        // let (contract_address) = get_contract_address();
-        // assert [accounts] = contract_address;
-        // assert [accounts + 1] = memberAddress;
-
-        // let (absorbed) = ISuperTokenPoolAdmin.absorbParticleFromPool(
-        //     contract_address=owner,
-        //     accounts_len=2,
-        //     accounts=accounts,
-        //     particles_len=2,
-        //     particles=particles,
-        // );
-        // assert absorbed = TRUE;
-
-        // let (initialClaimedValue) = Pool_claimed_values.read(memberAddress);
-        // Pool_claimed_values.write(memberAddress, value + initialClaimedValue);
-
-        // return (success = TRUE);
+        return (success = TRUE);
     }
 
     func claimAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
@@ -302,7 +289,11 @@ namespace Pool {
         time: felt, memberAddress: felt, dbConnect: felt
     ) -> (success: felt) {
         alloc_locals;
-        Ownable.assert_only_owner();
+        let (caller) = get_caller_address();
+        let (pool_admin) = Pool_POOL_ADMIN.read();
+        with_attr error_message("Pool: caller is not pool admin") {
+            assert pool_admin = caller;
+        }
         if (dbConnect == TRUE) {
             let (pendingUnits) = Pool_pending_units.read();
             let (member_data) = Pool_members.read(memberAddress);
@@ -312,7 +303,6 @@ namespace Pool {
             let (member_data) = Pool_members.read(memberAddress);
             Pool_pending_units.write(pendingUnits + member_data.owned_unit);
         }
-        // %{ print(f"Called by Operator Connect Member") %}
         _claimAll(time, memberAddress);
         return (success=TRUE);
     }

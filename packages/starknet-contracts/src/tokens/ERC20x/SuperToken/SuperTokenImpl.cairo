@@ -54,13 +54,6 @@ func balanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 }
 
 @view
-func allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    owner: felt, spender: felt
-) -> (remaining: felt) {
-    return SuperToken.allowance(owner, spender);
-}
-
-@view
 func realtimeBalanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt
 ) -> (rtb: felt) {
@@ -98,20 +91,6 @@ func getFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 //
 // Externals
 //
-
-@external
-func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    recipient: felt, amount: felt
-) -> (success: felt) {
-    return SuperToken.transfer(recipient, amount);
-}
-
-@external
-func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    sender: felt, recipient: felt, amount: felt
-) -> (success: felt) {
-    return SuperToken.transfer_from(sender, recipient, amount);
-}
 
 @external
 func shift{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -187,26 +166,3 @@ func mint{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: f
     return ();
 }
 
-@external
-func approve{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, amount: felt
-) -> (success: felt) {
-    SuperToken.approve(spender, amount);
-    return (success=TRUE);
-}
-
-@external
-func increase_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, added_value: felt
-) -> (success: felt) {
-    SuperToken.increase_allowance(spender, added_value);
-    return (success=TRUE);
-}
-
-@external
-func decrease_allowance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    spender: felt, subtracted_value: felt
-) -> (success: felt) {
-    SuperToken.decrease_allowance(spender, subtracted_value);
-    return (success=TRUE);
-}

@@ -173,12 +173,12 @@ namespace SemanticMoney {
     }
 
     func flow_rate_per_unit{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(a: PDPoolIndex) -> (flow_rate: felt) {
-        let flow_rate = flow_rate(a._wrapped_particle);
-        return (flow_rate=flow_rate);
+        let (fr) = flow_rate(a._wrapped_particle);
+        return (flow_rate=fr);
     }
 
     func rtb_per_unit{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(a: PDPoolIndex, time: felt) -> (time: felt) {
-        let time = realtime_balance_of(a._wrapped_particle, time);
+        let (time) = realtime_balance_of(a._wrapped_particle, time);
         return (time=time);
     }
 

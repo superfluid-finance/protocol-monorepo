@@ -5,6 +5,8 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 import "@superfluid-finance/solidity-semantic-money/src/examples/Aqueduct.sol";
 
+import "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.sol";
+
 
 contract AqueductTest is Test {
     address internal constant admin = address(0x420);
@@ -30,7 +32,9 @@ contract AqueductTest is Test {
 
     function setUp() public {
         token1 = new ToySuperToken();
+        token1.setLiquidationPeriod(Time.wrap(0));
         token2 = new ToySuperToken();
+        token2.setLiquidationPeriod(Time.wrap(0));
         x = new Aqueduct(token1, token2);
         for (uint i = 1; i < N_TESTERS; ++i) {
             vm.startPrank(admin);

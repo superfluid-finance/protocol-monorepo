@@ -10,8 +10,8 @@ import {
     PDPoolIndex, PDPoolMember, PDPoolMemberMU
 } from "../SemanticMoney.sol";
 import {
-    ISuperTokenPool, ISuperTokenPoolAdmin
-} from "./ISuperTokenPool.sol";
+    ISuperfluidPool, ISuperfluidPoolAdmin
+} from "./ISuperfluidPool.sol";
 
 
 /**
@@ -20,7 +20,7 @@ import {
  * NOTE: Solidity public getter function for the storage fields do not support structs,
  *       hence their public getter are added manually instead.
  */
-contract ToySuperTokenPool is Initializable, ISuperTokenPool {
+contract ToySuperfluidPool is Initializable, ISuperfluidPool {
     address public immutable POOL_ADMIN;
 
     address public admin;
@@ -83,7 +83,7 @@ contract ToySuperTokenPool is Initializable, ISuperTokenPool {
         Time t = Time.wrap(uint32(block.timestamp));
 
         // update pool's pending units
-        if (!ISuperTokenPoolAdmin(POOL_ADMIN).isMemberConnected(this, memberAddr)) {
+        if (!ISuperfluidPoolAdmin(POOL_ADMIN).isMemberConnected(this, memberAddr)) {
             pendingUnits = pendingUnits - _members[memberAddr].owned_units + unit;
         }
 
@@ -94,7 +94,7 @@ contract ToySuperTokenPool is Initializable, ISuperTokenPool {
         {
             address[] memory addrs = new address[](1);addrs[0] = admin;
             BasicParticle[] memory ps = new BasicParticle[](1);ps[0] = p;
-            assert(ISuperTokenPoolAdmin(POOL_ADMIN).absorbParticlesFromPool(addrs, ps));
+            assert(ISuperfluidPoolAdmin(POOL_ADMIN).absorbParticlesFromPool(addrs, ps));
         }
 
         // additional side effects of triggering claimAll
@@ -120,7 +120,7 @@ contract ToySuperTokenPool is Initializable, ISuperTokenPool {
             BasicParticle[] memory ps = new BasicParticle[](2);
             BasicParticle memory mempty;
             (ps[0], ps[1]) = mempty.shift2(mempty, c);
-            assert(ISuperTokenPoolAdmin(POOL_ADMIN).absorbParticlesFromPool(addrs, ps));
+            assert(ISuperfluidPoolAdmin(POOL_ADMIN).absorbParticlesFromPool(addrs, ps));
         }
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;
         return true;

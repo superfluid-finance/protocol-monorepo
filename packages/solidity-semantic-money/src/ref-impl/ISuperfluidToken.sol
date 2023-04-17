@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >= 0.8.4;
 
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {
-    ISuperTokenPool, ISuperTokenPoolAdmin
-} from "./ISuperTokenPool.sol";
+    ISuperfluidPool, ISuperfluidPoolAdmin
+} from "./ISuperfluidPool.sol";
 import {
     Time, FlowRate, Value, Unit,
     BasicParticle
@@ -16,7 +15,7 @@ type FlowId is uint32;
 /**
  * @dev The interface for super token: the ERC20x token that supports generalized payment primitives.
  */
-interface ISuperToken is IERC20, ISuperTokenPoolAdmin {
+interface ISuperfluidToken is ISuperfluidPoolAdmin {
     ////////////////////////////////////////////////////////////////////////////////
     // Generalized Payment Primitives
     ////////////////////////////////////////////////////////////////////////////////
@@ -42,10 +41,10 @@ interface ISuperToken is IERC20, ISuperTokenPoolAdmin {
     function flow(address from, address to, FlowId flowId, FlowRate flowRate) external
         returns (bool);
 
-    function distribute(address from, ISuperTokenPool to, Value reqAmount) external
+    function distribute(address from, ISuperfluidPool to, Value reqAmount) external
         returns (bool, Value actualAmount);
 
-    function distributeFlow(address from, ISuperTokenPool to, FlowId flowId, FlowRate reqFlowRate) external
+    function distributeFlow(address from, ISuperfluidPool to, FlowId flowId, FlowRate reqFlowRate) external
         returns (bool success, FlowRate actualFlowRate);
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -61,12 +60,12 @@ interface ISuperToken is IERC20, ISuperTokenPoolAdmin {
     function getNumConnections(address account) external view
         returns (uint);
 
-    function connectPool(ISuperTokenPool to) external
+    function connectPool(ISuperfluidPool to) external
         returns (bool);
 
-    function disconnectPool(ISuperTokenPool to) external
+    function disconnectPool(ISuperfluidPool to) external
         returns (bool);
 
-    function connectPool(ISuperTokenPool to, bool doConnect) external
+    function connectPool(ISuperfluidPool to, bool doConnect) external
         returns (bool);
 }

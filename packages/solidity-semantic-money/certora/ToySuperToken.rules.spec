@@ -1,18 +1,18 @@
 // -*- mode: c++; eval: (flycheck-mode -1); -*-
 
+import "MonetaryTypes.ghosts.spec"
 import "ToySuperToken.methods.spec"
-
 
 function require_poolless(address a) {
     require isPool(a) == false;
     require getNumConnections(a) == 0;
 }
 
-rule poolless_transfer_balance_moves() {
+rule poolless_shift_balance_moves() {
     env e1;
     address a = e1.msg.sender;
     address b;
-    uint256 x; // transfer amount
+    int256 x; // shift amount
     uint32 t1; require t1 == e1.block.timestamp;
 
     require a != b;
@@ -21,7 +21,7 @@ rule poolless_transfer_balance_moves() {
 
     int256 a1 = realtimeBalanceAt(a, t1);
 
-    bool successful = transfer(e1, b, x);
+    bool successful = shift(e1, a, b, x);
     assert successful;
 
     int256 a2 = realtimeBalanceAt(a, t1);
@@ -29,11 +29,11 @@ rule poolless_transfer_balance_moves() {
     assert to_mathint(a1) - to_mathint(a2) == to_mathint(x);
 }
 
-rule poolless_transfer_constant_balance_sum() {
+rule poolless_shift_constant_balance_sum() {
     env e1;
     address a = e1.msg.sender;
     address b;
-    uint256 x; // transfer amount
+    int256 x; // shift amount
     uint32 t1; require t1 == e1.block.timestamp;
 
     require_poolless(a);
@@ -42,7 +42,7 @@ rule poolless_transfer_constant_balance_sum() {
     int256 a1 = realtimeBalanceAt(a, t1);
     int256 b1 = realtimeBalanceAt(b, t1);
 
-    bool successful = transfer(e1, b, x);
+    bool successful = shift(e1, a, b, x);
     assert successful;
 
     int256 a2 = realtimeBalanceAt(a, t1);

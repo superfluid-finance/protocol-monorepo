@@ -359,6 +359,42 @@ describe("Superfluid Ownable Governance Contract", function () {
                 onlyOwnerReason
             );
 
+            // liquidationPeriod <= patricianPeriod reverts
+            await expectCustomError(
+                governance.setPPPConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    420,
+                    420
+                ),
+                governance,
+                "SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD"
+            );
+
+            // liquidationPeriod >= type(uint32).max reverts
+            // patricianPeriod >= type(uint32).max reverts too
+            await expectCustomError(
+                governance.setPPPConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    4294967296,
+                    420
+                ),
+                governance,
+                "SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD"
+            );
+
+            await expectCustomError(
+                governance.setPPPConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    420,
+                    690
+                ),
+                governance,
+                "SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD"
+            );
+
             await expectCustomError(
                 governance.clearPPPConfig(superfluid.address, ZERO_ADDRESS),
                 governance,

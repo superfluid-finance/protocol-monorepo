@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "../../src/ref-impl/ToySuperToken.sol";
+import "../../src/ref-impl/ToySuperfluidToken.sol";
 
 
-contract ToySuperTokenPoolCertora is ToySuperTokenPool {
+contract CertoraSuperfluidPool is ToySuperfluidPool {
     constructor (address admin) {
         initialize(admin);
     }
 }
 
-contract ToySuperTokenCertora is ToySuperToken {
+contract CertoraSuperfluidToken is ToySuperfluidToken {
 
     /* event SET_UINDEX(address owner, FlowRate r0, FlowRate r1); */
 
@@ -29,7 +29,7 @@ contract ToySuperTokenCertora is ToySuperToken {
     /* function _setPDPIndex(bytes memory /\*eff*\/, address pool, PDPoolIndex memory p) */
     /*     internal virtual override */
     /* { */
-    /*     assert(ISuperTokenPool(pool).operatorSetIndex(p)); */
+    /*     assert(ISuperfluidPool(pool).operatorSetIndex(p)); */
     /* } */
 
 }

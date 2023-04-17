@@ -2,9 +2,9 @@
 pragma solidity 0.8.19;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
+import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 
 import {
     ISuperfluid,
@@ -1022,7 +1022,7 @@ contract Superfluid is
             // "/ 63" is a magic to avoid out of gas attack. 
             // See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2.
             // A callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail rule.
-            if (gasleft() > gasLeftBefore / 63) {
+            if (!SafeGasLibrary._isOutOfGas(gasLeftBefore)) {
                 if (!isTermination) {
                     CallUtils.revertFromReturnedData(returnedData);
                 } else {

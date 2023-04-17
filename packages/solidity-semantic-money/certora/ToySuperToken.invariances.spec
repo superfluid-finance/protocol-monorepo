@@ -1,6 +1,8 @@
 // -*- mode: c++; eval: (flycheck-mode -1); -*-
 
+import "MonetaryTypes.ghosts.spec"
 import "ToySuperToken.methods.spec"
+import "ToySuperTokenPool.ghosts.spec"
 
 using ToySuperTokenPoolCertora as p1
 
@@ -11,10 +13,10 @@ ghost totalFlowRate() returns int128 {
 ghost mapping(address => int256) accountFlowRates {
     init_state axiom forall address owner. accountFlowRates[owner] == 0;
 }
-hook Sload int128 r uIndexes[KEY address owner].flow_rate STORAGE {
+hook Sload int128 r uIndexes[KEY address owner]._flow_rate STORAGE {
     require to_mathint(accountFlowRates[owner]) == to_mathint(r);
 }
-hook Sstore uIndexes[KEY address owner].flow_rate int128 r1 (int128 r0) STORAGE {
+hook Sstore uIndexes[KEY address owner]._flow_rate int128 r1 (int128 r0) STORAGE {
     havoc totalFlowRate assuming
         to_mathint(totalFlowRate@new()) ==
         to_mathint(totalFlowRate@old()) + (to_mathint(r1) - to_mathint(r0));
@@ -23,7 +25,7 @@ hook Sstore uIndexes[KEY address owner].flow_rate int128 r1 (int128 r0) STORAGE 
 ghost pool1_UnitFlowRates() returns int128 {
     init_state axiom pool1_UnitFlowRates() == 0;
 }
-hook Sload int128 ur p1._pdpIndex.(offset 96) STORAGE {
+hook Sload int128 ur p1._pdpIndex._wrapped_particle._flow_rate STORAGE {
     require pool1_UnitFlowRates() == ur;
 }
 hook Sstore p1._pdpIndex.(offset 96) int128 ur1 (int128 ur0) STORAGE {

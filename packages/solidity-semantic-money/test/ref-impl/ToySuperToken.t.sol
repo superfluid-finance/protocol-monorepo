@@ -34,7 +34,7 @@ contract ToySuperTokenTest is Test {
         }
     }
 
-    function _createPool(address by) internal returns (ToySuperTokenPool pl) {
+    function _createPool(address by) internal returns (ToySuperfluidPool pl) {
         vm.startPrank(by);
         pl = token.createPool();
         vm.stopPrank();
@@ -105,8 +105,9 @@ contract ToySuperTokenTest is Test {
 
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
-        assertEq(a1 - a2, uint256(r1) * uint256(dt2) + uint256(r2) * uint256(dt3), "e3.1");
-        assertEq(a1 - a2, b2 - b1, "e3.2");
+        uint256 k2 = token.balanceOf(address(token));
+        assertEq(a1 - a2, k2 + uint256(r1) * uint256(dt2) + uint256(r2) * uint256(dt3), "e3.1");
+        assertEq(a1 - a2, k2 + b2 - b1, "e3.2");
     }
 
     function test_1to2_flow(uint32 r1, uint32 r2, uint16 t2) external {
@@ -126,14 +127,15 @@ contract ToySuperTokenTest is Test {
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
         uint256 c2 = token.balanceOf(carol);
+        uint256 k2 = token.balanceOf(address(token));
 
         assertEq(token.getFlowRate(alice, bob, FlowId.wrap(0)), rr1, "e1.1");
         assertEq(token.getFlowRate(alice, carol, FlowId.wrap(0)), rr2, "e1.2");
         assertEq(token.getFlowRate(bob, carol, FlowId.wrap(0)), FlowRate.wrap(0), "e1.3");
         assertEq(token.getNetFlowRate(alice).inv(),
                  token.getNetFlowRate(bob) + token.getNetFlowRate(carol), "e2");
-        assertEq(a1 - a2, (uint256(r1) + uint256(r2)) * uint256(t2), "e3.1");
-        assertEq(a1 - a2, b2 - b1 + c2 - c1, "e3.2");
+        assertEq(a1 - a2, k2 + (uint256(r1) + uint256(r2)) * uint256(t2), "e3.1");
+        assertEq(a1 - a2, k2 + b2 - b1 + c2 - c1, "e3.2");
     }
 
     function test_2to1_flow(uint32 r1, uint32 r2, uint16 t2) external {
@@ -147,10 +149,12 @@ contract ToySuperTokenTest is Test {
         vm.startPrank(alice);
         token.flow(alice, carol, FlowId.wrap(0), rr1);
         vm.stopPrank();
+        uint256 k1 = token.balanceOf(address(token));
 
         vm.startPrank(bob);
         token.flow(bob, carol, FlowId.wrap(0), rr2);
         vm.stopPrank();
+        uint256 k2 = token.balanceOf(address(token)) - k1;
 
         vm.warp(t1 + uint256(t2));
 
@@ -163,9 +167,9 @@ contract ToySuperTokenTest is Test {
         assertEq(token.getFlowRate(alice, bob, FlowId.wrap(0)), FlowRate.wrap(0), "e1.3");
         assertEq(token.getNetFlowRate(alice) + token.getNetFlowRate(bob),
                  token.getNetFlowRate(carol).inv(), "e2");
-        assertEq(a1 - a2, uint256(r1) * uint256(t2), "e3.1");
-        assertEq(b1 - b2, uint256(r2) * uint256(t2), "e3.2");
-        assertEq(c2 - c1, a1 - a2 + b1 - b2, "e3.3");
+        assertEq(a1 - a2, k1 + uint256(r1) * uint256(t2), "e3.1");
+        assertEq(b1 - b2, k2 + uint256(r2) * uint256(t2), "e3.2");
+        assertEq(a1 - a2 + b1 - b2, k1 + k2 + c2 - c1, "e3.3");
     }
 
     function test_1to2_instdistribute(uint32 u1, uint32 u2, uint64 x) external {
@@ -175,7 +179,7 @@ contract ToySuperTokenTest is Test {
         uint256 tu = uint(uint128(Unit.unwrap(uu1 + uu2)));
         uint256 xxx;if (tu == 0) xxx = 0; else xxx = uint(x) / tu * tu;
 
-        ToySuperTokenPool pl = _createPool(alice);
+        ToySuperfluidPool pl = _createPool(alice);
 
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
@@ -225,7 +229,7 @@ contract ToySuperTokenTest is Test {
         Time t2 = Time.wrap(uint32(block.timestamp) + dt2);
         Time t3 = t2 + Time.wrap(dt3);
 
-        ToySuperTokenPool pl = _createPool(alice);
+        ToySuperfluidPool pl = _createPool(alice);
 
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
@@ -290,10 +294,11 @@ contract ToySuperTokenTest is Test {
             uint256 b2 = token.balanceOf(bob);
             uint256 c2 = token.balanceOf(carol);
             uint256 p2 = token.balanceOf(address(pl));
+            uint256 k2 = token.balanceOf(address(token));
 
-            assertEq(a1 - a2, uint256(rrr1) * uint256(dt2) + uint256(rrr2) * uint256(dt3), "e6.1");
-            assertEq(b2 - b1 + c2 - c1 + p2 - p1, a1 - a2, "e6.2");
-            assertEq(pl.getClaimable(carol) + pl.getClaimable(bob), Value.wrap(int256(a1 - a2)), "e6.1");
+            assertEq(a1 - a2, k2 + uint256(rrr1) * uint256(dt2) + uint256(rrr2) * uint256(dt3), "e6.1");
+            assertEq(a1 - a2, k2 + b2 - b1 + c2 - c1 + p2 - p1, "e6.2");
+            assertEq(Value.wrap(int256(a1 - a2 - k2)), pl.getClaimable(carol) + pl.getClaimable(bob), "e6.3");
         }
     }
 
@@ -305,7 +310,7 @@ contract ToySuperTokenTest is Test {
         int256 rrr; if (tu == 0) rrr = 0; else rrr = int256(uint256(r) / tu * tu);
         Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
 
-        ToySuperTokenPool pl = _createPool(alice);
+        ToySuperfluidPool pl = _createPool(alice);
 
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
@@ -333,11 +338,12 @@ contract ToySuperTokenTest is Test {
             uint256 b2 = token.balanceOf(bob);
             uint256 c2 = token.balanceOf(carol);
             uint256 p2 = token.balanceOf(address(pl));
+            uint256 k2 = token.balanceOf(address(token));
 
-            assertEq(a1 - a2, uint256(rrr) * uint256(dt2), "e5.1");
+            assertEq(a1 - a2, k2 + uint256(rrr) * uint256(dt2), "e5.1");
             assertEq(c2 - c1, 0, "e5.2");
-            assertEq(b2 - b1 + c2 - c1 + p2 - p1, a1 - a2, "e5.3");
-            assertEq(pl.getClaimable(carol) + pl.getClaimable(bob), Value.wrap(int256(a1 - a2)), "e6.1");
+            assertEq(a1 - a2, k2 + b2 - b1 + c2 - c1 + p2 - p1, "e5.3");
+            assertEq(Value.wrap(int256(a1 - a2 - k2)), pl.getClaimable(carol) + pl.getClaimable(bob), "e6.1");
         }
 
         {
@@ -363,7 +369,7 @@ contract ToySuperTokenTest is Test {
         int256 rrr2;if (tu == 0) rrr1 = 0;else rrr2 = int(uint(r2) / tu * tu);
         Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
 
-        ToySuperTokenPool pl = _createPool(alice);
+        ToySuperfluidPool pl = _createPool(alice);
 
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
@@ -374,10 +380,12 @@ contract ToySuperTokenTest is Test {
         pl.updateMember(carol, uu1);
         token.distributeFlow(alice, pl, FlowId.wrap(0), rr1);
         vm.stopPrank();
+        uint256 k1 = token.balanceOf(address(token));
 
         vm.startPrank(bob);
         token.distributeFlow(bob, pl, FlowId.wrap(0), rr2);
         vm.stopPrank();
+        uint256 k2 = token.balanceOf(address(token)) - k1;
 
         assertEq(Unit.unwrap(pl.pendingUnits()), int(tu), "e1");
 
@@ -409,10 +417,10 @@ contract ToySuperTokenTest is Test {
             uint256 c2 = token.balanceOf(carol);
             uint256 p2 = token.balanceOf(address(pl));
 
-            assertEq(a1 - a2, uint256(rrr1) * uint256(dt2), "e5.1");
-            assertEq(b1 - b2, uint256(rrr2) * uint256(dt2), "e5.2");
-            assertEq(c2 - c1 + p2 - p1, a1 - a2 + b1 - b2, "e5.3");
-            assertEq(pl.getClaimable(carol), Value.wrap(int256(a1 - a2 + b1 - b2)), "e6.1");
+            assertEq(a1 - a2, k1 + uint256(rrr1) * uint256(dt2), "e5.1");
+            assertEq(b1 - b2, k2 + uint256(rrr2) * uint256(dt2), "e5.2");
+            assertEq(a1 - a2 + b1 - b2, k1 + k2 + c2 - c1 + p2 - p1, "e5.3");
+            assertEq(Value.wrap(int256(a1 - a2 + b1 - b2 - k1 - k2)), pl.getClaimable(carol), "e6.1");
         }
     }
 
@@ -424,7 +432,7 @@ contract ToySuperTokenTest is Test {
         Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
         Time t3 = t2 + Time.wrap(uint32(dt3));
 
-        ToySuperTokenPool pl = _createPool(alice);
+        ToySuperfluidPool pl = _createPool(alice);
 
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
@@ -439,8 +447,9 @@ contract ToySuperTokenTest is Test {
 
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
+        uint256 k2 = token.balanceOf(address(token));
 
-        assertEq(pl.getClaimable(alice) + pl.getClaimable(bob), Value.wrap(int256(a1 - a2)), "e1.1");
+        assertEq(Value.wrap(int256(a1 - a2 - k2)), pl.getClaimable(alice) + pl.getClaimable(bob), "e1.1");
         assertEq(b2, b1, "e1.2");
 
         pl.claimAll(bob);
@@ -453,11 +462,12 @@ contract ToySuperTokenTest is Test {
         uint256 a3 = token.balanceOf(alice);
         uint256 b3 = token.balanceOf(bob);
         uint256 p3 = token.balanceOf(address(pl));
+        assertEq(k2, token.balanceOf(address(token)));
 
         assertEq(a2 - a3, p3, "e3.1");
-        assertEq(pl.getClaimable(bob), Value.wrap(int256(a2 - a3)), "e3.2");
+        assertEq(Value.wrap(int256(a2 - a3)), pl.getClaimable(bob), "e3.2");
 
-        assertEq(a1 - a3, uint256(rrr1) * (uint256(dt2) + uint256(dt3)), "e4.1");
-        assertEq(b3 - b1 + p3 - p1, a1 - a3, "e4.2");
+        assertEq(a1 - a3, k2 + uint256(rrr1) * (uint256(dt2) + uint256(dt3)), "e4.1");
+        assertEq(a1 - a3, k2 + b3 - b1 + p3 - p1, "e4.2");
     }
 }

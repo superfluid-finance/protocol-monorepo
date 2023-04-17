@@ -173,6 +173,40 @@ contract SuperAppBaseCFATest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function testMockBeforeAgreementCreated() public {
+        vm.startPrank(alice);
+        bytes memory data = superApp.beforeAgreementCreated(
+            superToken,
+            address(sf.host.getAgreementClass(
+                keccak256(
+                    "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+                )
+            )),
+            keccak256(abi.encode(alice, bob)), // agreementId (flowId),
+            abi.encode(alice, bob),
+            "0x"
+        );
+        assertEq(data, "0x");
+        vm.stopPrank();
+    }
+
+    function testMockFailedBeforeAgreementTerminated() public {
+        vm.startPrank(alice);
+        bytes memory data = superApp.beforeAgreementTerminated(
+            superToken,
+            address(sf.host.getAgreementClass(
+                keccak256(
+                    "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
+                )
+            )),
+            keccak256(abi.encode(alice, bob)), // agreementId (flowId),
+            abi.encode(alice, bob),
+            "0x"
+        );
+        assertEq(data, "0x");
+        vm.stopPrank();
+    }
+
     function testFlowOfNotAcceptedSuperTokenToSuperApp() public {
         vm.startPrank(alice);
         // enable the filter

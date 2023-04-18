@@ -381,10 +381,8 @@ contract GeneralDistributionAgreementV1 is
 
         bytes memory eff = abi.encode(token);
         for (uint i = 0; i < accounts.length; i++) {
-            BasicParticle memory accountParticle = _getUIndex(eff, accounts[i]);
-
             // update account particle
-            _setUIndex(eff, accounts[i], accountParticle.mappend(ps[i]));
+            _setUIndex(eff, accounts[i], _getUIndex(eff, accounts[i]).mappend(ps[i]));
         }
         return true;
     }

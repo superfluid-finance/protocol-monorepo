@@ -86,6 +86,15 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         );
     }
 
+    function test_Passing_Proxiable_UUID_Is_Expected_Value() public {
+        assertEq(
+            pool.proxiableUUID(),
+            keccak256(
+                "org.superfluid-finance.contracts.superfluid.SuperTokenPool.implementation"
+            )
+        );
+    }
+
     function test_Create_Pool() public {
         vm.prank(alice);
         SuperTokenPool localPool = SuperTokenPool(
@@ -310,11 +319,19 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         int96 requestedDistributionFlowRate = 420693300;
 
         Allocation[10] memory allocation;
+        int128 totalUnits;
         for (uint i; i < ACCOUNTS.length; i++) {
             allocation[i].member = ACCOUNTS[i];
             allocation[i].memberUnits = perMemberUnits % int128(int256(i + 1));
+            totalUnits += allocation[i].memberUnits;
         }
         helper_Update_Units_And_Assert(alice, allocation);
+
+        assertEq(
+            pool.getTotalUnits(),
+            totalUnits,
+            "pool total units not equal."
+        );
 
         // no distribution flow rate initially
         int96 poolFlowRateBefore = pool.getDistributionFlowRate();
@@ -382,14 +399,50 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.startPrank(alice);
         pool.updateMember(bob, 1);
         pool.updateMember(carol, 1);
-        _helper_Distribute_Flow(superToken, pool, 100);
         vm.stopPrank();
-        vm.warp(block.timestamp + 1);
-        (int256 rtb, , ) = sf.gda.realtimeBalanceOf(
+        int96 actualDistributionFlowRate = helper_Distribute_Flow_And_Assert(
+            superToken,
+            pool,
+            alice,
+            100
+        );
+        uint256 timeWarped = 2;
+        vm.warp(block.timestamp + timeWarped);
+        (int256 bobRTB, , ) = sf.gda.realtimeBalanceOf(
             superToken,
             bob,
             block.timestamp
         );
-        assert(rtb == 0);
+        assertEq(
+            pool.getPendingDistributionFlowRate(),
+            actualDistributionFlowRate,
+            "test_Distribute_Flow_To_Unconnected_Member: pendingDistributionFlowRate != actualDistributionFlowRate"
+        );
+        int128 totalUnits = pool.getTotalUnits();
+        (int256 bobClaimable, ) = pool.getClaimableNow(bob);
+        assertEq(
+            bobClaimable,
+            (actualDistributionFlowRate * int96(int256(timeWarped))) /
+                totalUnits,
+            "test_Distribute_Flow_To_Unconnected_Member: bobClaimable != (actualDistributionFlowRate * timeWarped) / totalUnits"
+        );
+        assertEq(
+            bobRTB,
+            0,
+            "test_Distribute_Flow_To_Unconnected_Member: bobRTB != 0"
+        );
+        vm.prank(bob);
+        pool.claimAll();
+
+        (bobRTB, , ) = sf.gda.realtimeBalanceOf(
+            superToken,
+            bob,
+            block.timestamp
+        );
+        // @note welp this isn't working, claimAll does absorbParticlesFromPool
+        // shift2 might also not be correct here?
+        // this is not properly updating the UIndexes of the account claiming
+        // their RTB is still 0 when it should be the claimable amount
+        // assertEq(bobRTB, bobClaimable, "bobRTB != bobClaimable");
     }
 }

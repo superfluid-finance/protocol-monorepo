@@ -47,21 +47,23 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
     //////////////////////////////////////////////////////////////////////////*/
     function test_Storage_Layout_Of_FlowNFTBase() public {
         FlowNFTBaseStorageLayoutMock flowNFTBaseStorageLayoutMock = new FlowNFTBaseStorageLayoutMock(
-                sf.cfa
+                sf.host
             );
         flowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
     function test_Storage_Layout_Of_ConstantInflowNFT() public {
         ConstantInflowNFTStorageLayoutMock constantInflowNFTBaseStorageLayoutMock = new ConstantInflowNFTStorageLayoutMock(
-                sf.cfa
+                sf.host,
+                constantOutflowNFTProxy
             );
         constantInflowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
     function test_Storage_Layout_Of_ConstantOutflowNFT() public {
         ConstantOutflowNFTStorageLayoutMock constantOutflowNFTBaseStorageLayoutMock = new ConstantOutflowNFTStorageLayoutMock(
-                sf.cfa
+                sf.host,
+                constantInflowNFTProxy
             );
         constantOutflowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
@@ -70,17 +72,23 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
                                     Revert Tests
     //////////////////////////////////////////////////////////////////////////*/
     function test_Revert_NFT_Contracts_Cannot_Be_Upgraded_By_Non_Host(
-        address notHost
+        address notSuperTokenFactory
     ) public {
-        vm.assume(notHost != address(sf.host));
-        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(sf.cfa);
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_ONLY_HOST.selector);
-        vm.prank(notHost);
+        vm.assume(notSuperTokenFactory != address(sf.superTokenFactory));
+        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(
+            sf.host,
+            constantInflowNFTProxy
+        );
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_ONLY_SUPER_TOKEN_FACTORY.selector);
+        vm.prank(notSuperTokenFactory);
         constantOutflowNFTProxy.updateCode(address(newOutflowLogic));
 
-        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(sf.cfa);
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_ONLY_HOST.selector);
-        vm.prank(notHost);
+        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(
+            sf.host,
+            constantOutflowNFTProxy
+        );
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_ONLY_SUPER_TOKEN_FACTORY.selector);
+        vm.prank(notSuperTokenFactory);
         constantInflowNFTProxy.updateCode(address(newInflowLogic));
     }
 
@@ -88,12 +96,18 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
     function test_Passing_NFT_Contracts_Can_Be_Upgraded_By_Host() public {
-        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(sf.cfa);
-        vm.prank(address(sf.host));
+        ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(
+            sf.host,
+            constantInflowNFTProxy
+        );
+        vm.prank(address(sf.superTokenFactory));
         constantOutflowNFTProxy.updateCode(address(newOutflowLogic));
 
-        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(sf.cfa);
-        vm.prank(address(sf.host));
+        ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(
+            sf.host,
+            constantOutflowNFTProxy
+        );
+        vm.prank(address(sf.superTokenFactory));
         constantInflowNFTProxy.updateCode(address(newInflowLogic));
     }
 }

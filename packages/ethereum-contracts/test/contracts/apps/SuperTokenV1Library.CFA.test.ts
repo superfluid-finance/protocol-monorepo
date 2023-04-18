@@ -41,52 +41,16 @@ const callbackFunctionIndex = {
 export const deploySuperTokenAndNFTContractsAndInitialize = async (
     t: TestEnvironment
 ) => {
-    const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+    const {constantOutflowNFTProxy, constantInflowNFTProxy} =
         await t.deployNFTContracts();
-    const superToken = await t.deployExternalLibraryAndLink<SuperTokenMock>(
-        "SuperfluidNFTDeployerLibrary",
+    const superToken = await t.deployContract<SuperTokenMock>(
         "SuperTokenMock",
         t.contracts.superfluid.address,
         "69",
-        constantOutflowNFTLogic.address,
-        constantInflowNFTLogic.address
+        constantOutflowNFTProxy.address,
+        constantInflowNFTProxy.address
     );
 
-    const uupsFactory = await ethers.getContractFactory("UUPSProxy");
-    const symbol = await superToken.symbol();
-
-    const outflowNFTLogicAddress =
-        await superToken.CONSTANT_OUTFLOW_NFT_LOGIC();
-    const outflowNFTProxy = await uupsFactory.deploy();
-    await outflowNFTProxy.initializeProxy(outflowNFTLogicAddress);
-    const outflowNFT = await ethers.getContractAt(
-        "ConstantOutflowNFT",
-        outflowNFTProxy.address
-    );
-    await outflowNFT.initialize(
-        superToken.address,
-        symbol + " Outflow NFT",
-        symbol + " COF"
-    );
-
-    const inflowNFTLogicAddress = await superToken.CONSTANT_INFLOW_NFT_LOGIC();
-    const inflowNFTProxy = await uupsFactory.deploy();
-    await inflowNFTProxy.initializeProxy(inflowNFTLogicAddress);
-    const inflowNFT = await ethers.getContractAt(
-        "ConstantInflowNFT",
-        inflowNFTProxy.address
-    );
-    await inflowNFT.initialize(
-        superToken.address,
-        symbol + " Inflow NFT",
-        symbol + " CIF"
-    );
-    await superToken.setNFTProxyContracts(
-        outflowNFT.address,
-        inflowNFT.address,
-        ethers.constants.AddressZero,
-        ethers.constants.AddressZero
-    );
     return superToken;
 };
 

@@ -365,12 +365,10 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             block.timestamp
         );
 
-        // @note why is this not working?
-        // is it not the same, bufferDelta + previous?
-        // assertEq(
-        //     deposit,
-        //     uint256(uint96(actualDistributionFlowRate)) * liquidationPeriod
-        // );
+        assertEq(
+            deposit,
+            uint256(uint96(actualDistributionFlowRate)) * liquidationPeriod
+        );
 
         helper_Warp_Time_And_Assert_Balances(
             allocation,

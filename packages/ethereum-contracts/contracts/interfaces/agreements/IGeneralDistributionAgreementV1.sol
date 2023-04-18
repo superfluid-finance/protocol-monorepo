@@ -12,6 +12,7 @@ import { ISuperTokenPool } from "../superfluid/ISuperTokenPool.sol";
 abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     // Custom Errors
     error GDA_INSUFFICIENT_BALANCE();
+    error GDA_NO_NEGATIVE_DISTRIBUTION();
     error GDA_NO_NEGATIVE_FLOW_RATE();
     error GDA_ONLY_SUPER_TOKEN_POOL();
 

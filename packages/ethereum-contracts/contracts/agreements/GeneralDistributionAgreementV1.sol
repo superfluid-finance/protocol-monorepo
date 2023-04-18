@@ -399,11 +399,15 @@ contract GeneralDistributionAgreementV1 is
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
 
+        if (requestedAmount < 0) {
+            revert GDA_NO_NEGATIVE_DISTRIBUTION();
+        }
+
         ISuperfluid.Context memory currentContext = AgreementLibrary
             .authorizeTokenAccess(token, ctx);
         newCtx = ctx;
 
-        (bytes memory eff, Value actualAmount) = _doDistribute(
+        (, Value actualAmount) = _doDistribute(
             abi.encode(token),
             currentContext.msgSender,
             address(pool),
@@ -685,10 +689,15 @@ contract GeneralDistributionAgreementV1 is
     ) internal override returns (bytes memory) {
         // @note it would be nice to have int96 as part of this interface for buffer
         address token = abi.decode(eff, (address));
+        (
+            ,
+            FlowDistributionData memory flowDistributionData
+        ) = _getFlowDistributionData(ISuperfluidToken(token), flowHash);
+
         bytes32[] memory data = _encodeFlowDistributionData(
             FlowDistributionData({
                 flowRate: int96(FlowRate.unwrap(newFlowRate)),
-                buffer: 0 // we set the buffer later on in _adjustBuffer
+                buffer: flowDistributionData.buffer
             })
         );
 

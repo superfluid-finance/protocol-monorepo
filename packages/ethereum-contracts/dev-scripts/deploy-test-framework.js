@@ -130,6 +130,7 @@ const deployTestFramework = async () => {
                 libraries: {
                     SuperTokenPoolDeployerLibrary:
                         SuperTokenPoolDeployerLibrary.address,
+                    SlotsBitmapLibrary: SlotsBitmapLibrary.address,
                 },
             }
         );

@@ -86,12 +86,16 @@ contract GeneralDistributionAgreementV1Properties is
         assertEq(original.buffer, decoded.buffer);
     }
 
-    function test_Pool_Member_Data_Encode_Decode(address pool, uint32 poolId) public {
+    function test_Pool_Member_Data_Encode_Decode(
+        address pool,
+        uint32 poolId
+    ) public {
         vm.assume(pool != address(0));
-        GeneralDistributionAgreementV1.PoolMemberData memory original = GeneralDistributionAgreementV1.PoolMemberData({
-            pool: pool,
-            poolId: poolId
-        });
+        GeneralDistributionAgreementV1.PoolMemberData
+            memory original = GeneralDistributionAgreementV1.PoolMemberData({
+                pool: pool,
+                poolId: poolId
+            });
         bytes32[] memory encodedData = _encodePoolMemberData(original);
         (
             ,

@@ -329,7 +329,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         (int256 distributorRTBBefore, uint256 deposit, ) = superToken
             .realtimeBalanceOf(alice, block.timestamp);
-        
+
         assertEq(
             deposit,
             uint256(uint96(actualDistributionFlowRate)) * liquidationPeriod

@@ -209,6 +209,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         for (uint i; i < allocation.length; i++) {
             // assert that no members connected
             bool isConnectedBefore = sf.gda.isMemberConnected(
+                superToken,
                 address(pool),
                 allocation[i].member
             );
@@ -223,6 +224,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
                 // assert all members are connected
                 bool isConnectedAfter = sf.gda.isMemberConnected(
+                    superToken,
                     address(pool),
                     allocation[i].member
                 );

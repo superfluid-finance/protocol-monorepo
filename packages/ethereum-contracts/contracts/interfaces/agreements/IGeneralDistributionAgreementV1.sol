@@ -117,9 +117,10 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     // ) public virtual returns (bytes memory newCtx);
 
     function isMemberConnected(
+        ISuperfluidToken token,
         address pool,
         address member
-    ) external view virtual returns (bool);
+    ) public view virtual returns (bool);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Agreement Operations

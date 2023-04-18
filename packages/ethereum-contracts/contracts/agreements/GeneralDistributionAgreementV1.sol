@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import {
-    EnumerableSet
-} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {
     IBeacon
@@ -54,48 +51,63 @@ import { AgreementLibrary } from "./AgreementLibrary.sol";
  * slotId               = 1
  * msg.sender           = address of GDAv1
  * account              = distributor
- * Distributor Agreement State stores the total buffer the distributor has.
+ * Distributor Agreement State stores the FlowDistributionData state (totals) for a distributor.
  *
  * Agreement Data
  * NOTE The Agreement Data slot is calculated with the following function:
  * keccak256(abi.encode("AgreementData", agreementClass, agreementId))
  * agreementClass       = address of GDAv1
- * agreementId          = UniversalIndexId | DistributionFlowId
+ * agreementId          = UniversalIndexId | DistributionFlowId | PoolMemberId
  *
- * UniversalIndexId     = keccak256(abi.encode("universalIndex", account))
+ * UniversalIndexId     =
+ * keccak256(abi.encode(block.chainid, "universalIndex", account))
  * UniversalIndexId stores a BasicParticle struct for an `account`.
  *
  * DistributionFlowId   =
- * keccak256(abi.encode(block.chainId, "distributionFlow", from, pool))
+ * keccak256(abi.encode(block.chainid, "distributionFlow", from, pool))
  * DistributionFlowId stores FlowDistributionData between a sender (from) and pool.
+ *
+ * PoolMemberId         =
+ * keccak256(abi.encode(block.chainid, "poolMember", member, pool))
+ * PoolMemberId stores PoolMemberData for a member at a pool.
  */
 contract GeneralDistributionAgreementV1 is
     AgreementBase,
     TokenMonad,
     IGeneralDistributionAgreementV1
 {
-    using EnumerableSet for EnumerableSet.AddressSet;
     using SafeCast for uint256;
     using SemanticMoney for BasicParticle;
+
+    address public constant SLOTS_BITMAP_LIBRARY_ADDRESS =
+        address(SlotsBitmapLibrary);
+
+    /// @dev Pool existence state slot id for storing whether a pool exists
+    uint256 private constant _POOL_EXISTENCE_STATE_SLOT_ID = 0;
+    /// @dev Distributor agreement state slot id for storing totalBuffer
+    uint256 private constant _DISTRIBUTOR_AGREEMENT_STATE_SLOT_ID = 1;
+    /// @dev Pool member state slot id for storing subs bitmap
+    uint256 private constant _POOL_SUBS_BITMAP_STATE_SLOT_ID = 2;
+    /// @dev Pool member state slot id starting point for pool connections
+    uint256 private constant _POOL_CONNECTIONS_DATA_STATE_SLOT_ID_START =
+        1 << 128;
+    /// @dev CFAv1 PPP Config Key
+    bytes32 private constant CFAV1_PPP_CONFIG_KEY =
+        keccak256(
+            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration"
+        );
 
     struct FlowDistributionData {
         int96 flowRate;
         uint256 buffer; // stored as uint96
     }
 
-    struct DistributorAgreementState {
-        uint256 totalBuffer; // stored as uint96
+    struct PoolMemberData {
+        address pool;
+        uint32 poolId; // the slot id in the pool's subs bitmap
     }
 
-    bytes32 private constant CFAV1_PPP_CONFIG_KEY =
-        keccak256(
-            "org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration"
-        );
-
     IBeacon immutable superTokenPoolBeacon;
-
-    mapping(address owner => EnumerableSet.AddressSet connections)
-        internal _connectionsMap;
 
     constructor(
         ISuperfluid host,
@@ -123,21 +135,30 @@ contract GeneralDistributionAgreementV1 is
         }
 
         {
-            EnumerableSet.AddressSet storage connections = _connectionsMap[
-                account
-            ];
-            for (uint256 i = 0; i < connections.length(); ++i) {
-                address p = connections.at(i);
+            (
+                uint32[] memory slotIds,
+                bytes32[] memory pidList
+            ) = _listPoolConnectionIds(token, account);
+            for (uint256 i = 0; i < slotIds.length; ++i) {
+                address pool = address(uint160(uint256(pidList[i])));
+                (
+                    bool exist,
+                    PoolMemberData memory poolMemberData
+                ) = _getPoolMemberData(token, account, ISuperTokenPool(pool));
+                assert(exist);
+                assert(poolMemberData.pool == pool);
                 available =
                     available +
-                    ISuperTokenPool(p).getClaimable(uint32(time), account);
+                    ISuperTokenPool(pool).getClaimable(uint32(time), account);
             }
         }
-        (, uint256 bufferAmount) = _getDistributorAgreementState(
-            token,
-            account
-        );
-        buffer = int256(bufferAmount);
+
+        (
+            ,
+            FlowDistributionData memory distributorAgreementState
+        ) = _getDistributorAgreementState(token, account);
+
+        buffer = int256(distributorAgreementState.buffer);
     }
 
     function realtimeBalanceOf(
@@ -186,12 +207,15 @@ contract GeneralDistributionAgreementV1 is
         }
 
         {
-            EnumerableSet.AddressSet storage connections = _connectionsMap[
-                account
-            ];
-            for (uint i = 0; i < connections.length(); ++i) {
-                ISuperTokenPool p = ISuperTokenPool(connections.at(i));
-                netFlowRate = netFlowRate + p.getMemberFlowRate(account);
+            (
+                uint32[] memory slotIds,
+                bytes32[] memory pidList
+            ) = _listPoolConnectionIds(token, account);
+            for (uint i = 0; i < slotIds.length; ++i) {
+                ISuperTokenPool pool = ISuperTokenPool(
+                    address(uint160(uint256(pidList[i])))
+                );
+                netFlowRate = netFlowRate + pool.getMemberFlowRate(account);
             }
         }
     }
@@ -282,8 +306,7 @@ contract GeneralDistributionAgreementV1 is
         address msgSender = currentContext.msgSender;
         newCtx = ctx;
         if (doConnect) {
-            if (!_connectionsMap[msgSender].contains(address(pool))) {
-                _connectionsMap[msgSender].add(address(pool));
+            if (!isMemberConnected(token, address(pool), msgSender)) {
                 assert(
                     pool.operatorConnectMember(
                         uint32(block.timestamp),
@@ -291,16 +314,41 @@ contract GeneralDistributionAgreementV1 is
                         true
                     )
                 );
+
+                uint32 poolSlotId = _findAndFillPoolConnectionsBitmap(
+                    token,
+                    msgSender,
+                    bytes32(uint256(uint160(address(pool))))
+                );
+
+                token.updateAgreementData(
+                    _getPoolMemberId(msgSender, pool),
+                    _encodePoolMemberData(
+                        PoolMemberData({
+                            poolId: poolSlotId,
+                            pool: address(pool)
+                        })
+                    )
+                );
             }
         } else {
-            if (_connectionsMap[msgSender].contains(address(pool))) {
-                _connectionsMap[msgSender].remove(address(pool));
+            if (isMemberConnected(token, address(pool), msgSender)) {
                 assert(
                     pool.operatorConnectMember(
                         uint32(block.timestamp),
                         msgSender,
                         false
                     )
+                );
+                (, PoolMemberData memory poolMemberData) = _getPoolMemberData(
+                    token,
+                    msgSender,
+                    pool
+                );
+                _clearPoolConnectionsBitmap(
+                    token,
+                    msgSender,
+                    poolMemberData.poolId
                 );
             }
         }
@@ -309,30 +357,16 @@ contract GeneralDistributionAgreementV1 is
     }
 
     function isMemberConnected(
+        ISuperfluidToken token,
         address pool,
         address member
-    ) external view override returns (bool) {
-        return _connectionsMap[member].contains(pool);
-    }
-
-    // # Universal Index operations
-    //
-    // Universal Index packing:
-    //
-    // -------- ------------------ ------------------ ------------------
-    // WORD 1: |     flowRate     |     settledAt    |       free       |
-    // -------- ------------------ ------------------ ------------------
-    //         |        96b       |       32b        |        128b      |
-    // -------- ------------------ ------------------ ------------------
-    // WORD 2: |                      settledValue                      |
-    // -------- ------------------ ------------------ ------------------
-    //         |                          256b                          |
-    // -------- ------------------ ------------------ ------------------
-
-    function _getUniversalIndexId(
-        address account
-    ) internal pure returns (bytes32) {
-        return keccak256(abi.encode("universalIndex", account));
+    ) public view override returns (bool) {
+        (bool exist, ) = _getPoolMemberData(
+            token,
+            member,
+            ISuperTokenPool(pool)
+        );
+        return exist;
     }
 
     function absorbParticlesFromPool(
@@ -461,7 +495,7 @@ contract GeneralDistributionAgreementV1 is
         bytes memory eff,
         address from,
         bytes32 flowHash,
-        FlowRate /* oldFlowRate */,
+        FlowRate oldFlowRate,
         FlowRate newFlowRate
     ) internal returns (bytes memory) {
         address token = abi.decode(eff, (address));
@@ -489,46 +523,59 @@ contract GeneralDistributionAgreementV1 is
         );
         Value bufferDelta = newBufferAmount -
             Value.wrap(int256(uint256(flowDistributionData.buffer)));
+
+        FlowRate flowRateDelta = newFlowRate - oldFlowRate;
         eff = _doShift(eff, from, address(this), bufferDelta);
 
-        bytes32[] memory data = _encodeFlowDistributionData(
-            FlowDistributionData({
-                flowRate: int96(FlowRate.unwrap(newFlowRate)),
-                buffer: uint96(uint256(Value.unwrap(newBufferAmount)))
-            })
-        );
+        {
+            bytes32[] memory data = _encodeFlowDistributionData(
+                FlowDistributionData({
+                    flowRate: int96(FlowRate.unwrap(newFlowRate)),
+                    buffer: uint96(uint256(Value.unwrap(newBufferAmount)))
+                })
+            );
 
-        ISuperfluidToken(token).updateAgreementData(flowHash, data);
+            ISuperfluidToken(token).updateAgreementData(flowHash, data);
+        }
 
-        (, uint256 totalBuffer) = _getDistributorAgreementState(
-            ISuperfluidToken(token),
-            from
-        );
+        {
+            (
+                ,
+                FlowDistributionData memory distributorAgreementState
+            ) = _getDistributorAgreementState(ISuperfluidToken(token), from);
 
-        _setDistributorAgreementState(
-            ISuperfluidToken(token),
-            from,
-            DistributorAgreementState({
-                totalBuffer: totalBuffer + uint256(Value.unwrap(bufferDelta))
-            })
-        );
-
+            _setDistributorAgreementState(
+                ISuperfluidToken(token),
+                from,
+                FlowDistributionData({
+                    flowRate: distributorAgreementState.flowRate +
+                        int96(FlowRate.unwrap(flowRateDelta)),
+                    buffer: distributorAgreementState.buffer +
+                        uint256(Value.unwrap(bufferDelta))
+                })
+            );
+        }
         return eff;
     }
 
-    function _getDistributionFlowId(
-        address from,
-        ISuperTokenPool pool
+    // # Universal Index operations
+    //
+    // Universal Index packing:
+    //
+    // -------- ------------------ ------------------ ------------------
+    // WORD 1: |     flowRate     |     settledAt    |       free       |
+    // -------- ------------------ ------------------ ------------------
+    //         |        96b       |       32b        |        128b      |
+    // -------- ------------------ ------------------ ------------------
+    // WORD 2: |                      settledValue                      |
+    // -------- ------------------ ------------------ ------------------
+    //         |                          256b                          |
+    // -------- ------------------ ------------------ ------------------
+
+    function _getUniversalIndexId(
+        address account
     ) internal view returns (bytes32) {
-        return
-            keccak256(
-                abi.encode(
-                    block.chainid,
-                    "distributionFlow",
-                    from,
-                    address(pool)
-                )
-            );
+        return keccak256(abi.encode(block.chainid, "universalIndex", account));
     }
 
     function _encodeUniversalIndex(
@@ -651,18 +698,19 @@ contract GeneralDistributionAgreementV1 is
     }
 
     // Pool data packing:
-    //
+    // -------- ---------- -------------
     // WORD A: | reserved | poolAddress |
+    // -------- ---------- -------------
     //         |    96    |     160     |
-    //
-    function _encodePoolData(
+    // -------- ---------- -------------
+    function _encodePoolExistenceData(
         address pool
     ) internal pure returns (bytes32[] memory data) {
         data = new bytes32[](1);
         data[0] = bytes32(uint256(uint160(pool)));
     }
 
-    function _decodePoolData(
+    function _decodePoolExistenceData(
         uint256 data
     ) internal pure returns (bool exist, address pool) {
         exist = data > 0;
@@ -682,8 +730,12 @@ contract GeneralDistributionAgreementV1 is
         ISuperfluidToken token,
         address pool
     ) internal {
-        bytes32[] memory data = _encodePoolData(pool);
-        token.updateAgreementStateSlot(pool, 0, data);
+        bytes32[] memory data = _encodePoolExistenceData(pool);
+        token.updateAgreementStateSlot(
+            pool,
+            _POOL_EXISTENCE_STATE_SLOT_ID,
+            data
+        );
     }
 
     function _getPoolAgreementState(
@@ -696,59 +748,72 @@ contract GeneralDistributionAgreementV1 is
             0,
             1
         );
-        (exist, ) = _decodePoolData(uint256(data[0]));
+        (exist, ) = _decodePoolExistenceData(uint256(data[0]));
     }
 
     // Distributor Agreement State packing:
-    //
-    // WORD A: | reserved | buffer |
-    //         |    160   |   96   |
-
-    function _encodeDistributorAgreementState(
-        DistributorAgreementState memory distributorAgreementState
-    ) internal pure returns (bytes32[] memory data) {
-        data = new bytes32[](1);
-        data[0] = bytes32(uint256(distributorAgreementState.totalBuffer));
-    }
-
-    function _decodeDistributorAgreementState(
-        uint256 data
-    ) internal pure returns (bool exist, uint256 buffer) {
-        exist = data > 0;
-        if (exist) {
-            buffer = data & uint256(type(uint96).max);
-        }
-    }
+    // -------- ---------- ---------- --------
+    // WORD A: | reserved | flowRate | buffer |
+    // -------- ---------- ---------- --------
+    //         |    64    |    96    |   96   |
+    // -------- ---------- ---------- --------
 
     function _getDistributorAgreementState(
         ISuperfluidToken token,
         address distributor
-    ) internal view returns (bool exist, uint256 buffer) {
+    )
+        internal
+        view
+        returns (bool exist, FlowDistributionData memory flowDistributionData)
+    {
         bytes32[] memory data = token.getAgreementStateSlot(
             address(this),
             distributor,
-            1,
+            _DISTRIBUTOR_AGREEMENT_STATE_SLOT_ID,
             1
         );
-        (exist, buffer) = _decodeDistributorAgreementState(uint256(data[0]));
+        (exist, flowDistributionData) = _decodeFlowDistributionData(
+            uint256(data[0])
+        );
     }
 
     function _setDistributorAgreementState(
         ISuperfluidToken token,
         address distributor,
-        DistributorAgreementState memory distributorAgreementState
+        FlowDistributionData memory flowDistributionData
     ) internal {
-        bytes32[] memory data = _encodeDistributorAgreementState(
-            distributorAgreementState
+        bytes32[] memory data = _encodeFlowDistributionData(
+            flowDistributionData
         );
-        token.updateAgreementStateSlot(distributor, 1, data);
+        token.updateAgreementStateSlot(
+            distributor,
+            _DISTRIBUTOR_AGREEMENT_STATE_SLOT_ID,
+            data
+        );
     }
 
     // FlowDistributionData data packing:
-    //
-    // WORD A: | reserved | buffer | flowRate |
-    //         |    64    |   96   |    96    |
-    //
+    // -------- ---------- ---------- --------
+    // WORD A: | reserved | flowRate | buffer |
+    // -------- ---------- ---------- --------
+    //         |    64    |    96    |   96   |
+    // -------- ---------- ---------- --------
+
+    function _getDistributionFlowId(
+        address from,
+        ISuperTokenPool pool
+    ) internal view returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    block.chainid,
+                    "distributionFlow",
+                    from,
+                    address(pool)
+                )
+            );
+    }
+
     function _encodeFlowDistributionData(
         FlowDistributionData memory flowDistributionData
     ) internal pure returns (bytes32[] memory data) {
@@ -811,6 +876,105 @@ contract GeneralDistributionAgreementV1 is
 
         (exist, flowDistributionData) = _decodeFlowDistributionData(
             uint256(data[0])
+        );
+    }
+
+    // PoolMemberData data packing:
+    // -------- ---------- -------- -------------
+    // WORD A: | reserved | poolId | poolAddress |
+    // -------- ---------- -------- -------------
+    //         |    64    |   32   |     160     |
+    // -------- ---------- -------- -------------
+
+    function _getPoolMemberId(
+        address poolMember,
+        ISuperTokenPool pool
+    ) internal view returns (bytes32) {
+        return
+            keccak256(
+                abi.encode(
+                    block.chainid,
+                    "poolMember",
+                    poolMember,
+                    address(pool)
+                )
+            );
+    }
+
+    function _encodePoolMemberData(
+        PoolMemberData memory poolMemberData
+    ) internal pure returns (bytes32[] memory data) {
+        data = new bytes32[](1);
+        data[0] = bytes32(
+            (uint256(uint32(poolMemberData.poolId)) << 160) |
+                uint256(uint160(poolMemberData.pool))
+        );
+    }
+
+    function _decodePoolMemberData(
+        uint256 data
+    ) internal pure returns (bool exist, PoolMemberData memory poolMemberData) {
+        exist = data > 0;
+        if (exist) {
+            poolMemberData.pool = address(
+                uint160(data & uint256(type(uint160).max))
+            );
+            poolMemberData.poolId = uint32(data >> 160);
+        }
+    }
+
+    function _getPoolMemberData(
+        ISuperfluidToken token,
+        address poolMember,
+        ISuperTokenPool pool
+    ) internal view returns (bool exist, PoolMemberData memory poolMemberData) {
+        bytes32[] memory data = token.getAgreementData(
+            address(this),
+            _getPoolMemberId(poolMember, pool),
+            1
+        );
+
+        (exist, poolMemberData) = _decodePoolMemberData(uint256(data[0]));
+    }
+
+    // SlotsBitmap Pool Data:
+    function _findAndFillPoolConnectionsBitmap(
+        ISuperfluidToken token,
+        address poolMember,
+        bytes32 poolId
+    ) private returns (uint32 slotId) {
+        return
+            SlotsBitmapLibrary.findEmptySlotAndFill(
+                token,
+                poolMember,
+                _POOL_SUBS_BITMAP_STATE_SLOT_ID,
+                _POOL_CONNECTIONS_DATA_STATE_SLOT_ID_START,
+                poolId
+            );
+    }
+
+    function _clearPoolConnectionsBitmap(
+        ISuperfluidToken token,
+        address poolMember,
+        uint32 slotId
+    ) private {
+        SlotsBitmapLibrary.clearSlot(
+            token,
+            poolMember,
+            _POOL_SUBS_BITMAP_STATE_SLOT_ID,
+            slotId
+        );
+    }
+
+    function _listPoolConnectionIds(
+        ISuperfluidToken token,
+        address subscriber
+    ) private view returns (uint32[] memory slotIds, bytes32[] memory pidList) {
+        (slotIds, pidList) = SlotsBitmapLibrary.listData(
+            token,
+            subscriber,
+            _POOL_SUBS_BITMAP_STATE_SLOT_ID,
+            _POOL_CONNECTIONS_DATA_STATE_SLOT_ID_START
         );
     }
 }

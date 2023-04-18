@@ -61,8 +61,8 @@ contract GeneralDistributionAgreementV1Properties is
 
     function test_Pool_Encode_Decode(address pool) public {
         vm.assume(pool != address(0));
-        bytes32[] memory encodedData = _encodePoolData(pool);
-        (, address decoded) = _decodePoolData(uint256(encodedData[0]));
+        bytes32[] memory encodedData = _encodePoolExistenceData(pool);
+        (, address decoded) = _decodePoolExistenceData(uint256(encodedData[0]));
 
         assertEq(pool, decoded);
     }
@@ -84,5 +84,21 @@ contract GeneralDistributionAgreementV1Properties is
 
         assertEq(original.flowRate, decoded.flowRate);
         assertEq(original.buffer, decoded.buffer);
+    }
+
+    function test_Pool_Member_Data_Encode_Decode(address pool, uint32 poolId) public {
+        vm.assume(pool != address(0));
+        GeneralDistributionAgreementV1.PoolMemberData memory original = GeneralDistributionAgreementV1.PoolMemberData({
+            pool: pool,
+            poolId: poolId
+        });
+        bytes32[] memory encodedData = _encodePoolMemberData(original);
+        (
+            ,
+            GeneralDistributionAgreementV1.PoolMemberData memory decoded
+        ) = _decodePoolMemberData(uint256(encodedData[0]));
+
+        assertEq(original.pool, decoded.pool);
+        assertEq(original.poolId, decoded.poolId);
     }
 }

@@ -138,7 +138,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         Unit wrappedUnit = Unit.wrap(unit);
 
         // update pool's pending units
-        if (!_gda.isMemberConnected(address(this), memberAddr)) {
+        if (!_gda.isMemberConnected(superToken, address(this), memberAddr)) {
             pendingUnits =
                 pendingUnits -
                 _members[memberAddr].owned_units +

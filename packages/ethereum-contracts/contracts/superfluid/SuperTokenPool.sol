@@ -179,18 +179,21 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         uint32 time,
         address memberAddr
     ) public override returns (bool) {
-        int256 claimable = getClaimable(time, memberAddr);
-        Value wrappedClaimable = Value.wrap(claimable);
+        Value claimable = Value.wrap(getClaimable(time, memberAddr));
         {
             address[] memory addresses = new address[](2);
             addresses[0] = address(this);
             addresses[1] = memberAddr;
-            BasicParticle[] memory ps = new BasicParticle[](2);
+            BasicParticle[] memory particles = new BasicParticle[](2);
             BasicParticle memory mempty1;
-            (ps[0], ps[1]) = mempty1.shift2(mempty1, wrappedClaimable);
-            assert(_gda.absorbParticlesFromPool(superToken, addresses, ps));
+            // @note this does not update the _settled_at field as no settle
+            // occurs here
+            (particles[0], particles[1]) = mempty1.shift2(mempty1, claimable);
+            assert(
+                _gda.absorbParticlesFromPool(superToken, addresses, particles)
+            );
         }
-        _claimedValues[memberAddr] = wrappedClaimable;
+        _claimedValues[memberAddr] = _claimedValues[memberAddr] + claimable;
         return true;
     }
 

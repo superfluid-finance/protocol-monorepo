@@ -439,10 +439,6 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             bob,
             block.timestamp
         );
-        // @note welp this isn't working, claimAll does absorbParticlesFromPool
-        // shift2 might also not be correct here?
-        // this is not properly updating the UIndexes of the account claiming
-        // their RTB is still 0 when it should be the claimable amount
-        // assertEq(bobRTB, bobClaimable, "bobRTB != bobClaimable");
+        assertEq(bobRTB, bobClaimable, "bobRTB != bobClaimable");
     }
 }

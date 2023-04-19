@@ -53,6 +53,19 @@ import { AgreementLibrary } from "./AgreementLibrary.sol";
  * account              = distributor
  * Distributor Agreement State stores the FlowDistributionData state (totals) for a distributor.
  *
+ * Slots Bitmap Data Slot
+ * slotId           = _POOL_SUBS_BITMAP_STATE_SLOT_ID or 2
+ * msg.sender       = address of GDAv1
+ * account          = context.msgSender
+ * Slots Bitmap Data Slot stores the bitmap of the slots that are "enabled" for a pool member.
+ *
+ * Pool Connections Data Slot Id Start
+ * slotId (start)   = _POOL_CONNECTIONS_DATA_STATE_SLOT_ID_START or 1 << 128 or 340282366920938463463374607431768211456
+ * msg.sender       = address of GDAv1
+ * account          = context.msgSender
+ * Pool Connections Data Slot Id Start indicates the starting slot for where we begin to store the pools that a
+ * pool member is a part of.
+ *
  * Agreement Data
  * NOTE The Agreement Data slot is calculated with the following function:
  * keccak256(abi.encode("AgreementData", agreementClass, agreementId))
@@ -127,7 +140,6 @@ contract GeneralDistributionAgreementV1 is
         );
 
         available = Value.unwrap(uIndexData.rtb(Time.wrap(uint32(time))));
-
         if (_isPool(token, account)) {
             available =
                 available +
@@ -225,10 +237,10 @@ contract GeneralDistributionAgreementV1 is
         address from,
         address to
     ) external view override returns (int96) {
+        bytes32 distributionFlowAddress = _getFlowDistributionId(from, to);
         (, FlowDistributionData memory data) = _getFlowDistributionData(
             token,
-            from,
-            ISuperTokenPool(to)
+            distributionFlowAddress
         );
         return data.flowRate;
     }
@@ -240,7 +252,10 @@ contract GeneralDistributionAgreementV1 is
         int96 requestedFlowRate
     ) external view override returns (int96 finalFlowRate) {
         Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 distributionFlowAddress = _getDistributionFlowId(from, to);
+        bytes32 distributionFlowAddress = _getFlowDistributionId(
+            from,
+            address(to)
+        );
 
         BasicParticle memory fromUIndexData = _getUIndex(
             abi.encode(token),
@@ -382,7 +397,11 @@ contract GeneralDistributionAgreementV1 is
         bytes memory eff = abi.encode(token);
         for (uint i = 0; i < accounts.length; i++) {
             // update account particle
-            _setUIndex(eff, accounts[i], _getUIndex(eff, accounts[i]).mappend(ps[i]));
+            _setUIndex(
+                eff,
+                accounts[i],
+                _getUIndex(eff, accounts[i]).mappend(ps[i])
+            );
         }
         return true;
     }
@@ -441,9 +460,9 @@ contract GeneralDistributionAgreementV1 is
         newCtx = ctx;
 
         Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 distributionFlowAddress = _getDistributionFlowId(
+        bytes32 distributionFlowAddress = _getFlowDistributionId(
             currentContext.msgSender,
-            to
+            address(to)
         );
 
         // @note it would be nice to have oldflowRate returned from _doDistributeFlow
@@ -594,21 +613,17 @@ contract GeneralDistributionAgreementV1 is
     function _decodeUniversalIndexData(
         bytes32[] memory data
     ) internal pure returns (bool exists, BasicParticle memory particle) {
-        uint256 wordA = uint256(data[0]);
-        uint256 wordB = uint256(data[1]);
+        uint256 a = uint256(data[0]);
+        uint256 b = uint256(data[1]);
 
-        exists = wordA > 0;
+        exists = a > 0 || b > 0;
 
         if (exists) {
-            particle = BasicParticle({
-                _flow_rate: FlowRate.wrap(
-                    int96(
-                        int256(wordA >> 160) & int256(uint256(type(uint96).max))
-                    )
-                ),
-                _settled_at: Time.wrap(uint32(wordA >> 96)),
-                _settled_value: Value.wrap(int256(wordB))
-            });
+            particle._flow_rate = FlowRate.wrap(
+                int96(int256(a >> 160) & int256(uint256(type(uint96).max)))
+            );
+            particle._settled_at = Time.wrap(uint32(a >> 96));
+            particle._settled_value = Value.wrap(int256(b));
         }
     }
 
@@ -806,19 +821,12 @@ contract GeneralDistributionAgreementV1 is
     //         |    64    |    96    |   96   |
     // -------- ---------- ---------- --------
 
-    function _getDistributionFlowId(
+    function _getFlowDistributionId(
         address from,
-        ISuperTokenPool pool
+        address to
     ) internal view returns (bytes32) {
         return
-            keccak256(
-                abi.encode(
-                    block.chainid,
-                    "distributionFlow",
-                    from,
-                    address(pool)
-                )
-            );
+            keccak256(abi.encode(block.chainid, "distributionFlow", from, to));
     }
 
     function _encodeFlowDistributionData(
@@ -858,26 +866,6 @@ contract GeneralDistributionAgreementV1 is
         bytes32[] memory data = token.getAgreementData(
             address(this),
             distributionFlowId,
-            1
-        );
-
-        (exist, flowDistributionData) = _decodeFlowDistributionData(
-            uint256(data[0])
-        );
-    }
-
-    function _getFlowDistributionData(
-        ISuperfluidToken token,
-        address from,
-        ISuperTokenPool pool
-    )
-        internal
-        view
-        returns (bool exist, FlowDistributionData memory flowDistributionData)
-    {
-        bytes32[] memory data = token.getAgreementData(
-            address(this),
-            _getDistributionFlowId(from, pool),
             1
         );
 

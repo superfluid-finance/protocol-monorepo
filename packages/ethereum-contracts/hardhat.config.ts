@@ -31,6 +31,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
 const chainIds = {
     "eth-mainnet": 1,
     "eth-goerli": 5,
+    "eth-sepolia": 11155111,
 
     "xdai-mainnet": 100,
 
@@ -79,11 +80,11 @@ const config: HardhatUserConfig = {
     networks: {
         "bsc-mainnet": {
             ...createNetworkConfig("bsc-mainnet"),
-            url: process.env.BSC_PROVIDER_URL || "",
+            url: process.env.BSC_MAINNET_PROVIDER_URL || "",
         },
         "eth-goerli": {
             ...createNetworkConfig("eth-goerli"),
-            url: process.env.GOERLI_PROVIDER_URL || "",
+            url: process.env.ETH_GOERLI_PROVIDER_URL || "",
         },
         "xdai-mainnet": {
             ...createNetworkConfig("xdai-mainnet"),
@@ -91,39 +92,43 @@ const config: HardhatUserConfig = {
         },
         "optimism-mainnet": {
             ...createNetworkConfig("optimism-mainnet"),
-            url: process.env.OPMAINNET_PROVIDER_URL || "",
+            url: process.env.OPTIMISM_MAINNET_PROVIDER_URL || "",
         },
         "optimism-goerli": {
             ...createNetworkConfig("optimism-goerli"),
-            url: process.env.OPGOERLI_PROVIDER_URL || "",
+            url: process.env.OPTIMISM_GOERLI_PROVIDER_URL || "",
         },
         "arbitrum-one": {
             ...createNetworkConfig("arbitrum-one"),
-            url: process.env.ARBONE_PROVIDER_URL || "",
+            url: process.env.ARBITRUM_ONE_PROVIDER_URL || "",
         },
         "arbitrum-goerli": {
             ...createNetworkConfig("arbitrum-goerli"),
-            url: process.env.ARBGOERLI_PROVIDER_URL || "",
+            url: process.env.ARBITRUM_GOERLI_PROVIDER_URL || "",
         },
         "polygon-mainnet": {
             ...createNetworkConfig("polygon-mainnet"),
-            url: process.env.MATIC_PROVIDER_URL || "",
+            url: process.env.POLYGON_MAINNET_PROVIDER_URL || "",
         },
         "polygon-mumbai": {
             ...createNetworkConfig("polygon-mumbai"),
-            url: process.env.MUMBAI_PROVIDER_URL || "",
+            url: process.env.POLYGON_MUMBAI_PROVIDER_URL || "",
         },
         "avalanche-c": {
             ...createNetworkConfig("avalanche-c"),
-            url: process.env.AVALANCHE_PROVIDER_URL || "",
+            url: process.env.AVALANCHE_C_PROVIDER_URL || "",
         },
         "avalanche-fuji": {
             ...createNetworkConfig("avalanche-fuji"),
-            url: process.env.AVALANCHE_PROVIDER_URL || "",
+            url: process.env.AVALANCHE_FUJI_PROVIDER_URL || "",
         },
         "celo-mainnet": {
             ...createNetworkConfig("celo-mainnet"),
             url: process.env.CELO_MAINNET_PROVIDER_URL || "",
+        },
+        "eth-sepolia": {
+            ...createNetworkConfig("eth-sepolia"),
+            url: process.env.ETH_SEPOLIA_PROVIDER_URL || "",
         },
         coverage: {
             url: "http://127.0.0.1:8555",

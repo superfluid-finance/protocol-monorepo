@@ -56,6 +56,7 @@ try {
 const ALIASES = {
     "eth-mainnet": ["mainnet"],
     "eth-goerli": ["goerli"],
+    "eth-sepolia": ["sepolia"],
 
     "xdai-mainnet": ["xdai"],
 
@@ -171,6 +172,15 @@ const E = (module.exports = {
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
+
+        "eth-sepolia": {
+            ...createNetworkDefaultConfiguration("eth-sepolia"),
+            network_id: 11155111,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
 
         //
         // Polygon: https://docs.polygon.technology/docs/develop/network-details/network/

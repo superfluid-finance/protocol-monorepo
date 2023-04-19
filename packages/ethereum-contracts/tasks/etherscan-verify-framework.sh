@@ -14,6 +14,7 @@ ADDRESSES_VARS=$2
 # network specifics
 case $TRUFFLE_NETWORK in
     eth-goerli | \
+    eth-sepolia | \
     polygon-mumbai | \
     optimism-goerli | \
     arbitrum-goerli | \

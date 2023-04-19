@@ -49,6 +49,11 @@ module.exports = function getConfig(chainId) {
             patricianPeriod: 3600 * 0.2,
             biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
         },
+        11155111: {
+            // sepolia
+            liquidationPeriod: 3600,
+            patricianPeriod: 3600 * 0.2,
+        },
         4: {
             // rinkeby
             liquidationPeriod: 3600,

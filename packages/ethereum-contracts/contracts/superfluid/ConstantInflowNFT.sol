@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
+import {
+    IERC721Metadata
+} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import {
     IConstantFlowAgreementV1
@@ -11,6 +14,7 @@ import {
 import {
     IConstantInflowNFT
 } from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 
 /// @title ConstantInflowNFT Contract (CIF NFT)
@@ -18,13 +22,15 @@ import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 /// @notice The ConstantInflowNFT contract to be minted to the flow sender on flow creation.
 /// @dev This contract does not hold any storage, but references the ConstantOutflowNFT contract storage.
 contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
-    /**************************************************************************
-     * Custom Errors
-     *************************************************************************/
-    error CIF_NFT_ONLY_CONSTANT_OUTFLOW(); // 0xe81ef57a
+    IConstantOutflowNFT public immutable CONSTANT_OUTFLOW_NFT;
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}
+    constructor(
+        ISuperfluid host,
+        IConstantOutflowNFT constantOutflowNFT
+    ) FlowNFTBase(host) {
+        CONSTANT_OUTFLOW_NFT = constantOutflowNFT;
+    }
 
     function proxiableUUID() public pure override returns (bytes32) {
         return
@@ -63,9 +69,18 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
         override(FlowNFTBase, IFlowNFTBase)
         returns (FlowNFTData memory flowData)
     {
-        IConstantOutflowNFT constantOutflowNFT = superToken
-            .constantOutflowNFT();
-        flowData = constantOutflowNFT.flowDataByTokenId(tokenId);
+        flowData = CONSTANT_OUTFLOW_NFT.flowDataByTokenId(tokenId);
+    }
+
+    function tokenURI(
+        uint256 tokenId
+    )
+        external
+        view
+        override(FlowNFTBase, IERC721Metadata)
+        returns (string memory)
+    {
+        return _tokenURI(tokenId, true);
     }
 
     /// @inheritdoc FlowNFTBase
@@ -99,8 +114,7 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
     }
 
     modifier onlyConstantOutflowNFT() {
-        address constantOutflowNFT = address(superToken.constantOutflowNFT());
-        if (msg.sender != constantOutflowNFT) {
+        if (msg.sender != address(CONSTANT_OUTFLOW_NFT)) {
             revert CIF_NFT_ONLY_CONSTANT_OUTFLOW();
         }
         _;

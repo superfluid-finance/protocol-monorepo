@@ -174,7 +174,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                 console.log("checking if 2nd run needed");
                 try {
                     const beaconST = await ISuperToken.at(batch[0]);
-                    const cofAddr = await beaconST.constantOutflowNFT();
+                    const cofAddr = await beaconST.CONSTANT_OUTFLOW_NFT();
                     if (cofAddr === ZERO_ADDRESS) {
                         console.log("running upgrade again for NFT initialization...");
                         // the first time it is to get the code to initialize the NFT proxies there

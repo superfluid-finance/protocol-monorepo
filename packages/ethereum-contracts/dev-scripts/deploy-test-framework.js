@@ -1,6 +1,5 @@
 const {ethers} = require("hardhat");
 
-const SuperfluidNFTDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SuperfluidNFTDeployerLibrary.sol/SuperfluidNFTDeployerLibrary.json");
 const SuperTokenPoolDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SuperTokenPoolDeployerLibrary.sol/SuperTokenPoolDeployerLibrary.json");
 const SuperfluidGovDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidGovDeployerLibrary.json");
 const SuperfluidHostDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidHostDeployerLibrary.json");
@@ -134,22 +133,12 @@ const deployTestFramework = async () => {
                 },
             }
         );
-    const SuperfluidNFTDeployerLibrary =
-        await _getFactoryAndReturnDeployedContract(
-            "SuperfluidNFTDeployerLibrary",
-            SuperfluidNFTDeployerLibraryArtifact,
-            signer
-        );
     const SuperTokenDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperTokenDeployerLibrary",
             SuperTokenDeployerLibraryArtifact,
             {
                 signer,
-                libraries: {
-                    SuperfluidNFTDeployerLibrary:
-                        SuperfluidNFTDeployerLibrary.address,
-                },
             }
         );
     const SuperfluidPeripheryDeployerLibrary =

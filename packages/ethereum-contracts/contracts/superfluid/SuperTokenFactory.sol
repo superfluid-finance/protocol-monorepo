@@ -13,8 +13,8 @@ import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { SuperToken } from "../superfluid/SuperToken.sol";
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
-import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
-import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
+import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,
@@ -33,6 +33,12 @@ abstract contract SuperTokenFactoryBase is
     ISuperToken immutable public _SUPER_TOKEN_LOGIC;
 
     ISuperfluid immutable internal _host;
+
+    // solhint-disable-next-line var-name-mixedcase
+    IConstantOutflowNFT immutable public CONSTANT_OUTFLOW_NFT_LOGIC;
+
+    // solhint-disable-next-line var-name-mixedcase
+    IConstantInflowNFT immutable public CONSTANT_INFLOW_NFT_LOGIC;
 
     /**************************************************************************
     * Storage Variables
@@ -62,7 +68,9 @@ abstract contract SuperTokenFactoryBase is
 
     constructor(
         ISuperfluid host,
-        ISuperToken superTokenLogic
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFTLogic,
+        IConstantInflowNFT constantInflowNFTLogic
     ) {
         _host = host;
 
@@ -71,6 +79,10 @@ abstract contract SuperTokenFactoryBase is
         _SUPER_TOKEN_LOGIC = superTokenLogic;
 
         UUPSProxiable(address(_SUPER_TOKEN_LOGIC)).castrate();
+
+        CONSTANT_OUTFLOW_NFT_LOGIC = constantOutflowNFTLogic;
+
+        CONSTANT_INFLOW_NFT_LOGIC = constantInflowNFTLogic;
 
         // emit SuperTokenLogicCreated event
         // note that creation here means the setting of the super token logic contract
@@ -113,6 +125,23 @@ abstract contract SuperTokenFactoryBase is
             revert SUPER_TOKEN_FACTORY_ONLY_HOST();
         }
         _updateCodeAddress(newAddress);
+
+        // Upgrade the Flow NFT logic contracts on the canonical proxies
+        // We only do this if the new logic contracts passed in updating the SuperTokenFactory
+        // are different from the current logic contracts
+        if (
+            address(CONSTANT_OUTFLOW_NFT_LOGIC) !=
+            UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_OUTFLOW_NFT()))
+                .getCodeAddress() ||
+            address(CONSTANT_INFLOW_NFT_LOGIC) !=
+            UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_INFLOW_NFT()))
+                .getCodeAddress()
+        ) {
+            UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_OUTFLOW_NFT()))
+                .updateCode(address(CONSTANT_OUTFLOW_NFT_LOGIC));
+            UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_INFLOW_NFT()))
+                .updateCode(address(CONSTANT_INFLOW_NFT_LOGIC));
+        }
     }
 
     /**************************************************************************
@@ -327,10 +356,18 @@ contract SuperTokenFactory is SuperTokenFactoryBase
 
     constructor(
         ISuperfluid host,
-        ISuperToken superTokenLogic
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
-        SuperTokenFactoryBase(host, superTokenLogic)
-        // solhint-disable-next-line no-empty-blocks
+        SuperTokenFactoryBase(
+            host,
+            superTokenLogic,
+            constantOutflowNFT,
+            constantInflowNFT
+        )
+    // solhint-disable-next-line no-empty-blocks
     {
+
     }
 }

@@ -166,7 +166,6 @@ Example using React Hook:
 const tx = await rpcApi.createFlow({
     signer,
     chainId,
-    waitForConfirmation,
     senderAddress: senderAddress,
     receiverAddress: receiver,
     flowRateWei: flowRate,

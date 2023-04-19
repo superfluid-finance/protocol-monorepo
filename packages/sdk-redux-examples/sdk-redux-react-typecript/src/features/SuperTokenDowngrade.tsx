@@ -14,15 +14,12 @@ export const SuperTokenDowngrade: FC = (): ReactElement => {
 
     const [amount, setAmount] = useState<string>("");
     const [superToken, setSuperToken] = useState<string>("");
-    const [waitForConfirmation, setWaitForConfirmation] =
-        useState<boolean>(false);
 
     const handleDowngradeFromSuperToken = (e: SyntheticEvent) => {
         downgradeFromSuperToken({   
             chainId,
             superTokenAddress: superToken,
             amountWei: amount,
-            waitForConfirmation,
             signer
         } as SuperTokenDowngradeMutation);
     };
@@ -48,13 +45,6 @@ export const SuperTokenDowngrade: FC = (): ReactElement => {
                                 label="Amount"
                                 onChange={(e) =>
                                     setAmount(e.currentTarget.value)
-                                }
-                            />
-                            <Switch
-                                value={waitForConfirmation}
-                                title="Wait for confirmation"
-                                onChange={() =>
-                                    setWaitForConfirmation(!waitForConfirmation)
                                 }
                             />
                             <Button

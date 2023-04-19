@@ -3,8 +3,7 @@ pragma solidity ^0.8.0;
 
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
 import { FlowOperatorDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import { SuperfluidFrameworkDeployer, SuperfluidTester, Superfluid, ConstantFlowAgreementV1, CFAv1Library } from "../test/SuperfluidTester.sol";
-import { ERC1820RegistryCompiled } from "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
+import { SuperfluidTester, CFAv1Library } from "../test/SuperfluidTester.sol";
 import { IVestingScheduler } from "./../contracts/interface/IVestingScheduler.sol";
 import { VestingScheduler } from "./../contracts/VestingScheduler.sol";
 
@@ -66,13 +65,7 @@ contract VestingSchedulerTests is SuperfluidTester {
 
     /// @dev This is required by solidity for using the CFAv1Library in the tester
     using CFAv1Library for CFAv1Library.InitData;
-
-    SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperfluidFrameworkDeployer.Framework internal sf;
-    Superfluid host;
-    ConstantFlowAgreementV1 cfa;
     VestingScheduler internal vestingScheduler;
-    uint256 private _expectedTotalSupply = 0;
     CFAv1Library.InitData internal cfaV1Lib;
 
     /// @dev Constants for Testing
@@ -84,13 +77,6 @@ contract VestingSchedulerTests is SuperfluidTester {
     bytes constant EMPTY_CTX = "";
 
     constructor() SuperfluidTester(3) {
-        vm.startPrank(admin);
-        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
-        sfDeployer = new SuperfluidFrameworkDeployer();
-        sf = sfDeployer.getFramework();
-        host = sf.host;
-        cfa = sf.cfa;
-        vm.stopPrank();
         vestingScheduler = new VestingScheduler(host, "");
 
         cfaV1Lib = CFAv1Library.InitData(host,cfa);
@@ -99,7 +85,7 @@ contract VestingSchedulerTests is SuperfluidTester {
     /// SETUP AND HELPERS
 
     function setUp() public virtual {
-        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
 
         for (uint32 i = 0; i < N_TESTERS; ++i) {
             token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);

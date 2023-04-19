@@ -19,7 +19,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [14.x, 16.x, 18.x]
+        node-version: [16.x, 18.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -90,14 +90,13 @@ jobs:
   # deploy subgraph if changes are made, we can call this every time, but we won't actually do any deployments
   # if the IPFS hash generated stays the same (no mapping logic changes)
   deploy-subgraph-changes:
-    uses: ./.github/workflows/call.deploy-subgraph.yml
-    name: "Deploy Subgraph to all dev endpoints"
+    uses: ./.github/workflows/call.deploy-hosted-service-subgraph.yml
+    name: "Deploy Hosted Service Subgraph to dev endpoints on all networks"
     needs: [check, test-subgraph]
     if: needs.check.outputs.build_subgraph
     with:
       release_branch: dev
-      deploy_to_satsuma_endpoint: false
-      # empty network deploys to all networks
+      # empty string network deploys to all networks
       network: ""
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
@@ -135,15 +134,17 @@ jobs:
           yarn build
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
-      # - name: Install lcov
-      #   run: sudo apt-get -y install lcov
+      - name: Install lcov
+        run: sudo apt-get -y install lcov
 
-      # - name: Clean up and merge coverage artifacts
-      #   run: |
-      #     # extract coverage for NFT contracts from forge coverage
-      #     lcov -e lcov.info -o lcov.info 'packages/ethereum-contracts/contracts/superfluid/*NFT*.sol'
-      #     # merge hardhat and forge coverage files
-      #     lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o packages/ethereum-contracts/coverage/lcov.info
+      - name: Clean up and merge coverage artifacts
+        run: |
+          # extract coverage for NFT contracts from forge coverage
+          lcov -e lcov.info 'packages/ethereum-contracts/contracts/*' -o lcov.info
+          # remove mocks, base super app, test and deployer contracts (see .solcover.js)
+          lcov -r lcov.info 'packages/ethereum-contracts/contracts/mocks/*' 'packages/ethereum-contracts/contracts/apps/*Base*' 'packages/ethereum-contracts/contracts/utils/*Test*' 'packages/ethereum-contracts/contracts/utils/*Deployer*' -o lcov.info
+          # merge hardhat and forge coverage files
+          lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o packages/ethereum-contracts/coverage/lcov.info
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v3

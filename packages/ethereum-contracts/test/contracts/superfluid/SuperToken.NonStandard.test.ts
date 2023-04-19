@@ -9,6 +9,7 @@ import {
     SuperToken,
     SuperToken__factory,
     SuperTokenMock,
+    SuperTokenStorageLayoutTester,
     TestToken,
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
@@ -62,9 +63,16 @@ describe("SuperToken's Non Standard Functions", function () {
 
     describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
-            const T = artifacts.require("SuperTokenStorageLayoutTester");
-            const tester = await T.new(superfluid.address);
-            await tester.validateStorageLayout();
+            const {constantOutflowNFTProxy, constantInflowNFTProxy} =
+                await t.deployNFTContracts();
+            const superTokenLogic =
+                await t.deployContract<SuperTokenStorageLayoutTester>(
+                    "SuperTokenStorageLayoutTester",
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
+                );
+            await superTokenLogic.validateStorageLayout();
         });
 
         it("#1.2 proxiable info", async () => {
@@ -693,11 +701,16 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#3.1 Custom token storage should not overlap with super token", async () => {
-            const T = await ethers.getContractFactory(
-                "SuperTokenStorageLayoutTester"
-            );
-            const tester = await T.deploy(superfluid.address);
-            const a = await tester.getLastSuperTokenStorageSlot();
+            const {constantOutflowNFTProxy, constantInflowNFTProxy} =
+                await t.deployNFTContracts();
+            const superTokenLogic =
+                await t.deployContract<SuperTokenStorageLayoutTester>(
+                    "SuperTokenStorageLayoutTester",
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
+                );
+            const a = await superTokenLogic.getLastSuperTokenStorageSlot();
             const b = await customToken.getFirstCustomTokenStorageSlot();
             console.log("lastSuperTokenStorageSlot", a.toString());
             console.log("firstCustomTokenStorageSlot", b.toString());

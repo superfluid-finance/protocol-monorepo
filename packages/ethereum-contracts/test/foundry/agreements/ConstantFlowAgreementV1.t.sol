@@ -23,7 +23,7 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
         assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate);
         assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate);
 
-        assertTrue(checkAllInvariants());
+        assert_Global_Invariants();
     }
 
     function testBobAliceLoop(uint32 a) public {
@@ -42,6 +42,6 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
         assertEq(sf.cfa.getNetFlow(superToken, alice), 0);
         assertEq(sf.cfa.getNetFlow(superToken, bob), 0);
 
-        assertTrue(checkAllInvariants());
+        assert_Global_Invariants();
     }
 }

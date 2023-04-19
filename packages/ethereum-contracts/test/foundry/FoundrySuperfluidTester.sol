@@ -1,26 +1,46 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import "forge-std/Test.sol";
+import { Test } from "forge-std/Test.sol";
 
 import {
-    Superfluid,
-    ConstantFlowAgreementV1,
-    InstantDistributionAgreementV1,
-    TestToken,
-    SuperToken,
     SuperfluidFrameworkDeployer,
+    TestResolver,
+    SuperfluidLoader
+} from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import {
+    ERC1820RegistryCompiled
+} from "../../contracts/libs/ERC1820RegistryCompiled.sol";
+import {
+    SuperTokenDeployer
+} from "../../contracts/utils/SuperTokenDeployer.sol";
+import {
     CFAv1Library,
-    IDAv1Library
-} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
-import "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
-
+    IDAv1Library,
+    Superfluid
+} from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
+import {
+    SuperTokenV1Library
+} from "../../contracts/apps/SuperTokenV1Library.sol";
+import {
+    TestToken,
+    SuperToken
+} from "../../contracts/utils/SuperTokenDeployer.sol";
 
 contract FoundrySuperfluidTester is Test {
+    using SuperTokenV1Library for SuperToken;
+
+    SuperfluidFrameworkDeployer internal immutable sfDeployer;
+    SuperTokenDeployer internal immutable superTokenDeployer;
+
+    SuperfluidFrameworkDeployer.Framework internal sf;
+    TestResolver internal resolver;
+    address internal constant admin = address(0x420);
+
 
     uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
-    address internal constant admin = address(0x420);
     address internal constant alice = address(0x421);
     address internal constant bob = address(0x422);
     address internal constant carol = address(0x423);
@@ -33,31 +53,54 @@ contract FoundrySuperfluidTester is Test {
     address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
 
     uint internal immutable N_TESTERS;
-    SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperfluidFrameworkDeployer.Framework internal sf;
 
     TestToken internal token;
     SuperToken internal superToken;
 
     uint256 private _expectedTotalSupply;
 
-    constructor (uint8 nTesters) {
-        require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
-        N_TESTERS = nTesters;
-
-        vm.startPrank(admin);
-
-        // Deploy ERC1820
+    constructor(uint8 nTesters) {
+        // etch erc1820
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
 
+        // deploy SuperfluidFrameworkDeployer
+        // which deploys in its constructor:
+        // - TestGovernance
+        // - Host
+        // - CFA
+        // - IDA
+        // - ConstantOutflowNFT logic
+        // - ConstantInflowNFT logic
+        // - SuperToken logic
+        // - SuperTokenFactory
+        // - Resolver
+        // - SuperfluidLoader
+        // - CFAv1Forwarder
         sfDeployer = new SuperfluidFrameworkDeployer();
         sf = sfDeployer.getFramework();
 
-        vm.stopPrank();
+        resolver = sf.resolver;
+
+        // deploy SuperTokenDeployer
+        superTokenDeployer = new SuperTokenDeployer(
+            address(sf.superTokenFactory),
+            address(sf.resolver)
+        );
+
+        // add superTokenDeployer as admin to the resolver so it can register the SuperTokens
+        sf.resolver.addAdmin(address(superTokenDeployer));
+
+        require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
+        N_TESTERS = nTesters;
     }
 
-    function setUp() virtual public {
-        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+    function setUp() public virtual {
+        (token, superToken) = superTokenDeployer.deployWrapperSuperToken(
+            "FTT",
+            "FTT",
+            18,
+            type(uint256).max
+        );
 
         for (uint i = 0; i < N_TESTERS; ++i) {
             token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
@@ -70,27 +113,187 @@ contract FoundrySuperfluidTester is Test {
         }
     }
 
-    function checkAllInvariants() public view returns (bool) {
+    /*//////////////////////////////////////////////////////////////////////////
+                                Invariant Definitions
+    //////////////////////////////////////////////////////////////////////////*/
+    /// @notice Superfluid Global Invariants
+    /// @dev Superfluid Global Invariants:
+    /// - Liquidity Sum Invariant
+    /// - Net Flow Rate Sum Invariant
+    /// @return bool Superfluid Global Invariants holds true
+    function definition_Global_Invariants() public view returns (bool) {
         return
-            checkLiquiditySumInvariance() &&
-            checkNetFlowRateSumInvariant();
+            definition_Liquidity_Sum_Invariant() &&
+            definition_Net_Flow_Rate_Sum_Invariant();
     }
 
-    function checkLiquiditySumInvariance() public view returns (bool) {
+    /// @notice Liquidity Sum Invariant definition
+    /// @dev Liquidity Sum Invariant: Expected Total Supply === Liquidity Sum
+    /// Liquidity Sum = sum of available balance, deposit and owed deposit for all users
+    /// @return bool Liquidity Sum Invariant holds true
+    function definition_Liquidity_Sum_Invariant() public view returns (bool) {
         int256 liquiditySum;
+
         for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            (int256 avb, uint256 d, uint256 od, ) = superToken.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
-            liquiditySum += avb + int256(d) - int256(od);
+            (
+                int256 availableBalance,
+                uint256 deposit,
+                uint256 owedDeposit,
+
+            ) = superToken.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
+
+            liquiditySum +=
+                availableBalance +
+                int256(deposit) -
+                int256(owedDeposit);
         }
+
         return int256(_expectedTotalSupply) == liquiditySum;
     }
 
-    function checkNetFlowRateSumInvariant() public view returns (bool) {
+    /// @notice Net Flow Rate Sum Invariant definition
+    /// @dev Net Flow Rate Sum Invariant: Sum of all net flow rates === 0
+    /// @return bool Net Flow Rate Sum Invariant holds true
+    function definition_Net_Flow_Rate_Sum_Invariant()
+        public
+        view
+        returns (bool)
+    {
         int96 netFlowRateSum;
         for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            netFlowRateSum += sf.cfa.getNetFlow(superToken, address(TEST_ACCOUNTS[i]));
+            netFlowRateSum += sf.cfa.getNetFlow(
+                superToken,
+                address(TEST_ACCOUNTS[i])
+            );
         }
         return netFlowRateSum == 0;
     }
 
+    function assert_Global_Invariants() public {
+        assertTrue(definition_Global_Invariants());
+    }
+
+    function assert_Liquidity_Sum_Invariant() public {
+        assertTrue(definition_Liquidity_Sum_Invariant());
+    }
+
+    function assert_Net_Flow_Rate_Sum_Invariant() public {
+        assertTrue(definition_Net_Flow_Rate_Sum_Invariant());
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Assertion Helpers
+    //////////////////////////////////////////////////////////////////////////*/
+    function assert_Modify_Flow_And_Net_Flow_Is_Expected(
+        address flowSender,
+        address flowReceiver,
+        int96 flowRateDelta,
+        int96 senderNetFlowBefore,
+        int96 receiverNetFlowBefore
+    ) internal {
+        int96 senderNetFlowAfter = superToken.getNetFlowRate(flowSender);
+        int96 receiverNetFlowAfter = superToken.getNetFlowRate(flowReceiver);
+
+        assertEq(
+            senderNetFlowAfter,
+            senderNetFlowBefore - flowRateDelta,
+            "sender net flow after"
+        );
+        assertEq(
+            receiverNetFlowAfter,
+            receiverNetFlowBefore + flowRateDelta,
+            "receiver net flow after"
+        );
+    }
+
+    function assert_Modify_Flow_And_Flow_Info_Is_Expected(
+        address flowSender,
+        address flowReceiver,
+        int96 expectedFlowRate,
+        uint256 expectedLastUpdated,
+        uint256 expectedOwedDeposit
+    ) internal {
+        (
+            uint256 lastUpdated,
+            int96 _flowRate,
+            uint256 deposit,
+            uint256 owedDeposit
+        ) = superToken.getFlowInfo(flowSender, flowReceiver);
+
+        uint256 expectedDeposit = superToken.getBufferAmountByFlowRate(
+            expectedFlowRate
+        );
+
+        assertEq(_flowRate, expectedFlowRate, "flow rate");
+        assertEq(lastUpdated, expectedLastUpdated, "last updated");
+        assertEq(deposit, expectedDeposit, "deposit");
+        assertEq(owedDeposit, expectedOwedDeposit, "owed deposit");
+    }
+
+    function assert_Flow_Info_Is_Empty(
+        address flowSender,
+        address flowReceiver
+    ) internal {
+        assert_Modify_Flow_And_Flow_Info_Is_Expected(
+            flowSender,
+            flowReceiver,
+            0,
+            0,
+            0
+        );
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Assume Helpers
+    //////////////////////////////////////////////////////////////////////////*/
+    /// @notice Assume a valid flow rate
+    /// @dev Flow rate must be greater than 0 and less than or equal to int32.max
+    function assume_Valid_Flow_Rate(
+        uint32 a
+    ) internal pure returns (int96 flowRate) {
+        vm.assume(a > 0);
+        vm.assume(a <= uint32(type(int32).max));
+        flowRate = int96(int32(a));
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Helper Functions
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function helper_Create_Flow_And_Assert_Global_Invariants(
+        address flowSender,
+        address flowReceiver,
+        uint32 _flowRate
+    ) internal returns (int96 absoluteFlowRate) {
+        int96 flowRate = assume_Valid_Flow_Rate(_flowRate);
+
+        absoluteFlowRate = flowRate;
+
+        int96 senderNetFlowRateBefore = superToken.getNetFlowRate(flowSender);
+        int96 receiverNetFlowRateBefore = superToken.getNetFlowRate(
+            flowReceiver
+        );
+
+        vm.startPrank(flowSender);
+        superToken.createFlow(flowReceiver, flowRate);
+        vm.stopPrank();
+
+        assert_Modify_Flow_And_Net_Flow_Is_Expected(
+            flowSender,
+            flowReceiver,
+            flowRate,
+            senderNetFlowRateBefore,
+            receiverNetFlowRateBefore
+        );
+
+        assert_Modify_Flow_And_Flow_Info_Is_Expected(
+            flowSender,
+            flowReceiver,
+            flowRate,
+            block.timestamp,
+            0
+        );
+
+        assert_Global_Invariants();
+    }
 }

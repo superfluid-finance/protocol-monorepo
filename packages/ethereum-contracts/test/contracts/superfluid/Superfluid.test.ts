@@ -14,7 +14,6 @@ import {
     SuperfluidMock,
     SuperToken,
     SuperTokenFactory,
-    SuperTokenFactoryUpdateLogicContractsTester,
     SuperTokenMock,
     TestGovernance,
 } from "../../../typechain-types";
@@ -434,18 +433,26 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                const superTokenLogicFactory = await ethers.getContractFactory(
-                    "SuperToken"
-                );
-                const superTokenLogic = await superTokenLogicFactory.deploy(
-                    superfluid.address
+                const {
+                    constantOutflowNFTProxy,
+                    constantInflowNFTProxy,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress,
+                } = await t.deployNFTContracts();
+                const superTokenLogic = await t.deployContract<SuperToken>(
+                    "SuperToken",
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
                 );
                 const factory2LogicFactory = await ethers.getContractFactory(
                     "SuperTokenFactory"
                 );
                 const factory2Logic = await factory2LogicFactory.deploy(
                     superfluid.address,
-                    superTokenLogic.address
+                    superTokenLogic.address,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress
                 );
                 await governance.updateContracts(
                     superfluid.address,
@@ -467,16 +474,27 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.3 update super token factory double check if new code is called", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
+                const {
+                    constantOutflowNFTProxy,
+                    constantInflowNFTProxy,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress,
+                } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
-                    superfluid.address
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
                 );
-                const factory2Logic =
-                    await t.deployContract<SuperTokenFactoryUpdateLogicContractsTester>(
-                        "SuperTokenFactoryUpdateLogicContractsTester",
-                        superfluid.address,
-                        superTokenLogic.address
-                    );
+                const factory2LogicFactory = await ethers.getContractFactory(
+                    "SuperTokenFactoryUpdateLogicContractsTester"
+                );
+                const factory2Logic = await factory2LogicFactory.deploy(
+                    superfluid.address,
+                    superTokenLogic.address,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress
+                );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -2642,14 +2660,24 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic()
                 );
+                const {
+                    constantOutflowNFTProxy,
+                    constantInflowNFTProxy,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress,
+                } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
-                    superfluid.address
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
                 );
                 const factory2Logic = await t.deployContract<SuperTokenFactory>(
                     "SuperTokenFactory",
                     superfluid.address,
-                    superTokenLogic.address
+                    superTokenLogic.address,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress
                 );
                 await expectCustomError(
                     governance.updateContracts(

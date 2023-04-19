@@ -191,8 +191,6 @@ const E = (module.exports = {
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
-            maxPriorityFeePerGas: 31e9,
-            maxFeePerGas: 500e9,
         },
 
         //

@@ -51,6 +51,7 @@ import {
 } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
+import { IResolver } from "../interfaces/utils/IResolver.sol";
 
 /// @title Superfluid Framework Deployer
 /// @notice This is NOT for deploying public nets, but rather only for tesing envs
@@ -109,6 +110,7 @@ contract SuperfluidFrameworkDeployer {
             trustedForwarders
         );
 
+        // TODO none of these agreement contracts are upgradeable proxies
         // Deploy ConstantFlowAgreementV1
         // @note TODO hook contract is no more-should be deleted
 
@@ -121,7 +123,9 @@ contract SuperfluidFrameworkDeployer {
         testGovernance.registerAgreementClass(host, address(cfaV1));
 
         // Deploy CFAv1Forwarder
-        cfaV1Forwarder = new CFAv1Forwarder(host);
+        cfaV1Forwarder = CFAv1ForwarderDeployerLibrary.deployCFAv1Forwarder(
+            host
+        );
 
         // Enable CFAv1Forwarder as a Trusted Forwarder
         testGovernance.enableTrustedForwarder(
@@ -226,7 +230,8 @@ contract SuperfluidFrameworkDeployer {
                 );
 
         // Deploy canonical Constant Outflow NFT proxy contract
-        UUPSProxy superTokenFactoryProxy = new UUPSProxy();
+        UUPSProxy superTokenFactoryProxy = ProxyDeployerLibrary
+            .deployUUPSProxy();
         superTokenFactoryProxy.initializeProxy(address(superTokenFactoryLogic));
 
         // SuperTokenFactory(address(superTokenFactoryProxy)).initialize();
@@ -247,7 +252,8 @@ contract SuperfluidFrameworkDeployer {
         );
 
         // Deploy SuperfluidLoader
-        superfluidLoader = new SuperfluidLoader(testResolver);
+        superfluidLoader = SuperfluidLoaderDeployerLibrary
+            .deploySuperfluidLoader(testResolver);
 
         // Register Governance with Resolver
         testResolver.set("TestGovernance.test", address(testGovernance));
@@ -423,6 +429,28 @@ library SuperfluidPeripheryDeployerLibrary {
         address _additionalAdmin
     ) external returns (TestResolver) {
         return new TestResolver(_additionalAdmin);
+    }
+}
+
+library CFAv1ForwarderDeployerLibrary {
+    /// @notice deploys the Superfluid CFAv1Forwarder contract
+    /// @param _host Superfluid host address
+    /// @return newly deployed CFAv1Forwarder contract
+    function deployCFAv1Forwarder(
+        ISuperfluid _host
+    ) external returns (CFAv1Forwarder) {
+        return new CFAv1Forwarder(_host);
+    }
+}
+
+library SuperfluidLoaderDeployerLibrary {
+    /// @notice deploys the Superfluid SuperfluidLoader contract
+    /// @param _resolver Superfluid resolver address
+    /// @return newly deployed SuperfluidLoader contract
+    function deploySuperfluidLoader(
+        IResolver _resolver
+    ) external returns (SuperfluidLoader) {
+        return new SuperfluidLoader(_resolver);
     }
 }
 

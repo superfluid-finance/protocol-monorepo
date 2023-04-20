@@ -58,6 +58,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function _helper_Distribute(
         ISuperfluidToken _superToken,
+        address from,
         SuperTokenPool _pool,
         uint256 requestedAmount
     ) internal {
@@ -65,7 +66,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             sf.gda,
             abi.encodeCall(
                 sf.gda.distribute,
-                (_superToken, _pool, requestedAmount, new bytes(0))
+                (_superToken, from, _pool, requestedAmount, new bytes(0))
             ),
             new bytes(0)
         );
@@ -127,7 +128,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function test_Distribute_With_No_Connections() public {
         vm.startPrank(alice);
-        _helper_Distribute(superToken, pool, 100);
+        _helper_Distribute(superToken, alice, pool, 100);
         vm.stopPrank();
     }
 
@@ -138,7 +139,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         vm.startPrank(alice);
         pool.updateMember(bob, 1);
-        _helper_Distribute(superToken, pool, 100);
+        _helper_Distribute(superToken, alice, pool, 100);
         vm.stopPrank();
         (int256 rtb, , ) = sf.gda.realtimeBalanceOf(
             superToken,

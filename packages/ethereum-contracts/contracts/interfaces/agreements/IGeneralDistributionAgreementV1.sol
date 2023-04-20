@@ -131,6 +131,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
 
     function distribute(
         ISuperfluidToken token,
+        address from,
         ISuperTokenPool pool,
         uint256 requestedAmount,
         bytes calldata ctx
@@ -138,7 +139,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
 
     function distributeFlow(
         ISuperfluidToken token,
-        address sender,
+        address from,
         ISuperTokenPool pool,
         int96 requestedFlowRate,
         bytes calldata ctx

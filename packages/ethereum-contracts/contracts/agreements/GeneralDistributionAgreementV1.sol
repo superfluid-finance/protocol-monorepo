@@ -414,10 +414,16 @@ contract GeneralDistributionAgreementV1 is
 
     function distribute(
         ISuperfluidToken token,
+        address from,
         ISuperTokenPool pool,
         uint256 requestedAmount,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
+        ISuperfluid.Context memory currentContext = AgreementLibrary
+            .authorizeTokenAccess(token, ctx);
+
+        newCtx = ctx;
+
         if (_isPool(token, address(pool)) == false) {
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
@@ -426,9 +432,9 @@ contract GeneralDistributionAgreementV1 is
             revert GDA_NO_NEGATIVE_DISTRIBUTION();
         }
 
-        ISuperfluid.Context memory currentContext = AgreementLibrary
-            .authorizeTokenAccess(token, ctx);
-        newCtx = ctx;
+        if (from != currentContext.msgSender) {
+            revert GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
+        }
 
         (, Value actualAmount) = _doDistribute(
             abi.encode(token),
@@ -544,7 +550,7 @@ contract GeneralDistributionAgreementV1 is
         bytes memory eff,
         address from,
         bytes32 flowHash,
-        FlowRate oldFlowRate,
+        FlowRate, // oldFlowRate,
         FlowRate newFlowRate
     ) internal returns (bytes memory) {
         address token = abi.decode(eff, (address));
@@ -573,7 +579,6 @@ contract GeneralDistributionAgreementV1 is
         Value bufferDelta = newBufferAmount -
             Value.wrap(int256(uint256(flowDistributionData.buffer)));
 
-        FlowRate flowRateDelta = newFlowRate - oldFlowRate;
         eff = _doShift(eff, from, address(this), bufferDelta);
 
         {
@@ -748,10 +753,11 @@ contract GeneralDistributionAgreementV1 is
     }
 
     function _getPDPIndex(
-        bytes memory eff,
+        bytes memory, // eff,
         address pool
     ) internal view override returns (PDPoolIndex memory) {
-        return SuperTokenPool(pool).getIndex();
+        SuperTokenPool.PoolIndexData memory data = SuperTokenPool(pool).getIndex();
+        return SuperTokenPool(pool).getPDPoolIndexFromPoolIndexData(data);
     }
 
     function _setPDPIndex(
@@ -779,10 +785,10 @@ contract GeneralDistributionAgreementV1 is
     function _setFlowInfo(
         bytes memory eff,
         bytes32 flowHash,
-        address from,
-        address to,
+        address, // from,
+        address, // to,
         FlowRate newFlowRate,
-        FlowRate flowRateDelta
+        FlowRate // flowRateDelta
     ) internal override returns (bytes memory) {
         address token = abi.decode(eff, (address));
         (

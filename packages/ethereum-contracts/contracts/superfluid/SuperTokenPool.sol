@@ -22,9 +22,9 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
 
     struct PoolIndexData {
         int128 totalUnits;
-        uint32 settledAt;
-        int96 flowRate;
-        int256 settledValue;
+        uint32 wrappedSettledAt;
+        int96 wrappedFlowRate;
+        int256 wrappedSettledValue;
     }
 
     struct MemberData {
@@ -40,12 +40,9 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
 
     ISuperfluidToken public superToken;
     address public admin;
-    // @note optimize these two: use custom storage structs
-    PDPoolIndex internal _index;
-    // combine these two into _membersData
-    mapping(address member => PDPoolMember member_data) internal _members;
-    mapping(address member => Value claimed_value) internal _claimedValues;
-    Unit public pendingUnits;
+    PoolIndexData internal _index;
+    mapping(address member => MemberData) internal _membersData;
+    int128 public pendingUnits;
 
     constructor(GeneralDistributionAgreementV1 gda) {
         _gda = gda;
@@ -66,28 +63,22 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
             );
     }
 
-    function getIndex() external view returns (PDPoolIndex memory) {
+    function getIndex() external view returns (PoolIndexData memory) {
         return _index;
     }
 
     function getTotalUnits() external view override returns (int128) {
-        return Unit.unwrap(_index.total_units);
+        return _index.totalUnits;
     }
 
     function getUnits(
         address memberAddr
     ) external view override returns (int128) {
-        return Unit.unwrap(_members[memberAddr].owned_units);
+        return _membersData[memberAddr].ownedUnits;
     }
 
     function getDistributionFlowRate() external view override returns (int96) {
-        // @note downcasting from int128 -> int96
-        return
-            int96(
-                FlowRate.unwrap(
-                    _index._wrapped_particle._flow_rate.mul(_index.total_units)
-                )
-            );
+        return int96(_index.wrappedFlowRate * _index.totalUnits);
     }
 
     function getPendingDistributionFlowRate()
@@ -96,29 +87,94 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         override
         returns (int96)
     {
-        return
-            int96(
-                FlowRate.unwrap(
-                    _index._wrapped_particle._flow_rate.mul(pendingUnits)
-                )
-            );
+        return int96(_index.wrappedFlowRate * pendingUnits);
     }
 
     function getMemberFlowRate(
         address memberAddr
     ) external view override returns (int96) {
-        Unit u = _members[memberAddr].owned_units;
-        if (Unit.unwrap(u) == 0) return 0;
-        else
-            return
-                int96(
-                    FlowRate.unwrap(_index._wrapped_particle._flow_rate.mul(u))
-                );
+        int128 units = _membersData[memberAddr].ownedUnits;
+        if (units == 0) return 0;
+        else return int96(_index.wrappedFlowRate * units);
     }
 
     function getPendingDistribution() external view returns (int256) {
         Time t = Time.wrap(uint32(block.timestamp));
-        return Value.unwrap(_index._wrapped_particle.rtb(t).mul(pendingUnits));
+        BasicParticle
+            memory wrappedParticle = _getWrappedParticleFromPoolIndexData(
+                _index
+            );
+        return
+            Value.unwrap(wrappedParticle.rtb(t).mul(Unit.wrap(pendingUnits)));
+    }
+
+    function _getWrappedParticleFromPoolIndexData(
+        PoolIndexData memory data
+    ) internal pure returns (BasicParticle memory wrappedParticle) {
+        wrappedParticle = BasicParticle({
+            _settled_at: Time.wrap(data.wrappedSettledAt),
+            _flow_rate: FlowRate.wrap(int128(data.wrappedFlowRate)),
+            _settled_value: Value.wrap(data.wrappedSettledValue)
+        });
+    }
+
+    function getPDPoolIndexFromPoolIndexData(
+        PoolIndexData memory data
+    ) public pure returns (PDPoolIndex memory pdPoolIndex) {
+        pdPoolIndex = PDPoolIndex({
+            total_units: Unit.wrap(data.totalUnits),
+            _wrapped_particle: _getWrappedParticleFromPoolIndexData(data)
+        });
+    }
+
+    function getPoolIndexDataFromPDPoolIndex(
+        PDPoolIndex memory pdPoolIndex
+    ) public pure returns (PoolIndexData memory data) {
+        data = PoolIndexData({
+            totalUnits: Unit.unwrap(pdPoolIndex.total_units),
+            wrappedSettledAt: Time.unwrap(
+                pdPoolIndex._wrapped_particle._settled_at
+            ),
+            wrappedFlowRate: int96(
+                FlowRate.unwrap(pdPoolIndex._wrapped_particle._flow_rate)
+            ),
+            wrappedSettledValue: Value.unwrap(
+                pdPoolIndex._wrapped_particle._settled_value
+            )
+        });
+    }
+
+    function getPDPoolMemberFromMemberData(
+        MemberData memory memberData
+    ) public pure returns (PDPoolMember memory pdPoolMember) {
+        pdPoolMember = PDPoolMember({
+            owned_units: Unit.wrap(memberData.ownedUnits),
+            _synced_particle: BasicParticle({
+                _settled_at: Time.wrap(memberData.syncedSettledAt),
+                _flow_rate: FlowRate.wrap(int128(memberData.syncedFlowRate)),
+                _settled_value: Value.wrap(memberData.syncedSettledValue)
+            }),
+            _settled_value: Value.wrap(memberData.settledValue)
+        });
+    }
+
+    function getMemberDataFromPDPoolMember(
+        PDPoolMember memory pdPoolMember
+    ) public pure returns (MemberData memory memberData) {
+        memberData = MemberData({
+            ownedUnits: Unit.unwrap(pdPoolMember.owned_units),
+            syncedSettledAt: Time.unwrap(
+                pdPoolMember._synced_particle._settled_at
+            ),
+            syncedFlowRate: int96(
+                FlowRate.unwrap(pdPoolMember._synced_particle._flow_rate)
+            ),
+            syncedSettledValue: Value.unwrap(
+                pdPoolMember._synced_particle._settled_value
+            ),
+            settledValue: Value.unwrap(pdPoolMember._settled_value),
+            claimedValue: 0
+        });
     }
 
     function getClaimableNow(
@@ -140,10 +196,16 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         address memberAddr
     ) public view override returns (int256) {
         Time t = Time.wrap(time);
+        PDPoolIndex memory pdPoolIndex = getPDPoolIndexFromPoolIndexData(
+            _index
+        );
+        PDPoolMember memory pdPoolMember = getPDPoolMemberFromMemberData(
+            _membersData[memberAddr]
+        );
         return
             Value.unwrap(
-                PDPoolMemberMU(_index, _members[memberAddr]).rtb(t) -
-                    _claimedValues[memberAddr]
+                PDPoolMemberMU(pdPoolIndex, pdPoolMember).rtb(t) -
+                    Value.wrap(_membersData[memberAddr].claimedValue)
             );
     }
 
@@ -162,16 +224,25 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         if (!_gda.isMemberConnected(superToken, address(this), memberAddr)) {
             pendingUnits =
                 pendingUnits -
-                _members[memberAddr].owned_units +
-                wrappedUnit;
+                _membersData[memberAddr].ownedUnits +
+                unit;
         }
 
         // update pool member's units
         BasicParticle memory p;
-        (_index, _members[memberAddr], p) = PDPoolMemberMU(
-            _index,
-            _members[memberAddr]
+        PDPoolIndex memory pdPoolIndex = getPDPoolIndexFromPoolIndexData(
+            _index
+        );
+        PDPoolMember memory pdPoolMember = getPDPoolMemberFromMemberData(
+            _membersData[memberAddr]
+        );
+        (pdPoolIndex, pdPoolMember, p) = PDPoolMemberMU(
+            pdPoolIndex,
+            pdPoolMember
         ).pool_member_update(p, wrappedUnit, t);
+        _index = getPoolIndexDataFromPDPoolIndex(pdPoolIndex);
+        _membersData[memberAddr] = getMemberDataFromPDPoolMember(pdPoolMember);
+
         {
             address[] memory addresses = new address[](1);
             addresses[0] = admin;
@@ -214,14 +285,15 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
                 _gda.absorbParticlesFromPool(superToken, addresses, particles)
             );
         }
-        _claimedValues[memberAddr] = _claimedValues[memberAddr] + claimable;
+        MemberData storage memberData = _membersData[memberAddr];
+        memberData.claimedValue += Value.unwrap(claimable);
         return true;
     }
 
     function operatorSetIndex(
         PDPoolIndex calldata index
     ) external onlyGDA returns (bool) {
-        _index = index;
+        _index = getPoolIndexDataFromPDPoolIndex(index);
         return true;
     }
 
@@ -232,9 +304,9 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         bool doConnect
     ) external onlyGDA returns (bool) {
         if (doConnect) {
-            pendingUnits = pendingUnits - _members[memberAddr].owned_units;
+            pendingUnits = pendingUnits - _membersData[memberAddr].ownedUnits;
         } else {
-            pendingUnits = pendingUnits + _members[memberAddr].owned_units;
+            pendingUnits = pendingUnits + _membersData[memberAddr].ownedUnits;
         }
         // trigger side effects of triggering claimAll
         claimAll(time, memberAddr);

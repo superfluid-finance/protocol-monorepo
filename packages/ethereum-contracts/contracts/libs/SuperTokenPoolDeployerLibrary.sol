@@ -16,13 +16,11 @@ library SuperTokenPoolDeployerLibrary {
     function deploy(
         address beacon,
         address admin,
-        GeneralDistributionAgreementV1 gdaV1,
         ISuperfluidToken token
     ) external returns (SuperTokenPool pool) {
         bytes memory initializeCallData = abi.encodeWithSelector(
             SuperTokenPool.initialize.selector,
             admin,
-            gdaV1,
             token
         );
         BeaconProxy superTokenPoolBeaconProxy = new BeaconProxy(

@@ -137,44 +137,52 @@ contract SuperfluidFrameworkDeployer {
         // Register InstantDistributionAgreementV1 with Governance
         testGovernance.registerAgreementClass(host, address(idaV1));
 
+        // Deploy GeneralDistributionAgreementV1
+        gdaV1 = SuperfluidGDAv1DeployerLibrary
+            .deployGeneralDistributionAgreementV1(host);
+
         // Deploy SuperTokenPool logic contract
-        SuperTokenPool superTokenPoolLogic = new SuperTokenPool();
+        // @note TODO: we can use initialize to set the supertokenpool beacon
+        // for the GDA
+        SuperTokenPool superTokenPoolLogic = SuperTokenPoolLogicDeployerLibrary
+            .deploySuperTokenPool(gdaV1);
 
         // Initialize the logic contract
         superTokenPoolLogic.castrate();
 
         // Deploy SuperTokenPool beacon
-        SuperfluidUpgradeableBeacon superTokenPoolBeacon = new SuperfluidUpgradeableBeacon(
-                address(superTokenPoolLogic)
-            );
+        SuperfluidUpgradeableBeacon superTokenPoolBeacon = ProxyDeployerLibrary
+            .deploySuperfluidUpgradeableBeacon(address(superTokenPoolLogic));
 
-        // Deploy GeneralDistributionAgreementV1
-        gdaV1 = SuperfluidGDAv1DeployerLibrary
-            .deployGeneralDistributionAgreementV1(host, superTokenPoolBeacon);
+        gdaV1.initialize(superTokenPoolBeacon);
 
         // Register GeneralDistributionAgreementV1 with Governance
         testGovernance.registerAgreementClass(host, address(gdaV1));
 
         // Deploy canonical Constant Outflow NFT proxy contract
-        UUPSProxy constantOutflowNFTProxy = new UUPSProxy();
+        UUPSProxy constantOutflowNFTProxy = ProxyDeployerLibrary
+            .deployUUPSProxy();
 
         // Deploy canonical Constant Outflow NFT proxy contract
-        UUPSProxy constantInflowNFTProxy = new UUPSProxy();
+        UUPSProxy constantInflowNFTProxy = ProxyDeployerLibrary
+            .deployUUPSProxy();
 
         // Deploy canonical Constant Outflow NFT logic contract
-        ConstantOutflowNFT constantOutflowNFTLogic = new ConstantOutflowNFT(
-            host,
-            IConstantInflowNFT(address(constantInflowNFTProxy))
-        );
+        ConstantOutflowNFT constantOutflowNFTLogic = SuperfluidNFTLogicDeployerLibrary
+                .deployConstantOutflowNFT(
+                    host,
+                    IConstantInflowNFT(address(constantInflowNFTProxy))
+                );
 
         // Initialize Constant Outflow NFT logic contract
         constantOutflowNFTLogic.castrate();
 
         // Deploy canonical Constant Inflow NFT logic contract
-        ConstantInflowNFT constantInflowNFTLogic = new ConstantInflowNFT(
-            host,
-            IConstantOutflowNFT(address(constantOutflowNFTProxy))
-        );
+        ConstantInflowNFT constantInflowNFTLogic = SuperfluidNFTLogicDeployerLibrary
+                .deployConstantInflowNFT(
+                    host,
+                    IConstantOutflowNFT(address(constantOutflowNFTProxy))
+                );
 
         // Initialize Constant Inflow NFT logic contract
         constantInflowNFTLogic.castrate();
@@ -210,12 +218,12 @@ contract SuperfluidFrameworkDeployer {
 
         // Deploy SuperTokenFactory
         SuperTokenFactory superTokenFactoryLogic = SuperfluidPeripheryDeployerLibrary
-            .deploySuperTokenFactory(
-                host,
-                superTokenLogic,
-                constantOutflowNFTLogic,
-                constantInflowNFTLogic
-            );
+                .deploySuperTokenFactory(
+                    host,
+                    superTokenLogic,
+                    constantOutflowNFTLogic,
+                    constantInflowNFTLogic
+                );
 
         // Deploy canonical Constant Outflow NFT proxy contract
         UUPSProxy superTokenFactoryProxy = new UUPSProxy();
@@ -341,13 +349,11 @@ library SuperfluidIDAv1DeployerLibrary {
 library SuperfluidGDAv1DeployerLibrary {
     /// @notice deploys the Superfluid GeneralDistributionAgreementV1 Contract
     /// @param _host Superfluid host address
-    /// @param _superTokenPoolBeacon SuperToken pool beacon contract address
     /// @return newly deployed GeneralDistributionAgreementV1 contract
     function deployGeneralDistributionAgreementV1(
-        ISuperfluid _host,
-        IBeacon _superTokenPoolBeacon
+        ISuperfluid _host
     ) external returns (GeneralDistributionAgreementV1) {
-        return new GeneralDistributionAgreementV1(_host, _superTokenPoolBeacon);
+        return new GeneralDistributionAgreementV1(_host);
     }
 }
 
@@ -417,5 +423,51 @@ library SuperfluidPeripheryDeployerLibrary {
         address _additionalAdmin
     ) external returns (TestResolver) {
         return new TestResolver(_additionalAdmin);
+    }
+}
+
+library SuperTokenPoolLogicDeployerLibrary {
+    /// @notice deploys the Superfluid SuperTokenPool contract
+    /// @return newly deployed SuperTokenPool contract
+    function deploySuperTokenPool(
+        GeneralDistributionAgreementV1 _gda
+    ) external returns (SuperTokenPool) {
+        return new SuperTokenPool(_gda);
+    }
+}
+
+library SuperfluidNFTLogicDeployerLibrary {
+    /// @notice deploys the Superfluid ConstantOutflowNFT contract
+    /// @param _host Superfluid host address
+    /// @param _constantInflowNFTProxy address of the ConstantInflowNFT proxy contract
+    /// @return newly deployed ConstantOutflowNFT contract
+    function deployConstantOutflowNFT(
+        ISuperfluid _host,
+        IConstantInflowNFT _constantInflowNFTProxy
+    ) external returns (ConstantOutflowNFT) {
+        return new ConstantOutflowNFT(_host, _constantInflowNFTProxy);
+    }
+
+    /// @notice deploys the Superfluid ConstantInflowNFT contract
+    /// @param _host Superfluid host address
+    /// @param _constantOutflowNFTProxy address of the ConstantOutflowNFT proxy contract
+    /// @return newly deployed ConstantInflowNFT contract
+    function deployConstantInflowNFT(
+        ISuperfluid _host,
+        IConstantOutflowNFT _constantOutflowNFTProxy
+    ) external returns (ConstantInflowNFT) {
+        return new ConstantInflowNFT(_host, _constantOutflowNFTProxy);
+    }
+}
+
+library ProxyDeployerLibrary {
+    function deployUUPSProxy() external returns (UUPSProxy) {
+        return new UUPSProxy();
+    }
+
+    function deploySuperfluidUpgradeableBeacon(
+        address logicContract
+    ) external returns (SuperfluidUpgradeableBeacon) {
+        return new SuperfluidUpgradeableBeacon(logicContract);
     }
 }

@@ -73,6 +73,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function _helper_Distribute_Flow(
         ISuperfluidToken _superToken,
+        address sender,
         SuperTokenPool _pool,
         int96 requestedFlowRate
     ) internal {
@@ -80,7 +81,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             sf.gda,
             abi.encodeCall(
                 sf.gda.distributeFlow,
-                (_superToken, _pool, requestedFlowRate, new bytes(0))
+                (_superToken, sender, _pool, requestedFlowRate, new bytes(0))
             ),
             new bytes(0)
         );
@@ -196,6 +197,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         // distribute flow of requestedDistributionFlowRate to 10 members with perMemberUnits units each
         _helper_Distribute_Flow(
             desiredToken,
+            poolAdmin,
             to,
             requestedDistributionFlowRate
         );

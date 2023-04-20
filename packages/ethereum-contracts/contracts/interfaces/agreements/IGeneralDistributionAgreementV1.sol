@@ -11,6 +11,8 @@ import { ISuperTokenPool } from "../superfluid/ISuperTokenPool.sol";
  */
 abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     // Custom Errors
+    error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
+    error GDA_NON_CRITICAL_SENDER();
     error GDA_INSUFFICIENT_BALANCE();
     error GDA_NO_NEGATIVE_DISTRIBUTION();
     error GDA_NO_NEGATIVE_FLOW_RATE();
@@ -136,6 +138,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
 
     function distributeFlow(
         ISuperfluidToken token,
+        address sender,
         ISuperTokenPool pool,
         int96 requestedFlowRate,
         bytes calldata ctx

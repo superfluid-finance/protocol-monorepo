@@ -20,21 +20,42 @@ import { BeaconProxiable } from "../upgradability/BeaconProxiable.sol";
 contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
     using SemanticMoney for BasicParticle;
 
-    GeneralDistributionAgreementV1 internal _gda;
-    PDPoolIndex internal _index;
+    struct PoolIndexData {
+        int128 totalUnits;
+        uint32 settledAt;
+        int96 flowRate;
+        int256 settledValue;
+    }
+
+    struct MemberData {
+        int128 ownedUnits;
+        uint32 syncedSettledAt;
+        int96 syncedFlowRate;
+        int256 syncedSettledValue;
+        int256 settledValue;
+        int256 claimedValue;
+    }
+
+    GeneralDistributionAgreementV1 internal immutable _gda;
+
     ISuperfluidToken public superToken;
     address public admin;
+    // @note optimize these two: use custom storage structs
+    PDPoolIndex internal _index;
+    // combine these two into _membersData
     mapping(address member => PDPoolMember member_data) internal _members;
     mapping(address member => Value claimed_value) internal _claimedValues;
     Unit public pendingUnits;
 
+    constructor(GeneralDistributionAgreementV1 gda) {
+        _gda = gda;
+    }
+
     function initialize(
         address admin_,
-        GeneralDistributionAgreementV1 gda,
         ISuperfluidToken superToken_
     ) external initializer {
         admin = admin_;
-        _gda = gda;
         superToken = superToken_;
     }
 

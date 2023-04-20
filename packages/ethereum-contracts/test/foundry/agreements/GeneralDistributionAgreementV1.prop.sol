@@ -15,8 +15,7 @@ import {
 contract GeneralDistributionAgreementV1Mock is GeneralDistributionAgreementV1 {
     constructor()
         GeneralDistributionAgreementV1(
-            ISuperfluid(address(0)),
-            IBeacon(address(0))
+            ISuperfluid(address(0))
         )
     {}
 }
@@ -28,43 +27,45 @@ contract GeneralDistributionAgreementV1Properties is
     function test_Universal_Index_Data_Encode_Decode(
         int96 flowRate,
         uint32 settledAt,
-        int256 settledValue
+        int256 settledValue,
+        uint96 buffer,
+        bool isPool
     ) public {
         vm.assume(flowRate >= 0);
         vm.assume(settledAt > 0);
         vm.assume(settledValue > 0);
-        BasicParticle memory original = BasicParticle({
+        BasicParticle memory ogParticle = BasicParticle({
             _flow_rate: FlowRate.wrap(flowRate),
             _settled_at: Time.wrap(settledAt),
             _settled_value: Value.wrap(settledValue)
         });
-        bytes32[] memory encodedData = _encodeUniversalIndex(original);
-        (, BasicParticle memory decoded) = _decodeUniversalIndexData(
+        bytes32[] memory encodedData = _encodeUniversalIndexData(ogParticle, buffer, isPool);
+        (, UniversalIndexData memory decoded) = _decodeUniversalIndexData(
             encodedData
         );
 
         assertEq(
-            FlowRate.unwrap(original._flow_rate),
-            FlowRate.unwrap(decoded._flow_rate)
-        );
-        console.logInt(Value.unwrap(original._settled_value));
-        console.logInt(Value.unwrap(decoded._settled_value));
-        assertEq(
-            Time.unwrap(original._settled_at),
-            Time.unwrap(decoded._settled_at)
+            FlowRate.unwrap(ogParticle._flow_rate),
+            decoded.flowRate,
+            "flow rate mismatch"
         );
         assertEq(
-            Value.unwrap(original._settled_value),
-            Value.unwrap(decoded._settled_value)
+            Time.unwrap(ogParticle._settled_at),
+            decoded.settledAt,
+            "settled at mismatch"
         );
-    }
-
-    function test_Pool_Encode_Decode(address pool) public {
-        vm.assume(pool != address(0));
-        bytes32[] memory encodedData = _encodePoolExistenceData(pool);
-        (, address decoded) = _decodePoolExistenceData(uint256(encodedData[0]));
-
-        assertEq(pool, decoded);
+        assertEq(
+            buffer, decoded.totalBuffer,
+            "total buffer mismatch"
+        );
+        assertEq(
+            Value.unwrap(ogParticle._settled_value),
+            decoded.settledValue,
+            "settled value mismatch"
+        );
+        assertEq(
+            isPool, decoded.isPool
+        );
     }
 
     function test_Flow_Distribution_Data_Encode_Decode(
@@ -75,7 +76,7 @@ contract GeneralDistributionAgreementV1Properties is
         vm.assume(buffer >= 0);
         GeneralDistributionAgreementV1.FlowDistributionData
             memory original = GeneralDistributionAgreementV1
-                .FlowDistributionData({ flowRate: flowRate, buffer: buffer });
+                .FlowDistributionData({ flowRate: flowRate, lastUpdated: uint32(block.timestamp), buffer: buffer });
         bytes32[] memory encodedData = _encodeFlowDistributionData(original);
         (
             ,
@@ -84,6 +85,7 @@ contract GeneralDistributionAgreementV1Properties is
 
         assertEq(original.flowRate, decoded.flowRate);
         assertEq(original.buffer, decoded.buffer);
+        assertEq(original.lastUpdated, decoded.lastUpdated);
     }
 
     function test_Pool_Member_Data_Encode_Decode(

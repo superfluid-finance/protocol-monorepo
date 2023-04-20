@@ -26,10 +26,6 @@ import { TestResolver } from "./TestResolver.sol";
 import { TestToken } from "./TestToken.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 
-import {
-    SuperfluidNFTDeployerLibrary
-} from "../libs/SuperfluidNFTDeployerLibrary.sol";
-
 contract SuperTokenDeployer {
 
     string public constant RESOLVER_BASE_SUPER_TOKEN_KEY = "supertokens.test.";

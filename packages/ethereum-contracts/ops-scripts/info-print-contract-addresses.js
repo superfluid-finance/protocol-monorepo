@@ -87,17 +87,23 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     const superTokenLogicContract = await SuperToken.at(superTokenLogicAddress);
 
-    const constantOutflowNFTLogic =
-        await superTokenLogicContract.CONSTANT_OUTFLOW_NFT_LOGIC();
-    output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${constantOutflowNFTLogic}\n`;
+    const constantOutflowNFTProxyAddress =
+        await superTokenLogicContract.CONSTANT_OUTFLOW_NFT();
+    output += `CONSTANT_OUTFLOW_NFT_ADDRESS=${constantOutflowNFTProxyAddress}\n`;
 
-    const constantInflowNFTLogic =
-        await superTokenLogicContract.CONSTANT_INFLOW_NFT_LOGIC();
-    output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS=${constantInflowNFTLogic}\n`;
+    const constantOutflowNFTLogicAddress = await (
+        await UUPSProxiable.at(constantOutflowNFTProxyAddress)
+    ).getCodeAddress();
+    output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${constantOutflowNFTLogicAddress}\n`;
 
-    const superfluidNFTDeployerLibrary =
-        await superTokenLogicContract.SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS();
-    output += `SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS=${superfluidNFTDeployerLibrary}\n`;
+    const constantInflowNFTProxyAddress =
+        await superTokenLogicContract.CONSTANT_INFLOW_NFT();
+    output += `CONSTANT_INFLOW_NFT_ADDRESS=${constantInflowNFTProxyAddress}\n`;
+
+    const constantInflowNFTLogicAddress = await (
+        await UUPSProxiable.at(constantInflowNFTProxyAddress)
+    ).getCodeAddress();
+    output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS=${constantInflowNFTLogicAddress}\n`;
 
     await Promise.all(
         config.tokenList.map(async (tokenName) => {

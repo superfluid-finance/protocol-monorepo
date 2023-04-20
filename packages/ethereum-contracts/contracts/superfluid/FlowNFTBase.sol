@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >=0.8.4;
+pragma solidity 0.8.19;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import {
@@ -11,6 +11,9 @@ import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { IFlowNFTBase } from "../interfaces/superfluid/IFlowNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
+import {
+    ISuperTokenFactory
+} from "../interfaces/superfluid/ISuperTokenFactory.sol";
 import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
@@ -29,6 +32,15 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     string public constant BASE_URI =
         "https://nft.superfluid.finance/cfa/v1/getmeta";
 
+    /// @notice ConstantFlowAgreementV1 contract address
+    /// @dev This is the address of the CFAv1 contract cached so we don't have to
+    /// do an external call for every flow created.
+    // solhint-disable-next-line var-name-mixedcase
+    IConstantFlowAgreementV1 public immutable CONSTANT_FLOW_AGREEMENT_V1;
+
+    /// @notice Superfluid host contract address
+    ISuperfluid public immutable HOST;
+
     /**************************************************************************
      * Storage variables
      *************************************************************************/
@@ -40,14 +52,6 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     /// - add any new variables after _gap
     /// - add any new variables before _gap and NOT decrement the length of the _gap array
     /// Go to CFAv1NFTUpgradability.t.sol for the tests and make sure to add new tests for upgrades.
-
-    /// @notice ConstantFlowAgreementV1 contract address
-    /// @dev This is the address of the CFAv1 contract cached so we don't have to
-    /// do an external call for every flow created.
-    // solhint-disable-next-line var-name-mixedcase
-    IConstantFlowAgreementV1 public immutable CONSTANT_FLOW_AGREEMENT_V1;
-
-    ISuperToken public superToken;
 
     string internal _name;
     string internal _symbol;
@@ -85,28 +89,34 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     uint256 private _reserve20;
     uint256 internal _reserve21;
 
-    constructor(
-        IConstantFlowAgreementV1 cfaV1Contract
-    ) {
-        CONSTANT_FLOW_AGREEMENT_V1 = cfaV1Contract;
+    constructor(ISuperfluid host) {
+        HOST = host;
+        CONSTANT_FLOW_AGREEMENT_V1 = IConstantFlowAgreementV1(
+            address(
+                ISuperfluid(host).getAgreementClass(
+                    //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
+                    0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3
+                )
+            )
+        );
     }
 
     function initialize(
-        ISuperToken superTokenContract,
         string memory nftName,
         string memory nftSymbol
     )
         external
+        override
         initializer // OpenZeppelin Initializable
     {
-        superToken = superTokenContract;
         _name = nftName;
         _symbol = nftSymbol;
     }
 
     function updateCode(address newAddress) external override {
-        if (msg.sender != address(superToken.getHost())) {
-            revert CFA_NFT_ONLY_HOST();
+        ISuperTokenFactory superTokenFactory = HOST.getSuperTokenFactory();
+        if (msg.sender != address(superTokenFactory)) {
+            revert CFA_NFT_ONLY_SUPER_TOKEN_FACTORY();
         }
 
         UUPSProxiable._updateCodeAddress(newAddress);
@@ -172,32 +182,41 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     /// @return the token URI
     function tokenURI(
         uint256 tokenId
-    ) external view virtual override returns (string memory) {
+    ) external view virtual returns (string memory);
+
+    function _tokenURI(
+        uint256 tokenId,
+        bool isInflow
+    ) internal view virtual returns (string memory) {
         FlowNFTData memory flowData = flowDataByTokenId(tokenId);
-        address superTokenAddress = address(superToken);
 
-        string memory superTokenSymbol = superToken.symbol();
+        (, int96 flowRate, , ) = CONSTANT_FLOW_AGREEMENT_V1.getFlow(
+            ISuperToken(flowData.superToken),
+            flowData.flowSender,
+            flowData.flowReceiver
+        );
 
-        (
-            uint256 lastUpdatedAt,
-            int96 flowRate, ,
-        ) = CONSTANT_FLOW_AGREEMENT_V1.getFlow(superToken, flowData.flowSender, flowData.flowReceiver);
+        // @note taking this out to deal with the stack too deep issue
+        // which occurs when you are attempting to abi.encodePacked
+        // too many elements
+        string memory chainId = string.concat(
+            "?chain_id=",
+            block.chainid.toString()
+        );
 
         return
             string(
                 abi.encodePacked(
                     BASE_URI,
-                    "?chain_id=",
-                    block.chainid.toString(),
+                    chainId,
                     "&token_address=",
                     Strings.toHexString(
-                        uint256(uint160(superTokenAddress)),
+                        uint256(uint160(flowData.superToken)),
                         20
                     ),
                     "&token_symbol=",
-                    superTokenSymbol,
-                    "&token_decimals=",
-                    uint256(18).toString(),
+                    ISuperToken(flowData.superToken).symbol(),
+                    "&token_decimals=18",
                     "&sender=",
                     Strings.toHexString(
                         uint256(uint160(flowData.flowSender)),
@@ -211,7 +230,10 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
                     "&flowRate=",
                     uint256(uint96(flowRate)).toString(),
                     "&start_date=",
-                    lastUpdatedAt.toString()
+                    // @note upcasting is safe
+                    uint256(flowData.flowStartDate).toString(),
+                    "&is_inflow=",
+                    isInflow ? "true" : "false"
                 )
             );
     }
@@ -232,17 +254,21 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
 
     /// @inheritdoc IFlowNFTBase
     function getTokenId(
+        address superToken,
         address sender,
         address receiver
-    ) external pure returns (uint256 tokenId) {
-        tokenId = _getTokenId(sender, receiver);
+    ) external view returns (uint256 tokenId) {
+        tokenId = _getTokenId(superToken, sender, receiver);
     }
 
     function _getTokenId(
+        address superToken,
         address sender,
         address receiver
-    ) internal pure returns (uint256 tokenId) {
-        tokenId = uint256(keccak256(abi.encode(sender, receiver)));
+    ) internal view returns (uint256 tokenId) {
+        tokenId = uint256(
+            keccak256(abi.encode(block.chainid, superToken, sender, receiver))
+        );
     }
 
     /// @inheritdoc IERC721

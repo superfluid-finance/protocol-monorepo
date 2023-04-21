@@ -4,21 +4,34 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    foundry.url = "github:shazow/foundry.nix/monthly";
-    foundry.inputs.nixpkgs.follows = "nixpkgs";
+    foundry = {
+      url = "github:shazow/foundry.nix/monthly";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    solc = {
+      url = "github:hellwolf/solc.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, foundry } :
+  outputs = { self, nixpkgs, flake-utils, foundry, solc } :
   flake-utils.lib.eachDefaultSystem (system:
   let
-    pkgs = import nixpkgs { inherit system; };
+    pkgs = import nixpkgs {
+      inherit system;
+      overlays = [
+        foundry.overlay
+        solc.overlay
+      ];
+    };
     # minimem development shell
     minimumEVMDevInputs = with pkgs; [
       # for nodejs ecosystem
       yarn
-      nodejs-16_x
+      nodejs-18_x
       # for solidity development
-      foundry.defaultPackage.${system}
+      foundry-bin
+      solc_0_8_19
     ];
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
@@ -77,8 +90,8 @@
     };
     devShells.full = with pkgs; mkShell {
       buildInputs = minimumEVMDevInputs
-      ++ whitehatInputs
-      ++ specInputs;
+        ++ whitehatInputs
+        ++ specInputs;
     };
     devShells.ci-spec-ghc925 = ci-spec "ghc925";
     devShells.ci-spec-ghc944 = ci-spec "ghc944";

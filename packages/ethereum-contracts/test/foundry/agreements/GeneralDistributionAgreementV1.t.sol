@@ -102,18 +102,48 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         SuperTokenPool localPool = SuperTokenPool(
             address(sf.gda.createPool(alice, superToken))
         );
+        assertTrue(
+            sf.gda.isPool(superToken, address(localPool)),
+            "created pool is not pool"
+        );
+    }
+
+    function test_Revert_Non_Host_Connect_Pool() public {
+        vm.startPrank(alice);
+        vm.expectRevert("unauthorized host");
+        sf.gda.connectPool(pool, "0x");
+        vm.stopPrank();
     }
 
     function test_Connect_Pool() public {
         vm.startPrank(bob);
         helper_Connect_Pool(pool);
         vm.stopPrank();
+        assertEq(
+            sf.gda.isMemberConnected(superToken, address(pool), bob),
+            true
+        );
+    }
+
+    function test_Revert_Non_Host_Disconnect_Pool() public {
+        vm.startPrank(alice);
+        vm.expectRevert("unauthorized host");
+        sf.gda.disconnectPool(pool, "0x");
+        vm.stopPrank();
     }
 
     function test_Disconnect_Pool() public {
         vm.startPrank(bob);
         helper_Connect_Pool(pool);
+        assertEq(
+            sf.gda.isMemberConnected(superToken, address(pool), bob),
+            true
+        );
         helper_Disonnect_Pool(pool);
+        assertEq(
+            sf.gda.isMemberConnected(superToken, address(pool), bob),
+            false
+        );
         vm.stopPrank();
     }
 

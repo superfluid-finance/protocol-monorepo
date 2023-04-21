@@ -12,14 +12,12 @@ import {
     ISuperfluid
 } from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
 
-contract GeneralDistributionAgreementV1Mock is GeneralDistributionAgreementV1 {
-    constructor() GeneralDistributionAgreementV1(ISuperfluid(address(0))) {}
-}
-
 contract GeneralDistributionAgreementV1Properties is
-    GeneralDistributionAgreementV1Mock,
+    GeneralDistributionAgreementV1,
     Test
 {
+    constructor() GeneralDistributionAgreementV1(ISuperfluid(address(0))) {}
+
     function test_Particle_Input_Encode_Decode_Universal_Index_Data(
         int96 flowRate,
         uint32 settledAt,
@@ -75,7 +73,9 @@ contract GeneralDistributionAgreementV1Properties is
         assertEq(isPool, decoded.isPool, "isPool not equal");
     }
 
-    function test_Get_Basic_Particle_From_UIndex(UniversalIndexData memory data) public {
+    function test_Get_Basic_Particle_From_UIndex(
+        UniversalIndexData memory data
+    ) public {
         BasicParticle memory particle = _getBasicParticleFromUIndex(data);
         assertEq(data.flowRate, int96(FlowRate.unwrap(particle._flow_rate)), "flowRate not equal");
         assertEq(data.settledAt, Time.unwrap(particle._settled_at), "settledAt not equal");

@@ -132,12 +132,16 @@ contract GeneralDistributionAgreementV1 is
         address account,
         uint256 time
     ) public view override returns (int256 available, int256 buffer) {
-        BasicParticle memory uIndexData = _getUIndex(
+        UniversalIndexData memory universalIndexData = _getUIndexData(
             abi.encode(token),
             account
         );
 
-        available = Value.unwrap(uIndexData.rtb(Time.wrap(uint32(time))));
+        BasicParticle memory uIndexParticle = _getBasicParticleFromUIndex(
+            universalIndexData
+        );
+
+        available = Value.unwrap(uIndexParticle.rtb(Time.wrap(uint32(time))));
         if (_isPool(token, account)) {
             available =
                 available +
@@ -162,11 +166,6 @@ contract GeneralDistributionAgreementV1 is
                     ISuperTokenPool(pool).getClaimable(uint32(time), account);
             }
         }
-
-        UniversalIndexData memory universalIndexData = _getUIndexData(
-            abi.encode(token),
-            account
-        );
 
         buffer = int256(universalIndexData.totalBuffer);
     }
@@ -366,6 +365,8 @@ contract GeneralDistributionAgreementV1 is
                     msgSender,
                     pool
                 );
+                token.terminateAgreement(_getPoolMemberId(msgSender, pool), 1);
+
                 _clearPoolConnectionsBitmap(
                     token,
                     msgSender,
@@ -756,7 +757,8 @@ contract GeneralDistributionAgreementV1 is
         bytes memory, // eff,
         address pool
     ) internal view override returns (PDPoolIndex memory) {
-        SuperTokenPool.PoolIndexData memory data = SuperTokenPool(pool).getIndex();
+        SuperTokenPool.PoolIndexData memory data = SuperTokenPool(pool)
+            .getIndex();
         return SuperTokenPool(pool).getPDPoolIndexFromPoolIndexData(data);
     }
 

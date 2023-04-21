@@ -30,8 +30,9 @@ contract GeneralDistributionAgreementV1UnitTest is FoundrySuperfluidTester {
 
     function setUp() public override {
         super.setUp();
-        vm.prank(alice);
+        vm.startPrank(alice);
         pool = SuperTokenPool(address(sf.gda.createPool(alice, superToken)));
+        vm.stopPrank();
         (liquidationPeriod, ) = sf.governance.getPPPConfig(sf.host, superToken);
     }
 
@@ -134,6 +135,53 @@ contract GeneralDistributionAgreementV1UnitTest is FoundrySuperfluidTester {
         );
 
         assertEq(0, setFlowDistributionData.buffer, "buffer not equal");
+        assertEq(
+            int96(
+                FlowRate.unwrap(
+                    sf.gda.getFlowRate(abi.encode(superToken), flowHash)
+                )
+            ),
+            int96(uint96(newFlowRate)),
+            "_getFlowRate: flow rate not equal"
+        );
+        assertEq(
+            sf.gda.getFlowRate(superToken, from, to),
+            int96(uint96(newFlowRate)),
+            "getFlowRate: flow rate not equal"
+        );
+    }
+
+    function test_Set_Get_PoolMemberData(
+        address poolMember,
+        ISuperTokenPool _pool,
+        uint32 poolId
+    ) public {
+        vm.assume(poolId > 0);
+        vm.assume(address(_pool) != address(0));
+        vm.assume(address(poolMember) != address(0));
+        bytes32 poolMemberId = sf.gda.getPoolMemberId(poolMember, _pool);
+
+        vm.startPrank(address(sf.gda));
+        superToken.updateAgreementData(
+            poolMemberId,
+            sf.gda.encodePoolMemberData(
+                GeneralDistributionAgreementV1.PoolMemberData({
+                    poolId: poolId,
+                    pool: address(_pool)
+                })
+            )
+        );
+        vm.stopPrank();
+
+        (
+            bool exist,
+            GeneralDistributionAgreementV1.PoolMemberData
+                memory setPoolMemberData
+        ) = sf.gda.getPoolMemberData(superToken, poolMember, _pool);
+
+        assertEq(true, exist, "pool member data does not exist");
+        assertEq(poolId, setPoolMemberData.poolId, "poolId not equal");
+        assertEq(address(_pool), setPoolMemberData.pool, "pool not equal");
     }
 
     // Precompile: ECRECOVER breaks this?
@@ -218,6 +266,20 @@ contract GeneralDistributionAgreementV1UnitTest is FoundrySuperfluidTester {
             flowDistributionData.flowRate,
             int96(newFlowRate),
             "buffer not equal"
+        );
+        assertEq(
+            int96(
+                FlowRate.unwrap(
+                    sf.gda.getFlowRate(abi.encode(superToken), flowHash)
+                )
+            ),
+            int96(newFlowRate),
+            "_getFlowRate: flow rate not equal"
+        );
+        assertEq(
+            sf.gda.getFlowRate(superToken, from, to),
+            int96(newFlowRate),
+            "getFlowRate: flow rate not equal"
         );
     }
 

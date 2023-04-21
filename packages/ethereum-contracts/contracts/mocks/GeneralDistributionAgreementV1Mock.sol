@@ -128,4 +128,10 @@ contract GeneralDistributionAgreementV1Mock is GeneralDistributionAgreementV1 {
     ) public view returns (bool exist, PoolMemberData memory poolMemberData) {
         return _getPoolMemberData(token, poolMember, pool);
     }
+
+    function encodePoolMemberData(
+        PoolMemberData memory poolMemberData
+    ) public pure returns (bytes32[] memory) {
+        return _encodePoolMemberData(poolMemberData);
+    }
 }

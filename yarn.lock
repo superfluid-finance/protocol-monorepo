@@ -2927,7 +2927,7 @@
 
 "@superfluid-finance/metadata@git+https://github.com/superfluid-finance/metadata.git":
   version "1.1.5"
-  resolved "git+https://github.com/superfluid-finance/metadata.git#7342f837719f5f5f1db80586ea869d00d37b3f8e"
+  resolved "git+https://github.com/superfluid-finance/metadata.git#3e2476237439b0ba4ee92cb03ca784f058ab8045"
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"

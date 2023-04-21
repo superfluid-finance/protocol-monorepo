@@ -76,6 +76,9 @@ const ALIASES = {
 
     "celo-mainnet": ["celo"],
 
+    // wildcard for any network
+    "any": ["any"],
+
     // currently unsupported
     //
     "optimism-kovan": ["opkovan"],
@@ -324,6 +327,14 @@ const E = (module.exports = {
         "celo-alfajores": {
             ...createNetworkDefaultConfiguration("celo-alfajores"),
             network_id: 44787,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
+        "any": {
+            ...createNetworkDefaultConfiguration("any"),
+            network_id: "*",
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,

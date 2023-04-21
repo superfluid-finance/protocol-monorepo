@@ -683,27 +683,30 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     UUPSProxy.new,
                     `Create ConstantOutflowNFT proxy`
                 )();
-                output += `CONSTANT_OUTFLOW_NFT_ADDRESS=${constantOutflowNFTProxy.address}\n`;
+                console.log("ConstantOutflowNFT Proxy address", constantOutflowNFTProxy.address);
+                output += `CONSTANT_OUTFLOW_NFT_PROXY=${constantOutflowNFTProxy.address}\n`;
+
                 const constantInflowNFTProxy = await web3tx(
                     UUPSProxy.new,
-                    `Create ConstantOutflowNFT proxy`
+                    `Create ConstantInflowNFT proxy`
                 )();
-                output += `CONSTANT_INFLOW_NFT_ADDRESS=${constantInflowNFTProxy.address}\n`;
+                console.log("ConstantInflowNFT Proxy address", constantInflowNFTProxy.address);
+                output += `CONSTANT_INFLOW_NFT_PROXY=${constantInflowNFTProxy.address}\n`;
 
                 const constantOutflowNFTLogic = await web3tx(
                     ConstantOutflowNFT.new,
                     `ConstantOutflowNFT.new`
                 )(superfluid.address, constantInflowNFTProxy.address);
-                output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${constantOutflowNFTLogic.address}\n`;
-
+                console.log("ConstantOutflowNFT Logic address", constantOutflowNFTLogic.address);
+                output += `CONSTANT_OUTFLOW_NFT_LOGIC=${constantOutflowNFTLogic.address}\n`;
                 await constantOutflowNFTLogic.castrate();
 
                 const constantInflowNFTLogic = await web3tx(
-                    ConstantOutflowNFT.new,
-                    `ConstantOutflowNFT.new`
+                    ConstantInflowNFT.new,
+                    `ConstantInflowNFT.new`
                 )(superfluid.address, constantOutflowNFTProxy.address);
-                output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS=${constantInflowNFTLogic.address}\n`;
-
+                console.log("ConstantInflowNFT Logic address", constantInflowNFTLogic.address);
+                output += `CONSTANT_INFLOW_NFT_LOGIC=${constantInflowNFTLogic.address}\n`;
                 await constantInflowNFTLogic.castrate();
 
                 // set the nft logic addresses (to be consumed by the super token factory logic constructor)
@@ -737,7 +740,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 // set the nft proxy addresses (to be consumed by the super token logic constructor)
                 cofNFTProxyAddress = constantOutflowNFTProxy.address;
                 cifNFTProxyAddress = constantInflowNFTProxy.address;
-            } else {
+            } else { // nft proxies already exist
                 const newCOFNFTLogic = await deployContractIfCodeChanged(
                     web3,
                     ConstantOutflowNFT,
@@ -749,7 +752,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                             ConstantOutflowNFT.new,
                             "ConstantOutflowNFT.new"
                         )(superfluid.address, cifNFTProxyAddress);
-                        output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${cofNFTLogic.address}\n`;
+                        output += `CONSTANT_OUTFLOW_NFT_LOGIC=${cofNFTLogic.address}\n`;
                         // castrate flow nft logic contract
                         await cofNFTLogic.castrate();
                         return cofNFTLogic;
@@ -771,7 +774,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                             ConstantInflowNFT.new,
                             "ConstantInflowNFT.new"
                         )(superfluid.address, cofNFTProxyAddress);
-                        output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS=${cifNFTLogic.address}\n`;
+                        output += `CONSTANT_INFLOW_NFT_LOGIC=${cifNFTLogic.address}\n`;
                         // castrate flow nft logic contract
                         await cifNFTLogic.castrate();
                         return cifNFTLogic;

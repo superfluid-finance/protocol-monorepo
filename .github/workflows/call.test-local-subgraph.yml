@@ -39,6 +39,10 @@ jobs:
       subgraph-working-directory: ./packages/subgraph
       sdk-core-working-directory: ./packages/sdk-core
 
+    defaults:
+      run:
+        shell: devShell.sh {0}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -48,49 +52,45 @@ jobs:
 
       - name: Prepare devShell
         run: |
-          echo 'nix develop -c bash $@' > $HOME/devShell.sh
+          mkdir devShell
+          echo 'nix develop -c bash $@' > devShell/devShell.sh
+          chmod +x devShell/devShell.sh
+          echo "${{ github.workspace }}/devShell" >> $GITHUB_PATH
           yarn install --frozen-lockfile
+        shell: bash
 
       - name: "Build contracts"
         run: yarn build
         working-directory: ./packages/ethereum-contracts
-        shell: sh $HOME/devShell.sh {0}
 
       - name: "Start hardhat node"
         run: |
           ./tasks/startHardhatNode.sh start
         working-directory: ${{ env.sdk-core-working-directory }}
-        shell: sh ../../devShell.sh {0}
 
       - name: "Build SDK-Core"
         # build sdk-core because subgraph tests use sdk-core
         run: yarn build
         working-directory: ${{ env.sdk-core-working-directory }}
-        shell: sh ../../devShell.sh {0}
 
       - name: "Deploy Framework and Tokens"
         run: npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost
         working-directory: ./packages/ethereum-contracts
-        shell: sh ../../devShell.sh {0}
 
       - name: "Prepare files for local testing"
         run: yarn prepare-local
         working-directory: ${{ env.subgraph-working-directory }}
-        shell: sh ../../devShell.sh {0}
 
       - name: "Run setup-graph-node"
         run: |
           chmod +x ./tasks/setup-graph-node.sh
           ./tasks/setup-graph-node.sh
         working-directory: ${{ env.subgraph-working-directory }}
-        shell: sh ../../devShell.sh {0}
 
       - name: "Docker compose"
         run: docker-compose up &
         working-directory: ${{ env.subgraph-working-directory }}
-        shell: sh ../../devShell.sh {0}
 
       - name: "Run subgraph integration test suite"
         run: yarn test --network localhost
         working-directory: ${{ env.subgraph-working-directory }}
-        shell: sh ../../devShell.sh {0}

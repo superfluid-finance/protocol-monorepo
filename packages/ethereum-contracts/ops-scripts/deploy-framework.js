@@ -127,7 +127,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         console.log("output file: ", outputFile);
     }
 
-    const NFT_BASE_URI = process.env.NFT_BASE_URI;
+    const NFT_BASE_URI = process.env.NFT_BASE_URI || "";
 
     // string to build a list of newly deployed contracts, written to a file if "outputFile" option set
     let output = "";

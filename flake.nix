@@ -36,6 +36,8 @@
       # for solidity development
       foundry-bin
       pkgs.${solcVer}
+      # for shell script linting
+      shellcheck
     ];
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [

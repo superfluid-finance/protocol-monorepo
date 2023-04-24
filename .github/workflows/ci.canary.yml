@@ -45,21 +45,10 @@ jobs:
       - name: Prepare devShell
         run: |
           echo 'nix develop -c bash $@' > devShell.sh
-
-#      - name: Use Node.js ${{ matrix.node-version }}
-#        uses: actions/setup-node@v3
-#        with:
-#          node-version: ${{ matrix.node-version }}
-#          cache: "yarn"
-
-#      - name: Install Foundry
-#        uses: foundry-rs/foundry-toolchain@v1
-#        with:
-#          version: nightly
-
-      - name: Install, lint, build, and test
-        run: |
           yarn install --frozen-lockfile
+
+      - name: Lint, build, and test
+        run: |
           yarn lint
           yarn build
           yarn test
@@ -127,22 +116,20 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
+      - name: Prepare devShell
+        run: |
+          echo 'nix develop -c bash $@' > devShell.sh
+          yarn install --frozen-lockfile
 
       - name: Run coverage test
         run: |
-          yarn install --frozen-lockfile
           yarn build
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+        shell: sh devShell.sh {0}
 
       - name: Install lcov
         run: sudo apt-get -y install lcov
@@ -354,16 +341,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare devShell
+        run: |
+          echo 'nix develop -c bash $@' > devShell.sh
+          yarn install --frozen-lockfile
 
       - name: Build
         run: |
-          yarn install --frozen-lockfile
           yarn build
+        shell: sh devShell.sh {0}
 
       - name: Deploy to ${{ matrix.network }}
         run: |
@@ -373,3 +363,4 @@ jobs:
           RELEASE_VERSION: master
           AVALANCHE_FUJI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
           AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
+        shell: sh devShell.sh {0}

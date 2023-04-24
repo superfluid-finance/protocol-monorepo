@@ -35,7 +35,7 @@
       nodejs-18_x
       # for solidity development
       foundry-bin
-      "${solcVer}"
+      pkgs.${solcVer}
     ];
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
@@ -72,9 +72,9 @@
       })
     ];
 
-    mkShell = o : pkgs.mkShell {
+    mkShell = o : pkgs.mkShell ({
       SOLC_PATH = pkgs.lib.getExe pkgs.${solcVer};
-    } // o;
+    } // o);
 
     ci-spec-with-ghc = ghcVer : mkShell {
       buildInputs = with pkgs; [

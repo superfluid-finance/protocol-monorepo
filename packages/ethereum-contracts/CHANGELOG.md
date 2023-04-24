@@ -5,6 +5,17 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+
+## [v1.6.0] - 2023-04-25
+### Added
+- FlowNFT contracts: `ConstantOutflowNFT`, `ConstantInflowNFT`, `FlowNFTBase` to replace the OG flow NFTs
+- `SuperAppBaseCFA` base contract to simplify CFA SuperApp development
+- `SuperTokenDeployer.sol` for deploying SuperTokens in local testing (split from `SuperfluidFrameworkDeployer.sol`)
+
+### Changed
+- `SuperToken` logic contract takes `ConstantOutflowNFT` and `ConstantInflowNFT` proxy contract addresses
+- `SuperTokenFactory` logic contract takes `ConstantOutflowNFT` and `ConstantInflowNFT` and handles the upgrade logic for the NFTs
+
 ## [v1.5.2] - 2023-03-14
 
 ### Added

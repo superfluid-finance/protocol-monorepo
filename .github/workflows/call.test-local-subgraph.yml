@@ -23,12 +23,12 @@ jobs:
       - name: "Build contracts"
         run: yarn build
         working-directory: ./packages/ethereum-contracts
-        shell: sh devShell.sh {0}
+        shell: sh ${{ env.GITHUB_WORKSPACE }}/devShell.sh {0}
 
       - name: "Run unit tests"
         run: yarn matchstick
         working-directory: ./packages/subgraph
-        shell: sh devShell.sh {0}
+        shell: sh ${{ env.GITHUB_WORKSPACE }}/devShell.sh {0}
 
   subgraph-end-to-end-integration:
     name: Run subgraph integration tests
@@ -41,7 +41,7 @@ jobs:
 
     defaults:
       run:
-        shell: sh devShell.sh {0}
+        shell: sh ${{ env.GITHUB_WORKSPACE }}/devShell.sh {0}
 
     steps:
       - uses: actions/checkout@v3

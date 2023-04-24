@@ -42,6 +42,10 @@ jobs:
     env:
       subgraph-working-directory: ./packages/subgraph
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -49,20 +53,15 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare devShell
-        run: |
-          echo 'nix develop -c bash $@' > devShell.sh
-          yarn install --frozen-lockfile
-
       - name: "Build contracts"
-        run: yarn build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
         working-directory: ./packages/ethereum-contracts
-        shell: sh devShell.sh {0}
 
       - name: "Get ABI"
         run: node scripts/getAbi.js
         working-directory: ${{ env.subgraph-working-directory }}
-        shell: sh devShell.sh {0}
 
       - name: "Prepare subgraph manifest"
         # This step is required for generating an arbitrary subgraph.yaml
@@ -70,7 +69,6 @@ jobs:
         # using a mock.json networks file.
         run: ./tasks/prepare-manifest.sh mock
         working-directory: ${{ env.subgraph-working-directory }}
-        shell: sh devShell.sh {0}
 
       - name: "Generate meta.ignore.ts file"
         run: "yarn generate-sf-meta"
@@ -78,12 +76,10 @@ jobs:
         env:
           COMMIT_HASH: ${{ github.sha }}
           CONFIGURATION: ${{ inputs.release_branch }}
-        shell: sh devShell.sh {0}
 
       - name: "Generate AssemblyScript types"
         run: "yarn codegen"
         working-directory: ${{ env.subgraph-working-directory }}
-        shell: sh devShell.sh {0}
 
       - name: Ensure release_branch property is passed
         run: |
@@ -91,7 +87,6 @@ jobs:
             echo "You must pass in the release_branch at a minimum."
             exit 1
           fi
-        shell: sh devShell.sh {0}
 
       - name: "Deploy to All Hosted Subgraph Superfluid endpoints"
         if: inputs.network == 'all'
@@ -99,7 +94,6 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
-        shell: sh devShell.sh {0}
 
       - name: "Deploy to Hosted Subgraph Superfluid endpoint"
         if: inputs.network != 'all'
@@ -107,4 +101,3 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
-        shell: sh devShell.sh {0}

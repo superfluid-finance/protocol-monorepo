@@ -8,10 +8,6 @@ jobs:
     name: Run subgraph unit tests
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        shell: sh devShell.sh {0}
-    
     steps:
       - uses: actions/checkout@v3
 
@@ -23,15 +19,16 @@ jobs:
         run: |
           echo 'nix develop -c bash $@' > devShell.sh
           yarn install --frozen-lockfile
-        shell: bash
 
       - name: "Build contracts"
         run: yarn build
         working-directory: ./packages/ethereum-contracts
+        shell: sh devShell.sh {0}
 
       - name: "Run unit tests"
         run: yarn matchstick
         working-directory: ./packages/subgraph
+        shell: sh devShell.sh {0}
 
   subgraph-end-to-end-integration:
     name: Run subgraph integration tests

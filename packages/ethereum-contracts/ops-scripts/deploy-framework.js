@@ -131,6 +131,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     cfaHookContract = cfaHookContract || process.env.CFA_HOOK_CONTRACT;
     console.log("CFA hook contract", cfaHookContract);
 
+    const NFT_BASE_URI = process.env.NFT_BASE_URI;
+
     // string to build a list of newly deployed contracts, written to a file if "outputFile" option set
     let output = "";
 
@@ -701,7 +703,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const constantOutflowNFTLogic = await web3tx(
                     ConstantOutflowNFT.new,
                     `ConstantOutflowNFT.new`
-                )(superfluid.address, constantInflowNFTProxy.address);
+                )(
+                    superfluid.address,
+                    constantInflowNFTProxy.address,
+                    NFT_BASE_URI
+                );
                 output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${constantOutflowNFTLogic.address}\n`;
 
                 await constantOutflowNFTLogic.castrate();
@@ -709,7 +715,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 const constantInflowNFTLogic = await web3tx(
                     ConstantOutflowNFT.new,
                     `ConstantOutflowNFT.new`
-                )(superfluid.address, constantOutflowNFTProxy.address);
+                )(
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    NFT_BASE_URI
+                );
                 output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS=${constantInflowNFTLogic.address}\n`;
 
                 await constantInflowNFTLogic.castrate();
@@ -756,7 +766,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         const cofNFTLogic = await web3tx(
                             ConstantOutflowNFT.new,
                             "ConstantOutflowNFT.new"
-                        )(superfluid.address, cifNFTProxyAddress);
+                        )(superfluid.address, cifNFTProxyAddress, NFT_BASE_URI);
                         output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${cofNFTLogic.address}\n`;
                         // castrate flow nft logic contract
                         await cofNFTLogic.castrate();
@@ -764,8 +774,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     },
                     [
                         // See SuperToken constructor parameter
-                        superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
-                        cifNFTProxyAddress.toLowerCase().slice(2).padStart(64, "0"),
+                        superfluid.address
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
+                        cifNFTProxyAddress
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
                     ]
                 );
                 const newCIFNFTLogic = await deployContractIfCodeChanged(
@@ -778,7 +794,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         const cifNFTLogic = await web3tx(
                             ConstantInflowNFT.new,
                             "ConstantInflowNFT.new"
-                        )(superfluid.address, cofNFTProxyAddress);
+                        )(superfluid.address, cofNFTProxyAddress, NFT_BASE_URI);
                         output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS=${cifNFTLogic.address}\n`;
                         // castrate flow nft logic contract
                         await cifNFTLogic.castrate();
@@ -786,8 +802,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     },
                     [
                         // See SuperToken constructor parameter
-                        superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
-                        cofNFTProxyAddress.toLowerCase().slice(2).padStart(64, "0"),
+                        superfluid.address
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
+                        cofNFTProxyAddress
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
                     ]
                 );
 

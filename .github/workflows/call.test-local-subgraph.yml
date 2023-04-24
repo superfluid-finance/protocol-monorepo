@@ -7,18 +7,22 @@ jobs:
   subgraph-unit-tests:
     name: Run subgraph unit tests
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        shell: sh devShell.sh {0}
     
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Install dependencies"
-        run: yarn install --frozen-lockfile
+      - name: Prepare devShell
+        run: |
+          echo 'nix develop -c bash $@' > devShell.sh
+          yarn install --frozen-lockfile
 
       - name: "Build contracts"
         run: yarn build
@@ -37,17 +41,21 @@ jobs:
       subgraph-working-directory: ./packages/subgraph
       sdk-core-working-directory: ./packages/sdk-core
 
+    defaults:
+      run:
+        shell: sh devShell.sh {0}
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: "Install dependencies"
-        run: yarn install --frozen-lockfile
+      - name: Prepare devShell
+        run: |
+          echo 'nix develop -c bash $@' > devShell.sh
+          yarn install --frozen-lockfile
 
       - name: "Build contracts"
         run: yarn build

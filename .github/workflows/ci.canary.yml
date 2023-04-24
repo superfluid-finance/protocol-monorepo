@@ -30,6 +30,10 @@ jobs:
         with:
           submodules: recursive
 
+      - uses: cachix/install-nix-action@v19
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Show contexts
         env:
           HEAD_REF: ${{ github.head_ref }}
@@ -41,10 +45,6 @@ jobs:
           echo github.ref: "$GITHUB_REF"
           echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
-
-      - uses: cachix/install-nix-action@v19
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install, lint, build, and test
         run: |

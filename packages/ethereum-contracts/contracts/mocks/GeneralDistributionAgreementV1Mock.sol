@@ -100,13 +100,6 @@ contract GeneralDistributionAgreementV1Mock is GeneralDistributionAgreementV1 {
         return _getFlowRate(eff, distributionFlowId);
     }
 
-    function isPool(
-        ISuperfluidToken token,
-        address account
-    ) public view returns (bool) {
-        return _isPool(token, account);
-    }
-
     function getFlowDistributionId(
         address from,
         address to

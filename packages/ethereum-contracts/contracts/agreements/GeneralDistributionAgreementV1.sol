@@ -627,14 +627,14 @@ contract GeneralDistributionAgreementV1 is
     function _encodeUniversalIndexData(
         BasicParticle memory p,
         uint256 buffer,
-        bool isPool
+        bool _isPool
     ) internal pure returns (bytes32[] memory data) {
         data = new bytes32[](2);
         data[0] = bytes32(
             (uint256(int256(FlowRate.unwrap(p._flow_rate))) << 160) |
                 (uint256(Time.unwrap(p._settled_at)) << 128) |
                 (buffer << 32) |
-                (isPool ? 1 : 0)
+                (_isPool ? 1 : 0)
         );
         data[1] = bytes32(uint256(Value.unwrap(p._settled_value)));
     }
@@ -809,6 +809,13 @@ contract GeneralDistributionAgreementV1 is
         ISuperfluidToken(token).updateAgreementData(flowHash, data);
 
         return eff;
+    }
+
+    function isPool(
+        ISuperfluidToken token,
+        address account
+    ) external override view returns (bool) {
+        return _isPool(token, account);
     }
 
     function _isPool(

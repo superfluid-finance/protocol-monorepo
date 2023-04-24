@@ -113,11 +113,10 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
         bytes calldata ctx
     ) external virtual returns (bytes memory newCtx);
 
-    // function connectPool(
-    //     ISuperTokenPool pool,
-    //     bool doConnect,
-    //     bytes calldata ctx
-    // ) public virtual returns (bytes memory newCtx);
+    function isPool(
+        ISuperfluidToken token,
+        address account
+    ) external view virtual returns (bool);
 
     function isMemberConnected(
         ISuperfluidToken token,

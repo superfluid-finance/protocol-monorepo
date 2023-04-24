@@ -21,7 +21,11 @@ interface ISuperTokenPool {
         int96 wpFlowRate
     );
 
+    function admin() external view returns (address);
+
     function superToken() external view returns (ISuperfluidToken);
+
+    function pendingUnits() external view returns (int128);
 
     function getTotalUnits() external view returns (int128);
 

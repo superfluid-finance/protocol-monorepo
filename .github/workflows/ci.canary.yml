@@ -94,8 +94,7 @@ jobs:
     if: needs.check.outputs.build_subgraph
     with:
       release_branch: dev
-      # empty string network deploys to all networks
-      network: ""
+      network: "all"
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 

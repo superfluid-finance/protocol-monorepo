@@ -45,7 +45,6 @@ jobs:
       - name: Prepare devShell
         run: |
           echo 'nix develop -c bash $@' > devShell.sh
-          yarn install
 
 #      - name: Use Node.js ${{ matrix.node-version }}
 #        uses: actions/setup-node@v3

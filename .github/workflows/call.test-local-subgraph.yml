@@ -41,7 +41,6 @@ jobs:
 
     defaults:
       run:
-        #shell: devShell.sh {0}
         shell: nix develop -c bash {0}
 
     steps:
@@ -51,16 +50,10 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Prepare devShell
-        run: |
-          mkdir devShell
-          echo 'nix develop -c bash $@' > devShell/devShell.sh
-          chmod +x devShell/devShell.sh
-          echo "${{ github.workspace }}/devShell" >> $GITHUB_PATH
-        shell: bash
-
       - name: "Build contracts"
-        run: yarn install --frozen-lockfile && yarn build
+        run: |
+          yarn install --frozen-lockfile
+          yarn build
         working-directory: ./packages/ethereum-contracts
 
       - name: "Start hardhat node"

@@ -54,7 +54,7 @@ jobs:
       - name: "Build contracts"
         run: yarn build
         working-directory: ./packages/ethereum-contracts
-        shell: sh ../../devShell.sh {0}
+        shell: sh $HOME/devShell.sh {0}
 
       - name: "Start hardhat node"
         run: |

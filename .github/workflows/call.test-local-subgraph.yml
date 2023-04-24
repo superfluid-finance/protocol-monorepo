@@ -17,18 +17,18 @@ jobs:
 
       - name: Prepare devShell
         run: |
-          echo 'nix develop -c bash $@' > $HOME/bin/devShell.sh
+          echo 'nix develop -c bash $@' > $HOME/devShell.sh
           yarn install --frozen-lockfile
 
       - name: "Build contracts"
         run: yarn build
         working-directory: ./packages/ethereum-contracts
-        shell: sh $HOME/bin/devShell.sh {0}
+        shell: sh $HOME/devShell.sh {0}
 
       - name: "Run unit tests"
         run: yarn matchstick
         working-directory: ./packages/subgraph
-        shell: sh $HOME/bin/devShell.sh {0}
+        shell: sh $HOME/devShell.sh {0}
 
   subgraph-end-to-end-integration:
     name: Run subgraph integration tests
@@ -41,7 +41,7 @@ jobs:
 
     defaults:
       run:
-        shell: sh $HOME/bin/devShell.sh {0}
+        shell: sh $HOME/devShell.sh {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -52,7 +52,7 @@ jobs:
 
       - name: Prepare devShell
         run: |
-          echo 'nix develop -c bash $@' > $HOME/bin/devShell.sh
+          echo 'nix develop -c bash $@' > $HOME/devShell.sh
           yarn install --frozen-lockfile
         shell: bash
 

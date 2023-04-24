@@ -23,6 +23,7 @@ jobs:
         run: |
           echo 'nix develop -c bash $@' > devShell.sh
           yarn install --frozen-lockfile
+        shell: bash
 
       - name: "Build contracts"
         run: yarn build
@@ -56,6 +57,7 @@ jobs:
         run: |
           echo 'nix develop -c bash $@' > devShell.sh
           yarn install --frozen-lockfile
+        shell: bash
 
       - name: "Build contracts"
         run: yarn build

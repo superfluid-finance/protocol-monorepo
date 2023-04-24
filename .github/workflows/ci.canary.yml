@@ -2,7 +2,7 @@ name: CI | Canary (Dev)
 
 on:
   push:
-    branches: ["dev"]
+    branches: ["dev", "canary_fuji"]
     paths:
       - "package.json"
       - "packages/**"
@@ -330,7 +330,7 @@ jobs:
           cloudfront_distribution_id: E3JEO5R14CT8IH
 
   upgrade-contracts:
-    name: Upgrade ethereum-contracts on goerli testnet (protocol release version "test")
+    name: Upgrade ethereum-contracts on canary testnet (protocol release version "test")
 
     needs: [all-packages-tested]
 
@@ -339,7 +339,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        network: [goerli]
+        network: [avalanche-fuji]
 
     steps:
       - uses: actions/checkout@v3
@@ -361,5 +361,5 @@ jobs:
           npx truffle exec --network ${{ matrix.network }} ops-scripts/deploy-test-environment.js
         env:
           RELEASE_VERSION: master
-          ETH_GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
+          AVALANCHE_FUJI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}

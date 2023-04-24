@@ -41,7 +41,8 @@ jobs:
 
     defaults:
       run:
-        shell: devShell.sh {0}
+        #shell: devShell.sh {0}
+        shell: nix develop -c bash {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -56,11 +57,10 @@ jobs:
           echo 'nix develop -c bash $@' > devShell/devShell.sh
           chmod +x devShell/devShell.sh
           echo "${{ github.workspace }}/devShell" >> $GITHUB_PATH
-          yarn install --frozen-lockfile
         shell: bash
 
       - name: "Build contracts"
-        run: yarn build
+        run: yarn install --frozen-lockfile && yarn build
         working-directory: ./packages/ethereum-contracts
 
       - name: "Start hardhat node"

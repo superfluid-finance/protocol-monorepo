@@ -17,6 +17,9 @@
   outputs = { self, nixpkgs, flake-utils, foundry, solc } :
   flake-utils.lib.eachDefaultSystem (system:
   let
+    solcVer = "solc_0_8_19";
+    ghcVer = "ghc944";
+
     pkgs = import nixpkgs {
       inherit system;
       overlays = [
@@ -24,6 +27,7 @@
         solc.overlay
       ];
     };
+
     # minimem development shell
     minimumEVMDevInputs = with pkgs; [
       # for nodejs ecosystem
@@ -31,7 +35,7 @@
       nodejs-18_x
       # for solidity development
       foundry-bin
-      solc_0_8_19
+      "${solcVer}"
     ];
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
@@ -39,7 +43,6 @@
       echidna
     ];
     # for developing specification
-    ghcVer = "ghc944";
     ghc = pkgs.haskell.compiler.${ghcVer};
     ghcPackages = pkgs.haskell.packages.${ghcVer};
     specInputs = with pkgs; [
@@ -68,8 +71,13 @@
         collection-fontsrecommended collection-fontsextra;
       })
     ];
-    ci-spec = ghcVer : with pkgs; mkShell {
-      buildInputs = [
+
+    mkShell = o : pkgs.mkShell {
+      SOLC_PATH = pkgs.lib.getExe pkgs.${solcVer};
+    } // o;
+
+    ci-spec-with-ghc = ghcVer : mkShell {
+      buildInputs = with pkgs; [
         gnumake
         cabal-install
         haskell.compiler.${ghcVer}
@@ -77,26 +85,28 @@
       ];
     };
   in {
-    devShells.default = with pkgs; mkShell {
+    # local development shells
+    devShells.default = mkShell {
       buildInputs = minimumEVMDevInputs;
     };
-    devShells.whitehat = with pkgs; mkShell {
+    devShells.whitehat = mkShell {
       buildInputs = minimumEVMDevInputs
         ++ whitehatInputs;
     };
-    devShells.spec = with pkgs; mkShell {
+    devShells.spec = mkShell {
       buildInputs = minimumEVMDevInputs
         ++ specInputs;
     };
-    devShells.full = with pkgs; mkShell {
+    devShells.full = mkShell {
       buildInputs = minimumEVMDevInputs
         ++ whitehatInputs
         ++ specInputs;
     };
-    devShells.ci-spec-ghc925 = ci-spec "ghc925";
-    devShells.ci-spec-ghc944 = ci-spec "ghc944";
-    devShells.ci-hot-fuzz = with pkgs; mkShell {
-      buildInputs = [
+    # CI shells
+    devShells.ci-spec-ghc925 = ci-spec-with-ghc "ghc925";
+    devShells.ci-spec-ghc944 = ci-spec-with-ghc "ghc944";
+    devShells.ci-hot-fuzz = mkShell {
+      buildInputs = with pkgs; [
         slither-analyzer
         echidna
       ];

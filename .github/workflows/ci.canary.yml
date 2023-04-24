@@ -37,16 +37,26 @@ jobs:
           echo github.ref: "$GITHUB_REF"
           echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
+      - uses: cachix/install-nix-action@v19
         with:
-          version: nightly
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Prepare devShell
+        run: |
+          echo 'nix develop -c bash $@' > devShell.sh
+          yarn install
+
+#      - name: Use Node.js ${{ matrix.node-version }}
+#        uses: actions/setup-node@v3
+#        with:
+#          node-version: ${{ matrix.node-version }}
+#          cache: "yarn"
+
+#      - name: Install Foundry
+#        uses: foundry-rs/foundry-toolchain@v1
+#        with:
+#          version: nightly
 
       - name: Install, lint, build, and test
         run: |
@@ -57,6 +67,7 @@ jobs:
         env:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
           SUBGRAPH_RELEASE_TAG: dev
+        shell: sh devShell.sh {0}
 
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml

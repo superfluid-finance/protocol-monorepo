@@ -80,10 +80,10 @@ jobs:
 
       - name: Test ethereum-contracts
         run: |
-          yarn workspace @superfluid-finance/ethereum-contracts test
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
+          yarn workspace @superfluid-finance/ethereum-contracts test:contracts:foundry
         env:
-          FOUNDRY_PROFILE: ci
-          FOUNDRY_SOLC_VERSION: ${{ env.SOLC_PATH }}
           # NOTE: This is currently unset and fork tests are not being run
           POLYGON_MAINNET_ARCHIVE_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_ARCHIVE_PROVIDER_URL }}
 

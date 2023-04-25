@@ -2,7 +2,7 @@ name: CI | Canary (Dev)
 
 on:
   push:
-    branches: ["dev", "canary_fuji"]
+    branches: ["dev"]
     paths:
       - "package.json"
       - "packages/**"
@@ -53,6 +53,8 @@ jobs:
           yarn build
           yarn test
         env:
+          FOUNDRY_PROFILE: ci
+          FOUNDRY_SOLC_VERSION: ${{ env.SOLC_PATH }}
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
           SUBGRAPH_RELEASE_TAG: dev
 

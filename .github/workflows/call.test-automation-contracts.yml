@@ -8,10 +8,10 @@ jobs:
     name: Test Automation Contracts
 
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [ 16.x, 18.x ]
+# currently not supported
+#    strategy:
+#      matrix:
+#        node-version: [ 16.x, 18.x ]
 
     defaults:
       run:
@@ -32,9 +32,13 @@ jobs:
 
       - name: Test automation-contracts-scheduler
         run: |
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn workspace scheduler test
 
       - name: Test automation-contracts-autowrap
         run: |
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn workspace autowrap test
 

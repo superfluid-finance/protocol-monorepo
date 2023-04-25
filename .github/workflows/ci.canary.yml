@@ -2,7 +2,7 @@ name: CI | Canary (Dev)
 
 on:
   push:
-    branches: ["dev"]
+    branches: ["dev", "canary_fuji"]
     paths:
       - "package.json"
       - "packages/**"
@@ -16,10 +16,10 @@ jobs:
     name: Build and test essential packages of dev branch
 
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [16.x, 18.x]
+# currently not supported
+#    strategy:
+#      matrix:
+#        node-version: [16.x, 18.x]
 
     defaults:
       run:
@@ -51,10 +51,10 @@ jobs:
           yarn install --frozen-lockfile
           yarn lint
           yarn build
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn test
         env:
-          FOUNDRY_PROFILE: ci
-          FOUNDRY_SOLC_VERSION: ${{ env.SOLC_PATH }}
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
           SUBGRAPH_RELEASE_TAG: dev
 
@@ -128,6 +128,8 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn build
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
       - name: Install lcov

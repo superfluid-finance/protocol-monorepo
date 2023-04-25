@@ -53,10 +53,11 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: "Install dependencies"
+        run: yarn install --frozen-lockfile
+
       - name: "Build contracts"
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
+        run: yarn build
         working-directory: ./packages/ethereum-contracts
 
       - name: "Get ABI"

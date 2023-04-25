@@ -30,14 +30,16 @@ jobs:
       contracts-working-directory: ./packages/ethereum-contracts
       sdk-core-working-directory: ./packages/sdk-core
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Install dependencies"
         run: yarn install --frozen-lockfile

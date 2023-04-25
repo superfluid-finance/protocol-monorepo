@@ -410,7 +410,14 @@ const E = (module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.8.19", // Fetch exact version from solc-bin (default: truffle's version)
+            // If SOLC_PATH is set (provided by the Nix shell) and we're running in GH actions context,
+            // then use the native version.
+            // FIXME: use locally too once truffle supports setting custom paths: https://github.com/trufflesuite/truffle/pull/6007
+            // Else truffle fetches the specified version itself
+            version: (
+                process.env.SOLC_PATH !== undefined &&
+                process.env.GITHUB_ACTIONS !== undefined
+              ) ? "native" : "0.8.19",
             settings: {
                 // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {

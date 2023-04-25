@@ -8,6 +8,7 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
  */
 interface ISuperTokenPool {
     // Custom Errors
+    error SUPER_TOKEN_POOL_INVALID_TIME();                  // 0xd469ac52
     error SUPER_TOKEN_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();  // 0xd568f5c5
     error SUPER_TOKEN_POOL_NOT_POOL_ADMIN();                // 0xe448e00d
     error SUPER_TOKEN_POOL_NOT_GDA();                       // 0xb3a64080
@@ -15,7 +16,7 @@ interface ISuperTokenPool {
     // Events
     event PoolIndexUpdated(
         ISuperfluidToken indexed token,
-        int128 totalUnits,
+        uint128 totalUnits,
         uint32 wpSettledAt,
         int256 wpSettledValue,
         int96 wpFlowRate
@@ -25,11 +26,11 @@ interface ISuperTokenPool {
 
     function superToken() external view returns (ISuperfluidToken);
 
-    function pendingUnits() external view returns (int128);
+    function pendingUnits() external view returns (uint128);
 
-    function getTotalUnits() external view returns (int128);
+    function getTotalUnits() external view returns (uint128);
 
-    function getUnits(address memberAddress) external view returns (int128);
+    function getUnits(address memberAddress) external view returns (uint128);
 
     function getDistributionFlowRate() external view returns (int96);
 
@@ -43,9 +44,7 @@ interface ISuperTokenPool {
 
     function getClaimableNow(address memberAddr) external view returns (int256 claimableBalance, uint256 timestamp);
 
-    function updateMember(address memberAddr, int128 unit) external returns (bool);    
-
-    function claimAll(uint32 time, address memberAddr) external returns (bool);
+    function updateMember(address memberAddr, uint128 unit) external returns (bool);
 
     function claimAll(address memberAddr) external returns (bool);
 

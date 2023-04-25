@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
     ISuperfluidToken
@@ -19,16 +20,18 @@ import { BeaconProxiable } from "../upgradability/BeaconProxiable.sol";
  */
 contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
     using SemanticMoney for BasicParticle;
+    using SafeCast for uint256;
+    using SafeCast for int256;
 
     struct PoolIndexData {
-        int128 totalUnits;
+        uint128 totalUnits;
         uint32 wrappedSettledAt;
         int96 wrappedFlowRate;
         int256 wrappedSettledValue;
     }
 
     struct MemberData {
-        int128 ownedUnits;
+        uint128 ownedUnits;
         uint32 syncedSettledAt;
         int96 syncedFlowRate;
         int256 syncedSettledValue;
@@ -42,7 +45,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
     address public admin;
     PoolIndexData internal _index;
     mapping(address member => MemberData) internal _membersData;
-    int128 public pendingUnits;
+    uint128 public pendingUnits;
 
     constructor(GeneralDistributionAgreementV1 gda) {
         _gda = gda;
@@ -67,18 +70,18 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         return _index;
     }
 
-    function getTotalUnits() external view override returns (int128) {
+    function getTotalUnits() external view override returns (uint128) {
         return _index.totalUnits;
     }
 
     function getUnits(
         address memberAddr
-    ) external view override returns (int128) {
+    ) external view override returns (uint128) {
         return _membersData[memberAddr].ownedUnits;
     }
 
     function getDistributionFlowRate() external view override returns (int96) {
-        return int96(_index.wrappedFlowRate * _index.totalUnits);
+        return int96(_index.wrappedFlowRate * uint256(_index.totalUnits).toInt256());
     }
 
     function getPendingDistributionFlowRate()
@@ -87,15 +90,15 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         override
         returns (int96)
     {
-        return int96(_index.wrappedFlowRate * pendingUnits);
+        return int96(_index.wrappedFlowRate * uint256(pendingUnits).toInt256());
     }
 
     function getMemberFlowRate(
         address memberAddr
     ) external view override returns (int96) {
-        int128 units = _membersData[memberAddr].ownedUnits;
+        uint128 units = _membersData[memberAddr].ownedUnits;
         if (units == 0) return 0;
-        else return int96(_index.wrappedFlowRate * units);
+        else return int96(_index.wrappedFlowRate * uint256(units).toInt256());
     }
 
     function getPendingDistribution() external view returns (int256) {
@@ -105,7 +108,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
                 _index
             );
         return
-            Value.unwrap(wrappedParticle.rtb(t).mul(Unit.wrap(pendingUnits)));
+            Value.unwrap(wrappedParticle.rtb(t).mul(Unit.wrap(uint256(pendingUnits).toInt256().toInt128())));
     }
 
     function _getWrappedParticleFromPoolIndexData(
@@ -122,7 +125,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         PoolIndexData memory data
     ) public pure returns (PDPoolIndex memory pdPoolIndex) {
         pdPoolIndex = PDPoolIndex({
-            total_units: Unit.wrap(data.totalUnits),
+            total_units: Unit.wrap(uint256(data.totalUnits).toInt256().toInt128()),
             _wrapped_particle: _getWrappedParticleFromPoolIndexData(data)
         });
     }
@@ -131,7 +134,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         PDPoolIndex memory pdPoolIndex
     ) public pure returns (PoolIndexData memory data) {
         data = PoolIndexData({
-            totalUnits: Unit.unwrap(pdPoolIndex.total_units),
+            totalUnits: int256(Unit.unwrap(pdPoolIndex.total_units)).toUint256().toUint128(),
             wrappedSettledAt: Time.unwrap(
                 pdPoolIndex._wrapped_particle._settled_at
             ),
@@ -148,7 +151,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         MemberData memory memberData
     ) public pure returns (PDPoolMember memory pdPoolMember) {
         pdPoolMember = PDPoolMember({
-            owned_units: Unit.wrap(memberData.ownedUnits),
+            owned_units: Unit.wrap(uint256(memberData.ownedUnits).toInt256().toInt128()),
             _synced_particle: BasicParticle({
                 _settled_at: Time.wrap(memberData.syncedSettledAt),
                 _flow_rate: FlowRate.wrap(int128(memberData.syncedFlowRate)),
@@ -162,7 +165,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         PDPoolMember memory pdPoolMember
     ) public pure returns (MemberData memory memberData) {
         memberData = MemberData({
-            ownedUnits: Unit.unwrap(pdPoolMember.owned_units),
+            ownedUnits: uint256(int256(Unit.unwrap(pdPoolMember.owned_units))).toUint128(),
             syncedSettledAt: Time.unwrap(
                 pdPoolMember._synced_particle._settled_at
             ),
@@ -211,14 +214,14 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
 
     function updateMember(
         address memberAddr,
-        int128 unit
+        uint128 unit
     ) external returns (bool) {
         if (unit < 0) revert SUPER_TOKEN_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
         if (admin != msg.sender) revert SUPER_TOKEN_POOL_NOT_POOL_ADMIN();
 
         uint32 time = uint32(block.timestamp);
         Time t = Time.wrap(time);
-        Unit wrappedUnit = Unit.wrap(unit);
+        Unit wrappedUnit = Unit.wrap(uint256(unit).toInt256().toInt128());
 
         // update pool's pending units
         if (!_gda.isMemberConnected(superToken, address(this), memberAddr)) {
@@ -270,7 +273,9 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
     function claimAll(
         uint32 time,
         address memberAddr
-    ) public override returns (bool) {
+    ) public returns (bool) {
+        if (time > block.timestamp) revert SUPER_TOKEN_POOL_INVALID_TIME();
+
         Value claimable = Value.wrap(getClaimable(time, memberAddr));
         {
             address[] memory addresses = new address[](2);

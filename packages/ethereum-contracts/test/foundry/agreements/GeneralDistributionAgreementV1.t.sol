@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "../FoundrySuperfluidTester.sol";
 import { console } from "forge-std/console.sol";
 import {
@@ -16,6 +17,8 @@ import {
 } from "../../../contracts/superfluid/SuperTokenPool.sol";
 
 contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
+    using SafeCast for uint256;
+    using SafeCast for int256;
     constructor() FoundrySuperfluidTester(2) {}
 
     SuperTokenPool public pool;
@@ -187,7 +190,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     struct Allocation {
         address member;
-        int128 memberUnits;
+        uint128 memberUnits;
     }
 
     function helper_Update_Units_And_Assert(
@@ -348,14 +351,14 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             0x1965678C67dA12B2B2D2517886258C59996Cd540,
             0x718FB07d52Ff331CE8004955c26dF1A1c357b4c8
         ];
-        int128 perMemberUnits = 4206933;
+        uint128 perMemberUnits = 4206933;
         int96 requestedDistributionFlowRate = 420693300;
 
         Allocation[10] memory allocation;
-        int128 totalUnits;
+        uint128 totalUnits;
         for (uint i; i < ACCOUNTS.length; i++) {
             allocation[i].member = ACCOUNTS[i];
-            allocation[i].memberUnits = perMemberUnits % int128(int256(i + 1));
+            allocation[i].memberUnits = perMemberUnits % uint128(i + 1);
             totalUnits += allocation[i].memberUnits;
         }
         helper_Update_Units_And_Assert(alice, allocation);
@@ -400,7 +403,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             allocation[i].member = ACCOUNTS[i];
             allocation[i].memberUnits =
                 perMemberUnits %
-                int128(int256(i + 420));
+                uint128(i + 420);
         }
         helper_Update_Units_And_Assert(alice, allocation);
 
@@ -451,12 +454,12 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             actualDistributionFlowRate,
             "test_Distribute_Flow_To_Unconnected_Member: pendingDistributionFlowRate != actualDistributionFlowRate"
         );
-        int128 totalUnits = pool.getTotalUnits();
+        uint128 totalUnits = pool.getTotalUnits();
         (int256 bobClaimable, ) = pool.getClaimableNow(bob);
         assertEq(
             bobClaimable,
             (actualDistributionFlowRate * int96(int256(timeWarped))) /
-                totalUnits,
+                totalUnits.toUint256().toInt256(),
             "test_Distribute_Flow_To_Unconnected_Member: bobClaimable != (actualDistributionFlowRate * timeWarped) / totalUnits"
         );
         assertEq(

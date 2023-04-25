@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -xe
+set -e
 
 # in a Nix shell, shellcheck is in PATH, else use the npm package
 if command -v shellcheck > /dev/null 2>&1; then

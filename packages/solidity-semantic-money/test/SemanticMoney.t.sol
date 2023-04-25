@@ -32,6 +32,20 @@ contract SemanticMoneyTest is Test {
     }
 
     ////////////////////////////////////////////////////////////////////////////////
+    // Monetary Types
+    ////////////////////////////////////////////////////////////////////////////////
+
+    // NB! Validate basic assumption of integeral maths related to quotient
+    function test_flowrate_unit_quotrem(FlowRate r, Unit u1) external {
+        // NB! vm.assume crashes solc/yul 0.8.19 atm, using simpler prunings
+        if (Unit.unwrap(u1) == 0) return; // eliminate the div by 0 case
+        if (FlowRate.unwrap(r) == type(int128).min) return; // eliminate the signed integer overflow case
+        (FlowRate rr2, FlowRate er) = r.div(u1).mul(u1).quotrem(u1);
+        assertEq(rr2, r.div(u1), "e1");
+        assertEq(er, FlowRate.wrap(0), "e2");
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
     // Particle/Universal Index Properties: Monoidal Laws & Monetary Unit Laws
     ////////////////////////////////////////////////////////////////////////////////
 
@@ -171,19 +185,19 @@ contract SemanticMoneyTest is Test {
         d.t5 = d.t4 + Time.wrap(m5);
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u1), d.t1);
-        assertEq(Value.unwrap(d.b1._synced_particle._settled_value), 0);
-        assertEq(Unit.unwrap(d.b.total_units), u1);
-        assertEq(Unit.unwrap(d.b1.owned_units), u1);
+        assertEq(Value.unwrap(d.b1._synced_particle._settled_value), 0, "e1");
+        assertEq(Unit.unwrap(d.b.total_units), u1, "e2");
+        assertEq(Unit.unwrap(d.b1.owned_units), u1, "e3");
 
         (d.a, d.b) = op1(d.a, d.b, d.t2,v2);
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u2), d.t3);
-        assertEq(Unit.unwrap(d.b.total_units), u2);
-        assertEq(Unit.unwrap(d.b1.owned_units), u2);
+        assertEq(Unit.unwrap(d.b.total_units), u2, "e4");
+        assertEq(Unit.unwrap(d.b1.owned_units), u2, "e5");
 
         (d.a, d.b) = op2(d.a, d.b, d.t4,v4);
 
-        assertEq(Value.unwrap(d.a.rtb(d.t5) + PDPoolMemberMU(d.b, d.b1).rtb(d.t5)), 0);
+        assertEq(Value.unwrap(d.a.rtb(d.t5) + PDPoolMemberMU(d.b, d.b1).rtb(d.t5)), 0, "e6");
     }
     function test_updp_1m_ss(uint16 m1, int64 u1, // update unit
                              uint16 m2, int64 x2, // distribute
@@ -236,21 +250,21 @@ contract SemanticMoneyTest is Test {
         d.t5 = d.t4 + Time.wrap(m5);
 
         (d.b, d.b1, d.a) = PDPoolMemberMU(d.b, d.b1).pool_member_update(d.a, Unit.wrap(u1), d.t1);
-        assertEq(Value.unwrap(d.b1._synced_particle._settled_value), 0);
-        assertEq(Unit.unwrap(d.b.total_units), u1);
-        assertEq(Unit.unwrap(d.b1.owned_units), u1);
+        assertEq(Value.unwrap(d.b1._synced_particle._settled_value), 0, "e1");
+        assertEq(Unit.unwrap(d.b.total_units), u1, "e2");
+        assertEq(Unit.unwrap(d.b1.owned_units), u1, "e3");
 
         (d.a, d.b) = op1(d.a, d.b, d.t2, v2);
 
         (d.b, d.b2, d.a) = PDPoolMemberMU(d.b, d.b2).pool_member_update(d.a, Unit.wrap(u2), d.t3);
-        assertEq(Unit.unwrap(d.b.total_units), int256(u1) + int256(u2));
-        assertEq(Unit.unwrap(d.b2.owned_units), u2);
+        assertEq(Unit.unwrap(d.b.total_units), int256(u1) + int256(u2), "e4");
+        assertEq(Unit.unwrap(d.b2.owned_units), u2, "e5");
 
         (d.a, d.b) = op2(d.a, d.b, d.t4, v4);
 
         assertEq(Value.unwrap(d.a.rtb(d.t5)
                               + PDPoolMemberMU(d.b, d.b1).rtb(d.t5)
-                              + PDPoolMemberMU(d.b, d.b2).rtb(d.t5)), 0);
+                              + PDPoolMemberMU(d.b, d.b2).rtb(d.t5)), 0, "e5");
     }
     function test_updp_2m_ss(uint16 m1, int64 u1, // update unit
                              uint16 m2, int64 x2, // distribute

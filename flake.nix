@@ -38,6 +38,8 @@
       pkgs.${solcVer}
       # for shell script linting
       shellcheck
+      # used by some scripts
+      jq
     ];
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [

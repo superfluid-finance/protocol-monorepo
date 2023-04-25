@@ -35,14 +35,45 @@ contract SemanticMoneyTest is Test {
     // Monetary Types
     ////////////////////////////////////////////////////////////////////////////////
 
-    // NB! Validate basic assumption of integeral maths related to quotient
-    function test_flowrate_unit_quotrem(FlowRate r, Unit u1) external {
-        // NB! vm.assume crashes solc/yul 0.8.19 atm, using simpler prunings
-        if (Unit.unwrap(u1) == 0) return; // eliminate the div by 0 case
+    /// value `mul` unit distributive law: v * (u1 + u2) = v * u1 + v * u2
+    function test_value_mul_unit_distributive_law(int128 x_, Unit u1, Unit u2) external {
+        Value x = Value.wrap(x_);
+        int256 tu = int256(Unit.unwrap(u1)) + int256(Unit.unwrap(u2));
+        // FIXME NB! vm.assume crashes solc/yul 0.8.19
+        if (tu > type(int128).max || tu < type(int128).min) return;
+        assertEq(x.mul(u1) + x.mul(u2), x.mul(u1 + u2), "e1");
+    }
+
+    /// Value `mul.div` unit is a fixed-point function
+    function test_value_muldiv_unit_fixed(int128 x_, Unit u) external {
+        if (Unit.unwrap(u) == 0) return;
+        Value x = Value.wrap(x_);
+        assertEq(x.div(u).mul(u), x.div(u).mul(u).div(u).mul(u), "e1");
+    }
+
+    /// flowrate `mul` unit distributive law: r * (u1 + u2) = r * u1 + r * u2
+    function test_flowrate_mul_unit_distributive_law(int64 r_, int64 u1_, int64 u2_) external {
+        FlowRate r = FlowRate.wrap(r_);
+        Unit u1 = Unit.wrap(u1_);
+        Unit u2 = Unit.wrap(u2_);
+        assertEq(r.mul(u1) + r.mul(u2), r.mul(u1 + u2), "e1");
+    }
+
+    /// FlowRate `mul.div` unit is a fixed-point function
+    function test_flowrate_muldiv_unit_fixed(int64 r_, int64 u_) external {
+        if (u_ == 0) return;
+        FlowRate r = FlowRate.wrap(r_);
+        Unit u = Unit.wrap(u_);
+        assertEq(r.div(u).mul(u), r.div(u).mul(u).div(u).mul(u), "e1");
+    }
+
+    /// flowrate and unit quotien remainder law:  (q, e) = r \ u => q * u + e = r
+    function test_flowrate_quotrem_unit(FlowRate r, Unit u) external {
+        // FIXME NB! vm.assume crashes solc/yul 0.8.19 atm, using simpler prunings
+        if (Unit.unwrap(u) == 0) return; // eliminate the div by 0 case
         if (FlowRate.unwrap(r) == type(int128).min) return; // eliminate the signed integer overflow case
-        (FlowRate rr2, FlowRate er) = r.div(u1).mul(u1).quotrem(u1);
-        assertEq(rr2, r.div(u1), "e1");
-        assertEq(er, FlowRate.wrap(0), "e2");
+        (FlowRate q, FlowRate e) = r.quotrem(u);
+        assertEq(q.mul(u) + e, r, "e1");
     }
 
     ////////////////////////////////////////////////////////////////////////////////

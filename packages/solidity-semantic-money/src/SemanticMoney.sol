@@ -29,10 +29,42 @@ pragma solidity ^0.8.19;
 // Monetary Types and Their Helpers
 ////////////////////////////////////////////////////////////////////////////////
 
+/********************************************************************************
+ * About Fix-point Arithmetic
+ *
+ * There are two types of integral mul/div used in the system:
+ *
+ *  - FlowRate `mul`|`div` Time
+ *  - Value `mul`|`div` Unit
+ *
+ * There are two major reasons that there is no built-in fixed-point arithmetic
+ * support in this library:
+ *
+ * 1. To avoid any hardcoded decimal assumptions for the types at all cost. This
+ *    means until there is generics for type-level decimal support in solidity,
+ *    we are out of luck.
+ * 2. The library requires high fidelity arithmetic to adhere strictly to the
+ *    law of conservation of values. Such arithmetic would require:
+ *
+ *    - distributive laws for multiplications
+ *    - mul.div is a fixed-point function
+ *    - quot remainder law
+ *
+ *    Fixed-point arithmetic does not satisfy these laws.
+ *
+ * Generally speaking, this is the recommended configurations for the decimals
+ * that works with this library:
+ *
+ * - Time, 0 decimals
+ * - Value, 18 decimals
+ * - Unit, 0 decimals
+ * - FlowRate, 18 decimals (in-sync with Value)
+ *
+ */
+
 /**
  * @title Absolute time value in seconds represented by uint32 unix timestamp.
- * @dev - Fixed point value with 0 decimals.
- *      - This represents absolute values, e.g. block timestamps.
+ * @dev - This should represents absolute values, e.g. block timestamps.
  */
 type Time is uint32;
 function mt_t_add_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) + Time.unwrap(b)); }
@@ -41,7 +73,6 @@ using { mt_t_add_t as +, mt_t_sub_t as - } for Time global;
 
 /**
  * @title Unit value of monetary value represented with 256bits of signed integer.
- * @dev Fixed point value with 18 decimals.
  */
 type Value is int256;
 function mt_v_add_v(Value a, Value b) pure returns (Value) {
@@ -54,7 +85,6 @@ using { mt_v_add_v as +, mt_v_sub_v as - } for Value global;
 
 /**
  * @title Number of units represented with half the size of `Value`.
- * @dev Fixed point value with 0 decimals.
  */
 type Unit is int128;
 function mt_u_add_u(Unit a, Unit b) pure returns (Unit) {
@@ -67,7 +97,6 @@ using { mt_u_add_u as +, mt_u_sub_u as - } for Unit global;
 
 /**
  * @title FlowRate value represented with half the size of `Value`.
- * @dev Fixed point value with 18 decimals.
  */
 type FlowRate is int128;
 function mt_r_add_r(FlowRate a, FlowRate b) pure returns (FlowRate) {

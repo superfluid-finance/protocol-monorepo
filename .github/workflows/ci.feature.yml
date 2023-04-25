@@ -58,27 +58,24 @@ jobs:
       matrix:
         node-version: [16.x, 18.x]
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install, lint and build
         run: |
           yarn install --frozen-lockfile
           yarn lint
           yarn build
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Test ethereum-contracts
         run: |
@@ -95,24 +92,21 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_ethereum_contracts
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install and build
         run: |
           yarn install --frozen-lockfile
           yarn build
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Run coverage test
         run: |

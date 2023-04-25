@@ -53,6 +53,8 @@ contract AqueductTest is Test {
         assertEq(Value.unwrap(a), Value.unwrap(b), e);
     }
 
+    // Setup up a flow from the `from` address to `aqueduct` and invoke the
+    // flow updated callback of `aqueduct`.
     function _flowWithCallback(ToySuperToken token, address from, FlowRate r) internal {
         vm.startPrank(from);
         FlowRate r0 = token.getFlowRate(from, address(x), FlowId.wrap(0));
@@ -61,28 +63,46 @@ contract AqueductTest is Test {
         vm.stopPrank();
     }
 
-    // let alice be LP, and bootstrap the liquidity
-    // with the price of X/B at r1/r2
-    function test_1lp_bootstrap(uint64 r1, uint64 r2, uint16 dt2) external {
-        Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
+    function assert_zero_liquidity() internal {
+        Value xl1 = token1.realtimeBalanceOf(address(x));
+        Value xl2 = token2.realtimeBalanceOf(address(x));
+        emit log_named_int("token1.rtb x", Value.unwrap(xl2));
+        emit log_named_int("token2.rtb x", Value.unwrap(xl2));
+        assertEq(xl1, Value.wrap(0), "ZL: token1");
+        assertEq(xl2, Value.wrap(0), "ZL: token2");
+    }
+
+    /**
+     * @dev Scenario test case: single LP bootstrapping the system.
+     *
+     * Scenario:
+     *
+     * 1) Alice is the single LP.
+     * 2) t0: Alice bootstraps pool with two flows:
+     *    - flow of token1 at rate `r1`
+     *    - flow of token2 at rate `r2`
+     * 3) These properties are tested:
+     *    - aqueduct should have always a balance of 0.
+     */
+    function test_1lp_bootstrap(uint64 r1, uint64 r2, uint16 dt1) external {
+        Time t1 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt1));
 
         FlowRate rr1 = FlowRate.wrap(int128(uint128(r1)));
         FlowRate rr2 = FlowRate.wrap(int128(uint128(r2)));
 
-        _flowWithCallback(token1, alice, rr1);
-        _flowWithCallback(token2, alice, rr2);
+        // initial setup
         _flowWithCallback(token1, alice, rr1);
         _flowWithCallback(token2, alice, rr2);
 
-        vm.warp(Time.unwrap(t2));
+        vm.warp(Time.unwrap(t1));
 
-        Value xl2 = token1.realtimeBalanceOf(address(x));
-        Value xb2 = token2.realtimeBalanceOf(address(x));
+        // updating again with the same parameters for testing purpose
+        _flowWithCallback(token1, alice, rr1);
+        _flowWithCallback(token2, alice, rr2);
+
         Value al2 = token1.realtimeBalanceOf(alice);
         Value ar2 = token2.realtimeBalanceOf(alice);
 
-        emit log_named_int("xl2", Value.unwrap(xl2));
-        emit log_named_int("xb2", Value.unwrap(xb2));
         emit log_named_int("al2", Value.unwrap(al2));
         emit log_named_int("ar2", Value.unwrap(ar2));
         emit log_named_int("pool1 tr", int256(FlowRate.unwrap(x.pool1().getDistributionFlowRate())));
@@ -94,13 +114,25 @@ contract AqueductTest is Test {
         emit log_named_int("token1 r x->a", int256(FlowRate.unwrap(token1.getFlowRate(address(x), alice, FlowId.wrap(0)))));
         emit log_named_int("token2 r x->a", int256(FlowRate.unwrap(token2.getFlowRate(address(x), alice, FlowId.wrap(0)))));
 
-        assertEq(Value.unwrap(xl2), 0, "e1");
-        assertEq(Value.unwrap(xb2), 0, "e2");
+        assert_zero_liquidity();
     }
 
-    function test_1lp_2taker(uint64 r1, uint64 r2, uint16 dt2, uint64 r3, uint16 dt3) external {
-        Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
-        Time t3 = t2 + Time.wrap(uint32(dt3));
+
+    /**
+     * @dev Scenario test case: one LP and one trader.
+     *
+     * Secnario:
+     *
+     * - Alice is the single LP.
+     * - Bob is the trader.
+     * - t0: Bob trades token1 for token1 at rate `r3`.
+     * - t1: Alice sets up the liquidity:
+     *   - token 1 at rate r1
+     *   - token 2 at rate r2
+     */
+    function test_1lp_1trader(uint64 r1, uint64 r2, uint16 dt1, uint64 r3, uint16 dt2) external {
+        Time t1 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt1));
+        Time t2 = t1 + Time.wrap(uint32(dt2));
         FlowRate rr1 = FlowRate.wrap(int128(uint128(r1)));
         FlowRate rr2 = FlowRate.wrap(int128(uint128(r2)));
         FlowRate rr3 = FlowRate.wrap(int128(uint128(r3)));
@@ -112,24 +144,20 @@ contract AqueductTest is Test {
 
         _flowWithCallback(token1, bob, rr3);
 
-        vm.warp(Time.unwrap(t2));
+        vm.warp(Time.unwrap(t1));
 
         _flowWithCallback(token1, alice, rr1);
         _flowWithCallback(token2, alice, rr2);
 
-        vm.warp(Time.unwrap(t3));
+        vm.warp(Time.unwrap(t2));
 
-        Value xl2 = token1.realtimeBalanceOf(address(x));
-        Value xb2 = token2.realtimeBalanceOf(address(x));
         Value al2 = token1.realtimeBalanceOf(alice);
         Value ar2 = token2.realtimeBalanceOf(alice);
         Value bl2 = token1.realtimeBalanceOf(bob);
         Value br2 = token2.realtimeBalanceOf(bob);
 
-        emit log_named_int("token1.rtb x", Value.unwrap(xl2));
         emit log_named_int("token1.rtb a", Value.unwrap(al2));
         emit log_named_int("token1.rtb b", Value.unwrap(bl2));
-        emit log_named_int("token2.rtb x", Value.unwrap(xb2));
         emit log_named_int("token2.rtb a", Value.unwrap(ar2));
         emit log_named_int("token2.rtb b", Value.unwrap(br2));
 
@@ -149,26 +177,28 @@ contract AqueductTest is Test {
         emit log_named_int("token2 r x->a", int256(FlowRate.unwrap(token2.getFlowRate(address(x), alice, FlowId.wrap(0)))));
         emit log_named_int("token2 r x->b", int256(FlowRate.unwrap(token2.getFlowRate(address(x), bob, FlowId.wrap(0)))));
 
-        assertEq(Value.unwrap(xl2), 0, "e1.1");
-        assertEq(Value.unwrap(xb2), 0, "e1.2");
+        assert_zero_liquidity();
 
         assertEq(al2 - al1, bl1 - bl2, "e2.1");
         assertEq(ar1 - ar2, br2 - br1, "e2.2");
 
-        // Minimum swap condition: r2.div(r1 + r3) >= 1
-        if (uint(r1) + uint(r3) > 0 && r3 > 0 && uint(r2) >= uint(r1) + uint(r3) &&
-            dt2 > 0 && dt3 > 0) {
+        // (Approximate) minimum swap condition: r2.div(down scaled r1 + down scaled r3) >= 1
+        if (r1 > 0 && r2 > 0 && r3 > 0 &&
+            uint(r2) >= uint(r1 / 1e9 + 1) + uint(r3 / 1e9 + 1) &&
+            dt1 > 0 && dt2 > 0) {
             assertTrue(Value.unwrap(bl2 - bl1) < 0, "e3.1");
             assertTrue(Value.unwrap(br2 - br1) > 0, "e3.2");
         }
     }
 
     struct Step {
-        uint8  u; // which user
-        uint8  t; // token 1 or token 2
-        uint64 r; // flow rate
+        uint8   u; // which user
+        uint8   t; // token 1 or token 2
+        uint64  r; // flow rate
         uint16 dt; // time delta
     }
+    /** @dev Assert zero liquidity over generated random steps.
+     */
     function test_random_seqs(Step[] memory steps) external {
         uint noStepsLimit = vm.envOr("NO_FOUNDRY_TEST_STEPS_LIMIT", uint256(0));
         if (noStepsLimit == 0) {
@@ -185,7 +215,6 @@ contract AqueductTest is Test {
             emit log_named_uint("token", s.t % 2 + 1);
             emit log_named_int("flow rate", FlowRate.unwrap(r));
         }
-        assertEq(token1.realtimeBalanceOf(address(x)), Value.wrap(0), "e1.1");
-        assertEq(token2.realtimeBalanceOf(address(x)), Value.wrap(0), "e1.2");
+        assert_zero_liquidity();
     }
 }

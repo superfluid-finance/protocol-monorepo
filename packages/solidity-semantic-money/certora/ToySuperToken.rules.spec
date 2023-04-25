@@ -2,10 +2,12 @@
 
 import "MonetaryTypes.ghosts.spec"
 import "ToySuperToken.methods.spec"
+//import "SuperfluidPool.ghosts.spec"
+
 
 function require_poolless(address a) {
     require isPool(a) == false;
-    require getNumConnections(a) == 0;
+    require getNumConnections(a) <= 1;
 }
 
 rule poolless_shift_balance_moves() {

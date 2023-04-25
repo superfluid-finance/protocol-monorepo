@@ -8,7 +8,6 @@ methods {
 
     mul(int128 a, int128 b) returns (int128) => mul_fu_cvl(a, b);
     div(int128 a, int128 b) returns (int128) => div_fu_cvl(a, b);
-    rem(int128 a, int128 b) returns (int128) => rem_fu_cvl(a, b);
 }
 
 ghost int256 mul_vu;
@@ -52,12 +51,4 @@ function div_fu_cvl(int128 a, int128 b) returns int128 {
     );
     require to_mathint(div_fu) <= 2^128 - 1 && to_mathint(div_fu) >= -1*2^128;
     return div_fu;
-}
-ghost int128 rem_fu;
-function rem_fu_cvl(int128 a, int128 b) returns int128 {
-    havoc rem_fu assuming (
-        to_mathint(rem_fu@new) == to_mathint(a) % to_mathint(b)
-    );
-    require to_mathint(rem_fu) <= 2^128 - 1 && to_mathint(rem_fu) >= -1*2^128;
-    return rem_fu;
 }

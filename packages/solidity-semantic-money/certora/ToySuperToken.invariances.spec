@@ -4,7 +4,8 @@ import "MonetaryTypes.ghosts.spec"
 import "ToySuperToken.methods.spec"
 import "ToySuperTokenPool.ghosts.spec"
 
-using ToySuperTokenPoolCertora as p1
+using CertoraSuperfluidPool1 as p1
+using CertoraSuperfluidPool2 as p1
 
 ghost totalFlowRate() returns int128 {
     init_state axiom totalFlowRate() == 0;
@@ -49,6 +50,6 @@ hook Sstore p1._pdpIndex.(offset 0) int128 u1 (int128 u0) STORAGE {
 }
 
 invariant zero_net_flow_rate() totalFlowRate() == 0
-    filtered { f -> f.selector != 0x57587b39 /* absorbParticlesFromPool(address[],(uint32,int256,int128)[]) */
+    filtered { f -> f.selector != 0x869abbb3 /* absorbParticlesFromPool(address[],(uint32,int128,int256)[]) */
                && f.selector != operatorSetIndex((int128,(uint32,int256,int128))).selector
                && f.selector != operatorConnectMember(uint32,address,bool).selector }

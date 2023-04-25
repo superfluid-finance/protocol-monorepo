@@ -29,13 +29,20 @@ pragma solidity ^0.8.19;
 // Monetary Types and Their Helpers
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Time value represented by uint32 unix timestamp.
+/**
+ * @title Absolute time value in seconds represented by uint32 unix timestamp.
+ * @dev - Fixed point value with 0 decimals.
+ *      - This represents absolute values, e.g. block timestamps.
+ */
 type Time is uint32;
 function mt_t_add_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) + Time.unwrap(b)); }
 function mt_t_sub_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) - Time.unwrap(b)); }
 using { mt_t_add_t as +, mt_t_sub_t as - } for Time global;
 
-/// Monetary value represented with signed integer.
+/**
+ * @title Unit value of monetary value represented with 256bits of signed integer.
+ * @dev Fixed point value with 18 decimals.
+ */
 type Value is int256;
 function mt_v_add_v(Value a, Value b) pure returns (Value) {
     return Value.wrap(Value.unwrap(a) + Value.unwrap(b));
@@ -45,7 +52,10 @@ function mt_v_sub_v(Value a, Value b) pure returns (Value) {
 }
 using { mt_v_add_v as +, mt_v_sub_v as - } for Value global;
 
-/// Unit value represented with half the size of `Value`.
+/**
+ * @title Number of units represented with half the size of `Value`.
+ * @dev Fixed point value with 0 decimals.
+ */
 type Unit is int128;
 function mt_u_add_u(Unit a, Unit b) pure returns (Unit) {
     return Unit.wrap(Unit.unwrap(a) + Unit.unwrap(b));
@@ -56,10 +66,8 @@ function mt_u_sub_u(Unit a, Unit b) pure returns (Unit) {
 using { mt_u_add_u as +, mt_u_sub_u as - } for Unit global;
 
 /**
- * @dev FlowRate value represented with half the size of `Value`.
- *
- * It is important to make sure that `FlowRate` multiplying with either `Time`
- * or `Unit` does not exceed the range of `Value`.
+ * @title FlowRate value represented with half the size of `Value`.
+ * @dev Fixed point value with 18 decimals.
  */
 type FlowRate is int128;
 function mt_r_add_r(FlowRate a, FlowRate b) pure returns (FlowRate) {
@@ -93,7 +101,7 @@ library AdditionalMonetaryTypeHelpers {
     }
 
     function mul(FlowRate r, Time t) internal pure returns (Value) {
-        return Value.wrap(FlowRate.unwrap(r) * int(uint(Time.unwrap(t))));
+        return Value.wrap(int256(FlowRate.unwrap(r)) * int(uint(Time.unwrap(t))));
     }
     function mul(FlowRate r, Unit u) internal pure returns (FlowRate) {
         return FlowRate.wrap(FlowRate.unwrap(r) * Unit.unwrap(u));
@@ -101,13 +109,10 @@ library AdditionalMonetaryTypeHelpers {
     function div(FlowRate a, Unit b) internal pure returns (FlowRate) {
         return FlowRate.wrap(FlowRate.unwrap(a) / Unit.unwrap(b));
     }
-    function rem(FlowRate a, Unit b) internal pure returns (FlowRate) {
-        return FlowRate.wrap(FlowRate.unwrap(a) % Unit.unwrap(b));
-    }
     function quotrem(FlowRate r, Unit u) internal pure returns (FlowRate nr, FlowRate er) {
-        // quotient and remainder
+        // quotient and remainder (error term), without using the '%'/modulo operator
         nr = r.div(u);
-        er = r.rem(u);
+        er = r - nr.mul(u);
     }
     function mul_quotrem(FlowRate r, Unit u1, Unit u2) internal pure returns (FlowRate nr, FlowRate er) {
         return r.mul(u1).quotrem(u2);

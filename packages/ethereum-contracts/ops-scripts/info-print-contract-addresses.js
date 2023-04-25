@@ -16,6 +16,8 @@ const {web3} = require("hardhat");
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
+ * @param {boolean} options.skipTokens Don't iterate through tokens
+ *                  (overriding env: SKIP_TOKENS)
  *
  * Usage: npx truffle exec ops-scripts/info-print-contract-addresses : {OUTPUT_FILE}
  */
@@ -25,7 +27,11 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 ) {
     let output = "";
 
-    let {protocolReleaseVersion} = options;
+    let {
+        protocolReleaseVersion,
+        skipTokens
+    } = options;
+    skipTokens = skipTokens || process.env.SKIP_TOKENS;
 
     if (args.length !== 1) {
         throw new Error("Wrong number of arguments");
@@ -43,8 +49,8 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
-        tokens: config.tokenList,
-        loadSuperNativeToken: true,
+        tokens: skipTokens ? [] : config.tokenList,
+        loadSuperNativeToken: !skipTokens, // defaults to true
         additionalContracts: ["UUPSProxiable"],
     });
     await sf.initialize();
@@ -113,39 +119,41 @@ module.exports = eval(`(${S.toString()})()`)(async function (
 
     const constantOutflowNFTProxyAddress =
         await superTokenLogicContract.CONSTANT_OUTFLOW_NFT();
-    output += `CONSTANT_OUTFLOW_NFT_ADDRESS=${constantOutflowNFTProxyAddress}\n`;
+    output += `CONSTANT_OUTFLOW_NFT_PROXY=${constantOutflowNFTProxyAddress}\n`;
 
     const constantOutflowNFTLogicAddress = await (
         await UUPSProxiable.at(constantOutflowNFTProxyAddress)
     ).getCodeAddress();
-    output += `CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS=${constantOutflowNFTLogicAddress}\n`;
+    output += `CONSTANT_OUTFLOW_NFT_LOGIC=${constantOutflowNFTLogicAddress}\n`;
 
     const constantInflowNFTProxyAddress =
         await superTokenLogicContract.CONSTANT_INFLOW_NFT();
-    output += `CONSTANT_INFLOW_NFT_ADDRESS=${constantInflowNFTProxyAddress}\n`;
+    output += `CONSTANT_INFLOW_NFT_PROXY=${constantInflowNFTProxyAddress}\n`;
 
     const constantInflowNFTLogicAddress = await (
         await UUPSProxiable.at(constantInflowNFTProxyAddress)
     ).getCodeAddress();
-    output += `CONSTANT_INFLOW_NFT_LOGIC_ADDRESS=${constantInflowNFTLogicAddress}\n`;
+    output += `CONSTANT_INFLOW_NFT_LOGIC=${constantInflowNFTLogicAddress}\n`;
 
-    await Promise.all(
-        config.tokenList.map(async (tokenName) => {
-            output += `SUPER_TOKEN_${tokenName.toUpperCase()}=${
-                sf.tokens[tokenName].address
+    if (! skipTokens) {
+        await Promise.all(
+            config.tokenList.map(async (tokenName) => {
+                output += `SUPER_TOKEN_${tokenName.toUpperCase()}=${
+                    sf.tokens[tokenName].address
+                }\n`;
+                const underlyingTokenSymbol = await sf.tokens[
+                    tokenName
+                ].underlyingToken.symbol.call();
+                output += `NON_SUPER_TOKEN_${underlyingTokenSymbol.toUpperCase()}=${
+                    sf.tokens[tokenName].underlyingToken.address
+                }\n`;
+            })
+        );
+        if (sf.config.nativeTokenSymbol) {
+            output += `SUPER_TOKEN_NATIVE_COIN=${
+                sf.tokens[sf.config.nativeTokenSymbol + "x"].address
             }\n`;
-            const underlyingTokenSymbol = await sf.tokens[
-                tokenName
-            ].underlyingToken.symbol.call();
-            output += `NON_SUPER_TOKEN_${underlyingTokenSymbol.toUpperCase()}=${
-                sf.tokens[tokenName].underlyingToken.address
-            }\n`;
-        })
-    );
-    if (sf.config.nativeTokenSymbol) {
-        output += `SUPER_TOKEN_NATIVE_COIN=${
-            sf.tokens[sf.config.nativeTokenSymbol + "x"].address
-        }\n`;
+        }
     }
 
     await util.promisify(fs.writeFile)(outputFilename, output);

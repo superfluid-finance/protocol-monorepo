@@ -31,6 +31,12 @@ async function takeEvmSnapshot() {
  * Usage: npx truffle exec ops-scripts/deploy-test-environment.js : {TOKENS_TO_DEPLOY}
  * where TOKENS_TO_DEPLOY is an optional list of token symbols, e.g. TEST1,TEST2.
  * For each such token, an underlying ERC20 and a wrapping Super Token will be deployed.
+ *
+ * WARNING:
+ * This script as is can easily overload the connected RPC.
+ * That is because every invocation of deploy-test-token or deploy-super-token
+ * creates an instance of SuperfluidSDK.Framework, where each instance seems to
+ * cause a lot of RPC polling. Those instances seem to not be release until the end of this script.
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
@@ -62,7 +68,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("==== Superfluid framework deployed  ========");
 
     for (let i = 0; i < tokens.length; ++i) {
-        if (tokens[i] !== deploySuperToken) {
+        if (tokens[i] !== deploySuperToken) { // ???
             console.log(`======== Deploying test token ${tokens[i]} ========`);
             await deployTestToken(errorHandler, [":", tokens[i]], options);
             console.log(`======== Test token ${tokens[i]} deployed ========`);

@@ -377,7 +377,8 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
                           FlowRate newFlowRate, FlowRate flowRateDelta)
         virtual override internal returns (bytes memory)
     {
-        flowData[flowHash] = FlowData(from, to, newFlowRate, Value.wrap(0) /* to be adjusted later */);
+        // the buffer amount now mismatches the newFlowRate, it should be adjusted separately.
+        flowData[flowHash] = FlowData(from, to, newFlowRate, flowData[flowHash].buffer);
         accountData[from].totalOutflowRate = accountData[from].totalOutflowRate + flowRateDelta;
         accountData[to].totalInflowRate = accountData[from].totalInflowRate + flowRateDelta;
         return eff;

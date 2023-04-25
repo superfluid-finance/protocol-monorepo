@@ -17,37 +17,46 @@ import {
  * @dev Aqueduct - a zero-intermediate liquidity market maker (ZILMM)
  */
 library AqueductLibrary {
-    struct SideState {
+    int128 internal constant FLOW_RATE_SCALING_FACTOR = 1e9;
+
+    struct PoolSideState {
         FlowRate totalInFlowRate;
+        FlowRate distributionFlowRate;
     }
 
-    function clone(SideState memory a) internal pure returns (SideState memory b) {
-        b.totalInFlowRate = a.totalInFlowRate;
+    struct TraderSideState {
+        Unit nUnits;
     }
 
-    function updateSide(SideState memory a, Unit curUnitsB, FlowRate r0, FlowRate r1) internal pure
-        returns (SideState memory m, FlowRate newDistFlowRateA, Unit newUnitsB)
+    // Down scale the flow rate: minimum 1 unit unless input is 0.
+    function _clip(FlowRate r) internal pure returns(int128)
     {
-        m = clone(a);
-        m.totalInFlowRate = a.totalInFlowRate + r1 - r0;
+        if (FlowRate.unwrap(r) == 0) return 0;
+        int128 rr = FlowRate.unwrap(r) / FLOW_RATE_SCALING_FACTOR;
+        return rr == 0 ? int128(1) : rr;
+    }
 
+    function updateSide(PoolSideState memory poolA, FlowRate r0, FlowRate r1) internal pure
+        returns (PoolSideState memory poolAu, TraderSideState memory tradeBu)
+    {
+        poolAu.totalInFlowRate = poolA.totalInFlowRate + r1 - r0;
         // TODO: assuming 100% distributed for now
-        newDistFlowRateA = m.totalInFlowRate;
+        poolAu.distributionFlowRate = poolAu.totalInFlowRate;
 
-        newUnitsB = Unit.wrap(Unit.unwrap(curUnitsB) + FlowRate.unwrap(r1) - FlowRate.unwrap(r0));
+        tradeBu.nUnits = Unit.wrap(_clip(r1));
     }
 }
 
 contract Aqueduct {
-    using AqueductLibrary for AqueductLibrary.SideState;
-
     FlowId constant public SWAP_DISTRIBUTE_FLOW_ID = FlowId.wrap(0);
     FlowId constant public ADJUSTMENT_FLOW_ID = FlowId.wrap(0);
 
     struct Side {
         ToySuperfluidToken token;
         ToySuperfluidPool pool;
-        AqueductLibrary.SideState state;
+        // it is unnecessary to store everything in storage, but it's a toy model
+        AqueductLibrary.PoolSideState state;
+        // remainder flowrate goes to the last taker
         address remFlowReceiver;
     }
 
@@ -75,20 +84,19 @@ contract Aqueduct {
     }
 
     function _onFlowUpdate(Side storage a, Side storage b, address from, FlowRate ir0, FlowRate ir1) internal {
-        (AqueductLibrary.SideState memory sa1, FlowRate drr, Unit u1) =
-            a.state.updateSide(b.pool.getUnits(from), ir0, ir1);
-        a.state = sa1;
+        AqueductLibrary.TraderSideState memory tssB;
+        (a.state, tssB) = AqueductLibrary.updateSide(a.state, ir0, ir1);
 
         {
             FlowRate ar0 = a.token.getFlowRate(address(this), from, ADJUSTMENT_FLOW_ID);
             FlowRate dr0 = a.pool.getDistributionFlowRate();
-            _adjustFlowRemainder(a, from, ir1 - ir0, drr, ar0, dr0);
+            _adjustFlowRemainder(a, from, ir1 - ir0, a.state.distributionFlowRate, ar0, dr0);
         }
 
         {
             FlowRate ar0 = b.token.getFlowRate(address(this), from, ADJUSTMENT_FLOW_ID);
             FlowRate dr0 = b.pool.getDistributionFlowRate();
-            b.pool.updateMember(from, u1);
+            b.pool.updateMember(from, tssB.nUnits);
             _adjustFlowRemainder(b, from, FlowRate.wrap(0), dr0 + ar0, ar0, dr0);
         }
     }

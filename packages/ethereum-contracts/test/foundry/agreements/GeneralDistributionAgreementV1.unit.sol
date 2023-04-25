@@ -22,6 +22,10 @@ import {
 } from "../../../contracts/superfluid/SuperTokenPool.sol";
 import "forge-std/Test.sol";
 
+/// @title GeneralDistributionAgreementV1 Unit Tests
+/// @author Superfluid
+/// @notice This is a contract that runs unit tests for the GDAv1
+/// It involves mocking and mainly tests the direct setters/getters of the GDAv1 contract.
 contract GeneralDistributionAgreementV1UnitTest is FoundrySuperfluidTester {
     constructor() FoundrySuperfluidTester(2) {}
 
@@ -184,48 +188,52 @@ contract GeneralDistributionAgreementV1UnitTest is FoundrySuperfluidTester {
         assertEq(address(_pool), setPoolMemberData.pool, "pool not equal");
     }
 
-    // Precompile: ECRECOVER breaks this?
-    // function test_Set_Get_PDPIndex(
-    //     address owner,
-    //     int128 totalUnits,
-    //     uint32 wrappedSettledAt,
-    //     int96 wrappedFlowRate,
-    //     int256 wrappedSettledValue
-    // ) public {
-    //     vm.assume(owner != address(0));
-    //     bytes memory eff = abi.encode(superToken);
-    //     PDPoolIndex memory pdpIndex = PDPoolIndex({
-    //         total_units: Unit.wrap(totalUnits),
-    //         _wrapped_particle: BasicParticle({
-    //             _settled_at: Time.wrap(wrappedSettledAt),
-    //             _flow_rate: FlowRate.wrap(wrappedFlowRate),
-    //             _settled_value: Value.wrap(wrappedSettledValue)
-    //         })
-    //     });
-    //     sf.gda.setPDPIndex(eff, owner, pdpIndex);
-    //     PDPoolIndex memory setPdpIndex = sf.gda.getPDPIndex(eff, owner);
+    function test_Set_Get_PDPIndex(
+        address owner,
+        uint128 totalUnits,
+        uint32 wrappedSettledAt,
+        int96 wrappedFlowRate,
+        int256 wrappedSettledValue
+    ) public {
+        vm.assume(owner != address(0));
+        vm.assume(totalUnits < uint128(type(int128).max));
+        bytes memory eff = abi.encode(superToken);
+        PDPoolIndex memory pdpIndex = PDPoolIndex({
+            total_units: Unit.wrap(int128(totalUnits)),
+            _wrapped_particle: BasicParticle({
+                _settled_at: Time.wrap(wrappedSettledAt),
+                _flow_rate: FlowRate.wrap(wrappedFlowRate),
+                _settled_value: Value.wrap(wrappedSettledValue)
+            })
+        });
+        ISuperTokenPool anotherPool = sf.gda.createPool(owner, superToken);
 
-    //     assertEq(
-    //         Unit.unwrap(pdpIndex.total_units),
-    //         Unit.unwrap(setPdpIndex.total_units),
-    //         "total units not equal"
-    //     );
-    //     assertEq(
-    //         Time.unwrap(pdpIndex._wrapped_particle._settled_at),
-    //         Time.unwrap(setPdpIndex._wrapped_particle._settled_at),
-    //         "settled at not equal"
-    //     );
-    //     assertEq(
-    //         FlowRate.unwrap(pdpIndex._wrapped_particle._flow_rate),
-    //         FlowRate.unwrap(setPdpIndex._wrapped_particle._flow_rate),
-    //         "flow rate not equal"
-    //     );
-    //     assertEq(
-    //         Value.unwrap(pdpIndex._wrapped_particle._settled_value),
-    //         Value.unwrap(setPdpIndex._wrapped_particle._settled_value),
-    //         "settled value not equal"
-    //     );
-    // }
+        vm.startPrank(address(sf.gda));
+        sf.gda.setPDPIndex(eff, address(anotherPool), pdpIndex);
+        vm.stopPrank();
+        PDPoolIndex memory setPdpIndex = sf.gda.getPDPIndex(eff, address(anotherPool));
+
+        assertEq(
+            Unit.unwrap(pdpIndex.total_units),
+            Unit.unwrap(setPdpIndex.total_units),
+            "total units not equal"
+        );
+        assertEq(
+            Time.unwrap(pdpIndex._wrapped_particle._settled_at),
+            Time.unwrap(setPdpIndex._wrapped_particle._settled_at),
+            "settled at not equal"
+        );
+        assertEq(
+            FlowRate.unwrap(pdpIndex._wrapped_particle._flow_rate),
+            FlowRate.unwrap(setPdpIndex._wrapped_particle._flow_rate),
+            "flow rate not equal"
+        );
+        assertEq(
+            Value.unwrap(pdpIndex._wrapped_particle._settled_value),
+            Value.unwrap(setPdpIndex._wrapped_particle._settled_value),
+            "settled value not equal"
+        );
+    }
 
     function test_Revert_Reinitialize_GDA(IBeacon beacon) public {
         vm.expectRevert("Initializable: contract is already initialized");

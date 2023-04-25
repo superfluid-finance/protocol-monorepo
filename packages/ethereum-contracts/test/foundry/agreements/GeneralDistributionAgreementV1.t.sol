@@ -16,6 +16,12 @@ import {
     SuperTokenPool
 } from "../../../contracts/superfluid/SuperTokenPool.sol";
 
+/// @title GeneralDistributionAgreementV1 Integration Tests
+/// @author Superfluid
+/// @notice This is a contract that runs integrations tests for the GDAv1
+/// It tests interactions between contracts and more complicated interactions
+/// with a range of values when applicable and it aims to ensure that the
+/// these interactions work as expected.
 contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     using SafeCast for uint256;
     using SafeCast for int256;
@@ -111,8 +117,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         );
     }
 
-    function test_Revert_Non_Host_Connect_Pool() public {
-        vm.startPrank(alice);
+    function test_Revert_Non_Host_Connect_Pool(address notHost) public {
+        vm.assume(notHost != address(sf.host));
+        vm.startPrank(notHost);
         vm.expectRevert("unauthorized host");
         sf.gda.connectPool(pool, "0x");
         vm.stopPrank();
@@ -128,8 +135,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         );
     }
 
-    function test_Revert_Non_Host_Disconnect_Pool() public {
-        vm.startPrank(alice);
+    function test_Revert_Non_Host_Disconnect_Pool(address notHost) public {
+        vm.assume(notHost != address(sf.host));
+        vm.startPrank(notHost);
         vm.expectRevert("unauthorized host");
         sf.gda.disconnectPool(pool, "0x");
         vm.stopPrank();

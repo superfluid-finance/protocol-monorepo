@@ -12,6 +12,11 @@ import {
     ISuperfluid
 } from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
 
+/// @title GeneralDistributionAgreementV1 Property Tests
+/// @author Superfluid
+/// @notice This is a contract that runs property tests for the GDAv1
+/// It involves testing the pure functions of the GDAv1 to ensure that we get
+/// the expected output for a range of inputs.
 contract GeneralDistributionAgreementV1Properties is
     GeneralDistributionAgreementV1,
     Test
@@ -23,7 +28,7 @@ contract GeneralDistributionAgreementV1Properties is
         uint32 settledAt,
         int256 settledValue,
         uint96 totalBuffer,
-        bool isPool
+        bool isPool_
     ) public {
         BasicParticle memory particle = BasicParticle({
             _flow_rate: FlowRate.wrap(flowRate),
@@ -33,7 +38,7 @@ contract GeneralDistributionAgreementV1Properties is
         bytes32[] memory encoded = _encodeUniversalIndexData(
             particle,
             totalBuffer,
-            isPool
+            isPool_
         );
         (, UniversalIndexData memory decoded) = _decodeUniversalIndexData(
             encoded
@@ -43,7 +48,7 @@ contract GeneralDistributionAgreementV1Properties is
         assertEq(settledAt, decoded.settledAt, "settledAt not equal");
         assertEq(settledValue, decoded.settledValue, "settledValue not equal");
         assertEq(totalBuffer, decoded.totalBuffer, "totalBuffer not equal");
-        assertEq(isPool, decoded.isPool, "isPool not equal");
+        assertEq(isPool_, decoded.isPool, "isPool not equal");
     }
 
     function test_UIData_Input_Encode_Decode_Universal_Index_Data(
@@ -51,14 +56,14 @@ contract GeneralDistributionAgreementV1Properties is
         uint32 settledAt,
         int256 settledValue,
         uint96 totalBuffer,
-        bool isPool
+        bool isPool_
     ) public {
         UniversalIndexData memory data = UniversalIndexData({
             flowRate: flowRate,
             settledAt: settledAt,
             settledValue: settledValue,
             totalBuffer: totalBuffer,
-            isPool: isPool
+            isPool: isPool_
         });
 
         bytes32[] memory encoded = _encodeUniversalIndexData(data);
@@ -70,7 +75,7 @@ contract GeneralDistributionAgreementV1Properties is
         assertEq(settledAt, decoded.settledAt, "settledAt not equal");
         assertEq(settledValue, decoded.settledValue, "settledValue not equal");
         assertEq(totalBuffer, decoded.totalBuffer, "totalBuffer not equal");
-        assertEq(isPool, decoded.isPool, "isPool not equal");
+        assertEq(isPool_, decoded.isPool, "isPool not equal");
     }
 
     function test_Get_Basic_Particle_From_UIndex(

@@ -12,13 +12,17 @@
       url = "github:hellwolf/solc.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    certora = {
+      url = "github:hellwolf/certora.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # TODO use ghc 9.6 when available
     #ghc-wasm.url = "gitlab:ghc/ghc-wasm-meta?host=gitlab.haskell.org";
     #ghc-wasm.inputs.nixpkgs.follows = "nixpkgs";
     #ghc-wasm.inputs.flake-utils.follows = "flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, foundry, solc } :
+  outputs = { self, nixpkgs, flake-utils, foundry, solc, certora } :
   flake-utils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs {
@@ -54,7 +58,7 @@
       # for haskell spec
       cabal-install
       ghc
-      ghc-wasm.packages.${system}.default
+      #ghc-wasm.packages.${system}.default
       ghcPackages.haskell-language-server
       hlint
       stylish-haskell

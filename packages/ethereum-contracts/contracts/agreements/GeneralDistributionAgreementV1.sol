@@ -87,6 +87,9 @@ contract GeneralDistributionAgreementV1 is
     address public constant SLOTS_BITMAP_LIBRARY_ADDRESS =
         address(SlotsBitmapLibrary);
 
+    address public constant SUPER_TOKEN_POOL_DEPLOYER_ADDRESS =
+        address(SuperTokenPoolDeployerLibrary);
+
     /// @dev Universal Index state slot id for storing universal index data
     uint256 private constant _UNIVERSAL_INDEX_STATE_SLOT_ID = 0;
     /// @dev Pool member state slot id for storing subs bitmap
@@ -814,7 +817,7 @@ contract GeneralDistributionAgreementV1 is
     function isPool(
         ISuperfluidToken token,
         address account
-    ) external override view returns (bool) {
+    ) external view override returns (bool) {
         return _isPool(token, account);
     }
 

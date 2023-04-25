@@ -341,7 +341,8 @@ describe("Superfluid Host Contract", function () {
                 const mocks: string[] = [];
                 mocks.push(t.contracts.cfa.address);
                 mocks.push(t.contracts.ida.address);
-                for (let i = 0; i < 254; ++i) {
+                mocks.push(t.contracts.gda.address);
+                for (let i = 0; i < 253; ++i) {
                     process.stdout.write(".");
                     const typeN = web3.utils.sha3("type." + i)!;
                     const mock = await createAgreementMock(typeN, 1);

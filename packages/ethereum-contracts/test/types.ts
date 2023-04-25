@@ -2,6 +2,7 @@ import {BigNumber} from "ethers";
 
 import {
     ConstantFlowAgreementV1,
+    GeneralDistributionAgreementV1,
     IERC1820Registry,
     InstantDistributionAgreementV1,
     ISuperToken,
@@ -110,6 +111,7 @@ export interface TestEnvironmentContracts {
     superfluid: SuperfluidMock;
     cfa: ConstantFlowAgreementV1;
     ida: InstantDistributionAgreementV1;
+    gda: GeneralDistributionAgreementV1;
     governance: TestGovernance;
     ISuperToken: ISuperToken;
     resolver: Resolver;

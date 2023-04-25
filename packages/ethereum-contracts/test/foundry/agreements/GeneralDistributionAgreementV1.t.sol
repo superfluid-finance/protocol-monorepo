@@ -459,7 +459,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         assertEq(
             bobClaimable,
             (actualDistributionFlowRate * int96(int256(timeWarped))) /
-                totalUnits.toUint256().toInt256(),
+                uint256(totalUnits).toInt256(),
             "test_Distribute_Flow_To_Unconnected_Member: bobClaimable != (actualDistributionFlowRate * timeWarped) / totalUnits"
         );
         assertEq(

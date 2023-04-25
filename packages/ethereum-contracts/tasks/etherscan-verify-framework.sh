@@ -138,6 +138,27 @@ fi
 if [ -n "$IDA_PROXY" ]; then
     try_verify InstantDistributionAgreementV1@"${IDA_PROXY}" --custom-proxy UUPSProxy
 fi
+
+if [ -n "$SUPER_TOKEN_POOL_DEPLOYER_ADDRESS" ]; then
+    try_verify SuperTokenPoolDeployer@"${SUPER_TOKEN_POOL_DEPLOYER_ADDRESS}"
+fi
+
+if [ -n "$GDA_LOGIC" ]; then
+    try_verify GeneralDistributionAgreementV1@"${GDA_LOGIC}"
+fi
+
+if [ -n "$GDA_PROXY" ]; then
+    try_verify GeneralDistributionAgreementV1@"${GDA_PROXY}" --custom-proxy UUPSProxy
+fi
+
+if [ -n "$SUPER_TOKEN_POOL_BEACON" ]; then
+    try_verify SuperfluidUpgradeableBeacon@"${SUPER_TOKEN_POOL_BEACON}"
+fi
+
+if [ -n "$SUPER_TOKEN_POOL_LOGIC" ]; then
+    try_verify SuperTokenPool@"${SUPER_TOKEN_POOL_LOGIC}"
+fi
+
 mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
 
 if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then

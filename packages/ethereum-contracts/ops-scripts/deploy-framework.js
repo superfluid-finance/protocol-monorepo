@@ -149,6 +149,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const IDAv1_TYPE = web3.utils.sha3(
         "org.superfluid-finance.agreements.InstantDistributionAgreement.v1"
     );
+    const GDAv1_TYPE = web3.utils.sha3(
+        "org.superfluid-finance.agreements.GeneralDistributionAgreement.v1"
+    );
 
     newTestResolver = newTestResolver || !!process.env.CREATE_NEW_RESOLVER;
     useMocks = useMocks || !!process.env.USE_MOCKS;
@@ -191,6 +194,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "SlotsBitmapLibrary",
         "ConstantFlowAgreementV1",
         "InstantDistributionAgreementV1",
+        "GeneralDistributionAgreementV1",
+        "SuperfluidUpgradeableBeacon",
+        "SuperTokenPool",
+        "SuperTokenPoolDeployerLibrary",
         "ConstantOutflowNFT",
         "ConstantInflowNFT",
     ];
@@ -219,6 +226,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         SlotsBitmapLibrary,
         ConstantFlowAgreementV1,
         InstantDistributionAgreementV1,
+        GeneralDistributionAgreementV1,
+        SuperfluidUpgradeableBeacon,
+        SuperTokenPool,
+        SuperTokenPoolDeployerLibrary,
         ConstantOutflowNFT,
         ConstantInflowNFT,
     } = await SuperfluidSDK.loadContracts({
@@ -475,6 +486,80 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     }
 
+    const deployGDAv1 = async () => {
+        try {
+            // deploy and link SuperTokenPoolDeployerLibrary
+            await deployExternalLibraryAndLink(
+                SuperTokenPoolDeployerLibrary,
+                "SuperTokenPoolDeployerLibrary",
+                "SUPER_TOKEN_POOL_DEPLOYER_LIBRARY_ADDRESS",
+                GeneralDistributionAgreementV1
+            );
+
+            // deploy and link SlotsBitmapLibrary
+            const IDAv1 = await InstantDistributionAgreementV1.at(
+                await superfluid.getAgreementClass.call(IDAv1_TYPE)
+            );
+            const slotsBitmapLibraryAddress =
+                await IDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS.call();
+            if (process.env.IS_HARDHAT) {
+                if (slotsBitmapLibraryAddress !== ZERO_ADDRESS) {
+                    const lib = await SlotsBitmapLibrary.at(
+                        slotsBitmapLibraryAddress
+                    );
+                    GeneralDistributionAgreementV1.link(lib);
+                }
+            } else {
+                GeneralDistributionAgreementV1.link(
+                    "SlotsBitmapLibrary",
+                    slotsBitmapLibraryAddress
+                );
+            }
+        } catch (err) {
+            console.error(err);
+        }
+        const agreement = await web3tx(
+            GeneralDistributionAgreementV1.new,
+            "GeneralDistributionAgreementV1.new"
+        )(superfluid.address);
+
+        console.log(
+            "New GeneralDistributionAgreementV1 address",
+            agreement.address
+        );
+        output += `GDA_LOGIC=${agreement.address}\n`;
+        const superTokenPoolLogic = await web3tx(
+            SuperTokenPool.new,
+            "SuperTokenPool.new"
+        )(agreement.address);
+        await superTokenPoolLogic.castrate();
+        console.log(
+            "New SuperTokenPoolLogic address",
+            superTokenPoolLogic.address
+        );
+        output += `SUPER_TOKEN_POOL_LOGIC=${superTokenPoolLogic.address}\n`;
+        const superTokenPoolBeacon = await web3tx(
+            SuperfluidUpgradeableBeacon.new,
+            "SuperfluidUpgradeableBeacon.new"
+        )(superTokenPoolLogic.address);
+        console.log(
+            "New SuperTokenPoolBeacon address",
+            superTokenPoolBeacon.address
+        );
+        output += `SUPER_TOKEN_POOL_BEACON=${superTokenPoolBeacon.address}\n`;
+
+        agreement.initialize(superTokenPoolBeacon.address);
+        return agreement;
+    };
+
+    if (!(await superfluid.isAgreementTypeListed.call(GDAv1_TYPE))) {
+        const gda = await deployGDAv1();
+        await web3tx(
+            governance.registerAgreementClass,
+            "Governance registers GDA"
+        )(superfluid.address, gda.address);
+    }
+
     if (protocolReleaseVersion === "test") {
         // deploy CFAv1Forwarder for test deployments
         // for other (permanent) deployments, it's not handled by this script
@@ -534,9 +619,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
             ]
         );
-        if (cfaNewLogicAddress !== ZERO_ADDRESS)
+        if (cfaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(cfaNewLogicAddress);
-
+        }
         // deploy new IDA logic
         const idaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
@@ -552,8 +637,27 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
             ]
         );
-        if (idaNewLogicAddress !== ZERO_ADDRESS)
+        if (idaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(idaNewLogicAddress);
+        }
+        // deploy new GDA logic
+        const gdaNewLogicAddress = await deployContractIfCodeChanged(
+            web3,
+            GeneralDistributionAgreementV1,
+            await (
+                await UUPSProxiable.at(
+                    await superfluid.getAgreementClass.call(GDAv1_TYPE)
+                )
+            ).getCodeAddress(),
+            async () => (await deployGDAv1()).address,
+            [
+                // See SuperToken constructor parameter
+                superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
+            ]
+        );
+        if (gdaNewLogicAddress !== ZERO_ADDRESS) {
+            agreementsToUpdate.push(gdaNewLogicAddress);
+        }
     }
 
     // deploy new super token factory logic (depends on SuperToken logic, which links to nft deployer library)
@@ -764,8 +868,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     },
                     [
                         // See SuperToken constructor parameter
-                        superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
-                        cifNFTProxyAddress.toLowerCase().slice(2).padStart(64, "0"),
+                        superfluid.address
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
+                        cifNFTProxyAddress
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
                     ]
                 );
                 const newCIFNFTLogic = await deployContractIfCodeChanged(
@@ -786,8 +896,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     },
                     [
                         // See SuperToken constructor parameter
-                        superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
-                        cofNFTProxyAddress.toLowerCase().slice(2).padStart(64, "0"),
+                        superfluid.address
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
+                        cofNFTProxyAddress
+                            .toLowerCase()
+                            .slice(2)
+                            .padStart(64, "0"),
                     ]
                 );
 

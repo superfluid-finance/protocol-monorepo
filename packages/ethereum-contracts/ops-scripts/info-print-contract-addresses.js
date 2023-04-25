@@ -8,6 +8,8 @@ const {
     extractWeb3Options,
 } = require("./libs/common");
 
+const {web3} = require("hardhat");
+
 /**
  * @dev Inspect accounts and their agreements
  * @param {Array} argv Overriding command line arguments
@@ -50,6 +52,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const SuperToken = artifacts.require("SuperToken");
     const UUPSProxiable = artifacts.require("UUPSProxiable");
     const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
+    const GeneralDistributionAgreementV1 = artifacts.require(
+        "GeneralDistributionAgreementV1"
+    );
+    const SuperfluidUpgradeableBeacon = artifacts.require(
+        "SuperfluidUpgradeableBeacon"
+    );
 
     output += `NETWORK_ID=${networkId}\n`;
     output += `SUPERFLUID_LOADER=${sf.loader.address}\n`;
@@ -80,6 +88,22 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         UUPSProxiable,
         sf.agreements.ida.address
     )}\n`;
+    const gdaProxy = await sf.host.getAgreementClass(
+        web3.utils.sha3(
+            "org.superfluid-finance.agreements.GeneralDistributionAgreement.v1"
+        )
+    );
+    output += `GDA_PROXY=${gdaProxy}\n`;
+    output += `GDA_LOGIC=${await getCodeAddress(UUPSProxiable, gdaProxy)}\n`;
+
+    const gdaContract = await GeneralDistributionAgreementV1.at(gdaProxy);
+    const superTokenPoolBeaconContract = await SuperfluidUpgradeableBeacon.at(
+        await gdaContract.superTokenPoolBeacon()
+    );
+    output += `SUPER_TOKEN_POOL_DEPLOYER_ADDRESS=${await gdaContract.SUPER_TOKEN_POOL_DEPLOYER_ADDRESS()}\n}`;
+    output += `SUPER_TOKEN_POOL_BEACON=${superTokenPoolBeaconContract.address}\n`;
+    output += `SUPER_TOKEN_POOL_LOGIC=${await superTokenPoolBeaconContract.implementation()}\n`;
+
     const superTokenLogicAddress = await (
         await ISuperTokenFactory.at(await sf.host.getSuperTokenFactory())
     ).getSuperTokenLogic();

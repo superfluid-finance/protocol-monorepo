@@ -62,8 +62,6 @@
       ghcPackages.haskell-language-server
       hlint
       stylish-haskell
-      # certora
-      python3
       # sage math
       sage
       # testing tooling
@@ -78,6 +76,10 @@
         collection-bibtexextra collection-mathscience
         collection-fontsrecommended collection-fontsextra;
       })
+    ]
+    # certora
+    ++ [
+      python3
     ] ++ certora.devInputs.${system};
     ci-spec = ghcVer : with pkgs; mkShell {
       buildInputs = [

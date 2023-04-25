@@ -539,7 +539,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         );
         output += `SUPER_TOKEN_POOL_BEACON=${superTokenPoolBeacon.address}\n`;
 
-        agreement.initialize(superTokenPoolBeacon.address);
+        await agreement.initialize(superTokenPoolBeacon.address);
         return agreement;
     };
 

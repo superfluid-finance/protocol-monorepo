@@ -4,7 +4,13 @@ pragma solidity 0.8.19;
 import "../../src/ref-impl/ToySuperfluidToken.sol";
 
 
-contract CertoraSuperfluidPool is ToySuperfluidPool {
+contract CertoraSuperfluidPool1 is ToySuperfluidPool {
+    constructor (address admin) {
+        initialize(admin);
+    }
+}
+
+contract CertoraSuperfluidPool2 is ToySuperfluidPool {
     constructor (address admin) {
         initialize(admin);
     }

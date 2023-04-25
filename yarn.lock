@@ -2926,8 +2926,8 @@
     antlr4ts "^0.5.0-alpha.4"
 
 "@superfluid-finance/metadata@git+https://github.com/superfluid-finance/metadata.git":
-  version "1.1.2"
-  resolved "git+https://github.com/superfluid-finance/metadata.git#2faa6fdf44616d5aaef0e1480535729bfe78d5e7"
+  version "1.1.5"
+  resolved "git+https://github.com/superfluid-finance/metadata.git#70254bd7a3846040837f6bfe59e430be16e568ce"
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"

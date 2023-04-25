@@ -4,42 +4,38 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
-    foundry.url = "github:shazow/foundry.nix/monthly";
-    foundry.inputs.nixpkgs.follows = "nixpkgs";
-    foundry.inputs.flake-utils.follows = "flake-utils";
-    # solc static binary compilers
-    solc.url = "github:hellwolf/solc.nix";
-    solc.inputs.nixpkgs.follows = "nixpkgs";
-    solc.inputs.flake-utils.follows = "flake-utils";
-    # certora tools
-    certora.url = "github:hellwolf/certora.nix";
-    certora.inputs.nixpkgs.follows = "nixpkgs";
-    certora.inputs.flake-utils.follows = "flake-utils";
+    foundry = {
+      url = "github:shazow/foundry.nix/monthly";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    solc = {
+      url = "github:hellwolf/solc.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     # TODO use ghc 9.6 when available
-    ghc-wasm.url = "gitlab:ghc/ghc-wasm-meta?host=gitlab.haskell.org";
-    ghc-wasm.inputs.nixpkgs.follows = "nixpkgs";
-    ghc-wasm.inputs.flake-utils.follows = "flake-utils";
+    #ghc-wasm.url = "gitlab:ghc/ghc-wasm-meta?host=gitlab.haskell.org";
+    #ghc-wasm.inputs.nixpkgs.follows = "nixpkgs";
+    #ghc-wasm.inputs.flake-utils.follows = "flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, solc, foundry, certora, ghc-wasm } :
+  outputs = { self, nixpkgs, flake-utils, foundry, solc } :
   flake-utils.lib.eachDefaultSystem (system:
   let
     pkgs = import nixpkgs {
       inherit system;
       overlays = [
-        solc.overlay
         foundry.overlay
+        solc.overlay
       ];
     };
-
     # minimem development shell
     minimumEVMDevInputs = with pkgs; [
       # for nodejs ecosystem
       yarn
       nodejs-18_x
       # for solidity development
-      solc_0_8_19
       foundry-bin
+      solc_0_8_19
     ];
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
@@ -101,8 +97,8 @@
     };
     devShells.full = with pkgs; mkShell {
       buildInputs = minimumEVMDevInputs
-      ++ whitehatInputs
-      ++ specInputs;
+        ++ whitehatInputs
+        ++ specInputs;
     };
     devShells.ci-spec-ghc925 = ci-spec "ghc925";
     devShells.ci-spec-ghc944 = ci-spec "ghc944";

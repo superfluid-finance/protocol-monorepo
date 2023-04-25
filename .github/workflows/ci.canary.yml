@@ -231,15 +231,16 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
-          registry-url: https://registry.npmjs.org/
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -273,6 +274,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -281,12 +286,9 @@ jobs:
           repository: superfluid-finance/build-scripts
           path: build-scripts
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
-          registry-url: https://registry.npmjs.org/
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile

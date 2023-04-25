@@ -214,7 +214,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
 
     function _flowDataString(
         uint256 tokenId
-    ) private view returns (string memory) {
+    ) internal view returns (string memory) {
         FlowNFTData memory flowData = flowDataByTokenId(tokenId);
 
         // @note taking this out to deal with the stack too deep issue

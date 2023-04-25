@@ -8,8 +8,6 @@ const {
     extractWeb3Options,
 } = require("./libs/common");
 
-const {web3} = require("hardhat");
-
 /**
  * @dev Inspect accounts and their agreements
  * @param {Array} argv Overriding command line arguments

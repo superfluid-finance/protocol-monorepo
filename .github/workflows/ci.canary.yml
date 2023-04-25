@@ -2,7 +2,7 @@ name: CI | Canary (Dev)
 
 on:
   push:
-    branches: ["dev", "canary_fuji"]
+    branches: ["dev"]
     paths:
       - "package.json"
       - "packages/**"

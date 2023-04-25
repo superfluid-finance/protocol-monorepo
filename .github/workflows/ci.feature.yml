@@ -71,10 +71,15 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
+      # FIXME: remove link once https://github.com/trufflesuite/truffle/pull/6007 is merged and available
+      - name: Create symlink for solc (workaround)
+        run: |
+          mkdir -p $GITHUB_WORKSPACE/bin
+          ln -s $SOLC_PATH $GITHUB_WORKSPACE/bin/solc
+          echo "$GITHUB_WORKSPACE/bin" >> $GITHUB_PATH
+
       - name: Install, lint and build
         run: |
-          # FIXME: remove link once https://github.com/trufflesuite/truffle/pull/6007 is merged and available
-          ln -s $SOLC_PATH /usr/bin/solc
           yarn install --frozen-lockfile
           yarn lint
           yarn build

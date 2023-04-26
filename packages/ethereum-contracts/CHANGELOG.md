@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Changed
+- Utilize internal `_host` in CFA instead of external call to host on the token
+
 ## [v1.5.2] - 2023-03-14
 
 ### Added

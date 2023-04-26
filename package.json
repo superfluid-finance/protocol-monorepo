@@ -63,7 +63,6 @@
         "nyc": "^15.1.0",
         "prettier": "^2.7.1",
         "prettier-eslint": "^15.0.1",
-        "shellcheck": "^2.2.0",
         "syncpack": "^8.3.9",
         "truffle": "^5.6.6",
         "ts-node": "^10.9.1",

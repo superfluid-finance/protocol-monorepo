@@ -30,12 +30,12 @@
 
     # minimem development shell
     node16DevInputs = with pkgs; [
-      yarn
       nodejs-16_x
+      nodejs-16_x.pkgs.yarn
     ];
     node18DevInputs = with pkgs; [
-      yarn
       nodejs-18_x
+      nodejs-18_x.pkgs.yarn
     ];
     commonDevInputs = with pkgs; [
       foundry-bin

@@ -19,12 +19,20 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [16, 18]
+
+    defaults:
+      run:
+        shell: nix develop .#ci-node${{ matrix.node-version }} -c bash {0}
 
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
+
+      - uses: cachix/install-nix-action@v19
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Show contexts
         env:
@@ -37,22 +45,14 @@ jobs:
           echo github.ref: "$GITHUB_REF"
           echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
-
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
 
       - name: Install, lint, build, and test
         run: |
           yarn install --frozen-lockfile
           yarn lint
           yarn build
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn test
         env:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
@@ -96,8 +96,7 @@ jobs:
     if: needs.check.outputs.build_subgraph
     with:
       release_branch: dev
-      # empty string network deploys to all networks
-      network: ""
+      network: "all"
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
@@ -114,24 +113,23 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
-      - name: Run coverage test
+      - name: Install, run coverage test
         run: |
           yarn install --frozen-lockfile
           yarn build
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
       - name: Install lcov
@@ -156,7 +154,7 @@ jobs:
   coverage-sdk-core:
     uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core Coverage (Canary Branch)
-    with: 
+    with:
       subgraph-release: local
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
       run-coverage-tests: true
@@ -237,15 +235,16 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
-          registry-url: https://registry.npmjs.org/
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -279,6 +278,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
@@ -287,12 +290,9 @@ jobs:
           repository: superfluid-finance/build-scripts
           path: build-scripts
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
-          registry-url: https://registry.npmjs.org/
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
@@ -330,7 +330,7 @@ jobs:
           cloudfront_distribution_id: E3JEO5R14CT8IH
 
   upgrade-contracts:
-    name: Upgrade ethereum-contracts on goerli testnet (protocol release version "test")
+    name: Upgrade ethereum-contracts on canary testnet (protocol release version "test")
 
     needs: [all-packages-tested]
 
@@ -339,16 +339,18 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        network: [goerli]
+        network: [avalanche-fuji]
+
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
         run: |
@@ -361,5 +363,5 @@ jobs:
           npx truffle exec --network ${{ matrix.network }} ops-scripts/deploy-test-environment.js
         env:
           RELEASE_VERSION: master
-          ETH_GOERLI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
+          AVALANCHE_FUJI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+          AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}

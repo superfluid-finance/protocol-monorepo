@@ -67,16 +67,19 @@ abstract contract TokenMonad {
 
     function _doDistributeFlow(bytes memory eff,
                                address from, address to, bytes32 flowHash, FlowRate reqFlowRate, Time t)
-        internal returns (bytes memory, FlowRate actualFlowRate)
+        internal returns (bytes memory, FlowRate actualFlowRate, FlowRate newDistributionFlowRate)
     {
         BasicParticle memory a = _getUIndex(eff, from);
         PDPoolIndex memory pdpIndex = _getPDPIndex(eff, to);
         FlowRate oldFlowRate = _getFlowRate(eff, flowHash);
-        FlowRate flowRateDelta = reqFlowRate - oldFlowRate;
-        (a, pdpIndex, actualFlowRate) = a.shift_flow2b(pdpIndex, flowRateDelta, t);
+        FlowRate oldDistributionFlowRate = pdpIndex.flow_rate();
+        (a, pdpIndex, newDistributionFlowRate) = a.shift_flow2b(pdpIndex, reqFlowRate - oldFlowRate, t);
+        FlowRate actualFlowRateDelta = newDistributionFlowRate - oldDistributionFlowRate;
+        actualFlowRate = oldFlowRate + actualFlowRateDelta;
         eff = _setUIndex(eff, from, a);
         eff = _setPDPIndex(eff, to, pdpIndex);
-        eff = _setFlowInfo(eff, flowHash, from, to, actualFlowRate, actualFlowRate - oldFlowRate);
-        return (eff, actualFlowRate);
+        eff = _setFlowInfo(eff, flowHash, from, to, actualFlowRate, actualFlowRateDelta);
+        assert(FlowRate.unwrap(newDistributionFlowRate) >= 0);
+        return (eff, actualFlowRate, newDistributionFlowRate);
     }
 }

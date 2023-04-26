@@ -6,7 +6,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## Unreleased
 
 
-## [v1.6.0] - 2023-04-25
+## [v1.6.0] - 2023-04-26
 ### Added
 - FlowNFT contracts: `ConstantOutflowNFT`, `ConstantInflowNFT`, `FlowNFTBase` to replace the OG flow NFTs
 - `SuperAppBaseCFA` base contract to simplify CFA SuperApp development

@@ -10,7 +10,7 @@ Before interacting with the Superfluid community, please read and understand our
 
 At minimum, you will need to have these available in your development environment:
 
-- yarn, sufficiently recent version, the actual yarn version is locked in yarnc.
+- yarn, sufficiently recent version, the actual yarn version is locked in `.yarnrc`.
 - nodejs 18.x.
 
 Additionally recommended:
@@ -19,7 +19,7 @@ Additionally recommended:
 
 **More Options Using Nix**
 
-The recommended way is to use the [nix package manager](https://nixos.org/download.html) to get a reproducible, declarative and reliable development environment.  
+The recommended way is to use the [nix package manager](https://nixos.org/download.html) to get a reproducible, declarative and reliable development environment.
 The Nix shell provides a complete environment, with all tooling included.
 
 Development shells options are available as different devShells commands in ([nix flakes](https://nixos.wiki/wiki/Flakes) required):

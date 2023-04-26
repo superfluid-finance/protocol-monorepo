@@ -9,9 +9,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
-   strategy:
-     matrix:
-       node-version: [ 16, 18 ]
+    strategy:
+      matrix:
+        node-version: [ 16, 18 ]
 
     defaults:
       run:

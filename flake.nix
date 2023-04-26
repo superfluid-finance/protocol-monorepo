@@ -29,11 +29,15 @@
     };
 
     # minimem development shell
-    minimumEVMDevInputs = with pkgs; [
-      # for nodejs ecosystem
+    node16DevInputs = with pkgs; [
+      yarn
+      nodejs-16_x
+    ];
+    node18DevInputs = with pkgs; [
       yarn
       nodejs-18_x
-      # for solidity development
+    ];
+    commonDevInputs = with pkgs; [
       foundry-bin
       pkgs.${solcVer}
       # for shell script linting
@@ -41,6 +45,7 @@
       # used by some scripts
       jq
     ];
+    defaultDevInputs = commonDevInputs ++ node18DevInputs;
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
       slither-analyzer
@@ -91,22 +96,28 @@
   in {
     # local development shells
     devShells.default = mkShell {
-      buildInputs = minimumEVMDevInputs;
+      buildInputs = defaultDevInputs;
     };
     devShells.whitehat = mkShell {
-      buildInputs = minimumEVMDevInputs
+      buildInputs = defaultDevInputs
         ++ whitehatInputs;
     };
     devShells.spec = mkShell {
-      buildInputs = minimumEVMDevInputs
+      buildInputs = defaultDevInputs
         ++ specInputs;
     };
     devShells.full = mkShell {
-      buildInputs = minimumEVMDevInputs
+      buildInputs = defaultDevInputs
         ++ whitehatInputs
         ++ specInputs;
     };
     # CI shells
+    devShells.ci-node16 = mkShell {
+      buildInputs = commonDevInputs ++ node16DevInputs;
+    };
+    devShells.ci-node18 = mkShell {
+      buildInputs = commonDevInputs ++ node18DevInputs;
+    };
     devShells.ci-spec-ghc925 = ci-spec-with-ghc "ghc925";
     devShells.ci-spec-ghc944 = ci-spec-with-ghc "ghc944";
     devShells.ci-hot-fuzz = mkShell {

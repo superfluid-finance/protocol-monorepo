@@ -8,14 +8,14 @@ jobs:
     name: Test Automation Contracts
 
     runs-on: ubuntu-latest
-# currently not supported
-#    strategy:
-#      matrix:
-#        node-version: [ 16.x, 18.x ]
+
+   strategy:
+     matrix:
+       node-version: [ 16, 18 ]
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop .#ci-node${{ matrix.node-version }} -c bash {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -41,4 +41,3 @@ jobs:
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
           echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn workspace autowrap test
-

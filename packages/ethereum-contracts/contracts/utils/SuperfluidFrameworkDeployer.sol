@@ -133,7 +133,8 @@ contract SuperfluidFrameworkDeployer {
         // Deploy canonical Constant Outflow NFT logic contract
         ConstantOutflowNFT constantOutflowNFTLogic = new ConstantOutflowNFT(
             host,
-            IConstantInflowNFT(address(constantInflowNFTProxy))
+            IConstantInflowNFT(address(constantInflowNFTProxy)),
+            ""
         );
 
         // Initialize Constant Outflow NFT logic contract
@@ -142,7 +143,8 @@ contract SuperfluidFrameworkDeployer {
         // Deploy canonical Constant Inflow NFT logic contract
         ConstantInflowNFT constantInflowNFTLogic = new ConstantInflowNFT(
             host,
-            IConstantOutflowNFT(address(constantOutflowNFTProxy))
+            IConstantOutflowNFT(address(constantOutflowNFTProxy)),
+            ""
         );
 
         // Initialize Constant Inflow NFT logic contract

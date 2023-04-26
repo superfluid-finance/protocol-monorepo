@@ -79,11 +79,13 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         // we deploy mock NFT contracts for the tests to access internal functions
         constantOutflowNFTLogic = new ConstantOutflowNFTMock(
             sf.host,
-            IConstantInflowNFT(address(inflowProxy))
+            IConstantInflowNFT(address(inflowProxy)),
+            ""
         );
         constantInflowNFTLogic = new ConstantInflowNFTMock(
             sf.host,
-            IConstantOutflowNFT(address(outflowProxy))
+            IConstantOutflowNFT(address(outflowProxy)),
+            ""
         );
 
         constantOutflowNFTLogic.castrate();

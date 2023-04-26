@@ -87,7 +87,7 @@ describe("IDAv1Library testing", function () {
         aliceSigner = await ethers.getSigner(alice);
     });
 
-    beforeEach(async () => {
+    beforeEach(async function () {
         const superTokenLibIDAMockFactory = await ethers.getContractFactory(
             "SuperTokenLibraryIDAMock"
         );
@@ -111,6 +111,12 @@ describe("IDAv1Library testing", function () {
                 superTokenLibIDASuperAppMock.address,
                 ethers.utils.parseUnits("10", "ether")
             );
+
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(() => {
+        t.afterEachTestCaseBenchmark();
     });
 
     describe("#1 - Non-Callback Index Operations", async function () {

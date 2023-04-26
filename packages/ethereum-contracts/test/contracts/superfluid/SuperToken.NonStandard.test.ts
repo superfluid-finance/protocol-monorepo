@@ -55,10 +55,15 @@ describe("SuperToken's Non Standard Functions", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
         const mockWalletFactory = await ethers.getContractFactory(
             "MockSmartWallet"
         );
         mockWallet = await mockWalletFactory.deploy();
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     describe("#1 upgradability", () => {

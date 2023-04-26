@@ -21,7 +21,6 @@ library AqueductLibrary {
 
     struct PoolSideState {
         FlowRate totalInFlowRate;
-        FlowRate distributionFlowRate;
     }
 
     struct TraderSideState {
@@ -37,11 +36,11 @@ library AqueductLibrary {
     }
 
     function updateSide(PoolSideState memory poolA, FlowRate r0, FlowRate r1) internal pure
-        returns (PoolSideState memory poolAu, TraderSideState memory tradeBu)
+        returns (PoolSideState memory poolAu, TraderSideState memory tradeBu, FlowRate distributionFlowRate)
     {
         poolAu.totalInFlowRate = poolA.totalInFlowRate + r1 - r0;
         // TODO: assuming 100% distributed for now
-        poolAu.distributionFlowRate = poolAu.totalInFlowRate;
+        distributionFlowRate = poolAu.totalInFlowRate;
 
         tradeBu.nUnits = Unit.wrap(_clip(r1));
     }
@@ -85,12 +84,13 @@ contract Aqueduct {
 
     function _onFlowUpdate(Side storage a, Side storage b, address from, FlowRate ir0, FlowRate ir1) internal {
         AqueductLibrary.TraderSideState memory tssB;
-        (a.state, tssB) = AqueductLibrary.updateSide(a.state, ir0, ir1);
+        FlowRate drr;
+        (a.state, tssB, drr) = AqueductLibrary.updateSide(a.state, ir0, ir1);
 
         {
             FlowRate ar0 = a.token.getFlowRate(address(this), from, ADJUSTMENT_FLOW_ID);
             FlowRate dr0 = a.pool.getDistributionFlowRate();
-            _adjustFlowRemainder(a, from, ir1 - ir0, a.state.distributionFlowRate, ar0, dr0);
+            _adjustFlowRemainder(a, from, ir1 - ir0, drr, ar0, dr0);
         }
 
         {
@@ -102,23 +102,23 @@ contract Aqueduct {
     }
 
     function _adjustFlowRemainder(Side storage a, address from,
-                                  FlowRate irr, FlowRate drr,
+                                  FlowRate ird, FlowRate drr,
                                   FlowRate ar0, FlowRate dr0) internal {
-        (,FlowRate dr1) = a.token.distributeFlow(address(this), a.pool, SWAP_DISTRIBUTE_FLOW_ID, drr);
+        (,,FlowRate dr1) = a.token.distributeFlow(address(this), a.pool, SWAP_DISTRIBUTE_FLOW_ID, drr);
 
         if (a.remFlowReceiver != from) {
             FlowRate br0 = a.token.getFlowRate(address(this), a.remFlowReceiver, ADJUSTMENT_FLOW_ID);
-            // solve ar1 in: irr = (dr1 - dr0) + (ar1 - ar0) + (0 - br0)
+            // solve ar1 in: ird = (dr1 - dr0) + (ar1 - ar0) + (0 - br0)
             // =>
-            FlowRate ar1 = irr + dr0 - dr1 + ar0 + br0;
+            FlowRate ar1 = ird + dr0 - dr1 + ar0 + br0;
 
             a.token.flow(address(this), a.remFlowReceiver, ADJUSTMENT_FLOW_ID, FlowRate.wrap(0));
             a.token.flow(address(this), from, ADJUSTMENT_FLOW_ID, ar1);
             a.remFlowReceiver = from;
         } else {
-            // solve ar1 in: irr = (dr1 - dr0) + (ar1 - ar0)
+            // solve ar1 in: ird = (dr1 - dr0) + (ar1 - ar0)
             // =>
-            FlowRate ar1 = irr + dr0 - dr1 + ar0;
+            FlowRate ar1 = ird + dr0 - dr1 + ar0;
 
             a.token.flow(address(this), from, ADJUSTMENT_FLOW_ID, ar1);
         }

@@ -42,6 +42,12 @@ contract ToySuperTokenTest is Test {
         vm.stopPrank();
     }
 
+    function _connectPool(ToySuperfluidPool p, address by) internal {
+        vm.startPrank(by);
+        token.connectPool(p);
+        vm.stopPrank();
+    }
+
     function assertEq(FlowRate a, FlowRate b, string memory e) internal {
         assertEq(FlowRate.unwrap(a), FlowRate.unwrap(b), e);
     }
@@ -79,13 +85,13 @@ contract ToySuperTokenTest is Test {
         assertEq(a1, a2, "e1");
     }
 
-    function test_1to1_flow_update(uint32 r1, uint32 r2, uint16 dt2, uint16 dt3) external {
+    function test_1to1_flow_update(uint32 r1, uint32 r2, uint16 dt1, uint16 dt2) external {
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
         FlowRate rr1 = FlowRate.wrap(int64(uint64(r1)));
         FlowRate rr2 = FlowRate.wrap(int64(uint64(r2)));
-        Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
-        Time t3 = t2 + Time.wrap(uint32(dt3));
+        Time t1 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt1));
+        Time t2 = t1 + Time.wrap(uint32(dt2));
 
         vm.startPrank(alice);
         token.flow(alice, bob, FlowId.wrap(0), rr1);
@@ -94,7 +100,7 @@ contract ToySuperTokenTest is Test {
         assertEq(token.getNetFlowRate(bob), rr1, "e1.2");
         assertEq(token.getFlowRate(alice, bob, FlowId.wrap(0)), rr1, "e1.3");
 
-        vm.warp(Time.unwrap(t2));
+        vm.warp(Time.unwrap(t1));
 
         vm.startPrank(alice);
         token.flow(alice, bob, FlowId.wrap(0), rr2);
@@ -103,30 +109,30 @@ contract ToySuperTokenTest is Test {
         assertEq(token.getNetFlowRate(bob), rr2, "e2.2");
         assertEq(token.getFlowRate(alice, bob, FlowId.wrap(0)), rr2, "e2.3");
 
-        vm.warp(Time.unwrap(t3));
+        vm.warp(Time.unwrap(t2));
 
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
         uint256 k2 = token.balanceOf(address(token));
-        assertEq(a1 - a2, k2 + uint256(r1) * uint256(dt2) + uint256(r2) * uint256(dt3), "e3.1");
+        assertEq(a1 - a2, k2 + uint256(r1) * uint256(dt1) + uint256(r2) * uint256(dt2), "e3.1");
         assertEq(a1 - a2, k2 + b2 - b1, "e3.2");
         assertEq(k2, r2 * tLP, "e3.3");
     }
 
-    function test_1to2_flow(uint32 r1, uint32 r2, uint16 t2) external {
+    function test_1to2_flow(uint32 r1, uint32 r2, uint16 dt1) external {
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
         uint256 c1 = token.balanceOf(carol);
         FlowRate rr1 = FlowRate.wrap(int64(uint64(r1)));
         FlowRate rr2 = FlowRate.wrap(int64(uint64(r2)));
-        uint256 t1 = block.timestamp;
+        Time t1 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt1));
 
         vm.startPrank(alice);
         token.flow(alice, bob, FlowId.wrap(0), rr1);
         token.flow(alice, carol, FlowId.wrap(0), rr2);
         vm.stopPrank();
 
-        vm.warp(t1 + uint256(t2));
+        vm.warp(Time.unwrap(t1));
         uint256 a2 = token.balanceOf(alice);
         uint256 b2 = token.balanceOf(bob);
         uint256 c2 = token.balanceOf(carol);
@@ -137,7 +143,7 @@ contract ToySuperTokenTest is Test {
         assertEq(token.getFlowRate(bob, carol, FlowId.wrap(0)), FlowRate.wrap(0), "e1.3");
         assertEq(token.getNetFlowRate(alice).inv(),
                  token.getNetFlowRate(bob) + token.getNetFlowRate(carol), "e2");
-        assertEq(a1 - a2, k2 + (uint256(r1) + uint256(r2)) * uint256(t2), "e3.1");
+        assertEq(a1 - a2, k2 + (uint256(r1) + uint256(r2)) * uint256(dt1), "e3.1");
         assertEq(a1 - a2, k2 + b2 - b1 + c2 - c1, "e3.2");
         assertEq(k2, (uint256(r1) + uint256(r2)) * tLP, "e3.3");
     }
@@ -223,8 +229,8 @@ contract ToySuperTokenTest is Test {
     }
 
     function test_1to2_distributeflow_bothconnected(uint32 u1, uint32 u2, uint32 r1,
-                                                    uint16 dt2, uint32 r2,
-                                                    uint16 dt3) external {
+                                                    uint16 dt1, uint32 r2,
+                                                    uint16 dt2) external {
         Unit uu1 = Unit.wrap(int128(uint128((u1))));
         Unit uu2 = Unit.wrap(int128(uint128((u2))));
         FlowRate rr1 = FlowRate.wrap(int64(uint64(r1)));
@@ -232,8 +238,11 @@ contract ToySuperTokenTest is Test {
         uint256 tu = uint(uint128(Unit.unwrap(uu1 + uu2)));
         int256 rrr1; if (tu == 0) rrr1 = 0; else rrr1 = int256(uint256(r1) / tu * tu);
         int256 rrr2; if (tu == 0) rrr2 = 0; else rrr2 = int256(uint256(r2) / tu * tu);
-        Time t2 = Time.wrap(uint32(block.timestamp) + dt2);
-        Time t3 = t2 + Time.wrap(dt3);
+        Time t1 = Time.wrap(uint32(block.timestamp) + dt1);
+        Time t2 = t1 + Time.wrap(dt2);
+
+        emit log_named_int("rrr1", rrr1);
+        emit log_named_int("rrr2", rrr2);
 
         ToySuperfluidPool pl = _createPool(alice);
 
@@ -242,58 +251,72 @@ contract ToySuperTokenTest is Test {
         uint256 c1 = token.balanceOf(carol);
         uint256 p1 = token.balanceOf(address(pl));
 
+        FlowRate ar;
+        FlowRate pdr;
+
         vm.startPrank(alice);
         pl.updateMember(bob, uu1);
         pl.updateMember(carol, uu2);
         assertEq(pl.getClaimable(bob), Value.wrap(0), "e1.1");
         assertEq(pl.getClaimable(carol), Value.wrap(0), "e1.2");
-        token.distributeFlow(alice, pl, FlowId.wrap(0), rr1);
+        (,ar,pdr) = token.distributeFlow(alice, pl, FlowId.wrap(0), rr1);
         vm.stopPrank();
 
         assertEq(Unit.unwrap(pl.pendingUnits()), int(tu), "e2");
 
-        vm.startPrank(bob);
-        token.connectPool(pl);
-        vm.stopPrank();
-
-        vm.startPrank(carol);
-        token.connectPool(pl);
-        vm.stopPrank();
+        _connectPool(pl, bob);
+        _connectPool(pl, carol);
 
         assertEq(pl.pendingUnits(), Unit.wrap(0), "e3.1");
 
         {
-            FlowRate ar2 = token.getNetFlowRate(alice);
-            FlowRate br2 = token.getNetFlowRate(bob);
-            FlowRate cr2 = token.getNetFlowRate(carol);
-            FlowRate pr2 = token.getNetFlowRate(address(pl));
+            FlowRate pdr1 = pl.getDistributionFlowRate();
+            FlowRate ar1 = token.getNetFlowRate(alice);
+            FlowRate br1 = token.getNetFlowRate(bob);
+            FlowRate cr1 = token.getNetFlowRate(carol);
+            FlowRate pr1 = token.getNetFlowRate(address(pl));
 
-            assertEq(pl.getDistributionFlowRate(), FlowRate.wrap(int128(rrr1)), "e4.1");
-            assertEq(ar2, FlowRate.wrap(-int128(rrr1)), "e4.2");
-            assertEq(br2 + cr2, FlowRate.wrap(int128(rrr1)), "e4.3");
-            assertEq(pr2, FlowRate.wrap(0), "e4.4");
-            assertEq(ar2 + br2 + cr2 + pr2, FlowRate.wrap(0), "e4.5");
+            emit log_named_int("pdr1", FlowRate.unwrap(pdr1));
+            emit log_named_int("ar1", FlowRate.unwrap(ar1));
+            emit log_named_int("br1", FlowRate.unwrap(br1));
+            emit log_named_int("cr1", FlowRate.unwrap(cr1));
+
+            assertEq(pdr, pdr1, "e4.1");
+            assertEq(ar.inv(), ar1, "e4.2");
+            assertEq(pdr, FlowRate.wrap(int128(rrr1)), "e4.3");
+            assertEq(ar1, FlowRate.wrap(-int128(rrr1)), "e4.4");
+            assertEq(br1 + cr1, FlowRate.wrap(int128(rrr1)), "e4.5");
+            assertEq(pr1, FlowRate.wrap(0), "e4.6");
+            assertEq(ar1 + br1 + cr1 + pr1, FlowRate.wrap(0), "e4.7");
         }
+
+        vm.warp(uint256(Time.unwrap(t1)));
+
+        vm.startPrank(alice);
+        (,ar,pdr) = token.distributeFlow(alice, pl, FlowId.wrap(0), rr2);
+        vm.stopPrank();
 
         vm.warp(uint256(Time.unwrap(t2)));
 
-        vm.startPrank(alice);
-        token.distributeFlow(alice, pl, FlowId.wrap(0), rr2);
-        vm.stopPrank();
-
-        vm.warp(uint256(Time.unwrap(t3)));
-
         {
+            FlowRate pdr2 = pl.getDistributionFlowRate();
             FlowRate ar2 = token.getNetFlowRate(alice);
             FlowRate br2 = token.getNetFlowRate(bob);
             FlowRate cr2 = token.getNetFlowRate(carol);
             FlowRate pr2 = token.getNetFlowRate(address(pl));
 
-            assertEq(pl.getDistributionFlowRate(), FlowRate.wrap(int128(rrr2)), "e5.1");
-            assertEq(ar2, FlowRate.wrap(-int128(rrr2)), "e5.2");
-            assertEq(br2 + cr2, FlowRate.wrap(int128(rrr2)), "e5.3");
-            assertEq(pr2, FlowRate.wrap(0), "e5.4");
-            assertEq(ar2 + br2 + cr2 + pr2, FlowRate.wrap(0), "e5.5");
+            emit log_named_int("pdr2", FlowRate.unwrap(pdr2));
+            emit log_named_int("ar2", FlowRate.unwrap(ar2));
+            emit log_named_int("br2", FlowRate.unwrap(br2));
+            emit log_named_int("cr2", FlowRate.unwrap(cr2));
+
+            assertEq(pdr, pdr2, "e5.1");
+            assertEq(ar.inv(), ar2, "e5.2");
+            assertEq(pdr, FlowRate.wrap(int128(rrr2)), "e5.3");
+            assertEq(ar2, FlowRate.wrap(-int128(rrr2)), "e5.4");
+            assertEq(br2 + cr2, FlowRate.wrap(int128(rrr2)), "e5.5");
+            assertEq(pr2, FlowRate.wrap(0), "e5.6");
+            assertEq(ar2 + br2 + cr2 + pr2, FlowRate.wrap(0), "e5.7");
         }
         {
             uint256 a2 = token.balanceOf(alice);
@@ -302,14 +325,15 @@ contract ToySuperTokenTest is Test {
             uint256 p2 = token.balanceOf(address(pl));
             uint256 k2 = token.balanceOf(address(token));
 
-            assertEq(a1 - a2, k2 + uint256(rrr1) * uint256(dt2) + uint256(rrr2) * uint256(dt3), "e6.1");
+            assertEq(a1 - a2, k2 + uint256(rrr1) * uint256(dt1) + uint256(rrr2) * uint256(dt2), "e6.1");
             assertEq(a1 - a2, k2 + b2 - b1 + c2 - c1 + p2 - p1, "e6.2");
             assertEq(Value.wrap(int256(a1 - a2 - k2)), pl.getClaimable(carol) + pl.getClaimable(bob), "e6.3");
             assertEq(k2, uint256(rrr2) * tLP, "e6.4");
         }
     }
 
-    function test_1to2_distributeflow_oneconnected(uint32 u1, uint32 u2, uint32 r, uint16 dt2) external {
+    function test_1to2_distributeflow_oneconnected(uint32 u1, uint32 u2, uint32 r,
+                                                   uint16 dt2) external {
         Unit uu1 = Unit.wrap(int128(uint128((u1))));
         Unit uu2 = Unit.wrap(int128(uint128((u2))));
         FlowRate rr = FlowRate.wrap(int64(uint64(r)));
@@ -332,9 +356,7 @@ contract ToySuperTokenTest is Test {
 
         assertEq(Unit.unwrap(pl.pendingUnits()), int(tu), "e1");
 
-        vm.startPrank(bob);
-        token.connectPool(pl);
-        vm.stopPrank();
+        _connectPool(pl, bob);
 
         assertEq(pl.pendingUnits(), uu2, "e2");
 
@@ -368,6 +390,84 @@ contract ToySuperTokenTest is Test {
         }
     }
 
+    function test_1to2_distributeflow_unit_updates(uint32 u1, uint32 r1,
+                                                   uint16 dt1, uint32 u2, uint32 r2,
+                                                   uint16 dt2) external {
+        Unit uu1 = Unit.wrap(int128(uint128((u1))));
+        FlowRate rr1 = FlowRate.wrap(int64(uint64(r1)));
+        Unit uu2 = Unit.wrap(int128(uint128((u2))));
+        FlowRate rr2 = FlowRate.wrap(int64(uint64(r2)));
+        uint256 tu = uint(uint128(Unit.unwrap(uu1 + uu2)));
+        int256 rrr1; if (tu == 0) rrr1 = 0; else rrr1 = int256(uint256(r1) / tu * tu);
+        int256 rrr2; if (tu == 0) rrr2 = 0; else rrr2 = int256(uint256(r2) / tu * tu);
+        Time t1 = Time.wrap(uint32(block.timestamp) + dt1);
+        Time t2 = t1 + Time.wrap(dt2);
+
+        ToySuperfluidPool pl = _createPool(alice);
+        _connectPool(pl, bob);
+
+        vm.startPrank(alice);
+        pl.updateMember(bob, uu1);
+        token.distributeFlow(alice, pl, FlowId.wrap(0), rr1);
+        vm.stopPrank();
+
+        vm.warp(Time.unwrap(t1));
+
+        vm.startPrank(alice);
+        pl.updateMember(bob, uu2);
+        token.distributeFlow(alice, pl, FlowId.wrap(0), rr2);
+        vm.stopPrank();
+
+        vm.warp(Time.unwrap(t2));
+
+        vm.startPrank(alice);
+        token.distributeFlow(alice, pl, FlowId.wrap(0), FlowRate.wrap(0));
+        vm.stopPrank();
+    }
+
+    struct PoolUpdateStep {
+        uint8   u; // which user
+        uint8   a; // action types: 0 update units, 1 distribute flow
+        uint64  v; // action param
+        uint16 dt; // time delta
+    }
+    function test_pool_random_seqs(PoolUpdateStep[] memory steps) external {
+        ToySuperfluidPool pl = _createPool(alice);
+        uint noStepsLimit = vm.envOr("NO_FOUNDRY_TEST_STEPS_LIMIT", uint256(0));
+        if (noStepsLimit == 0) {
+            vm.assume(steps.length < 20);
+        }
+        for (uint i = 0; i < steps.length; ++i) {
+            PoolUpdateStep memory s = steps[i];
+            uint a = s.a % 2;
+            uint u = 2 + s.u % 1; // a pool of 2 testers
+
+            emit log_named_uint("timestamp", block.timestamp);
+            emit log_named_uint("tester", u);
+            emit log_named_uint("action", a);
+            emit log_named_uint("param", s.v);
+
+            if (a == 0) {
+                vm.startPrank(alice);
+                pl.updateMember(TEST_ACCOUNTS[u], Unit.wrap(int128(uint128(s.v))));
+                vm.stopPrank();
+            } else if (a == 1) {
+                vm.startPrank(TEST_ACCOUNTS[u]);
+                (,,FlowRate pdr) = token.distributeFlow
+                    (TEST_ACCOUNTS[u], pl, FlowId.wrap(0), FlowRate.wrap(int128(uint128(s.v))));
+                emit log_named_int("pdr'", FlowRate.unwrap(pdr));
+                vm.stopPrank();
+            } else assert(false);
+
+            {
+                FlowRate pdr = pl.getDistributionFlowRate();
+                emit log_named_int("pdr", FlowRate.unwrap(pdr));
+            }
+
+            vm.warp(block.timestamp + s.dt);
+        }
+    }
+
     function test_2to1_distributeflow(uint32 u1, uint32 r1, uint32 r2, uint16 dt2) external {
         Unit uu1 = Unit.wrap(int128(uint128((u1))));
         FlowRate rr1 = FlowRate.wrap(int64(uint64(r1)));
@@ -379,6 +479,10 @@ contract ToySuperTokenTest is Test {
 
         ToySuperfluidPool pl = _createPool(alice);
 
+        FlowRate ar;
+        FlowRate br;
+        FlowRate pdr;
+
         uint256 a1 = token.balanceOf(alice);
         uint256 b1 = token.balanceOf(bob);
         uint256 c1 = token.balanceOf(carol);
@@ -386,12 +490,12 @@ contract ToySuperTokenTest is Test {
 
         vm.startPrank(alice);
         pl.updateMember(carol, uu1);
-        token.distributeFlow(alice, pl, FlowId.wrap(0), rr1);
+        (,ar,) = token.distributeFlow(alice, pl, FlowId.wrap(0), rr1);
         vm.stopPrank();
         uint256 k1 = token.balanceOf(address(token));
 
         vm.startPrank(bob);
-        token.distributeFlow(bob, pl, FlowId.wrap(0), rr2);
+        (,br,pdr) = token.distributeFlow(bob, pl, FlowId.wrap(0), rr2);
         vm.stopPrank();
         uint256 k2 = token.balanceOf(address(token)) - k1;
 
@@ -410,6 +514,7 @@ contract ToySuperTokenTest is Test {
             FlowRate br2 = token.getNetFlowRate(bob);
             FlowRate cr2 = token.getNetFlowRate(carol);
             FlowRate pr2 = token.getNetFlowRate(address(pl));
+            FlowRate pdr2 = pl.getDistributionFlowRate();
 
             assertEq(pl.getDistributionFlowRate(), FlowRate.wrap(int128(rrr1 + rrr2)), "e4.1");
             assertEq(pl.getPendingDistributionFlowRate(), FlowRate.wrap(0), "e4.2");
@@ -417,6 +522,9 @@ contract ToySuperTokenTest is Test {
             assertEq(br2, FlowRate.wrap(-int128(rrr2)), "e4.4");
             assertEq(pr2, FlowRate.wrap(0), "e4.5");
             assertEq(ar2 + br2 + cr2 + pr2, FlowRate.wrap(0), "e4.6");
+            assertEq(pdr2, pdr, "e4.7");
+            assertEq(ar2.inv(), ar, "e4.8");
+            assertEq(br2.inv(), br, "e4.9");
         }
 
         {

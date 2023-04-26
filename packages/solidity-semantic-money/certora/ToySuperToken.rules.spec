@@ -7,7 +7,7 @@ import "ToySuperToken.methods.spec"
 
 function require_poolless(address a) {
     require isPool(a) == false;
-    require getNumConnections(a) <= 1;
+    require getNumConnections(a) <= 0;
 }
 
 rule poolless_shift_balance_moves() {

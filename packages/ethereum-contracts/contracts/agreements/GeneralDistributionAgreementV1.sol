@@ -509,13 +509,14 @@ contract GeneralDistributionAgreementV1 is
         }
 
         {
+            // distribute flow on behalf of someone else
             if (from != currentContext.msgSender) {
                 if (requestedFlowRate > 0) {
                     // @note no ACL support for now
                     // revert if trying to distribute on behalf of others
                     revert GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
                 } else {
-                    // liquidation case
+                    // closing stream on behalf of someone else: liquidation case
                     (int256 availableBalance, , ) = token.realtimeBalanceOf(
                         from,
                         currentContext.timestamp
@@ -532,7 +533,6 @@ contract GeneralDistributionAgreementV1 is
                         currentContext.timestamp
                     );
 
-                    // revert if balance is not enough
                     if (availableBalance < 0) revert GDA_INSUFFICIENT_BALANCE();
                 }
             }

@@ -374,7 +374,10 @@ export default class TestEnvironment {
         ]);
     }
     beforeEachTestCaseBenchmark(mocha: Mocha.Context) {
-        this.benchmarkingTemp.testName = mocha.currentTest?.title || "n/a";
+        this.benchmarkingTemp.testName =
+            mocha.currentTest?.parent?.title +
+                " | " +
+                mocha.currentTest?.title || "n/a";
         this.benchmarkingTemp.startTime = performance.now();
     }
 

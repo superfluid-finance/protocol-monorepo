@@ -10,12 +10,17 @@ Before interacting with the Superfluid community, please read and understand our
 
 At minimum, you will need to have these available in your development environment:
 
-- yarn, sufficiently recent version, the actual yarn version is locked in yarnc.
-- nodejs 16.x.
+- yarn, sufficiently recent version, the actual yarn version is locked in `.yarnrc`.
+- nodejs 18.x.
+
+Additionally recommended:
+- jq
+- shellcheck
 
 **More Options Using Nix**
 
-You may also use [nix package manager](https://nixos.org/download.html) to get a reproducible, declarative and reliable development environment.
+The recommended way is to use the [nix package manager](https://nixos.org/download.html) to get a reproducible, declarative and reliable development environment.
+The Nix shell provides a complete environment, with all tooling included.
 
 Development shells options are available as different devShells commands in ([nix flakes](https://nixos.wiki/wiki/Flakes) required):
 
@@ -88,11 +93,11 @@ truffle run test-coverage
 
 ## Testing
 
-See the individual packages for specific details on testing or run all the tests from the root `npm run test` (smart contract tests can run over an hour).
+See the individual packages for specific details on testing or run all the tests from the root `yarn test` (smart contract tests can run over an hour).
 
 ## Linting
 
-We are using [eslint](https://eslint.org/) for Javascript and [solhint](https://protofire.github.io/solhint/) for Solidity.
+We are using [eslint](https://eslint.org/) for Javascript, [solhint](https://protofire.github.io/solhint/) for Solidity and [shellcheck](https://www.shellcheck.net/) for shell scripts.
 
 ## Releases
 
@@ -159,4 +164,5 @@ These workflow helpers are included for the ease of its learning curve:
 - `yarn git:submodule:deinit`: starting over, this should be the last resort for you to try to reset and resync things.
 
 #### Solutions
+* Use Nix (see section "Setup Tooling")
 * Re-install Node.js through other means than Snap Store.

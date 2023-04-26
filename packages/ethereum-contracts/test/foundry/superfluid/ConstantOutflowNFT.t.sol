@@ -7,6 +7,7 @@ import {
     IERC721,
     IERC721Metadata
 } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import {
@@ -35,6 +36,7 @@ import {
 } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
 contract ConstantOutflowNFTTest is FlowNFTBaseTest {
+    using Strings for uint256;
     using CFAv1Library for CFAv1Library.InitData;
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -679,6 +681,50 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         sf.cfaLib.deleteFlow(flowSender, flowReceiver, superTokenMock);
 
         assert_NFT_Flow_Data_State_IsEmpty(nftId);
+    }
+
+    function test_Passing_Token_URI_Is_Expected()
+        public
+    {
+        int96 flowRate = 42069;
+        address flowSender = alice;
+        address flowReceiver = bob;
+        helper_Create_Flow_And_Assert_NFT_Invariants(
+            flowSender,
+            flowReceiver,
+            flowRate
+        );
+
+        uint256 nftId = helper_Get_NFT_ID(
+            address(superTokenMock),
+            flowSender,
+            flowReceiver
+        );
+
+        assertEq(
+            constantOutflowNFTProxy.tokenURI(nftId),
+            string(
+                abi.encodePacked(
+                    "&token_address=",
+                    Strings.toHexString(uint256(uint160(address(superTokenMock))), 20),
+                    "?chain_id=",
+                    block.chainid.toString(),
+                    "&token_symbol=",
+                    superTokenMock.symbol(),
+                    "&sender=",
+                    Strings.toHexString(uint256(uint160(flowSender)), 20),
+                    "&receiver=",
+                    Strings.toHexString(uint256(uint160(flowReceiver)), 20),
+                    "&token_decimals=",
+                    uint256(superTokenMock.decimals())
+                        .toString(),
+                    "&start_date=1", // timestamp shifts 1
+                    "&flowRate=",
+                    uint256(uint96(flowRate)).toString(),
+                    "&is_inflow=false"
+                )
+            )
+        );
     }
 
     function test_Passing_Create_Update_Delete_Flow_No_NFT_Token() public {

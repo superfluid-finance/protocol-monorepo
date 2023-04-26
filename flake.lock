@@ -89,11 +89,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1677921223,
-        "narHash": "sha256-TsrPW+VfLu19dYm4uuAaM9LLHm30iZiyW1+0mbFgwbk=",
+        "lastModified": 1680599605,
+        "narHash": "sha256-U7BvAOvULf6IA40M4MLYZKxIMyqTzhMvKlAkuDqRMTI=",
         "owner": "shazow",
         "repo": "foundry.nix",
-        "rev": "79df1481c10789570c40749a4c8f8aada16f2eea",
+        "rev": "e3e0951e0cb668e7796f1fde2926ff32dc544d49",
         "type": "github"
       },
       "original": {
@@ -136,11 +136,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1680953364,
-        "narHash": "sha256-M3NLig2UoY8Nh4TqKbeGNT4OZNwNNhDzV1dMFV7+LhM=",
+        "lastModified": 1682350383,
+        "narHash": "sha256-5oxg0dOePpcdcMHKo3Q3hTgjizlY4hc0b9JOARtHGo8=",
         "owner": "hellwolf",
         "repo": "solc.nix",
-        "rev": "27ff3366387f751d48b8958546a39fc7108666d6",
+        "rev": "109b9faab4cee3313350c4c27d529e164c6f569f",
         "type": "github"
       },
       "original": {

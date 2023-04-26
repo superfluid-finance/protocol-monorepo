@@ -33,11 +33,13 @@ contract SuperTokenTest is FoundrySuperfluidTester {
 
         ConstantInflowNFT cifNFTLogic = new ConstantInflowNFT(
             sf.host,
-            IConstantOutflowNFT(address(cofProxy))
+            IConstantOutflowNFT(address(cofProxy)),
+            ""
         );
         ConstantOutflowNFT cofNFTLogic = new ConstantOutflowNFT(
             sf.host,
-            IConstantInflowNFT(address(cifProxy))
+            IConstantInflowNFT(address(cifProxy)),
+            ""
         );
 
         cifNFTLogic.castrate();

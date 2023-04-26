@@ -192,11 +192,9 @@ contract ConstantFlowAgreementV1 is
      {
         // base case: 0 flow rate
         if (flowRate == 0) return 0;
-
-         ISuperfluid host = ISuperfluid(token.getHost());
-         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-         uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
+         ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(_host).getGovernance());
+         uint256 minimumDeposit = gov.getConfigAsUint256(ISuperfluid(_host), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+         uint256 pppConfig = gov.getConfigAsUint256(ISuperfluid(_host), token, CFAV1_PPP_CONFIG_KEY);
          (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
          return _getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
      }
@@ -207,8 +205,7 @@ contract ConstantFlowAgreementV1 is
         external view override
         returns (bool isCurrentlyPatricianPeriod, uint256 timestamp)
     {
-        ISuperfluid host = ISuperfluid(token.getHost());
-        timestamp = host.getNow();
+        timestamp = ISuperfluid(_host).getNow();
         isCurrentlyPatricianPeriod = isPatricianPeriod(token, account, timestamp);
     }
 
@@ -1625,9 +1622,8 @@ contract ConstantFlowAgreementV1 is
         internal view
         returns(uint256 liquidationPeriod, uint256 patricianPeriod)
     {
-        ISuperfluid host = ISuperfluid(token.getHost());
-        ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
+        ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(_host).getGovernance());
+        uint256 pppConfig = gov.getConfigAsUint256(ISuperfluid(_host), token, CFAV1_PPP_CONFIG_KEY);
         (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
     }
 

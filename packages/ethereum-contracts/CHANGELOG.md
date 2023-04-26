@@ -15,6 +15,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 - `SuperToken` logic contract takes `ConstantOutflowNFT` and `ConstantInflowNFT` proxy contract addresses
 - `SuperTokenFactory` logic contract takes `ConstantOutflowNFT` and `ConstantInflowNFT` and handles the upgrade logic for the NFTs
+- Utilize internal `_host` in CFA instead of external call to host on the token
 
 ## [v1.5.2] - 2023-03-14
 

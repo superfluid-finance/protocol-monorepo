@@ -82,6 +82,7 @@ contract GeneralDistributionAgreementV1 is
     IGeneralDistributionAgreementV1
 {
     using SafeCast for uint256;
+    using SafeCast for int256;
     using SemanticMoney for BasicParticle;
 
     address public constant SLOTS_BITMAP_LIBRARY_ADDRESS =
@@ -103,6 +104,9 @@ contract GeneralDistributionAgreementV1 is
             "org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration"
         );
 
+    bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
+        keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
+
     struct UniversalIndexData {
         int96 flowRate;
         uint32 settledAt;
@@ -120,6 +124,15 @@ contract GeneralDistributionAgreementV1 is
     struct PoolMemberData {
         address pool;
         uint32 poolId; // the slot id in the pool's subs bitmap
+    }
+
+    struct _StackVars_Liquidation {
+        ISuperfluidToken token;
+        int256 availableBalance;
+        address sender;
+        bytes32 distributionFlowId;
+        int256 signedTotalGDADeposit;
+        address liquidator;
     }
 
     IBeacon public superTokenPoolBeacon;
@@ -476,18 +489,21 @@ contract GeneralDistributionAgreementV1 is
 
         newCtx = ctx;
 
-        Time t = Time.wrap(uint32(block.timestamp));
         bytes32 distributionFlowAddress = _getFlowDistributionId(
             from,
             address(to)
         );
 
         // @note it would be nice to have oldflowRate returned from _doDistributeFlow
-        BasicParticle memory fromUIndexData = _getUIndex(
+        UniversalIndexData memory fromUIndexData = _getUIndexData(
             abi.encode(token),
             from
         );
-        FlowRate oldFlowRate = fromUIndexData._flow_rate.inv();
+
+        BasicParticle memory basicParticle = _getBasicParticleFromUIndex(
+            fromUIndexData
+        );
+        FlowRate oldFlowRate = basicParticle._flow_rate.inv();
 
         (, FlowRate actualFlowRate) = _doDistributeFlow(
             abi.encode(token),
@@ -495,7 +511,7 @@ contract GeneralDistributionAgreementV1 is
             address(to),
             distributionFlowAddress,
             FlowRate.wrap(requestedFlowRate),
-            t
+            Time.wrap(uint32(block.timestamp))
         );
 
         {
@@ -509,6 +525,10 @@ contract GeneralDistributionAgreementV1 is
         }
 
         {
+            (int256 availableBalance, , ) = token.realtimeBalanceOf(
+                from,
+                currentContext.timestamp
+            );
             // distribute flow on behalf of someone else
             if (from != currentContext.msgSender) {
                 if (requestedFlowRate > 0) {
@@ -516,24 +536,30 @@ contract GeneralDistributionAgreementV1 is
                     // revert if trying to distribute on behalf of others
                     revert GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
                 } else {
+                    // _StackVars_Liquidation used to handle good ol' stack too deep
+                    _StackVars_Liquidation memory liquidationData;
+                    {
+                        liquidationData.token = token;
+                        liquidationData.sender = from;
+                        liquidationData.liquidator = currentContext.msgSender;
+                        liquidationData
+                            .distributionFlowId = distributionFlowAddress;
+                        liquidationData.signedTotalGDADeposit = fromUIndexData
+                            .totalBuffer
+                            .toInt256();
+                        liquidationData.availableBalance = availableBalance;
+                    }
                     // closing stream on behalf of someone else: liquidation case
-                    (int256 availableBalance, , ) = token.realtimeBalanceOf(
-                        from,
-                        currentContext.timestamp
-                    );
-                    if (availableBalance >= 0) {
+                    if (availableBalance < 0) {
+                        _makeLiquidationPayouts(liquidationData);
+                    } else {
                         revert GDA_NON_CRITICAL_SENDER();
                     }
                 }
             } else {
                 // from and msg.sender are the same
-                if (requestedFlowRate > 0) {
-                    (int256 availableBalance, , ) = token.realtimeBalanceOf(
-                        from,
-                        currentContext.timestamp
-                    );
-
-                    if (availableBalance < 0) revert GDA_INSUFFICIENT_BALANCE();
+                if (requestedFlowRate > 0 && availableBalance < 0) {
+                    revert GDA_INSUFFICIENT_BALANCE();
                 }
             }
         }
@@ -546,6 +572,69 @@ contract GeneralDistributionAgreementV1 is
                 uint32(block.timestamp),
                 int96(FlowRate.unwrap(oldFlowRate)),
                 int96(FlowRate.unwrap(actualFlowRate))
+            );
+        }
+    }
+
+    function _makeLiquidationPayouts(
+        _StackVars_Liquidation memory data
+    ) internal {
+        (
+            ,
+            FlowDistributionData memory flowDistributionData
+        ) = _getFlowDistributionData(
+                ISuperfluidToken(data.token),
+                data.distributionFlowId
+            );
+        int256 signedSingleDeposit = flowDistributionData.buffer.toInt256();
+
+        bytes memory liquidationTypeData;
+        bool isCurrentlyPatricianPeriod;
+
+        {
+            (
+                uint256 liquidationPeriod,
+                uint256 patricianPeriod
+            ) = _decode3PsData(data.token);
+            isCurrentlyPatricianPeriod = _isPatricianPeriod(
+                data.availableBalance,
+                data.signedTotalGDADeposit,
+                liquidationPeriod,
+                patricianPeriod
+            );
+        }
+
+        int256 totalRewardLeft = data.availableBalance +
+            data.signedTotalGDADeposit;
+
+        // critical case
+        if (totalRewardLeft >= 0) {
+            int256 rewardAmount = (signedSingleDeposit * totalRewardLeft) /
+                data.signedTotalGDADeposit;
+            liquidationTypeData = abi.encode(
+                1,
+                isCurrentlyPatricianPeriod ? 0 : 1
+            );
+            data.token.makeLiquidationPayoutsV2(
+                data.distributionFlowId,
+                liquidationTypeData,
+                data.liquidator,
+                isCurrentlyPatricianPeriod,
+                data.sender,
+                rewardAmount.toUint256(),
+                rewardAmount * -1
+            );
+        } else {
+            int256 rewardAmount = signedSingleDeposit;
+            // bailout case
+            data.token.makeLiquidationPayoutsV2(
+                data.distributionFlowId,
+                abi.encode(1, 2),
+                data.liquidator,
+                false,
+                data.sender,
+                rewardAmount.toUint256(),
+                totalRewardLeft * -1
             );
         }
     }
@@ -563,13 +652,13 @@ contract GeneralDistributionAgreementV1 is
         ISuperfluidGovernance gov = ISuperfluidGovernance(
             ISuperfluid(_host).getGovernance()
         );
-        uint256 pppConfig = gov.getConfigAsUint256(
-            ISuperfluid(_host),
+        uint256 minimumDeposit = gov.getConfigAsUint256(
+            ISuperfluid(msg.sender),
             ISuperfluidToken(token),
-            CFAV1_PPP_CONFIG_KEY
+            SUPERTOKEN_MINIMUM_DEPOSIT_KEY
         );
-        (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs
-            .decodePPPConfig(pppConfig);
+
+        (uint256 liquidationPeriod, ) = _decode3PsData(ISuperfluidToken(token));
 
         (
             ,
@@ -580,6 +669,14 @@ contract GeneralDistributionAgreementV1 is
         Value newBufferAmount = newFlowRate.mul(
             Time.wrap(uint32(liquidationPeriod))
         );
+
+        if (
+            Value.unwrap(newBufferAmount).toUint256() < minimumDeposit &&
+            FlowRate.unwrap(newFlowRate) > 0
+        ) {
+            newBufferAmount = Value.wrap(minimumDeposit.toInt256());
+        }
+
         Value bufferDelta = newBufferAmount -
             Value.wrap(int256(uint256(flowDistributionData.buffer)));
 
@@ -611,6 +708,44 @@ contract GeneralDistributionAgreementV1 is
         );
 
         return eff;
+    }
+
+    function _decode3PsData(
+        ISuperfluidToken token
+    )
+        internal
+        view
+        returns (uint256 liquidationPeriod, uint256 patricianPeriod)
+    {
+        ISuperfluidGovernance gov = ISuperfluidGovernance(
+            ISuperfluid(_host).getGovernance()
+        );
+        uint256 pppConfig = gov.getConfigAsUint256(
+            ISuperfluid(_host),
+            token,
+            CFAV1_PPP_CONFIG_KEY
+        );
+        (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs
+            .decodePPPConfig(pppConfig);
+    }
+
+    function _isPatricianPeriod(
+        int256 availableBalance,
+        int256 signedTotalGDADeposit,
+        uint256 liquidationPeriod,
+        uint256 patricianPeriod
+    ) internal pure returns (bool) {
+        if (signedTotalGDADeposit == 0) {
+            return false;
+        }
+
+        int256 totalRewardLeft = availableBalance + signedTotalGDADeposit;
+        int256 totalGDAOutFlowrate = signedTotalGDADeposit /
+            int256(liquidationPeriod);
+        // divisor cannot be zero with existing outflow
+        return
+            totalRewardLeft / totalGDAOutFlowrate >
+            int256(liquidationPeriod - patricianPeriod);
     }
 
     // # Universal Index operations

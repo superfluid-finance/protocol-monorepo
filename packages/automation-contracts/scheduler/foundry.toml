@@ -7,3 +7,9 @@ remappings = [
     '@openzeppelin/=node_modules/@openzeppelin/',
     'ds-test/=lib/forge-std/lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/']
+
+[profile.ci]
+offline = true
+
+[profile.ci.fuzz]
+runs = 1000

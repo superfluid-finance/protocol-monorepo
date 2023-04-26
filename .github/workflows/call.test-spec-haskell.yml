@@ -29,13 +29,6 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: cache
-        uses: actions/cache@v2
-        with:
-          key: ${{ runner.os }}-${{ matrix.compiler }}-${{ github.sha }}
-          path: ~/.cabal/store
-          restore-keys: ${{ runner.os }}-${{ matrix.compiler }}-
-
       - name: Create devShell
         run: |
           echo 'nix develop .#${{ matrix.devShell }} -c bash $@' > devShell.sh

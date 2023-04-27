@@ -3,7 +3,6 @@ root = '../..'
 src = 'packages/solidity-semantic-money/src'
 out = 'packages/solidity-semantic-money/out'
 solc_version = '0.8.19'
-via_ir = true # though this is so slow!
 remappings = [
     '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',
     '@openzeppelin/=node_modules/@openzeppelin/',
@@ -11,6 +10,7 @@ remappings = [
     'forge-std/=lib/forge-std/src/']
 
 [profile.test]
+via_ir = true # though this is so slow!
 test = 'packages/solidity-semantic-money/test'
 
 [profile.test.fuzz]

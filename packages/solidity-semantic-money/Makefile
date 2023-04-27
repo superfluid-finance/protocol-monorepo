@@ -14,8 +14,14 @@ FORGE_TEST = FOUNDRY_PROFILE=test forge test
 dev:
 	nodemon -e sol -x sh -- -c "make $(DEV_TARGET) || exit 1"
 
-build-all:
+build-src:
 	forge build --sizes
+
+build-all:
+	FOUNDRY_PROFILE=test forge build
+
+clean:
+	rm -rf out
 
 test-all:
 	$(FORGE_TEST) $(TEST_OPTS)
@@ -44,4 +50,4 @@ verify-ToySuperToken-rules:
 		$(CERTORA_OPTS) \
 		$(CERTORA_EXTRA_OPTS)
 
-.PHONY: build-* dev test-* verify-*
+.PHONY: build-* clean dev test-* verify-*

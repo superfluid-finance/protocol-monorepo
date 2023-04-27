@@ -28,7 +28,7 @@ contract SuperTokenFactoryTest is FoundrySuperfluidTester {
         super.setUp();
     }
 
-    function test_Passing_Update_Code_Sets_New_Contracts() public {
+    function testUpdateCodeSetsNewContracts() public {
         SuperToken newSuperTokenLogic = new SuperToken(
             sf.host,
             superToken.CONSTANT_OUTFLOW_NFT(),

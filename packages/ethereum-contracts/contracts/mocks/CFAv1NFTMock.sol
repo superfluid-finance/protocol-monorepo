@@ -7,26 +7,26 @@ import {
 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {
     UUPSProxiable
-} from "../../../contracts/upgradability/UUPSProxiable.sol";
-import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
-import { ERC777Helper } from "../../../contracts/libs/ERC777Helper.sol";
+} from "../upgradability/UUPSProxiable.sol";
+import { SuperToken } from "../superfluid/SuperToken.sol";
+import { ERC777Helper } from "../libs/ERC777Helper.sol";
 import {
     SuperfluidToken
-} from "../../../contracts/superfluid/SuperfluidToken.sol";
+} from "../superfluid/SuperfluidToken.sol";
 import {
     ISuperfluid
-} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import {
     IConstantFlowAgreementV1
-} from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {
     ConstantOutflowNFT,
     IConstantOutflowNFT
-} from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
+} from "../superfluid/ConstantOutflowNFT.sol";
 import {
     ConstantInflowNFT,
     IConstantInflowNFT
-} from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+} from "../superfluid/ConstantInflowNFT.sol";
 
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     constructor(
@@ -181,7 +181,7 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
         bytes memory userData,
         bytes memory operatorData
     ) private {
-        if (address(_underlyingToken) == address(0)) revert();
+        if (address(_underlyingToken) == address(0)) revert("");
 
         (
             uint256 underlyingAmount,
@@ -196,7 +196,7 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
         );
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
         uint256 actualUpgradedAmount = amountAfter - amountBefore;
-        if (underlyingAmount != actualUpgradedAmount) revert();
+        if (underlyingAmount != actualUpgradedAmount) revert("");
 
         _mint(
             operator,
@@ -219,7 +219,7 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
         bytes memory // operatorData
     ) internal {
         if (account == address(0)) {
-            revert();
+            revert("");
         }
 
         SuperfluidToken._mint(account, amount);

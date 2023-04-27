@@ -22,7 +22,7 @@ import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import {
     ConstantOutflowNFTMock,
     ConstantInflowNFTMock
-} from "./CFAv1NFTMock.t.sol";
+} from "../../../contracts/mocks/CFAv1NFTMock.sol";
 import {
     SuperToken,
     SuperTokenMock
@@ -368,7 +368,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
-    function test_Passing_CFAv1_Is_Properly_Set_During_Initialization() public {
+    function testCFAv1IsProperlySetDuringInitialization() public {
         assertEq(
             address(constantOutflowNFTProxy.CONSTANT_FLOW_AGREEMENT_V1()),
             address(sf.cfa)
@@ -401,7 +401,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
     /*//////////////////////////////////////////////////////////////////////////
                                 Storage Layout Tests
     //////////////////////////////////////////////////////////////////////////*/
-    function test_Storage_Layout_Of_FlowNFTBase() public {
+    function testStorageLayoutOfFlowNFTBase() public {
         FlowNFTBaseStorageLayoutMock flowNFTBaseStorageLayoutMock = new FlowNFTBaseStorageLayoutMock(
                 sf.host,
                 ""
@@ -409,7 +409,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
         flowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
-    function test_Storage_Layout_Of_ConstantInflowNFT() public {
+    function testStorageLayoutOfConstantInflowNFT() public {
         ConstantInflowNFTStorageLayoutMock constantInflowNFTBaseStorageLayoutMock = new ConstantInflowNFTStorageLayoutMock(
                 sf.host,
                 constantOutflowNFTProxy,
@@ -418,7 +418,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
         constantInflowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
-    function test_Storage_Layout_Of_ConstantOutflowNFT() public {
+    function testStorageLayoutOfConstantOutflowNFT() public {
         ConstantOutflowNFTStorageLayoutMock constantOutflowNFTBaseStorageLayoutMock = new ConstantOutflowNFTStorageLayoutMock(
                 sf.host,
                 constantInflowNFTProxy,
@@ -430,7 +430,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
     /*//////////////////////////////////////////////////////////////////////////
                                     Revert Tests
     //////////////////////////////////////////////////////////////////////////*/
-    function test_Revert_NFT_Contracts_Cannot_Be_Upgraded_By_Non_Host(
+    function testRevertNFTContractsCannotBeUpgradedByNonHost(
         address notSuperTokenFactory
     ) public {
         vm.assume(notSuperTokenFactory != address(sf.superTokenFactory));
@@ -456,7 +456,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
     /*//////////////////////////////////////////////////////////////////////////
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
-    function test_Passing_NFT_Contracts_Can_Be_Upgraded_By_Host() public {
+    function testNFTContractsCanBeUpgradedByHost() public {
         ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(
             sf.host,
             constantInflowNFTProxy,

@@ -13,7 +13,7 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
 
     constructor() FoundrySuperfluidTester(1) {}
 
-    function test_Passing_All_Contracts_Deployed() public {
+    function testAllContractsDeployed() public {
         assertTrue(address(sf.governance) != address(0));
         assertTrue(address(sf.host) != address(0));
         assertTrue(address(sf.cfa) != address(0));
@@ -24,22 +24,22 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertTrue(address(sf.cfaV1Forwarder) != address(0));
     }
 
-    function test_Passing_Resolver_Gets_Governance() public {
+    function testResolverGetsGovernance() public {
         assertEq(resolver.get("TestGovernance.test"), address(sf.governance));
     }
 
-    function test_Passing_Resolver_Gets_Host() public {
+    function testResolverGetsHost() public {
         assertEq(resolver.get("Superfluid.test"), address(sf.host));
     }
 
-    function test_Passing_Resolver_Gets_Loader() public {
+    function testResolverGetsLoader() public {
         assertEq(
             resolver.get("SuperfluidLoader-v1"),
             address(sf.superfluidLoader)
         );
     }
 
-    function test_Passing_Loader_Gets_Framework() public {
+    function testLoaderGetsFramework() public {
         SuperfluidLoader.Framework memory loadedSf = sf
             .superfluidLoader
             .loadFramework("test");
@@ -49,7 +49,7 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertEq(address(loadedSf.agreementIDAv1), address(sf.ida));
     }
 
-    function test_Passing_Transfer_Ownership() public {
+    function testTransferOwnership() public {
         assertEq(sf.governance.owner(), address(sfDeployer));
         sfDeployer.transferOwnership(address(superTokenDeployer));
         assertEq(sf.governance.owner(), address(superTokenDeployer));

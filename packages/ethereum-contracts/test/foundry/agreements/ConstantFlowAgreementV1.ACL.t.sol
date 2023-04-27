@@ -58,7 +58,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
     }
 
-    function test_Passing_Increase_Flow_Rate_Allowance(
+    function testIncreaseFlowRateAllowance(
         int96 flowRateAllowanceDelta
     ) public {
         vm.assume(flowRateAllowanceDelta > 0);
@@ -90,7 +90,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
     }
 
-    function test_Passing_Decrease_Flow_Rate_Allowance(
+    function testDecreaseFlowRateAllowance(
         int96 flowRateAllowanceIncreaseDelta,
         int96 flowRateAllowanceDecreaseDelta
     ) public {
@@ -135,7 +135,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
     }
 
-    function test_Passing_Increase_Flow_Rate_Allowance_With_Pre_Set_Permissions(
+    function testIncreaseFlowRateAllowanceWithPreSetPermissions(
         int96 flowRateAllowanceDelta
     ) public {
         vm.assume(flowRateAllowanceDelta > 0);
@@ -169,7 +169,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
     }
 
-    function test_Passing_Decrease_Flow_Rate_Allowance_With_Pre_Set_Permissions(
+    function testDecreaseFlowRateAllowanceWithPreSetPermissions(
         int96 flowRateAllowanceIncreaseDelta,
         int96 flowRateAllowanceDecreaseDelta
     ) public {
@@ -216,7 +216,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
     }
 
-    function test_Passing_Increase_Flow_Rate_Allowance_And_ACL_Create_Flow(
+    function testIncreaseFlowRateAllowanceAndACLCreateFlow(
         uint32 flowRateAllowanceDelta
     ) public {
         vm.assume(flowRateAllowanceDelta > 0);
@@ -236,7 +236,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         assertEq(superToken.getFlowRate(alice, bob), flowRate);
     }
 
-    function test_Revert_If_Decrease_Flow_Rate_Allowance_And_ACL_Create_Flow(
+    function testRevertIfDecreaseFlowRateAllowanceAndACLCreateFlow(
         int96 flowRateAllowanceIncreaseDelta
     ) public {
         vm.assume(flowRateAllowanceIncreaseDelta > 0);
@@ -265,7 +265,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         superToken.createFlowFrom(alice, bob, flowRateAllowanceIncreaseDelta);
     }
 
-    function test_Revert_If_Increase_Flow_Rate_Allowance_Overflows() public {
+    function testRevertIfIncreaseFlowRateAllowanceOverflows() public {
         vm.startPrank(alice);
         helper_Increase_Flow_Rate_Allowance(superToken, bob, type(int96).max);
         vm.expectRevert("CallUtils: target panicked: 0x11");
@@ -273,7 +273,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function test_Revert_If_Decrease_Flow_Rate_Allowance_Underflows() public {
+    function testRevertIfDecreaseFlowRateAllowanceUnderflows() public {
         vm.startPrank(alice);
         vm.expectRevert(
             IConstantFlowAgreementV1.CFA_ACL_NO_NEGATIVE_ALLOWANCE.selector

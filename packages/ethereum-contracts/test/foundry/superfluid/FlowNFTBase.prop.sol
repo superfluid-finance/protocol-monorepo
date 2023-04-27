@@ -10,7 +10,7 @@ contract FlowNFTBaseProperties is FoundrySuperfluidTester {
         super.setUp();
     }
 
-    function test_No_Token_Id_Collision_Different_Token_Same_Sender_Receiver(
+    function testNoTokenIdCollisionDifferentTokenSameSenderReceiver(
         address tokenA,
         address tokenB
     ) public {

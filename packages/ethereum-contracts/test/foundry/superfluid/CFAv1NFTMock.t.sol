@@ -31,8 +31,9 @@ import {
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     constructor(
         ISuperfluid host,
-        IConstantInflowNFT constantInflowNFT
-    ) ConstantOutflowNFT(host, constantInflowNFT) {}
+        IConstantInflowNFT constantInflowNFT,
+        string memory baseURI
+    ) ConstantOutflowNFT(host, constantInflowNFT, baseURI) {}
 
     /// @dev a mock mint function that exposes the internal _mint function
     function mockMint(
@@ -63,8 +64,9 @@ contract ConstantOutflowNFTMock is ConstantOutflowNFT {
 contract ConstantInflowNFTMock is ConstantInflowNFT {
     constructor(
         ISuperfluid host,
-        IConstantOutflowNFT constantOutflowNFT
-    ) ConstantInflowNFT(host, constantOutflowNFT) {}
+        IConstantOutflowNFT constantOutflowNFT,
+        string memory baseURI
+    ) ConstantInflowNFT(host, constantOutflowNFT, baseURI) {}
 
     /// @dev a mock mint function to emit the mint Transfer event
     function mockMint(address _to, uint256 _newTokenId) public {

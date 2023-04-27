@@ -170,7 +170,7 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
     }
 
     function distributeFlow(address from, ISuperfluidPool to, FlowId flowId, FlowRate reqFlowRate) override external
-        returns (bool success, FlowRate actualFlowRate)
+        returns (bool success, FlowRate actualFlowRate, FlowRate newDistributionFlowRate)
     {
         bytes memory eff = _tokenEff("distributeFlow", new bytes(0));
         return _distributeFlow(eff, msg.sender, from, to, flowId, reqFlowRate);

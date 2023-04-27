@@ -4,7 +4,10 @@ import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-truffle5";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-ethers";
-import {TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS} from "hardhat/builtin-tasks/task-names";
+import {
+    TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
+    TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD
+} from "hardhat/builtin-tasks/task-names";
 import "solidity-coverage";
 import {config as dotenvConfig} from "dotenv";
 import {NetworkUserConfig} from "hardhat/types";
@@ -18,6 +21,25 @@ try {
         "Loading .env file failed. Things will likely fail. You may want to copy .env.template and create a new one."
     );
 }
+
+// The built-in compiler (auto-downloaded if not yet present) can be overridden by setting SOLC_PATH
+// If set, we assume it's a native compiler which matches the required Solidity version.
+subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD).setAction(
+    async (args, hre, runSuper) => {
+        console.log("subtask TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD");
+        if (process.env.SOLC_PATH !== undefined) {
+            console.log("Using Solidity compiler set in SOLC_PATH:", process. env.SOLC_PATH);
+            return {
+                compilerPath: process.env.SOLC_PATH,
+                isSolcJs: false, // false for native compiler
+                version: args.solcVersion
+            }
+        } else {
+            // fall back to the default
+            return runSuper();
+        }
+    }
+);
 
 // hardhat mixin magic: https://github.com/NomicFoundation/hardhat/issues/2306#issuecomment-1039452928
 // filter out foundry test codes

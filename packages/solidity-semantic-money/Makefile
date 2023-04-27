@@ -5,6 +5,7 @@ CERTORA_OPTS = \
 	--optimistic_loop \
 	--loop_iter 3 \
 	--solc solc-0.8.19
+FORGE_TEST = FOUNDRY_PROFILE=test forge test
 
 # Other CERTORA_OPTS fragments:
 	#--solc_args "['--via-ir', '--optimize']" \
@@ -17,16 +18,16 @@ build-all:
 	forge build --sizes
 
 test-all:
-	FOUNDRY_PROFILE=test forge test $(TEST_OPTS)
+	$(FORGE_TEST) $(TEST_OPTS)
 
 test-SemanticMoney:
-	FOUNDRY_PROFILE=test forge test --match-contract SemanticMoney $(TEST_OPTS)
+	$(FORGE_TEST) --match-contract SemanticMoney $(TEST_OPTS)
 
 test-ToySuperToken:
-	FOUNDRY_PROFILE=test forge test --match-contract ToySuperTokenTest $(TEST_OPTS)
+	$(FORGE_TEST) --match-contract ToySuperTokenTest $(TEST_OPTS)
 
 test-Aqueduct:
-	FOUNDRY_PROFILE=test forge test --match-contract AqueductTest $(TEST_OPTS)
+	$(FORGE_TEST) --match-contract AqueductTest $(TEST_OPTS)
 
 verify-ToySuperToken-invariances:
 	certoraRun \

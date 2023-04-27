@@ -45,7 +45,7 @@ interface ISuperfluidToken is ISuperfluidPoolAdmin {
         returns (bool, Value actualAmount);
 
     function distributeFlow(address from, ISuperfluidPool to, FlowId flowId, FlowRate reqFlowRate) external
-        returns (bool success, FlowRate actualFlowRate);
+        returns (bool success, FlowRate actualFlowRate, FlowRate newDistributionFlowRate);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Pool Operations

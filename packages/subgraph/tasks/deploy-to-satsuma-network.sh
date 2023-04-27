@@ -15,6 +15,8 @@
 
 GRAPH="npx --package=@graphprotocol/graph-cli -- graph"
 
+echo "Deploying to satsuma network: $1-$2"
+
 # prepare the manifest prior to deployment
 # this generates the subgraph.yaml and
 # inputs the correct addresses for the specified network ($2)

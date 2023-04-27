@@ -27,8 +27,9 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
     // solhint-disable-next-line no-empty-blocks
     constructor(
         ISuperfluid host,
-        IConstantOutflowNFT constantOutflowNFT
-    ) FlowNFTBase(host) {
+        IConstantOutflowNFT constantOutflowNFT,
+        string memory baseURI
+    ) FlowNFTBase(host, baseURI) {
         CONSTANT_OUTFLOW_NFT = constantOutflowNFT;
     }
 

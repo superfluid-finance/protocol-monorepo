@@ -207,7 +207,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
 
     function _distributeFlow(bytes memory eff, address operator, address from, ISuperfluidPool to,
                              FlowId flowId, FlowRate reqFlowRate)
-        internal returns (bool success, FlowRate actualFlowRate)
+        internal returns (bool success, FlowRate actualFlowRate, FlowRate newDistributionFlowRate)
     {
         /// check inputs
         require(_isPool(address(to)), "Distribute flow to pool only");
@@ -223,13 +223,14 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         require(_acl(operator, from, address(to), Value.wrap(0), reqFlowRate), "ACL for distribute not supported");
 
         // Make updates
-        (, actualFlowRate) = _doDistributeFlow(eff, from, address(to), flowHash, reqFlowRate, t);
+        (eff, actualFlowRate, newDistributionFlowRate) = _doDistributeFlow
+            (eff, from, address(to), flowHash, reqFlowRate, t);
         eff = _adjustBuffer(eff, from, flowHash, oldFlowRate, actualFlowRate);
         success = true;
     }
 
     function distributeFlow(address from, ISuperfluidPool to, FlowId flowId, FlowRate reqFlowRate)
-        virtual override external returns (bool success, FlowRate actualFlowRate)
+        virtual override external returns (bool success, FlowRate actualFlowRate, FlowRate newDistributionFlowRate)
     {
         return _distributeFlow(new bytes(0), msg.sender, from, to, flowId, reqFlowRate);
     }

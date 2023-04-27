@@ -1,6 +1,7 @@
 [profile.default]
 root = '../..'
 src = 'packages/ethereum-contracts'
+solc_version = "0.8.19"
 remappings = [
     '@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/',
     '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',
@@ -8,6 +9,9 @@ remappings = [
     'ds-test/=lib/forge-std/lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/']
 out = 'packages/ethereum-contracts/build/foundry/out'
+
+[profile.ci]
+offline = true
 
 [profile.ci.fuzz]
 runs = 1000

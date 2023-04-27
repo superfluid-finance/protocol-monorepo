@@ -352,8 +352,10 @@ contract SuperfluidFrameworkDeploymentSteps {
             _deploySuperTokenLogicAndSuperTokenFactory();
         } else if (step == 7) {
             // Deploy TestResolver
-            // Deploy SuperfluidLoader
+            // Deploy SuperfluidLoader and make SuperfluidFrameworkDpeloyer an admin for the TestResolver
             _deployTestResolverAndSuperfluidLoaderAndSet(address(this));
+            // Make SuperfluidFrameworkDeployer deployer an admin for the TestResolver as well
+            testResolver.addAdmin(msg.sender);
         } else {
             revert("Invalid step");
         }

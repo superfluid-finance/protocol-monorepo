@@ -14,8 +14,11 @@ FORGE_TEST = FOUNDRY_PROFILE=test forge test
 dev:
 	nodemon -e sol -x sh -- -c "make $(DEV_TARGET) || exit 1"
 
+build-src:
+	forge build --sizes
+
 build-all:
-	FOUNDRY_PROFILE=build-without-ir forge build --sizes
+	FOUNDRY_PROFILE=test forge build
 
 clean:
 	rm -rf out

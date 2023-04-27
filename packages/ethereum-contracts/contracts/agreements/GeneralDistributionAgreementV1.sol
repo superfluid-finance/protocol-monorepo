@@ -505,7 +505,7 @@ contract GeneralDistributionAgreementV1 is
         );
         FlowRate oldFlowRate = basicParticle._flow_rate.inv();
 
-        (, FlowRate actualFlowRate) = _doDistributeFlow(
+        (, FlowRate actualFlowRate, FlowRate newDistributionFlowRate) = _doDistributeFlow(
             abi.encode(token),
             from,
             address(to),

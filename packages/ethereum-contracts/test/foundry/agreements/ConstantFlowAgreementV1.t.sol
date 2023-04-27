@@ -20,10 +20,10 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
         sf.cfaLib.createFlow(bob, superToken, flowRate);
         vm.stopPrank();
 
-        assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate);
-        assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate);
+        assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate, "CFAv1.t: alice net flow != -flowRate");
+        assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate, "CFAv1.t: bob net flow != flowRate");
 
-        assert_Global_Invariants();
+        _assert_Global_Invariants();
     }
 
     function testBobAliceLoop(uint32 a) public {
@@ -39,9 +39,9 @@ contract ConstantFlowAgreementV1Anvil is FoundrySuperfluidTester {
         sf.cfaLib.createFlow(alice, superToken, flowRate);
         vm.stopPrank();
 
-        assertEq(sf.cfa.getNetFlow(superToken, alice), 0);
-        assertEq(sf.cfa.getNetFlow(superToken, bob), 0);
+        assertEq(sf.cfa.getNetFlow(superToken, alice), 0, "CFAv1.t: alice net flow != 0");
+        assertEq(sf.cfa.getNetFlow(superToken, bob), 0, "CFAv1.t: bob net flow != 0");
 
-        assert_Global_Invariants();
+        _assert_Global_Invariants();
     }
 }

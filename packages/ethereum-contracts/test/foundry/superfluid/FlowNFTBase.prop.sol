@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 
-contract FlowNFTBaseProperties is FoundrySuperfluidTester {
+contract FlowNFTBasePropertyTest is FoundrySuperfluidTester {
     constructor() FoundrySuperfluidTester(0) {}
 
     function setUp() public override {

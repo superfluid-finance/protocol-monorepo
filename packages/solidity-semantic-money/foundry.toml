@@ -15,3 +15,6 @@ test = 'packages/solidity-semantic-money/test'
 
 [profile.test.fuzz]
 runs = 1000
+
+[profile.build-without-ir]
+via_ir = false

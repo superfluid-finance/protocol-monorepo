@@ -15,7 +15,10 @@ dev:
 	nodemon -e sol -x sh -- -c "make $(DEV_TARGET) || exit 1"
 
 build-all:
-	forge build --sizes
+	FOUNDRY_PROFILE=build-without-ir forge build --sizes
+
+clean:
+	rm -rf out
 
 test-all:
 	$(FORGE_TEST) $(TEST_OPTS)
@@ -44,4 +47,4 @@ verify-ToySuperToken-rules:
 		$(CERTORA_OPTS) \
 		$(CERTORA_EXTRA_OPTS)
 
-.PHONY: build-* dev test-* verify-*
+.PHONY: build-* clean dev test-* verify-*

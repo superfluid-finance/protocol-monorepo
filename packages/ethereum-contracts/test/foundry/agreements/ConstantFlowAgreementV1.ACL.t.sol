@@ -16,77 +16,40 @@ import {
 contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
 
+    struct AssertFlowOperator {
+        ISuperfluidToken superToken;
+        bytes32 flowOperatorId;
+        uint8 expectedPermissions;
+        int96 expectedFlowRateAllowance;
+    }
+
     constructor() FoundrySuperfluidTester(3) {}
-
-    function helper_Increase_Flow_Rate_Allowance(
-        ISuperfluidToken _superToken,
-        address flowOperator,
-        int96 flowRateAllowanceDelta
-    ) internal {
-        sf.host.callAgreement(
-            sf.cfa,
-            abi.encodeCall(
-                sf.cfa.increaseFlowRateAllowance,
-                (
-                    _superToken,
-                    flowOperator,
-                    flowRateAllowanceDelta,
-                    new bytes(0)
-                )
-            ),
-            new bytes(0)
-        );
-    }
-
-    function helper_Decrease_Flow_Rate_Allowance(
-        ISuperfluidToken _superToken,
-        address flowOperator,
-        int96 flowRateAllowanceDelta
-    ) internal {
-        sf.host.callAgreement(
-            sf.cfa,
-            abi.encodeCall(
-                sf.cfa.decreaseFlowRateAllowance,
-                (
-                    _superToken,
-                    flowOperator,
-                    flowRateAllowanceDelta,
-                    new bytes(0)
-                )
-            ),
-            new bytes(0)
-        );
-    }
 
     function testIncreaseFlowRateAllowance(
         int96 flowRateAllowanceDelta
     ) public {
         vm.assume(flowRateAllowanceDelta > 0);
 
-        (
-            bytes32 oldFlowOperatorId,
-            uint8 oldPermissions,
-            int96 oldFlowRateAllowance
-        ) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
+        bytes32 flowOperatorId = _generate_Flow_Operator_Id(alice, bob);
+        (uint8 oldPermissions, int96 oldFlowRateAllowance) = sf
+            .cfa
+            .getFlowOperatorDataByID(superToken, flowOperatorId);
 
         vm.startPrank(alice);
-        helper_Increase_Flow_Rate_Allowance(
+        _increase_Flow_Rate_Allowance(
             superToken,
             bob,
             flowRateAllowanceDelta
         );
         vm.stopPrank();
-        (
-            bytes32 newFlowOperatorId,
-            uint8 newPermissions,
-            int96 newFlowRateAllowance
-        ) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
 
-        assertEq(oldFlowOperatorId, newFlowOperatorId);
-        assertEq(oldPermissions, newPermissions);
-        assertEq(
-            oldFlowRateAllowance + flowRateAllowanceDelta,
-            newFlowRateAllowance
+        _assert_Flow_Operator_Data(
+            AssertFlowOperator({
+                superToken: superToken,
+                flowOperatorId: flowOperatorId,
+                expectedPermissions: oldPermissions,
+                expectedFlowRateAllowance: oldFlowRateAllowance + flowRateAllowanceDelta
+            })
         );
     }
 
@@ -107,31 +70,27 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         ) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
 
         vm.startPrank(alice);
-        helper_Increase_Flow_Rate_Allowance(
+        _increase_Flow_Rate_Allowance(
             superToken,
             bob,
             flowRateAllowanceIncreaseDelta
         );
-        helper_Decrease_Flow_Rate_Allowance(
+        _decrease_Flow_Rate_Allowance(
             superToken,
             bob,
             flowRateAllowanceDecreaseDelta
         );
         vm.stopPrank();
 
-        (
-            bytes32 newFlowOperatorId,
-            uint8 newPermissions,
-            int96 newFlowRateAllowance
-        ) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
-
-        assertEq(oldFlowOperatorId, newFlowOperatorId);
-        assertEq(oldPermissions, newPermissions);
-        assertEq(
-            oldFlowRateAllowance +
-                flowRateAllowanceIncreaseDelta -
-                flowRateAllowanceDecreaseDelta,
-            newFlowRateAllowance
+        _assert_Flow_Operator_Data(
+            AssertFlowOperator({
+                superToken: superToken,
+                flowOperatorId: oldFlowOperatorId,
+                expectedPermissions: oldPermissions,
+                expectedFlowRateAllowance: oldFlowRateAllowance +
+                    flowRateAllowanceIncreaseDelta -
+                    flowRateAllowanceDecreaseDelta
+            })
         );
     }
 
@@ -149,23 +108,20 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
             int96 oldFlowRateAllowance
         ) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
 
-        helper_Increase_Flow_Rate_Allowance(
+        _increase_Flow_Rate_Allowance(
             superToken,
             bob,
             flowRateAllowanceDelta
         );
         vm.stopPrank();
-        (
-            bytes32 newFlowOperatorId,
-            uint8 newPermissions,
-            int96 newFlowRateAllowance
-        ) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
 
-        assertEq(oldFlowOperatorId, newFlowOperatorId);
-        assertEq(oldPermissions, newPermissions);
-        assertEq(
-            oldFlowRateAllowance + flowRateAllowanceDelta,
-            newFlowRateAllowance
+        _assert_Flow_Operator_Data(
+            AssertFlowOperator({
+                superToken: superToken,
+                flowOperatorId: oldFlowOperatorId,
+                expectedPermissions: oldPermissions,
+                expectedFlowRateAllowance: oldFlowRateAllowance + flowRateAllowanceDelta
+            })
         );
     }
 
@@ -188,31 +144,27 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
             int96 oldFlowRateAllowance
         ) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
 
-        helper_Increase_Flow_Rate_Allowance(
+        _increase_Flow_Rate_Allowance(
             superToken,
             bob,
             flowRateAllowanceIncreaseDelta
         );
-        helper_Decrease_Flow_Rate_Allowance(
+        _decrease_Flow_Rate_Allowance(
             superToken,
             bob,
             flowRateAllowanceDecreaseDelta
         );
         vm.stopPrank();
 
-        (
-            bytes32 newFlowOperatorId,
-            uint8 newPermissions,
-            int96 newFlowRateAllowance
-        ) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
-
-        assertEq(oldFlowOperatorId, newFlowOperatorId);
-        assertEq(oldPermissions, newPermissions);
-        assertEq(
-            oldFlowRateAllowance +
-                flowRateAllowanceIncreaseDelta -
-                flowRateAllowanceDecreaseDelta,
-            newFlowRateAllowance
+        _assert_Flow_Operator_Data(
+            AssertFlowOperator({
+                superToken: superToken,
+                flowOperatorId: oldFlowOperatorId,
+                expectedPermissions: oldPermissions,
+                expectedFlowRateAllowance: oldFlowRateAllowance +
+                    flowRateAllowanceIncreaseDelta -
+                    flowRateAllowanceDecreaseDelta
+            })
         );
     }
 
@@ -226,7 +178,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
 
         vm.startPrank(alice);
         superToken.setFlowPermissions(bob, true, true, true, 0);
-        helper_Increase_Flow_Rate_Allowance(superToken, bob, flowRate);
+        _increase_Flow_Rate_Allowance(superToken, bob, flowRate);
 
         vm.stopPrank();
 
@@ -243,12 +195,12 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
 
         vm.startPrank(alice);
         superToken.setFlowPermissions(bob, true, true, true, 0);
-        helper_Increase_Flow_Rate_Allowance(
+        _increase_Flow_Rate_Allowance(
             superToken,
             bob,
             flowRateAllowanceIncreaseDelta
         );
-        helper_Decrease_Flow_Rate_Allowance(
+        _decrease_Flow_Rate_Allowance(
             superToken,
             bob,
             flowRateAllowanceIncreaseDelta
@@ -267,9 +219,9 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
 
     function testRevertIfIncreaseFlowRateAllowanceOverflows() public {
         vm.startPrank(alice);
-        helper_Increase_Flow_Rate_Allowance(superToken, bob, type(int96).max);
+        _increase_Flow_Rate_Allowance(superToken, bob, type(int96).max);
         vm.expectRevert("CallUtils: target panicked: 0x11");
-        helper_Increase_Flow_Rate_Allowance(superToken, bob, 1);
+        _increase_Flow_Rate_Allowance(superToken, bob, 1);
         vm.stopPrank();
     }
 
@@ -278,7 +230,67 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         vm.expectRevert(
             IConstantFlowAgreementV1.CFA_ACL_NO_NEGATIVE_ALLOWANCE.selector
         );
-        helper_Decrease_Flow_Rate_Allowance(superToken, bob, 10);
+        _decrease_Flow_Rate_Allowance(superToken, bob, 10);
         vm.stopPrank();
+    }
+
+    function _assert_Flow_Operator_Data(
+        AssertFlowOperator memory data
+    ) internal {
+        (uint8 newPermissions, int96 newFlowRateAllowance) = sf
+            .cfa
+            .getFlowOperatorDataByID(data.superToken, data.flowOperatorId);
+
+        assertEq(newPermissions, data.expectedPermissions, "CFAv1 ACL: permissions not equal");
+        assertEq(newFlowRateAllowance, data.expectedFlowRateAllowance, "CFAv1 ACL: flow rate allowance not equal");
+    }
+
+    function _generate_Flow_Operator_Id(
+        address sender,
+        address flowOperator
+    ) private pure returns (bytes32 id) {
+        return keccak256(abi.encode("flowOperator", sender, flowOperator));
+    }
+
+    function _increase_Flow_Rate_Allowance(
+        ISuperfluidToken _superToken,
+        address flowOperator,
+        int96 flowRateAllowanceDelta
+    ) internal {
+        // TODO: move these to SuperTokenV1Library
+        sf.host.callAgreement(
+            sf.cfa,
+            abi.encodeCall(
+                sf.cfa.increaseFlowRateAllowance,
+                (
+                    _superToken,
+                    flowOperator,
+                    flowRateAllowanceDelta,
+                    new bytes(0)
+                )
+            ),
+            new bytes(0)
+        );
+    }
+
+    function _decrease_Flow_Rate_Allowance(
+        ISuperfluidToken _superToken,
+        address flowOperator,
+        int96 flowRateAllowanceDelta
+    ) internal {
+        // TODO: move these to SuperTokenV1Library
+        sf.host.callAgreement(
+            sf.cfa,
+            abi.encodeCall(
+                sf.cfa.decreaseFlowRateAllowance,
+                (
+                    _superToken,
+                    flowOperator,
+                    flowRateAllowanceDelta,
+                    new bytes(0)
+                )
+            ),
+            new bytes(0)
+        );
     }
 }

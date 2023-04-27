@@ -14,12 +14,22 @@ interface ISuperTokenPool {
     error SUPER_TOKEN_POOL_NOT_GDA();                       // 0xb3a64080
 
     // Events
+    event MemberUpdated(
+        address indexed member,
+        uint128 units,
+        uint256 updatedAt
+    );
     event PoolIndexUpdated(
-        ISuperfluidToken indexed token,
         uint128 totalUnits,
         uint32 wpSettledAt,
         int256 wpSettledValue,
         int96 wpFlowRate
+    );
+    event DistributionClaimed(
+        address indexed member,
+        int256 claimableAmount,
+        int256 totalClaimed,
+        uint256 timestamp
     );
 
     function admin() external view returns (address);
@@ -36,19 +46,33 @@ interface ISuperTokenPool {
 
     function getPendingDistributionFlowRate() external view returns (int96);
 
-    function getMemberFlowRate(address memberAddress) external view returns (int96);
+    function getMemberFlowRate(
+        address memberAddress
+    ) external view returns (int96);
 
     function getPendingDistribution() external view returns (int256);
 
-    function getClaimable(uint32 time, address memberAddr) external view returns (int256);
+    function getClaimable(
+        uint32 time,
+        address memberAddr
+    ) external view returns (int256);
 
-    function getClaimableNow(address memberAddr) external view returns (int256 claimableBalance, uint256 timestamp);
+    function getClaimableNow(
+        address memberAddr
+    ) external view returns (int256 claimableBalance, uint256 timestamp);
 
-    function updateMember(address memberAddr, uint128 unit) external returns (bool);
+    function updateMember(
+        address memberAddr,
+        uint128 unit
+    ) external returns (bool);
 
     function claimAll(address memberAddr) external returns (bool);
 
     function claimAll() external returns (bool);
 
-    function operatorConnectMember(uint32 time, address memberAddr, bool doConnect) external returns (bool);
+    function operatorConnectMember(
+        uint32 time,
+        address memberAddr,
+        bool doConnect
+    ) external returns (bool);
 }

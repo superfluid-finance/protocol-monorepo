@@ -123,14 +123,14 @@ contract GeneralDistributionAgreementV1 is
 
     struct PoolMemberData {
         address pool;
-        uint32 poolId; // the slot id in the pool's subs bitmap
+        uint32 poolID; // the slot id in the pool's subs bitmap
     }
 
     struct _StackVars_Liquidation {
         ISuperfluidToken token;
         int256 availableBalance;
         address sender;
-        bytes32 distributionFlowId;
+        bytes32 distributionFlowID;
         int256 signedTotalGDADeposit;
         address liquidator;
     }
@@ -250,10 +250,10 @@ contract GeneralDistributionAgreementV1 is
         address from,
         address to
     ) external view override returns (int96) {
-        bytes32 distributionFlowAddress = _getFlowDistributionId(from, to);
+        bytes32 distributionFlowID = _getFlowDistributionID(from, to);
         (, FlowDistributionData memory data) = _getFlowDistributionData(
             token,
-            distributionFlowAddress
+            distributionFlowID
         );
         return data.flowRate;
     }
@@ -265,7 +265,7 @@ contract GeneralDistributionAgreementV1 is
         int96 requestedFlowRate
     ) external view override returns (int96 finalFlowRate) {
         Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 distributionFlowAddress = _getFlowDistributionId(
+        bytes32 distributionFlowID = _getFlowDistributionID(
             from,
             address(to)
         );
@@ -279,7 +279,7 @@ contract GeneralDistributionAgreementV1 is
 
         FlowRate actualFlowRate;
         FlowRate flowRateDelta = FlowRate.wrap(requestedFlowRate) -
-            _getFlowRate(abi.encode(token), distributionFlowAddress);
+            _getFlowRate(abi.encode(token), distributionFlowID);
         (fromUIndexData, pdpIndex, actualFlowRate) = fromUIndexData
             .shift_flow2b(pdpIndex, flowRateDelta, t);
         finalFlowRate = int96(FlowRate.unwrap(actualFlowRate));
@@ -351,7 +351,7 @@ contract GeneralDistributionAgreementV1 is
                     )
                 );
 
-                uint32 poolSlotId = _findAndFillPoolConnectionsBitmap(
+                uint32 poolSlotID = _findAndFillPoolConnectionsBitmap(
                     token,
                     msgSender,
                     bytes32(uint256(uint160(address(pool))))
@@ -361,7 +361,7 @@ contract GeneralDistributionAgreementV1 is
                     _getPoolMemberId(msgSender, pool),
                     _encodePoolMemberData(
                         PoolMemberData({
-                            poolId: poolSlotId,
+                            poolID: poolSlotID,
                             pool: address(pool)
                         })
                     )
@@ -386,7 +386,7 @@ contract GeneralDistributionAgreementV1 is
                 _clearPoolConnectionsBitmap(
                     token,
                     msgSender,
-                    poolMemberData.poolId
+                    poolMemberData.poolID
                 );
             }
         }
@@ -489,7 +489,7 @@ contract GeneralDistributionAgreementV1 is
 
         newCtx = ctx;
 
-        bytes32 distributionFlowAddress = _getFlowDistributionId(
+        bytes32 distributionFlowID = _getFlowDistributionID(
             from,
             address(to)
         );
@@ -509,7 +509,7 @@ contract GeneralDistributionAgreementV1 is
             abi.encode(token),
             from,
             address(to),
-            distributionFlowAddress,
+            distributionFlowID,
             FlowRate.wrap(requestedFlowRate),
             Time.wrap(uint32(block.timestamp))
         );
@@ -518,7 +518,7 @@ contract GeneralDistributionAgreementV1 is
             _adjustBuffer(
                 abi.encode(token),
                 from,
-                distributionFlowAddress,
+                distributionFlowID,
                 oldFlowRate,
                 actualFlowRate
             );
@@ -543,7 +543,7 @@ contract GeneralDistributionAgreementV1 is
                         liquidationData.sender = from;
                         liquidationData.liquidator = currentContext.msgSender;
                         liquidationData
-                            .distributionFlowId = distributionFlowAddress;
+                            .distributionFlowID = distributionFlowID;
                         liquidationData.signedTotalGDADeposit = fromUIndexData
                             .totalBuffer
                             .toInt256();
@@ -584,7 +584,7 @@ contract GeneralDistributionAgreementV1 is
             FlowDistributionData memory flowDistributionData
         ) = _getFlowDistributionData(
                 ISuperfluidToken(data.token),
-                data.distributionFlowId
+                data.distributionFlowID
             );
         int256 signedSingleDeposit = flowDistributionData.buffer.toInt256();
 
@@ -616,7 +616,7 @@ contract GeneralDistributionAgreementV1 is
                 isCurrentlyPatricianPeriod ? 0 : 1
             );
             data.token.makeLiquidationPayoutsV2(
-                data.distributionFlowId,
+                data.distributionFlowID,
                 liquidationTypeData,
                 data.liquidator,
                 isCurrentlyPatricianPeriod,
@@ -628,7 +628,7 @@ contract GeneralDistributionAgreementV1 is
             int256 rewardAmount = signedSingleDeposit;
             // bailout case
             data.token.makeLiquidationPayoutsV2(
-                data.distributionFlowId,
+                data.distributionFlowID,
                 abi.encode(1, 2),
                 data.liquidator,
                 false,
@@ -912,12 +912,12 @@ contract GeneralDistributionAgreementV1 is
 
     function _getFlowRate(
         bytes memory eff,
-        bytes32 distributionFlowId
+        bytes32 distributionFlowID
     ) internal view override returns (FlowRate) {
         address token = abi.decode(eff, (address));
         (, FlowDistributionData memory data) = _getFlowDistributionData(
             ISuperfluidToken(token),
-            distributionFlowId
+            distributionFlowID
         );
         return FlowRate.wrap(data.flowRate);
     }
@@ -979,7 +979,7 @@ contract GeneralDistributionAgreementV1 is
     //         |    32    |      32     |    96    |   96   |
     // -------- ---------- ------------- ---------- --------
 
-    function _getFlowDistributionId(
+    function _getFlowDistributionID(
         address from,
         address to
     ) internal view returns (bytes32) {
@@ -1019,7 +1019,7 @@ contract GeneralDistributionAgreementV1 is
 
     function _getFlowDistributionData(
         ISuperfluidToken token,
-        bytes32 distributionFlowId
+        bytes32 distributionFlowID
     )
         internal
         view
@@ -1027,7 +1027,7 @@ contract GeneralDistributionAgreementV1 is
     {
         bytes32[] memory data = token.getAgreementData(
             address(this),
-            distributionFlowId,
+            distributionFlowID,
             1
         );
 
@@ -1038,7 +1038,7 @@ contract GeneralDistributionAgreementV1 is
 
     // PoolMemberData data packing:
     // -------- ---------- -------- -------------
-    // WORD A: | reserved | poolId | poolAddress |
+    // WORD A: | reserved | poolID | poolAddress |
     // -------- ---------- -------- -------------
     //         |    64    |   32   |     160     |
     // -------- ---------- -------- -------------
@@ -1063,7 +1063,7 @@ contract GeneralDistributionAgreementV1 is
     ) internal pure returns (bytes32[] memory data) {
         data = new bytes32[](1);
         data[0] = bytes32(
-            (uint256(uint32(poolMemberData.poolId)) << 160) |
+            (uint256(uint32(poolMemberData.poolID)) << 160) |
                 uint256(uint160(poolMemberData.pool))
         );
     }
@@ -1076,7 +1076,7 @@ contract GeneralDistributionAgreementV1 is
             poolMemberData.pool = address(
                 uint160(data & uint256(type(uint160).max))
             );
-            poolMemberData.poolId = uint32(data >> 160);
+            poolMemberData.poolID = uint32(data >> 160);
         }
     }
 
@@ -1098,7 +1098,7 @@ contract GeneralDistributionAgreementV1 is
     function _findAndFillPoolConnectionsBitmap(
         ISuperfluidToken token,
         address poolMember,
-        bytes32 poolId
+        bytes32 poolID
     ) private returns (uint32 slotId) {
         return
             SlotsBitmapLibrary.findEmptySlotAndFill(
@@ -1106,7 +1106,7 @@ contract GeneralDistributionAgreementV1 is
                 poolMember,
                 _POOL_SUBS_BITMAP_STATE_SLOT_ID,
                 _POOL_CONNECTIONS_DATA_STATE_SLOT_ID_START,
-                poolId
+                poolID
             );
     }
 

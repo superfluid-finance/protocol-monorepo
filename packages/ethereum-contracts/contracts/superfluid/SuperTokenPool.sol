@@ -81,7 +81,10 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
     }
 
     function getDistributionFlowRate() external view override returns (int96) {
-        return int96(_index.wrappedFlowRate * uint256(_index.totalUnits).toInt256());
+        return
+            int96(
+                _index.wrappedFlowRate * uint256(_index.totalUnits).toInt256()
+            );
     }
 
     function getPendingDistributionFlowRate()
@@ -108,7 +111,11 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
                 _index
             );
         return
-            Value.unwrap(wrappedParticle.rtb(t).mul(Unit.wrap(uint256(pendingUnits).toInt256().toInt128())));
+            Value.unwrap(
+                wrappedParticle.rtb(t).mul(
+                    Unit.wrap(uint256(pendingUnits).toInt256().toInt128())
+                )
+            );
     }
 
     function _getWrappedParticleFromPoolIndexData(
@@ -125,7 +132,9 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         PoolIndexData memory data
     ) public pure returns (PDPoolIndex memory pdPoolIndex) {
         pdPoolIndex = PDPoolIndex({
-            total_units: Unit.wrap(uint256(data.totalUnits).toInt256().toInt128()),
+            total_units: Unit.wrap(
+                uint256(data.totalUnits).toInt256().toInt128()
+            ),
             _wrapped_particle: _getWrappedParticleFromPoolIndexData(data)
         });
     }
@@ -134,7 +143,9 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         PDPoolIndex memory pdPoolIndex
     ) public pure returns (PoolIndexData memory data) {
         data = PoolIndexData({
-            totalUnits: int256(Unit.unwrap(pdPoolIndex.total_units)).toUint256().toUint128(),
+            totalUnits: int256(Unit.unwrap(pdPoolIndex.total_units))
+                .toUint256()
+                .toUint128(),
             wrappedSettledAt: Time.unwrap(
                 pdPoolIndex._wrapped_particle._settled_at
             ),
@@ -151,7 +162,9 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         MemberData memory memberData
     ) public pure returns (PDPoolMember memory pdPoolMember) {
         pdPoolMember = PDPoolMember({
-            owned_units: Unit.wrap(uint256(memberData.ownedUnits).toInt256().toInt128()),
+            owned_units: Unit.wrap(
+                uint256(memberData.ownedUnits).toInt256().toInt128()
+            ),
             _synced_particle: BasicParticle({
                 _settled_at: Time.wrap(memberData.syncedSettledAt),
                 _flow_rate: FlowRate.wrap(int128(memberData.syncedFlowRate)),
@@ -165,7 +178,8 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         PDPoolMember memory pdPoolMember
     ) public pure returns (MemberData memory memberData) {
         memberData = MemberData({
-            ownedUnits: uint256(int256(Unit.unwrap(pdPoolMember.owned_units))).toUint128(),
+            ownedUnits: uint256(int256(Unit.unwrap(pdPoolMember.owned_units)))
+                .toUint128(),
             syncedSettledAt: Time.unwrap(
                 pdPoolMember._synced_particle._settled_at
             ),
@@ -257,6 +271,8 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         // additional side effects of triggering claimAll
         claimAll(time, memberAddr);
 
+        emit MemberUpdated(memberAddr, unit, block.timestamp);
+
         return true;
     }
 
@@ -270,10 +286,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         return claimAll(time, memberAddr);
     }
 
-    function claimAll(
-        uint32 time,
-        address memberAddr
-    ) public returns (bool) {
+    function claimAll(uint32 time, address memberAddr) public returns (bool) {
         if (time > block.timestamp) revert SUPER_TOKEN_POOL_INVALID_TIME();
 
         Value claimable = Value.wrap(getClaimable(time, memberAddr));
@@ -292,6 +305,14 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         }
         MemberData storage memberData = _membersData[memberAddr];
         memberData.claimedValue += Value.unwrap(claimable);
+
+        emit DistributionClaimed(
+            memberAddr,
+            Value.unwrap(claimable),
+            memberData.claimedValue,
+            block.timestamp
+        );
+
         return true;
     }
 
@@ -299,6 +320,14 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         PDPoolIndex calldata index
     ) external onlyGDA returns (bool) {
         _index = getPoolIndexDataFromPDPoolIndex(index);
+
+        emit PoolIndexUpdated(
+            _index.totalUnits,
+            _index.wrappedSettledAt,
+            _index.wrappedSettledValue,
+            _index.wrappedFlowRate
+        );
+
         return true;
     }
 

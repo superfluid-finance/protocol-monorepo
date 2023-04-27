@@ -104,7 +104,7 @@ contract GeneralDistributionAgreementV1Mock is GeneralDistributionAgreementV1 {
         address from,
         address to
     ) public view returns (bytes32) {
-        return _getFlowDistributionId(from, to);
+        return _getFlowDistributionID(from, to);
     }
 
     function getPoolMemberId(

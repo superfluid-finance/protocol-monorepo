@@ -297,14 +297,15 @@ export default class TestEnvironment {
             )),
             (this.contracts.gda = await ethers.getContractAt(
                 "GeneralDistributionAgreementV1",
-                await this.contracts.superfluid.getAgreementClass(
-                    ethers.utils.solidityKeccak256(
-                        ["string"],
-                        [
-                            "org.superfluid-finance.agreements.GeneralDistributionAgreement.v1",
-                        ]
-                    )
-                )
+                ethers.constants.AddressZero
+                // await this.contracts.superfluid.getAgreementClass(
+                //     ethers.utils.solidityKeccak256(
+                //         ["string"],
+                //         [
+                //             "org.superfluid-finance.agreements.GeneralDistributionAgreement.v1",
+                //         ]
+                //     )
+                // )
             )),
             // load governance contract
             (this.contracts.governance = await ethers.getContractAt(

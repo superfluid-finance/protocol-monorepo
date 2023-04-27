@@ -44,7 +44,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
     ISuperfluidToken public superToken;
     address public admin;
     PoolIndexData internal _index;
-    mapping(address member => MemberData) internal _membersData;
+    mapping(address => MemberData) internal _membersData;
     uint128 public pendingUnits;
 
     constructor(GeneralDistributionAgreementV1 gda) {

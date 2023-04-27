@@ -635,24 +635,24 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         if (idaNewLogicAddress !== ZERO_ADDRESS) {
             agreementsToUpdate.push(idaNewLogicAddress);
         }
-        // deploy new GDA logic
-        const gdaNewLogicAddress = await deployContractIfCodeChanged(
-            web3,
-            GeneralDistributionAgreementV1,
-            await (
-                await UUPSProxiable.at(
-                    await superfluid.getAgreementClass.call(GDAv1_TYPE)
-                )
-            ).getCodeAddress(),
-            async () => (await deployGDAv1()).address,
-            [
-                // See SuperToken constructor parameter
-                superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
-            ]
-        );
-        if (gdaNewLogicAddress !== ZERO_ADDRESS) {
-            agreementsToUpdate.push(gdaNewLogicAddress);
-        }
+        // @note commented out: deploy new GDA logic
+        // const gdaNewLogicAddress = await deployContractIfCodeChanged(
+        //     web3,
+        //     GeneralDistributionAgreementV1,
+        //     await (
+        //         await UUPSProxiable.at(
+        //             await superfluid.getAgreementClass.call(GDAv1_TYPE)
+        //         )
+        //     ).getCodeAddress(),
+        //     async () => (await deployGDAv1()).address,
+        //     [
+        //         // See SuperToken constructor parameter
+        //         superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
+        //     ]
+        // );
+        // if (gdaNewLogicAddress !== ZERO_ADDRESS) {
+        //     agreementsToUpdate.push(gdaNewLogicAddress);
+        // }
     }
 
     // deploy new super token factory logic (depends on SuperToken logic, which links to nft deployer library)

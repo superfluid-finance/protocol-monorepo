@@ -15,7 +15,7 @@ import {
     ConstantOutflowNFT,
     IConstantOutflowNFT
 } from "../superfluid/ConstantOutflowNFT.sol";
-import { FlowNFTBase } from "../../test/foundry/superfluid/FlowNFTBase.t.sol";
+import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
 
 /*//////////////////////////////////////////////////////////////////////////
                                 FlowNFTBase Mocks

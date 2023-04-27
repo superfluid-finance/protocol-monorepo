@@ -46,10 +46,14 @@ interface ISuperfluidPool {
  */
 interface ISuperfluidPoolAdmin {
     /// Check if an address is connected to the pool
-    function isMemberConnected(ISuperfluidPool pool, address memberAddr) external view
-        returns (bool);
+    function isMemberConnected(ISuperfluidPool pool, address memberAddr) external view returns (bool);
 
-    /// This is used by the pool to adjust flow rate
-    function absorbParticlesFromPool(address[] calldata accounts, BasicParticle[] calldata ps) external
-        returns (bool);
+    /// Get pool adjustment flow information: (recipient, flowRate)
+    function getPoolAdjustmentFlowInfo(ISuperfluidPool pool) external view returns (address, FlowRate);
+
+    /// Update the adjustment flow rate
+    function poolAddAdjustmentFlow(FlowRate adjustmentFlowRate, Time t) external returns (bool);
+
+    /// Settle the claim
+    function poolSettleClaim(address claimRecipient, Value amount) external returns (bool);
 }

@@ -176,11 +176,20 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
         return _distributeFlow(eff, msg.sender, from, to, flowId, reqFlowRate);
     }
 
-    function absorbParticlesFromPool(address[] calldata accounts, BasicParticle[] calldata ps)
+    function poolAddAdjustmentFlow(FlowRate adjustmentFlowRate, Time t)
         override external returns (bool)
     {
-        bytes memory eff = _tokenEff("absorbParticlesFromPool", new bytes(0));
-        return _absorbParticlesFromPool(eff, accounts, ps);
+        bytes memory eff = _tokenEff("poolAddAdjustmentFlow", new bytes(0));
+        _poolAddAdjustmentFlow(eff, msg.sender, adjustmentFlowRate, t);
+        return true;
+    }
+
+    function poolSettleClaim(address claimRecipient, Value amount)
+        override external returns (bool)
+    {
+        bytes memory eff = _tokenEff("poolSettleClaim", new bytes(0));
+        _poolSettleClaim(eff, claimRecipient, amount);
+        return true;
     }
 
     struct TokenEff {

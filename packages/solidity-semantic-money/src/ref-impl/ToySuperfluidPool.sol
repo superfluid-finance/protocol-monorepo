@@ -91,11 +91,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         BasicParticle memory p;
         (_pdpIndex, _members[memberAddr], p) = PDPoolMemberMU(_pdpIndex, _members[memberAddr])
             .pool_member_update(p, unit, t);
-        {
-            address[] memory addrs = new address[](1);addrs[0] = admin;
-            BasicParticle[] memory ps = new BasicParticle[](1);ps[0] = p;
-            assert(ISuperfluidPoolAdmin(POOL_ADMIN).absorbParticlesFromPool(addrs, ps));
-        }
+        assert(ISuperfluidPoolAdmin(POOL_ADMIN).poolAddAdjustmentFlow(p.flow_rate(), t));
 
         // additional side effects of triggering claimAll
         _claimAll(t, memberAddr);
@@ -114,14 +110,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
 
     function _claimAll(Time t, address memberAddr) internal returns (bool) {
         Value c = getClaimable(t, memberAddr);
-        // do a shift2 balance from the pool to the member
-        {
-            address[] memory addrs = new address[](2);addrs[0] = address(this);addrs[1] = memberAddr;
-            BasicParticle[] memory ps = new BasicParticle[](2);
-            BasicParticle memory mempty;
-            (ps[0], ps[1]) = mempty.shift2(mempty, c);
-            assert(ISuperfluidPoolAdmin(POOL_ADMIN).absorbParticlesFromPool(addrs, ps));
-        }
+        assert(ISuperfluidPoolAdmin(POOL_ADMIN).poolSettleClaim(memberAddr, c));
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;
         return true;
     }

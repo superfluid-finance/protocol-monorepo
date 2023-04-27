@@ -25,9 +25,19 @@ contract FlowNFTBaseProperties is FoundrySuperfluidTester {
             alice,
             bob
         );
-        assertTrue(
-            tokenIdA != tokenIdB,
+        assertNotEq(
+            tokenIdA,
+            tokenIdB,
             "FlowNFTBaseProperties: Token Ids should differ"
+        );
+    }
+
+    function testBalanceOfIsAlwaysEqualToOne(address account) public {
+        uint256 balance = superToken.CONSTANT_OUTFLOW_NFT().balanceOf(account);
+        assertEq(
+            balance,
+            1,
+            "FlowNFTBaseProperties: Balance of should always be equal to one"
         );
     }
 }

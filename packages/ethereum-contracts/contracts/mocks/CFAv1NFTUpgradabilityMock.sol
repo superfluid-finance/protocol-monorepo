@@ -3,19 +3,19 @@ pragma solidity 0.8.19;
 
 import {
     IConstantFlowAgreementV1
-} from "../../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {
     ISuperfluid
-} from "../../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import {
     ConstantInflowNFT,
     IConstantInflowNFT
-} from "../../../../contracts/superfluid/ConstantInflowNFT.sol";
+} from "../superfluid/ConstantInflowNFT.sol";
 import {
     ConstantOutflowNFT,
     IConstantOutflowNFT
-} from "../../../../contracts/superfluid/ConstantOutflowNFT.sol";
-import { FlowNFTBase } from "../FlowNFTBase.t.sol";
+} from "../superfluid/ConstantOutflowNFT.sol";
+import { FlowNFTBase } from "../../test/foundry/superfluid/FlowNFTBase.t.sol";
 
 /*//////////////////////////////////////////////////////////////////////////
                                 FlowNFTBase Mocks

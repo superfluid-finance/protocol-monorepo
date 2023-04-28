@@ -453,6 +453,10 @@ contract GeneralDistributionAgreementV1 is
             revert GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
         }
 
+        if (from != pool.admin()) {
+            revert GDA_ONLY_ADMIN();
+        }
+
         (, Value actualAmount) = _doDistribute(
             abi.encode(token),
             currentContext.msgSender,
@@ -473,15 +477,18 @@ contract GeneralDistributionAgreementV1 is
     function distributeFlow(
         ISuperfluidToken token,
         address from,
-        ISuperTokenPool to,
+        ISuperTokenPool pool,
         int96 requestedFlowRate,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
-        if (_isPool(token, address(to)) == false) {
+        if (_isPool(token, address(pool)) == false) {
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
         if (requestedFlowRate < 0) {
             revert GDA_NO_NEGATIVE_FLOW_RATE();
+        }
+        if (from != pool.admin()) {
+            revert GDA_ONLY_ADMIN();
         }
 
         ISuperfluid.Context memory currentContext = AgreementLibrary
@@ -491,7 +498,7 @@ contract GeneralDistributionAgreementV1 is
 
         bytes32 distributionFlowID = _getFlowDistributionID(
             from,
-            address(to)
+            address(pool)
         );
 
         // @note it would be nice to have oldflowRate returned from _doDistributeFlow
@@ -508,7 +515,7 @@ contract GeneralDistributionAgreementV1 is
         (, FlowRate actualFlowRate, FlowRate newDistributionFlowRate) = _doDistributeFlow(
             abi.encode(token),
             from,
-            address(to),
+            address(pool),
             distributionFlowID,
             FlowRate.wrap(requestedFlowRate),
             Time.wrap(uint32(block.timestamp))
@@ -567,8 +574,9 @@ contract GeneralDistributionAgreementV1 is
         {
             emit FlowDistributionUpdated(
                 token,
-                to,
+                pool,
                 currentContext.msgSender,
+                from,
                 uint32(block.timestamp),
                 int96(FlowRate.unwrap(oldFlowRate)),
                 int96(FlowRate.unwrap(actualFlowRate))

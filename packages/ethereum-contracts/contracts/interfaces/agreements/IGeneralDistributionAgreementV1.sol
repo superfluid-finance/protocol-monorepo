@@ -16,6 +16,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     error GDA_INSUFFICIENT_BALANCE();
     error GDA_NO_NEGATIVE_DISTRIBUTION();
     error GDA_NO_NEGATIVE_FLOW_RATE();
+    error GDA_ONLY_ADMIN();
     error GDA_ONLY_SUPER_TOKEN_POOL();
 
     // Events
@@ -31,6 +32,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     event FlowDistributionUpdated(
         ISuperfluidToken indexed token,
         ISuperTokenPool indexed pool,
+        address operator,
         address indexed distributor,
         uint32 distributedAtTimestamp,
         int96 oldFlowRate,

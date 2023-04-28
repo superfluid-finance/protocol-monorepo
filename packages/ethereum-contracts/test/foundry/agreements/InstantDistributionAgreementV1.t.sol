@@ -10,8 +10,6 @@ import {
 contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
 
-    uint32 private constant _MAX_NUM_SUBS = 256;
-
     constructor () FoundrySuperfluidTester(3) { }
 
     function testAlice2Bob(uint32 indexId, uint32 units, uint32 newIndexValue) public {
@@ -60,7 +58,9 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     function testRevertMaxNumberOFSubscriptionsASubscriberCanHave() public {
-        for (uint256 i; i < _MAX_NUM_SUBS; ++i) {
+        uint32 maxNumSubs = sf.ida.MAX_NUM_SUBSCRIPTIONS();
+        
+        for (uint256 i; i <maxNumSubs; ++i) {
             vm.startPrank(alice);
             superToken.createIndex(uint32(i));
             superToken.updateSubscriptionUnits(uint32(i), bob, 1);
@@ -72,16 +72,16 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         }
 
         (,uint32[] memory indexIds,) = superToken.listSubscriptions(bob);
-        assertEq(indexIds.length, _MAX_NUM_SUBS, "IDAv1.t: subscriptions length mismatch");
+        assertEq(indexIds.length, maxNumSubs, "IDAv1.t: subscriptions length mismatch");
 
         vm.startPrank(alice);
-        superToken.createIndex(uint32(_MAX_NUM_SUBS));
-        superToken.updateSubscriptionUnits(uint32(_MAX_NUM_SUBS), bob, 1);
+        superToken.createIndex(uint32(maxNumSubs));
+        superToken.updateSubscriptionUnits(uint32(maxNumSubs), bob, 1);
         vm.stopPrank();
 
         vm.startPrank(bob);
         vm.expectRevert("SlotBitmap out of bound");
-        superToken.approveSubscription(alice, uint32(_MAX_NUM_SUBS));
+        superToken.approveSubscription(alice, uint32(maxNumSubs));
         vm.stopPrank();
     }
 }

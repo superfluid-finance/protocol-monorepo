@@ -977,6 +977,8 @@ describe("IDAv1 | Non-Callback Tests", function () {
                     senderName: "alice",
                 });
             });
+
+            // @note previous #1.2.16 moved to foundry
         });
 
         describe("#1.3 distribution workflows", () => {

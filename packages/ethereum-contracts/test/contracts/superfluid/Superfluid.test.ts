@@ -337,6 +337,8 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
+            // @note previous #2.5 moved to foundry
+
             it("#2.5 agreement must be registered first", async () => {
                 const typeA = web3.utils.sha3("typeA")!;
                 const mockA = await createAgreementMock(typeA, 1);

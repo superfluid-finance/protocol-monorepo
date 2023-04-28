@@ -3,18 +3,18 @@ pragma solidity 0.8.19;
 
 import "forge-std/console.sol";
 import "../FoundrySuperfluidTester.sol";
-import { SuperAppBaseCFA } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBaseCFA.sol";
-import { SuperAppBaseCFATester } from "@superfluid-finance/ethereum-contracts/contracts/mocks/SuperAppBaseCFATester.sol";
+import { SuperAppBaseFlow } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBaseFlow.sol";
+import { SuperAppBaseFlowTester } from "@superfluid-finance/ethereum-contracts/contracts/mocks/SuperAppBaseFlowTester.sol";
 import { ISuperToken, ISuperApp, SuperAppDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
-contract SuperAppBaseCFATest is FoundrySuperfluidTester {
+contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
 
     using SuperTokenV1Library for SuperToken;
     using SuperTokenV1Library for ISuperToken;
 
-    SuperAppBaseCFATester superApp;
+    SuperAppBaseFlowTester superApp;
     address superAppAddress;
     ISuperToken otherSuperToken;
 
@@ -23,7 +23,7 @@ contract SuperAppBaseCFATest is FoundrySuperfluidTester {
     function setUp() public override virtual {
         super.setUp();
         vm.startPrank(admin);
-        superApp = new SuperAppBaseCFATester(sf.host, true, true, true);
+        superApp = new SuperAppBaseFlowTester(sf.host, true, true, true);
         superAppAddress = address(superApp);
         otherSuperToken = superTokenDeployer.deployPureSuperToken("FTT", "FTT", 1e27);
         otherSuperToken.transfer(alice, 1e21);
@@ -52,15 +52,15 @@ contract SuperAppBaseCFATest is FoundrySuperfluidTester {
         return callBackDefinitions;
     }
 
-    function _deploySuperAppAndGetConfig(bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted) internal returns (SuperAppBaseCFATester, uint256 configWord) {
-        SuperAppBaseCFATester mySuperApp = new SuperAppBaseCFATester(sf.host, activateOnCreated, activateOnUpdated, activateOnDeleted);
+    function _deploySuperAppAndGetConfig(bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted) internal returns (SuperAppBaseFlowTester, uint256 configWord) {
+        SuperAppBaseFlowTester mySuperApp = new SuperAppBaseFlowTester(sf.host, activateOnCreated, activateOnUpdated, activateOnDeleted);
         uint256 appConfig = _genManifest(activateOnCreated, activateOnUpdated, activateOnDeleted);
         return (mySuperApp, appConfig);
     }
 
     function testOnFlagsSetAppManifest() public {
         //all onOperations
-        (SuperAppBaseCFATester mySuperApp, uint256 configWord) = _deploySuperAppAndGetConfig(true, true, true);
+        (SuperAppBaseFlowTester mySuperApp, uint256 configWord) = _deploySuperAppAndGetConfig(true, true, true);
         (bool isSuperApp,,uint256 noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));
         configWord = configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
         assertTrue(isSuperApp, "isSuperApp");
@@ -105,10 +105,10 @@ contract SuperAppBaseCFATest is FoundrySuperfluidTester {
     function testUnauthorizedHost() public {
         vm.startPrank(eve);
 
-        vm.expectRevert(SuperAppBaseCFA.UnauthorizedHost.selector);
+        vm.expectRevert(SuperAppBaseFlow.UnauthorizedHost.selector);
         superApp.afterAgreementCreated(superToken, address(sf.cfa), "0x", "0x", "0x", "0x");
 
-        vm.expectRevert(SuperAppBaseCFA.UnauthorizedHost.selector);
+        vm.expectRevert(SuperAppBaseFlow.UnauthorizedHost.selector);
         superApp.afterAgreementUpdated(superToken, address(sf.cfa), "0x", "0x", "0x", "0x");
 
         // termination callback doesn't revert, but should have no side effects
@@ -211,7 +211,7 @@ contract SuperAppBaseCFATest is FoundrySuperfluidTester {
         vm.startPrank(alice);
         // enable the filter
         superApp.setAcceptedSuperToken(superToken, true);
-        vm.expectRevert(SuperAppBaseCFA.NotAcceptedSuperToken.selector);
+        vm.expectRevert(SuperAppBaseFlow.NotAcceptedSuperToken.selector);
         sf.host.callAgreement(
             sf.cfa,
             abi.encodeCall(

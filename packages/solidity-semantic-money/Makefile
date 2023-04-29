@@ -1,5 +1,5 @@
 TEST_OPTS ?= -vv
-DEV_TARGET ?= test-all
+DEV_TARGET ?= build-src test-all
 CERTORA_OPTS = \
 	--packages @openzeppelin=../../node_modules/@openzeppelin @superfluid-finance/solidity-semantic-money/src=src \
 	--optimistic_loop \

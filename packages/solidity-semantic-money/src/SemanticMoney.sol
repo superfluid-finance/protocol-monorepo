@@ -303,10 +303,6 @@ library SemanticMoney {
         return a._wrapped_particle.flow_rate();
     }
 
-    function rtb_per_unit(PDPoolIndex memory a, Time t) internal pure returns (Value) {
-        return a._wrapped_particle.rtb(t);
-    }
-
     function shift1(PDPoolIndex memory a, Value x) internal pure
         returns (PDPoolIndex memory m, Value x1)
     {

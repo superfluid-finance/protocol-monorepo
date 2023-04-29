@@ -36,7 +36,7 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
 
     function balanceOf(address account) override external view returns (uint256) {
         Time t = Time.wrap(uint32(block.timestamp));
-        (Value avb, ) = realtimeBalanceVectorAt(account, t);
+        Value avb = realtimeBalanceAt(account, t);
         return Value.unwrap(avb) > 0 ? uint256(Value.unwrap(avb)) : 0;
     }
 
@@ -176,11 +176,11 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
         return _distributeFlow(eff, msg.sender, from, to, flowId, reqFlowRate);
     }
 
-    function poolAddAdjustmentFlow(FlowRate adjustmentFlowRate, Time t)
+    function appendIndexUpdateByPool(BasicParticle memory p, Time t)
         override external returns (bool)
     {
-        bytes memory eff = _tokenEff("poolAddAdjustmentFlow", new bytes(0));
-        _poolAddAdjustmentFlow(eff, msg.sender, adjustmentFlowRate, t);
+        bytes memory eff = _tokenEff("appendIndexUpdateByPool", new bytes(0));
+        _appendIndexUpdateByPool(eff, msg.sender, p, t);
         return true;
     }
 

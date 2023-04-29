@@ -15,19 +15,21 @@ interface ISuperfluidPool {
 
     function getTotalUnits() external view returns (Unit);
 
+    function getPendingUnits() external view returns (Unit);
+
     function getUnits(address memberAddress) external view returns (Unit);
 
     function getDistributionFlowRate() external view returns (FlowRate);
 
     function getPendingDistributionFlowRate() external view returns (FlowRate);
 
+    function getCumulativePendingDistributionAt(Time t) external view returns (Value);
+
     function getMemberFlowRate(address memberAddress) external view returns (FlowRate);
 
-    function getPendingDistribution() external view returns (Value);
-
-    function getClaimable(Time t, address memberAddr) external view returns (Value);
-
     function getClaimable(address memberAddr) external view returns (Value);
+
+    function getClaimable(address memberAddr, Time t) external view returns (Value);
 
     function updateMember(address memberAddr, Unit unit) external returns (bool);
 
@@ -38,7 +40,7 @@ interface ISuperfluidPool {
     function operatorSetIndex(PDPoolIndex calldata index) external returns (bool);
 
     // WARNING for operators: it is undefined behavior if member is already connected or disconnected
-    function operatorConnectMember(Time t, address memberAddr, bool doConnect) external returns (bool);
+    function operatorConnectMember(address memberAddr, bool doConnect, Time t) external returns (bool);
 }
 
 /**
@@ -48,11 +50,11 @@ interface ISuperfluidPoolAdmin {
     /// Check if an address is connected to the pool
     function isMemberConnected(ISuperfluidPool pool, address memberAddr) external view returns (bool);
 
-    /// Get pool adjustment flow information: (recipient, flowRate)
-    function getPoolAdjustmentFlowInfo(ISuperfluidPool pool) external view returns (address, FlowRate);
+    /// Get pool adjustment flow information: (recipient, flowHahs, flowRate)
+    function getPoolAdjustmentFlowInfo(ISuperfluidPool pool) external view returns (address, bytes32, FlowRate);
 
     /// Update the adjustment flow rate
-    function poolAddAdjustmentFlow(FlowRate adjustmentFlowRate, Time t) external returns (bool);
+    function appendIndexUpdateByPool(BasicParticle memory p, Time t) external returns (bool);
 
     /// Settle the claim
     function poolSettleClaim(address claimRecipient, Value amount) external returns (bool);

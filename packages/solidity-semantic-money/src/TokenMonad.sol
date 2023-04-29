@@ -29,8 +29,10 @@ abstract contract TokenMonad {
     function _setFlowInfo(bytes memory eff, bytes32 flowHash, address from, address to,
                           FlowRate newFlowRate, FlowRate flowRateDelta)
         virtual internal returns (bytes memory);
-    function _getPoolAdjustmentFlowInfo(bytes memory eff, address pool)
-        virtual internal view returns (address recipient, bytes32 flowHash, FlowRate flowRate);
+    function _getPoolAdjustmentFlowRate(bytes memory eff, address pool)
+        virtual internal view returns (FlowRate);
+    function _setPoolAdjustmentFlowRate(bytes memory eff, address pool, FlowRate flowRate, Time)
+        virtual internal returns (bytes memory);
 
     function _doShift(bytes memory eff, address from, address to, Value amount)
         internal returns (bytes memory)
@@ -47,7 +49,9 @@ abstract contract TokenMonad {
         return eff;
     }
 
-    function _doFlow(bytes memory eff, address from, address to, bytes32 flowHash, FlowRate flowRate, Time t)
+    function _doFlow(bytes memory eff,
+                     address from, address to, bytes32 flowHash, FlowRate flowRate,
+                     Time t)
         internal returns (bytes memory)
     {
         if (from == to) return eff; // short circuit
@@ -68,63 +72,71 @@ abstract contract TokenMonad {
         internal returns (bytes memory, Value actualAmount)
     {
         assert(from != pool);
+        // a: from uidx -> b: pool uidx -> c: pool pdpidx
+        // b is completely by-passed
         BasicParticle memory a = _getUIndex(eff, from);
-        PDPoolIndex memory pdpIndex = _getPDPIndex(eff, pool);
+        PDPoolIndex memory c = _getPDPIndex(eff, pool);
 
-        (a, pdpIndex, actualAmount) = a.shift2b(pdpIndex, reqAmount);
+        (a, c, actualAmount) = a.shift2b(c, reqAmount);
 
         eff = _setUIndex(eff, from, a);
-        eff = _setPDPIndex(eff, pool, pdpIndex);
+        eff = _setPDPIndex(eff, pool, c);
 
         return (eff, actualAmount);
     }
 
     // Note: because of no-via-ir builds and stack too deep :)
     struct _DistributeFlowVars {
-        address adjustmentRecipient;
-        bytes32 adjustmentFlowHash;
-        FlowRate adjustmentFlowRate;
+        FlowRate currentAdjustmentFlowRate;
+        FlowRate newAdjustmentFlowRate;
         FlowRate actualFlowRateDelta;
     }
     function _doDistributeFlow(bytes memory eff,
                                address from, address pool, bytes32 flowHash, FlowRate reqFlowRate,
                                Time t)
-        internal returns (bytes memory, FlowRate actualFlowRate, FlowRate newDistributionFlowRate)
+        internal returns (bytes memory, FlowRate newActualFlowRate, FlowRate newDistributionFlowRate)
     {
         assert(from != pool);
-        _DistributeFlowVars memory vars;
-
+        // a: from uidx -> b: pool uidx -> c: pool pdpidx
+        // b handles the adjustment flow through _get/_setPoolAdjustmentFlowRate.
         BasicParticle memory a = _getUIndex(eff, from);
-        PDPoolIndex memory pdpIndex = _getPDPIndex(eff, pool);
-        (vars.adjustmentRecipient, vars.adjustmentFlowHash, vars.adjustmentFlowRate) =
-            _getPoolAdjustmentFlowInfo(eff, pool);
+        BasicParticle memory b = _getUIndex(eff, pool);
+        PDPoolIndex memory c = _getPDPIndex(eff, pool);
+        _DistributeFlowVars memory vars;
+        vars.currentAdjustmentFlowRate = _getPoolAdjustmentFlowRate(eff, pool);
 
         {
             FlowRate oldFlowRate = _getFlowRate(eff, flowHash);
-            FlowRate oldDistributionFlowRate = pdpIndex.flow_rate();
-            // include the adjustment flow rate too, as part of the readjustment process
-            FlowRate shiftFlowRate = reqFlowRate + vars.adjustmentFlowRate - oldFlowRate;
+            FlowRate oldDistributionFlowRate = c.flow_rate();
+            FlowRate shiftFlowRate = reqFlowRate - oldFlowRate;
 
-            (a, pdpIndex, newDistributionFlowRate) = a.shift_flow2b(pdpIndex, shiftFlowRate, t);
+            // to readjust, include the current adjustment flow rate here
+            (b, c, newDistributionFlowRate) = b.shift_flow2b(c, shiftFlowRate + vars.currentAdjustmentFlowRate, t);
             assert(FlowRate.unwrap(newDistributionFlowRate) >= 0);
-            vars.actualFlowRateDelta = newDistributionFlowRate - oldDistributionFlowRate;
-            actualFlowRate = oldFlowRate + vars.actualFlowRateDelta - vars.adjustmentFlowRate;
+            newActualFlowRate = oldFlowRate
+                + (newDistributionFlowRate - oldDistributionFlowRate)
+                - vars.currentAdjustmentFlowRate;
 
-            if (FlowRate.unwrap(actualFlowRate) > 0) {
+            if (FlowRate.unwrap(newActualFlowRate) >= 0) {
                 // previous adjustment flow is fully utilized
-                vars.adjustmentFlowRate = FlowRate.wrap(0);
+                vars.newAdjustmentFlowRate = FlowRate.wrap(0);
             } else {
+                revert("!!! YYY");
                 // previous adjustment flow still needed
-                vars.adjustmentFlowRate = actualFlowRate.inv();
-                actualFlowRate = FlowRate.wrap(0);
+                vars.newAdjustmentFlowRate = newActualFlowRate.inv();
+                newActualFlowRate = FlowRate.wrap(0);
             }
+
+            vars.actualFlowRateDelta = newActualFlowRate - oldFlowRate;
+            (a, b) = a.shift_flow2b(b, vars.actualFlowRateDelta, t);
         }
 
         eff = _setUIndex(eff, from, a);
-        eff = _setPDPIndex(eff, pool, pdpIndex);
-        eff = _setFlowInfo(eff, flowHash, from, pool, actualFlowRate, vars.actualFlowRateDelta);
-        eff = _doFlow(eff, pool, vars.adjustmentRecipient, vars.adjustmentFlowHash, vars.adjustmentFlowRate, t);
+        eff = _setUIndex(eff, pool, b);
+        eff = _setPDPIndex(eff, pool, c);
+        eff = _setFlowInfo(eff, flowHash, from, pool, newActualFlowRate, vars.actualFlowRateDelta);
+        eff = _setPoolAdjustmentFlowRate(eff, pool, vars.newAdjustmentFlowRate, t);
 
-        return (eff, actualFlowRate, newDistributionFlowRate);
+        return (eff, newActualFlowRate, newDistributionFlowRate);
     }
 }

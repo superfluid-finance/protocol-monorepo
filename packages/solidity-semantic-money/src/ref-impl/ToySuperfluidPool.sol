@@ -27,7 +27,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
     PDPoolIndex internal _pdpIndex;
     mapping (address member => PDPoolMember member_data) internal _members;
     mapping (address member => Value claimed_value) internal _claimedValues;
-    Unit public pendingUnits;
+    PDPoolMember internal _pendingMembers;
 
     constructor () {
         POOL_ADMIN = msg.sender;
@@ -45,6 +45,10 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         return _pdpIndex.total_units;
     }
 
+    function getPendingUnits() override external view returns (Unit) {
+        return _pendingMembers.owned_units;
+    }
+
     function getUnits(address memberAddr) override external view returns (Unit) {
         return _members[memberAddr].owned_units;
     }
@@ -54,7 +58,12 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
     }
 
     function getPendingDistributionFlowRate() override external view returns (FlowRate) {
-        return _pdpIndex.flow_rate_per_unit().mul(pendingUnits);
+        return _pdpIndex.flow_rate_per_unit().mul(_pendingMembers.owned_units);
+    }
+
+    function getCumulativePendingDistributionAt(Time t) override external view returns (Value) {
+        PDPoolMemberMU memory mu = PDPoolMemberMU(_pdpIndex, _pendingMembers).settle(t);
+        return mu.rtb(t);
     }
 
     function getMemberFlowRate(address memberAddr) override external view returns (FlowRate) {
@@ -63,38 +72,35 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         else return _pdpIndex.flow_rate_per_unit().mul(u);
     }
 
-    function getPendingDistribution() external view returns (Value) {
-        Time t = Time.wrap(uint32(block.timestamp));
-        return _pdpIndex.rtb_per_unit(t).mul(pendingUnits);
-    }
-
-    function getClaimable(Time t, address memberAddr) override public view returns (Value) {
+    function getClaimable(address memberAddr, Time t) override public view returns (Value) {
         return PDPoolMemberMU(_pdpIndex, _members[memberAddr]).rtb(t) - _claimedValues[memberAddr];
     }
 
     function getClaimable(address memberAddr) override external view returns (Value) {
         Time t = Time.wrap(uint32(block.timestamp));
-        return getClaimable(t, memberAddr);
+        return getClaimable(memberAddr, t);
     }
 
-    function updateMember(address memberAddr, Unit unit) override external returns (bool) {
-        require(Unit.unwrap(unit) >= 0, "No negative unit amount!");
+    function updateMember(address memberAddr, Unit newUnits) override external returns (bool) {
+        require(Unit.unwrap(newUnits) >= 0, "No negative unit amount!");
         require(admin == msg.sender, "Not pool admin!");
         Time t = Time.wrap(uint32(block.timestamp));
-
-        // update pool's pending units
-        if (!ISuperfluidPoolAdmin(POOL_ADMIN).isMemberConnected(this, memberAddr)) {
-            pendingUnits = pendingUnits - _members[memberAddr].owned_units + unit;
-        }
+        Unit previousUnits = _members[memberAddr].owned_units;
 
         // update pool member's units
         BasicParticle memory p;
-        (_pdpIndex, _members[memberAddr], p) = PDPoolMemberMU(_pdpIndex, _members[memberAddr])
-            .pool_member_update(p, unit, t);
-        assert(ISuperfluidPoolAdmin(POOL_ADMIN).poolAddAdjustmentFlow(p.flow_rate(), t));
+        (_pdpIndex, _members[memberAddr], p) =
+            PDPoolMemberMU(_pdpIndex, _members[memberAddr]).pool_member_update(p, newUnits, t);
+        assert(ISuperfluidPoolAdmin(POOL_ADMIN).appendIndexUpdateByPool(p, t));
 
         // additional side effects of triggering claimAll
         _claimAll(t, memberAddr);
+
+        // update pool's pending units
+        if (!ISuperfluidPoolAdmin(POOL_ADMIN).isMemberConnected(this, memberAddr)) {
+            _updatePendingUnits(_pendingMembers.owned_units - previousUnits + newUnits, t);
+        }
+
         return true;
     }
 
@@ -109,7 +115,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
     }
 
     function _claimAll(Time t, address memberAddr) internal returns (bool) {
-        Value c = getClaimable(t, memberAddr);
+        Value c = getClaimable(memberAddr, t);
         assert(ISuperfluidPoolAdmin(POOL_ADMIN).poolSettleClaim(memberAddr, c));
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + c;
         return true;
@@ -124,19 +130,25 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         return true;
     }
 
-    function operatorConnectMember(Time t, address memberAddr, bool doConnect) override external
+    function operatorConnectMember(address memberAddr, bool doConnect, Time t) override external
         returns (bool)
     {
         assert(POOL_ADMIN == msg.sender);
 
-        if (doConnect) {
-            pendingUnits = pendingUnits - _members[memberAddr].owned_units;
-        } else {
-            pendingUnits = pendingUnits + _members[memberAddr].owned_units;
-        }
-
         // trigger side effects of triggering claimAll
         _claimAll(t, memberAddr);
+
+        // update pool's pending units
+        _updatePendingUnits((doConnect ?
+                             _pendingMembers.owned_units - _members[memberAddr].owned_units :
+                             _pendingMembers.owned_units + _members[memberAddr].owned_units), t);
+
         return true;
+    }
+
+    function _updatePendingUnits(Unit pendingUnits, Time t) internal {
+        PDPoolMemberMU memory mu = PDPoolMemberMU(_pdpIndex, _pendingMembers).settle(t);
+        mu.m.owned_units = pendingUnits;
+        _pendingMembers = mu.m;
     }
 }

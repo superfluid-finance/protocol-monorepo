@@ -16,6 +16,7 @@ contract ToySuperTokenTest is Test {
     address internal constant grace = address(0x427);
     address internal constant heidi = address(0x428);
     address internal constant ivan  = address(0x429);
+    uint internal constant INIT_BALANCE = 1e20;
     uint internal immutable N_TESTERS;
 
     address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
@@ -31,7 +32,7 @@ contract ToySuperTokenTest is Test {
         tLP = uint256(Time.unwrap(token.LIQUIDATION_PERIOD()));
         for (uint i = 1; i < N_TESTERS; ++i) {
             vm.startPrank(admin);
-            token.transfer(TEST_ACCOUNTS[i], type(uint64).max);
+            token.transfer(TEST_ACCOUNTS[i], INIT_BALANCE);
             vm.stopPrank();
         }
     }
@@ -60,14 +61,14 @@ contract ToySuperTokenTest is Test {
     function getAdjustmentFlowRate(ToySuperfluidPool pool, address expectedRecipient)
         internal returns (FlowRate)
     {
-        (address recipient, FlowRate r) = token.getPoolAdjustmentFlowInfo(pool);
+        (address recipient, ,FlowRate r) = token.getPoolAdjustmentFlowInfo(pool);
         assertEq(recipient, expectedRecipient, "expectedRecipient fail");
         return r;
     }
 
     function test_erc20_transfer(uint32 x1, uint32 x2) external {
-        Value a1 = token.realtimeBalanceOf(alice);
-        Value b1 = token.realtimeBalanceOf(bob);
+        Value a1 = token.realtimeBalanceNow(alice);
+        Value b1 = token.realtimeBalanceNow(bob);
 
         vm.startPrank(alice);
         token.transfer(bob, x1);
@@ -77,18 +78,18 @@ contract ToySuperTokenTest is Test {
         token.transfer(alice, x2);
         vm.stopPrank();
 
-        Value a2 = token.realtimeBalanceOf(alice);
-        Value b2 = token.realtimeBalanceOf(bob);
+        Value a2 = token.realtimeBalanceNow(alice);
+        Value b2 = token.realtimeBalanceNow(bob);
         assertEq(Value.unwrap(a2 - a1), int256(uint256(x2)) - int256(uint256(x1)));
         assertEq(b2 - b1, a1 - a2, "e1");
     }
 
     function test_erc20_self_transfer(uint32 x1) external {
-        Value a1 = token.realtimeBalanceOf(alice);
+        Value a1 = token.realtimeBalanceNow(alice);
         vm.startPrank(alice);
         token.transfer(alice, x1);
         vm.stopPrank();
-        Value a2 = token.realtimeBalanceOf(alice);
+        Value a2 = token.realtimeBalanceNow(alice);
         assertEq(a1, a2, "e1");
     }
 
@@ -224,8 +225,8 @@ contract ToySuperTokenTest is Test {
         uint256 b2 = token.balanceOf(bob);
         uint256 c2 = token.balanceOf(carol);
 
-        assertEq(Value.unwrap(pl.getClaimable(t, bob)), 0, "e1.1");
-        assertEq(Value.unwrap(pl.getClaimable(t, carol)), 0, "e1.2");
+        assertEq(Value.unwrap(pl.getClaimable(bob, t)), 0, "e1.1");
+        assertEq(Value.unwrap(pl.getClaimable(carol, t)), 0, "e1.2");
 
         emit log_named_uint("a2", a2);
         emit log_named_uint("b2", b2);
@@ -257,10 +258,10 @@ contract ToySuperTokenTest is Test {
 
         ToySuperfluidPool pl = _createPool(alice);
 
-        Value a1 = token.realtimeBalanceOf(alice);
-        Value b1 = token.realtimeBalanceOf(bob);
-        Value c1 = token.realtimeBalanceOf(carol);
-        Value p1 = token.realtimeBalanceOf(address(pl));
+        Value a1 = token.realtimeBalanceNow(alice);
+        Value b1 = token.realtimeBalanceNow(bob);
+        Value c1 = token.realtimeBalanceNow(carol);
+        Value p1 = token.realtimeBalanceNow(address(pl));
 
         FlowRate ar;
         FlowRate pdr;
@@ -273,12 +274,12 @@ contract ToySuperTokenTest is Test {
         (,ar,pdr) = token.distributeFlow(alice, pl, FlowId.wrap(0), rr1);
         vm.stopPrank();
 
-        assertEq(Unit.unwrap(pl.pendingUnits()), int128(tu), "e2");
+        assertEq(Unit.unwrap(pl.getPendingUnits()), int128(tu), "e2");
 
         _connectPool(pl, bob);
         _connectPool(pl, carol);
 
-        assertEq(pl.pendingUnits(), Unit.wrap(0), "e3.1");
+        assertEq(pl.getPendingUnits(), Unit.wrap(0), "e3.1");
 
         {
             FlowRate pdr1 = pl.getDistributionFlowRate();
@@ -334,11 +335,11 @@ contract ToySuperTokenTest is Test {
             assertEq(anr2 + bnr2 + cnr2 + pnr2, FlowRate.wrap(0), "e5.7");
         }
         {
-            Value a2 = token.realtimeBalanceOf(alice);
-            Value b2 = token.realtimeBalanceOf(bob);
-            Value c2 = token.realtimeBalanceOf(carol);
-            Value p2 = token.realtimeBalanceOf(address(pl));
-            Value k2 = token.realtimeBalanceOf(address(token));
+            Value a2 = token.realtimeBalanceNow(alice);
+            Value b2 = token.realtimeBalanceNow(bob);
+            Value c2 = token.realtimeBalanceNow(carol);
+            Value p2 = token.realtimeBalanceNow(address(pl));
+            Value k2 = token.realtimeBalanceNow(address(token));
 
             assertEq(a1 - a2, k2 + rrr1.mul(Time.wrap(uint32(dt1))) + rrr2.mul(Time.wrap(uint32(dt2))), "e6.1");
             assertEq(a1 - a2, k2 + b2 - b1 + c2 - c1 + p2 - p1, "e6.2");
@@ -352,16 +353,22 @@ contract ToySuperTokenTest is Test {
         Unit uu1 = Unit.wrap(int128(uint128((u1))));
         Unit uu2 = Unit.wrap(int128(uint128((u2))));
         FlowRate rr = FlowRate.wrap(int64(uint64(r)));
-        uint256 tu = uint(uint128(Unit.unwrap(uu1 + uu2)));
-        int256 rrr; if (tu == 0) rrr = 0; else rrr = int256(uint256(r) / tu * tu);
+        uint128 tu = uint128(Unit.unwrap(uu1 + uu2));
+        FlowRate rrr; if (tu != 0) rrr = FlowRate.wrap(int128(uint128(r) / tu * tu));
         Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
+
+        emit log_named_uint("u1", u1);
+        emit log_named_uint("u2", u2);
+        emit log_named_uint("r", r);
+        emit log_named_int("rrr", FlowRate.unwrap(rrr));
+        emit log_named_uint("dt2", dt2);
 
         ToySuperfluidPool pl = _createPool(alice);
 
-        uint256 a1 = token.balanceOf(alice);
-        uint256 b1 = token.balanceOf(bob);
-        uint256 c1 = token.balanceOf(carol);
-        uint256 p1 = token.balanceOf(address(pl));
+        Value a1 = token.realtimeBalanceNow(alice);
+        Value b1 = token.realtimeBalanceNow(bob);
+        Value c1 = token.realtimeBalanceNow(carol);
+        Value p1 = token.realtimeBalanceNow(address(pl));
 
         vm.startPrank(alice);
         pl.updateMember(bob, uu1);
@@ -369,26 +376,32 @@ contract ToySuperTokenTest is Test {
         token.distributeFlow(alice, pl, FlowId.wrap(0), rr);
         vm.stopPrank();
 
-        assertEq(Unit.unwrap(pl.pendingUnits()), int(tu), "e1");
+        assertEq(Unit.unwrap(pl.getPendingUnits()), int128(tu), "e1");
 
         _connectPool(pl, bob);
 
-        assertEq(pl.pendingUnits(), uu2, "e2");
+        assertEq(pl.getPendingUnits(), uu2, "e2");
 
         vm.warp(Time.unwrap(t2));
 
         {
-            uint256 a2 = token.balanceOf(alice);
-            uint256 b2 = token.balanceOf(bob);
-            uint256 c2 = token.balanceOf(carol);
-            uint256 p2 = token.balanceOf(address(pl));
-            uint256 k2 = token.balanceOf(address(token));
+            Value a2 = token.realtimeBalanceNow(alice);
+            Value b2 = token.realtimeBalanceNow(bob);
+            Value c2 = token.realtimeBalanceNow(carol);
+            Value p2 = token.realtimeBalanceNow(address(pl));
+            Value k2 = token.realtimeBalanceNow(address(token));
 
-            assertEq(a1 - a2, k2 + uint256(rrr) * uint256(dt2), "e5.1");
-            assertEq(c2 - c1, 0, "e5.2");
+            emit log_named_int("a2 - a2", Value.unwrap(a2 - a1));
+            emit log_named_int("b2 - b1", Value.unwrap(b2 - b1));
+            emit log_named_int("c2 - c1", Value.unwrap(c2 - c1));
+            emit log_named_int("p2 - p1", Value.unwrap(p2 - p1));
+            emit log_named_int("k2", Value.unwrap(k2));
+
+            assertEq(a1 - a2, k2 + rrr.mul(Time.wrap(uint32(dt2))), "e5.1");
+            assertEq(c2 - c1, Value.wrap(0), "e5.2");
             assertEq(a1 - a2, k2 + b2 - b1 + c2 - c1 + p2 - p1, "e5.3");
-            assertEq(Value.wrap(int256(a1 - a2 - k2)), pl.getClaimable(carol) + pl.getClaimable(bob), "e5.4");
-            assertEq(k2, uint256(rrr) * tLP, "e5.5");
+            assertEq(a1 - a2 - k2, pl.getClaimable(carol) + pl.getClaimable(bob), "e5.4");
+            assertEq(k2, rrr.mul(Time.wrap(uint32(tLP))), "e5.5");
         }
 
         {
@@ -397,9 +410,9 @@ contract ToySuperTokenTest is Test {
             FlowRate cr2 = token.getNetFlowRate(carol);
             FlowRate pr2 = token.getNetFlowRate(address(pl));
 
-            assertEq(pl.getDistributionFlowRate(), FlowRate.wrap(int128(rrr)), "e4.1");
-            assertEq(ar2, FlowRate.wrap(-int128(rrr)), "e4.2");
-            assertEq(br2 + pl.getPendingDistributionFlowRate(), FlowRate.wrap(int128(rrr)), "e4.3");
+            assertEq(pl.getDistributionFlowRate(), rrr, "e4.1");
+            assertEq(ar2, rrr.inv(), "e4.2");
+            assertEq(br2 + pl.getPendingDistributionFlowRate(), rrr, "e4.3");
             assertEq(pr2, pl.getPendingDistributionFlowRate(), "e4.4");
             assertEq(ar2 + br2 + cr2 + pr2, FlowRate.wrap(0), "e4.5");
         }
@@ -442,11 +455,12 @@ contract ToySuperTokenTest is Test {
 
     struct PoolUpdateStep {
         uint8   u; // which user
-        uint8   a; // action types: 0 update units, 1 distribute flow
+        uint8   a; // action types: 0 update units, 1 distribute flow, 2 pool connection, 3 pool claim for
         uint64  v; // action param
         uint16 dt; // time delta
     }
-    function test_pool_random_seqs(PoolUpdateStep[] memory steps) external {
+    function test_pool_random_seqs(PoolUpdateStep[2] memory steps) external {
+        uint N_MEMBERS = 5;
         ToySuperfluidPool pl = _createPool(alice);
         uint noStepsLimit = vm.envOr("NO_FOUNDRY_TEST_STEPS_LIMIT", uint256(0));
         if (noStepsLimit == 0) {
@@ -456,17 +470,17 @@ contract ToySuperTokenTest is Test {
             emit log_named_uint(">>> step", i);
 
             PoolUpdateStep memory s = steps[i];
-            uint a = s.a % 2;
-            uint u = 1 + s.u % 5; // a pool of 5 testers including the pool creator
+            uint a = s.a % 4;
+            uint u = 1 + s.u % N_MEMBERS; // a pool of 5 testers including the pool creator
 
-            emit log_named_uint("timestamp", block.timestamp);
+            emit log_named_uint("> timestamp", block.timestamp);
             emit log_named_uint("tester", u);
 
             if (a == 0) {
                 emit log_named_string("action", "updateMember");
                 emit log_named_uint("unit", s.v);
                 vm.startPrank(alice);
-                pl.updateMember(TEST_ACCOUNTS[u], Unit.wrap(int128(uint128(s.v))));
+                assert(pl.updateMember(TEST_ACCOUNTS[u], Unit.wrap(int128(uint128(s.v)))));
                 vm.stopPrank();
             } else if (a == 1) {
                 emit log_named_string("action", "distributeFlow");
@@ -477,17 +491,73 @@ contract ToySuperTokenTest is Test {
                 emit log_named_int("ar", FlowRate.unwrap(ar));
                 emit log_named_int("pdr", FlowRate.unwrap(pdr));
                 vm.stopPrank();
+            } else if (a == 2) {
+                bool doConnect = s.v % 2 == 0 ? false : true;
+                emit log_named_string("action", "doConnectPool");
+                emit log_named_string("doConnect", doConnect ? "true" : "false");
+                vm.startPrank(TEST_ACCOUNTS[u]);
+                assert(token.connectPool(pl, doConnect));
+                vm.stopPrank();
+            } else if (a == 3) {
+                uint u4 = 1 + s.u % N_MEMBERS;
+                emit log_named_string("action", "claimAll");
+                emit log_named_uint("claim for", u4);
+                vm.startPrank(TEST_ACCOUNTS[u]);
+                assert(pl.claimAll(TEST_ACCOUNTS[u4]));
+                vm.stopPrank();
             } else assert(false);
 
             {
+                (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(address(pl));
                 FlowRate pdr = pl.getDistributionFlowRate();
                 FlowRate ajr = getAdjustmentFlowRate(pl, alice);
+                FlowRate nr = token.getNetFlowRate(address(pl));
+                emit log_string("> pool");
+                emit log_named_int("ob", Value.unwrap(ob));
+                emit log_named_int("fpb", Value.unwrap(fpb));
+                emit log_named_int("db", Value.unwrap(db));
                 emit log_named_int("pdr'", FlowRate.unwrap(pdr));
                 emit log_named_int("ajr", FlowRate.unwrap(ajr));
+                emit log_named_int("nr", FlowRate.unwrap(nr));
             }
 
+            emit log_named_uint("> dt", s.dt);
             vm.warp(block.timestamp + s.dt);
         }
+
+        emit log_named_uint("> timestamp", block.timestamp);
+        Value bSum;
+        FlowRate rSum;
+        {
+            (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(address(pl));
+            FlowRate pdr = pl.getPendingDistributionFlowRate();
+            (,,FlowRate ajr) = token.getPoolAdjustmentFlowInfo(pl);
+            FlowRate nr = token.getNetFlowRate(address(pl));
+            emit log_string("> pool");
+            emit log_named_int("ob", Value.unwrap(ob));
+            emit log_named_int("fpb", Value.unwrap(fpb));
+            emit log_named_int("db", Value.unwrap(db));
+            emit log_named_int("pdr", FlowRate.unwrap(pdr));
+            emit log_named_int("ajr", FlowRate.unwrap(ajr));
+            emit log_named_int("nr", FlowRate.unwrap(nr));
+            bSum = bSum + ob + db;
+            rSum = rSum + nr;
+        }
+        for (uint i = 1; i <= N_MEMBERS; ++i) {
+            (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(TEST_ACCOUNTS[i]);
+            Value cb = pl.getClaimable(TEST_ACCOUNTS[i]);
+            FlowRate nr = token.getNetFlowRate(TEST_ACCOUNTS[i]);
+            emit log_named_uint("> user", i);
+            emit log_named_int("ob", Value.unwrap(ob));
+            emit log_named_int("fpb", Value.unwrap(fpb));
+            emit log_named_int("db", Value.unwrap(db));
+            emit log_named_int("cb", Value.unwrap(cb));
+            emit log_named_int("nr", FlowRate.unwrap(nr));
+            bSum = bSum + ob + db;
+            rSum = rSum + nr;
+        }
+        assertEq(rSum, FlowRate.wrap(0), "rSum");
+        assertEq(bSum - Value.wrap(int256(INIT_BALANCE * N_MEMBERS)), Value.wrap(0), "bSum");
     }
 
     function test_2to1_distributeflow(uint32 u1, uint32 r1, uint32 r2, uint16 dt2) external {
@@ -521,13 +591,13 @@ contract ToySuperTokenTest is Test {
         vm.stopPrank();
         uint256 k2 = token.balanceOf(address(token)) - k1;
 
-        assertEq(Unit.unwrap(pl.pendingUnits()), int(tu), "e1");
+        assertEq(Unit.unwrap(pl.getPendingUnits()), int(tu), "e1");
 
         vm.startPrank(carol);
         token.connectPool(pl);
         vm.stopPrank();
 
-        assertEq(pl.pendingUnits(), Unit.wrap(0), "e2");
+        assertEq(pl.getPendingUnits(), Unit.wrap(0), "e2");
 
         vm.warp(Time.unwrap(t2));
 

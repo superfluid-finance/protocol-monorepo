@@ -121,7 +121,6 @@ abstract contract TokenMonad {
                 // previous adjustment flow is fully utilized
                 vars.newAdjustmentFlowRate = FlowRate.wrap(0);
             } else {
-                revert("!!! YYY");
                 // previous adjustment flow still needed
                 vars.newAdjustmentFlowRate = newActualFlowRate.inv();
                 newActualFlowRate = FlowRate.wrap(0);

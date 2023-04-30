@@ -75,25 +75,19 @@ using { mt_t_add_t as +, mt_t_sub_t as - } for Time global;
  * @title Unit value of monetary value represented with 256bits of signed integer.
  */
 type Value is int256;
-function mt_v_add_v(Value a, Value b) pure returns (Value) {
-    return Value.wrap(Value.unwrap(a) + Value.unwrap(b));
-}
-function mt_v_sub_v(Value a, Value b) pure returns (Value) {
-    return Value.wrap(Value.unwrap(a) - Value.unwrap(b));
-}
-using { mt_v_add_v as +, mt_v_sub_v as - } for Value global;
+function mt_v_add_v(Value a, Value b) pure returns (Value) { return Value.wrap(Value.unwrap(a) + Value.unwrap(b)); }
+function mt_v_sub_v(Value a, Value b) pure returns (Value) { return Value.wrap(Value.unwrap(a) - Value.unwrap(b)); }
+function mt_v_inv(Value a) pure returns (Value) { return Value.wrap(-Value.unwrap(a)); }
+using { mt_v_add_v as +, mt_v_sub_v as -, mt_v_inv as - } for Value global;
 
 /**
  * @title Number of units represented with half the size of `Value`.
  */
 type Unit is int128;
-function mt_u_add_u(Unit a, Unit b) pure returns (Unit) {
-    return Unit.wrap(Unit.unwrap(a) + Unit.unwrap(b));
-}
-function mt_u_sub_u(Unit a, Unit b) pure returns (Unit) {
-    return Unit.wrap(Unit.unwrap(a) - Unit.unwrap(b));
-}
-using { mt_u_add_u as +, mt_u_sub_u as - } for Unit global;
+function mt_u_add_u(Unit a, Unit b) pure returns (Unit) { return Unit.wrap(Unit.unwrap(a) + Unit.unwrap(b)); }
+function mt_u_sub_u(Unit a, Unit b) pure returns (Unit) { return Unit.wrap(Unit.unwrap(a) - Unit.unwrap(b)); }
+function mt_u_inv(Unit a) pure returns (Unit) { return Unit.wrap(-Unit.unwrap(a)); }
+using { mt_u_add_u as +, mt_u_sub_u as -, mt_u_inv as - } for Unit global;
 
 /**
  * @title FlowRate value represented with half the size of `Value`.
@@ -130,7 +124,7 @@ library AdditionalMonetaryTypeHelpers {
     }
 
     function mul(FlowRate r, Time t) internal pure returns (Value) {
-        return Value.wrap(int256(FlowRate.unwrap(r)) * int(uint(Time.unwrap(t))));
+        return Value.wrap(int256(FlowRate.unwrap(r)) * int256(uint256(Time.unwrap(t))));
     }
     function mul(FlowRate r, Unit u) internal pure returns (FlowRate) {
         return FlowRate.wrap(FlowRate.unwrap(r) * Unit.unwrap(u));

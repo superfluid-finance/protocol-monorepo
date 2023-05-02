@@ -23,29 +23,14 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    struct PoolIndexData {
-        uint128 totalUnits;
-        uint32 wrappedSettledAt;
-        int96 wrappedFlowRate;
-        int256 wrappedSettledValue;
-    }
-
-    struct MemberData {
-        uint128 ownedUnits;
-        uint32 syncedSettledAt;
-        int96 syncedFlowRate;
-        int256 syncedSettledValue;
-        int256 settledValue;
-        int256 claimedValue;
-    }
-
     GeneralDistributionAgreementV1 internal immutable _gda;
 
     ISuperfluidToken public superToken;
     address public admin;
     PoolIndexData internal _index;
     mapping(address => MemberData) internal _membersData;
-    uint128 public pendingUnits;
+    /// @dev This is a pseudo member, representing all the disconnected members
+    MemberData internal _disconnectedMembers;
 
     constructor(GeneralDistributionAgreementV1 gda) {
         _gda = gda;
@@ -66,12 +51,16 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
             );
     }
 
-    function getIndex() external view returns (PoolIndexData memory) {
+    function getIndex() external view override returns (PoolIndexData memory) {
         return _index;
     }
 
     function getTotalUnits() external view override returns (uint128) {
         return _index.totalUnits;
+    }
+
+    function getDisconnectedUnits() external view override returns (uint128) {
+        return _disconnectedMembers.ownedUnits;
     }
 
     function getUnits(
@@ -80,20 +69,48 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         return _membersData[memberAddr].ownedUnits;
     }
 
-    function getDistributionFlowRate() external view override returns (int96) {
+    function getConnectedFlowRate() external view override returns (int96) {
         return
             int96(
                 _index.wrappedFlowRate * uint256(_index.totalUnits).toInt256()
             );
     }
 
-    function getPendingDistributionFlowRate()
+    function getDisconnectedFlowRate()
         external
         view
         override
-        returns (int96)
+        returns (int96 flowRate)
     {
-        return int96(_index.wrappedFlowRate * uint256(pendingUnits).toInt256());
+        PDPoolIndex memory pdPoolIndex = getPDPoolIndexFromPoolIndexData(
+            _index
+        );
+        PDPoolMember memory pdPoolMember = getPDPoolMemberFromMemberData(
+            _disconnectedMembers
+        );
+        return
+            int96(
+                FlowRate.unwrap(
+                    pdPoolIndex.flow_rate_per_unit().mul(
+                        pdPoolMember.owned_units
+                    )
+                )
+            );
+    }
+
+    function getDisconnectedBalance(
+        uint32 time
+    ) external view override returns (int256 balance) {
+        PDPoolIndex memory pdPoolIndex = getPDPoolIndexFromPoolIndexData(
+            _index
+        );
+        PDPoolMember memory pdPoolMember = getPDPoolMemberFromMemberData(
+            _disconnectedMembers
+        );
+        return
+            Value.unwrap(
+                PDPoolMemberMU(pdPoolIndex, pdPoolMember).rtb(Time.wrap(time))
+            );
     }
 
     function getMemberFlowRate(
@@ -102,20 +119,6 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         uint128 units = _membersData[memberAddr].ownedUnits;
         if (units == 0) return 0;
         else return int96(_index.wrappedFlowRate * uint256(units).toInt256());
-    }
-
-    function getPendingDistribution() external view returns (int256) {
-        Time t = Time.wrap(uint32(block.timestamp));
-        BasicParticle
-            memory wrappedParticle = _getWrappedParticleFromPoolIndexData(
-                _index
-            );
-        return
-            Value.unwrap(
-                wrappedParticle.rtb(t).mul(
-                    Unit.wrap(uint256(pendingUnits).toInt256().toInt128())
-                )
-            );
     }
 
     function _getWrappedParticleFromPoolIndexData(
@@ -203,14 +206,14 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         returns (int256 claimableBalance, uint256 timestamp)
     {
         return (
-            getClaimable(uint32(block.timestamp), memberAddr),
+            getClaimable(memberAddr, uint32(block.timestamp)),
             block.timestamp
         );
     }
 
     function getClaimable(
-        uint32 time,
-        address memberAddr
+        address memberAddr,
+        uint32 time
     ) public view override returns (int256) {
         Time t = Time.wrap(time);
         PDPoolIndex memory pdPoolIndex = getPDPoolIndexFromPoolIndexData(
@@ -228,90 +231,91 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
 
     function updateMember(
         address memberAddr,
-        uint128 unit
+        uint128 newUnits
     ) external returns (bool) {
-        if (unit < 0) revert SUPER_TOKEN_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
+        if (newUnits < 0)
+            revert SUPER_TOKEN_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
         if (admin != msg.sender) revert SUPER_TOKEN_POOL_NOT_POOL_ADMIN();
 
         uint32 time = uint32(block.timestamp);
         Time t = Time.wrap(time);
-        Unit wrappedUnit = Unit.wrap(uint256(unit).toInt256().toInt128());
+        Unit wrappedUnit = Unit.wrap(uint256(newUnits).toInt256().toInt128());
 
-        // update pool's pending units
-        if (!_gda.isMemberConnected(superToken, address(this), memberAddr)) {
-            pendingUnits =
-                pendingUnits -
-                _membersData[memberAddr].ownedUnits +
-                unit;
-        }
-
-        // update pool member's units
-        BasicParticle memory p;
         PDPoolIndex memory pdPoolIndex = getPDPoolIndexFromPoolIndexData(
             _index
         );
         PDPoolMember memory pdPoolMember = getPDPoolMemberFromMemberData(
             _membersData[memberAddr]
         );
-        (pdPoolIndex, pdPoolMember, p) = PDPoolMemberMU(
-            pdPoolIndex,
-            pdPoolMember
-        ).pool_member_update(p, wrappedUnit, t);
-        _index = getPoolIndexDataFromPDPoolIndex(pdPoolIndex);
-        _membersData[memberAddr] = getMemberDataFromPDPoolMember(pdPoolMember);
+        PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
 
-        {
-            address[] memory addresses = new address[](1);
-            addresses[0] = admin;
-            BasicParticle[] memory ps = new BasicParticle[](1);
-            ps[0] = p;
-            assert(_gda.absorbParticlesFromPool(superToken, addresses, ps));
+        // update pool's pending units
+        if (!_gda.isMemberConnected(superToken, address(this), memberAddr)) {
+            // trigger the side effect of claiming all if not connected
+            int256 claimedAmount = _claimAll(memberAddr, time);
+
+            // update pool's disconnected units
+            _shiftDisconnectedUnits(
+                wrappedUnit - mu.m.owned_units,
+                Value.wrap(claimedAmount),
+                t
+            );
         }
 
-        // additional side effects of triggering claimAll
-        claimAll(time, memberAddr);
-
-        emit MemberUpdated(memberAddr, unit, block.timestamp);
+        // update pool member's units
+        {
+            BasicParticle memory p;
+            (pdPoolIndex, pdPoolMember, p) = mu.pool_member_update(
+                p,
+                wrappedUnit,
+                t
+            );
+            _index = getPoolIndexDataFromPDPoolIndex(pdPoolIndex);
+            _membersData[memberAddr] = getMemberDataFromPDPoolMember(
+                pdPoolMember
+            );
+            assert(_gda.appendIndexUpdateByPool(superToken, p, t));
+        }
+        emit MemberUpdated(memberAddr, newUnits, block.timestamp);
 
         return true;
     }
 
-    function claimAll() external returns (bool) {
-        uint32 time = uint32(block.timestamp);
-        return claimAll(time, msg.sender);
-    }
-
-    function claimAll(address memberAddr) external returns (bool) {
-        uint32 time = uint32(block.timestamp);
-        return claimAll(time, memberAddr);
-    }
-
-    function claimAll(uint32 time, address memberAddr) public returns (bool) {
-        if (time > block.timestamp) revert SUPER_TOKEN_POOL_INVALID_TIME();
-
-        Value claimable = Value.wrap(getClaimable(time, memberAddr));
-        {
-            address[] memory addresses = new address[](2);
-            addresses[0] = address(this);
-            addresses[1] = memberAddr;
-            BasicParticle[] memory particles = new BasicParticle[](2);
-            BasicParticle memory mempty1;
-            // @note this does not update the _settled_at field as no settle
-            // occurs here
-            (particles[0], particles[1]) = mempty1.shift2(mempty1, claimable);
-            assert(
-                _gda.absorbParticlesFromPool(superToken, addresses, particles)
-            );
-        }
-        MemberData storage memberData = _membersData[memberAddr];
-        memberData.claimedValue += Value.unwrap(claimable);
+    function _claimAll(
+        address memberAddr,
+        uint32 time
+    ) internal returns (int256 amount) {
+        amount = getClaimable(memberAddr, time);
+        assert(_gda.poolSettleClaim(superToken, memberAddr, (amount)));
+        _membersData[memberAddr].claimedValue += amount;
 
         emit DistributionClaimed(
             memberAddr,
-            Value.unwrap(claimable),
-            memberData.claimedValue,
+            amount,
+            _membersData[memberAddr].claimedValue,
             block.timestamp
         );
+    }
+
+    function claimAll() external returns (bool) {
+        return claimAll(msg.sender);
+    }
+
+    function claimAll(address memberAddr) public returns (bool) {
+        bool isConnected = _gda.isMemberConnected(
+            superToken,
+            address(this),
+            memberAddr
+        );
+        uint32 time = uint32(block.timestamp);
+        int256 claimedAmount = _claimAll(memberAddr, time);
+        if (!isConnected) {
+            _shiftDisconnectedUnits(
+                Unit.wrap(0),
+                Value.wrap(claimedAmount),
+                Time.wrap(time)
+            );
+        }
 
         return true;
     }
@@ -333,18 +337,50 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
 
     // WARNING for operators: it is undefined behavior if member is already connected or disconnected
     function operatorConnectMember(
-        uint32 time,
         address memberAddr,
-        bool doConnect
+        bool doConnect,
+        uint32 time
     ) external onlyGDA returns (bool) {
+        int256 claimedAmount = _claimAll(memberAddr, time);
+        int128 units = int128(
+            uint256(_membersData[memberAddr].ownedUnits).toInt256()
+        );
         if (doConnect) {
-            pendingUnits = pendingUnits - _membersData[memberAddr].ownedUnits;
+            _shiftDisconnectedUnits(
+                Unit.wrap(-units),
+                Value.wrap(claimedAmount),
+                Time.wrap(time)
+            );
         } else {
-            pendingUnits = pendingUnits + _membersData[memberAddr].ownedUnits;
+            _shiftDisconnectedUnits(
+                Unit.wrap(units),
+                Value.wrap(0),
+                Time.wrap(time)
+            );
         }
-        // trigger side effects of triggering claimAll
-        claimAll(time, memberAddr);
         return true;
+    }
+
+    function _shiftDisconnectedUnits(
+        Unit shiftUnits,
+        Value claimedAmount,
+        Time t
+    ) internal {
+        PDPoolIndex memory pdPoolIndex = getPDPoolIndexFromPoolIndexData(
+            _index
+        );
+        PDPoolMember memory pdPoolMember = getPDPoolMemberFromMemberData(
+            _disconnectedMembers
+        );
+        PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
+        mu = mu.settle(t);
+        mu.m.owned_units = mu.m.owned_units + shiftUnits;
+        // offset the claimed amount from the settled value if any
+        // TODO Should probably not expose the private _settled_value field.
+        //      Alternatively could be a independent field, while the implementer can optimize
+        //      it away by merging their storage using monoidal laws again.
+        mu.m._settled_value = mu.m._settled_value - claimedAmount;
+        _disconnectedMembers = getMemberDataFromPDPoolMember(mu.m);
     }
 
     modifier onlyGDA() {

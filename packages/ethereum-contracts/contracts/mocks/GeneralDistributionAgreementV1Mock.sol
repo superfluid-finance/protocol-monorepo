@@ -104,14 +104,14 @@ contract GeneralDistributionAgreementV1Mock is GeneralDistributionAgreementV1 {
         address from,
         address to
     ) public view returns (bytes32) {
-        return _getFlowDistributionID(from, to);
+        return _getFlowDistributionHash(from, to);
     }
 
     function getPoolMemberId(
         address poolMember,
         ISuperTokenPool pool
     ) public view returns (bytes32) {
-        return _getPoolMemberId(poolMember, pool);
+        return _getPoolMemberHash(poolMember, pool);
     }
 
     function getPoolMemberData(

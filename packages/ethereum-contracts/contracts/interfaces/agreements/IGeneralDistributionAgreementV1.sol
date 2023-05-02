@@ -3,13 +3,19 @@ pragma solidity >=0.8.4;
 
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
-import { ISuperTokenPool } from "../superfluid/ISuperTokenPool.sol";
+import {
+    ISuperTokenPool,
+    ISuperTokenPoolAdmin
+} from "../superfluid/ISuperTokenPool.sol";
 
 /**
  * @title General Distribution Agreement interface
  * @author Superfluid
  */
-abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
+abstract contract IGeneralDistributionAgreementV1 is
+    ISuperAgreement,
+    ISuperTokenPoolAdmin
+{
     // Custom Errors
     error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
     error GDA_NON_CRITICAL_SENDER();
@@ -90,7 +96,11 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
         ISuperfluidToken token,
         address account,
         uint256 time
-    ) public view virtual returns (int256 available, int256 deposit);
+    )
+        public
+        view
+        virtual
+        returns (int256 own, int256 fromPools, int256 deposit);
 
     function realtimeBalanceOfNow(
         ISuperfluidToken token,
@@ -119,12 +129,6 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
         ISuperfluidToken token,
         address account
     ) external view virtual returns (bool);
-
-    function isMemberConnected(
-        ISuperfluidToken token,
-        address pool,
-        address member
-    ) public view virtual returns (bool);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Agreement Operations

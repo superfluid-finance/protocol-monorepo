@@ -74,6 +74,9 @@ contract InstantDistributionAgreementV1 is
 
     address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
 
+    /// @dev Maximum number of subscriptions a subscriber can have
+    uint32 public constant MAX_NUM_SUBSCRIPTIONS = SlotsBitmapLibrary._MAX_NUM_SLOTS;
+
     /// @dev Subscriber state slot id for storing subs bitmap
     uint256 private constant _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID = 0;
     /// @dev Publisher state slot id for storing its deposit amount
@@ -81,8 +84,6 @@ contract InstantDistributionAgreementV1 is
     /// @dev Subscriber state slot id starting ptoint for subscription data
     uint256 private constant _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START = 1 << 128;
 
-    /// @dev Maximum number of subscriptions a subscriber can have
-    uint32 private constant _MAX_NUM_SUBS = 256;
     /// @dev A special id that indicating the subscription is not approved yet
     uint32 private constant _UNALLOCATED_SUB_ID = type(uint32).max;
 

@@ -2,9 +2,13 @@
 pragma solidity 0.8.19;
 
 import "../FoundrySuperfluidTester.sol";
+import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import {
+    SuperTokenV1Library
+} from "../../../contracts/apps/SuperTokenV1Library.sol";
 
-contract InstantDistributionAgreementV1Anvil is FoundrySuperfluidTester {
-    using IDAv1Library for IDAv1Library.InitData;
+contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTester {
+    using SuperTokenV1Library for SuperToken;
 
     constructor() FoundrySuperfluidTester(3) {}
 
@@ -22,53 +26,30 @@ contract InstantDistributionAgreementV1Anvil is FoundrySuperfluidTester {
 
         // alice creates index
         vm.startPrank(alice);
-        sf.idaLib.createIndex(superToken, indexId);
-        sf.idaLib.updateSubscriptionUnits(superToken, indexId, bob, units);
+        superToken.createIndex(indexId);
+        superToken.updateSubscriptionUnits(indexId, bob, units);
         vm.stopPrank();
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = sf
-            .idaLib
-            .getIndex(superToken, alice, indexId);
+        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken
+            .getIndex(alice, indexId);
         assertTrue(exist, "IDAv1.t: createIndex | index does not exist");
         assertEq(indexValue, 0, "IDAv1.t: createIndex | indexValue != 0");
-        assertEq(
-            totalUnitsApproved,
-            0,
-            "IDAv1.t: createIndex | totalUnitsApproved != 0"
-        );
-        assertEq(
-            totalUnitsPending,
-            units,
-            "IDAv1.t: createIndex | totalUnitsPending != units"
-        );
+        assertEq(totalUnitsApproved, 0, "IDAv1.t: createIndex | totalUnitsApproved != 0");
+        assertEq(totalUnitsPending, units, "IDAv1.t: createIndex | totalUnitsPending != units");
 
         // alice distributes
         vm.startPrank(alice);
-        sf.idaLib.updateIndexValue(superToken, indexId, newIndexValue);
+        superToken.updateIndexValue(indexId, newIndexValue);
         vm.stopPrank();
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = sf
-            .idaLib
-            .getIndex(superToken, alice, indexId);
+        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken
+            .getIndex(alice, indexId);
         assertTrue(exist, "IDAv1.t: updateIndexValue | index does not exist");
-        assertEq(
-            indexValue,
-            newIndexValue,
-            "IDAv1.t: updateIndexValue | indexValue != newIndexValue"
-        );
-        assertEq(
-            totalUnitsApproved,
-            0,
-            "IDAv1.t: updateIndexValue | totalUnitsApproved != 0"
-        );
-        assertEq(
-            totalUnitsPending,
-            units,
-            "IDAv1.t: updateIndexValue | totalUnitsPending != units"
-        );
-
+        assertEq(indexValue, newIndexValue, "IDAv1.t: updateIndexValue | indexValue != newIndexValue");
+        assertEq(totalUnitsApproved, 0, "IDAv1.t: updateIndexValue | totalUnitsApproved != 0");
+        assertEq(totalUnitsPending, units, "IDAv1.t: updateIndexValue | totalUnitsPending != units");
         // bob subscribes to alice
         uint256 bobBalance1 = superToken.balanceOf(bob);
         vm.startPrank(bob);
-        sf.idaLib.approveSubscription(superToken, alice, indexId);
+        superToken.approveSubscription(alice, indexId);
         vm.stopPrank();
         uint256 bobBalance2 = superToken.balanceOf(bob);
         assertEq(
@@ -76,8 +57,7 @@ contract InstantDistributionAgreementV1Anvil is FoundrySuperfluidTester {
             uint256(units) * uint256(newIndexValue),
             "IDAv1.t: approveSubscription | bobBalance2 - bobBalance1 != units * newIndexValue"
         );
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = sf
-            .idaLib
+        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken
             .getIndex(superToken, alice, indexId);
         assertTrue(exist, "IDAv1.t: approveSubscription | index does not exist");
         assertEq(indexValue, newIndexValue, "IDAv1.t: approveSubscription | indexValue != newIndexValue");
@@ -85,5 +65,33 @@ contract InstantDistributionAgreementV1Anvil is FoundrySuperfluidTester {
         assertEq(totalUnitsPending, 0, "IDAv1.t: approveSubscription | totalUnitsPending != 0");
 
         _assert_Global_Invariants();
+    }
+
+    function testRevertMaxNumberOFSubscriptionsASubscriberCanHave() public {
+        uint32 maxNumSubs = sf.ida.MAX_NUM_SUBSCRIPTIONS();
+        
+        for (uint256 i; i <maxNumSubs; ++i) {
+            vm.startPrank(alice);
+            superToken.createIndex(uint32(i));
+            superToken.updateSubscriptionUnits(uint32(i), bob, 1);
+            vm.stopPrank();
+
+            vm.startPrank(bob);
+            superToken.approveSubscription(alice, uint32(i));
+            vm.stopPrank();
+        }
+
+        (,uint32[] memory indexIds,) = superToken.listSubscriptions(bob);
+        assertEq(indexIds.length, maxNumSubs, "IDAv1.t: subscriptions length mismatch");
+
+        vm.startPrank(alice);
+        superToken.createIndex(uint32(maxNumSubs));
+        superToken.updateSubscriptionUnits(uint32(maxNumSubs), bob, 1);
+        vm.stopPrank();
+
+        vm.startPrank(bob);
+        vm.expectRevert("SlotBitmap out of bound");
+        superToken.approveSubscription(alice, uint32(maxNumSubs));
+        vm.stopPrank();
     }
 }

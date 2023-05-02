@@ -337,48 +337,9 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#2.5 cannot register more than 256 agreements", async function () {
-                const mocks: string[] = [];
-                mocks.push(t.contracts.cfa.address);
-                mocks.push(t.contracts.ida.address);
-                for (let i = 0; i < 254; ++i) {
-                    process.stdout.write(".");
-                    const typeN = web3.utils.sha3("type." + i)!;
-                    const mock = await createAgreementMock(typeN, 1);
-                    await governance.registerAgreementClass(
-                        superfluid.address,
-                        mock.address
-                    );
-                    mocks.push(await superfluid.getAgreementClass(typeN));
-                }
-                process.stdout.write("\n");
+            // @note previous #2.5 moved to foundry
 
-                const agreements = await superfluid.mapAgreementClasses(
-                    MAX_UINT256
-                );
-                for (let i = 0; i < 256; ++i) {
-                    assert.equal(
-                        agreements[i],
-                        mocks[i],
-                        `agreement no.${i} mismatch`
-                    );
-                }
-
-                const badMock = await createAgreementMock(
-                    web3.utils.sha3("type.bad")!,
-                    1
-                );
-                await expectCustomError(
-                    governance.registerAgreementClass(
-                        superfluid.address,
-                        badMock.address
-                    ),
-                    superfluid,
-                    "HOST_MAX_256_AGREEMENTS"
-                );
-            });
-
-            it("#2.6 agreement must be registered first", async () => {
+            it("#2.5 agreement must be registered first", async () => {
                 const typeA = web3.utils.sha3("typeA")!;
                 const mockA = await createAgreementMock(typeA, 1);
 
@@ -410,7 +371,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#2.7 mapAgreementClasses", async () => {
+            it("#2.6 mapAgreementClasses", async () => {
                 const agreements = await superfluid.mapAgreementClasses(1);
                 assert.equal(agreements.length, 1);
                 assert.equal(agreements[0], t.contracts.cfa.address);

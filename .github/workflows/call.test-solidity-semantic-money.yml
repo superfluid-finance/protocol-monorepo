@@ -31,6 +31,8 @@ jobs:
       - name: Build & Test
         run: |
           cd packages/solidity-semantic-money
+          # use native compiler provided through the nix devShell
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           make build-src test-all
         env:
           FOUNDRY_FUZZ_RUNS: 10000 # yea, baby

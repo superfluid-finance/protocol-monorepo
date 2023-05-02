@@ -68,7 +68,7 @@ abstract contract TokenMonad {
         return eff;
     }
 
-    function _doDistribute(bytes memory eff, address from, address pool, Value reqAmount)
+    function _doDistributeViaPool(bytes memory eff, address from, address pool, Value reqAmount)
         internal returns (bytes memory, Value actualAmount)
     {
         assert(from != pool);
@@ -91,9 +91,9 @@ abstract contract TokenMonad {
         FlowRate newAdjustmentFlowRate;
         FlowRate actualFlowRateDelta;
     }
-    function _doDistributeFlow(bytes memory eff,
-                               address from, address pool, bytes32 flowHash, FlowRate reqFlowRate,
-                               Time t)
+    function _doDistributeFlowViaPool(bytes memory eff,
+                                      address from, address pool, bytes32 flowHash, FlowRate reqFlowRate,
+                                      Time t)
         internal returns (bytes memory, FlowRate newActualFlowRate, FlowRate newDistributionFlowRate)
     {
         assert(from != pool);
@@ -106,7 +106,7 @@ abstract contract TokenMonad {
         vars.currentAdjustmentFlowRate = _getPoolAdjustmentFlowRate(eff, pool);
 
         {
-            FlowRate oldFlowRate = _getFlowRate(eff, flowHash);
+            FlowRate oldFlowRate = _getFlowRate(eff, flowHash); // flow rate of : from -> pool
             FlowRate oldDistributionFlowRate = c.flow_rate();
             FlowRate shiftFlowRate = reqFlowRate - oldFlowRate;
 

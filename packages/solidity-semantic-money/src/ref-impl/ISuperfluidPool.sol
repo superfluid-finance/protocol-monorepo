@@ -15,15 +15,22 @@ interface ISuperfluidPool {
 
     function getTotalUnits() external view returns (Unit);
 
-    function getPendingUnits() external view returns (Unit);
+    function getDisconnectedUnits() external view returns (Unit);
 
     function getUnits(address memberAddress) external view returns (Unit);
 
-    function getDistributionFlowRate() external view returns (FlowRate);
+    function getConnectedFlowRate() external view returns (FlowRate);
 
-    function getPendingDistributionFlowRate() external view returns (FlowRate);
+    function getDisconnectedFlowRate() external view returns (FlowRate);
 
-    function getCumulativePendingDistributionAt(Time t) external view returns (Value);
+    /**
+     * @dev Disconnected balance, or all disconnected members' claimable balances.
+     *
+     * Property:
+     *
+     *   (a) pool.getDisonnectedBalance(t) == foldr sum (\m -> m.getClaimable(m, t)) 0 (isDisconnectd pool.members)
+     */
+    function getDisonnectedBalance(Time t) external view returns (Value);
 
     function getMemberFlowRate(address memberAddress) external view returns (FlowRate);
 

@@ -35,6 +35,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     struct AccountData {
         Value    totalBuffer;
         FlowRate totalInflowRate;
+        // FlowRate totalAdjustmentFlowRateReceived;
         FlowRate totalOutflowRate;
     }
 
@@ -91,13 +92,13 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     function realtimeBalanceVectorAt(address account, Time t) override public view
         returns (Value own, Value fromPools, Value deposit)
     {
-        // initial value from universal index
-        own = _getUIndex(new bytes(0), account).rtb(t);
-
-        // Adding cumulative pending distributions from a pool.
+        // NB! Adding cumulative disconnected distributions from a pool.
         // It is cumulative because the claimed distributions are already offset via the universal indexes.
         if (_isPool(account)) {
-            own = own + ISuperfluidPool(account).getCumulativePendingDistributionAt(t);
+            ISuperfluidPool pool = ISuperfluidPool(account);
+            own = pool.getDisonnectedBalance(t);
+        } else {
+            own = _getUIndex(new bytes(0), account).rtb(t);
         }
 
         // pool-connected balance
@@ -118,7 +119,8 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
 
         // pool distribution flow rate
         if (_isPool(account)) {
-            nr = nr + ISuperfluidPool(account).getPendingDistributionFlowRate();
+            ISuperfluidPool pool = ISuperfluidPool(account);
+            nr = nr + pool.getDisconnectedFlowRate();
         }
 
         // pool-connected flows
@@ -213,7 +215,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         require(_acl(operator, from, address(to), reqAmount, FlowRate.wrap(0)), "ACL for distribute not supported");
 
         // Make updates
-        (, actualAmount) = _doDistribute(eff, from, address(to), reqAmount);
+        (, actualAmount) = _doDistributeViaPool(eff, from, address(to), reqAmount);
         success = true;
     }
 
@@ -241,7 +243,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         require(_acl(operator, from, address(to), Value.wrap(0), reqFlowRate), "ACL for distribute not supported");
 
         // Make updates
-        (eff, actualFlowRate, newDistributionFlowRate) = _doDistributeFlow
+        (eff, actualFlowRate, newDistributionFlowRate) = _doDistributeFlowViaPool
             (eff, from, address(to), flowHash, reqFlowRate, t);
         eff = _adjustBuffer(eff, from, flowHash, oldFlowRate, actualFlowRate);
         success = true;

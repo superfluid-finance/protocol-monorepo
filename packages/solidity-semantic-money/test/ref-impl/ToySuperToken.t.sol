@@ -45,7 +45,13 @@ contract ToySuperTokenTest is Test {
 
     function _connectPool(ToySuperfluidPool p, address by) internal {
         vm.startPrank(by);
-        token.connectPool(p);
+        token.connectPool(p, true);
+        vm.stopPrank();
+    }
+
+    function _disconnectPool(ToySuperfluidPool p, address by) internal {
+        vm.startPrank(by);
+        token.connectPool(p, false);
         vm.stopPrank();
     }
 
@@ -225,8 +231,8 @@ contract ToySuperTokenTest is Test {
         uint256 b2 = token.balanceOf(bob);
         uint256 c2 = token.balanceOf(carol);
 
-        assertEq(Value.unwrap(pl.getClaimable(bob, t)), 0, "e1.1");
-        assertEq(Value.unwrap(pl.getClaimable(carol, t)), 0, "e1.2");
+        assertEq(pl.getClaimable(bob, t), Value.wrap(0), "e1.1");
+        assertEq(pl.getClaimable(carol, t), Value.wrap(0), "e1.2");
 
         emit log_named_uint("a2", a2);
         emit log_named_uint("b2", b2);
@@ -274,15 +280,15 @@ contract ToySuperTokenTest is Test {
         (,ar,pdr) = token.distributeFlow(alice, pl, FlowId.wrap(0), rr1);
         vm.stopPrank();
 
-        assertEq(Unit.unwrap(pl.getPendingUnits()), int128(tu), "e2");
+        assertEq(Unit.unwrap(pl.getDisconnectedUnits()), int128(tu), "e2");
 
         _connectPool(pl, bob);
         _connectPool(pl, carol);
 
-        assertEq(pl.getPendingUnits(), Unit.wrap(0), "e3.1");
+        assertEq(pl.getDisconnectedUnits(), Unit.wrap(0), "e3.1");
 
         {
-            FlowRate pdr1 = pl.getDistributionFlowRate();
+            FlowRate pdr1 = pl.getConnectedFlowRate();
             FlowRate ajr1 = getAdjustmentFlowRate(pl, alice);
             FlowRate anr1 = token.getNetFlowRate(alice);
             FlowRate bnr1 = token.getNetFlowRate(bob);
@@ -313,7 +319,7 @@ contract ToySuperTokenTest is Test {
         vm.warp(uint256(Time.unwrap(t2)));
 
         {
-            FlowRate pdr2 = pl.getDistributionFlowRate();
+            FlowRate pdr2 = pl.getConnectedFlowRate();
             FlowRate ajr2 = getAdjustmentFlowRate(pl, alice);
             FlowRate anr2 = token.getNetFlowRate(alice);
             FlowRate bnr2 = token.getNetFlowRate(bob);
@@ -376,11 +382,11 @@ contract ToySuperTokenTest is Test {
         token.distributeFlow(alice, pl, FlowId.wrap(0), rr);
         vm.stopPrank();
 
-        assertEq(Unit.unwrap(pl.getPendingUnits()), int128(tu), "e1");
+        assertEq(Unit.unwrap(pl.getDisconnectedUnits()), int128(tu), "e1");
 
         _connectPool(pl, bob);
 
-        assertEq(pl.getPendingUnits(), uu2, "e2");
+        assertEq(pl.getDisconnectedUnits(), uu2, "e2");
 
         vm.warp(Time.unwrap(t2));
 
@@ -410,11 +416,108 @@ contract ToySuperTokenTest is Test {
             FlowRate cr2 = token.getNetFlowRate(carol);
             FlowRate pr2 = token.getNetFlowRate(address(pl));
 
-            assertEq(pl.getDistributionFlowRate(), rrr, "e4.1");
+            assertEq(pl.getConnectedFlowRate(), rrr, "e4.1");
             assertEq(ar2, rrr.inv(), "e4.2");
-            assertEq(br2 + pl.getPendingDistributionFlowRate(), rrr, "e4.3");
-            assertEq(pr2, pl.getPendingDistributionFlowRate(), "e4.4");
+            assertEq(br2 + pl.getDisconnectedFlowRate(), rrr, "e4.3");
+            assertEq(pr2, pl.getDisconnectedFlowRate(), "e4.4");
             assertEq(ar2 + br2 + cr2 + pr2, FlowRate.wrap(0), "e4.5");
+        }
+    }
+
+    function test_1to1_distributeflow_connect_disconnect_connect(uint32 u, uint32 r,
+                                                                 uint16 dt1, // connect
+                                                                 uint16 dt2, // disconnect
+                                                                 uint16 dt3, // connect
+                                                                 uint16 dt4) external {
+        Unit uu = Unit.wrap(int128(uint128((u))));
+        FlowRate rr = FlowRate.wrap(int64(uint64(r)));
+        FlowRate rrr; if (u != 0) rrr = rr.div(uu).mul(uu);
+        Time t0 = Time.wrap(uint32(block.timestamp));
+        Time t1 = t0 + Time.wrap(uint32(dt1));
+        Time t2 = t1 + Time.wrap(uint32(dt2));
+        Time t3 = t2 + Time.wrap(uint32(dt3));
+        Time t4 = t3 + Time.wrap(uint32(dt4));
+
+        emit log_string("> t0");
+        emit log_named_uint("u", u);
+        emit log_named_uint("r", r);
+        emit log_named_int("rrr", FlowRate.unwrap(rrr));
+
+        ToySuperfluidPool pl = _createPool(alice);
+
+        Value a0 = token.realtimeBalanceNow(alice);
+        Value b0 = token.realtimeBalanceNow(bob);
+        Value p0 = token.realtimeBalanceNow(address(pl));
+
+        vm.startPrank(alice);
+        pl.updateMember(bob, uu);
+        token.distributeFlow(alice, pl, FlowId.wrap(0), rr);
+        vm.stopPrank();
+        assertEq(pl.getDisconnectedUnits(), uu, "e1");
+
+        // > t1
+        emit log_named_uint("dt1", dt1);
+        vm.warp(Time.unwrap(t1));
+        emit log_string("> t1 connectPool");
+        emit log_named_int("pdb1", Value.unwrap(pl.getDisonnectedBalance(t1)));
+        _connectPool(pl, bob);
+        assertEq(pl.getDisconnectedUnits(), Unit.wrap(0), "e2");
+
+        // > t2
+        emit log_named_uint("dt2", dt2);
+        vm.warp(Time.unwrap(t2));
+        emit log_string("> t2 disconnectPool");
+        emit log_named_int("pdb2", Value.unwrap(pl.getDisonnectedBalance(t2)));
+        _disconnectPool(pl, bob);
+        assertEq(pl.getDisconnectedUnits(), uu, "e2");
+
+        // > t3
+        emit log_named_uint("dt3", dt3);
+        vm.warp(Time.unwrap(t3));
+        emit log_string("> t3 connectPool");
+        emit log_named_int("pdb3", Value.unwrap(pl.getDisonnectedBalance(t3)));
+        _connectPool(pl, bob);
+        assertEq(pl.getDisconnectedUnits(), Unit.wrap(0), "e2");
+
+        // > t4
+        // BUG: foundry or yul seems be able to change value of `t0` after this, will need to investigate.
+        emit log_named_uint("dt4", dt4);
+        emit log_string("> t4");
+        vm.warp(Time.unwrap(t4));
+        emit log_named_int("pdb4", Value.unwrap(pl.getDisonnectedBalance(t4)));
+
+        {
+            FlowRate anr4 = token.getNetFlowRate(alice);
+            FlowRate ajr4 = getAdjustmentFlowRate(pl, alice);
+            FlowRate bnr4 = token.getNetFlowRate(bob);
+            FlowRate pnr4 = token.getNetFlowRate(address(pl));
+
+            emit log_named_int("anr4", FlowRate.unwrap(anr4));
+            emit log_named_int("ajr4", FlowRate.unwrap(ajr4));
+            emit log_named_int("bnr4", FlowRate.unwrap(bnr4));
+            emit log_named_int("pnr4", FlowRate.unwrap(pnr4));
+
+            assertEq(pl.getConnectedFlowRate(), rrr, "e3.1");
+            assertEq(anr4, rrr.inv(), "e3.2");
+            assertEq(bnr4 + pl.getDisconnectedFlowRate(), rrr, "e3.3");
+            assertEq(pnr4, pl.getDisconnectedFlowRate(), "e3.4");
+            assertEq(anr4 + bnr4 + pnr4, FlowRate.wrap(0), "e3.5");
+        }
+
+        {
+            Value a4 = token.realtimeBalanceNow(alice);
+            Value b4 = token.realtimeBalanceNow(bob);
+            Value p4 = token.realtimeBalanceNow(address(pl));
+            Value k4 = token.realtimeBalanceNow(address(token));
+
+            emit log_named_int("a4 - a0", Value.unwrap(a4 - a0));
+            emit log_named_int("b4 - b0", Value.unwrap(b4 - b0));
+            emit log_named_int("p4", Value.unwrap(p4));
+            emit log_named_int("k4", Value.unwrap(k4));
+
+            assertEq(a0 - a4, k4 + rrr.mul(Time.wrap(uint32(dt1)+uint32(dt2)+uint32(dt3)+uint32(dt4))), "e4.1");
+            assertEq(a0 - a4, k4 + b4 - b0 + p4 - p0, "e4.2");
+            assertEq(k4, rrr.mul(Time.wrap(uint32(tLP))), "e4.3");
         }
     }
 
@@ -453,114 +556,8 @@ contract ToySuperTokenTest is Test {
         vm.stopPrank();
     }
 
-    struct PoolUpdateStep {
-        uint8   u; // which user
-        uint8   a; // action types: 0 update units, 1 distribute flow, 2 pool connection, 3 pool claim for
-        uint64  v; // action param
-        uint16 dt; // time delta
-    }
-    function test_pool_random_seqs(PoolUpdateStep[2] memory steps) external {
-        uint N_MEMBERS = 5;
-        ToySuperfluidPool pl = _createPool(alice);
-        uint noStepsLimit = vm.envOr("NO_FOUNDRY_TEST_STEPS_LIMIT", uint256(0));
-        if (noStepsLimit == 0) {
-            vm.assume(steps.length < 20);
-        }
-        for (uint i = 0; i < steps.length; ++i) {
-            emit log_named_uint(">>> step", i);
-
-            PoolUpdateStep memory s = steps[i];
-            uint a = s.a % 4;
-            uint u = 1 + s.u % N_MEMBERS; // a pool of 5 testers including the pool creator
-
-            emit log_named_uint("> timestamp", block.timestamp);
-            emit log_named_uint("tester", u);
-
-            if (a == 0) {
-                emit log_named_string("action", "updateMember");
-                emit log_named_uint("unit", s.v);
-                vm.startPrank(alice);
-                assert(pl.updateMember(TEST_ACCOUNTS[u], Unit.wrap(int128(uint128(s.v)))));
-                vm.stopPrank();
-            } else if (a == 1) {
-                emit log_named_string("action", "distributeFlow");
-                emit log_named_uint("flow rate", s.v);
-                vm.startPrank(TEST_ACCOUNTS[u]);
-                (,FlowRate ar,FlowRate pdr) = token.distributeFlow
-                    (TEST_ACCOUNTS[u], pl, FlowId.wrap(0), FlowRate.wrap(int128(uint128(s.v))));
-                emit log_named_int("ar", FlowRate.unwrap(ar));
-                emit log_named_int("pdr", FlowRate.unwrap(pdr));
-                vm.stopPrank();
-            } else if (a == 2) {
-                bool doConnect = s.v % 2 == 0 ? false : true;
-                emit log_named_string("action", "doConnectPool");
-                emit log_named_string("doConnect", doConnect ? "true" : "false");
-                vm.startPrank(TEST_ACCOUNTS[u]);
-                assert(token.connectPool(pl, doConnect));
-                vm.stopPrank();
-            } else if (a == 3) {
-                uint u4 = 1 + s.u % N_MEMBERS;
-                emit log_named_string("action", "claimAll");
-                emit log_named_uint("claim for", u4);
-                vm.startPrank(TEST_ACCOUNTS[u]);
-                assert(pl.claimAll(TEST_ACCOUNTS[u4]));
-                vm.stopPrank();
-            } else assert(false);
-
-            {
-                (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(address(pl));
-                FlowRate pdr = pl.getDistributionFlowRate();
-                FlowRate ajr = getAdjustmentFlowRate(pl, alice);
-                FlowRate nr = token.getNetFlowRate(address(pl));
-                emit log_string("> pool");
-                emit log_named_int("ob", Value.unwrap(ob));
-                emit log_named_int("fpb", Value.unwrap(fpb));
-                emit log_named_int("db", Value.unwrap(db));
-                emit log_named_int("pdr'", FlowRate.unwrap(pdr));
-                emit log_named_int("ajr", FlowRate.unwrap(ajr));
-                emit log_named_int("nr", FlowRate.unwrap(nr));
-            }
-
-            emit log_named_uint("> dt", s.dt);
-            vm.warp(block.timestamp + s.dt);
-        }
-
-        emit log_named_uint("> timestamp", block.timestamp);
-        Value bSum;
-        FlowRate rSum;
-        {
-            (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(address(pl));
-            FlowRate pdr = pl.getPendingDistributionFlowRate();
-            (,,FlowRate ajr) = token.getPoolAdjustmentFlowInfo(pl);
-            FlowRate nr = token.getNetFlowRate(address(pl));
-            emit log_string("> pool");
-            emit log_named_int("ob", Value.unwrap(ob));
-            emit log_named_int("fpb", Value.unwrap(fpb));
-            emit log_named_int("db", Value.unwrap(db));
-            emit log_named_int("pdr", FlowRate.unwrap(pdr));
-            emit log_named_int("ajr", FlowRate.unwrap(ajr));
-            emit log_named_int("nr", FlowRate.unwrap(nr));
-            bSum = bSum + ob + db;
-            rSum = rSum + nr;
-        }
-        for (uint i = 1; i <= N_MEMBERS; ++i) {
-            (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(TEST_ACCOUNTS[i]);
-            Value cb = pl.getClaimable(TEST_ACCOUNTS[i]);
-            FlowRate nr = token.getNetFlowRate(TEST_ACCOUNTS[i]);
-            emit log_named_uint("> user", i);
-            emit log_named_int("ob", Value.unwrap(ob));
-            emit log_named_int("fpb", Value.unwrap(fpb));
-            emit log_named_int("db", Value.unwrap(db));
-            emit log_named_int("cb", Value.unwrap(cb));
-            emit log_named_int("nr", FlowRate.unwrap(nr));
-            bSum = bSum + ob + db;
-            rSum = rSum + nr;
-        }
-        assertEq(rSum, FlowRate.wrap(0), "rSum");
-        assertEq(bSum - Value.wrap(int256(INIT_BALANCE * N_MEMBERS)), Value.wrap(0), "bSum");
-    }
-
-    function test_2to1_distributeflow(uint32 u1, uint32 r1, uint32 r2, uint16 dt2) external {
+    function test_2to1_distributeflow(uint32 u1, uint32 r1, uint32 r2,
+                                      uint16 dt2) external {
         Unit uu1 = Unit.wrap(int128(uint128((u1))));
         FlowRate rr1 = FlowRate.wrap(int64(uint64(r1)));
         FlowRate rr2 = FlowRate.wrap(int64(uint64(r2)));
@@ -591,13 +588,13 @@ contract ToySuperTokenTest is Test {
         vm.stopPrank();
         uint256 k2 = token.balanceOf(address(token)) - k1;
 
-        assertEq(Unit.unwrap(pl.getPendingUnits()), int(tu), "e1");
+        assertEq(Unit.unwrap(pl.getDisconnectedUnits()), int(tu), "e1");
 
         vm.startPrank(carol);
         token.connectPool(pl);
         vm.stopPrank();
 
-        assertEq(pl.getPendingUnits(), Unit.wrap(0), "e2");
+        assertEq(pl.getDisconnectedUnits(), Unit.wrap(0), "e2");
 
         vm.warp(Time.unwrap(t2));
 
@@ -606,10 +603,10 @@ contract ToySuperTokenTest is Test {
             FlowRate br2 = token.getNetFlowRate(bob);
             FlowRate cr2 = token.getNetFlowRate(carol);
             FlowRate pr2 = token.getNetFlowRate(address(pl));
-            FlowRate pdr2 = pl.getDistributionFlowRate();
+            FlowRate pdr2 = pl.getConnectedFlowRate();
 
-            assertEq(pl.getDistributionFlowRate(), FlowRate.wrap(int128(rrr1 + rrr2)), "e4.1");
-            assertEq(pl.getPendingDistributionFlowRate(), FlowRate.wrap(0), "e4.2");
+            assertEq(pl.getConnectedFlowRate(), FlowRate.wrap(int128(rrr1 + rrr2)), "e4.1");
+            assertEq(pl.getDisconnectedFlowRate(), FlowRate.wrap(0), "e4.2");
             assertEq(ar2, FlowRate.wrap(-int128(rrr1)), "e4.3");
             assertEq(br2, FlowRate.wrap(-int128(rrr2)), "e4.4");
             assertEq(pr2, FlowRate.wrap(0), "e4.5");
@@ -634,50 +631,307 @@ contract ToySuperTokenTest is Test {
         }
     }
 
-    function test_pool_multiple_claims(uint32 u1, uint32 r1, uint16 dt2, uint16 dt3) external {
-        Unit uu1 = Unit.wrap(int128(uint128((u1))));
-        FlowRate rr1 = FlowRate.wrap(int64(uint64(r1)));
-        uint256 tu = uint(u1);
-        int256 rrr1;if (tu == 0) rrr1 = 0;else rrr1 = int(uint(r1) / tu * tu);
-        Time t2 = Time.wrap(uint32(block.timestamp)) + Time.wrap(uint32(dt2));
-        Time t3 = t2 + Time.wrap(uint32(dt3));
+    function test_pool_distributeflow_claim_connected_pool(uint32 u, uint32 r,
+                                                           uint16 dt1, // claimAll
+                                                           uint16 dt2) external {
+        Unit uu = Unit.wrap(int128(uint128((u))));
+        FlowRate rr = FlowRate.wrap(int128(uint128(r)));
+        FlowRate rrr; if (u != 0) rrr = rr.div(uu).mul(uu);
+        Time t0 = Time.wrap(uint32(block.timestamp));
+        Time t1 = t0 + Time.wrap(uint32(dt1));
+        Time t2 = t1 + Time.wrap(uint32(dt2));
+
+        emit log_string("> t0 updateMember, distributeFlow, connectPool");
+        emit log_named_uint("u", u);
+        emit log_named_uint("r", r);
+        emit log_named_int("rrr", FlowRate.unwrap(rrr));
+        emit log_named_uint("dt1", dt1);
+        emit log_named_uint("dt2", dt2);
 
         ToySuperfluidPool pl = _createPool(alice);
 
-        uint256 a1 = token.balanceOf(alice);
-        uint256 b1 = token.balanceOf(bob);
-        uint256 p1 = token.balanceOf(address(pl));
+        Value a0 = token.realtimeBalanceNow(alice);
+        Value b0 = token.realtimeBalanceNow(bob);
+        Value p0 = token.realtimeBalanceNow(address(pl));
+
+        vm.startPrank(alice);
+        pl.updateMember(bob, uu);
+        token.distributeFlow(alice, pl, FlowId.wrap(0), rr);
+        vm.stopPrank();
+
+        _connectPool(pl, bob);
+
+        // > t1
+        vm.warp(Time.unwrap(t1));
+        emit log_string("> t1 claimAll");
+
+        Value pdb1 = pl.getDisonnectedBalance(t1);
+        emit log_named_int("pdb1", Value.unwrap(pdb1));
+
+        pl.claimAll(bob);
+        assertEq(pl.getClaimable(bob), Value.wrap(0), "e1.1");
+
+        // > t2
+        emit log_string("> t2");
+        vm.warp(Time.unwrap(t2));
+        emit log_named_int("pdb2", Value.unwrap(pl.getDisonnectedBalance(t2)));
+
+        Value a2 = token.realtimeBalanceNow(alice);
+        Value b2 = token.realtimeBalanceNow(bob);
+        Value k2 = token.realtimeBalanceNow(address(token));
+        Value p2 = token.realtimeBalanceNow(address(pl));
+
+        emit log_named_int("a0 - a2", Value.unwrap(a0 - a2));
+        emit log_named_int("b2 - b0", Value.unwrap(b2 - b0));
+        emit log_named_int("p2 - p0", Value.unwrap(p2 - p0));
+
+        assertEq(a0 - a2, k2 + rrr.mul(Time.wrap(uint32(dt1) + uint32(dt2))), "e2.1");
+        assertEq(a0 - a2, k2 + b2 - b0 + p2 - p0, "e2.2");
+    }
+
+    function test_pool_distributeflow_update_unit(uint32 u1, uint32 r,
+                                                  uint16 dt1, uint32 u2,
+                                                  uint16 dt2) external {
+        Unit uu1 = Unit.wrap(int128(uint128((u1))));
+        Unit uu2 = Unit.wrap(int128(uint128((u2))));
+        FlowRate rr = FlowRate.wrap(int128(uint128(r)));
+        FlowRate rrr1; if (u1 != 0) rrr1 = rr.div(uu1).mul(uu1);
+        FlowRate rrr2; if (u2 != 0) rrr2 = rrr1.div(uu2).mul(uu2);
+        Time t0 = Time.wrap(uint32(block.timestamp));
+        Time t1 = t0 + Time.wrap(uint32(dt1));
+        Time t2 = t1 + Time.wrap(uint32(dt2));
+
+        emit log_string("> t0 updateMember, distributeFlow");
+        emit log_named_uint("r", r);
+        emit log_named_uint("u1", u1);
+        emit log_named_uint("u2", u2);
+        emit log_named_int("rrr1", FlowRate.unwrap(rrr1));
+        emit log_named_int("rrr2", FlowRate.unwrap(rrr2));
+        emit log_named_uint("dt1", dt1);
+        emit log_named_uint("dt2", dt2);
+
+        ToySuperfluidPool pl = _createPool(alice);
+
+        Value a0 = token.realtimeBalanceNow(alice);
+        Value b0 = token.realtimeBalanceNow(bob);
+        Value p0 = token.realtimeBalanceNow(address(pl));
 
         vm.startPrank(alice);
         pl.updateMember(bob, uu1);
-        token.distributeFlow(alice, pl, FlowId.wrap(0), rr1);
+        token.distributeFlow(alice, pl, FlowId.wrap(0), rr);
         vm.stopPrank();
 
+        // > t1
+        emit log_string("> t1 updateMember");
+        vm.warp(Time.unwrap(t1));
+
+        emit log_named_int("pdb1", Value.unwrap(pl.getDisonnectedBalance(t1)));
+
+        vm.startPrank(alice);
+        pl.updateMember(bob, uu2);
+        vm.stopPrank();
+
+        emit log_named_int("pdb1a", Value.unwrap(pl.getDisonnectedBalance(t1)));
+        assertEq(pl.getClaimable(bob), Value.wrap(0), "e1.1");
+
+        // > t2
+        emit log_string("> t2");
         vm.warp(Time.unwrap(t2));
+        emit log_named_int("pdb2", Value.unwrap(pl.getDisonnectedBalance(t2)));
 
-        uint256 a2 = token.balanceOf(alice);
-        uint256 b2 = token.balanceOf(bob);
-        uint256 k2 = token.balanceOf(address(token));
+        Value a2 = token.realtimeBalanceNow(alice);
+        Value b2 = token.realtimeBalanceNow(bob);
+        Value k2 = token.realtimeBalanceNow(address(token));
+        Value p2 = token.realtimeBalanceNow(address(pl));
 
-        assertEq(Value.wrap(int256(a1 - a2 - k2)), pl.getClaimable(alice) + pl.getClaimable(bob), "e1.1");
+        emit log_named_int("a0 - a2", Value.unwrap(a0 - a2));
+        emit log_named_int("b2 - b0", Value.unwrap(b2 - b0));
+        emit log_named_int("p2 - p0", Value.unwrap(p2 - p0));
+
+        assertEq(a0 - a2, k2 + rrr1.mul(Time.wrap(uint32(dt1))) + rrr2.mul(Time.wrap(uint32(dt2))), "e2.1");
+        assertEq(a0 - a2, k2 + b2 - b0 + p2 - p0, "e2.2");
+    }
+
+    function test_pool_multiple_claims(uint32 u, uint32 r, uint16 dt1, uint16 dt2) external {
+        Unit uu = Unit.wrap(int128(uint128((u))));
+        FlowRate rr = FlowRate.wrap(int128(uint128(r)));
+        FlowRate rrr; if (u != 0) rrr = rr.div(uu).mul(uu);
+        Time t0 = Time.wrap(uint32(block.timestamp));
+        Time t1 = t0 + Time.wrap(uint32(dt1));
+        Time t2 = t1 + Time.wrap(uint32(dt2));
+
+        emit log_string("> t0 updateMember, distributeFlow");
+        emit log_named_uint("u", u);
+        emit log_named_uint("r", r);
+        emit log_named_int("rrr", FlowRate.unwrap(rrr));
+        emit log_named_uint("dt1", dt1);
+        emit log_named_uint("dt2", dt2);
+
+        ToySuperfluidPool pl = _createPool(alice);
+
+        Value a1 = token.realtimeBalanceNow(alice);
+        Value b1 = token.realtimeBalanceNow(bob);
+        Value p1 = token.realtimeBalanceNow(address(pl));
+
+        vm.startPrank(alice);
+        pl.updateMember(bob, uu);
+        token.distributeFlow(alice, pl, FlowId.wrap(0), rr);
+        vm.stopPrank();
+
+        // > t1
+        emit log_string("> t1 claimAll, claimAll");
+        vm.warp(Time.unwrap(t1));
+
+        Value a2 = token.realtimeBalanceNow(alice);
+        Value b2 = token.realtimeBalanceNow(bob);
+        Value k2 = token.realtimeBalanceNow(address(token));
+
+        assertEq(a1 - a2 - k2, pl.getClaimable(alice) + pl.getClaimable(bob), "e1.1");
         assertEq(b2, b1, "e1.2");
 
+        Value pdb1 = pl.getDisonnectedBalance(t1);
+        emit log_named_int("p1", Value.unwrap(token.realtimeBalanceNow(address(pl))));
+        emit log_named_int("pdb1", Value.unwrap(pdb1));
+
         pl.claimAll(bob);
-        assertEq(Value.unwrap(pl.getClaimable(bob)), 0, "e2.1");
+        emit log_named_int("p1a", Value.unwrap(token.realtimeBalanceNow(address(pl))));
+        assertEq(pl.getClaimable(bob), Value.wrap(0), "e1.2");
+
         pl.claimAll(bob);
-        assertEq(Value.unwrap(pl.getClaimable(bob)), 0, "e2.2");
+        assertEq(pl.getClaimable(bob), Value.wrap(0), "e1.3");
 
-        vm.warp(Time.unwrap(t3));
+        // > t2
+        emit log_string("> t2");
+        vm.warp(Time.unwrap(t2));
 
-        uint256 a3 = token.balanceOf(alice);
-        uint256 b3 = token.balanceOf(bob);
-        uint256 p3 = token.balanceOf(address(pl));
-        assertEq(k2, token.balanceOf(address(token)));
+        Value a3 = token.realtimeBalanceNow(alice);
+        Value b3 = token.realtimeBalanceNow(bob);
+        Value p3 = token.realtimeBalanceNow(address(pl));
 
-        assertEq(a2 - a3, p3, "e3.1");
-        assertEq(Value.wrap(int256(a2 - a3)), pl.getClaimable(bob), "e3.2");
+        assertEq(k2, token.realtimeBalanceNow(address(token)), "e2.1");
+        assertEq(a2 - a3, pl.getClaimable(bob), "e2.2");
+        assertEq(p3, pl.getClaimable(bob), "e2.3");
 
-        assertEq(a1 - a3, k2 + uint256(rrr1) * (uint256(dt2) + uint256(dt3)), "e4.1");
-        assertEq(a1 - a3, k2 + b3 - b1 + p3 - p1, "e4.2");
+        assertEq(a1 - a3, k2 + rrr.mul(Time.wrap(uint32(dt1) + uint32(dt2))), "e2.4");
+        assertEq(a1 - a3, k2 + b3 - b1 + p3 - p1, "e2.5");
+    }
+
+    struct PoolUpdateStep {
+        uint8   u; // which user
+        uint8   a; // action types: 0 update units, 1 distribute flow, 2 pool connection, 3 pool claim for
+        uint64  v; // action param
+        uint16 dt; // time delta
+    }
+    function test_pool_random_seqs(PoolUpdateStep[20] memory steps) external {
+        uint N_MEMBERS = 5;
+        ToySuperfluidPool pl = _createPool(alice);
+        // if (vm.envOr("NO_FOUNDRY_TEST_STEPS_LIMIT", uint256(0)) == 0) vm.assume(steps.length < 20);
+        for (uint i = 0; i < steps.length; ++i) {
+            emit log_named_uint(">>> STEP", i);
+
+            PoolUpdateStep memory s = steps[i];
+            uint a = s.a % 4;
+            uint u = 1 + s.u % N_MEMBERS; // a pool of 5 testers including the pool creator
+
+            emit log_named_uint("> timestamp", block.timestamp);
+            emit log_named_uint("tester", u);
+
+            if (a == 0) {
+                emit log_named_string("action", "updateMember");
+                emit log_named_uint("unit", s.v);
+                vm.startPrank(alice);
+                assert(pl.updateMember(TEST_ACCOUNTS[u], Unit.wrap(int128(uint128(s.v)))));
+                vm.stopPrank();
+            } else if (a == 1) {
+                emit log_named_string("action", "distributeFlow");
+                emit log_named_uint("flow rate", s.v);
+                vm.startPrank(TEST_ACCOUNTS[u]);
+                (,FlowRate ar,FlowRate pdr) = token.distributeFlow
+                    (TEST_ACCOUNTS[u], pl, FlowId.wrap(0), FlowRate.wrap(int128(uint128(s.v))));
+                emit log_named_int("ar", FlowRate.unwrap(ar));
+                emit log_named_int("pdr", FlowRate.unwrap(pdr));
+                vm.stopPrank();
+            } else if (a == 2) {
+                uint u4 = 1 + s.v % N_MEMBERS;
+                emit log_named_string("action", "claimAll");
+                emit log_named_uint("claim for", u4);
+                vm.startPrank(TEST_ACCOUNTS[u]);
+                assert(pl.claimAll(TEST_ACCOUNTS[u4]));
+                vm.stopPrank();
+            } else if (a == 3) {
+                bool doConnect = s.v % 2 == 0 ? false : true;
+                emit log_named_string("action", "doConnectPool");
+                emit log_named_string("doConnect", doConnect ? "true" : "false");
+                vm.startPrank(TEST_ACCOUNTS[u]);
+                assert(token.connectPool(pl, doConnect));
+                vm.stopPrank();
+            } else assert(false);
+
+            {
+                (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(address(pl));
+                FlowRate pdr = pl.getConnectedFlowRate();
+                FlowRate ajr = getAdjustmentFlowRate(pl, alice);
+                FlowRate nr = token.getNetFlowRate(address(pl));
+                emit log_string("> pool before time warp");
+                emit log_named_int("ob", Value.unwrap(ob));
+                emit log_named_int("fpb", Value.unwrap(fpb));
+                emit log_named_int("db", Value.unwrap(db));
+                emit log_named_int("pdr'", FlowRate.unwrap(pdr));
+                emit log_named_int("ajr", FlowRate.unwrap(ajr));
+                emit log_named_int("nr", FlowRate.unwrap(nr));
+            }
+
+            emit log_named_uint("> dt", s.dt);
+            vm.warp(block.timestamp + s.dt);
+
+            {
+                (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(address(pl));
+                FlowRate pdr = pl.getConnectedFlowRate();
+                FlowRate ajr = getAdjustmentFlowRate(pl, alice);
+                FlowRate nr = token.getNetFlowRate(address(pl));
+                emit log_string("> pool after time warp");
+                emit log_named_int("ob", Value.unwrap(ob));
+                emit log_named_int("fpb", Value.unwrap(fpb));
+                emit log_named_int("db", Value.unwrap(db));
+                emit log_named_int("pdr'", FlowRate.unwrap(pdr));
+                emit log_named_int("ajr", FlowRate.unwrap(ajr));
+                emit log_named_int("nr", FlowRate.unwrap(nr));
+            }
+        }
+
+        emit log_string(">>> SUMMARY");
+        emit log_named_uint("> timestamp", block.timestamp);
+        Value bSum;
+        FlowRate rSum;
+        {
+            (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(address(pl));
+            FlowRate pdr = pl.getDisconnectedFlowRate();
+            (,,FlowRate ajr) = token.getPoolAdjustmentFlowInfo(pl);
+            FlowRate nr = token.getNetFlowRate(address(pl));
+            emit log_string("> pool");
+            emit log_named_int("ob", Value.unwrap(ob));
+            emit log_named_int("fpb", Value.unwrap(fpb));
+            emit log_named_int("db", Value.unwrap(db));
+            emit log_named_int("pdr", FlowRate.unwrap(pdr));
+            emit log_named_int("ajr", FlowRate.unwrap(ajr));
+            emit log_named_int("nr", FlowRate.unwrap(nr));
+            bSum = bSum + ob + fpb + db;
+            rSum = rSum + nr;
+        }
+        for (uint i = 1; i <= N_MEMBERS; ++i) {
+            (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(TEST_ACCOUNTS[i]);
+            Value cb = pl.getClaimable(TEST_ACCOUNTS[i]);
+            FlowRate nr = token.getNetFlowRate(TEST_ACCOUNTS[i]);
+            emit log_named_uint("> user", i);
+            emit log_named_int("ob", Value.unwrap(ob));
+            emit log_named_int("fpb", Value.unwrap(fpb));
+            emit log_named_int("db", Value.unwrap(db));
+            emit log_named_int("cb", Value.unwrap(cb));
+            emit log_named_int("nr", FlowRate.unwrap(nr));
+            bSum = bSum + ob + fpb + db;
+            rSum = rSum + nr;
+        }
+        assertEq(rSum, FlowRate.wrap(0), "rSum");
+        assertEq(bSum - Value.wrap(int256(INIT_BALANCE * N_MEMBERS)), Value.wrap(0), "bSum");
     }
 }

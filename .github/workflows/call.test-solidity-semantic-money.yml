@@ -16,7 +16,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-
       - uses: cachix/install-nix-action@v19
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
@@ -29,7 +28,9 @@ jobs:
         run: |
           yarn install
 
-      - name: Build
+      - name: Build & Test
         run: |
           cd packages/solidity-semantic-money
           make build-src test-all
+        env:
+          FOUNDRY_FUZZ_RUNS: 10000 # yea, baby

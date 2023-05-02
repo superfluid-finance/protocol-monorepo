@@ -100,6 +100,11 @@ jobs:
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
+  test-solidity-semantic-money:
+    uses: ./.github/workflows/call.test-solidity-semantic-money.yml
+    needs: [ check ]
+    if: needs.check.outputs.build_solidity_semantic_money
+
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml
     name: Build and Test Spec Haskell (Canary Branch)
@@ -201,6 +206,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ essential-build-and-test
            , test-spec-haskell
+           , test-solidity-semantic-money
            , test-hot-fuzz
            , test-subgraph
            , coverage-ethereum-contracts

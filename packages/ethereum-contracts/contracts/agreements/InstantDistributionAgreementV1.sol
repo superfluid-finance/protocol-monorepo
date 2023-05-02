@@ -75,7 +75,7 @@ contract InstantDistributionAgreementV1 is
     address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
 
     /// @dev Maximum number of subscriptions a subscriber can have
-    uint32 public constant MAX_NUM_SUBSCRIPTIONS = 256;
+    uint32 public constant MAX_NUM_SUBSCRIPTIONS = SlotsBitmapLibrary._MAX_NUM_SLOTS;
 
     /// @dev Subscriber state slot id for storing subs bitmap
     uint256 private constant _SUBSCRIBER_SUBS_BITMAP_STATE_SLOT_ID = 0;

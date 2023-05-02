@@ -20,11 +20,15 @@ interface ISuperfluidToken is ISuperfluidPoolAdmin {
     // Generalized Payment Primitives
     ////////////////////////////////////////////////////////////////////////////////
 
-    function realtimeBalanceOf(address account) external view returns (Value rtb);
+    function realtimeBalanceNow(address account) external view returns (Value rtb);
 
     function realtimeBalanceAt(address account, Time t) external view returns (Value rtb);
 
-    function realtimeBalanceVectorAt(address account, Time t) external view returns (Value available, Value deposit);
+    function realtimeBalanceVectorNow(address account) external view
+        returns (Value own, Value fromPools, Value deposit);
+
+    function realtimeBalanceVectorAt(address account, Time t) external view
+        returns (Value own, Value fromPools, Value deposit);
 
     function getNetFlowRate(address account) external view returns (FlowRate);
 

@@ -30,7 +30,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
 
     ToySuperfluidPool public immutable POOL_CONTRACT_MASTER_COPY;
 
-    Time public LIQUIDATION_PERIOD = Time.wrap(42 minutes);
+    Time public LIQUIDATION_PERIOD = Time.wrap(1000 seconds);
 
     struct AccountData {
         Value    totalBuffer;
@@ -45,10 +45,14 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         Value    buffer;
     }
 
+    struct PoolInfo {
+        bool exist;
+    }
+
     mapping (address owner => BasicParticle) public uIndexes;
     mapping (address owner => AccountData) public accountData;
     mapping (bytes32 flowHash => FlowData) public flowData;
-    mapping (address pool => bool exist) private _poolExistenceFlags;
+    mapping (address pool => PoolInfo) private _poolInfoMap;
     mapping (address owner => EnumerableSet.AddressSet poolConnections) private _poolConnectionsMap;
 
     constructor () {
@@ -63,30 +67,37 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     // Generalized Payment Primitives
     ////////////////////////////////////////////////////////////////////////////////
 
-    function realtimeBalanceOf(address account) override external view
-        returns (Value rtb)
+    function realtimeBalanceNow(address account) override external view
+        returns (Value avb)
     {
         Time t = Time.wrap(uint32(block.timestamp));
         return realtimeBalanceAt(account, t);
     }
 
     function realtimeBalanceAt(address account, Time t) override public view
-        returns (Value rtb)
+        returns (Value avb)
     {
-        (Value available, ) = realtimeBalanceVectorAt(account, t);
-        rtb = available;
+        (Value own, Value fromPools,) = realtimeBalanceVectorAt(account, t);
+        avb = own + fromPools;
+    }
+
+    function realtimeBalanceVectorNow(address account) override public view
+        returns (Value own, Value fromPools, Value deposit)
+    {
+        Time t = Time.wrap(uint32(block.timestamp));
+        return realtimeBalanceVectorAt(account, t);
     }
 
     function realtimeBalanceVectorAt(address account, Time t) override public view
-        returns (Value available, Value deposit)
+        returns (Value own, Value fromPools, Value deposit)
     {
         // initial value from universal index
-        available = _getUIndex(new bytes(0), account).rtb(t);
+        own = _getUIndex(new bytes(0), account).rtb(t);
 
-        // pending distributions from pool
+        // Adding cumulative pending distributions from a pool.
+        // It is cumulative because the claimed distributions are already offset via the universal indexes.
         if (_isPool(account)) {
-            // NB! Please ask solidity designer why "+=" is not derived for overloaded operator custom types
-            available = available + ISuperfluidPool(account).getPendingDistribution();
+            own = own + ISuperfluidPool(account).getCumulativePendingDistributionAt(t);
         }
 
         // pool-connected balance
@@ -94,7 +105,8 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
             EnumerableSet.AddressSet storage connections = _poolConnectionsMap[account];
             for (uint i = 0; i < connections.length(); ++i) {
                 ISuperfluidPool p = ISuperfluidPool(connections.at(i));
-                available = available + p.getClaimable(t, account);
+                // NB! Please ask solidity designer why "+=" is not derived for overloaded operator custom types
+                fromPools = fromPools + p.getClaimable(account, t);
             }
         }
 
@@ -124,7 +136,13 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     }
 
     function getDistributionFlowHash(address from, ISuperfluidPool to, FlowId flowId) public view returns (bytes32) {
-        return keccak256(abi.encode(block.chainid, "distributionflow", from, address(to), flowId));
+        return keccak256(abi.encode(block.chainid, "distribution_flow", from, address(to), flowId));
+    }
+
+    function getPoolAdjustmentFlowHash(address from, address to) public view returns (bytes32)
+    {
+        // this will never be in conflict with other flow has types
+        return keccak256(abi.encode(block.chainid, "pool_adjustment_flow", from, to));
     }
 
     // getTotalFlowRate(address from, address to)
@@ -168,7 +186,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         /// prepare local variables (let bindings)
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowHash = getFlowHash(from, to, flowId);
-        FlowRate oldFlowRate = _getFlowRate(new bytes(0), flowHash);
+        FlowRate oldFlowRate = _getFlowRate(eff, flowHash);
 
         // Make updates
         eff = _doFlow(eff, from, to, flowHash, flowRate, t);
@@ -216,7 +234,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         /// prepare local variables
         Time t = Time.wrap(uint32(block.timestamp));
         bytes32 flowHash = getDistributionFlowHash(from, to, flowId);
-        FlowRate oldFlowRate = _getFlowRate(new bytes(0), flowHash);
+        FlowRate oldFlowRate = _getFlowRate(eff, flowHash);
 
         // permission control
         // FIXME actualFlowRate
@@ -274,37 +292,57 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         if (doConnect) {
             if (!_poolConnectionsMap[msg.sender].contains(address(to))) {
                 _poolConnectionsMap[msg.sender].add(address(to));
-                assert(to.operatorConnectMember(t, msg.sender, true));
+                assert(to.operatorConnectMember(msg.sender, true, t));
             }
         } else {
             if (_poolConnectionsMap[msg.sender].contains(address(to))) {
                 _poolConnectionsMap[msg.sender].remove(address(to));
-                assert(to.operatorConnectMember(t, msg.sender, false));
+                assert(to.operatorConnectMember(msg.sender, false, t));
             }
         }
         return true;
     }
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Pool Admin Operations
+    ////////////////////////////////////////////////////////////////////////////////
 
     function isMemberConnected(ISuperfluidPool to, address memberAddr) override external view returns (bool) {
         return _poolConnectionsMap[memberAddr].contains(address(to));
     }
 
-    /// This is used by the pool to adjust flow rate
-    function _absorbParticlesFromPool(bytes memory eff, address[] calldata accounts, BasicParticle[] calldata ps)
-        internal returns (bool)
+    function getPoolAdjustmentFlowInfo(ISuperfluidPool pool) override external view
+        returns (address recipient, bytes32 flowHash, FlowRate flowRate)
     {
-        require(_isPool(msg.sender), "Only absorbing from pools!");
-        assert(accounts.length == ps.length);
-        for (uint i = 0; i < accounts.length; i++) {
-            _setUIndex(eff, accounts[i], _getUIndex(eff, accounts[i]).mappend(ps[i]));
-        }
+        return _getPoolAdjustmentFlowInfo(new bytes(0), address(pool));
+    }
+
+    function _appendIndexUpdateByPool(bytes memory eff, address pool, BasicParticle memory p, Time t) internal {
+        require(_isPool(pool), "Only a pool can adjust flow!");
+        uIndexes[pool] = uIndexes[pool].mappend(p);
+        _setPoolAdjustmentFlowRate(eff, pool, true /* doShift? */, p.flow_rate(), t);
+    }
+
+    function appendIndexUpdateByPool(BasicParticle memory p, Time t)
+        virtual override external returns (bool)
+    {
+        _appendIndexUpdateByPool(new bytes(0), msg.sender, p, t);
         return true;
     }
 
-    function absorbParticlesFromPool(address[] calldata accounts, BasicParticle[] calldata ps)
+    function _poolSettleClaim(bytes memory eff, address claimRecipient, Value amount)
+        internal
+    {
+        require(_isPool(msg.sender), "Only a pool can settle claim!");
+        _doShift(eff, msg.sender, claimRecipient, amount);
+    }
+
+    /// Settle the claim
+    function poolSettleClaim(address claimRecipient, Value amount)
         virtual override external returns (bool)
     {
-        return _absorbParticlesFromPool(new bytes(0), accounts, ps);
+        _poolSettleClaim(new bytes(0), claimRecipient, amount);
+        return true;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -312,10 +350,10 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     ////////////////////////////////////////////////////////////////////////////////
 
     function _isPool(address pool) internal view virtual returns (bool) {
-        return _poolExistenceFlags[pool];
+        return _poolInfoMap[pool].exist;
     }
     function _registerPool(address pool) internal virtual {
-        _poolExistenceFlags[pool] = true;
+        _poolInfoMap[pool].exist = true;
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -382,6 +420,41 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         flowData[flowHash] = FlowData(from, to, newFlowRate, flowData[flowHash].buffer);
         accountData[from].totalOutflowRate = accountData[from].totalOutflowRate + flowRateDelta;
         accountData[to].totalInflowRate = accountData[from].totalInflowRate + flowRateDelta;
+        return eff;
+    }
+
+    function _getPoolAdjustmentFlowInfo(bytes memory eff, address pool)
+        internal view returns (address adjustmentRecipient, bytes32 flowHash, FlowRate)
+    {
+        adjustmentRecipient = ToySuperfluidPool(pool).admin();
+        flowHash = getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
+        return (adjustmentRecipient, flowHash, _getFlowRate(eff, flowHash));
+    }
+
+    function _getPoolAdjustmentFlowRate(bytes memory eff, address pool)
+        override internal view returns (FlowRate flowRate) {
+        (,,flowRate) = _getPoolAdjustmentFlowInfo(eff, pool);
+    }
+
+    function _setPoolAdjustmentFlowRate(bytes memory eff, address pool, FlowRate flowRate, Time t)
+        override internal returns (bytes memory)
+    {
+        return _setPoolAdjustmentFlowRate(eff, pool, false /* doShift? */, flowRate, t);
+    }
+
+    function _setPoolAdjustmentFlowRate(bytes memory eff, address pool,
+                                        bool doShiftFlow, FlowRate flowRate, Time t)
+        internal returns (bytes memory)
+    {
+        address adjustmentRecipient = ToySuperfluidPool(pool).admin();
+        bytes32 adjustmentFlowHash = getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
+
+        if (doShiftFlow) {
+            flowRate = flowRate + _getFlowRate(eff, adjustmentFlowHash);
+        }
+
+        eff = _doFlow(eff, pool, adjustmentRecipient, adjustmentFlowHash, flowRate, t);
+
         return eff;
     }
 }

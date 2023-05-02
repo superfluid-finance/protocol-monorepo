@@ -64,8 +64,8 @@ contract AqueductTest is Test {
     }
 
     function assert_zero_liquidity() internal {
-        Value xl1 = token1.realtimeBalanceOf(address(x));
-        Value xl2 = token2.realtimeBalanceOf(address(x));
+        Value xl1 = token1.realtimeBalanceNow(address(x));
+        Value xl2 = token2.realtimeBalanceNow(address(x));
         emit log_named_int("token1.rtb x", Value.unwrap(xl2));
         emit log_named_int("token2.rtb x", Value.unwrap(xl2));
         assertEq(xl1, Value.wrap(0), "ZL: token1");
@@ -100,8 +100,8 @@ contract AqueductTest is Test {
         _flowWithCallback(token1, alice, rr1);
         _flowWithCallback(token2, alice, rr2);
 
-        Value al2 = token1.realtimeBalanceOf(alice);
-        Value ar2 = token2.realtimeBalanceOf(alice);
+        Value al2 = token1.realtimeBalanceNow(alice);
+        Value ar2 = token2.realtimeBalanceNow(alice);
 
         emit log_named_int("al2", Value.unwrap(al2));
         emit log_named_int("ar2", Value.unwrap(ar2));
@@ -137,10 +137,10 @@ contract AqueductTest is Test {
         FlowRate rr2 = FlowRate.wrap(int128(uint128(r2)));
         FlowRate rr3 = FlowRate.wrap(int128(uint128(r3)));
 
-        Value al1 = token1.realtimeBalanceOf(alice);
-        Value ar1 = token2.realtimeBalanceOf(alice);
-        Value bl1 = token1.realtimeBalanceOf(bob);
-        Value br1 = token2.realtimeBalanceOf(bob);
+        Value al1 = token1.realtimeBalanceNow(alice);
+        Value ar1 = token2.realtimeBalanceNow(alice);
+        Value bl1 = token1.realtimeBalanceNow(bob);
+        Value br1 = token2.realtimeBalanceNow(bob);
 
         _flowWithCallback(token1, bob, rr3);
 
@@ -151,10 +151,10 @@ contract AqueductTest is Test {
 
         vm.warp(Time.unwrap(t2));
 
-        Value al2 = token1.realtimeBalanceOf(alice);
-        Value ar2 = token2.realtimeBalanceOf(alice);
-        Value bl2 = token1.realtimeBalanceOf(bob);
-        Value br2 = token2.realtimeBalanceOf(bob);
+        Value al2 = token1.realtimeBalanceNow(alice);
+        Value ar2 = token2.realtimeBalanceNow(alice);
+        Value bl2 = token1.realtimeBalanceNow(bob);
+        Value br2 = token2.realtimeBalanceNow(bob);
 
         emit log_named_int("token1.rtb a", Value.unwrap(al2));
         emit log_named_int("token1.rtb b", Value.unwrap(bl2));
@@ -199,7 +199,7 @@ contract AqueductTest is Test {
     }
     /** @dev Assert zero liquidity over generated random steps.
      */
-    function test_random_seqs(Step[] memory steps) external {
+    function test_random_seqs(Step[3] memory steps) external {
         uint noStepsLimit = vm.envOr("NO_FOUNDRY_TEST_STEPS_LIMIT", uint256(0));
         if (noStepsLimit == 0) {
             vm.assume(steps.length < 20);

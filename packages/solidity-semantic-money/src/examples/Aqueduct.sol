@@ -90,37 +90,43 @@ contract Aqueduct {
         {
             FlowRate ar0 = a.token.getFlowRate(address(this), from, ADJUSTMENT_FLOW_ID);
             FlowRate dr0 = a.pool.getDistributionFlowRate();
-            _adjustFlowRemainder(a, from, ir1 - ir0, drr, ar0, dr0);
+            (,,FlowRate dr1) = a.token.distributeFlow(address(this), a.pool, SWAP_DISTRIBUTE_FLOW_ID, drr);
+            _adjustFlowRemainder(a, from, ir1 - ir0, dr1, ar0, dr0);
         }
 
         {
             FlowRate ar0 = b.token.getFlowRate(address(this), from, ADJUSTMENT_FLOW_ID);
             FlowRate dr0 = b.pool.getDistributionFlowRate();
             b.pool.updateMember(from, tssB.nUnits);
-            _adjustFlowRemainder(b, from, FlowRate.wrap(0), dr0 + ar0, ar0, dr0);
+            (,,FlowRate dr1) = b.token.distributeFlow(address(this), b.pool, SWAP_DISTRIBUTE_FLOW_ID, dr0 + ar0);
+            _adjustFlowRemainder(b, from, FlowRate.wrap(0), dr1, ar0, dr0);
         }
     }
 
-    function _adjustFlowRemainder(Side storage a, address from,
-                                  FlowRate ird, FlowRate drr,
+    /**
+     * @dev Helper function for adjusting flow remainder for the new receiver
+     *
+     * @param ird - Input rate difference
+     * @param dr1 - ??
+     */
+    function _adjustFlowRemainder(Side storage a, address newRemFlowReceiver,
+                                  FlowRate ird, FlowRate dr1,
                                   FlowRate ar0, FlowRate dr0) internal {
-        (,,FlowRate dr1) = a.token.distributeFlow(address(this), a.pool, SWAP_DISTRIBUTE_FLOW_ID, drr);
-
-        if (a.remFlowReceiver != from) {
+        if (a.remFlowReceiver != newRemFlowReceiver) {
             FlowRate br0 = a.token.getFlowRate(address(this), a.remFlowReceiver, ADJUSTMENT_FLOW_ID);
             // solve ar1 in: ird = (dr1 - dr0) + (ar1 - ar0) + (0 - br0)
             // =>
             FlowRate ar1 = ird + dr0 - dr1 + ar0 + br0;
 
             a.token.flow(address(this), a.remFlowReceiver, ADJUSTMENT_FLOW_ID, FlowRate.wrap(0));
-            a.token.flow(address(this), from, ADJUSTMENT_FLOW_ID, ar1);
-            a.remFlowReceiver = from;
+            a.token.flow(address(this), newRemFlowReceiver, ADJUSTMENT_FLOW_ID, ar1);
+            a.remFlowReceiver = newRemFlowReceiver;
         } else {
             // solve ar1 in: ird = (dr1 - dr0) + (ar1 - ar0)
             // =>
             FlowRate ar1 = ird + dr0 - dr1 + ar0;
 
-            a.token.flow(address(this), from, ADJUSTMENT_FLOW_ID, ar1);
+            a.token.flow(address(this), newRemFlowReceiver, ADJUSTMENT_FLOW_ID, ar1);
         }
     }
 }

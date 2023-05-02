@@ -105,8 +105,8 @@ contract AqueductTest is Test {
 
         emit log_named_int("al2", Value.unwrap(al2));
         emit log_named_int("ar2", Value.unwrap(ar2));
-        emit log_named_int("pool1 tr", int256(FlowRate.unwrap(x.pool1().getDistributionFlowRate())));
-        emit log_named_int("pool2 tr", int256(FlowRate.unwrap(x.pool2().getDistributionFlowRate())));
+        emit log_named_int("pool1 tr", int256(FlowRate.unwrap(x.pool1().getConnectedFlowRate())));
+        emit log_named_int("pool2 tr", int256(FlowRate.unwrap(x.pool2().getConnectedFlowRate())));
         emit log_named_int("pool1 u a", int256(Unit.unwrap(x.pool1().getUnits(alice))));
         emit log_named_int("pool2 u a", int256(Unit.unwrap(x.pool2().getUnits(alice))));
         emit log_named_int("token1 r a->x", int256(FlowRate.unwrap(token1.getFlowRate(alice, address(x), FlowId.wrap(0)))));
@@ -161,7 +161,7 @@ contract AqueductTest is Test {
         emit log_named_int("token2.rtb a", Value.unwrap(ar2));
         emit log_named_int("token2.rtb b", Value.unwrap(br2));
 
-        emit log_named_int("pool1 tr", int256(FlowRate.unwrap(x.pool1().getDistributionFlowRate())));
+        emit log_named_int("pool1 tr", int256(FlowRate.unwrap(x.pool1().getConnectedFlowRate())));
         emit log_named_int("pool1 u a", int256(Unit.unwrap(x.pool1().getUnits(alice))));
         emit log_named_int("pool1 u b", int256(Unit.unwrap(x.pool1().getUnits(bob))));
         emit log_named_int("token1 r a->x", int256(FlowRate.unwrap(token1.getFlowRate(alice, address(x), FlowId.wrap(0)))));
@@ -169,7 +169,7 @@ contract AqueductTest is Test {
         emit log_named_int("token1 r x->a", int256(FlowRate.unwrap(token1.getFlowRate(address(x), alice, FlowId.wrap(0)))));
         emit log_named_int("token1 r x->b", int256(FlowRate.unwrap(token1.getFlowRate(address(x), bob, FlowId.wrap(0)))));
 
-        emit log_named_int("pool2 tr", int256(FlowRate.unwrap(x.pool2().getDistributionFlowRate())));
+        emit log_named_int("pool2 tr", int256(FlowRate.unwrap(x.pool2().getConnectedFlowRate())));
         emit log_named_int("pool2 u a", int256(Unit.unwrap(x.pool2().getUnits(alice))));
         emit log_named_int("pool2 u b", int256(Unit.unwrap(x.pool2().getUnits(bob))));
         emit log_named_int("token2 r a->x", int256(FlowRate.unwrap(token2.getFlowRate(alice, address(x), FlowId.wrap(0)))));

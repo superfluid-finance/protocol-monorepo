@@ -89,14 +89,14 @@ contract Aqueduct {
 
         {
             FlowRate ar0 = a.token.getFlowRate(address(this), from, ADJUSTMENT_FLOW_ID);
-            FlowRate dr0 = a.pool.getDistributionFlowRate();
+            FlowRate dr0 = a.pool.getConnectedFlowRate();
             (,,FlowRate dr1) = a.token.distributeFlow(address(this), a.pool, SWAP_DISTRIBUTE_FLOW_ID, drr);
             _adjustFlowRemainder(a, from, ir1 - ir0, dr1, ar0, dr0);
         }
 
         {
             FlowRate ar0 = b.token.getFlowRate(address(this), from, ADJUSTMENT_FLOW_ID);
-            FlowRate dr0 = b.pool.getDistributionFlowRate();
+            FlowRate dr0 = b.pool.getConnectedFlowRate();
             b.pool.updateMember(from, tssB.nUnits);
             (,,FlowRate dr1) = b.token.distributeFlow(address(this), b.pool, SWAP_DISTRIBUTE_FLOW_ID, dr0 + ar0);
             _adjustFlowRemainder(b, from, FlowRate.wrap(0), dr1, ar0, dr0);

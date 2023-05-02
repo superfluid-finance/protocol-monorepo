@@ -101,9 +101,8 @@ jobs:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
   test-solidity-semantic-money:
+    name: Build and Test Solidity Semantic Money (Canary Branch)
     uses: ./.github/workflows/call.test-solidity-semantic-money.yml
-    needs: [ check ]
-    if: needs.check.outputs.build_solidity_semantic_money
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml

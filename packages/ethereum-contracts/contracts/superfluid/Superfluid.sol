@@ -64,6 +64,8 @@ contract Superfluid is
     // solhint-disable-next-line var-name-mixedcase
     uint64 constant public CALLBACK_GAS_LIMIT = 3000000;
 
+    uint32 constant public MAX_NUM_AGREEMENTS = 256;
+
     /* WARNING: NEVER RE-ORDER VARIABLES! Always double-check that new
        variables are added APPEND-ONLY. Re-ordering variables can
        permanently BREAK the deployed proxy contract. */
@@ -152,7 +154,7 @@ contract Superfluid is
         if (_agreementClassIndices[agreementType] != 0) {
             revert HOST_AGREEMENT_ALREADY_REGISTERED();
         }
-        if (_agreementClasses.length >= 256) revert HOST_MAX_256_AGREEMENTS();
+        if (_agreementClasses.length >= MAX_NUM_AGREEMENTS) revert HOST_MAX_256_AGREEMENTS();
         ISuperAgreement agreementClass;
         if (!NON_UPGRADABLE_DEPLOYMENT) {
             // initialize the proxy

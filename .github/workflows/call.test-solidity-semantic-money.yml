@@ -1,0 +1,31 @@
+name: Reusable Workflow | Test solidity-semantic-money
+
+on:
+  workflow_call:
+
+jobs:
+  test-solidity-semantic-money:
+    name: Test solidity-semantic-money - Linux
+
+    runs-on: ubuntu-latest
+
+    defaults:
+     run:
+       shell: nix develop . -c bash {0}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: cachix/install-nix-action@v19
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+
+      - name: Initialize Nix DevShell
+        run: |
+          forge --version
+
+      - name: Build
+        run: |
+          cd packages/solidity-semantic-money
+          make build-src test-all

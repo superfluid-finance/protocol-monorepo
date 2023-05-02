@@ -151,11 +151,11 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
             Unit u = _members[memberAddr].owned_units;
             if (doConnect) {
                 // previous disconnected, now to be connected
-                // => settle first, then removing from disconnected distribution group
+                // => removing from the disconnected distribution group
                 _shiftDisconnectedUnits(-u, claimedAmount, t);
             } else {
                 // previous connected, now to be disconnected
-                // => add to disconnected distribution group first, then settle.
+                // => adding to disconnected distribution group
                 _shiftDisconnectedUnits(u, Value.wrap(0), t);
             }
         }

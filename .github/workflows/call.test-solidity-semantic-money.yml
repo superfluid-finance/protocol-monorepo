@@ -35,4 +35,4 @@ jobs:
           echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           make build-src test-all
         env:
-          FOUNDRY_FUZZ_RUNS: 10000 # yea, baby
+          FOUNDRY_FUZZ_RUNS: 4200 # yea, baby

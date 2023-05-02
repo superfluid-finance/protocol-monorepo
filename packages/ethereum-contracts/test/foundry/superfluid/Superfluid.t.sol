@@ -17,7 +17,7 @@ import { AgreementMock } from "../../../contracts/mocks/AgreementMock.sol";
 contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
 
-    uint32 private constant _NUM_AGREEMENTS = 2;
+    uint32 private constant _NUM_AGREEMENTS = 3;
 
     constructor() FoundrySuperfluidTester(3) {}
 
@@ -28,6 +28,7 @@ contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
         );
         mocks[0] = ISuperAgreement(address(sf.cfa));
         mocks[1] = ISuperAgreement(address(sf.ida));
+        mocks[2] = ISuperAgreement(address(sf.gda));
         for (uint256 i; i < maxNumAgreements - _NUM_AGREEMENTS; ++i) {
             bytes32 id = keccak256(abi.encode("type.", i));
             AgreementMock mock = new AgreementMock(address(sf.host), id, i);

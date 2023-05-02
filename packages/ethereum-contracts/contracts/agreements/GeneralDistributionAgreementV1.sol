@@ -265,10 +265,7 @@ contract GeneralDistributionAgreementV1 is
         int96 requestedFlowRate
     ) external view override returns (int96 finalFlowRate) {
         Time t = Time.wrap(uint32(block.timestamp));
-        bytes32 distributionFlowID = _getFlowDistributionID(
-            from,
-            address(to)
-        );
+        bytes32 distributionFlowID = _getFlowDistributionID(from, address(to));
 
         BasicParticle memory fromUIndexData = _getUIndex(
             abi.encode(token),
@@ -457,7 +454,7 @@ contract GeneralDistributionAgreementV1 is
             revert GDA_ONLY_ADMIN();
         }
 
-        (, Value actualAmount) = _doDistribute(
+        (, Value actualAmount) = _doDistributeViaPool(
             abi.encode(token),
             currentContext.msgSender,
             address(pool),
@@ -512,14 +509,18 @@ contract GeneralDistributionAgreementV1 is
         );
         FlowRate oldFlowRate = basicParticle._flow_rate.inv();
 
-        (, FlowRate actualFlowRate, FlowRate newDistributionFlowRate) = _doDistributeFlow(
-            abi.encode(token),
-            from,
-            address(pool),
-            distributionFlowID,
-            FlowRate.wrap(requestedFlowRate),
-            Time.wrap(uint32(block.timestamp))
-        );
+        (
+            ,
+            FlowRate actualFlowRate,
+            FlowRate newDistributionFlowRate
+        ) = _doDistributeFlowViaPool(
+                abi.encode(token),
+                from,
+                address(pool),
+                distributionFlowID,
+                FlowRate.wrap(requestedFlowRate),
+                Time.wrap(uint32(block.timestamp))
+            );
 
         {
             _adjustBuffer(
@@ -549,8 +550,7 @@ contract GeneralDistributionAgreementV1 is
                         liquidationData.token = token;
                         liquidationData.sender = from;
                         liquidationData.liquidator = currentContext.msgSender;
-                        liquidationData
-                            .distributionFlowID = distributionFlowID;
+                        liquidationData.distributionFlowID = distributionFlowID;
                         liquidationData.signedTotalGDADeposit = fromUIndexData
                             .totalBuffer
                             .toInt256();
@@ -956,6 +956,18 @@ contract GeneralDistributionAgreementV1 is
 
         return eff;
     }
+
+    function _getPoolAdjustmentFlowRate(
+        bytes memory eff,
+        address pool
+    ) internal view override returns (FlowRate) {}
+
+    function _setPoolAdjustmentFlowRate(
+        bytes memory eff,
+        address pool,
+        FlowRate flowRate,
+        Time
+    ) internal view override returns (bytes memory) {}
 
     function isPool(
         ISuperfluidToken token,

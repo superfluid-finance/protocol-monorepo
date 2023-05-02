@@ -459,7 +459,7 @@ contract ToySuperTokenTest is Test {
         emit log_named_uint("dt1", dt1);
         vm.warp(Time.unwrap(t1));
         emit log_string("> t1 connectPool");
-        emit log_named_int("pdb1", Value.unwrap(pl.getDisonnectedBalance(t1)));
+        emit log_named_int("pdb1", Value.unwrap(pl.getDisconnectedBalance(t1)));
         _connectPool(pl, bob);
         assertEq(pl.getDisconnectedUnits(), Unit.wrap(0), "e2");
 
@@ -467,7 +467,7 @@ contract ToySuperTokenTest is Test {
         emit log_named_uint("dt2", dt2);
         vm.warp(Time.unwrap(t2));
         emit log_string("> t2 disconnectPool");
-        emit log_named_int("pdb2", Value.unwrap(pl.getDisonnectedBalance(t2)));
+        emit log_named_int("pdb2", Value.unwrap(pl.getDisconnectedBalance(t2)));
         _disconnectPool(pl, bob);
         assertEq(pl.getDisconnectedUnits(), uu, "e2");
 
@@ -475,7 +475,7 @@ contract ToySuperTokenTest is Test {
         emit log_named_uint("dt3", dt3);
         vm.warp(Time.unwrap(t3));
         emit log_string("> t3 connectPool");
-        emit log_named_int("pdb3", Value.unwrap(pl.getDisonnectedBalance(t3)));
+        emit log_named_int("pdb3", Value.unwrap(pl.getDisconnectedBalance(t3)));
         _connectPool(pl, bob);
         assertEq(pl.getDisconnectedUnits(), Unit.wrap(0), "e2");
 
@@ -484,7 +484,7 @@ contract ToySuperTokenTest is Test {
         emit log_named_uint("dt4", dt4);
         emit log_string("> t4");
         vm.warp(Time.unwrap(t4));
-        emit log_named_int("pdb4", Value.unwrap(pl.getDisonnectedBalance(t4)));
+        emit log_named_int("pdb4", Value.unwrap(pl.getDisconnectedBalance(t4)));
 
         {
             FlowRate anr4 = token.getNetFlowRate(alice);
@@ -665,7 +665,7 @@ contract ToySuperTokenTest is Test {
         vm.warp(Time.unwrap(t1));
         emit log_string("> t1 claimAll");
 
-        Value pdb1 = pl.getDisonnectedBalance(t1);
+        Value pdb1 = pl.getDisconnectedBalance(t1);
         emit log_named_int("pdb1", Value.unwrap(pdb1));
 
         pl.claimAll(bob);
@@ -674,7 +674,7 @@ contract ToySuperTokenTest is Test {
         // > t2
         emit log_string("> t2");
         vm.warp(Time.unwrap(t2));
-        emit log_named_int("pdb2", Value.unwrap(pl.getDisonnectedBalance(t2)));
+        emit log_named_int("pdb2", Value.unwrap(pl.getDisconnectedBalance(t2)));
 
         Value a2 = token.realtimeBalanceNow(alice);
         Value b2 = token.realtimeBalanceNow(bob);
@@ -725,19 +725,19 @@ contract ToySuperTokenTest is Test {
         emit log_string("> t1 updateMember");
         vm.warp(Time.unwrap(t1));
 
-        emit log_named_int("pdb1", Value.unwrap(pl.getDisonnectedBalance(t1)));
+        emit log_named_int("pdb1", Value.unwrap(pl.getDisconnectedBalance(t1)));
 
         vm.startPrank(alice);
         pl.updateMember(bob, uu2);
         vm.stopPrank();
 
-        emit log_named_int("pdb1a", Value.unwrap(pl.getDisonnectedBalance(t1)));
+        emit log_named_int("pdb1a", Value.unwrap(pl.getDisconnectedBalance(t1)));
         assertEq(pl.getClaimable(bob), Value.wrap(0), "e1.1");
 
         // > t2
         emit log_string("> t2");
         vm.warp(Time.unwrap(t2));
-        emit log_named_int("pdb2", Value.unwrap(pl.getDisonnectedBalance(t2)));
+        emit log_named_int("pdb2", Value.unwrap(pl.getDisconnectedBalance(t2)));
 
         Value a2 = token.realtimeBalanceNow(alice);
         Value b2 = token.realtimeBalanceNow(bob);
@@ -789,7 +789,7 @@ contract ToySuperTokenTest is Test {
         assertEq(a1 - a2 - k2, pl.getClaimable(alice) + pl.getClaimable(bob), "e1.1");
         assertEq(b2, b1, "e1.2");
 
-        Value pdb1 = pl.getDisonnectedBalance(t1);
+        Value pdb1 = pl.getDisconnectedBalance(t1);
         emit log_named_int("p1", Value.unwrap(token.realtimeBalanceNow(address(pl))));
         emit log_named_int("pdb1", Value.unwrap(pdb1));
 

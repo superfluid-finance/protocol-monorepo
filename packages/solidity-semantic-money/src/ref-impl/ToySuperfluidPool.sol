@@ -62,7 +62,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         return _pdpIndex.flow_rate_per_unit().mul(_disconnectedMembers.owned_units);
     }
 
-    function getDisonnectedBalance(Time t) override external view returns (Value) {
+    function getDisconnectedBalance(Time t) override external view returns (Value) {
         return PDPoolMemberMU(_pdpIndex, _disconnectedMembers).rtb(t);
     }
 

@@ -30,7 +30,7 @@ interface ISuperfluidPool {
      *
      *   (a) pool.getDisonnectedBalance(t) == foldr sum (\m -> m.getClaimable(m, t)) 0 (isDisconnectd pool.members)
      */
-    function getDisonnectedBalance(Time t) external view returns (Value);
+    function getDisconnectedBalance(Time t) external view returns (Value);
 
     function getMemberFlowRate(address memberAddress) external view returns (FlowRate);
 

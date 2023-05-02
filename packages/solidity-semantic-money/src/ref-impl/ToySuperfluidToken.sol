@@ -96,7 +96,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
         // It is cumulative because the claimed distributions are already offset via the universal indexes.
         if (_isPool(account)) {
             ISuperfluidPool pool = ISuperfluidPool(account);
-            own = pool.getDisonnectedBalance(t);
+            own = pool.getDisconnectedBalance(t);
         } else {
             own = _getUIndex(new bytes(0), account).rtb(t);
         }

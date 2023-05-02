@@ -1,3 +1,4 @@
+import fs from "fs";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {assert, ethers} from "hardhat";
@@ -66,11 +67,22 @@ describe("Agreement Forwarder", function () {
         carolSigner = await ethers.getSigner(carol);
     });
 
-    beforeEach(async () => {
+    beforeEach(async function () {
         superToken = await deploySuperTokenAndNFTContractsAndInitialize(t);
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");
+        t.beforeEachTestCaseBenchmark(this);
     });
+
+    afterEach(() => {
+        t.afterEachTestCaseBenchmark();
+    });
+
+    after(() => {
+        const sorted = t.benchmarkingData.sort((a, b) => b.totalTime - a.totalTime);
+        const output = JSON.stringify(sorted, null, 2);
+        fs.writeFileSync("testing-benchmark.json", output);
+    })
 
     describe("Convenience methods", async function () {
         it("Revert on negative flowrate", async () => {

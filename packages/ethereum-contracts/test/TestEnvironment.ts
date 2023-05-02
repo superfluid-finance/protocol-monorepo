@@ -24,6 +24,7 @@ import AgreementHelper from "./contracts/agreements/AgreementHelper";
 import CFADataModel from "./contracts/agreements/ConstantFlowAgreementV1.data";
 import {max, min, toBN, toWad} from "./contracts/utils/helpers";
 import {
+    BenchmarkingData,
     CUSTOM_ERROR_CODES,
     CustomErrorCodeType,
     RealtimeBalance,
@@ -55,6 +56,11 @@ const DEFAULT_TEST_TRAVEL_TIME = toBN(3600 * 24); // 24 hours
  */
 export default class TestEnvironment {
     agreementHelper: AgreementHelper;
+    benchmarkingTemp: {
+        startTime: number;
+        testName: string;
+    };
+    benchmarkingData: BenchmarkingData[];
     data: TestEnvironmentData;
     plotData: TestEnvironmentPlotData;
     _evmSnapshots: {id: string; resolverAddress?: string}[];
@@ -69,6 +75,11 @@ export default class TestEnvironment {
     sf: any;
 
     constructor() {
+        this.benchmarkingTemp = {
+            startTime: 0,
+            testName: "",
+        };
+        this.benchmarkingData = [];
         this.data = {
             moreAliases: {},
             tokens: {},
@@ -362,6 +373,21 @@ export default class TestEnvironment {
             ),
         ]);
     }
+    beforeEachTestCaseBenchmark(mocha: Mocha.Context) {
+        this.benchmarkingTemp.testName =
+            mocha.currentTest?.parent?.title +
+                " | " +
+                mocha.currentTest?.title || "n/a";
+        this.benchmarkingTemp.startTime = performance.now();
+    }
+
+    afterEachTestCaseBenchmark() {
+        const benchmarkingData: BenchmarkingData = {
+            totalTime: performance.now() - this.benchmarkingTemp.startTime,
+            testName: this.benchmarkingTemp.testName,
+        };
+        this.benchmarkingData = [...this.benchmarkingData, benchmarkingData];
+    }
 
     /// deploy framework
     async deployFramework(deployOpts: any) {
@@ -500,21 +526,18 @@ export default class TestEnvironment {
     }
 
     listAliases() {
-        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         return Object.keys(this.aliases).concat(
             Object.keys(this.data.moreAliases)
         );
     }
 
     listAddresses() {
-        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         return Object.values(this.aliases).concat(
             Object.values(this.data.moreAliases)
         );
     }
 
     addAlias(alias: string, address: string) {
-        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         this.data.moreAliases = _.merge(this.data.moreAliases, {
             [alias]: address,
         });
@@ -531,7 +554,6 @@ export default class TestEnvironment {
 
     getAddress(alias?: string) {
         if (!alias) return "";
-        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         return this.aliases[alias] || this.data.moreAliases[alias];
     }
 

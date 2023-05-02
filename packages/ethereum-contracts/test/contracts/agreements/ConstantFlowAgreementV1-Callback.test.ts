@@ -49,8 +49,13 @@ describe("CFAv1 | Callback Tests", function () {
         agreementHelper = t.agreementHelper;
     });
 
-    beforeEach(async () => {
+    beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     async function timeTravelOnceAndValidateSystemInvariance(

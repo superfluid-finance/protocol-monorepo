@@ -74,6 +74,11 @@ export interface TestEnvironmentData {
     };
 }
 
+export interface BenchmarkingData {
+    testName: string;
+    totalTime: number;
+}
+
 export interface TestEnvironmentPlotData {
     enabled: boolean;
     observedAccounts: string[];

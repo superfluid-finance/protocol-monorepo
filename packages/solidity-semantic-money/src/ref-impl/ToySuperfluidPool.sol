@@ -21,8 +21,10 @@ import {
  *       hence their public getter are added manually instead.
  */
 contract ToySuperfluidPool is Initializable, ISuperfluidPool {
+    // pool operator is the contract that can call privileged functions prefixed with `operator`.
     address public immutable POOL_OPERATOR;
 
+    // pool admin is the one that can update pool's member units.
     address public admin;
     PDPoolIndex internal _pdpIndex;
     mapping (address member => PDPoolMember member_data) internal _members;
@@ -139,7 +141,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         onlyOperator returns (bool)
     {
         // NB! This is an assumption that isConnected = !doConnect,
-        //     and it should be resopected by the operator.
+        //     and it should be respected by the operator.
 
         // trigger the side effects of claiming all
         Value claimedAmount = _claimAll(memberAddr, t);

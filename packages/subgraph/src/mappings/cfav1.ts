@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
     FlowOperatorUpdated,
     FlowUpdated,
@@ -33,6 +33,7 @@ import {
     updateATSStreamedAndBalanceUntilUpdatedAt,
 } from "../mappingHelpers";
 import { getHostAddress } from "../addresses";
+import {ISuperToken} from "../../generated/SuperTokenFactory/ISuperToken";
 
 enum FlowActionType {
     create,
@@ -202,11 +203,20 @@ export function handleFlowOperatorUpdated(event: FlowOperatorUpdated): void {
         event.params.token,
         event.params.sender
     );
-
     flowOperator.permissions = event.params.permissions;
     flowOperator.flowRateAllowanceGranted = event.params.flowRateAllowance;
     flowOperator.flowRateAllowanceRemaining = event.params.flowRateAllowance;
     flowOperator.flowOperator = event.params.flowOperator;
+
+    const superTokenContract = ISuperToken.bind(
+        Address.fromString(event.params.token.toString())
+    );
+
+    const currentAllowance = superTokenContract.try_allowance(event.params.sender, event.params.flowOperator);
+    if (!currentAllowance.reverted) {
+        flowOperator.allowance = currentAllowance.value;
+    }
+
     flowOperator.save();
 
     _createFlowOperatorUpdatedEventEntity(event);

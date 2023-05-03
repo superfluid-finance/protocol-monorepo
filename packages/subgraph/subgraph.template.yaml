@@ -288,6 +288,9 @@ templates:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
           receipt: true
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+          receipt: true
   - kind: ethereum/contract
     name: SuperfluidGovernance
     network: {{ network }}

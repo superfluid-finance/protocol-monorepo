@@ -328,6 +328,7 @@ export function getOrInitFlowOperator(
         flowOperatorEntity.createdAtTimestamp = currentTimestamp;
         flowOperatorEntity.permissions = 0;
         flowOperatorEntity.flowRateAllowanceGranted = BigInt.fromI32(0);
+        flowOperatorEntity.allowance = BigInt.fromI32(0);
         flowOperatorEntity.flowRateAllowanceRemaining = BigInt.fromI32(0);
         flowOperatorEntity.sender = senderAddress.toHex();
         flowOperatorEntity.token = tokenAddress.toHex();

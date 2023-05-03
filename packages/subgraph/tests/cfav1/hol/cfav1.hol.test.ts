@@ -15,8 +15,10 @@ import {
 } from "../../assertionHelpers";
 import { alice, bob, maticXAddress, maticXName, maticXSymbol } from "../../constants";
 import {
+    createApprovalEvent,
     createFlowOperatorUpdatedEvent, getDeposit, modifyFlowAndAssertFlowUpdatedEventProperties,
 } from "../cfav1.helper";
+import {handleApproval} from "../../../src/mappings/superToken";
 
 const initialFlowRate = BigInt.fromI32(100);
 
@@ -75,6 +77,7 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
         const superToken = maticXAddress;
         const permissions = 1; // create only
         const flowRateAllowance = BigInt.fromI32(100);
+        const allowance = BigInt.fromI32(100);
         const sender = alice;
         const flowOperator = bob;
 
@@ -88,7 +91,15 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
 
         handleFlowOperatorUpdated(flowOperatorUpdatedEvent);
 
-        
+        const approvalEvent = createApprovalEvent(
+            superToken,
+            sender,
+            flowOperator,
+            allowance
+        );
+
+        handleApproval(approvalEvent);
+
         const id = getFlowOperatorID(
             Address.fromString(flowOperator),
             Address.fromString(superToken),
@@ -107,6 +118,7 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
         assert.fieldEquals("FlowOperator", id, "flowRateAllowanceGranted", flowRateAllowance.toString());
         assert.fieldEquals("FlowOperator", id, "flowRateAllowanceRemaining", flowRateAllowance.toString());
         assert.fieldEquals("FlowOperator", id, "flowOperator", flowOperator);
+        assert.fieldEquals("FlowOperator", id, "allowance", allowance.toString());
         assert.fieldEquals("FlowOperator", id, "sender", sender);
         assert.fieldEquals("FlowOperator", id, "token", superToken);
         assert.fieldEquals("FlowOperator", id, "accountTokenSnapshot", atsId);

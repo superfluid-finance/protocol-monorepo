@@ -66,6 +66,10 @@ const validateFlowOperator = (
         "Flow Operator: flowRateAllowanceGranted error"
     ).to.equal(expectedFlowOperator.flowRateAllowanceGranted);
     expect(
+        flowOperatorEntity.allowance,
+        "Flow Operator: allowance error"
+    ).to.equal(expectedFlowOperator.allowance);
+    expect(
         flowOperatorEntity.flowRateAllowanceRemaining,
         "Flow Operator: flowRateAllowanceRemaining error"
     ).to.equal(expectedFlowOperator.flowRateAllowanceRemaining);

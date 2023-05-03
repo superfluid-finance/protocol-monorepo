@@ -81,6 +81,7 @@ export const getOrInitFlowOperator = (
             updatedAtBlockNumber,
             permissions: 0,
             flowRateAllowanceGranted: "0",
+            allowance: "0",
             flowRateAllowanceRemaining: "0",
             flowOperatorUpdatedEvents: [],
             sender: { id: sender },

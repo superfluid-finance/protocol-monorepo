@@ -67,39 +67,43 @@ pragma solidity ^0.8.19;
  * @dev - This should represents absolute values, e.g. block timestamps.
  */
 type Time is uint32;
+function mt_t_eq(Time a, Time b) pure returns (bool) { return Time.unwrap(a) == Time.unwrap(b); }
 function mt_t_add_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) + Time.unwrap(b)); }
 function mt_t_sub_t(Time a, Time b) pure returns (Time) { return Time.wrap(Time.unwrap(a) - Time.unwrap(b)); }
-using { mt_t_add_t as +, mt_t_sub_t as - } for Time global;
+using { mt_t_eq as ==, mt_t_add_t as +, mt_t_sub_t as - } for Time global;
 
 /**
  * @title Unit value of monetary value represented with 256bits of signed integer.
  */
 type Value is int256;
+function mt_v_eq(Value a, Value b) pure returns (bool) { return Value.unwrap(a) == Value.unwrap(b); }
 function mt_v_add_v(Value a, Value b) pure returns (Value) { return Value.wrap(Value.unwrap(a) + Value.unwrap(b)); }
 function mt_v_sub_v(Value a, Value b) pure returns (Value) { return Value.wrap(Value.unwrap(a) - Value.unwrap(b)); }
 function mt_v_inv(Value a) pure returns (Value) { return Value.wrap(-Value.unwrap(a)); }
-using { mt_v_add_v as +, mt_v_sub_v as -, mt_v_inv as - } for Value global;
+using { mt_v_eq as ==, mt_v_add_v as +, mt_v_sub_v as -, mt_v_inv as - } for Value global;
 
 /**
  * @title Number of units represented with half the size of `Value`.
  */
 type Unit is int128;
+function mt_u_eq(Unit a, Unit b) pure returns (bool) { return Unit.unwrap(a) == Unit.unwrap(b); }
 function mt_u_add_u(Unit a, Unit b) pure returns (Unit) { return Unit.wrap(Unit.unwrap(a) + Unit.unwrap(b)); }
 function mt_u_sub_u(Unit a, Unit b) pure returns (Unit) { return Unit.wrap(Unit.unwrap(a) - Unit.unwrap(b)); }
 function mt_u_inv(Unit a) pure returns (Unit) { return Unit.wrap(-Unit.unwrap(a)); }
-using { mt_u_add_u as +, mt_u_sub_u as -, mt_u_inv as - } for Unit global;
+using { mt_u_eq as ==, mt_u_add_u as +, mt_u_sub_u as -, mt_u_inv as - } for Unit global;
 
 /**
  * @title FlowRate value represented with half the size of `Value`.
  */
 type FlowRate is int128;
+function mt_r_eq(FlowRate a, FlowRate b) pure returns (bool) { return FlowRate.unwrap(a) == FlowRate.unwrap(b); }
 function mt_r_add_r(FlowRate a, FlowRate b) pure returns (FlowRate) {
     return FlowRate.wrap(FlowRate.unwrap(a) + FlowRate.unwrap(b));
 }
 function mt_r_sub_r(FlowRate a, FlowRate b) pure returns (FlowRate) {
     return FlowRate.wrap(FlowRate.unwrap(a) - FlowRate.unwrap(b));
 }
-using { mt_r_add_r as +, mt_r_sub_r as - } for FlowRate global;
+using { mt_r_eq as ==, mt_r_add_r as +, mt_r_sub_r as - } for FlowRate global;
 
 /**
  * @dev Additional helper functions for the monetary types

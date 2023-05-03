@@ -1,9 +1,9 @@
-Semantic Money Library
-======================
+Solidity Semantic Money Library
+===============================
 
 
-This is the first release of the semantic money library, used for building GDA in SuperToken v1 and SuperToken v2. The
-audience of this is the implementers of SuperTokens on any target system.
+This is the first release of the solidity semantic money library, used for building GDA in SuperToken v1 and SuperToken
+v2. The audience of this is the implementers of SuperTokens on any target system.
 
 :warning: Note that many concepts are brand new without prio-art, and the time to provide the detailed documentation for
 the new idea is limited. As a result, considering the fairly limited audience for this library, for ones actually

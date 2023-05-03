@@ -51,9 +51,9 @@ interface ISuperfluidPool {
 }
 
 /**
- * @dev The interface for the admin of a super token pool admin
+ * @dev The interface for the operator of a super token pool
  */
-interface ISuperfluidPoolAdmin {
+interface ISuperfluidPoolOperator {
     /// Check if an address is connected to the pool
     function isMemberConnected(ISuperfluidPool pool, address memberAddr) external view returns (bool);
 

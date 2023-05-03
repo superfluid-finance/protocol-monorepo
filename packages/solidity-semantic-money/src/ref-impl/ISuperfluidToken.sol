@@ -2,7 +2,7 @@
 pragma solidity >= 0.8.4;
 
 import {
-    ISuperfluidPool, ISuperfluidPoolAdmin
+    ISuperfluidPool, ISuperfluidPoolOperator
 } from "./ISuperfluidPool.sol";
 import {
     Time, FlowRate, Value, Unit,
@@ -15,7 +15,7 @@ type FlowId is uint32;
 /**
  * @dev The interface for super token: the ERC20x token that supports generalized payment primitives.
  */
-interface ISuperfluidToken is ISuperfluidPoolAdmin {
+interface ISuperfluidToken is ISuperfluidPoolOperator {
     ////////////////////////////////////////////////////////////////////////////////
     // Generalized Payment Primitives
     ////////////////////////////////////////////////////////////////////////////////

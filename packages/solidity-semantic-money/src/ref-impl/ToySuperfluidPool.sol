@@ -10,7 +10,7 @@ import {
     PDPoolIndex, PDPoolMember, PDPoolMemberMU
 } from "../SemanticMoney.sol";
 import {
-    ISuperfluidPool, ISuperfluidPoolAdmin
+    ISuperfluidPool, ISuperfluidPoolOperator
 } from "./ISuperfluidPool.sol";
 
 
@@ -21,7 +21,7 @@ import {
  *       hence their public getter are added manually instead.
  */
 contract ToySuperfluidPool is Initializable, ISuperfluidPool {
-    address public immutable POOL_ADMIN;
+    address public immutable POOL_OPERATOR;
 
     address public admin;
     PDPoolIndex internal _pdpIndex;
@@ -32,7 +32,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
     Value _claimedByDisconnectedMembers;
 
     constructor () {
-        POOL_ADMIN = msg.sender;
+        POOL_OPERATOR = msg.sender;
     }
 
     function initialize(address admin_) public initializer() {
@@ -87,7 +87,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         require(Unit.unwrap(newUnits) >= 0, "No negative unit amount!");
         require(admin == msg.sender, "Not pool admin!");
         Time t = Time.wrap(uint32(block.timestamp));
-        bool isConnected = ISuperfluidPoolAdmin(POOL_ADMIN).isMemberConnected(this, memberAddr);
+        bool isConnected = ISuperfluidPoolOperator(POOL_OPERATOR).isMemberConnected(this, memberAddr);
         PDPoolMemberMU memory mu = PDPoolMemberMU(_pdpIndex, _members[memberAddr]);
 
         if (!isConnected) {
@@ -102,14 +102,14 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         {
             BasicParticle memory p;
             (_pdpIndex, _members[memberAddr], p) = mu.pool_member_update(p, newUnits, t);
-            assert(ISuperfluidPoolAdmin(POOL_ADMIN).appendIndexUpdateByPool(p, t));
+            assert(ISuperfluidPoolOperator(POOL_OPERATOR).appendIndexUpdateByPool(p, t));
         }
 
         return true;
     }
 
     function claimAll(address memberAddr) override public returns (bool) {
-        bool isConnected = ISuperfluidPoolAdmin(POOL_ADMIN).isMemberConnected(this, memberAddr);
+        bool isConnected = ISuperfluidPoolOperator(POOL_OPERATOR).isMemberConnected(this, memberAddr);
         Time t = Time.wrap(uint32(block.timestamp));
         Value claimedAmount = _claimAll(memberAddr, t);
         if (!isConnected) {
@@ -124,24 +124,20 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
 
     function _claimAll(address memberAddr, Time t) internal returns (Value amount) {
         amount = getClaimable(memberAddr, t);
-        assert(ISuperfluidPoolAdmin(POOL_ADMIN).poolSettleClaim(memberAddr, amount));
+        assert(ISuperfluidPoolOperator(POOL_OPERATOR).poolSettleClaim(memberAddr, amount));
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + amount;
     }
 
     function operatorSetIndex(PDPoolIndex calldata index) override external
-        returns (bool)
+        onlyOperator returns (bool)
     {
-        assert(POOL_ADMIN == msg.sender);
-
         _pdpIndex = index;
         return true;
     }
 
     function operatorConnectMember(address memberAddr, bool doConnect, Time t) override external
-        returns (bool)
+        onlyOperator returns (bool)
     {
-        assert(POOL_ADMIN == msg.sender);
-
         // NB! This is an assumption that isConnected = !doConnect,
         //     and it should be resopected by the operator.
 
@@ -176,5 +172,10 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         // The toy model though holds conceptual clarity as top priority instead, and accessing the private field
         // `_settled_value` is deemed breaking such clarity.
         _claimedByDisconnectedMembers = _claimedByDisconnectedMembers + claimedAmount;
+    }
+
+    modifier onlyOperator () {
+        assert(POOL_OPERATOR == msg.sender);
+        _;
     }
 }

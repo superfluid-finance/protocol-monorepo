@@ -26,6 +26,14 @@ describe("CallUtils", function () {
         callUtilsTester = await CallUtilsTesterFactory.deploy();
     });
 
+    beforeEach(async function () {
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(() => {
+        t.afterEachTestCaseBenchmark();
+    });
+
     it("CallUtils.revertFromReturnedData", async () => {
         await expectRevertedWith(
             callUtilsMock.revertTest("revertEmpty()"),

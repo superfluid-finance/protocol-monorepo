@@ -56,6 +56,11 @@ describe("IDAv1 | Non-Callback Tests", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     // @note this is duplicated in scenarios.test.ts

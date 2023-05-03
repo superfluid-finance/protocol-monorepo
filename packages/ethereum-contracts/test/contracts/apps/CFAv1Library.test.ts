@@ -59,7 +59,7 @@ describe("CFAv1 Library testing", function () {
         aliceSigner = await ethers.getSigner(alice);
     });
 
-    beforeEach(async () => {
+    beforeEach(async function () {
         superToken = await deploySuperTokenAndNFTContractsAndInitialize(t);
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");
@@ -99,6 +99,11 @@ describe("CFAv1 Library testing", function () {
                 "authorizeFlowOperatorWithFullControl",
                 [superToken.address, cfaLibraryMock.address, "0x"]
             );
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(() => {
+        t.afterEachTestCaseBenchmark();
     });
 
     describe("1 - Flow Ops", async function () {

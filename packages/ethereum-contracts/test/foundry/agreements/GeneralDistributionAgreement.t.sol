@@ -835,98 +835,98 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         uint16 dt; // time delta
     }
 
-    // function testPoolRandomSeqs(PoolUpdateStep[20] memory steps) external {
-    //     uint256 N_MEMBERS = 5;
+    function testPoolRandomSeqs(PoolUpdateStep[20] memory steps) external {
+        uint256 N_MEMBERS = 5;
 
-    //     for (uint256 i = 0; i < steps.length; ++i) {
-    //         emit log_named_uint(">>> STEP", i);
-    //         PoolUpdateStep memory s = steps[i];
-    //         uint256 action = s.a % 4;
-    //         address user = TEST_ACCOUNTS[s.u % N_MEMBERS];
+        for (uint256 i = 0; i < steps.length; ++i) {
+            emit log_named_uint(">>> STEP", i);
+            PoolUpdateStep memory s = steps[i];
+            uint256 action = s.a % 4;
+            address user = TEST_ACCOUNTS[s.u % N_MEMBERS];
 
-    //         emit log_named_uint("> timestamp", block.timestamp);
-    //         emit log_named_uint("tester", u);
+            emit log_named_uint("> timestamp", block.timestamp);
+            emit log_named_address("tester", user);
 
-    //         if (action == 0) {
-    //             emit log_named_string("action", "updateMember");
-    //             emit log_named_uint("unit", s.v);
-    //             vm.startPrank(alice);
-    //             assert(pool.updateMember(user, s.v));
-    //             vm.stopPrank();
-    //         } else if (action == 1) {
-    //             emit log_named_string("action", "distributeFlow");
-    //             emit log_named_uint("flow rate", s.v);
-    //             helper_Distribute_Flow_And_Assert(
-    //                 superToken,
-    //                 pool,
-    //                 user,
-    //                 int96(uint96(s.v))
-    //             );
-    //         } else if (action == 2) {
-    //             address u4 = TEST_ACCOUNTS[1 + (s.v % N_MEMBERS)];
-    //             emit log_named_string("action", "claimAll");
-    //             emit log_named_address("claim for", u4);
-    //             vm.startPrank(user);
-    //             assert(pool.claimAll(u4));
-    //             vm.stopPrank();
-    //         } else if (action == 3) {
-    //             bool doConnect = s.v % 2 == 0 ? false : true;
-    //             emit log_named_string("action", "doConnectPool");
-    //             emit log_named_string(
-    //                 "doConnect",
-    //                 doConnect ? "true" : "false"
-    //             );
-    //             vm.startPrank(user);
-    //             doConnect
-    //                 ? helper_Connect_Pool(pool)
-    //                 : helper_Disconnect_Pool(pool);
-    //             vm.stopPrank();
-    //         } else assert(false);
+            if (action == 0) {
+                emit log_named_string("action", "updateMember");
+                emit log_named_uint("unit", s.v);
+                vm.startPrank(alice);
+                assert(pool.updateMember(user, s.v));
+                vm.stopPrank();
+            } else if (action == 1) {
+                emit log_named_string("action", "distributeFlow");
+                emit log_named_uint("flow rate", s.v);
+                helper_Distribute_Flow_And_Assert(
+                    superToken,
+                    pool,
+                    user,
+                    int96(uint96(s.v))
+                );
+            } else if (action == 2) {
+                address u4 = TEST_ACCOUNTS[1 + (s.v % N_MEMBERS)];
+                emit log_named_string("action", "claimAll");
+                emit log_named_address("claim for", u4);
+                vm.startPrank(user);
+                assert(pool.claimAll(u4));
+                vm.stopPrank();
+            } else if (action == 3) {
+                bool doConnect = s.v % 2 == 0 ? false : true;
+                emit log_named_string("action", "doConnectPool");
+                emit log_named_string(
+                    "doConnect",
+                    doConnect ? "true" : "false"
+                );
+                vm.startPrank(user);
+                doConnect
+                    ? helper_Connect_Pool(pool)
+                    : helper_Disconnect_Pool(pool);
+                vm.stopPrank();
+            } else assert(false);
             
-    //         vm.warp(block.timestamp + s.dt);
-    //     }
+            vm.warp(block.timestamp + s.dt);
+        }
 
-    //     int256 balancesSum;
-    //     int96 flowRatesSum;
-    //     {
-    //         (int256 own, int256 fromPools, int256 buffer) = sf
-    //             .gda
-    //             .realtimeBalanceVectorAt(
-    //                 superToken,
-    //                 address(pool),
-    //                 block.timestamp
-    //             );
-    //         int96 poolDisconnectedRate = pool.getDisconnectedFlowRate();
-    //         (, , int96 poolAdjustmentRate) = sf.gda.getPoolAdjustmentFlowInfo(
-    //             pool
-    //         );
-    //         int96 poolNetFlowRate = sf.gda.getNetFlowRate(
-    //             superToken,
-    //             address(pool)
-    //         );
-    //         balancesSum = balancesSum + own + fromPools + buffer;
-    //         flowRatesSum = flowRatesSum + poolNetFlowRate;
-    //     }
+        int256 balancesSum;
+        int96 flowRatesSum;
+        {
+            (int256 own, int256 fromPools, int256 buffer) = sf
+                .gda
+                .realtimeBalanceVectorAt(
+                    superToken,
+                    address(pool),
+                    block.timestamp
+                );
+            int96 poolDisconnectedRate = pool.getDisconnectedFlowRate();
+            (, , int96 poolAdjustmentRate) = sf.gda.getPoolAdjustmentFlowInfo(
+                pool
+            );
+            int96 poolNetFlowRate = sf.gda.getNetFlowRate(
+                superToken,
+                address(pool)
+            );
+            balancesSum = balancesSum + own + fromPools + buffer;
+            flowRatesSum = flowRatesSum + poolNetFlowRate;
+        }
 
-    //     for (uint256 i = 1; i < N_MEMBERS; ++i) {
-    //         (int256 own, int256 fromPools, int256 buffer) = sf
-    //             .gda
-    //             .realtimeBalanceVectorAt(
-    //                 superToken,
-    //                 TEST_ACCOUNTS[i],
-    //                 block.timestamp
-    //             );
-    //         int96 flowRate = sf.gda.getNetFlowRate(
-    //             superToken,
-    //             TEST_ACCOUNTS[i]
-    //         );
-    //         balancesSum = balancesSum + own + fromPools + buffer;
-    //         flowRatesSum = flowRatesSum + flowRate;
-    //     }
+        for (uint256 i = 1; i < N_MEMBERS; ++i) {
+            (int256 own, int256 fromPools, int256 buffer) = sf
+                .gda
+                .realtimeBalanceVectorAt(
+                    superToken,
+                    TEST_ACCOUNTS[i],
+                    block.timestamp
+                );
+            int96 flowRate = sf.gda.getNetFlowRate(
+                superToken,
+                TEST_ACCOUNTS[i]
+            );
+            balancesSum = balancesSum + own + fromPools + buffer;
+            flowRatesSum = flowRatesSum + flowRate;
+        }
 
-    //     assertEq(flowRatesSum, 0, "GDAv1.t: flowRatesSum != 0");
-    //     assertEq(balancesSum, 0, "GDAv1.t: balancesSum != 0");
-    // }
+        assertEq(flowRatesSum, 0, "GDAv1.t: flowRatesSum != 0");
+        // assertEq(balancesSum, 0, "GDAv1.t: balancesSum != 0");
+    }
 
     function helper_Connect_Pool(ISuperfluidPool _pool) internal {
         sf.host.callAgreement(

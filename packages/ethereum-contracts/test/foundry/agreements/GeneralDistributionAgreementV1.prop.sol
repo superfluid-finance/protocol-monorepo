@@ -23,7 +23,7 @@ contract GeneralDistributionAgreementV1Properties is
 {
     constructor() GeneralDistributionAgreementV1(ISuperfluid(address(0))) {}
 
-    function test_Particle_Input_Encode_Decode_Universal_Index_Data(
+    function testParticleInputEncodeDecodeUniversalIndexData(
         int96 flowRate,
         uint32 settledAt,
         int256 settledValue,
@@ -51,7 +51,7 @@ contract GeneralDistributionAgreementV1Properties is
         assertEq(isPool_, decoded.isPool, "isPool not equal");
     }
 
-    function test_UIData_Input_Encode_Decode_Universal_Index_Data(
+    function testUIDataInputEncodeDecodeUniversalIndexData(
         int96 flowRate,
         uint32 settledAt,
         int256 settledValue,
@@ -78,7 +78,7 @@ contract GeneralDistributionAgreementV1Properties is
         assertEq(isPool_, decoded.isPool, "isPool not equal");
     }
 
-    function test_Get_Basic_Particle_From_UIndex(
+    function testGetBasicParticleFromUIndex(
         UniversalIndexData memory data
     ) public {
         BasicParticle memory particle = _getBasicParticleFromUIndex(data);
@@ -87,7 +87,7 @@ contract GeneralDistributionAgreementV1Properties is
         assertEq(data.settledValue, Value.unwrap(particle._settled_value), "settledValue not equal");
     }
 
-    function test_Flow_Distribution_Data_Encode_Decode(
+    function testFlowDistributionDataEncodeDecode(
         int96 flowRate,
         uint96 buffer
     ) public {
@@ -111,7 +111,7 @@ contract GeneralDistributionAgreementV1Properties is
         assertEq(original.lastUpdated, decoded.lastUpdated, "lastUpdated not equal");
     }
 
-    function test_Pool_Member_Data_Encode_Decode(
+    function testPoolMemberDataEncodeDecode(
         address pool,
         uint32 poolID
     ) public {

@@ -902,6 +902,7 @@ contract ToySuperTokenTest is Test {
         emit log_string(">>> SUMMARY");
         emit log_named_uint("> timestamp", block.timestamp);
         Value bSum;
+        Value dSum;
         FlowRate rSum;
         {
             (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(address(pl));
@@ -910,16 +911,17 @@ contract ToySuperTokenTest is Test {
             FlowRate nr = token.getNetFlowRate(address(pl));
             emit log_string("> pool");
             emit log_named_int("ob", Value.unwrap(ob));
-            emit log_named_int("fpb", Value.unwrap(fpb));
-            emit log_named_int("db", Value.unwrap(db));
             emit log_named_int("pdr", FlowRate.unwrap(pdr));
             emit log_named_int("ajr", FlowRate.unwrap(ajr));
             emit log_named_int("nr", FlowRate.unwrap(nr));
-            bSum = bSum + ob + fpb + db;
+            assertEq(fpb, Value.wrap(0), "pool fpb == 0");
+            assertEq(db, Value.wrap(0), "pool db == 0");
+            bSum = bSum + ob;
             rSum = rSum + nr;
         }
         for (uint i = 1; i <= N_MEMBERS; ++i) {
             (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(TEST_ACCOUNTS[i]);
+            Value avb = token.realtimeBalanceNow(TEST_ACCOUNTS[i]);
             Value cb = pl.getClaimable(TEST_ACCOUNTS[i]);
             FlowRate nr = token.getNetFlowRate(TEST_ACCOUNTS[i]);
             emit log_named_uint("> user", i);
@@ -928,10 +930,21 @@ contract ToySuperTokenTest is Test {
             emit log_named_int("db", Value.unwrap(db));
             emit log_named_int("cb", Value.unwrap(cb));
             emit log_named_int("nr", FlowRate.unwrap(nr));
+            assertEq(avb, ob + fpb, "avb");
             bSum = bSum + ob + fpb + db;
             rSum = rSum + nr;
+            dSum = dSum + db;
+        }
+        {
+            (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(address(token));
+            emit log_string("> token");
+            emit log_named_int("ob", Value.unwrap(ob));
+            assertEq(fpb, Value.wrap(0), "token fpb == 0");
+            assertEq(db, Value.wrap(0), "token db == 0");
+            dSum = dSum - ob;
         }
         assertEq(rSum, FlowRate.wrap(0), "rSum");
         assertEq(bSum - Value.wrap(int256(INIT_BALANCE * N_MEMBERS)), Value.wrap(0), "bSum");
+        assertEq(dSum, Value.wrap(0), "dSum");
     }
 }

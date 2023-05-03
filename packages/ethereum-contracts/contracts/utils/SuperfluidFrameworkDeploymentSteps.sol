@@ -32,7 +32,7 @@ import {
 import { ISuperToken, SuperToken } from "../superfluid/SuperToken.sol";
 import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
-import { SuperTokenPool } from "../superfluid/SuperTokenPool.sol";
+import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
 import {
     SuperfluidUpgradeableBeacon
 } from "../upgradability/SuperfluidUpgradeableBeacon.sol";
@@ -152,15 +152,15 @@ contract SuperfluidFrameworkDeploymentSteps {
         );
     }
 
-    function _deploySuperTokenPoolLogicAndInitializeGDA() internal {
-        /// Deploy SuperTokenPool logic contract
-        SuperTokenPool superTokenPoolLogic = SuperTokenPoolLogicDeployerLibrary
-            .deploySuperTokenPool(gdaV1);
+    function _deploySuperfluidPoolLogicAndInitializeGDA() internal {
+        /// Deploy SuperfluidPool logic contract
+        SuperfluidPool superTokenPoolLogic = SuperfluidPoolLogicDeployerLibrary
+            .deploySuperfluidPool(gdaV1);
 
         // Initialize the logic contract
         superTokenPoolLogic.castrate();
 
-        // Deploy SuperTokenPool beacon
+        // Deploy SuperfluidPool beacon
         SuperfluidUpgradeableBeacon superTokenPoolBeacon = ProxyDeployerLibrary
             .deploySuperfluidUpgradeableBeacon(address(superTokenPoolLogic));
 
@@ -340,9 +340,9 @@ contract SuperfluidFrameworkDeploymentSteps {
             // Deploy CFAv1Forwarder
             _deployCFAv1ForwarderAndEnable();
         } else if (step == 4) {
-            // Deploy SuperTokenPool
-            // Initialize GDA with SuperTokenPool beacon
-            _deploySuperTokenPoolLogicAndInitializeGDA();
+            // Deploy SuperfluidPool
+            // Initialize GDA with SuperfluidPool beacon
+            _deploySuperfluidPoolLogicAndInitializeGDA();
         } else if (step == 5) {
             // Deploy Superfluid NFTs (Proxy and Logic contracts)
             _deployNFTProxyAndLogicAndInitialize();
@@ -531,13 +531,13 @@ library SuperfluidLoaderDeployerLibrary {
     }
 }
 
-library SuperTokenPoolLogicDeployerLibrary {
-    /// @notice deploys the Superfluid SuperTokenPool contract
-    /// @return newly deployed SuperTokenPool contract
-    function deploySuperTokenPool(
+library SuperfluidPoolLogicDeployerLibrary {
+    /// @notice deploys the Superfluid SuperfluidPool contract
+    /// @return newly deployed SuperfluidPool contract
+    function deploySuperfluidPool(
         GeneralDistributionAgreementV1Mock _gda
-    ) external returns (SuperTokenPool) {
-        return new SuperTokenPool(_gda);
+    ) external returns (SuperfluidPool) {
+        return new SuperfluidPool(_gda);
     }
 }
 

@@ -12,9 +12,9 @@ import {
     GeneralDistributionAgreementV1
 } from "../agreements/GeneralDistributionAgreementV1.sol";
 import {
-    ISuperTokenPool,
-    SuperTokenPool
-} from "../superfluid/SuperTokenPool.sol";
+    ISuperfluidPool,
+    SuperfluidPool
+} from "../superfluid/SuperfluidPool.sol";
 
 
 /// @title GeneralDistributionAgreementV1Mock
@@ -109,7 +109,7 @@ contract GeneralDistributionAgreementV1Mock is GeneralDistributionAgreementV1 {
 
     function getPoolMemberId(
         address poolMember,
-        ISuperTokenPool pool
+        ISuperfluidPool pool
     ) public view returns (bytes32) {
         return _getPoolMemberHash(poolMember, pool);
     }
@@ -117,7 +117,7 @@ contract GeneralDistributionAgreementV1Mock is GeneralDistributionAgreementV1 {
     function getPoolMemberData(
         ISuperfluidToken token,
         address poolMember,
-        ISuperTokenPool pool
+        ISuperfluidPool pool
     ) public view returns (bool exist, PoolMemberData memory poolMemberData) {
         return _getPoolMemberData(token, poolMember, pool);
     }

@@ -7,18 +7,18 @@ import {
     ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
-import { ISuperTokenPool } from "../interfaces/superfluid/ISuperTokenPool.sol";
+import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
 import {
     GeneralDistributionAgreementV1
 } from "../agreements/GeneralDistributionAgreementV1.sol";
 import { BeaconProxiable } from "../upgradability/BeaconProxiable.sol";
 
 /**
- * @title SuperTokenPool
+ * @title SuperfluidPool
  * @author Superfluid
- * @notice A SuperTokenPool which can be used to distribute any SuperToken.
+ * @notice A SuperfluidPool which can be used to distribute any SuperToken.
  */
-contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
+contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     using SemanticMoney for BasicParticle;
     using SafeCast for uint256;
     using SafeCast for int256;
@@ -47,7 +47,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
     function proxiableUUID() public pure override returns (bytes32) {
         return
             keccak256(
-                "org.superfluid-finance.contracts.superfluid.SuperTokenPool.implementation"
+                "org.superfluid-finance.contracts.superfluid.SuperfluidPool.implementation"
             );
     }
 
@@ -234,8 +234,8 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
         uint128 newUnits
     ) external returns (bool) {
         if (newUnits < 0)
-            revert SUPER_TOKEN_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
-        if (admin != msg.sender) revert SUPER_TOKEN_POOL_NOT_POOL_ADMIN();
+            revert SUPERFLUID_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
+        if (admin != msg.sender) revert SUPERFLUID_POOL_NOT_POOL_ADMIN();
 
         uint32 time = uint32(block.timestamp);
         Time t = Time.wrap(time);
@@ -384,7 +384,7 @@ contract SuperTokenPool is ISuperTokenPool, BeaconProxiable {
     }
 
     modifier onlyGDA() {
-        if (msg.sender != address(_gda)) revert SUPER_TOKEN_POOL_NOT_GDA();
+        if (msg.sender != address(_gda)) revert SUPERFLUID_POOL_NOT_GDA();
         _;
     }
 }

@@ -10,16 +10,16 @@ import {
 import {
     ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluidToken.sol";
-import { SuperTokenPool } from "../superfluid/SuperTokenPool.sol";
+import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
 
-library SuperTokenPoolDeployerLibrary {
+library SuperfluidPoolDeployerLibrary {
     function deploy(
         address beacon,
         address admin,
         ISuperfluidToken token
-    ) external returns (SuperTokenPool pool) {
+    ) external returns (SuperfluidPool pool) {
         bytes memory initializeCallData = abi.encodeWithSelector(
-            SuperTokenPool.initialize.selector,
+            SuperfluidPool.initialize.selector,
             admin,
             token
         );
@@ -27,6 +27,6 @@ library SuperTokenPoolDeployerLibrary {
             beacon,
             initializeCallData
         );
-        pool = SuperTokenPool(address(superTokenPoolBeaconProxy));
+        pool = SuperfluidPool(address(superTokenPoolBeaconProxy));
     }
 }

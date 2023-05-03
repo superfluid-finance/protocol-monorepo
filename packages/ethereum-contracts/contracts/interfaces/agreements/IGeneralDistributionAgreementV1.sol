@@ -4,9 +4,9 @@ pragma solidity >=0.8.4;
 import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
 import {
-    ISuperTokenPool,
-    ISuperTokenPoolAdmin
-} from "../superfluid/ISuperTokenPool.sol";
+    ISuperfluidPool,
+    ISuperfluidPoolAdmin
+} from "../superfluid/ISuperfluidPool.sol";
 
 /**
  * @title General Distribution Agreement interface
@@ -14,7 +14,7 @@ import {
  */
 abstract contract IGeneralDistributionAgreementV1 is
     ISuperAgreement,
-    ISuperTokenPoolAdmin
+    ISuperfluidPoolAdmin
 {
     // Custom Errors
     error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
@@ -22,13 +22,12 @@ abstract contract IGeneralDistributionAgreementV1 is
     error GDA_INSUFFICIENT_BALANCE();
     error GDA_NO_NEGATIVE_DISTRIBUTION();
     error GDA_NO_NEGATIVE_FLOW_RATE();
-    error GDA_ONLY_ADMIN();
     error GDA_ONLY_SUPER_TOKEN_POOL();
 
     // Events
     event InstantDistributionUpdated(
         ISuperfluidToken indexed token,
-        ISuperTokenPool indexed pool,
+        ISuperfluidPool indexed pool,
         address indexed distributor,
         uint32 distributedAtTimestamp,
         uint256 requestedAmount,
@@ -37,7 +36,7 @@ abstract contract IGeneralDistributionAgreementV1 is
 
     event FlowDistributionUpdated(
         ISuperfluidToken indexed token,
-        ISuperTokenPool indexed pool,
+        ISuperfluidPool indexed pool,
         address operator,
         address indexed distributor,
         uint32 distributedAtTimestamp,
@@ -48,13 +47,13 @@ abstract contract IGeneralDistributionAgreementV1 is
     event PoolCreated(
         ISuperfluidToken indexed token,
         address indexed admin,
-        ISuperTokenPool pool
+        ISuperfluidPool pool
     );
 
     event PoolConnectionUpdated(
         ISuperfluidToken indexed token,
         address indexed account,
-        ISuperTokenPool indexed pool,
+        ISuperfluidPool indexed pool,
         bool connected
     );
 
@@ -88,7 +87,7 @@ abstract contract IGeneralDistributionAgreementV1 is
     function getFlowDistributionActualFlowRate(
         ISuperfluidToken token,
         address from,
-        ISuperTokenPool to,
+        ISuperfluidPool to,
         int96 requestedFlowRate
     ) external view virtual returns (int96 finalFlowRate);
 
@@ -113,15 +112,15 @@ abstract contract IGeneralDistributionAgreementV1 is
     function createPool(
         address admin,
         ISuperfluidToken token
-    ) external virtual returns (ISuperTokenPool pool);
+    ) external virtual returns (ISuperfluidPool pool);
 
     function connectPool(
-        ISuperTokenPool pool,
+        ISuperfluidPool pool,
         bytes calldata ctx
     ) external virtual returns (bytes memory newCtx);
 
     function disconnectPool(
-        ISuperTokenPool pool,
+        ISuperfluidPool pool,
         bytes calldata ctx
     ) external virtual returns (bytes memory newCtx);
 
@@ -137,7 +136,7 @@ abstract contract IGeneralDistributionAgreementV1 is
     function distribute(
         ISuperfluidToken token,
         address from,
-        ISuperTokenPool pool,
+        ISuperfluidPool pool,
         uint256 requestedAmount,
         bytes calldata ctx
     ) external virtual returns (bytes memory newCtx);
@@ -145,7 +144,7 @@ abstract contract IGeneralDistributionAgreementV1 is
     function distributeFlow(
         ISuperfluidToken token,
         address from,
-        ISuperTokenPool pool,
+        ISuperfluidPool pool,
         int96 requestedFlowRate,
         bytes calldata ctx
     ) external virtual returns (bytes memory newCtx);

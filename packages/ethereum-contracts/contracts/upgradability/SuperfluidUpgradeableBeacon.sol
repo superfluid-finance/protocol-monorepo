@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import {
     UpgradeableBeacon
 } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import { SuperTokenPool } from "../superfluid/SuperTokenPool.sol";
+import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
 
 contract SuperfluidUpgradeableBeacon is UpgradeableBeacon {
     error ZERO_ADDRESS_IMPLEMENTATION();    // 0x80883162
@@ -18,8 +18,8 @@ contract SuperfluidUpgradeableBeacon is UpgradeableBeacon {
             revert ZERO_ADDRESS_IMPLEMENTATION();
         }
         if (
-            SuperTokenPool(newImplementation).proxiableUUID() !=
-            SuperTokenPool(implementation()).proxiableUUID()
+            SuperfluidPool(newImplementation).proxiableUUID() !=
+            SuperfluidPool(implementation()).proxiableUUID()
         ) {
             revert INCOMPATIBLE_LOGIC();
         }

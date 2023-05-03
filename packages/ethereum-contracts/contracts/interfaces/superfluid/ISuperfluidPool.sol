@@ -6,7 +6,7 @@ import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
 /**
  * @dev The interface for any super token pool regardless of the distribution schemes.
  */
-interface ISuperTokenPool {
+interface ISuperfluidPool {
     // Structs
     struct PoolIndexData {
         uint128 totalUnits;
@@ -25,10 +25,10 @@ interface ISuperTokenPool {
     }
 
     // Custom Errors
-    error SUPER_TOKEN_POOL_INVALID_TIME(); // 0xd469ac52
-    error SUPER_TOKEN_POOL_NEGATIVE_UNITS_NOT_SUPPORTED(); // 0xd568f5c5
-    error SUPER_TOKEN_POOL_NOT_POOL_ADMIN(); // 0xe448e00d
-    error SUPER_TOKEN_POOL_NOT_GDA(); // 0xb3a64080
+    error SUPERFLUID_POOL_INVALID_TIME();
+    error SUPERFLUID_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
+    error SUPERFLUID_POOL_NOT_POOL_ADMIN();
+    error SUPERFLUID_POOL_NOT_GDA();
 
     // Events
     event MemberUpdated(
@@ -98,7 +98,7 @@ interface ISuperTokenPool {
     ) external returns (bool);
 }
 
-interface ISuperTokenPoolAdmin {
+interface ISuperfluidPoolAdmin {
     function isMemberConnected(
         ISuperfluidToken token,
         address pool,
@@ -106,7 +106,7 @@ interface ISuperTokenPoolAdmin {
     ) external view returns (bool);
 
     function getPoolAdjustmentFlowInfo(
-        ISuperTokenPool pool
+        ISuperfluidPool pool
     )
         external
         view

@@ -18,17 +18,17 @@ import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
     TokenMonad
 } from "@superfluid-finance/solidity-semantic-money/src/TokenMonad.sol";
-import { SuperTokenPool } from "../superfluid/SuperTokenPool.sol";
+import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
 import {
-    SuperTokenPoolDeployerLibrary
-} from "../libs/SuperTokenPoolDeployerLibrary.sol";
+    SuperfluidPoolDeployerLibrary
+} from "../libs/SuperfluidPoolDeployerLibrary.sol";
 import {
     IGeneralDistributionAgreementV1
 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
 import {
     ISuperfluidToken
 } from "../interfaces/superfluid/ISuperfluidToken.sol";
-import { ISuperTokenPool } from "../interfaces/superfluid/ISuperTokenPool.sol";
+import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
 import { SlotsBitmapLibrary } from "../libs/SlotsBitmapLibrary.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
@@ -89,7 +89,7 @@ contract GeneralDistributionAgreementV1 is
         address(SlotsBitmapLibrary);
 
     address public constant SUPER_TOKEN_POOL_DEPLOYER_ADDRESS =
-        address(SuperTokenPoolDeployerLibrary);
+        address(SuperfluidPoolDeployerLibrary);
 
     /// @dev Universal Index state slot id for storing universal index data
     uint256 private constant _UNIVERSAL_INDEX_STATE_SLOT_ID = 0;
@@ -163,7 +163,7 @@ contract GeneralDistributionAgreementV1 is
         );
 
         if (_isPool(token, account)) {
-            own = ISuperTokenPool(account).getDisconnectedBalance(uint32(time));
+            own = ISuperfluidPool(account).getDisconnectedBalance(uint32(time));
         } else {
             own = Value.unwrap(uIndexParticle.rtb(Time.wrap(uint32(time))));
         }
@@ -178,12 +178,12 @@ contract GeneralDistributionAgreementV1 is
                 (
                     bool exist,
                     PoolMemberData memory poolMemberData
-                ) = _getPoolMemberData(token, account, ISuperTokenPool(pool));
+                ) = _getPoolMemberData(token, account, ISuperfluidPool(pool));
                 assert(exist);
                 assert(poolMemberData.pool == pool);
                 fromPools =
                     fromPools +
-                    ISuperTokenPool(pool).getClaimable(account, uint32(time));
+                    ISuperfluidPool(pool).getClaimable(account, uint32(time));
             }
         }
 
@@ -232,7 +232,7 @@ contract GeneralDistributionAgreementV1 is
         if (_isPool(token, account)) {
             netFlowRate =
                 netFlowRate +
-                ISuperTokenPool(account).getDisconnectedFlowRate();
+                ISuperfluidPool(account).getDisconnectedFlowRate();
         }
 
         {
@@ -241,7 +241,7 @@ contract GeneralDistributionAgreementV1 is
                 bytes32[] memory pidList
             ) = _listPoolConnectionIds(token, account);
             for (uint i = 0; i < slotIds.length; ++i) {
-                ISuperTokenPool pool = ISuperTokenPool(
+                ISuperfluidPool pool = ISuperfluidPool(
                     address(uint160(uint256(pidList[i])))
                 );
                 netFlowRate = netFlowRate + pool.getMemberFlowRate(account);
@@ -265,7 +265,7 @@ contract GeneralDistributionAgreementV1 is
     function getFlowDistributionActualFlowRate(
         ISuperfluidToken token,
         address from,
-        ISuperTokenPool to,
+        ISuperfluidPool to,
         int96 requestedFlowRate
     ) external view override returns (int96 finalFlowRate) {
         bytes memory eff = abi.encode(token);
@@ -308,10 +308,10 @@ contract GeneralDistributionAgreementV1 is
     function createPool(
         address admin,
         ISuperfluidToken token
-    ) external override returns (ISuperTokenPool pool) {
-        pool = ISuperTokenPool(
+    ) external override returns (ISuperfluidPool pool) {
+        pool = ISuperfluidPool(
             address(
-                SuperTokenPoolDeployerLibrary.deploy(
+                SuperfluidPoolDeployerLibrary.deploy(
                     address(superTokenPoolBeacon),
                     admin,
                     token
@@ -334,7 +334,7 @@ contract GeneralDistributionAgreementV1 is
 
     // @note This is same as approveSubscription
     function connectPool(
-        ISuperTokenPool pool,
+        ISuperfluidPool pool,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
         return connectPool(pool, true, ctx);
@@ -342,14 +342,14 @@ contract GeneralDistributionAgreementV1 is
 
     // @note This is same as revokeSubscription
     function disconnectPool(
-        ISuperTokenPool pool,
+        ISuperfluidPool pool,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
         return connectPool(pool, false, ctx);
     }
 
     function connectPool(
-        ISuperTokenPool pool,
+        ISuperfluidPool pool,
         bool doConnect,
         bytes calldata ctx
     ) public returns (bytes memory newCtx) {
@@ -422,7 +422,7 @@ contract GeneralDistributionAgreementV1 is
         (bool exist, ) = _getPoolMemberData(
             token,
             member,
-            ISuperTokenPool(pool)
+            ISuperfluidPool(pool)
         );
         return exist;
     }
@@ -482,7 +482,7 @@ contract GeneralDistributionAgreementV1 is
     function distribute(
         ISuperfluidToken token,
         address from,
-        ISuperTokenPool pool,
+        ISuperfluidPool pool,
         uint256 requestedAmount,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
@@ -501,10 +501,6 @@ contract GeneralDistributionAgreementV1 is
 
         if (from != currentContext.msgSender) {
             revert GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
-        }
-
-        if (from != pool.admin()) {
-            revert GDA_ONLY_ADMIN();
         }
 
         (, Value actualAmount) = _doDistributeViaPool(
@@ -527,7 +523,7 @@ contract GeneralDistributionAgreementV1 is
     function distributeFlow(
         ISuperfluidToken token,
         address from,
-        ISuperTokenPool pool,
+        ISuperfluidPool pool,
         int96 requestedFlowRate,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
@@ -536,9 +532,6 @@ contract GeneralDistributionAgreementV1 is
         }
         if (requestedFlowRate < 0) {
             revert GDA_NO_NEGATIVE_FLOW_RATE();
-        }
-        if (from != pool.admin()) {
-            revert GDA_ONLY_ADMIN();
         }
 
         ISuperfluid.Context memory currentContext = AgreementLibrary
@@ -956,9 +949,9 @@ contract GeneralDistributionAgreementV1 is
         bytes memory, // eff,
         address pool
     ) internal view override returns (PDPoolIndex memory) {
-        SuperTokenPool.PoolIndexData memory data = SuperTokenPool(pool)
+        SuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool)
             .getIndex();
-        return SuperTokenPool(pool).getPDPoolIndexFromPoolIndexData(data);
+        return SuperfluidPool(pool).getPDPoolIndexFromPoolIndexData(data);
     }
 
     function _setPDPIndex(
@@ -966,7 +959,7 @@ contract GeneralDistributionAgreementV1 is
         address pool,
         PDPoolIndex memory p
     ) internal override returns (bytes memory) {
-        assert(SuperTokenPool(pool).operatorSetIndex(p));
+        assert(SuperfluidPool(pool).operatorSetIndex(p));
 
         return eff;
     }
@@ -1022,7 +1015,7 @@ contract GeneralDistributionAgreementV1 is
     }
 
     function getPoolAdjustmentFlowInfo(
-        ISuperTokenPool pool
+        ISuperfluidPool pool
     )
         external
         view
@@ -1041,7 +1034,8 @@ contract GeneralDistributionAgreementV1 is
         view
         returns (address adjustmentRecipient, bytes32 flowHash, int96 flowRate)
     {
-        adjustmentRecipient = ISuperTokenPool(pool).admin();
+        // pool admin is always the adjustment recipient
+        adjustmentRecipient = ISuperfluidPool(pool).admin();
         flowHash = getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
         return (
             adjustmentRecipient,
@@ -1081,7 +1075,7 @@ contract GeneralDistributionAgreementV1 is
         FlowRate flowRate,
         Time t
     ) internal returns (bytes memory) {
-        address adjustmentRecipient = ISuperTokenPool(pool).admin();
+        address adjustmentRecipient = ISuperfluidPool(pool).admin();
         bytes32 adjustmentFlowHash = getPoolAdjustmentFlowHash(
             pool,
             adjustmentRecipient
@@ -1199,7 +1193,7 @@ contract GeneralDistributionAgreementV1 is
 
     function _getPoolMemberHash(
         address poolMember,
-        ISuperTokenPool pool
+        ISuperfluidPool pool
     ) internal view returns (bytes32) {
         return
             keccak256(
@@ -1237,7 +1231,7 @@ contract GeneralDistributionAgreementV1 is
     function _getPoolMemberData(
         ISuperfluidToken token,
         address poolMember,
-        ISuperTokenPool pool
+        ISuperfluidPool pool
     ) internal view returns (bool exist, PoolMemberData memory poolMemberData) {
         bytes32[] memory data = token.getAgreementData(
             address(this),

@@ -194,8 +194,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "InstantDistributionAgreementV1",
         "GeneralDistributionAgreementV1",
         "SuperfluidUpgradeableBeacon",
-        "SuperTokenPool",
-        "SuperTokenPoolDeployerLibrary",
+        "SuperfluidPool",
+        "SuperfluidPoolDeployerLibrary",
         "ConstantOutflowNFT",
         "ConstantInflowNFT",
     ];
@@ -226,8 +226,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         InstantDistributionAgreementV1,
         GeneralDistributionAgreementV1,
         SuperfluidUpgradeableBeacon,
-        SuperTokenPool,
-        SuperTokenPoolDeployerLibrary,
+        SuperfluidPool,
+        SuperfluidPoolDeployerLibrary,
         ConstantOutflowNFT,
         ConstantInflowNFT,
     } = await SuperfluidSDK.loadContracts({
@@ -482,10 +482,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     // @note GDA deployment is commented out until we plan on releasing it
     // const deployGDAv1 = async () => {
     //     try {
-    //         // deploy and link SuperTokenPoolDeployerLibrary
+    //         // deploy and link SuperfluidPoolDeployerLibrary
     //         await deployExternalLibraryAndLink(
-    //             SuperTokenPoolDeployerLibrary,
-    //             "SuperTokenPoolDeployerLibrary",
+    //             SuperfluidPoolDeployerLibrary,
+    //             "SuperfluidPoolDeployerLibrary",
     //             "SUPER_TOKEN_POOL_DEPLOYER_LIBRARY_ADDRESS",
     //             GeneralDistributionAgreementV1
     //         );
@@ -523,12 +523,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     //     );
     //     output += `GDA_LOGIC=${agreement.address}\n`;
     //     const superTokenPoolLogic = await web3tx(
-    //         SuperTokenPool.new,
-    //         "SuperTokenPool.new"
+    //         SuperfluidPool.new,
+    //         "SuperfluidPool.new"
     //     )(agreement.address);
     //     await superTokenPoolLogic.castrate();
     //     console.log(
-    //         "New SuperTokenPoolLogic address",
+    //         "New SuperfluidPoolLogic address",
     //         superTokenPoolLogic.address
     //     );
     //     output += `SUPER_TOKEN_POOL_LOGIC=${superTokenPoolLogic.address}\n`;
@@ -537,7 +537,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     //         "SuperfluidUpgradeableBeacon.new"
     //     )(superTokenPoolLogic.address);
     //     console.log(
-    //         "New SuperTokenPoolBeacon address",
+    //         "New SuperfluidPoolBeacon address",
     //         superTokenPoolBeacon.address
     //     );
     //     output += `SUPER_TOKEN_POOL_BEACON=${superTokenPoolBeacon.address}\n`;

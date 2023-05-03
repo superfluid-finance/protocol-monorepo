@@ -85,14 +85,14 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         PDPoolIndex memory pdPoolIndex = getPDPoolIndexFromPoolIndexData(
             _index
         );
-        PDPoolMember memory pdPoolMember = getPDPoolMemberFromMemberData(
+        PDPoolMember memory disconnectedMembers = getPDPoolMemberFromMemberData(
             _disconnectedMembers
         );
         return
             int96(
                 FlowRate.unwrap(
                     pdPoolIndex.flow_rate_per_unit().mul(
-                        pdPoolMember.owned_units
+                        disconnectedMembers.owned_units
                     )
                 )
             );
@@ -369,10 +369,10 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         PDPoolIndex memory pdPoolIndex = getPDPoolIndexFromPoolIndexData(
             _index
         );
-        PDPoolMember memory pdPoolMember = getPDPoolMemberFromMemberData(
+        PDPoolMember memory disconnectedMembers = getPDPoolMemberFromMemberData(
             _disconnectedMembers
         );
-        PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
+        PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, disconnectedMembers);
         mu = mu.settle(t);
         mu.m.owned_units = mu.m.owned_units + shiftUnits;
         // offset the claimed amount from the settled value if any

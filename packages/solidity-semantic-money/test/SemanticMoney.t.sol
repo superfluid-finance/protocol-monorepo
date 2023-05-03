@@ -35,12 +35,17 @@ contract SemanticMoneyTest is Test {
     // Monetary Types
     ////////////////////////////////////////////////////////////////////////////////
 
+    function assumeValidInt128(int256 x) internal {
+        vm.assume(x >= type(int128).min || x <= type(int128).max);
+    }
+
     /// value `mul` unit distributive law: v * (u1 + u2) = v * u1 + v * u2
     function test_value_mul_unit_distributive_law(int128 x_, Unit u1, Unit u2) external {
         Value x = Value.wrap(x_);
         int256 tu = int256(Unit.unwrap(u1)) + int256(Unit.unwrap(u2));
         // FIXME NB! vm.assume crashes solc/yul 0.8.19
-        if (tu > type(int128).max || tu < type(int128).min) return;
+        // if (tu > type(int128).max || tu < type(int128).min) return;
+        assumeValidInt128(tu);
         assertEq(x.mul(u1) + x.mul(u2), x.mul(u1 + u2), "e1");
     }
 

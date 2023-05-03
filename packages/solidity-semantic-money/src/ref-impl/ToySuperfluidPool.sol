@@ -29,6 +29,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
     mapping (address member => Value claimed_value) internal _claimedValues;
     // This is a pseudo member, representing all the disconnected members
     PDPoolMember internal _disconnectedMembers;
+    Value _claimedByDisconnectedMembers;
 
     constructor () {
         POOL_ADMIN = msg.sender;
@@ -63,7 +64,8 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
     }
 
     function getDisconnectedBalance(Time t) override external view returns (Value) {
-        return PDPoolMemberMU(_pdpIndex, _disconnectedMembers).rtb(t);
+        return PDPoolMemberMU(_pdpIndex, _disconnectedMembers).rtb(t)
+            - _claimedByDisconnectedMembers;
     }
 
     function getMemberFlowRate(address memberAddr) override external view returns (FlowRate) {
@@ -167,11 +169,12 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         PDPoolMemberMU memory mu = PDPoolMemberMU(_pdpIndex, _disconnectedMembers);
         mu = mu.settle(t);
         mu.m.owned_units = mu.m.owned_units + shiftUnits;
-        // offset the claimed amount from the settled value if any
-        // TODO Should probably not expose the private _settled_value field.
-        //      Alternatively could be a independent field, while the implementer can optimize
-        //      it away by merging their storage using monoidal laws again.
-        mu.m._settled_value = mu.m._settled_value - claimedAmount;
         _disconnectedMembers = mu.m;
+        // Note to implementers:
+        //
+        // As an optimization, this additional storage field may be merged with _disconnectedMembers._settled_value.
+        // The toy model though holds conceptual clarity as top priority instead, and accessing the private field
+        // `_settled_value` is deemed breaking such clarity.
+        _claimedByDisconnectedMembers = _claimedByDisconnectedMembers + claimedAmount;
     }
 }

@@ -57,6 +57,10 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         return _members[memberAddr].owned_units;
     }
 
+    function getDistributionFlowRate() external view returns (FlowRate) {
+        return _pdpIndex.flow_rate();
+    }
+
     function getConnectedFlowRate() override external view returns (FlowRate) {
         return _pdpIndex.flow_rate_per_unit().mul(_pdpIndex.total_units);
     }

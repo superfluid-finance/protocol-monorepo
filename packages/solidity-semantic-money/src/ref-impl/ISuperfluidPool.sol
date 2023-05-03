@@ -19,6 +19,8 @@ interface ISuperfluidPool {
 
     function getUnits(address memberAddress) external view returns (Unit);
 
+    function getDistributionFlowRate() external view returns (FlowRate);
+
     function getConnectedFlowRate() external view returns (FlowRate);
 
     function getDisconnectedFlowRate() external view returns (FlowRate);

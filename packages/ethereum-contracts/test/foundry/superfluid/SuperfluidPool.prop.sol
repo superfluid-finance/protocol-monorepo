@@ -1,0 +1,135 @@
+// SPDX-License-Identifier: AGPLv3
+pragma solidity 0.8.19;
+
+import "forge-std/Test.sol";
+import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+import {
+    GeneralDistributionAgreementV1
+} from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
+import {
+    SuperfluidPool
+} from "../../../contracts/superfluid/SuperfluidPool.sol";
+
+/// @title SuperfluidPool Property Tests
+/// @author Superfluid
+/// @notice This is a contract that runs property tests for the SuperfluidPool
+/// It involves testing the pure functions of the SuperfluidPool to ensure that we get
+/// the expected output for a range of inputs.
+contract SuperfluidPoolProperties is SuperfluidPool, Test {
+    constructor() SuperfluidPool(GeneralDistributionAgreementV1(address(0))) {}
+
+    function _helper_Assert_Wrapped_Particle(
+        PoolIndexData memory poolIndexData,
+        BasicParticle memory particle
+    ) internal {
+        assertEq(
+            FlowRate.unwrap(particle.flow_rate()),
+            int128(poolIndexData.wrappedFlowRate),
+            "SuperfluidPool.prop (PoolIndex): flowRate not equal"
+        );
+        assertEq(
+            Time.unwrap(particle.settled_at()),
+            poolIndexData.wrappedSettledAt,
+            "SuperfluidPool.prop (PoolIndex): settledAt not equal"
+        );
+        assertEq(
+            Value.unwrap(particle._settled_value),
+            poolIndexData.wrappedSettledValue,
+            "SuperfluidPool.prop (PoolIndex): settledValue not equal"
+        );
+    }
+
+    function _helper_Assert_Wrapped_Particle(
+        MemberData memory memberData,
+        BasicParticle memory particle
+    ) internal {
+        assertEq(
+            FlowRate.unwrap(particle.flow_rate()),
+            int128(memberData.syncedFlowRate),
+            "SuperfluidPool.prop (BasicParticle): flowRate not equal"
+        );
+        assertEq(
+            Time.unwrap(particle.settled_at()),
+            memberData.syncedSettledAt,
+            "SuperfluidPool.prop (BasicParticle): settledAt not equal"
+        );
+        assertEq(
+            Value.unwrap(particle._settled_value),
+            memberData.syncedSettledValue,
+            "SuperfluidPool.prop (BasicParticle): settledValue not equal"
+        );
+    }
+
+    function testConvertPoolIndexDataToWrappedParticle(
+        PoolIndexData memory data
+    ) public {
+        BasicParticle
+            memory wrappedParticle = _convertPoolIndexDataToWrappedParticle(
+                data
+            );
+        _helper_Assert_Wrapped_Particle(data, wrappedParticle);
+    }
+
+    function testConvertPoolIndexDataToPDPoolIndex(
+        PoolIndexData memory data
+    ) public {
+        vm.assume(data.totalUnits < uint128(type(int128).max));
+
+        PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(
+            data
+        );
+        assertEq(
+            uint128(Unit.unwrap(pdPoolIndex.total_units)),
+            data.totalUnits,
+            "SuperfluidPool.prop: total units not equal"
+        );
+        _helper_Assert_Wrapped_Particle(data, pdPoolIndex._wrapped_particle);
+    }
+
+    function testConvertPDPoolIndexToPoolIndexData(
+        int128 totalUnits,
+        uint32 wrappedSettledAt,
+        int96 wrappedFlowRate,
+        int256 wrappedSettledValue
+    ) public {
+        vm.assume(totalUnits > 0);
+        PDPoolIndex memory pdPoolIndex = PDPoolIndex(
+            Unit.wrap(totalUnits),
+            BasicParticle(
+                Time.wrap(wrappedSettledAt),
+                FlowRate.wrap(wrappedFlowRate),
+                Value.wrap(wrappedSettledValue)
+            )
+        );
+        PoolIndexData memory poolIndexData = convertPDPoolIndexToPoolIndexData(
+            pdPoolIndex
+        );
+        assertEq(
+            poolIndexData.totalUnits,
+            uint128(Unit.unwrap(pdPoolIndex.total_units)),
+            "SuperfluidPool.prop: total units not equal"
+        );
+        _helper_Assert_Wrapped_Particle(poolIndexData, pdPoolIndex._wrapped_particle);
+    }
+
+    function testConvertMemberDataToPDPoolMember(
+        MemberData memory data
+    ) public {
+        vm.assume(data.ownedUnits < uint128(type(int128).max));
+
+        PDPoolMember memory pdPoolMember = convertMemberDataToPDPoolMember(
+            data
+        );
+        assertEq(
+            uint128(Unit.unwrap(pdPoolMember.owned_units)),
+            data.ownedUnits,
+            "SuperfluidPool.prop: owned units not equal"
+        );
+        assertEq(
+            Value.unwrap(pdPoolMember._settled_value),
+            data.settledValue,
+            "SuperfluidPool.prop: settled value not equal"
+        );
+        _helper_Assert_Wrapped_Particle(data, pdPoolMember._synced_particle);
+    }
+}

@@ -16,6 +16,7 @@ import {
     createFlowOperatorUpdatedEvent,
     modifyFlowAndAssertFlowUpdatedEventProperties,
 } from "../cfav1.helper";
+import {mockedApprove} from "../../mockedFunctions";
 
 const initialFlowRate = BigInt.fromI32(100);
 
@@ -166,6 +167,7 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             permissions,
             flowRateAllowance
         );
+        mockedApprove(superToken, sender, flowOperator, BigInt.fromI32(0));
 
         handleFlowOperatorUpdated(flowOperatorUpdatedEvent);
 

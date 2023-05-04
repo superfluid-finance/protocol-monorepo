@@ -19,6 +19,7 @@ import {
     createFlowOperatorUpdatedEvent, getDeposit, modifyFlowAndAssertFlowUpdatedEventProperties,
 } from "../cfav1.helper";
 import {handleApproval} from "../../../src/mappings/superToken";
+import {mockedApprove} from "../../mockedFunctions";
 
 const initialFlowRate = BigInt.fromI32(100);
 
@@ -80,6 +81,8 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
         const allowance = BigInt.fromI32(100);
         const sender = alice;
         const flowOperator = bob;
+
+        mockedApprove(superToken, sender, flowOperator, allowance);
 
         const flowOperatorUpdatedEvent = createFlowOperatorUpdatedEvent(
             superToken,

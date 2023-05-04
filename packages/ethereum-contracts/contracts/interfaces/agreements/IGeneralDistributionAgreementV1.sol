@@ -29,7 +29,7 @@ abstract contract IGeneralDistributionAgreementV1 is
         ISuperfluidToken indexed token,
         ISuperfluidPool indexed pool,
         address indexed distributor,
-        uint32 distributedAtTimestamp,
+        uint256 distributedAtTimestamp,
         uint256 requestedAmount,
         uint256 actualAmount
     );
@@ -39,9 +39,10 @@ abstract contract IGeneralDistributionAgreementV1 is
         ISuperfluidPool indexed pool,
         address operator,
         address indexed distributor,
-        uint32 distributedAtTimestamp,
+        uint256 distributedAtTimestamp,
         int96 oldFlowRate,
-        int96 newFlowRate
+        int96 newDistributorToPoolFlowRate,
+        int96 newTotalDistributionFlowRate
     );
 
     event PoolCreated(

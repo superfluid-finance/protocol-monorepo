@@ -835,6 +835,61 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         uint16 dt; // time delta
     }
 
+    function testAliceBreakage() external {
+        vm.prank(alice);
+        pool.updateMember(alice, 1);
+        vm.warp(block.timestamp + 5);
+        helper_Distribute_Flow_And_Assert(superToken, pool, alice, 1);
+        vm.warp(block.timestamp + 5);
+        vm.prank(alice);
+        pool.updateMember(alice, 0);
+        
+
+        int256 balancesSum;
+        int96 flowRatesSum;
+        {
+            (int256 own, int256 fromPools, int256 buffer) = sf
+                .gda
+                .realtimeBalanceVectorAt(
+                    superToken,
+                    address(pool),
+                    block.timestamp
+                );
+            int96 poolDisconnectedRate = pool.getDisconnectedFlowRate();
+            (, , int96 poolAdjustmentRate) = sf.gda.getPoolAdjustmentFlowInfo(
+                pool
+            );
+            int96 poolNetFlowRate = sf.gda.getNetFlowRate(
+                superToken,
+                address(pool)
+            );
+            balancesSum = balancesSum + own + fromPools + buffer;
+            flowRatesSum = flowRatesSum + poolNetFlowRate;
+        }
+        emit log_named_int("balancesSum", balancesSum);
+        emit log_named_int("flowRatesSum", flowRatesSum);
+
+{
+            (int256 own, int256 fromPools, int256 buffer) = sf
+                .gda
+                .realtimeBalanceVectorAt(
+                    superToken,
+                    alice,
+                    block.timestamp
+                );
+            int96 flowRate = sf.gda.getNetFlowRate(
+                superToken,
+                alice
+            );
+            balancesSum = balancesSum + own + fromPools + buffer;
+            flowRatesSum = flowRatesSum + flowRate;
+            }
+        emit log_named_int("balancesSum", balancesSum);
+        emit log_named_int("flowRatesSum", flowRatesSum);
+
+        assertEq(flowRatesSum, 0, "GDAv1.t: flowRatesSum != 0");
+    }
+
     function testPoolRandomSeqs(PoolUpdateStep[20] memory steps) external {
         uint256 N_MEMBERS = 5;
 
@@ -842,14 +897,17 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             emit log_named_uint(">>> STEP", i);
             PoolUpdateStep memory s = steps[i];
             uint256 action = s.a % 4;
-            address user = TEST_ACCOUNTS[s.u % N_MEMBERS];
+            uint256 u = 1 + s.u % N_MEMBERS;
+            address user = TEST_ACCOUNTS[u];
 
+            emit log_named_uint("user", u);
+            emit log_named_uint("time delta", s.dt);
             emit log_named_uint("> timestamp", block.timestamp);
             emit log_named_address("tester", user);
 
             if (action == 0) {
                 emit log_named_string("action", "updateMember");
-                emit log_named_uint("unit", s.v);
+                emit log_named_uint("units", s.v);
                 vm.startPrank(alice);
                 assert(pool.updateMember(user, s.v));
                 vm.stopPrank();

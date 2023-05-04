@@ -130,7 +130,7 @@ contract GeneralDistributionAgreementV1 is
         ISuperfluidToken token;
         int256 availableBalance;
         address sender;
-        bytes32 distributionFlowID;
+        bytes32 distributionFlowHash;
         int256 signedTotalGDADeposit;
         address liquidator;
     }
@@ -227,12 +227,10 @@ contract GeneralDistributionAgreementV1 is
             abi.encode(token),
             account
         );
-        netFlowRate = int96(FlowRate.unwrap(uIndexData._flow_rate));
+        netFlowRate = int256(FlowRate.unwrap(uIndexData._flow_rate)).toInt96();
 
         if (_isPool(token, account)) {
-            netFlowRate =
-                netFlowRate +
-                ISuperfluidPool(account).getDisconnectedFlowRate();
+            netFlowRate += ISuperfluidPool(account).getDisconnectedFlowRate();
         }
 
         {
@@ -244,7 +242,7 @@ contract GeneralDistributionAgreementV1 is
                 ISuperfluidPool pool = ISuperfluidPool(
                     address(uint160(uint256(pidList[i])))
                 );
-                netFlowRate = netFlowRate + pool.getMemberFlowRate(account);
+                netFlowRate += pool.getMemberFlowRate(account);
             }
         }
     }
@@ -254,10 +252,10 @@ contract GeneralDistributionAgreementV1 is
         address from,
         address to
     ) external view override returns (int96) {
-        bytes32 distributionFlowID = _getFlowDistributionHash(from, to);
+        bytes32 distributionFlowHash = _getFlowDistributionHash(from, to);
         (, FlowDistributionData memory data) = _getFlowDistributionData(
             token,
-            distributionFlowID
+            distributionFlowHash
         );
         return data.flowRate;
     }
@@ -269,7 +267,7 @@ contract GeneralDistributionAgreementV1 is
         int96 requestedFlowRate
     ) external view override returns (int96 finalFlowRate) {
         bytes memory eff = abi.encode(token);
-        bytes32 distributionFlowID = _getFlowDistributionHash(
+        bytes32 distributionFlowHash = _getFlowDistributionHash(
             from,
             address(to)
         );
@@ -278,7 +276,7 @@ contract GeneralDistributionAgreementV1 is
 
         PDPoolIndex memory pdpIndex = _getPDPIndex("", address(to));
 
-        FlowRate oldFlowRate = _getFlowRate(eff, distributionFlowID);
+        FlowRate oldFlowRate = _getFlowRate(eff, distributionFlowHash);
         FlowRate newActualFlowRate;
         FlowRate oldDistributionFlowRate = pdpIndex.flow_rate();
         FlowRate newDistributionFlowRate;
@@ -514,7 +512,7 @@ contract GeneralDistributionAgreementV1 is
             token,
             pool,
             currentContext.msgSender,
-            uint32(block.timestamp),
+            block.timestamp,
             requestedAmount,
             uint256(Value.unwrap(actualAmount)) // upcast from int256 -> uint256 is safe
         );
@@ -539,21 +537,14 @@ contract GeneralDistributionAgreementV1 is
 
         newCtx = ctx;
 
-        bytes32 distributionFlowID = _getFlowDistributionHash(
+        bytes32 distributionFlowHash = _getFlowDistributionHash(
             from,
             address(pool)
         );
-
-        // @note it would be nice to have oldflowRate returned from _doDistributeFlow
-        UniversalIndexData memory fromUIndexData = _getUIndexData(
+        FlowRate oldFlowRate = _getFlowRate(
             abi.encode(token),
-            from
+            distributionFlowHash
         );
-
-        BasicParticle memory basicParticle = _getBasicParticleFromUIndex(
-            fromUIndexData
-        );
-        FlowRate oldFlowRate = basicParticle._flow_rate.inv();
 
         (
             ,
@@ -563,7 +554,7 @@ contract GeneralDistributionAgreementV1 is
                 abi.encode(token),
                 from,
                 address(pool),
-                distributionFlowID,
+                distributionFlowHash,
                 FlowRate.wrap(requestedFlowRate),
                 Time.wrap(uint32(block.timestamp))
             );
@@ -572,7 +563,7 @@ contract GeneralDistributionAgreementV1 is
             _adjustBuffer(
                 abi.encode(token),
                 from,
-                distributionFlowID,
+                distributionFlowHash,
                 oldFlowRate,
                 actualFlowRate
             );
@@ -593,10 +584,17 @@ contract GeneralDistributionAgreementV1 is
                     // _StackVars_Liquidation used to handle good ol' stack too deep
                     _StackVars_Liquidation memory liquidationData;
                     {
+                        // @note it would be nice to have oldflowRate returned from _doDistributeFlow
+                        UniversalIndexData
+                            memory fromUIndexData = _getUIndexData(
+                                abi.encode(token),
+                                from
+                            );
                         liquidationData.token = token;
                         liquidationData.sender = from;
                         liquidationData.liquidator = currentContext.msgSender;
-                        liquidationData.distributionFlowID = distributionFlowID;
+                        liquidationData
+                            .distributionFlowHash = distributionFlowHash;
                         liquidationData.signedTotalGDADeposit = fromUIndexData
                             .totalBuffer
                             .toInt256();
@@ -623,9 +621,10 @@ contract GeneralDistributionAgreementV1 is
                 pool,
                 currentContext.msgSender,
                 from,
-                uint32(block.timestamp),
-                int96(FlowRate.unwrap(oldFlowRate)),
-                int96(FlowRate.unwrap(actualFlowRate))
+                block.timestamp,
+                int256(FlowRate.unwrap(oldFlowRate)).toInt96(),
+                int256(FlowRate.unwrap(actualFlowRate)).toInt96(),
+                int256(FlowRate.unwrap(newDistributionFlowRate)).toInt96()
             );
         }
     }
@@ -638,7 +637,7 @@ contract GeneralDistributionAgreementV1 is
             FlowDistributionData memory flowDistributionData
         ) = _getFlowDistributionData(
                 ISuperfluidToken(data.token),
-                data.distributionFlowID
+                data.distributionFlowHash
             );
         int256 signedSingleDeposit = flowDistributionData.buffer.toInt256();
 
@@ -670,7 +669,7 @@ contract GeneralDistributionAgreementV1 is
                 isCurrentlyPatricianPeriod ? 0 : 1
             );
             data.token.makeLiquidationPayoutsV2(
-                data.distributionFlowID,
+                data.distributionFlowHash,
                 liquidationTypeData,
                 data.liquidator,
                 isCurrentlyPatricianPeriod,
@@ -682,7 +681,7 @@ contract GeneralDistributionAgreementV1 is
             int256 rewardAmount = signedSingleDeposit;
             // bailout case
             data.token.makeLiquidationPayoutsV2(
-                data.distributionFlowID,
+                data.distributionFlowHash,
                 abi.encode(1, 2),
                 data.liquidator,
                 false,
@@ -966,12 +965,12 @@ contract GeneralDistributionAgreementV1 is
 
     function _getFlowRate(
         bytes memory eff,
-        bytes32 distributionFlowID
+        bytes32 distributionFlowHash
     ) internal view override returns (FlowRate) {
         address token = abi.decode(eff, (address));
         (, FlowDistributionData memory data) = _getFlowDistributionData(
             ISuperfluidToken(token),
-            distributionFlowID
+            distributionFlowHash
         );
         return FlowRate.wrap(data.flowRate);
     }
@@ -1167,7 +1166,7 @@ contract GeneralDistributionAgreementV1 is
 
     function _getFlowDistributionData(
         ISuperfluidToken token,
-        bytes32 distributionFlowID
+        bytes32 distributionFlowHash
     )
         internal
         view
@@ -1175,7 +1174,7 @@ contract GeneralDistributionAgreementV1 is
     {
         bytes32[] memory data = token.getAgreementData(
             address(this),
-            distributionFlowID,
+            distributionFlowHash,
             1
         );
 

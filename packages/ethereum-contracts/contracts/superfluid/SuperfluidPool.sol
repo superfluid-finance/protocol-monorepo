@@ -239,7 +239,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
         uint32 time = uint32(block.timestamp);
         Time t = Time.wrap(time);
-        Unit wrappedUnit = Unit.wrap(uint256(newUnits).toInt256().toInt128());
+        Unit wrappedUnits = Unit.wrap(uint256(newUnits).toInt256().toInt128());
 
         PDPoolIndex memory pdPoolIndex = getPDPoolIndexFromPoolIndexData(
             _index
@@ -256,7 +256,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
             // update pool's disconnected units
             _shiftDisconnectedUnits(
-                wrappedUnit - mu.m.owned_units,
+                wrappedUnits - mu.m.owned_units,
                 Value.wrap(claimedAmount),
                 t
             );
@@ -267,7 +267,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             BasicParticle memory p;
             (pdPoolIndex, pdPoolMember, p) = mu.pool_member_update(
                 p,
-                wrappedUnit,
+                wrappedUnits,
                 t
             );
             _index = getPoolIndexDataFromPDPoolIndex(pdPoolIndex);

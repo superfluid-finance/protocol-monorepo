@@ -199,7 +199,7 @@ contract AqueductTest is Test {
     }
     /** @dev Assert zero liquidity over generated random steps.
      */
-    function test_random_seqs(Step[] memory steps) external {
+    function test_random_seqs(Step[20] memory steps) external {
         //if (vm.envOr("NO_FOUNDRY_TEST_STEPS_LIMIT", uint256(0)) == 0) vm.assume(steps.length < 20);
         for (uint i = 0; i < steps.length; ++i) {
             Step memory s = steps[i];

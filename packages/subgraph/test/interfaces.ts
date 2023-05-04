@@ -242,7 +242,6 @@ export interface IFlowOperator extends IBaseEntity {
     readonly flowRateAllowanceGranted: string;
     readonly flowRateAllowanceRemaining: string;
     readonly flowOperator: string;
-    readonly allowance: string;
     readonly sender: ILightEntity;
     readonly token: ILightEntity;
     readonly accountTokenSnapshot: ILightEntity;
@@ -410,7 +409,6 @@ export interface IExpectedFlowOperatorData {
     readonly permissions: number;
     readonly flowRateAllowanceGranted: string;
     readonly flowRateAllowanceRemaining: string;
-    readonly allowance: string;
 }
 
 export interface IExpectedATSData {

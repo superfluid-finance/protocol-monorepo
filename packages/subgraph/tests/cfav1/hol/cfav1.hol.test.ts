@@ -15,10 +15,8 @@ import {
 } from "../../assertionHelpers";
 import { alice, bob, maticXAddress, maticXName, maticXSymbol } from "../../constants";
 import {
-    createApprovalEvent,
     createFlowOperatorUpdatedEvent, getDeposit, modifyFlowAndAssertFlowUpdatedEventProperties,
 } from "../cfav1.helper";
-import {handleApproval} from "../../../src/mappings/superToken";
 import {mockedApprove} from "../../mockedFunctions";
 
 const initialFlowRate = BigInt.fromI32(100);
@@ -78,11 +76,12 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
         const superToken = maticXAddress;
         const permissions = 1; // create only
         const flowRateAllowance = BigInt.fromI32(100);
-        const allowance = BigInt.fromI32(100);
+        const allowance = BigInt.fromI32(0);
         const sender = alice;
         const flowOperator = bob;
 
         mockedApprove(superToken, sender, flowOperator, allowance);
+        // Mocking is required here since it calls RPC inside getOrInitFlowOperator, when it is null.
 
         const flowOperatorUpdatedEvent = createFlowOperatorUpdatedEvent(
             superToken,
@@ -93,15 +92,6 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
         );
 
         handleFlowOperatorUpdated(flowOperatorUpdatedEvent);
-
-        const approvalEvent = createApprovalEvent(
-            superToken,
-            sender,
-            flowOperator,
-            allowance
-        );
-
-        handleApproval(approvalEvent);
 
         const id = getFlowOperatorID(
             Address.fromString(flowOperator),

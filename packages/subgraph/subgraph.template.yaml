@@ -256,6 +256,7 @@ templates:
         - TokenUpgradedEvent
         - TokenStatistic
         - TransferEvent
+        - FlowOperator
       abis:
         - name: Resolver
           file: ./abis/Resolver.json

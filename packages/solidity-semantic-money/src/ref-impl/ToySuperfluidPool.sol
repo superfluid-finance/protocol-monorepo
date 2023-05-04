@@ -10,7 +10,7 @@ import {
     PDPoolIndex, PDPoolMember, PDPoolMemberMU
 } from "../SemanticMoney.sol";
 import {
-    ISuperfluidPool, ISuperfluidPoolAdmin
+    ISuperfluidPool, ISuperfluidPoolOperator
 } from "./ISuperfluidPool.sol";
 
 
@@ -21,17 +21,20 @@ import {
  *       hence their public getter are added manually instead.
  */
 contract ToySuperfluidPool is Initializable, ISuperfluidPool {
-    address public immutable POOL_ADMIN;
+    // pool operator is the contract that can call privileged functions prefixed with `operator`.
+    address public immutable POOL_OPERATOR;
 
+    // pool admin is the one that can update pool's member units.
     address public admin;
     PDPoolIndex internal _pdpIndex;
     mapping (address member => PDPoolMember member_data) internal _members;
     mapping (address member => Value claimed_value) internal _claimedValues;
     // This is a pseudo member, representing all the disconnected members
     PDPoolMember internal _disconnectedMembers;
+    Value _claimedByDisconnectedMembers;
 
     constructor () {
-        POOL_ADMIN = msg.sender;
+        POOL_OPERATOR = msg.sender;
     }
 
     function initialize(address admin_) public initializer() {
@@ -54,6 +57,10 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         return _members[memberAddr].owned_units;
     }
 
+    function getDistributionFlowRate() external view returns (FlowRate) {
+        return _pdpIndex.flow_rate();
+    }
+
     function getConnectedFlowRate() override external view returns (FlowRate) {
         return _pdpIndex.flow_rate_per_unit().mul(_pdpIndex.total_units);
     }
@@ -62,8 +69,9 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         return _pdpIndex.flow_rate_per_unit().mul(_disconnectedMembers.owned_units);
     }
 
-    function getDisonnectedBalance(Time t) override external view returns (Value) {
-        return PDPoolMemberMU(_pdpIndex, _disconnectedMembers).rtb(t);
+    function getDisconnectedBalance(Time t) override external view returns (Value) {
+        return PDPoolMemberMU(_pdpIndex, _disconnectedMembers).rtb(t)
+            - _claimedByDisconnectedMembers;
     }
 
     function getMemberFlowRate(address memberAddr) override external view returns (FlowRate) {
@@ -85,7 +93,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         require(Unit.unwrap(newUnits) >= 0, "No negative unit amount!");
         require(admin == msg.sender, "Not pool admin!");
         Time t = Time.wrap(uint32(block.timestamp));
-        bool isConnected = ISuperfluidPoolAdmin(POOL_ADMIN).isMemberConnected(this, memberAddr);
+        bool isConnected = ISuperfluidPoolOperator(POOL_OPERATOR).isMemberConnected(this, memberAddr);
         PDPoolMemberMU memory mu = PDPoolMemberMU(_pdpIndex, _members[memberAddr]);
 
         if (!isConnected) {
@@ -100,14 +108,14 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         {
             BasicParticle memory p;
             (_pdpIndex, _members[memberAddr], p) = mu.pool_member_update(p, newUnits, t);
-            assert(ISuperfluidPoolAdmin(POOL_ADMIN).appendIndexUpdateByPool(p, t));
+            assert(ISuperfluidPoolOperator(POOL_OPERATOR).appendIndexUpdateByPool(p, t));
         }
 
         return true;
     }
 
     function claimAll(address memberAddr) override public returns (bool) {
-        bool isConnected = ISuperfluidPoolAdmin(POOL_ADMIN).isMemberConnected(this, memberAddr);
+        bool isConnected = ISuperfluidPoolOperator(POOL_OPERATOR).isMemberConnected(this, memberAddr);
         Time t = Time.wrap(uint32(block.timestamp));
         Value claimedAmount = _claimAll(memberAddr, t);
         if (!isConnected) {
@@ -122,26 +130,22 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
 
     function _claimAll(address memberAddr, Time t) internal returns (Value amount) {
         amount = getClaimable(memberAddr, t);
-        assert(ISuperfluidPoolAdmin(POOL_ADMIN).poolSettleClaim(memberAddr, amount));
+        assert(ISuperfluidPoolOperator(POOL_OPERATOR).poolSettleClaim(memberAddr, amount));
         _claimedValues[memberAddr] = _claimedValues[memberAddr] + amount;
     }
 
     function operatorSetIndex(PDPoolIndex calldata index) override external
-        returns (bool)
+        onlyOperator returns (bool)
     {
-        assert(POOL_ADMIN == msg.sender);
-
         _pdpIndex = index;
         return true;
     }
 
     function operatorConnectMember(address memberAddr, bool doConnect, Time t) override external
-        returns (bool)
+        onlyOperator returns (bool)
     {
-        assert(POOL_ADMIN == msg.sender);
-
         // NB! This is an assumption that isConnected = !doConnect,
-        //     and it should be resopected by the operator.
+        //     and it should be respected by the operator.
 
         // trigger the side effects of claiming all
         Value claimedAmount = _claimAll(memberAddr, t);
@@ -151,11 +155,11 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
             Unit u = _members[memberAddr].owned_units;
             if (doConnect) {
                 // previous disconnected, now to be connected
-                // => settle first, then removing from disconnected distribution group
+                // => removing from the disconnected distribution group
                 _shiftDisconnectedUnits(-u, claimedAmount, t);
             } else {
                 // previous connected, now to be disconnected
-                // => add to disconnected distribution group first, then settle.
+                // => adding to disconnected distribution group
                 _shiftDisconnectedUnits(u, Value.wrap(0), t);
             }
         }
@@ -167,11 +171,17 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
         PDPoolMemberMU memory mu = PDPoolMemberMU(_pdpIndex, _disconnectedMembers);
         mu = mu.settle(t);
         mu.m.owned_units = mu.m.owned_units + shiftUnits;
-        // offset the claimed amount from the settled value if any
-        // TODO Should probably not expose the private _settled_value field.
-        //      Alternatively could be a independent field, while the implementer can optimize
-        //      it away by merging their storage using monoidal laws again.
-        mu.m._settled_value = mu.m._settled_value - claimedAmount;
         _disconnectedMembers = mu.m;
+        // Note to implementers:
+        //
+        // As an optimization, this additional storage field may be merged with _disconnectedMembers._settled_value.
+        // The toy model though holds conceptual clarity as top priority instead, and accessing the private field
+        // `_settled_value` is deemed breaking such clarity.
+        _claimedByDisconnectedMembers = _claimedByDisconnectedMembers + claimedAmount;
+    }
+
+    modifier onlyOperator () {
+        assert(POOL_OPERATOR == msg.sender);
+        _;
     }
 }

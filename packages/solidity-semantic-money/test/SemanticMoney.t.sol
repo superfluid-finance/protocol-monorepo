@@ -53,9 +53,12 @@ contract SemanticMoneyTest is Test {
 
     /// flowrate `mul` unit distributive law: r * (u1 + u2) = r * u1 + r * u2
     function test_flowrate_mul_unit_distributive_law(int64 r_, int64 u1_, int64 u2_) external {
-        FlowRate r = FlowRate.wrap(r_);
-        Unit u1 = Unit.wrap(u1_);
-        Unit u2 = Unit.wrap(u2_);
+        // eliminate the signed integer overflow case
+        if (int256(r_) * (int256(u1_) + int256(u2_)) > type(int128).max ||
+            int256(r_) * (int256(u1_) + int256(u2_)) < type(int128).min) return;
+        FlowRate r = FlowRate.wrap(int128(r_));
+        Unit u1 = Unit.wrap(int128(u1_));
+        Unit u2 = Unit.wrap(int128(u2_));
         assertEq(r.mul(u1) + r.mul(u2), r.mul(u1 + u2), "e1");
     }
 

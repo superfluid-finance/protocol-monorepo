@@ -19,6 +19,8 @@ interface ISuperfluidPool {
 
     function getUnits(address memberAddress) external view returns (Unit);
 
+    function getDistributionFlowRate() external view returns (FlowRate);
+
     function getConnectedFlowRate() external view returns (FlowRate);
 
     function getDisconnectedFlowRate() external view returns (FlowRate);
@@ -30,7 +32,7 @@ interface ISuperfluidPool {
      *
      *   (a) pool.getDisonnectedBalance(t) == foldr sum (\m -> m.getClaimable(m, t)) 0 (isDisconnectd pool.members)
      */
-    function getDisonnectedBalance(Time t) external view returns (Value);
+    function getDisconnectedBalance(Time t) external view returns (Value);
 
     function getMemberFlowRate(address memberAddress) external view returns (FlowRate);
 
@@ -51,9 +53,9 @@ interface ISuperfluidPool {
 }
 
 /**
- * @dev The interface for the admin of a super token pool admin
+ * @dev The interface for the operator of a super token pool
  */
-interface ISuperfluidPoolAdmin {
+interface ISuperfluidPoolOperator {
     /// Check if an address is connected to the pool
     function isMemberConnected(ISuperfluidPool pool, address memberAddr) external view returns (bool);
 

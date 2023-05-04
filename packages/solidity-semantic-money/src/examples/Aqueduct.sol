@@ -38,7 +38,7 @@ library AqueductLibrary {
     function updateSide(PoolSideState memory poolA, FlowRate r0, FlowRate r1) internal pure
         returns (PoolSideState memory poolAu, TraderSideState memory tradeBu, FlowRate distributionFlowRate)
     {
-        poolAu.totalInFlowRate = poolA.totalInFlowRate + r1 - r0;
+        poolAu.totalInFlowRate = poolA.totalInFlowRate - r0 + r1;
         // TODO: assuming 100% distributed for now
         distributionFlowRate = poolAu.totalInFlowRate;
 
@@ -74,6 +74,13 @@ contract Aqueduct {
         _right.pool = tokenR.createPool();
     }
 
+    /**
+     * @dev Flow updated callback
+     * @param token - token for the flow
+     * @param from - flow sender
+     * @param ir0 - previous (input) flow rate
+     * @param ir1 - new (input) flow rate
+     */
     function onFlowUpdate(ToySuperfluidToken token, address from, FlowRate ir0, FlowRate ir1) external {
         if (token == _left.token) {
             _onFlowUpdate(_left, _right, from, ir0, ir1);

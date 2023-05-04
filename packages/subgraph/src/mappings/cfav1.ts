@@ -202,7 +202,6 @@ export function handleFlowOperatorUpdated(event: FlowOperatorUpdated): void {
         event.params.token,
         event.params.sender
     );
-
     flowOperator.permissions = event.params.permissions;
     flowOperator.flowRateAllowanceGranted = event.params.flowRateAllowance;
     flowOperator.flowRateAllowanceRemaining = event.params.flowRateAllowance;

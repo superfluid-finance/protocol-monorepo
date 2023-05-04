@@ -1,6 +1,5 @@
 import { assert, beforeEach, clearStore, describe, test } from "matchstick-as";
 import {
-    createApprovalEvent,
     createFlowOperatorUpdatedEvent,
 } from "../../cfav1/cfav1.helper";
 import {
@@ -17,6 +16,7 @@ import { mockedApprove } from "../../mockedFunctions";
 import { handleFlowOperatorUpdated } from "../../../src/mappings/cfav1";
 import { handleApproval } from "../../../src/mappings/superToken";
 import { assertHigherOrderBaseProperties } from "../../assertionHelpers";
+import { createApprovalEvent } from "../superToken.helper";
 
 describe("SuperToken Higher Order Level Entity Unit Tests", () => {
     beforeEach(() => {
@@ -31,7 +31,7 @@ describe("SuperToken Higher Order Level Entity Unit Tests", () => {
         const sender = alice;
         const flowOperator = bob;
 
-        mockedApprove(superToken, sender, flowOperator, allowance);
+        mockedApprove(superToken, sender, flowOperator, BigInt.fromI32(0));
 
         const flowOperatorUpdatedEvent = createFlowOperatorUpdatedEvent(
             superToken,
@@ -43,6 +43,15 @@ describe("SuperToken Higher Order Level Entity Unit Tests", () => {
 
         handleFlowOperatorUpdated(flowOperatorUpdatedEvent);
 
+        const id = getFlowOperatorID(
+            Address.fromString(flowOperator),
+            Address.fromString(superToken),
+            Address.fromString(sender)
+        );
+        // check allowance is 0
+        assert.fieldEquals("FlowOperator", id, "allowance", "0");
+
+        // trigger approve event
         const approvalEvent = createApprovalEvent(
             superToken,
             sender,
@@ -52,11 +61,6 @@ describe("SuperToken Higher Order Level Entity Unit Tests", () => {
 
         handleApproval(approvalEvent);
 
-        const id = getFlowOperatorID(
-            Address.fromString(flowOperator),
-            Address.fromString(superToken),
-            Address.fromString(sender)
-        );
         const atsId = getAccountTokenSnapshotID(
             Address.fromString(sender),
             Address.fromString(superToken)

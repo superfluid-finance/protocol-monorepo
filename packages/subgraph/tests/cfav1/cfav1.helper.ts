@@ -13,12 +13,10 @@ import {
     getAddressEventParam,
     getBigIntEventParam,
     getBytesEventParam,
-    getETHAddress,
     getI32EventParam,
     stringToBytes,
 } from "../converters";
 import { mockedHandleFlowUpdatedRPCCalls } from "../mockedFunctions";
-import {Approval} from "../../generated/templates/SuperToken/ISuperToken";
 
 // Mock Event Creators
 export function createFlowUpdatedEvent(
@@ -176,23 +174,3 @@ export function createFlowOperatorUpdatedEvent(
  export function getDeposit(flowRate: BigInt): BigInt {
     return flowRate.times(LIQUIDATION_PERIOD);
 }
-
-export function createApprovalEvent(
-    token: string,
-    owner: string,
-    spender: string,
-    value: BigInt
-): Approval {
-    const approvalEvent = changetype<Approval>(
-        newMockEvent()
-    );
-
-    approvalEvent.address = getETHAddress(token).toAddress();
-    approvalEvent.parameters = new Array();
-    approvalEvent.parameters.push(getAddressEventParam("owner", owner));
-    approvalEvent.parameters.push(getAddressEventParam("spender", spender));
-    approvalEvent.parameters.push(getBigIntEventParam("value", value));
-
-    return approvalEvent;
-}
-

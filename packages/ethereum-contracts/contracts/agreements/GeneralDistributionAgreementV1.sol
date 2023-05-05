@@ -129,7 +129,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         view
         returns (int256 own, int256 fromPools, int256 buffer)
     {
-        BasicParticle memory uIndexP = _getUIndex(abi.encode(token), account);
         UniversalIndexData memory universalIndexData = _getUIndexData(abi.encode(token), account);
         BasicParticle memory uIndexParticle = _getBasicParticleFromUIndex(universalIndexData);
 
@@ -151,7 +150,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             }
         }
 
-        buffer = int256(universalIndexData.totalBuffer);
+        buffer = universalIndexData.totalBuffer.toInt256();
     }
 
     function realtimeBalanceOf(ISuperfluidToken token, address account, uint256 time)
@@ -224,7 +223,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             fromUIndexData.shift_flow2b(pdpIndex, flowRateDelta + currentAdjustmentFlowRate, t);
         newActualFlowRate =
             oldFlowRate + (newDistributionFlowRate - oldDistributionFlowRate) - currentAdjustmentFlowRate;
-        finalFlowRate = int96(FlowRate.unwrap(newDistributionFlowRate));
+        finalFlowRate = int256(FlowRate.unwrap(newDistributionFlowRate)).toInt96();
     }
 
     // test view function conditions where net flow rate makes sense given pending distribution
@@ -519,7 +518,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             newBufferAmount = Value.wrap(minimumDeposit.toInt256());
         }
 
-        Value bufferDelta = newBufferAmount - Value.wrap(int256(uint256(flowDistributionData.buffer)));
+        Value bufferDelta = newBufferAmount - Value.wrap(uint256(flowDistributionData.buffer).toInt256());
 
         eff = _doShift(eff, from, address(this), bufferDelta);
 
@@ -527,8 +526,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             bytes32[] memory data = _encodeFlowDistributionData(
                 FlowDistributionData({
                     lastUpdated: uint32(block.timestamp),
-                    flowRate: int96(FlowRate.unwrap(newFlowRate)),
-                    buffer: uint256(Value.unwrap(newBufferAmount))
+                    flowRate: int256(FlowRate.unwrap(newFlowRate)).toInt96(),
+                    buffer: uint256(Value.unwrap(newBufferAmount)) // upcast to uint256 is safe
                 })
             );
 
@@ -567,9 +566,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         int256 totalRewardLeft = availableBalance + signedTotalGDADeposit;
-        int256 totalGDAOutFlowrate = signedTotalGDADeposit / int256(liquidationPeriod);
+        int256 totalGDAOutFlowrate = signedTotalGDADeposit / liquidationPeriod.toInt256();
         // divisor cannot be zero with existing outflow
-        return totalRewardLeft / totalGDAOutFlowrate > int256(liquidationPeriod - patricianPeriod);
+        return totalRewardLeft / totalGDAOutFlowrate > (liquidationPeriod - patricianPeriod).toInt256();
     }
 
     // # Universal Index operations
@@ -680,9 +679,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         emit UniversalIndexUpdated(
             ISuperfluidToken(token),
             owner,
-            Time.unwrap(p._settled_at),
+            Time.unwrap(p.settled_at()),
             Value.unwrap(p._settled_value),
-            int96(FlowRate.unwrap(p._flow_rate))
+            int256(FlowRate.unwrap(p.flow_rate())).toInt96()
         );
 
         return eff;
@@ -727,7 +726,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         bytes32[] memory data = _encodeFlowDistributionData(
             FlowDistributionData({
                 lastUpdated: uint32(block.timestamp),
-                flowRate: int96(FlowRate.unwrap(newFlowRate)),
+                flowRate: int256(FlowRate.unwrap(newFlowRate)).toInt96(),
                 buffer: flowDistributionData.buffer
             })
         );
@@ -760,7 +759,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         // pool admin is always the adjustment recipient
         adjustmentRecipient = ISuperfluidPool(pool).admin();
         flowHash = getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
-        return (adjustmentRecipient, flowHash, int96(FlowRate.unwrap(_getFlowRate(eff, flowHash))));
+        return (adjustmentRecipient, flowHash, int256(FlowRate.unwrap(_getFlowRate(eff, flowHash))).toInt96());
     }
 
     function _getPoolAdjustmentFlowRate(bytes memory eff, address pool)
@@ -770,7 +769,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         returns (FlowRate flowRate)
     {
         (,, int96 rawFlowRate) = _getPoolAdjustmentFlowInfo(eff, pool);
-        flowRate = FlowRate.wrap(int128(rawFlowRate));
+        flowRate = FlowRate.wrap(int128(rawFlowRate)); // upcasting to int128 is safe
     }
 
     function getPoolAdjustmentFlowRate(address token, address pool) external view override returns (int96) {

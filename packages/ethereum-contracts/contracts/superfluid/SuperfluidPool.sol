@@ -74,14 +74,14 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     function getConnectedFlowRate() external view override returns (int96) {
-        return int96(_index.wrappedFlowRate * uint256(_index.totalUnits).toInt256());
+        return (_index.wrappedFlowRate * uint256(_index.totalUnits).toInt256()).toInt96();
     }
 
     function getDisconnectedFlowRate() external view override returns (int96 flowRate) {
         PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(_index);
         PDPoolMember memory disconnectedMembers = convertMemberDataToPDPoolMember(_disconnectedMembers);
 
-        return int96(FlowRate.unwrap(pdPoolIndex.flow_rate_per_unit().mul(disconnectedMembers.owned_units)));
+        return int256(FlowRate.unwrap(pdPoolIndex.flow_rate_per_unit().mul(disconnectedMembers.owned_units))).toInt96();
     }
 
     function getDisconnectedBalance(uint32 time) external view override returns (int256 balance) {
@@ -93,7 +93,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     function getMemberFlowRate(address memberAddr) external view override returns (int96) {
         uint128 units = _membersData[memberAddr].ownedUnits;
         if (units == 0) return 0;
-        else return int96(_index.wrappedFlowRate * uint256(units).toInt256());
+        else return (_index.wrappedFlowRate * uint256(units).toInt256()).toInt96();
     }
 
     function _convertPoolIndexDataToWrappedParticle(PoolIndexData memory data)
@@ -103,7 +103,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     {
         wrappedParticle = BasicParticle({
             _settled_at: Time.wrap(data.wrappedSettledAt),
-            _flow_rate: FlowRate.wrap(int128(data.wrappedFlowRate)),
+            _flow_rate: FlowRate.wrap(int128(data.wrappedFlowRate)), // upcast from int96 is safe
             _settled_value: Value.wrap(data.wrappedSettledValue)
         });
     }
@@ -126,8 +126,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     {
         data = PoolIndexData({
             totalUnits: int256(Unit.unwrap(pdPoolIndex.total_units)).toUint256().toUint128(),
-            wrappedSettledAt: Time.unwrap(pdPoolIndex._wrapped_particle._settled_at),
-            wrappedFlowRate: int96(FlowRate.unwrap(pdPoolIndex._wrapped_particle._flow_rate)),
+            wrappedSettledAt: Time.unwrap(pdPoolIndex.settled_at()),
+            wrappedFlowRate: int256(FlowRate.unwrap(pdPoolIndex.flow_rate_per_unit())).toInt96(),
             wrappedSettledValue: Value.unwrap(pdPoolIndex._wrapped_particle._settled_value)
         });
     }
@@ -141,7 +141,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             owned_units: Unit.wrap(uint256(memberData.ownedUnits).toInt256().toInt128()),
             _synced_particle: BasicParticle({
                 _settled_at: Time.wrap(memberData.syncedSettledAt),
-                _flow_rate: FlowRate.wrap(int128(memberData.syncedFlowRate)),
+                _flow_rate: FlowRate.wrap(int128(memberData.syncedFlowRate)), // upcast from int96 is safe
                 _settled_value: Value.wrap(memberData.syncedSettledValue)
             }),
             _settled_value: Value.wrap(memberData.settledValue)
@@ -156,7 +156,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         memberData = MemberData({
             ownedUnits: uint256(int256(Unit.unwrap(pdPoolMember.owned_units))).toUint128(),
             syncedSettledAt: Time.unwrap(pdPoolMember._synced_particle._settled_at),
-            syncedFlowRate: int96(FlowRate.unwrap(pdPoolMember._synced_particle._flow_rate)),
+            syncedFlowRate: int256(FlowRate.unwrap(pdPoolMember._synced_particle._flow_rate)).toInt96(),
             syncedSettledValue: Value.unwrap(pdPoolMember._synced_particle._settled_value),
             settledValue: Value.unwrap(pdPoolMember._settled_value),
             claimedValue: claimedValue
@@ -254,7 +254,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     // WARNING for operators: it is undefined behavior if member is already connected or disconnected
     function operatorConnectMember(address memberAddr, bool doConnect, uint32 time) external onlyGDA returns (bool) {
         int256 claimedAmount = _claimAll(memberAddr, time);
-        int128 units = int128(uint256(_membersData[memberAddr].ownedUnits).toInt256());
+        int128 units = uint256(_membersData[memberAddr].ownedUnits).toInt256().toInt128();
         if (doConnect) {
             _shiftDisconnectedUnits(Unit.wrap(-units), Value.wrap(claimedAmount), Time.wrap(time));
         } else {

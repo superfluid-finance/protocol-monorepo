@@ -23,6 +23,7 @@ jobs:
     outputs:
       build_ethereum_contracts: ${{ env.BUILD_ETHEREUM_CONTRACTS }}
       build_hot_fuzz: ${{ env.BUILD_HOT_FUZZ }}
+      build_solidity_semantic_money: ${{ env.BUILD_SOLIDITY_SEMANTIC_MONEY }}
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
       build_sdk_core: ${{ env.BUILD_SDK_CORE }}
       build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
@@ -56,18 +57,20 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x, 18.x]
+        node-version: [16, 18]
+
+    defaults:
+      run:
+        shell: nix develop .#ci-node${{ matrix.node-version }} -c bash {0}
 
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install, lint and build
         run: |
@@ -75,17 +78,18 @@ jobs:
           yarn lint
           yarn build
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
       - name: Test ethereum-contracts
         run: |
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn workspace @superfluid-finance/ethereum-contracts test
         env:
           # NOTE: This is currently unset and fork tests are not being run
           POLYGON_MAINNET_ARCHIVE_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_ARCHIVE_PROVIDER_URL }}
+
+      - name: Print test benchmarking output
+        run: |
+          cat packages/ethereum-contracts/testing-benchmark.json
 
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)
@@ -95,33 +99,57 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_ethereum_contracts
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 18.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install and build
         run: |
           yarn install --frozen-lockfile
           yarn build
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
       - name: Run coverage test
         run: |
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+
+      - name: Install lcov
+        run: sudo apt-get -y install lcov
+
+      - name: Clean up and merge coverage artifacts
+        run: |
+          # extract coverage for NFT contracts from forge coverage
+          lcov -e lcov.info 'packages/ethereum-contracts/contracts/*' -o lcov.info
+          # remove mocks, base super app, test and deployer contracts (see .solcover.js)
+          lcov -r lcov.info 'packages/ethereum-contracts/contracts/mocks/*' 'packages/ethereum-contracts/contracts/apps/*Base*' 'packages/ethereum-contracts/contracts/utils/*Test*' 'packages/ethereum-contracts/contracts/utils/*Deployer*' -o lcov.info
+          # merge hardhat and forge coverage files
+          lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o packages/ethereum-contracts/coverage/lcov.info
+
+      - name: Upload ethereum-contracts-coverage to codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: lcov.info
+          name: ethereum-contracts-coverage
+          flags: ethereum-contracts
+          fail_ci_if_error: true
 
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
     needs: [ check ]
-    if: needs.check.outputs.build_hot_fuzz
+    if: false # TODO broken atm, otherwise needs.check.outputs.build_hot_fuzz
+
+  test-solidity-semantic-money:
+    uses: ./.github/workflows/call.test-solidity-semantic-money.yml
+    needs: [ check ]
+    if: needs.check.outputs.build_solidity_semantic_money
 
   #test automations:
   test-automation-contracts:
@@ -162,6 +190,7 @@ jobs:
     if: always()
 
     needs: [ test-spec-haskell
+           , test-solidity-semantic-money
            , test-ethereum-contracts, coverage-ethereum-contracts
            , test-hot-fuzz
            , test-sdk-core

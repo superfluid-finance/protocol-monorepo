@@ -16,10 +16,10 @@ contract SuperTokenStorageLayoutTester is SuperToken {
 
     constructor(
         ISuperfluid host,
-        IConstantOutflowNFT constantOutflowNFTLogic,
-        IConstantInflowNFT constantInflowNFTLogic
+        IConstantOutflowNFT constantOutflowNFTProxy,
+        IConstantInflowNFT constantInflowNFTProxy
     )
-        SuperToken(host, constantOutflowNFTLogic, constantInflowNFTLogic) // solhint-disable-next-line no-empty-blocks
+        SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy) // solhint-disable-next-line no-empty-blocks
     {}
 
     // @dev Make sure the storage layout never change over the course of the development
@@ -67,20 +67,8 @@ contract SuperTokenStorageLayoutTester is SuperToken {
         require (slot == 18 && offset == 0, "_operators changed location");
         // uses 4 slots
 
-        assembly { slot:= constantOutflowNFT.slot offset := constantOutflowNFT.offset }
-        require (slot == 22 && offset == 0, "constantOutflowNFT changed location");
-
-        assembly { slot:= constantInflowNFT.slot offset := constantInflowNFT.offset }
-        require (slot == 23 && offset == 0, "constantInflowNFT changed location");
-
-        assembly { slot:= poolAdminNFT.slot offset := poolAdminNFT.offset }
-        require (slot == 24 && offset == 0, "poolAdminNFT changed location");
-
-        assembly { slot:= poolMemberNFT.slot offset := poolMemberNFT.offset }
-        require (slot == 25 && offset == 0, "poolMemberNFT changed location");
-
-        assembly { slot:= _reserve26.slot offset := _reserve26.offset }
-        require (slot == 26 && offset == 0, "_reserve26 changed location");
+        assembly { slot:= _reserve22.slot offset := _reserve22.offset }
+        require (slot == 22 && offset == 0, "_reserve22 changed location");
 
         assembly { slot:= _reserve31.slot offset := _reserve31.offset }
         require (slot == 31 && offset == 0, "_reserve31 changed location");
@@ -98,9 +86,9 @@ contract SuperTokenMock is SuperToken {
     constructor(
         ISuperfluid host,
         uint256 w,
-        IConstantOutflowNFT constantOutflowNFTLogic,
-        IConstantInflowNFT constantInflowNFTLogic
-    ) SuperToken(host, constantOutflowNFTLogic, constantInflowNFTLogic) {
+        IConstantOutflowNFT constantOutflowNFTProxy,
+        IConstantInflowNFT constantInflowNFTProxy
+    ) SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy) {
         waterMark = w;
     }
 
@@ -130,28 +118,5 @@ contract SuperTokenMock is SuperToken {
     ) external {
         // set requireReceptionAck to true always
         _mint(msg.sender, to, amount, true, userData, operatorData);
-    }
-
-    /**
-     * @notice Links the NFT contracts to the SuperToken.
-     * @dev This is only to be used in testing as the NFT contracts are linked in initialize.
-     * @param constantOutflowNFTAddress constant outflow nft proxy contract address
-     * @param constantInflowNFTAddress constant inflow nft proxy contract address
-     * @param poolAdminNFTAddress pool admin nft proxy contract address
-     * @param poolMemberNFTAddress pool member nft proxy contract address
-     */
-    function setNFTProxyContracts(
-        address constantOutflowNFTAddress,
-        address constantInflowNFTAddress,
-        address poolAdminNFTAddress,
-        address poolMemberNFTAddress
-    ) external {
-        Ownable gov = Ownable(address(_host.getGovernance()));
-        if (msg.sender != gov.owner()) revert SUPER_TOKEN_ONLY_GOV_OWNER();
-
-        constantOutflowNFT = IConstantOutflowNFT(constantOutflowNFTAddress);
-        constantInflowNFT = IConstantInflowNFT(constantInflowNFTAddress);
-        poolAdminNFT = IPoolAdminNFT(poolAdminNFTAddress);
-        poolMemberNFT = IPoolMemberNFT(poolMemberNFTAddress);
     }
 }

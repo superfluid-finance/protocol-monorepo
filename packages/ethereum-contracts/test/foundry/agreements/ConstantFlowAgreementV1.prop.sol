@@ -63,7 +63,7 @@ contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
     }
 }
 
-contract ConstantFlowAgreementV1Properties is Test {
+contract ConstantFlowAgreementV1PropertyTest is Test {
     ConstantFlowAgreementV1Mock immutable private cfa;
 
     constructor() {
@@ -83,7 +83,7 @@ contract ConstantFlowAgreementV1Properties is Test {
         // let's also assume these edge cases away
         vm.assume(uint256(liquidationPeriod) * uint256(uint96(flowRate)) <= cfa.MAXIMUM_FLOW_RATE());
         uint256 deposit = cfa.getDepositRequiredForFlowRatePure(0, liquidationPeriod, flowRate);
-        assert(uint256(depositAllowed) >= deposit);
+        assertTrue(uint256(depositAllowed) >= deposit, "CFAv1.prop: depositAllowed < deposit");
     }
 
     function testMinimumDeposit(
@@ -98,7 +98,7 @@ contract ConstantFlowAgreementV1Properties is Test {
         vm.assume(uint256(liquidationPeriod) * uint256(uint96(flowRate)) <= cfa.MAXIMUM_FLOW_RATE());
 
         uint256 deposit = cfa.getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
-        assert(deposit >= minimumDeposit);
+        assertTrue(deposit >= minimumDeposit, "CFAv1.prop: minimum deposit < deposit");
     }
 
     /**
@@ -122,7 +122,7 @@ contract ConstantFlowAgreementV1Properties is Test {
         clippedDepositB = bound(clippedDepositB, 0, type(uint256).max - clippedDepositA);
         uint256 summedDeposit = clippedDepositA + clippedDepositB;
         uint256 clippedSummedDeposit = cfa.clipDepositNumberRoundingUp(summedDeposit);
-        assertTrue(summedDeposit == clippedSummedDeposit);
+        assertTrue(summedDeposit == clippedSummedDeposit, "CFAv1.prop: clipped sum != sum");
     }
 
     /**
@@ -135,11 +135,11 @@ contract ConstantFlowAgreementV1Properties is Test {
     ) public {
         uint256 initialClipped = cfa.clipDepositNumberRoundingUp(deposit);
         uint256 reclipped = cfa.clipDepositNumberRoundingUp(initialClipped);
-        assertTrue(initialClipped == reclipped);
+        assertTrue(initialClipped == reclipped, "CFAv1.prop: clipped sum != sum");
     }
 
     function testFlowDataEncoding(uint32 timestamp, int96 flowRate, uint64 depositClipped, uint64 owedDepositClipped)
-        public view
+        public
     {
         ConstantFlowAgreementV1.FlowData memory a = ConstantFlowAgreementV1.FlowData({
             timestamp: uint256(timestamp),
@@ -150,10 +150,10 @@ contract ConstantFlowAgreementV1Properties is Test {
         bool exist;
         ConstantFlowAgreementV1.FlowData memory b;
         (exist, b) = cfa.decodeFlowData(wordA);
-        assert(a.timestamp == b.timestamp);
-        assert(a.flowRate == b.flowRate);
-        assert(a.deposit == b.deposit);
-        assert(a.owedDeposit == b.owedDeposit);
+        assertEq(a.timestamp, b.timestamp, "CFAv1Prop: timestamp !=");
+        assertEq(a.flowRate, b.flowRate, "CFAv1Prop: flowRate !=");
+        assertEq(a.deposit, b.deposit, "CFAv1Prop: deposit !=");
+        assertEq(a.owedDeposit, b.owedDeposit, "CFAv1Prop: owedDeposit !=");
     }
 
     function testFlowOperatorDataEncoding(uint8 permissions, int96 flowRateAllowance) public {
@@ -166,7 +166,7 @@ contract ConstantFlowAgreementV1Properties is Test {
         bool exist;
         ConstantFlowAgreementV1.FlowOperatorData memory b;
         (exist, b) = cfa.decodeFlowOperatorData(wordA);
-        assert(a.permissions == b.permissions);
-        assert(a.flowRateAllowance == b.flowRateAllowance);
+        assertEq(a.permissions, b.permissions, "CFAv1Prop: permissions !=");
+        assertEq(a.flowRateAllowance, b.flowRateAllowance, "CFAv1Prop: flowRateAllowance !=");
     }
 }

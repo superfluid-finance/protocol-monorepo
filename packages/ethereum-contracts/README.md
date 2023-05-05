@@ -60,7 +60,121 @@ import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts
 ```
 The paths in the npm package are the same as in this repository.
 
-### Writing Tests
+### Writing Tests 
+
+For all future tests, we will be using Foundry as the main framework for writing property, integration and invariant tests. 
+
+#### Testing Principles
+
+The ultimate purpose of testing is to **ensure correctness** of expected behavior. We aim to write the tests in a way that is easy to understand, maintain and extend.
+
+In order to achieve this we utilize a few techniques:
+- **testing framework**: to help with test harnessing and to provide a nice DX when writing tests which leads to nice DX when reading as well.
+- **abstractions**: to prevent code duplication and to make the test code less error prone and more readable, we use abstractions to abstract away common test code.
+  - This includes helper functions which can be reused across multiple tests.
+- **naming conventions & organization**: this provides structure and makes searching and filtering for test files, contracts easier and more immediately understandable.
+
+#### Types of Test
+
+There are four types of tests that are written to ensure correctness: are property, integration and invariant tests.
+
+- Property tests aim to ensure correct behavior in isolation in a single function.
+- Integration tests aim to ensure correct behavior in the interaction between two or more contracts.
+- Invariant tests aim to ensure that certain invariants always hold true, no matter the sequence of functions being called.
+
+#### Test Contract File Naming
+
+Tests should be named in the following format: `ContractName.(prop|t|invariant).sol` depending on the type of test you are writing.
+
+#### Folder structure
+
+Tests should be placed in the `test/foundry` folder. The folder structure must follow that of the contracts folder. For example, if you are writing property tests for the `ConstantFlowAgreementV1.sol` contract, the test file will be placed in `test/foundry/agreements/ConstantFlowAgreement.prop.sol`.
+
+#### Test Contract Naming
+
+The naming convention for test contracts is taken from: 
+- The contract you are testing (e.g. `ConstantFlowAgreementV1.sol`)
+- The type of test you are writing (e.g. `property, integration, invariant`)
+- The name of the contract will follow the format: `ContractName.(Property|Integration|Invariant)Test`
+e.g. the property testing contract in `ConstantFlowAgreementV1.prop.sol` should be titled:
+
+```solidity
+contract ConstantFlowAgreementV1PropertyTest {
+    ...
+}
+```
+
+The reason for this naming convention is for multiple reasons:
+- allow for easy searching of test contracts using an IDE
+- allow easy filtering of tests to run locally or in CI
+
+#### Test Naming
+
+The naming convention for test functions must use camelCase and should be descriptive enough so the reader can have a good idea of what the test is doing before even reading the actual test code.
+
+There are two primary type of tests written for unit and integration tests: 
+- tests that are expected to pass
+- tests that are expected to revert
+
+For passing tests, the naming convention for the function is: `testADescriptiveName()`. For example:
+
+```solidity
+function testIncreaseFlowRateAllowance() {
+    ...
+}
+```
+
+For tests that are expected to revert, the naming convention for the function is: `testRevertADescriptiveName()`. For example:
+
+```solidity
+function testRevertIfDecreaseFlowRateAllowanceAndACLCreateFlow() {
+    ...
+}
+```
+
+#### Internal Helper Functions
+
+If you are writing a test that requires a helper function, the helper function is prefixed with `_` and uses camelCase and snake case to indicate that it is an internal helper function. For example:
+
+```solidity
+function _assertFlowOperatorData(AssertFlowOperatorData memory data) internal {
+    ...
+}
+```
+
+It is also recommended to create an pass structs to the helper functions to make the test code more readable. For example:
+
+```solidity
+// this is easier to understand what is going on before reading the _assertFlowOperatorData function
+_assertFlowOperatorData(
+    AssertFlowOperatorData({
+        superToken: superToken,
+        flowOperatorId: oldFlowOperatorId,
+        expectedPermissions: oldPermissions,
+        expectedFlowRateAllowance: oldFlowRateAllowance +
+            flowRateAllowanceIncreaseDelta -
+            flowRateAllowanceDecreaseDelta
+    })
+);
+
+// this is a bit more confusing and may require constant jumping back and forth to understand what is going on
+_assertFlowOperatorData(
+    superToken,
+    oldFlowOperatorId,
+    oldPermissions,
+    oldFlowRateAllowance +
+        flowRateAllowanceIncreaseDelta -
+        flowRateAllowanceDecreaseDelta
+);
+```
+
+Additionally, we use foundry's assert functions to make debugging easier by providing a descriptive and unique error message. For example:
+  
+```solidity
+assertEq(newFlowRateAllowance, expectedFlowRateAllowance, "CFAv1 ACL: unexpected flow rate allowance");
+```
+
+### Writing Tests (Deprecated)
 
 For convenient testing, the package contains deployment scripts which allow you to set up and initialize the protocol and test tokens with a few lines of code.
 Currently, this requires [web3.js](https://github.com/ChainSafe/web3.js), support for other frameworks is work in progress.

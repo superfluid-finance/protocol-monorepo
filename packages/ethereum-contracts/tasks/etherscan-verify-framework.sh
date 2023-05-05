@@ -14,6 +14,7 @@ ADDRESSES_VARS=$2
 # network specifics
 case $TRUFFLE_NETWORK in
     eth-goerli | \
+    eth-sepolia | \
     polygon-mumbai | \
     optimism-goerli | \
     arbitrum-goerli | \
@@ -80,7 +81,7 @@ if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS" ]; then
 fi
 
 if [ -n "$CONSTANT_INFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS}"
+    try_verify ConstantInflowNFT"${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS}"
 fi
 
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
@@ -107,16 +108,15 @@ if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY" ]; then
     try_verify SuperTokenFactory@"${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY}" --custom-proxy UUPSProxy
 fi
 
-if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS}"
+if [ -n "$CONSTANT_OUTFLOW_NFT_PROXY" ]; then
+    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_PROXY}" --custom-proxy UUPSProxy
 fi
 
-if [ -n "$CONSTANT_INFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS}"
+if [ -n "$CONSTANT_INFLOW_NFT_PROXY" ]; then
+    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_PROXY}" --custom-proxy UUPSProxy
 fi
 
 if [ -n "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
-    link_library "SuperToken" "SuperfluidNFTDeployerLibrary" "${SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS}"
     try_verify SuperToken@"${SUPERFLUID_SUPER_TOKEN_LOGIC}"
     mv -f build/contracts/SuperToken.json.bak build/contracts/SuperToken.json
 fi
@@ -130,10 +130,6 @@ fi
 
 if [ -n "$SLOTS_BITMAP_LIBRARY_ADDRESS" ]; then
     try_verify SlotsBitmapLibrary@"${SLOTS_BITMAP_LIBRARY_ADDRESS}"
-fi
-
-if [ -n "$SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS" ]; then
-    try_verify SuperfluidNFTDeployerLibrary@"${SUPERFLUID_NFT_DEPLOYER_LIBRARY_ADDRESS}"
 fi
 
 link_library "InstantDistributionAgreementV1" "SlotsBitmapLibrary" "${SLOTS_BITMAP_LIBRARY_ADDRESS}"
@@ -153,6 +149,6 @@ fi
 
 set +x
 
-echo "Failed verifications:"
+echo "Failed verifications (may be incomplete, better visually check the log!):"
 printf -- "- %s\n" "${FAILED_VERIFICATIONS[@]}"
 exit ${#FAILED_VERIFICATIONS[@]}

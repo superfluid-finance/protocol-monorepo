@@ -4,7 +4,10 @@ import "@nomiclabs/hardhat-web3";
 import "@nomiclabs/hardhat-truffle5";
 import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-ethers";
-import {TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS} from "hardhat/builtin-tasks/task-names";
+import {
+    TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
+    TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD
+} from "hardhat/builtin-tasks/task-names";
 import "solidity-coverage";
 import {config as dotenvConfig} from "dotenv";
 import {NetworkUserConfig} from "hardhat/types";
@@ -19,6 +22,25 @@ try {
     );
 }
 
+// The built-in compiler (auto-downloaded if not yet present) can be overridden by setting SOLC_PATH
+// If set, we assume it's a native compiler which matches the required Solidity version.
+subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD).setAction(
+    async (args, hre, runSuper) => {
+        console.log("subtask TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD");
+        if (process.env.SOLC_PATH !== undefined) {
+            console.log("Using Solidity compiler set in SOLC_PATH:", process. env.SOLC_PATH);
+            return {
+                compilerPath: process.env.SOLC_PATH,
+                isSolcJs: false, // false for native compiler
+                version: args.solcVersion
+            }
+        } else {
+            // fall back to the default
+            return runSuper();
+        }
+    }
+);
+
 // hardhat mixin magic: https://github.com/NomicFoundation/hardhat/issues/2306#issuecomment-1039452928
 // filter out foundry test codes
 subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
@@ -31,6 +53,7 @@ subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(
 const chainIds = {
     "eth-mainnet": 1,
     "eth-goerli": 5,
+    "eth-sepolia": 11155111,
 
     "xdai-mainnet": 100,
 
@@ -79,11 +102,11 @@ const config: HardhatUserConfig = {
     networks: {
         "bsc-mainnet": {
             ...createNetworkConfig("bsc-mainnet"),
-            url: process.env.BSC_PROVIDER_URL || "",
+            url: process.env.BSC_MAINNET_PROVIDER_URL || "",
         },
         "eth-goerli": {
             ...createNetworkConfig("eth-goerli"),
-            url: process.env.GOERLI_PROVIDER_URL || "",
+            url: process.env.ETH_GOERLI_PROVIDER_URL || "",
         },
         "xdai-mainnet": {
             ...createNetworkConfig("xdai-mainnet"),
@@ -91,39 +114,43 @@ const config: HardhatUserConfig = {
         },
         "optimism-mainnet": {
             ...createNetworkConfig("optimism-mainnet"),
-            url: process.env.OPMAINNET_PROVIDER_URL || "",
+            url: process.env.OPTIMISM_MAINNET_PROVIDER_URL || "",
         },
         "optimism-goerli": {
             ...createNetworkConfig("optimism-goerli"),
-            url: process.env.OPGOERLI_PROVIDER_URL || "",
+            url: process.env.OPTIMISM_GOERLI_PROVIDER_URL || "",
         },
         "arbitrum-one": {
             ...createNetworkConfig("arbitrum-one"),
-            url: process.env.ARBONE_PROVIDER_URL || "",
+            url: process.env.ARBITRUM_ONE_PROVIDER_URL || "",
         },
         "arbitrum-goerli": {
             ...createNetworkConfig("arbitrum-goerli"),
-            url: process.env.ARBGOERLI_PROVIDER_URL || "",
+            url: process.env.ARBITRUM_GOERLI_PROVIDER_URL || "",
         },
         "polygon-mainnet": {
             ...createNetworkConfig("polygon-mainnet"),
-            url: process.env.MATIC_PROVIDER_URL || "",
+            url: process.env.POLYGON_MAINNET_PROVIDER_URL || "",
         },
         "polygon-mumbai": {
             ...createNetworkConfig("polygon-mumbai"),
-            url: process.env.MUMBAI_PROVIDER_URL || "",
+            url: process.env.POLYGON_MUMBAI_PROVIDER_URL || "",
         },
         "avalanche-c": {
             ...createNetworkConfig("avalanche-c"),
-            url: process.env.AVALANCHE_PROVIDER_URL || "",
+            url: process.env.AVALANCHE_C_PROVIDER_URL || "",
         },
         "avalanche-fuji": {
             ...createNetworkConfig("avalanche-fuji"),
-            url: process.env.AVALANCHE_PROVIDER_URL || "",
+            url: process.env.AVALANCHE_FUJI_PROVIDER_URL || "",
         },
         "celo-mainnet": {
             ...createNetworkConfig("celo-mainnet"),
             url: process.env.CELO_MAINNET_PROVIDER_URL || "",
+        },
+        "eth-sepolia": {
+            ...createNetworkConfig("eth-sepolia"),
+            url: process.env.ETH_SEPOLIA_PROVIDER_URL || "",
         },
         coverage: {
             url: "http://127.0.0.1:8555",

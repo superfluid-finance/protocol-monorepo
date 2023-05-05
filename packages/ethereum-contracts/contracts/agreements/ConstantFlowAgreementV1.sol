@@ -192,11 +192,9 @@ contract ConstantFlowAgreementV1 is
      {
         // base case: 0 flow rate
         if (flowRate == 0) return 0;
-
-         ISuperfluid host = ISuperfluid(token.getHost());
-         ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-         uint256 minimumDeposit = gov.getConfigAsUint256(host, token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-         uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
+         ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(_host).getGovernance());
+         uint256 minimumDeposit = gov.getConfigAsUint256(ISuperfluid(_host), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+         uint256 pppConfig = gov.getConfigAsUint256(ISuperfluid(_host), token, CFAV1_PPP_CONFIG_KEY);
          (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
          return _getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
      }
@@ -207,8 +205,7 @@ contract ConstantFlowAgreementV1 is
         external view override
         returns (bool isCurrentlyPatricianPeriod, uint256 timestamp)
     {
-        ISuperfluid host = ISuperfluid(token.getHost());
-        timestamp = host.getNow();
+        timestamp = ISuperfluid(_host).getNow();
         isCurrentlyPatricianPeriod = isPatricianPeriod(token, account, timestamp);
     }
 
@@ -445,6 +442,100 @@ contract ConstantFlowAgreementV1 is
         if (flowParams.flowRate <= 0) revert CFA_INVALID_FLOW_RATE();
     }
 
+    
+    /**
+     * @notice Checks whether or not the NFT hook can be called.
+     * @dev A staticcall, so `CONSTANT_OUTFLOW_NFT` must be a view otherwise the assumption is that it reverts
+     * @param token the super token that is being streamed
+     * @return constantOutflowNFTAddress the address returned by low level call
+     */
+    function _canCallNFTHook(
+        ISuperfluidToken token
+    ) internal view returns (address constantOutflowNFTAddress) {
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory data) = address(token).staticcall(
+            abi.encodeWithSelector(ISuperToken.CONSTANT_OUTFLOW_NFT.selector)
+        );
+
+        if (success) {
+            // @note We are aware this may revert if a Custom SuperToken's
+            // CONSTANT_OUTFLOW_NFT does not return data that can be
+            // decoded to an address. This would mean it was intentionally
+            // done by the creator of the Custom SuperToken logic and is
+            // fully expected to revert in that case as the author desired.
+            constantOutflowNFTAddress = abi.decode(data, (address));
+        }
+    }
+
+    function _handleOnCreateHook(
+        _StackVars_createOrUpdateFlow memory flowVars
+    ) internal {
+        uint256 gasLeftBefore = gasleft();
+
+        address constantOutflowNFTAddress = _canCallNFTHook(flowVars.token);
+
+        if (constantOutflowNFTAddress != address(0)) {
+            try
+                IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(
+                    flowVars.token,
+                    flowVars.sender,
+                    flowVars.receiver
+                )
+            // solhint-disable-next-line no-empty-blocks
+            {
+
+            } catch {
+                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+            }
+        }
+    }
+
+    function _handleOnUpdateHook(
+        _StackVars_createOrUpdateFlow memory flowVars
+    ) internal {
+        uint256 gasLeftBefore = gasleft();
+
+        address constantOutflowNFTAddress = _canCallNFTHook(flowVars.token);
+
+        if (constantOutflowNFTAddress != address(0)) {
+            try
+                IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(
+                    flowVars.token,
+                    flowVars.sender,
+                    flowVars.receiver
+                )
+            // solhint-disable-next-line no-empty-blocks
+            {
+
+            } catch {
+                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+            }
+        }
+    }
+
+    function _handleOnDeleteHook(
+        _StackVars_createOrUpdateFlow memory flowVars
+    ) internal {
+        uint256 gasLeftBefore = gasleft();
+
+        address constantOutflowNFTAddress = _canCallNFTHook(flowVars.token);
+
+        if (constantOutflowNFTAddress != address(0)) {
+            try
+                IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(
+                    flowVars.token,
+                    flowVars.sender,
+                    flowVars.receiver
+                )
+            // solhint-disable-next-line no-empty-blocks
+            {
+
+            } catch {
+                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+            }
+        }
+    }
+
     function _createFlow(
         _StackVars_createOrUpdateFlow memory flowVars,
         bytes calldata ctx,
@@ -471,16 +562,7 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        uint256 gasLeftBefore = gasleft();
-    
-        try
-            ISuperToken(address(flowVars.token)).constantOutflowNFT().onCreate{
-                gas: CFA_HOOK_GAS_LIMIT
-            }(flowVars.sender, flowVars.receiver)
-        // solhint-disable-next-line no-empty-blocks
-        {} catch {
-            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-        }
+        _handleOnCreateHook(flowVars);
     }
 
     function _updateFlow(
@@ -510,16 +592,7 @@ contract ConstantFlowAgreementV1 is
 
         _requireAvailableBalance(flowVars.token, flowVars.sender, currentContext);
 
-        uint256 gasLeftBefore = gasleft();
-    
-        try
-            ISuperToken(address(flowVars.token)).constantOutflowNFT().onUpdate{
-                gas: CFA_HOOK_GAS_LIMIT
-            }(flowVars.sender, flowVars.receiver)
-        // solhint-disable-next-line no-empty-blocks
-        {} catch {
-            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-        }
+        _handleOnUpdateHook(flowVars);
     }
 
     function _deleteFlow(
@@ -631,16 +704,7 @@ contract ConstantFlowAgreementV1 is
             }
         }
 
-        uint256 gasLeftBefore = gasleft();
-    
-        try
-            ISuperToken(address(flowVars.token)).constantOutflowNFT().onDelete{
-                gas: CFA_HOOK_GAS_LIMIT
-            }(flowVars.sender, flowVars.receiver)
-        // solhint-disable-next-line no-empty-blocks
-        {} catch {
-            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-        }
+        _handleOnDeleteHook(flowVars);
     }
 
     /**************************************************************************
@@ -1558,9 +1622,8 @@ contract ConstantFlowAgreementV1 is
         internal view
         returns(uint256 liquidationPeriod, uint256 patricianPeriod)
     {
-        ISuperfluid host = ISuperfluid(token.getHost());
-        ISuperfluidGovernance gov = ISuperfluidGovernance(host.getGovernance());
-        uint256 pppConfig = gov.getConfigAsUint256(host, token, CFAV1_PPP_CONFIG_KEY);
+        ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(_host).getGovernance());
+        uint256 pppConfig = gov.getConfigAsUint256(ISuperfluid(_host), token, CFAV1_PPP_CONFIG_KEY);
         (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
     }
 

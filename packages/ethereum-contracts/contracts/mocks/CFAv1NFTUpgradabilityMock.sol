@@ -1,12 +1,21 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { Test } from "forge-std/Test.sol";
-
-import { IConstantFlowAgreementV1 } from "../../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { ConstantInflowNFT } from "../../../../contracts/superfluid/ConstantInflowNFT.sol";
-import { ConstantOutflowNFT } from "../../../../contracts/superfluid/ConstantOutflowNFT.sol";
-import { FlowNFTBase } from "../FlowNFTBase.t.sol";
+import {
+    IConstantFlowAgreementV1
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    ISuperfluid
+} from "../interfaces/superfluid/ISuperfluid.sol";
+import {
+    ConstantInflowNFT,
+    IConstantInflowNFT
+} from "../superfluid/ConstantInflowNFT.sol";
+import {
+    ConstantOutflowNFT,
+    IConstantOutflowNFT
+} from "../superfluid/ConstantOutflowNFT.sol";
+import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
 
 /*//////////////////////////////////////////////////////////////////////////
                                 FlowNFTBase Mocks
@@ -24,7 +33,10 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
 
     error STORAGE_LOCATION_CHANGED(string _name);
 
-    constructor(IConstantFlowAgreementV1 _cfaV1) FlowNFTBase(_cfaV1) {}
+    constructor(
+        ISuperfluid host,
+        string memory baseURI
+    ) FlowNFTBase(host, baseURI) {}
 
     /// @notice Validates storage layout
     /// @dev This function is used by all the FlowNFTBase mock contracts to validate the layout
@@ -32,27 +44,27 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
         uint256 slot;
         uint256 offset; // in bytes
 
+        // slot 0 taken is occupied by these variables:
         // Initializable._initialized (uint8) 1byte
-
         // Initializable._initializing (bool) 1byte
-
-        assembly { slot := superToken.slot offset := superToken.offset }
-        if (slot != 0 || offset != 2) revert STORAGE_LOCATION_CHANGED("superToken");
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
 
         assembly { slot := _symbol.slot offset := _symbol.offset }
         if (slot != 2 || offset != 0) revert STORAGE_LOCATION_CHANGED("_symbol");
+
+        assembly { slot := _baseURI.slot offset := _baseURI.offset }
+        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_baseURI");
         
         assembly { slot := _tokenApprovals.slot offset := _tokenApprovals.offset }
-        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
+        if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
 
         assembly { slot := _operatorApprovals.slot offset := _operatorApprovals.offset }
-        if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
+        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
 
-        assembly { slot := _reserve5.slot offset := _reserve5.offset }
-        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve5");
+        assembly { slot := _reserve6.slot offset := _reserve6.offset }
+        if (slot != 6 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve6");
 
         assembly { slot := _reserve21.slot offset := _reserve21.offset }
         if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
@@ -88,6 +100,10 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("");
     }
+
+    function tokenURI(uint256 tokenId) external view override returns (string memory) {
+        return "";
+    }
 }
 
 
@@ -99,7 +115,12 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT {
 
     error STORAGE_LOCATION_CHANGED(string _name);
 
-    constructor(IConstantFlowAgreementV1 _cfaV1) ConstantInflowNFT(_cfaV1) {}
+
+    constructor(
+        ISuperfluid host,
+        IConstantOutflowNFT constantOutflowNFT,
+        string memory baseURI
+    ) ConstantInflowNFT(host, constantOutflowNFT, baseURI) {}
 
     /// @notice Validates storage layout
     /// @dev This function is used to validate storage layout of ConstantInflowNFT
@@ -107,12 +128,9 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT {
         uint256 slot;
         uint256 offset; // in bytes
 
+        // slot 0 taken is occupied by these variables:
         // Initializable._initialized (uint8) 1byte
-
         // Initializable._initializing (bool) 1byte
-
-        assembly { slot := superToken.slot offset := superToken.offset }
-        if (slot != 0 || offset != 2) revert STORAGE_LOCATION_CHANGED("superToken");
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
@@ -120,14 +138,17 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT {
         assembly { slot := _symbol.slot offset := _symbol.offset }
         if (slot != 2 || offset != 0) revert STORAGE_LOCATION_CHANGED("_symbol");
         
+        assembly { slot := _baseURI.slot offset := _baseURI.offset }
+        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_baseURI");
+        
         assembly { slot := _tokenApprovals.slot offset := _tokenApprovals.offset }
-        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
+        if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
 
         assembly { slot := _operatorApprovals.slot offset := _operatorApprovals.offset }
-        if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
+        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
 
-        assembly { slot := _reserve5.slot offset := _reserve5.offset }
-        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve5");
+        assembly { slot := _reserve6.slot offset := _reserve6.offset }
+        if (slot != 6 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve6");
 
         assembly { slot := _reserve21.slot offset := _reserve21.offset }
         if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
@@ -164,7 +185,12 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT {
 
     error STORAGE_LOCATION_CHANGED(string _name);
 
-    constructor(IConstantFlowAgreementV1 _cfaV1) ConstantOutflowNFT(_cfaV1) {}
+
+    constructor(
+        ISuperfluid host,
+        IConstantInflowNFT constantInflowNFT,
+        string memory baseURI
+    ) ConstantOutflowNFT(host, constantInflowNFT, baseURI) {}
 
     /// @notice Validates storage layout
     /// @dev This function is used to validate storage layout of ConstantOutflowNFT
@@ -172,12 +198,9 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT {
         uint256 slot;
         uint256 offset; // in bytes
 
+        // slot 0 taken is occupied by these variables:
         // Initializable._initialized (uint8) 1byte
-
         // Initializable._initializing (bool) 1byte
-
-        assembly { slot := superToken.slot offset := superToken.offset }
-        if (slot != 0 || offset != 2) revert STORAGE_LOCATION_CHANGED("superToken");
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
@@ -185,14 +208,17 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT {
         assembly { slot := _symbol.slot offset := _symbol.offset }
         if (slot != 2 || offset != 0) revert STORAGE_LOCATION_CHANGED("_symbol");
         
+        assembly { slot := _baseURI.slot offset := _baseURI.offset }
+        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_baseURI");
+        
         assembly { slot := _tokenApprovals.slot offset := _tokenApprovals.offset }
-        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
+        if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
 
         assembly { slot := _operatorApprovals.slot offset := _operatorApprovals.offset }
-        if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
+        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_operatorApprovals");
 
-        assembly { slot := _reserve5.slot offset := _reserve5.offset }
-        if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve5");
+        assembly { slot := _reserve6.slot offset := _reserve6.offset }
+        if (slot != 6 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve6");
 
         assembly { slot := _reserve21.slot offset := _reserve21.offset }
         if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");

@@ -42,14 +42,16 @@ jobs:
     env:
       subgraph-working-directory: ./packages/subgraph
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: "Install node"
-        uses: "actions/setup-node@v3"
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: "16"
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Install dependencies"
         run: yarn install --frozen-lockfile

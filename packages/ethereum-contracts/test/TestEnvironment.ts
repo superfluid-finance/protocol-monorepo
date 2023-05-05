@@ -1,18 +1,22 @@
 import fs from "fs";
 
 import {createObjectCsvWriter as createCsvWriter} from "csv-writer";
-import {BigNumber, Contract} from "ethers";
+import {BigNumber} from "ethers";
 import {artifacts, assert, ethers, expect, network, web3} from "hardhat";
 import _ from "lodash";
 import Web3 from "web3";
 
 import {
     ConstantInflowNFT,
+    ConstantInflowNFT__factory,
     ConstantOutflowNFT,
+    ConstantOutflowNFT__factory,
     ISuperToken,
     ISuperToken__factory,
     SuperTokenMock,
     TestToken,
+    UUPSProxiableMock__factory,
+    UUPSProxy,
 } from "../typechain-types";
 
 import {VerifyOptions} from "./contracts/agreements/Agreement.types";
@@ -20,6 +24,7 @@ import AgreementHelper from "./contracts/agreements/AgreementHelper";
 import CFADataModel from "./contracts/agreements/ConstantFlowAgreementV1.data";
 import {max, min, toBN, toWad} from "./contracts/utils/helpers";
 import {
+    BenchmarkingData,
     CUSTOM_ERROR_CODES,
     CustomErrorCodeType,
     RealtimeBalance,
@@ -51,6 +56,11 @@ const DEFAULT_TEST_TRAVEL_TIME = toBN(3600 * 24); // 24 hours
  */
 export default class TestEnvironment {
     agreementHelper: AgreementHelper;
+    benchmarkingTemp: {
+        startTime: number;
+        testName: string;
+    };
+    benchmarkingData: BenchmarkingData[];
     data: TestEnvironmentData;
     plotData: TestEnvironmentPlotData;
     _evmSnapshots: {id: string; resolverAddress?: string}[];
@@ -65,6 +75,11 @@ export default class TestEnvironment {
     sf: any;
 
     constructor() {
+        this.benchmarkingTemp = {
+            startTime: 0,
+            testName: "",
+        };
+        this.benchmarkingData = [];
         this.data = {
             moreAliases: {},
             tokens: {},
@@ -358,6 +373,21 @@ export default class TestEnvironment {
             ),
         ]);
     }
+    beforeEachTestCaseBenchmark(mocha: Mocha.Context) {
+        this.benchmarkingTemp.testName =
+            mocha.currentTest?.parent?.title +
+                " | " +
+                mocha.currentTest?.title || "n/a";
+        this.benchmarkingTemp.startTime = performance.now();
+    }
+
+    afterEachTestCaseBenchmark() {
+        const benchmarkingData: BenchmarkingData = {
+            totalTime: performance.now() - this.benchmarkingTemp.startTime,
+            testName: this.benchmarkingTemp.testName,
+        };
+        this.benchmarkingData = [...this.benchmarkingData, benchmarkingData];
+    }
 
     /// deploy framework
     async deployFramework(deployOpts: any) {
@@ -496,21 +526,18 @@ export default class TestEnvironment {
     }
 
     listAliases() {
-        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         return Object.keys(this.aliases).concat(
             Object.keys(this.data.moreAliases)
         );
     }
 
     listAddresses() {
-        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         return Object.values(this.aliases).concat(
             Object.values(this.data.moreAliases)
         );
     }
 
     addAlias(alias: string, address: string) {
-        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         this.data.moreAliases = _.merge(this.data.moreAliases, {
             [alias]: address,
         });
@@ -527,7 +554,6 @@ export default class TestEnvironment {
 
     getAddress(alias?: string) {
         if (!alias) return "";
-        if (!("moreAliases" in this.data)) this.data.moreAliases = {};
         return this.aliases[alias] || this.data.moreAliases[alias];
     }
 
@@ -545,49 +571,94 @@ export default class TestEnvironment {
     }
 
     deployNFTContracts = async () => {
-        const constantOutflowNFTLogic =
-            await this.deployContract<ConstantOutflowNFT>(
-                "ConstantOutflowNFT",
-                this.contracts.cfa.address
+        let constantOutflowNFT;
+        let constantInflowNFTProxy;
+        let cofNFTLogicAddress;
+        let cifNFTLogicAddress;
+        const superTokenFactoryLogicAddress =
+            await this.contracts.superfluid.getSuperTokenFactoryLogic();
+        const superTokenFactory = await ethers.getContractAt(
+            "SuperTokenFactory",
+            superTokenFactoryLogicAddress
+        );
+        const superTokenLogicAddress =
+            await superTokenFactory.getSuperTokenLogic();
+        const superTokenLogic = await ethers.getContractAt(
+            "SuperToken",
+            superTokenLogicAddress
+        );
+        const constantOutflowNFTProxyAddress =
+            await superTokenLogic.CONSTANT_OUTFLOW_NFT();
+        const constantInflowNFTProxyAddress =
+            await superTokenLogic.CONSTANT_INFLOW_NFT();
+
+        if (
+            constantOutflowNFTProxyAddress === ethers.constants.AddressZero ||
+            constantInflowNFTProxyAddress === ethers.constants.AddressZero
+        ) {
+            const cofProxy = await this.deployContract<UUPSProxy>("UUPSProxy");
+            const cifProxy = await this.deployContract<UUPSProxy>("UUPSProxy");
+
+            const constantOutflowNFTLogic =
+                await this.deployContract<ConstantOutflowNFT>(
+                    "ConstantOutflowNFT",
+                    this.contracts.superfluid.address,
+                    cifProxy.address
+                );
+            cofNFTLogicAddress = constantOutflowNFTLogic.address;
+            const constantInflowNFTLogic =
+                await this.deployContract<ConstantInflowNFT>(
+                    "ConstantInflowNFT",
+                    this.contracts.superfluid.address,
+                    cofProxy.address
+                );
+            cifNFTLogicAddress = constantInflowNFTLogic.address;
+            const signer = await ethers.getSigner(this.aliases.admin);
+            const proxiableCofLogic = UUPSProxiableMock__factory.connect(
+                constantOutflowNFTLogic.address,
+                signer
             );
-        const constantInflowNFTLogic =
-            await this.deployContract<ConstantInflowNFT>(
-                "ConstantInflowNFT",
-                this.contracts.cfa.address
+            const proxiableCifLogic = UUPSProxiableMock__factory.connect(
+                constantInflowNFTLogic.address,
+                signer
             );
-        return {constantOutflowNFTLogic, constantInflowNFTLogic};
+            await proxiableCofLogic.castrate();
+            await proxiableCifLogic.castrate();
+
+            await cofProxy.initializeProxy(constantOutflowNFTLogic.address);
+            await cifProxy.initializeProxy(constantInflowNFTLogic.address);
+            constantOutflowNFT = ConstantOutflowNFT__factory.connect(
+                cofProxy.address,
+                signer
+            );
+            constantInflowNFTProxy = ConstantInflowNFT__factory.connect(
+                cifProxy.address,
+                signer
+            );
+        } else {
+            constantOutflowNFT = ConstantOutflowNFT__factory.connect(
+                constantOutflowNFTProxyAddress,
+                await ethers.getSigner(this.aliases.admin)
+            );
+            constantInflowNFTProxy = ConstantInflowNFT__factory.connect(
+                constantInflowNFTProxyAddress,
+                await ethers.getSigner(this.aliases.admin)
+            );
+            cofNFTLogicAddress = await constantOutflowNFT.getCodeAddress();
+            cifNFTLogicAddress = await constantInflowNFTProxy.getCodeAddress();
+        }
+
+        return {
+            constantOutflowNFTProxy: constantOutflowNFT,
+            constantInflowNFTProxy,
+            cofNFTLogicAddress,
+            cifNFTLogicAddress,
+        };
     };
 
     deployContract = async <T>(contractName: string, ...args: any) => {
         const contractFactory = await ethers.getContractFactory(contractName);
         const contract = await contractFactory.deploy(...args);
-
-        return contract as T;
-    };
-
-    /**
-     * Deploys an external library with name: externLibraryName and links it to
-     * with the contract factory for the contract with name: contractName
-     * @param externalLibraryName
-     * @param contractName
-     * @param contractArgs
-     * @returns deployed contract
-     */
-    deployExternalLibraryAndLink = async <T>(
-        externalLibraryName: string,
-        contractName: string,
-        ...contractArgs: any
-    ): Promise<T> => {
-        const externalLibrary = await this.deployContract<Contract>(
-            externalLibraryName
-        );
-        const contractFactory = await ethers.getContractFactory(contractName, {
-            libraries: {
-                [externalLibraryName]: externalLibrary.address,
-            },
-        });
-
-        const contract = await contractFactory.deploy(...contractArgs);
 
         return contract as T;
     };

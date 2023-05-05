@@ -33,7 +33,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     error SUPER_TOKEN_MINT_TO_ZERO_ADDRESS();                    // 0x0d243157
     error SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS();              // 0xeecd6c9b
     error SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS();                // 0xe219bd39
-    error SUPER_TOKEN_NFT_PROXY_ALREADY_SET();                   // 0x6bef249d
+    error SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED();               // 0x6bef249d
 
     /**
      * @dev Initialize the contract
@@ -48,8 +48,8 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**************************************************************************
     * Immutable variables
     *************************************************************************/
-    function CONSTANT_OUTFLOW_NFT_LOGIC() external view returns (IConstantOutflowNFT);
-    function CONSTANT_INFLOW_NFT_LOGIC() external view returns (IConstantInflowNFT);
+    function CONSTANT_OUTFLOW_NFT() external view returns (IConstantOutflowNFT);
+    function CONSTANT_INFLOW_NFT() external view returns (IConstantInflowNFT);
 
     /**************************************************************************
     * TokenInfo & ERC777
@@ -527,15 +527,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     */
     function operationDowngrade(address account, uint256 amount) external;
 
-    /**************************************************************************
-    * ERC20x-specific Functions
-    *************************************************************************/
-
-    function constantOutflowNFT() external view returns (IConstantOutflowNFT);
-    function constantInflowNFT() external view returns (IConstantInflowNFT);
-    function poolAdminNFT() external view returns (IPoolAdminNFT);
-    function poolMemberNFT() external view returns (IPoolMemberNFT);
-
+    // Flow NFT events
     /**
      * @dev Constant Outflow NFT proxy created event
      * @param constantOutflowNFT constant outflow nft address

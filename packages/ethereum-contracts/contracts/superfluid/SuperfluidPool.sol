@@ -61,22 +61,27 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         return _index;
     }
 
+    /// @inheritdoc ISuperfluidPool
     function getTotalUnits() external view override returns (uint128) {
         return _index.totalUnits;
     }
 
+    /// @inheritdoc ISuperfluidPool
     function getDisconnectedUnits() external view override returns (uint128) {
         return _disconnectedMembers.ownedUnits;
     }
 
+    /// @inheritdoc ISuperfluidPool
     function getUnits(address memberAddr) external view override returns (uint128) {
         return _membersData[memberAddr].ownedUnits;
     }
 
+    /// @inheritdoc ISuperfluidPool
     function getConnectedFlowRate() external view override returns (int96) {
         return (_index.wrappedFlowRate * uint256(_index.totalUnits).toInt256()).toInt96();
     }
 
+    /// @inheritdoc ISuperfluidPool
     function getDisconnectedFlowRate() external view override returns (int96 flowRate) {
         PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(_index);
         PDPoolMember memory disconnectedMembers = convertMemberDataToPDPoolMember(_disconnectedMembers);
@@ -84,12 +89,14 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         return int256(FlowRate.unwrap(pdPoolIndex.flow_rate_per_unit().mul(disconnectedMembers.owned_units))).toInt96();
     }
 
+    /// @inheritdoc ISuperfluidPool
     function getDisconnectedBalance(uint32 time) external view override returns (int256 balance) {
         PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(_index);
         PDPoolMember memory pdPoolMember = convertMemberDataToPDPoolMember(_disconnectedMembers);
         return Value.unwrap(PDPoolMemberMU(pdPoolIndex, pdPoolMember).rtb(Time.wrap(time)));
     }
 
+    /// @inheritdoc ISuperfluidPool
     function getMemberFlowRate(address memberAddr) external view override returns (int96) {
         uint128 units = _membersData[memberAddr].ownedUnits;
         if (units == 0) return 0;
@@ -163,6 +170,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         });
     }
 
+    /// @inheritdoc ISuperfluidPool
     function getClaimableNow(address memberAddr)
         external
         view
@@ -172,6 +180,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         return (getClaimable(memberAddr, uint32(block.timestamp)), block.timestamp);
     }
 
+    /// @inheritdoc ISuperfluidPool
     function getClaimable(address memberAddr, uint32 time) public view override returns (int256) {
         Time t = Time.wrap(time);
         PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(_index);
@@ -181,6 +190,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         );
     }
 
+    /// @inheritdoc ISuperfluidPool
     function updateMember(address memberAddr, uint128 newUnits) external returns (bool) {
         if (newUnits < 0) {
             revert SUPERFLUID_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
@@ -226,10 +236,12 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         emit DistributionClaimed(memberAddr, amount, _membersData[memberAddr].claimedValue, block.timestamp);
     }
 
+    /// @inheritdoc ISuperfluidPool
     function claimAll() external returns (bool) {
         return claimAll(msg.sender);
     }
 
+    /// @inheritdoc ISuperfluidPool
     function claimAll(address memberAddr) public returns (bool) {
         bool isConnected = _gda.isMemberConnected(superToken, address(this), memberAddr);
         uint32 time = uint32(block.timestamp);

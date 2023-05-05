@@ -18,7 +18,7 @@ import {SuperfluidPool} from "../superfluid/SuperfluidPool.sol";
 import {SuperfluidPoolDeployerLibrary} from "../libs/SuperfluidPoolDeployerLibrary.sol";
 import {IGeneralDistributionAgreementV1} from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
 import {ISuperfluidToken} from "../interfaces/superfluid/ISuperfluidToken.sol";
-import {ISuperfluidPool} from "../interfaces/superfluid/ISuperfluidPool.sol";
+import {ISuperfluidPool, ISuperfluidPoolAdmin} from "../interfaces/superfluid/ISuperfluidPool.sol";
 import {SlotsBitmapLibrary} from "../libs/SlotsBitmapLibrary.sol";
 import {AgreementBase} from "./AgreementBase.sol";
 import {AgreementLibrary} from "./AgreementLibrary.sol";
@@ -171,6 +171,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         (rtb,,) = realtimeBalanceOf(token, account, block.timestamp);
     }
 
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function getNetFlowRate(ISuperfluidToken token, address account)
         external
         view
@@ -192,12 +193,14 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
     }
 
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function getFlowRate(ISuperfluidToken token, address from, address to) external view override returns (int96) {
         bytes32 distributionFlowHash = _getFlowDistributionHash(from, to);
         (, FlowDistributionData memory data) = _getFlowDistributionData(token, distributionFlowHash);
         return data.flowRate;
     }
 
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function getFlowDistributionActualFlowRate(
         ISuperfluidToken token,
         address from,
@@ -226,9 +229,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         finalFlowRate = int256(FlowRate.unwrap(newDistributionFlowRate)).toInt96();
     }
 
-    // test view function conditions where net flow rate makes sense given pending distribution
-    // balance of the pool will capture pending flow rate
-
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function createPool(address admin, ISuperfluidToken token) external override returns (ISuperfluidPool pool) {
         pool =
             ISuperfluidPool(address(SuperfluidPoolDeployerLibrary.deploy(address(superTokenPoolBeacon), admin, token)));
@@ -242,12 +243,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         emit PoolCreated(token, admin, pool);
     }
 
-    // @note This is same as approveSubscription
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function connectPool(ISuperfluidPool pool, bytes calldata ctx) external override returns (bytes memory newCtx) {
         return connectPool(pool, true, ctx);
     }
 
-    // @note This is same as revokeSubscription
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function disconnectPool(ISuperfluidPool pool, bytes calldata ctx) external override returns (bytes memory newCtx) {
         return connectPool(pool, false, ctx);
     }
@@ -285,6 +286,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         emit PoolConnectionUpdated(token, msgSender, pool, doConnect);
     }
 
+    /// @inheritdoc ISuperfluidPoolAdmin
     function isMemberConnected(ISuperfluidToken token, address pool, address member)
         public
         view
@@ -318,7 +320,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         _doShift(eff, msg.sender, claimRecipient, amount);
     }
 
-    /// Settle the claim
     function poolSettleClaim(ISuperfluidToken superToken, address claimRecipient, int256 amount)
         external
         returns (bool)
@@ -328,6 +329,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         return true;
     }
 
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function distribute(
         ISuperfluidToken token,
         address from,
@@ -365,6 +367,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         );
     }
 
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function distributeFlow(
         ISuperfluidToken token,
         address from,
@@ -545,6 +548,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         return eff;
     }
 
+    // Solvency Related Getters
     function _decode3PsData(ISuperfluidToken token)
         internal
         view
@@ -569,6 +573,21 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         int256 totalGDAOutFlowrate = signedTotalGDADeposit / liquidationPeriod.toInt256();
         // divisor cannot be zero with existing outflow
         return totalRewardLeft / totalGDAOutFlowrate > (liquidationPeriod - patricianPeriod).toInt256();
+    }
+
+    // Hash Getters
+
+    function _getPoolMemberHash(address poolMember, ISuperfluidPool pool) internal view returns (bytes32) {
+        return keccak256(abi.encode(block.chainid, "poolMember", poolMember, address(pool)));
+    }
+
+    function _getFlowDistributionHash(address from, address to) internal view returns (bytes32) {
+        return keccak256(abi.encode(block.chainid, "distributionFlow", from, to));
+    }
+
+    function _getPoolAdjustmentFlowHash(address from, address to) internal view returns (bytes32) {
+        // this will never be in conflict with other flow has types
+        return keccak256(abi.encode(block.chainid, "poolAdjustmentFlow", from, to));
     }
 
     // # Universal Index operations
@@ -736,11 +755,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         return eff;
     }
 
-    function getPoolAdjustmentFlowHash(address from, address to) public view returns (bytes32) {
-        // this will never be in conflict with other flow has types
-        return keccak256(abi.encode(block.chainid, "poolAdjustmentFlow", from, to));
-    }
-
     function getPoolAdjustmentFlowInfo(ISuperfluidPool pool)
         external
         view
@@ -758,7 +772,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     {
         // pool admin is always the adjustment recipient
         adjustmentRecipient = ISuperfluidPool(pool).admin();
-        flowHash = getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
+        flowHash = _getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
         return (adjustmentRecipient, flowHash, int256(FlowRate.unwrap(_getFlowRate(eff, flowHash))).toInt96());
     }
 
@@ -790,7 +804,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         returns (bytes memory)
     {
         address adjustmentRecipient = ISuperfluidPool(pool).admin();
-        bytes32 adjustmentFlowHash = getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
+        bytes32 adjustmentFlowHash = _getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
 
         if (doShiftFlow) {
             flowRate = flowRate + _getFlowRate(eff, adjustmentFlowHash);
@@ -799,6 +813,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         return eff;
     }
 
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function isPool(ISuperfluidToken token, address account) external view override returns (bool) {
         return _isPool(token, account);
     }
@@ -818,10 +833,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     // -------- ---------- ------------- ---------- --------
     //         |    32    |      32     |    96    |   96   |
     // -------- ---------- ------------- ---------- --------
-
-    function _getFlowDistributionHash(address from, address to) internal view returns (bytes32) {
-        return keccak256(abi.encode(block.chainid, "distributionFlow", from, to));
-    }
 
     function _encodeFlowDistributionData(FlowDistributionData memory flowDistributionData)
         internal
@@ -864,10 +875,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     // -------- ---------- -------- -------------
     //         |    64    |   32   |     160     |
     // -------- ---------- -------- -------------
-
-    function _getPoolMemberHash(address poolMember, ISuperfluidPool pool) internal view returns (bytes32) {
-        return keccak256(abi.encode(block.chainid, "poolMember", poolMember, address(pool)));
-    }
 
     function _encodePoolMemberData(PoolMemberData memory poolMemberData)
         internal

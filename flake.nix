@@ -12,9 +12,17 @@
       url = "github:hellwolf/solc.nix";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    certora = {
+      url = "github:hellwolf/certora.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    # TODO use ghc 9.6 when available
+    #ghc-wasm.url = "gitlab:ghc/ghc-wasm-meta?host=gitlab.haskell.org";
+    #ghc-wasm.inputs.nixpkgs.follows = "nixpkgs";
+    #ghc-wasm.inputs.flake-utils.follows = "flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, foundry, solc } :
+  outputs = { self, nixpkgs, flake-utils, foundry, solc, certora } :
   flake-utils.lib.eachDefaultSystem (system:
   let
     solcVer = "solc_0_8_19";
@@ -28,41 +36,53 @@
       ];
     };
 
-    # minimem development shell
-    node16DevInputs = with pkgs; [
-      nodejs-16_x
-      nodejs-16_x.pkgs.yarn
-    ];
-    node18DevInputs = with pkgs; [
-      nodejs-18_x
-      nodejs-18_x.pkgs.yarn
-    ];
+    # ghc ecosystem
+    ghc = pkgs.haskell.compiler.${ghcVer};
+    ghcPkgs = pkgs.haskell.packages.${ghcVer};
+
+    # common dev inputs
     commonDevInputs = with pkgs; [
-      foundry-bin
-      pkgs.${solcVer}
+       gnumake
       # for shell script linting
       shellcheck
       # used by some scripts
       jq
     ];
-    defaultDevInputs = commonDevInputs ++ node18DevInputs;
+
+    # solidity dev inputs
+    ethDevInputs = with pkgs; [
+      foundry-bin
+      pkgs.${solcVer}
+    ];
+
+    # nodejs ecosystem
+    nodeDevInputsWith = nodejs: [
+      nodejs
+      nodejs.pkgs.yarn
+      nodejs.pkgs.nodemon
+    ];
+    node16DevInputs = nodeDevInputsWith pkgs.nodejs-16_x;
+    node18DevInputs = nodeDevInputsWith pkgs.nodejs-18_x;
+
+    # minimem development shell
+    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
+
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
       slither-analyzer
       echidna
     ];
-    # for developing specification
-    ghc = pkgs.haskell.compiler.${ghcVer};
-    ghcPackages = pkgs.haskell.packages.${ghcVer};
+
+    # spec developing specification
     specInputs = with pkgs; [
       # for nodejs ecosystem
       yarn
       gnumake
-      nodePackages.nodemon
       # for haskell spec
       cabal-install
       ghc
-      ghcPackages.haskell-language-server
+      #ghc-wasm.packages.${system}.default
+      ghcPkgs.haskell-language-server
       hlint
       stylish-haskell
       # sage math
@@ -70,7 +90,7 @@
       # testing tooling
       gnuplot
       # yellowpaper pipeline tooling
-      ghcPackages.lhs2tex
+      ghcPkgs.lhs2tex
       python39Packages.pygments
       (texlive.combine {
         inherit (texlive)
@@ -79,15 +99,21 @@
         collection-bibtexextra collection-mathscience
         collection-fontsrecommended collection-fontsextra;
       })
-    ];
+    ]
 
+    # certora tooling
+    ++ [
+      python3
+    ] ++ certora.devInputs.${system};
+
+    # mkShell wrapper, to expose additional environment variables
     mkShell = o : pkgs.mkShell ({
       SOLC_PATH = pkgs.lib.getExe pkgs.${solcVer};
     } // o);
 
+    # ci-spec-with-ghc
     ci-spec-with-ghc = ghcVer : mkShell {
       buildInputs = with pkgs; [
-        gnumake
         cabal-install
         haskell.compiler.${ghcVer}
         hlint
@@ -96,27 +122,27 @@
   in {
     # local development shells
     devShells.default = mkShell {
-      buildInputs = defaultDevInputs;
+      buildInputs = minimumDevInputs;
     };
     devShells.whitehat = mkShell {
-      buildInputs = defaultDevInputs
+      buildInputs = minimumDevInputs
         ++ whitehatInputs;
     };
     devShells.spec = mkShell {
-      buildInputs = defaultDevInputs
+      buildInputs = minimumDevInputs
         ++ specInputs;
     };
     devShells.full = mkShell {
-      buildInputs = defaultDevInputs
+      buildInputs = minimumDevInputs
         ++ whitehatInputs
         ++ specInputs;
     };
     # CI shells
     devShells.ci-node16 = mkShell {
-      buildInputs = commonDevInputs ++ node16DevInputs;
+      buildInputs = commonDevInputs ++ ethDevInputs ++ node16DevInputs;
     };
     devShells.ci-node18 = mkShell {
-      buildInputs = commonDevInputs ++ node18DevInputs;
+      buildInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
     };
     devShells.ci-spec-ghc925 = ci-spec-with-ghc "ghc925";
     devShells.ci-spec-ghc944 = ci-spec-with-ghc "ghc944";

@@ -26,6 +26,7 @@ function setBuildAll() {
     BUILD_SPEC_HASKELL=1
     BUILD_SUBGRAPH=1
     BUILD_AUTOMATION_CONTRACTS=1
+    BUILD_SOLIDITY_SEMANTIC_MONEY=1
     echo Everything will be tested.
 }
 
@@ -81,21 +82,27 @@ if [ -n "$GITHUB_ENV" ];then
         BUILD_SPEC_HASKELL=1
         echo SPEC-HASKELL will be tested.
     fi
-    # if specified automation-contracts-scheduler folders and files changed
+    # if specified automation-contracts/scheduler folders and files changed
     if grep -E "^packages/automation-contracts/scheduler/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_AUTOMATION_CONTRACTS=1
         echo Automation Contracts will be tested.
     fi
-    # if specified automation-contracts-autowrap folders and files changed
+    # if specified automation-contracts/autowrap folders and files changed
     if grep -E "^packages/automation-contracts/autowrap/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_AUTOMATION_CONTRACTS=1
         echo Automation Contracts will be tested.
+    fi
+    # if specified solidity-semantic-money folders and files changed
+    if grep -E "^packages/solidity-semantic-money/(src/|test/|foundry.toml|Makefile|package.json)" changed-files.list;then
+        BUILD_SOLIDITY_SEMANTIC_MONEY=1
+        echo Solidity semantic money will be tested.
     fi
 
     if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ];then
         echo "PR packages will be published."
         PUBLISH_PR_ARTIFACT=1
     fi
+
     {
         echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}"
         echo "BUILD_HOT_FUZZ=${BUILD_HOT_FUZZ}"
@@ -104,6 +111,7 @@ if [ -n "$GITHUB_ENV" ];then
         echo "BUILD_SUBGRAPH=${BUILD_SUBGRAPH}"
         echo "BUILD_SPEC_HASKELL=${BUILD_SPEC_HASKELL}"
         echo "BUILD_AUTOMATION_CONTRACTS=${BUILD_AUTOMATION_CONTRACTS}"
+        echo "BUILD_SOLIDITY_SEMANTIC_MONEY=${BUILD_SOLIDITY_SEMANTIC_MONEY}"
         echo "PUBLISH_PR_ARTIFACT=${PUBLISH_PR_ARTIFACT}"
     } >> "$GITHUB_ENV"
 fi

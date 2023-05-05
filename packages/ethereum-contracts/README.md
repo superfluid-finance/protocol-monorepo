@@ -46,7 +46,9 @@ $ yarn add @superfluid-finance/ethereum-contracts
 ##### foundry
 
 ```sh
-$ forge install @superfluid-finance/ethereum-contracts
+$ forge install superfluid-protocol-monorepo=superfluid-finance/protocol-monorepo@dev
+$ # or using ethereum-contracts@v1.6.0
+$ forge install superfluid-protocol-monorepo=superfluid-finance/protocol-monorepo@$(git ls-remote https://github.com/superfluid-finance/protocol-monorepo.git ethereum-contracts@v1.6.0 | awk '{print $1}')
 ```
 
 ### Smart Contract

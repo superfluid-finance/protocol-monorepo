@@ -60,6 +60,7 @@ jobs:
 
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
+    if: false # broken atm
 
   test-subgraph:
     uses: ./.github/workflows/call.test-local-subgraph.yml

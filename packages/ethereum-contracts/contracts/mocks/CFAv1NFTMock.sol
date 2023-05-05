@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
+// solhint-disable reason-string
 pragma solidity 0.8.19;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -181,7 +182,7 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
         bytes memory userData,
         bytes memory operatorData
     ) private {
-        if (address(_underlyingToken) == address(0)) revert("");
+        if (address(_underlyingToken) == address(0)) revert();
 
         (
             uint256 underlyingAmount,
@@ -196,7 +197,7 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
         );
         uint256 amountAfter = _underlyingToken.balanceOf(address(this));
         uint256 actualUpgradedAmount = amountAfter - amountBefore;
-        if (underlyingAmount != actualUpgradedAmount) revert("");
+        if (underlyingAmount != actualUpgradedAmount) revert();
 
         _mint(
             operator,
@@ -219,7 +220,7 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
         bytes memory // operatorData
     ) internal {
         if (account == address(0)) {
-            revert("");
+            revert();
         }
 
         SuperfluidToken._mint(account, amount);

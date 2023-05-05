@@ -55,6 +55,16 @@ The paths in the npm package are the same as in this repository.
 
 For all future tests, we will be using Foundry as the main framework for writing property, integration and invariant tests. 
 
+#### Testing Principles
+
+The ultimate purpose of testing is to **ensure correctness** of expected behavior. We aim to write the tests in a way that is easy to understand, maintain and extend.
+
+In order to achieve this we utilize a few techniques:
+- **testing framework**: to help with test harnessing and to provide a nice DX when writing tests which leads to nice DX when reading as well.
+- **abstractions**: to prevent code duplication and to make the test code less error prone and more readable, we use abstractions to abstract away common test code.
+  - This includes helper functions which can be reused across multiple tests.
+- **naming conventions & organization**: this provides structure and makes searching and filtering for test files, contracts easier and more immediately understandable.
+
 #### Types of Test
 
 There are four types of tests that are written to ensure correctness: are property, integration and invariant tests.

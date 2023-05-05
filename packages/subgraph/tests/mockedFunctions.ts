@@ -23,12 +23,12 @@ import {
 
 /**
  * Creates the necessary mocked functions in order for getOrInitSuperToken to work as expected.
- * @param superToken 
- * @param decimals 
- * @param underlyingAddress 
- * @param tokenName 
- * @param tokenSymbol 
- * @param isListed 
+ * @param superToken
+ * @param decimals
+ * @param underlyingAddress
+ * @param tokenName
+ * @param tokenSymbol
+ * @param isListed
  */
 export function mockedHandleSuperTokenInitRPCCalls(
     superToken: string,
@@ -366,4 +366,29 @@ export function mockedTokenTotalSupply(
     )
         .withArgs([])
         .returns([getETHUnsignedBigInt(expectedTotalSupply)]);
+}
+
+/**
+ * Creates a mocked SuperToken.approve() function
+ * @param tokenAddress
+ * @param ownerAddress
+ * @param spenderAddress
+ * @param expectedValue
+ */
+export function mockedApprove(
+    tokenAddress: string,
+    ownerAddress: string,
+    spenderAddress: string,
+    expectedValue: BigInt
+): void {
+    createMockedFunction(
+        Address.fromString(tokenAddress),
+        "allowance",
+        "allowance(address,address):(uint256)",
+    )
+        .withArgs([
+            ethereum.Value.fromAddress(Address.fromString(ownerAddress)),
+            ethereum.Value.fromAddress(Address.fromString(spenderAddress))
+        ])
+        .returns([getETHUnsignedBigInt(expectedValue)]);
 }

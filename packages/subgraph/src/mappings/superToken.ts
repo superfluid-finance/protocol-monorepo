@@ -7,11 +7,13 @@ import {
     TokenDowngraded,
     TokenUpgraded,
     Transfer,
+    Approval
 } from "../../generated/templates/SuperToken/ISuperToken";
 import {
     AgreementLiquidatedByEvent,
     AgreementLiquidatedV2Event,
     BurnedEvent,
+    FlowOperator,
     MintedEvent,
     SentEvent,
     Stream,
@@ -23,6 +25,7 @@ import {
 import {
     BIG_INT_ZERO,
     createEventID,
+    getFlowOperatorID,
     initializeEventEntity,
     tokenHasValidHost,
     ZERO_ADDRESS,
@@ -446,4 +449,15 @@ function _createTransferEventEntity(event: Transfer): void {
     ev.value = event.params.value;
     ev.token = event.address;
     ev.save();
+}
+
+export function handleApproval(event: Approval): void {
+    const flowOperatorID = getFlowOperatorID(event.params.spender, event.address, event.params.owner);
+    const flowOperator = FlowOperator.load(flowOperatorID);
+    if (!flowOperator) return;
+
+    // Approval will trigger for all type - _transferFrom, approve, increaseAllowance, and decreaseAllowance.
+    flowOperator.allowance = event.params.value;
+
+    flowOperator.save();
 }

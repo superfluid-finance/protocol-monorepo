@@ -2,10 +2,10 @@
 pragma solidity >= 0.8.0;
 
 import { ISuperfluid, ISuperToken, ISuperApp, SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
-import { SuperAppBaseCFA } from "../apps/SuperAppBaseCFA.sol";
+import { SuperAppBaseFlow } from "../apps/SuperAppBaseFlow.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
-contract SuperAppBaseCFATester is SuperAppBaseCFA {
+contract SuperAppBaseFlowTester is SuperAppBaseFlow {
     using SuperTokenV1Library for ISuperToken;
 
     int96 public oldFlowRateHolder;
@@ -22,7 +22,7 @@ contract SuperAppBaseCFATester is SuperAppBaseCFA {
         bool activateOnCreated,
         bool activateOnUpdated,
         bool activateOnDeleted
-    ) SuperAppBaseCFA (host, activateOnCreated, activateOnUpdated, activateOnDeleted) {
+    ) SuperAppBaseFlow (host, activateOnCreated, activateOnUpdated, activateOnDeleted) {
         lastUpdateHolder = 0; // appeasing linter
     }
 

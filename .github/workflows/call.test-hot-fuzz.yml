@@ -22,6 +22,7 @@ jobs:
 
       - name: Initialize devShell
         run: |
+          set -xe
           slither --version
           echidna-test --version
 

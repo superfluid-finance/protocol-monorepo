@@ -31,6 +31,7 @@ jobs:
 
       - name: Initialize devShell
         run: |
+          set -xe
           cabal --version
           ghc --version
 

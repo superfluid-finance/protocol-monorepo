@@ -3,14 +3,14 @@ pragma solidity 0.8.19;
 
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 
-contract FlowNFTBaseProperties is FoundrySuperfluidTester {
+contract FlowNFTBasePropertyTest is FoundrySuperfluidTester {
     constructor() FoundrySuperfluidTester(0) {}
 
     function setUp() public override {
         super.setUp();
     }
 
-    function test_No_Token_Id_Collision_Different_Token_Same_Sender_Receiver(
+    function testNoTokenIdCollisionDifferentTokenSameSenderReceiver(
         address tokenA,
         address tokenB
     ) public {
@@ -25,9 +25,19 @@ contract FlowNFTBaseProperties is FoundrySuperfluidTester {
             alice,
             bob
         );
-        assertTrue(
-            tokenIdA != tokenIdB,
+        assertNotEq(
+            tokenIdA,
+            tokenIdB,
             "FlowNFTBaseProperties: Token Ids should differ"
+        );
+    }
+
+    function testBalanceOfIsAlwaysEqualToOne(address account) public {
+        uint256 balance = superToken.CONSTANT_OUTFLOW_NFT().balanceOf(account);
+        assertEq(
+            balance,
+            1,
+            "FlowNFTBaseProperties: Balance of should always be equal to one"
         );
     }
 }

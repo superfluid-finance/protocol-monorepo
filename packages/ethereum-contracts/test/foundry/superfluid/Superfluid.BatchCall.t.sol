@@ -25,7 +25,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
 
     constructor() FoundrySuperfluidTester(3) {}
 
-    function test_Fuzz_Revert_If_Operation_Increase_Allowance_Is_Not_Called_By_Host(
+    function testRevertIfOperationIncreaseAllowanceIsNotCalledByHost(
         address notHost
     ) public {
         vm.assume(notHost != address(sf.host));
@@ -35,7 +35,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         superToken.operationIncreaseAllowance(notHost, alice, 100);
     }
 
-    function test_Fuzz_Revert_If_Operation_Decrease_Allowance_Is_Not_Called_By_Host(
+    function testRevertIfOperationDecreaseAllowanceIsNotCalledByHost(
         address notHost
     ) public {
         vm.assume(notHost != address(sf.host));
@@ -45,13 +45,13 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         superToken.operationDecreaseAllowance(notHost, alice, 100);
     }
 
-    function test_Revert_If_Operation_Decrease_Allowance_Underflows() public {
+    function testRevertIfOperationDecreaseAllowanceUnderflows() public {
         vm.expectRevert("SuperToken: decreased allowance below zero");
         vm.prank(address(sf.host));
         superToken.operationDecreaseAllowance(alice, bob, 1);
     }
 
-    function test_Revert_If_Operation_Increase_Allowance_Overflows() public {
+    function testRevertIfOperationIncreaseAllowanceOverflows() public {
         vm.startPrank(address(sf.host));
         superToken.operationIncreaseAllowance(alice, bob, type(uint256).max);
         vm.expectRevert(stdError.arithmeticError);
@@ -59,7 +59,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function test_Passing_If_Operation_Increase_Allowance_Is_Called_By_Host()
+    function testIfOperationIncreaseAllowanceIsCalledByHost()
         public
     {
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
@@ -71,7 +71,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore + 100);
     }
 
-    function test_Passing_If_Operation_Decrease_Allowance_Is_Called_By_Host()
+    function testIfOperationDecreaseAllowanceIsCalledByHost()
         public
     {
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
@@ -85,7 +85,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore + 69);
     }
 
-    function test_Passing_Increase_Allowance_Batch_Call(
+    function testIncreaseAllowanceBatchCall(
         uint256 allowanceAmount
     ) public {
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
@@ -105,7 +105,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         );
     }
 
-    function test_Passing_Decrease_Allowance_Batch_Call(
+    function testDecreaseAllowanceBatchCall(
         uint256 increaseAllowanceAmount,
         uint256 decreaseAllowanceAmount
     ) public {
@@ -130,7 +130,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         );
     }
 
-    function test_Passing_Increase_Decrease_Transfer_From_Batch_Call() public {
+    function testIncreaseDecreaseTransferFromBatchCall() public {
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](2);
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
         uint256 bobBalanceBefore = superToken.balanceOf(bob);
@@ -160,7 +160,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(bobBalanceAfter, bobBalanceBefore + 50);
     }
 
-    function test_Passing_Increase_Transfer_Allowance_And_Increase_Flow_Rate_Allowance()
+    function testIncreaseTransferAllowanceAndIncreaseFlowRateAllowance()
         public
     {
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](2);

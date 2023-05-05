@@ -151,11 +151,6 @@ jobs:
     needs: [ check ]
     if: needs.check.outputs.build_solidity_semantic_money
 
-  test-solidity-semantic-money:
-    uses: ./.github/workflows/call.test-solidity-semantic-money.yml
-    needs: [ check ]
-    if: needs.check.outputs.build_solidity_semantic_money
-
   #test automations:
   test-automation-contracts:
     uses: ./.github/workflows/call.test-automation-contracts.yml

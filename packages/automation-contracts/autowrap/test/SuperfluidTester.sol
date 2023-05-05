@@ -3,7 +3,13 @@ pragma solidity ^0.8.0;
 
 import { Test } from "forge-std/Test.sol";
 import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
-import { Superfluid, ConstantFlowAgreementV1, InstantDistributionAgreementV1, SuperTokenFactory, SuperfluidFrameworkDeployer } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { SuperfluidFrameworkDeployer } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
+import {
+    Superfluid,
+    ConstantFlowAgreementV1,
+    InstantDistributionAgreementV1,
+    SuperTokenFactory
+} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol";
 import { ISuperToken, SuperToken, SuperTokenDeployer, TestToken } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperTokenDeployer.sol";
 import { CFAv1Library, IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import { IDAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";

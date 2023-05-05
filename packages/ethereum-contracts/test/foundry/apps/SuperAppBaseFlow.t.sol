@@ -58,48 +58,27 @@ contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
         return (mySuperApp, appConfig);
     }
 
-    function testOnFlagsSetAppManifest() public {
+    function testOnFlagsSetAppManifest(bool activateOnCreated, bool activateOnUpdated, bool activateOnDeleted) public {
         //all onOperations
-        (SuperAppBaseFlowTester mySuperApp, uint256 configWord) = _deploySuperAppAndGetConfig(true, true, true);
+        (SuperAppBaseFlowTester mySuperApp, uint256 configWord) = _deploySuperAppAndGetConfig(activateOnCreated, activateOnUpdated, activateOnDeleted);
         (bool isSuperApp,,uint256 noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));
         configWord = configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
-        assertTrue(isSuperApp, "isSuperApp");
-        assertEq(noopMask, configWord, "noopMask");
-
-        // activateOnUpdated and activateOnDeleted
-        (mySuperApp, configWord) = _deploySuperAppAndGetConfig(false, true, true);
-        (isSuperApp,,noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));
-        configWord = configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
-        assertTrue(isSuperApp, "isSuperApp");
-        assertEq(noopMask, configWord, "noopMask");
-
-        // activateOnDeleted
-        (mySuperApp, configWord) = _deploySuperAppAndGetConfig(false, false, true);
-        (isSuperApp,,noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));
-        configWord = configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
-        assertTrue(isSuperApp, "isSuperApp");
-        assertEq(noopMask, configWord, "noopMask");
-
-        // no Operations
-        (mySuperApp, configWord) = _deploySuperAppAndGetConfig(false, false, false);
-        (isSuperApp,,noopMask) = sf.host.getAppManifest(ISuperApp(mySuperApp));
-        configWord = configWord & SuperAppDefinitions.AGREEMENT_CALLBACK_NOOP_BITMASKS;
-        assertTrue(isSuperApp, "isSuperApp");
-        assertEq(noopMask, configWord, "noopMask");
+        assertTrue(isSuperApp, "SuperAppBase: is superApp incorrect");
+        assertEq(noopMask, configWord, "SuperAppBase: noopMask != configWord");
     }
 
     function testAllowAllSuperTokensByDefault() public {
-        assertTrue(superApp.isAcceptedSuperToken(superToken), "unrestricted: primary SuperToken accepted");
-        assertTrue(superApp.isAcceptedSuperToken(otherSuperToken), "unrestricted: other SuperToken accepted");
+        assertTrue(superApp.isAcceptedSuperToken(superToken), "SuperAppBase: unrestricted | primary SuperToken accepted");
+        assertTrue(superApp.isAcceptedSuperToken(otherSuperToken), "SuperAppBase: unrestricted | other SuperToken accepted");
     }
 
     function testRestrictAllowedSuperTokens() public {
         // Using the setter activates the filter, ONLY this token shall be accepted now
         superApp.setAcceptedSuperToken(superToken, true);
-        assertTrue(superApp.isAcceptedSuperToken(superToken), "restricted: primary SuperToken accepted");
-        assertFalse(superApp.isAcceptedSuperToken(otherSuperToken), "restricted: other SuperToken not accepted");
+        assertTrue(superApp.isAcceptedSuperToken(superToken), "SuperAppBase: restricted | primary SuperToken accepted");
+        assertFalse(superApp.isAcceptedSuperToken(otherSuperToken), "SuperAppBase: restricted | other SuperToken not accepted");
         superApp.setAcceptedSuperToken(otherSuperToken, true); // both shall now be accepted
-        assertTrue(superApp.isAcceptedSuperToken(otherSuperToken), "restricted: other SuperToken now accepted");
+        assertTrue(superApp.isAcceptedSuperToken(otherSuperToken), "SuperAppBase: restricted | other SuperToken now accepted");
     }
 
     function testUnauthorizedHost() public {
@@ -124,52 +103,56 @@ contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
         // correct host, but wrong agreement (ida instead of cfa)
         superApp.afterAgreementCreated(superToken, address(sf.ida), "0x", "0x", "0x", "0x");
         // should have no side effects
-        assertEq(superApp.afterSenderHolder(), address(0));
+        assertEq(superApp.afterSenderHolder(), address(0), "SuperAppBase: afterAgreementCreated | afterSenderHolder should be address(0)");
 
         superApp.afterAgreementUpdated(superToken, address(sf.ida), "0x", "0x", "0x", "0x");
-        assertEq(superApp.afterSenderHolder(), address(0));
+        assertEq(superApp.afterSenderHolder(), address(0), "SuperAppBase: afterAgreementUpdated | afterSenderHolder should be address(0)");
 
         superApp.afterAgreementTerminated(superToken, address(sf.ida), "0x", "0x", "0x", "0x");
-        assertEq(superApp.afterSenderHolder(), address(0));
+        assertEq(superApp.afterSenderHolder(), address(0), "SuperAppBase: afterAgreementTerminated | afterSenderHolder should be address(0)");
 
         vm.stopPrank();
     }
 
     // test create flow
-    function testCreateFlowToSuperApp() public {
+    function testCreateFlowToSuperApp(int96 flowRate) public {
+        flowRate = int96(bound(flowRate, 1, int96(uint96(type(uint32).max))));
         vm.startPrank(alice);
-        superToken.createFlow(superAppAddress, 100);
-        assertEq(superToken.getFlowRate(alice, superAppAddress), 100);
-        assertEq(superApp.afterSenderHolder(), alice);
+        superToken.createFlow(superAppAddress, flowRate);
+        assertEq(superToken.getFlowRate(alice, superAppAddress), flowRate, "SuperAppBase: createFlow | flowRate incorrect");
+        assertEq(superApp.afterSenderHolder(), alice, "SuperAppBase: createFlow | afterSenderHolder incorrect");
         vm.stopPrank();
     }
 
     // test update flow
-    function testUpdateFlowToSuperApp() public {
+    function testUpdateFlowToSuperApp(int96 flowRate, int96 updatedFlowRate) public {
+        flowRate = int96(bound(flowRate, 1, int96(uint96(type(uint32).max))));
+        updatedFlowRate = int96(bound(flowRate, 1, int96(uint96(type(uint32).max))));
         vm.startPrank(alice);
-        superToken.createFlow(superAppAddress, 100);
-        assertEq(superToken.getFlowRate(alice, superAppAddress), 100);
-        assertEq(superApp.afterSenderHolder(), alice);
-        assertEq(superApp.oldFlowRateHolder(), 0);
-        superToken.updateFlow(superAppAddress, 200);
-        assertEq(superToken.getFlowRate(alice, superAppAddress), 200);
-        assertEq(superApp.afterSenderHolder(), alice);
-        assertEq(superApp.oldFlowRateHolder(), 100);
+        superToken.createFlow(superAppAddress, flowRate);
+        assertEq(superToken.getFlowRate(alice, superAppAddress), flowRate, "SuperAppBase: updateFlow | flowRate incorrect");
+        assertEq(superApp.afterSenderHolder(), alice, "SuperAppBase: updateFlow | afterSenderHolder incorrect");
+        assertEq(superApp.oldFlowRateHolder(), 0, "SuperAppBase: updateFlow | oldFlowRateHolder incorrect");
+        superToken.updateFlow(superAppAddress, updatedFlowRate);
+        assertEq(superToken.getFlowRate(alice, superAppAddress), updatedFlowRate, "SuperAppBase: updateFlow2 | updatedFlowRate incorrect");
+        assertEq(superApp.afterSenderHolder(), alice, "SuperAppBase: updateFlow2 | afterSenderHolder incorrect");
+        assertEq(superApp.oldFlowRateHolder(), flowRate, "SuperAppBase: updateFlow2 | oldFlowRateHolder incorrect");
         vm.stopPrank();
     }
 
     // test delete flow
-    function testDeleteFlowToSuperApp() public {
+    function testDeleteFlowToSuperApp(int96 flowRate) public {
+        flowRate = int96(bound(flowRate, 1, int96(uint96(type(uint32).max))));
         vm.startPrank(alice);
-        superToken.createFlow(superAppAddress, 100);
-        assertEq(superToken.getFlowRate(alice, superAppAddress), 100);
-        assertEq(superApp.afterSenderHolder(), alice);
-        assertEq(superApp.oldFlowRateHolder(), 0);
+        superToken.createFlow(superAppAddress, flowRate);
+        assertEq(superToken.getFlowRate(alice, superAppAddress), flowRate, "SuperAppBase: deleteFlow | flowRate incorrect");
+        assertEq(superApp.afterSenderHolder(), alice, "SuperAppBase: deleteFlow | afterSenderHolder incorrect");
+        assertEq(superApp.oldFlowRateHolder(), 0, "SuperAppBase: deleteFlow | oldFlowRateHolder incorrect");
         superToken.deleteFlow(alice, superAppAddress);
-        assertEq(superToken.getFlowRate(alice, superAppAddress), 0);
-        assertEq(superApp.afterSenderHolder(), alice);
-        assertEq(superApp.afterReceiverHolder(), superAppAddress);
-        assertEq(superApp.oldFlowRateHolder(), 100);
+        assertEq(superToken.getFlowRate(alice, superAppAddress), 0, "SuperAppBase: deleteFlow2 | flowRate incorrect");
+        assertEq(superApp.afterSenderHolder(), alice, "SuperAppBase: deleteFlow2 | afterSenderHolder incorrect");
+        assertEq(superApp.afterReceiverHolder(), superAppAddress, "SuperAppBase: deleteFlow2 | afterReceiverHolder incorrect");
+        assertEq(superApp.oldFlowRateHolder(), flowRate, "SuperAppBase: deleteFlow2 | oldFlowRateHolder incorrect");
         vm.stopPrank();
     }
 
@@ -186,7 +169,7 @@ contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
             abi.encode(alice, bob),
             "0x"
         );
-        assertEq(data, "0x");
+        assertEq(data, "0x", "SuperAppBase: beforeAgreementCreated | data should be 0x");
         vm.stopPrank();
     }
 
@@ -203,7 +186,7 @@ contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
             abi.encode(alice, bob),
             "0x"
         );
-        assertEq(data, "0x");
+        assertEq(data, "0x", "SuperAppBase: beforeAgreementTerminated | data should be 0x");
         vm.stopPrank();
     }
 

@@ -8,4 +8,6 @@
 /typechain-types
 /dev-scripts/**/*.d.ts
 /dev-scripts/**/*.d.ts.map
-.gas-snapshot
+/.gas-snapshot
+/lib
+/packages

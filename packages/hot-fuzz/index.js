@@ -15,12 +15,12 @@ function hotfuzzPatchTruffleConfig(c) {
                 SlotsBitmapLibrary: "0x" + "0".repeat(38) + "f1",
             },
             "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol": {
-                SuperfluidCFAv1DeployerLibrary: "0x" + "0".repeat(38) + "f2",
-                SuperfluidGovDeployerLibrary: "0x" + "0".repeat(38) + "f3",
-                SuperfluidHostDeployerLibrary: "0x" + "0".repeat(38) + "f4",
-                SuperfluidIDAv1DeployerLibrary: "0x" + "0".repeat(38) + "f5",
+                SuperfluidCFAv1DeployerLibrary:     "0x" + "0".repeat(38) + "f2",
+                SuperfluidGovDeployerLibrary:       "0x" + "0".repeat(38) + "f3",
+                SuperfluidHostDeployerLibrary:      "0x" + "0".repeat(38) + "f4",
+                SuperfluidIDAv1DeployerLibrary:     "0x" + "0".repeat(38) + "f5",
                 SuperfluidPeripheryDeployerLibrary: "0x" + "0".repeat(38) + "f6",
-                SuperTokenDeployerLibrary: "0x" + "0".repeat(38) + "f7",
+                SuperTokenDeployerLibrary:          "0x" + "0".repeat(38) + "f7",
             },
         };
 

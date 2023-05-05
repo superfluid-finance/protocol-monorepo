@@ -18,7 +18,7 @@
         "directory": "packages/hot-fuzz"
     },
     "dependencies": {
-        "@openzeppelin/contracts": "4.8.0"
+        "@openzeppelin/contracts": "4.8.2"
     },
     "peerDependencies": {
         "@superfluid-finance/ethereum-contracts": "1.2.2"

@@ -49,6 +49,11 @@ describe("IDAv1 | Callback Tests", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     let app: IDASuperAppTester;

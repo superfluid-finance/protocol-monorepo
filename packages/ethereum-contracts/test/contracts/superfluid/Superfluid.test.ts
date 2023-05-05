@@ -61,6 +61,11 @@ describe("Superfluid Host Contract", function () {
 
         beforeEach(async function () {
             await t.beforeEachTestCase();
+            t.beforeEachTestCaseBenchmark(this);
+        });
+
+        afterEach(async () => {
+            t.afterEachTestCaseBenchmark();
         });
 
         async function createAgreementMock(type: string, version: number) {

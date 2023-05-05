@@ -10,13 +10,9 @@ import {
 contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
 
-    constructor() FoundrySuperfluidTester(3) {}
+    constructor () FoundrySuperfluidTester(3) { }
 
-    function testAlice2Bob(
-        uint32 indexId,
-        uint32 units,
-        uint32 newIndexValue
-    ) public {
+    function testAlice2Bob(uint32 indexId, uint32 units, uint32 newIndexValue) public {
         vm.assume(units > 0);
 
         bool exist;
@@ -29,8 +25,7 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         superToken.createIndex(indexId);
         superToken.updateSubscriptionUnits(indexId, bob, units);
         vm.stopPrank();
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken
-            .getIndex(alice, indexId);
+        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
         assertTrue(exist, "IDAv1.t: createIndex | index does not exist");
         assertEq(indexValue, 0, "IDAv1.t: createIndex | indexValue != 0");
         assertEq(totalUnitsApproved, 0, "IDAv1.t: createIndex | totalUnitsApproved != 0");
@@ -40,8 +35,7 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.startPrank(alice);
         superToken.updateIndexValue(indexId, newIndexValue);
         vm.stopPrank();
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken
-            .getIndex(alice, indexId);
+        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
         assertTrue(exist, "IDAv1.t: updateIndexValue | index does not exist");
         assertEq(indexValue, newIndexValue, "IDAv1.t: updateIndexValue | indexValue != newIndexValue");
         assertEq(totalUnitsApproved, 0, "IDAv1.t: updateIndexValue | totalUnitsApproved != 0");
@@ -52,13 +46,13 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         superToken.approveSubscription(alice, indexId);
         vm.stopPrank();
         uint256 bobBalance2 = superToken.balanceOf(bob);
+
         assertEq(
             bobBalance2 - bobBalance1,
             uint256(units) * uint256(newIndexValue),
             "IDAv1.t: approveSubscription | bobBalance2 - bobBalance1 != units * newIndexValue"
         );
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken
-            .getIndex(alice, indexId);
+        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
         assertTrue(exist, "IDAv1.t: approveSubscription | index does not exist");
         assertEq(indexValue, newIndexValue, "IDAv1.t: approveSubscription | indexValue != newIndexValue");
         assertEq(totalUnitsApproved, units, "IDAv1.t: approveSubscription | totalUnitsApproved != units");

@@ -50,12 +50,12 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         address _flowSender,
         address _flowReceiver
     ) public {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
             _flowSender,
             _flowReceiver
         );
 
-        uint256 nftId = helper_Get_NFT_ID(address(superTokenMock), _flowSender, _flowReceiver);
+        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
 
         vm.expectRevert(IFlowNFTBase.CFA_NFT_APPROVE_TO_CALLER.selector);
@@ -68,12 +68,12 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         address _flowSender,
         address _flowReceiver
     ) public {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
             _flowSender,
             _flowReceiver
         );
 
-        uint256 nftId = helper_Get_NFT_ID(address(superTokenMock), _flowSender, _flowReceiver);
+        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
 
         vm.expectRevert(IFlowNFTBase.CFA_NFT_APPROVE_TO_CURRENT_OWNER.selector);
@@ -88,7 +88,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         address _approver,
         address _approvedAccount
     ) public {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
             _flowSender,
             _flowReceiver
         );
@@ -96,7 +96,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         vm.assume(_approver != _flowReceiver);
         vm.assume(_approvedAccount != _flowReceiver);
 
-        uint256 nftId = helper_Get_NFT_ID(address(superTokenMock), _flowSender, _flowReceiver);
+        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
         vm.expectRevert(
             IFlowNFTBase
@@ -111,14 +111,14 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         address _flowSender,
         address _flowReceiver
     ) public {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
             _flowSender,
             _flowReceiver
         );
 
-        uint256 nftId = helper_Get_NFT_ID(address(superTokenMock), _flowSender, _flowReceiver);
+        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
 
-        assert_Event_Transfer(
+        _assertEventTransfer(
             address(constantOutflowNFTProxy),
             address(0),
             _flowSender,
@@ -126,7 +126,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         );
 
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
-        assert_NFT_Flow_Data_State_IsExpected(
+        _assertNFTFlowDataStateIsExpected(
             nftId,
             address(superTokenMock),
             _flowSender,
@@ -160,12 +160,12 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         address _flowSender,
         address _flowReceiver
     ) public {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
             _flowSender,
             _flowReceiver
         );
 
-        uint256 nftId = helper_Get_NFT_ID(address(superTokenMock), _flowSender, _flowReceiver);
+        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
 
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
 
@@ -206,7 +206,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
     function testRevertIfMintIsNotCalledByOutflowNFT(
         address caller
     ) public {
-        assume_Caller_Is_Not_Other_Address(
+        _assumeCallerIsNotOtherAddress(
             caller,
             address(constantOutflowNFTProxy)
         );
@@ -219,7 +219,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
     function testRevertIfBurnIsNotCalledByOutflowNFT(
         address caller
     ) public {
-        assume_Caller_Is_Not_Other_Address(
+        _assumeCallerIsNotOtherAddress(
             caller,
             address(constantOutflowNFTProxy)
         );
@@ -279,15 +279,15 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         address _flowSender,
         address _flowReceiver
     ) public {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
             _flowSender,
             _flowReceiver
         );
 
-        uint256 nftId = helper_Get_NFT_ID(address(superTokenMock), _flowSender, _flowReceiver);
+        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
 
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
-        assert_NFT_Flow_Data_State_IsExpected(
+        _assertNFTFlowDataStateIsExpected(
             nftId,
             address(superTokenMock),
             _flowSender,
@@ -305,14 +305,14 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         address _flowSender,
         address _flowReceiver
     ) public {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
             _flowSender,
             _flowReceiver
         );
 
-        uint256 nftId = helper_Get_NFT_ID(address(superTokenMock), _flowSender, _flowReceiver);
+        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
 
-        assert_Event_Transfer(
+        _assertEventTransfer(
             address(constantInflowNFTProxy),
             address(0),
             _flowReceiver,
@@ -321,21 +321,21 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
 
         constantInflowNFTProxy.mockMint(_flowReceiver, nftId);
 
-        assert_NFT_Flow_Data_State_IsEmpty(nftId);
+        _assertNFTFlowDataStateIsEmpty(nftId);
     }
 
     function testInternalBurnToken(
         address _flowSender,
         address _flowReceiver
     ) public {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
             _flowSender,
             _flowReceiver
         );
 
-        uint256 nftId = helper_Get_NFT_ID(address(superTokenMock), _flowSender, _flowReceiver);
+        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
-        assert_NFT_Flow_Data_State_IsExpected(
+        _assertNFTFlowDataStateIsExpected(
             nftId,
             address(superTokenMock),
             _flowSender,
@@ -343,7 +343,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
             _flowReceiver
         );
 
-        assert_Event_Transfer(
+        _assertEventTransfer(
             address(constantInflowNFTProxy),
             _flowReceiver,
             address(0),
@@ -352,7 +352,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
 
         constantInflowNFTProxy.mockBurn(nftId);
 
-        assert_NFT_Flow_Data_State_IsExpected(
+        _assertNFTFlowDataStateIsExpected(
             nftId,
             address(superTokenMock),
             _flowSender,
@@ -366,15 +366,15 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         address _flowReceiver,
         address _approvedAccount
     ) public returns (uint256 nftId) {
-        assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
             _flowSender,
             _flowReceiver
         );
         vm.assume(_flowReceiver != _approvedAccount);
 
-        nftId = helper_Get_NFT_ID(address(superTokenMock), _flowSender, _flowReceiver);
+        nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
         constantOutflowNFTProxy.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
-        assert_NFT_Flow_Data_State_IsExpected(
+        _assertNFTFlowDataStateIsExpected(
             nftId,
             address(superTokenMock),
             _flowSender,
@@ -382,7 +382,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
             _flowReceiver
         );
 
-        assert_Event_Approval(
+        _assertEventApproval(
             address(constantInflowNFTProxy),
             _flowReceiver,
             _approvedAccount,
@@ -392,7 +392,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         vm.prank(_flowReceiver);
         constantInflowNFTProxy.approve(_approvedAccount, nftId);
 
-        assert_Approval_IsExpected(
+        _assertApprovalIsExpected(
             constantInflowNFTProxy,
             nftId,
             _approvedAccount
@@ -422,7 +422,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         vm.assume(_tokenOwner != address(0));
         vm.assume(_tokenOwner != _operator);
 
-        assert_Event_ApprovalForAll(
+        _assertEventApprovalForAll(
             address(constantInflowNFTProxy),
             _tokenOwner,
             _operator,
@@ -432,7 +432,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
         vm.prank(_tokenOwner);
         constantInflowNFTProxy.setApprovalForAll(_operator, _approved);
 
-        assert_OperatorApproval_IsExpected(
+        _assertOperatorApprovalIsExpected(
             constantInflowNFTProxy,
             _tokenOwner,
             _operator,

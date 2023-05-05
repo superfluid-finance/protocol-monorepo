@@ -21,33 +21,33 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
 
     // Helpers
-    function _start_Stream(address sender, address receiver, int96 flowRate) internal {
+    function _startStream(address sender, address receiver, int96 flowRate) internal {
         vm.startPrank(sender);
         sf.cfaLib.createFlow(receiver, superToken, flowRate);
         vm.stopPrank();
     }
 
-    function _transfer_All_To_Sink(address sender) internal {
+    function _transferAllToSink(address sender) internal {
         vm.startPrank(sender);
         superToken.transferAll(admin);
         vm.stopPrank();
     }
 
-    function _assert_No_Flow(address sender, address receiver) internal {
+    function _assertNoFlow(address sender, address receiver) internal {
         (,int96 flow,,) = sf.cfaLib.cfa.getFlow(superToken, alice, bob);
         assertEq(flow, 0, "BatchLiquidator: Flow should be 0");
     }
 
     function testSingleLiquidation() public {
 
-        _start_Stream(alice, bob, FLOW_RATE);
-        _transfer_All_To_Sink(alice);
+        _startStream(alice, bob, FLOW_RATE);
+        _transferAllToSink(alice);
 
         vm.startPrank(liquidator);
         uint256 balance = superToken.balanceOf(liquidator);
         vm.warp(4 hours); // jump 4 hours
         batchLiquidator.deleteFlow(address(superToken), alice, bob);
-        _assert_No_Flow(alice, bob);
+        _assertNoFlow(alice, bob);
 
         assertTrue(superToken.balanceOf(liquidator) > balance, "BatchLiquidator: SL - Balance should be greater than before");
         vm.stopPrank();
@@ -69,13 +69,13 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
     function testBatchLiquidation() public {
 
-        _start_Stream(alice, bob, FLOW_RATE);
-        _start_Stream(carol, bob, FLOW_RATE);
-        _start_Stream(dan, bob, FLOW_RATE);
+        _startStream(alice, bob, FLOW_RATE);
+        _startStream(carol, bob, FLOW_RATE);
+        _startStream(dan, bob, FLOW_RATE);
 
-        _transfer_All_To_Sink(alice);
-        _transfer_All_To_Sink(carol);
-        _transfer_All_To_Sink(dan);
+        _transferAllToSink(alice);
+        _transferAllToSink(carol);
+        _transferAllToSink(dan);
 
 
         vm.startPrank(liquidator);
@@ -91,9 +91,9 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         receivers[2] = bob;
 
         batchLiquidator.deleteFlows(address(superToken), senders, receivers);
-        _assert_No_Flow(alice, bob);
-        _assert_No_Flow(carol, bob);
-        _assert_No_Flow(dan, bob);
+        _assertNoFlow(alice, bob);
+        _assertNoFlow(carol, bob);
+        _assertNoFlow(dan, bob);
 
         uint256 balanceAfter = superToken.balanceOf(liquidator);
         assertTrue(superToken.balanceOf(liquidator) > balance, "BatchLiquidator: BL - Balance should be greater than before");
@@ -102,11 +102,11 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
 
     function testBatchLiquidationWithToleratedRevert() public {
 
-        _start_Stream(alice, bob, FLOW_RATE);
-        _start_Stream(dan, bob, FLOW_RATE);
+        _startStream(alice, bob, FLOW_RATE);
+        _startStream(dan, bob, FLOW_RATE);
 
-        _transfer_All_To_Sink(alice);
-        _transfer_All_To_Sink(dan);
+        _transferAllToSink(alice);
+        _transferAllToSink(dan);
 
         vm.startPrank(liquidator);
         uint256 balance = superToken.balanceOf(liquidator);
@@ -121,9 +121,9 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         receivers[2] = bob;
 
         batchLiquidator.deleteFlows(address(superToken), senders, receivers);
-        _assert_No_Flow(alice, bob);
-        _assert_No_Flow(carol, bob);
-        _assert_No_Flow(dan, bob);
+        _assertNoFlow(alice, bob);
+        _assertNoFlow(carol, bob);
+        _assertNoFlow(dan, bob);
 
         uint256 balanceAfter = superToken.balanceOf(liquidator);
         assertTrue(superToken.balanceOf(liquidator) > balance, "BatchLiquidator: BLR - Balance should be greater than before");

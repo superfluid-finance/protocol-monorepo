@@ -43,7 +43,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
         vm.stopPrank();
 
-        _assert_Flow_Operator_Data(
+        _assertFlowOperatorData(
             AssertFlowOperator({
                 superToken: superToken,
                 flowOperatorId: flowOperatorId,
@@ -82,7 +82,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
         vm.stopPrank();
 
-        _assert_Flow_Operator_Data(
+        _assertFlowOperatorData(
             AssertFlowOperator({
                 superToken: superToken,
                 flowOperatorId: oldFlowOperatorId,
@@ -115,7 +115,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
         vm.stopPrank();
 
-        _assert_Flow_Operator_Data(
+        _assertFlowOperatorData(
             AssertFlowOperator({
                 superToken: superToken,
                 flowOperatorId: oldFlowOperatorId,
@@ -156,7 +156,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         );
         vm.stopPrank();
 
-        _assert_Flow_Operator_Data(
+        _assertFlowOperatorData(
             AssertFlowOperator({
                 superToken: superToken,
                 flowOperatorId: oldFlowOperatorId,
@@ -234,7 +234,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function _assert_Flow_Operator_Data(
+    function _assertFlowOperatorData(
         AssertFlowOperator memory data
     ) internal {
         (uint8 newPermissions, int96 newFlowRateAllowance) = sf

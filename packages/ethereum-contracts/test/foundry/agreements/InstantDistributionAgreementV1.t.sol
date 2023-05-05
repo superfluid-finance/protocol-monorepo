@@ -58,13 +58,13 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             "IDAv1.t: approveSubscription | bobBalance2 - bobBalance1 != units * newIndexValue"
         );
         (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken
-            .getIndex(superToken, alice, indexId);
+            .getIndex(alice, indexId);
         assertTrue(exist, "IDAv1.t: approveSubscription | index does not exist");
         assertEq(indexValue, newIndexValue, "IDAv1.t: approveSubscription | indexValue != newIndexValue");
         assertEq(totalUnitsApproved, units, "IDAv1.t: approveSubscription | totalUnitsApproved != units");
         assertEq(totalUnitsPending, 0, "IDAv1.t: approveSubscription | totalUnitsPending != 0");
 
-        _assert_Global_Invariants();
+        _assertGlobalInvariants();
     }
 
     function testRevertMaxNumberOFSubscriptionsASubscriberCanHave() public {

@@ -149,7 +149,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Assertion Helpers
     //////////////////////////////////////////////////////////////////////////*/
-    function assert_NFT_Flow_Data_State_IsExpected(
+    function _assertNFTFlowDataStateIsExpected(
         uint256 _tokenId,
         address _expectedSuperToken,
         address _expectedFlowSender,
@@ -171,7 +171,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         assertEq(flowData.flowReceiver, _expectedFlowReceiver);
 
         // assert owner of outflow nft equal to expected flow sender
-        assert_OwnerOf(
+        _assertOwnerOf(
             constantOutflowNFTProxy,
             _tokenId,
             _expectedFlowSender,
@@ -179,7 +179,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         );
 
         // assert owner of inflow nft equal to expected flow receiver
-        assert_OwnerOf(
+        _assertOwnerOf(
             constantInflowNFTProxy,
             _tokenId,
             _expectedFlowReceiver,
@@ -187,8 +187,8 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function assert_NFT_Flow_Data_State_IsEmpty(uint256 _tokenId) public {
-        assert_NFT_Flow_Data_State_IsExpected(
+    function _assertNFTFlowDataStateIsEmpty(uint256 _tokenId) public {
+        _assertNFTFlowDataStateIsExpected(
             _tokenId,
             address(0),
             address(0),
@@ -197,7 +197,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function assert_OwnerOf(
+    function _assertOwnerOf(
         FlowNFTBase _nftContract,
         uint256 _tokenId,
         address _expectedOwner,
@@ -214,7 +214,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         assertEq(actualOwner, _expectedOwner);
     }
 
-    function assert_Approval_IsExpected(
+    function _assertApprovalIsExpected(
         FlowNFTBase _nftContract,
         uint256 _tokenId,
         address _expectedApproved
@@ -224,7 +224,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         assertEq(approved, _expectedApproved);
     }
 
-    function assert_OperatorApproval_IsExpected(
+    function _assertOperatorApprovalIsExpected(
         FlowNFTBase _nftContract,
         address _expectedOwner,
         address _expectedOperator,
@@ -238,7 +238,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         assertEq(operatorApproval, _expectedOperatorApproval);
     }
 
-    function assert_Event_Transfer(
+    function _assertEventTransfer(
         address _emittingAddress,
         address _expectedFrom,
         address _expectedTo,
@@ -249,7 +249,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         emit Transfer(_expectedFrom, _expectedTo, _expectedTokenId);
     }
 
-    function assert_Event_Approval(
+    function _assertEventApproval(
         address _emittingAddress,
         address _expectedOwner,
         address _expectedApproved,
@@ -260,7 +260,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         emit Approval(_expectedOwner, _expectedApproved, _expectedTokenId);
     }
 
-    function assert_Event_ApprovalForAll(
+    function _assertEventApprovalForAll(
         address _emittingAddress,
         address _expectedOwner,
         address _expectedOperator,
@@ -275,7 +275,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         );
     }
 
-    function assert_Event_MetadataUpdate(
+    function _assertEventMetadataUpdate(
         address _emittingAddress,
         uint256 _tokenId
     ) public {
@@ -287,7 +287,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
-    function helper_Get_NFT_ID(
+    function _helperGetNFTID(
         address _superToken,
         address _flowSender,
         address _flowReceiver
@@ -300,25 +300,25 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
             );
     }
 
-    function helper_Create_Flow_And_Assert_NFT_Invariants(
+    function _helperCreateFlowAndAssertNFTInvariants(
         address _flowSender,
         address _flowReceiver,
         int96 _flowRate
     ) public {
-        uint256 nftId = helper_Get_NFT_ID(
+        uint256 nftId = _helperGetNFTID(
             address(superTokenMock),
             _flowSender,
             _flowReceiver
         );
 
-        assert_Event_Transfer(
+        _assertEventTransfer(
             address(constantOutflowNFTProxy),
             address(0),
             _flowSender,
             nftId
         );
 
-        assert_Event_Transfer(
+        _assertEventTransfer(
             address(constantInflowNFTProxy),
             address(0),
             _flowReceiver,
@@ -329,7 +329,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         vm.startPrank(_flowSender);
         superTokenMock.createFlow(_flowReceiver, _flowRate);
         vm.stopPrank();
-        assert_NFT_Flow_Data_State_IsExpected(
+        _assertNFTFlowDataStateIsExpected(
             nftId,
             address(superTokenMock),
             _flowSender,
@@ -349,7 +349,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Assume Helpers
     //////////////////////////////////////////////////////////////////////////*/
-    function assume_Sender_NEQ_Receiver_And_Neither_Are_The_Zero_Address(
+    function _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
         address _flowSender,
         address _flowReceiver
     ) public pure {
@@ -358,7 +358,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         vm.assume(_flowSender != _flowReceiver);
     }
 
-    function assume_Caller_Is_Not_Other_Address(
+    function _assumeCallerIsNotOtherAddress(
         address caller,
         address otherAddress
     ) public pure {
@@ -391,7 +391,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
     /*//////////////////////////////////////////////////////////////////////////
                                     Assertion Helpers
     //////////////////////////////////////////////////////////////////////////*/
-    function assert_Expected_Logic_Contract_Address(
+    function _assertExpectedLogicContractAddress(
         UUPSProxiable _proxy,
         address _expectedLogicContract
     ) public {

@@ -118,7 +118,7 @@ function testRevertIfDecreaseFlowRateAllowanceAndACLCreateFlow() {
 If you are writing a test that requires a helper function, the helper function is prefixed with `_` and uses camelCase and snake case to indicate that it is an internal helper function. For example:
 
 ```solidity
-function _assert_Flow_Operator_Data(AssertFlowOperatorData memory data) internal {
+function _assertFlowOperatorData(AssertFlowOperatorData memory data) internal {
     ...
 }
 ```
@@ -126,8 +126,8 @@ function _assert_Flow_Operator_Data(AssertFlowOperatorData memory data) internal
 It is also recommended to create an pass structs to the helper functions to make the test code more readable. For example:
 
 ```solidity
-// this is easier to understand what is going on before reading the _assert_Flow_Operator_Data function
-_assert_Flow_Operator_Data(
+// this is easier to understand what is going on before reading the _assertFlowOperatorData function
+_assertFlowOperatorData(
     AssertFlowOperatorData({
         superToken: superToken,
         flowOperatorId: oldFlowOperatorId,
@@ -139,7 +139,7 @@ _assert_Flow_Operator_Data(
 );
 
 // this is a bit more confusing and may require constant jumping back and forth to understand what is going on
-_assert_Flow_Operator_Data(
+_assertFlowOperatorData(
     superToken,
     oldFlowOperatorId,
     oldPermissions,

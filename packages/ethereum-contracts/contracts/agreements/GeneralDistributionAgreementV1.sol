@@ -23,9 +23,6 @@ import {SlotsBitmapLibrary} from "../libs/SlotsBitmapLibrary.sol";
 import {AgreementBase} from "./AgreementBase.sol";
 import {AgreementLibrary} from "./AgreementLibrary.sol";
 
-import "forge-std/Test.sol";
-// solhint-disable no-console
-
 /**
  * @title General Distribution Agreement
  * @author Superfluid
@@ -132,8 +129,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         view
         returns (int256 own, int256 fromPools, int256 buffer)
     {
+        BasicParticle memory uIndexP = _getUIndex(abi.encode(token), account);
         UniversalIndexData memory universalIndexData = _getUIndexData(abi.encode(token), account);
-
         BasicParticle memory uIndexParticle = _getBasicParticleFromUIndex(universalIndexData);
 
         if (_isPool(token, account)) {
@@ -166,7 +163,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         (int256 available, int256 fromPools, int256 buffer) = realtimeBalanceVectorAt(token, account, time);
         rtb = available + fromPools - buffer;
 
-        buf = uint256(buffer);
+        buf = uint256(buffer); // upcasting to uint256 is safe
         owedBuffer = 0;
     }
 
@@ -181,9 +178,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         override
         returns (int96 netFlowRate)
     {
-        BasicParticle memory uIndexData = _getUIndex(abi.encode(token), account);
-        // uindex of pool
-        netFlowRate = int256(FlowRate.unwrap(uIndexData.flow_rate())).toInt96();
+        netFlowRate = int256(FlowRate.unwrap(_getUIndex(abi.encode(token), account).flow_rate())).toInt96();
+
         if (_isPool(token, account)) {
             netFlowRate += ISuperfluidPool(account).getDisconnectedFlowRate();
         }
@@ -272,7 +268,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                 uint32 poolSlotID =
                     _findAndFillPoolConnectionsBitmap(token, msgSender, bytes32(uint256(uint160(address(pool)))));
 
-                token.updateAgreementData(
+                token.createAgreement(
                     _getPoolMemberHash(msgSender, pool),
                     _encodePoolMemberData(PoolMemberData({poolID: poolSlotID, pool: address(pool)}))
                 );
@@ -306,14 +302,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     }
 
     function _appendIndexUpdateByPool(bytes memory eff, address pool, BasicParticle memory p, Time t) internal {
-        console.log("_appendIndexUpdateByPool");
         address token = abi.decode(eff, (address));
         if (_isPool(ISuperfluidToken(token), msg.sender) == false) {
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
-        _getUIndex(eff, pool).mappend(p);
-        console.log("FR");
-        console.logInt(FlowRate.unwrap(p.flow_rate()));
+
+        _setUIndex(eff, pool, _getUIndex(eff, pool).mappend(p));
         _setPoolAdjustmentFlowRate(eff, pool, true, /* doShift? */ p.flow_rate(), t);
     }
 
@@ -392,7 +386,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         bytes32 distributionFlowHash = _getFlowDistributionHash(from, address(pool));
         FlowRate oldFlowRate = _getFlowRate(abi.encode(token), distributionFlowHash);
-        console.log("do distribute flow");
+
         (, FlowRate actualFlowRate, FlowRate newDistributionFlowRate) = _doDistributeFlowViaPool(
             abi.encode(token),
             from,
@@ -401,12 +395,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             FlowRate.wrap(requestedFlowRate),
             Time.wrap(uint32(block.timestamp))
         );
-        console.log("ADJUST BUFFER");
-
         {
             _adjustBuffer(abi.encode(token), from, distributionFlowHash, oldFlowRate, actualFlowRate);
         }
-        console.log("ADJUST BUFFER END");
         {
             (int256 availableBalance,,) = token.realtimeBalanceOf(from, currentContext.timestamp);
             // distribute flow on behalf of someone else
@@ -537,7 +528,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                 FlowDistributionData({
                     lastUpdated: uint32(block.timestamp),
                     flowRate: int96(FlowRate.unwrap(newFlowRate)),
-                    buffer: uint96(uint256(Value.unwrap(newBufferAmount)))
+                    buffer: uint256(Value.unwrap(newBufferAmount))
                 })
             );
 
@@ -545,10 +536,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         UniversalIndexData memory universalIndexData = _getUIndexData(eff, from);
-        universalIndexData.totalBuffer += uint96(uint256(Value.unwrap(bufferDelta)));
+        int256 newBuffer = universalIndexData.totalBuffer.toInt256() + Value.unwrap(bufferDelta);
+        universalIndexData.totalBuffer = newBuffer.toUint256();
         ISuperfluidToken(token).updateAgreementStateSlot(
             from, _UNIVERSAL_INDEX_STATE_SLOT_ID, _encodeUniversalIndexData(universalIndexData)
         );
+        universalIndexData = _getUIndexData(eff, from);
 
         return eff;
     }
@@ -600,7 +593,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     {
         data = new bytes32[](2);
         data[0] = bytes32(
-            (uint256(int256(FlowRate.unwrap(p._flow_rate))) << 160) | (uint256(Time.unwrap(p._settled_at)) << 128)
+            (uint256(int256(FlowRate.unwrap(p.flow_rate()))) << 160) | (uint256(Time.unwrap(p.settled_at())) << 128)
                 | (buffer << 32) | (isPool_ ? 1 : 0)
         );
         data[1] = bytes32(uint256(Value.unwrap(p._settled_value)));
@@ -665,9 +658,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         bytes32[] memory data =
             ISuperfluidToken(token).getAgreementStateSlot(address(this), owner, _UNIVERSAL_INDEX_STATE_SLOT_ID, 2);
         (, UniversalIndexData memory universalIndexData) = _decodeUniversalIndexData(data);
-        console.log("get uindex flowrate");
-        console.log(owner);
-        console.logInt(universalIndexData.flowRate);
         uIndex = _getBasicParticleFromUIndex(universalIndexData);
     }
 
@@ -680,10 +670,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         // TODO see if this can be optimized, seems unnecessary to re-retrieve all the data
         // from storage to ensure totalBuffer and isPool isn't overriden
         UniversalIndexData memory universalIndexData = _getUIndexData(eff, owner);
-        if (_isPool(ISuperfluidToken(token), owner)) {
-            console.log("set uindex");
-            console.logInt(FlowRate.unwrap(p._flow_rate));
-        }
 
         ISuperfluidToken(token).updateAgreementStateSlot(
             owner,
@@ -804,16 +790,13 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         internal
         returns (bytes memory)
     {
-        console.log("_setPoolAdjustmentFlowRate");
         address adjustmentRecipient = ISuperfluidPool(pool).admin();
         bytes32 adjustmentFlowHash = getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
 
         if (doShiftFlow) {
             flowRate = flowRate + _getFlowRate(eff, adjustmentFlowHash);
         }
-        console.log("_doFlow started");
         eff = _doFlow(eff, pool, adjustmentRecipient, adjustmentFlowHash, flowRate, t);
-        console.log("_doFlow ended");
         return eff;
     }
 

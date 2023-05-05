@@ -9,8 +9,6 @@ import {ISuperfluidPool} from "../interfaces/superfluid/ISuperfluidPool.sol";
 import {GeneralDistributionAgreementV1} from "../agreements/GeneralDistributionAgreementV1.sol";
 import {BeaconProxiable} from "../upgradability/BeaconProxiable.sol";
 
-import "forge-std/Test.sol";
-
 /**
  * @title SuperfluidPool
  * @author Superfluid
@@ -59,7 +57,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         return keccak256("org.superfluid-finance.contracts.superfluid.SuperfluidPool.implementation");
     }
 
-    function getIndex() external view override returns (PoolIndexData memory) {
+    function getIndex() external view returns (PoolIndexData memory) {
         return _index;
     }
 
@@ -152,7 +150,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     function convertMemberDataFromPDPoolMember(PDPoolMember memory pdPoolMember, int256 claimedValue)
         public
-        view
+        pure
         returns (MemberData memory memberData)
     {
         memberData = MemberData({

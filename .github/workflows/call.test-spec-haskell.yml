@@ -14,8 +14,8 @@ jobs:
         include:
           - compiler-name: ghc-9.2.5
             dev-shell-type: ci-spec-ghc925
-          - compiler-name: ghc-9.4.4
-            dev-shell-type: ci-spec-ghc944
+          - compiler-name: ghc-9.4.5
+            dev-shell-type: ci-spec-ghc945
       fail-fast: false
 
     defaults:

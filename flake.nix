@@ -2,31 +2,30 @@
   description = "Overlay for working with Superfluid protocol monorepo";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     foundry = {
       url = "github:shazow/foundry.nix/monthly";
+      inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     solc = {
       url = "github:hellwolf/solc.nix";
+      inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     certora = {
       url = "github:hellwolf/certora.nix";
+      inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    # TODO use ghc 9.6 when available
-    #ghc-wasm.url = "gitlab:ghc/ghc-wasm-meta?host=gitlab.haskell.org";
-    #ghc-wasm.inputs.nixpkgs.follows = "nixpkgs";
-    #ghc-wasm.inputs.flake-utils.follows = "flake-utils";
   };
 
   outputs = { self, nixpkgs, flake-utils, foundry, solc, certora } :
   flake-utils.lib.eachDefaultSystem (system:
   let
     solcVer = "solc_0_8_19";
-    ghcVer = "ghc944";
+    ghcVer = "ghc945";
 
     pkgs = import nixpkgs {
       inherit system;
@@ -70,7 +69,7 @@
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
       slither-analyzer
-      echidna
+      #echidna
     ];
 
     # spec developing specification
@@ -81,8 +80,6 @@
       # for haskell spec
       cabal-install
       ghc
-      #ghc-wasm.packages.${system}.default
-      ghcPkgs.haskell-language-server
       hlint
       stylish-haskell
       # sage math
@@ -144,8 +141,8 @@
     devShells.ci-node18 = mkShell {
       buildInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
     };
-    devShells.ci-spec-ghc925 = ci-spec-with-ghc "ghc925";
-    devShells.ci-spec-ghc944 = ci-spec-with-ghc "ghc944";
+    devShells.ci-spec-ghc925 = ci-spec-with-ghc "ghc927";
+    devShells.ci-spec-ghc945 = ci-spec-with-ghc "ghc945";
     devShells.ci-hot-fuzz = mkShell {
       buildInputs = with pkgs; [
         slither-analyzer

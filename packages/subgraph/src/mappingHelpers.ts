@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
     Account,
@@ -39,7 +39,6 @@ import {
     getResolverAddress,
 } from "./addresses";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import {ISuperToken} from "../generated/SuperTokenFactory/ISuperToken";
 
 /**************************************************************************
  * HOL initializer functions
@@ -340,16 +339,6 @@ export function getOrInitFlowOperator(
         flowOperatorEntity.flowOperator = flowOperatorAddress;
         flowOperatorEntity.updatedAtBlockNumber = block.number;
         flowOperatorEntity.updatedAtTimestamp = currentTimestamp;
-
-        // It will only be called when the entry does not exist. Previously, it was being called every time the user updated their permission or flow allowance
-        const superTokenContract = ISuperToken.bind(
-            tokenAddress
-        );
-        const currentAllowance = superTokenContract.try_allowance(senderAddress, flowOperatorAddress);
-        if (!currentAllowance.reverted) {
-            flowOperatorEntity.allowance = currentAllowance.value;
-        }
-
         flowOperatorEntity.save();
     }
     flowOperatorEntity.updatedAtBlockNumber = block.number;

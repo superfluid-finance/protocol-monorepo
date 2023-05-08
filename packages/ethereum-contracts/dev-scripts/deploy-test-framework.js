@@ -1,12 +1,16 @@
 const {ethers} = require("hardhat");
 
-const SuperfluidGovDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidGovDeployerLibrary.json");
-const SuperfluidHostDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidHostDeployerLibrary.json");
-const SuperfluidCFAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidCFAv1DeployerLibrary.json");
-const SuperfluidIDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidIDAv1DeployerLibrary.json");
-const SuperTokenDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperTokenDeployerLibrary.json");
-const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidPeripheryDeployerLibrary.json");
-const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
+const SuperfluidGovDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidGovDeployerLibrary.json");
+const SuperfluidHostDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidHostDeployerLibrary.json");
+const SuperfluidCFAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidCFAv1DeployerLibrary.json");
+const SuperfluidIDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidIDAv1DeployerLibrary.json");
+const SuperTokenDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperTokenDeployerLibrary.json");
+const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPeripheryDeployerLibrary.json");
+const SuperfluidNFTLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidNFTLogicDeployerLibrary.json");
+const ProxyDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/ProxyDeployerLibrary.json");
+const CFAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/CFAv1ForwarderDeployerLibrary.json");
+const SuperfluidLoaderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidLoaderDeployerLibrary.json");
+const SuperfluidFrameworkDeploymentStepsArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidFrameworkDeploymentSteps.json");
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
 const SuperTokenDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperTokenDeployer.sol/SuperTokenDeployer.json");
 const TestResolver = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/TestResolver.sol/TestResolver.json");
@@ -110,6 +114,7 @@ const deployTestFramework = async () => {
                 },
             }
         );
+
     const SuperTokenDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperTokenDeployerLibrary",
@@ -124,9 +129,33 @@ const deployTestFramework = async () => {
             SuperfluidPeripheryDeployerLibraryArtifact,
             signer
         );
+    const SuperfluidNFTLogicDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "SuperfluidNFTLogicDeployerLibrary",
+            SuperfluidNFTLogicDeployerLibraryArtifact,
+            signer
+        );
+    const ProxyDeployerLibrary = await _getFactoryAndReturnDeployedContract(
+        "ProxyDeployerLibrary",
+        ProxyDeployerLibraryArtifact,
+        signer
+    );
+    const CFAv1ForwarderDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "CFAv1ForwarderDeployerLibrary",
+            CFAv1ForwarderDeployerLibraryArtifact,
+            signer
+        );
+    const SuperfluidLoaderDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "SuperfluidLoaderDeployerLibrary",
+            SuperfluidLoaderDeployerLibraryArtifact,
+            signer
+        );
+
     const frameworkDeployer = await _getFactoryAndReturnDeployedContract(
-        "SuperfluidFrameworkDeployer",
-        SuperfluidFrameworkDeployerArtifact,
+        "SuperfluidFrameworkDeploymentSteps",
+        SuperfluidFrameworkDeploymentStepsArtifact,
         {
             signer,
             libraries: {
@@ -141,9 +170,20 @@ const deployTestFramework = async () => {
                 SuperfluidPeripheryDeployerLibrary:
                     SuperfluidPeripheryDeployerLibrary.address,
                 SuperTokenDeployerLibrary: SuperTokenDeployerLibrary.address,
+                SuperfluidNFTLogicDeployerLibrary:
+                    SuperfluidNFTLogicDeployerLibrary.address,
+                ProxyDeployerLibrary: ProxyDeployerLibrary.address,
+                CFAv1ForwarderDeployerLibrary:
+                    CFAv1ForwarderDeployerLibrary.address,
+                SuperfluidLoaderDeployerLibrary:
+                    SuperfluidLoaderDeployerLibrary.address,
             },
         }
     );
+    const numSteps = await frameworkDeployer.getNumSteps();
+    for (let i = 0; i < numSteps; i++) {
+        await frameworkDeployer.executeStep(i);
+    }
     const sf = await frameworkDeployer.getFramework();
     const superTokenDeployer = await _getFactoryAndReturnDeployedContract(
         "SuperTokenDeployer",

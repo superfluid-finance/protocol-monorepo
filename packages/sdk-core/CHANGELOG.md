@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+## [0.6.4] - 2023-05-07
+
 ### Changed
 - `getPopulatedTransactionRequest` doesn't use the signer to populate the transaction anymore as `signer.sendTransaction` does it already. The double `signer.populateTransaction` was causing issues with some wallets (e.g. Rainbow Wallet)
 - Map `isNativeAssetSuperToken` to `Token` from Subgraph

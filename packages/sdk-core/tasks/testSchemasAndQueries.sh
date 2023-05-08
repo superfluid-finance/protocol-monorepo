@@ -13,7 +13,7 @@ fi
 
 if [ "$SUBGRAPH_RELEASE_TAG" == "dev" ] || [ "$SUBGRAPH_RELEASE_TAG" == "v1" ];then
     # shellcheck disable=SC2207
-    NETWORKS=( $($JQ -r .[] ../subgraph/networks.json) )
+    NETWORKS=( $($JQ -r .[] ../subgraph/hosted-service-networks.json) )
 fi
 
 function testSchemaAndQueries() {

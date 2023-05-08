@@ -11,6 +11,5 @@
     "optimism-goerli",
     "avalanche-fuji",
     "bsc-mainnet",
-    "celo-mainnet",
-    "eth-sepolia"
+    "celo-mainnet"
 ]

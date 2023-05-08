@@ -9,10 +9,9 @@ import {ISuperfluidToken} from "../superfluid/ISuperfluidToken.sol";
 interface ISuperfluidPool {
     // Custom Errors
 
-    error SUPERFLUID_POOL_INVALID_TIME();
-    error SUPERFLUID_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
-    error SUPERFLUID_POOL_NOT_POOL_ADMIN();
-    error SUPERFLUID_POOL_NOT_GDA();
+    error SUPERFLUID_POOL_INVALID_TIME();   // 0x83c35016
+    error SUPERFLUID_POOL_NOT_POOL_ADMIN(); // 0x7b0be922
+    error SUPERFLUID_POOL_NOT_GDA();        // 0xfcbe3f9e
 
     // Events
     event MemberUpdated(address indexed member, uint128 units, uint256 updatedAt);

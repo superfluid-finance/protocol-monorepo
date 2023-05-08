@@ -167,8 +167,13 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     }
 
     /// @dev ISuperAgreement.realtimeBalanceOf implementation
-    function realtimeBalanceOfNow(ISuperfluidToken token, address account) external view returns (int256 rtb) {
-        (rtb,,) = realtimeBalanceOf(token, account, block.timestamp);
+    function realtimeBalanceOfNow(ISuperfluidToken token, address account)
+        external
+        view
+        returns (int256 availableBalance, uint256 buffer, uint256 owedBuffer, uint256 timestamp)
+    {
+        (availableBalance, buffer, owedBuffer) = realtimeBalanceOf(token, account, block.timestamp);
+        timestamp = block.timestamp;
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1

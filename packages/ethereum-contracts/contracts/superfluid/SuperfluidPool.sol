@@ -192,9 +192,6 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     /// @inheritdoc ISuperfluidPool
     function updateMember(address memberAddr, uint128 newUnits) external returns (bool) {
-        if (newUnits < 0) {
-            revert SUPERFLUID_POOL_NEGATIVE_UNITS_NOT_SUPPORTED();
-        }
         if (admin != msg.sender) revert SUPERFLUID_POOL_NOT_POOL_ADMIN();
 
         uint32 time = uint32(block.timestamp);

@@ -5,7 +5,7 @@ import { AgreementLibrary } from "@superfluid-finance/ethereum-contracts/contrac
 
 import "forge-std/Test.sol";
 
-contract AgreementLibraryProperties is Test {
+contract AgreementLibraryPropertyTest is Test {
 
     function testAdjustNewAppCreditUsed(
         uint256 appCreditGranted,

@@ -26,35 +26,39 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         superToken.updateSubscriptionUnits(indexId, bob, units);
         vm.stopPrank();
         (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
-        assertTrue(exist);
-        assertEq(indexValue, 0);
-        assertEq(totalUnitsApproved, 0);
-        assertEq(totalUnitsPending, units);
+        assertTrue(exist, "IDAv1.t: createIndex | index does not exist");
+        assertEq(indexValue, 0, "IDAv1.t: createIndex | indexValue != 0");
+        assertEq(totalUnitsApproved, 0, "IDAv1.t: createIndex | totalUnitsApproved != 0");
+        assertEq(totalUnitsPending, units, "IDAv1.t: createIndex | totalUnitsPending != units");
 
         // alice distributes
         vm.startPrank(alice);
         superToken.updateIndexValue(indexId, newIndexValue);
         vm.stopPrank();
         (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
-        assertTrue(exist);
-        assertEq(indexValue, newIndexValue);
-        assertEq(totalUnitsApproved, 0);
-        assertEq(totalUnitsPending, units);
-
+        assertTrue(exist, "IDAv1.t: updateIndexValue | index does not exist");
+        assertEq(indexValue, newIndexValue, "IDAv1.t: updateIndexValue | indexValue != newIndexValue");
+        assertEq(totalUnitsApproved, 0, "IDAv1.t: updateIndexValue | totalUnitsApproved != 0");
+        assertEq(totalUnitsPending, units, "IDAv1.t: updateIndexValue | totalUnitsPending != units");
         // bob subscribes to alice
         uint256 bobBalance1 = superToken.balanceOf(bob);
         vm.startPrank(bob);
         superToken.approveSubscription(alice, indexId);
         vm.stopPrank();
         uint256 bobBalance2 = superToken.balanceOf(bob);
-        assertEq(bobBalance2 - bobBalance1, uint256(units) * uint256(newIndexValue));
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
-        assertTrue(exist);
-        assertEq(indexValue, newIndexValue);
-        assertEq(totalUnitsApproved, units);
-        assertEq(totalUnitsPending, 0);
 
-        assert_Global_Invariants();
+        assertEq(
+            bobBalance2 - bobBalance1,
+            uint256(units) * uint256(newIndexValue),
+            "IDAv1.t: approveSubscription | bobBalance2 - bobBalance1 != units * newIndexValue"
+        );
+        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
+        assertTrue(exist, "IDAv1.t: approveSubscription | index does not exist");
+        assertEq(indexValue, newIndexValue, "IDAv1.t: approveSubscription | indexValue != newIndexValue");
+        assertEq(totalUnitsApproved, units, "IDAv1.t: approveSubscription | totalUnitsApproved != units");
+        assertEq(totalUnitsPending, 0, "IDAv1.t: approveSubscription | totalUnitsPending != 0");
+
+        _assertGlobalInvariants();
     }
 
     function testRevertMaxNumberOFSubscriptionsASubscriberCanHave() public {

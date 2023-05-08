@@ -626,7 +626,7 @@ contract ForkSmokeTest is Test {
 
     /// @notice A suite of smoke tests to be run after an upgrade
     /// @dev This is run after constructor and setUp is run
-    function test_Passing_Run_Full_Smoke_Tests_Post_Upgrade() public {
+    function testRunFullSmokeTestsPostUpgrade() public {
         helper_Run_Full_Smoke_Tests();
     }
 }

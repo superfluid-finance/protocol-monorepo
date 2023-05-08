@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
+// solhint-disable reason-string
 pragma solidity 0.8.19;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -7,26 +8,26 @@ import {
 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {
     UUPSProxiable
-} from "../../../contracts/upgradability/UUPSProxiable.sol";
-import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
-import { ERC777Helper } from "../../../contracts/libs/ERC777Helper.sol";
+} from "../upgradability/UUPSProxiable.sol";
+import { SuperToken } from "../superfluid/SuperToken.sol";
+import { ERC777Helper } from "../libs/ERC777Helper.sol";
 import {
     SuperfluidToken
-} from "../../../contracts/superfluid/SuperfluidToken.sol";
+} from "../superfluid/SuperfluidToken.sol";
 import {
     ISuperfluid
-} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import {
     IConstantFlowAgreementV1
-} from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {
     ConstantOutflowNFT,
     IConstantOutflowNFT
-} from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
+} from "../superfluid/ConstantOutflowNFT.sol";
 import {
     ConstantInflowNFT,
     IConstantInflowNFT
-} from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+} from "../superfluid/ConstantInflowNFT.sol";
 
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     constructor(

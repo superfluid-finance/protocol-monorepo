@@ -121,17 +121,17 @@ contract FoundrySuperfluidTester is Test {
     /// - Liquidity Sum Invariant
     /// - Net Flow Rate Sum Invariant
     /// @return bool Superfluid Global Invariants holds true
-    function definition_Global_Invariants() public view returns (bool) {
+    function _definitionGlobalInvariants() internal view returns (bool) {
         return
-            definition_Liquidity_Sum_Invariant() &&
-            definition_Net_Flow_Rate_Sum_Invariant();
+            _definitionLiquiditySumInvariant() &&
+            _definitionNetFlowRateSumInvariant();
     }
 
     /// @notice Liquidity Sum Invariant definition
     /// @dev Liquidity Sum Invariant: Expected Total Supply === Liquidity Sum
     /// Liquidity Sum = sum of available balance, deposit and owed deposit for all users
     /// @return bool Liquidity Sum Invariant holds true
-    function definition_Liquidity_Sum_Invariant() public view returns (bool) {
+    function _definitionLiquiditySumInvariant() internal view returns (bool) {
         int256 liquiditySum;
 
         for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
@@ -154,8 +154,8 @@ contract FoundrySuperfluidTester is Test {
     /// @notice Net Flow Rate Sum Invariant definition
     /// @dev Net Flow Rate Sum Invariant: Sum of all net flow rates === 0
     /// @return bool Net Flow Rate Sum Invariant holds true
-    function definition_Net_Flow_Rate_Sum_Invariant()
-        public
+    function _definitionNetFlowRateSumInvariant()
+        internal
         view
         returns (bool)
     {
@@ -169,22 +169,22 @@ contract FoundrySuperfluidTester is Test {
         return netFlowRateSum == 0;
     }
 
-    function assert_Global_Invariants() public {
-        assertTrue(definition_Global_Invariants());
+    function _assertGlobalInvariants() internal {
+        assertTrue(_definitionGlobalInvariants());
     }
 
-    function assert_Liquidity_Sum_Invariant() public {
-        assertTrue(definition_Liquidity_Sum_Invariant());
+    function _assertLiquiditySumInvariant() internal {
+        assertTrue(_definitionLiquiditySumInvariant());
     }
 
-    function assert_Net_Flow_Rate_Sum_Invariant() public {
-        assertTrue(definition_Net_Flow_Rate_Sum_Invariant());
+    function _assertNetFlowRateSumInvariant() internal {
+        assertTrue(_definitionNetFlowRateSumInvariant());
     }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     Assertion Helpers
     //////////////////////////////////////////////////////////////////////////*/
-    function assert_Modify_Flow_And_Net_Flow_Is_Expected(
+    function _assertModifyFlowAndNetFlowIsExpected(
         address flowSender,
         address flowReceiver,
         int96 flowRateDelta,
@@ -206,7 +206,7 @@ contract FoundrySuperfluidTester is Test {
         );
     }
 
-    function assert_Modify_Flow_And_Flow_Info_Is_Expected(
+    function _assertModifyFlowAndFlowInfoIsExpected(
         address flowSender,
         address flowReceiver,
         int96 expectedFlowRate,
@@ -230,11 +230,11 @@ contract FoundrySuperfluidTester is Test {
         assertEq(owedDeposit, expectedOwedDeposit, "owed deposit");
     }
 
-    function assert_Flow_Info_Is_Empty(
+    function _assertFlowInfoIsEmpty(
         address flowSender,
         address flowReceiver
     ) internal {
-        assert_Modify_Flow_And_Flow_Info_Is_Expected(
+        _assertModifyFlowAndFlowInfoIsExpected(
             flowSender,
             flowReceiver,
             0,
@@ -248,7 +248,7 @@ contract FoundrySuperfluidTester is Test {
     //////////////////////////////////////////////////////////////////////////*/
     /// @notice Assume a valid flow rate
     /// @dev Flow rate must be greater than 0 and less than or equal to int32.max
-    function assume_Valid_Flow_Rate(
+    function _assumeValidFlowRate(
         uint32 a
     ) internal pure returns (int96 flowRate) {
         vm.assume(a > 0);
@@ -260,12 +260,12 @@ contract FoundrySuperfluidTester is Test {
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
 
-    function helper_Create_Flow_And_Assert_Global_Invariants(
+    function _helperCreateFlowAndAssertGlobalInvariants(
         address flowSender,
         address flowReceiver,
         uint32 _flowRate
     ) internal returns (int96 absoluteFlowRate) {
-        int96 flowRate = assume_Valid_Flow_Rate(_flowRate);
+        int96 flowRate = _assumeValidFlowRate(_flowRate);
 
         absoluteFlowRate = flowRate;
 
@@ -278,7 +278,7 @@ contract FoundrySuperfluidTester is Test {
         superToken.createFlow(flowReceiver, flowRate);
         vm.stopPrank();
 
-        assert_Modify_Flow_And_Net_Flow_Is_Expected(
+        _assertModifyFlowAndNetFlowIsExpected(
             flowSender,
             flowReceiver,
             flowRate,
@@ -286,7 +286,7 @@ contract FoundrySuperfluidTester is Test {
             receiverNetFlowRateBefore
         );
 
-        assert_Modify_Flow_And_Flow_Info_Is_Expected(
+        _assertModifyFlowAndFlowInfoIsExpected(
             flowSender,
             flowReceiver,
             flowRate,
@@ -294,6 +294,6 @@ contract FoundrySuperfluidTester is Test {
             0
         );
 
-        assert_Global_Invariants();
+        _assertGlobalInvariants();
     }
 }

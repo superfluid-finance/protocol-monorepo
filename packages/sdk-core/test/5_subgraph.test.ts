@@ -48,11 +48,14 @@ describe("Subgraph Tests", () => {
             if (process.env.SUBGRAPH_ENDPOINT === "") {
                 await Promise.all(
                     resolverDataArray.map(async (x) => {
-                        const query = new Query({
-                            customSubgraphQueriesEndpoint:
-                                x.subgraphAPIEndpoint,
-                        });
-                        await testGetAllEventsQuery(query);
+                        // @note skip eth-sepolia because it is not deployed on hosted-service
+                        if (x.networkName !== "eth-sepolia") {
+                            const query = new Query({
+                                customSubgraphQueriesEndpoint:
+                                    x.subgraphAPIEndpoint,
+                            });
+                            await testGetAllEventsQuery(query);
+                        }
                     })
                 );
             } else {

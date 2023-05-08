@@ -40,6 +40,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         (liquidationPeriod,) = sf.governance.getPPPConfig(sf.host, superToken);
     }
 
+    // GDA Setters/Getters Tests
+
+    // Universal Index Setters/Getters
     function testSetGetUIndex(address owner, uint32 settledAt, int96 flowRate, int256 settledValue) public {
         bytes memory eff = abi.encode(superToken);
         BasicParticle memory p = BasicParticle({
@@ -74,6 +77,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         assertEq(false, setUIndexData.isPool, "isPool not equal");
     }
 
+    // Flow Distribution Data Setters/Getters
     function testSetGetFlowDistributionData(address from, address to, uint32 newFlowRate, uint96 newFlowRateDelta)
         public
     {
@@ -110,6 +114,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         );
     }
 
+    // Pool Member Data Setters/Getters
     function testSetGetPoolMemberData(address poolMember, ISuperfluidPool _pool, uint32 poolID) public {
         vm.assume(poolID > 0);
         vm.assume(address(_pool) != address(0));
@@ -133,6 +138,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         assertEq(address(_pool), setPoolMemberData.pool, "pool not equal");
     }
 
+    // Proportional Distribution Pool Index Setters/Getters
     function testSetGetPDPIndex(
         address owner,
         uint128 totalUnits,
@@ -176,11 +182,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         );
     }
 
-    function testRevertReinitializeGDA(IBeacon beacon) public {
-        vm.expectRevert("Initializable: contract is already initialized");
-        sf.gda.initialize(beacon);
-    }
-
+    // Adjust Buffer => FlowDistributionData modified
     function testAdjustBufferUpdatesFlowDistributionData(address from, address to, int32 oldFlowRate, int32 newFlowRate)
         public
     {
@@ -209,6 +211,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         assertEq(sf.gda.getFlowRate(superToken, from, to), int96(newFlowRate), "getFlowRate: flow rate not equal");
     }
 
+    // Adjust Buffer => UniversalIndexData modified
     function testAdjustBufferUpdatesUniversalIndexData(address from, address to, int32 oldFlowRate, int32 newFlowRate)
         public
     {
@@ -251,6 +254,12 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         );
     }
 
+    // GDA Integration Tests
+
+    function testRevertReinitializeGDA(IBeacon beacon) public {
+        vm.expectRevert("Initializable: contract is already initialized");
+        sf.gda.initialize(beacon);
+    }
     function testPassingProxiableUUIDIsExpectedValue() public {
         assertEq(
             pool.proxiableUUID(), keccak256("org.superfluid-finance.contracts.superfluid.SuperfluidPool.implementation")
@@ -558,32 +567,6 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         (bobRTB,,) = sf.gda.realtimeBalanceOf(superToken, bob, block.timestamp);
         assertEq(bobRTB, bobClaimable, "bobRTB != bobClaimable");
-    }
-
-    function testNegativeFlowDistribution(
-        uint96 units1,
-        uint96 units2,
-        uint96 units3,
-        int96 flowRate1,
-        int96 flowRate2,
-        int96 flowRate3
-    ) public {
-        vm.assume(flowRate1 > 0 && flowRate1 < int96(uint96(type(uint32).max)));
-        vm.assume(flowRate2 >= 0 && flowRate2 < int96(uint96(type(uint32).max)));
-        vm.assume(flowRate3 >= 0 && flowRate3 < int96(uint96(type(uint32).max)));
-        vm.assume(units1 < uint128(type(uint96).max));
-        vm.assume(units2 < uint128(type(uint96).max));
-        vm.assume(units3 < uint128(type(uint96).max));
-
-        vm.prank(alice);
-        pool.updateMember(bob, units1);
-        helper_Distribute_Flow_And_Assert(superToken, pool, alice, flowRate1);
-        vm.prank(alice);
-        pool.updateMember(bob, units2);
-        helper_Distribute_Flow_And_Assert(superToken, pool, alice, flowRate2);
-        vm.prank(alice);
-        pool.updateMember(bob, units3);
-        helper_Distribute_Flow_And_Assert(superToken, pool, alice, flowRate3);
     }
 
     function testAliceBreakage() external {

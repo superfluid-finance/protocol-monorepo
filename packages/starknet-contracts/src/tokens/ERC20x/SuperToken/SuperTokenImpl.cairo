@@ -154,10 +154,8 @@ func getNumConnections{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 }
 
 @external
-func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    accounts_len: felt, accounts: felt*, particles_len: felt, particles: BasicParticle*
-) -> (success: felt) {
-    return SuperToken.absorbParticleFromPool(accounts_len, accounts, particles_len, particles);
+func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(account: felt, particle: BasicParticle) -> (success: felt) {
+    return SuperToken.absorbParticleFromPool(account, particle);
 }
 
 @external

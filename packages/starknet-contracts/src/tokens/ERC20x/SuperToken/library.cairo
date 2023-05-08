@@ -604,27 +604,17 @@ namespace SuperToken {
         return SuperToken_connected_pool_length.read(account);
     }
 
-    func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        accounts_len: felt, accounts: felt*, particles_len: felt, particles: BasicParticle*
-    ) -> (success: felt) {
-        with_attr error_message("SuperToken: account len != particle length") {
-            assert accounts_len = particles_len;
-        }
-        if (accounts_len == 0) {
-            return (success=TRUE);
-        }
+    func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(account: felt, particle: BasicParticle) -> (success: felt) {
         let (caller) = get_caller_address();
         let (poolIndex) = SuperToken_pool_indexes.read(caller);
         let (pool) = SuperToken_pools.read(poolIndex);
         with_attr error_message("SuperToken: Only absorbing from pools!") {
             assert_not_zero(pool);
         }
-        let (u_index) = SuperToken_universal_indexes.read([accounts]);
-        let (new_u_index) = SemanticMoney.mappend(u_index, [particles]);
-        SuperToken_universal_indexes.write([accounts], new_u_index);
-        return absorbParticleFromPool(
-            accounts_len - 1, accounts + 1, particles_len - 1, particles + 1
-        );
+        let (u_index) = SuperToken_universal_indexes.read(account);
+        let (new_u_index) = SemanticMoney.mappend(u_index, particle);
+        SuperToken_universal_indexes.write(account, new_u_index);
+        return (success=TRUE);
     }
 
     ///////////////////////////////////////////////////////////////////////////////////

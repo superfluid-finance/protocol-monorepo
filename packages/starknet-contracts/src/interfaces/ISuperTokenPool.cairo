@@ -2,27 +2,34 @@
 
 from src.utils.SemanticMoney import PDPoolIndex, PDPoolMember, BasicParticle
 
+///////////////////////////////////////////////////////////
+////// The interface for any super token pool regardless of the distribution schemes.
+///////////////////////////////////////////////////////////
+
 @contract_interface
-namespace ISuperTokenPool {
+namespace ISuperfluidPool {
+    func getIndex() -> (index: PDPoolIndex) {
+    }
+
     func getTotalUnits() -> (value: felt) {
+    }
+
+    func getDisconnectedUnits() -> (unit: felt) {
+    }
+
+    func getUnits(memberAddress: felt) -> (value: felt) {
     }
 
     func getDistributionFlowRate() -> (flow_rate: felt) {
     }
 
-    func getPendingDistributionFlowRate() -> (flow_rate: felt) {
+    func getConnectedFlowRate() -> (flow_rate: felt) {
     }
 
-    func getPendingUnits() -> (value: felt) {
+    func getDisconnectedFlowRate() -> (flow_rate: felt) {
     }
 
-    func getPendingDistribution() -> (value: felt) {
-    }
-
-    func getIndex() -> (index: PDPoolIndex) {
-    }
-
-    func getUnits(memberAddress: felt) -> (value: felt) {
+    func getDisconnectedBalance(time: felt) -> (flow_rate: felt) {
     }
 
     func getMemberFlowRate(memberAddress: felt) -> (flow_rate: felt) {
@@ -31,10 +38,10 @@ namespace ISuperTokenPool {
     func getClaimable(time: felt, memberAddress: felt) -> (value: felt) {
     }
 
-    func claimAll() -> (success: felt) {
+    func updateMember(memberAddress: felt, unit: felt) -> (success: felt) {
     }
 
-    func updateMember(memberAddress: felt, unit: felt) -> (success: felt) {
+    func claimAll() -> (success: felt) {
     }
 
     func operatorSetIndex(index: PDPoolIndex) -> (success: felt) {
@@ -48,13 +55,25 @@ namespace ISuperTokenPool {
     }
 }
 
+ ///////////////////////////////////////////////////////////
+ ////// The interface for the operator of a super token pool
+ ///////////////////////////////////////////////////////////
+
 @contract_interface
-namespace ISuperTokenPoolAdmin {
+namespace ISuperfluidPoolOperator {
+    /// Check if an address is connected to the pool
     func isMemberConnected(pool: felt, memberAddress: felt) -> (success: felt) {
     }
 
-    func absorbParticleFromPool(
-        accounts_len: felt, accounts: felt*, particles_len: felt, particles: BasicParticle*
-    ) -> (success: felt) {
+    /// Get pool adjustment flow information: (recipient, flowHahs, flowRate)
+    func getPoolAdjustmentFlowInfo(pool: felt) -> (address: felt, flow_hash: felt, flow_rate: felt) {
+    }
+
+    /// Update the adjustment flow rate
+    func appendIndexUpdateByPool(particle: BasicParticle, time: felt) -> (success: felt) {
+    }
+
+    /// Settle the claim
+    func poolSettleClaim(claimRecipient: felt, amount: felt) -> (success: felt) {
     }
 }

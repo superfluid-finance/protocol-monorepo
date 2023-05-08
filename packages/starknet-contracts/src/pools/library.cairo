@@ -166,7 +166,6 @@ namespace Pool {
 
             // update pool member's units
             let (index) = Pool_index.read();
-            let (member_data) = Pool_members.read(member);
             let pd_member_mu = PDPoolMemberMU(index, member_data);
             let empty_particle = BasicParticle(0, 0, 0);
             let (timestamp) = get_block_timestamp();
@@ -176,20 +175,11 @@ namespace Pool {
             Pool_index.write(index);
             Pool_members.write(member, member_data);
 
-            let (local accounts: felt*) = alloc();
-            assert [accounts] = admin;
-
-            let (local particles: BasicParticle*) = alloc();
-            assert [particles] = particle;
-
-            let (absorbed) = ISuperTokenPoolAdmin.absorbParticleFromPool(
+            ISuperTokenPoolAdmin.absorbParticleFromPool(
                 contract_address=pool_admin,
-                accounts_len=1,
-                accounts=accounts,
-                particles_len=1,
-                particles=particles,
+                account=admin,
+                particle=particle,
             );
-            assert absorbed = TRUE;
 
             // additional side effects of triggering claimAll
             _claimAll(timestamp, member);
@@ -207,20 +197,11 @@ namespace Pool {
             Pool_index.write(index);
             Pool_members.write(member, member_data);
 
-            let (local accounts: felt*) = alloc();
-            assert [accounts] = admin;
-
-            let (local particles: BasicParticle*) = alloc();
-            assert [particles] = particle;
-
-            let (absorbed) = ISuperTokenPoolAdmin.absorbParticleFromPool(
+            ISuperTokenPoolAdmin.absorbParticleFromPool(
                 contract_address=pool_admin,
-                accounts_len=1,
-                accounts=accounts,
-                particles_len=1,
-                particles=particles,
+                account=admin,
+                particle=particle,
             );
-            assert absorbed = TRUE;
 
             // additional side effects of triggering claimAll
             _claimAll(timestamp, member);
@@ -250,25 +231,20 @@ namespace Pool {
         let (value) = getClaimable(time, memberAddress);
         let (a, b) = SemanticMoney.shift2(empty_particle, empty_particle, value);
 
-        let (local particles: BasicParticle*) = alloc();
-        assert [particles] = a;
-        assert [particles + 1] = b;
-
-        let (local accounts: felt*) = alloc();
         let (contract_address) = get_contract_address();
-        assert [accounts] = contract_address;
-        assert [accounts + 1] = memberAddress;
 
         let (pool_admin) = Pool_POOL_ADMIN.read();
 
-        let (absorbed) = ISuperTokenPoolAdmin.absorbParticleFromPool(
+        ISuperTokenPoolAdmin.absorbParticleFromPool(
             contract_address=pool_admin,
-            accounts_len=2,
-            accounts=accounts,
-            particles_len=2,
-            particles=particles,
+            account=contract_address,
+            particle=a,
         );
-        assert absorbed = TRUE;
+        ISuperTokenPoolAdmin.absorbParticleFromPool(
+            contract_address=pool_admin,
+            account=memberAddress,
+            particle=b,
+        );
 
         let (initialClaimedValue) = Pool_claimed_values.read(memberAddress);
         Pool_claimed_values.write(memberAddress, value + initialClaimedValue);

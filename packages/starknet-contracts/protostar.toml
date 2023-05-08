@@ -1,5 +1,5 @@
 [project]
-protostar-version = "0.9.1"
+protostar-version = "0.10.0"
 lib-path = "lib"
 cairo-path = ["lib/cairo_contracts/src"]
 
@@ -7,6 +7,7 @@ cairo-path = ["lib/cairo_contracts/src"]
 SuperToken = ["src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo"]
 Pool = ["src/pools/PoolImpl.cairo"]
 Aqueduct = ["src/examples/aqueduct/AqueductImpl.cairo"]
+TestAccount = ["src/utils/account/TestAccountImpl.cairo"]
 
 [profile.devnet.project]
 gateway-url = "http://127.0.0.1:5050/"

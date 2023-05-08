@@ -71,7 +71,7 @@ namespace ISuperfluidToken {
 
     func distributeFlow(
         senderAddress: felt, poolAddress: felt, flowId: felt, reqFlowRate: felt
-    ) -> (success: felt, actualFlowRate: felt) {
+    ) -> (success: felt, actualFlowRate: felt, newDistributionFlowRate: felt) {
     }
 
     // //////////////////////////////////////////////////////////////////////////////

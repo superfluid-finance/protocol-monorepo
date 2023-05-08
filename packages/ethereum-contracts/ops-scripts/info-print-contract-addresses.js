@@ -104,9 +104,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     // const superTokenPoolBeaconContract = await SuperfluidUpgradeableBeacon.at(
     //     await gdaContract.superTokenPoolBeacon()
     // );
-    // output += `SUPER_TOKEN_POOL_DEPLOYER_ADDRESS=${await gdaContract.SUPER_TOKEN_POOL_DEPLOYER_ADDRESS()}\n}`;
-    // output += `SUPER_TOKEN_POOL_BEACON=${superTokenPoolBeaconContract.address}\n`;
-    // output += `SUPER_TOKEN_POOL_LOGIC=${await superTokenPoolBeaconContract.implementation()}\n`;
+    // output += `SUPERFLUID_POOL_DEPLOYER_ADDRESS=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n}`;
+    // output += `SUPERFLUID_POOL_BEACON=${superTokenPoolBeaconContract.address}\n`;
+    // output += `SUPERFLUID_POOL_LOGIC=${await superTokenPoolBeaconContract.implementation()}\n`;
 
     const superTokenLogicAddress = await (
         await ISuperTokenFactory.at(await sf.host.getSuperTokenFactory())

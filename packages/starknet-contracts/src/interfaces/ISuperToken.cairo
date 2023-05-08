@@ -3,7 +3,7 @@
 from src.utils.SemanticMoney import BasicParticle
 
 @contract_interface
-namespace ISuperToken {
+namespace ISuperfluidToken {
     func name() -> (name: felt) {
     }
 
@@ -38,13 +38,16 @@ namespace ISuperToken {
     // Generalized Payment Primitives
     // //////////////////////////////////////////////////////////////////////////////
 
-    func realtimeBalanceOf(account: felt) -> (rtb: felt) {
+    func realtimeBalanceNow(account: felt) -> (rtb: felt) {
     }
 
     func realtimeBalanceAt(account: felt, time: felt) -> (rtb: felt) {
     }
 
-    func realtimeBalanceVectorAt(account: felt, time: felt) -> (available: felt, deposit: felt) {
+    func realtimeBalanceVectorNow(account: felt) -> (own: felt, fromPool: felt, deposit: felt) {
+    }
+
+    func realtimeBalanceVectorAt(account: felt, time: felt) -> (own: felt, fromPool: felt, deposit: felt) {
     }
 
     func getNetFlowRate(account: felt) -> (flow_rate: felt) {
@@ -75,6 +78,9 @@ namespace ISuperToken {
     // Pool Operations
     // //////////////////////////////////////////////////////////////////////////////
 
+    func isPool(address: felt) -> (success: felt) {
+    }
+
     func connectPool(to: felt) -> (success: felt) {
     }
 
@@ -92,5 +98,21 @@ namespace ISuperToken {
     }
 
     func getNumConnections(account: felt) -> (value: felt) {
+    }
+
+    /// Check if an address is connected to the pool
+    func isMemberConnected(pool: felt, memberAddress: felt) -> (success: felt) {
+    }
+
+    /// Get pool adjustment flow information: (recipient, flowHahs, flowRate)
+    func getPoolAdjustmentFlowInfo(pool: felt) -> (address: felt, flow_hash: felt, flow_rate: felt) {
+    }
+
+    /// Update the adjustment flow rate
+    func appendIndexUpdateByPool(particle: BasicParticle, time: felt) -> (success: felt) {
+    }
+
+    /// Settle the claim
+    func poolSettleClaim(claimRecipient: felt, amount: felt) -> (success: felt) {
     }
 }

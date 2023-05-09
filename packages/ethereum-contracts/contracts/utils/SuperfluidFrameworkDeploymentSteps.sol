@@ -124,6 +124,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         idaV1 = SuperfluidIDAv1DeployerLibrary
             .deployInstantDistributionAgreementV1(host);
 
+
         // Deploy GDA
         gdaV1 = SuperfluidGDAv1DeployerLibrary
             .deployGeneralDistributionAgreementV1Mock(host);

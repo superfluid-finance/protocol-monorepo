@@ -118,6 +118,7 @@ const deployTestFramework = async () => {
             }
         );
 
+
     const SuperfluidPoolDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidPoolDeployerLibrary",
@@ -152,6 +153,7 @@ const deployTestFramework = async () => {
             SuperfluidPeripheryDeployerLibraryArtifact,
             signer
         );
+
     const SuperfluidPoolLogicDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidPoolLogicDeployerLibrary",
@@ -182,7 +184,7 @@ const deployTestFramework = async () => {
             signer
         );
 
-    const frameworkDeployer = await _getFactoryAndReturnDeployedContract(
+    const sfFrameworkDeploymentSteps = await _getFactoryAndReturnDeployedContract(
         "SuperfluidFrameworkDeploymentSteps",
         SuperfluidFrameworkDeploymentStepsArtifact,
         {
@@ -213,11 +215,12 @@ const deployTestFramework = async () => {
             },
         }
     );
-    const numSteps = await frameworkDeployer.getNumSteps();
-    for (let i=0; i < numSteps; i++) {
-        await frameworkDeployer.executeStep(i)
+    const numSteps = await sfFrameworkDeploymentSteps.getNumSteps();
+    for (let i = 0; i < numSteps; i++) {
+        await sfFrameworkDeploymentSteps.executeStep(i);
     }
-    const sf = await frameworkDeployer.getFramework();
+    const sf = await sfFrameworkDeploymentSteps.getFramework();
+
     const superTokenDeployer = await _getFactoryAndReturnDeployedContract(
         "SuperTokenDeployer",
         SuperTokenDeployerArtifact,
@@ -228,7 +231,7 @@ const deployTestFramework = async () => {
         sf.resolver
     );
     // transfer ownership of governance to super token deployer to allow it to initialize NFT contracts
-    await frameworkDeployer.transferOwnership(superTokenDeployer.address);
+    await sfFrameworkDeploymentSteps.transferOwnership(superTokenDeployer.address);
 
     // add super token deployer as an admin for the resolver
     const testResolver = await ethers.getContractAt(
@@ -237,7 +240,7 @@ const deployTestFramework = async () => {
     );
     await testResolver.addAdmin(superTokenDeployer.address);
 
-    return {frameworkDeployer, superTokenDeployer};
+    return {frameworkDeployer: sfFrameworkDeploymentSteps, superTokenDeployer};
 };
 
 module.exports = {

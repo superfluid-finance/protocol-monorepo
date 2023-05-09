@@ -153,11 +153,19 @@ makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
 
             // we are deploying the same contract twice and calling an app action on it twice
             // we should be using the exact same value for gas estimation
+            const gasLimitMultiplier = 2;
             const updateOpTxn1 = await updateOp1.exec(testEnv.alice, 1);
-            const updateOpTxn2 = await updateOp2.exec(testEnv.alice, 2);
-            expect(updateOpTxn1.gasLimit.mul(toBN(2))).to.equal(
-                updateOpTxn2.gasLimit
+            const updateOpTxn2 = await updateOp2.exec(
+                testEnv.alice,
+                gasLimitMultiplier
             );
+            // @note see `getPopulatedTransactionRequest` in Operation.ts
+            const commonDenominator = 100;
+            expect(
+                updateOpTxn1.gasLimit
+                    .div(commonDenominator)
+                    .mul(gasLimitMultiplier * commonDenominator)
+            ).to.equal(updateOpTxn2.gasLimit);
         });
 
         it("Should not apply multiplier to Overrides gas limit", async () => {

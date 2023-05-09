@@ -288,22 +288,17 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function testCreatePool() public {
         vm.prank(alice);
         SuperfluidPool localPool = SuperfluidPool(address(sf.gda.createPool(alice, superToken)));
-        assertTrue(sf.gda.isPool(superToken, address(localPool)), "created pool is not pool");
+        assertTrue(sf.gda.isPool(superToken, address(localPool)), "GDAv1.t: Created pool is not pool");
     }
 
-    function testRevertNonHostConnectPool(address notHost) public {
+
+
+    function testRevertConnectPoolByNonHost(address notHost) public {
         vm.assume(notHost != address(sf.host));
         vm.startPrank(notHost);
         vm.expectRevert("unauthorized host");
         sf.gda.connectPool(pool, "0x");
         vm.stopPrank();
-    }
-
-    function testConnectPool() public {
-        vm.startPrank(bob);
-        _helperConnectPool(pool);
-        vm.stopPrank();
-        assertEq(sf.gda.isMemberConnected(superToken, address(pool), bob), true);
     }
 
     function testRevertNonHostDisconnectPool(address notHost) public {
@@ -314,13 +309,18 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function testConnectPool() public {
+        address caller = bob;
+        _helperConnectPool(caller, pool);
+        assertEq(sf.gda.isMemberConnected(superToken, address(pool), caller), true, "GDAv1.t: Member not connected");
+    }
+
     function testDisconnectPool() public {
-        vm.startPrank(bob);
-        _helperConnectPool(pool);
-        assertEq(sf.gda.isMemberConnected(superToken, address(pool), bob), true);
-        _helperDisconnectPool(pool);
-        assertEq(sf.gda.isMemberConnected(superToken, address(pool), bob), false);
-        vm.stopPrank();
+        address caller = bob;
+        _helperConnectPool(caller, pool);
+        assertEq(sf.gda.isMemberConnected(superToken, address(pool), caller), true, "GDAv1.t D/C: Member not connected");
+        _helperDisconnectPool(caller, pool);
+        assertEq(sf.gda.isMemberConnected(superToken, address(pool), caller), false, "GDAv1.t D/C: Member not disconnected");
     }
 
     function testRealtimeBalanceOfEmpty() public {
@@ -363,9 +363,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     }
 
     function testDistributeToOneConnectedMember() public {
-        vm.startPrank(bob);
-        _helperConnectPool(pool);
-        vm.stopPrank();
+        _helperConnectPool(bob, pool);
 
         vm.startPrank(alice);
         pool.updateMember(bob, 1);
@@ -388,108 +386,6 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         uint128 memberUnits;
     }
 
-    function _helperUpdateUnitsAndAssert(address poolAdmin, Allocation[10] memory allocation) internal {
-        vm.startPrank(poolAdmin);
-        // allocate units to members
-        for (uint256 i; i < allocation.length; i++) {
-            pool.updateMember(allocation[i].member, allocation[i].memberUnits);
-
-            // assert per member units were correctly set
-            assertEq(pool.getUnits(allocation[i].member), allocation[i].memberUnits, "units incorrectly set");
-        }
-        vm.stopPrank();
-    }
-
-    function _helperDistributeFlowAndAssert(
-        ISuperfluidToken desiredToken,
-        SuperfluidPool to,
-        address from,
-        int96 requestedDistributionFlowRate
-    ) internal returns (int96 actualDistributionFlowRate) {
-        vm.startPrank(from);
-
-        // actualDistributionFlowRate provided given number of units and requestedFlowRate
-        actualDistributionFlowRate =
-            sf.gda.getFlowDistributionActualFlowRate(desiredToken, from, to, requestedDistributionFlowRate);
-
-        // distribute flow of requestedDistributionFlowRate to 10 members with perMemberUnits units each
-        _helperDistributeFlow(desiredToken, from, to, requestedDistributionFlowRate);
-
-        int96 poolFlowRateAfter = to.getConnectedFlowRate();
-        // assert flow rate after is the actualDistributionFlowRate based on helper function
-        assertEq(poolFlowRateAfter, actualDistributionFlowRate, "pool flow rate after distribution !=");
-        assertTrue(actualDistributionFlowRate >= 0, "actualDistributionFlowRate < 0");
-
-        vm.stopPrank();
-    }
-
-    function _helperConnectToPoolAndAssert(Allocation[10] memory allocation) internal {
-        for (uint256 i; i < allocation.length; i++) {
-            // assert that no members connected
-            bool isConnectedBefore = sf.gda.isMemberConnected(superToken, address(pool), allocation[i].member);
-            assertFalse(isConnectedBefore);
-
-            // connect if unconnected
-            if (!isConnectedBefore) {
-                // all members connect to the pool
-                vm.startPrank(allocation[i].member);
-                _helperConnectPool(pool);
-                vm.stopPrank();
-
-                // assert all members are connected
-                bool isConnectedAfter = sf.gda.isMemberConnected(superToken, address(pool), allocation[i].member);
-                assertTrue(isConnectedAfter, "isConnectedAfter");
-            }
-        }
-    }
-
-    function _helperWarpTimeAndAssertBalances(
-        Allocation[10] memory allocation,
-        int256 distributorRTBBefore,
-        int96 actualDistributionFlowRate,
-        uint256 timeDelta
-    ) public {
-        DistributionData memory dd;
-        dd.timeDelta = timeDelta;
-        dd.rtbsBefore = new int256[](10);
-        dd.perMemberFlowRate = new int96[](10);
-
-        for (uint256 i; i < allocation.length; i++) {
-            // get the rtb for all members before
-            (int256 rtb,,) = superToken.realtimeBalanceOf(allocation[i].member, block.timestamp);
-            dd.rtbsBefore[i] = rtb;
-
-            // get the per member flow rate based on their units and the actualDistributionFlowRate for the pool
-            int96 memberFlowRate = pool.getMemberFlowRate(allocation[i].member);
-            dd.perMemberFlowRate[i] = memberFlowRate;
-        }
-        // memberFlowRate is correct
-
-        // move the time forwards by timeDelta
-        vm.warp(block.timestamp + dd.timeDelta);
-
-        for (uint256 i; i < allocation.length; i++) {
-            // get rtb after timeDelta
-            (int256 rtbAfter,,) = superToken.realtimeBalanceOf(allocation[i].member, block.timestamp);
-
-            // assert that the rtb after is equal the to rtb before + the amount flowed
-            assertEq(
-                rtbAfter,
-                dd.rtbsBefore[i] + int256(dd.timeDelta) * int256(dd.perMemberFlowRate[i]),
-                "RTB of member != rtbBefore + amount flowed"
-            );
-        }
-
-        // get rtb of the distributor after time delta
-        (int256 distributorRTBAfter,,) = superToken.realtimeBalanceOf(alice, block.timestamp);
-        // assert that the rtb before less the amount flowed is equal to the rtb after time delta
-        assertEq(
-            distributorRTBBefore - actualDistributionFlowRate * int96(int256(dd.timeDelta)),
-            distributorRTBAfter,
-            "distributor RTB after time warp !="
-        );
-    }
-
     function testDistributeFlowToConnectedMemberSendingToCFA() public {
         // alice creates pool in setUp()
         Allocation memory allocation = Allocation({member: bob, memberUnits: 10});
@@ -504,24 +400,15 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             _helperDistributeFlowAndAssert(superToken, pool, alice, requestedDistributionFlowRate);
 
         // bob sends a flow of 1 to carol
+        _helperConnectPool(bob, pool);
         vm.startPrank(bob);
-        _helperConnectPool(pool);
         superToken.createFlow(alice, 420693300);
         vm.stopPrank();
 
-        // TODO: assert flow rates are equal
         int96 aliceGDANetFlowRate = sf.gda.getNetFlowRate(superToken, alice);
         int96 bobGDANetFlowRate = sf.gda.getNetFlowRate(superToken, bob);
         int96 aliceCFANetFlowRate = sf.cfa.getNetFlow(superToken, alice);
         int96 bobCFANetFlowRate = sf.cfa.getNetFlow(superToken, bob);
-        console.log("Alice GDA FlowRate");
-        console.logInt(aliceGDANetFlowRate);
-        console.log("Bob GDA FlowRate");
-        console.logInt(bobGDANetFlowRate);
-        console.log("Alice CFA FlowRate");
-        console.logInt(aliceCFANetFlowRate);
-        console.log("Bob CFA FlowRate");
-        console.logInt(bobCFANetFlowRate);
         assertEq(
             aliceGDANetFlowRate + bobGDANetFlowRate + aliceCFANetFlowRate + bobCFANetFlowRate,
             0,
@@ -652,6 +539,180 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         assertEq(flowRatesSum, 0, "GDAv1.t: flowRatesSum != 0");
     }
 
+    function _helperUpdateUnitsAndAssert(address poolAdmin, Allocation[10] memory allocation) internal {
+        vm.startPrank(poolAdmin);
+        // allocate units to members
+        for (uint256 i; i < allocation.length; i++) {
+            pool.updateMember(allocation[i].member, allocation[i].memberUnits);
+
+            // assert per member units were correctly set
+            assertEq(pool.getUnits(allocation[i].member), allocation[i].memberUnits, "units incorrectly set");
+        }
+        vm.stopPrank();
+    }
+
+    function _helperDistributeFlowAndAssert(
+        ISuperfluidToken desiredToken,
+        SuperfluidPool to,
+        address from,
+        int96 requestedDistributionFlowRate
+    ) internal returns (int96 actualDistributionFlowRate) {
+        vm.startPrank(from);
+
+        // actualDistributionFlowRate provided given number of units and requestedFlowRate
+        actualDistributionFlowRate =
+            sf.gda.getFlowDistributionActualFlowRate(desiredToken, from, to, requestedDistributionFlowRate);
+
+        // distribute flow of requestedDistributionFlowRate to 10 members with perMemberUnits units each
+        _helperDistributeFlow(desiredToken, from, to, requestedDistributionFlowRate);
+
+        int96 poolFlowRateAfter = to.getConnectedFlowRate();
+        // assert flow rate after is the actualDistributionFlowRate based on helper function
+        assertEq(poolFlowRateAfter, actualDistributionFlowRate, "pool flow rate after distribution !=");
+        assertTrue(actualDistributionFlowRate >= 0, "actualDistributionFlowRate < 0");
+
+        vm.stopPrank();
+    }
+
+    function _helperConnectToPoolAndAssert(Allocation[10] memory allocation) internal {
+        for (uint256 i; i < allocation.length; i++) {
+            // assert that no members connected
+            bool isConnectedBefore = sf.gda.isMemberConnected(superToken, address(pool), allocation[i].member);
+            assertFalse(isConnectedBefore);
+
+            // connect if unconnected
+            if (!isConnectedBefore) {
+                // all members connect to the pool
+                _helperConnectPool(allocation[i].member, pool);
+
+                // assert all members are connected
+                bool isConnectedAfter = sf.gda.isMemberConnected(superToken, address(pool), allocation[i].member);
+                assertTrue(isConnectedAfter, "isConnectedAfter");
+            }
+        }
+    }
+
+    function _helperWarpTimeAndAssertBalances(
+        Allocation[10] memory allocation,
+        int256 distributorRTBBefore,
+        int96 actualDistributionFlowRate,
+        uint256 timeDelta
+    ) public {
+        DistributionData memory dd;
+        dd.timeDelta = timeDelta;
+        dd.rtbsBefore = new int256[](10);
+        dd.perMemberFlowRate = new int96[](10);
+
+        for (uint256 i; i < allocation.length; i++) {
+            // get the rtb for all members before
+            (int256 rtb,,) = superToken.realtimeBalanceOf(allocation[i].member, block.timestamp);
+            dd.rtbsBefore[i] = rtb;
+
+            // get the per member flow rate based on their units and the actualDistributionFlowRate for the pool
+            int96 memberFlowRate = pool.getMemberFlowRate(allocation[i].member);
+            dd.perMemberFlowRate[i] = memberFlowRate;
+        }
+        // memberFlowRate is correct
+
+        // move the time forwards by timeDelta
+        vm.warp(block.timestamp + dd.timeDelta);
+
+        for (uint256 i; i < allocation.length; i++) {
+            // get rtb after timeDelta
+            (int256 rtbAfter,,) = superToken.realtimeBalanceOf(allocation[i].member, block.timestamp);
+
+            // assert that the rtb after is equal the to rtb before + the amount flowed
+            assertEq(
+                rtbAfter,
+                dd.rtbsBefore[i] + int256(dd.timeDelta) * int256(dd.perMemberFlowRate[i]),
+                "RTB of member != rtbBefore + amount flowed"
+            );
+        }
+
+        // get rtb of the distributor after time delta
+        (int256 distributorRTBAfter,,) = superToken.realtimeBalanceOf(alice, block.timestamp);
+        // assert that the rtb before less the amount flowed is equal to the rtb after time delta
+        assertEq(
+            distributorRTBBefore - actualDistributionFlowRate * int96(int256(dd.timeDelta)),
+            distributorRTBAfter,
+            "distributor RTB after time warp !="
+        );
+    }
+
+    function _helperConnectPool(address caller, ISuperfluidPool _pool) internal {
+        vm.startPrank(caller);
+        sf.host.callAgreement(
+            sf.gda,
+            abi.encodeWithSelector(IGeneralDistributionAgreementV1.connectPool.selector, _pool, ""),
+            new bytes(0)
+        );
+        vm.stopPrank();
+    }
+
+    function _helperDisconnectPool(address caller, ISuperfluidPool _pool) internal {
+        vm.startPrank(caller);
+        sf.host.callAgreement(sf.gda, abi.encodeCall(sf.gda.disconnectPool, (_pool, new bytes(0))), new bytes(0));
+        vm.stopPrank();
+    }
+
+    function _helperDistribute(
+        ISuperfluidToken _superToken,
+        address caller,
+        address from,
+        ISuperfluidPool _pool,
+        uint256 requestedAmount
+    ) internal {
+        vm.startPrank(caller);
+        sf.host.callAgreement(
+            sf.gda,
+            abi.encodeCall(sf.gda.distribute, (_superToken, from, _pool, requestedAmount, new bytes(0))),
+            new bytes(0)
+        );
+        vm.stopPrank();
+    }
+
+    function _helperDistributeFlow(
+        ISuperfluidToken _superToken,
+        address caller,
+        address from,
+        ISuperfluidPool _pool,
+        int96 requestedFlowRate
+    ) internal {
+        vm.startPrank(caller);
+        sf.host.callAgreement(
+            sf.gda,
+            abi.encodeCall(sf.gda.distributeFlow, (_superToken, from, _pool, requestedFlowRate, new bytes(0))),
+            new bytes(0)
+        );
+        vm.stopPrank();
+    }
+
+    function _helperDistributeFlow(
+        ISuperfluidToken _superToken,
+        address sender,
+        ISuperfluidPool _pool,
+        int96 requestedFlowRate
+    ) internal {
+        sf.host.callAgreement(
+            sf.gda,
+            abi.encodeCall(sf.gda.distributeFlow, (_superToken, sender, _pool, requestedFlowRate, new bytes(0))),
+            new bytes(0)
+        );
+    }
+
+    function _helperGetRTB(address account)
+        internal
+        returns (int256 availableBalance, uint256 buffer, uint256 owedBuffer, uint256 timestamp)
+    {
+        (int256 availableBalanceA, uint256 bufferA, uint256 owedBufferA) =
+            sf.gda.realtimeBalanceOf(superToken, account, block.timestamp);
+        (int256 availableBalanceB, uint256 bufferB, uint256 owedBufferB, uint256 timestampB) =
+            sf.gda.realtimeBalanceOfNow(superToken, account);
+        assertEq(availableBalanceA, availableBalanceB, "GDAv1.t: availableBalance !=");
+        assertEq(bufferA, bufferB, "GDAv1.t: buffer funcs !=");
+        assertEq(owedBufferA, owedBufferB, "GDAv1.t: owedBuffer funcs !=");
+        assertEq(timestampB, block.timestamp, "GDAv1.t: timestamp !=");
+    }
     struct PoolUpdateStep {
         uint8 u; // which user
         uint8 a; // action types: 0 update units, 1 distribute flow, 2 pool connection, 3 pool claim for
@@ -754,70 +815,4 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     //     assertEq(flowRatesSum, 0, "GDAv1.t: flowRatesSum != 0");
     // }
-
-    function _helperConnectPool(ISuperfluidPool _pool) internal {
-        sf.host.callAgreement(
-            sf.gda,
-            abi.encodeWithSelector(IGeneralDistributionAgreementV1.connectPool.selector, _pool, ""),
-            new bytes(0)
-        );
-    }
-
-    function _helperDisconnectPool(ISuperfluidPool _pool) internal {
-        sf.host.callAgreement(sf.gda, abi.encodeCall(sf.gda.disconnectPool, (_pool, new bytes(0))), new bytes(0));
-    }
-
-    function _helperDistribute(
-        ISuperfluidToken _superToken,
-        address signer,
-        address from,
-        ISuperfluidPool _pool,
-        uint256 requestedAmount
-    ) internal {
-        vm.startPrank(signer);
-        sf.host.callAgreement(
-            sf.gda,
-            abi.encodeCall(sf.gda.distribute, (_superToken, from, _pool, requestedAmount, new bytes(0))),
-            new bytes(0)
-        );
-        vm.stopPrank();
-    }
-
-    function _helperDistributeFlow(
-        ISuperfluidToken _superToken,
-        address signer,
-        address from,
-        ISuperfluidPool _pool,
-        int96 requestedFlowRate
-    ) internal {
-        vm.startPrank(signer);
-        sf.host.callAgreement(
-            sf.gda,
-            abi.encodeCall(sf.gda.distributeFlow, (_superToken, from, _pool, requestedFlowRate, new bytes(0))),
-            new bytes(0)
-        );
-        vm.stopPrank();
-    }
-
-    function _helperDistributeFlow(
-        ISuperfluidToken _superToken,
-        address sender,
-        ISuperfluidPool _pool,
-        int96 requestedFlowRate
-    ) internal {
-        sf.host.callAgreement(
-            sf.gda,
-            abi.encodeCall(sf.gda.distributeFlow, (_superToken, sender, _pool, requestedFlowRate, new bytes(0))),
-            new bytes(0)
-        );
-    }
-
-    function _helperGetRTB(address account) internal returns (int256 availableBalance, uint256 buffer, uint256 owedBuffer, uint256 timestamp) {
-        (int256 availableBalanceA, uint256 bufferA, uint256 owedBufferA) = sf.gda.realtimeBalanceOf(superToken, account, block.timestamp);
-        (int256 availableBalanceB, uint256 bufferB, uint256 owedBufferB, uint256 timestampB) = sf.gda.realtimeBalanceOfNow(superToken, account);
-        assertEq(availableBalanceA, availableBalanceB, "GDAv1.t: availableBalance !=");
-        assertEq(bufferA, bufferB, "GDAv1.t: buffer funcs !=");
-        assertEq(owedBufferA, owedBufferB, "GDAv1.t: owedBuffer funcs !=");
-        assertEq(timestampB, block.timestamp, "GDAv1.t: timestamp !=");
-    }
 }

@@ -15,6 +15,7 @@ module.exports = {
         // only used for testing
         "utils/SuperfluidFrameworkDeployer",
         "utils/SuperTokenDeployer",
+        "utils/SuperfluidFrameworkDeploymentSteps",
         "utils/TestToken",
         "utils/TestResolver",
         "utils/TestGovernance",

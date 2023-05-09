@@ -291,8 +291,6 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         assertTrue(sf.gda.isPool(superToken, address(localPool)), "GDAv1.t: Created pool is not pool");
     }
 
-
-
     function testRevertConnectPoolByNonHost(address notHost) public {
         vm.assume(notHost != address(sf.host));
         vm.startPrank(notHost);
@@ -360,6 +358,42 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED.selector);
         _helperDistribute(superToken, signer, alice, pool, requestedAmount);
+    }
+
+    function testDistributeFlowUsesMinDeposit(uint64 distributionFlowRate, uint32 minDepositMultiplier) public {
+        vm.assume(distributionFlowRate < minDepositMultiplier);
+        vm.assume(distributionFlowRate > 0);
+        vm.startPrank(address(sf.governance.owner()));
+        
+        uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
+        sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
+        vm.stopPrank();
+
+        _helperConnectPool(bob, pool);
+        vm.startPrank(alice);
+        pool.updateMember(bob, 1);
+        _helperDistributeFlow(superToken, alice, pool, int96(int64(distributionFlowRate)));
+        vm.stopPrank();
+        (, uint256 buffer, ,) = _helperRTB(alice);
+        assertEq(buffer, minimumDeposit, "GDAv1.t: Min buffer should be used");
+    }
+
+    function testDistributeFlowIgnoresMinDeposit(int32 distributionFlowRate, uint32 minDepositMultiplier) public {
+        vm.assume(uint32(distributionFlowRate) >= minDepositMultiplier);
+        vm.assume(distributionFlowRate > 0);
+        vm.startPrank(address(sf.governance.owner()));
+        
+        uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
+        sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
+        vm.stopPrank();
+
+        _helperConnectPool(bob, pool);
+        vm.startPrank(alice);
+        pool.updateMember(bob, 1);
+        _helperDistributeFlow(superToken, alice, pool, int96(distributionFlowRate));
+        vm.stopPrank();
+        (, uint256 buffer, ,) = _helperRTB(alice);
+        assertTrue(buffer >= minimumDeposit, "GDAv1.t: Buffer should be >= minDeposit");
     }
 
     function testDistributeToOneConnectedMember() public {
@@ -700,7 +734,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         );
     }
 
-    function _helperGetRTB(address account)
+    function _helperRTB(address account)
         internal
         returns (int256 availableBalance, uint256 buffer, uint256 owedBuffer, uint256 timestamp)
     {
@@ -712,6 +746,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         assertEq(bufferA, bufferB, "GDAv1.t: buffer funcs !=");
         assertEq(owedBufferA, owedBufferB, "GDAv1.t: owedBuffer funcs !=");
         assertEq(timestampB, block.timestamp, "GDAv1.t: timestamp !=");
+
+        return (availableBalanceA, bufferA, owedBufferA, timestampB);
     }
     struct PoolUpdateStep {
         uint8 u; // which user

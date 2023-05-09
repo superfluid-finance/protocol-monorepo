@@ -14,7 +14,6 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement, ISuperflui
     error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();  // 0xf67d263e
     error GDA_NON_CRITICAL_SENDER();                // 0x666f381d
     error GDA_INSUFFICIENT_BALANCE();               // 0x33115c3f
-    error GDA_NO_NEGATIVE_DISTRIBUTION();           // 0x8310d583
     error GDA_NO_NEGATIVE_FLOW_RATE();              // 0x15f25663
     error GDA_ONLY_SUPER_TOKEN_POOL();              // 0x90028c37
 

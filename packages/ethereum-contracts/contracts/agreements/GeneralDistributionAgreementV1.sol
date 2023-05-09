@@ -350,10 +350,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
 
-        if (requestedAmount < 0) {
-            revert GDA_NO_NEGATIVE_DISTRIBUTION();
-        }
-
         if (from != currentContext.msgSender) {
             revert GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
         }
@@ -361,6 +357,10 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         (, Value actualAmount) = _doDistributeViaPool(
             abi.encode(token), currentContext.msgSender, address(pool), Value.wrap(requestedAmount.toInt256())
         );
+
+        if (token.isAccountCriticalNow(from)) {
+            revert GDA_INSUFFICIENT_BALANCE();
+        }
 
         emit InstantDistributionUpdated(
             token,

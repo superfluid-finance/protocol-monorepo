@@ -553,6 +553,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
                 sf.gda.realtimeBalanceVectorAt(superToken, address(pool), block.timestamp);
             int96 poolDisconnectedRate = pool.getDisconnectedFlowRate();
             (,, int96 poolAdjustmentRate) = sf.gda.getPoolAdjustmentFlowInfo(pool);
+            int96 poolAdjustmentRateDirect = sf.gda.getPoolAdjustmentFlowRate(address(superToken), address(pool));
+            assertEq(poolAdjustmentRate, poolAdjustmentRateDirect, "GDAv1.t: pool adjustment rate !=");
             int96 poolNetFlowRate = sf.gda.getNetFlowRate(superToken, address(pool));
             balancesSum = balancesSum + own + fromPools + buffer;
             flowRatesSum = flowRatesSum + poolNetFlowRate;

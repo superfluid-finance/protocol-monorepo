@@ -307,23 +307,18 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function testConnectPool() public {
-        address caller = bob;
-        _helperConnectPool(caller, pool);
-        assertEq(sf.gda.isMemberConnected(superToken, address(pool), caller), true, "GDAv1.t: Member not connected");
+    function testConnectPool(address caller) public {
+        _helperConnectPoolAndAssertConnected(caller, superToken, pool);
     }
 
-    function testDisconnectPool() public {
-        address caller = bob;
-        _helperConnectPool(caller, pool);
-        assertEq(sf.gda.isMemberConnected(superToken, address(pool), caller), true, "GDAv1.t D/C: Member not connected");
-        _helperDisconnectPool(caller, pool);
-        assertEq(sf.gda.isMemberConnected(superToken, address(pool), caller), false, "GDAv1.t D/C: Member not disconnected");
+    function testDisconnectPool(address caller) public {
+        _helperConnectPoolAndAssertConnected(caller, superToken, pool);
+        _helperDisconnectPoolAndAssertDisconnected(caller, superToken, pool);
     }
 
-    function testRealtimeBalanceOfEmpty() public {
-        (int256 bobRTB,,) = sf.gda.realtimeBalanceOf(superToken, bob, block.timestamp);
-        assertEq(bobRTB, 0);
+    function testRealtimeBalanceOfEmpty(address account) public {
+        (int256 accountRTB,,,) = _helperRTB(account);
+        assertEq(accountRTB, 0);
     }
 
     function testDistributeFlowWithNoConnections() public {
@@ -372,18 +367,18 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         balance /= 4 hours;
         int96 tooBigFlowRate = int96(int256(balance)) + 1;
 
-        _helperConnectPool(bob, pool);
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
 
-        _helperUpdateMember(pool, alice, bob, 1);
+        _helperUpdateMemberUnitsAndAssertUnits(pool, alice, bob, 1);
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_INSUFFICIENT_BALANCE.selector);
         _helperDistributeFlow(superToken, alice, alice, pool, tooBigFlowRate);
     }
 
     function testRevertLiquidateNonCriticalDistributor(int32 flowRate, int96 units) public {
         vm.assume(flowRate > 0);
-        _helperConnectPool(bob, pool);
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
 
-        _helperUpdateMember(pool, alice, bob, uint96(units));
+        _helperUpdateMemberUnitsAndAssertUnits(pool, alice, bob, uint96(units));
 
         _helperDistributeFlow(superToken, alice, alice, pool, flowRate);
 
@@ -394,11 +389,19 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function testRevertDistributeInsufficientBalance() public {
         uint256 balance = superToken.balanceOf(alice);
 
-        _helperConnectPool(bob, pool);
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
 
-        _helperUpdateMember(pool, alice, bob, 1);
+        _helperUpdateMemberUnitsAndAssertUnits(pool, alice, bob, 1);
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_INSUFFICIENT_BALANCE.selector);
         _helperDistribute(superToken, alice, alice, pool, balance + 1);
+    }
+
+    function testRevertPoolOperatorConnectMember(address notOperator, address member, bool doConnect, uint32 time) public {
+        vm.assume(notOperator != address(sf.gda));
+        vm.startPrank(notOperator);
+        vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NOT_GDA.selector);
+        pool.operatorConnectMember(member, doConnect, time);
+        vm.stopPrank();
     }
 
     function testDistributeFlowUsesMinDeposit(uint64 distributionFlowRate, uint32 minDepositMultiplier) public {
@@ -410,7 +413,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
         vm.stopPrank();
 
-        _helperConnectPool(bob, pool);
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
         vm.startPrank(alice);
         pool.updateMember(bob, 1);
         _helperDistributeFlow(superToken, alice, pool, int96(int64(distributionFlowRate)));
@@ -428,7 +431,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
         vm.stopPrank();
 
-        _helperConnectPool(bob, pool);
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
         vm.startPrank(alice);
         pool.updateMember(bob, 1);
         _helperDistributeFlow(superToken, alice, pool, int96(distributionFlowRate));
@@ -438,7 +441,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     }
 
     function testDistributeToOneConnectedMember() public {
-        _helperConnectPool(bob, pool);
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
 
         vm.startPrank(alice);
         pool.updateMember(bob, 1);
@@ -475,7 +478,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             _helperDistributeFlowAndAssert(superToken, pool, alice, requestedDistributionFlowRate);
 
         // bob sends a flow of 1 to carol
-        _helperConnectPool(bob, pool);
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
         vm.startPrank(bob);
         superToken.createFlow(alice, 420693300);
         vm.stopPrank();
@@ -628,6 +631,19 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function _helperConnectToPoolAndAssert(Allocation[10] memory allocation) internal {
+        for (uint256 i; i < allocation.length; i++) {
+            // assert that no members connected
+            bool isConnectedBefore = sf.gda.isMemberConnected(superToken, address(pool), allocation[i].member);
+            assertFalse(isConnectedBefore);
+
+            // connect if unconnected
+            if (!isConnectedBefore) {
+                // all members connect to the pool
+                _helperConnectPoolAndAssertConnected(allocation[i].member, superToken, pool);
+            }
+        }
+    }
     function _helperDistributeFlowAndAssert(
         ISuperfluidToken desiredToken,
         SuperfluidPool to,
@@ -651,23 +667,6 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function _helperConnectToPoolAndAssert(Allocation[10] memory allocation) internal {
-        for (uint256 i; i < allocation.length; i++) {
-            // assert that no members connected
-            bool isConnectedBefore = sf.gda.isMemberConnected(superToken, address(pool), allocation[i].member);
-            assertFalse(isConnectedBefore);
-
-            // connect if unconnected
-            if (!isConnectedBefore) {
-                // all members connect to the pool
-                _helperConnectPool(allocation[i].member, pool);
-
-                // assert all members are connected
-                bool isConnectedAfter = sf.gda.isMemberConnected(superToken, address(pool), allocation[i].member);
-                assertTrue(isConnectedAfter, "isConnectedAfter");
-            }
-        }
-    }
 
     function _helperWarpTimeAndAssertBalances(
         Allocation[10] memory allocation,
@@ -716,26 +715,32 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         );
     }
 
-    function _helperUpdateMember(ISuperfluidPool _pool, address caller, address member, uint128 newUnits) internal {
+    function _helperUpdateMemberUnitsAndAssertUnits(ISuperfluidPool _pool, address caller, address member, uint128 newUnits) internal {
         vm.startPrank(caller);
         _pool.updateMember(member, newUnits);
         vm.stopPrank();
+
+        assertEq(_pool.getUnits(member), newUnits, "GDAv1.t: Units incorrectly set");
     }
 
-    function _helperConnectPool(address caller, ISuperfluidPool _pool) internal {
-        vm.startPrank(caller);
+    function _helperConnectPoolAndAssertConnected(address caller_, ISuperfluidToken superToken_, ISuperfluidPool pool_) internal {
+        vm.startPrank(caller_);
         sf.host.callAgreement(
             sf.gda,
-            abi.encodeWithSelector(IGeneralDistributionAgreementV1.connectPool.selector, _pool, ""),
+            abi.encodeWithSelector(IGeneralDistributionAgreementV1.connectPool.selector, pool_, ""),
             new bytes(0)
         );
         vm.stopPrank();
+
+        assertEq(sf.gda.isMemberConnected(superToken_, address(pool_), caller_), true, "GDAv1.t: Member not connected");
     }
 
-    function _helperDisconnectPool(address caller, ISuperfluidPool _pool) internal {
-        vm.startPrank(caller);
-        sf.host.callAgreement(sf.gda, abi.encodeCall(sf.gda.disconnectPool, (_pool, new bytes(0))), new bytes(0));
+    function _helperDisconnectPoolAndAssertDisconnected(address caller_, ISuperfluidToken superToken_, ISuperfluidPool pool_) internal {
+        vm.startPrank(caller_);
+        sf.host.callAgreement(sf.gda, abi.encodeCall(sf.gda.disconnectPool, (pool_, new bytes(0))), new bytes(0));
         vm.stopPrank();
+
+        assertEq(sf.gda.isMemberConnected(superToken_, address(pool_), caller_), false, "GDAv1.t D/C: Member not disconnected");
     }
 
     function _helperDistribute(
@@ -847,7 +852,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     //             emit log_named_string("action", "doConnectPool");
     //             emit log_named_string("doConnect", doConnect ? "true" : "false");
     //             vm.startPrank(user);
-    //             doConnect ? _helperConnectPool(pool) : _helperDisconnectPool(pool);
+    //             doConnect ? _helperConnectPoolAndAssertConnected(pool) superToken, : _helperDisconnectPoolAndAssertDisconnected(pool);
     //             vm.stopPrank();
     //         } else {
     //             assert(false);

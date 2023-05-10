@@ -22,10 +22,7 @@ contract SuperfluidUpgradeableBeacon is UpgradeableBeacon {
             revert NO_PROXY_LOOP();
         }
 
-        if (
-            BeaconProxiable(newImplementation).proxiableUUID() !=
-            BeaconProxiable(implementation()).proxiableUUID()
-        ) {
+        if (BeaconProxiable(newImplementation).proxiableUUID() != BeaconProxiable(implementation()).proxiableUUID()) {
             revert INCOMPATIBLE_LOGIC();
         }
 

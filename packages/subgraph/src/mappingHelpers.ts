@@ -330,12 +330,19 @@ export function getOrInitFlowOperator(
         flowOperatorEntity.flowRateAllowanceGranted = BigInt.fromI32(0);
         flowOperatorEntity.allowance = BigInt.fromI32(0);
         flowOperatorEntity.flowRateAllowanceRemaining = BigInt.fromI32(0);
-        flowOperatorEntity.sender = senderAddress.toHex();
         flowOperatorEntity.token = tokenAddress.toHex();
-        flowOperatorEntity.accountTokenSnapshot = getAccountTokenSnapshotID(
+
+        // https://github.com/superfluid-finance/protocol-monorepo/issues/1397
+        const sender = getOrInitAccount(senderAddress, block);
+        flowOperatorEntity.sender = sender.id;
+
+        // https://github.com/superfluid-finance/protocol-monorepo/issues/1397
+        const accountTokenSnapshot = getOrInitAccountTokenSnapshot(
             senderAddress,
-            tokenAddress
+            tokenAddress,
+            block
         );
+        flowOperatorEntity.accountTokenSnapshot = accountTokenSnapshot.id;
         flowOperatorEntity.flowOperator = flowOperatorAddress;
         flowOperatorEntity.updatedAtBlockNumber = block.number;
         flowOperatorEntity.updatedAtTimestamp = currentTimestamp;

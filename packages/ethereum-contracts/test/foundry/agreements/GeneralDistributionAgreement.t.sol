@@ -359,6 +359,47 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED.selector);
         _helperDistribute(superToken, signer, alice, pool, requestedAmount);
     }
+    function testRevertDistributeFlowForOthers(address signer, int32 requestedFlowRate) public {
+        vm.assume(requestedFlowRate > 0);
+        vm.assume(signer != alice);
+
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED.selector);
+        _helperDistributeFlow(superToken, signer, alice, pool, requestedFlowRate);
+    }
+    
+    function testRevertDistributeFlowInsufficientBalance() public {
+        uint256 balance = superToken.balanceOf(alice);
+        balance /= 4 hours;
+        int96 tooBigFlowRate = int96(int256(balance)) + 1;
+
+        _helperConnectPool(bob, pool);
+
+        _helperUpdateMember(pool, alice, bob, 1);
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_INSUFFICIENT_BALANCE.selector);
+        _helperDistributeFlow(superToken, alice, alice, pool, tooBigFlowRate);
+    }
+
+    function testRevertLiquidateNonCriticalDistributor(int32 flowRate, int96 units) public {
+        vm.assume(flowRate > 0);
+        _helperConnectPool(bob, pool);
+
+        _helperUpdateMember(pool, alice, bob, uint96(units));
+
+        _helperDistributeFlow(superToken, alice, alice, pool, flowRate);
+
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_NON_CRITICAL_SENDER.selector);
+        _helperDistributeFlow(superToken, bob, alice, pool, 0);
+    }
+
+    function testRevertDistributeInsufficientBalance() public {
+        uint256 balance = superToken.balanceOf(alice);
+
+        _helperConnectPool(bob, pool);
+
+        _helperUpdateMember(pool, alice, bob, 1);
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_INSUFFICIENT_BALANCE.selector);
+        _helperDistribute(superToken, alice, alice, pool, balance + 1);
+    }
 
     function testDistributeFlowUsesMinDeposit(uint64 distributionFlowRate, uint32 minDepositMultiplier) public {
         vm.assume(distributionFlowRate < minDepositMultiplier);
@@ -673,6 +714,12 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             distributorRTBAfter,
             "distributor RTB after time warp !="
         );
+    }
+
+    function _helperUpdateMember(ISuperfluidPool _pool, address caller, address member, uint128 newUnits) internal {
+        vm.startPrank(caller);
+        _pool.updateMember(member, newUnits);
+        vm.stopPrank();
     }
 
     function _helperConnectPool(address caller, ISuperfluidPool _pool) internal {

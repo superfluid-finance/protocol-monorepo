@@ -2,25 +2,38 @@
 pragma solidity ^0.8.0;
 
 import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
-import { SuperfluidTester, CFAv1Library } from "../test/SuperfluidTester.sol";
+import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
+import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
 import { Manager } from "./../contracts/Manager.sol";
 import { WrapStrategy } from "./../contracts/strategies/WrapStrategy.sol";
+import { ConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 
 /// @title ManagerTests
-contract WrapTests is SuperfluidTester {
+contract WrapTests is FoundrySuperfluidTester {
     using CFAv1Library for CFAv1Library.InitData;
 
     event WrapExecuted(bytes32 indexed id, uint256 WrapAmount);
 
     /// SETUP AND HELPERS
 
-    constructor() SuperfluidTester(3) {}
+    constructor() FoundrySuperfluidTester(3) {}
 
-    function setUp() public virtual {
+    ConstantFlowAgreementV1 cfa;
+
+    uint64 MIN_LOWER = 2 days;
+    uint64 MIN_UPPER = 7 days;
+    Manager public manager;
+    WrapStrategy public wrapStrategy;
+    uint256 internal _expectedTotalSupply = 0;
+    SuperToken nativeSuperToken;
+    uint64 constant EXPIRY = type(uint64).max;
+
+
+    function setUp() override public virtual {
         (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
 
         for (uint32 i = 0; i < N_TESTERS; ++i) {
-            token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
             vm.startPrank(TEST_ACCOUNTS[i]);
             token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
             superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
@@ -45,15 +58,15 @@ contract WrapTests is SuperfluidTester {
 
     function startStream(address sender, address receiver, int96 flowRate) public {
         vm.startPrank(sender);
-        cfaV1.createFlow(receiver, superToken, flowRate);
-        (,int96 flow,,) = cfaV1.cfa.getFlow(superToken, alice, bob);
+        superToken.createFlow(receiver, superToken, flowRate);
+        (,int96 flow,,) = cfa.getFlow(superToken, alice, bob);
         assertEq(flowRate, flow, "startStream Flow rate are not the same");
         vm.stopPrank();
     }
 
     function stopStream(address sender, address receiver) public {
         vm.startPrank(sender);
-        cfaV1.deleteFlow(sender, receiver, superToken);
+        superToken.deleteFlow(sender, receiver, superToken);
         vm.stopPrank();
     }
 

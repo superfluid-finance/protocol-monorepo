@@ -19,11 +19,10 @@ from src.utils.SemanticMoney import (
     SemanticMoney,
     BasicParticle,
 )
-from src.interfaces.ISuperToken import ISuperToken
-from src.interfaces.ISuperTokenPool import ISuperTokenPoolAdmin
+from src.interfaces.ISuperfluidPool import ISuperfluidPoolOperator
 
 @storage_var
-func Pool_POOL_ADMIN() -> (address: felt) {
+func Pool_POOL_OPERATOR() -> (address: felt) {
 }
 
 @storage_var
@@ -43,7 +42,11 @@ func Pool_claimed_values(member: felt) -> (value: felt) {
 }
 
 @storage_var
-func Pool_pending_units() -> (value: felt) {
+func Pool_disconnectedMembers() -> (PDPoolMember: felt) {
+}
+
+@storage_var
+func Pool_claimedByDisconnectedMembers() -> (value: felt) {
 }
 
 namespace Pool {
@@ -52,19 +55,13 @@ namespace Pool {
     //
     func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(admin: felt) {
         let (caller) = get_caller_address();
-        Pool_POOL_ADMIN.write(caller);
+        Pool_POOL_OPERATOR.write(caller);
         Pool_admin.write(admin);
         return ();
     }
 
-    func getPendingDistribution{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        ) -> (value: felt) {
-        let (time) = get_block_timestamp();
-        let (index) = Pool_index.read();
-        let (rtb) = SemanticMoney.rtb_per_unit(index, time);
-        let (pendingUnits) = Pool_pending_units.read();
-        let pendingDistribution = rtb * pendingUnits;
-        return (value=pendingDistribution);
+    func admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} -> (address: felt) {
+        return Pool_admin.read();
     }
 
     func getIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
@@ -80,6 +77,13 @@ namespace Pool {
         return (value=index.total_units);
     }
 
+    func getDisconnectedUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
+        unit: felt
+    ) {
+        let (pdMember) = Pool_disconnectedMembers.read();
+        return (unit=pdMember.owned_unit);
+    }
+
     func getUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         memberAddress: felt
     ) -> (value: felt) {
@@ -90,23 +94,33 @@ namespace Pool {
     func getDistributionFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         ) -> (flow_rate: felt) {
         let (index) = Pool_index.read();
-        let (flow_rate) = SemanticMoney.flow_rate_per_unit(index);
-        return (flow_rate= flow_rate * index.total_units);
+        let (flow_rate) = SemanticMoney.flow_rate_for_pool_index(index);
+        return (flow_rate=flow_rate);
     }
 
-    func getPendingDistributionFlowRate{
-        syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
-    }() -> (flow_rate: felt) {
+    // REVIEW
+    func getConnectedFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        ) -> (flow_rate: felt) {
         let (index) = Pool_index.read();
         let (flow_rate) = SemanticMoney.flow_rate_per_unit(index);
-        let (pendingUnits) = Pool_pending_units.read();
-        return (flow_rate= flow_rate * pendingUnits);
+        return (flow_rate=flow_rate * index.total_units);
     }
 
-    func getMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        member: felt
-    ) -> (member_data: PDPoolMember) {
-        return Pool_members.read(member);
+    func getDisconnectedFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        ) -> (flow_rate: felt) {
+        let (index) = Pool_index.read();
+        let (flow_rate) = SemanticMoney.flow_rate_per_unit(index);
+        let (disconnectedPDMember) = Pool_disconnectedMembers.read();
+        return (flow_rate=flow_rate * disconnectedPDMember.owned_unit);
+    }
+
+    func getDisconnectedBalance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(time: felt) -> (value: felt) {
+        let (disconnectedPDMember) = Pool_disconnectedMembers.read();
+        let (index) = Pool_index.read();
+        let pdMemberMu = PDPoolMemberMU(index, disconnectedPDMember);
+        let (balance) = SemanticMoney.realtime_balance_of_pool_member_mu(pdMemberMu, time);
+        let (claimedByDisconnectedMembers) = Pool_claimedByDisconnectedMembers.read();
+        return (value = balance - claimedByDisconnectedMembers);
     }
 
     func getMemberFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -122,22 +136,18 @@ namespace Pool {
         }
     }
 
-    func getPendingUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-        value: felt
-    ) {
-        return Pool_pending_units.read();
-    }
-
-    func operatorSetIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        index: PDPoolIndex
-    ) -> (success: felt) {
-        let (caller) = get_caller_address();
-        let (pool_admin) = Pool_POOL_ADMIN.read();
-        with_attr error_message("Pool: caller is not pool admin") {
-            assert pool_admin = caller;
-        }
-        Pool_index.write(index);
-        return (success=TRUE);
+    func getClaimable{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        time: felt, memberAddress: felt
+    ) -> (value: felt) {
+        let (index) = Pool_index.read();
+        let (member_data) = Pool_members.read(memberAddress);
+        let pdMemberMu = PDPoolMemberMU(index, member_data);
+        let (realtime_balance) = SemanticMoney.realtime_balance_of_pool_member_mu(
+            pdMemberMu, time
+        );
+        let (claimed_value) = Pool_claimed_values.read(memberAddress);
+        let claimable = realtime_balance - claimed_value;
+        return (value=claimable);
     }
 
     func updateMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -153,112 +163,78 @@ namespace Pool {
             assert caller = admin;
         }
         let (contract_address) = get_contract_address();
-        let (pool_admin) = Pool_POOL_ADMIN.read();
-        let (connected) = ISuperTokenPoolAdmin.isMemberConnected(
-            contract_address=pool_admin, pool=contract_address, memberAddress=member
+        let (pool_operator) = Pool_POOL_OPERATOR.read();
+        let (connected) = ISuperfluidPoolOperator.isMemberConnected(
+            contract_address=pool_operator, pool=contract_address, memberAddress=member
         );
+        let (index) = Pool_index.read();
+        let (pdMember) = Pool_members.read(member);
+        let (time) = get_block_timestamp();
 
-        // update pool's pending units`
+        let pd_member_mu = PDPoolMemberMU(index, pdMember);
+        let empty_particle = BasicParticle(0, 0, 0);
+
         if (connected == FALSE) {
-            let (pendingUnits) = Pool_pending_units.read();
-            let (member_data) = Pool_members.read(member);
-            Pool_pending_units.write(pendingUnits - member_data.owned_unit + unit);
+            // trigger the side effect of claiming all if not connected
+            let (claimed_amount) = _claimAll(time, member);
+            // update pool's disconnected units
+            _shiftDisconnectedUnits(unit - pdMember.owned_unit, claimed_amount, time);
 
-            // update pool member's units
-            let (index) = Pool_index.read();
-            let pd_member_mu = PDPoolMemberMU(index, member_data);
-            let empty_particle = BasicParticle(0, 0, 0);
-            let (timestamp) = get_block_timestamp();
-            let (index, member_data, particle) = SemanticMoney.pool_member_update(
-                pd_member_mu, empty_particle, unit, timestamp
-            );
+            let (index, pdMember, p) = SemanticMoney.pool_member_update(pd_member_mu, empty_particle, unit, time);
             Pool_index.write(index);
-            Pool_members.write(member, member_data);
-
-            ISuperTokenPoolAdmin.absorbParticleFromPool(
-                contract_address=pool_admin,
-                account=admin,
-                particle=particle,
-            );
-
-            // additional side effects of triggering claimAll
-            _claimAll(timestamp, member);
-            return (success=TRUE);
+            Pool_members.write(member, pdMember);
+            let (success) = ISuperfluidPoolOperator.appendIndexUpdateByPool(contract_address=pool_operator, particle=p, time=time);
         } else {
-            // update pool member's units
-            let (index) = Pool_index.read();
-            let (member_data) = Pool_members.read(member);
-            let pd_member_mu = PDPoolMemberMU(index, member_data);
-            let empty_particle = BasicParticle(0, 0, 0);
-            let (timestamp) = get_block_timestamp();
-            let (index, member_data, particle) = SemanticMoney.pool_member_update(
-                pd_member_mu, empty_particle, unit, timestamp
-            );
+            let (index, pdMember, p) = SemanticMoney.pool_member_update(pd_member_mu, empty_particle, unit, time);
             Pool_index.write(index);
-            Pool_members.write(member, member_data);
-
-            ISuperTokenPoolAdmin.absorbParticleFromPool(
-                contract_address=pool_admin,
-                account=admin,
-                particle=particle,
-            );
-
-            // additional side effects of triggering claimAll
-            _claimAll(timestamp, member);
-            return (success=TRUE);
+            Pool_members.write(member, pdMember);
+            let (success) = ISuperfluidPoolOperator.appendIndexUpdateByPool(contract_address=pool_operator, particle=p, time=time);
         }
+        return (success=TRUE);
     }
 
-    func getClaimable{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        time: felt, memberAddress: felt
-    ) -> (value: felt) {
-        let (index) = Pool_index.read();
-        let (member_data) = Pool_members.read(memberAddress);
-        let pd_member_mu = PDPoolMemberMU(index, member_data);
-        let (realtime_balance) = SemanticMoney.realtime_balance_of_pool_member_mu(
-            pd_member_mu, time
+    func claimAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(memberAddress: felt) -> (
+        success: felt
+    ) {
+        alloc_locals;
+        let (pool_operator) = Pool_POOL_OPERATOR.read();
+        let (time) = get_block_timestamp();
+        let (claimed_amount) = _claimAll(time, memberAddress);
+        let (connected) = ISuperfluidPoolOperator.isMemberConnected(
+            contract_address=pool_operator, pool=contract_address, memberAddress=memberAddress
         );
-        let (claimed_value) = Pool_claimed_values.read(memberAddress);
-        let claimable = realtime_balance - claimed_value;
-        return (value=claimable);
+        if (connected == FALSE) {
+            _shiftDisconnectedUnits(0, claimed_amount, time);
+        }
+        return (success=TRUE)
     }
 
     func _claimAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         time: felt, memberAddress: felt
-    ) -> (success: felt) {
+    ) -> (value: felt) {
         alloc_locals;
-        let empty_particle = BasicParticle(0, 0, 0);
         let (value) = getClaimable(time, memberAddress);
-        let (a, b) = SemanticMoney.shift2(empty_particle, empty_particle, value);
+        let (pool_operator) = Pool_POOL_OPERATOR.read();
 
-        let (contract_address) = get_contract_address();
-
-        let (pool_admin) = Pool_POOL_ADMIN.read();
-
-        ISuperTokenPoolAdmin.absorbParticleFromPool(
-            contract_address=pool_admin,
-            account=contract_address,
-            particle=a,
-        );
-        ISuperTokenPoolAdmin.absorbParticleFromPool(
-            contract_address=pool_admin,
-            account=memberAddress,
-            particle=b,
-        );
+        let success = ISuperfluidPoolOperator.poolSettleClaim(contract_address=pool_operator, claimRecipient=memberAddress, amount=value)
+        assert success = TRUE;
 
         let (initialClaimedValue) = Pool_claimed_values.read(memberAddress);
         Pool_claimed_values.write(memberAddress, value + initialClaimedValue);
 
-        return (success = TRUE);
+        return (value = value);
     }
 
-    func claimAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-        success: felt
-    ) {
-        alloc_locals;
-        let (timestamp) = get_block_timestamp();
-        let (caller) = get_contract_address();
-        return _claimAll(timestamp, caller);
+    func operatorSetIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+        index: PDPoolIndex
+    ) -> (success: felt) {
+        let (caller) = get_caller_address();
+        let (pool_operator) = Pool_POOL_OPERATOR.read();
+        with_attr error_message("Pool: caller is not pool admin") {
+            assert pool_operator = caller;
+        }
+        Pool_index.write(index);
+        return (success=TRUE);
     }
 
     func operatorConnectMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -266,20 +242,40 @@ namespace Pool {
     ) -> (success: felt) {
         alloc_locals;
         let (caller) = get_caller_address();
-        let (pool_admin) = Pool_POOL_ADMIN.read();
-        with_attr error_message("Pool: caller is not pool admin") {
-            assert pool_admin = caller;
+        let (pool_operator) = Pool_POOL_OPERATOR.read();
+        with_attr error_message("Pool: caller is not pool operator") {
+            assert pool_operator = caller;
         }
+
+        // NB! This is an assumption that isConnected = !doConnect,
+        //     and it should be respected by the operator.
+
+        // trigger the side effects of claiming all
+        let (claimed_amount) = _claimAll(time, memberAddress);
+        let (pdMember) = Pool_members.read(memberAddress);
+        let (time) = get_block_timestamp();
         if (dbConnect == TRUE) {
-            let (pendingUnits) = Pool_pending_units.read();
-            let (member_data) = Pool_members.read(memberAddress);
-            Pool_pending_units.write(pendingUnits - member_data.owned_unit);
+            // previous disconnected, now to be connected
+            // => removing from the disconnected distribution group
+            _shiftDisconnectedUnits(-pdMember.owned_unit, claimed_amount, time);
         } else {
-            let (pendingUnits) = Pool_pending_units.read();
-            let (member_data) = Pool_members.read(memberAddress);
-            Pool_pending_units.write(pendingUnits + member_data.owned_unit);
+            // previous connected, now to be disconnected
+            // => adding to disconnected distribution group
+            _shiftDisconnectedUnits(pdMember.owned_unit, 0, time);
         }
-        _claimAll(time, memberAddress);
         return (success=TRUE);
     }
+
+    func _shiftDisconnectedUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(shift_units: felt, claimed_amount: felt, time: felt){
+        let (index) = Pool_index.read();
+        let (disconnectedPDMembers) = Pool_disconnectedMembers.read();
+        let (pd_member_mu) = PDPoolMemberMU(index, disconnectedPDMembers);
+        let (settled_pool_member_mu) = SemanticMoney.settle_for_pool_member_mu(pd_member_mu, time);
+        let new_disconnectedMembers = PDPoolMember(settled_pool_member_mu.pdPoolMember.owned_unit + shift_units, settled_pool_member_mu.pdPoolMember._settled_value, settled_pool_member_mu.pdPoolMember._synced_particle);
+        Pool_disconnectedMembers.write(new_disconnectedMembers);
+        let (claimedByDisconnectedMembers) = Pool_claimedByDisconnectedMembers.read();
+        Pool_claimedByDisconnectedMembers.write(claimedByDisconnectedMembers + claimed_amount);
+        return ();
+    }
+
 }

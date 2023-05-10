@@ -170,7 +170,7 @@ func test_flow1to2{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
     );
     %{ stop_warp() %}
     // The value of balanceOfSender is -((fr1 + fr2) * (t2 - timestamp)) but you can't have a negative balance so 0 is returned
-    assert balanceOfSender = MINT_AMOUNT - ((fr1 + fr2) * (t2 - timestamp)) - (42 * 60 * (fr1 + fr2));
+    assert balanceOfSender = MINT_AMOUNT - ((fr1 + fr2) * (t2 - timestamp)) - (1000 * (fr1 + fr2));
     assert balanceOfReceiver1 = (fr1 * (t2 - timestamp));
     assert balanceOfReceiver2 = (fr2 * (t2 - timestamp));
     return ();

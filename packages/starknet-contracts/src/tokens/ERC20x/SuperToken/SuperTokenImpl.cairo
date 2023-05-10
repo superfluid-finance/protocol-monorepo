@@ -54,10 +54,11 @@ func balanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 }
 
 @view
-func realtimeBalanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+func realtimeBalanceNow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt
 ) -> (rtb: felt) {
-    return SuperToken.realtime_balance_of(account);
+    let (timestamp) = get_block_timestamp()
+    return SuperToken.realtime_balance_at(account, timestamp);
 }
 
 @view
@@ -68,9 +69,17 @@ func realtimeBalanceAt{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 }
 
 @view
+func realtimeBalanceVectorNow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
+    account: felt
+) -> (own: felt, fromPool: felt, deposit: felt) {
+    let (timestamp) = get_block_timestamp();
+    return SuperToken.realtime_balance_vector_at(account, timestamp);
+}
+
+@view
 func realtimeBalanceVectorAt{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt, time: felt
-) -> (available: felt, deposit: felt) {
+) -> (own: felt, fromPool: felt, deposit: felt) {
     return SuperToken.realtime_balance_vector_at(account, time);
 }
 

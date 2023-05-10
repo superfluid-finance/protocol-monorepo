@@ -8,6 +8,9 @@ from src.utils.SemanticMoney import PDPoolIndex, PDPoolMember, BasicParticle
 
 @contract_interface
 namespace ISuperfluidPool {
+    func admin() -> (address: felt) {
+    }
+
     func getIndex() -> (index: PDPoolIndex) {
     }
 
@@ -29,7 +32,7 @@ namespace ISuperfluidPool {
     func getDisconnectedFlowRate() -> (flow_rate: felt) {
     }
 
-    func getDisconnectedBalance(time: felt) -> (flow_rate: felt) {
+    func getDisconnectedBalance(time: felt) -> (value: felt) {
     }
 
     func getMemberFlowRate(memberAddress: felt) -> (flow_rate: felt) {

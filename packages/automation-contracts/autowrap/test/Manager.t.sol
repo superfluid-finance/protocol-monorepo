@@ -12,6 +12,7 @@ import { ISETH } from "@superfluid-finance/ethereum-contracts/contracts/interfac
 
 /// @title ManagerTests
 contract ManagerTests is FoundrySuperfluidTester {
+    using SuperTokenV1Library for SuperToken;
 
     event WrapScheduleCreated(
         bytes32 indexed id,
@@ -49,14 +50,6 @@ contract ManagerTests is FoundrySuperfluidTester {
 
     function setUp() override public virtual {
         super.setUp();
-        for (uint32 i = 0; i < N_TESTERS; ++i) {
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-            vm.stopPrank();
-        }
-
         nativeSuperToken = superTokenDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
     }
 
@@ -76,7 +69,7 @@ contract ManagerTests is FoundrySuperfluidTester {
 
     function stopStream(address sender, address receiver) public {
         vm.startPrank(sender);
-        superToken.deleteFlow(sender, receiver, superToken);
+        superToken.deleteFlow(sender, receiver);
         vm.stopPrank();
     }
 

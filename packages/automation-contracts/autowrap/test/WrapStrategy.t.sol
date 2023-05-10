@@ -9,10 +9,11 @@ import { Manager } from "./../contracts/Manager.sol";
 import { WrapStrategy } from "./../contracts/strategies/WrapStrategy.sol";
 import { IStrategy } from "./../contracts/interfaces/IStrategy.sol";
 import { ConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
+import { ISETH } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/ISETH.sol";
 
 /// @title ManagerTests
 contract WrapStrategyTests is FoundrySuperfluidTester {
-    using CFAv1Library for CFAv1Library.InitData;
+    using SuperTokenV1Library for SuperToken;
 
     event Wrap(
         address indexed user,
@@ -38,20 +39,11 @@ contract WrapStrategyTests is FoundrySuperfluidTester {
     Manager public manager;
     WrapStrategy public wrapStrategy;
     uint256 internal _expectedTotalSupply = 0;
-    SuperToken nativeSuperToken;
+    ISETH nativeSuperToken;
 
 
     function setUp() override public virtual {
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
-
-        for (uint32 i = 0; i < N_TESTERS; ++i) {
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-            vm.stopPrank();
-        }
-
+        super.setUp();
         nativeSuperToken = superTokenDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
         manager = new Manager(address(cfa), MIN_LOWER, MIN_UPPER);
         wrapStrategy = new WrapStrategy(address(manager));
@@ -59,13 +51,13 @@ contract WrapStrategyTests is FoundrySuperfluidTester {
 
     function startStream(address sender, address receiver, int96 flowRate) public {
         vm.startPrank(sender);
-        superToken.createFlow(receiver, superToken, flowRate);
+        superToken.createFlow(receiver, flowRate);
         vm.stopPrank();
     }
 
     function stopStream(address sender, address receiver) public {
         vm.startPrank(sender);
-        superToken.deleteFlow(sender, receiver, superToken);
+        superToken.deleteFlow(sender, receiver);
         vm.stopPrank();
     }
 

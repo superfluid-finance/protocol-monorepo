@@ -8,10 +8,11 @@ import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundr
 import { Manager } from "./../contracts/Manager.sol";
 import { WrapStrategy } from "./../contracts/strategies/WrapStrategy.sol";
 import { ConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
+import { ISETH } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/ISETH.sol";
 
 /// @title ManagerTests
 contract WrapTests is FoundrySuperfluidTester {
-    using CFAv1Library for CFAv1Library.InitData;
+    using SuperTokenV1Library for SuperToken;
 
     event WrapExecuted(bytes32 indexed id, uint256 WrapAmount);
 
@@ -26,23 +27,13 @@ contract WrapTests is FoundrySuperfluidTester {
     Manager public manager;
     WrapStrategy public wrapStrategy;
     uint256 internal _expectedTotalSupply = 0;
-    SuperToken nativeSuperToken;
+    ISETH nativeSuperToken;
     uint64 constant EXPIRY = type(uint64).max;
 
 
     function setUp() override public virtual {
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
-
-        for (uint32 i = 0; i < N_TESTERS; ++i) {
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-            vm.stopPrank();
-        }
-
+        super.setUp();
         nativeSuperToken = superTokenDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
-
         manager = new Manager(address(cfa), MIN_LOWER, MIN_UPPER);
         wrapStrategy = new WrapStrategy(address(manager));
         manager.addApprovedStrategy(address(wrapStrategy));
@@ -58,7 +49,7 @@ contract WrapTests is FoundrySuperfluidTester {
 
     function startStream(address sender, address receiver, int96 flowRate) public {
         vm.startPrank(sender);
-        superToken.createFlow(receiver, superToken, flowRate);
+        superToken.createFlow(receiver, flowRate);
         (,int96 flow,,) = cfa.getFlow(superToken, alice, bob);
         assertEq(flowRate, flow, "startStream Flow rate are not the same");
         vm.stopPrank();
@@ -66,7 +57,7 @@ contract WrapTests is FoundrySuperfluidTester {
 
     function stopStream(address sender, address receiver) public {
         vm.startPrank(sender);
-        superToken.deleteFlow(sender, receiver, superToken);
+        superToken.deleteFlow(sender, receiver);
         vm.stopPrank();
     }
 

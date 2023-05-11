@@ -3,12 +3,15 @@ pragma solidity ^0.8.0;
 
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
 import { FlowOperatorDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import { SuperfluidTester, CFAv1Library } from "../test/SuperfluidTester.sol";
 import { IVestingScheduler } from "./../contracts/interface/IVestingScheduler.sol";
 import { VestingScheduler } from "./../contracts/VestingScheduler.sol";
+import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
+import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
+import { FlowScheduler } from "./../contracts/FlowScheduler.sol";
 
 /// @title VestingSchedulerTests
-contract VestingSchedulerTests is SuperfluidTester {
+contract VestingSchedulerTests is FoundrySuperfluidTester {
 
     event VestingScheduleCreated(
         ISuperToken indexed superToken,
@@ -63,10 +66,9 @@ contract VestingSchedulerTests is SuperfluidTester {
 
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-    /// @dev This is required by solidity for using the CFAv1Library in the tester
-    using CFAv1Library for CFAv1Library.InitData;
+    /// @dev This is required by solidity for using the SuperTokenV1Library in the tester
     VestingScheduler internal vestingScheduler;
-    CFAv1Library.InitData internal cfaV1Lib;
+    using SuperTokenV1Library for SuperToken;
 
     /// @dev Constants for Testing
     uint32 immutable START_DATE = uint32(block.timestamp + 1);
@@ -75,34 +77,25 @@ contract VestingSchedulerTests is SuperfluidTester {
     uint256 constant CLIFF_TRANSFER_AMOUNT = 1 ether;
     uint32 immutable END_DATE = uint32(block.timestamp + 20 days);
     bytes constant EMPTY_CTX = "";
+    FlowScheduler internal flowScheduler;
+    uint256 internal _expectedTotalSupply = 0;
 
-    constructor() SuperfluidTester(3) {
-        vestingScheduler = new VestingScheduler(host, "");
-
-        cfaV1Lib = CFAv1Library.InitData(host,cfa);
+    constructor() FoundrySuperfluidTester(3) {
+        vestingScheduler = new VestingScheduler(sf.host, "");
+        flowScheduler = new FlowScheduler(sf.host, "");
     }
 
     /// SETUP AND HELPERS
-
-    function setUp() public virtual {
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
-
-        for (uint32 i = 0; i < N_TESTERS; ++i) {
-            token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-            vm.stopPrank();
-        }
+    function setUp() override public virtual {
+        super.setUp();
     }
 
     function _setACL_AUTHORIZE_FULL_CONTROL(address user, int96 flowRate) private {
         vm.startPrank(user);
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                 superToken,
                 address(vestingScheduler),
@@ -559,7 +552,7 @@ contract VestingSchedulerTests is SuperfluidTester {
         assertTrue(success, "executeVesting should return true");
         vm.stopPrank();
         vm.prank(alice);
-        cfaV1Lib.deleteFlow(alice, bob, superToken);
+        superToken.deleteFlow(alice, bob);
         vm.startPrank(admin);
         uint256 finalTimestamp = block.timestamp + 10 days - 3600;
         vm.warp(finalTimestamp);

@@ -3,41 +3,32 @@ pragma solidity ^0.8.0;
 
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
 import { FlowOperatorDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import { SuperfluidTester } from "../test/SuperfluidTester.sol";
 import { FlowScheduler } from "./../contracts/FlowScheduler.sol";
 import { FlowSchedulerResolver } from "./../contracts/FlowSchedulerResolver.sol";
+import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
+import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
 /// @title Example Super Token Test
 /// @author ctle-vn, SuperfluidTester taken from jtriley.eth
 /// @notice For demonstration only. You can delete this file.
-contract FlowSchedulerResolverTest is SuperfluidTester {
+contract FlowSchedulerResolverTest is FoundrySuperfluidTester {
+    using SuperTokenV1Library for SuperToken;
     FlowSchedulerResolver internal flowSchedulerResolver;
 
     bytes4 constant INVALID_CFA_PERMISSIONS_ERROR_SIG = 0xa3eab6ac;
+    FlowScheduler internal flowScheduler;
 
-    // setting expected payloads from Gelato 
+    // setting expected payloads from Gelato
     bytes createPayload;
     bytes deletePayload;
 
+    constructor() FoundrySuperfluidTester(3) {}
 
-    constructor() SuperfluidTester(3) {
-        /// @dev Example SchedulerflowSchedulerResolver to test
+    function setUp() override public virtual {
+        super.setUp();
+        flowScheduler = new FlowScheduler(sf.host, "");
         flowSchedulerResolver = new FlowSchedulerResolver(address(flowScheduler));
-    }
-
-    function setUp() public virtual {
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
-
-        for (uint32 i = 0; i < N_TESTERS; ++i) {
-            token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
-
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-            vm.stopPrank();
-        }
-
         createPayload = abi.encodeCall( FlowScheduler.executeCreateFlow,
             (
                 ISuperToken(superToken),
@@ -88,7 +79,7 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
 
     function testCreateSchedule() public {
         vm.prank(alice);
-        
+
         uint32 defaultEndDate = defaultStartDate + uint32(3600);
 
         flowScheduler.createFlowSchedule(
@@ -111,7 +102,7 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
 
     function testStartStreamWithIncorrectPermissions() public {
         vm.startPrank(alice);
-        
+
         uint32 defaultEndDate = defaultStartDate + uint32(3600);
 
         flowScheduler.createFlowSchedule(
@@ -145,15 +136,15 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
         // -- Shouldn't be executable with incorrect permissions
 
         // Give only create permissions to scheduler
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                     superToken,
                     address(flowScheduler),
                     FlowOperatorDefinitions.AUTHORIZE_FLOW_OPERATOR_CREATE, // not 5 or 7
-                    type(int96).max, 
+                    type(int96).max,
                     new bytes(0)
                 )
             ),
@@ -171,7 +162,7 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
 
     function testStartStreamWithTooLittleRateAllowance() public {
         vm.startPrank(alice);
-        
+
         uint32 defaultEndDate = defaultStartDate + uint32(3600);
 
         flowScheduler.createFlowSchedule(
@@ -190,10 +181,10 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
         superToken.approve(address(flowScheduler), type(uint256).max);
 
         // Give to little permissions to scheduler
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                     superToken,
                     address(flowScheduler),
@@ -216,7 +207,7 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
 
     function testStartStreamPastMaxDelay() public {
         vm.startPrank(alice);
-        
+
         uint32 defaultEndDate = defaultStartDate + uint32(3600);
 
         flowScheduler.createFlowSchedule(
@@ -235,10 +226,10 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
         superToken.approve(address(flowScheduler), type(uint256).max);
 
         // Give full flow permissions to scheduler
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                     superToken,
                     address(flowScheduler),
@@ -263,7 +254,7 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
 
     function testStartStreamBeforeMaxDelay() public {
         vm.startPrank(alice);
-        
+
         uint32 defaultEndDate = defaultStartDate + uint32(3600);
 
         flowScheduler.createFlowSchedule(
@@ -282,10 +273,10 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
         superToken.approve(address(flowScheduler), type(uint256).max);
 
         // Give full flow permissions to scheduler
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                     superToken,
                     address(flowScheduler),
@@ -300,9 +291,9 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
         vm.stopPrank();
         vm.startPrank(admin);
 
-        // -- Should be given executable payload if defaultStartDate has been passed but 
+        // -- Should be given executable payload if defaultStartDate has been passed but
         // defaultStartDate + defaultStartMaxDelay has not
-        
+
         // Rewind time to before defaultStartDate + defaultStartMaxDelay
         vm.warp(defaultStartDate + defaultStartMaxDelay - defaultStartMaxDelay/2 );
 
@@ -311,7 +302,7 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
 
     function testDeleteStreamBeforeEndDate() public {
         vm.startPrank(alice);
-        
+
         uint32 defaultEndDate = defaultStartDate + uint32(3600);
 
         flowScheduler.createFlowSchedule(
@@ -330,10 +321,10 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
         superToken.approve(address(flowScheduler), type(uint256).max);
 
         // Give full flow permissions to scheduler
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                     superToken,
                     address(flowScheduler),
@@ -362,7 +353,7 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
 
     function testDeleteNonExistantStreamAfterEndDate() public {
         vm.startPrank(alice);
-        
+
         uint32 defaultEndDate = defaultStartDate + uint32(3600);
 
         flowScheduler.createFlowSchedule(
@@ -381,10 +372,10 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
         superToken.approve(address(flowScheduler), type(uint256).max);
 
         // Give full flow permissions to scheduler
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                     superToken,
                     address(flowScheduler),
@@ -399,7 +390,7 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
         vm.stopPrank();
         vm.startPrank(admin);
 
-        // -- Should not give delete flow payload if stream to delete does not exist in the first place 
+        // -- Should not give delete flow payload if stream to delete does not exist in the first place
 
         // Move time to defaultEndDate
         vm.warp(defaultEndDate);
@@ -409,7 +400,7 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
 
     function testDeleteStreamAfterEndDate() public {
         vm.startPrank(alice);
-        
+
         uint32 defaultEndDate = defaultStartDate + uint32(3600);
 
         flowScheduler.createFlowSchedule(
@@ -428,10 +419,10 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
         superToken.approve(address(flowScheduler), type(uint256).max);
 
         // Give full flow permissions to scheduler
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                     superToken,
                     address(flowScheduler),
@@ -450,7 +441,7 @@ contract FlowSchedulerResolverTest is SuperfluidTester {
         vm.warp(defaultStartDate + defaultStartMaxDelay/2);
         expectExecutable(createPayload);
 
-        // -- Should give delete flow payload as we've passed defaultEndDate 
+        // -- Should give delete flow payload as we've passed defaultEndDate
 
         // Move time to defaultEndDate
         vm.warp(defaultEndDate);

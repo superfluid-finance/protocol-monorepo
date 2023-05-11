@@ -3,14 +3,16 @@ pragma solidity ^0.8.0;
 
 import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
 import { FlowOperatorDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import { SuperfluidTester, CFAv1Library } from "../test/SuperfluidTester.sol";
 import { IFlowScheduler } from "./../contracts/interface/IFlowScheduler.sol";
 import { FlowScheduler } from "./../contracts/FlowScheduler.sol";
+import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
+import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
 /// @title Example Super Token Test
 /// @author ctle-vn, SuperfluidTester taken from jtriley.eth
 /// @notice For demonstration only. You can delete this file.
-contract FlowSchedulerTest is SuperfluidTester {
+contract FlowSchedulerTest is FoundrySuperfluidTester {
 
     event FlowScheduleCreated(
         ISuperToken indexed superToken,
@@ -49,23 +51,14 @@ contract FlowSchedulerTest is SuperfluidTester {
         bytes userData
     );
 
-    /// @dev This is required by solidity for using the CFAv1Library in the tester
-    using CFAv1Library for CFAv1Library.InitData;
+    /// @dev This is required by solidity for using the SupertTokenV1Library in the tester
+    using SuperTokenV1Library for SuperToken;
+    constructor() FoundrySuperfluidTester(3) {}
+    FlowScheduler internal flowScheduler;
 
-    constructor() SuperfluidTester(3) {}
-
-    function setUp() public virtual {
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
-
-        for (uint32 i = 0; i < N_TESTERS; ++i) {
-            token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
-
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-            vm.stopPrank();
-        }
+    function setUp() override public virtual {
+        super.setUp();
+        flowScheduler = new FlowScheduler(sf.host, "");
     }
 
     function getHashID(
@@ -271,10 +264,10 @@ contract FlowSchedulerTest is SuperfluidTester {
         flowScheduler.createFlowSchedule(
             superToken, bob, defaultStartDate, uint32(100), int96(1000), defaultStartAmount, defaultStartDate + uint32(3600), "", ""
         );
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                 superToken,
                 address(flowScheduler),
@@ -323,10 +316,10 @@ contract FlowSchedulerTest is SuperfluidTester {
         flowScheduler.createFlowSchedule(
             superToken, bob, defaultStartDate, uint32(100), int96(1000), 0, defaultStartDate + uint32(3600), "", ""
         );
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                 superToken,
                 address(flowScheduler),

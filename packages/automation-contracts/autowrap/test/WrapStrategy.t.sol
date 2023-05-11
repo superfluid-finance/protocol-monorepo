@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
 import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
 import { Manager } from "./../contracts/Manager.sol";
 import { WrapStrategy } from "./../contracts/strategies/WrapStrategy.sol";
 import { IStrategy } from "./../contracts/interfaces/IStrategy.sol";
-import { ConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 import { ISETH } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/ISETH.sol";
 
 /// @title ManagerTests
@@ -37,9 +35,8 @@ contract WrapStrategyTests is FoundrySuperfluidTester {
     uint64 MIN_UPPER = 7 days;
     Manager public manager;
     WrapStrategy public wrapStrategy;
-    uint256 internal _expectedTotalSupply = 0;
+    uint256 internal _expectedTotalSupply;
     ISETH nativeSuperToken;
-
 
     function setUp() override public virtual {
         super.setUp();

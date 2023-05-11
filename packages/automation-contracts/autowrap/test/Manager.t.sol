@@ -5,10 +5,8 @@ import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/cont
 import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
 import { Manager } from "./../contracts/Manager.sol";
 import { IManager } from "./../contracts/interfaces/IManager.sol";
-import { ConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 import { WrapStrategy } from "./../contracts/strategies/WrapStrategy.sol";
 import { ISETH } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/ISETH.sol";
-
 
 /// @title ManagerTests
 contract ManagerTests is FoundrySuperfluidTester {
@@ -42,7 +40,7 @@ contract ManagerTests is FoundrySuperfluidTester {
     uint64 MIN_LOWER = 2 days;
     uint64 MIN_UPPER = 7 days;
     uint64 EXPIRY = type(uint64).max;
-    uint256 internal _expectedTotalSupply = 0;
+    uint256 internal _expectedTotalSupply;
     ISETH nativeSuperToken;
     Manager public manager;
     WrapStrategy public wrapStrategy;
@@ -58,10 +56,10 @@ contract ManagerTests is FoundrySuperfluidTester {
 
     function getWrapIndex(
         address user,
-        address superToken,
+        address superToken_,
         address liquidityToken
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(user, superToken, liquidityToken));
+        return keccak256(abi.encode(user, superToken_, liquidityToken));
     }
 
     function startStream(address sender, address receiver, int96 flowRate) public {

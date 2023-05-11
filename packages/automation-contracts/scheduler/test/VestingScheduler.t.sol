@@ -12,6 +12,7 @@ import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/cont
 /// @title VestingSchedulerTests
 /// @notice Look at me , I am the captain now - Elvijs
 contract VestingSchedulerTests is FoundrySuperfluidTester {
+    using SuperTokenV1Library for SuperToken;
 
     event VestingScheduleCreated(
         ISuperToken indexed superToken,
@@ -68,7 +69,6 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
 
     /// @dev This is required by solidity for using the SuperTokenV1Library in the tester
     VestingScheduler internal vestingScheduler;
-    using SuperTokenV1Library for SuperToken;
 
     /// @dev Constants for Testing
     uint32 immutable START_DATE = uint32(block.timestamp + 1);

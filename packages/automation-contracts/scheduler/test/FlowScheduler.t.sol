@@ -9,9 +9,8 @@ import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundr
 import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
 import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
-/// @title Example Super Token Test
-/// @author ctle-vn, SuperfluidTester taken from jtriley.eth
-/// @notice For demonstration only. You can delete this file.
+/// @title FlowSchedulerTests
+/// @notice Look at me , I am the captain now - Elvijs
 contract FlowSchedulerTest is FoundrySuperfluidTester {
 
     event FlowScheduleCreated(

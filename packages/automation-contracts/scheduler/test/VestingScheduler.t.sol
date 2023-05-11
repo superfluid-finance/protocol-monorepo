@@ -8,9 +8,9 @@ import { VestingScheduler } from "./../contracts/VestingScheduler.sol";
 import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
 import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
 import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
-import { FlowScheduler } from "./../contracts/FlowScheduler.sol";
 
 /// @title VestingSchedulerTests
+/// @notice Look at me , I am the captain now - Elvijs
 contract VestingSchedulerTests is FoundrySuperfluidTester {
 
     event VestingScheduleCreated(
@@ -77,12 +77,10 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
     uint256 constant CLIFF_TRANSFER_AMOUNT = 1 ether;
     uint32 immutable END_DATE = uint32(block.timestamp + 20 days);
     bytes constant EMPTY_CTX = "";
-    FlowScheduler internal flowScheduler;
     uint256 internal _expectedTotalSupply = 0;
 
     constructor() FoundrySuperfluidTester(3) {
         vestingScheduler = new VestingScheduler(sf.host, "");
-        flowScheduler = new FlowScheduler(sf.host, "");
     }
 
     /// SETUP AND HELPERS
@@ -551,8 +549,9 @@ contract VestingSchedulerTests is FoundrySuperfluidTester {
         bool success = vestingScheduler.executeCliffAndFlow(superToken, alice, bob);
         assertTrue(success, "executeVesting should return true");
         vm.stopPrank();
-        vm.prank(alice);
+        vm.startPrank(alice);
         superToken.deleteFlow(alice, bob);
+        vm.stopPrank();
         vm.startPrank(admin);
         uint256 finalTimestamp = block.timestamp + 10 days - 3600;
         vm.warp(finalTimestamp);

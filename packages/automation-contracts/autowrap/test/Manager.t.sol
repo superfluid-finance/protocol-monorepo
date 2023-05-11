@@ -44,13 +44,16 @@ contract ManagerTests is FoundrySuperfluidTester {
     uint64 EXPIRY = type(uint64).max;
     uint256 internal _expectedTotalSupply = 0;
     ISETH nativeSuperToken;
-    ConstantFlowAgreementV1 cfa;
     Manager public manager;
     WrapStrategy public wrapStrategy;
 
     function setUp() override public virtual {
         super.setUp();
         nativeSuperToken = superTokenDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
+        vm.startPrank(admin);
+        manager = new Manager(address(sf.cfa), MIN_LOWER, MIN_UPPER);
+        wrapStrategy = new WrapStrategy(address(manager));
+        vm.stopPrank();
     }
 
     function getWrapIndex(
@@ -81,11 +84,11 @@ contract ManagerTests is FoundrySuperfluidTester {
     }
 
     function testFailDeploymentWrongLimits() public {
-        new Manager(address(cfa), 2, 1);
+        new Manager(address(sf.cfa), 2, 1);
     }
 
     function testDeploymentCheckData() public {
-        assertEq(address(manager.cfaV1()), address(cfa), "manager.cfaV1 not equal");
+        assertEq(address(manager.cfaV1()), address(sf.cfa), "manager.cfaV1 not equal");
         assertEq(manager.owner(), admin, "manager.owner not equal");
         assertEq(manager.minLower(), MIN_LOWER, "manager.minLower not equal");
         assertEq(manager.minUpper(), MIN_UPPER, "manager.minUpper not equal");

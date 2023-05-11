@@ -33,7 +33,6 @@ contract WrapStrategyTests is FoundrySuperfluidTester {
     /// SETUP AND HELPERS
     constructor() FoundrySuperfluidTester(3) {}
 
-    ConstantFlowAgreementV1 cfa;
     uint64 MIN_LOWER = 2 days;
     uint64 MIN_UPPER = 7 days;
     Manager public manager;
@@ -45,7 +44,7 @@ contract WrapStrategyTests is FoundrySuperfluidTester {
     function setUp() override public virtual {
         super.setUp();
         nativeSuperToken = superTokenDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
-        manager = new Manager(address(cfa), MIN_LOWER, MIN_UPPER);
+        manager = new Manager(address(sf.cfa), MIN_LOWER, MIN_UPPER);
         wrapStrategy = new WrapStrategy(address(manager));
     }
 
@@ -76,7 +75,7 @@ contract WrapStrategyTests is FoundrySuperfluidTester {
     // Manager operations
 
     function testCannotChangeManagerContractIfNotOwner() public {
-        Manager newManager =  new Manager(address(cfa), MIN_LOWER, MIN_UPPER);
+        Manager newManager = new Manager(address(sf.cfa), MIN_LOWER, MIN_UPPER);
         vm.prank(admin);
         vm.expectRevert(bytes("Ownable: caller is not the owner"));
         wrapStrategy.changeManager(address(newManager));
@@ -88,7 +87,7 @@ contract WrapStrategyTests is FoundrySuperfluidTester {
     }
 
     function testChangeManagerContract() public {
-        Manager newManager =  new Manager(address(cfa), MIN_LOWER, MIN_UPPER);
+        Manager newManager =  new Manager(address(sf.cfa), MIN_LOWER, MIN_UPPER);
         vm.expectEmit(true, true, true, true);
         emit ManagerChanged(address(manager), address(newManager));
         wrapStrategy.changeManager(address(newManager));

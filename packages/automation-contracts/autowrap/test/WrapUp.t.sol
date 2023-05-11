@@ -20,8 +20,6 @@ contract WrapTests is FoundrySuperfluidTester {
 
     constructor() FoundrySuperfluidTester(3) {}
 
-    ConstantFlowAgreementV1 cfa;
-
     uint64 MIN_LOWER = 2 days;
     uint64 MIN_UPPER = 7 days;
     Manager public manager;
@@ -34,7 +32,7 @@ contract WrapTests is FoundrySuperfluidTester {
     function setUp() override public virtual {
         super.setUp();
         nativeSuperToken = superTokenDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
-        manager = new Manager(address(cfa), MIN_LOWER, MIN_UPPER);
+        manager = new Manager(address(sf.cfa), MIN_LOWER, MIN_UPPER);
         wrapStrategy = new WrapStrategy(address(manager));
         manager.addApprovedStrategy(address(wrapStrategy));
     }
@@ -50,7 +48,7 @@ contract WrapTests is FoundrySuperfluidTester {
     function startStream(address sender, address receiver, int96 flowRate) public {
         vm.startPrank(sender);
         superToken.createFlow(receiver, flowRate);
-        (,int96 flow,,) = cfa.getFlow(superToken, alice, bob);
+        (,int96 flow,,) = sf.cfa.getFlow(superToken, alice, bob);
         assertEq(flowRate, flow, "startStream Flow rate are not the same");
         vm.stopPrank();
     }

@@ -404,6 +404,13 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function testRevertPoolUpdateMemberThatIsPool(uint128 units) public {
+        vm.assume(units < uint128(type(int128).max));
+
+        vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NO_POOL_MEMBERS.selector);
+        _helperUpdateMemberUnits(pool, alice, address(pool), units);
+    }
+
     function testDistributeFlowUsesMinDeposit(uint64 distributionFlowRate, uint32 minDepositMultiplier) public {
         vm.assume(distributionFlowRate < minDepositMultiplier);
         vm.assume(distributionFlowRate > 0);
@@ -715,11 +722,14 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         );
     }
 
-    function _helperUpdateMemberUnitsAndAssertUnits(ISuperfluidPool _pool, address caller, address member, uint128 newUnits) internal {
+    function _helperUpdateMemberUnits(ISuperfluidPool _pool, address caller, address member, uint128 newUnits) internal {
         vm.startPrank(caller);
         _pool.updateMember(member, newUnits);
         vm.stopPrank();
+    }
 
+    function _helperUpdateMemberUnitsAndAssertUnits(ISuperfluidPool _pool, address caller, address member, uint128 newUnits) internal {
+        _helperUpdateMemberUnits(_pool, caller, member, newUnits);
         assertEq(_pool.getUnits(member), newUnits, "GDAv1.t: Units incorrectly set");
     }
 

@@ -155,15 +155,15 @@ contract SuperfluidFrameworkDeploymentSteps {
 
     function _deploySuperfluidPoolLogicAndInitializeGDA() internal {
         /// Deploy SuperfluidPool logic contract
-        SuperfluidPool superTokenPoolLogic = SuperfluidPoolLogicDeployerLibrary
+        SuperfluidPool superfluidPoolLogic = SuperfluidPoolLogicDeployerLibrary
             .deploySuperfluidPool(gdaV1);
 
         // Initialize the logic contract
-        superTokenPoolLogic.castrate();
+        superfluidPoolLogic.castrate();
 
         // Deploy SuperfluidPool beacon
         SuperfluidUpgradeableBeacon superTokenPoolBeacon = ProxyDeployerLibrary
-            .deploySuperfluidUpgradeableBeacon(address(superTokenPoolLogic));
+            .deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
 
         gdaV1.initialize(superTokenPoolBeacon);
     }

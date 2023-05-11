@@ -480,79 +480,80 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
 
     // @note GDA deployment is commented out until we plan on releasing it
-    // const deployGDAv1 = async () => {
-    //     try {
-    //         // deploy and link SuperfluidPoolDeployerLibrary
-    //         await deployExternalLibraryAndLink(
-    //             SuperfluidPoolDeployerLibrary,
-    //             "SuperfluidPoolDeployerLibrary",
-    //             "SUPER_TOKEN_POOL_DEPLOYER_LIBRARY_ADDRESS",
-    //             GeneralDistributionAgreementV1
-    //         );
+    const deployGDAv1 = async () => {
+        try {
+            // deploy and link SuperfluidPoolDeployerLibrary
+            await deployExternalLibraryAndLink(
+                SuperfluidPoolDeployerLibrary,
+                "SuperfluidPoolDeployerLibrary",
+                "SUPER_TOKEN_POOL_DEPLOYER_LIBRARY_ADDRESS",
+                GeneralDistributionAgreementV1
+            );
 
-    //         // deploy and link SlotsBitmapLibrary
-    //         const IDAv1 = await InstantDistributionAgreementV1.at(
-    //             await superfluid.getAgreementClass.call(IDAv1_TYPE)
-    //         );
-    //         const slotsBitmapLibraryAddress =
-    //             await IDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS.call();
-    //         if (process.env.IS_HARDHAT) {
-    //             if (slotsBitmapLibraryAddress !== ZERO_ADDRESS) {
-    //                 const lib = await SlotsBitmapLibrary.at(
-    //                     slotsBitmapLibraryAddress
-    //                 );
-    //                 GeneralDistributionAgreementV1.link(lib);
-    //             }
-    //         } else {
-    //             GeneralDistributionAgreementV1.link(
-    //                 "SlotsBitmapLibrary",
-    //                 slotsBitmapLibraryAddress
-    //             );
-    //         }
-    //     } catch (err) {
-    //         console.error(err);
-    //     }
-    //     const agreement = await web3tx(
-    //         GeneralDistributionAgreementV1.new,
-    //         "GeneralDistributionAgreementV1.new"
-    //     )(superfluid.address);
+            // deploy and link SlotsBitmapLibrary
+            const IDAv1 = await InstantDistributionAgreementV1.at(
+                await superfluid.getAgreementClass.call(IDAv1_TYPE)
+            );
+            const slotsBitmapLibraryAddress =
+                await IDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS.call();
+            if (process.env.IS_HARDHAT) {
+                if (slotsBitmapLibraryAddress !== ZERO_ADDRESS) {
+                    const lib = await SlotsBitmapLibrary.at(
+                        slotsBitmapLibraryAddress
+                    );
+                    GeneralDistributionAgreementV1.link(lib);
+                }
+            } else {
+                GeneralDistributionAgreementV1.link(
+                    "SlotsBitmapLibrary",
+                    slotsBitmapLibraryAddress
+                );
+            }
+        } catch (err) {
+            console.error(err);
+        }
+        const agreement = await web3tx(
+            GeneralDistributionAgreementV1.new,
+            "GeneralDistributionAgreementV1.new"
+        )(superfluid.address);
 
-    //     console.log(
-    //         "New GeneralDistributionAgreementV1 address",
-    //         agreement.address
-    //     );
-    //     output += `GDA_LOGIC=${agreement.address}\n`;
-    //     const superTokenPoolLogic = await web3tx(
-    //         SuperfluidPool.new,
-    //         "SuperfluidPool.new"
-    //     )(agreement.address);
-    //     await superTokenPoolLogic.castrate();
-    //     console.log(
-    //         "New SuperfluidPoolLogic address",
-    //         superTokenPoolLogic.address
-    //     );
-    //     output += `SUPER_TOKEN_POOL_LOGIC=${superTokenPoolLogic.address}\n`;
-    //     const superTokenPoolBeacon = await web3tx(
-    //         SuperfluidUpgradeableBeacon.new,
-    //         "SuperfluidUpgradeableBeacon.new"
-    //     )(superTokenPoolLogic.address);
-    //     console.log(
-    //         "New SuperfluidPoolBeacon address",
-    //         superTokenPoolBeacon.address
-    //     );
-    //     output += `SUPER_TOKEN_POOL_BEACON=${superTokenPoolBeacon.address}\n`;
+        console.log(
+            "New GeneralDistributionAgreementV1 address",
+            agreement.address
+        );
+        output += `GDA_LOGIC=${agreement.address}\n`;
+        const superTokenPoolLogic = await web3tx(
+            SuperfluidPool.new,
+            "SuperfluidPool.new"
+        )(agreement.address);
+        await superTokenPoolLogic.castrate();
+        console.log(
+            "New SuperfluidPoolLogic address",
+            superTokenPoolLogic.address
+        );
+        output += `SUPER_TOKEN_POOL_LOGIC=${superTokenPoolLogic.address}\n`;
+        const superTokenPoolBeacon = await web3tx(
+            SuperfluidUpgradeableBeacon.new,
+            "SuperfluidUpgradeableBeacon.new"
+        )(superTokenPoolLogic.address);
+        console.log(
+            "New SuperfluidPoolBeacon address",
+            superTokenPoolBeacon.address
+        );
+        output += `SUPER_TOKEN_POOL_BEACON=${superTokenPoolBeacon.address}\n`;
 
-    //     await agreement.initialize(superTokenPoolBeacon.address);
-    //     return agreement;
-    // };
+        await agreement.initialize(superTokenPoolBeacon.address);
+        return agreement;
+    };
 
-    // if (!(await superfluid.isAgreementTypeListed.call(GDAv1_TYPE))) {
-    //     const gda = await deployGDAv1();
-    //     await web3tx(
-    //         governance.registerAgreementClass,
-    //         "Governance registers GDA"
-    //     )(superfluid.address, gda.address);
-    // }
+    if (!(await superfluid.isAgreementTypeListed.call(GDAv1_TYPE))) {
+        const gda = await deployGDAv1();
+        await web3tx(
+            governance.registerAgreementClass,
+            "Governance registers GDA"
+        )(superfluid.address, gda.address);
+    }
+    // @note GDA deployment is commented out until we plan on releasing it
 
     if (protocolReleaseVersion === "test") {
         // deploy CFAv1Forwarder for test deployments
@@ -636,23 +637,24 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             agreementsToUpdate.push(idaNewLogicAddress);
         }
         // @note commented out: deploy new GDA logic
-        // const gdaNewLogicAddress = await deployContractIfCodeChanged(
-        //     web3,
-        //     GeneralDistributionAgreementV1,
-        //     await (
-        //         await UUPSProxiable.at(
-        //             await superfluid.getAgreementClass.call(GDAv1_TYPE)
-        //         )
-        //     ).getCodeAddress(),
-        //     async () => (await deployGDAv1()).address,
-        //     [
-        //         // See SuperToken constructor parameter
-        //         superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
-        //     ]
-        // );
-        // if (gdaNewLogicAddress !== ZERO_ADDRESS) {
-        //     agreementsToUpdate.push(gdaNewLogicAddress);
-        // }
+        const gdaNewLogicAddress = await deployContractIfCodeChanged(
+            web3,
+            GeneralDistributionAgreementV1,
+            await (
+                await UUPSProxiable.at(
+                    await superfluid.getAgreementClass.call(GDAv1_TYPE)
+                )
+            ).getCodeAddress(),
+            async () => (await deployGDAv1()).address,
+            [
+                // See SuperToken constructor parameter
+                superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
+            ]
+        );
+        if (gdaNewLogicAddress !== ZERO_ADDRESS) {
+            agreementsToUpdate.push(gdaNewLogicAddress);
+        }
+        // @note GDA deployment is commented out until we plan on releasing it
     }
 
     // deploy new super token factory logic (depends on SuperToken logic, which links to nft deployer library)

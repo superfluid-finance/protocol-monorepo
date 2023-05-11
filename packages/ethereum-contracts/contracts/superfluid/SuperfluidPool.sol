@@ -194,6 +194,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     function updateMember(address memberAddr, uint128 newUnits) external returns (bool) {
         if (admin != msg.sender) revert SUPERFLUID_POOL_NOT_POOL_ADMIN();
 
+        if (_gda.isPool(superToken, memberAddr)) revert SUPERFLUID_POOL_NO_POOL_MEMBERS();
+
         uint32 time = uint32(block.timestamp);
         Time t = Time.wrap(time);
         Unit wrappedUnits = Unit.wrap(uint256(newUnits).toInt256().toInt128());

@@ -15,9 +15,8 @@ interface ISuperfluidPool {
     error SUPERFLUID_POOL_NOT_GDA();            // 0xfcbe3f9e
 
     // Events
-    event MemberUpdated(address indexed member, uint128 units, uint256 updatedAt);
-    event PoolIndexUpdated(uint128 totalUnits, uint32 wpSettledAt, int256 wpSettledValue, int96 wpFlowRate);
-    event DistributionClaimed(address indexed member, int256 claimableAmount, int256 totalClaimed, uint256 timestamp);
+    event MemberUpdated(address indexed member, uint128 units);
+    event DistributionClaimed(address indexed member, int256 claimableAmount, int256 totalClaimed);
 
     /// @notice The pool admin
     function admin() external view returns (address);

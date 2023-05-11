@@ -83,16 +83,16 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     /// @inheritdoc ISuperfluidPool
     function getDisconnectedFlowRate() external view override returns (int96 flowRate) {
-        PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(_index);
-        PDPoolMember memory disconnectedMembers = convertMemberDataToPDPoolMember(_disconnectedMembers);
+        PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
+        PDPoolMember memory disconnectedMembers = _memberDataToPDPoolMember(_disconnectedMembers);
 
         return int256(FlowRate.unwrap(pdPoolIndex.flow_rate_per_unit().mul(disconnectedMembers.owned_units))).toInt96();
     }
 
     /// @inheritdoc ISuperfluidPool
     function getDisconnectedBalance(uint32 time) external view override returns (int256 balance) {
-        PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(_index);
-        PDPoolMember memory pdPoolMember = convertMemberDataToPDPoolMember(_disconnectedMembers);
+        PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
+        PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(_disconnectedMembers);
         return Value.unwrap(PDPoolMemberMU(pdPoolIndex, pdPoolMember).rtb(Time.wrap(time)));
     }
 
@@ -103,7 +103,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         else return (_index.wrappedFlowRate * uint256(units).toInt256()).toInt96();
     }
 
-    function _convertPoolIndexDataToWrappedParticle(PoolIndexData memory data)
+    function _poolIndexDataToWrappedParticle(PoolIndexData memory data)
         internal
         pure
         returns (BasicParticle memory wrappedParticle)
@@ -115,19 +115,19 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         });
     }
 
-    function convertPoolIndexDataToPDPoolIndex(PoolIndexData memory data)
+    function poolIndexDataToPDPoolIndex(PoolIndexData memory data)
         public
         pure
         returns (PDPoolIndex memory pdPoolIndex)
     {
         pdPoolIndex = PDPoolIndex({
             total_units: Unit.wrap(uint256(data.totalUnits).toInt256().toInt128()),
-            _wrapped_particle: _convertPoolIndexDataToWrappedParticle(data)
+            _wrapped_particle: _poolIndexDataToWrappedParticle(data)
         });
     }
 
-    function convertPDPoolIndexToPoolIndexData(PDPoolIndex memory pdPoolIndex)
-        public
+    function _pdPoolIndexToPoolIndexData(PDPoolIndex memory pdPoolIndex)
+        internal
         pure
         returns (PoolIndexData memory data)
     {
@@ -139,8 +139,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         });
     }
 
-    function convertMemberDataToPDPoolMember(MemberData memory memberData)
-        public
+    function _memberDataToPDPoolMember(MemberData memory memberData)
+        internal
         pure
         returns (PDPoolMember memory pdPoolMember)
     {
@@ -155,8 +155,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         });
     }
 
-    function convertMemberDataFromPDPoolMember(PDPoolMember memory pdPoolMember, int256 claimedValue)
-        public
+    function _pdPoolMemberToMemberData(PDPoolMember memory pdPoolMember, int256 claimedValue)
+        internal
         pure
         returns (MemberData memory memberData)
     {
@@ -183,8 +183,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     /// @inheritdoc ISuperfluidPool
     function getClaimable(address memberAddr, uint32 time) public view override returns (int256) {
         Time t = Time.wrap(time);
-        PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(_index);
-        PDPoolMember memory pdPoolMember = convertMemberDataToPDPoolMember(_membersData[memberAddr]);
+        PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
+        PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(_membersData[memberAddr]);
         return Value.unwrap(
             PDPoolMemberMU(pdPoolIndex, pdPoolMember).rtb(t) - Value.wrap(_membersData[memberAddr].claimedValue)
         );
@@ -200,11 +200,11 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         Time t = Time.wrap(time);
         Unit wrappedUnits = Unit.wrap(uint256(newUnits).toInt256().toInt128());
 
-        PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(_index);
-        PDPoolMember memory pdPoolMember = convertMemberDataToPDPoolMember(_membersData[memberAddr]);
+        PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
+        PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(_membersData[memberAddr]);
         PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
 
-        // update pool's pending units
+        // update pool's disconnected units
         if (!_gda.isMemberConnected(superToken, address(this), memberAddr)) {
             // trigger the side effect of claiming all if not connected
             int256 claimedAmount = _claimAll(memberAddr, time);
@@ -217,12 +217,12 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         {
             BasicParticle memory p;
             (pdPoolIndex, pdPoolMember, p) = mu.pool_member_update(p, wrappedUnits, t);
-            _index = convertPDPoolIndexToPoolIndexData(pdPoolIndex);
+            _index = _pdPoolIndexToPoolIndexData(pdPoolIndex);
             int256 claimedValue = _membersData[memberAddr].claimedValue;
-            _membersData[memberAddr] = convertMemberDataFromPDPoolMember(pdPoolMember, claimedValue);
+            _membersData[memberAddr] = _pdPoolMemberToMemberData(pdPoolMember, claimedValue);
             assert(_gda.appendIndexUpdateByPool(superToken, p, t));
         }
-        emit MemberUpdated(memberAddr, newUnits, block.timestamp);
+        emit MemberUpdated(memberAddr, newUnits);
 
         return true;
     }
@@ -232,7 +232,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         assert(_gda.poolSettleClaim(superToken, memberAddr, (amount)));
         _membersData[memberAddr].claimedValue += amount;
 
-        emit DistributionClaimed(memberAddr, amount, _membersData[memberAddr].claimedValue, block.timestamp);
+        emit DistributionClaimed(memberAddr, amount, _membersData[memberAddr].claimedValue);
     }
 
     /// @inheritdoc ISuperfluidPool
@@ -253,11 +253,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     function operatorSetIndex(PDPoolIndex calldata index) external onlyGDA returns (bool) {
-        _index = convertPDPoolIndexToPoolIndexData(index);
-
-        emit PoolIndexUpdated(
-            _index.totalUnits, _index.wrappedSettledAt, _index.wrappedSettledValue, _index.wrappedFlowRate
-        );
+        _index = _pdPoolIndexToPoolIndexData(index);
 
         return true;
     }
@@ -275,8 +271,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     function _shiftDisconnectedUnits(Unit shiftUnits, Value claimedAmount, Time t) internal {
-        PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(_index);
-        PDPoolMember memory disconnectedMembers = convertMemberDataToPDPoolMember(_disconnectedMembers);
+        PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
+        PDPoolMember memory disconnectedMembers = _memberDataToPDPoolMember(_disconnectedMembers);
         PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, disconnectedMembers);
         mu = mu.settle(t);
         mu.m.owned_units = mu.m.owned_units + shiftUnits;
@@ -285,7 +281,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         //      Alternatively could be a independent field, while the implementer can optimize
         //      it away by merging their storage using monoidal laws again.
         mu.m._settled_value = mu.m._settled_value - claimedAmount;
-        _disconnectedMembers = convertMemberDataFromPDPoolMember(mu.m, 0);
+        _disconnectedMembers = _pdPoolMemberToMemberData(mu.m, 0);
     }
 
     modifier onlyGDA() {

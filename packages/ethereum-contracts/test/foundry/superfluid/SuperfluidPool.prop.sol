@@ -60,22 +60,22 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
         );
     }
 
-    function testConvertPoolIndexDataToWrappedParticle(
+    function testPoolIndexDataToWrappedParticle(
         PoolIndexData memory data
     ) public {
         BasicParticle
-            memory wrappedParticle = _convertPoolIndexDataToWrappedParticle(
+            memory wrappedParticle = _poolIndexDataToWrappedParticle(
                 data
             );
         _helper_Assert_Wrapped_Particle(data, wrappedParticle);
     }
 
-    function testConvertPoolIndexDataToPDPoolIndex(
+    function testPoolIndexDataToPDPoolIndex(
         PoolIndexData memory data
     ) public {
         vm.assume(data.totalUnits < uint128(type(int128).max));
 
-        PDPoolIndex memory pdPoolIndex = convertPoolIndexDataToPDPoolIndex(
+        PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(
             data
         );
         assertEq(
@@ -86,7 +86,7 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
         _helper_Assert_Wrapped_Particle(data, pdPoolIndex._wrapped_particle);
     }
 
-    function testConvertPDPoolIndexToPoolIndexData(
+    function testPDPoolIndexToPoolIndexData(
         int128 totalUnits,
         uint32 wrappedSettledAt,
         int96 wrappedFlowRate,
@@ -101,7 +101,7 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
                 Value.wrap(wrappedSettledValue)
             )
         );
-        PoolIndexData memory poolIndexData = convertPDPoolIndexToPoolIndexData(
+        PoolIndexData memory poolIndexData = _pdPoolIndexToPoolIndexData(
             pdPoolIndex
         );
         assertEq(
@@ -112,12 +112,12 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
         _helper_Assert_Wrapped_Particle(poolIndexData, pdPoolIndex._wrapped_particle);
     }
 
-    function testConvertMemberDataToPDPoolMember(
+    function testMemberDataToPDPoolMember(
         MemberData memory data
     ) public {
         vm.assume(data.ownedUnits < uint128(type(int128).max));
 
-        PDPoolMember memory pdPoolMember = convertMemberDataToPDPoolMember(
+        PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(
             data
         );
         assertEq(

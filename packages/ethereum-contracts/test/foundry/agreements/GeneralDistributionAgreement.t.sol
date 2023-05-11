@@ -536,7 +536,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         int96 requestedFlowRate = flowRate;
         _helperDistributeFlow(superToken, alice, alice, pool, requestedFlowRate);
         int96 actualDistributionFlowRate =
-            sf.gda.getFlowDistributionActualFlowRate(superToken, alice, pool, requestedFlowRate);
+            sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedFlowRate);
 
         vm.warp(block.timestamp + warpTime);
 

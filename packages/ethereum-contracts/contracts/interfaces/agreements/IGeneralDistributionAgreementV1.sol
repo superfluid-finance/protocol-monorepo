@@ -11,18 +11,18 @@ import {ISuperfluidPool, ISuperfluidPoolAdmin} from "../superfluid/ISuperfluidPo
  */
 abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement, ISuperfluidPoolAdmin {
     // Custom Errors
-    error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();  // 0xf67d263e
-    error GDA_NON_CRITICAL_SENDER();                // 0x666f381d
-    error GDA_INSUFFICIENT_BALANCE();               // 0x33115c3f
-    error GDA_NO_NEGATIVE_FLOW_RATE();              // 0x15f25663
-    error GDA_ONLY_SUPER_TOKEN_POOL();              // 0x90028c37
+    error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED(); // 0xf67d263e
+    error GDA_NON_CRITICAL_SENDER(); // 0x666f381d
+    error GDA_INSUFFICIENT_BALANCE(); // 0x33115c3f
+    error GDA_NO_NEGATIVE_FLOW_RATE(); // 0x15f25663
+    error GDA_ONLY_SUPER_TOKEN_POOL(); // 0x90028c37
 
     // Events
     event InstantDistributionUpdated(
         ISuperfluidToken indexed token,
         ISuperfluidPool indexed pool,
         address indexed distributor,
-        uint256 distributedAtTimestamp,
+        address operator,
         uint256 requestedAmount,
         uint256 actualAmount
     );
@@ -30,22 +30,22 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement, ISuperflui
     event FlowDistributionUpdated(
         ISuperfluidToken indexed token,
         ISuperfluidPool indexed pool,
-        address operator,
         address indexed distributor,
-        uint256 distributedAtTimestamp,
+        // operator's have permission to liquidate critical flows
+        // they also may have permission via ACL to open flows on
+        // behalf of others
+        address operator,
         int96 oldFlowRate,
         int96 newDistributorToPoolFlowRate,
-        int96 newTotalDistributionFlowRate
+        int96 newTotalDistributionFlowRate,
+        address adjustmentFlowRecipient,
+        int96 adjustmentFlowRate
     );
 
     event PoolCreated(ISuperfluidToken indexed token, address indexed admin, ISuperfluidPool pool);
 
     event PoolConnectionUpdated(
-        ISuperfluidToken indexed token, address indexed account, ISuperfluidPool indexed pool, bool connected
-    );
-
-    event UniversalIndexUpdated(
-        ISuperfluidToken indexed token, address indexed account, uint32 settledAt, int256 settledValue, int96 flowRate
+        ISuperfluidToken indexed token, ISuperfluidPool indexed pool, address indexed account, bool connected
     );
 
     /// @dev ISuperAgreement.agreementType implementation
@@ -135,6 +135,18 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement, ISuperflui
     /// @return true if `account` is a pool
     function isPool(ISuperfluidToken token, address account) external view virtual returns (bool);
 
+    /// Check if an address is connected to the pool
+    function isMemberConnected(ISuperfluidPool pool, address memberAddr) external view virtual returns (bool);
+
+    /// Check if an address is connected to the pool
+    function isMemberConnected(ISuperfluidToken token, address pool, address memberAddr)
+        external
+        view
+        virtual
+        returns (bool);
+
+    /// Get pool adjustment flow information: (recipient, flowHash, flowRate)
+    function getPoolAdjustmentFlowInfo(ISuperfluidPool pool) external view virtual returns (address, bytes32, int96);
     ////////////////////////////////////////////////////////////////////////////////
     // Agreement Operations
     ////////////////////////////////////////////////////////////////////////////////

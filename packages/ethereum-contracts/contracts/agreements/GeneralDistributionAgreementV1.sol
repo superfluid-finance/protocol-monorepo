@@ -18,7 +18,7 @@ import {SuperfluidPool} from "../superfluid/SuperfluidPool.sol";
 import {SuperfluidPoolDeployerLibrary} from "../libs/SuperfluidPoolDeployerLibrary.sol";
 import {IGeneralDistributionAgreementV1} from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
 import {ISuperfluidToken} from "../interfaces/superfluid/ISuperfluidToken.sol";
-import {ISuperfluidPool, ISuperfluidPoolAdmin} from "../interfaces/superfluid/ISuperfluidPool.sol";
+import {ISuperfluidPool} from "../interfaces/superfluid/ISuperfluidPool.sol";
 import {SlotsBitmapLibrary} from "../libs/SlotsBitmapLibrary.sol";
 import {AgreementBase} from "./AgreementBase.sol";
 import {AgreementLibrary} from "./AgreementLibrary.sol";
@@ -306,16 +306,21 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             }
         }
 
-        emit PoolConnectionUpdated(token, msgSender, pool, doConnect);
+        emit PoolConnectionUpdated(token, pool, msgSender, doConnect);
     }
 
-    /// @inheritdoc ISuperfluidPoolAdmin
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function isMemberConnected(ISuperfluidToken token, address pool, address member)
         public
         view
         override
         returns (bool)
     {
+        (bool exist,) = _getPoolMemberData(token, member, ISuperfluidPool(pool));
+        return exist;
+    }
+    function isMemberConnected(ISuperfluidPool pool, address member) public view override returns (bool) {
+        ISuperfluidToken token = pool.superToken();
         (bool exist,) = _getPoolMemberData(token, member, ISuperfluidPool(pool));
         return exist;
     }
@@ -383,8 +388,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         emit InstantDistributionUpdated(
             token,
             pool,
+            from,
             currentContext.msgSender,
-            block.timestamp,
             requestedAmount,
             uint256(Value.unwrap(actualAmount)) // upcast from int256 -> uint256 is safe
         );
@@ -460,15 +465,19 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         {
+            (address adjustmentFlowRecipient,, int96 adjustmentFlowRate) =
+                _getPoolAdjustmentFlowInfo(abi.encode(token), address(pool));
+
             emit FlowDistributionUpdated(
                 token,
                 pool,
-                currentContext.msgSender,
                 from,
-                block.timestamp,
+                currentContext.msgSender,
                 int256(FlowRate.unwrap(oldFlowRate)).toInt96(),
                 int256(FlowRate.unwrap(actualFlowRate)).toInt96(),
-                int256(FlowRate.unwrap(newDistributionFlowRate)).toInt96()
+                int256(FlowRate.unwrap(newDistributionFlowRate)).toInt96(),
+                adjustmentFlowRecipient,
+                adjustmentFlowRate
             );
         }
     }
@@ -718,14 +727,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             _encodeUniversalIndexData(p, universalIndexData.totalBuffer, universalIndexData.isPool)
         );
 
-        emit UniversalIndexUpdated(
-            ISuperfluidToken(token),
-            owner,
-            Time.unwrap(p.settled_at()),
-            Value.unwrap(p._settled_value),
-            int256(FlowRate.unwrap(p.flow_rate())).toInt96()
-        );
-
         return eff;
     }
 
@@ -734,7 +735,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         address pool
     ) internal view override returns (PDPoolIndex memory) {
         SuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).getIndex();
-        return SuperfluidPool(pool).convertPoolIndexDataToPDPoolIndex(data);
+        return SuperfluidPool(pool).poolIndexDataToPDPoolIndex(data);
     }
 
     function _setPDPIndex(bytes memory eff, address pool, PDPoolIndex memory p)
@@ -778,6 +779,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         return eff;
     }
 
+    /// @inheritdoc IGeneralDistributionAgreementV1
     function getPoolAdjustmentFlowInfo(ISuperfluidPool pool)
         external
         view

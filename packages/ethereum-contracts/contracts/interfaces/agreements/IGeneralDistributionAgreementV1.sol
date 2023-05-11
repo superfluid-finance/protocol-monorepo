@@ -68,20 +68,37 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement, ISuperflui
     /// @return flow rate
     function getFlowRate(ISuperfluidToken token, address from, address to) external view virtual returns (int96);
 
-    /// @notice Gets the actual flow distribution flow rate of `from` to `to` for `token` given `requestedFlowRate`.
-    /// the actual flow distribution flow rate is the flow rate that will be sent from `from`.
+    /// @notice Executes an optimistic estimation of what the actual flow distribution flow rate may be.
+    /// The actual flow distribution flow rate is the flow rate that will be sent from `from`.
+    /// NOTE: this is only precise in an atomic transaction.
     /// @dev The difference between the requested flow rate and the actual flow rate is the adjustment flow rate.
     /// @param token The token address
     /// @param from The sender address
     /// @param to The pool address
     /// @param requestedFlowRate The requested flow rate
     /// @return actualFlowRate
-    function getFlowDistributionActualFlowRate(
+    function estimateFlowDistributionActualFlowRate(
         ISuperfluidToken token,
         address from,
         ISuperfluidPool to,
         int96 requestedFlowRate
     ) external view virtual returns (int96 actualFlowRate);
+
+    /// @notice Executes an optimistic estimation of what the actual amount distributed may be
+    /// The actual amount distributed is the amount that will be sent from `from`.
+    /// NOTE: this is only precise in an atomic transaction.
+    /// @dev The difference between the requested amount and the actual amount is the adjustment amount.
+    /// @param token The token address
+    /// @param from The sender address
+    /// @param to The pool address
+    /// @param requestedAmount The requested amount
+    /// @return actualAmount
+    function estimateDistributionActualAmount(
+        ISuperfluidToken token,
+        address from,
+        ISuperfluidPool to,
+        uint256 requestedAmount
+    ) external view virtual returns (uint256 actualAmount);
 
     /// @notice Gets the adjustment flow rate of `pool` for `token`.
     /// @param token The token address

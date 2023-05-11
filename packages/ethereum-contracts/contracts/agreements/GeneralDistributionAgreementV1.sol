@@ -206,12 +206,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
-    function getFlowDistributionActualFlowRate(
+    function estimateFlowDistributionActualFlowRate(
         ISuperfluidToken token,
         address from,
         ISuperfluidPool to,
         int96 requestedFlowRate
-    ) external view override returns (int96 finalFlowRate) {
+    ) external view override returns (int96 actualFlowRate) {
         bytes memory eff = abi.encode(token);
         bytes32 distributionFlowHash = _getFlowDistributionHash(from, address(to));
 
@@ -231,7 +231,25 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             fromUIndexData.shift_flow2b(pdpIndex, flowRateDelta + currentAdjustmentFlowRate, t);
         newActualFlowRate =
             oldFlowRate + (newDistributionFlowRate - oldDistributionFlowRate) - currentAdjustmentFlowRate;
-        finalFlowRate = int256(FlowRate.unwrap(newDistributionFlowRate)).toInt96();
+        actualFlowRate = int256(FlowRate.unwrap(newDistributionFlowRate)).toInt96();
+    }
+
+    /// @inheritdoc IGeneralDistributionAgreementV1
+    function estimateDistributionActualAmount(
+        ISuperfluidToken token,
+        address from,
+        ISuperfluidPool to,
+        uint256 requestedAmount
+    ) external view override returns (uint256 actualAmount) {
+        bytes memory eff = abi.encode(token);
+        BasicParticle memory fromUIndexData = _getUIndex(eff, from);
+
+        PDPoolIndex memory pdpIndex = _getPDPIndex("", address(to));
+        Value actualDistributionAmount;
+        (fromUIndexData, pdpIndex, actualDistributionAmount) =
+            fromUIndexData.shift2b(pdpIndex, Value.wrap(requestedAmount.toInt256()));
+
+        actualAmount = uint256(Value.unwrap(actualDistributionAmount));
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1

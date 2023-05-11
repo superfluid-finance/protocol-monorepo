@@ -206,7 +206,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @dev `tokenId` must exist AND we emit a {Transfer} event
     /// @param tokenId the id of the token we are destroying
     function _burn(uint256 tokenId) internal override {
-        address owner = FlowNFTBase.ownerOf(tokenId);
+        address owner = _ownerOf(tokenId);
 
         super._burn(tokenId);
 

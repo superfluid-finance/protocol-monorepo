@@ -4,14 +4,13 @@ pragma solidity 0.8.19;
 import {GeneralDistributionAgreementV1} from "../agreements/GeneralDistributionAgreementV1.sol";
 import {SuperfluidPool} from "../superfluid/SuperfluidPool.sol";
 import {IStorageLayoutBase} from "./IStorageLayoutBase.sol";
-import "forge-std/Test.sol";
 /// @title SuperfluidPoolStorageLayoutMock
 /// @notice A mock SuperfluidPool contract for testing storage layout.
 /// @dev This contract *MUST* have the same storage layout as SuperfluidPool.
 contract SuperfluidPoolStorageLayoutMock is SuperfluidPool, IStorageLayoutBase {
     constructor(GeneralDistributionAgreementV1 gda_) SuperfluidPool(gda_) {}
 
-    function validateStorageLayout() public view {
+    function validateStorageLayout() public pure {
         uint256 slot;
         uint256 offset;
 

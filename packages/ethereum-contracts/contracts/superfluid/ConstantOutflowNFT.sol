@@ -178,18 +178,6 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         address flowReceiver,
         uint256 newTokenId
     ) internal {
-        if (flowSender == address(0)) {
-            revert COF_NFT_MINT_TO_ZERO_ADDRESS();
-        }
-
-        if (flowSender == flowReceiver) {
-            revert COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME();
-        }
-
-        if (_exists(newTokenId)) {
-            revert COF_NFT_TOKEN_ALREADY_EXISTS();
-        }
-
         // update mapping for new NFT to be minted
         _flowDataByTokenId[newTokenId] = FlowNFTData(
             superToken,

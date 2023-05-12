@@ -178,6 +178,10 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         address flowReceiver,
         uint256 newTokenId
     ) internal {
+        assert(flowSender != address(0));
+        assert(flowSender != flowReceiver);
+        assert(!_exists(newTokenId));
+
         // update mapping for new NFT to be minted
         _flowDataByTokenId[newTokenId] = FlowNFTData(
             superToken,

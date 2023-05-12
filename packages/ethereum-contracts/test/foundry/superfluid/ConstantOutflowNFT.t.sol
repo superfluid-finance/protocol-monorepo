@@ -148,7 +148,70 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         vm.prank(_approver);
         constantOutflowNFTProxy.approve(_approvedAccount, nftId);
     }
+function testRevertIfInternalMintToZeroAddress(
+        address _flowReceiver
+    ) public {
+        uint256 nftId = _helperGetNFTID(
+            address(superTokenMock),
+            address(0),
+            _flowReceiver
+        );
+        vm.expectRevert();
+        constantOutflowNFTProxy.mockMint(
+            address(superTokenMock),
+            address(0),
+            _flowReceiver,
+            nftId
+        );
+    }
 
+    function testRevertIfInternalMintTokenThatExists(
+        address _flowSender,
+        address _flowReceiver
+    ) public {
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
+            _flowSender,
+            _flowReceiver
+        );
+
+        uint256 nftId = _helperGetNFTID(
+            address(superTokenMock),
+            _flowSender,
+            _flowReceiver
+        );
+        constantOutflowNFTProxy.mockMint(
+            address(superTokenMock),
+            _flowSender,
+            _flowReceiver,
+            nftId
+        );
+        vm.expectRevert();
+        constantOutflowNFTProxy.mockMint(
+            address(superTokenMock),
+            _flowSender,
+            _flowReceiver,
+            nftId
+        );
+    }
+
+    function testRevertIfInternalMintSameToAndFlowReceiver(
+        address _flowSender
+    ) public {
+        vm.assume(_flowSender != address(0));
+
+        uint256 nftId = _helperGetNFTID(
+            address(superTokenMock),
+            _flowSender,
+            _flowSender
+        );
+        vm.expectRevert();
+        constantOutflowNFTProxy.mockMint(
+            address(superTokenMock),
+            _flowSender,
+            _flowSender,
+            nftId
+        );
+    }
     function testRevertIfYouTryToTransferOutflowNFT(
         address _flowSender,
         address _flowReceiver

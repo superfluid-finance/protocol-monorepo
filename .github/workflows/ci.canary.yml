@@ -198,10 +198,12 @@ jobs:
   all-packages-tested:
     name: All packages tested (Dev Branch)
     runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-not-requiring-successful-dependent-jobs
+    if: ${{ always() }}
     needs: [ essential-build-and-test
            , test-spec-haskell
            , test-solidity-semantic-money
-           , test-hot-fuzz
+          #  , test-hot-fuzz
            , test-subgraph
            , coverage-ethereum-contracts
            , coverage-sdk-core

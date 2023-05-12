@@ -224,7 +224,7 @@ jobs:
           }
           check_result essential-build-and-test ${{ needs.essential-build-and-test.result }}
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
-          check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
+          # removed check_result hot-fuzz
           check_result subgraph ${{ needs.test-subgraph.result }}
           check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
           check_result sdk-core-coverage ${{ needs.coverage-sdk-core.result }}

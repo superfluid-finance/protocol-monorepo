@@ -1,36 +1,35 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
-import { SuperfluidTester, CFAv1Library } from "../test/SuperfluidTester.sol";
+import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
+import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
 import { Manager } from "./../contracts/Manager.sol";
 import { WrapStrategy } from "./../contracts/strategies/WrapStrategy.sol";
+import { ISETH } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/ISETH.sol";
 
 /// @title ManagerTests
-contract WrapTests is SuperfluidTester {
-    using CFAv1Library for CFAv1Library.InitData;
+contract WrapTests is FoundrySuperfluidTester {
+    using SuperTokenV1Library for SuperToken;
 
     event WrapExecuted(bytes32 indexed id, uint256 WrapAmount);
 
     /// SETUP AND HELPERS
 
-    constructor() SuperfluidTester(3) {}
+    constructor() FoundrySuperfluidTester(3) {}
 
-    function setUp() public virtual {
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+    uint64 MIN_LOWER = 2 days;
+    uint64 MIN_UPPER = 7 days;
+    Manager public manager;
+    WrapStrategy public wrapStrategy;
+    uint256 internal _expectedTotalSupply;
+    ISETH nativeSuperToken;
+    uint64 constant EXPIRY = type(uint64).max;
 
-        for (uint32 i = 0; i < N_TESTERS; ++i) {
-            token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-            vm.stopPrank();
-        }
-
+    function setUp() override public virtual {
+        super.setUp();
         nativeSuperToken = superTokenDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
-
-        manager = new Manager(address(cfa), MIN_LOWER, MIN_UPPER);
+        manager = new Manager(address(sf.cfa), MIN_LOWER, MIN_UPPER);
         wrapStrategy = new WrapStrategy(address(manager));
         manager.addApprovedStrategy(address(wrapStrategy));
     }
@@ -45,15 +44,15 @@ contract WrapTests is SuperfluidTester {
 
     function startStream(address sender, address receiver, int96 flowRate) public {
         vm.startPrank(sender);
-        cfaV1.createFlow(receiver, superToken, flowRate);
-        (,int96 flow,,) = cfaV1.cfa.getFlow(superToken, alice, bob);
+        superToken.createFlow(receiver, flowRate);
+        (,int96 flow,,) = sf.cfa.getFlow(superToken, alice, bob);
         assertEq(flowRate, flow, "startStream Flow rate are not the same");
         vm.stopPrank();
     }
 
     function stopStream(address sender, address receiver) public {
         vm.startPrank(sender);
-        cfaV1.deleteFlow(sender, receiver, superToken);
+        superToken.deleteFlow(sender, receiver);
         vm.stopPrank();
     }
 

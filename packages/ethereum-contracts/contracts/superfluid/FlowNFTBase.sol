@@ -206,8 +206,8 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
                     _flowDataString(tokenId),
                     "&flowRate=",
                     uint256(uint96(flowRate)).toString(),
-                    "&is_inflow=",
-                    isInflow ? "true" : "false"
+                    "&outgoing=",
+                    isInflow ? "false" : "true"
                 )
             );
     }

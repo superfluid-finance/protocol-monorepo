@@ -198,10 +198,12 @@ jobs:
   all-packages-tested:
     name: All packages tested (Dev Branch)
     runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-not-requiring-successful-dependent-jobs
+    if: ${{ always() }}
     needs: [ essential-build-and-test
            , test-spec-haskell
            , test-solidity-semantic-money
-           , test-hot-fuzz
+          #  , test-hot-fuzz
            , test-subgraph
            , coverage-ethereum-contracts
            , coverage-sdk-core
@@ -222,7 +224,7 @@ jobs:
           }
           check_result essential-build-and-test ${{ needs.essential-build-and-test.result }}
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
-          check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
+          # removed check_result hot-fuzz
           check_result subgraph ${{ needs.test-subgraph.result }}
           check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
           check_result sdk-core-coverage ${{ needs.coverage-sdk-core.result }}

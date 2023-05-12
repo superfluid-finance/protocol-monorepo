@@ -35,7 +35,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         int256 claimedValue;
     }
 
-    GeneralDistributionAgreementV1 internal immutable _gda;
+    GeneralDistributionAgreementV1 public immutable GDA;
 
     ISuperfluidToken public superToken;
     address public admin;
@@ -45,7 +45,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     MemberData internal _disconnectedMembers;
 
     constructor(GeneralDistributionAgreementV1 gda) {
-        _gda = gda;
+        GDA = gda;
     }
 
     function initialize(address admin_, ISuperfluidToken superToken_) external initializer {
@@ -67,7 +67,12 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     /// @inheritdoc ISuperfluidPool
-    function getDisconnectedUnits() external view override returns (uint128) {
+    function getTotalConnectedUnits() external view override returns (uint128) {
+        return _index.totalUnits - _disconnectedMembers.ownedUnits;
+    }
+
+    /// @inheritdoc ISuperfluidPool
+    function getTotalDisconnectedUnits() external view override returns (uint128) {
         return _disconnectedMembers.ownedUnits;
     }
 
@@ -77,12 +82,12 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     /// @inheritdoc ISuperfluidPool
-    function getConnectedFlowRate() external view override returns (int96) {
+    function getTotalConnectedFlowRate() external view override returns (int96) {
         return (_index.wrappedFlowRate * uint256(_index.totalUnits).toInt256()).toInt96();
     }
 
     /// @inheritdoc ISuperfluidPool
-    function getDisconnectedFlowRate() external view override returns (int96 flowRate) {
+    function getTotalDisconnectedFlowRate() external view override returns (int96 flowRate) {
         PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
         PDPoolMember memory disconnectedMembers = _memberDataToPDPoolMember(_disconnectedMembers);
 
@@ -177,6 +182,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         override
         returns (int256 claimableBalance, uint256 timestamp)
     {
+        // TODO, GDA.getHost().getTimestamp() should be used in principle
         return (getClaimable(memberAddr, uint32(block.timestamp)), block.timestamp);
     }
 
@@ -194,8 +200,9 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     function updateMember(address memberAddr, uint128 newUnits) external returns (bool) {
         if (admin != msg.sender) revert SUPERFLUID_POOL_NOT_POOL_ADMIN();
 
-        if (_gda.isPool(superToken, memberAddr)) revert SUPERFLUID_POOL_NO_POOL_MEMBERS();
+        if (GDA.isPool(superToken, memberAddr)) revert SUPERFLUID_POOL_NO_POOL_MEMBERS();
 
+        // TODO, GDA.getHost().getTimestamp() should be used in principle
         uint32 time = uint32(block.timestamp);
         Time t = Time.wrap(time);
         Unit wrappedUnits = Unit.wrap(uint256(newUnits).toInt256().toInt128());
@@ -205,7 +212,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
 
         // update pool's disconnected units
-        if (!_gda.isMemberConnected(superToken, address(this), memberAddr)) {
+        if (!GDA.isMemberConnected(superToken, address(this), memberAddr)) {
             // trigger the side effect of claiming all if not connected
             int256 claimedAmount = _claimAll(memberAddr, time);
 
@@ -220,7 +227,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             _index = _pdPoolIndexToPoolIndexData(pdPoolIndex);
             int256 claimedValue = _membersData[memberAddr].claimedValue;
             _membersData[memberAddr] = _pdPoolMemberToMemberData(pdPoolMember, claimedValue);
-            assert(_gda.appendIndexUpdateByPool(superToken, p, t));
+            assert(GDA.appendIndexUpdateByPool(superToken, p, t));
         }
         emit MemberUpdated(memberAddr, newUnits);
 
@@ -229,7 +236,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     function _claimAll(address memberAddr, uint32 time) internal returns (int256 amount) {
         amount = getClaimable(memberAddr, time);
-        assert(_gda.poolSettleClaim(superToken, memberAddr, (amount)));
+        assert(GDA.poolSettleClaim(superToken, memberAddr, (amount)));
         _membersData[memberAddr].claimedValue += amount;
 
         emit DistributionClaimed(memberAddr, amount, _membersData[memberAddr].claimedValue);
@@ -242,7 +249,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     /// @inheritdoc ISuperfluidPool
     function claimAll(address memberAddr) public returns (bool) {
-        bool isConnected = _gda.isMemberConnected(superToken, address(this), memberAddr);
+        bool isConnected = GDA.isMemberConnected(superToken, address(this), memberAddr);
+        // TODO, GDA.getHost().getTimestamp() should be used in principle
         uint32 time = uint32(block.timestamp);
         int256 claimedAmount = _claimAll(memberAddr, time);
         if (!isConnected) {
@@ -285,7 +293,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     modifier onlyGDA() {
-        if (msg.sender != address(_gda)) revert SUPERFLUID_POOL_NOT_GDA();
+        if (msg.sender != address(GDA)) revert SUPERFLUID_POOL_NOT_GDA();
         _;
     }
 }

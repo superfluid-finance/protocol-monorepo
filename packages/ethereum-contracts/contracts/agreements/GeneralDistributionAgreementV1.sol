@@ -186,7 +186,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         netFlowRate = int256(FlowRate.unwrap(_getUIndex(abi.encode(token), account).flow_rate())).toInt96();
 
         if (_isPool(token, account)) {
-            netFlowRate += ISuperfluidPool(account).getDisconnectedFlowRate();
+            netFlowRate += ISuperfluidPool(account).getTotalDisconnectedFlowRate();
         }
 
         {
@@ -211,7 +211,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         address from,
         ISuperfluidPool to,
         int96 requestedFlowRate
-    ) external view override returns (int96 actualFlowRate) {
+    ) external view override returns (int96 actualFlowRate, int96 totalDistributionFlowRate) {
         bytes memory eff = abi.encode(token);
         bytes32 distributionFlowHash = _getFlowDistributionHash(from, address(to));
 
@@ -231,7 +231,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             fromUIndexData.shift_flow2b(pdpIndex, flowRateDelta + currentAdjustmentFlowRate, t);
         newActualFlowRate =
             oldFlowRate + (newDistributionFlowRate - oldDistributionFlowRate) - currentAdjustmentFlowRate;
-        actualFlowRate = int256(FlowRate.unwrap(newDistributionFlowRate)).toInt96();
+        actualFlowRate = int256(FlowRate.unwrap(newActualFlowRate)).toInt96();
+        totalDistributionFlowRate = int256(FlowRate.unwrap(newDistributionFlowRate)).toInt96();
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
@@ -286,7 +287,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         newCtx = ctx;
         if (doConnect) {
             if (!isMemberConnected(token, address(pool), msgSender)) {
-                assert(pool.operatorConnectMember(msgSender, true, uint32(block.timestamp)));
+                assert(SuperfluidPool(address(pool)).operatorConnectMember(msgSender, true, uint32(block.timestamp)));
 
                 uint32 poolSlotID =
                     _findAndFillPoolConnectionsBitmap(token, msgSender, bytes32(uint256(uint160(address(pool)))));
@@ -298,7 +299,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             }
         } else {
             if (isMemberConnected(token, address(pool), msgSender)) {
-                assert(pool.operatorConnectMember(msgSender, false, uint32(block.timestamp)));
+                assert(SuperfluidPool(address(pool)).operatorConnectMember(msgSender, false, uint32(block.timestamp)));
                 (, PoolMemberData memory poolMemberData) = _getPoolMemberData(token, msgSender, pool);
                 token.terminateAgreement(_getPoolMemberHash(msgSender, pool), 1);
 

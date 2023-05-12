@@ -16,6 +16,7 @@ import {SuperTokenV1Library} from "../../../contracts/apps/SuperTokenV1Library.s
 import {SuperToken} from "../../../contracts/utils/SuperTokenDeployer.sol";
 import {ISuperfluidToken} from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import {ISuperfluidPool, SuperfluidPool} from "../../../contracts/superfluid/SuperfluidPool.sol";
+import {SuperfluidPoolStorageLayoutMock} from "../../../contracts/mocks/SuperfluidPoolUpgradabilityMock.sol";
 
 /// @title GeneralDistributionAgreementV1 Integration Tests
 /// @author Superfluid
@@ -432,6 +433,11 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         _helperUpdateMemberUnits(pool, alice, address(pool), units);
     }
 
+    function testSuperfluidPoolStorageLayout() public {
+        SuperfluidPoolStorageLayoutMock mock = new SuperfluidPoolStorageLayoutMock(sf.gda);
+        mock.validateStorageLayout();
+    }
+
     function testDistributeFlowUsesMinDeposit(uint64 distributionFlowRate, uint32 minDepositMultiplier, address member)
         public
     {
@@ -535,7 +541,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         int96 requestedFlowRate = flowRate;
         _helperDistributeFlow(superToken, alice, alice, pool, requestedFlowRate);
-        int96 actualDistributionFlowRate =
+        (int96 actualDistributionFlowRate,) =
             sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedFlowRate);
 
         vm.warp(block.timestamp + warpTime);
@@ -546,7 +552,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             address member = members[i].member;
             (int256 memberRTB,,) = sf.gda.realtimeBalanceOf(superToken, member, block.timestamp);
             assertEq(
-                pool.getDisconnectedFlowRate(),
+                pool.getTotalDisconnectedFlowRate(),
                 actualDistributionFlowRate,
                 "GDAv1.t.sol: pendingDistributionFlowRate != actualDistributionFlowRate"
             );

@@ -51,3 +51,20 @@ interface ISuperfluidPool {
     // WARNING for operators: it is undefined behavior if member is already connected or disconnected
     function operatorConnectMember(address memberAddr, bool doConnect, Time t) external returns (bool);
 }
+
+/**
+ * @dev The interface for the operator of a super token pool
+ */
+interface ISuperfluidPoolOperator {
+    /// Check if an address is connected to the pool
+    function isMemberConnected(ISuperfluidPool pool, address memberAddr) external view returns (bool);
+
+    /// Get pool adjustment flow information: (recipient, flowHahs, flowRate)
+    function getPoolAdjustmentFlowInfo(ISuperfluidPool pool) external view returns (address, bytes32, FlowRate);
+
+    /// Update the adjustment flow rate
+    function appendIndexUpdateByPool(BasicParticle memory p, Time t) external returns (bool);
+
+    /// Settle the claim
+    function poolSettleClaim(address claimRecipient, Value amount) external returns (bool);
+}

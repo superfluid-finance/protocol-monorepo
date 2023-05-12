@@ -3,13 +3,13 @@ pragma solidity >=0.8.4;
 
 import {ISuperAgreement} from "../superfluid/ISuperAgreement.sol";
 import {ISuperfluidToken} from "../superfluid/ISuperfluidToken.sol";
-import {ISuperfluidPool, ISuperfluidPoolAdmin} from "../superfluid/ISuperfluidPool.sol";
+import {ISuperfluidPool} from "../superfluid/ISuperfluidPool.sol";
 
 /**
  * @title General Distribution Agreement interface
  * @author Superfluid
  */
-abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement, ISuperfluidPoolAdmin {
+abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     // Custom Errors
     error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED(); // 0xf67d263e
     error GDA_NON_CRITICAL_SENDER(); // 0x666f381d
@@ -70,23 +70,23 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement, ISuperflui
 
     /// @notice Executes an optimistic estimation of what the actual flow distribution flow rate may be.
     /// The actual flow distribution flow rate is the flow rate that will be sent from `from`.
-    /// NOTE: this is only precise in an atomic transaction.
+    /// NOTE: this is only precise in an atomic transaction. DO NOT rely on this if querying off-chain.
     /// @dev The difference between the requested flow rate and the actual flow rate is the adjustment flow rate.
     /// @param token The token address
     /// @param from The sender address
     /// @param to The pool address
     /// @param requestedFlowRate The requested flow rate
-    /// @return actualFlowRate
+    /// @return actualFlowRate and totalDistributionFlowRate
     function estimateFlowDistributionActualFlowRate(
         ISuperfluidToken token,
         address from,
         ISuperfluidPool to,
         int96 requestedFlowRate
-    ) external view virtual returns (int96 actualFlowRate);
+    ) external view virtual returns (int96 actualFlowRate, int96 totalDistributionFlowRate);
 
-    /// @notice Executes an optimistic estimation of what the actual amount distributed may be
+    /// @notice Executes an optimistic estimation of what the actual amount distributed may be.
     /// The actual amount distributed is the amount that will be sent from `from`.
-    /// NOTE: this is only precise in an atomic transaction.
+    /// NOTE: this is only precise in an atomic transaction. DO NOT rely on this if querying off-chain.
     /// @dev The difference between the requested amount and the actual amount is the adjustment amount.
     /// @param token The token address
     /// @param from The sender address

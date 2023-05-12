@@ -17,10 +17,10 @@ import {
 } from "../superfluid/SuperfluidPool.sol";
 
 
-/// @title GeneralDistributionAgreementV1Mock
+/// @title GeneralDistributionAgreementV1Harness
 /// @author Superfluid
 /// @notice A GDAv1 Mock contract which exposes internal functions for testing purposes
-contract GeneralDistributionAgreementV1Mock is GeneralDistributionAgreementV1 {
+contract GeneralDistributionAgreementV1Harness is GeneralDistributionAgreementV1 {
     constructor(ISuperfluid host) GeneralDistributionAgreementV1(host) {}
 
     function setUIndex(

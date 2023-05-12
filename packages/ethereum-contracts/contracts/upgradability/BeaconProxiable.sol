@@ -5,7 +5,7 @@ import { Initializable } from "@openzeppelin/contracts/proxy/utils/Initializable
 
 abstract contract BeaconProxiable is Initializable {
 
-    // allows to mark logic contracts as initialized in order to reduce the attack surface
+    // allows to mark logic contracts as initialized
     // solhint-disable-next-line no-empty-blocks
     function castrate() external initializer { }
 

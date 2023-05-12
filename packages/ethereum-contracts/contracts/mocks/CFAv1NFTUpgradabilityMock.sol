@@ -16,6 +16,7 @@ import {
     IConstantOutflowNFT
 } from "../superfluid/ConstantOutflowNFT.sol";
 import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
+import {IStorageLayoutBase} from "./IStorageLayoutBase.sol";
 
 /*//////////////////////////////////////////////////////////////////////////
                                 FlowNFTBase Mocks
@@ -29,10 +30,7 @@ interface IFlowNFTBaseMockErrors {
 /// @author Superfluid
 /// @notice A mock FlowNFTBase contract for testing storage layout.
 /// @dev This contract *MUST* have the same storage layout as FlowNFTBase.sol
-contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
-
-    error STORAGE_LOCATION_CHANGED(string _name);
-
+contract FlowNFTBaseStorageLayoutMock is FlowNFTBase, IStorageLayoutBase {
     constructor(
         ISuperfluid host,
         string memory baseURI

@@ -19,6 +19,8 @@ interface ISuperfluidPool {
     event DistributionClaimed(address indexed member, int256 claimableAmount, int256 totalClaimed);
 
     /// @notice The pool admin
+    /// @dev The admin is the creator of the pool and has permissions to update member units
+    /// and is the recipient of the adjustment flow rate
     function admin() external view returns (address);
 
     /// @notice The SuperToken for the pool
@@ -27,18 +29,21 @@ interface ISuperfluidPool {
     /// @notice The total units of the pool
     function getTotalUnits() external view returns (uint128);
 
+    /// @notice The total number of units of connected members
+    function getTotalConnectedUnits() external view returns (uint128);
+
     /// @notice The total number of units of disconnected members
-    function getDisconnectedUnits() external view returns (uint128);
+    function getTotalDisconnectedUnits() external view returns (uint128);
 
     /// @notice The total number of units for `memberAddress`
     /// @param memberAddress The address of the member
     function getUnits(address memberAddress) external view returns (uint128);
 
     /// @notice The flow rate of the connected members
-    function getConnectedFlowRate() external view returns (int96);
+    function getTotalConnectedFlowRate() external view returns (int96);
 
     /// @notice The flow rate of the disconnected members
-    function getDisconnectedFlowRate() external view returns (int96);
+    function getTotalDisconnectedFlowRate() external view returns (int96);
 
     /// @notice The balance of all the disconnected members at `time`
     /// @param time The time to query
@@ -68,24 +73,4 @@ interface ISuperfluidPool {
 
     /// @notice Claims the claimable balance for `msg.sender` at `block.timestamp`
     function claimAll() external returns (bool);
-
-    /// @notice Does a claim for `memberAddr` at `time` and handles internal accounting logic
-    /// @dev This is only callable by the GDA and is not to be used by the end user
-    function operatorConnectMember(address memberAddr, bool doConnect, uint32 time) external returns (bool);
-}
-
-interface ISuperfluidPoolAdmin {
-    /// @notice Returns whether `account` is connected for pool
-    function isMemberConnected(ISuperfluidToken token, address pool, address account) external view returns (bool);
-
-    /// @notice Returns the adjustment flow info for `pool`
-    function getPoolAdjustmentFlowInfo(ISuperfluidPool pool)
-        external
-        view
-        returns (address recipient, bytes32 flowHash, int96 flowRate);
-
-    /// @notice Handles a settle claim and is called when someone calls claim on the pool
-    function poolSettleClaim(ISuperfluidToken superToken, address claimRecipient, int256 amount)
-        external
-        returns (bool);
 }

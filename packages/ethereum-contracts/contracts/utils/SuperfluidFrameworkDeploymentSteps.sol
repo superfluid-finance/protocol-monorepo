@@ -23,8 +23,8 @@ import {
     InstantDistributionAgreementV1
 } from "../agreements/InstantDistributionAgreementV1.sol";
 import {
-    GeneralDistributionAgreementV1Mock
-} from "../mocks/GeneralDistributionAgreementV1Mock.sol";
+    GeneralDistributionAgreementV1Harness
+} from "../mocks/GeneralDistributionAgreementV1Harness.sol";
 import {
     SuperToken,
     SuperTokenFactory
@@ -56,7 +56,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         ConstantFlowAgreementV1 cfa;
         CFAv1Library.InitData cfaLib;
         InstantDistributionAgreementV1 ida;
-        GeneralDistributionAgreementV1Mock gda;
+        GeneralDistributionAgreementV1Harness gda;
         IDAv1Library.InitData idaLib;
         SuperTokenFactory superTokenFactory;
         TestResolver resolver;
@@ -68,7 +68,7 @@ contract SuperfluidFrameworkDeploymentSteps {
     Superfluid internal host;
     ConstantFlowAgreementV1 internal cfaV1;
     InstantDistributionAgreementV1 internal idaV1;
-    GeneralDistributionAgreementV1Mock internal gdaV1;
+    GeneralDistributionAgreementV1Harness internal gdaV1;
     SuperTokenFactory internal superTokenFactory;
     TestResolver internal testResolver;
     SuperfluidLoader internal superfluidLoader;
@@ -127,7 +127,7 @@ contract SuperfluidFrameworkDeploymentSteps {
 
         // Deploy GDA
         gdaV1 = SuperfluidGDAv1DeployerLibrary
-            .deployGeneralDistributionAgreementV1Mock(host);
+            .deployGeneralDistributionAgreementV1Harness(host);
 
         // Register CFA
         testGovernance.registerAgreementClass(host, address(cfaV1));
@@ -431,13 +431,13 @@ library SuperfluidIDAv1DeployerLibrary {
 }
 
 library SuperfluidGDAv1DeployerLibrary {
-    /// @notice deploys the Superfluid GeneralDistributionAgreementV1Mock Contract
+    /// @notice deploys the Superfluid GeneralDistributionAgreementV1Harness Contract
     /// @param _host Superfluid host address
-    /// @return newly deployed GeneralDistributionAgreementV1Mock contract
-    function deployGeneralDistributionAgreementV1Mock(
+    /// @return newly deployed GeneralDistributionAgreementV1Harness contract
+    function deployGeneralDistributionAgreementV1Harness(
         ISuperfluid _host
-    ) external returns (GeneralDistributionAgreementV1Mock) {
-        return new GeneralDistributionAgreementV1Mock(_host);
+    ) external returns (GeneralDistributionAgreementV1Harness) {
+        return new GeneralDistributionAgreementV1Harness(_host);
     }
 }
 
@@ -536,7 +536,7 @@ library SuperfluidPoolLogicDeployerLibrary {
     /// @notice deploys the Superfluid SuperfluidPool contract
     /// @return newly deployed SuperfluidPool contract
     function deploySuperfluidPool(
-        GeneralDistributionAgreementV1Mock _gda
+        GeneralDistributionAgreementV1Harness _gda
     ) external returns (SuperfluidPool) {
         return new SuperfluidPool(_gda);
     }

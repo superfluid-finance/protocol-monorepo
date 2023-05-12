@@ -178,17 +178,9 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         address flowReceiver,
         uint256 newTokenId
     ) internal {
-        if (flowSender == address(0)) {
-            revert COF_NFT_MINT_TO_ZERO_ADDRESS();
-        }
-
-        if (flowSender == flowReceiver) {
-            revert COF_NFT_MINT_TO_AND_FLOW_RECEIVER_SAME();
-        }
-
-        if (_exists(newTokenId)) {
-            revert COF_NFT_TOKEN_ALREADY_EXISTS();
-        }
+        assert(flowSender != address(0));
+        assert(flowSender != flowReceiver);
+        assert(!_exists(newTokenId));
 
         // update mapping for new NFT to be minted
         _flowDataByTokenId[newTokenId] = FlowNFTData(
@@ -206,7 +198,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @dev `tokenId` must exist AND we emit a {Transfer} event
     /// @param tokenId the id of the token we are destroying
     function _burn(uint256 tokenId) internal override {
-        address owner = FlowNFTBase.ownerOf(tokenId);
+        address owner = _ownerOf(tokenId);
 
         super._burn(tokenId);
 

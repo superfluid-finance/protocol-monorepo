@@ -1,15 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
-
-import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
-import { SuperfluidTester, CFAv1Library } from "../test/SuperfluidTester.sol";
+import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
+import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
 import { Manager } from "./../contracts/Manager.sol";
 import { IManager } from "./../contracts/interfaces/IManager.sol";
-
+import { WrapStrategy } from "./../contracts/strategies/WrapStrategy.sol";
+import { ISETH } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/ISETH.sol";
 
 /// @title ManagerTests
-contract ManagerTests is SuperfluidTester {
-    using CFAv1Library for CFAv1Library.InitData;
+contract ManagerTests is FoundrySuperfluidTester {
+    using SuperTokenV1Library for SuperToken;
 
     event WrapScheduleCreated(
         bytes32 indexed id,
@@ -34,40 +35,42 @@ contract ManagerTests is SuperfluidTester {
     event LimitsChanged(uint64 lowerLimit, uint64 upperLimit);
 
     /// SETUP AND HELPERS
-    constructor() SuperfluidTester(3) {}
+    constructor() FoundrySuperfluidTester(3) {}
 
-    function setUp() public virtual {
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+    uint64 MIN_LOWER = 2 days;
+    uint64 MIN_UPPER = 7 days;
+    uint64 EXPIRY = type(uint64).max;
+    uint256 internal _expectedTotalSupply;
+    ISETH nativeSuperToken;
+    Manager public manager;
+    WrapStrategy public wrapStrategy;
 
-        for (uint32 i = 0; i < N_TESTERS; ++i) {
-            token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-            vm.stopPrank();
-        }
-
+    function setUp() override public virtual {
+        super.setUp();
         nativeSuperToken = superTokenDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
+        vm.startPrank(admin);
+        manager = new Manager(address(sf.cfa), MIN_LOWER, MIN_UPPER);
+        wrapStrategy = new WrapStrategy(address(manager));
+        vm.stopPrank();
     }
 
     function getWrapIndex(
         address user,
-        address superToken,
+        address superToken_,
         address liquidityToken
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(user, superToken, liquidityToken));
+        return keccak256(abi.encode(user, superToken_, liquidityToken));
     }
 
     function startStream(address sender, address receiver, int96 flowRate) public {
         vm.startPrank(sender);
-        cfaV1.createFlow(receiver, superToken, flowRate);
+        superToken.createFlow(receiver, flowRate);
         vm.stopPrank();
     }
 
     function stopStream(address sender, address receiver) public {
         vm.startPrank(sender);
-        cfaV1.deleteFlow(sender, receiver, superToken);
+        superToken.deleteFlow(sender, receiver);
         vm.stopPrank();
     }
 
@@ -79,14 +82,15 @@ contract ManagerTests is SuperfluidTester {
     }
 
     function testFailDeploymentWrongLimits() public {
-        new Manager(address(cfa), 2, 1);
+        new Manager(address(sf.cfa), 2, 1);
     }
 
     function testDeploymentCheckData() public {
-        assertEq(address(manager.cfaV1()), address(cfa), "manager.cfaV1 not equal");
+        assertEq(address(manager.cfaV1()), address(sf.cfa), "manager.cfaV1 not equal");
         assertEq(manager.owner(), admin, "manager.owner not equal");
         assertEq(manager.minLower(), MIN_LOWER, "manager.minLower not equal");
         assertEq(manager.minUpper(), MIN_UPPER, "manager.minUpper not equal");
+
     }
 
     // Change Limits

@@ -2,7 +2,7 @@
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
 
-from src.interfaces.ISuperToken import ISuperToken
+from src.interfaces.ISuperfluidToken import ISuperfluidToken
 from src.interfaces.IAqueduct import IAqueduct
 
 @external

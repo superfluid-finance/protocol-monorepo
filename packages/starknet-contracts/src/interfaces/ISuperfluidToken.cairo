@@ -104,8 +104,8 @@ namespace ISuperfluidToken {
     func isMemberConnected(pool: felt, memberAddress: felt) -> (success: felt) {
     }
 
-    /// Get pool adjustment flow information: (recipient, flowHahs, flowRate)
-    func getPoolAdjustmentFlowInfo(pool: felt) -> (address: felt, flow_hash: felt, flow_rate: felt) {
+    /// Get pool adjustment flow information: (recipient, flowHash, flowRate)
+    func getPoolAdjustmentFlowInfo(pool: felt) -> (adjustmentRecipient: felt, flowHash: felt, flowRate: felt) {
     }
 
     /// Update the adjustment flow rate

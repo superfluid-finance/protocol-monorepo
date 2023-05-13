@@ -21,8 +21,8 @@ from src.utils.SemanticMoney import (
 )
 from src.utils.account.ITestAccount import ITestAccount
 from src.utils.account.library import Call
-from src.interfaces.ISuperToken import ISuperToken
-from src.interfaces.ISuperTokenPool import ISuperTokenPool, ISuperTokenPoolAdmin
+from src.interfaces.ISuperfluidToken import ISuperfluidToken
+from src.interfaces.ISuperfluidPool import ISuperfluidPool, ISuperfluidPoolOperator
 
 from protostar.asserts import (
     assert_eq,

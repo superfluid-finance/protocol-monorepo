@@ -42,7 +42,7 @@ func Pool_claimed_values(member: felt) -> (value: felt) {
 }
 
 @storage_var
-func Pool_disconnectedMembers() -> (PDPoolMember: felt) {
+func Pool_disconnectedMembers() -> (pdMember: PDPoolMember) {
 }
 
 @storage_var
@@ -60,7 +60,7 @@ namespace Pool {
         return ();
     }
 
-    func admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr} -> (address: felt) {
+    func admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (address: felt) {
         return Pool_admin.read();
     }
 
@@ -100,18 +100,18 @@ namespace Pool {
 
     // REVIEW
     func getConnectedFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        ) -> (flow_rate: felt) {
+        ) -> (flowRate: felt) {
         let (index) = Pool_index.read();
-        let (flow_rate) = SemanticMoney.flow_rate_per_unit(index);
-        return (flow_rate=flow_rate * index.total_units);
+        let (flowRate) = SemanticMoney.flow_rate_per_unit(index);
+        return (flowRate=flowRate * index.total_units);
     }
 
     func getDisconnectedFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        ) -> (flow_rate: felt) {
+        ) -> (flowRate: felt) {
         let (index) = Pool_index.read();
-        let (flow_rate) = SemanticMoney.flow_rate_per_unit(index);
+        let (flowRate) = SemanticMoney.flow_rate_per_unit(index);
         let (disconnectedPDMember) = Pool_disconnectedMembers.read();
-        return (flow_rate=flow_rate * disconnectedPDMember.owned_unit);
+        return (flowRate=flowRate * disconnectedPDMember.owned_unit);
     }
 
     func getDisconnectedBalance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(time: felt) -> (value: felt) {
@@ -198,15 +198,18 @@ namespace Pool {
     ) {
         alloc_locals;
         let (pool_operator) = Pool_POOL_OPERATOR.read();
-        let (time) = get_block_timestamp();
-        let (claimed_amount) = _claimAll(time, memberAddress);
+        let (contract_address) = get_contract_address();
         let (connected) = ISuperfluidPoolOperator.isMemberConnected(
             contract_address=pool_operator, pool=contract_address, memberAddress=memberAddress
         );
+        let (time) = get_block_timestamp();
+        let (claimed_amount) = _claimAll(time, memberAddress);
         if (connected == FALSE) {
             _shiftDisconnectedUnits(0, claimed_amount, time);
+            return (success=TRUE);
+        } else {
+            return (success=TRUE);
         }
-        return (success=TRUE)
     }
 
     func _claimAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
@@ -216,7 +219,7 @@ namespace Pool {
         let (value) = getClaimable(time, memberAddress);
         let (pool_operator) = Pool_POOL_OPERATOR.read();
 
-        let success = ISuperfluidPoolOperator.poolSettleClaim(contract_address=pool_operator, claimRecipient=memberAddress, amount=value)
+        let (success) = ISuperfluidPoolOperator.poolSettleClaim(contract_address=pool_operator, claimRecipient=memberAddress, amount=value);
         assert success = TRUE;
 
         let (initialClaimedValue) = Pool_claimed_values.read(memberAddress);
@@ -269,9 +272,9 @@ namespace Pool {
     func _shiftDisconnectedUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(shift_units: felt, claimed_amount: felt, time: felt){
         let (index) = Pool_index.read();
         let (disconnectedPDMembers) = Pool_disconnectedMembers.read();
-        let (pd_member_mu) = PDPoolMemberMU(index, disconnectedPDMembers);
-        let (settled_pool_member_mu) = SemanticMoney.settle_for_pool_member_mu(pd_member_mu, time);
-        let new_disconnectedMembers = PDPoolMember(settled_pool_member_mu.pdPoolMember.owned_unit + shift_units, settled_pool_member_mu.pdPoolMember._settled_value, settled_pool_member_mu.pdPoolMember._synced_particle);
+        let pdMemberMu = PDPoolMemberMU(index, disconnectedPDMembers);
+        let (settledPoolMemberMu) = SemanticMoney.settle_for_pool_member_mu(pdMemberMu, time);
+        let new_disconnectedMembers = PDPoolMember(settledPoolMemberMu.pdPoolMember.owned_unit + shift_units, settledPoolMemberMu.pdPoolMember._settled_value, settledPoolMemberMu.pdPoolMember._synced_particle);
         Pool_disconnectedMembers.write(new_disconnectedMembers);
         let (claimedByDisconnectedMembers) = Pool_claimedByDisconnectedMembers.read();
         Pool_claimedByDisconnectedMembers.write(claimedByDisconnectedMembers + claimed_amount);

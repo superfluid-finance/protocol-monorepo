@@ -4,8 +4,8 @@ from starkware.cairo.common.cairo_builtins import HashBuiltin
 from starkware.cairo.common.math import unsigned_div_rem
 from starkware.cairo.common.bool import TRUE, FALSE
 
-from src.interfaces.ISuperToken import ISuperToken
-from src.interfaces.ISuperTokenPool import ISuperTokenPool
+from src.interfaces.ISuperfluidToken import ISuperfluidToken
+from src.interfaces.ISuperfluidPool import ISuperfluidPool
 
 namespace AqueductLibrary {
     struct SideState {
@@ -67,13 +67,13 @@ namespace Aqueduct {
     func initializer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
         tokenL: felt, tokenR: felt
     ) {
-        let (pool) = ISuperToken.createPool(contract_address=tokenL);
+        let (pool) = ISuperfluidToken.createPool(contract_address=tokenL);
         let (left) = _left.read();
         let newLeft = Side(tokenL, pool, left.state);
         _left.write(newLeft);
 
 
-        let (pool) = ISuperToken.createPool(contract_address=tokenR);
+        let (pool) = ISuperfluidToken.createPool(contract_address=tokenR);
         let (right) = _right.read();
         let newRight= Side(tokenR, pool, right.state);
         _right.write(newRight);
@@ -122,7 +122,7 @@ namespace Aqueduct {
     func _onFlowUpdate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(a: Side, b: Side, _from: felt, ir0: felt, ir1: felt, update_left: felt) {
         alloc_locals;
         // Update units based on new flowrate
-        let (curUnitsB) = ISuperTokenPool.getUnits(contract_address=b.superTokenPool, memberAddress=_from);
+        let (curUnitsB) = ISuperfluidPool.getUnits(contract_address=b.superTokenPool, memberAddress=_from);
         let (newSideStateB, _, unit) =  AqueductLibrary.update_side(b.state, curUnitsB, ir0, ir1);
         let newSide = Side(b.superToken, b.superTokenPool, newSideStateB);
         if (update_left == TRUE){
@@ -130,7 +130,7 @@ namespace Aqueduct {
         } else {
             _right.write(newSide);
         }
-        ISuperTokenPool.updateMember(contract_address=b.superTokenPool, memberAddress=_from, unit=unit);
+        ISuperfluidPool.updateMember(contract_address=b.superTokenPool, memberAddress=_from, unit=unit);
         return ();
     }
 }

@@ -12,6 +12,11 @@ func constructor{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
 }
 
 @view
+func admin{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (address: felt) {
+    return Pool.admin();
+}
+
+@view
 func getIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
     index: PDPoolIndex
 ) {
@@ -19,17 +24,15 @@ func getIndex{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}()
 }
 
 @view
-func getPendingUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-    value: felt
-) {
-    return Pool.getPendingUnits();
-}
-
-@view
 func getTotalUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
     value: felt
 ) {
     return Pool.getTotalUnits();
+}
+
+@view
+func getDisconnectedUnits{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (unit: felt) {
+    return Pool.getDisconnectedUnits();
 }
 
 @view
@@ -47,17 +50,18 @@ func getDistributionFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ran
 }
 
 @view
-func getPendingDistributionFlowRate{
-    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
-}() -> (flow_rate: felt) {
-    return Pool.getPendingDistributionFlowRate();
+func getConnectedFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (flowRate: felt) {
+    return Pool.getConnectedFlowRate();
 }
 
 @view
-func getMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    memberAddress: felt
-) -> (member_data: PDPoolMember) {
-    return Pool.getMember(memberAddress);
+func getDisconnectedFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (flowRate: felt) {
+    return Pool.getDisconnectedFlowRate();
+}
+
+@view
+func getDisconnectedBalance{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(time: felt) -> (value: felt) {
+    return Pool.getDisconnectedBalance(time);
 }
 
 @view
@@ -65,13 +69,6 @@ func getMemberFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
     memberAddress: felt
 ) -> (flow_rate: felt) {
     return Pool.getMemberFlowRate(memberAddress);
-}
-
-@view
-func getPendingDistribution{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-    value: felt
-) {
-    return Pool.getPendingDistribution();
 }
 
 @view
@@ -92,9 +89,8 @@ func updateMember{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_pt
 func claimAll{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
     success: felt
 ) {
-    let (timestamp) = get_block_timestamp();
     let (caller) = get_caller_address();
-    return Pool._claimAll(timestamp, caller);
+    return Pool.claimAll(caller);
 }
 
 @external

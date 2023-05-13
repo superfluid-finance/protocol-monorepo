@@ -34,9 +34,9 @@ func symbol{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -
 
 @view
 func totalSupply{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (
-    total_supply: felt
+    totalSupply: felt
 ) {
-    return SuperToken.total_supply();
+    return SuperToken.totalSupply();
 }
 
 @view
@@ -50,22 +50,22 @@ func decimals{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}()
 func balanceOf{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(account: felt) -> (
     balance: felt
 ) {
-    return SuperToken.balance_of(account);
+    return SuperToken.balanceOf(account);
 }
 
 @view
 func realtimeBalanceNow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt
 ) -> (rtb: felt) {
-    let (timestamp) = get_block_timestamp()
-    return SuperToken.realtime_balance_at(account, timestamp);
+    let (timestamp) = get_block_timestamp();
+    return SuperToken.realtimeBalanceAt(account, timestamp);
 }
 
 @view
 func realtimeBalanceAt{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt, time: felt
 ) -> (rtb: felt) {
-    return SuperToken.realtime_balance_at(account, time);
+    return SuperToken.realtimeBalanceAt(account, time);
 }
 
 @view
@@ -73,28 +73,28 @@ func realtimeBalanceVectorNow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, ra
     account: felt
 ) -> (own: felt, fromPool: felt, deposit: felt) {
     let (timestamp) = get_block_timestamp();
-    return SuperToken.realtime_balance_vector_at(account, timestamp);
+    return SuperToken.realtimeBalanceVectorAt(account, timestamp);
 }
 
 @view
 func realtimeBalanceVectorAt{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt, time: felt
 ) -> (own: felt, fromPool: felt, deposit: felt) {
-    return SuperToken.realtime_balance_vector_at(account, time);
+    return SuperToken.realtimeBalanceVectorAt(account, time);
 }
 
 @view
 func getNetFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt
-) -> (flow_rate: felt) {
-    return SuperToken.get_net_flow_rate(account);
+) -> (flowRate: felt) {
+    return SuperToken.getNetFlowRate(account);
 }
 
 @view
 func getFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     _from: felt, to: felt, flowId: felt
-) -> (flow_rate: felt) {
-    return SuperToken.get_flow_rate(_from, to, flowId);
+) -> (flowRate: felt) {
+    return SuperToken.getFlowRate(_from, to, flowId);
 }
 
 //
@@ -110,9 +110,9 @@ func shift{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
 
 @external
 func flow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    sender: felt, recipient: felt, flow_id: felt, flow_rate: felt
+    sender: felt, recipient: felt, flowId: felt, flowRate: felt
 ) -> (success: felt) {
-    return SuperToken.flow(sender, recipient, flow_id, flow_rate);
+    return SuperToken.flow(sender, recipient, flowId, flowRate);
 }
 
 @external
@@ -124,9 +124,9 @@ func distribute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}
 
 @external
 func distributeFlow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-    sender: felt, poolAddress: felt, flow_id: felt, reqFlowRate: felt
-) -> (success: felt, actualFlowRate: felt) {
-    return SuperToken.distribute_flow(sender, poolAddress, flow_id, reqFlowRate);
+    sender: felt, pool: felt, flowId: felt, reqFlowRate: felt
+) -> (success: felt, actualFlowRate: felt, newDistributionFlowRate: felt) {
+    return SuperToken.distributeFlow(sender, pool, flowId, reqFlowRate);
 }
 
 @external
@@ -156,15 +156,31 @@ func isMemberConnected{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_che
 }
 
 @view
+func getPoolAdjustmentFlowInfo{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(pool: felt) -> (adjustmentRecipient: felt, flowHash: felt, flowRate: felt){
+    return SuperToken.getPoolAdjustmentFlowInfo(pool);
+}
+
+@external
+func appendIndexUpdateByPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(particle: BasicParticle, time: felt) -> (success: felt) {
+    SuperToken.appendIndexUpdateByPool(particle, time);
+    return (success=TRUE);
+}
+
+@external
+func poolSettleClaim{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(claimRecipient: felt, amount: felt) -> (success: felt){
+    SuperToken.poolSettleClaim(claimRecipient, amount);
+    return (success=TRUE);
+}
+
+func isPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(address: felt) -> (success: felt) {
+    return SuperToken.isPool(address);
+}
+
+@view
 func getNumConnections{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
     account: felt
 ) -> (value: felt) {
     return SuperToken.getNumConnections(account);
-}
-
-@external
-func absorbParticleFromPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(account: felt, particle: BasicParticle) -> (success: felt) {
-    return SuperToken.absorbParticleFromPool(account, particle);
 }
 
 @external

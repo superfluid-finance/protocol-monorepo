@@ -229,6 +229,7 @@ module.exports = function getConfig(chainId) {
                 initialBlockNumber: 21012000,
                 getLogsRange: 50000,
             },
+            cfaFwd: "0x2CDd45c5182602a36d391F7F16DD9f8386C3bD8D",
         },
 
         //
@@ -267,6 +268,7 @@ module.exports = function getConfig(chainId) {
             // default token list for the test deployments
             tokenList: ["fDAIx", "fUSDCx", "fTUSDx"],
             data: {},
+            cfaFwd: "0xcfA132E353cB4E398080B9700609bb008eceB125",
         },
         // network specific configs
         ...DEFAULT_CONFIGS[chainId],

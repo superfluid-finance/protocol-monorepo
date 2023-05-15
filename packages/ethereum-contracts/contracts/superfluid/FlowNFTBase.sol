@@ -203,11 +203,11 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
             string(
                 abi.encodePacked(
                     baseURI,
-                    _flowDataString(tokenId),
-                    "&flowRate=",
+                    "?flowRate=",
                     uint256(uint96(flowRate)).toString(),
                     "&outgoing=",
-                    isInflow ? "false" : "true"
+                    isInflow ? "false" : "true",
+                    _flowDataString(tokenId)
                 )
             );
     }
@@ -228,7 +228,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
                         uint256(uint160(flowData.superToken)),
                         20
                     ),
-                    "?chain_id=",
+                    "&chain_id=",
                     block.chainid.toString(),
                     "&token_symbol=",
                     ISuperToken(flowData.superToken).symbol(),

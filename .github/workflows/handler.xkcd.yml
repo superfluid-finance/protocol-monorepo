@@ -6,6 +6,11 @@ on:
 
 jobs:
   post-xkcd:
+
+    permissions:
+      pull-requests: write
+      issues: write
+
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true
     steps:

@@ -36,6 +36,9 @@ jobs:
            , test-sdk-core-with-v1-release-subgraph
            ]
 
+    permissions:
+      repository-projects: write
+
     steps:
       - uses: actions/checkout@v3
 
@@ -63,6 +66,7 @@ jobs:
       - name: Create sdk-core stable release draft
         if: env.PUBLISHED_SDK_CORE_VERSION == 1
         id: create_release_sdk_core
+
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token

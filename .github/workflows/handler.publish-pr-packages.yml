@@ -14,6 +14,9 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      packages: write
+
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:

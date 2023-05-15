@@ -9,10 +9,10 @@ import {SuperfluidPool} from "../superfluid/SuperfluidPool.sol";
 library SuperfluidPoolDeployerLibrary {
     function deploy(address beacon, address admin, ISuperfluidToken token) external returns (SuperfluidPool pool) {
         bytes memory initializeCallData = abi.encodeWithSelector(SuperfluidPool.initialize.selector, admin, token);
-        BeaconProxy superTokenPoolBeaconProxy = new BeaconProxy(
+        BeaconProxy superfluidPoolBeaconProxy = new BeaconProxy(
             beacon,
             initializeCallData
         );
-        pool = SuperfluidPool(address(superTokenPoolBeaconProxy));
+        pool = SuperfluidPool(address(superfluidPoolBeaconProxy));
     }
 }

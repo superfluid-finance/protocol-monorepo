@@ -73,7 +73,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
     address public constant SLOTS_BITMAP_LIBRARY_ADDRESS = address(SlotsBitmapLibrary);
 
-    address public constant SUPER_TOKEN_POOL_DEPLOYER_ADDRESS = address(SuperfluidPoolDeployerLibrary);
+    address public constant SUPERFLUID_POOL_DEPLOYER_ADDRESS = address(SuperfluidPoolDeployerLibrary);
 
     /// @dev Universal Index state slot id for storing universal index data
     uint256 private constant _UNIVERSAL_INDEX_STATE_SLOT_ID = 0;
@@ -116,12 +116,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         address liquidator;
     }
 
-    IBeacon public superTokenPoolBeacon;
+    IBeacon public superfluidPoolBeacon;
 
     constructor(ISuperfluid host) AgreementBase(address(host)) {}
 
-    function initialize(IBeacon superTokenPoolBeacon_) external initializer {
-        superTokenPoolBeacon = superTokenPoolBeacon_;
+    function initialize(IBeacon superfluidPoolBeacon_) external initializer {
+        superfluidPoolBeacon = superfluidPoolBeacon_;
     }
 
     function realtimeBalanceVectorAt(ISuperfluidToken token, address account, uint256 time)
@@ -256,7 +256,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     /// @inheritdoc IGeneralDistributionAgreementV1
     function createPool(address admin, ISuperfluidToken token) external override returns (ISuperfluidPool pool) {
         pool =
-            ISuperfluidPool(address(SuperfluidPoolDeployerLibrary.deploy(address(superTokenPoolBeacon), admin, token)));
+            ISuperfluidPool(address(SuperfluidPoolDeployerLibrary.deploy(address(superfluidPoolBeacon), admin, token)));
 
         // @note We utilize the storage slot for Universal Index State
         // to store whether an account is a pool or not

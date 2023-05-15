@@ -101,12 +101,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     output += `GDA_LOGIC=${await getCodeAddress(UUPSProxiable, gdaProxy)}\n`;
 
     const gdaContract = await GeneralDistributionAgreementV1.at(gdaProxy);
-    const superTokenPoolBeaconContract = await SuperfluidUpgradeableBeacon.at(
-        await gdaContract.superTokenPoolBeacon()
+    const superfluidPoolBeaconContract = await SuperfluidUpgradeableBeacon.at(
+        await gdaContract.superfluidPoolBeacon()
     );
     output += `SUPERFLUID_POOL_DEPLOYER_ADDRESS=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n}`;
-    output += `SUPERFLUID_POOL_BEACON=${superTokenPoolBeaconContract.address}\n`;
-    output += `SUPERFLUID_POOL_LOGIC=${await superTokenPoolBeaconContract.implementation()}\n`;
+    output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
+    output += `SUPERFLUID_POOL_LOGIC=${await superfluidPoolBeaconContract.implementation()}\n`;
 
     const superTokenLogicAddress = await (
         await ISuperTokenFactory.at(await sf.host.getSuperTokenFactory())

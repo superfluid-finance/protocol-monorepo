@@ -162,10 +162,10 @@ contract SuperfluidFrameworkDeploymentSteps {
         superfluidPoolLogic.castrate();
 
         // Deploy SuperfluidPool beacon
-        SuperfluidUpgradeableBeacon superTokenPoolBeacon = ProxyDeployerLibrary
+        SuperfluidUpgradeableBeacon superfluidPoolBeacon = ProxyDeployerLibrary
             .deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
 
-        gdaV1.initialize(superTokenPoolBeacon);
+        gdaV1.initialize(superfluidPoolBeacon);
     }
 
     function _deployNFTProxyAndLogicAndInitialize() internal {

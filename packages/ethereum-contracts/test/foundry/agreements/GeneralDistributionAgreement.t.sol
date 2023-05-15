@@ -283,10 +283,10 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function testInitializeGDA(IBeacon beacon) public {
         GeneralDistributionAgreementV1 gdaV1 = new GeneralDistributionAgreementV1(sf.host);
-        assertEq(address(gdaV1.superTokenPoolBeacon()), address(0), "GDAv1.t: Beacon address not address(0)");
+        assertEq(address(gdaV1.superfluidPoolBeacon()), address(0), "GDAv1.t: Beacon address not address(0)");
         gdaV1.initialize(beacon);
 
-        assertEq(address(gdaV1.superTokenPoolBeacon()), address(beacon), "GDAv1.t: Beacon address not equal");
+        assertEq(address(gdaV1.superfluidPoolBeacon()), address(beacon), "GDAv1.t: Beacon address not equal");
     }
 
     function testRevertReinitializeGDA(IBeacon beacon) public {

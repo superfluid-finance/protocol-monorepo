@@ -93,11 +93,10 @@ export interface TokenStatisticLogsQuery extends TokenStatisticLogListQuery {
     chainId: number;
 }
 
-export interface AccountAccessSettingQuery extends SubgraphGetQuery{
+export interface AccountAccessSettingQuery extends SubgraphGetQuery {
     chainId: number;
 }
 
-export interface AccountAccessSettingsQuery extends AccountAccessSettingListQuery
-{
+export interface AccountAccessSettingsQuery extends AccountAccessSettingListQuery {
     chainId: number;
 }

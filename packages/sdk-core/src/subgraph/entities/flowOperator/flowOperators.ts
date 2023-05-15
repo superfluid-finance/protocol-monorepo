@@ -15,12 +15,12 @@ import {
 } from "../../subgraphQueryHandler";
 
 import {
-    AccountAccessSettingsDocument,
-    AccountAccessSettingsQuery,
-    AccountAccessSettingsQueryVariables,
-} from "./accountAccessSettings.generated";
+    FlowOperatorsDocument,
+    FlowOperatorsQuery,
+    FlowOperatorsQueryVariables,
+} from "./flowOperators.generated";
 
-export interface AccountAccessSetting {
+export interface FlowOperator {
     id: string;
     createdAtBlockNumber: BlockNumber;
     createdAtTimestamp: Timestamp;
@@ -34,37 +34,33 @@ export interface AccountAccessSetting {
     permissions: number;
 }
 
-export type AccountAccessSettingListQuery = SubgraphListQuery<
+export type FlowOperatorListQuery = SubgraphListQuery<
     FlowOperator_Filter,
     FlowOperator_OrderBy
 >;
 
-export class AccountAccessSettingQueryHandler extends SubgraphQueryHandler<
-    AccountAccessSetting,
-    AccountAccessSettingListQuery,
-    AccountAccessSettingsQuery,
-    AccountAccessSettingsQueryVariables
+export class FlowOperatorQueryHandler extends SubgraphQueryHandler<
+    FlowOperator,
+    FlowOperatorListQuery,
+    FlowOperatorsQuery,
+    FlowOperatorsQueryVariables
 > {
     getAddressFieldKeysFromFilter = (): {
         accountKeys: (keyof FlowOperator_Filter)[];
         tokenKeys: (keyof FlowOperator_Filter)[];
-        flowOperatorKeys: (keyof FlowOperator_Filter)[];
     } => ({
-        accountKeys: ["sender"],
+        accountKeys: ["sender", "flowOperator"],
         tokenKeys: ["token"],
-        flowOperatorKeys: ["flowOperator"],
     });
 
     getRelevantAddressesFromResultCore = (
-        result: AccountAccessSetting
+        result: FlowOperator
     ): RelevantAddressesIntermediate => ({
         accounts: [result.id],
         tokens: [],
     });
 
-    mapFromSubgraphResponse = (
-        response: AccountAccessSettingsQuery
-    ): AccountAccessSetting[] =>
+    mapFromSubgraphResponse = (response: FlowOperatorsQuery): FlowOperator[] =>
         response.flowOperators.map((x) => ({
             ...x,
             sender: x.sender.id,
@@ -74,5 +70,5 @@ export class AccountAccessSettingQueryHandler extends SubgraphQueryHandler<
             updatedAtTimestamp: Number(x.updatedAtTimestamp),
             updatedAtBlockNumber: Number(x.updatedAtBlockNumber),
         }));
-    requestDocument = AccountAccessSettingsDocument;
+    requestDocument = FlowOperatorsDocument;
 }

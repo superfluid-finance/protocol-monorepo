@@ -55,7 +55,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
 
     string internal _name;
     string internal _symbol;
-    string internal _baseURI;
+    string public baseURI;
 
     /// @notice Mapping for token approvals
     /// @dev tokenID => approved address mapping
@@ -89,7 +89,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     uint256 private _reserve20;
     uint256 internal _reserve21;
 
-    constructor(ISuperfluid host, string memory baseURI) {
+    constructor(ISuperfluid host, string memory baseURI_) {
         HOST = host;
         CONSTANT_FLOW_AGREEMENT_V1 = IConstantFlowAgreementV1(
             address(
@@ -99,7 +99,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
                 )
             )
         );
-        _baseURI = baseURI;
+        baseURI = baseURI_;
     }
 
     function initialize(
@@ -202,7 +202,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         return
             string(
                 abi.encodePacked(
-                    _baseURI,
+                    baseURI,
                     _flowDataString(tokenId),
                     "&flowRate=",
                     uint256(uint96(flowRate)).toString(),

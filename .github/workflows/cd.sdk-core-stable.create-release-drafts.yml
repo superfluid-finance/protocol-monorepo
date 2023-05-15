@@ -32,6 +32,8 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions: write-all
+
     needs: [ test-sdk-core-query-schema-against-deployed-v1-subgraphs
            , test-sdk-core-with-v1-release-subgraph
            ]

@@ -56,8 +56,8 @@ export class FlowOperatorQueryHandler extends SubgraphQueryHandler<
     getRelevantAddressesFromResultCore = (
         result: FlowOperator
     ): RelevantAddressesIntermediate => ({
-        accounts: [result.id],
-        tokens: [],
+        accounts: [result.sender, result.flowOperator],
+        tokens: [result.token],
     });
 
     mapFromSubgraphResponse = (response: FlowOperatorsQuery): FlowOperator[] =>

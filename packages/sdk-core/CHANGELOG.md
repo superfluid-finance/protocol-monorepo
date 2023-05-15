@@ -5,9 +5,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
-### Added
-- Subgraph query support for `FlowOperator`
-
 ## [0.6.5] - 2023-05-12
 
 ### Fixed

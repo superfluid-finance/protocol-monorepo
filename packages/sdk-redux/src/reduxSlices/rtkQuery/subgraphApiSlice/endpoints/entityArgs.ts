@@ -2,7 +2,6 @@ import {
     AccountListQuery,
     AccountTokenSnapshotListQuery,
     AccountTokenSnapshotLogListQuery,
-    FlowOperatorListQuery,
     IndexListQuery,
     IndexSubscriptionsListQuery,
     StreamListQuery,
@@ -90,13 +89,5 @@ export interface TokenStatisticLogQuery extends SubgraphGetQuery {
 }
 
 export interface TokenStatisticLogsQuery extends TokenStatisticLogListQuery {
-    chainId: number;
-}
-
-export interface FlowOperatorQuery extends SubgraphGetQuery {
-    chainId: number;
-}
-
-export interface FlowOperatorsQuery extends FlowOperatorListQuery {
     chainId: number;
 }

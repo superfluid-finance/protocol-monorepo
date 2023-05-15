@@ -1,6 +1,6 @@
 name: CD | Create PR Artifact
 env:
-  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 on:
   pull_request:

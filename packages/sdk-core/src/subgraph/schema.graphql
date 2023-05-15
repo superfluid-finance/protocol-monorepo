@@ -18,6 +18,9 @@ type _Block_ {
 
   """The block number"""
   number: Int!
+
+  """Integer representation of the timestamp stored in blocks for the chain"""
+  timestamp: Int
 }
 
 """The type for the top-level _meta field"""
@@ -132,6 +135,8 @@ input Account_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [Account_filter]
+  or: [Account_filter]
 }
 
 enum Account_orderBy {
@@ -507,6 +512,8 @@ input AccountTokenSnapshot_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [AccountTokenSnapshot_filter]
+  or: [AccountTokenSnapshot_filter]
 }
 
 enum AccountTokenSnapshot_orderBy {
@@ -533,7 +540,23 @@ enum AccountTokenSnapshot_orderBy {
   totalAmountStreamedUntilUpdatedAt
   totalAmountTransferredUntilUpdatedAt
   account
+  account__id
+  account__createdAtTimestamp
+  account__createdAtBlockNumber
+  account__updatedAtTimestamp
+  account__updatedAtBlockNumber
+  account__isSuperApp
   token
+  token__id
+  token__createdAtTimestamp
+  token__createdAtBlockNumber
+  token__decimals
+  token__name
+  token__symbol
+  token__isSuperToken
+  token__isNativeAssetSuperToken
+  token__isListed
+  token__underlyingAddress
   flowOperators
   accountTokenSnapshotLogs
 }
@@ -619,7 +642,7 @@ type AccountTokenSnapshotLog {
 
   """
   The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block`.
-  This can be obtained by: `totalInflowRate - totalOutflowRate` 
+  This can be obtained by: `totalInflowRate - totalOutflowRate`
   
   """
   totalNetFlowRate: BigInt!
@@ -691,6 +714,10 @@ input AccountTokenSnapshotLog_filter {
   blockNumber_not_in: [BigInt!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -941,6 +968,8 @@ input AccountTokenSnapshotLog_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [AccountTokenSnapshotLog_filter]
+  or: [AccountTokenSnapshotLog_filter]
 }
 
 enum AccountTokenSnapshotLog_orderBy {
@@ -970,8 +999,46 @@ enum AccountTokenSnapshotLog_orderBy {
   totalAmountStreamed
   totalAmountTransferred
   account
+  account__id
+  account__createdAtTimestamp
+  account__createdAtBlockNumber
+  account__updatedAtTimestamp
+  account__updatedAtBlockNumber
+  account__isSuperApp
   token
+  token__id
+  token__createdAtTimestamp
+  token__createdAtBlockNumber
+  token__decimals
+  token__name
+  token__symbol
+  token__isSuperToken
+  token__isNativeAssetSuperToken
+  token__isListed
+  token__underlyingAddress
   accountTokenSnapshot
+  accountTokenSnapshot__id
+  accountTokenSnapshot__updatedAtTimestamp
+  accountTokenSnapshot__updatedAtBlockNumber
+  accountTokenSnapshot__isLiquidationEstimateOptimistic
+  accountTokenSnapshot__maybeCriticalAtTimestamp
+  accountTokenSnapshot__totalNumberOfActiveStreams
+  accountTokenSnapshot__activeOutgoingStreamCount
+  accountTokenSnapshot__activeIncomingStreamCount
+  accountTokenSnapshot__totalNumberOfClosedStreams
+  accountTokenSnapshot__inactiveOutgoingStreamCount
+  accountTokenSnapshot__inactiveIncomingStreamCount
+  accountTokenSnapshot__totalSubscriptionsWithUnits
+  accountTokenSnapshot__totalApprovedSubscriptions
+  accountTokenSnapshot__balanceUntilUpdatedAt
+  accountTokenSnapshot__totalDeposit
+  accountTokenSnapshot__totalNetFlowRate
+  accountTokenSnapshot__totalInflowRate
+  accountTokenSnapshot__totalOutflowRate
+  accountTokenSnapshot__totalAmountStreamedInUntilUpdatedAt
+  accountTokenSnapshot__totalAmountStreamedOutUntilUpdatedAt
+  accountTokenSnapshot__totalAmountStreamedUntilUpdatedAt
+  accountTokenSnapshot__totalAmountTransferredUntilUpdatedAt
 }
 
 type AgreementClassRegisteredEvent implements Event {
@@ -1005,6 +1072,10 @@ input AgreementClassRegisteredEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -1085,12 +1156,20 @@ input AgreementClassRegisteredEvent_filter {
   order_not_in: [BigInt!]
   agreementType: Bytes
   agreementType_not: Bytes
+  agreementType_gt: Bytes
+  agreementType_lt: Bytes
+  agreementType_gte: Bytes
+  agreementType_lte: Bytes
   agreementType_in: [Bytes!]
   agreementType_not_in: [Bytes!]
   agreementType_contains: Bytes
   agreementType_not_contains: Bytes
   code: Bytes
   code_not: Bytes
+  code_gt: Bytes
+  code_lt: Bytes
+  code_gte: Bytes
+  code_lte: Bytes
   code_in: [Bytes!]
   code_not_in: [Bytes!]
   code_contains: Bytes
@@ -1098,6 +1177,8 @@ input AgreementClassRegisteredEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [AgreementClassRegisteredEvent_filter]
+  or: [AgreementClassRegisteredEvent_filter]
 }
 
 enum AgreementClassRegisteredEvent_orderBy {
@@ -1146,6 +1227,10 @@ input AgreementClassUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -1226,12 +1311,20 @@ input AgreementClassUpdatedEvent_filter {
   order_not_in: [BigInt!]
   agreementType: Bytes
   agreementType_not: Bytes
+  agreementType_gt: Bytes
+  agreementType_lt: Bytes
+  agreementType_gte: Bytes
+  agreementType_lte: Bytes
   agreementType_in: [Bytes!]
   agreementType_not_in: [Bytes!]
   agreementType_contains: Bytes
   agreementType_not_contains: Bytes
   code: Bytes
   code_not: Bytes
+  code_gt: Bytes
+  code_lt: Bytes
+  code_gte: Bytes
+  code_lte: Bytes
   code_in: [Bytes!]
   code_not_in: [Bytes!]
   code_contains: Bytes
@@ -1239,6 +1332,8 @@ input AgreementClassUpdatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [AgreementClassUpdatedEvent_filter]
+  or: [AgreementClassUpdatedEvent_filter]
 }
 
 enum AgreementClassUpdatedEvent_orderBy {
@@ -1316,6 +1411,10 @@ input AgreementLiquidatedByEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -1396,36 +1495,60 @@ input AgreementLiquidatedByEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   liquidatorAccount: Bytes
   liquidatorAccount_not: Bytes
+  liquidatorAccount_gt: Bytes
+  liquidatorAccount_lt: Bytes
+  liquidatorAccount_gte: Bytes
+  liquidatorAccount_lte: Bytes
   liquidatorAccount_in: [Bytes!]
   liquidatorAccount_not_in: [Bytes!]
   liquidatorAccount_contains: Bytes
   liquidatorAccount_not_contains: Bytes
   agreementClass: Bytes
   agreementClass_not: Bytes
+  agreementClass_gt: Bytes
+  agreementClass_lt: Bytes
+  agreementClass_gte: Bytes
+  agreementClass_lte: Bytes
   agreementClass_in: [Bytes!]
   agreementClass_not_in: [Bytes!]
   agreementClass_contains: Bytes
   agreementClass_not_contains: Bytes
   agreementId: Bytes
   agreementId_not: Bytes
+  agreementId_gt: Bytes
+  agreementId_lt: Bytes
+  agreementId_gte: Bytes
+  agreementId_lte: Bytes
   agreementId_in: [Bytes!]
   agreementId_not_in: [Bytes!]
   agreementId_contains: Bytes
   agreementId_not_contains: Bytes
   penaltyAccount: Bytes
   penaltyAccount_not: Bytes
+  penaltyAccount_gt: Bytes
+  penaltyAccount_lt: Bytes
+  penaltyAccount_gte: Bytes
+  penaltyAccount_lte: Bytes
   penaltyAccount_in: [Bytes!]
   penaltyAccount_not_in: [Bytes!]
   penaltyAccount_contains: Bytes
   penaltyAccount_not_contains: Bytes
   bondAccount: Bytes
   bondAccount_not: Bytes
+  bondAccount_gt: Bytes
+  bondAccount_lt: Bytes
+  bondAccount_gte: Bytes
+  bondAccount_lte: Bytes
   bondAccount_in: [Bytes!]
   bondAccount_not_in: [Bytes!]
   bondAccount_contains: Bytes
@@ -1465,6 +1588,8 @@ input AgreementLiquidatedByEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [AgreementLiquidatedByEvent_filter]
+  or: [AgreementLiquidatedByEvent_filter]
 }
 
 enum AgreementLiquidatedByEvent_orderBy {
@@ -1551,6 +1676,10 @@ input AgreementLiquidatedV2Event_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -1631,36 +1760,60 @@ input AgreementLiquidatedV2Event_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   agreementClass: Bytes
   agreementClass_not: Bytes
+  agreementClass_gt: Bytes
+  agreementClass_lt: Bytes
+  agreementClass_gte: Bytes
+  agreementClass_lte: Bytes
   agreementClass_in: [Bytes!]
   agreementClass_not_in: [Bytes!]
   agreementClass_contains: Bytes
   agreementClass_not_contains: Bytes
   agreementId: Bytes
   agreementId_not: Bytes
+  agreementId_gt: Bytes
+  agreementId_lt: Bytes
+  agreementId_gte: Bytes
+  agreementId_lte: Bytes
   agreementId_in: [Bytes!]
   agreementId_not_in: [Bytes!]
   agreementId_contains: Bytes
   agreementId_not_contains: Bytes
   liquidatorAccount: Bytes
   liquidatorAccount_not: Bytes
+  liquidatorAccount_gt: Bytes
+  liquidatorAccount_lt: Bytes
+  liquidatorAccount_gte: Bytes
+  liquidatorAccount_lte: Bytes
   liquidatorAccount_in: [Bytes!]
   liquidatorAccount_not_in: [Bytes!]
   liquidatorAccount_contains: Bytes
   liquidatorAccount_not_contains: Bytes
   targetAccount: Bytes
   targetAccount_not: Bytes
+  targetAccount_gt: Bytes
+  targetAccount_lt: Bytes
+  targetAccount_gte: Bytes
+  targetAccount_lte: Bytes
   targetAccount_in: [Bytes!]
   targetAccount_not_in: [Bytes!]
   targetAccount_contains: Bytes
   targetAccount_not_contains: Bytes
   rewardAmountReceiver: Bytes
   rewardAmountReceiver_not: Bytes
+  rewardAmountReceiver_gt: Bytes
+  rewardAmountReceiver_lt: Bytes
+  rewardAmountReceiver_gte: Bytes
+  rewardAmountReceiver_lte: Bytes
   rewardAmountReceiver_in: [Bytes!]
   rewardAmountReceiver_not_in: [Bytes!]
   rewardAmountReceiver_contains: Bytes
@@ -1715,6 +1868,10 @@ input AgreementLiquidatedV2Event_filter {
   flowRateAtLiquidation_not_in: [BigInt!]
   rewardAccount: Bytes
   rewardAccount_not: Bytes
+  rewardAccount_gt: Bytes
+  rewardAccount_lt: Bytes
+  rewardAccount_gte: Bytes
+  rewardAccount_lte: Bytes
   rewardAccount_in: [Bytes!]
   rewardAccount_not_in: [Bytes!]
   rewardAccount_contains: Bytes
@@ -1722,6 +1879,8 @@ input AgreementLiquidatedV2Event_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [AgreementLiquidatedV2Event_filter]
+  or: [AgreementLiquidatedV2Event_filter]
 }
 
 enum AgreementLiquidatedV2Event_orderBy {
@@ -1780,6 +1939,10 @@ input AppRegisteredEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -1860,6 +2023,10 @@ input AppRegisteredEvent_filter {
   order_not_in: [BigInt!]
   app: Bytes
   app_not: Bytes
+  app_gt: Bytes
+  app_lt: Bytes
+  app_gte: Bytes
+  app_lte: Bytes
   app_in: [Bytes!]
   app_not_in: [Bytes!]
   app_contains: Bytes
@@ -1867,6 +2034,8 @@ input AppRegisteredEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [AppRegisteredEvent_filter]
+  or: [AppRegisteredEvent_filter]
 }
 
 enum AppRegisteredEvent_orderBy {
@@ -1939,6 +2108,10 @@ input BondIncreasedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2019,6 +2192,10 @@ input BondIncreasedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -2034,6 +2211,8 @@ input BondIncreasedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [BondIncreasedEvent_filter]
+  or: [BondIncreasedEvent_filter]
 }
 
 enum BondIncreasedEvent_orderBy {
@@ -2088,6 +2267,10 @@ input BurnedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2168,18 +2351,30 @@ input BurnedEvent_filter {
   order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
+  operator_gt: Bytes
+  operator_lt: Bytes
+  operator_gte: Bytes
+  operator_lte: Bytes
   operator_in: [Bytes!]
   operator_not_in: [Bytes!]
   operator_contains: Bytes
   operator_not_contains: Bytes
   from: Bytes
   from_not: Bytes
+  from_gt: Bytes
+  from_lt: Bytes
+  from_gte: Bytes
+  from_lte: Bytes
   from_in: [Bytes!]
   from_not_in: [Bytes!]
   from_contains: Bytes
   from_not_contains: Bytes
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -2194,12 +2389,20 @@ input BurnedEvent_filter {
   amount_not_in: [BigInt!]
   data: Bytes
   data_not: Bytes
+  data_gt: Bytes
+  data_lt: Bytes
+  data_gte: Bytes
+  data_lte: Bytes
   data_in: [Bytes!]
   data_not_in: [Bytes!]
   data_contains: Bytes
   data_not_contains: Bytes
   operatorData: Bytes
   operatorData_not: Bytes
+  operatorData_gt: Bytes
+  operatorData_lt: Bytes
+  operatorData_gte: Bytes
+  operatorData_lte: Bytes
   operatorData_in: [Bytes!]
   operatorData_not_in: [Bytes!]
   operatorData_contains: Bytes
@@ -2207,6 +2410,8 @@ input BurnedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [BurnedEvent_filter]
+  or: [BurnedEvent_filter]
 }
 
 enum BurnedEvent_orderBy {
@@ -2269,6 +2474,10 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2319,6 +2528,10 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -2355,12 +2568,20 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
   logIndex_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
@@ -2380,6 +2601,8 @@ input CFAv1LiquidationPeriodChangedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [CFAv1LiquidationPeriodChangedEvent_filter]
+  or: [CFAv1LiquidationPeriodChangedEvent_filter]
 }
 
 enum CFAv1LiquidationPeriodChangedEvent_orderBy {
@@ -2440,6 +2663,10 @@ input ConfigChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2490,6 +2717,10 @@ input ConfigChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -2526,18 +2757,30 @@ input ConfigChangedEvent_filter {
   order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
   superToken_not_contains: Bytes
   key: Bytes
   key_not: Bytes
+  key_gt: Bytes
+  key_lt: Bytes
+  key_gte: Bytes
+  key_lte: Bytes
   key_in: [Bytes!]
   key_not_in: [Bytes!]
   key_contains: Bytes
@@ -2557,6 +2800,8 @@ input ConfigChangedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [ConfigChangedEvent_filter]
+  or: [ConfigChangedEvent_filter]
 }
 
 enum ConfigChangedEvent_orderBy {
@@ -2609,6 +2854,10 @@ input CustomSuperTokenCreatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2689,6 +2938,10 @@ input CustomSuperTokenCreatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -2696,6 +2949,8 @@ input CustomSuperTokenCreatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [CustomSuperTokenCreatedEvent_filter]
+  or: [CustomSuperTokenCreatedEvent_filter]
 }
 
 enum CustomSuperTokenCreatedEvent_orderBy {
@@ -2850,6 +3105,10 @@ input Event_filter {
   timestamp_not_in: [BigInt!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -2873,6 +3132,8 @@ input Event_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [Event_filter]
+  or: [Event_filter]
 }
 
 enum Event_orderBy {
@@ -2930,6 +3191,10 @@ input ExitRateChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -3010,6 +3275,10 @@ input ExitRateChangedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -3025,6 +3294,8 @@ input ExitRateChangedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [ExitRateChangedEvent_filter]
+  or: [ExitRateChangedEvent_filter]
 }
 
 enum ExitRateChangedEvent_orderBy {
@@ -3083,6 +3354,12 @@ type FlowOperator {
   
   """
   flowRateAllowanceRemaining: BigInt!
+
+  """
+  The transfer allowance granted to the `flowOperator` by the `sender`.
+  
+  """
+  allowance: BigInt!
   flowOperator: Bytes!
   sender: Account!
   token: Token!
@@ -3155,8 +3432,20 @@ input FlowOperator_filter {
   flowRateAllowanceRemaining_lte: BigInt
   flowRateAllowanceRemaining_in: [BigInt!]
   flowRateAllowanceRemaining_not_in: [BigInt!]
+  allowance: BigInt
+  allowance_not: BigInt
+  allowance_gt: BigInt
+  allowance_lt: BigInt
+  allowance_gte: BigInt
+  allowance_lte: BigInt
+  allowance_in: [BigInt!]
+  allowance_not_in: [BigInt!]
   flowOperator: Bytes
   flowOperator_not: Bytes
+  flowOperator_gt: Bytes
+  flowOperator_lt: Bytes
+  flowOperator_gte: Bytes
+  flowOperator_lte: Bytes
   flowOperator_in: [Bytes!]
   flowOperator_not_in: [Bytes!]
   flowOperator_contains: Bytes
@@ -3228,6 +3517,8 @@ input FlowOperator_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [FlowOperator_filter]
+  or: [FlowOperator_filter]
 }
 
 enum FlowOperator_orderBy {
@@ -3239,10 +3530,49 @@ enum FlowOperator_orderBy {
   permissions
   flowRateAllowanceGranted
   flowRateAllowanceRemaining
+  allowance
   flowOperator
   sender
+  sender__id
+  sender__createdAtTimestamp
+  sender__createdAtBlockNumber
+  sender__updatedAtTimestamp
+  sender__updatedAtBlockNumber
+  sender__isSuperApp
   token
+  token__id
+  token__createdAtTimestamp
+  token__createdAtBlockNumber
+  token__decimals
+  token__name
+  token__symbol
+  token__isSuperToken
+  token__isNativeAssetSuperToken
+  token__isListed
+  token__underlyingAddress
   accountTokenSnapshot
+  accountTokenSnapshot__id
+  accountTokenSnapshot__updatedAtTimestamp
+  accountTokenSnapshot__updatedAtBlockNumber
+  accountTokenSnapshot__isLiquidationEstimateOptimistic
+  accountTokenSnapshot__maybeCriticalAtTimestamp
+  accountTokenSnapshot__totalNumberOfActiveStreams
+  accountTokenSnapshot__activeOutgoingStreamCount
+  accountTokenSnapshot__activeIncomingStreamCount
+  accountTokenSnapshot__totalNumberOfClosedStreams
+  accountTokenSnapshot__inactiveOutgoingStreamCount
+  accountTokenSnapshot__inactiveIncomingStreamCount
+  accountTokenSnapshot__totalSubscriptionsWithUnits
+  accountTokenSnapshot__totalApprovedSubscriptions
+  accountTokenSnapshot__balanceUntilUpdatedAt
+  accountTokenSnapshot__totalDeposit
+  accountTokenSnapshot__totalNetFlowRate
+  accountTokenSnapshot__totalInflowRate
+  accountTokenSnapshot__totalOutflowRate
+  accountTokenSnapshot__totalAmountStreamedInUntilUpdatedAt
+  accountTokenSnapshot__totalAmountStreamedOutUntilUpdatedAt
+  accountTokenSnapshot__totalAmountStreamedUntilUpdatedAt
+  accountTokenSnapshot__totalAmountTransferredUntilUpdatedAt
   flowOperatorUpdatedEvents
 }
 
@@ -3294,6 +3624,10 @@ input FlowOperatorUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -3374,12 +3708,20 @@ input FlowOperatorUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   sender: Bytes
   sender_not: Bytes
+  sender_gt: Bytes
+  sender_lt: Bytes
+  sender_gte: Bytes
+  sender_lte: Bytes
   sender_in: [Bytes!]
   sender_not_in: [Bytes!]
   sender_contains: Bytes
@@ -3424,6 +3766,8 @@ input FlowOperatorUpdatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [FlowOperatorUpdatedEvent_filter]
+  or: [FlowOperatorUpdatedEvent_filter]
 }
 
 enum FlowOperatorUpdatedEvent_orderBy {
@@ -3442,6 +3786,16 @@ enum FlowOperatorUpdatedEvent_orderBy {
   permissions
   flowRateAllowance
   flowOperator
+  flowOperator__id
+  flowOperator__createdAtTimestamp
+  flowOperator__createdAtBlockNumber
+  flowOperator__updatedAtTimestamp
+  flowOperator__updatedAtBlockNumber
+  flowOperator__permissions
+  flowOperator__flowRateAllowanceGranted
+  flowOperator__flowRateAllowanceRemaining
+  flowOperator__allowance
+  flowOperator__flowOperator
 }
 
 """
@@ -3564,6 +3918,10 @@ input FlowUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -3644,24 +4002,40 @@ input FlowUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   sender: Bytes
   sender_not: Bytes
+  sender_gt: Bytes
+  sender_lt: Bytes
+  sender_gte: Bytes
+  sender_lte: Bytes
   sender_in: [Bytes!]
   sender_not_in: [Bytes!]
   sender_contains: Bytes
   sender_not_contains: Bytes
   receiver: Bytes
   receiver_not: Bytes
+  receiver_gt: Bytes
+  receiver_lt: Bytes
+  receiver_gte: Bytes
+  receiver_lte: Bytes
   receiver_in: [Bytes!]
   receiver_not_in: [Bytes!]
   receiver_contains: Bytes
   receiver_not_contains: Bytes
   flowOperator: Bytes
   flowOperator_not: Bytes
+  flowOperator_gt: Bytes
+  flowOperator_lt: Bytes
+  flowOperator_gte: Bytes
+  flowOperator_lte: Bytes
   flowOperator_in: [Bytes!]
   flowOperator_not_in: [Bytes!]
   flowOperator_contains: Bytes
@@ -3700,6 +4074,10 @@ input FlowUpdatedEvent_filter {
   deposit_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -3752,6 +4130,8 @@ input FlowUpdatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [FlowUpdatedEvent_filter]
+  or: [FlowUpdatedEvent_filter]
 }
 
 enum FlowUpdatedEvent_orderBy {
@@ -3778,6 +4158,15 @@ enum FlowUpdatedEvent_orderBy {
   type
   totalAmountStreamedUntilTimestamp
   stream
+  stream__id
+  stream__createdAtTimestamp
+  stream__createdAtBlockNumber
+  stream__updatedAtTimestamp
+  stream__updatedAtBlockNumber
+  stream__currentFlowRate
+  stream__deposit
+  stream__streamedUntilUpdatedAt
+  stream__userData
 }
 
 type GovernanceReplacedEvent implements Event {
@@ -3811,6 +4200,10 @@ input GovernanceReplacedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -3891,12 +4284,20 @@ input GovernanceReplacedEvent_filter {
   addresses_not_contains_nocase: [Bytes!]
   oldGovernance: Bytes
   oldGovernance_not: Bytes
+  oldGovernance_gt: Bytes
+  oldGovernance_lt: Bytes
+  oldGovernance_gte: Bytes
+  oldGovernance_lte: Bytes
   oldGovernance_in: [Bytes!]
   oldGovernance_not_in: [Bytes!]
   oldGovernance_contains: Bytes
   oldGovernance_not_contains: Bytes
   newGovernance: Bytes
   newGovernance_not: Bytes
+  newGovernance_gt: Bytes
+  newGovernance_lt: Bytes
+  newGovernance_gte: Bytes
+  newGovernance_lte: Bytes
   newGovernance_in: [Bytes!]
   newGovernance_not_in: [Bytes!]
   newGovernance_contains: Bytes
@@ -3904,6 +4305,8 @@ input GovernanceReplacedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [GovernanceReplacedEvent_filter]
+  or: [GovernanceReplacedEvent_filter]
 }
 
 enum GovernanceReplacedEvent_orderBy {
@@ -4166,6 +4569,8 @@ input Index_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [Index_filter]
+  or: [Index_filter]
 }
 
 enum Index_orderBy {
@@ -4182,9 +4587,38 @@ enum Index_orderBy {
   totalUnits
   totalAmountDistributedUntilUpdatedAt
   token
+  token__id
+  token__createdAtTimestamp
+  token__createdAtBlockNumber
+  token__decimals
+  token__name
+  token__symbol
+  token__isSuperToken
+  token__isNativeAssetSuperToken
+  token__isListed
+  token__underlyingAddress
   publisher
+  publisher__id
+  publisher__createdAtTimestamp
+  publisher__createdAtBlockNumber
+  publisher__updatedAtTimestamp
+  publisher__updatedAtBlockNumber
+  publisher__isSuperApp
   subscriptions
   indexCreatedEvent
+  indexCreatedEvent__id
+  indexCreatedEvent__transactionHash
+  indexCreatedEvent__gasPrice
+  indexCreatedEvent__gasUsed
+  indexCreatedEvent__timestamp
+  indexCreatedEvent__name
+  indexCreatedEvent__blockNumber
+  indexCreatedEvent__logIndex
+  indexCreatedEvent__order
+  indexCreatedEvent__token
+  indexCreatedEvent__publisher
+  indexCreatedEvent__indexId
+  indexCreatedEvent__userData
   indexDistributionClaimedEvents
   indexUpdatedEvents
   indexSubscribedEvents
@@ -4238,6 +4672,10 @@ input IndexCreatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -4318,12 +4756,20 @@ input IndexCreatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -4338,6 +4784,10 @@ input IndexCreatedEvent_filter {
   indexId_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -4366,6 +4816,8 @@ input IndexCreatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [IndexCreatedEvent_filter]
+  or: [IndexCreatedEvent_filter]
 }
 
 enum IndexCreatedEvent_orderBy {
@@ -4384,6 +4836,18 @@ enum IndexCreatedEvent_orderBy {
   indexId
   userData
   index
+  index__id
+  index__createdAtTimestamp
+  index__createdAtBlockNumber
+  index__updatedAtTimestamp
+  index__updatedAtBlockNumber
+  index__indexId
+  index__indexValue
+  index__totalSubscriptionsWithUnits
+  index__totalUnitsPending
+  index__totalUnitsApproved
+  index__totalUnits
+  index__totalAmountDistributedUntilUpdatedAt
 }
 
 type IndexDistributionClaimedEvent implements Event {
@@ -4440,6 +4904,10 @@ input IndexDistributionClaimedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -4520,12 +4988,20 @@ input IndexDistributionClaimedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -4540,6 +5016,10 @@ input IndexDistributionClaimedEvent_filter {
   indexId_not_in: [BigInt!]
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
@@ -4576,6 +5056,8 @@ input IndexDistributionClaimedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [IndexDistributionClaimedEvent_filter]
+  or: [IndexDistributionClaimedEvent_filter]
 }
 
 enum IndexDistributionClaimedEvent_orderBy {
@@ -4595,6 +5077,18 @@ enum IndexDistributionClaimedEvent_orderBy {
   subscriber
   amount
   index
+  index__id
+  index__createdAtTimestamp
+  index__createdAtBlockNumber
+  index__updatedAtTimestamp
+  index__updatedAtBlockNumber
+  index__indexId
+  index__indexValue
+  index__totalSubscriptionsWithUnits
+  index__totalUnitsPending
+  index__totalUnitsApproved
+  index__totalUnits
+  index__totalAmountDistributedUntilUpdatedAt
 }
 
 type IndexSubscribedEvent implements Event {
@@ -4651,6 +5145,10 @@ input IndexSubscribedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -4731,12 +5229,20 @@ input IndexSubscribedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -4751,12 +5257,20 @@ input IndexSubscribedEvent_filter {
   indexId_not_in: [BigInt!]
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -4785,6 +5299,8 @@ input IndexSubscribedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [IndexSubscribedEvent_filter]
+  or: [IndexSubscribedEvent_filter]
 }
 
 enum IndexSubscribedEvent_orderBy {
@@ -4804,6 +5320,18 @@ enum IndexSubscribedEvent_orderBy {
   subscriber
   userData
   index
+  index__id
+  index__createdAtTimestamp
+  index__createdAtBlockNumber
+  index__updatedAtTimestamp
+  index__updatedAtBlockNumber
+  index__indexId
+  index__indexValue
+  index__totalSubscriptionsWithUnits
+  index__totalUnitsPending
+  index__totalUnitsApproved
+  index__totalUnits
+  index__totalAmountDistributedUntilUpdatedAt
 }
 
 """
@@ -4982,6 +5510,8 @@ input IndexSubscription_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [IndexSubscription_filter]
+  or: [IndexSubscription_filter]
 }
 
 enum IndexSubscription_orderBy {
@@ -4991,11 +5521,29 @@ enum IndexSubscription_orderBy {
   updatedAtTimestamp
   updatedAtBlockNumber
   subscriber
+  subscriber__id
+  subscriber__createdAtTimestamp
+  subscriber__createdAtBlockNumber
+  subscriber__updatedAtTimestamp
+  subscriber__updatedAtBlockNumber
+  subscriber__isSuperApp
   approved
   units
   totalAmountReceivedUntilUpdatedAt
   indexValueUntilUpdatedAt
   index
+  index__id
+  index__createdAtTimestamp
+  index__createdAtBlockNumber
+  index__updatedAtTimestamp
+  index__updatedAtBlockNumber
+  index__indexId
+  index__indexValue
+  index__totalSubscriptionsWithUnits
+  index__totalUnitsPending
+  index__totalUnitsApproved
+  index__totalUnits
+  index__totalAmountDistributedUntilUpdatedAt
   subscriptionApprovedEvents
   subscriptionDistributionClaimedEvents
   subscriptionRevokedEvents
@@ -5058,6 +5606,10 @@ input IndexUnitsUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -5138,12 +5690,20 @@ input IndexUnitsUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -5158,6 +5718,10 @@ input IndexUnitsUpdatedEvent_filter {
   indexId_not_in: [BigInt!]
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
@@ -5172,6 +5736,10 @@ input IndexUnitsUpdatedEvent_filter {
   units_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -5208,6 +5776,8 @@ input IndexUnitsUpdatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [IndexUnitsUpdatedEvent_filter]
+  or: [IndexUnitsUpdatedEvent_filter]
 }
 
 enum IndexUnitsUpdatedEvent_orderBy {
@@ -5229,6 +5799,18 @@ enum IndexUnitsUpdatedEvent_orderBy {
   userData
   oldUnits
   index
+  index__id
+  index__createdAtTimestamp
+  index__createdAtBlockNumber
+  index__updatedAtTimestamp
+  index__updatedAtBlockNumber
+  index__indexId
+  index__indexValue
+  index__totalSubscriptionsWithUnits
+  index__totalUnitsPending
+  index__totalUnitsApproved
+  index__totalUnits
+  index__totalAmountDistributedUntilUpdatedAt
 }
 
 type IndexUnsubscribedEvent implements Event {
@@ -5285,6 +5867,10 @@ input IndexUnsubscribedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -5365,12 +5951,20 @@ input IndexUnsubscribedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -5385,12 +5979,20 @@ input IndexUnsubscribedEvent_filter {
   indexId_not_in: [BigInt!]
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -5419,6 +6021,8 @@ input IndexUnsubscribedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [IndexUnsubscribedEvent_filter]
+  or: [IndexUnsubscribedEvent_filter]
 }
 
 enum IndexUnsubscribedEvent_orderBy {
@@ -5438,6 +6042,18 @@ enum IndexUnsubscribedEvent_orderBy {
   subscriber
   userData
   index
+  index__id
+  index__createdAtTimestamp
+  index__createdAtBlockNumber
+  index__updatedAtTimestamp
+  index__updatedAtBlockNumber
+  index__indexId
+  index__indexValue
+  index__totalSubscriptionsWithUnits
+  index__totalUnitsPending
+  index__totalUnitsApproved
+  index__totalUnits
+  index__totalAmountDistributedUntilUpdatedAt
 }
 
 type IndexUpdatedEvent implements Event {
@@ -5490,6 +6106,10 @@ input IndexUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -5570,12 +6190,20 @@ input IndexUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -5622,6 +6250,10 @@ input IndexUpdatedEvent_filter {
   totalUnitsApproved_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -5650,6 +6282,8 @@ input IndexUpdatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [IndexUpdatedEvent_filter]
+  or: [IndexUpdatedEvent_filter]
 }
 
 enum IndexUpdatedEvent_orderBy {
@@ -5672,6 +6306,18 @@ enum IndexUpdatedEvent_orderBy {
   totalUnitsApproved
   userData
   index
+  index__id
+  index__createdAtTimestamp
+  index__createdAtBlockNumber
+  index__updatedAtTimestamp
+  index__updatedAtBlockNumber
+  index__indexId
+  index__indexValue
+  index__totalSubscriptionsWithUnits
+  index__totalUnitsPending
+  index__totalUnitsApproved
+  index__totalUnits
+  index__totalAmountDistributedUntilUpdatedAt
 }
 
 type JailEvent implements Event {
@@ -5705,6 +6351,10 @@ input JailEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -5785,6 +6435,10 @@ input JailEvent_filter {
   order_not_in: [BigInt!]
   app: Bytes
   app_not: Bytes
+  app_gt: Bytes
+  app_lt: Bytes
+  app_gte: Bytes
+  app_lte: Bytes
   app_in: [Bytes!]
   app_not_in: [Bytes!]
   app_contains: Bytes
@@ -5800,6 +6454,8 @@ input JailEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [JailEvent_filter]
+  or: [JailEvent_filter]
 }
 
 enum JailEvent_orderBy {
@@ -5855,6 +6511,10 @@ input MintedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -5935,12 +6595,20 @@ input MintedEvent_filter {
   order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
+  operator_gt: Bytes
+  operator_lt: Bytes
+  operator_gte: Bytes
+  operator_lte: Bytes
   operator_in: [Bytes!]
   operator_not_in: [Bytes!]
   operator_contains: Bytes
   operator_not_contains: Bytes
   to: Bytes
   to_not: Bytes
+  to_gt: Bytes
+  to_lt: Bytes
+  to_gte: Bytes
+  to_lte: Bytes
   to_in: [Bytes!]
   to_not_in: [Bytes!]
   to_contains: Bytes
@@ -5955,18 +6623,30 @@ input MintedEvent_filter {
   amount_not_in: [BigInt!]
   data: Bytes
   data_not: Bytes
+  data_gt: Bytes
+  data_lt: Bytes
+  data_gte: Bytes
+  data_lte: Bytes
   data_in: [Bytes!]
   data_not_in: [Bytes!]
   data_contains: Bytes
   data_not_contains: Bytes
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   operatorData: Bytes
   operatorData_not: Bytes
+  operatorData_gt: Bytes
+  operatorData_lt: Bytes
+  operatorData_gte: Bytes
+  operatorData_lte: Bytes
   operatorData_in: [Bytes!]
   operatorData_not_in: [Bytes!]
   operatorData_contains: Bytes
@@ -5974,6 +6654,8 @@ input MintedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [MintedEvent_filter]
+  or: [MintedEvent_filter]
 }
 
 enum MintedEvent_orderBy {
@@ -6050,6 +6732,10 @@ input NewPICEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -6130,12 +6816,20 @@ input NewPICEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   pic: Bytes
   pic_not: Bytes
+  pic_gt: Bytes
+  pic_lt: Bytes
+  pic_gte: Bytes
+  pic_lte: Bytes
   pic_in: [Bytes!]
   pic_not_in: [Bytes!]
   pic_contains: Bytes
@@ -6159,6 +6853,8 @@ input NewPICEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [NewPICEvent_filter]
+  or: [NewPICEvent_filter]
 }
 
 enum NewPICEvent_orderBy {
@@ -6224,6 +6920,10 @@ input PPPConfigurationChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -6274,6 +6974,10 @@ input PPPConfigurationChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -6310,12 +7014,20 @@ input PPPConfigurationChangedEvent_filter {
   order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
@@ -6343,6 +7055,8 @@ input PPPConfigurationChangedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [PPPConfigurationChangedEvent_filter]
+  or: [PPPConfigurationChangedEvent_filter]
 }
 
 enum PPPConfigurationChangedEvent_orderBy {
@@ -8789,6 +9503,10 @@ input ResolverEntry_filter {
   updatedAtBlockNumber_not_in: [BigInt!]
   targetAddress: Bytes
   targetAddress_not: Bytes
+  targetAddress_gt: Bytes
+  targetAddress_lt: Bytes
+  targetAddress_gte: Bytes
+  targetAddress_lte: Bytes
   targetAddress_in: [Bytes!]
   targetAddress_not_in: [Bytes!]
   targetAddress_contains: Bytes
@@ -8805,6 +9523,8 @@ input ResolverEntry_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [ResolverEntry_filter]
+  or: [ResolverEntry_filter]
 }
 
 enum ResolverEntry_orderBy {
@@ -8858,6 +9578,10 @@ input RewardAddressChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -8908,6 +9632,10 @@ input RewardAddressChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -8944,12 +9672,20 @@ input RewardAddressChangedEvent_filter {
   order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
@@ -8960,6 +9696,10 @@ input RewardAddressChangedEvent_filter {
   isKeySet_not_in: [Boolean!]
   rewardAddress: Bytes
   rewardAddress_not: Bytes
+  rewardAddress_gt: Bytes
+  rewardAddress_lt: Bytes
+  rewardAddress_gte: Bytes
+  rewardAddress_lte: Bytes
   rewardAddress_in: [Bytes!]
   rewardAddress_not_in: [Bytes!]
   rewardAddress_contains: Bytes
@@ -8967,6 +9707,8 @@ input RewardAddressChangedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [RewardAddressChangedEvent_filter]
+  or: [RewardAddressChangedEvent_filter]
 }
 
 enum RewardAddressChangedEvent_orderBy {
@@ -9019,6 +9761,10 @@ input RoleAdminChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -9099,18 +9845,30 @@ input RoleAdminChangedEvent_filter {
   order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
+  role_gt: Bytes
+  role_lt: Bytes
+  role_gte: Bytes
+  role_lte: Bytes
   role_in: [Bytes!]
   role_not_in: [Bytes!]
   role_contains: Bytes
   role_not_contains: Bytes
   previousAdminRole: Bytes
   previousAdminRole_not: Bytes
+  previousAdminRole_gt: Bytes
+  previousAdminRole_lt: Bytes
+  previousAdminRole_gte: Bytes
+  previousAdminRole_lte: Bytes
   previousAdminRole_in: [Bytes!]
   previousAdminRole_not_in: [Bytes!]
   previousAdminRole_contains: Bytes
   previousAdminRole_not_contains: Bytes
   newAdminRole: Bytes
   newAdminRole_not: Bytes
+  newAdminRole_gt: Bytes
+  newAdminRole_lt: Bytes
+  newAdminRole_gte: Bytes
+  newAdminRole_lte: Bytes
   newAdminRole_in: [Bytes!]
   newAdminRole_not_in: [Bytes!]
   newAdminRole_contains: Bytes
@@ -9118,6 +9876,8 @@ input RoleAdminChangedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [RoleAdminChangedEvent_filter]
+  or: [RoleAdminChangedEvent_filter]
 }
 
 enum RoleAdminChangedEvent_orderBy {
@@ -9168,6 +9928,10 @@ input RoleGrantedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -9248,18 +10012,30 @@ input RoleGrantedEvent_filter {
   order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
+  role_gt: Bytes
+  role_lt: Bytes
+  role_gte: Bytes
+  role_lte: Bytes
   role_in: [Bytes!]
   role_not_in: [Bytes!]
   role_contains: Bytes
   role_not_contains: Bytes
   account: Bytes
   account_not: Bytes
+  account_gt: Bytes
+  account_lt: Bytes
+  account_gte: Bytes
+  account_lte: Bytes
   account_in: [Bytes!]
   account_not_in: [Bytes!]
   account_contains: Bytes
   account_not_contains: Bytes
   sender: Bytes
   sender_not: Bytes
+  sender_gt: Bytes
+  sender_lt: Bytes
+  sender_gte: Bytes
+  sender_lte: Bytes
   sender_in: [Bytes!]
   sender_not_in: [Bytes!]
   sender_contains: Bytes
@@ -9267,6 +10043,8 @@ input RoleGrantedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [RoleGrantedEvent_filter]
+  or: [RoleGrantedEvent_filter]
 }
 
 enum RoleGrantedEvent_orderBy {
@@ -9317,6 +10095,10 @@ input RoleRevokedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -9397,18 +10179,30 @@ input RoleRevokedEvent_filter {
   order_not_in: [BigInt!]
   role: Bytes
   role_not: Bytes
+  role_gt: Bytes
+  role_lt: Bytes
+  role_gte: Bytes
+  role_lte: Bytes
   role_in: [Bytes!]
   role_not_in: [Bytes!]
   role_contains: Bytes
   role_not_contains: Bytes
   account: Bytes
   account_not: Bytes
+  account_gt: Bytes
+  account_lt: Bytes
+  account_gte: Bytes
+  account_lte: Bytes
   account_in: [Bytes!]
   account_not_in: [Bytes!]
   account_contains: Bytes
   account_not_contains: Bytes
   sender: Bytes
   sender_not: Bytes
+  sender_gt: Bytes
+  sender_lt: Bytes
+  sender_gte: Bytes
+  sender_lte: Bytes
   sender_in: [Bytes!]
   sender_not_in: [Bytes!]
   sender_contains: Bytes
@@ -9416,6 +10210,8 @@ input RoleRevokedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [RoleRevokedEvent_filter]
+  or: [RoleRevokedEvent_filter]
 }
 
 enum RoleRevokedEvent_orderBy {
@@ -9473,6 +10269,10 @@ input SentEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -9553,24 +10353,40 @@ input SentEvent_filter {
   order_not_in: [BigInt!]
   operator: Bytes
   operator_not: Bytes
+  operator_gt: Bytes
+  operator_lt: Bytes
+  operator_gte: Bytes
+  operator_lte: Bytes
   operator_in: [Bytes!]
   operator_not_in: [Bytes!]
   operator_contains: Bytes
   operator_not_contains: Bytes
   from: Bytes
   from_not: Bytes
+  from_gt: Bytes
+  from_lt: Bytes
+  from_gte: Bytes
+  from_lte: Bytes
   from_in: [Bytes!]
   from_not_in: [Bytes!]
   from_contains: Bytes
   from_not_contains: Bytes
   to: Bytes
   to_not: Bytes
+  to_gt: Bytes
+  to_lt: Bytes
+  to_gte: Bytes
+  to_lte: Bytes
   to_in: [Bytes!]
   to_not_in: [Bytes!]
   to_contains: Bytes
   to_not_contains: Bytes
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -9585,12 +10401,20 @@ input SentEvent_filter {
   amount_not_in: [BigInt!]
   data: Bytes
   data_not: Bytes
+  data_gt: Bytes
+  data_lt: Bytes
+  data_gte: Bytes
+  data_lte: Bytes
   data_in: [Bytes!]
   data_not_in: [Bytes!]
   data_contains: Bytes
   data_not_contains: Bytes
   operatorData: Bytes
   operatorData_not: Bytes
+  operatorData_gt: Bytes
+  operatorData_lt: Bytes
+  operatorData_gte: Bytes
+  operatorData_lte: Bytes
   operatorData_in: [Bytes!]
   operatorData_not_in: [Bytes!]
   operatorData_contains: Bytes
@@ -9598,6 +10422,8 @@ input SentEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SentEvent_filter]
+  or: [SentEvent_filter]
 }
 
 enum SentEvent_orderBy {
@@ -9659,6 +10485,10 @@ input SetEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -9739,12 +10569,20 @@ input SetEvent_filter {
   order_not_in: [BigInt!]
   hashedName: Bytes
   hashedName_not: Bytes
+  hashedName_gt: Bytes
+  hashedName_lt: Bytes
+  hashedName_gte: Bytes
+  hashedName_lte: Bytes
   hashedName_in: [Bytes!]
   hashedName_not_in: [Bytes!]
   hashedName_contains: Bytes
   hashedName_not_contains: Bytes
   target: Bytes
   target_not: Bytes
+  target_gt: Bytes
+  target_lt: Bytes
+  target_gte: Bytes
+  target_lte: Bytes
   target_in: [Bytes!]
   target_not_in: [Bytes!]
   target_contains: Bytes
@@ -9773,6 +10611,8 @@ input SetEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SetEvent_filter]
+  or: [SetEvent_filter]
 }
 
 enum SetEvent_orderBy {
@@ -9789,6 +10629,14 @@ enum SetEvent_orderBy {
   hashedName
   target
   resolverEntry
+  resolverEntry__id
+  resolverEntry__createdAtTimestamp
+  resolverEntry__createdAtBlockNumber
+  resolverEntry__updatedAtTimestamp
+  resolverEntry__updatedAtBlockNumber
+  resolverEntry__targetAddress
+  resolverEntry__isToken
+  resolverEntry__isListed
 }
 
 type SFMeta {
@@ -9881,6 +10729,8 @@ input SFMeta_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SFMeta_filter]
+  or: [SFMeta_filter]
 }
 
 enum SFMeta_orderBy {
@@ -9912,7 +10762,7 @@ type Stream {
   deposit: BigInt!
 
   """
-  The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. 
+  The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`.
   The formula to get the current streamed amount is:
   `streamedUntilUpdatedAt + ((currentTime in seconds) - updatedAtTimestamp) * currentFlowRate`.
   
@@ -10062,6 +10912,10 @@ input Stream_filter {
   receiver_: Account_filter
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -10071,6 +10925,8 @@ input Stream_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [Stream_filter]
+  or: [Stream_filter]
 }
 
 enum Stream_orderBy {
@@ -10083,8 +10939,30 @@ enum Stream_orderBy {
   deposit
   streamedUntilUpdatedAt
   token
+  token__id
+  token__createdAtTimestamp
+  token__createdAtBlockNumber
+  token__decimals
+  token__name
+  token__symbol
+  token__isSuperToken
+  token__isNativeAssetSuperToken
+  token__isListed
+  token__underlyingAddress
   sender
+  sender__id
+  sender__createdAtTimestamp
+  sender__createdAtBlockNumber
+  sender__updatedAtTimestamp
+  sender__updatedAtBlockNumber
+  sender__isSuperApp
   receiver
+  receiver__id
+  receiver__createdAtTimestamp
+  receiver__createdAtBlockNumber
+  receiver__updatedAtTimestamp
+  receiver__updatedAtBlockNumber
+  receiver__isSuperApp
   userData
   flowUpdatedEvents
   streamPeriods
@@ -10314,22 +11192,97 @@ input StreamPeriod_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [StreamPeriod_filter]
+  or: [StreamPeriod_filter]
 }
 
 enum StreamPeriod_orderBy {
   id
   stream
+  stream__id
+  stream__createdAtTimestamp
+  stream__createdAtBlockNumber
+  stream__updatedAtTimestamp
+  stream__updatedAtBlockNumber
+  stream__currentFlowRate
+  stream__deposit
+  stream__streamedUntilUpdatedAt
+  stream__userData
   sender
+  sender__id
+  sender__createdAtTimestamp
+  sender__createdAtBlockNumber
+  sender__updatedAtTimestamp
+  sender__updatedAtBlockNumber
+  sender__isSuperApp
   receiver
+  receiver__id
+  receiver__createdAtTimestamp
+  receiver__createdAtBlockNumber
+  receiver__updatedAtTimestamp
+  receiver__updatedAtBlockNumber
+  receiver__isSuperApp
   token
+  token__id
+  token__createdAtTimestamp
+  token__createdAtBlockNumber
+  token__decimals
+  token__name
+  token__symbol
+  token__isSuperToken
+  token__isNativeAssetSuperToken
+  token__isListed
+  token__underlyingAddress
   flowRate
   deposit
   startedAtTimestamp
   startedAtBlockNumber
   startedAtEvent
+  startedAtEvent__id
+  startedAtEvent__transactionHash
+  startedAtEvent__gasPrice
+  startedAtEvent__gasUsed
+  startedAtEvent__timestamp
+  startedAtEvent__name
+  startedAtEvent__blockNumber
+  startedAtEvent__logIndex
+  startedAtEvent__order
+  startedAtEvent__token
+  startedAtEvent__sender
+  startedAtEvent__receiver
+  startedAtEvent__flowOperator
+  startedAtEvent__flowRate
+  startedAtEvent__totalSenderFlowRate
+  startedAtEvent__totalReceiverFlowRate
+  startedAtEvent__deposit
+  startedAtEvent__userData
+  startedAtEvent__oldFlowRate
+  startedAtEvent__type
+  startedAtEvent__totalAmountStreamedUntilTimestamp
   stoppedAtTimestamp
   stoppedAtBlockNumber
   stoppedAtEvent
+  stoppedAtEvent__id
+  stoppedAtEvent__transactionHash
+  stoppedAtEvent__gasPrice
+  stoppedAtEvent__gasUsed
+  stoppedAtEvent__timestamp
+  stoppedAtEvent__name
+  stoppedAtEvent__blockNumber
+  stoppedAtEvent__logIndex
+  stoppedAtEvent__order
+  stoppedAtEvent__token
+  stoppedAtEvent__sender
+  stoppedAtEvent__receiver
+  stoppedAtEvent__flowOperator
+  stoppedAtEvent__flowRate
+  stoppedAtEvent__totalSenderFlowRate
+  stoppedAtEvent__totalReceiverFlowRate
+  stoppedAtEvent__deposit
+  stoppedAtEvent__userData
+  stoppedAtEvent__oldFlowRate
+  stoppedAtEvent__type
+  stoppedAtEvent__totalAmountStreamedUntilTimestamp
   totalAmountStreamed
 }
 
@@ -10401,6 +11354,8 @@ input StreamRevision_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [StreamRevision_filter]
+  or: [StreamRevision_filter]
 }
 
 enum StreamRevision_orderBy {
@@ -10408,6 +11363,15 @@ enum StreamRevision_orderBy {
   revisionIndex
   periodRevisionIndex
   mostRecentStream
+  mostRecentStream__id
+  mostRecentStream__createdAtTimestamp
+  mostRecentStream__createdAtBlockNumber
+  mostRecentStream__updatedAtTimestamp
+  mostRecentStream__updatedAtBlockNumber
+  mostRecentStream__currentFlowRate
+  mostRecentStream__deposit
+  mostRecentStream__streamedUntilUpdatedAt
+  mostRecentStream__userData
 }
 
 type Subscription {
@@ -12830,6 +13794,10 @@ input SubscriptionApprovedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -12910,18 +13878,30 @@ input SubscriptionApprovedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -12936,6 +13916,10 @@ input SubscriptionApprovedEvent_filter {
   indexId_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -12964,6 +13948,8 @@ input SubscriptionApprovedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SubscriptionApprovedEvent_filter]
+  or: [SubscriptionApprovedEvent_filter]
 }
 
 enum SubscriptionApprovedEvent_orderBy {
@@ -12983,6 +13969,15 @@ enum SubscriptionApprovedEvent_orderBy {
   indexId
   userData
   subscription
+  subscription__id
+  subscription__createdAtTimestamp
+  subscription__createdAtBlockNumber
+  subscription__updatedAtTimestamp
+  subscription__updatedAtBlockNumber
+  subscription__approved
+  subscription__units
+  subscription__totalAmountReceivedUntilUpdatedAt
+  subscription__indexValueUntilUpdatedAt
 }
 
 type SubscriptionDistributionClaimedEvent implements Event {
@@ -13039,6 +14034,10 @@ input SubscriptionDistributionClaimedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13119,18 +14118,30 @@ input SubscriptionDistributionClaimedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -13175,6 +14186,8 @@ input SubscriptionDistributionClaimedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SubscriptionDistributionClaimedEvent_filter]
+  or: [SubscriptionDistributionClaimedEvent_filter]
 }
 
 enum SubscriptionDistributionClaimedEvent_orderBy {
@@ -13194,6 +14207,15 @@ enum SubscriptionDistributionClaimedEvent_orderBy {
   indexId
   amount
   subscription
+  subscription__id
+  subscription__createdAtTimestamp
+  subscription__createdAtBlockNumber
+  subscription__updatedAtTimestamp
+  subscription__updatedAtBlockNumber
+  subscription__approved
+  subscription__units
+  subscription__totalAmountReceivedUntilUpdatedAt
+  subscription__indexValueUntilUpdatedAt
 }
 
 type SubscriptionRevokedEvent implements Event {
@@ -13250,6 +14272,10 @@ input SubscriptionRevokedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13330,18 +14356,30 @@ input SubscriptionRevokedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -13356,6 +14394,10 @@ input SubscriptionRevokedEvent_filter {
   indexId_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -13384,6 +14426,8 @@ input SubscriptionRevokedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SubscriptionRevokedEvent_filter]
+  or: [SubscriptionRevokedEvent_filter]
 }
 
 enum SubscriptionRevokedEvent_orderBy {
@@ -13403,6 +14447,15 @@ enum SubscriptionRevokedEvent_orderBy {
   indexId
   userData
   subscription
+  subscription__id
+  subscription__createdAtTimestamp
+  subscription__createdAtBlockNumber
+  subscription__updatedAtTimestamp
+  subscription__updatedAtBlockNumber
+  subscription__approved
+  subscription__units
+  subscription__totalAmountReceivedUntilUpdatedAt
+  subscription__indexValueUntilUpdatedAt
 }
 
 type SubscriptionUnitsUpdatedEvent implements Event {
@@ -13461,6 +14514,10 @@ input SubscriptionUnitsUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13541,18 +14598,30 @@ input SubscriptionUnitsUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   subscriber: Bytes
   subscriber_not: Bytes
+  subscriber_gt: Bytes
+  subscriber_lt: Bytes
+  subscriber_gte: Bytes
+  subscriber_lte: Bytes
   subscriber_in: [Bytes!]
   subscriber_not_in: [Bytes!]
   subscriber_contains: Bytes
   subscriber_not_contains: Bytes
   publisher: Bytes
   publisher_not: Bytes
+  publisher_gt: Bytes
+  publisher_lt: Bytes
+  publisher_gte: Bytes
+  publisher_lte: Bytes
   publisher_in: [Bytes!]
   publisher_not_in: [Bytes!]
   publisher_contains: Bytes
@@ -13575,6 +14644,10 @@ input SubscriptionUnitsUpdatedEvent_filter {
   units_not_in: [BigInt!]
   userData: Bytes
   userData_not: Bytes
+  userData_gt: Bytes
+  userData_lt: Bytes
+  userData_gte: Bytes
+  userData_lte: Bytes
   userData_in: [Bytes!]
   userData_not_in: [Bytes!]
   userData_contains: Bytes
@@ -13611,6 +14684,8 @@ input SubscriptionUnitsUpdatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SubscriptionUnitsUpdatedEvent_filter]
+  or: [SubscriptionUnitsUpdatedEvent_filter]
 }
 
 enum SubscriptionUnitsUpdatedEvent_orderBy {
@@ -13632,6 +14707,15 @@ enum SubscriptionUnitsUpdatedEvent_orderBy {
   userData
   oldUnits
   subscription
+  subscription__id
+  subscription__createdAtTimestamp
+  subscription__createdAtBlockNumber
+  subscription__updatedAtTimestamp
+  subscription__updatedAtBlockNumber
+  subscription__approved
+  subscription__units
+  subscription__totalAmountReceivedUntilUpdatedAt
+  subscription__indexValueUntilUpdatedAt
 }
 
 type SuperTokenCreatedEvent implements Event {
@@ -13665,6 +14749,10 @@ input SuperTokenCreatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13745,6 +14833,10 @@ input SuperTokenCreatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -13752,6 +14844,8 @@ input SuperTokenCreatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SuperTokenCreatedEvent_filter]
+  or: [SuperTokenCreatedEvent_filter]
 }
 
 enum SuperTokenCreatedEvent_orderBy {
@@ -13798,6 +14892,10 @@ input SuperTokenFactoryUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -13878,6 +14976,10 @@ input SuperTokenFactoryUpdatedEvent_filter {
   order_not_in: [BigInt!]
   newFactory: Bytes
   newFactory_not: Bytes
+  newFactory_gt: Bytes
+  newFactory_lt: Bytes
+  newFactory_gte: Bytes
+  newFactory_lte: Bytes
   newFactory_in: [Bytes!]
   newFactory_not_in: [Bytes!]
   newFactory_contains: Bytes
@@ -13885,6 +14987,8 @@ input SuperTokenFactoryUpdatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SuperTokenFactoryUpdatedEvent_filter]
+  or: [SuperTokenFactoryUpdatedEvent_filter]
 }
 
 enum SuperTokenFactoryUpdatedEvent_orderBy {
@@ -13931,6 +15035,10 @@ input SuperTokenLogicCreatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -14011,6 +15119,10 @@ input SuperTokenLogicCreatedEvent_filter {
   order_not_in: [BigInt!]
   tokenLogic: Bytes
   tokenLogic_not: Bytes
+  tokenLogic_gt: Bytes
+  tokenLogic_lt: Bytes
+  tokenLogic_gte: Bytes
+  tokenLogic_lte: Bytes
   tokenLogic_in: [Bytes!]
   tokenLogic_not_in: [Bytes!]
   tokenLogic_contains: Bytes
@@ -14018,6 +15130,8 @@ input SuperTokenLogicCreatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SuperTokenLogicCreatedEvent_filter]
+  or: [SuperTokenLogicCreatedEvent_filter]
 }
 
 enum SuperTokenLogicCreatedEvent_orderBy {
@@ -14065,6 +15179,10 @@ input SuperTokenLogicUpdatedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -14145,12 +15263,20 @@ input SuperTokenLogicUpdatedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
   token_not_contains: Bytes
   code: Bytes
   code_not: Bytes
+  code_gt: Bytes
+  code_lt: Bytes
+  code_gte: Bytes
+  code_lte: Bytes
   code_in: [Bytes!]
   code_not_in: [Bytes!]
   code_contains: Bytes
@@ -14158,6 +15284,8 @@ input SuperTokenLogicUpdatedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SuperTokenLogicUpdatedEvent_filter]
+  or: [SuperTokenLogicUpdatedEvent_filter]
 }
 
 enum SuperTokenLogicUpdatedEvent_orderBy {
@@ -14214,6 +15342,10 @@ input SuperTokenMinimumDepositChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -14264,6 +15396,10 @@ input SuperTokenMinimumDepositChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -14300,12 +15436,20 @@ input SuperTokenMinimumDepositChangedEvent_filter {
   order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
@@ -14325,6 +15469,8 @@ input SuperTokenMinimumDepositChangedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [SuperTokenMinimumDepositChangedEvent_filter]
+  or: [SuperTokenMinimumDepositChangedEvent_filter]
 }
 
 enum SuperTokenMinimumDepositChangedEvent_orderBy {
@@ -14476,6 +15622,10 @@ input Token_filter {
   isListed_not_in: [Boolean!]
   underlyingAddress: Bytes
   underlyingAddress_not: Bytes
+  underlyingAddress_gt: Bytes
+  underlyingAddress_lt: Bytes
+  underlyingAddress_gte: Bytes
+  underlyingAddress_lte: Bytes
   underlyingAddress_in: [Bytes!]
   underlyingAddress_not_in: [Bytes!]
   underlyingAddress_contains: Bytes
@@ -14525,6 +15675,8 @@ input Token_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [Token_filter]
+  or: [Token_filter]
 }
 
 enum Token_orderBy {
@@ -14539,7 +15691,27 @@ enum Token_orderBy {
   isListed
   underlyingAddress
   underlyingToken
+  underlyingToken__id
+  underlyingToken__createdAtTimestamp
+  underlyingToken__createdAtBlockNumber
+  underlyingToken__decimals
+  underlyingToken__name
+  underlyingToken__symbol
+  underlyingToken__isSuperToken
+  underlyingToken__isNativeAssetSuperToken
+  underlyingToken__isListed
+  underlyingToken__underlyingAddress
   governanceConfig
+  governanceConfig__id
+  governanceConfig__createdAtTimestamp
+  governanceConfig__createdAtBlockNumber
+  governanceConfig__updatedAtTimestamp
+  governanceConfig__updatedAtBlockNumber
+  governanceConfig__isDefault
+  governanceConfig__rewardAddress
+  governanceConfig__liquidationPeriod
+  governanceConfig__patricianPeriod
+  governanceConfig__minimumDeposit
 }
 
 type TokenDowngradedEvent implements Event {
@@ -14597,6 +15769,10 @@ input TokenDowngradedEvent_filter {
   account_: Account_filter
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -14677,6 +15853,10 @@ input TokenDowngradedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -14692,11 +15872,19 @@ input TokenDowngradedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [TokenDowngradedEvent_filter]
+  or: [TokenDowngradedEvent_filter]
 }
 
 enum TokenDowngradedEvent_orderBy {
   id
   account
+  account__id
+  account__createdAtTimestamp
+  account__createdAtBlockNumber
+  account__updatedAtTimestamp
+  account__updatedAtBlockNumber
+  account__isSuperApp
   transactionHash
   gasPrice
   gasUsed
@@ -14710,9 +15898,15 @@ enum TokenDowngradedEvent_orderBy {
   amount
 }
 
+"""
+TokenGovernanceConfig: A higher order entity that represents the governance configs for a token.
+If `id` is `address(0)`, it will be used as the default config.
+
+"""
 type TokenGovernanceConfig {
   """
-  ID will be the address of the SuperToken
+  id is the address of the SuperToken
+  NOTE: the zero address is reserved for the default config for all tokens with unset configs.
   
   """
   id: ID!
@@ -14722,20 +15916,20 @@ type TokenGovernanceConfig {
   updatedAtBlockNumber: BigInt!
 
   """
-  If true, id is zero address and this is the default config for all tokens with unset configs.
+  If true, `id` is `address(0)` and this is the default config for all tokens with unset configs.
   
   """
   isDefault: Boolean!
 
   """
-  The address that receives liquidation rewards for the token with address `id`
-  with an unset rewardAddress prior to 3Ps and the TOGA address after 3Ps.
+  The (default or token-specific) address that receives liquidation rewards for
+  a token prior to 3Ps and the TOGA address after 3Ps.
   
   """
   rewardAddress: Bytes
 
   """
-  The liquidation period (buffer amount required for a token) for tokens with an unset liquidation period.
+  The (default or token-specific) liquidation period (buffer amount required for a token).
   This field can be used to calculate the liquidation buffer (or deposit) amount
   for a token: `liquidationBufferAmount = liquidationPeriod * flowRate`.
   Note that if `minimumDeposit` is set, the liquidation buffer amount will be the greater of the two values.
@@ -14744,17 +15938,23 @@ type TokenGovernanceConfig {
   liquidationPeriod: BigInt
 
   """
-  The patrician period, the patrician period is the window in which a patrician
-  receives all rewards for a liquidation, no matter the liquidating account.
+  The (default or token-specific) patrician period, the patrician period is the
+  window in which a patrician receives all rewards for a liquidation, no matter
+  the liquidating account.
   
   """
   patricianPeriod: BigInt
 
   """
-  The minimum deposit amount for tokens with an unset minimum deposit.
+  The (default or token-specific) minimum deposit amount.
   
   """
   minimumDeposit: BigInt
+
+  """
+  A reverse lookup to the token it is associated with and null if it is the default config.
+  
+  """
   token: Token
 }
 
@@ -14805,6 +16005,10 @@ input TokenGovernanceConfig_filter {
   isDefault_not_in: [Boolean!]
   rewardAddress: Bytes
   rewardAddress_not: Bytes
+  rewardAddress_gt: Bytes
+  rewardAddress_lt: Bytes
+  rewardAddress_gte: Bytes
+  rewardAddress_lte: Bytes
   rewardAddress_in: [Bytes!]
   rewardAddress_not_in: [Bytes!]
   rewardAddress_contains: Bytes
@@ -14857,6 +16061,8 @@ input TokenGovernanceConfig_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [TokenGovernanceConfig_filter]
+  or: [TokenGovernanceConfig_filter]
 }
 
 enum TokenGovernanceConfig_orderBy {
@@ -14871,6 +16077,16 @@ enum TokenGovernanceConfig_orderBy {
   patricianPeriod
   minimumDeposit
   token
+  token__id
+  token__createdAtTimestamp
+  token__createdAtBlockNumber
+  token__decimals
+  token__name
+  token__symbol
+  token__isSuperToken
+  token__isNativeAssetSuperToken
+  token__isListed
+  token__underlyingAddress
 }
 
 """
@@ -15107,6 +16323,8 @@ input TokenStatistic_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [TokenStatistic_filter]
+  or: [TokenStatistic_filter]
 }
 
 enum TokenStatistic_orderBy {
@@ -15126,6 +16344,16 @@ enum TokenStatistic_orderBy {
   totalAmountDistributedUntilUpdatedAt
   totalSupply
   token
+  token__id
+  token__createdAtTimestamp
+  token__createdAtBlockNumber
+  token__decimals
+  token__name
+  token__symbol
+  token__isSuperToken
+  token__isNativeAssetSuperToken
+  token__isListed
+  token__underlyingAddress
   tokenStatisticLogs
 }
 
@@ -15244,6 +16472,10 @@ input TokenStatisticLog_filter {
   blockNumber_not_in: [BigInt!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -15425,6 +16657,8 @@ input TokenStatisticLog_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [TokenStatisticLog_filter]
+  or: [TokenStatisticLog_filter]
 }
 
 enum TokenStatisticLog_orderBy {
@@ -15448,7 +16682,32 @@ enum TokenStatisticLog_orderBy {
   totalAmountDistributed
   totalSupply
   token
+  token__id
+  token__createdAtTimestamp
+  token__createdAtBlockNumber
+  token__decimals
+  token__name
+  token__symbol
+  token__isSuperToken
+  token__isNativeAssetSuperToken
+  token__isListed
+  token__underlyingAddress
   tokenStatistic
+  tokenStatistic__id
+  tokenStatistic__updatedAtTimestamp
+  tokenStatistic__updatedAtBlockNumber
+  tokenStatistic__totalNumberOfActiveStreams
+  tokenStatistic__totalNumberOfClosedStreams
+  tokenStatistic__totalNumberOfIndexes
+  tokenStatistic__totalNumberOfActiveIndexes
+  tokenStatistic__totalSubscriptionsWithUnits
+  tokenStatistic__totalApprovedSubscriptions
+  tokenStatistic__totalDeposit
+  tokenStatistic__totalOutflowRate
+  tokenStatistic__totalAmountStreamedUntilUpdatedAt
+  tokenStatistic__totalAmountTransferredUntilUpdatedAt
+  tokenStatistic__totalAmountDistributedUntilUpdatedAt
+  tokenStatistic__totalSupply
 }
 
 type TokenUpgradedEvent implements Event {
@@ -15506,6 +16765,10 @@ input TokenUpgradedEvent_filter {
   account_: Account_filter
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -15586,6 +16849,10 @@ input TokenUpgradedEvent_filter {
   order_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -15601,11 +16868,19 @@ input TokenUpgradedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [TokenUpgradedEvent_filter]
+  or: [TokenUpgradedEvent_filter]
 }
 
 enum TokenUpgradedEvent_orderBy {
   id
   account
+  account__id
+  account__createdAtTimestamp
+  account__createdAtBlockNumber
+  account__updatedAtTimestamp
+  account__updatedAtBlockNumber
+  account__isSuperApp
   transactionHash
   gasPrice
   gasUsed
@@ -15655,6 +16930,10 @@ input TransferEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -15785,6 +17064,10 @@ input TransferEvent_filter {
   value_not_in: [BigInt!]
   token: Bytes
   token_not: Bytes
+  token_gt: Bytes
+  token_lt: Bytes
+  token_gte: Bytes
+  token_lte: Bytes
   token_in: [Bytes!]
   token_not_in: [Bytes!]
   token_contains: Bytes
@@ -15792,6 +17075,8 @@ input TransferEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [TransferEvent_filter]
+  or: [TransferEvent_filter]
 }
 
 enum TransferEvent_orderBy {
@@ -15806,7 +17091,19 @@ enum TransferEvent_orderBy {
   logIndex
   order
   from
+  from__id
+  from__createdAtTimestamp
+  from__createdAtBlockNumber
+  from__updatedAtTimestamp
+  from__updatedAtBlockNumber
+  from__isSuperApp
   to
+  to__id
+  to__createdAtTimestamp
+  to__createdAtBlockNumber
+  to__updatedAtTimestamp
+  to__updatedAtBlockNumber
+  to__isSuperApp
   value
   token
 }
@@ -15851,6 +17148,10 @@ input TrustedForwarderChangedEvent_filter {
   id_not_in: [ID!]
   transactionHash: Bytes
   transactionHash_not: Bytes
+  transactionHash_gt: Bytes
+  transactionHash_lt: Bytes
+  transactionHash_gte: Bytes
+  transactionHash_lte: Bytes
   transactionHash_in: [Bytes!]
   transactionHash_not_in: [Bytes!]
   transactionHash_contains: Bytes
@@ -15901,6 +17202,10 @@ input TrustedForwarderChangedEvent_filter {
   name_not_ends_with_nocase: String
   governanceAddress: Bytes
   governanceAddress_not: Bytes
+  governanceAddress_gt: Bytes
+  governanceAddress_lt: Bytes
+  governanceAddress_gte: Bytes
+  governanceAddress_lte: Bytes
   governanceAddress_in: [Bytes!]
   governanceAddress_not_in: [Bytes!]
   governanceAddress_contains: Bytes
@@ -15937,12 +17242,20 @@ input TrustedForwarderChangedEvent_filter {
   order_not_in: [BigInt!]
   host: Bytes
   host_not: Bytes
+  host_gt: Bytes
+  host_lt: Bytes
+  host_gte: Bytes
+  host_lte: Bytes
   host_in: [Bytes!]
   host_not_in: [Bytes!]
   host_contains: Bytes
   host_not_contains: Bytes
   superToken: Bytes
   superToken_not: Bytes
+  superToken_gt: Bytes
+  superToken_lt: Bytes
+  superToken_gte: Bytes
+  superToken_lte: Bytes
   superToken_in: [Bytes!]
   superToken_not_in: [Bytes!]
   superToken_contains: Bytes
@@ -15953,6 +17266,10 @@ input TrustedForwarderChangedEvent_filter {
   isKeySet_not_in: [Boolean!]
   forwarder: Bytes
   forwarder_not: Bytes
+  forwarder_gt: Bytes
+  forwarder_lt: Bytes
+  forwarder_gte: Bytes
+  forwarder_lte: Bytes
   forwarder_in: [Bytes!]
   forwarder_not_in: [Bytes!]
   forwarder_contains: Bytes
@@ -15964,6 +17281,8 @@ input TrustedForwarderChangedEvent_filter {
 
   """Filter for the block changed event."""
   _change_block: BlockChangedFilter
+  and: [TrustedForwarderChangedEvent_filter]
+  or: [TrustedForwarderChangedEvent_filter]
 }
 
 enum TrustedForwarderChangedEvent_orderBy {

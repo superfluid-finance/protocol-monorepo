@@ -36,9 +36,7 @@ jobs:
            , test-sdk-core-with-v1-release-subgraph
            ]
 
-    permissions:
-      repository-projects: write
-
+    permissions: write-all
     steps:
       - uses: actions/checkout@v3
 

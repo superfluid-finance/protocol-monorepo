@@ -48,9 +48,11 @@ export class AccountAccessSettingQueryHandler extends SubgraphQueryHandler<
     getAddressFieldKeysFromFilter = (): {
         accountKeys: (keyof FlowOperator_Filter)[];
         tokenKeys: (keyof FlowOperator_Filter)[];
+        flowOperatorKeys: (keyof FlowOperator_Filter)[];
     } => ({
         accountKeys: ["sender"],
         tokenKeys: ["token"],
+        flowOperatorKeys: ["flowOperator"],
     });
 
     getRelevantAddressesFromResultCore = (

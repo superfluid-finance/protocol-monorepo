@@ -1,5 +1,7 @@
 import {
     Account,
+    AccountAccessSetting,
+    AccountAccessSettingQueryHandler,
     AccountQueryHandler,
     AccountTokenSnapshot,
     AccountTokenSnapshotLog,
@@ -36,6 +38,8 @@ import {provideSpecificCacheTagsFromRelevantAddresses} from '../provideSpecificC
 import {SubgraphEndpointBuilder} from '../subgraphEndpointBuilder';
 
 import {
+    AccountAccessSettingQuery,
+    AccountAccessSettingsQuery,
     AccountQuery,
     AccountsQuery,
     AccountTokenSnapshotLogQuery,
@@ -82,6 +86,8 @@ export const createEntityEndpoints = (builder: SubgraphEndpointBuilder) => {
         tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(builder, new TokenStatisticQueryHandler()),
         tokenStatisticLog: get<TokenStatisticLog, TokenStatisticLogQuery>(builder, new TokenStatisticLogQueryHandler()),
         tokenStatisticLogs: list<TokenStatisticLog, TokenStatisticLogsQuery>(builder, new TokenStatisticLogQueryHandler()),
+        accountAccessSettings: list<AccountAccessSetting, AccountAccessSettingsQuery>(builder, new AccountAccessSettingQueryHandler()),
+        accountAccessSetting: get<AccountAccessSetting, AccountAccessSettingQuery>(builder, new AccountAccessSettingQueryHandler()),
     };
 };
 

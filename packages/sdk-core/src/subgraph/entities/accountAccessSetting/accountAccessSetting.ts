@@ -26,16 +26,9 @@ export interface AccountAccessSetting {
     createdAtTimestamp: Timestamp;
     updatedAtBlockNumber: BlockNumber;
     updatedAtTimestamp: Timestamp;
-
-    flowOperator: string;
-    sender: {
-        id: Address;
-    };
-    token: {
-        id: Address;
-        decimals: number;
-        symbol: string;
-    };
+    flowOperator: Address;
+    sender: Address;
+    token: Address;
     flowRateAllowanceRemaining: BigNumber;
     allowance: BigNumber;
     permissions: number;
@@ -72,6 +65,8 @@ export class AccountAccessSettingQueryHandler extends SubgraphQueryHandler<
     ): AccountAccessSetting[] =>
         response.flowOperators.map((x) => ({
             ...x,
+            sender: x.sender.id,
+            token: x.token.id,
             createdAtTimestamp: Number(x.createdAtTimestamp),
             createdAtBlockNumber: Number(x.createdAtBlockNumber),
             updatedAtTimestamp: Number(x.updatedAtTimestamp),

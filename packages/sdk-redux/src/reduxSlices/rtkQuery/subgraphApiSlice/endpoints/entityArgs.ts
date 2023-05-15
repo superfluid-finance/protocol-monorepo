@@ -1,4 +1,5 @@
 import {
+    AccountAccessSettingListQuery,
     AccountListQuery,
     AccountTokenSnapshotListQuery,
     AccountTokenSnapshotLogListQuery,
@@ -89,5 +90,14 @@ export interface TokenStatisticLogQuery extends SubgraphGetQuery {
 }
 
 export interface TokenStatisticLogsQuery extends TokenStatisticLogListQuery {
+    chainId: number;
+}
+
+export interface AccountAccessSettingQuery extends SubgraphGetQuery{
+    chainId: number;
+}
+
+export interface AccountAccessSettingsQuery extends AccountAccessSettingListQuery
+{
     chainId: number;
 }

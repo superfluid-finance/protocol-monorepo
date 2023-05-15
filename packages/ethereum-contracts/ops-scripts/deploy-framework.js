@@ -479,6 +479,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     }
 
+    let superTokenPoolBeaconAddress;
     // @note GDA deployment is commented out until we plan on releasing it
     const deployGDAv1 = async () => {
         try {
@@ -542,7 +543,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         );
         output += `SUPER_TOKEN_POOL_BEACON=${superTokenPoolBeacon.address}\n`;
 
-        await agreement.initialize(superTokenPoolBeacon.address);
+        // @note should be temporary
+        superTokenPoolBeaconAddress = superTokenPoolBeacon.address;
+
         return agreement;
     };
 
@@ -739,14 +742,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // or if constant outflow nft logic or constant inflow nft logic has changed
         async () => {
             let superTokenFactoryLogic;
-            const cfaV1Address = await superfluid.getAgreementClass.call(
-                ethers.utils.solidityKeccak256(
-                    ["string"],
-                    [
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1",
-                    ]
-                )
-            );
 
             // @note this will either be freshly created proxies on the very first bootstrapping per network
             // OR it will be the canonical proxy set on the SuperToken
@@ -978,6 +973,16 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     superTokenFactoryNewLogicAddress
                 )
         );
+    }
+
+    // @note THIS IS TEMPORARY
+    // WE LIKELY WANT TO HAVE MORE ACCESS CONTROL OVER INITIALIZATION OF
+    // THE BEACON PROXY AND DOING THIS AFTER WOULDN'T WORK IN PROD ANYWAYS
+    const gdaV1Contract = await GeneralDistributionAgreementV1.at(
+        await superfluid.getAgreementClass.call(GDAv1_TYPE)
+    );
+    if (gdaV1Contract.superTokenPoolBeacon() === ZERO_ADDRESS) {
+        await gdaV1Contract.initialize(superTokenPoolBeaconAddress);
     }
 
     console.log("======== Superfluid framework deployed ========");

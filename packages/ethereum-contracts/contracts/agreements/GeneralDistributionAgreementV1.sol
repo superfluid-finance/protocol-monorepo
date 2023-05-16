@@ -320,10 +320,10 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         (bool exist,) = _getPoolMemberData(token, member, ISuperfluidPool(pool));
         return exist;
     }
+
     function isMemberConnected(ISuperfluidPool pool, address member) public view override returns (bool) {
         ISuperfluidToken token = pool.superToken();
-        (bool exist,) = _getPoolMemberData(token, member, ISuperfluidPool(pool));
-        return exist;
+        return isMemberConnected(token, address(pool), member);
     }
 
     function appendIndexUpdateByPool(ISuperfluidToken token, BasicParticle memory p, Time t) external returns (bool) {
@@ -426,11 +426,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             FlowRate.wrap(requestedFlowRate),
             Time.wrap(uint32(block.timestamp))
         );
+
         {
-            _adjustBuffer(abi.encode(token), from, distributionFlowHash, oldFlowRate, actualFlowRate);
-        }
-        {
-            (int256 availableBalance,,) = token.realtimeBalanceOf(from, currentContext.timestamp);
             // distribute flow on behalf of someone else
             if (from != currentContext.msgSender) {
                 if (requestedFlowRate > 0) {
@@ -438,6 +435,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                     // revert if trying to distribute on behalf of others
                     revert GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
                 } else {
+                    // liquidation case, requestedFlowRate == 0
+                    (int256 availableBalance,,) = token.realtimeBalanceOf(from, currentContext.timestamp);
                     // _StackVars_Liquidation used to handle good ol' stack too deep
                     _StackVars_Liquidation memory liquidationData;
                     {
@@ -457,11 +456,19 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                         revert GDA_NON_CRITICAL_SENDER();
                     }
                 }
-            } else {
-                // from and msg.sender are the same
-                if (requestedFlowRate > 0 && availableBalance < 0) {
-                    revert GDA_INSUFFICIENT_BALANCE();
-                }
+            }
+        }
+
+        {
+            _adjustBuffer(abi.encode(token), from, distributionFlowHash, oldFlowRate, actualFlowRate);
+        }
+
+        // ensure sender has enough balance to execute transaction
+        {
+            (int256 availableBalance,,) = token.realtimeBalanceOf(from, currentContext.timestamp);
+            // if from == msg.sender
+            if (requestedFlowRate > 0 && availableBalance < 0) {
+                revert GDA_INSUFFICIENT_BALANCE();
             }
         }
 
@@ -590,6 +597,34 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(_host).getGovernance());
         uint256 pppConfig = gov.getConfigAsUint256(ISuperfluid(_host), token, CFAV1_PPP_CONFIG_KEY);
         (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
+    }
+
+    function isPatricianPeriodNow(ISuperfluidToken token, address account)
+        external
+        view
+        override
+        returns (bool isCurrentlyPatricianPeriod, uint256 timestamp)
+    {
+        timestamp = ISuperfluid(_host).getNow();
+        isCurrentlyPatricianPeriod = isPatricianPeriod(token, account, timestamp);
+    }
+
+    function isPatricianPeriod(ISuperfluidToken token, address account, uint256 timestamp)
+        public
+        view
+        override
+        returns (bool)
+    {
+        (int256 availableBalance,,) = token.realtimeBalanceOf(account, timestamp);
+        if (availableBalance >= 0) {
+            return true;
+        }
+
+        (uint256 liquidationPeriod, uint256 patricianPeriod) = _decode3PsData(token);
+        UniversalIndexData memory uIndexData = _getUIndexData(abi.encode(token), account);
+
+        return
+            _isPatricianPeriod(availableBalance, uIndexData.totalBuffer.toInt256(), liquidationPeriod, patricianPeriod);
     }
 
     function _isPatricianPeriod(

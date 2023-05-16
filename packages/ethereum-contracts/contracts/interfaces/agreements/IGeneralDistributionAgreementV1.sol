@@ -147,6 +147,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
 
     /// Get pool adjustment flow information: (recipient, flowHash, flowRate)
     function getPoolAdjustmentFlowInfo(ISuperfluidPool pool) external view virtual returns (address, bytes32, int96);
+    
     ////////////////////////////////////////////////////////////////////////////////
     // Agreement Operations
     ////////////////////////////////////////////////////////////////////////////////
@@ -182,4 +183,34 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
         int96 requestedFlowRate,
         bytes calldata ctx
     ) external virtual returns (bytes memory newCtx);
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Solvency Functions
+    ////////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @dev Returns whether it is the patrician period based on host.getNow()
+     * @param account The account we are interested in
+     * @return isCurrentlyPatricianPeriod Whether it is currently the patrician period dictated by governance
+     * @return timestamp The value of host.getNow()
+     */
+    function isPatricianPeriodNow(
+        ISuperfluidToken token,
+        address account)
+        external view virtual
+        returns (bool isCurrentlyPatricianPeriod, uint256 timestamp);
+
+    /**
+     * @dev Returns whether it is the patrician period based on timestamp
+     * @param account The account we are interested in
+     * @param timestamp The timestamp we are interested in observing the result of isPatricianPeriod
+     * @return bool Whether it is currently the patrician period dictated by governance
+     */
+    function isPatricianPeriod(
+        ISuperfluidToken token,
+        address account,
+        uint256 timestamp
+    )
+        public view virtual
+        returns (bool);
 }

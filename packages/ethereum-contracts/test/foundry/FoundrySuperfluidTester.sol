@@ -169,7 +169,10 @@ contract FoundrySuperfluidTester is Test {
         return netFlowRateSum == 0;
     }
 
-    function _assertGlobalInvariants() internal {
+    /*//////////////////////////////////////////////////////////////////////////
+                            Invariant Assertion Helpers
+    //////////////////////////////////////////////////////////////////////////*/
+    function _assertGlobalInvariants() virtual internal {
         assertTrue(_definitionGlobalInvariants());
     }
 

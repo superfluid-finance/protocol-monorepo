@@ -1452,7 +1452,7 @@ contract ConstantFlowAgreementV1 is
         (,FlowData memory senderAccountState) = _getAccountFlowState(token, flowParams.sender);
 
         int256 signedSingleDeposit = flowData.deposit.toInt256();
-        // TODO: GDA deposit should be considered here too
+
         int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
         bytes memory liquidationTypeData;
         bool isCurrentlyPatricianPeriod;

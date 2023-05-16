@@ -45,6 +45,162 @@ func test_m_append{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_p
 }
 
 @external
+func setup_flowrate_quotrem_unit{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    %{
+        given(
+            r = strategy.felts(), 
+            u = strategy.integers(0, 1000),
+        )
+    %}
+    return ();
+}
+
+@external
+func test_flowrate_quotrem_unit{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(r: felt, u: felt) {
+    %{ assume(ids.u != 0) %}
+    %{ assume(ids.r <= 3402823669209384634633746074317682114) %}
+    let (q, e) = unsigned_div_rem(r, u);
+    assert (q * u) + e = r;
+    return ();
+}
+
+@external
+func setup_distributive_law{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    %{
+        given(
+            x = strategy.felts(), 
+            u1 = strategy.integers(0, 1000),
+            u2 = strategy.integers(0, 1000), 
+        )
+    %}
+    return ();
+}
+
+@external
+func test_distributive_law{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(x: felt, u1: felt, u2: felt) {
+    assert (x * u1) + (x * u2) = x * (u1 + u2);
+    return ();
+}
+
+@external
+func setup_u_monoid_identity{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    %{
+        given(
+            _settled_at = strategy.integers(0, 1000), 
+            _settled_value = strategy.integers(0, 1000),
+            _flow_rate = strategy.felts(), 
+        )
+    %}
+    return ();
+}
+
+@external
+func test_u_monoid_identity{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(_settled_at: felt, _settled_value: felt, _flow_rate: felt) {
+    alloc_locals;
+    let p1 = BasicParticle(_settled_at, _settled_value, _flow_rate);
+    let ep = BasicParticle(0, 0, 0);
+    let (p2) = SemanticMoney.mappend(ep, p1);
+    assert p2 = p1;
+    let (p3) = SemanticMoney.mappend(p1, ep);
+    assert p3 = p1;
+    return ();
+}
+
+@external
+func setup_u_monoid_assoc{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    %{
+        given(
+            _settled_at_1 = strategy.integers(0, 1000), 
+            _settled_value_1 = strategy.integers(0, 1000),
+            _flow_rate_1 = strategy.felts(),
+            _settled_at_2 = strategy.integers(0, 1000), 
+            _settled_value_2 = strategy.integers(0, 1000),
+            _flow_rate_2 = strategy.felts(), 
+            _settled_at_3 = strategy.integers(0, 1000), 
+            _settled_value_3 = strategy.integers(0, 1000),
+            _flow_rate_3 = strategy.felts(),  
+        )
+    %}
+    return ();
+}
+
+@external
+func test_u_monoid_assoc{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(_settled_at_1: felt, _settled_value_1: felt, _flow_rate_1: felt, _settled_at_2: felt, _settled_value_2: felt, _flow_rate_2: felt, _settled_at_3: felt, _settled_value_3: felt, _flow_rate_3: felt) {
+    alloc_locals;
+    let p1 = BasicParticle(_settled_at_1, _settled_value_1, _flow_rate_1);
+    let p2 = BasicParticle(_settled_at_2, _settled_value_2, _flow_rate_2);
+    let p3 = BasicParticle(_settled_at_3, _settled_value_3, _flow_rate_3);
+    let (p1_and_p2) = SemanticMoney.mappend(p1, p2);
+    let (agg1) = SemanticMoney.mappend(p1_and_p2, p3);
+    let (p2_and_p3) = SemanticMoney.mappend(p2, p3);
+    let (agg2) = SemanticMoney.mappend(p2_and_p3, p1);
+    assert agg1 = agg2;
+    return ();
+}
+
+@external
+func setup_u_settle_idempotence{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    %{
+        given(
+            _settled_at = strategy.integers(0, 1000), 
+            _settled_value = strategy.integers(0, 1000),
+            _flow_rate = strategy.felts(),
+            time = strategy.integers(1, 1000),
+        )
+    %}
+    return ();
+}
+
+@external
+func test_u_settle_idempotence{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(_settled_at: felt, _settled_value: felt, _flow_rate: felt, time: felt) {
+    alloc_locals;
+    let p = BasicParticle(_settled_at, _settled_value, _flow_rate);
+    let (settled_at) = SemanticMoney.settled_at(p);
+    let t1 = settled_at + time;
+    let (p1) = SemanticMoney.settle(p, t1);
+    let (p2) = SemanticMoney.settle(p1, t1);
+    assert p1._settled_at = t1;
+    assert p1 = p2;
+    return ();
+}
+
+@external
+func setup_u_constant_rtb{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
+    %{
+        given(
+            _settled_at = strategy.integers(0, 1000), 
+            _settled_value = strategy.integers(0, 1000),
+            _flow_rate = strategy.felts(),
+            m1 = strategy.integers(1, 1000),
+            m2 = strategy.integers(1, 1000),
+            m3 = strategy.integers(1, 1000),
+        )
+    %}
+    return ();
+}
+
+@external
+func test_u_constant_rtb{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(_settled_at: felt, _settled_value: felt, _flow_rate: felt, m1: felt, m2: felt, m3: felt) {
+    alloc_locals;
+    let p = BasicParticle(_settled_at, _settled_value, _flow_rate);
+    let (settled_at) = SemanticMoney.settled_at(p);
+    let t1 = settled_at + m1;
+    let t2 = t1 + m2;
+    let t3 = t2 + m3;
+    let (settle_p_at_t1) = SemanticMoney.settle(p, t1);
+    let (settle_p_at_t2) = SemanticMoney.settle(p, t2);
+    let (rtb_of_settle_p_at_t1_at_t3) = SemanticMoney.realtime_balance_of(settle_p_at_t1, t3);
+    let (rtb_of_settle_p_at_t2_at_t3) = SemanticMoney.realtime_balance_of(settle_p_at_t2, t3);
+    let (rtb_of_p_at_t3) = SemanticMoney.realtime_balance_of(p, t3);
+    assert rtb_of_settle_p_at_t1_at_t3 = rtb_of_p_at_t3;
+    assert rtb_of_settle_p_at_t2_at_t3 = rtb_of_p_at_t3;
+    let (settle_p_at_t1_at_t2) = SemanticMoney.settle(settle_p_at_t1, t2);
+    let (rtb_of_settle_p_at_t1_at_t2_at_t3) = SemanticMoney.realtime_balance_of(settle_p_at_t1_at_t2, t3);
+    assert rtb_of_settle_p_at_t1_at_t2_at_t3 = rtb_of_p_at_t3;
+    return ();
+}
+
+@external
 func setup_realtime_balance_of{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
     %{
         given(
@@ -259,10 +415,8 @@ func test_settle_for_pool_member_mu{
     assert settled_poolMemberMU.pdPoolIndex._wrapped_particle._settled_at = t2;
     assert settled_poolMemberMU.pdPoolIndex._wrapped_particle._settled_value = ((t2 - t1) * fr) +
         sv_wrapped;
-    assert settled_poolMemberMU.pdPoolMember._synced_particle._settled_at = settled_poolMemberMU.pdPoolIndex._wrapped_particle._settled_at
-        ;
-    assert settled_poolMemberMU.pdPoolMember._synced_particle._settled_value = settled_poolMemberMU.pdPoolIndex._wrapped_particle._settled_value
-        ;
+    assert settled_poolMemberMU.pdPoolMember._synced_particle._settled_at = settled_poolMemberMU.pdPoolIndex._wrapped_particle._settled_at;
+    assert settled_poolMemberMU.pdPoolMember._synced_particle._settled_value = settled_poolMemberMU.pdPoolIndex._wrapped_particle._settled_value;
     let (balanceOfPDMemberMU) = SemanticMoney.realtime_balance_of_pool_member_mu(poolMemberMU, t2);
     assert settled_poolMemberMU.pdPoolMember._settled_value = balanceOfPDMemberMU;
     return ();

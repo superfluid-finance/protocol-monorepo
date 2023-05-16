@@ -87,8 +87,6 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
             flowReceiver
         );
         _mint(superToken, flowSender, flowReceiver, newTokenId);
-
-        CONSTANT_INFLOW_NFT.mint(flowReceiver, newTokenId);
     }
 
     /// @notice Hook called by CFA contract on flow creation

@@ -75,20 +75,6 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         return _tokenURI(tokenId, false);
     }
 
-    // @note TODO temporary direct minting function
-    function directMint(
-        address superToken,
-        address flowSender,
-        address flowReceiver
-    ) external {
-        uint256 newTokenId = _getTokenId(
-            address(superToken),
-            flowSender,
-            flowReceiver
-        );
-        _mint(superToken, flowSender, flowReceiver, newTokenId);
-    }
-
     /// @notice Hook called by CFA contract on flow creation
     /// @dev This function mints the COF NFT to the flow sender and mints the CIF NFT to the flow receiver
     /// @param superToken the SuperToken contract address

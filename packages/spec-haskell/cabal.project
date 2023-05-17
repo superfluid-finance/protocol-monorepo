@@ -1,4 +1,5 @@
 packages:
+    pkgs/semantic-money
     pkgs/core/superfluid-protocol-spec-core.cabal
     pkgs/simple/superfluid-protocol-system-simple.cabal
     pkgs/validator/superfluid-protocol-spec-validator.cabal

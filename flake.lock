@@ -1,5 +1,26 @@
 {
   "nodes": {
+    "certora": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1680817488,
+        "narHash": "sha256-8d+La0dlY4bkygbSIFIoCz1Q8yykg5FDEevvGrtHSQ0=",
+        "owner": "hellwolf",
+        "repo": "certora.nix",
+        "rev": "ba279b9e9e92b4f9b462c17ed2ec2084ec62b9eb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hellwolf",
+        "repo": "certora.nix",
+        "type": "github"
+      }
+    },
     "flake-utils": {
       "locked": {
         "lastModified": 1676283394,
@@ -17,6 +38,21 @@
     },
     "flake-utils_2": {
       "locked": {
+        "lastModified": 1676283394,
+        "narHash": "sha256-XX2f9c3iySLCw54rJ/CZs+ZK6IQy7GXNY4nSOyu2QG4=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "3db36a8b464d0c4532ba1c7dda728f4576d6d073",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_3": {
+      "locked": {
         "lastModified": 1644229661,
         "narHash": "sha256-1YdnJAsNy69bpcjuoKdOYQX0YxZBiCYZo4Twxerqv7k=",
         "owner": "numtide",
@@ -30,19 +66,34 @@
         "type": "github"
       }
     },
+    "flake-utils_4": {
+      "locked": {
+        "lastModified": 1676283394,
+        "narHash": "sha256-XX2f9c3iySLCw54rJ/CZs+ZK6IQy7GXNY4nSOyu2QG4=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "3db36a8b464d0c4532ba1c7dda728f4576d6d073",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "foundry": {
       "inputs": {
-        "flake-utils": "flake-utils_2",
+        "flake-utils": "flake-utils_3",
         "nixpkgs": [
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1677921223,
-        "narHash": "sha256-TsrPW+VfLu19dYm4uuAaM9LLHm30iZiyW1+0mbFgwbk=",
+        "lastModified": 1683191603,
+        "narHash": "sha256-KdSKdwz3+VJQIHc8sCDwPo2OQtPs5jbxwrLXseHLlfc=",
         "owner": "shazow",
         "repo": "foundry.nix",
-        "rev": "79df1481c10789570c40749a4c8f8aada16f2eea",
+        "rev": "5a53423b983f623420733f62c01fa69d1f4cdda9",
         "type": "github"
       },
       "original": {
@@ -70,9 +121,32 @@
     },
     "root": {
       "inputs": {
-        "flake-utils": "flake-utils",
+        "certora": "certora",
+        "flake-utils": "flake-utils_2",
         "foundry": "foundry",
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "solc": "solc"
+      }
+    },
+    "solc": {
+      "inputs": {
+        "flake-utils": "flake-utils_4",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1682350383,
+        "narHash": "sha256-5oxg0dOePpcdcMHKo3Q3hTgjizlY4hc0b9JOARtHGo8=",
+        "owner": "hellwolf",
+        "repo": "solc.nix",
+        "rev": "109b9faab4cee3313350c4c27d529e164c6f569f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "hellwolf",
+        "repo": "solc.nix",
+        "type": "github"
       }
     }
   },

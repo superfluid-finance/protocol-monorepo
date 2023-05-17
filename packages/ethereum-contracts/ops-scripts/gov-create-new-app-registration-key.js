@@ -12,7 +12,7 @@ const {
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
- * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
+ * @param {string} options.protocolReleaseVersion Specify the protocol release version to be used
  *
  * Note: the key itself doesn't have much meaning, it could be "stolen" from a broadcast tx anyway.
  * But since it's bound to a deployer address, that doesn't really matter.

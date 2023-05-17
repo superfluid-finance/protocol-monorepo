@@ -41,9 +41,8 @@ function hott() {
     rm -rf crytic-export/
     rm -rf build/hot-fuzz-contracts/
     npx truffle compile --all \
-        && "$ECHIDNA_TEST" . --config <(cat $HOTFUZZ_DIR/echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT
-
-    digests
+        && "$ECHIDNA_TEST" . --config <(cat $HOTFUZZ_DIR/echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT \
+        && digests
 }
 
 TEST_CONTRACT_CONFIG=$1

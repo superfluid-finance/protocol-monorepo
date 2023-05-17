@@ -17,6 +17,7 @@ import { alice, bob, maticXAddress, maticXName, maticXSymbol } from "../../const
 import {
     createFlowOperatorUpdatedEvent, getDeposit, modifyFlowAndAssertFlowUpdatedEventProperties,
 } from "../cfav1.helper";
+import {mockedApprove} from "../../mockedFunctions";
 
 const initialFlowRate = BigInt.fromI32(100);
 
@@ -75,8 +76,12 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
         const superToken = maticXAddress;
         const permissions = 1; // create only
         const flowRateAllowance = BigInt.fromI32(100);
+        const allowance = BigInt.fromI32(0);
         const sender = alice;
         const flowOperator = bob;
+
+        mockedApprove(superToken, sender, flowOperator, allowance);
+        // Mocking is required here since it calls RPC inside getOrInitFlowOperator, when it is null.
 
         const flowOperatorUpdatedEvent = createFlowOperatorUpdatedEvent(
             superToken,
@@ -88,7 +93,6 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
 
         handleFlowOperatorUpdated(flowOperatorUpdatedEvent);
 
-        
         const id = getFlowOperatorID(
             Address.fromString(flowOperator),
             Address.fromString(superToken),
@@ -107,6 +111,7 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
         assert.fieldEquals("FlowOperator", id, "flowRateAllowanceGranted", flowRateAllowance.toString());
         assert.fieldEquals("FlowOperator", id, "flowRateAllowanceRemaining", flowRateAllowance.toString());
         assert.fieldEquals("FlowOperator", id, "flowOperator", flowOperator);
+        assert.fieldEquals("FlowOperator", id, "allowance", allowance.toString());
         assert.fieldEquals("FlowOperator", id, "sender", sender);
         assert.fieldEquals("FlowOperator", id, "token", superToken);
         assert.fieldEquals("FlowOperator", id, "accountTokenSnapshot", atsId);

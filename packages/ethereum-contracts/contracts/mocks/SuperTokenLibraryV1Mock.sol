@@ -74,26 +74,110 @@ contract SuperTokenLibraryCFAMock {
      * CFA Operations
      *************************************************************************/
 
-    function createFlowTest(ISuperToken token, address receiver, int96 flowRate) public {
+    function createFlowTest(
+        ISuperToken token,
+        address receiver,
+        int96 flowRate
+    ) public {
         token.createFlow(receiver, flowRate);
     }
-    function deleteFlowTest(ISuperToken token, address sender, address receiver) public {
+
+    function createFlowWithUserDataTest(
+        ISuperToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        token.createFlow(receiver, flowRate, userData);
+    }
+
+    function deleteFlowTest(
+        ISuperToken token,
+        address sender,
+        address receiver
+    ) public {
         token.deleteFlow(sender, receiver);
     }
 
-    function updateFlowTest(ISuperToken token, address receiver, int96 flowRate) public {
+    function deleteFlowWithUserDataTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        bytes memory userData
+    ) public {
+        token.deleteFlow(sender, receiver, userData);
+    }
+
+    function updateFlowWithUserDataTest(
+        ISuperToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        token.updateFlow(receiver, flowRate, userData);
+    }
+
+    function updateFlowTest(
+        ISuperToken token,
+        address receiver,
+        int96 flowRate
+    ) public {
         token.updateFlow(receiver, flowRate);
     }
 
-    function createFlowFromTest(ISuperToken token, address sender, address receiver, int96 flowRate) public {
+    function createFlowFromTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int96 flowRate
+    ) public {
         token.createFlowFrom(sender, receiver, flowRate);
     }
-    function deleteFlowFromTest(ISuperToken token, address sender, address receiver) public {
+
+    function createFlowFromWithUserDataTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        token.createFlowFrom(sender, receiver, flowRate, userData);
+    }
+
+    function deleteFlowFromTest(
+        ISuperToken token,
+        address sender,
+        address receiver
+    ) public {
         token.deleteFlowFrom(sender, receiver);
     }
 
-    function updateFlowFromTest(ISuperToken token, address sender, address receiver, int96 flowRate) public {
+    function deleteFlowFromWithUserDataTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        bytes memory userData
+    ) public {
+        token.deleteFlowFrom(sender, receiver, userData);
+    }
+
+    function updateFlowFromTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int96 flowRate
+    ) public {
         token.updateFlowFrom(sender, receiver, flowRate);
+    }
+
+    function updateFlowFromWithUserDataTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        token.updateFlowFrom(sender, receiver, flowRate, userData);
     }
 
     function setFlowPermissionsTest(

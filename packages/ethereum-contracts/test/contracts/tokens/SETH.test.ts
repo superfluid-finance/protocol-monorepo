@@ -51,6 +51,11 @@ describe("Super ETH (SETH) Contract", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     it("#1.1 upgradeByETH", async () => {

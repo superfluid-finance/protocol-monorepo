@@ -52,13 +52,16 @@ describe("TOGA", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
         const TOGAFactory = await ethers.getContractFactory("TOGA");
-        toga = await TOGAFactory.deploy(
-            superfluid.address,
-            MIN_BOND_DURATION
-        );
+        toga = await TOGAFactory.deploy(superfluid.address, MIN_BOND_DURATION);
         console.log(`TOGA deployed at: ${toga.address}`);
         await t.upgradeBalance("alice", t.configs.INIT_BALANCE);
+        this;
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     // copied over from ConstantFlowAgreementV1.test.js - should probably be a shared fn

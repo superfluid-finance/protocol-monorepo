@@ -128,7 +128,7 @@ Official subgraph for the Superfluid Protocol.
   </a>
 </p>
 
-:warning: This repo is fully deprecated, use sdk-core instead :warning:
+:warning: This package is fully deprecated, use sdk-core instead :warning:
 
 You can get the last release of js-sdk at the branch [here](https://github.com/superfluid-finance/protocol-monorepo/tree/release-js-sdk-stable/packages/js-sdk).
 

@@ -17,7 +17,7 @@ import {
     SuperTokenFactory
 } from "../../../contracts/utils/SuperTokenDeployer.sol";
 
-contract SlotsBitmapLibraryProperties is Test {
+contract SlotsBitmapLibraryPropertyTest is Test {
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
     SuperTokenDeployer internal immutable superTokenDeployer;
     TestToken private token;

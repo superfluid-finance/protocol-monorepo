@@ -11,12 +11,15 @@ import {
     SuperToken,
     SuperfluidFrameworkDeployer
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
+import {
+    TestToken,
+    SuperTokenDeployer
+} from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperTokenDeployer.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
 import {
     IERC20,
-    TestToken,
     ISuperToken,
     IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1,
@@ -31,11 +34,12 @@ contract HotFuzzBase {
 
     // immutables
     SuperfluidFrameworkDeployer private immutable _sfDeployer;
-    SuperfluidFrameworkDeployer.Framework internal sf;
-
+    SuperTokenDeployer private immutable _superTokenDeployer;
     TestToken  internal immutable token;
     SuperToken internal immutable superToken;
     uint internal immutable nTesters;
+
+    SuperfluidFrameworkDeployer.Framework internal sf;
 
     // test states
     SuperfluidTester[] internal testers;
@@ -46,7 +50,16 @@ contract HotFuzzBase {
         _sfDeployer = new SuperfluidFrameworkDeployer();
         sf = _sfDeployer.getFramework();
 
-        (token, superToken) = _sfDeployer.deployWrapperSuperToken("HOTFuzz Token", "HOTT", 18, type(uint256).max);
+        _superTokenDeployer = new SuperTokenDeployer(
+            address(sf.superTokenFactory),
+            address(sf.resolver)
+        );
+        // add superTokenDeployer as admin to the resolver so it can register the SuperTokens
+        sf.resolver.addAdmin(address(_superTokenDeployer));
+
+        (token, superToken) = _superTokenDeployer.deployWrapperSuperToken(
+            "HOTFuzz Token", "HOTT", 18, type(uint256).max
+        );
         nTesters = nTesters_;
         otherAccounts = new address[](0);
     }

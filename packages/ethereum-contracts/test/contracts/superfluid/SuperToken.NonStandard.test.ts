@@ -55,23 +55,27 @@ describe("SuperToken's Non Standard Functions", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
         const mockWalletFactory = await ethers.getContractFactory(
             "MockSmartWallet"
         );
         mockWallet = await mockWalletFactory.deploy();
     });
 
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
+    });
+
     describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
-            const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+            const {constantOutflowNFTProxy, constantInflowNFTProxy} =
                 await t.deployNFTContracts();
             const superTokenLogic =
-                await t.deployExternalLibraryAndLink<SuperTokenStorageLayoutTester>(
-                    "SuperfluidNFTDeployerLibrary",
+                await t.deployContract<SuperTokenStorageLayoutTester>(
                     "SuperTokenStorageLayoutTester",
                     superfluid.address,
-                    constantOutflowNFTLogic.address,
-                    constantInflowNFTLogic.address
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
                 );
             await superTokenLogic.validateStorageLayout();
         });
@@ -702,15 +706,14 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#3.1 Custom token storage should not overlap with super token", async () => {
-            const {constantOutflowNFTLogic, constantInflowNFTLogic} =
+            const {constantOutflowNFTProxy, constantInflowNFTProxy} =
                 await t.deployNFTContracts();
             const superTokenLogic =
-                await t.deployExternalLibraryAndLink<SuperTokenStorageLayoutTester>(
-                    "SuperfluidNFTDeployerLibrary",
+                await t.deployContract<SuperTokenStorageLayoutTester>(
                     "SuperTokenStorageLayoutTester",
                     superfluid.address,
-                    constantOutflowNFTLogic.address,
-                    constantInflowNFTLogic.address
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
                 );
             const a = await superTokenLogic.getLastSuperTokenStorageSlot();
             const b = await customToken.getFirstCustomTokenStorageSlot();

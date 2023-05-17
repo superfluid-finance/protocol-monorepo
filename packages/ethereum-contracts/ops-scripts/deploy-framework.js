@@ -660,10 +660,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     const superTokenLogic = await SuperTokenLogic.at(
                         superTokenLogicAddress
                     );
-                    cofNFTProxyAddress =
-                        await superTokenLogic.CONSTANT_OUTFLOW_NFT.call();
-                    cifNFTProxyAddress =
-                        await superTokenLogic.CONSTANT_INFLOW_NFT.call();
+                    // @note TODO: a mini hack to redeploy the NFT proxy contracts one time
+                    // by setting it to zero address for now
+                    cofNFTProxyAddress = ZERO_ADDRESS;
+                        // await superTokenLogic.CONSTANT_OUTFLOW_NFT.call();
+                    cifNFTProxyAddress = ZERO_ADDRESS;
+                        // await superTokenLogic.CONSTANT_INFLOW_NFT.call();
                     cofNFTLogicAddress = await (
                         await UUPSProxiable.at(cofNFTProxyAddress)
                     ).getCodeAddress();
@@ -709,8 +711,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 await constantOutflowNFTLogic.castrate();
 
                 const constantInflowNFTLogic = await web3tx(
-                    ConstantOutflowNFT.new,
-                    `ConstantOutflowNFT.new`
+                    ConstantInflowNFT.new,
+                    `ConstantInflowNFT.new`
                 )(
                     superfluid.address,
                     constantOutflowNFTProxy.address,

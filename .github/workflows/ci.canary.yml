@@ -237,6 +237,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+
     defaults:
       run:
         shell: nix develop -c bash {0}

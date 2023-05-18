@@ -660,12 +660,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     const superTokenLogic = await SuperTokenLogic.at(
                         superTokenLogicAddress
                     );
-                    // @note TODO: a mini hack to redeploy the NFT proxy contracts one time
-                    // by setting it to zero address for now
-                    cofNFTProxyAddress = ZERO_ADDRESS;
-                        // await superTokenLogic.CONSTANT_OUTFLOW_NFT.call();
-                    cifNFTProxyAddress = ZERO_ADDRESS;
-                        // await superTokenLogic.CONSTANT_INFLOW_NFT.call();
+                    cofNFTProxyAddress =
+                        await superTokenLogic.CONSTANT_OUTFLOW_NFT.call();
+                    cifNFTProxyAddress =
+                        await superTokenLogic.CONSTANT_INFLOW_NFT.call();
                     cofNFTLogicAddress = await (
                         await UUPSProxiable.at(cofNFTProxyAddress)
                     ).getCodeAddress();
@@ -679,9 +677,20 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
             // if the super token logic does not have the proxies, we must deploy
             // new nft logic and proxies.
+            // @note TODO: a mini hack to redeploy the NFT proxy contracts one time
+            // check if the proxy contracts UUID's are equivalent, if they are, 
+            // we know that the logic contracts for the NFT proxies are the same
+            // which is not desired. So we will redeploy the NFT proxy contracts
+            const cofNFTProxiable = await UUPSProxiable.at(cofNFTProxyAddress);
+            const cifNFTProxiable = await UUPSProxiable.at(cifNFTProxyAddress);
+            const hasSameProxiableUUID = await cofNFTProxiable.proxiableUUID() === await cifNFTProxiable.proxiableUUID();
+            if (hasSameProxiableUUID) {
+                console.log("!!! re-deploying NFT proxy contracts because they have the same UUID");
+            }
             if (
-                cofNFTProxyAddress === ZERO_ADDRESS &&
-                cifNFTProxyAddress === ZERO_ADDRESS
+                (cofNFTProxyAddress === ZERO_ADDRESS &&
+                cifNFTProxyAddress === ZERO_ADDRESS) ||
+                hasSameProxiableUUID
             ) {
                 const constantOutflowNFTProxy = await web3tx(
                     UUPSProxy.new,

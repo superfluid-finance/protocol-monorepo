@@ -196,6 +196,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "SuperfluidMock",
         "SuperTokenFactoryMock",
         "SuperTokenMock",
+        // @note DELETE after patched
+        "SuperfluidPatch",
     ];
     const {
         Ownable,
@@ -206,6 +208,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         SuperfluidLoader,
         Superfluid,
         SuperfluidMock,
+        // @note DELETE after patched
+        SuperfluidPatch,
         SuperTokenFactory,
         SuperTokenFactoryMock,
         SuperToken,
@@ -274,15 +278,17 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     // deploy new superfluid host contract
     const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
     let superfluid = await deployAndRegisterContractIf(
-        SuperfluidLogic,
+        // @note Change back to SuperfluidLogic after patched
+        SuperfluidPatch,
         `Superfluid.${protocolReleaseVersion}`,
         async (contractAddress) => !(await hasCode(web3, contractAddress)),
         async () => {
             governanceInitializationRequired = true;
             let superfluidAddress;
             const superfluidLogic = await web3tx(
-                SuperfluidLogic.new,
-                "SuperfluidLogic.new"
+                // @note Change back to SuperfluidLogic after patched
+                SuperfluidPatch.new,
+                "SuperfluidPatch.new"
             )(nonUpgradable, appWhiteListing);
             console.log(
                 `Superfluid new code address ${superfluidLogic.address}`
@@ -311,7 +317,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 if (
                     await codeChanged(
                         web3,
-                        SuperfluidLogic,
+                        // @note Change back to SuperfluidLogic after patched
+                        SuperfluidPatch,
                         await superfluid.getCodeAddress()
                     )
                 ) {
@@ -497,15 +504,17 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // deploy new superfluid host logic
         superfluidNewLogicAddress = await deployContractIfCodeChanged(
             web3,
-            SuperfluidLogic,
+            // @note Change back to SuperfluidLogic after patched
+            SuperfluidPatch,
             await superfluid.getCodeAddress(),
             async () => {
                 if (!(await isProxiable(UUPSProxiable, superfluid.address))) {
                     throw new Error("Superfluid is non-upgradable");
                 }
                 const superfluidLogic = await web3tx(
-                    SuperfluidLogic.new,
-                    "SuperfluidLogic.new"
+                    // @note Change back to SuperfluidLogic after patched
+                    SuperfluidPatch.new,
+                    "SuperfluidPatch.new"
                 )(nonUpgradable, appWhiteListing);
                 output += `SUPERFLUID_HOST_LOGIC=${superfluidLogic.address}\n`;
                 return superfluidLogic.address;
@@ -879,10 +888,52 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     superfluid.address,
                     superfluidNewLogicAddress,
                     agreementsToUpdate,
-                    superTokenFactoryNewLogicAddress
+                    // @note CHANGE BACK AFTER PATCHED
+                    ZERO_ADDRESS // superTokenFactoryNewLogicAddress
                 )
         );
     }
+
+    // @note REMOVE ENTIRE SECTION AFTER PATCHED
+    console.log(
+        "directly setting the super token factory logic address:",
+        superTokenFactoryNewLogicAddress
+    );
+    await superfluid.setSuperTokenFactoryLogic(
+        superTokenFactoryNewLogicAddress
+    );
+
+    const newFactoryLogic = await superfluid.getSuperTokenFactoryLogic();
+
+    if (newFactoryLogic !== superTokenFactoryNewLogicAddress)
+        throw new Error("super token factory logic address not set correctly");
+
+    console.log("resetting to non-patch superfluid host contract");
+
+    const superfluidLogic = await web3tx(
+        SuperfluidLogic.new,
+        "SuperfluidLogic.new"
+    )(nonUpgradable, appWhiteListing);
+    console.log(`Superfluid new code address ${superfluidLogic.address}`);
+
+    await sendGovernanceAction(
+        {
+            host: superfluid,
+            contracts: {
+                Ownable,
+                IMultiSigWallet,
+                SuperfluidGovernanceBase,
+            },
+        },
+        (gov) =>
+            gov.updateContracts(
+                superfluid.address,
+                superfluidNewLogicAddress,
+                agreementsToUpdate,
+                ZERO_ADDRESS
+            )
+    );
+    // @note REMOVE ENTIRE SECTION AFTER PATCHED END
 
     console.log("======== Superfluid framework deployed ========");
 

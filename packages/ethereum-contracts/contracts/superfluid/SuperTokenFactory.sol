@@ -129,20 +129,19 @@ abstract contract SuperTokenFactoryBase is
         // Upgrade the Flow NFT logic contracts on the canonical proxies
         // We only do this if the new logic contracts passed in updating the SuperTokenFactory
         // are different from the current logic contracts
-        // @note comment this out temporarily because this is bricking the deployments currently
-        // if (
-        //     address(CONSTANT_OUTFLOW_NFT_LOGIC) !=
-        //     UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_OUTFLOW_NFT()))
-        //         .getCodeAddress() ||
-        //     address(CONSTANT_INFLOW_NFT_LOGIC) !=
-        //     UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_INFLOW_NFT()))
-        //         .getCodeAddress()
-        // ) {
-        //     UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_OUTFLOW_NFT()))
-        //         .updateCode(address(CONSTANT_OUTFLOW_NFT_LOGIC));
-        //     UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_INFLOW_NFT()))
-        //         .updateCode(address(CONSTANT_INFLOW_NFT_LOGIC));
-        // }
+        if (
+            address(CONSTANT_OUTFLOW_NFT_LOGIC) !=
+            UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_OUTFLOW_NFT()))
+                .getCodeAddress() ||
+            address(CONSTANT_INFLOW_NFT_LOGIC) !=
+            UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_INFLOW_NFT()))
+                .getCodeAddress()
+        ) {
+            UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_OUTFLOW_NFT()))
+                .updateCode(address(CONSTANT_OUTFLOW_NFT_LOGIC));
+            UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_INFLOW_NFT()))
+                .updateCode(address(CONSTANT_INFLOW_NFT_LOGIC));
+        }
     }
 
     /**************************************************************************

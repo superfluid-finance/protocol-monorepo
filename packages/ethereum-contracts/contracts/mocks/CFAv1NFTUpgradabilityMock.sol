@@ -54,8 +54,8 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
         assembly { slot := _symbol.slot offset := _symbol.offset }
         if (slot != 2 || offset != 0) revert STORAGE_LOCATION_CHANGED("_symbol");
 
-        assembly { slot := _baseURI.slot offset := _baseURI.offset }
-        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_baseURI");
+        assembly { slot := baseURI.slot offset := baseURI.offset }
+        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("baseURI");
         
         assembly { slot := _tokenApprovals.slot offset := _tokenApprovals.offset }
         if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
@@ -138,8 +138,8 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT {
         assembly { slot := _symbol.slot offset := _symbol.offset }
         if (slot != 2 || offset != 0) revert STORAGE_LOCATION_CHANGED("_symbol");
         
-        assembly { slot := _baseURI.slot offset := _baseURI.offset }
-        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_baseURI");
+        assembly { slot := baseURI.slot offset := baseURI.offset }
+        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("baseURI");
         
         assembly { slot := _tokenApprovals.slot offset := _tokenApprovals.offset }
         if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
@@ -208,8 +208,8 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT {
         assembly { slot := _symbol.slot offset := _symbol.offset }
         if (slot != 2 || offset != 0) revert STORAGE_LOCATION_CHANGED("_symbol");
         
-        assembly { slot := _baseURI.slot offset := _baseURI.offset }
-        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_baseURI");
+        assembly { slot := baseURI.slot offset := baseURI.offset }
+        if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("baseURI");
         
         assembly { slot := _tokenApprovals.slot offset := _tokenApprovals.offset }
         if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");

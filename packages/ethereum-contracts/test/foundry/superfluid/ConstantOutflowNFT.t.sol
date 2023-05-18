@@ -694,12 +694,15 @@ function testRevertIfInternalMintToZeroAddress(
             constantOutflowNFTProxy.tokenURI(nftId),
             string(
                 abi.encodePacked(
+                    "?flowRate=",
+                    uint256(uint96(flowRate)).toString(),
+                    "&outgoing=true",
                     "&token_address=",
                     Strings.toHexString(
                         uint256(uint160(address(superTokenMock))),
                         20
                     ),
-                    "?chain_id=",
+                    "&chain_id=",
                     block.chainid.toString(),
                     "&token_symbol=",
                     superTokenMock.symbol(),
@@ -709,10 +712,7 @@ function testRevertIfInternalMintToZeroAddress(
                     Strings.toHexString(uint256(uint160(flowReceiver)), 20),
                     "&token_decimals=",
                     uint256(superTokenMock.decimals()).toString(),
-                    "&start_date=1", // timestamp shifts 1
-                    "&flowRate=",
-                    uint256(uint96(flowRate)).toString(),
-                    "&outgoing=true"
+                    "&start_date=1" // timestamp shifts 1
                 )
             )
         );

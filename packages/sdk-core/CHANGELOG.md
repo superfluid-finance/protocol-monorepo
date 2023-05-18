@@ -5,14 +5,18 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
-## [0.6.5] - 2023-05-15
+## [0.6.6] - 2023-05-17
+
+### Added
+- Subgraph query support for `FlowOperator`
+
+## [0.6.5] - 2023-05-12
 
 ### Fixed
 - `hostedEndpoint` might be nullable so we handle this case.
 
 ### Added
 - Support for `sepolia` network
-- Subgraph query support for `FlowOperator`
 
 ## [0.6.4] - 2023-05-07
 

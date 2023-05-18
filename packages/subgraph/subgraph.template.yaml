@@ -256,6 +256,7 @@ templates:
         - TokenUpgradedEvent
         - TokenStatistic
         - TransferEvent
+        - FlowOperator
       abis:
         - name: Resolver
           file: ./abis/Resolver.json
@@ -287,6 +288,9 @@ templates:
           receipt: true
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
+          receipt: true
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
           receipt: true
         - event: ConstantOutflowNFTCreated(indexed address)
           handler: handleConstantOutflowNFTCreated

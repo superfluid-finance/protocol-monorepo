@@ -1,0 +1,21 @@
+[profile.default]
+root = '../..'
+src = 'packages/solidity-semantic-money/src'
+out = 'packages/solidity-semantic-money/out/default'
+cache_path = 'packages/solidity-semantic-money/out/default.cache'
+solc_version = '0.8.19'
+via_ir = false
+remappings = [
+    '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',
+    '@openzeppelin/=node_modules/@openzeppelin/',
+    'ds-test/=lib/forge-std/lib/ds-test/src/',
+    'forge-std/=lib/forge-std/src/']
+
+[profile.test]
+test = 'packages/solidity-semantic-money/test'
+out = 'packages/solidity-semantic-money/out/test'
+cache_path = 'packages/solidity-semantic-money/out/test.cache'
+via_ir = true # though this is so slow!
+
+[profile.test.fuzz]
+runs = 1000

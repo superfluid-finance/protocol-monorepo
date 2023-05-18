@@ -27,17 +27,19 @@ contract SuperTokenTest is FoundrySuperfluidTester {
         super.setUp();
     }
 
-    function test_Revert_Super_Token_UpdateCode_Wrong_NFT_Proxies() public {
+    function testRevertSuperTokenUpdateCodeWrongNFTProxies() public {
         UUPSProxy cifProxy = new UUPSProxy();
         UUPSProxy cofProxy = new UUPSProxy();
 
         ConstantInflowNFT cifNFTLogic = new ConstantInflowNFT(
             sf.host,
-            IConstantOutflowNFT(address(cofProxy))
+            IConstantOutflowNFT(address(cofProxy)),
+            ""
         );
         ConstantOutflowNFT cofNFTLogic = new ConstantOutflowNFT(
             sf.host,
-            IConstantInflowNFT(address(cifProxy))
+            IConstantInflowNFT(address(cifProxy)),
+            ""
         );
 
         cifNFTLogic.castrate();

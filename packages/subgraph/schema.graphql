@@ -1701,7 +1701,7 @@ type Stream @entity {
     token: Token!
     sender: Account!
     receiver: Account!
-    
+
     """
     The `userData` stored on the Stream is the last `userData` that was set in a `FlowUpdatedEvent`,
     for this particular stream. To see the historical `userData` for this stream, you can query the `flowUpdatedEvents` field.
@@ -1747,6 +1747,10 @@ type FlowOperator @entity {
     """
     flowRateAllowanceRemaining: BigInt!
 
+    """
+    The transfer allowance granted to the `flowOperator` by the `sender`.
+    """
+    allowance: BigInt!
     # ---------------------------------- links ----------------------------------
     flowOperator: Bytes!
     sender: Account!
@@ -1803,7 +1807,7 @@ type TokenGovernanceConfig @entity {
     createdAtBlockNumber: BigInt!
     updatedAtTimestamp: BigInt!
     updatedAtBlockNumber: BigInt!
-    
+
     """
     If true, `id` is `address(0)` and this is the default config for all tokens with unset configs.
     """
@@ -1813,7 +1817,7 @@ type TokenGovernanceConfig @entity {
     The (default or token-specific) address that receives liquidation rewards for a token prior to 3Ps and the TOGA address after 3Ps.
     """
     rewardAddress: Bytes
-    
+
     """
     The (default or token-specific) liquidation period (buffer amount required for a token).
     This field can be used to calculate the liquidation buffer (or deposit) amount for a token: `liquidationBufferAmount = liquidationPeriod * flowRate`.
@@ -1830,7 +1834,7 @@ type TokenGovernanceConfig @entity {
     The (default or token-specific) minimum deposit amount.
     """
     minimumDeposit: BigInt
-    
+
     """
     A reverse lookup to the token it is associated with and null if it is the default config.
     """
@@ -1974,7 +1978,7 @@ type AccountTokenSnapshot @entity {
     The count of active outgoing streams from this account.
     """
     activeOutgoingStreamCount: Int!
-    
+
     """
     The count of active incoming streams to this account.
     """
@@ -1989,7 +1993,7 @@ type AccountTokenSnapshot @entity {
     The count of closed outgoing streams by `account`.
     """
     inactiveOutgoingStreamCount: Int!
-    
+
     """
     The count of closed incoming streams by `account`.
     """
@@ -2085,7 +2089,7 @@ type AccountTokenSnapshotLog @entity {
     The count of active outgoing streams from this account.
     """
     activeOutgoingStreamCount: Int!
-    
+
     """
     The count of active incoming streams to this account.
     """
@@ -2100,7 +2104,7 @@ type AccountTokenSnapshotLog @entity {
     The count of closed outgoing streams by `account`.
     """
     inactiveOutgoingStreamCount: Int!
-    
+
     """
     The count of closed incoming streams by `account`.
     """
@@ -2342,3 +2346,4 @@ type SFMeta @entity {
     """
     branch: String!
 }
+

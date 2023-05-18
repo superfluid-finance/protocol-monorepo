@@ -14,6 +14,7 @@ ADDRESSES_VARS=$2
 # network specifics
 case $TRUFFLE_NETWORK in
     eth-goerli | \
+    eth-sepolia | \
     polygon-mumbai | \
     optimism-goerli | \
     arbitrum-goerli | \
@@ -75,12 +76,12 @@ EOF
 }
 
 
-if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantOutflowNFTLogic@"${CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS}"
+if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
+    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC}"
 fi
 
-if [ -n "$CONSTANT_INFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantInflowNFTLogic@"${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS}"
+if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
+    try_verify ConstantInflowNFT"${CONSTANT_INFLOW_NFT_LOGIC}"
 fi
 
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
@@ -107,12 +108,12 @@ if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY" ]; then
     try_verify SuperTokenFactory@"${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY}" --custom-proxy UUPSProxy
 fi
 
-if [ -n "$CONSTANT_OUTFLOW_NFT_ADDRESS" ]; then
-    try_verify ConstantOutflowNFTProxy@"${CONSTANT_OUTFLOW_NFT_ADDRESS}" --custom-proxy UUPSProxy
+if [ -n "$CONSTANT_OUTFLOW_NFT_PROXY" ]; then
+    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_PROXY}" --custom-proxy UUPSProxy
 fi
 
-if [ -n "$CONSTANT_INFLOW_NFT_ADDRESS" ]; then
-    try_verify ConstantInflowNFTProxy@"${CONSTANT_INFLOW_NFT_ADDRESS}" --custom-proxy UUPSProxy
+if [ -n "$CONSTANT_INFLOW_NFT_PROXY" ]; then
+    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_PROXY}" --custom-proxy UUPSProxy
 fi
 
 if [ -n "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
@@ -148,6 +149,6 @@ fi
 
 set +x
 
-echo "Failed verifications:"
+echo "Failed verifications (may be incomplete, better visually check the log!):"
 printf -- "- %s\n" "${FAILED_VERIFICATIONS[@]}"
 exit ${#FAILED_VERIFICATIONS[@]}

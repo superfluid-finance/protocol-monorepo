@@ -4,7 +4,7 @@ pragma solidity >= 0.8.0;
 import { ISuperfluid, ISuperToken, ISuperApp, SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperTokenV1Library } from "./SuperTokenV1Library.sol";
 
-abstract contract SuperAppBaseCFA is ISuperApp {
+abstract contract SuperAppBaseFlow is ISuperApp {
     using SuperTokenV1Library for ISuperToken;
 
     bytes32 public constant CFAV1_TYPE = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");

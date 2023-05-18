@@ -42,19 +42,19 @@ describe("SuperToken's ERC20 compliance", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     describe("ERC20 compliance", () => {
-        shouldBehaveLikeERC20(
-            "SuperToken",
-            initialSupply,
-            () => ({
-                initialHolder: alice,
-                recipient: bob,
-                anotherAccount: carol,
-            }),
-            t
-        );
+        shouldBehaveLikeERC20("SuperToken", initialSupply, () => ({
+            initialHolder: alice,
+            recipient: bob,
+            anotherAccount: carol,
+        }));
     });
 
     describe("decrease allowance", function () {
@@ -280,8 +280,7 @@ describe("SuperToken's ERC20 compliance", function () {
             }),
             function (this: any, from: string, to: string, amount: BigNumber) {
                 return this.token.transferInternal(from, to, amount);
-            },
-            t
+            }
         );
 
         describe("when the sender is the zero address", function () {
@@ -314,8 +313,7 @@ describe("SuperToken's ERC20 compliance", function () {
                 amount: BigNumber
             ) {
                 return this.token.approveInternal(owner, spender, amount);
-            },
-            t
+            }
         );
 
         describe("when the owner is the zero address", function () {

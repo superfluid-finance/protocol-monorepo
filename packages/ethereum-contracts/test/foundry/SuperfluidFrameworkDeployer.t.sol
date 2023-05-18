@@ -13,45 +13,46 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
 
     constructor() FoundrySuperfluidTester(1) {}
 
-    function test_Passing_All_Contracts_Deployed() public {
-        assertTrue(address(sf.governance) != address(0));
-        assertTrue(address(sf.host) != address(0));
-        assertTrue(address(sf.cfa) != address(0));
-        assertTrue(address(sf.ida) != address(0));
-        assertTrue(address(sf.superTokenFactory) != address(0));
-        assertTrue(address(sf.resolver) != address(0));
-        assertTrue(address(sf.superfluidLoader) != address(0));
-        assertTrue(address(sf.cfaV1Forwarder) != address(0));
+    function testAllContractsDeployed() public {
+        assertTrue(address(sf.governance) != address(0), "SFDeployer: governance not deployed");
+        assertTrue(address(sf.host) != address(0), "SFDeployer: host not deployed");
+        assertTrue(address(sf.cfa) != address(0), "SFDeployer: cfa not deployed");
+        assertTrue(address(sf.ida) != address(0), "SFDeployer: ida not deployed");
+        assertTrue(address(sf.superTokenFactory) != address(0), "SFDeployer: superTokenFactory not deployed");
+        assertTrue(address(sf.resolver) != address(0), "SFDeployer: resolver not deployed");
+        assertTrue(address(sf.superfluidLoader) != address(0), "SFDeployer: superfluidLoader not deployed");
+        assertTrue(address(sf.cfaV1Forwarder) != address(0), "SFDeployer: cfaV1Forwarder not deployed");
     }
 
-    function test_Passing_Resolver_Gets_Governance() public {
-        assertEq(resolver.get("TestGovernance.test"), address(sf.governance));
+    function testResolverGetsGovernance() public {
+        assertEq(resolver.get("TestGovernance.test"), address(sf.governance), "SFDeployer: governance not registered");
     }
 
-    function test_Passing_Resolver_Gets_Host() public {
-        assertEq(resolver.get("Superfluid.test"), address(sf.host));
+    function testResolverGetsHost() public {
+        assertEq(resolver.get("Superfluid.test"), address(sf.host), "SFDeployer: host not registered");
     }
 
-    function test_Passing_Resolver_Gets_Loader() public {
+    function testResolverGetsLoader() public {
         assertEq(
             resolver.get("SuperfluidLoader-v1"),
-            address(sf.superfluidLoader)
+            address(sf.superfluidLoader),
+            "SFDeployer: superfluidLoader not registered"
         );
     }
 
-    function test_Passing_Loader_Gets_Framework() public {
+    function testLoaderGetsFramework() public {
         SuperfluidLoader.Framework memory loadedSf = sf
             .superfluidLoader
             .loadFramework("test");
 
-        assertEq(address(loadedSf.superfluid), address(sf.host));
-        assertEq(address(loadedSf.agreementCFAv1), address(sf.cfa));
-        assertEq(address(loadedSf.agreementIDAv1), address(sf.ida));
+        assertEq(address(loadedSf.superfluid), address(sf.host), "SFDeployer: host not loaded");
+        assertEq(address(loadedSf.agreementCFAv1), address(sf.cfa), "SFDeployer: cfa not loaded");
+        assertEq(address(loadedSf.agreementIDAv1), address(sf.ida), "SFDeployer: ida not loaded");
     }
 
-    function test_Passing_Transfer_Ownership() public {
-        assertEq(sf.governance.owner(), address(sfDeployer));
+    function testTransferOwnership() public {
+        assertEq(sf.governance.owner(), address(sfDeployer), "SFDeployer: governance not owned by deployer");
         sfDeployer.transferOwnership(address(superTokenDeployer));
-        assertEq(sf.governance.owner(), address(superTokenDeployer));
+        assertEq(sf.governance.owner(), address(superTokenDeployer), "SFDeployer: governance not owned by superTokenDeployer");
     }
 }

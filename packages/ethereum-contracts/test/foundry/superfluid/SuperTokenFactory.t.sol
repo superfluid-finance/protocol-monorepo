@@ -28,7 +28,7 @@ contract SuperTokenFactoryTest is FoundrySuperfluidTester {
         super.setUp();
     }
 
-    function test_Passing_Update_Code_Sets_New_Contracts() public {
+    function testUpdateCodeSetsNewContracts() public {
         SuperToken newSuperTokenLogic = new SuperToken(
             sf.host,
             superToken.CONSTANT_OUTFLOW_NFT(),
@@ -36,11 +36,13 @@ contract SuperTokenFactoryTest is FoundrySuperfluidTester {
         );
         ConstantOutflowNFT newConstantOutflowNFTLogic = new ConstantOutflowNFT(
             sf.host,
-            IConstantInflowNFT(address(superToken.CONSTANT_INFLOW_NFT()))
+            IConstantInflowNFT(address(superToken.CONSTANT_INFLOW_NFT())),
+            ""
         );
         ConstantInflowNFT newConstantInflowNFTLogic = new ConstantInflowNFT(
             sf.host,
-            IConstantOutflowNFT(address(superToken.CONSTANT_OUTFLOW_NFT()))
+            IConstantOutflowNFT(address(superToken.CONSTANT_OUTFLOW_NFT())),
+            ""
         );
         assertEq(
             UUPSProxiable(address(superToken.CONSTANT_OUTFLOW_NFT()))

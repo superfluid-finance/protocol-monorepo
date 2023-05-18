@@ -52,6 +52,11 @@ describe("Superfluid scenarios", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     async function verifyAll(opts?: VerifyOptions) {

@@ -33,7 +33,7 @@ import { BaseRelayRecipient } from "../libs/BaseRelayRecipient.sol";
  *
  * @author Superfluid
  */
-contract Superfluid is
+contract SuperfluidPatch is
     UUPSProxiable,
     ISuperfluid,
     BaseRelayRecipient
@@ -119,7 +119,7 @@ contract Superfluid is
 
     function updateCode(address newAddress) external override onlyGovernance {
         if (NON_UPGRADABLE_DEPLOYMENT) revert HOST_NON_UPGRADEABLE();
-        if (Superfluid(newAddress).NON_UPGRADABLE_DEPLOYMENT()) revert HOST_CANNOT_DOWNGRADE_TO_NON_UPGRADEABLE();
+        if (SuperfluidPatch(newAddress).NON_UPGRADABLE_DEPLOYMENT()) revert HOST_CANNOT_DOWNGRADE_TO_NON_UPGRADEABLE();
         _updateCodeAddress(newAddress);
     }
 

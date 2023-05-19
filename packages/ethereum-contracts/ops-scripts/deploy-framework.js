@@ -753,7 +753,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 cofNFTProxyAddress = constantOutflowNFTProxy.address;
                 cifNFTProxyAddress = constantInflowNFTProxy.address;
             } else { // nft proxies already exist
-                const newCOFNFTLogic = await deployContractIfCodeChanged(
+                const newCOFNFTLogicAddress = await deployContractIfCodeChanged(
                     web3,
                     ConstantOutflowNFT,
                     await (
@@ -767,7 +767,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         output += `CONSTANT_OUTFLOW_NFT_LOGIC=${cofNFTLogic.address}\n`;
                         // castrate flow nft logic contract
                         await cofNFTLogic.castrate();
-                        return cofNFTLogic;
+                        return cofNFTLogic.address;
                     },
                     [
                         // See SuperToken constructor parameter
@@ -781,7 +781,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                             .padStart(64, "0"),
                     ]
                 );
-                const newCIFNFTLogic = await deployContractIfCodeChanged(
+                const newCIFNFTLogicAddress = await deployContractIfCodeChanged(
                     web3,
                     ConstantInflowNFT,
                     await (
@@ -795,7 +795,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         output += `CONSTANT_INFLOW_NFT_LOGIC=${cifNFTLogic.address}\n`;
                         // castrate flow nft logic contract
                         await cifNFTLogic.castrate();
-                        return cifNFTLogic;
+                        return cifNFTLogic.address;
                     },
                     [
                         // See SuperToken constructor parameter
@@ -811,8 +811,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 );
 
                 // set the nft logic addresses (to be consumed by the super token factory logic constructor)
-                cofNFTLogicAddress = newCOFNFTLogic.address;
-                cifNFTLogicAddress = newCIFNFTLogic.address;
+                cofNFTLogicAddress = newCOFNFTLogicAddress;
+                cifNFTLogicAddress = newCIFNFTLogicAddress;
             }
 
             // deploy super token logic contract

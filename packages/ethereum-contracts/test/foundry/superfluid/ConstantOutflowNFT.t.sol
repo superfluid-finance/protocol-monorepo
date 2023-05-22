@@ -694,7 +694,7 @@ function testRevertIfInternalMintToZeroAddress(
             constantOutflowNFTProxy.tokenURI(nftId),
             string(
                 abi.encodePacked(
-                    "?flowRate=",
+                    "https://nft.superfluid.finance/cfa/v2/getmeta?flowRate=",
                     uint256(uint96(flowRate)).toString(),
                     "&outgoing=true",
                     "&token_address=",

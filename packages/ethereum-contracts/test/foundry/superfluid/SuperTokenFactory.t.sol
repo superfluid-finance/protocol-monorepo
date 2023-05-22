@@ -36,13 +36,11 @@ contract SuperTokenFactoryTest is FoundrySuperfluidTester {
         );
         ConstantOutflowNFT newConstantOutflowNFTLogic = new ConstantOutflowNFT(
             sf.host,
-            IConstantInflowNFT(address(superToken.CONSTANT_INFLOW_NFT())),
-            ""
+            IConstantInflowNFT(address(superToken.CONSTANT_INFLOW_NFT()))
         );
         ConstantInflowNFT newConstantInflowNFTLogic = new ConstantInflowNFT(
             sf.host,
-            IConstantOutflowNFT(address(superToken.CONSTANT_OUTFLOW_NFT())),
-            ""
+            IConstantOutflowNFT(address(superToken.CONSTANT_OUTFLOW_NFT()))
         );
         assertEq(
             UUPSProxiable(address(superToken.CONSTANT_OUTFLOW_NFT()))

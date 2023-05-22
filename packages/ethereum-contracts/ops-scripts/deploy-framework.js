@@ -653,7 +653,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             async () => (await deployGDAv1()).address,
             [
                 // See SuperToken constructor parameter
-                superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
+                superfluidConstructorParam,
             ]
         );
         if (gdaNewLogicAddress !== ZERO_ADDRESS) {

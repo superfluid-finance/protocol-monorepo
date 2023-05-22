@@ -133,12 +133,11 @@ abstract contract SuperTokenFactoryBase is
         address newConstantOutflowLogic = address(newFactory.CONSTANT_OUTFLOW_NFT_LOGIC());
         address newConstantInflowLogic = address(newFactory.CONSTANT_INFLOW_NFT_LOGIC());
 
-        if (
-            address(CONSTANT_OUTFLOW_NFT_LOGIC) != newConstantOutflowLogic
-                || address(CONSTANT_INFLOW_NFT_LOGIC) != newConstantInflowLogic
-        ) {
+        if (address(CONSTANT_OUTFLOW_NFT_LOGIC) != newConstantOutflowLogic) {
             UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_OUTFLOW_NFT())).updateCode(newConstantOutflowLogic);
+        }
 
+        if (address(CONSTANT_INFLOW_NFT_LOGIC) != newConstantInflowLogic) {
             UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_INFLOW_NFT())).updateCode(newConstantInflowLogic);
         }
     }

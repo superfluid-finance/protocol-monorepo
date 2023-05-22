@@ -97,9 +97,17 @@ func getFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
     return SuperToken.getFlowRate(_from, to, flowId);
 }
 
-//
-// Externals
-//
+@external
+func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt, amount: felt) -> (success: felt) {
+    alloc_locals;
+    return SuperToken.transfer(to, amount);
+}
+
+@external
+func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(_from: felt, to: felt, amount: felt) -> (success: felt) {
+    alloc_locals;
+    return SuperToken.transferFrom(_from, to, amount);
+}
 
 @external
 func shift{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

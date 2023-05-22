@@ -185,6 +185,18 @@ namespace SuperToken {
         }
     }
 
+    func transfer{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(to: felt, amount: felt) -> (success: felt) {
+        alloc_locals;
+        let (caller) = get_caller_address();
+        return _shift(caller, caller, to, amount);
+    }
+
+    func transferFrom{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(_from: felt, to: felt, amount: felt) -> (success: felt) {
+        alloc_locals;
+        let (caller) = get_caller_address();
+        return _shift(caller, _from, to, amount);
+    }
+
     // // //////////////////////////////////////////////////////////////////////////////
     // // Generalized Payment Primitives starts here
     // // //////////////////////////////////////////////////////////////////////////////
@@ -327,11 +339,10 @@ namespace SuperToken {
         sender: felt, recipient: felt, amount: felt
     ) -> (success: felt) {
         let (caller) = get_caller_address();
-        _shift(caller, sender, recipient, amount);
-        return (success=TRUE);
+        return _shift(caller, sender, recipient, amount);
     }
 
-    func _shift{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(operator: felt, sender: felt, recipient: felt, amount: felt) {
+    func _shift{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(operator: felt, sender: felt, recipient: felt, amount: felt)  -> (success: felt) {
         alloc_locals;
         let (is_a_pool) = isPool(recipient);
         with_attr error_message("SuperToken: recepient is a pool!") {
@@ -345,7 +356,7 @@ namespace SuperToken {
             assert aclStatus = TRUE;
         }
         _doShift(sender, recipient, amount);
-        return ();
+        return (success=TRUE);
     }
 
     func _doShift{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(_from: felt, to: felt, amount: felt) -> (success: felt) {
@@ -430,13 +441,12 @@ namespace SuperToken {
     }
 
     func _distribute{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        operator: felt, sender: felt, poolAddress: felt, reqAmount: felt
+        operator: felt, sender: felt, pool: felt, reqAmount: felt
     ) -> (success: felt, actualAmount: felt) {
         alloc_locals;
-        let (poolIndex) = SuperToken_pool_indexes.read(poolAddress);
-        let (pool) = SuperToken_pools.read(poolIndex);
+        let (is_a_pool) = isPool(pool);
         with_attr error("SuperToken: Pool does not exist") {
-            assert_not_zero(pool);
+            assert is_a_pool = TRUE;
         }
         with_attr error_message("SuperToken: negative amount not allowed") {
             assert_nn(reqAmount);
@@ -452,7 +462,7 @@ namespace SuperToken {
         }
 
         let (actualAmount) = _doDistributeViaPool(sender, pool, reqAmount);
-        Distributed.emit(sender, poolAddress, actualAmount);
+        Distributed.emit(sender, pool, actualAmount);
         return (success=TRUE, actualAmount=actualAmount);
     }
 
@@ -483,10 +493,9 @@ namespace SuperToken {
         operator: felt, sender: felt, pool: felt, flowId: felt, reqFlowRate: felt
     ) -> (success: felt, actualFlowRate: felt, newDistributionFlowRate: felt) {
         alloc_locals;
-        let (poolIndex) = SuperToken_pool_indexes.read(pool);
-        let (pool) = SuperToken_pools.read(poolIndex);
+        let (is_a_pool) = isPool(pool);
         with_attr error("SuperToken: Pool does not exist") {
-            assert_not_zero(pool);
+            assert is_a_pool = TRUE;
         }
         with_attr error_message("SuperToken: negative flow_rate not allowed") {
             assert_nn(reqFlowRate);
@@ -704,10 +713,10 @@ namespace SuperToken {
     func isPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(address: felt) -> (success: felt) {
         let (poolIndex) = SuperToken_pool_indexes.read(address);
         let (is_pool) = SuperToken_pools.read(poolIndex);
-        if (is_pool == TRUE){
-            return (success=TRUE);
-        } else {
+        if (is_pool == FALSE){
             return (success=FALSE);
+        } else {
+            return (success=TRUE);
         }
     }
 

@@ -22,10 +22,10 @@ namespace ISuperfluidToken {
     func allowance(owner: felt, spender: felt) -> (remaining: felt) {
     }
 
-    func transfer(receiver: felt, amount: felt) -> (success: felt) {
+    func transfer(to: felt, amount: felt) -> (success: felt) {
     }
 
-    func transferFrom(sender: felt, receiver: felt, amount: felt) -> (success: felt) {
+    func transferFrom(_from: felt, to: felt, amount: felt) -> (success: felt) {
     }
 
     func mint(receiver: felt, amount: felt) {

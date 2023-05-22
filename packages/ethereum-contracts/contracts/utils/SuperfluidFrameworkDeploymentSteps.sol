@@ -551,7 +551,7 @@ library SuperfluidNFTLogicDeployerLibrary {
         ISuperfluid _host,
         IConstantInflowNFT _constantInflowNFTProxy
     ) external returns (ConstantOutflowNFT) {
-        return new ConstantOutflowNFT(_host, _constantInflowNFTProxy, "");
+        return new ConstantOutflowNFT(_host, _constantInflowNFTProxy);
     }
 
     /// @notice deploys the Superfluid ConstantInflowNFT contract
@@ -562,7 +562,7 @@ library SuperfluidNFTLogicDeployerLibrary {
         ISuperfluid _host,
         IConstantOutflowNFT _constantOutflowNFTProxy
     ) external returns (ConstantInflowNFT) {
-        return new ConstantInflowNFT(_host, _constantOutflowNFTProxy, "");
+        return new ConstantInflowNFT(_host, _constantOutflowNFTProxy);
     }
 }
 

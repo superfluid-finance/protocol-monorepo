@@ -32,7 +32,7 @@
     "scripts": {
         "dev": "tasks/dev.sh",
         "dev-forge": "nodemon -e sol -x yarn run-forge test --hardhat",
-        "clean": "rm -rf node_modules; rm -rf cache; rm -rf build; rm -rf artifacts; rm -rf typechain-types; rm -rf scripts/*.d.ts scripts/*.d.ts.map",
+        "clean": "rm -rf node_modules; rm -rf cache; rm -rf build; rm -rf artifacts; rm -rf typechain-types; rm -rf dev-scripts/*.d.ts dev-scripts/*.d.ts.map",
         "run-hardhat": "IS_HARDHAT=true hardhat",
         "run-truffle": "IS_TRUFFLE=true truffle",
         "run-forge": "IS_FOUNDRY=true forge",
@@ -84,6 +84,7 @@
     },
     "devDependencies": {
         "@nomiclabs/hardhat-truffle5": "^2.0.7",
+        "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
         "async": "^3.2.4",
         "csv-writer": "^1.6.0",
         "ganache-time-traveler": "1.0.16",

@@ -811,8 +811,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 await constantOutflowNFTLogic.castrate();
 
                 const constantInflowNFTLogic = await web3tx(
-                    ConstantOutflowNFT.new,
-                    `ConstantOutflowNFT.new`
+                    ConstantInflowNFT.new,
+                    `ConstantInflowNFT.new`
                 )(
                     superfluid.address,
                     constantOutflowNFTProxy.address,

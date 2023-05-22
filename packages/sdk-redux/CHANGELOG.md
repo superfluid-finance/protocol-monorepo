@@ -3,8 +3,10 @@ All notable changes to the SDK-redux will be documented in this file.
 
 ## [Unreleased]
 
+## [0.5.1] - 2023-05-17
+
 ### Added
-- Subgraph query support for `FlowOperator`
+- Support for `FlowOperator` query
 
 ## [0.5.0] - 2023-03-29
 
@@ -38,7 +40,7 @@ All notable changes to the SDK-redux will be documented in this file.
 - Query for transfer events
 - Make it possible to pass in Ether's `Overrides` object through mutations
 - Add `accountTokenSnapshotLog` & `tokenStatisticLog` endpoints
-- Add `isSubgraphInSync` & `blockTransactionSucceededIn` to a tracked transaction 
+- Add `isSubgraphInSync` & `blockTransactionSucceededIn` to a tracked transaction
 - Export `getSerializeQueryArgs` & `CacheTagTypes`
 
 ## [0.3.0] - 2022-04-13

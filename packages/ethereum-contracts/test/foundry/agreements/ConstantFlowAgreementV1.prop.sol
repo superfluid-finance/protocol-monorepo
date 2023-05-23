@@ -10,53 +10,43 @@ import {
 } from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 
 contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
-    constructor() ConstantFlowAgreementV1(ISuperfluid(address(0)), IConstantFlowAgreementHook(address(0))) {}
+    constructor() ConstantFlowAgreementV1(ISuperfluid(address(0)), IConstantFlowAgreementHook(address(0))) { }
 
-    function encodeFlowData(FlowData memory flowData) external pure
-        returns (uint256 wordA)
-    {
+    function encodeFlowData(FlowData memory flowData) external pure returns (uint256 wordA) {
         return uint256(_encodeFlowData(flowData)[0]);
     }
 
-    function decodeFlowData(uint256 wordA) external pure
-        returns (bool exist, FlowData memory flowData)
-    {
+    function decodeFlowData(uint256 wordA) external pure returns (bool exist, FlowData memory flowData) {
         return _decodeFlowData(wordA);
     }
 
-    function encodeFlowOperatorData(FlowOperatorData memory flowOperatorData) external pure
-        returns (uint256 wordA)
-    {
+    function encodeFlowOperatorData(FlowOperatorData memory flowOperatorData) external pure returns (uint256 wordA) {
         return uint256(_encodeFlowOperatorData(flowOperatorData)[0]);
     }
 
-    function decodeFlowOperatorData(uint256 wordA) external pure
+    function decodeFlowOperatorData(uint256 wordA)
+        external
+        pure
         returns (bool exist, FlowOperatorData memory flowOperatorData)
     {
         return _decodeFlowOperatorData(wordA);
     }
 
-    function clipDepositNumberRoundingUp(uint256 deposit)
-        external pure
-        returns(uint256)
-    {
+    function clipDepositNumberRoundingUp(uint256 deposit) external pure returns (uint256) {
         return _clipDepositNumberRoundingUp(deposit);
     }
 
-    function getMaximumFlowRateFromDepositPure(
-        uint256 liquidationPeriod,
-        uint256 deposit)
-        external pure
+    function getMaximumFlowRateFromDepositPure(uint256 liquidationPeriod, uint256 deposit)
+        external
+        pure
         returns (int96 flowRate)
     {
         return _getMaximumFlowRateFromDepositPure(liquidationPeriod, deposit);
     }
 
-    function getDepositRequiredForFlowRatePure(
-        uint256 minimumDeposit,
-        uint256 liquidationPeriod,
-        int96 flowRate)
-        external pure
+    function getDepositRequiredForFlowRatePure(uint256 minimumDeposit, uint256 liquidationPeriod, int96 flowRate)
+        external
+        pure
         returns (uint256 deposit)
     {
         return _getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
@@ -64,17 +54,13 @@ contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
 }
 
 contract ConstantFlowAgreementV1PropertyTest is Test {
-    ConstantFlowAgreementV1Mock immutable private cfa;
+    ConstantFlowAgreementV1Mock private immutable cfa;
 
     constructor() {
         cfa = new ConstantFlowAgreementV1Mock();
     }
 
-    function testMaximumFlowRateAllowedForDeposit(
-        uint32 liquidationPeriod,
-        uint96 depositAllowed)
-        public
-    {
+    function testMaximumFlowRateAllowedForDeposit(uint32 liquidationPeriod, uint96 depositAllowed) public {
         depositAllowed = uint96(bound(uint256(depositAllowed), cfa.DEFAULT_MINIMUM_DEPOSIT(), cfa.MAXIMUM_DEPOSIT()));
         vm.assume(liquidationPeriod > 0);
 
@@ -86,12 +72,7 @@ contract ConstantFlowAgreementV1PropertyTest is Test {
         assertTrue(uint256(depositAllowed) >= deposit, "CFAv1.prop: depositAllowed < deposit");
     }
 
-    function testMinimumDeposit(
-        uint64 minimumDeposit,
-        uint32 liquidationPeriod,
-        int96 flowRate)
-        public
-    {
+    function testMinimumDeposit(uint64 minimumDeposit, uint32 liquidationPeriod, int96 flowRate) public {
         minimumDeposit = uint32(bound(uint256(minimumDeposit), cfa.DEFAULT_MINIMUM_DEPOSIT(), type(uint64).max));
         vm.assume(liquidationPeriod > 0);
         vm.assume(flowRate > 0);
@@ -110,10 +91,7 @@ contract ConstantFlowAgreementV1PropertyTest is Test {
      * This test was added because we deleted the extra clipping in the _changeFlowToApp function
      * export FOUNDRY_FUZZ_RUNS=10000 && forge test --match testMinimumDepositClippingSumInvariant
      */
-    function testMinimumDepositClippingSumInvariant(
-        uint256 depositA,
-        uint256 depositB
-    ) public {
+    function testMinimumDepositClippingSumInvariant(uint256 depositA, uint256 depositB) public {
         vm.assume(type(uint256).max - depositA < depositB);
         vm.assume(type(uint256).max - depositB < depositA);
         uint256 clippedDepositA = cfa.clipDepositNumberRoundingUp(depositA);
@@ -130,9 +108,7 @@ contract ConstantFlowAgreementV1PropertyTest is Test {
      * @dev This test was added to provide additional assurances that applying the minimum deposit clipping
      * multiple times on a value doesn't change it.
      */
-    function testReapplyMinimumDepositClippingInvariant(
-        uint256 deposit
-    ) public {
+    function testReapplyMinimumDepositClippingInvariant(uint256 deposit) public {
         uint256 initialClipped = cfa.clipDepositNumberRoundingUp(deposit);
         uint256 reclipped = cfa.clipDepositNumberRoundingUp(initialClipped);
         assertTrue(initialClipped == reclipped, "CFAv1.prop: clipped sum != sum");
@@ -143,9 +119,10 @@ contract ConstantFlowAgreementV1PropertyTest is Test {
     {
         ConstantFlowAgreementV1.FlowData memory a = ConstantFlowAgreementV1.FlowData({
             timestamp: uint256(timestamp),
-                    flowRate: flowRate,
-                    deposit: uint256(uint64(depositClipped << 32)),
-                    owedDeposit: uint256(uint64(owedDepositClipped << 32))});
+            flowRate: flowRate,
+            deposit: uint256(uint64(depositClipped << 32)),
+            owedDeposit: uint256(uint64(owedDepositClipped << 32))
+        });
         uint256 wordA = cfa.encodeFlowData(a);
         bool exist;
         ConstantFlowAgreementV1.FlowData memory b;
@@ -158,10 +135,8 @@ contract ConstantFlowAgreementV1PropertyTest is Test {
 
     function testFlowOperatorDataEncoding(uint8 permissions, int96 flowRateAllowance) public {
         vm.assume(flowRateAllowance >= 0);
-        ConstantFlowAgreementV1.FlowOperatorData memory a = ConstantFlowAgreementV1.FlowOperatorData({
-            permissions: permissions,
-            flowRateAllowance: flowRateAllowance
-        });
+        ConstantFlowAgreementV1.FlowOperatorData memory a =
+            ConstantFlowAgreementV1.FlowOperatorData({ permissions: permissions, flowRateAllowance: flowRateAllowance });
         uint256 wordA = cfa.encodeFlowOperatorData(a);
         bool exist;
         ConstantFlowAgreementV1.FlowOperatorData memory b;

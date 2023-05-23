@@ -2,16 +2,11 @@
 pragma solidity 0.8.19;
 
 import { FoundrySuperfluidTester } from "./FoundrySuperfluidTester.sol";
-import {
-    SuperfluidLoader
-} from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
-import {
-    ERC1820RegistryCompiled
-} from "../../contracts/libs/ERC1820RegistryCompiled.sol";
+import { SuperfluidLoader } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
 
 contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
-
-    constructor() FoundrySuperfluidTester(1) {}
+    constructor() FoundrySuperfluidTester(1) { }
 
     function testAllContractsDeployed() public {
         assertTrue(address(sf.governance) != address(0), "SFDeployer: governance not deployed");
@@ -41,9 +36,7 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
     }
 
     function testLoaderGetsFramework() public {
-        SuperfluidLoader.Framework memory loadedSf = sf
-            .superfluidLoader
-            .loadFramework("test");
+        SuperfluidLoader.Framework memory loadedSf = sf.superfluidLoader.loadFramework("test");
 
         assertEq(address(loadedSf.superfluid), address(sf.host), "SFDeployer: host not loaded");
         assertEq(address(loadedSf.agreementCFAv1), address(sf.cfa), "SFDeployer: cfa not loaded");
@@ -53,6 +46,8 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
     function testTransferOwnership() public {
         assertEq(sf.governance.owner(), address(sfDeployer), "SFDeployer: governance not owned by deployer");
         sfDeployer.transferOwnership(address(superTokenDeployer));
-        assertEq(sf.governance.owner(), address(superTokenDeployer), "SFDeployer: governance not owned by superTokenDeployer");
+        assertEq(
+            sf.governance.owner(), address(superTokenDeployer), "SFDeployer: governance not owned by superTokenDeployer"
+        );
     }
 }

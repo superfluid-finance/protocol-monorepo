@@ -2,31 +2,18 @@
 pragma solidity 0.8.19;
 
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
-import {
-    UUPSProxiable
-} from "../../../contracts/upgradability/UUPSProxiable.sol";
+import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
 import {
     FlowNFTBase,
     IFlowNFTBase,
     ConstantOutflowNFT,
     IConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
-import {
-    ConstantInflowNFT,
-    IConstantInflowNFT
-} from "../../../contracts/superfluid/ConstantInflowNFT.sol";
-import {
-    SuperTokenV1Library
-} from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
-import {
-    ConstantOutflowNFTMock,
-    ConstantInflowNFTMock
-} from "../../../contracts/mocks/CFAv1NFTMock.sol";
-import {
-    SuperToken,
-    SuperTokenMock
-} from "../../../contracts/mocks/SuperTokenMock.sol";
+import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
+import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import {
     FlowNFTBaseStorageLayoutMock,
@@ -51,27 +38,15 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     ConstantOutflowNFTMock public constantOutflowNFTProxy;
     ConstantInflowNFTMock public constantInflowNFTProxy;
 
-    event Transfer(
-        address indexed from,
-        address indexed to,
-        uint256 indexed tokenId
-    );
+    event Transfer(address indexed from, address indexed to, uint256 indexed tokenId);
 
-    event Approval(
-        address indexed owner,
-        address indexed approved,
-        uint256 indexed tokenId
-    );
+    event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId);
 
-    event ApprovalForAll(
-        address indexed owner,
-        address indexed operator,
-        bool approved
-    );
+    event ApprovalForAll(address indexed owner, address indexed operator, bool approved);
 
     event MetadataUpdate(uint256 _tokenId);
 
-    constructor() FoundrySuperfluidTester(5) {}
+    constructor() FoundrySuperfluidTester(5) { }
 
     function setUp() public virtual override {
         super.setUp();
@@ -85,13 +60,11 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         // we deploy mock NFT contracts for the tests to access internal functions
         constantOutflowNFTLogic = new ConstantOutflowNFTMock(
             sf.host,
-            IConstantInflowNFT(address(inflowProxy)),
-            ""
+            IConstantInflowNFT(address(inflowProxy))
         );
         constantInflowNFTLogic = new ConstantInflowNFTMock(
             sf.host,
-            IConstantOutflowNFT(address(outflowProxy)),
-            ""
+            IConstantOutflowNFT(address(outflowProxy))
         );
 
         constantOutflowNFTLogic.castrate();
@@ -135,12 +108,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
 
         // mint tokens to test accounts
         for (uint256 i = 0; i < N_TESTERS; i++) {
-            superTokenMock.mintInternal(
-                TEST_ACCOUNTS[i],
-                INIT_SUPER_TOKEN_BALANCE,
-                "0x",
-                "0x"
-            );
+            superTokenMock.mintInternal(TEST_ACCOUNTS[i], INIT_SUPER_TOKEN_BALANCE, "0x", "0x");
         }
 
         vm.prank(sf.governance.owner());
@@ -156,8 +124,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         uint32 _expectedFlowStartDate,
         address _expectedFlowReceiver
     ) public {
-        FlowNFTBase.FlowNFTData memory flowData = constantOutflowNFTProxy
-            .flowDataByTokenId(_tokenId);
+        FlowNFTBase.FlowNFTData memory flowData = constantOutflowNFTProxy.flowDataByTokenId(_tokenId);
 
         assertEq(flowData.superToken, _expectedSuperToken);
 
@@ -171,54 +138,27 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         assertEq(flowData.flowReceiver, _expectedFlowReceiver);
 
         // assert owner of outflow nft equal to expected flow sender
-        _assertOwnerOf(
-            constantOutflowNFTProxy,
-            _tokenId,
-            _expectedFlowSender,
-            true
-        );
+        _assertOwnerOf(constantOutflowNFTProxy, _tokenId, _expectedFlowSender, true);
 
         // assert owner of inflow nft equal to expected flow receiver
-        _assertOwnerOf(
-            constantInflowNFTProxy,
-            _tokenId,
-            _expectedFlowReceiver,
-            false
-        );
+        _assertOwnerOf(constantInflowNFTProxy, _tokenId, _expectedFlowReceiver, false);
     }
 
     function _assertNFTFlowDataStateIsEmpty(uint256 _tokenId) public {
-        _assertNFTFlowDataStateIsExpected(
-            _tokenId,
-            address(0),
-            address(0),
-            0,
-            address(0)
-        );
+        _assertNFTFlowDataStateIsExpected(_tokenId, address(0), address(0), 0, address(0));
     }
 
-    function _assertOwnerOf(
-        FlowNFTBase _nftContract,
-        uint256 _tokenId,
-        address _expectedOwner,
-        bool _isOutflow
-    ) public {
+    function _assertOwnerOf(FlowNFTBase _nftContract, uint256 _tokenId, address _expectedOwner, bool _isOutflow)
+        public
+    {
         address actualOwner = _isOutflow
-            ? ConstantOutflowNFTMock(address(_nftContract)).mockOwnerOf(
-                _tokenId
-            )
-            : ConstantInflowNFTMock(address(_nftContract)).mockOwnerOf(
-                _tokenId
-            );
+            ? ConstantOutflowNFTMock(address(_nftContract)).mockOwnerOf(_tokenId)
+            : ConstantInflowNFTMock(address(_nftContract)).mockOwnerOf(_tokenId);
 
         assertEq(actualOwner, _expectedOwner);
     }
 
-    function _assertApprovalIsExpected(
-        FlowNFTBase _nftContract,
-        uint256 _tokenId,
-        address _expectedApproved
-    ) public {
+    function _assertApprovalIsExpected(FlowNFTBase _nftContract, uint256 _tokenId, address _expectedApproved) public {
         address approved = _nftContract.getApproved(_tokenId);
 
         assertEq(approved, _expectedApproved);
@@ -230,10 +170,7 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
         address _expectedOperator,
         bool _expectedOperatorApproval
     ) public {
-        bool operatorApproval = _nftContract.isApprovedForAll(
-            _expectedOwner,
-            _expectedOperator
-        );
+        bool operatorApproval = _nftContract.isApprovedForAll(_expectedOwner, _expectedOperator);
 
         assertEq(operatorApproval, _expectedOperatorApproval);
     }
@@ -268,17 +205,10 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     ) public {
         vm.expectEmit(true, true, false, true, _emittingAddress);
 
-        emit ApprovalForAll(
-            _expectedOwner,
-            _expectedOperator,
-            _expectedApproved
-        );
+        emit ApprovalForAll(_expectedOwner, _expectedOperator, _expectedApproved);
     }
 
-    function _assertEventMetadataUpdate(
-        address _emittingAddress,
-        uint256 _tokenId
-    ) public {
+    function _assertEventMetadataUpdate(address _emittingAddress, uint256 _tokenId) public {
         vm.expectEmit(true, false, false, false, _emittingAddress);
 
         emit MetadataUpdate(_tokenId);
@@ -287,61 +217,32 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
-    function _helperGetNFTID(
-        address _superToken,
-        address _flowSender,
-        address _flowReceiver
-    ) public view returns (uint256) {
-        return
-            constantOutflowNFTProxy.getTokenId(
-                _superToken,
-                _flowSender,
-                _flowReceiver
-            );
+    function _helperGetNFTID(address _superToken, address _flowSender, address _flowReceiver)
+        public
+        view
+        returns (uint256)
+    {
+        return constantOutflowNFTProxy.getTokenId(_superToken, _flowSender, _flowReceiver);
     }
 
-    function _helperCreateFlowAndAssertNFTInvariants(
-        address _flowSender,
-        address _flowReceiver,
-        int96 _flowRate
-    ) public {
-        uint256 nftId = _helperGetNFTID(
-            address(superTokenMock),
-            _flowSender,
-            _flowReceiver
-        );
+    function _helperCreateFlowAndAssertNFTInvariants(address _flowSender, address _flowReceiver, int96 _flowRate)
+        public
+    {
+        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
 
-        _assertEventTransfer(
-            address(constantOutflowNFTProxy),
-            address(0),
-            _flowSender,
-            nftId
-        );
+        _assertEventTransfer(address(constantOutflowNFTProxy), address(0), _flowSender, nftId);
 
-        _assertEventTransfer(
-            address(constantInflowNFTProxy),
-            address(0),
-            _flowReceiver,
-            nftId
-        );
+        _assertEventTransfer(address(constantInflowNFTProxy), address(0), _flowReceiver, nftId);
 
         // we must start prank if using SuperTokenV1Library syntax
         vm.startPrank(_flowSender);
         superTokenMock.createFlow(_flowReceiver, _flowRate);
         vm.stopPrank();
         _assertNFTFlowDataStateIsExpected(
-            nftId,
-            address(superTokenMock),
-            _flowSender,
-            uint32(block.timestamp),
-            _flowReceiver
+            nftId, address(superTokenMock), _flowSender, uint32(block.timestamp), _flowReceiver
         );
 
-        (uint256 timestamp, int96 flowRate, , ) = sf.cfa.getFlow(
-            superTokenMock,
-            _flowSender,
-            _flowReceiver
-        );
+        (uint256 timestamp, int96 flowRate,,) = sf.cfa.getFlow(superTokenMock, _flowSender, _flowReceiver);
         assertEq(timestamp, block.timestamp);
         assertEq(flowRate, _flowRate);
     }
@@ -349,19 +250,13 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     /*//////////////////////////////////////////////////////////////////////////
                                     Assume Helpers
     //////////////////////////////////////////////////////////////////////////*/
-    function _assumeSenderNEQReceiverAndNeitherAreZeroAddress(
-        address _flowSender,
-        address _flowReceiver
-    ) public pure {
+    function _assumeSenderNEQReceiverAndNeitherAreZeroAddress(address _flowSender, address _flowReceiver) public pure {
         vm.assume(_flowSender != address(0));
         vm.assume(_flowReceiver != address(0));
         vm.assume(_flowSender != _flowReceiver);
     }
 
-    function _assumeCallerIsNotOtherAddress(
-        address caller,
-        address otherAddress
-    ) public pure {
+    function _assumeCallerIsNotOtherAddress(address caller, address otherAddress) public pure {
         vm.assume(caller != otherAddress);
     }
 
@@ -369,14 +264,8 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
     function testCFAv1IsProperlySetDuringInitialization() public {
-        assertEq(
-            address(constantOutflowNFTProxy.CONSTANT_FLOW_AGREEMENT_V1()),
-            address(sf.cfa)
-        );
-        assertEq(
-            address(constantInflowNFTProxy.CONSTANT_FLOW_AGREEMENT_V1()),
-            address(sf.cfa)
-        );
+        assertEq(address(constantOutflowNFTProxy.CONSTANT_FLOW_AGREEMENT_V1()), address(sf.cfa));
+        assertEq(address(constantInflowNFTProxy.CONSTANT_FLOW_AGREEMENT_V1()), address(sf.cfa));
     }
 }
 
@@ -391,10 +280,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
     /*//////////////////////////////////////////////////////////////////////////
                                     Assertion Helpers
     //////////////////////////////////////////////////////////////////////////*/
-    function _assertExpectedLogicContractAddress(
-        UUPSProxiable _proxy,
-        address _expectedLogicContract
-    ) public {
+    function _assertExpectedLogicContractAddress(UUPSProxiable _proxy, address _expectedLogicContract) public {
         assertEq(_proxy.getCodeAddress(), _expectedLogicContract);
     }
 
@@ -403,26 +289,25 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
     //////////////////////////////////////////////////////////////////////////*/
     function testStorageLayoutOfFlowNFTBase() public {
         FlowNFTBaseStorageLayoutMock flowNFTBaseStorageLayoutMock = new FlowNFTBaseStorageLayoutMock(
-                sf.host,
-                ""
+                sf.host
             );
         flowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
     function testStorageLayoutOfConstantInflowNFT() public {
-        ConstantInflowNFTStorageLayoutMock constantInflowNFTBaseStorageLayoutMock = new ConstantInflowNFTStorageLayoutMock(
+        ConstantInflowNFTStorageLayoutMock constantInflowNFTBaseStorageLayoutMock =
+        new ConstantInflowNFTStorageLayoutMock(
                 sf.host,
-                constantOutflowNFTProxy,
-                ""
+                constantOutflowNFTProxy
             );
         constantInflowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
     function testStorageLayoutOfConstantOutflowNFT() public {
-        ConstantOutflowNFTStorageLayoutMock constantOutflowNFTBaseStorageLayoutMock = new ConstantOutflowNFTStorageLayoutMock(
+        ConstantOutflowNFTStorageLayoutMock constantOutflowNFTBaseStorageLayoutMock =
+        new ConstantOutflowNFTStorageLayoutMock(
                 sf.host,
-                constantInflowNFTProxy,
-                ""
+                constantInflowNFTProxy
             );
         constantOutflowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
@@ -430,14 +315,11 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
     /*//////////////////////////////////////////////////////////////////////////
                                     Revert Tests
     //////////////////////////////////////////////////////////////////////////*/
-    function testRevertNFTContractsCannotBeUpgradedByNonHost(
-        address notSuperTokenFactory
-    ) public {
+    function testRevertNFTContractsCannotBeUpgradedByNonHost(address notSuperTokenFactory) public {
         vm.assume(notSuperTokenFactory != address(sf.superTokenFactory));
         ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(
             sf.host,
-            constantInflowNFTProxy,
-            ""
+            constantInflowNFTProxy
         );
         vm.expectRevert(IFlowNFTBase.CFA_NFT_ONLY_SUPER_TOKEN_FACTORY.selector);
         vm.prank(notSuperTokenFactory);
@@ -445,8 +327,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
 
         ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(
             sf.host,
-            constantOutflowNFTProxy,
-            ""
+            constantOutflowNFTProxy
         );
         vm.expectRevert(IFlowNFTBase.CFA_NFT_ONLY_SUPER_TOKEN_FACTORY.selector);
         vm.prank(notSuperTokenFactory);
@@ -459,16 +340,14 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
     function testNFTContractsCanBeUpgradedByHost() public {
         ConstantOutflowNFT newOutflowLogic = new ConstantOutflowNFT(
             sf.host,
-            constantInflowNFTProxy,
-            ""
+            constantInflowNFTProxy
         );
         vm.prank(address(sf.superTokenFactory));
         constantOutflowNFTProxy.updateCode(address(newOutflowLogic));
 
         ConstantInflowNFT newInflowLogic = new ConstantInflowNFT(
             sf.host,
-            constantOutflowNFTProxy,
-            ""
+            constantOutflowNFTProxy
         );
         vm.prank(address(sf.superTokenFactory));
         constantInflowNFTProxy.updateCode(address(newInflowLogic));

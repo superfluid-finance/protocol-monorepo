@@ -312,7 +312,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function testProxiableUUIDIsExpectedValue() public {
         assertEq(
-            pool.proxiableUUID(), keccak256("org.superfluid-finance.contracts.superfluid.SuperfluidPool.implementation")
+            pool.proxiableUUID(), keccak256("org.superfluid-finance.contracts.SuperfluidPool.implementation")
         );
     }
 

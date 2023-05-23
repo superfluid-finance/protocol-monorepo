@@ -476,7 +476,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         }
     }
 
-    let superfluidPoolBeaconAddress;
     // @note GDA deployment is commented out until we plan on releasing it
     const deployGDAv1 = async () => {
         try {
@@ -488,6 +487,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 GeneralDistributionAgreementV1
             );
 
+            // retrieve SlotsBitMap from IDA
             // deploy and link SlotsBitmapLibrary
             const IDAv1 = await InstantDistributionAgreementV1.at(
                 await superfluid.getAgreementClass.call(IDAv1_TYPE)
@@ -520,29 +520,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             agreement.address
         );
         output += `GDA_LOGIC=${agreement.address}\n`;
-        const superfluidPoolLogic = await web3tx(
-            SuperfluidPool.new,
-            "SuperfluidPool.new"
-        )(agreement.address);
-        await superfluidPoolLogic.castrate();
-        console.log(
-            "New SuperfluidPoolLogic address",
-            superfluidPoolLogic.address
-        );
-        output += `SUPERFLUID_POOL_LOGIC=${superfluidPoolLogic.address}\n`;
-        const superfluidPoolBeacon = await web3tx(
-            SuperfluidUpgradeableBeacon.new,
-            "SuperfluidUpgradeableBeacon.new"
-        )(superfluidPoolLogic.address);
-        console.log(
-            "New SuperfluidPoolBeacon address",
-            superfluidPoolBeacon.address
-        );
-        output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeacon.address}\n`;
-
-        // @note should be temporary
-        superfluidPoolBeaconAddress = superfluidPoolBeacon.address;
-
         return agreement;
     };
 
@@ -966,15 +943,80 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         );
     }
 
-    // @note THIS IS TEMPORARY
-    // WE LIKELY WANT TO HAVE MORE ACCESS CONTROL OVER INITIALIZATION OF
-    // THE BEACON PROXY AND DOING THIS AFTER WOULDN'T WORK IN PROD ANYWAYS
     const gdaV1Contract = await GeneralDistributionAgreementV1.at(
         await superfluid.getAgreementClass.call(GDAv1_TYPE)
     );
-    const superfluidPoolBeacon = await gdaV1Contract.superfluidPoolBeacon();
-    if (superfluidPoolBeacon === ZERO_ADDRESS) {
-        await gdaV1Contract.initialize(superfluidPoolBeaconAddress);
+    const superfluidPoolBeaconAddress =
+        await gdaV1Contract.superfluidPoolBeacon();
+
+    const getPoolLogicAddress = async () => {
+        if (superfluidPoolBeaconAddress === ZERO_ADDRESS) {
+            return ZERO_ADDRESS;
+        }
+
+        try {
+            return await (
+                await SuperfluidUpgradeableBeacon.at(
+                    superfluidPoolBeaconAddress
+                )
+            ).implementation();
+        } catch (e) {
+            return ZERO_ADDRESS;
+        }
+    };
+    const superfluidPoolLogicAddress = await deployContractIfCodeChanged(
+        web3,
+        SuperfluidPool,
+        await getPoolLogicAddress(),
+        async () => {
+            // Deploy new SuperfluidPool logic contract
+            const superfluidPoolLogic = await web3tx(
+                SuperfluidPool.new,
+                "SuperfluidPool.new"
+            )(gdaV1Contract.address);
+            await superfluidPoolLogic.castrate();
+            console.log(
+                "New SuperfluidPoolLogic address",
+                superfluidPoolLogic.address
+            );
+            output += `SUPERFLUID_POOL_LOGIC=${superfluidPoolLogic.address}\n`;
+
+            return superfluidPoolLogic.address;
+        },
+        [
+            // See SuperToken constructor parameter
+            gdaV1Contract.address.toLowerCase().slice(2).padStart(64, "0"),
+        ]
+    );
+
+    // if beacon doesn't exist, we deploy a new one
+    if (superfluidPoolBeaconAddress === ZERO_ADDRESS) {
+        console.log(
+            "SuperfluidPool Beacon doesn't exist, creating a new one..."
+        );
+        const superfluidPoolBeaconContract = await web3tx(
+            SuperfluidUpgradeableBeacon.new,
+            "SuperfluidUpgradeableBeacon.new"
+        )(superfluidPoolLogicAddress);
+        console.log(
+            "New SuperfluidPoolBeacon address",
+            superfluidPoolBeaconContract.address
+        );
+        output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
+        await gdaV1Contract.initialize(superfluidPoolBeaconContract.address);
+    } else {
+        console.log("Superfluid Pool Beacon exists...");
+        // if the beacon exists AND we deployed a new SuperfluidPool logic contract
+        if (superfluidPoolLogicAddress !== ZERO_ADDRESS) {
+            console.log(
+                "superfluidPoolLogicAddress updated, upgrading logic contract..."
+            );
+            // update beacon implementation
+            const superfluidPoolBeacon = await SuperfluidUpgradeableBeacon.at(
+                superfluidPoolBeaconAddress
+            );
+            await superfluidPoolBeacon.upgradeTo(superfluidPoolLogicAddress);
+        }
     }
 
     console.log("======== Superfluid framework deployed ========");

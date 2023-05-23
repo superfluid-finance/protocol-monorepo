@@ -54,7 +54,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return keccak256("org.superfluid-finance.contracts.superfluid.SuperfluidPool.implementation");
+        return keccak256("org.superfluid-finance.contracts.SuperfluidPool.implementation");
     }
 
     function getIndex() external view returns (PoolIndexData memory) {

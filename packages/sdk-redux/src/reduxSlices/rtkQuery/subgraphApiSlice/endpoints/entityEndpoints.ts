@@ -5,6 +5,8 @@ import {
     AccountTokenSnapshotLog,
     AccountTokenSnapshotLogQueryHandler,
     AccountTokenSnapshotQueryHandler,
+    FlowOperator,
+    FlowOperatorQueryHandler,
     ILightEntity,
     Index,
     IndexQueryHandler,
@@ -42,6 +44,8 @@ import {
     AccountTokenSnapshotLogsQuery,
     AccountTokenSnapshotQuery,
     AccountTokenSnapshotsQuery,
+    FlowOperatorQuery,
+    FlowOperatorsQuery,
     IndexesQuery,
     IndexQuery,
     IndexSubscriptionQuery,
@@ -82,6 +86,8 @@ export const createEntityEndpoints = (builder: SubgraphEndpointBuilder) => {
         tokenStatistics: list<TokenStatistic, TokenStatisticsQuery>(builder, new TokenStatisticQueryHandler()),
         tokenStatisticLog: get<TokenStatisticLog, TokenStatisticLogQuery>(builder, new TokenStatisticLogQueryHandler()),
         tokenStatisticLogs: list<TokenStatisticLog, TokenStatisticLogsQuery>(builder, new TokenStatisticLogQueryHandler()),
+        flowOperator: get<FlowOperator, FlowOperatorQuery>(builder, new FlowOperatorQueryHandler()),
+        flowOperators: list<FlowOperator, FlowOperatorsQuery>(builder, new FlowOperatorQueryHandler()),
     };
 };
 

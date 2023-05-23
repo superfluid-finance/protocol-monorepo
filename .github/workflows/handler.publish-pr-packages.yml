@@ -12,6 +12,8 @@ jobs:
   publish_pr_packages:
     name: NPM publish PR to Github
 
+    permissions: write-all
+
     runs-on: ubuntu-latest
 
     if: ${{ github.event.workflow_run.conclusion == 'success' }}

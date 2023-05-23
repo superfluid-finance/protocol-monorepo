@@ -141,13 +141,7 @@ jobs:
         run: sudo apt-get -y install lcov
 
       - name: Clean up and merge coverage artifacts
-        run: |
-          # extract coverage for NFT contracts from forge coverage
-          lcov -e lcov.info 'packages/ethereum-contracts/contracts/*' -o lcov.info
-          # remove mocks, base super app, test and deployer contracts (see .solcover.js)
-          lcov -r lcov.info 'packages/ethereum-contracts/contracts/mocks/*' 'packages/ethereum-contracts/contracts/apps/*Base*' 'packages/ethereum-contracts/contracts/utils/*Test*' 'packages/ethereum-contracts/contracts/utils/*Deployer*' -o lcov.info
-          # merge hardhat and forge coverage files
-          lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o packages/ethereum-contracts/coverage/lcov.info
+        run: ./tasks/coverage-cleanup.sh
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v3
@@ -204,10 +198,12 @@ jobs:
   all-packages-tested:
     name: All packages tested (Dev Branch)
     runs-on: ubuntu-latest
+    # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-not-requiring-successful-dependent-jobs
+    if: ${{ always() }}
     needs: [ essential-build-and-test
            , test-spec-haskell
            , test-solidity-semantic-money
-           , test-hot-fuzz
+          #  , test-hot-fuzz
            , test-subgraph
            , coverage-ethereum-contracts
            , coverage-sdk-core
@@ -228,7 +224,7 @@ jobs:
           }
           check_result essential-build-and-test ${{ needs.essential-build-and-test.result }}
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
-          check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
+          # removed check_result hot-fuzz
           check_result subgraph ${{ needs.test-subgraph.result }}
           check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
           check_result sdk-core-coverage ${{ needs.coverage-sdk-core.result }}

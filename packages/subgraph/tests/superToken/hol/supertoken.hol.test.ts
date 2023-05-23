@@ -8,11 +8,12 @@ import {
     maticXAddress,
 } from "../../constants";
 import {
+    BIG_INT_ZERO,
     getAccountTokenSnapshotID,
     getFlowOperatorID,
 } from "../../../src/utils";
 import { Address, BigInt } from "@graphprotocol/graph-ts";
-import { mockedApprove } from "../../mockedFunctions";
+import {mockedApprove, mockedGetAppManifest} from "../../mockedFunctions";
 import { handleFlowOperatorUpdated } from "../../../src/mappings/cfav1";
 import { handleApproval } from "../../../src/mappings/superToken";
 import { assertHigherOrderBaseProperties } from "../../assertionHelpers";
@@ -32,7 +33,7 @@ describe("SuperToken Higher Order Level Entity Unit Tests", () => {
         const flowOperator = bob;
 
         mockedApprove(superToken, sender, flowOperator, BigInt.fromI32(0));
-
+        mockedGetAppManifest(sender, false, false, BIG_INT_ZERO);
         const flowOperatorUpdatedEvent = createFlowOperatorUpdatedEvent(
             superToken,
             sender,

@@ -5,9 +5,10 @@
         "max-line-length": ["error", 120],
         "func-param-name-mixedcase": "error",
         "modifier-name-mixedcase": "error",
-        "reason-string": ["error", { "maxLength": 64 } ],
+        "reason-string": ["error", {"maxLength": 64}],
         "compiler-version": ["off"],
-        "func-visibility" : ["error", { "ignoreConstructors": true }],
-        "constructor-syntax": "error"
+        "func-visibility": ["error", {"ignoreConstructors": true}],
+        "constructor-syntax": "error",
+        "quotes": ["error", "double"]
     }
 }

@@ -2,22 +2,14 @@
 pragma solidity 0.8.19;
 
 import { console, Test } from "forge-std/Test.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
-import {
-    IInstantDistributionAgreementV1
-} from "../../../contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
-import {
-    ISuperfluid
-} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
-import {
-    IERC20,
-    ISuperToken
-} from "../../../contracts/interfaces/superfluid/ISuperToken.sol";
+import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IInstantDistributionAgreementV1 } from
+    "../../../contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
+import { ISuperfluid } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+import { IERC20, ISuperToken } from "../../../contracts/interfaces/superfluid/ISuperToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
-/// @title ForkPolygonGasTest 
+/// @title ForkPolygonGasTest
 /// @author Superfluid
 /// @notice A test contract to measure gas consumption of common Superfluid operations
 /// on a forked network
@@ -26,18 +18,15 @@ import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library
 /// Then running forge snapshot --diff --match-contract ForkPolygonGasTest to see the diff
 contract ForkPolygonGasTest is Test {
     using SuperTokenV1Library for ISuperToken;
+
     uint256 polygonFork;
 
     string POLYGON_MAINNET_PROVIDER_URL = vm.envString("POLYGON_MAINNET_PROVIDER_URL");
 
-    ISuperfluid public constant host =
-        ISuperfluid(0x3E14dC1b13c488a8d5D310918780c983bD5982E7);
-    IERC20 public constant weth =
-        IERC20(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
-    ISuperToken public constant ethX =
-        ISuperToken(0x27e1e4E6BC79D93032abef01025811B7E4727e85);
-    address public constant TEST_ACCOUNT =
-        0x0154d25120Ed20A516fE43991702e7463c5A6F6e;
+    ISuperfluid public constant host = ISuperfluid(0x3E14dC1b13c488a8d5D310918780c983bD5982E7);
+    IERC20 public constant weth = IERC20(0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619);
+    ISuperToken public constant ethX = ISuperToken(0x27e1e4E6BC79D93032abef01025811B7E4727e85);
+    address public constant TEST_ACCOUNT = 0x0154d25120Ed20A516fE43991702e7463c5A6F6e;
     address public constant ALICE = address(1);
     address public constant BOB = address(2);
     address public constant DEFAULT_FLOW_OPERATOR = address(69);
@@ -63,12 +52,8 @@ contract ForkPolygonGasTest is Test {
         ethX.setMaxFlowPermissions(DEFAULT_FLOW_OPERATOR);
     }
 
-    function assert_Flow_Rate_Is_Expected(
-        address sender,
-        address receiver,
-        int96 expectedFlowRate
-    ) public {
-        (, int96 flowRate, , ) = ethX.getFlowInfo(sender, receiver);
+    function assert_Flow_Rate_Is_Expected(address sender, address receiver, int96 expectedFlowRate) public {
+        (, int96 flowRate,,) = ethX.getFlowInfo(sender, receiver);
         assertEq(flowRate, expectedFlowRate);
     }
 
@@ -118,6 +103,7 @@ contract ForkPolygonGasTest is Test {
         ethX.deleteFlow(TEST_ACCOUNT, ALICE);
         assert_Flow_Rate_Is_Expected(TEST_ACCOUNT, ALICE, 0);
     }
+
     function testGasCreateFlow() public {
         ethX.createFlow(BOB, 4206933);
     }

@@ -4,9 +4,7 @@ pragma solidity 0.8.19;
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {IBeacon} from "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
-
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
-
 import "../FoundrySuperfluidTester.sol";
 import {console} from "forge-std/console.sol";
 import {
@@ -317,16 +315,80 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     }
 
     function testPositiveBalanceIsPatricianPeriodNow(address account) public {
-        bool isPatricianPeriod = sf.gda.isPatricianPeriodNow(superToken, account);
+        (bool isPatricianPeriod,) = sf.gda.isPatricianPeriodNow(superToken, account);
         assertEq(isPatricianPeriod, true);
     }
 
-    function testNegativeBalanceIsPatricianPeriodNowIsTrue(address account) public {
+    function testNegativeBalanceIsPatricianPeriodNowIsTrue() public {
+        uint256 balance = superToken.balanceOf(alice);
+        int96 flowRate = balance.toInt256().toInt96() / type(int32).max;
+        int96 requestedDistributionFlowRate = int96(flowRate);
 
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
+        _helperUpdateMemberUnitsAndAssertUnits(pool, alice, bob, 1);
+
+        (int96 actualDistributionFlowRate,) =
+            sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedDistributionFlowRate);
+
+        _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
+        int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
+
+        uint256 aliceBalance = superToken.balanceOf(alice);
+
+        _helperWarpToCritical(alice, actualDistributionFlowRate, 1);
+
+        (bool isPatricianPeriod,) = sf.gda.isPatricianPeriodNow(superToken, alice);
+        assertEq(isPatricianPeriod, true);
     }
 
-    function testNegativeBalanceIsPatricianPeriodNowIsFalse(address account) public {
-        
+    function testNegativeBalanceIsPatricianPeriodNowIsFalse() public {
+        uint256 balance = superToken.balanceOf(alice);
+        int96 flowRate = balance.toInt256().toInt96() / type(int32).max;
+        int96 requestedDistributionFlowRate = int96(flowRate);
+
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
+        _helperUpdateMemberUnitsAndAssertUnits(pool, alice, bob, 1);
+
+        (int96 actualDistributionFlowRate,) =
+            sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedDistributionFlowRate);
+
+        _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
+        int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
+
+        uint256 aliceBalance = superToken.balanceOf(alice);
+
+        if (actualDistributionFlowRate > 0) {
+            _helperWarpToInsolvency(alice, actualDistributionFlowRate, liquidationPeriod, 1);
+        }
+
+        (bool isPatricianPeriod,) = sf.gda.isPatricianPeriodNow(superToken, alice);
+        assertEq(isPatricianPeriod, false);
+    }
+
+    function testNegativeBalanceIsPatricianPeriodNowIsFalseWithZeroDeposit() public {
+        uint256 balance = superToken.balanceOf(alice);
+        int96 flowRate = balance.toInt256().toInt96() / type(int32).max;
+        int96 requestedDistributionFlowRate = int96(flowRate);
+
+        vm.prank(sf.governance.owner());
+        sf.governance.setRewardAddress(sf.host, ISuperfluidToken(address(0)), bob);
+
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
+        _helperUpdateMemberUnitsAndAssertUnits(pool, alice, bob, 1);
+
+        (int96 actualDistributionFlowRate,) =
+            sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedDistributionFlowRate);
+
+        _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
+        int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
+
+        _helperWarpToCritical(alice, actualDistributionFlowRate, 1);
+
+        _helperDistributeFlow(superToken, bob, alice, pool, 0);
+
+        (bool isPatricianPeriod,) = sf.gda.isPatricianPeriodNow(superToken, alice);
+        // TODO
+        // assertEq(isPatricianPeriod, false);
     }
 
     function testCreatePool() public {
@@ -526,7 +588,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     }
 
     function testDistributeToEmptyPool(uint64 distributionAmount) public {
-        _helperDistribute(superToken, alice, alice, pool, distributionAmount);
+        _helperDistributeAndAssert(superToken, alice, alice, pool, distributionAmount);
     }
 
     function testDistributeFlowToEmptyPool(int32 flowRate) public {
@@ -536,7 +598,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         assertEq(distributionFlowRate, 0, "GDAv1.t: distributionFlowRate should be 0");
     }
 
-    function testDistributeFlowLiquidation(uint64 units) public {
+    function testDistributeFlowCriticalLiquidation(uint64 units) public {
         uint256 balance = superToken.balanceOf(alice);
         int96 flowRate = balance.toInt256().toInt96() / type(int32).max;
         int96 requestedDistributionFlowRate = int96(flowRate);
@@ -555,31 +617,77 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         uint256 aliceBalance = superToken.balanceOf(alice);
 
         if (actualDistributionFlowRate > 0) {
+            _helperWarpToCritical(alice, actualDistributionFlowRate, 1);
             uint256 timeToCritical = aliceBalance / int256(actualDistributionFlowRate).toUint256();
-            vm.warp(block.timestamp + timeToCritical + 1);
-            (int256 ab,,) = superToken.realtimeBalanceOf(alice, block.timestamp);
             _helperDistributeFlow(superToken, bob, alice, pool, 0);
         }
     }
 
-    function testDistributeToConnectedMembers(UpdateMemberData[5] memory members, int32 flowRate, uint16 warpTime)
-        public
-    {
-        vm.assume(flowRate > 0);
+    function testDistributeFlowInsolventLiquidation(uint64 units) public {
+        uint256 balance = superToken.balanceOf(alice);
+        int96 flowRate = balance.toInt256().toInt96() / type(int32).max;
+        int96 requestedDistributionFlowRate = int96(flowRate);
+
+        uint128 memberUnits = uint128(units);
+
+        _helperConnectPoolAndAssertConnected(bob, superToken, pool);
+        _helperUpdateMemberUnitsAndAssertUnits(pool, alice, bob, memberUnits);
+        _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
+
+        (int96 actualDistributionFlowRate,) =
+            sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedDistributionFlowRate);
+
+        _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
+        int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
+
+        uint256 aliceBalance = superToken.balanceOf(alice);
+
+        if (actualDistributionFlowRate > 0) {
+            _helperWarpToInsolvency(alice, actualDistributionFlowRate, liquidationPeriod, 1);
+            uint256 timeToCritical = aliceBalance / int256(actualDistributionFlowRate).toUint256();
+            _helperDistributeFlow(superToken, bob, alice, pool, 0);
+        }
+    }
+
+    function testDistributeToDisconnectedMembers(
+        UpdateMemberData[5] memory members,
+        uint256 distributionAmount,
+        uint16 warpTime
+    ) public {
+        address distributor = alice;
+        uint256 distributorBalance = superToken.balanceOf(distributor);
+
+        vm.assume(members.length > 0);
+        vm.assume(distributionAmount < distributorBalance);
+
+        for (uint256 i = 0; i < members.length; ++i) {
+            _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
+        }
+        _helperDistributeAndAssert(superToken, alice, alice, pool, distributionAmount);
+    }
+
+    function testDistributeToConnectedMembers(
+        UpdateMemberData[5] memory members,
+        uint256 distributionAmount,
+        uint16 warpTime
+    ) public {
+        address distributor = alice;
+        uint256 distributorBalance = superToken.balanceOf(distributor);
+
+        vm.assume(members.length > 0);
+        vm.assume(distributionAmount < distributorBalance);
 
         for (uint256 i = 0; i < members.length; ++i) {
             _helperConnectPoolAndAssertConnected(members[i].member, superToken, pool);
             _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
         }
-
-        _helperDistributeFlow(superToken, alice, alice, pool, 100);
-
-        vm.warp(block.timestamp + warpTime);
+        _helperDistributeAndAssert(superToken, alice, alice, pool, distributionAmount);
     }
 
     function testDistributeFlowToConnectedMembers(UpdateMemberData[5] memory members, int32 flowRate, uint16 warpTime)
         public
     {
+        vm.assume(members.length > 0);
         vm.assume(flowRate > 0);
 
         for (uint256 i = 0; i < members.length; ++i) {
@@ -588,14 +696,18 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         }
 
         _helperDistributeFlow(superToken, alice, alice, pool, 100);
-
-        vm.warp(block.timestamp + warpTime);
+        assertEq(
+            sf.gda.getPoolAdjustmentFlowRate(address(superToken), address(pool)),
+            0,
+            "GDAv1.t: Pool adjustment rate is non-zero"
+        );
     }
 
     function testDistributeFlowToUnconnectedMembers(UpdateMemberData[5] memory members, int32 flowRate, uint16 warpTime)
         public
     {
         vm.assume(flowRate > 0);
+        vm.assume(members.length > 0);
 
         for (uint256 i = 0; i < members.length; ++i) {
             _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
@@ -638,19 +750,31 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
 
-    function _helperWarpToCritical(address account, int96 netFlowRate, uint256 liquidationPeriod, uint256 secondsCritical) internal {
-        // get RTB for account ab
-        // uint256 timeToZero = AB / netFlowRate;
-        // uint256 timeToCritical = timeToZero - liquidationPeriod;
-        // uint256 amountToWarp = timeToCritical + secondsCritical;
-        // vm.warp();
+    function _helperGetValidDrainFlowRate(int256 balance) internal pure returns (int96) {
+        return (balance / type(int32).max).toInt96();
     }
-    function _helperWarpToInsolvency(int256 availableBalance, int256 deposit, int96 netFlowRate, uint256 secondsInsolvent) internal {
-        // get RTB for account ab
-        // uint256 timeToZero = AB / netFlowRate;
-        // uint256 amountToWarp = timeToZero + secondsCritical;
-        // vm.warp();
-        vm.warp();
+
+    function _helperWarpToCritical(address account_, int96 netFlowRate_, uint256 secondsCritical_) internal {
+        assertTrue(secondsCritical_ > 0, "_helperWarpToCritical: secondsCritical_ must be > 0 to reach critical");
+        (int256 ab,,) = superToken.realtimeBalanceOf(account_, block.timestamp);
+        int256 timeToZero = ab / netFlowRate_;
+        uint256 amountToWarp = timeToZero.toUint256() + secondsCritical_;
+        vm.warp(block.timestamp + amountToWarp);
+        assertTrue(superToken.isAccountCriticalNow(account_), "_helperWarpToCritical: account is not critical");
+    }
+
+    function _helperWarpToInsolvency(
+        address account_,
+        int96 netFlowRate_,
+        uint256 liquidationPeriod_,
+        uint256 secondsInsolvent_
+    ) internal {
+        assertTrue(secondsInsolvent_ > 0, "_helperWarpToInsolvency: secondsInsolvent_ must be > 0 to reach insolvency");
+        (int256 ab,,) = superToken.realtimeBalanceOf(account_, block.timestamp);
+        int256 timeToZero = ab / netFlowRate_;
+        uint256 amountToWarp = timeToZero.toUint256() + liquidationPeriod_ + secondsInsolvent_;
+        vm.warp(block.timestamp + amountToWarp);
+        assertFalse(superToken.isAccountSolventNow(account_), "_helperWarpToInsolvency: account is still solvent");
     }
 
     function _helperGetMemberInitialState(ISuperfluidPool pool_, address member_)
@@ -695,7 +819,10 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         // as the state changes replicated in here
 
         // Update Expected Member Data
-        _poolMembers[address(pool_)].add(member_);
+        if (newUnits_ > 0) {
+            // @note You are only considered a member if you are given units
+            _poolMembers[address(pool_)].add(member_);
+        }
         // TODO: how does flowRate/netFlowRate for a member get impacted by this?
 
         // Assert Pool Units are set
@@ -777,6 +904,44 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function _helperDistributeAndAssert(
+        ISuperfluidToken _superToken,
+        address caller,
+        address from,
+        ISuperfluidPool _pool,
+        uint256 requestedAmount
+    ) internal {
+        (int256 fromRTBBefore,,,) = superToken.realtimeBalanceOfNow(from);
+
+        uint256 actualAmount = sf.gda.estimateDistributionActualAmount(superToken, alice, pool, requestedAmount);
+
+        address[] memory members = _poolMembers[address(_pool)].values();
+        uint256[] memory memberBalancesBefore = new uint256[](members.length);
+
+        for (uint256 i = 0; i < members.length; ++i) {
+            (int256 memberRTB,,,) = superToken.realtimeBalanceOfNow(members[i]);
+            memberBalancesBefore[i] = uint256(memberRTB);
+        }
+
+        _helperDistribute(_superToken, caller, from, _pool, requestedAmount);
+
+        // Assert Distributor RTB
+        (int256 fromRTBAfter,,,) = superToken.realtimeBalanceOfNow(from);
+        assertEq(fromRTBAfter, fromRTBBefore - int256(actualAmount), "GDAv1.t D: Distributor RTB incorrect");
+
+        if (members.length == 0) return;
+
+        // Assert Members RTB
+        uint256 amountPerUnit = actualAmount / _pool.getTotalUnits();
+        for (uint256 i = 0; i < members.length; ++i) {
+            (int256 memberRTB,,,) = superToken.realtimeBalanceOfNow(members[i]);
+            uint256 amountReceived = sf.gda.isMemberConnected(superToken, address(pool), members[i])
+                ? uint256(_pool.getUnits(members[i])) * amountPerUnit
+                : 0;
+            assertEq(uint256(memberRTB), memberBalancesBefore[i] + amountReceived, "GDAv1.t D: Member RTB incorrect");
+        }
+    }
+
     function _helperDistributeFlow(
         ISuperfluidToken _superToken,
         address caller,
@@ -798,9 +963,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         returns (int256 availableBalance, uint256 buffer, uint256 owedBuffer, uint256 timestamp)
     {
         (int256 availableBalanceA, uint256 bufferA, uint256 owedBufferA) =
-            sf.gda.realtimeBalanceOf(superToken, account, block.timestamp);
+            superToken.realtimeBalanceOf(account, block.timestamp);
         (int256 availableBalanceB, uint256 bufferB, uint256 owedBufferB, uint256 timestampB) =
-            sf.gda.realtimeBalanceOfNow(superToken, account);
+            superToken.realtimeBalanceOfNow(account);
         assertEq(availableBalanceA, availableBalanceB, "GDAv1.t: availableBalance !=");
         assertEq(bufferA, bufferB, "GDAv1.t: buffer funcs !=");
         assertEq(owedBufferA, owedBufferB, "GDAv1.t: owedBuffer funcs !=");
@@ -852,19 +1017,18 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     struct PoolUpdateStep {
         uint8 u; // which user
-        uint8 a; // action types: 0 update units, 1 distribute flow, 2 pool connection, 3 pool claim for
+        uint8 a; // action types: 0 update units, 1 distribute flow, 2 pool connection, 3 pool claim for, 4 distribute
         uint32 v; // action param
         uint16 dt; // time delta
     }
 
-    // @note commented out as it slows down the tests A LOT
     function testPoolRandomSeqs(PoolUpdateStep[20] memory steps) external {
         uint256 N_MEMBERS = 5;
 
         for (uint256 i = 0; i < steps.length; ++i) {
             emit log_named_uint(">>> STEP", i);
             PoolUpdateStep memory s = steps[i];
-            uint256 action = s.a % 4;
+            uint256 action = s.a % 5;
             uint256 u = 1 + s.u % N_MEMBERS;
             address user = TEST_ACCOUNTS[u];
 
@@ -895,6 +1059,11 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
                 doConnect
                     ? _helperConnectPoolAndAssertConnected(user, superToken, pool)
                     : _helperDisconnectPoolAndAssertDisconnected(user, superToken, pool);
+            } else if (action == 4) {
+                // TODO uncomment this and it should work
+                // emit log_named_string("action", "distribute");
+                // emit log_named_uint("distributionAmount", s.v);
+                // _helperDistributeAndAssert(superToken, user, user, pool, uint256(s.v));
             } else {
                 assert(false);
             }

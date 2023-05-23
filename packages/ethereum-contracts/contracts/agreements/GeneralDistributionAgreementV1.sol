@@ -464,7 +464,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         // ensure sender has enough balance to execute transaction
-        {
+        if (from == currentContext.msgSender) {
             (int256 availableBalance,,) = token.realtimeBalanceOf(from, currentContext.timestamp);
             // if from == msg.sender
             if (requestedFlowRate > 0 && availableBalance < 0) {

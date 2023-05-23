@@ -10,6 +10,14 @@ remappings = [
     'forge-std/=lib/forge-std/src/']
 out = 'packages/ethereum-contracts/build/foundry/out'
 
+[fmt]
+bracket_spacing = true
+tab_width = 4
+line_length = 120
+int_types = "long"
+quote_style = "double"
+wrap_comments = true
+
 [profile.ci]
 offline = true
 

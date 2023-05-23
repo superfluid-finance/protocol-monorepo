@@ -25,16 +25,16 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
     }
 
     function testResolverGetsGovernance() public {
-        assertEq(resolver.get("TestGovernance.test"), address(sf.governance), "SFDeployer: governance not registered");
+        assertEq(sf.resolver.get("TestGovernance.test"), address(sf.governance), "SFDeployer: governance not registered");
     }
 
     function testResolverGetsHost() public {
-        assertEq(resolver.get("Superfluid.test"), address(sf.host), "SFDeployer: host not registered");
+        assertEq(sf.resolver.get("Superfluid.test"), address(sf.host), "SFDeployer: host not registered");
     }
 
     function testResolverGetsLoader() public {
         assertEq(
-            resolver.get("SuperfluidLoader-v1"),
+            sf.resolver.get("SuperfluidLoader-v1"),
             address(sf.superfluidLoader),
             "SFDeployer: superfluidLoader not registered"
         );

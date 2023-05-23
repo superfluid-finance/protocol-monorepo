@@ -33,14 +33,12 @@ contract FoundrySuperfluidTester is Test {
 
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
     SuperTokenDeployer internal immutable superTokenDeployer;
-
     SuperfluidFrameworkDeployer.Framework internal sf;
-    TestResolver internal resolver;
-    address internal constant admin = address(0x420);
-
 
     uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
+
+    address internal constant admin = address(0x420);
     address internal constant alice = address(0x421);
     address internal constant bob = address(0x422);
     address internal constant carol = address(0x423);
@@ -79,7 +77,6 @@ contract FoundrySuperfluidTester is Test {
         sfDeployer = new SuperfluidFrameworkDeployer();
         sf = sfDeployer.getFramework();
 
-        resolver = sf.resolver;
 
         // deploy SuperTokenDeployer
         superTokenDeployer = new SuperTokenDeployer(

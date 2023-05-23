@@ -39,11 +39,11 @@ contract SuperTokenDeployerTest is FoundrySuperfluidTester {
         assertEq(_superToken.symbol(), string.concat(_symbol, "x"), "SuperTokenDeployer: Super token symbol not properly set");
 
         // assert proper resolver listing for underlying and wrapper super token
-        address resolverUnderlyingTokenAddress = resolver.get(
+        address resolverUnderlyingTokenAddress = sf.resolver.get(
             string.concat("tokens.test.", underlyingToken.symbol())
         );
         assertEq(resolverUnderlyingTokenAddress, address(underlyingToken), "SuperTokenDeployer: Underlying token not properly registered");
-        address resolverSuperTokenAddress = resolver.get(
+        address resolverSuperTokenAddress = sf.resolver.get(
             string.concat("supertokens.test.", _superToken.symbol())
         );
         assertEq(resolverSuperTokenAddress, address(_superToken), "SuperTokenDeployer: Super token not properly registered");
@@ -61,7 +61,7 @@ contract SuperTokenDeployerTest is FoundrySuperfluidTester {
         assertEq(nativeAssetSuperToken.symbol(), _symbol, "SuperTokenDeployer: Native asset super token symbol not properly set");
 
         // assert proper resolver listing
-        address resolverTokenAddress = resolver.get(
+        address resolverTokenAddress = sf.resolver.get(
             string.concat("supertokens.test.", nativeAssetSuperToken.symbol())
         );
         assertEq(resolverTokenAddress, address(nativeAssetSuperToken), "SuperTokenDeployer: Native asset super token not properly registered");
@@ -82,7 +82,7 @@ contract SuperTokenDeployerTest is FoundrySuperfluidTester {
         assertEq(pureSuperToken.symbol(), _symbol, "SuperTokenDeployer: Pure super token symbol not properly set");
 
         // assert proper resolver listing
-        address resolverTokenAddress = resolver.get(
+        address resolverTokenAddress = sf.resolver.get(
             string.concat("supertokens.test.", pureSuperToken.symbol())
         );
         assertEq(resolverTokenAddress, address(pureSuperToken), "SuperTokenDeployer: Pure super token not properly registered");

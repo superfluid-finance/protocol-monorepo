@@ -14,7 +14,7 @@ out = 'packages/ethereum-contracts/build/foundry/out'
 bracket_spacing = true
 tab_width = 4
 line_length = 120
-int_types = "long"
+int_types = "preserve"
 quote_style = "double"
 wrap_comments = true
 

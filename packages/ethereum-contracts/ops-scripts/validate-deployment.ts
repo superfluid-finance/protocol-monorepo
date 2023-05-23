@@ -18,7 +18,13 @@ function assertLog(condition: boolean, message: string) {
 
 async function main() {
     const networkId = (await ethers.provider.getNetwork()).chainId;
-    const RESOLVER_ADDRESS = metadata.getNetworkByChainId(networkId)?.contractsV1.resolver;
+    const networkMetadata = metadata.getNetworkByChainId(networkId);
+
+    if (networkMetadata === undefined) {
+        throw new Error("Network not supported");
+    }
+
+    const RESOLVER_ADDRESS = networkMetadata.contractsV1.resolver;
 
     const resolver = await ethers.getContractAt("Resolver", RESOLVER_ADDRESS || "");
 
@@ -27,9 +33,11 @@ async function main() {
 
     const superTokenFactoryAddress = await hostContract.getSuperTokenFactory();
     const superTokenFactoryContract = await ethers.getContractAt("SuperTokenFactory", superTokenFactoryAddress);
-
     console.log("SuperTokenFactory Address:", superTokenFactoryAddress, "\n");
-    
+
+    const isCFAv1ForwarderATrustedForwarder = await hostContract.isTrustedForwarder(networkMetadata.contractsV1.cfaV1Forwarder);
+    assertLog(isCFAv1ForwarderATrustedForwarder, "CFAv1 Forwarder is set as trusted forwarder");
+
     const constantOutflowNFTCanonicalLogic = await superTokenFactoryContract.CONSTANT_OUTFLOW_NFT_LOGIC();
     console.log("ConstantOutflowNFT Canonical Logic (on Factory):", constantOutflowNFTCanonicalLogic);
     const constantInflowNFTCanonicalLogic = await superTokenFactoryContract.CONSTANT_INFLOW_NFT_LOGIC();

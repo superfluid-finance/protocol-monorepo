@@ -46,7 +46,7 @@ contract SuperTokenTest is FoundrySuperfluidTester {
         );
         vm.prank(address(sf.host));
         vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
-        superToken.updateCode(address(superTokenLogic));
+        UUPSProxiable(address(superToken)).updateCode(address(superTokenLogic));
 
         // inflow nft proxy incorrect
         superTokenLogic = new SuperToken(
@@ -56,7 +56,7 @@ contract SuperTokenTest is FoundrySuperfluidTester {
         );
         vm.prank(address(sf.host));
         vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
-        superToken.updateCode(address(superTokenLogic));
+        UUPSProxiable(address(superToken)).updateCode(address(superTokenLogic));
 
         // outflow nft proxy incorrect
         superTokenLogic = new SuperToken(
@@ -66,6 +66,6 @@ contract SuperTokenTest is FoundrySuperfluidTester {
         );
         vm.prank(address(sf.host));
         vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
-        superToken.updateCode(address(superTokenLogic));
+        UUPSProxiable(address(superToken)).updateCode(address(superTokenLogic));
     }
 }

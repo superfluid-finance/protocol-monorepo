@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { Test } from "forge-std/Test.sol";
+import "forge-std/Test.sol";
+
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {
     SuperfluidFrameworkDeployer,
@@ -9,21 +11,25 @@ import {
     SuperfluidLoader
 } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
+import { ISETH } from "../../contracts/interfaces/tokens/ISETH.sol";
 import { SuperTokenDeployer } from "../../contracts/utils/SuperTokenDeployer.sol";
-import { CFAv1Library, IDAv1Library, Superfluid } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { Superfluid } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
-import { TestToken, SuperToken } from "../../contracts/utils/SuperTokenDeployer.sol";
+import { TestToken } from "../../contracts/utils/SuperTokenDeployer.sol";
+import { ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
 
 contract FoundrySuperfluidTester is Test {
-    using SuperTokenV1Library for SuperToken;
+    using SuperTokenV1Library for ISuperToken;
+    using SafeCast for uint256;
+    using SafeCast for int256;
 
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
     SuperTokenDeployer internal immutable superTokenDeployer;
     SuperfluidFrameworkDeployer.Framework internal sf;
 
-    uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
-    uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
+    uint256 internal constant INIT_TOKEN_BALANCE = type(uint128).max;
+    uint256 internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
 
     address internal constant admin = address(0x420);
     address internal constant alice = address(0x421);
@@ -40,7 +46,7 @@ contract FoundrySuperfluidTester is Test {
     uint256 internal immutable N_TESTERS;
 
     TestToken internal token;
-    SuperToken internal superToken;
+    ISuperToken internal superToken;
 
     uint256 private _expectedTotalSupply;
 
@@ -64,7 +70,6 @@ contract FoundrySuperfluidTester is Test {
         sfDeployer = new SuperfluidFrameworkDeployer();
         sf = sfDeployer.getFramework();
 
-
         // deploy SuperTokenDeployer
         superTokenDeployer = new SuperTokenDeployer(
             address(sf.superTokenFactory),
@@ -79,6 +84,10 @@ contract FoundrySuperfluidTester is Test {
     }
 
     function setUp() public virtual {
+        _setUpWrapperSuperToken();
+    }
+
+    function _setUpWrapperSuperToken() internal {
         (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
 
         for (uint256 i = 0; i < N_TESTERS; ++i) {
@@ -92,61 +101,90 @@ contract FoundrySuperfluidTester is Test {
         }
     }
 
+    function _setUpNativeAssetSuperToken() internal {
+        (superToken) = superTokenDeployer.deployNativeAssetSuperToken("Super ETH", "ETHx");
+        for (uint256 i = 0; i < N_TESTERS; ++i) {
+            vm.startPrank(TEST_ACCOUNTS[i]);
+            vm.deal(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
+            ISETH(address(superToken)).upgradeByETH{ value: INIT_SUPER_TOKEN_BALANCE }();
+            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
+            vm.stopPrank();
+        }
+    }
+
+    function _setUpPureSuperToken() internal {
+        uint256 initialSupply = INIT_SUPER_TOKEN_BALANCE * N_TESTERS;
+        (superToken) = superTokenDeployer.deployPureSuperToken("Super MR", "MRx", initialSupply);
+        _expectedTotalSupply = initialSupply;
+        for (uint256 i = 0; i < N_TESTERS; ++i) {
+            superToken.transfer(TEST_ACCOUNTS[i], INIT_SUPER_TOKEN_BALANCE);
+        }
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                 Invariant Definitions
     //////////////////////////////////////////////////////////////////////////*/
-    /// @notice Superfluid Global Invariants
-    /// @dev Superfluid Global Invariants:
-    /// - Liquidity Sum Invariant
-    /// - Net Flow Rate Sum Invariant
-    /// @return bool Superfluid Global Invariants holds true
-    function _definitionGlobalInvariants() internal view returns (bool) {
-        return _definitionLiquiditySumInvariant() && _definitionNetFlowRateSumInvariant();
-    }
 
     /// @notice Liquidity Sum Invariant definition
     /// @dev Liquidity Sum Invariant: Expected Total Supply === Liquidity Sum
     /// Liquidity Sum = sum of available balance, deposit and owed deposit for all users
     /// @return bool Liquidity Sum Invariant holds true
     function _definitionLiquiditySumInvariant() internal view returns (bool) {
-        int256 liquiditySum;
-
-        for (uint256 i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            (int256 availableBalance, uint256 deposit, uint256 owedDeposit,) =
-                superToken.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
-
-            liquiditySum += availableBalance + int256(deposit) - int256(owedDeposit);
-        }
+        int256 liquiditySum = _helperGetSuperTokenLiquiditySum(superToken);
 
         return int256(_expectedTotalSupply) == liquiditySum;
+    }
+
+    function _definitionAUMGreaterThanRTBSumInvariant() internal view returns (bool) {
+        uint256 aum = _helperGetSuperTokenAUM(superToken);
+        int256 rtbSum = _helperGetSuperTokenLiquiditySum(superToken);
+
+        return aum >= uint256(rtbSum);
+    }
+
+    function _defintionAUMGreaterThanSuperTokenTotalSupplyInvariant() internal view returns (bool) {
+        uint256 aum = _helperGetSuperTokenAUM(superToken);
+        uint256 totalSupply = superToken.totalSupply();
+
+        return aum >= totalSupply;
     }
 
     /// @notice Net Flow Rate Sum Invariant definition
     /// @dev Net Flow Rate Sum Invariant: Sum of all net flow rates === 0
     /// @return bool Net Flow Rate Sum Invariant holds true
     function _definitionNetFlowRateSumInvariant() internal view returns (bool) {
-        int96 netFlowRateSum;
-        for (uint256 i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            netFlowRateSum += sf.cfa.getNetFlow(superToken, address(TEST_ACCOUNTS[i]));
-        }
+        int96 netFlowRateSum = _helperGetNetFlowRateSum(superToken);
         return netFlowRateSum == 0;
     }
 
-    function _assertGlobalInvariants() internal {
-        assertTrue(_definitionGlobalInvariants());
+    function _validateGlobalInvariants() internal {
+        _validateInvariantLiquiditySum();
+        _validateInvariantNetFlowRateSum();
+        _validateInvariantAUMGreaterThanRTBSum();
+        _validateInvariantAUMGreaterThanSuperTokenTotalSupply();
     }
 
-    function _assertLiquiditySumInvariant() internal {
-        assertTrue(_definitionLiquiditySumInvariant());
+    function _validateInvariantLiquiditySum() internal {
+        assertTrue(_definitionLiquiditySumInvariant(), "Invariant: Liquidity Sum Invariant");
     }
 
-    function _assertNetFlowRateSumInvariant() internal {
-        assertTrue(_definitionNetFlowRateSumInvariant());
+    function _validateInvariantNetFlowRateSum() internal {
+        assertTrue(_definitionNetFlowRateSumInvariant(), "Invariant: Net Flow Rate Sum Invariant");
+    }
+
+    function _validateInvariantAUMGreaterThanRTBSum() internal {
+        assertTrue(_definitionAUMGreaterThanRTBSumInvariant(), "Invariant: AUM > RTB Sum");
+    }
+
+    function _validateInvariantAUMGreaterThanSuperTokenTotalSupply() internal {
+        assertTrue(_defintionAUMGreaterThanSuperTokenTotalSupplyInvariant(), "Invariant: AUM > SuperToken Total Supply");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     Assertion Helpers
     //////////////////////////////////////////////////////////////////////////*/
+
+    // ConstantFlowAgreement Assertions
     function _assertModifyFlowAndNetFlowIsExpected(
         address flowSender,
         address flowReceiver,
@@ -188,9 +226,9 @@ contract FoundrySuperfluidTester is Test {
     //////////////////////////////////////////////////////////////////////////*/
     /// @notice Assume a valid flow rate
     /// @dev Flow rate must be greater than 0 and less than or equal to int32.max
-    function _assumeValidFlowRate(uint32 a) internal pure returns (int96 flowRate) {
+    function _assumeValidFlowRate(int96 a) internal pure returns (int96 flowRate) {
         vm.assume(a > 0);
-        vm.assume(a <= uint32(type(int32).max));
+        vm.assume(a <= int96(type(int32).max));
         flowRate = int96(int32(a));
     }
 
@@ -198,7 +236,88 @@ contract FoundrySuperfluidTester is Test {
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
 
-    function _helperCreateFlowAndAssertGlobalInvariants(address flowSender, address flowReceiver, uint32 _flowRate)
+    // Getter Helpers
+    function _helperGetSuperTokenAUM(ISuperToken superToken_) internal view returns (uint256) {
+        return _helperGetWrapperSuperTokenAUM(superToken_);
+    }
+
+    function _helperGetWrapperSuperTokenAUM(ISuperToken superToken_) internal view returns (uint256) {
+        return ISuperToken(superToken_.getUnderlyingToken()).balanceOf(address(superToken_));
+    }
+
+    function _helperGetNativeAssetSuperTokenAUM(ISuperToken superToken_) internal view returns (uint256) {
+        return address(superToken_).balance;
+    }
+
+    function _helperGetPureSuperTokenAUM(ISuperToken superToken_) internal view returns (uint256) {
+        return superToken_.totalSupply();
+    }
+
+    function _helperGetSuperTokenLiquiditySum(ISuperToken superToken_) internal view returns (int256 liquiditySum) {
+        for (uint256 i = 0; i < N_TESTERS; ++i) {
+            (int256 availableBalance, uint256 deposit, uint256 owedDeposit,) =
+                superToken_.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
+
+            liquiditySum += availableBalance + int256(deposit) - int256(owedDeposit);
+        }
+    }
+
+    function _helperGetNetFlowRateSum(ISuperToken superToken_) internal view returns (int96 netFlowRateSum) {
+        for (uint256 i = 0; i < N_TESTERS; ++i) {
+            netFlowRateSum += superToken_.getNetFlowRate(address(TEST_ACCOUNTS[i]));
+        }
+    }
+
+    // Time Warp Helpers
+    function _helperWarpToCritical(address account_, int96 netFlowRate_, uint256 secondsCritical_) internal {
+        assertTrue(secondsCritical_ > 0, "_helperWarpToCritical: secondsCritical_ must be > 0 to reach critical");
+        (int256 ab,,) = superToken.realtimeBalanceOf(account_, block.timestamp);
+        int256 timeToZero = ab / netFlowRate_;
+        uint256 amountToWarp = timeToZero.toUint256() + secondsCritical_;
+        vm.warp(block.timestamp + amountToWarp);
+        assertTrue(superToken.isAccountCriticalNow(account_), "_helperWarpToCritical: account is not critical");
+    }
+
+    function _helperWarpToInsolvency(
+        address account_,
+        int96 netFlowRate_,
+        uint256 liquidationPeriod_,
+        uint256 secondsInsolvent_
+    ) internal {
+        assertTrue(secondsInsolvent_ > 0, "_helperWarpToInsolvency: secondsInsolvent_ must be > 0 to reach insolvency");
+        (int256 ab,,) = superToken.realtimeBalanceOf(account_, block.timestamp);
+        int256 timeToZero = ab / netFlowRate_;
+        uint256 amountToWarp = timeToZero.toUint256() + liquidationPeriod_ + secondsInsolvent_;
+        vm.warp(block.timestamp + amountToWarp);
+        assertFalse(superToken.isAccountSolventNow(account_), "_helperWarpToInsolvency: account is still solvent");
+    }
+
+    // Write Helpers
+    // Write Helpers - ConstantFlowAgreementV1
+    function _helperCreateFlow(address flowSender_, address flowReceiver_, int96 flowRate_) internal {
+        flowRate_ = _assumeValidFlowRate(flowRate_);
+        vm.startPrank(flowSender_);
+        superToken.createFlow(flowReceiver_, flowRate_);
+        vm.stopPrank();
+    }
+    // TODO AndAssert functions for each
+
+    function _helperUpdateFlow(address flowSender_, address flowReceiver_, int96 flowRate_) internal {
+        flowRate_ = _assumeValidFlowRate(flowRate_);
+        vm.startPrank(flowSender_);
+        superToken.updateFlow(flowReceiver_, flowRate_);
+        vm.stopPrank();
+    }
+
+    function _helperDeleteFlow(address caller_, address flowSender_, address flowReceiver_) internal {
+        vm.startPrank(caller_);
+        superToken.deleteFlow(flowSender_, flowReceiver_);
+        vm.stopPrank();
+    }
+
+    // TODO ACL functions for each
+
+    function _helperCreateFlowAndAssertGlobalInvariants(address flowSender, address flowReceiver, int96 _flowRate)
         internal
         returns (int96 absoluteFlowRate)
     {
@@ -219,6 +338,6 @@ contract FoundrySuperfluidTester is Test {
 
         _assertModifyFlowAndFlowInfoIsExpected(flowSender, flowReceiver, flowRate, block.timestamp, 0);
 
-        _assertGlobalInvariants();
+        _validateGlobalInvariants();
     }
 }

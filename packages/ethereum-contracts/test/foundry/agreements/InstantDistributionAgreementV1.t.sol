@@ -2,11 +2,11 @@
 pragma solidity 0.8.19;
 
 import "../FoundrySuperfluidTester.sol";
-import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
 contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTester {
-    using SuperTokenV1Library for SuperToken;
+    using SuperTokenV1Library for ISuperToken;
 
     constructor() FoundrySuperfluidTester(3) { }
 
@@ -56,7 +56,7 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         assertEq(totalUnitsApproved, units, "IDAv1.t: approveSubscription | totalUnitsApproved != units");
         assertEq(totalUnitsPending, 0, "IDAv1.t: approveSubscription | totalUnitsPending != 0");
 
-        _assertGlobalInvariants();
+        _validateGlobalInvariants();
     }
 
     function testRevertMaxNumberOFSubscriptionsASubscriberCanHave() public {
@@ -85,5 +85,7 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.expectRevert("SlotBitmap out of bound");
         superToken.approveSubscription(alice, uint32(maxNumSubs));
         vm.stopPrank();
+
+        _validateGlobalInvariants();
     }
 }

@@ -22,6 +22,16 @@ import {
  */
 library SuperTokenV1Library {
 
+    /**
+     * @notice Warms up the cache: get the host, cfa and ida from the token
+     * @dev Fixes the issue where expect revert fails because it expects this call to revert
+     * @param token The token used in the flow
+     */
+    function warmUpCache(ISuperToken token) external {
+        _getAndCacheHostAndCFA(token);
+        _getAndCacheHostAndIDA(token);
+    }
+
     /** CFA BASE CRUD ************************************* */
 
     /**
@@ -227,6 +237,96 @@ library SuperTokenV1Library {
                 (token, flowOperator, new bytes(0))
             ),
             new bytes(0)
+        );
+        return true;
+    }
+
+    /**
+     * @dev Increases the flow rate allowance for flow operator
+     * @notice allowing userData to be a parameter here triggered stack to deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is increased
+     * @param addedFlowRateAllowance amount to increase allowance by
+     */
+    function increaseFlowRateAllowance(ISuperToken token, address flowOperator, int96 addedFlowRateAllowance)
+        internal
+        returns (bool)
+    {
+        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
+        host.callAgreement(
+            cfa,
+            abi.encodeCall(cfa.increaseFlowRateAllowance, (token, flowOperator, addedFlowRateAllowance, new bytes(0))),
+            new bytes(0)
+        );
+        return true;
+    }
+
+    /**
+     * @dev Increases the flow rate allowance for flow operator
+     * @notice allowing userData to be a parameter here triggered stack to deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is increased
+     * @param addedFlowRateAllowance amount to increase allowance by
+     * @param userData The userdata passed along with call
+     */
+    function increaseFlowRateAllowance(
+        ISuperToken token,
+        address flowOperator,
+        int96 addedFlowRateAllowance,
+        bytes memory userData
+    ) internal returns (bool) {
+        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
+        host.callAgreement(
+            cfa,
+            abi.encodeCall(cfa.increaseFlowRateAllowance, (token, flowOperator, addedFlowRateAllowance, new bytes(0))),
+            userData
+        );
+        return true;
+    }
+
+    /**
+     * @dev Decreases the flow rate allowance for flow operator
+     * @notice allowing userData to be a parameter here triggered stack to deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is decreased
+     * @param subtractedFlowRateAllowance amount to decrease allowance by
+     */
+    function decreaseFlowRateAllowance(ISuperToken token, address flowOperator, int96 subtractedFlowRateAllowance)
+        internal
+        returns (bool)
+    {
+        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
+        host.callAgreement(
+            cfa,
+            abi.encodeCall(
+                cfa.decreaseFlowRateAllowance, (token, flowOperator, subtractedFlowRateAllowance, new bytes(0))
+            ),
+            new bytes(0)
+        );
+        return true;
+    }
+
+    /**
+     * @dev Decreases the flow rate allowance for flow operator
+     * @notice allowing userData to be a parameter here triggered stack to deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is decreased
+     * @param subtractedFlowRateAllowance amount to decrease allowance by
+     * @param userData The userdata passed along with call
+     */
+    function decreaseFlowRateAllowance(
+        ISuperToken token,
+        address flowOperator,
+        int96 subtractedFlowRateAllowance,
+        bytes memory userData
+    ) internal returns (bool) {
+        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
+        host.callAgreement(
+            cfa,
+            abi.encodeCall(
+                cfa.decreaseFlowRateAllowance, (token, flowOperator, subtractedFlowRateAllowance, new bytes(0))
+            ),
+            userData
         );
         return true;
     }

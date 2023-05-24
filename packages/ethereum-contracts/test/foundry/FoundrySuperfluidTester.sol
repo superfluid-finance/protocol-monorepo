@@ -4,6 +4,7 @@ pragma solidity 0.8.19;
 import "forge-std/Test.sol";
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import {
     SuperfluidFrameworkDeployer,
@@ -19,17 +20,45 @@ import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.so
 import { TestToken } from "../../contracts/utils/SuperTokenDeployer.sol";
 import { ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
 
+/// @title FoundrySuperfluidTester
+/// @dev A contract that can be inherited from to test Superfluid agreements
+/// Types of SuperToken to test:
+/// - (0) | WRAPPER_SUPER_TOKEN: has underlying ERC20 token (e.g. USDC)
+/// - (1) | NATIVE_ASSET_SUPER_TOKEN: underlying asset is the native gas token (e.g. ETH)
+/// - (2) | PURE_SUPER_TOKEN: has no underlying AND is purely a SuperToken
+/// - (3) | CUSTOM_WRAPPER_SUPER_TOKEN: has underlying ERC20 token (e.g. USDC) AND has custom SuperToken logic
+/// - (4) | CUSTOM_PURE_SUPER_TOKEN: has no underlying AND is purely a SuperToken AND has custom SuperToken logic
+/// TODO: write more documentation about this file
 contract FoundrySuperfluidTester is Test {
     using SuperTokenV1Library for ISuperToken;
+    using EnumerableSet for EnumerableSet.Bytes32Set;
     using SafeCast for uint256;
     using SafeCast for int256;
 
+    struct RealtimeBalance {
+        int256 availableBalance;
+        uint256 deposit;
+        uint256 owedDeposit;
+        uint256 timestamp;
+    }
+
+    struct FlowInfo {
+        uint256 timestamp;
+        int96 flowRate;
+        uint256 deposit;
+        uint256 owedDeposit;
+    }
+
+    error INVALID_TEST_SUPER_TOKEN_TYPE();
+
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
     SuperTokenDeployer internal immutable superTokenDeployer;
-    SuperfluidFrameworkDeployer.Framework internal sf;
+    int8 internal immutable testSuperTokenType;
 
     uint256 internal constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint256 internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
+    string internal constant DEFAULT_TEST_TOKEN_TYPE = "WRAPPER_SUPER_TOKEN";
+    string internal constant TOKEN_TYPE_ENV_KEY = "TOKEN_TYPE";
 
     address internal constant admin = address(0x420);
     address internal constant alice = address(0x421);
@@ -45,10 +74,29 @@ contract FoundrySuperfluidTester is Test {
 
     uint256 internal immutable N_TESTERS;
 
+    SuperfluidFrameworkDeployer.Framework internal sf;
+
+    /// @dev The current underlying token being tested (applies only to wrapper super tokens)
     TestToken internal token;
+
+    /// @dev The current super token being tested
     ISuperToken internal superToken;
 
+    /// @dev The expected total supply of the current super token being tested
     uint256 private _expectedTotalSupply;
+
+    /// @notice A mapping from super token to account to realtime balance data snapshot
+    /// @dev Used for validating that balances are correct
+    mapping(ISuperToken => mapping(address account => RealtimeBalance balanceSnapshot)) internal _balanceSnapshots;
+
+    /// @notice A mapping from super token to account to flowIDs of outflows from the account for the CFA
+    mapping(ISuperToken => mapping(address account => EnumerableSet.Bytes32Set flowIDs)) internal _outflows;
+
+    /// @notice A mapping from super token to account to flowIDs of inflows to the account for the CFA
+    mapping(ISuperToken => mapping(address account => EnumerableSet.Bytes32Set flowIDs)) internal _inflows;
+
+    /// @notice A mapping from super token to account to indexIDs of indexes of the account for the IDA
+    mapping(ISuperToken => mapping(address account => EnumerableSet.Bytes32Set indexIDs)) internal _indexIDs;
 
     constructor(uint8 nTesters) {
         // etch erc1820
@@ -81,10 +129,29 @@ contract FoundrySuperfluidTester is Test {
 
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
         N_TESTERS = nTesters;
+
+        // Set the token type being tested
+        string memory tokenType = vm.envOr(TOKEN_TYPE_ENV_KEY, DEFAULT_TEST_TOKEN_TYPE);
+        bytes32 hashedTokenType = keccak256(abi.encode(tokenType));
+
+        testSuperTokenType = hashedTokenType == keccak256(abi.encode("WRAPPER_SUPER_TOKEN"))
+            ? int8(0)
+            : hashedTokenType == keccak256(abi.encode("NATIVE_ASSET_SUPER_TOKEN"))
+                ? int8(1)
+                : hashedTokenType == keccak256(abi.encode("PURE_SUPER_TOKEN"))
+                    ? int8(2)
+                    : hashedTokenType == keccak256(abi.encode("CUSTOM_WRAPPER_SUPER_TOKEN"))
+                        ? int8(3)
+                        : hashedTokenType == keccak256(abi.encode("CUSTOM_PURE_SUPER_TOKEN")) ? int8(4) : int8(-1);
+
+        if (testSuperTokenType == -1) revert INVALID_TEST_SUPER_TOKEN_TYPE();
     }
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                Test Setup/Harness
+    //////////////////////////////////////////////////////////////////////////*/
     function setUp() public virtual {
-        _setUpWrapperSuperToken();
+        _setUpSuperToken();
     }
 
     function _setUpWrapperSuperToken() internal {
@@ -121,6 +188,22 @@ contract FoundrySuperfluidTester is Test {
         }
     }
 
+    function _setUpSuperToken() internal {
+        if (testSuperTokenType == 0) {
+            _setUpWrapperSuperToken();
+        } else if (testSuperTokenType == 1) {
+            _setUpNativeAssetSuperToken();
+        } else if (testSuperTokenType == 2) {
+            _setUpPureSuperToken();
+        } else if (testSuperTokenType == 3) {
+            // _setUpCustomWrapperSuperToken();
+        } else if (testSuperTokenType == 4) {
+            // _setUpCustomPureSuperToken();
+        } else {
+            revert("invalid test token type");
+        }
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                 Invariant Definitions
     //////////////////////////////////////////////////////////////////////////*/
@@ -135,15 +218,15 @@ contract FoundrySuperfluidTester is Test {
         return int256(_expectedTotalSupply) == liquiditySum;
     }
 
-    function _definitionAUMGreaterThanRTBSumInvariant() internal view returns (bool) {
-        uint256 aum = _helperGetSuperTokenAUM(superToken);
+    function _definitionAumGtEqRtbSumInvariant() internal view returns (bool) {
+        uint256 aum = _helperGetSuperTokenAum(superToken);
         int256 rtbSum = _helperGetSuperTokenLiquiditySum(superToken);
 
         return aum >= uint256(rtbSum);
     }
 
-    function _defintionAUMGreaterThanSuperTokenTotalSupplyInvariant() internal view returns (bool) {
-        uint256 aum = _helperGetSuperTokenAUM(superToken);
+    function _defintionAumGtEqSuperTokenTotalSupplyInvariant() internal view returns (bool) {
+        uint256 aum = _helperGetSuperTokenAum(superToken);
         uint256 totalSupply = superToken.totalSupply();
 
         return aum >= totalSupply;
@@ -157,68 +240,27 @@ contract FoundrySuperfluidTester is Test {
         return netFlowRateSum == 0;
     }
 
-    function _validateGlobalInvariants() internal {
-        _validateInvariantLiquiditySum();
-        _validateInvariantNetFlowRateSum();
-        _validateInvariantAUMGreaterThanRTBSum();
-        _validateInvariantAUMGreaterThanSuperTokenTotalSupply();
+    function _assertGlobalInvariants() internal {
+        _assertInvariantLiquiditySum();
+        _assertInvariantNetFlowRateSum();
+        _assertInvariantAumGtEqRtbSum();
+        _assertInvariantAumGtEqSuperTokenTotalSupply();
     }
 
-    function _validateInvariantLiquiditySum() internal {
+    function _assertInvariantLiquiditySum() internal {
         assertTrue(_definitionLiquiditySumInvariant(), "Invariant: Liquidity Sum Invariant");
     }
 
-    function _validateInvariantNetFlowRateSum() internal {
+    function _assertInvariantNetFlowRateSum() internal {
         assertTrue(_definitionNetFlowRateSumInvariant(), "Invariant: Net Flow Rate Sum Invariant");
     }
 
-    function _validateInvariantAUMGreaterThanRTBSum() internal {
-        assertTrue(_definitionAUMGreaterThanRTBSumInvariant(), "Invariant: AUM > RTB Sum");
+    function _assertInvariantAumGtEqRtbSum() internal {
+        assertTrue(_definitionAumGtEqRtbSumInvariant(), "Invariant: AUM > RTB Sum");
     }
 
-    function _validateInvariantAUMGreaterThanSuperTokenTotalSupply() internal {
-        assertTrue(_defintionAUMGreaterThanSuperTokenTotalSupplyInvariant(), "Invariant: AUM > SuperToken Total Supply");
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                    Assertion Helpers
-    //////////////////////////////////////////////////////////////////////////*/
-
-    // ConstantFlowAgreement Assertions
-    function _assertModifyFlowAndNetFlowIsExpected(
-        address flowSender,
-        address flowReceiver,
-        int96 flowRateDelta,
-        int96 senderNetFlowBefore,
-        int96 receiverNetFlowBefore
-    ) internal {
-        int96 senderNetFlowAfter = superToken.getNetFlowRate(flowSender);
-        int96 receiverNetFlowAfter = superToken.getNetFlowRate(flowReceiver);
-
-        assertEq(senderNetFlowAfter, senderNetFlowBefore - flowRateDelta, "sender net flow after");
-        assertEq(receiverNetFlowAfter, receiverNetFlowBefore + flowRateDelta, "receiver net flow after");
-    }
-
-    function _assertModifyFlowAndFlowInfoIsExpected(
-        address flowSender,
-        address flowReceiver,
-        int96 expectedFlowRate,
-        uint256 expectedLastUpdated,
-        uint256 expectedOwedDeposit
-    ) internal {
-        (uint256 lastUpdated, int96 _flowRate, uint256 deposit, uint256 owedDeposit) =
-            superToken.getFlowInfo(flowSender, flowReceiver);
-
-        uint256 expectedDeposit = superToken.getBufferAmountByFlowRate(expectedFlowRate);
-
-        assertEq(_flowRate, expectedFlowRate, "flow rate");
-        assertEq(lastUpdated, expectedLastUpdated, "last updated");
-        assertEq(deposit, expectedDeposit, "deposit");
-        assertEq(owedDeposit, expectedOwedDeposit, "owed deposit");
-    }
-
-    function _assertFlowInfoIsEmpty(address flowSender, address flowReceiver) internal {
-        _assertModifyFlowAndFlowInfoIsExpected(flowSender, flowReceiver, 0, 0, 0);
+    function _assertInvariantAumGtEqSuperTokenTotalSupply() internal {
+        assertTrue(_defintionAumGtEqSuperTokenTotalSupplyInvariant(), "Invariant: AUM > SuperToken Total Supply");
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -226,10 +268,10 @@ contract FoundrySuperfluidTester is Test {
     //////////////////////////////////////////////////////////////////////////*/
     /// @notice Assume a valid flow rate
     /// @dev Flow rate must be greater than 0 and less than or equal to int32.max
-    function _assumeValidFlowRate(int96 a) internal pure returns (int96 flowRate) {
-        vm.assume(a > 0);
-        vm.assume(a <= int96(type(int32).max));
-        flowRate = int96(int32(a));
+    function _assumeValidFlowRate(int96 desiredFlowRate) internal pure returns (int96 flowRate) {
+        vm.assume(desiredFlowRate > 0);
+        vm.assume(desiredFlowRate <= int96(type(int32).max));
+        flowRate = int96(int32(desiredFlowRate));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -237,8 +279,12 @@ contract FoundrySuperfluidTester is Test {
     //////////////////////////////////////////////////////////////////////////*/
 
     // Getter Helpers
-    function _helperGetSuperTokenAUM(ISuperToken superToken_) internal view returns (uint256) {
-        return _helperGetWrapperSuperTokenAUM(superToken_);
+    function _helperGetSuperTokenAum(ISuperToken superToken_) internal view returns (uint256) {
+        return testSuperTokenType == 0
+            ? _helperGetWrapperSuperTokenAUM(superToken_)
+            : testSuperTokenType == 1
+                ? _helperGetNativeAssetSuperTokenAUM(superToken_)
+                : testSuperTokenType == 2 ? _helperGetPureSuperTokenAUM(superToken_) : 0;
     }
 
     function _helperGetWrapperSuperTokenAUM(ISuperToken superToken_) internal view returns (uint256) {
@@ -268,76 +314,429 @@ contract FoundrySuperfluidTester is Test {
         }
     }
 
+    function _helperGetAllFlowInfo(ISuperToken superToken_, address sender, address receiver)
+        internal
+        returns (
+            FlowInfo memory flowInfoBefore,
+            FlowInfo memory senderFlowInfoBefore,
+            FlowInfo memory receiverFlowInfoBefore
+        )
+    {
+        flowInfoBefore = _helperGetFlowInfo(superToken_, sender, receiver);
+        senderFlowInfoBefore = _helperGetAccountFlowInfo(superToken_, sender);
+        receiverFlowInfoBefore = _helperGetAccountFlowInfo(superToken_, receiver);
+    }
+
+    function _helperGetFlowInfo(ISuperToken superToken_, address sender, address receiver)
+        internal
+        view
+        returns (FlowInfo memory flowInfo)
+    {
+        (uint256 timestamp, int96 flowRate, uint256 deposit, uint256 owedDeposit) =
+            superToken_.getFlowInfo(sender, receiver);
+        flowInfo = FlowInfo(timestamp, flowRate, deposit, owedDeposit);
+    }
+
+    function _helperGetAccountFlowInfo(ISuperToken superToken_, address account)
+        internal
+        view
+        returns (FlowInfo memory flowInfo)
+    {
+        (uint256 timestamp, int96 flowRate, uint256 deposit, uint256 owedDeposit) =
+            sf.cfa.getAccountFlowInfo(superToken_, account);
+        flowInfo = FlowInfo(timestamp, flowRate, deposit, owedDeposit);
+    }
+
     // Time Warp Helpers
-    function _helperWarpToCritical(address account_, int96 netFlowRate_, uint256 secondsCritical_) internal {
-        assertTrue(secondsCritical_ > 0, "_helperWarpToCritical: secondsCritical_ must be > 0 to reach critical");
-        (int256 ab,,) = superToken.realtimeBalanceOf(account_, block.timestamp);
-        int256 timeToZero = ab / netFlowRate_;
-        uint256 amountToWarp = timeToZero.toUint256() + secondsCritical_;
+    function _helperWarpToCritical(address account, int96 netFlowRate, uint256 secondsCritical) internal {
+        assertTrue(secondsCritical > 0, "_helperWarpToCritical: secondsCritical must be > 0 to reach critical");
+        (int256 ab,,) = superToken.realtimeBalanceOf(account, block.timestamp);
+        int256 timeToZero = ab / netFlowRate;
+        uint256 amountToWarp = timeToZero.toUint256() + secondsCritical;
         vm.warp(block.timestamp + amountToWarp);
-        assertTrue(superToken.isAccountCriticalNow(account_), "_helperWarpToCritical: account is not critical");
+        assertTrue(superToken.isAccountCriticalNow(account), "_helperWarpToCritical: account is not critical");
     }
 
     function _helperWarpToInsolvency(
-        address account_,
-        int96 netFlowRate_,
-        uint256 liquidationPeriod_,
-        uint256 secondsInsolvent_
+        address account,
+        int96 netFlowRate,
+        uint256 liquidationPeriod,
+        uint256 secondsInsolvent
     ) internal {
-        assertTrue(secondsInsolvent_ > 0, "_helperWarpToInsolvency: secondsInsolvent_ must be > 0 to reach insolvency");
-        (int256 ab,,) = superToken.realtimeBalanceOf(account_, block.timestamp);
-        int256 timeToZero = ab / netFlowRate_;
-        uint256 amountToWarp = timeToZero.toUint256() + liquidationPeriod_ + secondsInsolvent_;
+        assertTrue(secondsInsolvent > 0, "_helperWarpToInsolvency: secondsInsolvent must be > 0 to reach insolvency");
+        (int256 ab,,) = superToken.realtimeBalanceOf(account, block.timestamp);
+        int256 timeToZero = ab / netFlowRate;
+        uint256 amountToWarp = timeToZero.toUint256() + liquidationPeriod + secondsInsolvent;
         vm.warp(block.timestamp + amountToWarp);
-        assertFalse(superToken.isAccountSolventNow(account_), "_helperWarpToInsolvency: account is still solvent");
+        assertFalse(superToken.isAccountSolventNow(account), "_helperWarpToInsolvency: account is still solvent");
+    }
+
+    function _generateFlowId(address sender, address receiver) private pure returns (bytes32 id) {
+        return keccak256(abi.encode(sender, receiver));
+    }
+
+    function _generateFlowOperatorId(address sender, address flowOperator) private pure returns (bytes32 id) {
+        return keccak256(abi.encode("flowOperator", sender, flowOperator));
+    }
+
+    function _generatePublisherId(address publisher, uint32 indexId) private pure returns (bytes32 iId) {
+        return keccak256(abi.encodePacked("publisher", publisher, indexId));
+    }
+
+    function _generateSubscriptionId(address subscriber, bytes32 iId) private pure returns (bytes32 sId) {
+        return keccak256(abi.encodePacked("subscription", subscriber, iId));
     }
 
     // Write Helpers
+    // Write Helpers - Testing State Changes
+    function _helperTakeBalanceSnapshot(ISuperToken superToken_, address account) internal {
+        (int256 avb, uint256 deposit, uint256 owedDeposit, uint256 time) = superToken_.realtimeBalanceOfNow(account);
+        RealtimeBalance memory balanceSnapshot = RealtimeBalance(avb, deposit, owedDeposit, time);
+        _balanceSnapshots[superToken_][account] = balanceSnapshot;
+    }
+
+    function _helperAddInflowsAndOutflowsToTestState(address sender, address receiver) internal {
+        bytes32 flowId = _generateFlowId(sender, receiver);
+
+        EnumerableSet.Bytes32Set storage outflows = _outflows[superToken][sender];
+        if (!outflows.contains(flowId)) {
+            outflows.add(flowId);
+        }
+
+        EnumerableSet.Bytes32Set storage inflows = _inflows[superToken][receiver];
+        if (!inflows.contains(flowId)) {
+            inflows.add(flowId);
+        }
+    }
+
+    function _helperRemoveInflowsAndOutflowsFromTestState(address sender, address receiver) internal {
+        bytes32 flowId = _generateFlowId(sender, receiver);
+
+        EnumerableSet.Bytes32Set storage outflows = _outflows[superToken][sender];
+        if (outflows.contains(flowId)) {
+            outflows.remove(flowId);
+        }
+
+        EnumerableSet.Bytes32Set storage inflows = _inflows[superToken][receiver];
+        if (inflows.contains(flowId)) {
+            inflows.remove(flowId);
+        }
+    }
+
     // Write Helpers - ConstantFlowAgreementV1
-    function _helperCreateFlow(address flowSender_, address flowReceiver_, int96 flowRate_) internal {
-        flowRate_ = _assumeValidFlowRate(flowRate_);
-        vm.startPrank(flowSender_);
-        superToken.createFlow(flowReceiver_, flowRate_);
+    function _helperCreateFlow(address sender, address receiver, int96 flowRate) internal {
+        flowRate = _assumeValidFlowRate(flowRate);
+
+        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
+            _helperGetAllFlowInfo(superToken, sender, receiver);
+
+        vm.startPrank(sender);
+        superToken.createFlow(receiver, flowRate);
         vm.stopPrank();
-    }
-    // TODO AndAssert functions for each
 
-    function _helperUpdateFlow(address flowSender_, address flowReceiver_, int96 flowRate_) internal {
-        flowRate_ = _assumeValidFlowRate(flowRate_);
-        vm.startPrank(flowSender_);
-        superToken.updateFlow(flowReceiver_, flowRate_);
+        _helperAddInflowsAndOutflowsToTestState(sender, receiver);
+
+        _helperTakeBalanceSnapshot(superToken, sender);
+        _helperTakeBalanceSnapshot(superToken, receiver);
+
+        int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+
+        _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
+        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+    }
+
+    function _helperUpdateFlow(address sender, address receiver, int96 flowRate) internal {
+        flowRate = _assumeValidFlowRate(flowRate);
+
+        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
+            _helperGetAllFlowInfo(superToken, sender, receiver);
+
+        vm.startPrank(sender);
+        superToken.updateFlow(receiver, flowRate);
         vm.stopPrank();
+
+        _helperTakeBalanceSnapshot(superToken, sender);
+        _helperTakeBalanceSnapshot(superToken, receiver);
+
+        int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+
+        _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
+        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
     }
 
-    function _helperDeleteFlow(address caller_, address flowSender_, address flowReceiver_) internal {
-        vm.startPrank(caller_);
-        superToken.deleteFlow(flowSender_, flowReceiver_);
+    function _helperDeleteFlow(address caller, address sender, address receiver) internal {
+        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
+            _helperGetAllFlowInfo(superToken, sender, receiver);
+
+        vm.startPrank(caller);
+        superToken.deleteFlow(sender, receiver);
         vm.stopPrank();
+
+        _helperRemoveInflowsAndOutflowsFromTestState(sender, receiver);
+
+        _helperTakeBalanceSnapshot(superToken, sender);
+        _helperTakeBalanceSnapshot(superToken, receiver);
+
+        int96 flowRateDelta = -flowInfoBefore.flowRate;
+
+        _assertFlowInfoIsEmpty(sender, receiver);
+        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
     }
 
-    // TODO ACL functions for each
+    function _helperCreateFlowFrom(
+        ISuperToken superToken_,
+        address operator,
+        address sender,
+        address receiver,
+        int96 flowRate
+    ) internal {
+        flowRate = _assumeValidFlowRate(flowRate);
 
-    function _helperCreateFlowAndAssertGlobalInvariants(address flowSender, address flowReceiver, int96 _flowRate)
+        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
+            _helperGetAllFlowInfo(superToken, sender, receiver);
+
+        vm.startPrank(operator);
+        superToken_.createFlowFrom(sender, receiver, flowRate);
+        vm.stopPrank();
+
+        _helperAddInflowsAndOutflowsToTestState(sender, receiver);
+
+        _helperTakeBalanceSnapshot(superToken, sender);
+        _helperTakeBalanceSnapshot(superToken, receiver);
+
+        int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+
+        _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
+        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+
+        // TODO
+        // Assert that flow rate allowance has been deducted accordingly
+    }
+
+    function _helperUpdateFlowFrom(
+        ISuperToken superToken_,
+        address operator,
+        address sender,
+        address receiver,
+        int96 flowRate
+    ) internal {
+        flowRate = _assumeValidFlowRate(flowRate);
+
+        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
+            _helperGetAllFlowInfo(superToken, sender, receiver);
+
+        vm.startPrank(operator);
+        superToken_.updateFlowFrom(sender, receiver, flowRate);
+        vm.stopPrank();
+
+        _helperTakeBalanceSnapshot(superToken, sender);
+        _helperTakeBalanceSnapshot(superToken, receiver);
+
+        int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+
+        _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
+        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+
+        // TODO
+        // Assert that flow rate allowance has been deducted accordingly (if flow rate is increased by delta amount)
+    }
+
+    function _helperDeleteFlowFrom(ISuperToken superToken_, address operator, address sender, address receiver)
         internal
-        returns (int96 absoluteFlowRate)
     {
-        int96 flowRate = _assumeValidFlowRate(_flowRate);
+        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
+            _helperGetAllFlowInfo(superToken, sender, receiver);
 
-        absoluteFlowRate = flowRate;
-
-        int96 senderNetFlowRateBefore = superToken.getNetFlowRate(flowSender);
-        int96 receiverNetFlowRateBefore = superToken.getNetFlowRate(flowReceiver);
-
-        vm.startPrank(flowSender);
-        superToken.createFlow(flowReceiver, flowRate);
+        vm.startPrank(operator);
+        superToken_.deleteFlowFrom(sender, receiver);
         vm.stopPrank();
 
-        _assertModifyFlowAndNetFlowIsExpected(
-            flowSender, flowReceiver, flowRate, senderNetFlowRateBefore, receiverNetFlowRateBefore
-        );
+        _helperRemoveInflowsAndOutflowsFromTestState(sender, receiver);
 
-        _assertModifyFlowAndFlowInfoIsExpected(flowSender, flowReceiver, flowRate, block.timestamp, 0);
+        _helperTakeBalanceSnapshot(superToken, sender);
+        _helperTakeBalanceSnapshot(superToken, receiver);
 
-        _validateGlobalInvariants();
+        int96 flowRateDelta = -flowInfoBefore.flowRate;
+
+        _assertFlowInfoIsEmpty(sender, receiver);
+        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+    }
+
+    // Write Helpers - InstantDistributionAgreementV1
+
+    function _helperCreateIndex(ISuperToken superToken_, address publisher, uint32 indexId) internal {
+        vm.startPrank(publisher);
+        superToken_.createIndex(indexId);
+        vm.stopPrank();
+
+        _assertIndexData(superToken_, publisher, indexId, true, 0, 0, 0);
+
+        _indexIDs[superToken_][publisher].add(_generatePublisherId(publisher, indexId));
+    }
+
+    function _helperUpdateSubscriptionUnits(
+        ISuperToken superToken_,
+        address publisher,
+        uint32 indexId,
+        address subcriber,
+        uint128 units
+    ) internal {
+        // TODO Get Index Data before
+        (,, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
+            superToken_.getIndex(publisher, indexId);
+        // TODO Get Subscription Data before (approval status mainly)
+
+        vm.startPrank(publisher);
+        superToken_.updateSubscriptionUnits(indexId, subcriber, units);
+        vm.stopPrank();
+
+        // TODO
+        // Assert that subscription units for subscriber have been updated (dependent on approval status of subscriber)
+        // Assert that total number of units for the index is expected
+    }
+
+    function _helperUpdateIndexValue(ISuperToken superToken_, address publisher, uint32 indexId, uint128 newIndexValue)
+        internal
+    {
+        vm.startPrank(publisher);
+        superToken_.updateIndexValue(indexId, newIndexValue);
+        vm.stopPrank();
+
+        // TODO
+        // Assert that new index value has been set
+        // Assert that balance for publisher has been updated
+
+        // TODO we could actually save all the subscribers of an index and loop over them down the line
+        // Assert that balance for subscriber has been updated (dependent on approval status)
+    }
+
+    function _helperDistribute(ISuperToken superToken_, address publisher, uint32 indexId, uint256 amount) internal {
+        vm.startPrank(publisher);
+        superToken_.distribute(indexId, amount);
+        vm.stopPrank();
+
+        // TODO
+        // Assert that new index value has been set
+        // Assert that balance for publisher has been updated
+        // Assert that balance for subscriber has been updated (dependent on approval status)
+    }
+
+    function _helperApproveSubscription(ISuperToken superToken_, address publisher, address subscriber, uint32 indexId)
+        internal
+    {
+        vm.startPrank(subscriber);
+        superToken_.approveSubscription(publisher, indexId);
+        vm.stopPrank();
+
+        // TODO
+        // Assert that subscription is approved for subscriber for index
+    }
+
+    function _helperRevokeSubscription(ISuperToken superToken_, address publisher, address subscriber, uint32 indexId)
+        internal
+    {
+        vm.startPrank(subscriber);
+        superToken_.revokeSubscription(publisher, indexId);
+        vm.stopPrank();
+
+        // TODO
+        // Assert that subscription is no longer approved for subscriber for index
+    }
+
+    function _helperDeleteSubscription(ISuperToken superToken_, address publisher, address subscriber, uint32 indexId)
+        internal
+    {
+        vm.startPrank(publisher);
+        superToken_.deleteSubscription(publisher, indexId, subscriber);
+        vm.stopPrank();
+
+        // TODO
+        // Assert that subscription is no longer exists for subscriber for index
+    }
+
+    function _helperClaim(
+        ISuperToken superToken_,
+        address caller,
+        address publisher,
+        uint32 indexId,
+        address subscriber
+    ) internal {
+        vm.startPrank(caller);
+        superToken_.claim(publisher, indexId, subscriber);
+        vm.stopPrank();
+
+        // TODO
+        // Assert that subscriber balance is updated by expected amount
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Assertion Helpers
+    //////////////////////////////////////////////////////////////////////////*/
+
+    // ConstantFlowAgreement Assertions
+
+    /// @dev Asserts that a single flow has been updated as expected
+    function _assertFlowInfo(
+        address sender,
+        address receiver,
+        int96 expectedFlowRate,
+        uint256 expectedLastUpdated,
+        uint256 expectedOwedDeposit
+    ) internal {
+        (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit) =
+            superToken.getFlowInfo(sender, receiver);
+
+        uint256 expectedDeposit = superToken.getBufferAmountByFlowRate(expectedFlowRate);
+
+        assertEq(flowRate, expectedFlowRate, "FlowInfo: flow rate");
+        assertEq(lastUpdated, expectedLastUpdated, "FlowInfo: last updated");
+        assertEq(deposit, expectedDeposit, "FlowInfo: deposit");
+        assertEq(owedDeposit, expectedOwedDeposit, "FlowInfo: owed deposit");
+    }
+
+    /// @dev Asserts that a single flow has been removed on deletion
+    function _assertFlowInfoIsEmpty(address sender, address receiver) internal {
+        _assertFlowInfo(sender, receiver, 0, 0, 0);
+    }
+
+    function _assertAccountFlowInfo(address account, int96 flowRateDelta, FlowInfo memory flowInfoBefore, bool isSender)
+        internal
+    {
+        (uint256 lastUpdated, int96 netFlowRate, uint256 deposit, uint256 owedDeposit) =
+            sf.cfa.getAccountFlowInfo(superToken, account);
+
+        int96 expectedNetFlowRate = flowInfoBefore.flowRate + (isSender ? -flowRateDelta : flowRateDelta);
+        uint256 depositDelta = superToken.getBufferAmountByFlowRate(flowRateDelta < 0 ? -flowRateDelta : flowRateDelta);
+        uint256 expectedDeposit = flowInfoBefore.deposit + (isSender ? depositDelta : 0);
+        // TODO: we may need to pass expectedTimestamp at some point
+        assertEq(lastUpdated, block.timestamp, "AccountFlowInfo: lastUpdated");
+        assertEq(netFlowRate, expectedNetFlowRate, "AccountFlowInfo: net flow rate");
+        assertEq(deposit, expectedDeposit, "AccountFlowInfo: deposit");
+        // TODO: we may need to pass expectedOwedDeposit at some point
+        assertEq(owedDeposit, 0, "AccountFlowInfo: owed deposit");
+    }
+
+    function _assertIndexData(
+        ISuperToken superToken_,
+        address publisher,
+        uint32 indexId,
+        bool expectedExist,
+        uint128 expectedIndexValue,
+        uint128 expectedTotalUnitsApproved,
+        uint128 expectedTotalUnitsPending
+    ) internal {
+        (bool exist, uint128 indexValue, uint128 totalUnitsApproved, uint128 totalUnitsPending) =
+            superToken_.getIndex(publisher, indexId);
+
+        assertEq(exist, expectedExist, "IndexData: exist");
+        assertEq(indexValue, expectedIndexValue, "IndexData: index value");
+        assertEq(totalUnitsApproved, expectedTotalUnitsApproved, "IndexData: total units approved");
+        assertEq(totalUnitsPending, expectedTotalUnitsPending, "IndexData: total units pending");
     }
 }

@@ -56,7 +56,7 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         assertEq(totalUnitsApproved, units, "IDAv1.t: approveSubscription | totalUnitsApproved != units");
         assertEq(totalUnitsPending, 0, "IDAv1.t: approveSubscription | totalUnitsPending != 0");
 
-        _validateGlobalInvariants();
+        _assertGlobalInvariants();
     }
 
     function testRevertMaxNumberOFSubscriptionsASubscriberCanHave() public {
@@ -86,6 +86,6 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         superToken.approveSubscription(alice, uint32(maxNumSubs));
         vm.stopPrank();
 
-        _validateGlobalInvariants();
+        _assertGlobalInvariants();
     }
 }

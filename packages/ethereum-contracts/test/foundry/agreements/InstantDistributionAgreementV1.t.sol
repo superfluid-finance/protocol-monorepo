@@ -19,25 +19,14 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         uint128 totalUnitsPending;
 
         // alice creates index
-        vm.startPrank(alice);
-        superToken.createIndex(indexId);
-        superToken.updateSubscriptionUnits(indexId, bob, units);
-        vm.stopPrank();
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
-        assertTrue(exist, "IDAv1.t: createIndex | index does not exist");
-        assertEq(indexValue, 0, "IDAv1.t: createIndex | indexValue != 0");
-        assertEq(totalUnitsApproved, 0, "IDAv1.t: createIndex | totalUnitsApproved != 0");
-        assertEq(totalUnitsPending, units, "IDAv1.t: createIndex | totalUnitsPending != units");
+        _helperCreateIndex(superToken, alice, indexId);
+        
+        // alice updates subscription units for bob
+        _helperUpdateSubscriptionUnits(superToken, alice, indexId, bob, units);
 
         // alice distributes
-        vm.startPrank(alice);
-        superToken.updateIndexValue(indexId, newIndexValue);
-        vm.stopPrank();
+        _helperUpdateIndexValue(superToken, alice, indexId, newIndexValue);
         (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
-        assertTrue(exist, "IDAv1.t: updateIndexValue | index does not exist");
-        assertEq(indexValue, newIndexValue, "IDAv1.t: updateIndexValue | indexValue != newIndexValue");
-        assertEq(totalUnitsApproved, 0, "IDAv1.t: updateIndexValue | totalUnitsApproved != 0");
-        assertEq(totalUnitsPending, units, "IDAv1.t: updateIndexValue | totalUnitsPending != units");
         // bob subscribes to alice
         uint256 bobBalance1 = superToken.balanceOf(bob);
         vm.startPrank(bob);

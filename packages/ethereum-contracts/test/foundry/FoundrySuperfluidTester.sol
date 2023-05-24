@@ -584,33 +584,67 @@ contract FoundrySuperfluidTester is Test {
         ISuperToken superToken_,
         address publisher,
         uint32 indexId,
-        address subcriber,
+        address subscriber,
         uint128 units
     ) internal {
-        // TODO Get Index Data before
-        (,, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
+        bytes32 iId = _generatePublisherId(publisher, indexId);
+        bytes32 subId = _generateSubscriptionId(subscriber, iId);
+        (, uint128 indexValueBefore, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
             superToken_.getIndex(publisher, indexId);
-        // TODO Get Subscription Data before (approval status mainly)
+
+        // TODO: this reverts if it doesn't exist, we need another function in its place
+        bool approved;
+        // (,, bool approved,,) = superToken_.getSubscriptionByID(subId);
 
         vm.startPrank(publisher);
-        superToken_.updateSubscriptionUnits(indexId, subcriber, units);
+        superToken_.updateSubscriptionUnits(indexId, subscriber, units);
         vm.stopPrank();
 
-        // TODO
-        // Assert that subscription units for subscriber have been updated (dependent on approval status of subscriber)
-        // Assert that total number of units for the index is expected
+        uint128 expectedTotalUnitsApproved = approved ? totalUnitsApprovedBefore + units : totalUnitsApprovedBefore;
+        uint128 expectedTotalUnitsPending = approved ? totalUnitsPendingBefore : totalUnitsPendingBefore + units;
+
+        _assertIndexData(
+            superToken_,
+            publisher,
+            indexId,
+            true,
+            indexValueBefore,
+            expectedTotalUnitsApproved,
+            expectedTotalUnitsPending
+        );
+
+        // subIndexValue here is equivalent because we update the subscriber
+        // without updating the indexValue here.
+        uint256 subIndexValue = indexValueBefore;
+        // TODO looks like we might need to store the sdata.indexValue somewhere...
+        uint256 pending = approved ? 0 : indexValueBefore - subIndexValue * units;
+
+        _assertSubscriptionData(superToken_, subId, approved, units, pending);
     }
 
     function _helperUpdateIndexValue(ISuperToken superToken_, address publisher, uint32 indexId, uint128 newIndexValue)
         internal
     {
+        (, uint128 indexValueBefore, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
+            superToken_.getIndex(publisher, indexId);
+
+        (int256 publisherAvbBefore, uint256 publisherDepositBefore,,) = superToken_.realtimeBalanceOfNow(publisher);
+
+        uint128 indexValueDelta = newIndexValue - indexValueBefore;
+        int256 distributionAmount =
+            uint256(indexValueDelta * (totalUnitsApprovedBefore + totalUnitsPendingBefore)).toInt256();
+        uint256 depositDelta = indexValueDelta * totalUnitsPendingBefore;
+
         vm.startPrank(publisher);
         superToken_.updateIndexValue(indexId, newIndexValue);
         vm.stopPrank();
 
-        // TODO
-        // Assert that new index value has been set
-        // Assert that balance for publisher has been updated
+        _assertIndexData(
+            superToken_, publisher, indexId, true, newIndexValue, totalUnitsApprovedBefore, totalUnitsPendingBefore
+        );
+        (int256 publisherAvbAfter, uint256 publisherDepositAfter,,) = superToken_.realtimeBalanceOfNow(publisher);
+        assertEq(publisherAvbAfter, publisherAvbBefore - distributionAmount, "Update Index: Publisher AVB");
+        assertEq(publisherDepositAfter, publisherDepositBefore + depositDelta, "Update Index: Publisher Deposit");
 
         // TODO we could actually save all the subscribers of an index and loop over them down the line
         // Assert that balance for subscriber has been updated (dependent on approval status)
@@ -634,8 +668,16 @@ contract FoundrySuperfluidTester is Test {
         superToken_.approveSubscription(publisher, indexId);
         vm.stopPrank();
 
+        bytes32 iId = _generatePublisherId(publisher, indexId);
+        bytes32 subId = _generateSubscriptionId(subscriber, iId);
+        (, uint128 indexValueBefore, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
+            superToken_.getIndex(publisher, indexId);
+        (,, bool approved,,) = superToken_.getSubscriptionByID(subId);
         // TODO
         // Assert that subscription is approved for subscriber for index
+        // Assert that units moves from pending to approved for subscriber
+        // Assert that the subscriber balance increases as expected
+        // Assert that publisher deposit goes down by the expected amount
     }
 
     function _helperRevokeSubscription(ISuperToken superToken_, address publisher, address subscriber, uint32 indexId)
@@ -738,5 +780,18 @@ contract FoundrySuperfluidTester is Test {
         assertEq(indexValue, expectedIndexValue, "IndexData: index value");
         assertEq(totalUnitsApproved, expectedTotalUnitsApproved, "IndexData: total units approved");
         assertEq(totalUnitsPending, expectedTotalUnitsPending, "IndexData: total units pending");
+    }
+
+    function _assertSubscriptionData(
+        ISuperToken superToken_,
+        bytes32 subscriptionId,
+        bool expectedApproved,
+        uint128 expectedUnits,
+        uint256 expectedPending
+    ) internal {
+        (,, bool approved, uint128 units, uint256 pending) = superToken_.getSubscriptionByID(subscriptionId);
+        assertEq(approved, expectedApproved, "SubscriptionData: approved");
+        assertEq(units, expectedUnits, "SubscriptionData: units");
+        assertEq(pending, expectedPending, "SubscriptionData: pending");
     }
 }

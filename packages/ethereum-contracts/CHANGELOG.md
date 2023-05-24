@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+- `increaseFlowRateAllowance` and `decreaseFlowRateAllowance` added to `SuperTokenV1Library.sol`
 
 ## [v1.6.0] - 2023-04-26
 ### Added

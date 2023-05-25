@@ -92,7 +92,6 @@ contract FoundrySuperfluidTester is Test {
             _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
             vm.stopPrank();
         }
-        superToken.warmUpCache();
     }
 
     /*//////////////////////////////////////////////////////////////////////////

@@ -21,17 +21,6 @@ import {
  * of ISuperToken
  */
 library SuperTokenV1Library {
-
-    /**
-     * @notice Warms up the cache: get the host, cfa and ida from the token
-     * @dev Fixes the issue where expect revert fails because it expects this call to revert
-     * @param token The token used in the flow
-     */
-    function warmUpCache(ISuperToken token) external {
-        _getAndCacheHostAndCFA(token);
-        _getAndCacheHostAndIDA(token);
-    }
-
     /** CFA BASE CRUD ************************************* */
 
     /**
@@ -43,16 +32,7 @@ library SuperTokenV1Library {
     function createFlow(ISuperToken token, address receiver, int96 flowRate)
         internal returns (bool)
     {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.createFlow,
-                (token, receiver, flowRate, new bytes(0))
-            ),
-            new bytes(0) // userData
-        );
-        return true;
+        return createFlow(token, receiver, flowRate, new bytes(0));
     }
 
     /**
@@ -87,16 +67,7 @@ library SuperTokenV1Library {
     function updateFlow(ISuperToken token, address receiver, int96 flowRate)
         internal returns (bool)
     {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.updateFlow,
-                (token, receiver, flowRate, new bytes(0))
-            ),
-            new bytes(0) // userData
-        );
-        return true;
+        return updateFlow(token, receiver, flowRate, new bytes(0));
     }
 
 
@@ -131,16 +102,7 @@ library SuperTokenV1Library {
     function deleteFlow(ISuperToken token, address sender, address receiver)
         internal returns (bool)
     {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.deleteFlow,
-                (token, sender, receiver, new bytes(0))
-            ),
-            new bytes(0) // userData
-        );
-        return true;
+        return deleteFlow(token, sender, receiver, new bytes(0));
     }
 
     /**
@@ -252,13 +214,7 @@ library SuperTokenV1Library {
         internal
         returns (bool)
     {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(cfa.increaseFlowRateAllowance, (token, flowOperator, addedFlowRateAllowance, new bytes(0))),
-            new bytes(0)
-        );
-        return true;
+        return increaseFlowRateAllowance(token, flowOperator, addedFlowRateAllowance, new bytes(0));
     }
 
     /**
@@ -295,15 +251,7 @@ library SuperTokenV1Library {
         internal
         returns (bool)
     {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.decreaseFlowRateAllowance, (token, flowOperator, subtractedFlowRateAllowance, new bytes(0))
-            ),
-            new bytes(0)
-        );
-        return true;
+        return decreaseFlowRateAllowance(token, flowOperator, subtractedFlowRateAllowance, new bytes(0));
     }
 
     /**
@@ -436,16 +384,7 @@ library SuperTokenV1Library {
         address receiver,
         int96 flowRate
     ) internal returns (bool) {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.createFlowByOperator,
-                (token, sender, receiver, flowRate, new bytes(0))
-            ),
-            new bytes(0)
-        );
-        return true;
+        return createFlowFrom(token, sender, receiver, flowRate, new bytes(0));
     }
 
     /**
@@ -489,16 +428,7 @@ library SuperTokenV1Library {
         address receiver,
         int96 flowRate
     ) internal returns (bool) {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.updateFlowByOperator,
-                (token, sender, receiver, flowRate, new bytes(0))
-            ),
-            new bytes(0)
-        );
-        return true;
+        return updateFlowFrom(token, sender, receiver, flowRate, new bytes(0));
     }
 
     /**
@@ -539,16 +469,7 @@ library SuperTokenV1Library {
         address sender,
         address receiver
     ) internal returns (bool) {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.deleteFlowByOperator,
-                (token, sender, receiver, new bytes(0))
-            ),
-            new bytes(0)
-        );
-        return true;
+        return deleteFlowFrom(token, sender, receiver, new bytes(0));
     }
 
     /**
@@ -982,20 +903,7 @@ library SuperTokenV1Library {
         ISuperToken token,
         uint32 indexId
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.createIndex,
-                (
-                    token,
-                    indexId,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return createIndex(token, indexId, new bytes(0));
     }
 
     /**
@@ -1037,21 +945,7 @@ library SuperTokenV1Library {
         uint32 indexId,
         uint128 indexValue
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.updateIndex,
-                (
-                    token,
-                    indexId,
-                    indexValue,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return updateIndexValue(token, indexId, indexValue, new bytes(0));
     }
 
     /**
@@ -1112,21 +1006,7 @@ library SuperTokenV1Library {
         uint32 indexId,
         uint256 amount
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.distribute,
-                (
-                    token,
-                    indexId,
-                    amount,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return distribute(token, indexId, amount, new bytes(0));
     }
 
     /**
@@ -1174,21 +1054,7 @@ library SuperTokenV1Library {
         address publisher,
         uint32 indexId
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.approveSubscription,
-                (
-                    token,
-                    publisher,
-                    indexId,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return approveSubscription(token, publisher, indexId, new bytes(0));
     }
 
     /**
@@ -1234,21 +1100,7 @@ library SuperTokenV1Library {
         address publisher,
         uint32 indexId
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.revokeSubscription,
-                (
-                    token,
-                    publisher,
-                    indexId,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return revokeSubscription(token, publisher, indexId, new bytes(0));
     }
 
     /**
@@ -1294,22 +1146,7 @@ library SuperTokenV1Library {
         address subscriber,
         uint128 units
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-         ida,
-            abi.encodeCall(
-                ida.updateSubscription,
-                (
-                    token,
-                    indexId,
-                    subscriber,
-                    units,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return updateSubscriptionUnits(token, indexId, subscriber, units, new bytes(0));
     }
 
     /**
@@ -1359,22 +1196,7 @@ library SuperTokenV1Library {
         uint32 indexId,
         address subscriber
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.deleteSubscription,
-                (
-                    token,
-                    publisher,
-                    indexId,
-                    subscriber,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return deleteSubscription(token, publisher, indexId, subscriber, new bytes(0));
     }
 
     /**
@@ -1423,22 +1245,7 @@ library SuperTokenV1Library {
         uint32 indexId,
         address subscriber
     ) internal returns (bool) {
-         (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.claim,
-                (
-                    token,
-                    publisher,
-                    indexId,
-                    subscriber,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return claim(token, publisher, indexId, subscriber);
     }
 
     /**

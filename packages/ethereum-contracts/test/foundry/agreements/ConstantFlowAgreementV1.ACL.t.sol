@@ -158,6 +158,11 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
     }
 
     function testRevertIfDecreaseFlowRateAllowanceUnderflows() public {
+        // @note this is done prior to the actual call to save addresses to the cache
+        // and so that this is skipped when we execute the actual call
+        // this fixes the issue where expect revert fails because it expects getHost to revert
+        superToken.decreaseFlowRateAllowance(bob, 0);
+
         vm.startPrank(alice);
         vm.expectRevert(IConstantFlowAgreementV1.CFA_ACL_NO_NEGATIVE_ALLOWANCE.selector);
         superToken.decreaseFlowRateAllowance(bob, 10);

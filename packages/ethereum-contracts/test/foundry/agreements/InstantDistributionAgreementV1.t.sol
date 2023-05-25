@@ -20,30 +20,19 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
         // alice creates index
         _helperCreateIndex(superToken, alice, indexId);
-        
+
         // alice updates subscription units for bob
-        _helperUpdateSubscriptionUnits(superToken, alice, indexId, bob, units);
+        IDASubscriptionParams memory params =
+            IDASubscriptionParams({ superToken: superToken, publisher: alice, subscriber: bob, indexId: indexId });
+
+        _helperUpdateSubscriptionUnits(params, units);
 
         // alice distributes
         _helperUpdateIndexValue(superToken, alice, indexId, newIndexValue);
         (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
-        // bob subscribes to alice
-        uint256 bobBalance1 = superToken.balanceOf(bob);
-        vm.startPrank(bob);
-        superToken.approveSubscription(alice, indexId);
-        vm.stopPrank();
-        uint256 bobBalance2 = superToken.balanceOf(bob);
 
-        assertEq(
-            bobBalance2 - bobBalance1,
-            uint256(units) * uint256(newIndexValue),
-            "IDAv1.t: approveSubscription | bobBalance2 - bobBalance1 != units * newIndexValue"
-        );
-        (exist, indexValue, totalUnitsApproved, totalUnitsPending) = superToken.getIndex(alice, indexId);
-        assertTrue(exist, "IDAv1.t: approveSubscription | index does not exist");
-        assertEq(indexValue, newIndexValue, "IDAv1.t: approveSubscription | indexValue != newIndexValue");
-        assertEq(totalUnitsApproved, units, "IDAv1.t: approveSubscription | totalUnitsApproved != units");
-        assertEq(totalUnitsPending, 0, "IDAv1.t: approveSubscription | totalUnitsPending != 0");
+        // bob subscribes to alice's index
+        _helperApproveSubscription(params);
 
         _assertGlobalInvariants();
     }

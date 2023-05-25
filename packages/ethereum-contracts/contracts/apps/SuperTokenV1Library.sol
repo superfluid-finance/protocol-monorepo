@@ -207,7 +207,7 @@ library SuperTokenV1Library {
 
     /**
      * @dev Increases the flow rate allowance for flow operator
-     * @notice allowing userData to be a parameter here triggered stack to deep error
+     * @notice allowing userData to be a parameter here triggered stack too deep error
      * @param token The token used in flow
      * @param flowOperator The address whose flow rate allowance is increased
      * @param addedFlowRateAllowance amount to increase allowance by
@@ -221,7 +221,7 @@ library SuperTokenV1Library {
 
     /**
      * @dev Increases the flow rate allowance for flow operator
-     * @notice allowing userData to be a parameter here triggered stack to deep error
+     * @notice allowing userData to be a parameter here triggered stack too deep error
      * @param token The token used in flow
      * @param flowOperator The address whose flow rate allowance is increased
      * @param addedFlowRateAllowance amount to increase allowance by
@@ -244,7 +244,7 @@ library SuperTokenV1Library {
 
     /**
      * @dev Decreases the flow rate allowance for flow operator
-     * @notice allowing userData to be a parameter here triggered stack to deep error
+     * @notice allowing userData to be a parameter here triggered stack too deep error
      * @param token The token used in flow
      * @param flowOperator The address whose flow rate allowance is decreased
      * @param subtractedFlowRateAllowance amount to decrease allowance by
@@ -258,7 +258,7 @@ library SuperTokenV1Library {
 
     /**
      * @dev Decreases the flow rate allowance for flow operator
-     * @notice allowing userData to be a parameter here triggered stack to deep error
+     * @notice allowing userData to be a parameter here triggered stack too deep error
      * @param token The token used in flow
      * @param flowOperator The address whose flow rate allowance is decreased
      * @param subtractedFlowRateAllowance amount to decrease allowance by
@@ -283,7 +283,7 @@ library SuperTokenV1Library {
 
     /**
      * @dev Update permissions for flow operator in callback
-     * @notice allowing userData to be a parameter here triggered stack to deep error
+     * @notice allowing userData to be a parameter here triggered stack too deep error
      * @param token The token used in flow
      * @param flowOperator The address given flow permissions
      * @param allowCreate creation permissions
@@ -1247,7 +1247,7 @@ library SuperTokenV1Library {
         uint32 indexId,
         address subscriber
     ) internal returns (bool) {
-        return claim(token, publisher, indexId, subscriber);
+        return claim(token, publisher, indexId, subscriber, new bytes(0));
     }
 
     /**

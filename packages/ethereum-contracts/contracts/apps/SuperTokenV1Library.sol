@@ -18,7 +18,9 @@ import {
  * @title Library for Token Centric Interface
  * @author Superfluid
  * @dev Set `using for ISuperToken` in including file, and call any of these functions on an instance
- * of ISuperToken
+ * of ISuperToken.
+ * Note that it is important to "warm up" the cache and cache the host, cfa, ida before calling,
+ * this is only applicable to Foundry tests where the vm.expectRevert() will not work as expected.
  */
 library SuperTokenV1Library {
     /** CFA BASE CRUD ************************************* */

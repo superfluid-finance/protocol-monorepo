@@ -26,7 +26,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         (uint8 oldPermissions, int96 oldFlowRateAllowance) = sf.cfa.getFlowOperatorDataByID(superToken, flowOperatorId);
 
         vm.startPrank(alice);
-        _helperIncreaseFlowRateAllowance(superToken, bob, flowRateAllowanceDelta);
+        superToken.increaseFlowRateAllowance(bob, flowRateAllowanceDelta);
         vm.stopPrank();
 
         _assertFlowOperatorData(
@@ -50,8 +50,8 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
             sf.cfa.getFlowOperatorData(superToken, alice, bob);
 
         vm.startPrank(alice);
-        _helperIncreaseFlowRateAllowance(superToken, bob, flowRateAllowanceIncreaseDelta);
-        _helperDecreaseFlowRateAllowance(superToken, bob, flowRateAllowanceDecreaseDelta);
+        superToken.increaseFlowRateAllowance(bob, flowRateAllowanceIncreaseDelta);
+        superToken.decreaseFlowRateAllowance(bob, flowRateAllowanceDecreaseDelta);
         vm.stopPrank();
 
         _assertFlowOperatorData(
@@ -74,7 +74,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         (bytes32 oldFlowOperatorId, uint8 oldPermissions, int96 oldFlowRateAllowance) =
             sf.cfa.getFlowOperatorData(superToken, alice, bob);
 
-        _helperIncreaseFlowRateAllowance(superToken, bob, flowRateAllowanceDelta);
+        superToken.increaseFlowRateAllowance(bob, flowRateAllowanceDelta);
         vm.stopPrank();
 
         _assertFlowOperatorData(
@@ -101,8 +101,8 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         (bytes32 oldFlowOperatorId, uint8 oldPermissions, int96 oldFlowRateAllowance) =
             sf.cfa.getFlowOperatorData(superToken, alice, bob);
 
-        _helperIncreaseFlowRateAllowance(superToken, bob, flowRateAllowanceIncreaseDelta);
-        _helperDecreaseFlowRateAllowance(superToken, bob, flowRateAllowanceDecreaseDelta);
+        superToken.increaseFlowRateAllowance(bob, flowRateAllowanceIncreaseDelta);
+        superToken.decreaseFlowRateAllowance(bob, flowRateAllowanceDecreaseDelta);
         vm.stopPrank();
 
         _assertFlowOperatorData(
@@ -124,7 +124,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
 
         vm.startPrank(alice);
         superToken.setFlowPermissions(bob, true, true, true, 0);
-        _helperIncreaseFlowRateAllowance(superToken, bob, flowRate);
+        superToken.increaseFlowRateAllowance(bob, flowRate);
         vm.stopPrank();
 
         _helperCreateFlowFrom(superToken, bob, alice, bob, flowRate);
@@ -137,8 +137,9 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
 
         vm.startPrank(alice);
         superToken.setFlowPermissions(bob, true, true, true, 0);
-        _helperIncreaseFlowRateAllowance(superToken, bob, flowRateAllowanceIncreaseDelta);
-        _helperDecreaseFlowRateAllowance(superToken, bob, flowRateAllowanceIncreaseDelta);
+
+        superToken.increaseFlowRateAllowance(bob, flowRateAllowanceIncreaseDelta);
+        superToken.decreaseFlowRateAllowance(bob, flowRateAllowanceIncreaseDelta);
 
         vm.stopPrank();
 
@@ -149,16 +150,21 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
 
     function testRevertIfIncreaseFlowRateAllowanceOverflows() public {
         vm.startPrank(alice);
-        _helperIncreaseFlowRateAllowance(superToken, bob, type(int96).max);
+        superToken.increaseFlowRateAllowance(bob, type(int96).max);
         vm.expectRevert("CallUtils: target panicked: 0x11");
-        _helperIncreaseFlowRateAllowance(superToken, bob, 1);
+        superToken.increaseFlowRateAllowance(bob, 1);
         vm.stopPrank();
     }
 
     function testRevertIfDecreaseFlowRateAllowanceUnderflows() public {
+        // @note this is done prior to the actual call to save addresses to the cache
+        // and so that this is skipped when we execute the actual call
+        // this fixes the issue where expect revert fails because it expects getHost to revert
+        superToken.decreaseFlowRateAllowance(bob, 0);
+
         vm.startPrank(alice);
         vm.expectRevert(IConstantFlowAgreementV1.CFA_ACL_NO_NEGATIVE_ALLOWANCE.selector);
-        _helperDecreaseFlowRateAllowance(superToken, bob, 10);
+        superToken.decreaseFlowRateAllowance(bob, 10);
         vm.stopPrank();
     }
 
@@ -172,35 +178,5 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
 
     function _getFlowOperatorId(address sender, address flowOperator) private pure returns (bytes32 id) {
         return keccak256(abi.encode("flowOperator", sender, flowOperator));
-    }
-
-    function _helperIncreaseFlowRateAllowance(
-        ISuperfluidToken _superToken,
-        address flowOperator,
-        int96 flowRateAllowanceDelta
-    ) internal {
-        // TODO: move these to SuperTokenV1Library
-        sf.host.callAgreement(
-            sf.cfa,
-            abi.encodeCall(
-                sf.cfa.increaseFlowRateAllowance, (_superToken, flowOperator, flowRateAllowanceDelta, new bytes(0))
-            ),
-            new bytes(0)
-        );
-    }
-
-    function _helperDecreaseFlowRateAllowance(
-        ISuperfluidToken _superToken,
-        address flowOperator,
-        int96 flowRateAllowanceDelta
-    ) internal {
-        // TODO: move these to SuperTokenV1Library
-        sf.host.callAgreement(
-            sf.cfa,
-            abi.encodeCall(
-                sf.cfa.decreaseFlowRateAllowance, (_superToken, flowOperator, flowRateAllowanceDelta, new bytes(0))
-            ),
-            new bytes(0)
-        );
     }
 }

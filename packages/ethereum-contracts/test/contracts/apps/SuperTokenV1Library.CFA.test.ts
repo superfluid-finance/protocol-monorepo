@@ -967,5 +967,107 @@ describe("CFAv1 Library testing", function () {
                 "0"
             );
         });
+
+        it("2.16 - Can increase flow rate allowance", async () => {
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .increaseFlowRateAllowanceTest(
+                    superToken.address,
+                    bob,
+                    flowRate
+                );
+
+            const flowPermissionsCheck =
+                await superTokenLibCFAMock.getFlowPermissionsTest(
+                    superToken.address,
+                    superTokenLibCFAMock.address,
+                    bob
+                );
+            assert.equal(
+                flowPermissionsCheck.flowRateAllowance.toString(),
+                flowRate
+            );
+        });
+
+        it("2.17 - Can increase flow rate allowance with user data", async () => {
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .increaseFlowRateAllowanceWithUserDataTest(
+                    superToken.address,
+                    bob,
+                    flowRate,
+                    "0x1234"
+                );
+
+            const flowPermissionsCheck =
+                await superTokenLibCFAMock.getFlowPermissionsTest(
+                    superToken.address,
+                    superTokenLibCFAMock.address,
+                    bob
+                );
+            assert.equal(
+                flowPermissionsCheck.flowRateAllowance.toString(),
+                flowRate
+            );
+        });
+
+        it("2.18 - Can decrease flow rate allowance", async () => {
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .increaseFlowRateAllowanceTest(
+                    superToken.address,
+                    bob,
+                    flowRate
+                );
+
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .decreaseFlowRateAllowanceTest(
+                    superToken.address,
+                    bob,
+                    flowRate
+                );
+
+            const flowPermissionsCheck =
+                await superTokenLibCFAMock.getFlowPermissionsTest(
+                    superToken.address,
+                    superTokenLibCFAMock.address,
+                    alice
+                );
+            assert.equal(
+                flowPermissionsCheck.flowRateAllowance.toString(),
+                "0"
+            );
+        });
+
+        it("2.19 - Can decrease flow rate allowance with user data", async () => {
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .increaseFlowRateAllowanceTest(
+                    superToken.address,
+                    bob,
+                    flowRate
+                );
+
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .decreaseFlowRateAllowanceWithUserDataTest(
+                    superToken.address,
+                    bob,
+                    flowRate,
+                    "0x1234"
+                );
+
+            const flowPermissionsCheck =
+                await superTokenLibCFAMock.getFlowPermissionsTest(
+                    superToken.address,
+                    superTokenLibCFAMock.address,
+                    alice
+                );
+            assert.equal(
+                flowPermissionsCheck.flowRateAllowance.toString(),
+                "0"
+            );
+        });
     });
 });

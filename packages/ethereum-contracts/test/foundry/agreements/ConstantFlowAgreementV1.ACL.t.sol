@@ -125,11 +125,9 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         vm.startPrank(alice);
         superToken.setFlowPermissions(bob, true, true, true, 0);
         _helperIncreaseFlowRateAllowance(superToken, bob, flowRate);
-
         vm.stopPrank();
 
-        vm.prank(bob);
-        superToken.createFlowFrom(alice, bob, flowRate);
+        _helperCreateFlowFrom(superToken, bob, alice, bob, flowRate);
 
         assertEq(superToken.getFlowRate(alice, bob), flowRate);
     }

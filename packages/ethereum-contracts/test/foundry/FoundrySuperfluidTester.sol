@@ -623,6 +623,8 @@ contract FoundrySuperfluidTester is Test {
         superToken_.updateIndexValue(indexId, newIndexValue);
         vm.stopPrank();
 
+        _helperTakeBalanceSnapshot(superToken, publisher);
+
         _assertIndexData(
             superToken_, publisher, indexId, true, newIndexValue, totalUnitsApprovedBefore, totalUnitsPendingBefore
         );
@@ -652,6 +654,8 @@ contract FoundrySuperfluidTester is Test {
         vm.startPrank(publisher);
         superToken_.distribute(indexId, amount);
         vm.stopPrank();
+
+        _helperTakeBalanceSnapshot(superToken, publisher);
 
         _assertIndexData(
             superToken_, publisher, indexId, true, newIndexValue, totalUnitsApprovedBefore, totalUnitsPendingBefore
@@ -725,6 +729,12 @@ contract FoundrySuperfluidTester is Test {
             vm.stopPrank();
         }
 
+        // Take Balance Snapshot
+        {
+            _helperTakeBalanceSnapshot(superToken, params.publisher);
+            _helperTakeBalanceSnapshot(superToken, params.subscriber);
+        }
+
         // Assert Publisher Balance Data
         {
             (int256 publisherAvbAfter, uint256 publisherDepositAfter,,) =
@@ -786,6 +796,12 @@ contract FoundrySuperfluidTester is Test {
             vm.stopPrank();
         }
 
+        // Take Balance Snapshot
+        {
+            _helperTakeBalanceSnapshot(superToken, params.publisher);
+            _helperTakeBalanceSnapshot(superToken, params.subscriber);
+        }
+
         // Assert Publisher Balance Data
         {
             (int256 publisherAvbAfter,,,) = params.superToken.realtimeBalanceOfNow(params.publisher);
@@ -844,6 +860,12 @@ contract FoundrySuperfluidTester is Test {
             vm.stopPrank();
         }
 
+        // Take Balance Snapshot
+        {
+            _helperTakeBalanceSnapshot(superToken, params.publisher);
+            _helperTakeBalanceSnapshot(superToken, params.subscriber);
+        }
+
         // Assert Publisher Balance Data
         {
             (int256 publisherAvbAfter, uint256 publisherDeposit,,) =
@@ -899,6 +921,12 @@ contract FoundrySuperfluidTester is Test {
         vm.startPrank(caller);
         superToken_.claim(publisher, indexId, subscriber);
         vm.stopPrank();
+
+        // Take Balance Snapshot
+        {
+            _helperTakeBalanceSnapshot(superToken, params.publisher);
+            _helperTakeBalanceSnapshot(superToken, params.subscriber);
+        }
 
         // Assert Publisher Balance Data
         {

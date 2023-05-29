@@ -1181,7 +1181,7 @@ type TransferEvent implements Event @entity(immutable: true) {
 
     """
     Contains the addresses that were impacted by this event:
-    addresses[0] = `token` (superToken)
+    addresses[0] = `token` (superToken if `isNFTTransfer` is false, otherwise the ConstantOutflowNFT or ConstantInflowNFT)
     addresses[1] = `from`
     addresses[2] = `to`
     """
@@ -1192,7 +1192,15 @@ type TransferEvent implements Event @entity(immutable: true) {
 
     from: Account!
     to: Account!
+    isNFTTransfer: Boolean!
+    """
+    If `isNFTTransfer` is true, value is the `tokenId` of the NFT transferred.
+    """
     value: BigInt!
+
+    """
+    If `isNFTTransfer` is true, value is the NFT address, else it is the SuperToken address.
+    """
     token: Bytes!
 }
 
@@ -1242,49 +1250,6 @@ type TokenUpgradedEvent implements Event @entity(immutable: true) {
     amount: BigInt!
 }
 
-type ConstantOutflowNFTCreated implements Event @entity(immutable: true) {
-    id: ID!
-    transactionHash: Bytes!
-    gasPrice: BigInt!
-    gasUsed: BigInt!
-    timestamp: BigInt!
-    name: String!
-
-    """
-    Contains the addresses that were impacted by this event:
-    addresses[0] = `token` (superToken)
-    addresses[1] = `constantOutflowNFT`
-    """
-    addresses: [Bytes!]!
-    blockNumber: BigInt!
-    logIndex: BigInt!
-    order: BigInt!
-
-    constantOutflowNFT: Bytes!
-    token: Bytes!
-}
-
-type ConstantInflowNFTCreated implements Event @entity(immutable: true) {
-    id: ID!
-    transactionHash: Bytes!
-    gasPrice: BigInt!
-    gasUsed: BigInt!
-    timestamp: BigInt!
-    name: String!
-
-    """
-    Contains the addresses that were impacted by this event:
-    addresses[0] = `token` (superToken)
-    addresses[1] = `constantInflowNFT`
-    """
-    addresses: [Bytes!]!
-    blockNumber: BigInt!
-    logIndex: BigInt!
-    order: BigInt!
-
-    constantInflowNFT: Bytes!
-    token: Bytes!
-}
 
 #     NFTs    #
 type ApprovalEvent implements Event @entity(immutable: true) {
@@ -1296,13 +1261,24 @@ type ApprovalEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Contains the addresses that were impacted by this event:
-    addresses[0] = `token` (superToken)
+    Empty addresses array.
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
+    owner: Account!
+
+    """
+    The address that will be granted allowance to transfer the NFT.
+    """
+    to: Account!
+    """
+    The id of the NFT that will be granted allowance to transfer.
+    The id is: uint256(keccak256(abi.encode(block.chainid, superToken, sender, receiver)))
+    """
+    tokenId: BigInt!
 }
 
 type ApprovalForAllEvent implements Event @entity(immutable: true) {
@@ -1314,13 +1290,23 @@ type ApprovalForAllEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Contains the addresses that were impacted by this event:
-    addresses[0] = `token` (superToken)
+    Empty addresses array.
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
+    owner: Account!
+
+    """
+    The address that will be granted operator permissions for the all of the owner's tokens.
+    """
+    operator: Account!
+    """
+    Whether the operator is enabled or disabled for `owner`.
+    """
+    approved: Boolean!
 }
 
 type MetadataUpdateEvent implements Event @entity(immutable: true) {
@@ -1332,13 +1318,18 @@ type MetadataUpdateEvent implements Event @entity(immutable: true) {
     name: String!
 
     """
-    Contains the addresses that were impacted by this event:
-    addresses[0] = `token` (superToken)
+    Empty addresses array.
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
     logIndex: BigInt!
     order: BigInt!
+
+    """
+    The id of the NFT that will be granted allowance to transfer.
+    The id is: uint256(keccak256(abi.encode(block.chainid, superToken, sender, receiver)))
+    """
+    tokenId: BigInt!
 }
 
 #     SuperTokenFactory    #
@@ -1896,36 +1887,6 @@ type Token @entity {
     """
     """
     governanceConfig: TokenGovernanceConfig
-}
-
-"""
-ConstantInflowNFT: A higher order entity that represents a Constant Inflow NFT.
-"""
-type ConstantInflowNFT @entity {
-    """
-    ID: the address of the constant inflow nft proxy
-    """
-    id: ID!
-    createdAtTimestamp: BigInt!
-    createdAtBlockNumber: BigInt!
-    token: Token!
-    name: String!
-    symbol: String!
-}
-
-"""
-ConstantOutflowNFT: A higher order entity that represents a Constant Outflow NFT.
-"""
-type ConstantOutflowNFT @entity {
-    """
-    ID: the address of the constant outflow nft proxy
-    """
-    id: ID!
-    createdAtTimestamp: BigInt!
-    createdAtBlockNumber: BigInt!
-    token: Token!
-    name: String!
-    symbol: String!
 }
 
 type ResolverEntry @entity {

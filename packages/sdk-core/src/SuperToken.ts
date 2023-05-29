@@ -56,8 +56,6 @@ import {
 } from "./utils";
 
 export interface NFTAddresses {
-    readonly constantInflowNFTLogic: string;
-    readonly constantOutflowNFTLogic: string;
     readonly constantInflowNFTProxy: string;
     readonly constantOutflowNFTProxy: string;
 }
@@ -159,17 +157,12 @@ export default abstract class SuperToken extends ERC20Token {
             const nativeSuperTokenSymbol = nativeTokenSymbol + "x";
 
             const constantOutflowNFTProxy =
-                await superToken.constantOutflowNFT();
-            const constantInflowNFTProxy = await superToken.constantInflowNFT();
-            const constantInflowNFTLogic =
-                await superToken.CONSTANT_INFLOW_NFT_LOGIC();
-            const constantOutflowNFTLogic =
-                await superToken.CONSTANT_OUTFLOW_NFT_LOGIC();
+                await superToken.CONSTANT_OUTFLOW_NFT();
+            const constantInflowNFTProxy =
+                await superToken.CONSTANT_INFLOW_NFT();
             const nftAddresses: NFTAddresses = {
                 constantOutflowNFTProxy,
                 constantInflowNFTProxy,
-                constantInflowNFTLogic,
-                constantOutflowNFTLogic,
             };
 
             if (nativeSuperTokenSymbol === tokenSymbol) {
@@ -741,8 +734,6 @@ export class WrapperSuperToken extends SuperToken {
     override readonly underlyingToken: ERC20Token;
     override readonly constantOutflowNFTProxy: ConstantOutflowNFT;
     override readonly constantInflowNFTProxy: ConstantInflowNFT;
-    override readonly constantOutflowNFTLogic: string;
-    override readonly constantInflowNFTLogic: string;
 
     constructor(
         options: ITokenOptions,
@@ -757,8 +748,6 @@ export class WrapperSuperToken extends SuperToken {
         this.constantOutflowNFTProxy = new ConstantOutflowNFT(
             nftAddresses.constantOutflowNFTProxy
         );
-        this.constantInflowNFTLogic = nftAddresses.constantInflowNFTLogic;
-        this.constantOutflowNFTLogic = nftAddresses.constantOutflowNFTLogic;
     }
 
     /** ### WrapperSuperToken Contract Write Functions ### */
@@ -862,8 +851,6 @@ export class WrapperSuperToken extends SuperToken {
 export class PureSuperToken extends SuperToken {
     override readonly constantOutflowNFTProxy: ConstantOutflowNFT;
     override readonly constantInflowNFTProxy: ConstantInflowNFT;
-    override readonly constantOutflowNFTLogic: string;
-    override readonly constantInflowNFTLogic: string;
 
     constructor(
         options: ITokenOptions,
@@ -877,8 +864,6 @@ export class PureSuperToken extends SuperToken {
         this.constantOutflowNFTProxy = new ConstantOutflowNFT(
             nftAddresses.constantOutflowNFTProxy
         );
-        this.constantInflowNFTLogic = nftAddresses.constantInflowNFTLogic;
-        this.constantOutflowNFTLogic = nftAddresses.constantOutflowNFTLogic;
     }
 }
 
@@ -889,8 +874,6 @@ export class NativeAssetSuperToken extends SuperToken {
     readonly nativeTokenSymbol: string;
     override readonly constantOutflowNFTProxy: ConstantOutflowNFT;
     override readonly constantInflowNFTProxy: ConstantInflowNFT;
-    override readonly constantOutflowNFTLogic: string;
-    override readonly constantInflowNFTLogic: string;
 
     constructor(
         options: ITokenOptions,
@@ -906,8 +889,6 @@ export class NativeAssetSuperToken extends SuperToken {
         this.constantOutflowNFTProxy = new ConstantOutflowNFT(
             nftAddresses.constantOutflowNFTProxy
         );
-        this.constantInflowNFTLogic = nftAddresses.constantInflowNFTLogic;
-        this.constantOutflowNFTLogic = nftAddresses.constantOutflowNFTLogic;
     }
 
     get nativeAssetContract() {

@@ -3,25 +3,14 @@ pragma solidity 0.8.19;
 
 import { Test } from "forge-std/Test.sol";
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
-import {
-    UUPSProxiable
-} from "../../../contracts/upgradability/UUPSProxiable.sol";
-import {
-    ISuperToken,
-    SuperToken
-} from "../../../contracts/superfluid/SuperToken.sol";
-import {
-    ConstantOutflowNFT,
-    IConstantOutflowNFT
-} from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
-import {
-    ConstantInflowNFT,
-    IConstantInflowNFT
-} from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
+import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
+import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 
 contract SuperTokenTest is FoundrySuperfluidTester {
-    constructor() FoundrySuperfluidTester(0) {}
+    constructor() FoundrySuperfluidTester(0) { }
 
     function setUp() public override {
         super.setUp();
@@ -33,13 +22,11 @@ contract SuperTokenTest is FoundrySuperfluidTester {
 
         ConstantInflowNFT cifNFTLogic = new ConstantInflowNFT(
             sf.host,
-            IConstantOutflowNFT(address(cofProxy)),
-            ""
+            IConstantOutflowNFT(address(cofProxy))
         );
         ConstantOutflowNFT cofNFTLogic = new ConstantOutflowNFT(
             sf.host,
-            IConstantInflowNFT(address(cifProxy)),
-            ""
+            IConstantInflowNFT(address(cifProxy))
         );
 
         cifNFTLogic.castrate();
@@ -48,14 +35,8 @@ contract SuperTokenTest is FoundrySuperfluidTester {
         cifProxy.initializeProxy(address(cifNFTLogic));
         cofProxy.initializeProxy(address(cofNFTLogic));
 
-        ConstantInflowNFT(address(cofProxy)).initialize(
-            "Constant Outflow NFT",
-            "COF"
-        );
-        ConstantOutflowNFT(address(cifProxy)).initialize(
-            "Constant Inflow NFT",
-            "CIF"
-        );
+        ConstantInflowNFT(address(cofProxy)).initialize("Constant Outflow NFT", "COF");
+        ConstantOutflowNFT(address(cifProxy)).initialize("Constant Inflow NFT", "CIF");
 
         // both nft proxies incorrect
         SuperToken superTokenLogic = new SuperToken(
@@ -64,9 +45,7 @@ contract SuperTokenTest is FoundrySuperfluidTester {
             ConstantInflowNFT(address(cifProxy))
         );
         vm.prank(address(sf.host));
-        vm.expectRevert(
-            ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector
-        );
+        vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
         superToken.updateCode(address(superTokenLogic));
 
         // inflow nft proxy incorrect
@@ -76,9 +55,7 @@ contract SuperTokenTest is FoundrySuperfluidTester {
             ConstantInflowNFT(address(cifProxy))
         );
         vm.prank(address(sf.host));
-        vm.expectRevert(
-            ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector
-        );
+        vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
         superToken.updateCode(address(superTokenLogic));
 
         // outflow nft proxy incorrect
@@ -88,9 +65,7 @@ contract SuperTokenTest is FoundrySuperfluidTester {
             superToken.CONSTANT_INFLOW_NFT()
         );
         vm.prank(address(sf.host));
-        vm.expectRevert(
-            ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector
-        );
+        vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
         superToken.updateCode(address(superTokenLogic));
     }
 }

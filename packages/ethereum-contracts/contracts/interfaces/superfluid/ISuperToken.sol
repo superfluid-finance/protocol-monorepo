@@ -50,6 +50,8 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     *************************************************************************/
     function CONSTANT_OUTFLOW_NFT() external view returns (IConstantOutflowNFT);
     function CONSTANT_INFLOW_NFT() external view returns (IConstantInflowNFT);
+    function POOL_ADMIN_NFT() external view returns (IPoolAdminNFT);
+    function POOL_MEMBER_NFT() external view returns (IPoolMemberNFT);
 
     /**************************************************************************
     * TokenInfo & ERC777
@@ -542,6 +544,22 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      */
     event ConstantInflowNFTCreated(
         IConstantInflowNFT indexed constantInflowNFT
+    );
+
+    /**
+     * @dev Pool Admin NFT proxy created event
+     * @param poolAdminNFT pool admin nft address
+     */
+    event PoolAdminNFTCreated(
+        IPoolAdminNFT indexed poolAdminNFT
+    );
+
+    /**
+     * @dev Pool Member NFT proxy created event
+     * @param poolMemberNFT pool member nft address
+     */
+    event PoolMemberNFTCreated(
+        IPoolMemberNFT indexed poolMemberNFT
     );
 
     /**************************************************************************

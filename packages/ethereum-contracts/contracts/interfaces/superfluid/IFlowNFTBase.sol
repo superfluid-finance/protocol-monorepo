@@ -4,7 +4,6 @@ pragma solidity >=0.8.4;
 import {
     IERC721Metadata
 } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import { ISuperToken } from "./ISuperToken.sol";
 
 interface IFlowNFTBase is IERC721Metadata {
     // FlowNFTData struct storage packing:

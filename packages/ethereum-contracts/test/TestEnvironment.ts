@@ -13,6 +13,10 @@ import {
     ConstantOutflowNFT__factory,
     ISuperToken,
     ISuperToken__factory,
+    PoolAdminNFT,
+    PoolAdminNFT__factory,
+    PoolMemberNFT,
+    PoolMemberNFT__factory,
     SuperTokenMock,
     TestToken,
     UUPSProxiableMock__factory,
@@ -584,9 +588,14 @@ export default class TestEnvironment {
 
     deployNFTContracts = async () => {
         let constantOutflowNFT;
-        let constantInflowNFTProxy;
+        let constantInflowNFT;
         let cofNFTLogicAddress;
         let cifNFTLogicAddress;
+        let paNFTLogicAddress;
+        let poolAdminNFT;
+        let pmNFTLogicAddress;
+        let poolMemberNFT;
+
         const superTokenFactoryLogicAddress =
             await this.contracts.superfluid.getSuperTokenFactoryLogic();
         const superTokenFactory = await ethers.getContractAt(
@@ -604,12 +613,21 @@ export default class TestEnvironment {
         const constantInflowNFTProxyAddress =
             await superTokenLogic.CONSTANT_INFLOW_NFT();
 
+        const poolAdminNFTProxyAddress = await superTokenLogic.POOL_ADMIN_NFT();
+        const poolMemberNFTProxyAddress =
+            await superTokenLogic.POOL_MEMBER_NFT();
+
         if (
             constantOutflowNFTProxyAddress === ethers.constants.AddressZero ||
-            constantInflowNFTProxyAddress === ethers.constants.AddressZero
+            constantInflowNFTProxyAddress === ethers.constants.AddressZero ||
+            poolAdminNFTProxyAddress === ethers.constants.AddressZero ||
+            poolMemberNFTProxyAddress === ethers.constants.AddressZero
         ) {
             const cofProxy = await this.deployContract<UUPSProxy>("UUPSProxy");
             const cifProxy = await this.deployContract<UUPSProxy>("UUPSProxy");
+
+            const paProxy = await this.deployContract<UUPSProxy>("UUPSProxy");
+            const pmProxy = await this.deployContract<UUPSProxy>("UUPSProxy");
 
             const constantOutflowNFTLogic =
                 await this.deployContract<ConstantOutflowNFT>(
@@ -618,6 +636,7 @@ export default class TestEnvironment {
                     cifProxy.address
                 );
             cofNFTLogicAddress = constantOutflowNFTLogic.address;
+
             const constantInflowNFTLogic =
                 await this.deployContract<ConstantInflowNFT>(
                     "ConstantInflowNFT",
@@ -625,6 +644,19 @@ export default class TestEnvironment {
                     cofProxy.address
                 );
             cifNFTLogicAddress = constantInflowNFTLogic.address;
+
+            const poolAdminNFTLogic = await this.deployContract<PoolAdminNFT>(
+                "PoolAdminNFT",
+                this.contracts.superfluid.address
+            );
+            paNFTLogicAddress = poolAdminNFTLogic.address;
+
+            const poolMemberNFTLogic = await this.deployContract<PoolMemberNFT>(
+                "PoolMemberNFT",
+                this.contracts.superfluid.address
+            );
+            pmNFTLogicAddress = poolMemberNFTLogic.address;
+
             const signer = await ethers.getSigner(this.aliases.admin);
             const proxiableCofLogic = UUPSProxiableMock__factory.connect(
                 constantOutflowNFTLogic.address,
@@ -634,17 +666,37 @@ export default class TestEnvironment {
                 constantInflowNFTLogic.address,
                 signer
             );
+            const proxiablePaLogic = UUPSProxiableMock__factory.connect(
+                poolAdminNFTLogic.address,
+                signer
+            );
+            const proxiablePmLogic = UUPSProxiableMock__factory.connect(
+                poolMemberNFTLogic.address,
+                signer
+            );
             await proxiableCofLogic.castrate();
             await proxiableCifLogic.castrate();
+            await proxiablePaLogic.castrate();
+            await proxiablePmLogic.castrate();
 
             await cofProxy.initializeProxy(constantOutflowNFTLogic.address);
             await cifProxy.initializeProxy(constantInflowNFTLogic.address);
+            await paProxy.initializeProxy(poolAdminNFTLogic.address);
+            await pmProxy.initializeProxy(poolMemberNFTLogic.address);
             constantOutflowNFT = ConstantOutflowNFT__factory.connect(
                 cofProxy.address,
                 signer
             );
-            constantInflowNFTProxy = ConstantInflowNFT__factory.connect(
+            constantInflowNFT = ConstantInflowNFT__factory.connect(
                 cifProxy.address,
+                signer
+            );
+            poolAdminNFT = PoolAdminNFT__factory.connect(
+                paProxy.address,
+                signer
+            );
+            poolMemberNFT = PoolMemberNFT__factory.connect(
+                pmProxy.address,
                 signer
             );
         } else {
@@ -652,19 +704,33 @@ export default class TestEnvironment {
                 constantOutflowNFTProxyAddress,
                 await ethers.getSigner(this.aliases.admin)
             );
-            constantInflowNFTProxy = ConstantInflowNFT__factory.connect(
+            constantInflowNFT = ConstantInflowNFT__factory.connect(
                 constantInflowNFTProxyAddress,
                 await ethers.getSigner(this.aliases.admin)
             );
+            poolAdminNFT = PoolAdminNFT__factory.connect(
+                poolAdminNFTProxyAddress,
+                await ethers.getSigner(this.aliases.admin)
+            );
+            poolMemberNFT = PoolMemberNFT__factory.connect(
+                poolMemberNFTProxyAddress,
+                await ethers.getSigner(this.aliases.admin)
+            );
             cofNFTLogicAddress = await constantOutflowNFT.getCodeAddress();
-            cifNFTLogicAddress = await constantInflowNFTProxy.getCodeAddress();
+            cifNFTLogicAddress = await constantInflowNFT.getCodeAddress();
+            paNFTLogicAddress = await poolAdminNFT.getCodeAddress();
+            pmNFTLogicAddress = await poolMemberNFT.getCodeAddress();
         }
 
         return {
             constantOutflowNFTProxy: constantOutflowNFT,
-            constantInflowNFTProxy,
+            constantInflowNFTProxy: constantInflowNFT,
             cofNFTLogicAddress,
             cifNFTLogicAddress,
+            poolAdminNFTProxy: poolAdminNFT,
+            poolMemberNFTProxy: poolMemberNFT,
+            paNFTLogicAddress,
+            pmNFTLogicAddress,
         };
     };
 

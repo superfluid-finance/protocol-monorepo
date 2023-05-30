@@ -404,12 +404,18 @@ describe("Superfluid Host Contract", function () {
                     constantInflowNFTProxy,
                     cofNFTLogicAddress,
                     cifNFTLogicAddress,
+                    poolAdminNFTProxy,
+                    poolMemberNFTProxy,
+                    paNFTLogicAddress,
+                    pmNFTLogicAddress,
                 } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
                     superfluid.address,
                     constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address
+                    constantInflowNFTProxy.address,
+                    poolAdminNFTProxy.address,
+                    poolMemberNFTProxy.address
                 );
                 const factory2LogicFactory = await ethers.getContractFactory(
                     "SuperTokenFactory"
@@ -418,7 +424,9 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     superTokenLogic.address,
                     cofNFTLogicAddress,
-                    cifNFTLogicAddress
+                    cifNFTLogicAddress,
+                    paNFTLogicAddress,
+                    pmNFTLogicAddress
                 );
                 await governance.updateContracts(
                     superfluid.address,
@@ -445,12 +453,18 @@ describe("Superfluid Host Contract", function () {
                     constantInflowNFTProxy,
                     cofNFTLogicAddress,
                     cifNFTLogicAddress,
+                    poolAdminNFTProxy,
+                    poolMemberNFTProxy,
+                    paNFTLogicAddress,
+                    pmNFTLogicAddress,
                 } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
                     superfluid.address,
                     constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address
+                    constantInflowNFTProxy.address,
+                    poolAdminNFTProxy.address,
+                    poolMemberNFTProxy.address
                 );
                 const factory2LogicFactory = await ethers.getContractFactory(
                     "SuperTokenFactoryUpdateLogicContractsTester"
@@ -459,7 +473,9 @@ describe("Superfluid Host Contract", function () {
                     superfluid.address,
                     superTokenLogic.address,
                     cofNFTLogicAddress,
-                    cifNFTLogicAddress
+                    cifNFTLogicAddress,
+                    paNFTLogicAddress,
+                    pmNFTLogicAddress
                 );
                 await governance.updateContracts(
                     superfluid.address,
@@ -2631,19 +2647,27 @@ describe("Superfluid Host Contract", function () {
                     constantInflowNFTProxy,
                     cofNFTLogicAddress,
                     cifNFTLogicAddress,
+                    poolAdminNFTProxy,
+                    poolMemberNFTProxy,
+                    paNFTLogicAddress,
+                    pmNFTLogicAddress,
                 } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
                     superfluid.address,
                     constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address
+                    constantInflowNFTProxy.address,
+                    poolAdminNFTProxy.address,
+                    poolMemberNFTProxy.address
                 );
                 const factory2Logic = await t.deployContract<SuperTokenFactory>(
                     "SuperTokenFactory",
                     superfluid.address,
                     superTokenLogic.address,
                     cofNFTLogicAddress,
-                    cifNFTLogicAddress
+                    cifNFTLogicAddress,
+                    paNFTLogicAddress,
+                    pmNFTLogicAddress
                 );
                 await expectCustomError(
                     governance.updateContracts(

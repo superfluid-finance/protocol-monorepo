@@ -132,6 +132,24 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         await UUPSProxiable.at(constantInflowNFTProxyAddress)
     ).getCodeAddress();
     output += `CONSTANT_INFLOW_NFT_LOGIC=${constantInflowNFTLogicAddress}\n`;
+    
+    const poolAdminNFTProxyAddress =
+        await superTokenLogicContract.POOL_ADMIN_NFT();
+    output += `POOL_ADMIN_NFT_PROXY=${poolAdminNFTProxyAddress}\n`;
+
+    const poolAdminNFTLogicAddress = await (
+        await UUPSProxiable.at(poolAdminNFTProxyAddress)
+    ).getCodeAddress();
+    output += `POOL_ADMIN_NFT_LOGIC=${poolAdminNFTLogicAddress}\n`;
+
+    const poolMemberNFTProxyAddress =
+        await superTokenLogicContract.POOL_MEMBER_NFT();
+    output += `POOL_MEMBER_NFT_PROXY=${poolMemberNFTProxyAddress}\n`;
+
+    const poolMemberNFTLogicAddress = await (
+        await UUPSProxiable.at(poolMemberNFTProxyAddress)
+    ).getCodeAddress();
+    output += `POOL_MEMBER_NFT_LOGIC=${poolMemberNFTLogicAddress}\n`;
 
     if (! skipTokens) {
         await Promise.all(

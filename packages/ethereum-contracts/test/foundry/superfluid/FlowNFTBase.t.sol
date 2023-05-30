@@ -10,6 +10,8 @@ import {
     IConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/superfluid/PoolAdminNFT.sol";
+import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/superfluid/PoolMemberNFT.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
@@ -99,7 +101,10 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
             sf.host,
             0,
             IConstantOutflowNFT(address(constantOutflowNFTProxy)),
-            IConstantInflowNFT(address(constantInflowNFTProxy))
+            IConstantInflowNFT(address(constantInflowNFTProxy)),
+            // @note use address(0) for now
+            IPoolAdminNFT(address(0)),
+            IPoolMemberNFT(address(0))
         );
         superTokenMockProxy.initializeProxy(address(superTokenMockLogic));
 

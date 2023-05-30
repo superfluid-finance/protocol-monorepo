@@ -2,44 +2,23 @@
 pragma solidity ^0.8.0;
 
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
-import {
-    ISuperfluid,
-    ISuperfluidToken,
-    Superfluid
-} from "../superfluid/Superfluid.sol";
+import { ISuperfluid, ISuperfluidToken, Superfluid } from "../superfluid/Superfluid.sol";
 import { TestGovernance } from "./TestGovernance.sol";
-import {
-    ConstantFlowAgreementV1
-} from "../agreements/ConstantFlowAgreementV1.sol";
-import {
-    ConstantOutflowNFT,
-    IConstantOutflowNFT
-} from "../superfluid/ConstantOutflowNFT.sol";
-import {
-    ConstantInflowNFT,
-    IConstantInflowNFT
-} from "../superfluid/ConstantInflowNFT.sol";
-import {
-    InstantDistributionAgreementV1
-} from "../agreements/InstantDistributionAgreementV1.sol";
-import {
-    GeneralDistributionAgreementV1Harness
-} from "../mocks/GeneralDistributionAgreementV1Harness.sol";
-import {
-    SuperToken,
-    SuperTokenFactory
-} from "../superfluid/SuperTokenFactory.sol";
+import { ConstantFlowAgreementV1 } from "../agreements/ConstantFlowAgreementV1.sol";
+import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
+import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+import { PoolAdminNFT, IPoolAdminNFT } from "../superfluid/PoolAdminNFT.sol";
+import { PoolMemberNFT, IPoolMemberNFT } from "../superfluid/PoolMemberNFT.sol";
+import { InstantDistributionAgreementV1 } from "../agreements/InstantDistributionAgreementV1.sol";
+import { GeneralDistributionAgreementV1Harness } from "../mocks/GeneralDistributionAgreementV1Harness.sol";
+import { SuperToken, SuperTokenFactory } from "../superfluid/SuperTokenFactory.sol";
 import { ISuperToken, SuperToken } from "../superfluid/SuperToken.sol";
 import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
-import {
-    SuperfluidUpgradeableBeacon
-} from "../upgradability/SuperfluidUpgradeableBeacon.sol";
+import { SuperfluidUpgradeableBeacon } from "../upgradability/SuperfluidUpgradeableBeacon.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
-import {
-    IConstantFlowAgreementHook
-} from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
+import { IConstantFlowAgreementHook } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
@@ -77,6 +56,10 @@ contract SuperfluidFrameworkDeploymentSteps {
     ConstantInflowNFT internal constantInflowNFTLogic;
     ConstantOutflowNFT internal constantOutflowNFT;
     ConstantInflowNFT internal constantInflowNFT;
+    PoolAdminNFT internal poolAdminNFTLogic;
+    PoolMemberNFT internal poolMemberNFTLogic;
+    PoolAdminNFT internal poolAdminNFT;
+    PoolMemberNFT internal poolMemberNFT;
     uint8 private currentStep;
 
     function _deployGovernance(address newOwner) internal {
@@ -177,8 +160,14 @@ contract SuperfluidFrameworkDeploymentSteps {
         UUPSProxy constantInflowNFTProxy = ProxyDeployerLibrary
             .deployUUPSProxy();
 
+        // Deploy canonical Pool Admin NFT proxy contract
+        UUPSProxy poolAdminNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
+
+        // Deploy canonical Pool Member NFT proxy contract
+        UUPSProxy poolMemberNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
+
         // Deploy canonical Constant Outflow NFT logic contract
-        constantOutflowNFTLogic = SuperfluidNFTLogicDeployerLibrary
+        constantOutflowNFTLogic = SuperfluidFlowNFTLogicDeployerLibrary
             .deployConstantOutflowNFT(
                 host,
                 IConstantInflowNFT(address(constantInflowNFTProxy))
@@ -188,7 +177,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         constantOutflowNFTLogic.castrate();
 
         // Deploy canonical Constant Inflow NFT logic contract
-        constantInflowNFTLogic = SuperfluidNFTLogicDeployerLibrary
+        constantInflowNFTLogic = SuperfluidFlowNFTLogicDeployerLibrary
             .deployConstantInflowNFT(
                 host,
                 IConstantOutflowNFT(address(constantOutflowNFTProxy))
@@ -197,6 +186,20 @@ contract SuperfluidFrameworkDeploymentSteps {
         // Initialize Constant Inflow NFT logic contract
         constantInflowNFTLogic.castrate();
 
+        // Deploy canonical Pool Admin NFT logic contract
+        poolAdminNFTLogic = SuperfluidPoolNFTLogicDeployerLibrary
+            .deployPoolAdminNFT(host);
+
+        // Initialize Pool Admin NFT logic contract
+        poolAdminNFTLogic.castrate();
+
+        // Deploy canonical Pool Member NFT logic contract
+        poolMemberNFTLogic = SuperfluidPoolNFTLogicDeployerLibrary
+            .deployPoolMemberNFT(host);
+        
+        // Initialize Pool Member NFT logic contract
+        poolMemberNFTLogic.castrate();
+
         // Initialize COFNFT proxy contract
         constantOutflowNFTProxy.initializeProxy(
             address(constantOutflowNFTLogic)
@@ -204,6 +207,12 @@ contract SuperfluidFrameworkDeploymentSteps {
 
         // Initialize CIFNFT proxy contract
         constantInflowNFTProxy.initializeProxy(address(constantInflowNFTLogic));
+
+        // Initialize Pool Admin NFT proxy contract
+        poolAdminNFTProxy.initializeProxy(address(poolAdminNFTLogic));
+
+        // Initialize Pool Member NFT proxy contract
+        poolMemberNFTProxy.initializeProxy(address(poolMemberNFTLogic));
 
         // // Initialize COFNFT proxy contract
         IConstantOutflowNFT(address(constantOutflowNFTProxy)).initialize(
@@ -217,10 +226,24 @@ contract SuperfluidFrameworkDeploymentSteps {
             "CIF"
         );
 
+        // // Initialize Pool Admin NFT proxy contract
+        IPoolAdminNFT(address(poolAdminNFTProxy)).initialize(
+            "Pool Admin NFT",
+            "PA"
+        );
+        
+        // // Initialize Pool Member NFT proxy contract
+        IPoolMemberNFT(address(poolMemberNFTProxy)).initialize(
+            "Pool Member NFT",
+            "PM"
+        );
+
         constantOutflowNFT = ConstantOutflowNFT(
             address(constantOutflowNFTProxy)
         );
         constantInflowNFT = ConstantInflowNFT(address(constantInflowNFTProxy));
+        poolAdminNFT = PoolAdminNFT(address(poolAdminNFTProxy));
+        poolMemberNFT = PoolMemberNFT(address(poolMemberNFTProxy));
     }
 
     function _deploySuperTokenLogicAndSuperTokenFactory() internal {
@@ -229,7 +252,9 @@ contract SuperfluidFrameworkDeploymentSteps {
             SuperTokenDeployerLibrary.deploySuperTokenLogic(
                 host,
                 IConstantOutflowNFT(address(constantOutflowNFT)),
-                IConstantInflowNFT(address(constantInflowNFT))
+                IConstantInflowNFT(address(constantInflowNFT)),
+                IPoolAdminNFT(address(poolAdminNFT)),
+                IPoolMemberNFT(address(poolMemberNFT))
             )
         );
 
@@ -239,7 +264,9 @@ contract SuperfluidFrameworkDeploymentSteps {
                     host,
                     superTokenLogic,
                     constantOutflowNFTLogic,
-                    constantInflowNFTLogic
+                    constantInflowNFTLogic,
+                    poolAdminNFTLogic,
+                    poolMemberNFTLogic
                 );
 
         // Deploy canonical Constant Outflow NFT proxy contract
@@ -464,14 +491,21 @@ library SuperfluidCFAv1DeployerLibrary {
 library SuperTokenDeployerLibrary {
     /// @notice Deploy a SuperToken logic contract
     /// @param host the address of the host contract
+    /// @param constantOutflowNFT the address of the ConstantOutflowNFT contract
+    /// @param constantInflowNFT the address of the ConstantInflowNFT contract
+    /// @param poolAdminNFT the address of the PoolAdminNFT contract
+    /// @param poolMemberNFT the address of the PoolMemberNFT contract
+    /// @return the address of the newly deployed SuperToken logic contract
     function deploySuperTokenLogic(
         ISuperfluid host,
         IConstantOutflowNFT constantOutflowNFT,
-        IConstantInflowNFT constantInflowNFT
+        IConstantInflowNFT constantInflowNFT,
+        IPoolAdminNFT poolAdminNFT,
+        IPoolMemberNFT poolMemberNFT
     ) external returns (address) {
         return
             address(
-                new SuperToken(host, constantOutflowNFT, constantInflowNFT)
+                new SuperToken(host, constantOutflowNFT, constantInflowNFT, poolAdminNFT, poolMemberNFT)
             );
     }
 }
@@ -484,19 +518,27 @@ library SuperfluidPeripheryDeployerLibrary {
     /// @dev deploys Super Token Factory contract
     /// @param _host address of the Superfluid contract
     /// @param _superTokenLogic address of the Super Token logic contract
+    /// @param constantOutflowNFTLogic address of the Constant Outflow NFT logic contract
+    /// @param constantInflowNFTLogic address of the Constant Inflow NFT logic contract
+    /// @param poolAdminNFTLogic address of the Pool Admin NFT logic contract
+    /// @param poolMemberNFTLogic address of the Pool Member NFT logic contract
     /// @return newly deployed SuperTokenFactory contract
     function deploySuperTokenFactory(
         ISuperfluid _host,
         ISuperToken _superTokenLogic,
-        IConstantOutflowNFT constantOutflowNFT,
-        IConstantInflowNFT constantInflowNFT
+        IConstantOutflowNFT constantOutflowNFTLogic,
+        IConstantInflowNFT constantInflowNFTLogic,
+        IPoolAdminNFT poolAdminNFTLogic,
+        IPoolMemberNFT poolMemberNFTLogic
     ) external returns (SuperTokenFactory) {
         return
             new SuperTokenFactory(
                 _host,
                 _superTokenLogic,
-                constantOutflowNFT,
-                constantInflowNFT
+                constantOutflowNFTLogic,
+                constantInflowNFTLogic,
+                poolAdminNFTLogic,
+                poolMemberNFTLogic
             );
     }
 
@@ -542,7 +584,7 @@ library SuperfluidPoolLogicDeployerLibrary {
     }
 }
 
-library SuperfluidNFTLogicDeployerLibrary {
+library SuperfluidFlowNFTLogicDeployerLibrary {
     /// @notice deploys the Superfluid ConstantOutflowNFT contract
     /// @param _host Superfluid host address
     /// @param _constantInflowNFTProxy address of the ConstantInflowNFT proxy contract
@@ -563,6 +605,26 @@ library SuperfluidNFTLogicDeployerLibrary {
         IConstantOutflowNFT _constantOutflowNFTProxy
     ) external returns (ConstantInflowNFT) {
         return new ConstantInflowNFT(_host, _constantOutflowNFTProxy);
+    }
+}
+
+library SuperfluidPoolNFTLogicDeployerLibrary {
+    /// @notice deploys the Superfluid PoolAdminNFT contract
+    /// @param _host Superfluid host address
+    /// @return newly deployed PoolAdminNFT contract
+    function deployPoolAdminNFT(
+        ISuperfluid _host
+    ) external returns (PoolAdminNFT) {
+        return new PoolAdminNFT(_host);
+    }
+
+    /// @notice deploys the Superfluid PoolMemberNFT contract
+    /// @param _host Superfluid host address
+    /// @return newly deployed PoolMemberNFT contract
+    function deployPoolMemberNFT(
+        ISuperfluid _host
+    ) external returns (PoolMemberNFT) {
+        return new PoolMemberNFT(_host);
     }
 }
 

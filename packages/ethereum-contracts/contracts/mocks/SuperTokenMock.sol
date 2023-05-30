@@ -17,9 +17,12 @@ contract SuperTokenStorageLayoutTester is SuperToken {
     constructor(
         ISuperfluid host,
         IConstantOutflowNFT constantOutflowNFTProxy,
-        IConstantInflowNFT constantInflowNFTProxy
+        IConstantInflowNFT constantInflowNFTProxy,
+        IPoolAdminNFT poolAdminNFTProxy,
+        IPoolMemberNFT poolMemberNFTProxy
     )
-        SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy) // solhint-disable-next-line no-empty-blocks
+        SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy, poolAdminNFTProxy, poolMemberNFTProxy)
+        // solhint-disable-next-line no-empty-blocks
     {}
 
     // @dev Make sure the storage layout never change over the course of the development
@@ -87,8 +90,10 @@ contract SuperTokenMock is SuperToken {
         ISuperfluid host,
         uint256 w,
         IConstantOutflowNFT constantOutflowNFTProxy,
-        IConstantInflowNFT constantInflowNFTProxy
-    ) SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy) {
+        IConstantInflowNFT constantInflowNFTProxy,
+        IPoolAdminNFT poolAdminNFTProxy,
+        IPoolMemberNFT poolMemberNFTProxy
+    ) SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy, poolAdminNFTProxy, poolMemberNFTProxy) {
         waterMark = w;
     }
 

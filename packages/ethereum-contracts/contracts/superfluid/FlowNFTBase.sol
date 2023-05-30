@@ -2,24 +2,15 @@
 pragma solidity 0.8.19;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-import {
-    IERC20Metadata
-} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import {
-    IERC165,
-    IERC721,
-    IERC721Metadata
-} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
+import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { IFlowNFTBase } from "../interfaces/superfluid/IFlowNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
-import {
-    ISuperTokenFactory
-} from "../interfaces/superfluid/ISuperTokenFactory.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { ISuperTokenFactory } from "../interfaces/superfluid/ISuperTokenFactory.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
 
 /// @title FlowNFTBase abstract contract
 /// @author Superfluid
@@ -39,6 +30,12 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     /// do an external call for every flow created.
     // solhint-disable-next-line var-name-mixedcase
     IConstantFlowAgreementV1 public immutable CONSTANT_FLOW_AGREEMENT_V1;
+    
+    /// @notice GeneralDistributionAgreementV1 contract address
+    /// @dev This is the address of the GDAv1 contract cached so we don't have to
+    /// do an external call for every flow created.
+    // solhint-disable-next-line var-name-mixedcase
+    IGeneralDistributionAgreementV1 public immutable GENERAL_DISTRIBUTION_AGREEMENT_V1;
 
     /// @notice Superfluid host contract address
     ISuperfluid public immutable HOST;
@@ -69,7 +66,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     /// without having to worry about messing up the storage layout that exists in COFNFT or CIFNFT.
     /// @dev This empty reserved space is put in place to allow future versions to add new
     /// variables without shifting down storage in the inheritance chain.
-    /// Slots 6-21 are reserved for future use.
+    /// Slots 5-21 are reserved for future use.
     /// We use this pattern in SuperToken.sol and favor this over the OpenZeppelin pattern
     /// as this prevents silly footgunning.
     /// See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
@@ -98,6 +95,14 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
                 ISuperfluid(host).getAgreementClass(
                     //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
                     0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3
+                )
+            )
+        );
+        GENERAL_DISTRIBUTION_AGREEMENT_V1 = IGeneralDistributionAgreementV1(
+            address(
+                ISuperfluid(host).getAgreementClass(
+                    //keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
+                    0xdfd8ece9bfbcb8c5c540edb935641f63d67686490a1ab97f000288759f30a946
                 )
             )
         );

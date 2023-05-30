@@ -209,7 +209,10 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     }
 
     modifier onlyFlowAgreements() {
-        if (msg.sender != address(CONSTANT_FLOW_AGREEMENT_V1)) {
+        if (
+            msg.sender != address(CONSTANT_FLOW_AGREEMENT_V1)
+                && msg.sender != address(GENERAL_DISTRIBUTION_AGREEMENT_V1)
+        ) {
             revert COF_NFT_ONLY_FLOW_AGREEMENTS();
         }
         _;

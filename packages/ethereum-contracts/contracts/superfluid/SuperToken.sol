@@ -54,6 +54,12 @@ contract SuperToken is
     // solhint-disable-next-line var-name-mixedcase
     IConstantInflowNFT immutable public CONSTANT_INFLOW_NFT;
 
+    // solhint-disable-next-line var-name-mixedcase
+    IPoolMemberNFT immutable public POOL_MEMBER_NFT;
+    
+    // solhint-disable-next-line var-name-mixedcase
+    IPoolAdminNFT immutable public POOL_ADMIN_NFT;
+
     /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
        Always double-check that new
        variables are added APPEND-ONLY. Re-ordering variables can
@@ -101,7 +107,9 @@ contract SuperToken is
     constructor(
         ISuperfluid host,
         IConstantOutflowNFT constantOutflowNFT,
-        IConstantInflowNFT constantInflowNFT
+        IConstantInflowNFT constantInflowNFT,
+        IPoolAdminNFT poolAdminNFT,
+        IPoolMemberNFT poolMemberNFT
     )
         SuperfluidToken(host)
         // solhint-disable-next-line no-empty-blocks
@@ -112,9 +120,14 @@ contract SuperToken is
         // set the immutable canonical NFT proxy addresses
         CONSTANT_OUTFLOW_NFT = constantOutflowNFT;
         CONSTANT_INFLOW_NFT = constantInflowNFT;
+        POOL_ADMIN_NFT = poolAdminNFT;
+        POOL_MEMBER_NFT = poolMemberNFT;
 
         emit ConstantOutflowNFTCreated(constantOutflowNFT);
         emit ConstantInflowNFTCreated(constantInflowNFT);
+
+        emit PoolAdminNFTCreated(poolAdminNFT);
+        emit PoolMemberNFTCreated(poolMemberNFT);
     }
 
     

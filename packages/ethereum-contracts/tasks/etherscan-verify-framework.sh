@@ -84,6 +84,14 @@ if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
     try_verify ConstantInflowNFT"${CONSTANT_INFLOW_NFT_LOGIC}"
 fi
 
+if [ -n "$POOL_ADMIN_NFT_LOGIC" ]; then
+    try_verify PoolAdminNFT@"${POOL_ADMIN_NFT_LOGIC}"
+fi
+
+if [ -n "$POOL_MEMBER_NFT_LOGIC" ]; then
+    try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_LOGIC}"
+fi
+
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
     # verify the logic contract. May or may not be already set as a proxy implementation
     try_verify Superfluid@"${SUPERFLUID_HOST_LOGIC}"
@@ -114,6 +122,14 @@ fi
 
 if [ -n "$CONSTANT_INFLOW_NFT_PROXY" ]; then
     try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_PROXY}" --custom-proxy UUPSProxy
+fi
+
+if [ -n "$POOL_ADMIN_NFT_PROXY" ]; then
+    try_verify PoolAdminNFT@"${POOL_ADMIN_NFT_PROXY}" --custom-proxy UUPSProxy
+fi
+
+if [ -n "$POOL_MEMBER_NFT_PROXY" ]; then
+    try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_PROXY}" --custom-proxy UUPSProxy
 fi
 
 if [ -n "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then

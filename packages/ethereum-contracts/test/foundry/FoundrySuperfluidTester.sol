@@ -8,25 +8,12 @@ import {
     TestResolver,
     SuperfluidLoader
 } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
-import {
-    ERC1820RegistryCompiled
-} from "../../contracts/libs/ERC1820RegistryCompiled.sol";
-import {
-    SuperTokenDeployer
-} from "../../contracts/utils/SuperTokenDeployer.sol";
-import {
-    CFAv1Library,
-    IDAv1Library,
-    Superfluid
-} from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
+import { SuperTokenDeployer } from "../../contracts/utils/SuperTokenDeployer.sol";
+import { CFAv1Library, IDAv1Library, Superfluid } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
-import {
-    SuperTokenV1Library
-} from "../../contracts/apps/SuperTokenV1Library.sol";
-import {
-    TestToken,
-    SuperToken
-} from "../../contracts/utils/SuperTokenDeployer.sol";
+import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
+import { TestToken, SuperToken } from "../../contracts/utils/SuperTokenDeployer.sol";
 
 contract FoundrySuperfluidTester is Test {
     using SuperTokenV1Library for SuperToken;
@@ -38,9 +25,8 @@ contract FoundrySuperfluidTester is Test {
     TestResolver internal resolver;
     address internal constant admin = address(0x420);
 
-
-    uint internal constant INIT_TOKEN_BALANCE = type(uint128).max;
-    uint internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
+    uint256 internal constant INIT_TOKEN_BALANCE = type(uint128).max;
+    uint256 internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
     address internal constant alice = address(0x421);
     address internal constant bob = address(0x422);
     address internal constant carol = address(0x423);
@@ -50,9 +36,9 @@ contract FoundrySuperfluidTester is Test {
     address internal constant grace = address(0x427);
     address internal constant heidi = address(0x428);
     address internal constant ivan = address(0x429);
-    address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
+    address[] internal TEST_ACCOUNTS = [admin, alice, bob, carol, dan, eve, frank, grace, heidi, ivan];
 
-    uint internal immutable N_TESTERS;
+    uint256 internal immutable N_TESTERS;
 
     TestToken internal token;
     SuperToken internal superToken;
@@ -95,14 +81,9 @@ contract FoundrySuperfluidTester is Test {
     }
 
     function setUp() public virtual {
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken(
-            "FTT",
-            "FTT",
-            18,
-            type(uint256).max
-        );
+        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
 
-        for (uint i = 0; i < N_TESTERS; ++i) {
+        for (uint256 i = 0; i < N_TESTERS; ++i) {
             token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
 
             vm.startPrank(TEST_ACCOUNTS[i]);
@@ -122,9 +103,7 @@ contract FoundrySuperfluidTester is Test {
     /// - Net Flow Rate Sum Invariant
     /// @return bool Superfluid Global Invariants holds true
     function _definitionGlobalInvariants() internal view returns (bool) {
-        return
-            _definitionLiquiditySumInvariant() &&
-            _definitionNetFlowRateSumInvariant();
+        return _definitionLiquiditySumInvariant() && _definitionNetFlowRateSumInvariant();
     }
 
     /// @notice Liquidity Sum Invariant definition
@@ -134,18 +113,11 @@ contract FoundrySuperfluidTester is Test {
     function _definitionLiquiditySumInvariant() internal view returns (bool) {
         int256 liquiditySum;
 
-        for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            (
-                int256 availableBalance,
-                uint256 deposit,
-                uint256 owedDeposit,
+        for (uint256 i = 0; i < TEST_ACCOUNTS.length; ++i) {
+            (int256 availableBalance, uint256 deposit, uint256 owedDeposit,) =
+                superToken.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
 
-            ) = superToken.realtimeBalanceOfNow(address(TEST_ACCOUNTS[i]));
-
-            liquiditySum +=
-                availableBalance +
-                int256(deposit) -
-                int256(owedDeposit);
+            liquiditySum += availableBalance + int256(deposit) - int256(owedDeposit);
         }
 
         return int256(_expectedTotalSupply) == liquiditySum;
@@ -154,17 +126,10 @@ contract FoundrySuperfluidTester is Test {
     /// @notice Net Flow Rate Sum Invariant definition
     /// @dev Net Flow Rate Sum Invariant: Sum of all net flow rates === 0
     /// @return bool Net Flow Rate Sum Invariant holds true
-    function _definitionNetFlowRateSumInvariant()
-        internal
-        view
-        returns (bool)
-    {
+    function _definitionNetFlowRateSumInvariant() internal view returns (bool) {
         int96 netFlowRateSum;
-        for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
-            netFlowRateSum += sf.cfa.getNetFlow(
-                superToken,
-                address(TEST_ACCOUNTS[i])
-            );
+        for (uint256 i = 0; i < TEST_ACCOUNTS.length; ++i) {
+            netFlowRateSum += sf.cfa.getNetFlow(superToken, address(TEST_ACCOUNTS[i]));
         }
         return netFlowRateSum == 0;
     }
@@ -197,16 +162,8 @@ contract FoundrySuperfluidTester is Test {
         int96 senderNetFlowAfter = superToken.getNetFlowRate(flowSender);
         int96 receiverNetFlowAfter = superToken.getNetFlowRate(flowReceiver);
 
-        assertEq(
-            senderNetFlowAfter,
-            senderNetFlowBefore - flowRateDelta,
-            "sender net flow after"
-        );
-        assertEq(
-            receiverNetFlowAfter,
-            receiverNetFlowBefore + flowRateDelta,
-            "receiver net flow after"
-        );
+        assertEq(senderNetFlowAfter, senderNetFlowBefore - flowRateDelta, "sender net flow after");
+        assertEq(receiverNetFlowAfter, receiverNetFlowBefore + flowRateDelta, "receiver net flow after");
     }
 
     function _assertModifyFlowAndFlowInfoIsExpected(
@@ -216,16 +173,10 @@ contract FoundrySuperfluidTester is Test {
         uint256 expectedLastUpdated,
         uint256 expectedOwedDeposit
     ) internal {
-        (
-            uint256 lastUpdated,
-            int96 _flowRate,
-            uint256 deposit,
-            uint256 owedDeposit
-        ) = superToken.getFlowInfo(flowSender, flowReceiver);
+        (uint256 lastUpdated, int96 _flowRate, uint256 deposit, uint256 owedDeposit) =
+            superToken.getFlowInfo(flowSender, flowReceiver);
 
-        uint256 expectedDeposit = superToken.getBufferAmountByFlowRate(
-            expectedFlowRate
-        );
+        uint256 expectedDeposit = superToken.getBufferAmountByFlowRate(expectedFlowRate);
 
         assertEq(_flowRate, expectedFlowRate, "flow rate");
         assertEq(lastUpdated, expectedLastUpdated, "last updated");
@@ -233,17 +184,8 @@ contract FoundrySuperfluidTester is Test {
         assertEq(owedDeposit, expectedOwedDeposit, "owed deposit");
     }
 
-    function _assertFlowInfoIsEmpty(
-        address flowSender,
-        address flowReceiver
-    ) internal {
-        _assertModifyFlowAndFlowInfoIsExpected(
-            flowSender,
-            flowReceiver,
-            0,
-            0,
-            0
-        );
+    function _assertFlowInfoIsEmpty(address flowSender, address flowReceiver) internal {
+        _assertModifyFlowAndFlowInfoIsExpected(flowSender, flowReceiver, 0, 0, 0);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -251,9 +193,7 @@ contract FoundrySuperfluidTester is Test {
     //////////////////////////////////////////////////////////////////////////*/
     /// @notice Assume a valid flow rate
     /// @dev Flow rate must be greater than 0 and less than or equal to int32.max
-    function _assumeValidFlowRate(
-        uint32 a
-    ) internal pure returns (int96 flowRate) {
+    function _assumeValidFlowRate(uint32 a) internal pure returns (int96 flowRate) {
         vm.assume(a > 0);
         vm.assume(a <= uint32(type(int32).max));
         flowRate = int96(int32(a));
@@ -263,39 +203,26 @@ contract FoundrySuperfluidTester is Test {
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
 
-    function _helperCreateFlowAndAssertGlobalInvariants(
-        address flowSender,
-        address flowReceiver,
-        uint32 _flowRate
-    ) internal returns (int96 absoluteFlowRate) {
+    function _helperCreateFlowAndAssertGlobalInvariants(address flowSender, address flowReceiver, uint32 _flowRate)
+        internal
+        returns (int96 absoluteFlowRate)
+    {
         int96 flowRate = _assumeValidFlowRate(_flowRate);
 
         absoluteFlowRate = flowRate;
 
         int96 senderNetFlowRateBefore = superToken.getNetFlowRate(flowSender);
-        int96 receiverNetFlowRateBefore = superToken.getNetFlowRate(
-            flowReceiver
-        );
+        int96 receiverNetFlowRateBefore = superToken.getNetFlowRate(flowReceiver);
 
         vm.startPrank(flowSender);
         superToken.createFlow(flowReceiver, flowRate);
         vm.stopPrank();
 
         _assertModifyFlowAndNetFlowIsExpected(
-            flowSender,
-            flowReceiver,
-            flowRate,
-            senderNetFlowRateBefore,
-            receiverNetFlowRateBefore
+            flowSender, flowReceiver, flowRate, senderNetFlowRateBefore, receiverNetFlowRateBefore
         );
 
-        _assertModifyFlowAndFlowInfoIsExpected(
-            flowSender,
-            flowReceiver,
-            flowRate,
-            block.timestamp,
-            0
-        );
+        _assertModifyFlowAndFlowInfoIsExpected(flowSender, flowReceiver, flowRate, block.timestamp, 0);
 
         _assertGlobalInvariants();
     }

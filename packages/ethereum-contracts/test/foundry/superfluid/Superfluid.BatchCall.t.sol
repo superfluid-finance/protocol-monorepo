@@ -1,33 +1,21 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import {stdError} from "forge-std/Test.sol";
+import { stdError } from "forge-std/Test.sol";
 
-import {
-    BatchOperation,
-    ISuperfluid,
-    Superfluid
-} from "../../../contracts/superfluid/Superfluid.sol";
+import { BatchOperation, ISuperfluid, Superfluid } from "../../../contracts/superfluid/Superfluid.sol";
 import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
-import {
-    ISuperfluidToken
-} from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
+import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
-import {
-    SuperTokenV1Library
-} from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
 contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
 
-    constructor() FoundrySuperfluidTester(3) {}
+    constructor() FoundrySuperfluidTester(3) { }
 
-    function testRevertIfOperationIncreaseAllowanceIsNotCalledByHost(
-        address notHost
-    ) public {
+    function testRevertIfOperationIncreaseAllowanceIsNotCalledByHost(address notHost) public {
         vm.assume(notHost != address(sf.host));
 
         vm.expectRevert(ISuperfluidToken.SF_TOKEN_ONLY_HOST.selector);
@@ -35,9 +23,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         superToken.operationIncreaseAllowance(notHost, alice, 100);
     }
 
-    function testRevertIfOperationDecreaseAllowanceIsNotCalledByHost(
-        address notHost
-    ) public {
+    function testRevertIfOperationDecreaseAllowanceIsNotCalledByHost(address notHost) public {
         vm.assume(notHost != address(sf.host));
 
         vm.expectRevert(ISuperfluidToken.SF_TOKEN_ONLY_HOST.selector);
@@ -59,9 +45,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function testIfOperationIncreaseAllowanceIsCalledByHost()
-        public
-    {
+    function testIfOperationIncreaseAllowanceIsCalledByHost() public {
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
 
         vm.prank(address(sf.host));
@@ -71,9 +55,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore + 100);
     }
 
-    function testIfOperationDecreaseAllowanceIsCalledByHost()
-        public
-    {
+    function testIfOperationDecreaseAllowanceIsCalledByHost() public {
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
 
         vm.startPrank(address(sf.host));
@@ -85,30 +67,21 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore + 69);
     }
 
-    function testIncreaseAllowanceBatchCall(
-        uint256 allowanceAmount
-    ) public {
+    function testIncreaseAllowanceBatchCall(uint256 allowanceAmount) public {
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
         ops[0] = ISuperfluid.Operation({
-            operationType: BatchOperation
-                .OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE,
+            operationType: BatchOperation.OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE,
             target: address(superToken),
             data: abi.encode(bob, allowanceAmount)
         });
         vm.prank(alice);
         sf.host.batchCall(ops);
         uint256 aliceToBobAllowanceAfter = superToken.allowance(alice, bob);
-        assertEq(
-            aliceToBobAllowanceAfter,
-            aliceToBobAllowanceBefore + allowanceAmount
-        );
+        assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore + allowanceAmount);
     }
 
-    function testDecreaseAllowanceBatchCall(
-        uint256 increaseAllowanceAmount,
-        uint256 decreaseAllowanceAmount
-    ) public {
+    function testDecreaseAllowanceBatchCall(uint256 increaseAllowanceAmount, uint256 decreaseAllowanceAmount) public {
         vm.assume(increaseAllowanceAmount >= decreaseAllowanceAmount);
 
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
@@ -116,18 +89,14 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         superToken.increaseAllowance(bob, increaseAllowanceAmount);
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
         ops[0] = ISuperfluid.Operation({
-            operationType: BatchOperation
-                .OPERATION_TYPE_ERC20_DECREASE_ALLOWANCE,
+            operationType: BatchOperation.OPERATION_TYPE_ERC20_DECREASE_ALLOWANCE,
             target: address(superToken),
             data: abi.encode(bob, decreaseAllowanceAmount)
         });
         vm.prank(alice);
         sf.host.batchCall(ops);
         uint256 aliceToBobAllowanceAfter = superToken.allowance(alice, bob);
-        assertEq(
-            aliceToBobAllowanceAfter,
-            aliceToBobAllowanceBefore - decreaseAllowanceAmount
-        );
+        assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore - decreaseAllowanceAmount);
     }
 
     function testIncreaseDecreaseTransferFromBatchCall() public {
@@ -135,14 +104,12 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
         uint256 bobBalanceBefore = superToken.balanceOf(bob);
         ops[0] = ISuperfluid.Operation({
-            operationType: BatchOperation
-                .OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE,
+            operationType: BatchOperation.OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE,
             target: address(superToken),
             data: abi.encode(bob, 100)
         });
         ops[1] = ISuperfluid.Operation({
-            operationType: BatchOperation
-                .OPERATION_TYPE_ERC20_DECREASE_ALLOWANCE,
+            operationType: BatchOperation.OPERATION_TYPE_ERC20_DECREASE_ALLOWANCE,
             target: address(superToken),
             data: abi.encode(bob, 50)
         });
@@ -160,31 +127,21 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(bobBalanceAfter, bobBalanceBefore + 50);
     }
 
-    function testIncreaseTransferAllowanceAndIncreaseFlowRateAllowance()
-        public
-    {
+    function testIncreaseTransferAllowanceAndIncreaseFlowRateAllowance() public {
         ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](2);
         uint256 aliceToBobAllowanceBefore = superToken.allowance(alice, bob);
 
-        (, , int96 flowRateAllowanceBefore) = sf.cfa.getFlowOperatorData(
-            superToken,
-            alice,
-            bob
-        );
+        (,, int96 flowRateAllowanceBefore) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
 
         ops[0] = ISuperfluid.Operation({
-            operationType: BatchOperation
-                .OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE,
+            operationType: BatchOperation.OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE,
             target: address(superToken),
             data: abi.encode(bob, 100)
         });
-        bytes memory increaseFlowRateAllowanceCallData = abi.encodeCall(
-            IConstantFlowAgreementV1.increaseFlowRateAllowance,
-            (superToken, bob, 100, new bytes(0))
-        );
+        bytes memory increaseFlowRateAllowanceCallData =
+            abi.encodeCall(IConstantFlowAgreementV1.increaseFlowRateAllowance, (superToken, bob, 100, new bytes(0)));
         ops[1] = ISuperfluid.Operation({
-            operationType: BatchOperation
-                .OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT,
+            operationType: BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT,
             target: address(sf.cfa),
             data: abi.encode(increaseFlowRateAllowanceCallData, new bytes(0))
         });
@@ -193,11 +150,7 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         sf.host.batchCall(ops);
 
         uint256 aliceToBobAllowanceAfter = superToken.allowance(alice, bob);
-        (, , int96 flowRateAllowanceAfter) = sf.cfa.getFlowOperatorData(
-            superToken,
-            alice,
-            bob
-        );
+        (,, int96 flowRateAllowanceAfter) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
         assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore + 100);
         assertEq(flowRateAllowanceAfter, flowRateAllowanceBefore + 100);
     }

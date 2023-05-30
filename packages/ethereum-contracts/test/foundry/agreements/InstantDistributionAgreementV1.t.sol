@@ -3,14 +3,12 @@ pragma solidity 0.8.19;
 
 import "../FoundrySuperfluidTester.sol";
 import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
-import {
-    SuperTokenV1Library
-} from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
 contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
 
-    constructor () FoundrySuperfluidTester(3) { }
+    constructor() FoundrySuperfluidTester(3) { }
 
     function testAlice2Bob(uint32 indexId, uint32 units, uint32 newIndexValue) public {
         vm.assume(units > 0);
@@ -63,8 +61,8 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
     function testRevertMaxNumberOFSubscriptionsASubscriberCanHave() public {
         uint32 maxNumSubs = sf.ida.MAX_NUM_SUBSCRIPTIONS();
-        
-        for (uint256 i; i <maxNumSubs; ++i) {
+
+        for (uint256 i; i < maxNumSubs; ++i) {
             vm.startPrank(alice);
             superToken.createIndex(uint32(i));
             superToken.updateSubscriptionUnits(uint32(i), bob, 1);
@@ -75,7 +73,7 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             vm.stopPrank();
         }
 
-        (,uint32[] memory indexIds,) = superToken.listSubscriptions(bob);
+        (, uint32[] memory indexIds,) = superToken.listSubscriptions(bob);
         assertEq(indexIds.length, maxNumSubs, "IDAv1.t: subscriptions length mismatch");
 
         vm.startPrank(alice);

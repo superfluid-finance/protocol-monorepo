@@ -85,5 +85,5 @@ jobs:
           cd packages/ethereum-contracts
           npx truffle exec \
             --network ${{ github.event.inputs.network }} \
-            ops-scripts/tmp-trigger-token-transfer \
+            ops-scripts/tmp-trigger-token-transfer.js \
             : ${{ github.event.inputs.token_address }}

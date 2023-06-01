@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
+import "forge-std/Test.sol";
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { ISuperfluid, ISuperfluidToken, Superfluid } from "../superfluid/Superfluid.sol";
 import { TestGovernance } from "./TestGovernance.sol";
@@ -22,11 +23,12 @@ import { TOGA } from "./TOGA.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
+import { ERC1820RegistryCompiled } from "../libs/ERC1820RegistryCompiled.sol";
 
 /// @title Superfluid Framework Deployment Steps
 /// @author Superfluid
 /// @notice A contract which splits framework deployment into steps.
-contract SuperfluidFrameworkDeploymentSteps {
+contract SuperfluidFrameworkDeploymentSteps is Test {
     bool public constant DEFAULT_NON_UPGRADEABLE = true;
     bool public constant DEFAULT_APP_WHITELISTING_ENABLED = false;
     address public constant DEFAULT_REWARD_ADDRESS = address(69);
@@ -75,6 +77,10 @@ contract SuperfluidFrameworkDeploymentSteps {
     CFAv1Forwarder internal cfaV1Forwarder;
     BatchLiquidator internal batchLiquidator;
     TOGA internal toga;
+
+    function _deployERC1820() internal {
+        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
+    }
 
     function _deployGovernance(address newOwner) internal {
         // Deploy TestGovernance. Needs initialization later.
@@ -255,7 +261,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         batchLiquidator = new BatchLiquidator(address(host), address(cfaV1));
     }
 
-    function _deployTOGA(uint256 minBondDuration) internal {
+    function _deployTOGA(uint256 minBondDuration) internal virtual {
         toga = new TOGA(host, minBondDuration);
     }
 

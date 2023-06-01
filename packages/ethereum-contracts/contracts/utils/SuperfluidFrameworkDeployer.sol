@@ -53,7 +53,9 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
     error DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
     error DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();
     error DEPLOY_SUPER_TOKEN_CONTRACTS_REQUIRES_DEPLOY_CORE();
+    error DEPLOY_SUPER_TOKEN_REQUIRES_1820();
     error DEPLOY_SUPER_TOKEN_REQUIRES_DEPLOY_SUPER_TOKEN_CONTRACTS();
+    error DEPLOY_TOGA_REQUIRES_1820();
     error RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
 
     /// @notice Deploys the Superfluid Framework (Test)
@@ -81,6 +83,9 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
     }
 
     function _deployTestFramework(TestFrameworkConfigs memory configs) internal {
+        // Deploy ERC1820
+        _deployERC1820();
+
         // Deploy Host and Governance
         _deployCoreContracts(configs);
 
@@ -174,7 +179,12 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         string calldata _underlyingSymbol,
         uint8 _decimals,
         uint256 _mintLimit
-    ) external requiresSuperTokenFactory returns (TestToken underlyingToken, SuperToken superToken) {
+    )
+        external
+        requiresSuperTokenFactory
+        deploySuperTokenRequires1820
+        returns (TestToken underlyingToken, SuperToken superToken)
+    {
         underlyingToken =
             TokenDeployerLibrary.deployTestToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit);
 
@@ -192,14 +202,12 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         );
 
         // list underlying token in resolver
-        _handleResolverList(
-            true, string.concat(RESOLVER_BASE_TOKEN_KEY, underlyingToken.symbol()), address(underlyingToken)
-        );
+        string memory underlyingTokenKey = string.concat(RESOLVER_BASE_TOKEN_KEY, underlyingToken.symbol());
+        _handleResolverList(true, underlyingTokenKey, address(underlyingToken));
 
         // list super token in resolver
-        _handleResolverList(
-            true, string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, superToken.symbol()), address(superToken)
-        );
+        string memory superTokenKey = string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, superToken.symbol());
+        _handleResolverList(true, superTokenKey, address(superToken));
     }
 
     /// @notice Deploys a Native Asset Super Token and lists it in the resolver
@@ -210,6 +218,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
     function deployNativeAssetSuperToken(string calldata _name, string calldata _symbol)
         external
         requiresSuperTokenFactory
+        deploySuperTokenRequires1820
         returns (ISETH nativeAssetSuperToken)
     {
         SETHProxy sethProxy = TokenDeployerLibrary.deploySETHProxy();
@@ -217,9 +226,8 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         superTokenFactory.initializeCustomSuperToken(address(sethProxy));
         nativeAssetSuperToken.initialize(IERC20(address(0)), 18, _name, _symbol);
 
-        _handleResolverList(
-            true, string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, _symbol), address(nativeAssetSuperToken)
-        );
+        string memory superTokenKey = string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, _symbol);
+        _handleResolverList(true, superTokenKey, address(nativeAssetSuperToken));
     }
 
     /// @notice Deploys a Pure Super Token and lists it in the resolver
@@ -231,6 +239,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
     function deployPureSuperToken(string calldata _name, string calldata _symbol, uint256 _initialSupply)
         external
         requiresSuperTokenFactory
+        deploySuperTokenRequires1820
         returns (IPureSuperToken pureSuperToken)
     {
         PureSuperToken pureSuperTokenProxy = TokenDeployerLibrary.deployPureSuperToken();
@@ -280,10 +289,14 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         testResolver.addAdmin(msg.sender);
 
         _deployCFAv1Forwarder();
-        _deployTOGA(configs.minBondDuration);
+        // _deployTOGA(configs.minBondDuration);
 
         if (address(cfaV1) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();
         _deployBatchLiquidator();
+    }
+
+    function _deployTOGA(uint256 _minBondDuration) internal override deployTogaRequires1820 {
+        super._deployTOGA(_minBondDuration);
     }
 
     //// JS-Specific Functions ////
@@ -295,6 +308,14 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         _executeStep(step);
     }
 
+    function _is1820Deployed() internal view returns (bool) {
+        uint256 codeSize;
+        assembly {
+            codeSize := extcodesize(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24)
+        }
+        return codeSize != 0;
+    }
+
     modifier requiresResolver() {
         if (address(testResolver) == address(0)) revert RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
         _;
@@ -302,6 +323,16 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
 
     modifier requiresSuperTokenFactory() {
         if (address(superTokenFactory) == address(0)) revert DEPLOY_SUPER_TOKEN_REQUIRES_DEPLOY_SUPER_TOKEN_CONTRACTS();
+        _;
+    }
+
+    modifier deploySuperTokenRequires1820() {
+        if (!_is1820Deployed()) revert DEPLOY_SUPER_TOKEN_REQUIRES_1820();
+        _;
+    }
+
+    modifier deployTogaRequires1820() {
+        if (!_is1820Deployed()) revert DEPLOY_TOGA_REQUIRES_1820();
         _;
     }
 }

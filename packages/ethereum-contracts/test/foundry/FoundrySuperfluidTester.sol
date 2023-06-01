@@ -8,7 +8,6 @@ import {
     TestResolver,
     SuperfluidLoader
 } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
-import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
 import { CFAv1Library, IDAv1Library, Superfluid } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
@@ -45,9 +44,6 @@ contract FoundrySuperfluidTester is Test {
     uint256 private _expectedTotalSupply;
 
     constructor(uint8 nTesters) {
-        // etch erc1820
-        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
-
         // deploy SuperfluidFrameworkDeployer
         // which deploys in its constructor:
         // - TestGovernance

@@ -3,7 +3,6 @@ pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 
-import { ERC1820RegistryCompiled } from "../../../contracts/libs/ERC1820RegistryCompiled.sol";
 import { SlotsBitmapLibrary } from "../../../contracts/libs/SlotsBitmapLibrary.sol";
 import { ISuperToken } from "../../../contracts/interfaces/superfluid/ISuperToken.sol";
 import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
@@ -30,8 +29,6 @@ contract SlotsBitmapLibraryPropertyTest is Test {
 
     constructor() {
         vm.startPrank(subscriber);
-        // Deploy ERC1820
-        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
         sfDeployer = new SuperfluidFrameworkDeployer();
         sfDeployer.deployTestFramework();
         vm.stopPrank();

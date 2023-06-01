@@ -14,7 +14,6 @@ module.exports = {
         // we skip the coverage for these contracts because they are
         // only used for testing
         "utils/SuperfluidFrameworkDeployer",
-        "utils/SuperTokenDeployer",
         "utils/SuperfluidFrameworkDeploymentSteps",
         "utils/TestToken",
         "utils/TestResolver",

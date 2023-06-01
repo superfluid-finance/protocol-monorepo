@@ -8,7 +8,10 @@ import { ConstantFlowAgreementV1 } from "../agreements/ConstantFlowAgreementV1.s
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { InstantDistributionAgreementV1 } from "../agreements/InstantDistributionAgreementV1.sol";
-import { SuperTokenFactory } from "../superfluid/SuperTokenFactory.sol";
+import { ISuperTokenFactory, SuperTokenFactory, ERC20WithTokenInfo } from "../superfluid/SuperTokenFactory.sol";
+import { TestToken } from "./TestToken.sol";
+import { PureSuperToken } from "../tokens/PureSuperToken.sol";
+import { SETHProxy } from "../tokens/SETH.sol";
 import { ISuperToken, SuperToken } from "../superfluid/SuperToken.sol";
 import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
@@ -31,6 +34,9 @@ contract SuperfluidFrameworkDeploymentSteps {
     uint256 public constant DEFAULT_PATRICIAN_PERIOD = 30 minutes;
     uint256 public constant DEFAULT_TOGA_MIN_BOND_DURATION = 1 weeks;
     address[] public DEFAULT_TRUSTED_FORWARDERS = new address[](0);
+
+    string public constant RESOLVER_BASE_SUPER_TOKEN_KEY = "supertokens.test.";
+    string public constant RESOLVER_BASE_TOKEN_KEY = "tokens.test.";
 
     struct Framework {
         TestGovernance governance;
@@ -270,14 +276,6 @@ contract SuperfluidFrameworkDeploymentSteps {
         return sf;
     }
 
-    function getNumSteps() external pure returns (uint8) {
-        return _getNumSteps();
-    }
-
-    function executeStep(uint8 step) external {
-        _executeStep(step);
-    }
-
     /// @notice Transfer ownership of the TestGovernance contract
     /// @dev This function allows you to transfer ownership of TestGovernance when testing
     /// @param newOwner the new owner of the TestGovernance contract
@@ -489,5 +487,28 @@ library SuperfluidNFTLogicDeployerLibrary {
 library ProxyDeployerLibrary {
     function deployUUPSProxy() external returns (UUPSProxy) {
         return new UUPSProxy();
+    }
+}
+
+library TokenDeployerLibrary {
+    function deployTestToken(
+        string calldata _underlyingName,
+        string calldata _underlyingSymbol,
+        uint8 _decimals,
+        uint256 _mintLimit
+    ) external returns (TestToken) {
+        return new TestToken(
+            _underlyingName,
+            _underlyingSymbol,
+            _decimals,
+            _mintLimit);
+    }
+
+    function deploySETHProxy() external returns (SETHProxy) {
+        return new SETHProxy();
+    }
+
+    function deployPureSuperToken() external returns (PureSuperToken) {
+        return new PureSuperToken();
     }
 }

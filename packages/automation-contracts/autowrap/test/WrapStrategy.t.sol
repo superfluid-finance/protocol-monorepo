@@ -40,7 +40,7 @@ contract WrapStrategyTests is FoundrySuperfluidTester {
 
     function setUp() override public virtual {
         super.setUp();
-        nativeSuperToken = superTokenDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
+        nativeSuperToken = sfDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
         manager = new Manager(address(sf.cfa), MIN_LOWER, MIN_UPPER);
         wrapStrategy = new WrapStrategy(address(manager));
     }

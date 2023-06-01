@@ -32,6 +32,22 @@ jobs:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
       RESOLVER_ADMIN_TYPE: ${{ github.event.inputs.admin_type }}
 
+      DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
+      # network web3 providers
+      ETH_MAINNET_PROVIDER_URL: ${{ secrets.ETH_MAINNET_PROVIDER_URL }}
+      XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
+      POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
+      OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}
+      ARBITRUM_ONE_PROVIDER_URL: ${{ secrets.ARBITRUM_ONE_PROVIDER_URL }}
+      BSC_MAINNET_PROVIDER_URL: ${{ secrets.BSC_MAINNET_PROVIDER_URL }}
+      AVALANCHE_C_PROVIDER_URL: ${{ secrets.AVALANCHE_C_PROVIDER_URL }}
+
+      OPTIMISM_GOERLI_PROVIDER_URL: ${{ secrets.OPTIMISM_GOERLI_PROVIDER_URL }}
+      ARBITRUM_GOERLI_PROVIDER_URL: ${{ secrets.ARBITRUM_GOERLI_PROVIDER_URL }}
+      ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
+      POLYGON_MUMBAI_PROVIDER_URL: ${{ secrets.POLYGON_MUMBAI_PROVIDER_URL }}
+      AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
+
     defaults:
       run:
         shell: nix develop -c bash {0}
@@ -71,20 +87,3 @@ jobs:
             --network ${{ github.event.inputs.network }} \
             ops-scripts/tmp-trigger-token-transfer \
             : ${{ github.event.inputs.token_address }}
-
-        env:
-          DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}
-          # network web3 providers
-          ETH_MAINNET_PROVIDER_URL: ${{ secrets.ETH_MAINNET_PROVIDER_URL }}
-          XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
-          POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
-          OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}
-          ARBITRUM_ONE_PROVIDER_URL: ${{ secrets.ARBITRUM_ONE_PROVIDER_URL }}
-          BSC_MAINNET_PROVIDER_URL: ${{ secrets.BSC_MAINNET_PROVIDER_URL }}
-          AVALANCHE_C_PROVIDER_URL: ${{ secrets.AVALANCHE_C_PROVIDER_URL }}
-
-          OPTIMISM_GOERLI_PROVIDER_URL: ${{ secrets.OPTIMISM_GOERLI_PROVIDER_URL }}
-          ARBITRUM_GOERLI_PROVIDER_URL: ${{ secrets.ARBITRUM_GOERLI_PROVIDER_URL }}
-          ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
-          POLYGON_MUMBAI_PROVIDER_URL: ${{ secrets.POLYGON_MUMBAI_PROVIDER_URL }}
-          AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}

@@ -63,6 +63,7 @@ contract FoundrySuperfluidTester is Test {
         // - SuperfluidLoader
         // - CFAv1Forwarder
         sfDeployer = new SuperfluidFrameworkDeployer();
+        sfDeployer.deployTestFramework();
         sf = sfDeployer.getFramework();
 
         resolver = sf.resolver;

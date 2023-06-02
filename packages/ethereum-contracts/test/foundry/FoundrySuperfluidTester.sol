@@ -3,6 +3,7 @@ pragma solidity 0.8.19;
 
 import { Test } from "forge-std/Test.sol";
 
+import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
 import {
     SuperfluidFrameworkDeployer,
     TestResolver,
@@ -44,6 +45,9 @@ contract FoundrySuperfluidTester is Test {
     uint256 private _expectedTotalSupply;
 
     constructor(uint8 nTesters) {
+        // deploy ERC1820 registry
+        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
+
         // deploy SuperfluidFrameworkDeployer
         // which deploys in its constructor:
         // - TestGovernance

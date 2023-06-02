@@ -17,16 +17,13 @@ import { IPureSuperToken } from "../interfaces/tokens/IPureSuperToken.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
 import { SETHProxy } from "../tokens/SETH.sol";
 
-// TODO: deploy erc1820 contract if it doesn't exist
-// TODO: make sure we handle upgradeable vs non upgradeable cases
-
 /// @title Superfluid Framework Deployer
 /// @dev This deployer should only be used for local testing environments.
+/// NOTE: ERC1820 must be deployed as a prerequisite to using this contract.
 contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
     struct TestFrameworkConfigs {
         // Whether the protocol is not upgradeable
-        // @note we want this to be false eventually
-        // Default: true
+        // Default: false
         bool nonUpgradeable;
         // Whether app whitelisting is required
         // Default: false
@@ -60,6 +57,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
 
     /// @notice Deploys the Superfluid Framework (Test)
     /// @dev This uses default configurations for the framework.
+    /// NOTE: ERC1820 must be deployed as a prerequisite before calling this function.
     function deployTestFramework() external {
         // Default Configs
         TestFrameworkConfigs memory configs = TestFrameworkConfigs({
@@ -75,17 +73,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         _deployTestFramework(configs);
     }
 
-    /// @notice Deploys the Superfluid Framework (Test) w/ Configs
-    /// @dev This allows user-specified configuration for the framework.
-    /// @param configs the user-defined configuration for the framework
-    function deployTestFramework(TestFrameworkConfigs memory configs) external {
-        _deployTestFramework(configs);
-    }
-
     function _deployTestFramework(TestFrameworkConfigs memory configs) internal {
-        // Deploy ERC1820
-        _deployERC1820();
-
         // Deploy Host and Governance
         _deployCoreContracts(configs);
 
@@ -107,7 +95,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         _deploySuperTokenContracts();
 
         // Set SuperTokenFactory as the canonical contract
-        testGovernance.updateContracts(host, address(0), new address[](0), address(superTokenFactory));
+        _setSuperTokenFactoryInHost();
 
         // Deploy Resolver, SuperfluidLoaderV1, CFAv1Forwarder, TOGA, BatchLiquidator contracts
         _deployPeripheralContracts(configs);
@@ -289,7 +277,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         testResolver.addAdmin(msg.sender);
 
         _deployCFAv1Forwarder();
-        // _deployTOGA(configs.minBondDuration);
+        _deployTOGA(configs.minBondDuration);
 
         if (address(cfaV1) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();
         _deployBatchLiquidator();

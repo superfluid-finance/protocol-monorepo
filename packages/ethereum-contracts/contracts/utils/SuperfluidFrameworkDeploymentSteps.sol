@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
-import "forge-std/Test.sol";
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { ISuperfluid, ISuperfluidToken, Superfluid } from "../superfluid/Superfluid.sol";
 import { TestGovernance } from "./TestGovernance.sol";
@@ -23,13 +22,12 @@ import { TOGA } from "./TOGA.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
-import { ERC1820RegistryCompiled } from "../libs/ERC1820RegistryCompiled.sol";
 
 /// @title Superfluid Framework Deployment Steps
 /// @author Superfluid
 /// @notice A contract which splits framework deployment into steps.
-contract SuperfluidFrameworkDeploymentSteps is Test {
-    bool public constant DEFAULT_NON_UPGRADEABLE = true;
+contract SuperfluidFrameworkDeploymentSteps {
+    bool public constant DEFAULT_NON_UPGRADEABLE = false;
     bool public constant DEFAULT_APP_WHITELISTING_ENABLED = false;
     address public constant DEFAULT_REWARD_ADDRESS = address(69);
     uint256 public constant DEFAULT_LIQUIDATION_PERIOD = 4 hours;
@@ -61,7 +59,9 @@ contract SuperfluidFrameworkDeploymentSteps is Test {
 
     // Agreement Contracts
     ConstantFlowAgreementV1 internal cfaV1;
+    ConstantFlowAgreementV1 internal cfaV1Logic;
     InstantDistributionAgreementV1 internal idaV1;
+    InstantDistributionAgreementV1 internal idaV1Logic;
 
     // SuperToken-related Contracts
     ConstantOutflowNFT internal constantOutflowNFTLogic;
@@ -70,6 +70,7 @@ contract SuperfluidFrameworkDeploymentSteps is Test {
     ConstantInflowNFT internal constantInflowNFT;
     ISuperToken internal superTokenLogic;
     SuperTokenFactory internal superTokenFactory;
+    SuperTokenFactory internal superTokenFactoryLogic;
 
     // Peripheral Contracts
     TestResolver internal testResolver;
@@ -77,10 +78,6 @@ contract SuperfluidFrameworkDeploymentSteps is Test {
     CFAv1Forwarder internal cfaV1Forwarder;
     BatchLiquidator internal batchLiquidator;
     TOGA internal toga;
-
-    function _deployERC1820() internal {
-        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
-    }
 
     function _deployGovernance(address newOwner) internal {
         // Deploy TestGovernance. Needs initialization later.
@@ -120,12 +117,12 @@ contract SuperfluidFrameworkDeploymentSteps is Test {
     }
 
     function _deployCFAv1() internal {
-        cfaV1 =
+        cfaV1Logic =
             SuperfluidCFAv1DeployerLibrary.deployConstantFlowAgreementV1(host, IConstantFlowAgreementHook(address(0)));
     }
 
     function _deployIDAv1() internal {
-        idaV1 = SuperfluidIDAv1DeployerLibrary.deployInstantDistributionAgreementV1(host);
+        idaV1Logic = SuperfluidIDAv1DeployerLibrary.deployInstantDistributionAgreementV1(host);
     }
 
     function _deployAgreements() internal {
@@ -139,8 +136,13 @@ contract SuperfluidFrameworkDeploymentSteps is Test {
     }
 
     function _registerAgreements() internal {
-        testGovernance.registerAgreementClass(host, address(cfaV1));
-        testGovernance.registerAgreementClass(host, address(idaV1));
+        // we set the canonical address based on host.getAgreementClass() because
+        // in the upgradeable case, we create a new proxy contract in the function
+        // and set it as the canonical agreement.
+        testGovernance.registerAgreementClass(host, address(cfaV1Logic));
+        cfaV1 = ConstantFlowAgreementV1(address(host.getAgreementClass(cfaV1Logic.agreementType())));
+        testGovernance.registerAgreementClass(host, address(idaV1Logic));
+        idaV1 = InstantDistributionAgreementV1(address(host.getAgreementClass(idaV1Logic.agreementType())));
     }
 
     function _deployCFAv1Forwarder() internal {
@@ -197,9 +199,7 @@ contract SuperfluidFrameworkDeploymentSteps is Test {
 
     function _deploySuperTokenLogicAndSuperTokenFactoryAndUpdateContracts() internal {
         _deploySuperTokenLogicAndSuperTokenFactory();
-
-        // 'Update' code with Governance and register SuperTokenFactory with Superfluid
-        testGovernance.updateContracts(host, address(0), new address[](0), address(superTokenFactory));
+        _setSuperTokenFactoryInHost();
     }
 
     function _deploySuperTokenLogicAndSuperTokenFactory() internal {
@@ -217,15 +217,20 @@ contract SuperfluidFrameworkDeploymentSteps is Test {
     }
 
     function _deploySuperTokenFactory() internal {
-        SuperTokenFactory superTokenFactoryLogic = SuperfluidPeripheryDeployerLibrary.deploySuperTokenFactory(
+        superTokenFactoryLogic = SuperfluidPeripheryDeployerLibrary.deploySuperTokenFactory(
             host, superTokenLogic, constantOutflowNFTLogic, constantInflowNFTLogic
         );
+    }
 
-        // Deploy SuperTokenFactory proxy contract
-        UUPSProxy superTokenFactoryProxy = ProxyDeployerLibrary.deployUUPSProxy();
-        superTokenFactoryProxy.initializeProxy(address(superTokenFactoryLogic));
+    function _setSuperTokenFactoryInHost() internal {
+        // 'Update' code with Governance and register SuperTokenFactory with Superfluid
+        testGovernance.updateContracts(host, address(0), new address[](0), address(superTokenFactoryLogic));
 
-        superTokenFactory = SuperTokenFactory(address(superTokenFactoryProxy));
+
+        // we set the canonical address based on host.getSuperTokenFactory() because
+        // in the upgradeable case, we create a new proxy contract in the function
+        // and set it as the canonical supertokenfactory.
+        superTokenFactory = SuperTokenFactory(address(host.getSuperTokenFactory()));
     }
 
     function _deployTestResolver(address resolverAdmin) internal {

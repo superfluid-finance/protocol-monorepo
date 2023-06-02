@@ -18,7 +18,8 @@ case $TRUFFLE_NETWORK in
     polygon-mumbai | \
     optimism-goerli | \
     arbitrum-goerli | \
-    avalanche-fuji )
+    avalanche-fuji ) \
+    base-goerli )
         echo "$TRUFFLE_NETWORK is testnet"
         IS_TESTNET=1
         ;;

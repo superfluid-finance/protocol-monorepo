@@ -111,6 +111,12 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         42220: getConfigData(42220),
 
         //
+        // Base: https://base.org/
+        //
+        // base goerli testnet
+        84531: getConfigData(84531),
+
+        //
         // currently unsupported networks
         //
         69: {

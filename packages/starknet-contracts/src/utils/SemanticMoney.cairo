@@ -1,9 +1,10 @@
 %lang starknet
 
 from starkware.cairo.common.cairo_builtins import HashBuiltin
-from starkware.cairo.common.math import unsigned_div_rem
-from starkware.cairo.common.math_cmp import is_le, is_not_zero
+from starkware.cairo.common.math_cmp import is_le, is_not_zero, is_nn
 from starkware.cairo.common.bool import TRUE
+
+from src.utils.MathLib import MathLib
 
 struct BasicParticle {
     _settled_at: felt,
@@ -181,7 +182,7 @@ namespace SemanticMoney {
         alloc_locals;
         let zero_status = is_not_zero(a.total_units);
         if(zero_status == TRUE) {
-            let (quotient, _) = unsigned_div_rem(value, a.total_units);
+            let (quotient, _) = MathLib.div(value, a.total_units);
             let actualValue = quotient * a.total_units;
             let (newWrappedParticle, _) = shift1(actualValue/a.total_units, a._wrapped_particle);
             let newPoolIndex = PDPoolIndex(a.total_units, newWrappedParticle);
@@ -193,8 +194,9 @@ namespace SemanticMoney {
     func flow1_for_pool_index{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(a: PDPoolIndex, value: felt) -> (b:PDPoolIndex, flow_rate: felt) {
         alloc_locals;
         let zero_status = is_not_zero(a.total_units);
+        let is_not_negative = is_nn(value);
         if(zero_status == TRUE) {
-            let (quotient, _) = unsigned_div_rem(value, a.total_units);
+            let (quotient, _) = MathLib.div(value, a.total_units);
             let actualFlowRate = quotient * a.total_units;
             let (newWrappedParticle, _) = flow1(actualFlowRate/a.total_units, a._wrapped_particle);
             let newPoolIndex = PDPoolIndex(a.total_units, newWrappedParticle);
@@ -268,7 +270,7 @@ namespace SemanticMoney {
             let nr = settled_pool_member_mu.pdPoolIndex._wrapped_particle._flow_rate;
             let er = 0;
             let r_mul_otu = nr * old_total_units;
-            let (quotient, remainder) = unsigned_div_rem(r_mul_otu, new_total_units);
+            let (quotient, remainder) = MathLib.div(r_mul_otu, new_total_units);
             let nr = quotient;
             let er = remainder;
             let (wp_with_new_fr, _) = flow1(
@@ -327,7 +329,7 @@ namespace SemanticMoney {
     ) -> (m: BasicParticle, n: PDPoolIndex, actualFlowRate: felt) {
         alloc_locals;
         let mempty = BasicParticle(0, 0, 0);
-        let _flow_rate = b._wrapped_particle._flow_rate * b.total_units;
+        let (_flow_rate) = flow_rate_for_pool_index(b);
         let (a1, _, _) = flow2_pd(mempty, b, -_flow_rate, time);
         let (a2, n, actualFlowRate) = flow2_pd(mempty, b, _flow_rate + flow_rate, time);
         let (a_and_a1) = mappend(a, a1);

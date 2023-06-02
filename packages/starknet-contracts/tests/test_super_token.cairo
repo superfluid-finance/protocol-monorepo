@@ -43,7 +43,7 @@ func __setup__{syscall_ptr: felt*}() {
         declare("./src/pools/PoolImpl.cairo")
         context.test_account_address1 = deploy_contract("./src/utils/account/TestAccountImpl.cairo").contract_address
         context.test_account_address2 = deploy_contract("./src/utils/account/TestAccountImpl.cairo").contract_address
-        context.supertoken_contract_address = deploy_contract("./src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo", [1539470638642759296633, 21332, 18, 2961438646427897227265458639523639022044227144684039946536102553631442914981]).contract_address
+        context.supertoken_contract_address = deploy_contract("./src/tokens/ERC20x/SuperToken/SuperTokenImpl.cairo", [1539470638642759296633, 21332, 18, 3600748221340956293245257266815110776189556141392786261445796616585040799092]).contract_address
         context.MINT_AMOUNT = 1000000000000000000
         context.LIQUIDATION_PERIOD = 1000
     %}
@@ -84,9 +84,13 @@ func _disconnectPool{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check
     %{
         ids.supertoken_contract_address = context.supertoken_contract_address
     %}
-    %{ stop_prank_callable = start_prank(ids.by, ids.supertoken_contract_address) %}
-    ISuperfluidToken.disconnectPool(contract_address=supertoken_contract_address, to=pool);
-    %{ stop_prank_callable() %}
+    let (local calls: Call*) = alloc();
+    let disconnectPoolSelector = 28166688197912724383049707936424227093755017102822508708685168553869669375;
+    assert [calls] = Call(supertoken_contract_address, disconnectPoolSelector);
+
+    let (local calldata: felt*) = alloc();
+    assert [calldata] = pool;
+    ITestAccount.execute(contract_address=by, calls_len=1, calls=calls, calldata_len=1, calldata=calldata);
     return ();
 }
 
@@ -97,7 +101,7 @@ func _getAdjustmentFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, rang
     %}
     let (recipient,_,flowRate) = ISuperfluidToken.getPoolAdjustmentFlowInfo(contract_address=supertoken_contract_address, pool=pool);
     with_attr error_message("SuperToken Test: expectedRecipient fail") {
-            assert recipient = expectedRecipient;
+        assert recipient = expectedRecipient;
     }
     return (flowRate=flowRate);
 }
@@ -776,10 +780,12 @@ func test_1to2_distributeflow_bothconnected{
     tempvar supertoken_contract_address;
     tempvar test_account_address1;
     tempvar test_account_address2;
+    tempvar LIQUIDATION_PERIOD;
     %{   
         ids.supertoken_contract_address = context.supertoken_contract_address   
         ids.test_account_address1 = context.test_account_address1
         ids.test_account_address2 = context.test_account_address2
+        ids.LIQUIDATION_PERIOD = context.LIQUIDATION_PERIOD
     %}
 
     let (pdr1) = ISuperfluidPool.getConnectedFlowRate(contract_address=pool);
@@ -827,352 +833,784 @@ func test_1to2_distributeflow_bothconnected{
     let (b2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
     let (c2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address2);
     let (p2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+    let (k2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=supertoken_contract_address);
 
     %{ stop_warp() %}
+
+    assert a1 - a2 = k2 + (rrr1 * dt1) + (rrr2 * dt2);
+    assert a1 - a2 = k2 + (b2 - b1) + (c2 - c1) + (p2 - p1);
+
+    let (claimableForTestAccount1) = ISuperfluidPool.getClaimable(contract_address=pool, time=t2, memberAddress=test_account_address1);
+    let (claimableForTestAccount2) = ISuperfluidPool.getClaimable(contract_address=pool, time=t2, memberAddress=test_account_address2);
+
+    assert a1 - a2 - k2 = claimableForTestAccount1 + claimableForTestAccount2;
+    assert k2 = rrr2 * LIQUIDATION_PERIOD;
 
     return ();
 }
 
-// @external
-// func setup_distribute1to2flow_one_connected{
-//     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
-// }() {
-//     %{
-//         given(
-//             fr = strategy.integers(1, 1000000),
-//             u1 = strategy.integers(0, 1000000),
-//             u2 = strategy.integers(0, 1000000),
-//             account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
-//             account2 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
-//             account3 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
-//             t1 = strategy.integers(1, 100),
-//         )
-//     %}
-//     return ();
-// }
+@external
+func setup_1to2_distributeflow_oneconnected{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}() {
+    %{
+        given(
+            u1 = strategy.integers(0, 1000000),
+            u2 = strategy.integers(0, 1000000),
+            r = strategy.integers(1, 1000000),
+            dt = strategy.integers(1, 10000),
+            account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
+        )
+    %}
+    return ();
+}
 
-// @external
-// func test_distribute1to2flow_one_connected{
-//     syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
-// }(fr: felt, u1: felt, u2: felt, account1: felt, account2: felt, account3: felt, t1: felt) {
-//     alloc_locals;
-//     %{ assume(ids.account1 != ids.account2) %}
-//     %{ assume(ids.account2 != ids.account3) %}
-//     %{ assume(ids.account1 != ids.account3) %}
-//     let tu = u1 + u2;
-//     %{ assume(ids.tu > 0) %}
+@external
+func test_1to2_distributeflow_oneconnected{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}(u1: felt, u2: felt, r: felt, dt: felt, account1: felt) {
+    alloc_locals;
+    let tu = u1 + u2;
+    %{ assume(ids.tu > 0) %}
 
-// tempvar supertoken_contract_address;
-//     %{ ids.supertoken_contract_address = context.supertoken_contract_address %}
+    let (rr, _) = unsigned_div_rem(r, tu);
+    let rrr = rr * tu;
 
-// %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
-//     let (pool) = ISuperfluidToken.createPool(contract_address=supertoken_contract_address);
-//     %{ stop_prank_callable() %}
+    let (timestamp) = get_block_timestamp();
+    let t1 = timestamp + dt;
 
-// %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
-//     ISuperfluidPool.updateMember(contract_address=pool, memberAddress=account2, unit=u1);
-//     ISuperfluidPool.updateMember(contract_address=pool, memberAddress=account3, unit=u2);
-//     %{ stop_prank_callable() %}
+    tempvar supertoken_contract_address;
+    tempvar MINT_AMOUNT;
+    tempvar test_account_address1;
+    tempvar test_account_address2;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.MINT_AMOUNT = context.MINT_AMOUNT
+        ids.test_account_address1 = context.test_account_address1
+        ids.test_account_address2 = context.test_account_address2
+    %}
+    ISuperfluidToken.mint(contract_address=supertoken_contract_address, receiver=account1, amount=MINT_AMOUNT);
+    let (pool) = _createPool(account1);
 
-// %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
-//     ISuperfluidToken.distributeFlow(
-//         contract_address=supertoken_contract_address,
-//         senderAddress=account1,
-//         poolAddress=pool,
-//         flowId=0,
-//         reqFlowRate=fr,
-//     );
-//     %{ stop_prank_callable() %}
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    tempvar test_account_address2;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+        ids.test_account_address2 = context.test_account_address2
+    %}
+    let (a1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (c1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address2);
+    let (p1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
 
-// let (pendingUnits) = ISuperfluidPool.getPendingUnits(contract_address=pool);
-//     assert pendingUnits = u1 + u2;
+    %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
+    ISuperfluidPool.updateMember(contract_address=pool, memberAddress=test_account_address1, unit=u1);
+    ISuperfluidPool.updateMember(contract_address=pool, memberAddress=test_account_address2, unit=u2);
+    %{ stop_prank_callable() %}
 
-// %{ stop_prank_callable = start_prank(ids.account2, ids.supertoken_contract_address) %}
-//     ISuperfluidToken.connectPool(contract_address=supertoken_contract_address, to=pool);
-//     %{ stop_prank_callable() %}
+    %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
+    ISuperfluidToken.distributeFlow(
+        contract_address=supertoken_contract_address,
+        senderAddress=account1,
+        poolAddress=pool,
+        flowId=0,
+        reqFlowRate=r,
+    );
+    %{ stop_prank_callable() %}
 
-// let (pendingUnits) = ISuperfluidPool.getPendingUnits(contract_address=pool);
-//     assert pendingUnits = u2;
+    let (disconnectedUnits) = ISuperfluidPool.getDisconnectedUnits(contract_address=pool);
+    assert disconnectedUnits = tu;
 
-// let (timestamp) = get_block_timestamp();
-//     let t2 = t1 + timestamp;
+    tempvar test_account_address1;
+    %{
+        ids.test_account_address1 = context.test_account_address1
+    %}
+    _connectPool(pool, test_account_address1);
 
-// let tu = u1 + u2;
-//     let (quotient, _) = unsigned_div_rem(fr, tu);
-//     let actualFlowRate = quotient * tu;
-//     let flowRatePerUnit = actualFlowRate / tu;
+    let (disconnectedUnits) = ISuperfluidPool.getDisconnectedUnits(contract_address=pool);
+    assert disconnectedUnits = u2;
 
-// %{ stop_warp = warp(ids.t2, ids.supertoken_contract_address) %}
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    tempvar test_account_address2;
+    tempvar LIQUIDATION_PERIOD;
+    %{   
+        ids.supertoken_contract_address = context.supertoken_contract_address   
+        ids.test_account_address1 = context.test_account_address1
+        ids.test_account_address2 = context.test_account_address2
+        ids.LIQUIDATION_PERIOD = context.LIQUIDATION_PERIOD
+    %}
 
-// let (distributionFlowRate) = ISuperfluidPool.getDistributionFlowRate(contract_address=pool);
-//     let (pendingDistributionFlowRate) = ISuperfluidPool.getPendingDistributionFlowRate(
-//         contract_address=pool
-//     );
+    %{ stop_warp = warp(ids.t1, ids.supertoken_contract_address) %}
 
-// let (netFlowRateOfAccount1) = ISuperfluidToken.getNetFlowRate(
-//         contract_address=supertoken_contract_address, account=account1
-//     );
-//     let (netFlowRateOfAccount2) = ISuperfluidToken.getNetFlowRate(
-//         contract_address=supertoken_contract_address, account=account2
-//     );
-//     let (netFlowRateOfAccount3) = ISuperfluidToken.getNetFlowRate(
-//         contract_address=supertoken_contract_address, account=account3
-//     );
-//     assert distributionFlowRate = actualFlowRate;
-//     assert netFlowRateOfAccount1 = -actualFlowRate;
-//     assert netFlowRateOfAccount2 = flowRatePerUnit * u1;
-//     assert netFlowRateOfAccount3 = 0;
-//     assert netFlowRateOfAccount2 + pendingDistributionFlowRate = distributionFlowRate;
-//     assert netFlowRateOfAccount1 + netFlowRateOfAccount2 + pendingDistributionFlowRate = 0;
+    let (a2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (c2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address2);
+    let (p2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+    let (k2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=supertoken_contract_address);
 
-// let (balanceOfAccount1) = ISuperfluidToken.balanceOf(
-//         contract_address=supertoken_contract_address, account=account1
-//     );
-//     let (balanceOfAccount2) = ISuperfluidToken.balanceOf(
-//         contract_address=supertoken_contract_address, account=account2
-//     );
-//     let (balanceOfAccount3) = ISuperfluidToken.balanceOf(
-//         contract_address=supertoken_contract_address, account=account3
-//     );
-//     // The value should be -((t2 - timestamp) * actualFlowRate) but negative values are represented as 0
-//     assert balanceOfAccount1 = 0;
-//     assert balanceOfAccount2 = (t2 - timestamp) * netFlowRateOfAccount2;
-//     assert balanceOfAccount3 = 0;
-//     %{ stop_warp() %}
-//     return ();
-// }
+    assert a1 - a2 = k2 + (rrr * dt);
+    assert c2 - c1 = 0;
+    assert a1 - a2 = k2 + (b2 - b1) + (c2 - c1) + (p2 - p1);
 
-// @external
-// func setup_distribute2to1_flow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-//     %{
-//         given(
-//             fr = strategy.integers(1, 1000000),
-//             u1 = strategy.integers(0, 1000000),
-//             u2 = strategy.integers(0, 1000000),
-//             account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
-//             account2 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
-//             account3 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
-//             t1 = strategy.integers(1, 100),
-//         )
-//     %}
-//     return ();
-// }
+    let (claimableForTestAccount1) = ISuperfluidPool.getClaimable(contract_address=pool, time=t1, memberAddress=test_account_address1);
+    let (claimableForTestAccount2) = ISuperfluidPool.getClaimable(contract_address=pool, time=t1, memberAddress=test_account_address2);
 
-// @external
-// func test_distribute2to1_flow{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-//     fr: felt, u1: felt, u2: felt, account1: felt, account2: felt, account3: felt, t1: felt
-// ) {
-//     alloc_locals;
-//     %{ assume(ids.account1 != ids.account2) %}
-//     %{ assume(ids.account2 != ids.account3) %}
-//     %{ assume(ids.account1 != ids.account3) %}
-//     %{ assume(ids.u1 > 0) %}
-//     %{ assume(ids.u2 > 0) %}
+    assert a1 - a2 - k2 = claimableForTestAccount1 + claimableForTestAccount2;
+    assert k2 = rrr * LIQUIDATION_PERIOD;
 
-// tempvar supertoken_contract_address;
-//     %{ ids.supertoken_contract_address = context.supertoken_contract_address %}
+    let (ar2) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=account1);
+    let (br2) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (cr2) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=test_account_address2);
+    let (pr2) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=pool);
 
-// %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
-//     let (pool1) = ISuperfluidToken.createPool(contract_address=supertoken_contract_address);
-//     %{ stop_prank_callable() %}
+    let (cfr) = ISuperfluidPool.getConnectedFlowRate(contract_address=pool);
+    assert cfr = rrr;
+    assert ar2 = -rrr;
+    let (dfr) = ISuperfluidPool.getDisconnectedFlowRate(contract_address=pool);
+    assert br2 + dfr = rrr;
+    assert pr2 = dfr;
+    assert ar2 + br2 + cr2 + pr2 = 0;
+    return ();
+}
 
-// %{ stop_prank_callable = start_prank(ids.account2, ids.supertoken_contract_address) %}
-//     let (pool2) = ISuperfluidToken.createPool(contract_address=supertoken_contract_address);
-//     %{ stop_prank_callable() %}
+@external
+func setup_1to1_distributeflow_connect_disconnect_connect{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}() {
+    %{
+        given(
+            u = strategy.integers(1, 1000000),
+            r = strategy.integers(1, 1000000),
+            dt1 = strategy.integers(1, 10000),
+            dt2 = strategy.integers(1, 10000),
+            dt3 = strategy.integers(1, 10000),
+            dt4 = strategy.integers(1, 10000),
+            account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
+        )
+    %}
+    return ();
+}
 
-// %{ stop_prank_callable = start_prank(ids.account1, ids.pool1) %}
-//     ISuperfluidPool.updateMember(contract_address=pool1, memberAddress=account3, unit=u1);
-//     %{ stop_prank_callable() %}
+@external
+func test_1to1_distributeflow_connect_disconnect_connect{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(u: felt, r: felt, dt1: felt, dt2: felt, dt3: felt, dt4: felt, account1: felt) {
+    alloc_locals;
+    let tu = u;
 
-// %{ stop_prank_callable = start_prank(ids.account2, ids.pool2) %}
-//     ISuperfluidPool.updateMember(contract_address=pool2, memberAddress=account3, unit=u2);
-//     %{ stop_prank_callable() %}
+    let (rr, _) = unsigned_div_rem(r, tu);
+    let rrr = rr * tu;
 
-// %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
-//     ISuperfluidToken.distributeFlow(
-//         contract_address=supertoken_contract_address,
-//         senderAddress=account1,
-//         poolAddress=pool1,
-//         flowId=0,
-//         reqFlowRate=fr,
-//     );
-//     %{ stop_prank_callable() %}
+    tempvar supertoken_contract_address;
+    tempvar MINT_AMOUNT;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.MINT_AMOUNT = context.MINT_AMOUNT
+    %}
+    ISuperfluidToken.mint(contract_address=supertoken_contract_address, receiver=account1, amount=MINT_AMOUNT);
+    let (pool) = _createPool(account1);
 
-// %{ stop_prank_callable = start_prank(ids.account2, ids.supertoken_contract_address) %}
-//     ISuperfluidToken.distributeFlow(
-//         contract_address=supertoken_contract_address,
-//         senderAddress=account2,
-//         poolAddress=pool2,
-//         flowId=0,
-//         reqFlowRate=fr,
-//     );
-//     %{ stop_prank_callable() %}
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+    %}
+    let (a0) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b0) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (p0) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
 
-// let (pendingUnitsPool1) = ISuperfluidPool.getPendingUnits(contract_address=pool1);
-//     assert pendingUnitsPool1 = u1;
+    %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
+    ISuperfluidPool.updateMember(contract_address=pool, memberAddress=test_account_address1, unit=u);
+    %{ stop_prank_callable() %}
 
-// let (pendingUnitsPool2) = ISuperfluidPool.getPendingUnits(contract_address=pool2);
-//     assert pendingUnitsPool2 = u2;
+    %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
+    ISuperfluidToken.distributeFlow(
+        contract_address=supertoken_contract_address,
+        senderAddress=account1,
+        poolAddress=pool,
+        flowId=0,
+        reqFlowRate=r,
+    );
+    %{ stop_prank_callable() %}
 
-// %{ stop_prank_callable = start_prank(ids.account3, ids.supertoken_contract_address) %}
-//     ISuperfluidToken.connectPool(contract_address=supertoken_contract_address, to=pool1);
-//     %{ stop_prank_callable() %}
+    let (disconnectedUnits) = ISuperfluidPool.getDisconnectedUnits(contract_address=pool);
+    assert disconnectedUnits = u;
 
-// %{ stop_prank_callable = start_prank(ids.account3, ids.supertoken_contract_address) %}
-//     ISuperfluidToken.connectPool(contract_address=supertoken_contract_address, to=pool2);
-//     %{ stop_prank_callable() %}
+    let (timestamp) = get_block_timestamp();
+    let t0 = timestamp;
+    let t1 = t0 + dt1;
+    
+    // t1
+    %{ stop_warp = warp(ids.t1, ids.supertoken_contract_address) %}
+    tempvar test_account_address1;
+    %{
+        ids.test_account_address1 = context.test_account_address1
+    %}
+    _connectPool(pool, test_account_address1);
+    let (disconnectedUnits) = ISuperfluidPool.getDisconnectedUnits(contract_address=pool);
+    assert disconnectedUnits = 0;
 
-// let (pendingUnitsPool1) = ISuperfluidPool.getPendingUnits(contract_address=pool1);
-//     assert pendingUnitsPool1 = 0;
+    // t2
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    %{   
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+    %}
 
-// let (pendingUnitsPool2) = ISuperfluidPool.getPendingUnits(contract_address=pool2);
-//     assert pendingUnitsPool2 = 0;
+    let t2 = t1 + dt2;
+    %{ stop_warp = warp(ids.t2, ids.supertoken_contract_address) %}
+    _disconnectPool(pool, test_account_address1);
+    let (disconnectedUnits) = ISuperfluidPool.getDisconnectedUnits(contract_address=pool);
+    assert disconnectedUnits = u;
 
-// let (timestamp) = get_block_timestamp();
-//     let t2 = t1 + timestamp;
+    // t3
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    %{   
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+    %}
 
-// let (quotientForPool1, _) = unsigned_div_rem(fr, u1);
-//     let actualFlowRateForPool1 = quotientForPool1 * u1;
-//     let flowRatePerUnitForPool1 = actualFlowRateForPool1 / u1;
+    let t3 = t2 + dt3;
+    %{ stop_warp = warp(ids.t3, ids.supertoken_contract_address) %}
+    _connectPool(pool, test_account_address1);
+    let (disconnectedUnits) = ISuperfluidPool.getDisconnectedUnits(contract_address=pool);
+    assert disconnectedUnits = 0;
 
-// let (quotientForPool2, _) = unsigned_div_rem(fr, u2);
-//     let actualFlowRateForPool2 = quotientForPool2 * u2;
-//     let flowRatePerUnitForPool2 = actualFlowRateForPool2 / u2;
+    // t4
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    tempvar LIQUIDATION_PERIOD;
+    %{   
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+        ids.LIQUIDATION_PERIOD = context.LIQUIDATION_PERIOD
+    %}
 
-// %{ stop_warp = warp(ids.t2, ids.supertoken_contract_address) %}
-//     let (distributionFlowRateForPool1) = ISuperfluidPool.getDistributionFlowRate(
-//         contract_address=pool1
-//     );
-//     let (distributionFlowRateForPool2) = ISuperfluidPool.getDistributionFlowRate(
-//         contract_address=pool2
-//     );
+    let t4 = t3 + dt4;
+    %{ stop_warp = warp(ids.t4, ids.supertoken_contract_address) %}
 
-// let (pendingDistributionFlowRateForPool1) = ISuperfluidPool.getPendingDistributionFlowRate(
-//         contract_address=pool1
-//     );
-//     let (pendingDistributionFlowRateForPool2) = ISuperfluidPool.getPendingDistributionFlowRate(
-//         contract_address=pool2
-//     );
+    let (anr4) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=account1);
+    let (bnr4) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (pnr4) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=pool);
 
-// let (netFlowRateOfAccount1) = ISuperfluidToken.getNetFlowRate(
-//         contract_address=supertoken_contract_address, account=account1
-//     );
-//     let (netFlowRateOfAccount2) = ISuperfluidToken.getNetFlowRate(
-//         contract_address=supertoken_contract_address, account=account2
-//     );
-//     let (netFlowRateOfAccount3) = ISuperfluidToken.getNetFlowRate(
-//         contract_address=supertoken_contract_address, account=account3
-//     );
+    let (cfr) = ISuperfluidPool.getConnectedFlowRate(contract_address=pool);
 
-// assert distributionFlowRateForPool1 = actualFlowRateForPool1;
-//     assert distributionFlowRateForPool2 = actualFlowRateForPool2;
+    assert cfr = rrr;
+    assert anr4 = -rrr;
 
-// assert netFlowRateOfAccount1 = -actualFlowRateForPool1;
-//     assert netFlowRateOfAccount2 = -actualFlowRateForPool2;
+    let (dfr) = ISuperfluidPool.getDisconnectedFlowRate(contract_address=pool);
+    assert bnr4 + dfr = rrr;
+    assert pnr4 = dfr;
+    assert anr4 + bnr4 + pnr4 = 0;
 
-// assert netFlowRateOfAccount3 = (
-//         (flowRatePerUnitForPool1 * u1) + (flowRatePerUnitForPool2 * u2)
-//     );
+    let (a4) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b4) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (p4) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+    let (k4) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=supertoken_contract_address);
 
-// assert netFlowRateOfAccount1 + netFlowRateOfAccount2 + netFlowRateOfAccount3 = 0;
+    assert a0 - a4 = k4 + (rrr * (dt1 + dt2 + dt3 + dt4));
+    assert a0 - a4 = k4 + (b4 - b0) + (p4 - p0);
+    assert k4 = rrr * LIQUIDATION_PERIOD;
 
-// let (balanceOfAccount1) = ISuperfluidToken.balanceOf(
-//         contract_address=supertoken_contract_address, account=account1
-//     );
-//     let (balanceOfAccount2) = ISuperfluidToken.balanceOf(
-//         contract_address=supertoken_contract_address, account=account2
-//     );
-//     let (balanceOfAccount3) = ISuperfluidToken.balanceOf(
-//         contract_address=supertoken_contract_address, account=account3
-//     );
-//     // The value should be -((t2 - timestamp) * actualFlowRate) but negative values are represented as 0
-//     assert balanceOfAccount1 = 0;
-//     assert balanceOfAccount2 = 0;
-//     assert balanceOfAccount3 = (t2 - timestamp) * netFlowRateOfAccount3;
-//     %{ stop_warp() %}
-//     return ();
-// }
+    return ();
+}
 
-// @external
-// func setup_pool_multiple_claims{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() {
-//     %{
-//         given(
-//             fr = strategy.integers(1, 1000000),
-//             u1 = strategy.integers(0, 1000000),
-//             account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
-//             account2 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
-//             t1 = strategy.integers(1, 1000),
-//         )
-//     %}
-//     return ();
-// }
+@external
+func setup_1to2_distributeflow_unit_updates{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}() {
+    %{
+        given(
+            u1 = strategy.integers(0, 1000000),
+            u2 = strategy.integers(0, 1000000),
+            r1 = strategy.integers(1, 100),
+            r2 = strategy.integers(1000, 1000000),
+            dt1 = strategy.integers(1, 10000),
+            dt2 = strategy.integers(1, 10000),
+            account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
+        )
+    %}
+    return ();
+}
 
-// @external
-// func test_pool_multiple_claims{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-//     fr: felt, u1: felt, account1: felt, account2: felt, t1: felt
-// ) {
-//     alloc_locals;
-//     %{ assume(ids.account1 != ids.account2) %}
-//     %{ assume(ids.u1 > 0) %}
+@external
+func test_1to2_distributeflow_unit_updates{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(u1: felt, u2: felt, r1: felt, r2: felt, dt1: felt, dt2: felt, account1: felt) {
+    alloc_locals;
+    let tu = u1 + u2;
+    %{ assume(ids.tu > 0) %}
 
-// tempvar supertoken_contract_address;
-//     %{ ids.supertoken_contract_address = context.supertoken_contract_address %}
+    let (rr1, _) = unsigned_div_rem(r1, tu);
+    let rrr1 = rr1 * tu;
+    let (rr2, _) = unsigned_div_rem(r2, tu);
+    let rrr2 = rr2 * tu;
 
-// %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
-//     let (pool) = ISuperfluidToken.createPool(contract_address=supertoken_contract_address);
-//     %{ stop_prank_callable() %}
+    tempvar supertoken_contract_address;
+    tempvar MINT_AMOUNT;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.MINT_AMOUNT = context.MINT_AMOUNT
+    %}
+    ISuperfluidToken.mint(contract_address=supertoken_contract_address, receiver=account1, amount=MINT_AMOUNT);
+    let (pool) = _createPool(account1);
+    tempvar test_account_address1;
+    %{
+        ids.test_account_address1 = context.test_account_address1
+    %}
+    _connectPool(pool, test_account_address1);
 
-// %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
-//     ISuperfluidPool.updateMember(contract_address=pool, memberAddress=account2, unit=u1);
-//     %{ stop_prank_callable() %}
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+    %}
 
-// %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
-//     ISuperfluidToken.distributeFlow(
-//         contract_address=supertoken_contract_address,
-//         senderAddress=account1,
-//         poolAddress=pool,
-//         flowId=0,
-//         reqFlowRate=fr,
-//     );
-//     %{ stop_prank_callable() %}
+    %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
+    ISuperfluidPool.updateMember(contract_address=pool, memberAddress=test_account_address1, unit=u1);
+    %{ stop_prank_callable() %}
 
-// %{ stop_prank_callable = start_prank(ids.account2, ids.supertoken_contract_address) %}
-//     ISuperfluidToken.connectPool(contract_address=supertoken_contract_address, to=pool);
-//     %{ stop_prank_callable() %}
+    %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
+    ISuperfluidToken.distributeFlow(
+        contract_address=supertoken_contract_address,
+        senderAddress=account1,
+        poolAddress=pool,
+        flowId=0,
+        reqFlowRate=r1,
+    );
+    %{ stop_prank_callable() %}
 
-// let (timestamp) = get_block_timestamp();
-//     let t2 = t1 + timestamp;
+    let (timestamp) = get_block_timestamp();
+    let t1 = timestamp + dt1;
 
-// let (quotient, _) = unsigned_div_rem(fr, u1);
-//     let actualFlowRate = quotient * u1;
-//     let flowRatePerUnit = actualFlowRate / u1;
+    %{ stop_warp = warp(ids.t1, ids.supertoken_contract_address) %}
 
-// let (balanceOfAccount1) = ISuperfluidToken.balanceOf(
-//         contract_address=supertoken_contract_address, account=account1
-//     );
-//     assert balanceOfAccount1 = 0;
-//     let (balanceOfAccount2) = ISuperfluidToken.balanceOf(
-//         contract_address=supertoken_contract_address, account=account2
-//     );
-//     assert balanceOfAccount2 = 0;
+    %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
+    ISuperfluidPool.updateMember(contract_address=pool, memberAddress=test_account_address1, unit=u2);
+    %{ stop_prank_callable() %}
 
-// %{ stop_warp = warp(ids.t2, ids.pool) %}
-//     let (claimable) = ISuperfluidPool.getClaimable(
-//         contract_address=pool, time=t2, memberAddress=account2
-//     );
-//     assert claimable = (flowRatePerUnit * u1) * (t2 - timestamp);
-//     %{ stop_prank_callable = start_prank(ids.account2, ids.pool) %}
-//     ISuperfluidPool.claimAll(contract_address=pool);
-//     let (claimable) = ISuperfluidPool.getClaimable(
-//         contract_address=pool, time=t2, memberAddress=account2
-//     );
-//     assert claimable = 0;
-//     ISuperfluidPool.claimAll(contract_address=pool);
-//     let (claimable) = ISuperfluidPool.getClaimable(
-//         contract_address=pool, time=t2, memberAddress=account2
-//     );
-//     assert claimable = 0;
-//     %{ stop_prank_callable() %}
-//     %{ stop_warp() %}
-//     return ();
-// }
+    %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
+    ISuperfluidToken.distributeFlow(
+        contract_address=supertoken_contract_address,
+        senderAddress=account1,
+        poolAddress=pool,
+        flowId=0,
+        reqFlowRate=r2,
+    );
+    %{ stop_prank_callable() %}
+
+    // let t2 = t1 + dt2;
+    // %{ stop_warp = warp(ids.t2, ids.supertoken_contract_address) %}
+
+    // %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
+    // ISuperfluidToken.distributeFlow(
+    //     contract_address=supertoken_contract_address,
+    //     senderAddress=account1,
+    //     poolAddress=pool,
+    //     flowId=0,
+    //     reqFlowRate=1000,
+    // );
+    // %{ stop_prank_callable() %}
+
+    return ();
+}
+
+@external
+func setup_2to1_distributeflow{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}() {
+    %{
+        given(
+            u = strategy.integers(1, 1000000),
+            r1 = strategy.integers(1, 1000000),
+            r2 = strategy.integers(1, 1000000),
+            dt = strategy.integers(1, 10000),
+            account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
+            account2 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
+        )
+    %}
+    return ();
+}
+
+@external
+func test_2to1_distributeflow{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(u: felt, r1: felt, r2: felt, dt: felt, account1: felt, account2: felt) {
+    alloc_locals;
+    %{ assume(ids.account1 != ids.account2) %}
+    let tu = u;
+    let (rr1, _) = unsigned_div_rem(r1, tu);
+    let rrr1 = rr1 * tu;
+    let (rr2, _) = unsigned_div_rem(r2, tu);
+    let rrr2 = rr2 * tu;
+
+    tempvar supertoken_contract_address;
+    tempvar MINT_AMOUNT;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.MINT_AMOUNT = context.MINT_AMOUNT
+    %}
+    ISuperfluidToken.mint(contract_address=supertoken_contract_address, receiver=account1, amount=MINT_AMOUNT);
+    ISuperfluidToken.mint(contract_address=supertoken_contract_address, receiver=account2, amount=MINT_AMOUNT);
+
+    let (pool) = _createPool(account1);
+
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+    %}
+
+    let (a1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account2);
+    let (c1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (p1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+
+    %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
+    ISuperfluidPool.updateMember(contract_address=pool, memberAddress=test_account_address1, unit=u);
+    %{ stop_prank_callable() %}
+
+    %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
+    let (_,ar,_) = ISuperfluidToken.distributeFlow(contract_address=supertoken_contract_address, senderAddress=account1, poolAddress=pool, flowId=0, reqFlowRate=r1);
+    let (k1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=supertoken_contract_address);
+    %{ stop_prank_callable() %}
+
+    %{ stop_prank_callable = start_prank(ids.account2, ids.supertoken_contract_address) %}
+    let (_,br,pdr) = ISuperfluidToken.distributeFlow(contract_address=supertoken_contract_address, senderAddress=account2, poolAddress=pool, flowId=0, reqFlowRate=r2);
+    let (newBalance) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=supertoken_contract_address);
+    let k2 = newBalance - k1;
+    %{ stop_prank_callable() %}
+
+    let (disconnectedUnits) = ISuperfluidPool.getDisconnectedUnits(contract_address=pool);
+    assert disconnectedUnits = tu;
+
+    _connectPool(pool, test_account_address1);
+
+    let (disconnectedUnits) = ISuperfluidPool.getDisconnectedUnits(contract_address=pool);
+    assert disconnectedUnits = 0;
+
+    let (timestamp) = get_block_timestamp();
+    let t1 = timestamp + dt;
+
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    tempvar LIQUIDATION_PERIOD;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+        ids.LIQUIDATION_PERIOD = context.LIQUIDATION_PERIOD
+    %}
+
+    %{ stop_warp = warp(ids.t1, ids.supertoken_contract_address) %}
+
+    let (ar2) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=account1);
+    let (br2) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=account2);
+    let (cr2) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (pr2) = ISuperfluidToken.getNetFlowRate(contract_address=supertoken_contract_address, account=pool);
+    let (cfr2) = ISuperfluidPool.getConnectedFlowRate(contract_address=pool);
+    let (dfr2) = ISuperfluidPool.getDisconnectedFlowRate(contract_address=pool);
+
+    assert cfr2 = rrr1 + rrr2;
+    assert dfr2 = 0;
+    assert ar2 = -rrr1;
+    assert br2 = -rrr2;
+    assert pr2 = 0;
+    assert ar2 + br2 + cr2 + pr2 = 0;
+    assert cfr2 = pdr;
+    assert -ar2 = ar;
+    assert -br2 = br;
+
+    let (a2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account2);
+    let (c2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (p2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+
+    assert a1 - a2 = k1 + (rrr1 * dt);
+    assert b1 - b2 = k2 + (rrr2 * dt);
+    assert (a1 - a2) + (b1 - b2) = k1 + k2 + (c2 - c1) + (p2 - p1);
+
+    let (claimableForTestAccount) = ISuperfluidPool.getClaimable(contract_address=pool, time=t1, memberAddress=test_account_address1);
+
+    assert (a1 - a2) + (b1 - b2) - k1 - k2 = claimableForTestAccount;
+    assert k1 = rrr1 * LIQUIDATION_PERIOD;
+    assert k2 = rrr2 * LIQUIDATION_PERIOD;
+
+    return ();
+}
+
+@external
+func setup_pool_distributeflow_claim_connected_pool{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}() {
+    %{
+        given(
+            u = strategy.integers(1, 1000000),
+            r = strategy.integers(1, 1000000),
+            dt1 = strategy.integers(1, 10000),
+            dt2 = strategy.integers(1, 10000),
+            account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
+        )
+    %}
+    return ();
+}
+
+@external
+func test_pool_distributeflow_claim_connected_pool{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(u: felt, r: felt, dt1: felt, dt2: felt, account1: felt) {
+    alloc_locals;
+    let tu = u;
+    let (rr, _) = unsigned_div_rem(r, tu);
+    let rrr = rr * tu;
+    let (t0) = get_block_timestamp();
+    let t1 = t0 + dt1;
+    let t2 = t1 + dt2;
+
+    tempvar supertoken_contract_address;
+    tempvar MINT_AMOUNT;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.MINT_AMOUNT = context.MINT_AMOUNT
+    %}
+    ISuperfluidToken.mint(contract_address=supertoken_contract_address, receiver=account1, amount=MINT_AMOUNT);
+
+    let (pool) = _createPool(account1);
+
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+    %}
+
+    let (a0) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b0) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (p0) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+
+    %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
+    ISuperfluidPool.updateMember(contract_address=pool, memberAddress=test_account_address1, unit=u);
+    %{ stop_prank_callable() %}
+
+    %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
+    ISuperfluidToken.distributeFlow(contract_address=supertoken_contract_address, senderAddress=account1, poolAddress=pool, flowId=0, reqFlowRate=r);
+    %{ stop_prank_callable() %}
+
+    _connectPool(pool, test_account_address1);
+
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+    %}
+
+    %{ stop_warp = warp(ids.t1, ids.supertoken_contract_address) %}
+    
+    %{ stop_prank_callable = start_prank(ids.test_account_address1, ids.pool) %}
+    %{ stop_warp = warp(ids.t1, ids.pool) %}
+    ISuperfluidPool.claimAll(contract_address=pool);
+    %{ stop_warp() %}
+    %{ stop_prank_callable() %}
+
+    let (claimableForTestAccount) = ISuperfluidPool.getClaimable(contract_address=pool, time=t1, memberAddress=test_account_address1);
+
+    assert claimableForTestAccount = 0;
+
+    %{ stop_warp = warp(ids.t2, ids.supertoken_contract_address) %}
+
+    let (a2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (p2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+    let (k2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=supertoken_contract_address);
+
+    assert a0 - a2 = k2 + (rrr * (dt1 + dt2));
+    assert a0 - a2 = k2 + (b2 - b0) + (p2 - p0);
+
+    return ();
+}
+
+@external
+func setup_pool_distributeflow_update_unit{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}() {
+    %{
+        given(
+            u1 = strategy.integers(1, 1000000),
+            u2 = strategy.integers(1, 1000000),
+            r = strategy.integers(1, 1000000),
+            dt1 = strategy.integers(1, 10000),
+            dt2 = strategy.integers(1, 10000),
+            account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
+        )
+    %}
+    return ();
+}
+
+@external
+func test_pool_distributeflow_update_unit{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(u1: felt, u2: felt, r: felt, dt1: felt, dt2: felt, account1: felt) {
+    alloc_locals;
+    let (rr1, _) = unsigned_div_rem(r, u1);
+    let rrr1 = rr1 * u1;
+    let (rr2, _) = unsigned_div_rem(rrr1, u2);
+    let rrr2 = rr2 * u2;
+    let (t0) = get_block_timestamp();
+    let t1 = t0 + dt1;
+    let t2 = t1 + dt2;
+
+    tempvar supertoken_contract_address;
+    tempvar MINT_AMOUNT;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.MINT_AMOUNT = context.MINT_AMOUNT
+    %}
+    ISuperfluidToken.mint(contract_address=supertoken_contract_address, receiver=account1, amount=MINT_AMOUNT);
+
+    let (pool) = _createPool(account1);
+
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+    %}
+
+    let (a0) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b0) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (p0) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+
+    %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
+    ISuperfluidPool.updateMember(contract_address=pool, memberAddress=test_account_address1, unit=u1);
+    %{ stop_prank_callable() %}
+
+    %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
+    ISuperfluidToken.distributeFlow(contract_address=supertoken_contract_address, senderAddress=account1, poolAddress=pool, flowId=0, reqFlowRate=r);
+    %{ stop_prank_callable() %}
+
+    %{ stop_warp = warp(ids.t1, ids.supertoken_contract_address) %}
+
+    %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
+    %{ stop_warp = warp(ids.t1, ids.pool) %}
+    ISuperfluidPool.updateMember(contract_address=pool, memberAddress=test_account_address1, unit=u2);
+    %{ stop_warp() %}
+    %{ stop_prank_callable() %}
+
+    let (claimableForTestAccount) = ISuperfluidPool.getClaimable(contract_address=pool, time=t1, memberAddress=test_account_address1);
+    assert claimableForTestAccount = 0;
+
+    %{ stop_warp = warp(ids.t2, ids.supertoken_contract_address) %}
+
+    let (a2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (p2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+    let (k2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=supertoken_contract_address);
+
+    assert a0 - a2 = k2 + (rrr1 * dt1) + (rrr2 * dt2);
+    assert a0 - a2 = k2 + (b2 - b0) + (p2 - p0);
+
+    return ();
+}
+
+@external
+func setup_pool_multiple_claims{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
+}() {
+    %{
+        given(
+            u = strategy.integers(1, 1000000),
+            r = strategy.integers(1, 1000000),
+            dt1 = strategy.integers(1, 10000),
+            dt2 = strategy.integers(1, 10000),
+            account1 = strategy.integers(1, 100000000000000000000000000000000000000000000000000000000000000000000000),
+        )
+    %}
+    return ();
+}
+
+@external
+func test_pool_multiple_claims{
+    syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(u: felt, r: felt, dt1: felt, dt2: felt, account1: felt) {
+    alloc_locals;
+    let (rr, _) = unsigned_div_rem(r, u);
+    let rrr = rr * u;
+    let (t0) = get_block_timestamp();
+    let t1 = t0 + dt1;
+    let t2 = t1 + dt2;
+
+    tempvar supertoken_contract_address;
+    tempvar MINT_AMOUNT;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.MINT_AMOUNT = context.MINT_AMOUNT
+    %}
+    ISuperfluidToken.mint(contract_address=supertoken_contract_address, receiver=account1, amount=MINT_AMOUNT);
+
+    let (pool) = _createPool(account1);
+
+    tempvar supertoken_contract_address;
+    tempvar test_account_address1;
+    %{
+        ids.supertoken_contract_address = context.supertoken_contract_address
+        ids.test_account_address1 = context.test_account_address1
+    %}
+
+    let (a1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (p1) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+
+    %{ stop_prank_callable = start_prank(ids.account1, ids.pool) %}
+    ISuperfluidPool.updateMember(contract_address=pool, memberAddress=test_account_address1, unit=u);
+    %{ stop_prank_callable() %}
+
+    %{ stop_prank_callable = start_prank(ids.account1, ids.supertoken_contract_address) %}
+    ISuperfluidToken.distributeFlow(contract_address=supertoken_contract_address, senderAddress=account1, poolAddress=pool, flowId=0, reqFlowRate=r);
+    %{ stop_prank_callable() %}
+
+    %{ stop_warp = warp(ids.t1, ids.supertoken_contract_address) %}
+
+    let (a2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (k2) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=supertoken_contract_address);
+
+    let (claimableForAccount1) = ISuperfluidPool.getClaimable(contract_address=pool, time=t1, memberAddress=account1);
+    let (claimableForTestAccount) = ISuperfluidPool.getClaimable(contract_address=pool, time=t1, memberAddress=test_account_address1);
+
+    assert a1 - a2 - k2 = claimableForAccount1 + claimableForTestAccount;
+    assert b2 = b1;
+
+    %{ stop_prank_callable = start_prank(ids.test_account_address1, ids.pool) %}
+    %{ stop_warp = warp(ids.t1, ids.pool) %}
+
+    ISuperfluidPool.claimAll(contract_address=pool);
+
+    let (claimableForTestAccount) = ISuperfluidPool.getClaimable(contract_address=pool, time=t1, memberAddress=test_account_address1);
+    assert claimableForTestAccount = 0;
+
+    ISuperfluidPool.claimAll(contract_address=pool);
+
+    let (claimableForTestAccount) = ISuperfluidPool.getClaimable(contract_address=pool, time=t1, memberAddress=test_account_address1);
+    assert claimableForTestAccount = 0;
+
+    %{ stop_warp() %}
+    %{ stop_prank_callable() %}
+
+    %{ stop_warp = warp(ids.t2, ids.supertoken_contract_address) %}
+
+    let (a3) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=account1);
+    let (b3) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=test_account_address1);
+    let (p3) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=pool);
+    let (k3) = ISuperfluidToken.realtimeBalanceNow(contract_address=supertoken_contract_address, account=supertoken_contract_address);
+
+    let (claimableForTestAccount) = ISuperfluidPool.getClaimable(contract_address=pool, time=t2, memberAddress=test_account_address1);
+
+    assert k2 = k3;
+    assert a2 - a3 = claimableForTestAccount;
+    assert p3 = claimableForTestAccount;
+
+    assert a1 - a3 = k2 + (rrr * (dt1 + dt2));
+    assert a1 - a3 = k2 + (b3 - b1) + (p3 - p1);
+
+    return ();
+}

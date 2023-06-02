@@ -314,13 +314,13 @@ namespace SuperToken {
 
     func getDistributionFlowHash{
         syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr
-    }(_from: felt, to: felt, flow_id: felt) -> (hash: felt) {
+    }(_from: felt, to: felt, flowId: felt) -> (hash: felt) {
         let (hash_sender_and_poolAddress) = hash2{hash_ptr=pedersen_ptr}(_from, to);
         let (hash_sender_and_poolAddress_and_flow_type) = hash2{hash_ptr=pedersen_ptr}(
             hash_sender_and_poolAddress, DISTRIBUTE_FLOW_AS_FELT
         );
         let (flowHash) = hash2{hash_ptr=pedersen_ptr}(
-            hash_sender_and_poolAddress_and_flow_type, flow_id
+            hash_sender_and_poolAddress_and_flow_type, flowId
         );
         return (hash=flowHash);
     }
@@ -534,10 +534,10 @@ namespace SuperToken {
         let (oldDistributionFlowRate) = SemanticMoney.flow_rate_for_pool_index(pdIndex);
         let shiftFlowRate = reqFlowRate - oldFlowRate;
 
+
         // to readjust, include the current adjustment flow rate here
-        let (newUIndexForPool, newPdIndex, newDistributionFlowRate) = SemanticMoney.shiftFlow_pd(
-            uIndexForPool, pdIndex, shiftFlowRate + currentAdjustmentFlowRate, time
-        );
+        let (newUIndexForPool, newPdIndex, newDistributionFlowRate) = SemanticMoney.shiftFlow_pd(uIndexForPool, pdIndex, shiftFlowRate + currentAdjustmentFlowRate, time);
+
         with_attr error_message("SuperToken: distribution flow rate cannot be negative") {
             assert_nn(newDistributionFlowRate);
         }
@@ -572,7 +572,8 @@ namespace SuperToken {
     ) {
         alloc_locals;
         let (caller) = get_caller_address();
-        let (connected) = SuperToken_connection_map.read(caller, to);
+        let (poolIndex) = SuperToken_pool_indexes.read(to);
+        let (connected) = SuperToken_connection_map.read(caller, poolIndex);
         with_attr error_message("SuperToken: already connected") {
             assert connected = FALSE;
         }
@@ -584,7 +585,8 @@ namespace SuperToken {
     ) -> (success: felt) {
         alloc_locals;
         let (caller) = get_caller_address();
-        let (connected) = SuperToken_connection_map.read(caller, to);
+        let (poolIndex) = SuperToken_pool_indexes.read(to);
+        let (connected) = SuperToken_connection_map.read(caller, poolIndex);
         with_attr error_message("SuperToken: no connections") {
             assert connected = TRUE;
         }
@@ -779,10 +781,10 @@ namespace SuperToken {
     //// Others
     ////////////////////////////////////////////////////////////////////////////////////
 
-    func _setFlowInfo{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(flow_hash: felt, _from: felt, to: felt, newflowRate: felt, flowRateDelta: felt){
-        let (flowData) = SuperToken_flow_data.read(flow_hash);
+    func _setFlowInfo{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(flowHash: felt, _from: felt, to: felt, newflowRate: felt, flowRateDelta: felt){
+        let (flowData) = SuperToken_flow_data.read(flowHash);
         let newFlowData = FlowData(flowData._from, flowData.to, newflowRate, flowData.buffer);
-        SuperToken_flow_data.write(flow_hash, newFlowData);
+        SuperToken_flow_data.write(flowHash, newFlowData);
 
         let (senderAccountData) = SuperToken_account_data.read(_from);
         let newSenderAccountData = AccountData(senderAccountData.totalBuffer, senderAccountData.totalInflowRate, senderAccountData.totalOutflowRate + flowRateDelta);

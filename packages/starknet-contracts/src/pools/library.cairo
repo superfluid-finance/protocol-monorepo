@@ -98,12 +98,10 @@ namespace Pool {
         return (flow_rate=flow_rate);
     }
 
-    // REVIEW
-    func getConnectedFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(
-        ) -> (flowRate: felt) {
+    func getConnectedFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}() -> (flowRate: felt) {
         let (index) = Pool_index.read();
-        let (flowRate) = SemanticMoney.flow_rate_per_unit(index);
-        return (flowRate=flowRate * index.total_units);
+        let (flowRate) = SemanticMoney.flow_rate_for_pool_index(index);
+        return (flowRate=flowRate);
     }
 
     func getDisconnectedFlowRate{syscall_ptr: felt*, pedersen_ptr: HashBuiltin*, range_check_ptr}(

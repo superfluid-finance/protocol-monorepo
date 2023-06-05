@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity >=0.8.4;
 
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
 
 /**
  * @dev The interface for any super token pool regardless of the distribution schemes.
  */
-interface ISuperfluidPool {
+interface ISuperfluidPool is IERC20 {
     // Custom Errors
 
     error SUPERFLUID_POOL_INVALID_TIME();       // 0x83c35016
@@ -74,4 +75,16 @@ interface ISuperfluidPool {
 
     /// @notice Claims the claimable balance for `msg.sender` at `block.timestamp`
     function claimAll() external returns (bool);
+
+    /// @notice Increases the allowance of `spender` by `addedValue`
+    /// @param spender The address of the spender
+    /// @param addedValue The amount to increase the allowance by
+    /// @return true if successful
+    function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
+
+    /// @notice Decreases the allowance of `spender` by `subtractedValue`
+    /// @param spender The address of the spender
+    /// @param subtractedValue The amount to decrease the allowance by
+    /// @return true if successful
+    function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool);
 }

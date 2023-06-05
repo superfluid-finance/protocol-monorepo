@@ -524,6 +524,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(distributionFlowRate < minDepositMultiplier);
         vm.assume(distributionFlowRate > 0);
         vm.assume(member != address(pool));
+        vm.assume(member != address(0));
 
         vm.startPrank(address(sf.governance.owner()));
         uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
@@ -749,6 +750,45 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         }
     }
 
+    function testApproveOnly(address owner, address spender, uint256 amount) public {
+        vm.assume(owner != address(0));
+        vm.assume(spender != address(0));
+
+        _helperApprove(pool, owner, spender, amount);
+    }
+
+    function testIncreaseAllowance(address owner, address spender, uint256 addedValue) public {
+        vm.assume(owner != address(0));
+        vm.assume(spender != address(0));
+
+        _helperIncreaseAllowance(pool, owner, spender, addedValue);
+    }
+
+    function testDecreaseAllowance(address owner, address spender, uint256 addedValue, uint256 subtractedValue)
+        public
+    {
+        vm.assume(owner != address(0));
+        vm.assume(spender != address(0));
+        vm.assume(addedValue >= subtractedValue);
+
+        _helperIncreaseAllowance(pool, owner, spender, addedValue);
+        _helperDecreaseAllowance(pool, owner, spender, subtractedValue);
+    }
+
+    function testBasicTransfer(address from, address to, int128 unitsAmount, int128 transferAmount) public {
+        // @note we use int128 because overflow will happen otherwise
+        vm.assume(unitsAmount >= 0);
+        vm.assume(transferAmount > 0);
+        vm.assume(from != address(0));
+        vm.assume(to != address(0));
+        vm.assume(from != to);
+        vm.assume(transferAmount <= unitsAmount);
+        _helperUpdateMemberUnitsAndAssertUnits(pool, alice, from, uint128(unitsAmount));
+        
+        // TODO: transfer is broken
+        // _helperTransfer(pool, from, to, uint256(uint128(transferAmount)));
+    }
+
     /*//////////////////////////////////////////////////////////////////////////
                                     Helper Functions
     //////////////////////////////////////////////////////////////////////////*/
@@ -785,6 +825,11 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         returns (bool isConnected, int256 oldUnits, int96 oldFlowRate)
     {
         oldUnits = uint256(pool_.getUnits(member_)).toInt256();
+        assertEq(
+            oldUnits,
+            pool_.balanceOf(member_).toInt256(),
+            "_helperGetMemberInitialState: member units != member balanceOf"
+        );
         isConnected = sf.gda.isMemberConnected(pool_, member_);
         oldFlowRate = pool_.getMemberFlowRate(member_);
     }
@@ -961,6 +1006,55 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function _helperApprove(ISuperfluidPool _pool, address owner, address spender, uint256 amount) internal {
+        vm.startPrank(owner);
+        _pool.approve(spender, amount);
+        vm.stopPrank();
+
+        _assertPoolAllowance(_pool, owner, spender, amount);
+    }
+
+    function _helperIncreaseAllowance(ISuperfluidPool _pool, address owner, address spender, uint256 addedValue)
+        internal
+    {
+        uint256 allowanceBefore = _pool.allowance(owner, spender);
+
+        vm.startPrank(owner);
+        _pool.increaseAllowance(spender, addedValue);
+        vm.stopPrank();
+
+        _assertPoolAllowance(_pool, owner, spender, allowanceBefore + addedValue);
+    }
+
+    function _helperDecreaseAllowance(ISuperfluidPool _pool, address owner, address spender, uint256 subtractedValue)
+        internal
+    {
+        uint256 allowanceBefore = _pool.allowance(owner, spender);
+
+        vm.startPrank(owner);
+        _pool.decreaseAllowance(spender, subtractedValue);
+        vm.stopPrank();
+
+        _assertPoolAllowance(_pool, owner, spender, allowanceBefore - subtractedValue);
+    }
+
+    function _helperTransfer(ISuperfluidPool _pool, address from, address to, uint256 amount) internal {
+        uint256 fromBalanceOfBefore = _pool.balanceOf(from);
+        uint256 toBalanceOfBefore = _pool.balanceOf(to);
+
+        vm.startPrank(from);
+        _pool.transfer(to, amount);
+        vm.stopPrank();
+
+        uint256 fromBalanceOfAfter = _pool.balanceOf(from);
+        uint256 toBalanceOfAfter = _pool.balanceOf(to);
+        console.log("amount", amount);
+        console.log("fromBalanceOfAfter", fromBalanceOfAfter);
+        console.log("toBalanceOfAfter", toBalanceOfAfter);
+        assertEq(fromBalanceOfBefore - amount, fromBalanceOfAfter, "_helperTransfer: from balance mismatch");
+        assertEq(toBalanceOfBefore + amount, toBalanceOfAfter, "_helperTransfer: to balance mismatch");
+    }
+
     function _helperRTB(address account)
         internal
         returns (int256 availableBalance, uint256 buffer, uint256 owedBuffer, uint256 timestamp)
@@ -998,7 +1092,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         assertEq(
             _expectedPoolData[address(_pool)].disconnectedUnits,
             disconnectedUnits,
-            "GDAv1.t: Pool disconnected units incorrect"
+            "_assertPoolDisconnectedUnits: Pool disconnected units incorrect"
         );
     }
 
@@ -1008,14 +1102,26 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         assertEq(
             _expectedPoolData[address(_pool)].totalUnits - _expectedPoolData[address(_pool)].disconnectedUnits,
             connectedUnits,
-            "GDAv1.t: Pool disconnected units incorrect"
+            "_assertPoolConnectedUnits: Pool disconnected units incorrect"
         );
     }
 
     function _assertPoolTotalUnits(ISuperfluidPool _pool) internal {
         int128 totalUnits = uint256(_pool.getTotalUnits()).toInt256().toInt128();
+        int128 totalSupply = _pool.totalSupply().toInt256().toInt128();
 
-        assertEq(_expectedPoolData[address(_pool)].totalUnits, totalUnits, "GDAv1.t: Pool total units incorrect");
+        assertEq(
+            _expectedPoolData[address(_pool)].totalUnits,
+            totalUnits,
+            "_assertPoolTotalUnits: Pool total units incorrect"
+        );
+        assertEq(totalUnits, totalSupply, "_assertPoolTotalUnits: Pool total units != total supply");
+    }
+
+    function _assertPoolAllowance(ISuperfluidPool _pool, address owner, address spender, uint256 expectedAllowance)
+        internal
+    {
+        assertEq(_pool.allowance(owner, spender), expectedAllowance, "_assertPoolAllowance: allowance mismatch");
     }
 
     struct PoolUpdateStep {

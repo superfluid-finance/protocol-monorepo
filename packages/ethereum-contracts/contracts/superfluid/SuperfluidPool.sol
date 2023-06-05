@@ -17,7 +17,7 @@ import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
  * @author Superfluid
  * @notice A SuperfluidPool which can be used to distribute any SuperToken.
  */
-contract SuperfluidPool is ISuperfluidPool, BeaconProxiable, IERC20 {
+contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     using SemanticMoney for BasicParticle;
     using SafeCast for uint256;
     using SafeCast for int256;
@@ -78,11 +78,26 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable, IERC20 {
 
     /// @inheritdoc IERC20
     function approve(address spender, uint256 amount) external override returns (bool) {
-        _allowances[msg.sender][spender] = amount;
-
-        emit Approval(msg.sender, spender, amount);
-
+        _approve(msg.sender, spender, amount);
         return true;
+    }
+    /// @inheritdoc ISuperfluidPool
+
+    function increaseAllowance(address spender, uint256 addedValue) external returns (bool) {
+        _approve(msg.sender, spender, _allowances[msg.sender][spender] + addedValue);
+        return true;
+    }
+    /// @inheritdoc ISuperfluidPool
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) external returns (bool) {
+        _approve(msg.sender, spender, _allowances[msg.sender][spender] - subtractedValue);
+        return true;
+    }
+
+    function _approve(address owner, address spender, uint256 amount) internal {
+        _allowances[owner][spender] = amount;
+
+        emit Approval(owner, spender, amount);
     }
 
     /// @dev Transfers `amount` units from `msg.sender` to `to`
@@ -105,10 +120,12 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable, IERC20 {
     }
 
     function _transfer(address from, address to, uint256 amount) internal {
-        // TODO
-        // decrement amount for from
-        // increment amount for to
-        // do we use updateMember or is that overkill?
+        // @note this is a brute forced initial approach
+        uint128 fromUnitsBefore = _getUnits(from);
+        uint128 toUnitsBefore = _getUnits(to);
+        _updateMember(from, fromUnitsBefore - amount.toUint128());
+        _updateMember(to, toUnitsBefore + amount.toUint128());
+        // assert that the units are updated correctly for from and for to.
         emit Transfer(from, to, amount);
     }
 
@@ -129,6 +146,10 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable, IERC20 {
 
     /// @inheritdoc ISuperfluidPool
     function getUnits(address memberAddr) external view override returns (uint128) {
+        return _getUnits(memberAddr);
+    }
+
+    function _getUnits(address memberAddr) internal view returns (uint128) {
         return _membersData[memberAddr].ownedUnits;
     }
 

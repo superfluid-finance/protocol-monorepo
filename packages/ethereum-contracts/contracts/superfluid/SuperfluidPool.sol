@@ -1,20 +1,21 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
-import {ISuperfluidToken} from "../interfaces/superfluid/ISuperfluidToken.sol";
-import {ISuperToken} from "../interfaces/superfluid/ISuperToken.sol";
-import {ISuperfluidPool} from "../interfaces/superfluid/ISuperfluidPool.sol";
-import {GeneralDistributionAgreementV1} from "../agreements/GeneralDistributionAgreementV1.sol";
-import {BeaconProxiable} from "../upgradability/BeaconProxiable.sol";
+import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
+import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
+import { GeneralDistributionAgreementV1 } from "../agreements/GeneralDistributionAgreementV1.sol";
+import { BeaconProxiable } from "../upgradability/BeaconProxiable.sol";
 
 /**
  * @title SuperfluidPool
  * @author Superfluid
  * @notice A SuperfluidPool which can be used to distribute any SuperToken.
  */
-contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
+contract SuperfluidPool is ISuperfluidPool, BeaconProxiable, IERC20 {
     using SemanticMoney for BasicParticle;
     using SafeCast for uint256;
     using SafeCast for int256;
@@ -41,6 +42,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     address public admin;
     PoolIndexData internal _index;
     mapping(address => MemberData) internal _membersData;
+    // @dev owner => (spender => amount)
+    mapping(address => mapping(address => uint256)) private _allowances;
     /// @dev This is a pseudo member, representing all the disconnected members
     MemberData internal _disconnectedMembers;
 
@@ -66,6 +69,52 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         return _index.totalUnits;
     }
 
+    /// @inheritdoc IERC20
+    function allowance(address owner, address spender) external view override returns (uint256) {
+        return _allowances[owner][spender];
+    }
+
+    /// @inheritdoc IERC20
+    function approve(address spender, uint256 amount) external override returns (bool) {
+        _allowances[msg.sender][spender] = amount;
+
+        emit Approval(msg.sender, spender, amount);
+
+        return true;
+    }
+
+    /// @dev Transfers `amount` units from `msg.sender` to `to`
+    function transfer(address to, uint256 amount) external override returns (bool) {
+        _transfer(msg.sender, to, amount);
+
+        return true;
+    }
+
+    /// @dev Transfers `amount` units from `from` to `to`
+    function transferFrom(address from, address to, uint256 amount) external override returns (bool) {
+        uint256 allowed = _allowances[from][msg.sender];
+
+        // if allowed - amount is negative, this reverts due to overflow
+        if (allowed != type(uint256).max) _allowances[from][msg.sender] = allowed - amount;
+
+        _transfer(from, to, amount);
+
+        return true;
+    }
+
+    function _transfer(address from, address to, uint256 amount) internal {
+        // TODO
+        // decrement amount for from
+        // increment amount for to
+        // do we use updateMember or is that overkill?
+        emit Transfer(from, to, amount);
+    }
+
+    /// @notice Returns the total number of units for a pool
+    function totalSupply() external view override returns (uint256) {
+        return _index.totalUnits;
+    }
+
     /// @inheritdoc ISuperfluidPool
     function getTotalConnectedUnits() external view override returns (uint128) {
         return _index.totalUnits - _disconnectedMembers.ownedUnits;
@@ -79,6 +128,15 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     /// @inheritdoc ISuperfluidPool
     function getUnits(address memberAddr) external view override returns (uint128) {
         return _membersData[memberAddr].ownedUnits;
+    }
+
+    /// @notice Returns the total number of units for an account for this pool
+    /// @dev Although the type is uint256, this can never be greater than type(int128).max
+    /// because the custom user type Unit is int128 in the SemanticMoney library
+    /// @param account The account to query
+    /// @return The total number of owned units of the account
+    function balanceOf(address account) external view override returns (uint256) {
+        return uint256(_membersData[account].ownedUnits);
     }
 
     /// @inheritdoc ISuperfluidPool
@@ -200,6 +258,12 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     function updateMember(address memberAddr, uint128 newUnits) external returns (bool) {
         if (admin != msg.sender) revert SUPERFLUID_POOL_NOT_POOL_ADMIN();
 
+        _updateMember(memberAddr, newUnits);
+
+        return true;
+    }
+
+    function _updateMember(address memberAddr, uint128 newUnits) internal returns (bool) {
         if (GDA.isPool(superToken, memberAddr)) revert SUPERFLUID_POOL_NO_POOL_MEMBERS();
 
         // TODO, GDA.getHost().getTimestamp() should be used in principle

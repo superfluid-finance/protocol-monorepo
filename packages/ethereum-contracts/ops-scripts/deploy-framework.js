@@ -320,6 +320,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             return superfluid;
         }
     );
+    // this is needed later on
+    const superfluidConstructorParam = superfluid.address
+        .toLowerCase().slice(2).padStart(64, "0");
 
     // load existing governance if needed
     if (!governance) {
@@ -517,11 +520,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             }
         );
 
-        const superfluidConstructorParam = superfluid.address
-            .toLowerCase()
-            .slice(2)
-            .padStart(64, "0");
-
         // deploy new CFA logic
         const cfaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
@@ -601,16 +599,13 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             try {
                 if (factoryAddress === ZERO_ADDRESS) return true;
                 const factory = await SuperTokenFactoryLogic.at(factoryAddress);
-                console.log("   factory.getSuperTokenLogic.call()");
                 const superTokenLogicAddress =
                     await factory.getSuperTokenLogic.call();
                 const superTokenLogic = await SuperTokenLogic.at(
                     superTokenLogicAddress
                 );
-                console.log("   superTokenLogic.CONSTANT_OUTFLOW_NFT()");
                 const constantOutflowNFTAddress =
                     await superTokenLogic.CONSTANT_OUTFLOW_NFT();
-                console.log("   superTokenLogic.CONSTANT_INFLOW_NFT()");
                 const constantInflowNFTAddress =
                     await superTokenLogic.CONSTANT_INFLOW_NFT();
 
@@ -622,32 +617,40 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 );
 
                 const constantInflowNFTParam = constantInflowNFTAddress
-                    .toLowerCase()
-                    .slice(2)
-                    .padStart(64, "0");
+                    .toLowerCase().slice(2).padStart(64, "0");
                 const constantOutflowNFTParam = constantOutflowNFTAddress
-                    .toLowerCase()
-                    .slice(2)
-                    .padStart(64, "0");
+                    .toLowerCase().slice(2).padStart(64, "0");
+                const cfaParam = (await superfluid.getAgreementClass.call(CFAv1_TYPE))
+                    .toLowerCase().slice(2).padStart(64, "0");
 
                 constantOutflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantOutflowNFT,
-                    await constantOutflowNFTContract.getCodeAddress(),
-                    [superfluidConstructorParam, constantInflowNFTParam]
+                    await (
+                        await UUPSProxiable.at(constantOutflowNFTAddress)
+                    ).getCodeAddress(),
+                    [superfluidConstructorParam, constantInflowNFTParam, cfaParam]
                 );
+                console.log("   constantOutflowNFTLogicChanged:", constantOutflowNFTLogicChanged);
+
                 constantInflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantInflowNFT,
-                    await constantInflowNFTContract.getCodeAddress(),
-                    [superfluidConstructorParam, constantOutflowNFTParam]
+                    await (
+                        await UUPSProxiable.at(constantInflowNFTAddress)
+                    ).getCodeAddress(),
+                    [superfluidConstructorParam, constantOutflowNFTParam, cfaParam]
                 );
+                console.log("   constantInflowNFTLogicChanged:", constantInflowNFTLogicChanged);
+
                 const superTokenFactoryCodeChanged = await codeChanged(
                     web3,
                     SuperTokenFactoryLogic,
                     await superfluid.getSuperTokenFactoryLogic.call(),
                     [superfluidConstructorParam]
                 );
+                console.log("   superTokenFactoryCodeChanged:", superTokenFactoryCodeChanged);
+
                 const superTokenLogicCodeChanged = await codeChanged(
                     web3,
                     SuperTokenLogic,
@@ -660,6 +663,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         constantInflowNFTParam,
                     ]
                 );
+                console.log("   superTokenLogicCodeChanged:", superTokenLogicCodeChanged);
                 return (
                     // check if super token factory logic has changed
                     // or super token logic has changed

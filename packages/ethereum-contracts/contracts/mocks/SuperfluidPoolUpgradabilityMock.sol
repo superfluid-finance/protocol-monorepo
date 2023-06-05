@@ -1,14 +1,15 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import {GeneralDistributionAgreementV1} from "../agreements/GeneralDistributionAgreementV1.sol";
-import {SuperfluidPool} from "../superfluid/SuperfluidPool.sol";
-import {IStorageLayoutBase} from "./IStorageLayoutBase.sol";
+import { GeneralDistributionAgreementV1 } from "../agreements/GeneralDistributionAgreementV1.sol";
+import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
+import { IStorageLayoutBase } from "./IStorageLayoutBase.sol";
+
 /// @title SuperfluidPoolStorageLayoutMock
 /// @notice A mock SuperfluidPool contract for testing storage layout.
 /// @dev This contract *MUST* have the same storage layout as SuperfluidPool.
 contract SuperfluidPoolStorageLayoutMock is SuperfluidPool, IStorageLayoutBase {
-    constructor(GeneralDistributionAgreementV1 gda_) SuperfluidPool(gda_) {}
+    constructor(GeneralDistributionAgreementV1 gda_) SuperfluidPool(gda_) { }
 
     function validateStorageLayout() public pure {
         uint256 slot;
@@ -32,5 +33,8 @@ contract SuperfluidPoolStorageLayoutMock is SuperfluidPool, IStorageLayoutBase {
 
         assembly { slot := _disconnectedMembers.slot offset := _disconnectedMembers.offset }
         if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_disconnectedMembers");
+
+        assembly { slot := _allowances.slot offset := _allowances.offset }
+        if (slot != 9 || offset != 0) revert STORAGE_LOCATION_CHANGED("_allowances");
     }
 }

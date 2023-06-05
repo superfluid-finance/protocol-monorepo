@@ -1,21 +1,21 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {IBeacon} from "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
+import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import "../FoundrySuperfluidTester.sol";
-import {console} from "forge-std/console.sol";
+import { console } from "forge-std/console.sol";
 import {
     GeneralDistributionAgreementV1,
     IGeneralDistributionAgreementV1
 } from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
-import {SuperTokenV1Library} from "../../../contracts/apps/SuperTokenV1Library.sol";
-import {SuperToken} from "../../../contracts/utils/SuperTokenDeployer.sol";
-import {ISuperfluidToken} from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
-import {ISuperfluidPool, SuperfluidPool} from "../../../contracts/superfluid/SuperfluidPool.sol";
-import {SuperfluidPoolStorageLayoutMock} from "../../../contracts/mocks/SuperfluidPoolUpgradabilityMock.sol";
+import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { SuperToken } from "../../../contracts/utils/SuperTokenDeployer.sol";
+import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperfluidPool, SuperfluidPool } from "../../../contracts/superfluid/SuperfluidPool.sol";
+import { SuperfluidPoolStorageLayoutMock } from "../../../contracts/mocks/SuperfluidPoolUpgradabilityMock.sol";
 
 /// @title GeneralDistributionAgreementV1 Integration Tests
 /// @author Superfluid
@@ -57,7 +57,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     mapping(address pool => mapping(address member => ExpectedPoolMemberData expectedData)) internal
         _poolToExpectedMemberData;
 
-    constructor() FoundrySuperfluidTester(6) {}
+    constructor() FoundrySuperfluidTester(6) { }
 
     function setUp() public override {
         super.setUp();
@@ -152,7 +152,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         superToken.updateAgreementData(
             poolMemberId,
             sf.gda.encodePoolMemberData(
-                GeneralDistributionAgreementV1.PoolMemberData({poolID: poolID, pool: address(_pool)})
+                GeneralDistributionAgreementV1.PoolMemberData({ poolID: poolID, pool: address(_pool) })
             )
         );
         vm.stopPrank();
@@ -245,7 +245,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(newFlowRate >= 0);
 
         bytes32 flowHash = sf.gda.getFlowDistributionId(from, to);
-        uint256 bufferDelta = uint256(int256(newFlowRate)) * liquidationPeriod; // expected buffer == buffer delta because of fresh state
+        uint256 bufferDelta = uint256(int256(newFlowRate)) * liquidationPeriod; // expected buffer == buffer delta
+            // because of fresh state
         GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataBefore =
             sf.gda.getUIndexData(abi.encode(superToken), from);
         GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataBefore =
@@ -309,9 +310,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     }
 
     function testProxiableUUIDIsExpectedValue() public {
-        assertEq(
-            pool.proxiableUUID(), keccak256("org.superfluid-finance.contracts.SuperfluidPool.implementation")
-        );
+        assertEq(pool.proxiableUUID(), keccak256("org.superfluid-finance.contracts.SuperfluidPool.implementation"));
     }
 
     function testPositiveBalanceIsPatricianPeriodNow(address account) public {
@@ -661,7 +660,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(distributionAmount < distributorBalance);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
+            if (!sf.gda.isPool(superToken, members[i].member) && members[i].member != address(0)) {
+                _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
+            }
         }
         _helperDistributeAndAssert(superToken, alice, alice, pool, distributionAmount);
     }
@@ -678,8 +679,10 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(distributionAmount < distributorBalance);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            _helperConnectPoolAndAssertConnected(members[i].member, superToken, pool);
-            _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
+            if (!sf.gda.isPool(superToken, members[i].member) && members[i].member != address(0)) {
+                _helperConnectPoolAndAssertConnected(members[i].member, superToken, pool);
+                _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
+            }
         }
         _helperDistributeAndAssert(superToken, alice, alice, pool, distributionAmount);
     }

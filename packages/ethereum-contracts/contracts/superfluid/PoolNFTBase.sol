@@ -153,7 +153,6 @@ abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
         _approve(to, tokenId);
     }
 
-
     /// @inheritdoc IERC721
     function getApproved(uint256 tokenId) public view virtual override returns (address) {
         _requireMinted(tokenId);

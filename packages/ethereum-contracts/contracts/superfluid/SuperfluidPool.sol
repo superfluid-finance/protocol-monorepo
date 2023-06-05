@@ -4,11 +4,13 @@ pragma solidity 0.8.19;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
 import { GeneralDistributionAgreementV1 } from "../agreements/GeneralDistributionAgreementV1.sol";
 import { BeaconProxiable } from "../upgradability/BeaconProxiable.sol";
+import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 
 /**
  * @title SuperfluidPool
@@ -42,10 +44,10 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable, IERC20 {
     address public admin;
     PoolIndexData internal _index;
     mapping(address => MemberData) internal _membersData;
-    // @dev owner => (spender => amount)
-    mapping(address => mapping(address => uint256)) private _allowances;
     /// @dev This is a pseudo member, representing all the disconnected members
     MemberData internal _disconnectedMembers;
+    // @dev owner => (spender => amount)
+    mapping(address => mapping(address => uint256)) internal _allowances;
 
     constructor(GeneralDistributionAgreementV1 gda) {
         GDA = gda;
@@ -265,9 +267,9 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable, IERC20 {
 
     function _updateMember(address memberAddr, uint128 newUnits) internal returns (bool) {
         if (GDA.isPool(superToken, memberAddr)) revert SUPERFLUID_POOL_NO_POOL_MEMBERS();
+        if (memberAddr == address(0)) revert SUPERFLUID_POOL_NO_ZERO_ADDRESS();
 
-        // TODO, GDA.getHost().getTimestamp() should be used in principle
-        uint32 time = uint32(block.timestamp);
+        uint32 time = uint32(ISuperfluid(superToken.getHost()).getNow());
         Time t = Time.wrap(time);
         Unit wrappedUnits = Unit.wrap(uint256(newUnits).toInt256().toInt128());
 
@@ -294,6 +296,18 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable, IERC20 {
             assert(GDA.appendIndexUpdateByPool(superToken, p, t));
         }
         emit MemberUpdated(memberAddr, newUnits);
+
+        IPoolMemberNFT poolMemberNFT = ISuperToken(address(superToken)).POOL_MEMBER_NFT();
+        uint256 tokenId = poolMemberNFT.getTokenId(address(this), memberAddr);
+        if (newUnits == 0) {
+            if (poolMemberNFT.getPoolMemberData(tokenId).member != address(0)) {
+                poolMemberNFT.burn(tokenId);
+            }
+        } else {
+            if (poolMemberNFT.getPoolMemberData(tokenId).member == address(0)) {
+                poolMemberNFT.mint(address(this), memberAddr);
+            }
+        }
 
         return true;
     }

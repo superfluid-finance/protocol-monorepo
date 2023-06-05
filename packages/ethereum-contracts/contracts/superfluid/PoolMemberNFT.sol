@@ -32,6 +32,10 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
         return _poolMemberDataByTokenId[tokenId].member;
     }
 
+    function getPoolMemberData(uint256 tokenId) public view override returns (PoolMemberNFTData memory data) {
+        return _poolMemberDataByTokenId[tokenId];
+    }
+
     /// @notice Reverts - Transfer of pool member NFT is not allowed.
     /// @dev We revert when users attempt to transfer pool member NFTs.
     function _transfer(
@@ -43,19 +47,22 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
     }
 
     function getTokenId(address pool, address member) external view returns (uint256 tokenId) {
-        return uint256(keccak256(abi.encode(pool, member)));
+        return _getTokenId(pool, member);
     }
 
+    function _getTokenId(address pool, address member) internal view returns (uint256 tokenId) {
+        return uint256(keccak256(abi.encode("PoolMemberNFT", block.chainid, pool, member)));
+    }
     /// @inheritdoc PoolNFTBase
     function tokenURI(uint256 tokenId) external view override(IERC721Metadata, PoolNFTBase) returns (string memory) {
         return super._tokenURI(tokenId);
     }
 
-    function mint(address pool, address member, uint128 units) external {
-        _mint(pool, member, units, uint256(keccak256(abi.encode(pool, member))));
+    function mint(address pool, address member) external override {
+        _mint(pool, member);
     }
 
-    function burn(uint256 tokenId) external {
+    function burn(uint256 tokenId) external override {
         _burn(tokenId);
     }
 
@@ -64,15 +71,17 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
     /// `flowSender` cannot be equal to `flowReceiver`.
     /// @param pool The pool address
     /// @param member The member address
-    /// @param units The number of units
-    /// @param newTokenId The token id of the new token to be minted
-    function _mint(address pool, address member, uint128 units, uint256 newTokenId) internal {
+    function _mint(address pool, address member) internal {
         assert(pool != address(0));
         assert(member != address(0));
         assert(pool != member);
+
+        uint256 newTokenId = _getTokenId(pool, member);
         assert(!_exists(newTokenId));
 
-        if (ISuperfluidPool(pool).getUnits(member) == 0) {
+        uint128 units = ISuperfluidPool(pool).getUnits(member);
+
+        if (units == 0) {
             revert POOL_MEMBER_NFT_NO_UNITS();
         }
 

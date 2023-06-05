@@ -5,6 +5,7 @@ import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions
 import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
 import { PoolNFTBase } from "./PoolNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
 
 contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
     //// Storage Variables ////
@@ -46,7 +47,7 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
     }
 
     function _getTokenId(address pool, address admin) internal view returns (uint256 tokenId) {
-        return uint256(keccak256(abi.encode(pool, admin)));
+        return uint256(keccak256(abi.encode("PoolAdminNFT", block.chainid, pool, admin)));
     }
 
     /// @inheritdoc PoolNFTBase
@@ -54,20 +55,19 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
         return super._tokenURI(tokenId);
     }
 
-    function mint(address pool, address admin) external {
-        _mint(pool, admin);
+    function mint(address pool) external {
+        _mint(pool);
     }
 
-    /// @notice Mints `newTokenId` and transfers it to `flowSender`
-    /// @dev `newTokenId` must not exist `flowSender` cannot be `address(0)` and we emit a {Transfer} event.
-    /// `flowSender` cannot be equal to `flowReceiver`.
+    /// @notice Mints `newTokenId` and transfers it to `admin`
+    /// @dev `newTokenId` must not exist, `admin` cannot be `address(0)` and we emit a {Transfer} event.
+    /// `admin` cannot be equal to `pool`.
     /// @param pool The pool address
-    /// @param admin The admin address
-    function _mint(address pool, address admin) internal {
-        // @note we can even remove admin and get the pool in here and mint ot admin
-        assert(pool != address(0));
-        assert(admin != address(0));
+    function _mint(address pool) internal {
+        ISuperfluidPool poolContract = ISuperfluidPool(pool);
+        address admin = poolContract.admin();
         assert(pool != admin);
+
         uint256 newTokenId = _getTokenId(pool, admin);
         assert(!_exists(newTokenId));
 

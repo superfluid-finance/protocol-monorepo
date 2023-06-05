@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity >=0.8.4;
 
-import {ISuperAgreement} from "../superfluid/ISuperAgreement.sol";
-import {ISuperfluidToken} from "../superfluid/ISuperfluidToken.sol";
-import {ISuperfluidPool} from "../superfluid/ISuperfluidPool.sol";
+import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
+import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
+import { ISuperfluidPool } from "../superfluid/ISuperfluidPool.sol";
 
 /**
  * @title General Distribution Agreement interface
@@ -15,6 +15,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     error GDA_NON_CRITICAL_SENDER(); // 0x666f381d
     error GDA_INSUFFICIENT_BALANCE(); // 0x33115c3f
     error GDA_NO_NEGATIVE_FLOW_RATE(); // 0x15f25663
+    error GDA_NO_ZERO_ADDRESS_ADMIN(); //
     error GDA_ONLY_SUPER_TOKEN_POOL(); // 0x90028c37
 
     // Events
@@ -147,7 +148,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
 
     /// Get pool adjustment flow information: (recipient, flowHash, flowRate)
     function getPoolAdjustmentFlowInfo(ISuperfluidPool pool) external view virtual returns (address, bytes32, int96);
-    
+
     ////////////////////////////////////////////////////////////////////////////////
     // Agreement Operations
     ////////////////////////////////////////////////////////////////////////////////
@@ -194,10 +195,10 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
      * @return isCurrentlyPatricianPeriod Whether it is currently the patrician period dictated by governance
      * @return timestamp The value of host.getNow()
      */
-    function isPatricianPeriodNow(
-        ISuperfluidToken token,
-        address account)
-        external view virtual
+    function isPatricianPeriodNow(ISuperfluidToken token, address account)
+        external
+        view
+        virtual
         returns (bool isCurrentlyPatricianPeriod, uint256 timestamp);
 
     /**
@@ -206,11 +207,9 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
      * @param timestamp The timestamp we are interested in observing the result of isPatricianPeriod
      * @return bool Whether it is currently the patrician period dictated by governance
      */
-    function isPatricianPeriod(
-        ISuperfluidToken token,
-        address account,
-        uint256 timestamp
-    )
-        public view virtual
+    function isPatricianPeriod(ISuperfluidToken token, address account, uint256 timestamp)
+        public
+        view
+        virtual
         returns (bool);
 }

@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import {SafeCast} from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-import {IBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
+import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
+import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import {
     ISuperfluid,
@@ -13,15 +13,17 @@ import {
     SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
-import {TokenMonad} from "@superfluid-finance/solidity-semantic-money/src/TokenMonad.sol";
-import {SuperfluidPool} from "../superfluid/SuperfluidPool.sol";
-import {SuperfluidPoolDeployerLibrary} from "../libs/SuperfluidPoolDeployerLibrary.sol";
-import {IGeneralDistributionAgreementV1} from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
-import {ISuperfluidToken} from "../interfaces/superfluid/ISuperfluidToken.sol";
-import {ISuperfluidPool} from "../interfaces/superfluid/ISuperfluidPool.sol";
-import {SlotsBitmapLibrary} from "../libs/SlotsBitmapLibrary.sol";
-import {AgreementBase} from "./AgreementBase.sol";
-import {AgreementLibrary} from "./AgreementLibrary.sol";
+import { TokenMonad } from "@superfluid-finance/solidity-semantic-money/src/TokenMonad.sol";
+import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
+import { SuperfluidPoolDeployerLibrary } from "../libs/SuperfluidPoolDeployerLibrary.sol";
+import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
+import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
+import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
+import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
+import { SlotsBitmapLibrary } from "../libs/SlotsBitmapLibrary.sol";
+import { AgreementBase } from "./AgreementBase.sol";
+import { AgreementLibrary } from "./AgreementLibrary.sol";
 
 /**
  * @title General Distribution Agreement
@@ -118,7 +120,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
     IBeacon public superfluidPoolBeacon;
 
-    constructor(ISuperfluid host) AgreementBase(address(host)) {}
+    constructor(ISuperfluid host) AgreementBase(address(host)) { }
 
     function initialize(IBeacon superfluidPoolBeacon_) external initializer {
         superfluidPoolBeacon = superfluidPoolBeacon_;
@@ -255,6 +257,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
     /// @inheritdoc IGeneralDistributionAgreementV1
     function createPool(address admin, ISuperfluidToken token) external override returns (ISuperfluidPool pool) {
+        if (admin == address(0)) revert GDA_NO_ZERO_ADDRESS_ADMIN();
+
         pool =
             ISuperfluidPool(address(SuperfluidPoolDeployerLibrary.deploy(address(superfluidPoolBeacon), admin, token)));
 
@@ -263,6 +267,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         bytes32[] memory data = new bytes32[](1);
         data[0] = bytes32(uint256(1));
         token.updateAgreementStateSlot(address(pool), _UNIVERSAL_INDEX_STATE_SLOT_ID, data);
+
+        ISuperToken(address(token)).POOL_ADMIN_NFT().mint(address(pool));
 
         emit PoolCreated(token, admin, pool);
     }
@@ -294,7 +300,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
                 token.createAgreement(
                     _getPoolMemberHash(msgSender, pool),
-                    _encodePoolMemberData(PoolMemberData({poolID: poolSlotID, pool: address(pool)}))
+                    _encodePoolMemberData(PoolMemberData({ poolID: poolSlotID, pool: address(pool) }))
                 );
             }
         } else {
@@ -571,7 +577,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                     lastUpdated: uint32(block.timestamp),
                     flowRate: int256(FlowRate.unwrap(newFlowRate)).toInt96(),
                     buffer: uint256(Value.unwrap(newBufferAmount)) // upcast to uint256 is safe
-                })
+                 })
             );
 
             ISuperfluidToken(token).updateAgreementData(flowHash, data);

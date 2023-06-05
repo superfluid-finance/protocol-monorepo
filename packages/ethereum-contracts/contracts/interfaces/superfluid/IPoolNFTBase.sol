@@ -16,10 +16,7 @@ interface IPoolNFTBase is IERC721Metadata {
     /// @param tokenId the id of the token that should have its metadata updated
     event MetadataUpdate(uint256 tokenId);
 
-    function initialize(
-        string memory nftName,
-        string memory nftSymbol
-    ) external; // initializer;
+    function initialize(string memory nftName, string memory nftSymbol) external; // initializer;
 
     function triggerMetadataUpdate(uint256 tokenId) external;
 }

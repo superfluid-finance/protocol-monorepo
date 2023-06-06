@@ -5,6 +5,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Changed
+- `SuperTokenDeployer.sol` removed in favor of moving the token deployment functions to `SuperfluidFrameworkDeployer.sol`
+- `SuperfluidFrameworkDeployer.sol` also includes functions which allow you to deploy different parts of the protocol (core, agreements, super tokens, etc.) separately
+
+### Breaking
+- `SuperfluidFrameworkDeployer.sol` refactored, deployment no longer occurs in the constructor
+  - Migration: Create the contract and then use `deployTestFramework` function to execute the deployments
+- `SuperTokenDeployer.sol` removed
+  - Migration: Remove usage of `SuperTokenDeployer` and use the `SuperfluidFrameworkDeployer` to deploy tokens instead
+
 ### Added
 - `increaseFlowRateAllowance` and `decreaseFlowRateAllowance` added to `SuperTokenV1Library.sol`
 

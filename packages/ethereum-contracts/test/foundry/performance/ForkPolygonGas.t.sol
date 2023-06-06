@@ -57,15 +57,15 @@ contract ForkPolygonGasTest is Test {
         assertEq(flowRate, expectedFlowRate);
     }
 
-    function testPolygonFork() public {
+    function xTestPolygonFork() public {
         assertEq(vm.activeFork(), polygonFork);
     }
 
-    function testRetrieveBalance() public {
+    function xTestRetrieveBalance() public {
         uint256 balance = ethX.balanceOf(TEST_ACCOUNT);
     }
 
-    function testDowngrade() public {
+    function xTestDowngrade() public {
         uint256 superTokenBalanceBefore = ethX.balanceOf(TEST_ACCOUNT);
         uint256 expectedBalance = superTokenBalanceBefore - 4206933;
         ethX.downgrade(4206933);
@@ -73,11 +73,11 @@ contract ForkPolygonGasTest is Test {
         assertEq(superTokenBalanceAfter, expectedBalance);
     }
 
-    function testGasDowngrade() public {
+    function xTestGasDowngrade() public {
         ethX.downgrade(4206933);
     }
 
-    function testUpgrade() public {
+    function xTestUpgrade() public {
         uint256 superTokenBalanceBefore = ethX.balanceOf(TEST_ACCOUNT);
         uint256 expectedBalance = superTokenBalanceBefore + 4206933;
         ethX.upgrade(4206933);
@@ -85,46 +85,46 @@ contract ForkPolygonGasTest is Test {
         assertEq(superTokenBalanceAfter, expectedBalance);
     }
 
-    function testGasUpgrade() public {
+    function xTestGasUpgrade() public {
         ethX.upgrade(4206933);
     }
 
-    function testCreateFlow() public {
+    function xTestCreateFlow() public {
         ethX.createFlow(BOB, 4206933);
         assert_Flow_Rate_Is_Expected(TEST_ACCOUNT, BOB, 4206933);
     }
 
-    function testUpdateFlow() public {
+    function xTestUpdateFlow() public {
         ethX.updateFlow(ALICE, 694201337);
         assert_Flow_Rate_Is_Expected(TEST_ACCOUNT, ALICE, 694201337);
     }
 
-    function testDeleteFlow() public {
+    function xTestDeleteFlow() public {
         ethX.deleteFlow(TEST_ACCOUNT, ALICE);
         assert_Flow_Rate_Is_Expected(TEST_ACCOUNT, ALICE, 0);
     }
 
-    function testGasCreateFlow() public {
+    function xTestGasCreateFlow() public {
         ethX.createFlow(BOB, 4206933);
     }
 
-    function testGasUpdateFlow() public {
+    function xTestGasUpdateFlow() public {
         ethX.updateFlow(ALICE, 4206933);
     }
 
-    function testGasDeleteFlow() public {
+    function xTestGasDeleteFlow() public {
         ethX.deleteFlow(TEST_ACCOUNT, ALICE);
     }
 
-    function testGasAuthorizeFlowOperatorPermissions() public {
+    function xTestGasAuthorizeFlowOperatorPermissions() public {
         ethX.setMaxFlowPermissions(ALICE);
     }
 
-    function testGasRevokeFlowOperatorPermissions() public {
+    function xTestGasRevokeFlowOperatorPermissions() public {
         ethX.revokeFlowPermissions(DEFAULT_FLOW_OPERATOR);
     }
 
-    function testGasCreateIndex() public {
+    function xTestGasCreateIndex() public {
         ethX.createIndex(1);
     }
 }

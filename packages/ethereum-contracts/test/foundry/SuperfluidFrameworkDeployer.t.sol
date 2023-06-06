@@ -2,8 +2,13 @@
 pragma solidity 0.8.19;
 
 import { FoundrySuperfluidTester } from "./FoundrySuperfluidTester.sol";
-import { SuperfluidLoader } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
-import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
+import {
+    SuperfluidLoader,
+    IPureSuperToken,
+    ISETH,
+    TestToken,
+    SuperToken
+} from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 
 contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
     constructor() FoundrySuperfluidTester(1) { }
@@ -45,9 +50,69 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
 
     function testTransferOwnership() public {
         assertEq(sf.governance.owner(), address(sfDeployer), "SFDeployer: governance not owned by deployer");
-        sfDeployer.transferOwnership(address(superTokenDeployer));
+        sfDeployer.transferOwnership(address(420));
+        assertEq(sf.governance.owner(), address(420), "SFDeployer: governance not owned by address(420)");
+    }
+
+    //// SuperToken Deployment Tests ////
+
+    function testDeployWrapperSuperToken(
+        string calldata _name,
+        string calldata _symbol,
+        uint8 _decimals,
+        uint256 _mintLimit
+    ) public {
+        (TestToken underlyingToken, SuperToken _superToken) =
+            sfDeployer.deployWrapperSuperToken(_name, _symbol, _decimals, _mintLimit);
+
+        // assert underlying erc20 name/symbol properly set
+        assertEq(underlyingToken.name(), _name, "SFDeployer: Underlying token name not properly set");
+        assertEq(underlyingToken.symbol(), _symbol, "SFDeployer: Underlying token symbol not properly set");
+
+        // assert super token name/symbol properly set
+        assertEq(_superToken.name(), string.concat("Super ", _symbol), "SFDeployer: Super token name not properly set");
+        assertEq(_superToken.symbol(), string.concat(_symbol, "x"), "SFDeployer: Super token symbol not properly set");
+
+        // assert proper resolver listing for underlying and wrapper super token
+        address resolverUnderlyingTokenAddress = resolver.get(string.concat("tokens.test.", underlyingToken.symbol()));
         assertEq(
-            sf.governance.owner(), address(superTokenDeployer), "SFDeployer: governance not owned by superTokenDeployer"
+            resolverUnderlyingTokenAddress,
+            address(underlyingToken),
+            "SFDeployer: Underlying token not properly registered"
         );
+        address resolverSuperTokenAddress = resolver.get(string.concat("supertokens.test.", _superToken.symbol()));
+        assertEq(resolverSuperTokenAddress, address(_superToken), "SFDeployer: Super token not properly registered");
+    }
+
+    function testDeployNativeAssetSuperToken(string calldata _name, string calldata _symbol) public {
+        ISETH nativeAssetSuperToken = sfDeployer.deployNativeAssetSuperToken(_name, _symbol);
+
+        // assert native asset super token name/symbol properly set
+        assertEq(nativeAssetSuperToken.name(), _name, "SFDeployer: Native asset super token name not properly set");
+        assertEq(
+            nativeAssetSuperToken.symbol(), _symbol, "SFDeployer: Native asset super token symbol not properly set"
+        );
+
+        // assert proper resolver listing
+        address resolverTokenAddress = resolver.get(string.concat("supertokens.test.", nativeAssetSuperToken.symbol()));
+        assertEq(
+            resolverTokenAddress,
+            address(nativeAssetSuperToken),
+            "SFDeployer: Native asset super token not properly registered"
+        );
+    }
+
+    function testDeployPureSuperToken(string calldata _name, string calldata _symbol, uint256 _initialSupply) public {
+        vm.assume(_initialSupply <= uint256(type(int256).max));
+
+        IPureSuperToken pureSuperToken = sfDeployer.deployPureSuperToken(_name, _symbol, _initialSupply);
+
+        // assert pure super token name/symbol properly set
+        assertEq(pureSuperToken.name(), _name, "SFDeployer: Pure super token name not properly set");
+        assertEq(pureSuperToken.symbol(), _symbol, "SFDeployer: Pure super token symbol not properly set");
+
+        // assert proper resolver listing
+        address resolverTokenAddress = resolver.get(string.concat("supertokens.test.", pureSuperToken.symbol()));
+        assertEq(resolverTokenAddress, address(pureSuperToken), "SFDeployer: Pure super token not properly registered");
     }
 }

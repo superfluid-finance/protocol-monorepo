@@ -47,7 +47,7 @@ contract ManagerTests is FoundrySuperfluidTester {
 
     function setUp() override public virtual {
         super.setUp();
-        nativeSuperToken = superTokenDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
+        nativeSuperToken = sfDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
         vm.startPrank(admin);
         manager = new Manager(address(sf.cfa), MIN_LOWER, MIN_UPPER);
         wrapStrategy = new WrapStrategy(address(manager));
@@ -239,6 +239,9 @@ contract ManagerTests is FoundrySuperfluidTester {
 
     function testCreateWrap() public {
         bytes32 index = getWrapIndex(address(alice), address(superToken), address(token));
+        vm.prank(admin);
+        manager.addApprovedStrategy(address(wrapStrategy));
+
         vm.expectEmit(true, true, true, true);
         emit WrapScheduleCreated(
             index,
@@ -250,8 +253,6 @@ contract ManagerTests is FoundrySuperfluidTester {
             MIN_LOWER,
             MIN_UPPER
         );
-        vm.prank(admin);
-        manager.addApprovedStrategy(address(wrapStrategy));
         vm.prank(alice);
         manager.createWrapSchedule(
             address(superToken),

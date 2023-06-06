@@ -6,19 +6,18 @@ import "forge-std/Test.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
+import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
 import {
     SuperfluidFrameworkDeployer,
     TestResolver,
     SuperfluidLoader
 } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
-import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
-import { ISETH } from "../../contracts/interfaces/tokens/ISETH.sol";
-import { SuperTokenDeployer } from "../../contracts/utils/SuperTokenDeployer.sol";
 import { Superfluid } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { ISETH } from "../../contracts/interfaces/tokens/ISETH.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
-import { TestToken } from "../../contracts/utils/SuperTokenDeployer.sol";
 import { ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
+import { TestToken } from "../../contracts/utils/TestToken.sol";
 
 /// @title FoundrySuperfluidTester
 /// @dev A contract that can be inherited from to test Superfluid agreements
@@ -65,7 +64,6 @@ contract FoundrySuperfluidTester is Test {
     error INVALID_TEST_SUPER_TOKEN_TYPE();
 
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperTokenDeployer internal immutable superTokenDeployer;
     int8 internal immutable testSuperTokenType;
 
     uint256 internal constant INIT_TOKEN_BALANCE = type(uint128).max;
@@ -115,7 +113,7 @@ contract FoundrySuperfluidTester is Test {
     mapping(ISuperToken => mapping(bytes32 subId => uint128 indexValue)) internal _lastUpdatedSubIndexValues;
 
     constructor(uint8 nTesters) {
-        // etch erc1820
+        // deploy ERC1820 registry
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
 
         // deploy SuperfluidFrameworkDeployer
@@ -132,16 +130,8 @@ contract FoundrySuperfluidTester is Test {
         // - SuperfluidLoader
         // - CFAv1Forwarder
         sfDeployer = new SuperfluidFrameworkDeployer();
+        sfDeployer.deployTestFramework();
         sf = sfDeployer.getFramework();
-
-        // deploy SuperTokenDeployer
-        superTokenDeployer = new SuperTokenDeployer(
-            address(sf.superTokenFactory),
-            address(sf.resolver)
-        );
-
-        // add superTokenDeployer as admin to the resolver so it can register the SuperTokens
-        sf.resolver.addAdmin(address(superTokenDeployer));
 
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
         N_TESTERS = nTesters;
@@ -172,7 +162,7 @@ contract FoundrySuperfluidTester is Test {
 
     /// @notice Deploys a Wrapper SuperToken with an underlying test token and gives tokens to the test accounts
     function _setUpWrapperSuperToken() internal {
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
 
         for (uint256 i = 0; i < N_TESTERS; ++i) {
             token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
@@ -188,7 +178,7 @@ contract FoundrySuperfluidTester is Test {
     /// @notice Deploys a Native Asset SuperToken and gives tokens to the test accounts
     /// @dev We use vm.deal to give each account a starting amount of ether
     function _setUpNativeAssetSuperToken() internal {
-        (superToken) = superTokenDeployer.deployNativeAssetSuperToken("Super ETH", "ETHx");
+        (superToken) = sfDeployer.deployNativeAssetSuperToken("Super ETH", "ETHx");
         for (uint256 i = 0; i < N_TESTERS; ++i) {
             vm.startPrank(TEST_ACCOUNTS[i]);
             vm.deal(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
@@ -202,7 +192,7 @@ contract FoundrySuperfluidTester is Test {
     /// @dev This contract receives the total supply then doles it out to the test accounts
     function _setUpPureSuperToken() internal {
         uint256 initialSupply = INIT_SUPER_TOKEN_BALANCE * N_TESTERS;
-        (superToken) = superTokenDeployer.deployPureSuperToken("Super MR", "MRx", initialSupply);
+        (superToken) = sfDeployer.deployPureSuperToken("Super MR", "MRx", initialSupply);
         _expectedTotalSupply = initialSupply;
         for (uint256 i = 0; i < N_TESTERS; ++i) {
             superToken.transfer(TEST_ACCOUNTS[i], INIT_SUPER_TOKEN_BALANCE);
@@ -553,7 +543,7 @@ contract FoundrySuperfluidTester is Test {
     // Write Helpers - ConstantFlowAgreementV1
     /// @notice Creates a flow between a sender and receiver at a given flow rate
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
-    /// We assert: 
+    /// We assert:
     /// - The flow info is properly set
     /// - The account flow info has been updated as expected for sender and receiver
     /// - The balance of the sender and receiver has been updated as expected
@@ -586,7 +576,7 @@ contract FoundrySuperfluidTester is Test {
 
     /// @notice Updates a flow between a sender and receiver at a given flow rate
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
-    /// We assert: 
+    /// We assert:
     /// - The flow info is properly set
     /// - The account flow info has been updated as expected for sender and receiver
     /// - The balance of the sender and receiver has been updated as expected
@@ -611,13 +601,13 @@ contract FoundrySuperfluidTester is Test {
         _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-        
+
         // TODO: balance checks here
     }
 
     /// @notice Deletes a flow between a sender and receiver
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
-    /// We assert: 
+    /// We assert:
     /// - The flow info is properly set
     /// - The account flow info has been updated as expected for sender and receiver
     /// - The balance of the sender and receiver has been updated as expected
@@ -641,13 +631,13 @@ contract FoundrySuperfluidTester is Test {
         _assertFlowInfoIsEmpty(sender, receiver);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-        
+
         // TODO: balance checks here
     }
 
     /// @notice Creates an ACL flow by the opeartor between a sender and receiver at a given flow rate
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
-    /// We assert: 
+    /// We assert:
     /// - The flow info is properly set
     /// - The account flow info has been updated as expected for sender and receiver
     /// - The balance of the sender and receiver has been updated as expected
@@ -682,7 +672,7 @@ contract FoundrySuperfluidTester is Test {
         _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-        
+
         // TODO: balance checks here
 
         // TODO
@@ -691,7 +681,7 @@ contract FoundrySuperfluidTester is Test {
 
     /// @notice Updates an ACL flow by the opeartor between a sender and receiver at a given flow rate
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
-    /// We assert: 
+    /// We assert:
     /// - The flow info is properly set
     /// - The account flow info has been updated as expected for sender and receiver
     /// - The balance of the sender and receiver has been updated as expected
@@ -724,7 +714,7 @@ contract FoundrySuperfluidTester is Test {
         _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-        
+
         // TODO: balance checks here
 
         // TODO
@@ -733,7 +723,7 @@ contract FoundrySuperfluidTester is Test {
 
     /// @notice Deletes an ACL flow by the opeartor between a sender and receiver
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
-    /// We assert: 
+    /// We assert:
     /// - The flow info is properly set
     /// - The account flow info has been updated as expected for sender and receiver
     /// - The balance of the sender and receiver has been updated as expected
@@ -761,7 +751,7 @@ contract FoundrySuperfluidTester is Test {
         _assertFlowInfoIsEmpty(sender, receiver);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-        
+
         // TODO: balance checks here
     }
 

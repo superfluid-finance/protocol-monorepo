@@ -30,6 +30,7 @@ contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
             vm.startPrank(sf.governance.owner());
             sf.governance.registerAgreementClass(sf.host, address(mock));
             vm.stopPrank();
+            mock = sf.host.NON_UPGRADABLE_DEPLOYMENT() ? mock : AgreementMock(address(sf.host.getAgreementClass(id)));
             mocks[i + _NUM_AGREEMENTS] = ISuperAgreement(address(mock));
         }
 

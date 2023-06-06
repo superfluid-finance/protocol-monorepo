@@ -30,7 +30,7 @@ contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
         vm.startPrank(admin);
         superApp = new SuperAppBaseFlowTester(sf.host, true, true, true);
         superAppAddress = address(superApp);
-        otherSuperToken = superTokenDeployer.deployPureSuperToken("FTT", "FTT", 1e27);
+        otherSuperToken = sfDeployer.deployPureSuperToken("FTT", "FTT", 1e27);
         otherSuperToken.transfer(alice, 1e21);
         vm.stopPrank();
     }

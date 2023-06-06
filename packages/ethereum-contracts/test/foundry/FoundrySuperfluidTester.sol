@@ -3,23 +3,22 @@ pragma solidity 0.8.19;
 
 import { Test } from "forge-std/Test.sol";
 
+import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
 import {
     SuperfluidFrameworkDeployer,
     TestResolver,
     SuperfluidLoader
 } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
-import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
-import { SuperTokenDeployer } from "../../contracts/utils/SuperTokenDeployer.sol";
 import { CFAv1Library, IDAv1Library, Superfluid } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
-import { TestToken, SuperToken } from "../../contracts/utils/SuperTokenDeployer.sol";
+import { SuperToken } from "../../contracts/superfluid/SuperToken.sol";
+import { TestToken } from "../../contracts/utils/TestToken.sol";
 
 contract FoundrySuperfluidTester is Test {
     using SuperTokenV1Library for SuperToken;
 
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperTokenDeployer internal immutable superTokenDeployer;
 
     SuperfluidFrameworkDeployer.Framework internal sf;
     TestResolver internal resolver;
@@ -46,7 +45,7 @@ contract FoundrySuperfluidTester is Test {
     uint256 private _expectedTotalSupply;
 
     constructor(uint8 nTesters) {
-        // etch erc1820
+        // deploy ERC1820 registry
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
 
         // deploy SuperfluidFrameworkDeployer
@@ -63,25 +62,17 @@ contract FoundrySuperfluidTester is Test {
         // - SuperfluidLoader
         // - CFAv1Forwarder
         sfDeployer = new SuperfluidFrameworkDeployer();
+        sfDeployer.deployTestFramework();
         sf = sfDeployer.getFramework();
 
         resolver = sf.resolver;
-
-        // deploy SuperTokenDeployer
-        superTokenDeployer = new SuperTokenDeployer(
-            address(sf.superTokenFactory),
-            address(sf.resolver)
-        );
-
-        // add superTokenDeployer as admin to the resolver so it can register the SuperTokens
-        sf.resolver.addAdmin(address(superTokenDeployer));
 
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
         N_TESTERS = nTesters;
     }
 
     function setUp() public virtual {
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
 
         for (uint256 i = 0; i < N_TESTERS; ++i) {
             token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);

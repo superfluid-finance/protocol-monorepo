@@ -85,11 +85,14 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
             configs.defaultRewardAddress, configs.liquidationPeriod, configs.patricianPeriod, configs.trustedForwarders
         );
 
-        // Deploy CFAv1 and IDAv1
+        // Deploy CFAv1, IDAv1 and GDAv1
         _deployAgreementContracts();
 
         // Register the agreements with governance
         _registerAgreements();
+
+        // Deploy SuperfluidPool logic, SuperfluidPool beacon and initailize GDA
+        _deploySuperfluidPoolLogicAndInitializeGDA();
 
         // Deploy NFT Proxy and Logic, SuperToken Logic, SuperTokenFactory Proxy and Logic contracts
         _deploySuperTokenContracts();
@@ -136,11 +139,10 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         _deployAgreementContracts();
     }
 
-    function _deployAgreementContracts() internal {
+    function _deployAgreementContracts() internal override {
         if (address(host) == address(0)) revert DEPLOY_AGREEMENTS_REQUIRES_DEPLOY_CORE();
 
-        _deployCFAv1();
-        _deployIDAv1();
+        super._deployAgreementContracts();
     }
 
     /// @notice Deploys all SuperToken-related contracts

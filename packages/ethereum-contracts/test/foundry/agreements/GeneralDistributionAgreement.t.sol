@@ -12,7 +12,7 @@ import {
     IGeneralDistributionAgreementV1
 } from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
-import { SuperToken } from "../../../contracts/utils/SuperTokenDeployer.sol";
+import { SuperToken } from "../../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../../contracts/superfluid/SuperfluidPool.sol";
 import { SuperfluidPoolStorageLayoutMock } from "../../../contracts/mocks/SuperfluidPoolUpgradabilityMock.sol";
@@ -61,8 +61,10 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function setUp() public override {
         super.setUp();
-        vm.prank(alice);
+        vm.startPrank(alice);
+        console.log(address(sf.gda.superfluidPoolBeacon()));
         pool = SuperfluidPool(address(sf.gda.createPool(alice, superToken)));
+        vm.stopPrank();
         (liquidationPeriod,) = sf.governance.getPPPConfig(sf.host, superToken);
     }
 
@@ -661,9 +663,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(distributionAmount < distributorBalance);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            if (!sf.gda.isPool(superToken, members[i].member) && members[i].member != address(0)) {
-                _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
-            }
+            _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
         }
         _helperDistributeAndAssert(superToken, alice, alice, pool, distributionAmount);
     }
@@ -680,10 +680,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(distributionAmount < distributorBalance);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            if (!sf.gda.isPool(superToken, members[i].member) && members[i].member != address(0)) {
-                _helperConnectPoolAndAssertConnected(members[i].member, superToken, pool);
-                _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
-            }
+            _helperConnectPoolAndAssertConnected(members[i].member, superToken, pool);
+            _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
         }
         _helperDistributeAndAssert(superToken, alice, alice, pool, distributionAmount);
     }
@@ -695,10 +693,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(flowRate > 0);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            if (!sf.gda.isPool(superToken, members[i].member) && members[i].member != address(0)) {
-                _helperConnectPoolAndAssertConnected(members[i].member, superToken, pool);
-                _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
-            }
+            _helperConnectPoolAndAssertConnected(members[i].member, superToken, pool);
+            _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
         }
 
         _helperDistributeFlow(superToken, alice, alice, pool, 100);
@@ -839,6 +835,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function _helperUpdateMemberUnits(ISuperfluidPool pool_, address caller_, address member_, uint128 newUnits_)
         internal
     {
+        if (caller_ == address(0) || member_ == address(0)) return;
+
         vm.startPrank(caller_);
         pool_.updateMember(member_, newUnits_);
         vm.stopPrank();

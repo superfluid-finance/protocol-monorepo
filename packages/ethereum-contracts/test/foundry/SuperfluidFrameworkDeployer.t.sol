@@ -74,13 +74,13 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertEq(_superToken.symbol(), string.concat(_symbol, "x"), "SFDeployer: Super token symbol not properly set");
 
         // assert proper resolver listing for underlying and wrapper super token
-        address resolverUnderlyingTokenAddress = resolver.get(string.concat("tokens.test.", underlyingToken.symbol()));
+        address resolverUnderlyingTokenAddress = sf.resolver.get(string.concat("tokens.test.", underlyingToken.symbol()));
         assertEq(
             resolverUnderlyingTokenAddress,
             address(underlyingToken),
             "SFDeployer: Underlying token not properly registered"
         );
-        address resolverSuperTokenAddress = resolver.get(string.concat("supertokens.test.", _superToken.symbol()));
+        address resolverSuperTokenAddress = sf.resolver.get(string.concat("supertokens.test.", _superToken.symbol()));
         assertEq(resolverSuperTokenAddress, address(_superToken), "SFDeployer: Super token not properly registered");
     }
 
@@ -94,7 +94,7 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         );
 
         // assert proper resolver listing
-        address resolverTokenAddress = resolver.get(string.concat("supertokens.test.", nativeAssetSuperToken.symbol()));
+        address resolverTokenAddress = sf.resolver.get(string.concat("supertokens.test.", nativeAssetSuperToken.symbol()));
         assertEq(
             resolverTokenAddress,
             address(nativeAssetSuperToken),
@@ -112,7 +112,7 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertEq(pureSuperToken.symbol(), _symbol, "SFDeployer: Pure super token symbol not properly set");
 
         // assert proper resolver listing
-        address resolverTokenAddress = resolver.get(string.concat("supertokens.test.", pureSuperToken.symbol()));
+        address resolverTokenAddress = sf.resolver.get(string.concat("supertokens.test.", pureSuperToken.symbol()));
         assertEq(resolverTokenAddress, address(pureSuperToken), "SFDeployer: Pure super token not properly registered");
     }
 }

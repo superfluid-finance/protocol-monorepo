@@ -5,9 +5,10 @@ const cfaAgreementType = ethers.utils.solidityKeccak256(["string"], ["org.superf
 const idaAgreementType = ethers.utils.solidityKeccak256(["string"], ["org.superfluid-finance.agreements.InstantDistributionAgreement.v1"]);
 const gdaAgreementType = ethers.utils.solidityKeccak256(["string"], ["org.superfluid-finance.agreements.GeneralDistributionAgreement.v1"]);
 
-const superTokenFactoryUUID = ethers.utils.solidityKeccak256(["string"], ["org.superfluid-finance.contracts.SuperTokenFactory.implementation"]);
-const constantOutflowNFTUUID = ethers.utils.solidityKeccak256(["string"], ["org.superfluid-finance.contracts.ConstantOutflowNFT.implementation"]);
-const constantInflowNFTUUID = ethers.utils.solidityKeccak256(["string"], ["org.superfluid-finance.contracts.ConstantInflowNFT.implementation"]);
+const superTokenFactoryUuid = ethers.utils.solidityKeccak256(["string"], ["org.superfluid-finance.contracts.SuperTokenFactory.implementation"]);
+const superTokenUUID = ethers.utils.solidityKeccak256(["string"], ["org.superfluid-finance.contracts.SuperToken.implementation"]);
+const constantOutflowNftUuid = ethers.utils.solidityKeccak256(["string"], ["org.superfluid-finance.contracts.ConstantOutflowNFT.implementation"]);
+const constantInflowNftUuid = ethers.utils.solidityKeccak256(["string"], ["org.superfluid-finance.contracts.ConstantInflowNFT.implementation"]);
 const superfluidPoolUUID = ethers.utils.solidityKeccak256(["string"], ["org.superfluid-finance.contracts.SuperfluidPool.implementation"]);
 
 function assertLog(condition: boolean, message: string) {
@@ -34,14 +35,11 @@ async function main() {
     const superTokenFactoryAddress = await hostContract.getSuperTokenFactory();
     const superTokenFactoryContract = await ethers.getContractAt("SuperTokenFactory", superTokenFactoryAddress);
     console.log("SuperTokenFactory Address:", superTokenFactoryAddress, "\n");
+    const superTokenFactoryLiveUUID = await superTokenFactoryContract.proxiableUUID();
+    assertLog(superTokenFactoryUuid === superTokenFactoryLiveUUID, "SuperTokenFactory Deployed UUID matches live UUID");
 
     const isCFAv1ForwarderATrustedForwarder = await hostContract.isTrustedForwarder(networkMetadata.contractsV1.cfaV1Forwarder);
     assertLog(isCFAv1ForwarderATrustedForwarder, "CFAv1 Forwarder is set as trusted forwarder");
-
-    const constantOutflowNFTCanonicalLogic = await superTokenFactoryContract.CONSTANT_OUTFLOW_NFT_LOGIC();
-    console.log("ConstantOutflowNFT Canonical Logic (on Factory):", constantOutflowNFTCanonicalLogic);
-    const constantInflowNFTCanonicalLogic = await superTokenFactoryContract.CONSTANT_INFLOW_NFT_LOGIC();
-    console.log("ConstantInflowNFT Canonical Logic (on Factory):", constantInflowNFTCanonicalLogic, "\n");
 
     const superTokenFactoryLogicAddress = await hostContract.getSuperTokenFactoryLogic();
     console.log("SuperTokenFactory Logic Address:", superTokenFactoryLogicAddress, "\n");
@@ -52,17 +50,30 @@ async function main() {
     console.log("SuperToken Logic Address:", superTokenLogicAddress, "\n");
 
     const superTokenLogicContract = await ethers.getContractAt("SuperToken", superTokenLogicAddress);
+    const superTokenLiveUUID = await superTokenLogicContract.proxiableUUID();
+    assertLog(superTokenUUID === superTokenLiveUUID, "SuperTokenFactory Deployed UUID matches live UUID");
+
+    // validate flow NFTs
+    const constantOutflowNFTCanonicalLogic = await superTokenFactoryContract.CONSTANT_OUTFLOW_NFT_LOGIC();
+    console.log("ConstantOutflowNFT Canonical Logic (on Factory):", constantOutflowNFTCanonicalLogic);
+    const constantInflowNFTCanonicalLogic = await superTokenFactoryContract.CONSTANT_INFLOW_NFT_LOGIC();
+    console.log("ConstantInflowNFT Canonical Logic (on Factory):", constantInflowNFTCanonicalLogic, "\n");
 
     const constantOutflowNFProxy = await superTokenLogicContract.CONSTANT_OUTFLOW_NFT();
     const cofNFTContract = await ethers.getContractAt("ConstantOutflowNFT", constantOutflowNFProxy);
+    const cofNFTContractLiveUUID = await cofNFTContract.proxiableUUID();
+    assertLog(constantOutflowNftUuid === cofNFTContractLiveUUID, "ConstantOutflowNFT Deployed UUID matches live UUID");
     console.log("ConstantOutflowNFT:", constantOutflowNFProxy);
+
     const outflowProxyLogic = await cofNFTContract.getCodeAddress();
     console.log("ConstantOutflow NFT Logic (on Proxy):", outflowProxyLogic, "\n");
     assertLog(await cofNFTContract.baseURI() === "https://nft.superfluid.finance/cfa/v2/getmeta", "ConstantOutflowNFT baseURI is equal to https://nft.superfluid.finance/cfa/v2/getmeta");
 
     const constantInflowNFProxy = await superTokenLogicContract.CONSTANT_INFLOW_NFT();
-    console.log("ConstantInflowNFT:", constantInflowNFProxy);
     const cifNFTContract = await ethers.getContractAt("ConstantInflowNFT", constantInflowNFProxy);
+    const cifNFTContractLiveUUID = await cifNFTContract.proxiableUUID();
+    assertLog(constantInflowNftUuid === cifNFTContractLiveUUID, "ConstantInflowNFT Deployed UUID matches live UUID");
+    console.log("ConstantInflowNFT:", constantInflowNFProxy);
     assertLog(await cifNFTContract.baseURI() === "https://nft.superfluid.finance/cfa/v2/getmeta", "ConstantInflowNFT baseURI is equal to https://nft.superfluid.finance/cfa/v2/getmeta");
     
     const inflowProxyLogic = await cifNFTContract.getCodeAddress();
@@ -72,6 +83,32 @@ async function main() {
 
     assertLog(outflowProxyLogic === constantOutflowNFTCanonicalLogic, "Outflow proxy logic is equal to canonical outflow logic");
     assertLog(inflowProxyLogic === constantInflowNFTCanonicalLogic, "Inflow proxy logic is equal to canonical inflow logic");
+
+    // validate pool NFTs
+    const poolAdminNFTCanonicalLogic = await superTokenFactoryContract.POOL_ADMIN_NFT_LOGIC();
+    console.log("PoolAdminNFT Canonical Logic (on Factory):", poolAdminNFTCanonicalLogic);
+    const poolMemberNFTCanonicalLogic = await superTokenFactoryContract.POOL_MEMBER_NFT_LOGIC();
+    console.log("PoolMemberNFT Canonical Logic (on Factory):", poolMemberNFTCanonicalLogic, "\n");
+
+    const poolAdminNFProxy = await superTokenLogicContract.POOL_ADMIN_NFT();
+    const paNFTContract = await ethers.getContractAt("PoolAdminNFT", poolAdminNFProxy);
+    console.log("PoolAdminNFT:", poolAdminNFProxy);
+    const poolAdminProxyLogic = await paNFTContract.getCodeAddress();
+    console.log("PoolAdmin NFT Logic (on Proxy):", poolAdminProxyLogic, "\n");
+    assertLog(await paNFTContract.baseURI() === "https://nft.superfluid.finance/pool/v2/getmeta", "PoolAdminNFT baseURI is equal to https://nft.superfluid.finance/pool/v2/getmeta");
+
+    const poolMemberNFProxy = await superTokenLogicContract.POOL_MEMBER_NFT();
+    console.log("PoolMemberNFT:", poolMemberNFProxy);
+    const pmNFTContract = await ethers.getContractAt("PoolMemberNFT", poolMemberNFProxy);
+    assertLog(await pmNFTContract.baseURI() === "https://nft.superfluid.finance/pool/v2/getmeta", "PoolMemberNFT baseURI is equal to https://nft.superfluid.finance/pool/v2/getmeta");
+    
+    const poolMemberProxyLogic = await pmNFTContract.getCodeAddress();
+    console.log("ConstantInflow NFT Logic (on Proxy):", poolMemberProxyLogic);
+
+    assertLog(await paNFTContract.proxiableUUID() !== await pmNFTContract.proxiableUUID(), "NFT proxies have different implementation.");
+
+    assertLog(poolAdminProxyLogic === poolAdminNFTCanonicalLogic, "Pool admin proxy logic is equal to canonical pool admin logic");
+    assertLog(poolMemberProxyLogic === poolMemberNFTCanonicalLogic, "Pool member proxy logic is equal to canonical pool member logic");
 
     const cfaAddress = await hostContract.getAgreementClass(cfaAgreementType);
     const idaAddress = await hostContract.getAgreementClass(idaAgreementType);
@@ -89,6 +126,7 @@ async function main() {
     assertLog(await idaContract.agreementType() === idaAgreementType, "IDA AgreementType is equal to expected agreementType")
     assertLog(await gdaContract.agreementType() === gdaAgreementType, "GDA AgreementType is equal to expected agreementType")
 
+    // GDA specific validation
     const superfluidPoolBeaconAddress = await gdaContract.superfluidPoolBeacon();
     assertLog(superfluidPoolBeaconAddress !== ethers.constants.AddressZero, "SuperfluidPoolBeaconAddress is not zero address")
     

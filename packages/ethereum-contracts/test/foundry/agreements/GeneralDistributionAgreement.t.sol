@@ -695,8 +695,10 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(flowRate > 0);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            _helperConnectPoolAndAssertConnected(members[i].member, superToken, pool);
-            _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
+            if (!sf.gda.isPool(superToken, members[i].member) && members[i].member != address(0)) {
+                _helperConnectPoolAndAssertConnected(members[i].member, superToken, pool);
+                _helperUpdateMemberUnitsAndAssertUnits(pool, alice, members[i].member, members[i].newUnits);
+            }
         }
 
         _helperDistributeFlow(superToken, alice, alice, pool, 100);
@@ -784,7 +786,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(from != to);
         vm.assume(transferAmount <= unitsAmount);
         _helperUpdateMemberUnitsAndAssertUnits(pool, alice, from, uint128(unitsAmount));
-        
+
         // TODO: transfer is broken
         // _helperTransfer(pool, from, to, uint256(uint128(transferAmount)));
     }

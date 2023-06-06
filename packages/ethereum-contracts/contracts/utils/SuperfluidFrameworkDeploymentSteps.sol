@@ -26,6 +26,9 @@ import { IResolver } from "../interfaces/utils/IResolver.sol";
 /// @title Superfluid Framework Deployment Steps
 /// @author Superfluid
 /// @notice A contract which splits framework deployment into steps.
+/// @dev This was necessary because of the contract size limit of the deployed contract
+/// which is an issue when deploying the original framework with Hardhat.
+/// https://github.com/NomicFoundation/hardhat/issues/3404#issuecomment-1346849400
 contract SuperfluidFrameworkDeploymentSteps {
     bool public constant DEFAULT_NON_UPGRADEABLE = false;
     bool public constant DEFAULT_APP_WHITELISTING_ENABLED = false;

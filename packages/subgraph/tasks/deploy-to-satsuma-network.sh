@@ -5,13 +5,14 @@
 # $2 = the network
 
 # From the Satsuma docs:
-# https://docs.satsuma.xyz/subgraph-deploys
+# https://docs.satsuma.xyz/hosted-subgraphs/subgraph-deploys
 # cd <SUBGRAPH_DIRECTORY>
 
 # graph deploy <SUBGRAPH_NAME> \
 #   --version-label <VERSION_NAME> \
 #   --node http://app.satsuma.xyz/api/subgraphs/deploy \
-#   --deploy-key <DEPLOY_KEY>
+#   --deploy-key <DEPLOY_KEY> \
+#   --ipfs http://ipfs.satsuma.xyz
 
 GRAPH="npx --package=@graphprotocol/graph-cli -- graph"
 

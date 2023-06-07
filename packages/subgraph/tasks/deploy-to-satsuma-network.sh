@@ -26,4 +26,5 @@ echo "Deploying to satsuma network: $1-$2"
 $GRAPH deploy "$2" \
     --version-label "$1" \
     --node https://app.satsuma.xyz/api/subgraphs/deploy \
-    --deploy-key "$SATSUMA_DEPLOY_KEY"
+    --deploy-key "$SATSUMA_DEPLOY_KEY" \
+    --ipfs https://ipfs.satsuma.xyz

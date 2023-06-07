@@ -1373,7 +1373,7 @@ describe("Superfluid Host Contract", function () {
                     );
 
                     // provide less gas
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
                             agreementMockInterface.encodeFunctionData(
@@ -1385,7 +1385,9 @@ describe("Superfluid Host Contract", function () {
                                 gasLimit: Math.ceil(Number(gasLimit) / 2),
                             }
                         ),
-                        "SF: need more gas"
+
+                        superfluid,
+                        "HOST_NEED_MORE_GAS"
                     );
                 });
 
@@ -1422,7 +1424,7 @@ describe("Superfluid Host Contract", function () {
                     );
 
                     // provide less gas
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
                             agreementMockInterface.encodeFunctionData(
@@ -1434,7 +1436,8 @@ describe("Superfluid Host Contract", function () {
                                 gasLimit: Math.ceil(Number(gasLimit) / 2),
                             }
                         ),
-                        "SF: need more gas"
+                        superfluid,
+                        "HOST_NEED_MORE_GAS"
                     );
                 });
 
@@ -1508,10 +1511,8 @@ describe("Superfluid Host Contract", function () {
                             ++errorCount;
                         } catch (error: any) {
                             // with error, check error and increase gas
-                            // @note this doesn't currently work with custom errors
-                            // not sure why though
                             assert.isNotNull(
-                                error.message.match("SF: need more gas")
+                                error.message.match("HOST_NEED_MORE_GAS()")
                             );
                             console.debug(
                                 "Caught error, increasing gas with gap",

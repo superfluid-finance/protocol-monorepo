@@ -15,6 +15,7 @@ import {
 import { Superfluid } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { ISETH } from "../../contracts/interfaces/tokens/ISETH.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
+import { ConstantFlowAgreementV1 } from "../../contracts/agreements/ConstantFlowAgreementV1.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
 import { TestToken } from "../../contracts/utils/TestToken.sol";
@@ -45,13 +46,6 @@ contract FoundrySuperfluidTester is Test {
         uint256 deposit;
         uint256 owedDeposit;
         uint256 timestamp;
-    }
-
-    struct FlowInfo {
-        uint256 timestamp;
-        int96 flowRate;
-        uint256 deposit;
-        uint256 owedDeposit;
     }
 
     struct IDASubscriptionParams {
@@ -172,6 +166,7 @@ contract FoundrySuperfluidTester is Test {
             superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
             _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
             vm.stopPrank();
+            _helperTakeBalanceSnapshot(superToken, TEST_ACCOUNTS[i]);
         }
     }
 
@@ -185,6 +180,7 @@ contract FoundrySuperfluidTester is Test {
             ISETH(address(superToken)).upgradeByETH{ value: INIT_SUPER_TOKEN_BALANCE }();
             _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
             vm.stopPrank();
+            _helperTakeBalanceSnapshot(superToken, TEST_ACCOUNTS[i]);
         }
     }
 
@@ -196,6 +192,7 @@ contract FoundrySuperfluidTester is Test {
         _expectedTotalSupply = initialSupply;
         for (uint256 i = 0; i < N_TESTERS; ++i) {
             superToken.transfer(TEST_ACCOUNTS[i], INIT_SUPER_TOKEN_BALANCE);
+            _helperTakeBalanceSnapshot(superToken, TEST_ACCOUNTS[i]);
         }
     }
 
@@ -386,7 +383,11 @@ contract FoundrySuperfluidTester is Test {
     /// @return receiverFlowInfo The account flow info for a receiver
     function _helperGetAllFlowInfo(ISuperToken superToken_, address sender, address receiver)
         internal
-        returns (FlowInfo memory flowInfo, FlowInfo memory senderFlowInfo, FlowInfo memory receiverFlowInfo)
+        returns (
+            ConstantFlowAgreementV1.FlowData memory flowInfo,
+            ConstantFlowAgreementV1.FlowData memory senderFlowInfo,
+            ConstantFlowAgreementV1.FlowData memory receiverFlowInfo
+        )
     {
         flowInfo = _helperGetFlowInfo(superToken_, sender, receiver);
         senderFlowInfo = _helperGetAccountFlowInfo(superToken_, sender);
@@ -401,11 +402,11 @@ contract FoundrySuperfluidTester is Test {
     function _helperGetFlowInfo(ISuperToken superToken_, address sender, address receiver)
         internal
         view
-        returns (FlowInfo memory flowInfo)
+        returns (ConstantFlowAgreementV1.FlowData memory flowInfo)
     {
         (uint256 timestamp, int96 flowRate, uint256 deposit, uint256 owedDeposit) =
             superToken_.getFlowInfo(sender, receiver);
-        flowInfo = FlowInfo(timestamp, flowRate, deposit, owedDeposit);
+        flowInfo = ConstantFlowAgreementV1.FlowData(timestamp, flowRate, deposit, owedDeposit);
     }
 
     /// @notice Gets account flow info for an account
@@ -415,11 +416,11 @@ contract FoundrySuperfluidTester is Test {
     function _helperGetAccountFlowInfo(ISuperToken superToken_, address account)
         internal
         view
-        returns (FlowInfo memory flowInfo)
+        returns (ConstantFlowAgreementV1.FlowData memory flowInfo)
     {
         (uint256 timestamp, int96 flowRate, uint256 deposit, uint256 owedDeposit) =
             sf.cfa.getAccountFlowInfo(superToken_, account);
-        flowInfo = FlowInfo(timestamp, flowRate, deposit, owedDeposit);
+        flowInfo = ConstantFlowAgreementV1.FlowData(timestamp, flowRate, deposit, owedDeposit);
     }
 
     // Time Warp Helpers
@@ -550,28 +551,31 @@ contract FoundrySuperfluidTester is Test {
     /// @param sender The sender of the flow
     /// @param receiver The receiver of the flow
     /// @param flowRate The desired flow rate
-    function _helperCreateFlow(address sender, address receiver, int96 flowRate) internal {
+    function _helperCreateFlow(ISuperToken superToken_, address sender, address receiver, int96 flowRate) internal {
         flowRate = _assumeValidFlowRate(flowRate);
 
-        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
-            _helperGetAllFlowInfo(superToken, sender, receiver);
+        (
+            ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
+        ) = _helperGetAllFlowInfo(superToken_, sender, receiver);
 
         vm.startPrank(sender);
-        superToken.createFlow(receiver, flowRate);
+        superToken_.createFlow(receiver, flowRate);
         vm.stopPrank();
 
         _helperAddInflowsAndOutflowsToTestState(sender, receiver);
 
-        _helperTakeBalanceSnapshot(superToken, sender);
-        _helperTakeBalanceSnapshot(superToken, receiver);
+        _helperTakeBalanceSnapshot(superToken_, sender);
+        _helperTakeBalanceSnapshot(superToken_, receiver);
 
         int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
 
-        _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
+        _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
 
-        // TODO: balance checks here
+        _assertRealTimeBalances(superToken_);
     }
 
     /// @notice Updates a flow between a sender and receiver at a given flow rate
@@ -583,26 +587,29 @@ contract FoundrySuperfluidTester is Test {
     /// @param sender The sender of the flow
     /// @param receiver The receiver of the flow
     /// @param flowRate The desired flow rate
-    function _helperUpdateFlow(address sender, address receiver, int96 flowRate) internal {
+    function _helperUpdateFlow(ISuperToken superToken_, address sender, address receiver, int96 flowRate) internal {
         flowRate = _assumeValidFlowRate(flowRate);
 
-        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
-            _helperGetAllFlowInfo(superToken, sender, receiver);
+        (
+            ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
+        ) = _helperGetAllFlowInfo(superToken_, sender, receiver);
 
         vm.startPrank(sender);
-        superToken.updateFlow(receiver, flowRate);
+        superToken_.updateFlow(receiver, flowRate);
         vm.stopPrank();
 
-        _helperTakeBalanceSnapshot(superToken, sender);
-        _helperTakeBalanceSnapshot(superToken, receiver);
+        _helperTakeBalanceSnapshot(superToken_, sender);
+        _helperTakeBalanceSnapshot(superToken_, receiver);
 
         int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
 
-        _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
+        _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
 
-        // TODO: balance checks here
+        _assertRealTimeBalances(superToken_);
     }
 
     /// @notice Deletes a flow between a sender and receiver
@@ -613,26 +620,29 @@ contract FoundrySuperfluidTester is Test {
     /// - The balance of the sender and receiver has been updated as expected
     /// @param sender The sender of the flow
     /// @param receiver The receiver of the flow
-    function _helperDeleteFlow(address caller, address sender, address receiver) internal {
-        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
-            _helperGetAllFlowInfo(superToken, sender, receiver);
+    function _helperDeleteFlow(ISuperToken superToken_, address caller, address sender, address receiver) internal {
+        (
+            ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
+        ) = _helperGetAllFlowInfo(superToken_, sender, receiver);
 
         vm.startPrank(caller);
-        superToken.deleteFlow(sender, receiver);
+        superToken_.deleteFlow(sender, receiver);
         vm.stopPrank();
 
         _helperRemoveInflowsAndOutflowsFromTestState(sender, receiver);
 
-        _helperTakeBalanceSnapshot(superToken, sender);
-        _helperTakeBalanceSnapshot(superToken, receiver);
+        _helperTakeBalanceSnapshot(superToken_, sender);
+        _helperTakeBalanceSnapshot(superToken_, receiver);
 
         int96 flowRateDelta = -flowInfoBefore.flowRate;
 
-        _assertFlowInfoIsEmpty(sender, receiver);
+        _assertFlowDataIsEmpty(superToken_, sender, receiver);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
 
-        // TODO: balance checks here
+        _assertRealTimeBalances(superToken_);
     }
 
     /// @notice Creates an ACL flow by the opeartor between a sender and receiver at a given flow rate
@@ -655,8 +665,11 @@ contract FoundrySuperfluidTester is Test {
     ) internal {
         flowRate = _assumeValidFlowRate(flowRate);
 
-        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
-            _helperGetAllFlowInfo(superToken, sender, receiver);
+        (
+            ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
+        ) = _helperGetAllFlowInfo(superToken, sender, receiver);
 
         vm.startPrank(operator);
         superToken_.createFlowFrom(sender, receiver, flowRate);
@@ -669,11 +682,11 @@ contract FoundrySuperfluidTester is Test {
 
         int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
 
-        _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
+        _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
 
-        // TODO: balance checks here
+        _assertRealTimeBalances(superToken_);
 
         // TODO
         // Assert that flow rate allowance has been deducted accordingly
@@ -699,8 +712,11 @@ contract FoundrySuperfluidTester is Test {
     ) internal {
         flowRate = _assumeValidFlowRate(flowRate);
 
-        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
-            _helperGetAllFlowInfo(superToken, sender, receiver);
+        (
+            ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
+        ) = _helperGetAllFlowInfo(superToken, sender, receiver);
 
         vm.startPrank(operator);
         superToken_.updateFlowFrom(sender, receiver, flowRate);
@@ -711,11 +727,11 @@ contract FoundrySuperfluidTester is Test {
 
         int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
 
-        _assertFlowInfo(sender, receiver, flowRate, block.timestamp, 0);
+        _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
 
-        // TODO: balance checks here
+        _assertRealTimeBalances(superToken_);
 
         // TODO
         // Assert that flow rate allowance has been deducted accordingly (if flow rate is increased by delta amount)
@@ -734,8 +750,11 @@ contract FoundrySuperfluidTester is Test {
     function _helperDeleteFlowFrom(ISuperToken superToken_, address operator, address sender, address receiver)
         internal
     {
-        (FlowInfo memory flowInfoBefore, FlowInfo memory senderFlowInfoBefore, FlowInfo memory receiverFlowInfoBefore) =
-            _helperGetAllFlowInfo(superToken, sender, receiver);
+        (
+            ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
+            ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
+        ) = _helperGetAllFlowInfo(superToken, sender, receiver);
 
         vm.startPrank(operator);
         superToken_.deleteFlowFrom(sender, receiver);
@@ -748,11 +767,11 @@ contract FoundrySuperfluidTester is Test {
 
         int96 flowRateDelta = -flowInfoBefore.flowRate;
 
-        _assertFlowInfoIsEmpty(sender, receiver);
+        _assertFlowDataIsEmpty(superToken_, sender, receiver);
         _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
         _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
 
-        // TODO: balance checks here
+        _assertRealTimeBalances(superToken_);
     }
 
     // Write Helpers - InstantDistributionAgreementV1
@@ -1172,7 +1191,8 @@ contract FoundrySuperfluidTester is Test {
     // ConstantFlowAgreement Assertions
 
     /// @dev Asserts that a single flow has been updated as expected
-    function _assertFlowInfo(
+    function _assertFlowData(
+        ISuperToken superToken_,
         address sender,
         address receiver,
         int96 expectedFlowRate,
@@ -1180,19 +1200,45 @@ contract FoundrySuperfluidTester is Test {
         uint256 expectedOwedDeposit
     ) internal {
         (uint256 lastUpdated, int96 flowRate, uint256 deposit, uint256 owedDeposit) =
-            superToken.getFlowInfo(sender, receiver);
+            superToken_.getFlowInfo(sender, receiver);
 
-        uint256 expectedDeposit = superToken.getBufferAmountByFlowRate(expectedFlowRate);
+        uint256 expectedDeposit = superToken_.getBufferAmountByFlowRate(expectedFlowRate);
 
-        assertEq(flowRate, expectedFlowRate, "FlowInfo: flow rate");
-        assertEq(lastUpdated, expectedLastUpdated, "FlowInfo: last updated");
-        assertEq(deposit, expectedDeposit, "FlowInfo: deposit");
-        assertEq(owedDeposit, expectedOwedDeposit, "FlowInfo: owed deposit");
+        assertEq(flowRate, expectedFlowRate, "FlowData: flow rate");
+        assertEq(lastUpdated, expectedLastUpdated, "FlowData: last updated");
+        assertEq(deposit, expectedDeposit, "FlowData: deposit");
+        assertEq(owedDeposit, expectedOwedDeposit, "FlowData: owed deposit");
     }
 
     /// @dev Asserts that a single flow has been removed on deletion
-    function _assertFlowInfoIsEmpty(address sender, address receiver) internal {
-        _assertFlowInfo(sender, receiver, 0, 0, 0);
+    function _assertFlowDataIsEmpty(ISuperToken superToken_, address sender, address receiver) internal {
+        _assertFlowData(superToken_, sender, receiver, 0, 0, 0);
+    }
+
+    function _assertFlowOperatorData(
+        ISuperToken superToken_,
+        address sender,
+        address flowOperator,
+        int96 expectedFlowRateAllowance,
+        uint8 expectedPermissionsBitmask
+    ) internal {
+        (bool canCreate, bool canUpdate, bool canDelete, int96 allowance) =
+            superToken_.getFlowPermissions(sender, flowOperator);
+
+        bool expectedAllowCreate = expectedPermissionsBitmask & 1 == 1 ? true : false;
+        bool expectedAllowUpdate = expectedPermissionsBitmask >> 1 & 1 == 1 ? true : false;
+        bool expectedAllowDelete = expectedPermissionsBitmask >> 2 & 1 == 1 ? true : false;
+
+        assertEq(canCreate, expectedAllowCreate, "FlowOperatorData: create permissions");
+        assertEq(canUpdate, expectedAllowUpdate, "FlowOperatorData: update permissions");
+        assertEq(canDelete, expectedAllowDelete, "FlowOperatorData: delete permissions");
+        assertEq(allowance, expectedFlowRateAllowance, "FlowOperatorData: flow rate allowance");
+    }
+
+    function _assertFlowOperatorDataIsEmpty(ISuperToken superToken_, address sender, address flowOperator)
+        internal
+    {
+        _assertFlowOperatorData(superToken_, sender, flowOperator, 0, 0);
     }
 
     /// @dev Asserts that account flow info has been updated as expected
@@ -1200,9 +1246,12 @@ contract FoundrySuperfluidTester is Test {
     /// @param flowRateDelta The delta of the flow rate
     /// @param flowInfoBefore The flow info before the update
     /// @param isSender Whether the account is the sender
-    function _assertAccountFlowInfo(address account, int96 flowRateDelta, FlowInfo memory flowInfoBefore, bool isSender)
-        internal
-    {
+    function _assertAccountFlowInfo(
+        address account,
+        int96 flowRateDelta,
+        ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
+        bool isSender
+    ) internal {
         (uint256 lastUpdated, int96 netFlowRate, uint256 deposit, uint256 owedDeposit) =
             sf.cfa.getAccountFlowInfo(superToken, account);
 

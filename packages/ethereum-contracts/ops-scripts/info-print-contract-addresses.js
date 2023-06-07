@@ -98,6 +98,15 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         )
     );
     output += `GDA_PROXY=${gdaProxy}\n`;
+    output += `GDA_SLOTS_BITMAP_LIBRARY_ADDRESS=${
+        "0x" +
+        (
+            await web3.eth.call({
+                to: gdaProxy,
+                data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY_ADDRESS()
+            })
+        ).slice(-40)
+    }\n`;
     output += `GDA_LOGIC=${await getCodeAddress(UUPSProxiable, gdaProxy)}\n`;
 
     const gdaContract = await GeneralDistributionAgreementV1.at(gdaProxy);

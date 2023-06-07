@@ -75,13 +75,12 @@ EOF
         ) > "build/contracts/${contract_name}.json"
 }
 
-
 if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
     try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC}"
 fi
 
 if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantInflowNFT"${CONSTANT_INFLOW_NFT_LOGIC}"
+    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC}"
 fi
 
 if [ -n "$POOL_ADMIN_NFT_LOGIC" ]; then
@@ -157,9 +156,11 @@ if [ -n "$IDA_PROXY" ]; then
 fi
 
 if [ -n "$SUPERFLUID_POOL_DEPLOYER_ADDRESS" ]; then
-    try_verify SuperfluidPoolDeployer@"${SUPERFLUID_POOL_DEPLOYER_ADDRESS}"
+    try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER_ADDRESS}"
 fi
 
+link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${GDA_SLOTS_BITMAP_LIBRARY_ADDRESS}"
+link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER_ADDRESS}"
 if [ -n "$GDA_LOGIC" ]; then
     try_verify GeneralDistributionAgreementV1@"${GDA_LOGIC}"
 fi

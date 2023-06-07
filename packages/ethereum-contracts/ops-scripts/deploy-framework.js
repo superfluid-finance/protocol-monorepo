@@ -435,16 +435,18 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         return externalLibrary;
     };
 
+    let slotsBitmapLibraryAddress = ZERO_ADDRESS;
     // list IDA v1
     const deployIDAv1 = async () => {
         // small inefficiency: this may be re-deployed even if not changed
         // deploySlotsBitmapLibrary
-        await deployExternalLibraryAndLink(
+        const slotsBitmapLibrary = await deployExternalLibraryAndLink(
             SlotsBitmapLibrary,
             "SlotsBitmapLibrary",
             "SLOTS_BITMAP_LIBRARY_ADDRESS",
             InstantDistributionAgreementV1
         );
+        slotsBitmapLibraryAddress = slotsBitmapLibrary.address;
         const agreement = await web3tx(
             InstantDistributionAgreementV1.new,
             "InstantDistributionAgreementV1.new"
@@ -468,7 +470,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         // here as an optimization, this assumes that we do not change the
         // library code.
         // link library in order to avoid spurious code change detections
-        let slotsBitmapLibraryAddress = ZERO_ADDRESS;
         try {
             const IDAv1 = await InstantDistributionAgreementV1.at(
                 await superfluid.getAgreementClass.call(IDAv1_TYPE)
@@ -504,13 +505,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 GeneralDistributionAgreementV1
             );
 
-            // retrieve SlotsBitMap from IDA
-            // deploy and link SlotsBitmapLibrary
-            const IDAv1 = await InstantDistributionAgreementV1.at(
-                await superfluid.getAgreementClass.call(IDAv1_TYPE)
-            );
-            const slotsBitmapLibraryAddress =
-                await IDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS.call();
             if (process.env.IS_HARDHAT) {
                 if (slotsBitmapLibraryAddress !== ZERO_ADDRESS) {
                     const lib = await SlotsBitmapLibrary.at(

@@ -18,10 +18,12 @@ import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
 import { SuperfluidPoolDeployerLibrary } from "../libs/SuperfluidPoolDeployerLibrary.sol";
 import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
 import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
 import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
 import { SlotsBitmapLibrary } from "../libs/SlotsBitmapLibrary.sol";
+import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
@@ -433,8 +435,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             Time.wrap(uint32(block.timestamp))
         );
 
+        // handle distribute flow on behalf of someone else
         {
-            // distribute flow on behalf of someone else
             if (from != currentContext.msgSender) {
                 if (requestedFlowRate > 0) {
                     // @note no ACL support for now
@@ -478,6 +480,44 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             }
         }
 
+        // mint/burn FlowNFT to flow distributor
+        {
+            address constantOutflowNFTAddress = _canCallNFTHook(token);
+
+            if (constantOutflowNFTAddress != address(0)) {
+                uint256 gasLeftBefore;
+                // create flow (mint)
+                if (requestedFlowRate > 0 && FlowRate.unwrap(oldFlowRate) == 0) {
+                    gasLeftBefore = gasleft();
+                    try IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(token, from, address(pool)) {
+                        // solhint-disable-next-line no-empty-blocks
+                    } catch {
+                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+                    }
+                }
+
+                // update flow (update metadata)
+                if (requestedFlowRate > 0 && FlowRate.unwrap(oldFlowRate) > 0) {
+                    gasLeftBefore = gasleft();
+                    try IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(token, from, address(pool)) {
+                        // solhint-disable-next-line no-empty-blocks
+                    } catch {
+                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+                    }
+                }
+
+                // delete flow (burn)
+                if (requestedFlowRate == 0) {
+                    gasLeftBefore = gasleft();
+                    try IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(token, from, address(pool)) {
+                        // solhint-disable-next-line no-empty-blocks
+                    } catch {
+                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+                    }
+                }
+            }
+        }
+
         {
             (address adjustmentFlowRecipient,, int96 adjustmentFlowRate) =
                 _getPoolAdjustmentFlowInfo(abi.encode(token), address(pool));
@@ -493,6 +533,27 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                 adjustmentFlowRecipient,
                 adjustmentFlowRate
             );
+        }
+    }
+
+    /**
+     * @notice Checks whether or not the NFT hook can be called.
+     * @dev A staticcall, so `CONSTANT_OUTFLOW_NFT` must be a view otherwise the assumption is that it reverts
+     * @param token the super token that is being streamed
+     * @return constantOutflowNFTAddress the address returned by low level call
+     */
+    function _canCallNFTHook(ISuperfluidToken token) internal view returns (address constantOutflowNFTAddress) {
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory data) =
+            address(token).staticcall(abi.encodeWithSelector(ISuperToken.CONSTANT_OUTFLOW_NFT.selector));
+
+        if (success) {
+            // @note We are aware this may revert if a Custom SuperToken's
+            // CONSTANT_OUTFLOW_NFT does not return data that can be
+            // decoded to an address. This would mean it was intentionally
+            // done by the creator of the Custom SuperToken logic and is
+            // fully expected to revert in that case as the author desired.
+            constantOutflowNFTAddress = abi.decode(data, (address));
         }
     }
 

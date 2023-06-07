@@ -1225,9 +1225,9 @@ contract FoundrySuperfluidTester is Test {
         (bool canCreate, bool canUpdate, bool canDelete, int96 allowance) =
             superToken_.getFlowPermissions(sender, flowOperator);
 
-        bool expectedAllowCreate = expectedPermissionsBitmask & 1 == 1 ? true : false;
-        bool expectedAllowUpdate = expectedPermissionsBitmask >> 1 & 1 == 1 ? true : false;
-        bool expectedAllowDelete = expectedPermissionsBitmask >> 2 & 1 == 1 ? true : false;
+        bool expectedAllowCreate = expectedPermissionsBitmask & 1 == 1;
+        bool expectedAllowUpdate = expectedPermissionsBitmask >> 1 & 1 == 1;
+        bool expectedAllowDelete = expectedPermissionsBitmask >> 2 & 1 == 1;
 
         assertEq(canCreate, expectedAllowCreate, "FlowOperatorData: create permissions");
         assertEq(canUpdate, expectedAllowUpdate, "FlowOperatorData: update permissions");
@@ -1235,9 +1235,7 @@ contract FoundrySuperfluidTester is Test {
         assertEq(allowance, expectedFlowRateAllowance, "FlowOperatorData: flow rate allowance");
     }
 
-    function _assertFlowOperatorDataIsEmpty(ISuperToken superToken_, address sender, address flowOperator)
-        internal
-    {
+    function _assertFlowOperatorDataIsEmpty(ISuperToken superToken_, address sender, address flowOperator) internal {
         _assertFlowOperatorData(superToken_, sender, flowOperator, 0, 0);
     }
 

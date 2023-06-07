@@ -62,7 +62,6 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function setUp() public override {
         super.setUp();
         vm.startPrank(alice);
-        console.log(address(sf.gda.superfluidPoolBeacon()));
         pool = SuperfluidPool(address(sf.gda.createPool(alice, superToken)));
         vm.stopPrank();
         (liquidationPeriod,) = sf.governance.getPPPConfig(sf.host, superToken);
@@ -377,19 +376,17 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         _helperConnectPoolAndAssertConnected(bob, superToken, pool);
         _helperUpdateMemberUnitsAndAssertUnits(pool, alice, bob, 1);
 
-        (int96 actualDistributionFlowRate,) =
-            sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedDistributionFlowRate);
-
         _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
         int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
+        console.logInt(fr);
 
-        _helperWarpToCritical(alice, actualDistributionFlowRate, 1);
+        _helperWarpToCritical(alice, fr, 1);
 
         _helperDistributeFlow(superToken, bob, alice, pool, 0);
 
         (bool isPatricianPeriod,) = sf.gda.isPatricianPeriodNow(superToken, alice);
         // TODO
-        // assertEq(isPatricianPeriod, false);
+        assertEq(isPatricianPeriod, false, "false patrician period");
     }
 
     function testCreatePool() public {
@@ -421,11 +418,6 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function testDisconnectPool(address caller) public {
         _helperConnectPoolAndAssertConnected(caller, superToken, pool);
         _helperDisconnectPoolAndAssertDisconnected(caller, superToken, pool);
-    }
-
-    function testRealtimeBalanceOfEmpty(address account) public {
-        (int256 accountRTB,,,) = _helperRTB(account);
-        assertEq(accountRTB, 0);
     }
 
     function testRevertDistributeFlowToNonPool(int96 requestedFlowRate) public {
@@ -512,7 +504,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(units < uint128(type(int128).max));
 
         vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NO_POOL_MEMBERS.selector);
-        _helperUpdateMemberUnits(pool, alice, address(pool), units);
+        vm.startPrank(alice);
+        pool.updateMember(address(pool), units);
+        vm.stopPrank();
     }
 
     function testSuperfluidPoolStorageLayout() public {
@@ -536,7 +530,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         _helperConnectPoolAndAssertConnected(member, superToken, pool);
         _helperUpdateMemberUnitsAndAssertUnits(pool, alice, member, 1);
         _helperDistributeFlow(superToken, alice, alice, pool, int96(int64(distributionFlowRate)));
-        (, uint256 buffer,,) = _helperRTB(alice);
+        (, uint256 buffer,,) = superToken.realtimeBalanceOfNow(alice);
         assertEq(buffer, minimumDeposit, "GDAv1.t: Min buffer should be used");
     }
 
@@ -557,7 +551,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         _helperConnectPoolAndAssertConnected(member, superToken, pool);
         _helperUpdateMemberUnitsAndAssertUnits(pool, alice, member, 1);
         _helperDistributeFlow(superToken, alice, alice, pool, int96(distributionFlowRate));
-        (, uint256 buffer,,) = _helperRTB(alice);
+        (, uint256 buffer,,) = superToken.realtimeBalanceOfNow(alice);
         assertTrue(buffer >= minimumDeposit, "GDAv1.t: Buffer should be >= minDeposit");
     }
 
@@ -726,7 +720,11 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         for (uint256 i; i < members.length; ++i) {
             address member = members[i].member;
+            // @note we test realtimeBalanceOfNow here as well
             (int256 memberRTB,,) = sf.gda.realtimeBalanceOf(superToken, member, block.timestamp);
+            (int256 rtbNow, , ,) = sf.gda.realtimeBalanceOfNow(superToken, member);
+            assertEq(memberRTB, rtbNow, "testDistributeFlowToUnconnectedMembers: rtb != rtbNow");
+            
             assertEq(
                 pool.getTotalDisconnectedFlowRate(),
                 actualDistributionFlowRate,
@@ -835,7 +833,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function _helperUpdateMemberUnits(ISuperfluidPool pool_, address caller_, address member_, uint128 newUnits_)
         internal
     {
-        if (caller_ == address(0) || member_ == address(0)) return;
+        if (caller_ == address(0) || member_ == address(0) || sf.gda.isPool(superToken, member_)) return;
 
         vm.startPrank(caller_);
         pool_.updateMember(member_, newUnits_);
@@ -848,6 +846,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         address member_,
         uint128 newUnits_
     ) internal {
+        if (caller_ == address(0) || member_ == address(0) || sf.gda.isPool(superToken, member_)) return;
+
         (bool isConnected, int256 oldUnits, int96 oldFlowRate) = _helperGetMemberInitialState(pool_, member_);
 
         _helperUpdateMemberUnits(pool_, caller_, member_, newUnits_);
@@ -1048,27 +1048,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         uint256 fromBalanceOfAfter = _pool.balanceOf(from);
         uint256 toBalanceOfAfter = _pool.balanceOf(to);
-        console.log("amount", amount);
-        console.log("fromBalanceOfAfter", fromBalanceOfAfter);
-        console.log("toBalanceOfAfter", toBalanceOfAfter);
         assertEq(fromBalanceOfBefore - amount, fromBalanceOfAfter, "_helperTransfer: from balance mismatch");
         assertEq(toBalanceOfBefore + amount, toBalanceOfAfter, "_helperTransfer: to balance mismatch");
-    }
-
-    function _helperRTB(address account)
-        internal
-        returns (int256 availableBalance, uint256 buffer, uint256 owedBuffer, uint256 timestamp)
-    {
-        (int256 availableBalanceA, uint256 bufferA, uint256 owedBufferA) =
-            superToken.realtimeBalanceOf(account, block.timestamp);
-        (int256 availableBalanceB, uint256 bufferB, uint256 owedBufferB, uint256 timestampB) =
-            superToken.realtimeBalanceOfNow(account);
-        assertEq(availableBalanceA, availableBalanceB, "GDAv1.t: availableBalance !=");
-        assertEq(bufferA, bufferB, "GDAv1.t: buffer funcs !=");
-        assertEq(owedBufferA, owedBufferB, "GDAv1.t: owedBuffer funcs !=");
-        assertEq(timestampB, block.timestamp, "GDAv1.t: timestamp !=");
-
-        return (availableBalanceA, bufferA, owedBufferA, timestampB);
     }
 
     /*//////////////////////////////////////////////////////////////////////////

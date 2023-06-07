@@ -34,7 +34,7 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         // bob subscribes to alice's index
         _helperApproveSubscription(params);
 
-        _assertGlobalInvariants();
+        _warpAndAssertAll(superToken);
     }
 
     function testRevertMaxNumberOFSubscriptionsASubscriberCanHave() public {
@@ -64,6 +64,6 @@ contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         superToken.approveSubscription(alice, uint32(maxNumSubs));
         vm.stopPrank();
 
-        _assertGlobalInvariants();
+        _warpAndAssertAll(superToken);
     }
 }

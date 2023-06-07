@@ -12,20 +12,16 @@ contract ConstantFlowAgreementV1IntegrationTest is FoundrySuperfluidTester {
     function testAlice2Bob(int96 flowRate) public {
         _helperCreateFlow(superToken, alice, bob, flowRate);
 
-        assertEq(sf.cfa.getNetFlow(superToken, alice), -flowRate, "CFAv1.t: alice net flow != -flowRate");
-        assertEq(sf.cfa.getNetFlow(superToken, bob), flowRate, "CFAv1.t: bob net flow != flowRate");
-
-        _assertGlobalInvariants();
+        _warpAndAssertAll(superToken);
     }
 
     function testBobAliceLoop(int96 flowRate) public {
         _helperCreateFlow(superToken, alice, bob, flowRate);
+        
+        _warpAndAssertAll(superToken);
 
         _helperCreateFlow(superToken, bob, alice, flowRate);
 
-        assertEq(sf.cfa.getNetFlow(superToken, alice), 0, "CFAv1.t: alice net flow != 0");
-        assertEq(sf.cfa.getNetFlow(superToken, bob), 0, "CFAv1.t: bob net flow != 0");
-
-        _assertGlobalInvariants();
+        _warpAndAssertAll(superToken);
     }
 }

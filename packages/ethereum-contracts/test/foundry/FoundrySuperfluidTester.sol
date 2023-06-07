@@ -60,6 +60,7 @@ contract FoundrySuperfluidTester is Test {
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
     int8 internal immutable testSuperTokenType;
 
+    uint256 internal constant DEFAULT_WARP_TIME = 1 days;
     uint256 internal constant INIT_TOKEN_BALANCE = type(uint128).max;
     uint256 internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
     string internal constant DEFAULT_TEST_TOKEN_TYPE = "WRAPPER_SUPER_TOKEN";
@@ -257,8 +258,22 @@ contract FoundrySuperfluidTester is Test {
         return netFlowRateSum == 0;
     }
 
+    /// @notice Warps forwards 1 day and asserts balances of all testers and global invariants
+    function _warpAndAssertAll(ISuperToken superToken_) internal virtual {
+        vm.warp(block.timestamp + DEFAULT_WARP_TIME);
+        _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
+    }
+
+    /// @notice Warps forwards `time` seconds and asserts balances of all testers and global invariants
+    function _warpAndAssertAll(ISuperToken superToken_, uint256 time) internal virtual {
+        vm.warp(block.timestamp + time);
+        _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
+    }
+
     /// @notice Asserts that the global invariants hold true
-    function _assertGlobalInvariants() internal {
+    function _assertGlobalInvariants() internal virtual {
         _assertInvariantLiquiditySum();
         _assertInvariantNetFlowRateSum();
         _assertInvariantAumGtEqRtbSum();

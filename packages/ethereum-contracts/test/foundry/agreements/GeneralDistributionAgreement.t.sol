@@ -353,9 +353,6 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedDistributionFlowRate);
 
         _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
-        int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
-
-        uint256 aliceBalance = superToken.balanceOf(alice);
 
         if (actualDistributionFlowRate > 0) {
             _helperWarpToInsolvency(alice, actualDistributionFlowRate, liquidationPeriod, 1);
@@ -366,21 +363,26 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     }
 
     function testNegativeBalanceIsPatricianPeriodNowIsFalseWithZeroDeposit() public {
-        uint256 balance = superToken.balanceOf(alice);
-        int96 flowRate = balance.toInt256().toInt96() / type(int32).max;
+        uint256 aliceBalance = superToken.balanceOf(alice);
+        uint256 bobBalance = superToken.balanceOf(bob);
+        int96 flowRate = aliceBalance.toInt256().toInt96() / type(int32).max;
         int96 requestedDistributionFlowRate = int96(flowRate);
 
-        vm.prank(sf.governance.owner());
-        sf.governance.setRewardAddress(sf.host, ISuperfluidToken(address(0)), bob);
+        vm.startPrank(sf.governance.owner());
+        sf.governance.setRewardAddress(sf.host, ISuperfluidToken(address(0)), alice);
+        vm.stopPrank();
 
         _helperConnectPoolAndAssertConnected(bob, superToken, pool);
         _helperUpdateMemberUnitsAndAssertUnits(pool, alice, bob, 1);
 
+        (int256 aliceRTB, uint256 deposit, ,) = superToken.realtimeBalanceOfNow(alice);
+
         _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
         int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
-        console.logInt(fr);
 
-        _helperWarpToCritical(alice, fr, 1);
+        vm.warp(block.timestamp + (INIT_SUPER_TOKEN_BALANCE / uint256(uint96(fr))));
+
+        (aliceRTB, deposit, ,) = superToken.realtimeBalanceOfNow(alice);
 
         _helperDistributeFlow(superToken, bob, alice, pool, 0);
 
@@ -771,18 +773,17 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         _helperDecreaseAllowance(pool, owner, spender, subtractedValue);
     }
 
-    function testBasicTransfer(address from, address to, int128 unitsAmount, int128 transferAmount) public {
-        // @note we use int128 because overflow will happen otherwise
+    function testBasicTransfer(address from, address to, int96 unitsAmount, int128 transferAmount) public {
+        // @note we use int96 because overflow will happen otherwise
         vm.assume(unitsAmount >= 0);
         vm.assume(transferAmount > 0);
         vm.assume(from != address(0));
         vm.assume(to != address(0));
         vm.assume(from != to);
         vm.assume(transferAmount <= unitsAmount);
-        _helperUpdateMemberUnitsAndAssertUnits(pool, alice, from, uint128(unitsAmount));
+        _helperUpdateMemberUnitsAndAssertUnits(pool, alice, from, uint128(int128(unitsAmount)));
 
-        // TODO: transfer is broken
-        // _helperTransfer(pool, from, to, uint256(uint128(transferAmount)));
+        _helperTransfer(pool, from, to, uint256(uint128(transferAmount)));
     }
 
     /*//////////////////////////////////////////////////////////////////////////

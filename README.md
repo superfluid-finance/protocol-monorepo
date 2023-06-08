@@ -154,19 +154,22 @@ Thanks goes to these wonderful people ([🐸](https://allcontributors.org/docs/e
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
 <table>
-  <tr>
-    <td align="center"><a href="https://www.joshua-trujillo.com/"><img src="https://avatars.githubusercontent.com/u/41972979?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Joshua Trujillo</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=JoshuaTrujillo15" title="Code">💻</a></td>
-    <td align="center"><a href="https://manavdarji.notelet.so/"><img src="https://avatars.githubusercontent.com/u/36959497?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Manav Darji</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=manav2401" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/Drewsapple"><img src="https://avatars.githubusercontent.com/u/4532572?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Drew Fisher</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=Drewsapple" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/d10r"><img src="https://avatars.githubusercontent.com/u/5479136?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Didi</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=d10r" title="Code">💻</a></td>
-    <td align="center"><a href="http://medium.com/@samparsky"><img src="https://avatars.githubusercontent.com/u/8148384?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Omidiora Samuel</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=samparsky" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/iamsahu"><img src="https://avatars.githubusercontent.com/u/46891804?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Prafful</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=iamsahu" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/mjaago"><img src="https://avatars.githubusercontent.com/u/25458626?v=4?s=100" width="100px;" alt=""/><br /><sub><b>mjaago</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=mjaago" title="Code">💻</a></td>
-  </tr>
-  <tr>
-    <td align="center"><a href="https://github.com/markcarey"><img src="https://avatars.githubusercontent.com/u/98136?v=4?s=100" width="100px;" alt=""/><br /><sub><b>markcarey</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=markcarey" title="Code">💻</a></td>
-    <td align="center"><a href="https://github.com/bertux"><img src="https://avatars.githubusercontent.com/u/5703?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Bertrand Juglas</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/pulls?q=is%3Apr+reviewed-by%3Abertux" title="Code+Deployment">✨</a></td>
-  </tr>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://www.joshua-trujillo.com/"><img src="https://avatars.githubusercontent.com/u/41972979?v=4?s=100" width="100px;" alt="Joshua Trujillo"/><br /><sub><b>Joshua Trujillo</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=JoshuaTrujillo15" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://manavdarji.notelet.so/"><img src="https://avatars.githubusercontent.com/u/36959497?v=4?s=100" width="100px;" alt="Manav Darji"/><br /><sub><b>Manav Darji</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=manav2401" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/Drewsapple"><img src="https://avatars.githubusercontent.com/u/4532572?v=4?s=100" width="100px;" alt="Drew Fisher"/><br /><sub><b>Drew Fisher</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=Drewsapple" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/d10r"><img src="https://avatars.githubusercontent.com/u/5479136?v=4?s=100" width="100px;" alt="Didi"/><br /><sub><b>Didi</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=d10r" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://medium.com/@samparsky"><img src="https://avatars.githubusercontent.com/u/8148384?v=4?s=100" width="100px;" alt="Omidiora Samuel"/><br /><sub><b>Omidiora Samuel</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=samparsky" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/iamsahu"><img src="https://avatars.githubusercontent.com/u/46891804?v=4?s=100" width="100px;" alt="Prafful"/><br /><sub><b>Prafful</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=iamsahu" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/mjaago"><img src="https://avatars.githubusercontent.com/u/25458626?v=4?s=100" width="100px;" alt="mjaago"/><br /><sub><b>mjaago</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=mjaago" title="Code">💻</a></td>
+    </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/markcarey"><img src="https://avatars.githubusercontent.com/u/98136?v=4?s=100" width="100px;" alt="markcarey"/><br /><sub><b>markcarey</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=markcarey" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bertux"><img src="https://avatars.githubusercontent.com/u/5703?v=4?s=100" width="100px;" alt="Bertrand Juglas"/><br /><sub><b>Bertrand Juglas</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/pulls?q=is%3Apr+reviewed-by%3Abertux" title="Reviewed Pull Requests">👀</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://personal-site-shreyaspapi.vercel.app"><img src="https://avatars.githubusercontent.com/u/22324802?v=4?s=100" width="100px;" alt="Shreyas Papinwar"/><br /><sub><b>Shreyas Papinwar</b></sub></a><br /><a href="https://github.com/superfluid-finance/protocol-monorepo/commits?author=shreyaspapi" title="Code">💻</a></td>
+    </tr>
+  </tbody>
 </table>
 
 <!-- markdownlint-restore -->

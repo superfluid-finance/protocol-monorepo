@@ -164,9 +164,10 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
 
     function testRevertIfOnUpdateIsNotCalledByCFAv1(address caller) public {
         _assumeCallerIsNotOtherAddress(caller, address(sf.cfa));
-        vm.prank(caller);
+        vm.startPrank(caller);
         vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_FLOW_AGREEMENTS.selector);
         constantOutflowNFTProxy.onUpdate(superToken, address(1), address(2));
+        vm.stopPrank();
     }
 
     function testRevertIfOnDeleteIsNotCalledByCFAv1(address caller) public {

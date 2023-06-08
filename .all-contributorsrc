@@ -85,6 +85,15 @@
       "contributions": [
         "review"
       ]
+    },
+    {
+      "login": "shreyaspapi",
+      "name": "Shreyas Papinwar",
+      "avatar_url": "https://avatars.githubusercontent.com/u/22324802?v=4",
+      "profile": "https://personal-site-shreyaspapi.vercel.app",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -92,5 +101,7 @@
   "projectOwner": "superfluid-finance",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": false
+  "skipCi": false,
+  "commitType": "docs",
+  "commitConvention": "angular"
 }

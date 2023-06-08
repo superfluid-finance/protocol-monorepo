@@ -782,9 +782,9 @@ library SuperTokenV1Library {
         (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
         uint8 permissionsBitmask;
         (, permissionsBitmask, flowRateAllowance) = cfa.getFlowOperatorData(token, sender, flowOperator);
-        allowCreate = permissionsBitmask & 1 == 1 ? true : false;
-        allowUpdate = permissionsBitmask >> 1 & 1 == 1 ? true : false;
-        allowDelete = permissionsBitmask >> 2 & 1 == 1 ? true : false;
+        allowCreate = permissionsBitmask & 1 == 1;
+        allowUpdate = permissionsBitmask >> 1 & 1 == 1;
+        allowDelete = permissionsBitmask >> 2 & 1 == 1;
     }
 
 

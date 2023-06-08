@@ -8,15 +8,15 @@ const {
 async function deployContractsAndToken() {
     const [Deployer] = await ethers.getSigners();
 
-    const {frameworkDeployer: deployer, superTokenDeployer } = await deployTestFramework();
+    const {frameworkDeployer: deployer } = await deployTestFramework();
     const framework = await deployer.getFramework();
 
     const resolver = await ethers.getContractAt(
         testResolverArtifact.abi,
         framework.resolver
     );
-
-    await superTokenDeployer
+    
+    await deployer
         .connect(Deployer)
         .deployWrapperSuperToken(
             "Fake DAI",
@@ -25,11 +25,11 @@ async function deployContractsAndToken() {
             ethers.utils.parseUnits("1000000000000")
         );
 
-    await superTokenDeployer
+    await deployer
         .connect(Deployer)
         .deployNativeAssetSuperToken("Super ETH", "ETHx");
 
-    await superTokenDeployer
+    await deployer
         .connect(Deployer)
         .deployPureSuperToken(
             "Mr.Token",

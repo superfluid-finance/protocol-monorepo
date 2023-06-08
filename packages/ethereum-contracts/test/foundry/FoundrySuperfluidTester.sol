@@ -560,113 +560,141 @@ contract FoundrySuperfluidTester is Test {
     /// @notice Creates a flow between a sender and receiver at a given flow rate
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
     /// We assert:
-    /// - The flow info is properly set
-    /// - The account flow info has been updated as expected for sender and receiver
-    /// - The balance of the sender and receiver has been updated as expected
+    /// - The flow info is properly set (flow rate, updated, deposit and owedDeposit are set as expected)
+    /// - The account flow info has been updated as expected for sender and receiver (delta applied to net flow rates +
+    /// deposit for sender)
+    /// - The balance of all test accounts has been updated as expected (balanceSnapshot + streamedAmountSince)
     /// @param sender The sender of the flow
     /// @param receiver The receiver of the flow
     /// @param flowRate The desired flow rate
     function _helperCreateFlow(ISuperToken superToken_, address sender, address receiver, int96 flowRate) internal {
         flowRate = _assumeValidFlowRate(flowRate);
 
+        // Get Flow Data Before
         (
             ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
         ) = _helperGetAllFlowInfo(superToken_, sender, receiver);
 
+        // Execute Create Flow
         vm.startPrank(sender);
         superToken_.createFlow(receiver, flowRate);
         vm.stopPrank();
 
-        _helperAddInflowsAndOutflowsToTestState(sender, receiver);
+        // Update Test State
+        {
+            _helperAddInflowsAndOutflowsToTestState(sender, receiver);
 
-        _helperTakeBalanceSnapshot(superToken_, sender);
-        _helperTakeBalanceSnapshot(superToken_, receiver);
+            _helperTakeBalanceSnapshot(superToken_, sender);
+            _helperTakeBalanceSnapshot(superToken_, receiver);
+        }
 
-        int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+        // Assert Flow Data + Account Flow Info for sender/receiver
+        {
+            int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+            _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
+            _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+            _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+        }
 
-        _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
-        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
-        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-
+        // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
     }
 
     /// @notice Updates a flow between a sender and receiver at a given flow rate
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
     /// We assert:
-    /// - The flow info is properly set
-    /// - The account flow info has been updated as expected for sender and receiver
-    /// - The balance of the sender and receiver has been updated as expected
+    /// - The flow info is properly set (flow rate, updated, deposit and owedDeposit are set as expected)
+    /// - The account flow info has been updated as expected for sender and receiver (delta applied to net flow rates +
+    /// deposit for sender)
+    /// - The balance of all test accounts has been updated as expected (balanceSnapshot + streamedAmountSince)
     /// @param sender The sender of the flow
     /// @param receiver The receiver of the flow
     /// @param flowRate The desired flow rate
     function _helperUpdateFlow(ISuperToken superToken_, address sender, address receiver, int96 flowRate) internal {
         flowRate = _assumeValidFlowRate(flowRate);
 
+        // Get Flow Data Before
         (
             ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
         ) = _helperGetAllFlowInfo(superToken_, sender, receiver);
 
+        // Execute Update Flow
         vm.startPrank(sender);
         superToken_.updateFlow(receiver, flowRate);
         vm.stopPrank();
 
-        _helperTakeBalanceSnapshot(superToken_, sender);
-        _helperTakeBalanceSnapshot(superToken_, receiver);
+        // Update Test State
+        {
+            _helperTakeBalanceSnapshot(superToken_, sender);
+            _helperTakeBalanceSnapshot(superToken_, receiver);
+        }
 
-        int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+        // Assert Flow Data + Account Flow Info for sender/receiver
+        {
+            int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+            _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
+            _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+            _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+        }
 
-        _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
-        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
-        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-
+        // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
     }
 
     /// @notice Deletes a flow between a sender and receiver
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
     /// We assert:
-    /// - The flow info is properly set
-    /// - The account flow info has been updated as expected for sender and receiver
-    /// - The balance of the sender and receiver has been updated as expected
+    /// - The flow info is properly set (flow rate, updated, deposit and owedDeposit are set as expected)
+    /// - The account flow info has been updated as expected for sender and receiver (delta applied to net flow rates +
+    /// deposit for sender)
+    /// - The balance of all test accounts has been updated as expected (balanceSnapshot + streamedAmountSince)
     /// @param sender The sender of the flow
     /// @param receiver The receiver of the flow
     function _helperDeleteFlow(ISuperToken superToken_, address caller, address sender, address receiver) internal {
+        // Get Flow Data Before
         (
             ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
         ) = _helperGetAllFlowInfo(superToken_, sender, receiver);
 
+        // Execute Delete Flow
         vm.startPrank(caller);
         superToken_.deleteFlow(sender, receiver);
         vm.stopPrank();
 
-        _helperRemoveInflowsAndOutflowsFromTestState(sender, receiver);
+        // Update Test State
+        {
+            _helperRemoveInflowsAndOutflowsFromTestState(sender, receiver);
 
-        _helperTakeBalanceSnapshot(superToken_, sender);
-        _helperTakeBalanceSnapshot(superToken_, receiver);
+            _helperTakeBalanceSnapshot(superToken_, sender);
+            _helperTakeBalanceSnapshot(superToken_, receiver);
+        }
 
-        int96 flowRateDelta = -flowInfoBefore.flowRate;
+        // Assert Flow Data + Account Flow Info for sender/receiver
+        {
+            int96 flowRateDelta = -flowInfoBefore.flowRate;
+            _assertFlowDataIsEmpty(superToken_, sender, receiver);
+            _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+            _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+        }
 
-        _assertFlowDataIsEmpty(superToken_, sender, receiver);
-        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
-        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-
+        // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
     }
 
     /// @notice Creates an ACL flow by the opeartor between a sender and receiver at a given flow rate
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
     /// We assert:
-    /// - The flow info is properly set
-    /// - The account flow info has been updated as expected for sender and receiver
-    /// - The balance of the sender and receiver has been updated as expected
-    /// - The flow rate allowance has been deducted accordingly
+    /// - The flow info is properly set (flow rate, updated, deposit and owedDeposit are set as expected)
+    /// - The account flow info has been updated as expected for sender and receiver (delta applied to net flow rates +
+    /// deposit for sender)
+    /// - The balance of all test accounts has been updated as expected (balanceSnapshot + streamedAmountSince)
+    /// - The flow rate allowance has been deducted accordingly (only if not max allowancea)
     /// @param operator The flow operator
     /// @param sender The sender of the flow
     /// @param receiver The receiver of the flow
@@ -680,27 +708,35 @@ contract FoundrySuperfluidTester is Test {
     ) internal {
         flowRate = _assumeValidFlowRate(flowRate);
 
+        // Get Flow Data Before
         (
             ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
         ) = _helperGetAllFlowInfo(superToken, sender, receiver);
 
+        // Execute Create Flow as FlowOperator
         vm.startPrank(operator);
         superToken_.createFlowFrom(sender, receiver, flowRate);
         vm.stopPrank();
 
-        _helperAddInflowsAndOutflowsToTestState(sender, receiver);
+        // Update Test State
+        {
+            _helperAddInflowsAndOutflowsToTestState(sender, receiver);
 
-        _helperTakeBalanceSnapshot(superToken, sender);
-        _helperTakeBalanceSnapshot(superToken, receiver);
+            _helperTakeBalanceSnapshot(superToken, sender);
+            _helperTakeBalanceSnapshot(superToken, receiver);
+        }
 
-        int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+        // Assert Flow Data + Account Flow Info for sender/receiver
+        {
+            int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+            _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
+            _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+            _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+        }
 
-        _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
-        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
-        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-
+        // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
 
         // TODO
@@ -710,10 +746,11 @@ contract FoundrySuperfluidTester is Test {
     /// @notice Updates an ACL flow by the opeartor between a sender and receiver at a given flow rate
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
     /// We assert:
-    /// - The flow info is properly set
-    /// - The account flow info has been updated as expected for sender and receiver
-    /// - The balance of the sender and receiver has been updated as expected
-    /// - The flow rate allowance has been deducted accordingly
+    /// - The flow info is properly set (flow rate, updated, deposit and owedDeposit are set as expected)
+    /// - The account flow info has been updated as expected for sender and receiver (delta applied to net flow rates +
+    /// deposit for sender)
+    /// - The balance of all test accounts has been updated as expected (balanceSnapshot + streamedAmountSince)
+    /// - The flow rate allowance has been deducted accordingly (only if flow rate > current flow rate)
     /// @param operator The flow operator
     /// @param sender The sender of the flow
     /// @param receiver The receiver of the flow
@@ -727,25 +764,33 @@ contract FoundrySuperfluidTester is Test {
     ) internal {
         flowRate = _assumeValidFlowRate(flowRate);
 
+        // Get Flow Data Before
         (
             ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
         ) = _helperGetAllFlowInfo(superToken, sender, receiver);
 
+        // Execute Update Flow as FlowOperator
         vm.startPrank(operator);
         superToken_.updateFlowFrom(sender, receiver, flowRate);
         vm.stopPrank();
 
-        _helperTakeBalanceSnapshot(superToken, sender);
-        _helperTakeBalanceSnapshot(superToken, receiver);
+        // Update Test State
+        {
+            _helperTakeBalanceSnapshot(superToken, sender);
+            _helperTakeBalanceSnapshot(superToken, receiver);
+        }
 
-        int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+        // Assert Flow Data + Account Flow Info for sender/receiver
+        {
+            int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
+            _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
+            _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+            _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+        }
 
-        _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
-        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
-        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-
+        // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
 
         // TODO
@@ -755,37 +800,46 @@ contract FoundrySuperfluidTester is Test {
     /// @notice Deletes an ACL flow by the opeartor between a sender and receiver
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
     /// We assert:
-    /// - The flow info is properly set
-    /// - The account flow info has been updated as expected for sender and receiver
-    /// - The balance of the sender and receiver has been updated as expected
-    /// - The flow rate allowance has been deducted accordingly
+    /// - The flow info is properly set (flow rate, updated, deposit and owedDeposit are set as expected)
+    /// - The account flow info has been updated as expected for sender and receiver (delta applied to net flow rates +
+    /// deposit for sender)
+    /// - The balance of all test accounts has been updated as expected (balanceSnapshot + streamedAmountSince)
+    /// - The flow rate allowance has been deducted accordingly (no deduction)
     /// @param operator The flow operator
     /// @param sender The sender of the flow
     /// @param receiver The receiver of the flow
     function _helperDeleteFlowFrom(ISuperToken superToken_, address operator, address sender, address receiver)
         internal
     {
+        // Get Flow Data Before
         (
             ConstantFlowAgreementV1.FlowData memory flowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory senderFlowInfoBefore,
             ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
         ) = _helperGetAllFlowInfo(superToken, sender, receiver);
 
+        // Execute Delete Flow as FlowOperator
         vm.startPrank(operator);
         superToken_.deleteFlowFrom(sender, receiver);
         vm.stopPrank();
 
-        _helperRemoveInflowsAndOutflowsFromTestState(sender, receiver);
+        // Update Test State
+        {
+            _helperRemoveInflowsAndOutflowsFromTestState(sender, receiver);
 
-        _helperTakeBalanceSnapshot(superToken, sender);
-        _helperTakeBalanceSnapshot(superToken, receiver);
+            _helperTakeBalanceSnapshot(superToken, sender);
+            _helperTakeBalanceSnapshot(superToken, receiver);
+        }
 
-        int96 flowRateDelta = -flowInfoBefore.flowRate;
+        // Assert Flow Data + Account Flow Info for sender/receiver
+        {
+            int96 flowRateDelta = -flowInfoBefore.flowRate;
+            _assertFlowDataIsEmpty(superToken_, sender, receiver);
+            _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
+            _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+        }
 
-        _assertFlowDataIsEmpty(superToken_, sender, receiver);
-        _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
-        _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
-
+        // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
     }
 
@@ -819,29 +873,33 @@ contract FoundrySuperfluidTester is Test {
     function _helperUpdateIndexValue(ISuperToken superToken_, address publisher, uint32 indexId, uint128 newIndexValue)
         internal
     {
+        // Get Index Data and Publisher Balance Before
         (, uint128 indexValueBefore, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
             superToken_.getIndex(publisher, indexId);
 
         (int256 publisherAvbBefore, uint256 publisherDepositBefore,,) = superToken_.realtimeBalanceOfNow(publisher);
 
-        uint128 indexValueDelta = newIndexValue - indexValueBefore;
-        int256 distributionAmount =
-            uint256(indexValueDelta * (totalUnitsApprovedBefore + totalUnitsPendingBefore)).toInt256();
-        uint256 depositDelta = indexValueDelta * totalUnitsPendingBefore;
-
+        // Execute Update Index Value
         vm.startPrank(publisher);
         superToken_.updateIndexValue(indexId, newIndexValue);
         vm.stopPrank();
 
+        // Update Test State
         _helperTakeBalanceSnapshot(superToken, publisher);
 
-        _assertIndexData(
-            superToken_, publisher, indexId, true, newIndexValue, totalUnitsApprovedBefore, totalUnitsPendingBefore
-        );
-        (int256 publisherAvbAfter, uint256 publisherDepositAfter,,) = superToken_.realtimeBalanceOfNow(publisher);
-        assertEq(publisherAvbAfter, publisherAvbBefore - distributionAmount, "Update Index: Publisher AVB");
-        assertEq(publisherDepositAfter, publisherDepositBefore + depositDelta, "Update Index: Publisher Deposit");
-
+        // Assert Publisher AVB and Deposit
+        {
+            uint128 indexValueDelta = newIndexValue - indexValueBefore;
+            int256 distributionAmount =
+                uint256(indexValueDelta * (totalUnitsApprovedBefore + totalUnitsPendingBefore)).toInt256();
+            uint256 depositDelta = indexValueDelta * totalUnitsPendingBefore;
+            _assertIndexData(
+                superToken_, publisher, indexId, true, newIndexValue, totalUnitsApprovedBefore, totalUnitsPendingBefore
+            );
+            (int256 publisherAvbAfter, uint256 publisherDepositAfter,,) = superToken_.realtimeBalanceOfNow(publisher);
+            assertEq(publisherAvbAfter, publisherAvbBefore - distributionAmount, "Update Index: Publisher AVB");
+            assertEq(publisherDepositAfter, publisherDepositBefore + depositDelta, "Update Index: Publisher Deposit");
+        }
         // TODO we could actually save all the subscribers of an index and loop over them down the line
         // Assert that balance for subscriber has been updated (dependent on approval status)
     }
@@ -855,11 +913,13 @@ contract FoundrySuperfluidTester is Test {
     /// @param indexId The indexId to update
     /// @param amount The new index value to update to
     function _helperDistribute(ISuperToken superToken_, address publisher, uint32 indexId, uint256 amount) internal {
+        // Get Index Data and Publisher Balance Before
         (, uint128 indexValueBefore, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
             superToken_.getIndex(publisher, indexId);
 
         (int256 publisherAvbBefore, uint256 publisherDepositBefore,,) = superToken_.realtimeBalanceOfNow(publisher);
 
+        // Get Calculated Distribution and assert is expected
         (uint256 actualAmount, uint128 newIndexValue) = superToken_.calculateDistribution(publisher, indexId, amount);
 
         uint128 indexValueDelta = newIndexValue - indexValueBefore;
@@ -869,12 +929,15 @@ contract FoundrySuperfluidTester is Test {
         assertEq(actualAmount, distributionAmount.toUint256(), "Distribute: Distribution Amount");
         uint256 depositDelta = indexValueDelta * totalUnitsPendingBefore;
 
+        // Execute Distribute
         vm.startPrank(publisher);
         superToken_.distribute(indexId, amount);
         vm.stopPrank();
 
+        // Update Test State
         _helperTakeBalanceSnapshot(superToken, publisher);
 
+        // Assert Index Data, Publisher AVB and Deposit
         _assertIndexData(
             superToken_, publisher, indexId, true, newIndexValue, totalUnitsApprovedBefore, totalUnitsPendingBefore
         );
@@ -893,6 +956,7 @@ contract FoundrySuperfluidTester is Test {
     /// @param params The params for IDA subscription function
     /// @param units The desired units
     function _helperUpdateSubscriptionUnits(IDASubscriptionParams memory params, uint128 units) internal {
+        // Get Subscription Data Before
         bytes32 subId =
             _generateSubscriptionId(params.subscriber, _generatePublisherId(params.publisher, params.indexId));
         (, uint128 indexValue, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
@@ -900,30 +964,34 @@ contract FoundrySuperfluidTester is Test {
 
         (bool approved,,) = _helperTryGetSubscription(params.superToken, subId);
 
+        // Execute Update Subscription Units
         vm.startPrank(params.publisher);
         params.superToken.updateSubscriptionUnits(params.indexId, params.subscriber, units);
         vm.stopPrank();
 
-        uint128 expectedTotalUnitsApproved = approved ? totalUnitsApprovedBefore + units : totalUnitsApprovedBefore;
-        uint128 expectedTotalUnitsPending = approved ? totalUnitsPendingBefore : totalUnitsPendingBefore + units;
+        // Assert Index Data and Subscription Data
+        {
+            uint128 expectedTotalUnitsApproved = approved ? totalUnitsApprovedBefore + units : totalUnitsApprovedBefore;
+            uint128 expectedTotalUnitsPending = approved ? totalUnitsPendingBefore : totalUnitsPendingBefore + units;
 
-        _assertIndexData(
-            params.superToken,
-            params.publisher,
-            params.indexId,
-            true,
-            indexValue,
-            expectedTotalUnitsApproved,
-            expectedTotalUnitsPending
-        );
+            _assertIndexData(
+                params.superToken,
+                params.publisher,
+                params.indexId,
+                true,
+                indexValue,
+                expectedTotalUnitsApproved,
+                expectedTotalUnitsPending
+            );
 
-        // subIndexValue here is equivalent because we update the subscriber
-        // without updating the indexValue here.
-        uint256 subIndexValue = indexValue;
-        _lastUpdatedSubIndexValues[params.superToken][subId] = indexValue;
-        uint256 pending = approved ? 0 : indexValue - subIndexValue * units;
+            // subIndexValue here is equivalent because we update the subscriber
+            // without updating the indexValue here.
+            uint256 subIndexValue = indexValue;
+            _lastUpdatedSubIndexValues[params.superToken][subId] = indexValue;
+            uint256 pending = approved ? 0 : indexValue - subIndexValue * units;
 
-        _assertSubscriptionData(params.superToken, subId, approved, units, pending);
+            _assertSubscriptionData(params.superToken, subId, approved, units, pending);
+        }
     }
 
     /// @notice Approves a subscription

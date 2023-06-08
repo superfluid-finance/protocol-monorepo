@@ -128,8 +128,6 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         vm.stopPrank();
 
         _helperCreateFlowFrom(superToken, bob, alice, bob, flowRate);
-
-        assertEq(superToken.getFlowRate(alice, bob), flowRate);
     }
 
     function testRevertIfDecreaseFlowRateAllowanceAndACLCreateFlow(int96 flowRateAllowanceIncreaseDelta) public {

@@ -1566,7 +1566,7 @@ library SuperTokenV1Library {
             }
             cfa = IConstantFlowAgreementV1(address(ISuperfluid(host).getAgreementClass(
                 //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                    0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3)));
+                0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3)));
             // now that we got them and are in a transaction context, persist in storage
             assembly {
             // solium-disable-line
@@ -1594,7 +1594,8 @@ library SuperTokenV1Library {
                 host = ISuperfluid(token.getHost());
             }
             ida = IInstantDistributionAgreementV1(address(ISuperfluid(host).getAgreementClass(
-                    keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1"))));
+                //keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
+                0x8aedc3b5d4bf031e11a7e2940f7251c005698405d58e02e1c247fed3b1b3a674)));
             // now that we got them and are in a transaction context, persist in storage
             assembly {
             // solium-disable-line
@@ -1623,7 +1624,7 @@ library SuperTokenV1Library {
             }
             cfa = IConstantFlowAgreementV1(address(ISuperfluid(host).getAgreementClass(
                 //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                    0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3)));
+                0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3)));
         }
         assert(address(host) != address(0));
         assert(address(cfa) != address(0));
@@ -1646,7 +1647,7 @@ library SuperTokenV1Library {
             }
             ida = IInstantDistributionAgreementV1(address(ISuperfluid(host).getAgreementClass(
                 //keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
-                    0x15609310ae3c30189a1218b7adabaf36c267255e70cf91b6cba384367d9eda32)));
+                0x8aedc3b5d4bf031e11a7e2940f7251c005698405d58e02e1c247fed3b1b3a674)));
         }
         assert(address(host) != address(0));
         assert(address(ida) != address(0));

@@ -715,6 +715,9 @@ contract FoundrySuperfluidTester is Test {
             ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
         ) = _helperGetAllFlowInfo(superToken, sender, receiver);
 
+        // Get Flow Operator Data Before
+        (,,, int96 flowRateAllowanceBefore) = superToken_.getFlowPermissions(sender, operator);
+
         // Execute Create Flow as FlowOperator
         vm.startPrank(operator);
         superToken_.createFlowFrom(sender, receiver, flowRate);
@@ -729,18 +732,29 @@ contract FoundrySuperfluidTester is Test {
         }
 
         // Assert Flow Data + Account Flow Info for sender/receiver
+        int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
         {
-            int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
             _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
             _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
             _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
         }
 
+        // Assert FlowOperator Data
+        {
+            (,,, int96 flowRateAllowanceAfter) = superToken_.getFlowPermissions(sender, operator);
+            if (flowRateAllowanceBefore == type(int96).max) {
+                assertEq(flowRateAllowanceAfter, flowRateAllowanceBefore, "CreateFlowFrom: Max flow allowance deducted");
+            } else {
+                assertEq(
+                    flowRateAllowanceAfter,
+                    flowRateAllowanceBefore - flowRateDelta,
+                    "CreateFlowFrom: Flow allowance not deducted"
+                );
+            }
+        }
+
         // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
-
-        // TODO
-        // Assert that flow rate allowance has been deducted accordingly
     }
 
     /// @notice Updates an ACL flow by the opeartor between a sender and receiver at a given flow rate
@@ -771,6 +785,9 @@ contract FoundrySuperfluidTester is Test {
             ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
         ) = _helperGetAllFlowInfo(superToken, sender, receiver);
 
+        // Get Flow Operator Data Before
+        (,,, int96 flowRateAllowanceBefore) = superToken_.getFlowPermissions(sender, operator);
+
         // Execute Update Flow as FlowOperator
         vm.startPrank(operator);
         superToken_.updateFlowFrom(sender, receiver, flowRate);
@@ -783,11 +800,25 @@ contract FoundrySuperfluidTester is Test {
         }
 
         // Assert Flow Data + Account Flow Info for sender/receiver
+        int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
         {
-            int96 flowRateDelta = flowRate - flowInfoBefore.flowRate;
             _assertFlowData(superToken_, sender, receiver, flowRate, block.timestamp, 0);
             _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
             _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+        }
+
+        // Assert FlowOperator Data
+        {
+            (,,, int96 flowRateAllowanceAfter) = superToken_.getFlowPermissions(sender, operator);
+            if (flowRateAllowanceBefore == type(int96).max) {
+                assertEq(flowRateAllowanceAfter, flowRateAllowanceBefore, "UpdateFlowFrom: Max flow allowance deducted");
+            } else {
+                assertEq(
+                    flowRateAllowanceAfter,
+                    flowRateAllowanceBefore - flowRateDelta,
+                    "UpdateFlowFrom: Flow allowance not deducted"
+                );
+            }
         }
 
         // Assert RTB for all users
@@ -818,6 +849,9 @@ contract FoundrySuperfluidTester is Test {
             ConstantFlowAgreementV1.FlowData memory receiverFlowInfoBefore
         ) = _helperGetAllFlowInfo(superToken, sender, receiver);
 
+        // Get Flow Operator Data Before
+        (,,, int96 flowRateAllowanceBefore) = superToken_.getFlowPermissions(sender, operator);
+
         // Execute Delete Flow as FlowOperator
         vm.startPrank(operator);
         superToken_.deleteFlowFrom(sender, receiver);
@@ -832,11 +866,17 @@ contract FoundrySuperfluidTester is Test {
         }
 
         // Assert Flow Data + Account Flow Info for sender/receiver
+        int96 flowRateDelta = -flowInfoBefore.flowRate;
         {
-            int96 flowRateDelta = -flowInfoBefore.flowRate;
             _assertFlowDataIsEmpty(superToken_, sender, receiver);
             _assertAccountFlowInfo(sender, flowRateDelta, senderFlowInfoBefore, true);
             _assertAccountFlowInfo(receiver, flowRateDelta, receiverFlowInfoBefore, false);
+        }
+
+        // Assert FlowOperator Data
+        {
+            (,,, int96 flowRateAllowanceAfter) = superToken_.getFlowPermissions(sender, operator);
+            assertEq(flowRateAllowanceAfter, flowRateAllowanceBefore, "DeleteFlowFrom: Flow allowance deducted");
         }
 
         // Assert RTB for all users

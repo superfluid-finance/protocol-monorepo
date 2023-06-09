@@ -618,38 +618,52 @@ interface ISuperfluid {
 
 
 library SuperfluidLoaderLib {
-
     error UnsupportedNetwork();
 
-    function getHost() public view returns(address) {
-        // mainnets
-        if (block.chainid == 1) {
+    // mainnet
+    uint256 private constant ETHEREUM = 1;
+    uint256 private constant OPTIMISM = 10;
+    uint256 private constant BINANCE_SMART_CHAIN = 56;
+    uint256 private constant GNOSIS_CHAIN = 100;
+    uint256 private constant POLYGON = 137;
+    uint256 private constant ARBITRUM = 42161;
+    uint256 private constant CELO = 42220;
+    uint256 private constant AVALANCHE = 43114;
+
+    // testnets
+    uint256 private constant GOERLI = 5;
+    uint256 private constant MUMBAI = 80001;
+    uint256 private constant ARBITRUM_GOERLI = 421613;
+    uint256 private constant OPTIMISM_GOERLI = 420;
+    uint256 private constant AVALANCHE_FUJI = 43113;
+    
+
+    function getHost() public view returns (address) {
+        if (block.chainid == ETHEREUM) {
             return 0x4E583d9390082B65Bef884b629DFA426114CED6d;
-        } else if (block.chainid == 10) {
+        } else if (block.chainid == OPTIMISM) {
             return 0x567c4B141ED61923967cA25Ef4906C8781069a10;
-        } else if (block.chainid == 42161) {
-            return 0xCf8Acb4eF033efF16E8080aed4c7D5B9285D2192;
-        } else if (block.chainid == 137) {
-            return 0x3E14dC1b13c488a8d5D310918780c983bD5982E7;
-        } else if (block.chainid == 100) {
-            return 0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7;
-        } else if (block.chainid == 43114) {
-            return 0x60377C7016E4cdB03C87EF474896C11cB560752C;
-        } else if (block.chainid == 56) {
+        } else if (block.chainid == BINANCE_SMART_CHAIN) {
             return 0xd1e2cFb6441680002Eb7A44223160aB9B67d7E6E;
-        } else if (block.chainid == 42220) {
+        } else if (block.chainid == GNOSIS_CHAIN) {
+            return 0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7;
+        } else if (block.chainid == POLYGON) {
+            return 0x3E14dC1b13c488a8d5D310918780c983bD5982E7;
+        } else if (block.chainid == ARBITRUM) {
+            return 0xCf8Acb4eF033efF16E8080aed4c7D5B9285D2192;
+        } else if (block.chainid == CELO) {
             return 0xA4Ff07cF81C02CFD356184879D953970cA957585;
-        }
-        // testnets
-        else if (block.chainid == 5) {
+        } else if (block.chainid == AVALANCHE) {
+            return 0x60377C7016E4cdB03C87EF474896C11cB560752C;
+        } else if (block.chainid == GOERLI) {
             return 0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9;
-        } else if (block.chainid == 80001) {
-            return 0xEB796bdb90fFA0f28255275e16936D25d3418603;
-        } else if (block.chainid == 43113) {
+        } else if (block.chainid == ARBITRUM_GOERLI) {
+            return 0xE40983C2476032A0915600b9472B3141aA5B5Ba9;
+        } else if (block.chainid == OPTIMISM_GOERLI) {
+            return 0xE40983C2476032A0915600b9472B3141aA5B5Ba9;
+        } else if (block.chainid == AVALANCHE_FUJI) {
             return 0x85Fe79b998509B77BF10A8BD4001D58475D29386;
-        }
-        // unknown
-        else {
+        } else {
             revert UnsupportedNetwork();
         }
     }

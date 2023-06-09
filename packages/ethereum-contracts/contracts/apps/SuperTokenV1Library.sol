@@ -1542,12 +1542,9 @@ library SuperTokenV1Library {
 
     // ************** private helpers **************
 
-    // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.host")
-    bytes32 private constant _HOST_SLOT = 0x65599bf746e17a00ea62e3610586992d88101b78eec3cf380706621fb97ea837;
-    // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.cfa")
-    bytes32 private constant _CFA_SLOT = 0xb969d79d88acd02d04ed7ee7d43b949e7daf093d363abcfbbc43dfdfd1ce969a;
-    // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.ida");
-    bytes32 private constant _IDA_SLOT = 0xa832ee1924ea960211af2df07d65d166232018f613ac6708043cd8f8773eddeb;
+    bytes32 private constant _HOST_SLOT = keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.host");
+    bytes32 private constant _CFA_SLOT = keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.cfa");
+    bytes32 private constant _IDA_SLOT = keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.ida");
 
     // gets the host and cfa addrs for the token and caches it in storage for gas efficiency
     // to be used in state changing methods
@@ -1565,8 +1562,7 @@ library SuperTokenV1Library {
                 host = ISuperfluid(token.getHost());
             }
             cfa = IConstantFlowAgreementV1(address(ISuperfluid(host).getAgreementClass(
-                //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3)));
+                keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1"))));
             // now that we got them and are in a transaction context, persist in storage
             assembly {
             // solium-disable-line
@@ -1594,8 +1590,7 @@ library SuperTokenV1Library {
                 host = ISuperfluid(token.getHost());
             }
             ida = IInstantDistributionAgreementV1(address(ISuperfluid(host).getAgreementClass(
-                //keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
-                0x8aedc3b5d4bf031e11a7e2940f7251c005698405d58e02e1c247fed3b1b3a674)));
+                keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1"))));
             // now that we got them and are in a transaction context, persist in storage
             assembly {
             // solium-disable-line
@@ -1623,8 +1618,7 @@ library SuperTokenV1Library {
                 host = ISuperfluid(token.getHost());
             }
             cfa = IConstantFlowAgreementV1(address(ISuperfluid(host).getAgreementClass(
-                //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3)));
+                keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1"))));
         }
         assert(address(host) != address(0));
         assert(address(cfa) != address(0));
@@ -1646,8 +1640,7 @@ library SuperTokenV1Library {
                 host = ISuperfluid(token.getHost());
             }
             ida = IInstantDistributionAgreementV1(address(ISuperfluid(host).getAgreementClass(
-                //keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
-                0x8aedc3b5d4bf031e11a7e2940f7251c005698405d58e02e1c247fed3b1b3a674)));
+                keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1"))));
         }
         assert(address(host) != address(0));
         assert(address(ida) != address(0));

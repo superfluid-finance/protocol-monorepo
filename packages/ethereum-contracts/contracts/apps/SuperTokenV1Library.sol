@@ -1542,9 +1542,14 @@ library SuperTokenV1Library {
 
     // ************** private helpers **************
 
-    bytes32 private constant _HOST_SLOT = keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.host");
-    bytes32 private constant _CFA_SLOT = keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.cfa");
-    bytes32 private constant _IDA_SLOT = keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.ida");
+    // @note We must use hardcoded constants here because:
+    // Only direct number constants and references to such constants are supported by inline assembly.
+    // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.host")
+    bytes32 private constant _HOST_SLOT = 0x65599bf746e17a00ea62e3610586992d88101b78eec3cf380706621fb97ea837;
+    // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.cfa")
+    bytes32 private constant _CFA_SLOT = 0xb969d79d88acd02d04ed7ee7d43b949e7daf093d363abcfbbc43dfdfd1ce969a;
+    // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.ida");
+    bytes32 private constant _IDA_SLOT = 0xa832ee1924ea960211af2df07d65d166232018f613ac6708043cd8f8773eddeb;
 
     // gets the host and cfa addrs for the token and caches it in storage for gas efficiency
     // to be used in state changing methods

@@ -615,3 +615,42 @@ interface ISuperfluid {
      /// @dev The app is registered and not jailed.
      modifier isAppActive(ISuperApp app) virtual; */
 }
+
+
+library SuperfluidLoaderLib {
+
+    error UnsupportedNetwork();
+
+    function getHost() public view returns(address) {
+        // mainnets
+        if (block.chainid == 1) {
+            return 0x4E583d9390082B65Bef884b629DFA426114CED6d;
+        } else if (block.chainid == 10) {
+            return 0x567c4B141ED61923967cA25Ef4906C8781069a10;
+        } else if (block.chainid == 42161) {
+            return 0xCf8Acb4eF033efF16E8080aed4c7D5B9285D2192;
+        } else if (block.chainid == 137) {
+            return 0x3E14dC1b13c488a8d5D310918780c983bD5982E7;
+        } else if (block.chainid == 100) {
+            return 0x2dFe937cD98Ab92e59cF3139138f18c823a4efE7;
+        } else if (block.chainid == 43114) {
+            return 0x60377C7016E4cdB03C87EF474896C11cB560752C;
+        } else if (block.chainid == 56) {
+            return 0xd1e2cFb6441680002Eb7A44223160aB9B67d7E6E;
+        } else if (block.chainid == 42220) {
+            return 0xA4Ff07cF81C02CFD356184879D953970cA957585;
+        }
+        // testnets
+        else if (block.chainid == 5) {
+            return 0x22ff293e14F1EC3A09B137e9e06084AFd63adDF9;
+        } else if (block.chainid == 80001) {
+            return 0xEB796bdb90fFA0f28255275e16936D25d3418603;
+        } else if (block.chainid == 43113) {
+            return 0x85Fe79b998509B77BF10A8BD4001D58475D29386;
+        }
+        // unknown
+        else {
+            revert UnsupportedNetwork();
+        }
+    }
+}

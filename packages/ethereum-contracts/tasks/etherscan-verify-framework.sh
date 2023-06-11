@@ -76,12 +76,12 @@ EOF
 }
 
 
-if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC_ADDRESS}"
+if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
+    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC}"
 fi
 
-if [ -n "$CONSTANT_INFLOW_NFT_LOGIC_ADDRESS" ]; then
-    try_verify ConstantInflowNFT"${CONSTANT_INFLOW_NFT_LOGIC_ADDRESS}"
+if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
+    try_verify ConstantInflowNFT"${CONSTANT_INFLOW_NFT_LOGIC}"
 fi
 
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then

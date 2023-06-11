@@ -5,6 +5,21 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+## [0.6.6] - 2023-05-17
+
+### Added
+- Subgraph query support for `FlowOperator`
+
+## [0.6.5] - 2023-05-12
+
+### Fixed
+- `hostedEndpoint` might be nullable so we handle this case.
+
+### Added
+- Support for `sepolia` network
+
+## [0.6.4] - 2023-05-07
+
 ### Changed
 - `getPopulatedTransactionRequest` doesn't use the signer to populate the transaction anymore as `signer.sendTransaction` does it already. The double `signer.populateTransaction` was causing issues with some wallets (e.g. Rainbow Wallet)
 - Map `isNativeAssetSuperToken` to `Token` from Subgraph

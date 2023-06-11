@@ -15,7 +15,6 @@ const {
     builtTruffleContractLoader,
     sendGovernanceAction,
 } = require("./libs/common");
-const {ethers} = require("ethers");
 
 let resetSuperfluidFramework;
 let resolver;
@@ -50,18 +49,18 @@ async function deployAndRegisterContractIf(
 /// @param deployFunc must return a contract address
 /// @returns the address of the newly deployed contract or ZERO_ADDRESS if not deployed
 async function deployContractIf(web3, Contract, cond, deployFunc) {
-    let newCodeAddress = ZERO_ADDRESS;
     const contractName = Contract.contractName;
     if (await cond()) {
         console.log(`${contractName} logic code has changed`);
-        newCodeAddress = await deployFunc();
+        const newCodeAddress = await deployFunc();
         console.log(`${contractName} new logic code address ${newCodeAddress}`);
+        return newCodeAddress;
     } else {
         console.log(
             `${contractName} has the same logic code, no deployment needed.`
         );
+        return ZERO_ADDRESS;
     }
-    return newCodeAddress;
 }
 
 /// @param deployFunc must return a contract address
@@ -126,8 +125,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     if (outputFile !== undefined) {
         console.log("output file: ", outputFile);
     }
-
-    const NFT_BASE_URI = process.env.NFT_BASE_URI || "";
 
     // string to build a list of newly deployed contracts, written to a file if "outputFile" option set
     let output = "";
@@ -273,7 +270,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
 
     // deploy new superfluid host contract
     const SuperfluidLogic = useMocks ? SuperfluidMock : Superfluid;
-    let superfluid = await deployAndRegisterContractIf(
+    const superfluid = await deployAndRegisterContractIf(
         SuperfluidLogic,
         `Superfluid.${protocolReleaseVersion}`,
         async (contractAddress) => !(await hasCode(web3, contractAddress)),
@@ -335,6 +332,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     // initialize the new governance
     if (governanceInitializationRequired) {
         const accounts = await web3.eth.getAccounts();
+        console.log(`initializing governance with config: ${JSON.stringify(config, null, 2)}`);
         await web3tx(governance.initialize, "governance.initialize")(
             superfluid.address,
             // let rewardAddress the first account
@@ -346,6 +344,13 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             // trustedForwarders
             config.biconomyForwarder ? [config.biconomyForwarder] : []
         );
+        if (config.cfaFwd !== undefined) {
+            await web3tx(governance.enableTrustedForwarder, "governance.enableTrustedForwarder")(
+                superfluid.address,
+                ZERO_ADDRESS,
+                config.cfaFwd
+            )
+        };
     }
 
     // replace with new governance
@@ -512,6 +517,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             }
         );
 
+        const superfluidConstructorParam = superfluid.address
+            .toLowerCase()
+            .slice(2)
+            .padStart(64, "0");
+
         // deploy new CFA logic
         const cfaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
@@ -524,7 +534,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             async () => (await deployCFAv1()).address,
             [
                 // See SuperToken constructor parameter
-                superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
+                superfluidConstructorParam,
                 ZERO_ADDRESS.toLowerCase().slice(2).padStart(64, "0"),
             ]
         );
@@ -543,7 +553,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             async () => (await deployIDAv1()).address,
             [
                 // See SuperToken constructor parameter
-                superfluid.address.toLowerCase().slice(2).padStart(64, "0"),
+                superfluidConstructorParam,
             ]
         );
         if (idaNewLogicAddress !== ZERO_ADDRESS)
@@ -558,6 +568,27 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const SuperTokenLogic = useMocks ? SuperTokenMock : SuperToken;
 
     const factoryAddress = await superfluid.getSuperTokenFactory.call();
+
+    let constantOutflowNFTLogicChanged = false;
+    let constantInflowNFTLogicChanged = false;
+
+    const deployNFTContract = async (isOutflow, args) => {
+        const artifact = isOutflow ? ConstantOutflowNFT : ConstantInflowNFT;
+        const nftType = isOutflow ? "ConstantOutflowNFT" : "ConstantInflowNFT";
+        const nftTypeCaps = isOutflow
+            ? "CONSTANT_OUTFLOW_NFT"
+            : "CONSTANT_INFLOW_NFT";
+        const flowNFTLogic = await web3tx(
+            artifact.new,
+            `${nftType}.new`
+        )(...args);
+        console.log(`${nftType} Logic address`, flowNFTLogic.address);
+        output += `${nftTypeCaps}=${flowNFTLogic.address}\n`;
+
+        await flowNFTLogic.castrate();
+
+        return flowNFTLogic;
+    };
 
     const superTokenFactoryNewLogicAddress = await deployContractIf(
         web3,
@@ -582,16 +613,40 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 console.log("   superTokenLogic.CONSTANT_INFLOW_NFT()");
                 const constantInflowNFTAddress =
                     await superTokenLogic.CONSTANT_INFLOW_NFT();
+
+                const constantOutflowNFTContract = ConstantOutflowNFT.at(
+                    constantOutflowNFTAddress
+                );
+                const constantInflowNFTContract = ConstantInflowNFT.at(
+                    constantInflowNFTAddress
+                );
+
+                const constantInflowNFTParam = constantInflowNFTAddress
+                    .toLowerCase()
+                    .slice(2)
+                    .padStart(64, "0");
+                const constantOutflowNFTParam = constantOutflowNFTAddress
+                    .toLowerCase()
+                    .slice(2)
+                    .padStart(64, "0");
+
+                constantOutflowNFTLogicChanged = await codeChanged(
+                    web3,
+                    ConstantOutflowNFT,
+                    await constantOutflowNFTContract.getCodeAddress(),
+                    [superfluidConstructorParam, constantInflowNFTParam]
+                );
+                constantInflowNFTLogicChanged = await codeChanged(
+                    web3,
+                    ConstantInflowNFT,
+                    await constantInflowNFTContract.getCodeAddress(),
+                    [superfluidConstructorParam, constantOutflowNFTParam]
+                );
                 const superTokenFactoryCodeChanged = await codeChanged(
                     web3,
                     SuperTokenFactoryLogic,
                     await superfluid.getSuperTokenFactoryLogic.call(),
-                    [
-                        superfluid.address
-                            .toLowerCase()
-                            .slice(2)
-                            .padStart(64, "0"),
-                    ]
+                    [superfluidConstructorParam]
                 );
                 const superTokenLogicCodeChanged = await codeChanged(
                     web3,
@@ -600,23 +655,20 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     // this replacement does not support SuperTokenMock
                     [
                         // See SuperToken constructor parameter
-                        superfluid.address
-                            .toLowerCase()
-                            .slice(2)
-                            .padStart(64, "0"),
-                        constantOutflowNFTAddress
-                            .toLowerCase()
-                            .slice(2)
-                            .padStart(64, "0"),
-                        constantInflowNFTAddress
-                            .toLowerCase()
-                            .slice(2)
-                            .padStart(64, "0"),
+                        superfluidConstructorParam,
+                        constantOutflowNFTParam,
+                        constantInflowNFTParam,
                     ]
                 );
                 return (
                     // check if super token factory logic has changed
-                    superTokenFactoryCodeChanged || superTokenLogicCodeChanged
+                    // or super token logic has changed
+                    // or constant outflow nft logic has changed
+                    // or constant inflow nft logic has changed
+                    superTokenFactoryCodeChanged ||
+                    superTokenLogicCodeChanged ||
+                    constantOutflowNFTLogicChanged ||
+                    constantInflowNFTLogicChanged
                 );
             } catch (e) {
                 console.log(
@@ -626,20 +678,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 return true;
             }
         },
-        // @note this can be further optimized by only deploying
-        // SuperTokenFactory if SuperToken logic has changed
-        // or if SuperTokenFactoryLogic has changed
-        // or if constant outflow nft logic or constant inflow nft logic has changed
         async () => {
             let superTokenFactoryLogic;
-            const cfaV1Address = await superfluid.getAgreementClass.call(
-                ethers.utils.solidityKeccak256(
-                    ["string"],
-                    [
-                        "org.superfluid-finance.agreements.ConstantFlowAgreement.v1",
-                    ]
-                )
-            );
 
             // @note this will either be freshly created proxies on the very first bootstrapping per network
             // OR it will be the canonical proxy set on the SuperToken
@@ -695,31 +735,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 console.log("ConstantInflowNFT Proxy address", constantInflowNFTProxy.address);
                 output += `CONSTANT_INFLOW_NFT_PROXY=${constantInflowNFTProxy.address}\n`;
 
-                const constantOutflowNFTLogic = await web3tx(
-                    ConstantOutflowNFT.new,
-                    `ConstantOutflowNFT.new`
-                )(
+                const constantOutflowNFTLogic = await deployNFTContract(true, [
                     superfluid.address,
                     constantInflowNFTProxy.address,
-                    NFT_BASE_URI
-                );
-                console.log("ConstantOutflowNFT Logic address", constantOutflowNFTLogic.address);
-                output += `CONSTANT_OUTFLOW_NFT_LOGIC=${constantOutflowNFTLogic.address}\n`;
-
-                await constantOutflowNFTLogic.castrate();
-
-                const constantInflowNFTLogic = await web3tx(
-                    ConstantOutflowNFT.new,
-                    `ConstantOutflowNFT.new`
-                )(
+                ]);
+                const constantInflowNFTLogic = await deployNFTContract(false, [
                     superfluid.address,
                     constantOutflowNFTProxy.address,
-                    NFT_BASE_URI
-                );
-                console.log("ConstantInflowNFT Logic address", constantInflowNFTLogic.address);
-                output += `CONSTANT_INFLOW_NFT_LOGIC=${constantInflowNFTLogic.address}\n`;
-
-                await constantInflowNFTLogic.castrate();
+                ]);
 
                 // set the nft logic addresses (to be consumed by the super token factory logic constructor)
                 cofNFTLogicAddress = constantOutflowNFTLogic.address;
@@ -740,79 +763,47 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 );
 
                 // initialize the proxy contracts with the nft names
-                await constantOutflowNFT.initialize(
-                    "Constant Outflow NFT",
-                    "COF"
-                );
-                await constantInflowNFT.initialize(
-                    "Constant Inflow NFT",
-                    "CIF"
-                );
+                await constantOutflowNFT.initialize("Constant Outflow NFT", "COF");
+                await constantInflowNFT.initialize("Constant Inflow NFT", "CIF");
 
                 // set the nft proxy addresses (to be consumed by the super token logic constructor)
                 cofNFTProxyAddress = constantOutflowNFTProxy.address;
                 cifNFTProxyAddress = constantInflowNFTProxy.address;
-            } else { // nft proxies already exist
-                const newCOFNFTLogic = await deployContractIfCodeChanged(
+            } else {
+                // nft proxies already exist
+                await deployContractIf(
                     web3,
                     ConstantOutflowNFT,
-                    await (
-                        await UUPSProxiable.at(cofNFTProxyAddress)
-                    ).getCodeAddress(),
                     async () => {
-                        const cofNFTLogic = await web3tx(
-                            ConstantOutflowNFT.new,
-                            "ConstantOutflowNFT.new"
-                        )(superfluid.address, cifNFTProxyAddress, NFT_BASE_URI);
-                        output += `CONSTANT_OUTFLOW_NFT_LOGIC=${cofNFTLogic.address}\n`;
-                        // castrate flow nft logic contract
-                        await cofNFTLogic.castrate();
-                        return cofNFTLogic;
+                        return constantOutflowNFTLogicChanged;
                     },
-                    [
-                        // See SuperToken constructor parameter
-                        superfluid.address
-                            .toLowerCase()
-                            .slice(2)
-                            .padStart(64, "0"),
-                        cifNFTProxyAddress
-                            .toLowerCase()
-                            .slice(2)
-                            .padStart(64, "0"),
-                    ]
+                    async () => {
+                        const cofNFTLogic = await deployNFTContract(true, [
+                            superfluid.address,
+                            cifNFTProxyAddress,
+                        ]);
+                        // @note we set the cofNFTLogicAddress to be passed to SuperTokenFactoryLogic here
+                        cofNFTLogicAddress = cofNFTLogic.address;
+
+                        return cofNFTLogic.address;
+                    }
                 );
-                const newCIFNFTLogic = await deployContractIfCodeChanged(
+                await deployContractIf(
                     web3,
                     ConstantInflowNFT,
-                    await (
-                        await UUPSProxiable.at(cofNFTProxyAddress)
-                    ).getCodeAddress(),
                     async () => {
-                        const cifNFTLogic = await web3tx(
-                            ConstantInflowNFT.new,
-                            "ConstantInflowNFT.new"
-                        )(superfluid.address, cofNFTProxyAddress, NFT_BASE_URI);
-                        output += `CONSTANT_INFLOW_NFT_LOGIC=${cifNFTLogic.address}\n`;
-                        // castrate flow nft logic contract
-                        await cifNFTLogic.castrate();
-                        return cifNFTLogic;
+                        return constantInflowNFTLogicChanged;
                     },
-                    [
-                        // See SuperToken constructor parameter
-                        superfluid.address
-                            .toLowerCase()
-                            .slice(2)
-                            .padStart(64, "0"),
-                        cofNFTProxyAddress
-                            .toLowerCase()
-                            .slice(2)
-                            .padStart(64, "0"),
-                    ]
+                    async () => {
+                        const cifNFTLogic = await deployNFTContract(false, [
+                            superfluid.address,
+                            cofNFTProxyAddress,
+                        ]);
+                        // @note we set the cifNFTLogicAddress to be passed to SuperTokenFactoryLogic here
+                        cifNFTLogicAddress = cifNFTLogic.address;
+                        return cifNFTLogic.address;
+                    }
                 );
-
-                // set the nft logic addresses (to be consumed by the super token factory logic constructor)
-                cofNFTLogicAddress = newCOFNFTLogic.address;
-                cifNFTLogicAddress = newCIFNFTLogic.address;
             }
 
             // deploy super token logic contract

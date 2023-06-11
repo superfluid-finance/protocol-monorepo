@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { ISuperfluid as Superfluid } from "../generated/Host/ISuperfluid";
 import {
     Account,
@@ -39,7 +39,6 @@ import {
     getResolverAddress,
 } from "./addresses";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import {ISuperToken} from "../generated/SuperTokenFactory/ISuperToken";
 
 /**************************************************************************
  * HOL initializer functions
@@ -331,25 +330,22 @@ export function getOrInitFlowOperator(
         flowOperatorEntity.flowRateAllowanceGranted = BigInt.fromI32(0);
         flowOperatorEntity.allowance = BigInt.fromI32(0);
         flowOperatorEntity.flowRateAllowanceRemaining = BigInt.fromI32(0);
-        flowOperatorEntity.sender = senderAddress.toHex();
         flowOperatorEntity.token = tokenAddress.toHex();
-        flowOperatorEntity.accountTokenSnapshot = getAccountTokenSnapshotID(
+
+        // https://github.com/superfluid-finance/protocol-monorepo/issues/1397
+        const sender = getOrInitAccount(senderAddress, block);
+        flowOperatorEntity.sender = sender.id;
+
+        // https://github.com/superfluid-finance/protocol-monorepo/issues/1397
+        const accountTokenSnapshot = getOrInitAccountTokenSnapshot(
             senderAddress,
-            tokenAddress
+            tokenAddress,
+            block
         );
+        flowOperatorEntity.accountTokenSnapshot = accountTokenSnapshot.id;
         flowOperatorEntity.flowOperator = flowOperatorAddress;
         flowOperatorEntity.updatedAtBlockNumber = block.number;
         flowOperatorEntity.updatedAtTimestamp = currentTimestamp;
-
-        // It will only be called when the entry does not exist. Previously, it was being called every time the user updated their permission or flow allowance
-        const superTokenContract = ISuperToken.bind(
-            tokenAddress
-        );
-        const currentAllowance = superTokenContract.try_allowance(senderAddress, flowOperatorAddress);
-        if (!currentAllowance.reverted) {
-            flowOperatorEntity.allowance = currentAllowance.value;
-        }
-
         flowOperatorEntity.save();
     }
     flowOperatorEntity.updatedAtBlockNumber = block.number;

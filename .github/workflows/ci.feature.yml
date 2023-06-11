@@ -125,13 +125,7 @@ jobs:
         run: sudo apt-get -y install lcov
 
       - name: Clean up and merge coverage artifacts
-        run: |
-          # extract coverage for NFT contracts from forge coverage
-          lcov -e lcov.info 'packages/ethereum-contracts/contracts/*' -o lcov.info
-          # remove mocks, base super app, test and deployer contracts (see .solcover.js)
-          lcov -r lcov.info 'packages/ethereum-contracts/contracts/mocks/*' 'packages/ethereum-contracts/contracts/apps/*Base*' 'packages/ethereum-contracts/contracts/utils/*Test*' 'packages/ethereum-contracts/contracts/utils/*Deployer*' -o lcov.info
-          # merge hardhat and forge coverage files
-          lcov -a lcov.info -a packages/ethereum-contracts/coverage/lcov.info -o packages/ethereum-contracts/coverage/lcov.info
+        run: ./tasks/coverage-cleanup.sh
 
       - name: Upload ethereum-contracts-coverage to codecov
         uses: codecov/codecov-action@v2

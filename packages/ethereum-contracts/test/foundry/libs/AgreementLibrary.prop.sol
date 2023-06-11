@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { AgreementLibrary } from "@superfluid-finance/ethereum-contracts/contracts/agreements/AgreementLibrary.sol";
+import { AgreementLibrary } from "../../../contracts/agreements/AgreementLibrary.sol";
 
 import "forge-std/Test.sol";
 

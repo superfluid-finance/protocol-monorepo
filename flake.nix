@@ -25,7 +25,8 @@
   flake-utils.lib.eachDefaultSystem (system:
   let
     solcVer = "solc_0_8_19";
-    ghcVer = "ghc945";
+    ghcVer92 = "ghc928";
+    ghcVer94 = "ghc945";
 
     pkgs = import nixpkgs {
       inherit system;
@@ -36,8 +37,8 @@
     };
 
     # ghc ecosystem
-    ghc = pkgs.haskell.compiler.${ghcVer};
-    ghcPkgs = pkgs.haskell.packages.${ghcVer};
+    ghc = pkgs.haskell.compiler.${ghcVer94};
+    ghcPkgs = pkgs.haskell.packages.${ghcVer94};
 
     # common dev inputs
     commonDevInputs = with pkgs; [
@@ -69,7 +70,7 @@
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
       slither-analyzer
-      #echidna
+      # echidna # disable for now
     ];
 
     # spec developing specification
@@ -141,8 +142,8 @@
     devShells.ci-node18 = mkShell {
       buildInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
     };
-    devShells.ci-spec-ghc925 = ci-spec-with-ghc "ghc927";
-    devShells.ci-spec-ghc945 = ci-spec-with-ghc "ghc945";
+    devShells.ci-spec-ghc92 = ci-spec-with-ghc ghcVer92;
+    devShells.ci-spec-ghc94 = ci-spec-with-ghc ghcVer94;
     devShells.ci-hot-fuzz = mkShell {
       buildInputs = with pkgs; [
         slither-analyzer

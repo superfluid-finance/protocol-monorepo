@@ -615,4 +615,3 @@ interface ISuperfluid {
      /// @dev The app is registered and not jailed.
      modifier isAppActive(ISuperApp app) virtual; */
 }
-

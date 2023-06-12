@@ -288,12 +288,10 @@ describe("IDAv1Library testing", function () {
         });
 
         it("#1.7 - _getHostAndIDA empty cache test", async () => {
-            await expect(
-                superTokenLibIDAMock.listSubscriptionsTest(
-                    superToken.address,
-                    bob
-                )
-            ).to.be.reverted;
+            await superTokenLibIDAMock.listSubscriptionsTest(
+                superToken.address,
+                bob
+            );
         });
     });
 

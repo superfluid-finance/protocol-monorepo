@@ -203,6 +203,8 @@ contract Manager is IManager, Ownable {
 
         address user = wrap.user;
 
+        if (user == address(0)) revert ZeroAddress();
+
         if (user != msg.sender && wrap.expiry >= block.timestamp)
             revert UnauthorizedCaller(msg.sender, user);
 

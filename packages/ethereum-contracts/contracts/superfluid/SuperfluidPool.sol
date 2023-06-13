@@ -318,6 +318,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         }
         emit MemberUpdated(memberAddr, newUnits);
 
+        // TODO should try/catch
         IPoolMemberNFT poolMemberNFT = ISuperToken(address(superToken)).POOL_MEMBER_NFT();
         uint256 tokenId = poolMemberNFT.getTokenId(address(this), memberAddr);
         if (newUnits == 0) {

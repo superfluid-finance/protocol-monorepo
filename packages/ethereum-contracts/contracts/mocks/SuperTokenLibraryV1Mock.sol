@@ -7,11 +7,9 @@ import {
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { ISuperApp, ISuperAgreement } from "../interfaces/superfluid/ISuperfluid.sol";
-
 import { ContextDefinitions, SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
-
+import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
 import { SuperAppBase } from "../apps/SuperAppBase.sol";
-
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { IInstantDistributionAgreementV1 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
@@ -453,6 +451,64 @@ contract SuperTokenLibraryIDAMock {
         bytes memory userData
     ) external {
         token.claim(publisher, indexId, subscriber, userData);
+    }
+}
+
+contract SuperTokenLibraryGDAMock {
+    using SuperTokenV1Library for ISuperToken;
+    //// View Functions ////
+
+    function getFlowDistributionFlowRateTest(ISuperToken token, address from, address to)
+        external
+        view
+        returns (int96)
+    {
+        return token.getFlowDistributionFlowRate(from, to);
+    }
+
+    function estimateFlowDistributionActualFlowRateTest(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool to,
+        int96 requestedFlowRate
+    ) external view returns (int96 actualFlowRate, int96 totalDistributionFlowRate) {
+        return token.estimateFlowDistributionActualFlowRate(from, to, requestedFlowRate);
+    }
+    function estimateDistributionActualAmountTest(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool to,
+        uint256 requestedAmount
+    ) external view returns (uint256 actualAmount) {
+        return token.estimateDistributionActualAmount(from, to, requestedAmount);
+    }
+
+    //// Admin/Distributor Operations ////
+
+    function createPoolTest(ISuperToken token, address admin) external {
+        token.createPool(admin);
+    }
+
+    function distributeToPoolTest(ISuperToken token, address from, ISuperfluidPool pool, uint256 requestedAmount)
+        external
+    {
+        token.distributeToPool(from, pool, requestedAmount);
+    }
+
+    function distributeFlowTest(ISuperToken token, address from, ISuperfluidPool pool, int96 requestedFlowRate)
+        external
+    {
+        token.distributeFlow(from, pool, requestedFlowRate);
+    }
+
+    //// Member Operations ////
+
+    function connectPoolTest(ISuperToken token, ISuperfluidPool pool) external {
+        token.connectPool(pool);
+    }
+
+    function disconnectPoolTest(ISuperToken token, ISuperfluidPool pool) external {
+        token.disconnectPool(pool);
     }
 }
 

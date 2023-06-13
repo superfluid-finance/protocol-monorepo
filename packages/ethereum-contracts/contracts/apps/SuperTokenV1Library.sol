@@ -1602,19 +1602,9 @@ library SuperTokenV1Library {
         host.callAgreement(gda, abi.encodeCall(gda.disconnectPool, (pool, new bytes(0))), userData);
         return true;
     }
-    
-    // @note It doesn't make sense to include pool functions here
-    // function updateMember(
-    //     ISuperToken,
-    //     ISuperfluidPool pool,
-    //     address memberAddress,
-    //     uint128 newUnits
-    // ) external returns (bool) {
-    //     return pool.updateMember(memberAddress, newUnits);
-    // }
 
     // @note we already have a distribute function from IDA, do we want this too? do we want to differentiate this?
-    function distribute(ISuperToken token, address from, ISuperfluidPool pool, uint256 requestedAmount)
+    function distributeToPool(ISuperToken token, address from, ISuperfluidPool pool, uint256 requestedAmount)
         internal
         returns (bool)
     {
@@ -1759,8 +1749,7 @@ library SuperTokenV1Library {
             gda = IGeneralDistributionAgreementV1(
                 address(
                     ISuperfluid(host).getAgreementClass(
-                        // keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
-                        0x6ab5cb4fc759246ffbb5247f4c17b3ac31afd4bb6931fadab67666c95e9c3b8c
+                        keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
                     )
                 )
             );

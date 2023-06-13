@@ -132,11 +132,15 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
     const chainId = await web3.eth.getChainId();
+    const deployerAddr = (await web3.eth.getAccounts())[0];
     console.log("network Type: ", networkType);
     console.log("network ID: ", networkId);
     console.log("chain ID: ", chainId);
+    console.log("deployer: ", deployerAddr);
     const config = getConfig(chainId);
     output += `NETWORK_ID=${networkId}\n`;
+
+    const deployerInitialBalance = await web3.eth.getBalance(deployerAddr);
 
     const CFAv1_TYPE = web3.utils.sha3(
         "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
@@ -883,4 +887,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             `List of newly deployed contracts written to ${outputFile}`
         );
     }
+
+    const deployerFinalBalance = await web3.eth.getBalance(deployerAddr);
+    const consumed = web3.utils.fromWei(
+        (new web3.utils.BN(deployerInitialBalance)).sub(new web3.utils.BN(deployerFinalBalance)));
+    console.log(`consumed native coins: ${consumed}`);
 });

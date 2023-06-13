@@ -27,10 +27,10 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperTokenMock;
     using SuperTokenV1Library for SuperToken;
 
-    string constant OUTFLOW_NFT_NAME_TEMPLATE = "Constant Outflow NFT";
-    string constant OUTFLOW_NFT_SYMBOL_TEMPLATE = "COF";
-    string constant INFLOW_NFT_NAME_TEMPLATE = "Constant Inflow NFT";
-    string constant INFLOW_NFT_SYMBOL_TEMPLATE = "CIF";
+    string constant internal OUTFLOW_NFT_NAME_TEMPLATE = "Constant Outflow NFT";
+    string constant internal OUTFLOW_NFT_SYMBOL_TEMPLATE = "COF";
+    string constant internal INFLOW_NFT_NAME_TEMPLATE = "Constant Inflow NFT";
+    string constant internal INFLOW_NFT_SYMBOL_TEMPLATE = "CIF";
 
     SuperTokenMock public superTokenMock;
 
@@ -239,7 +239,6 @@ abstract contract FlowNFTBaseTest is FoundrySuperfluidTester {
 
         _assertEventTransfer(address(constantInflowNFTProxy), address(0), _flowReceiver, nftId);
 
-        // we must start prank if using SuperTokenV1Library syntax
         vm.startPrank(_flowSender);
         superTokenMock.createFlow(_flowReceiver, _flowRate);
         vm.stopPrank();

@@ -10,16 +10,19 @@ import {
     FlowNFTBase, ConstantOutflowNFT, IConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
-import { CFAv1Library, FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
+import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperfluidTester.sol";
 import { IFlowNFTBase } from "../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
 import { FlowNFTBaseTest } from "./FlowNFTBase.t.sol";
+import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
 import { ConstantOutflowNFTMock, NoNFTSuperTokenMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 
 contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     using Strings for uint256;
-    using CFAv1Library for CFAv1Library.InitData;
+    using SuperTokenV1Library for ISuperToken;
+    using SuperTokenV1Library for SuperTokenMock;
 
     /*//////////////////////////////////////////////////////////////////////////
                                     Revert Tests
@@ -296,7 +299,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         _assertEventMetadataUpdate(address(constantInflowNFTProxy), nftId);
 
         vm.prank(flowSender);
-        sf.cfaLib.updateFlow(flowReceiver, superTokenMock, flowRate + 333);
+        superTokenMock.updateFlow(flowReceiver, flowRate + 333);
 
         _assertNFTFlowDataStateIsExpected(
             nftId, address(superTokenMock), flowSender, uint32(block.timestamp), flowReceiver
@@ -316,7 +319,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         _assertEventTransfer(address(constantOutflowNFTProxy), flowSender, address(0), nftId);
 
         vm.prank(flowSender);
-        sf.cfaLib.deleteFlow(flowSender, flowReceiver, superTokenMock);
+        superTokenMock.deleteFlow(flowSender, flowReceiver);
 
         _assertNFTFlowDataStateIsEmpty(nftId);
     }
@@ -365,16 +368,16 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         testToken.mint(alice, initialAmount);
         testToken.approve(address(noNFTSuperTokenMock), initialAmount);
         noNFTSuperTokenMock.upgrade(initialAmount);
-        sf.cfaLib.createFlow(bob, noNFTSuperTokenMock, 100);
+        ISuperToken(address(noNFTSuperTokenMock)).createFlow(bob, 100);
         (, int96 flowRate,,) = sf.cfa.getFlow(noNFTSuperTokenMock, alice, bob);
         assertEq(flowRate, 100);
-        sf.cfaLib.updateFlow(bob, noNFTSuperTokenMock, 150);
+        ISuperToken(address(noNFTSuperTokenMock)).updateFlow(bob, 150);
         (, flowRate,,) = sf.cfa.getFlow(noNFTSuperTokenMock, alice, bob);
         assertEq(flowRate, 150);
-        sf.cfaLib.updateFlow(bob, noNFTSuperTokenMock, 90);
+        ISuperToken(address(noNFTSuperTokenMock)).updateFlow(bob, 90);
         (, flowRate,,) = sf.cfa.getFlow(noNFTSuperTokenMock, alice, bob);
         assertEq(flowRate, 90);
-        sf.cfaLib.deleteFlow(alice, bob, noNFTSuperTokenMock);
+        ISuperToken(address(noNFTSuperTokenMock)).deleteFlow(alice, bob);
         (, flowRate,,) = sf.cfa.getFlow(noNFTSuperTokenMock, alice, bob);
         assertEq(flowRate, 0);
         vm.stopPrank();

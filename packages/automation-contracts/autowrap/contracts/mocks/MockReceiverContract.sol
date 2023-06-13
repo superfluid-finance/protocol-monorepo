@@ -3,11 +3,11 @@ pragma solidity ^0.8.0;
 
 import {
 ISuperfluid, ISuperToken
-} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+} from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 import {
 IConstantFlowAgreementV1
-} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+} from "../../../../ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 

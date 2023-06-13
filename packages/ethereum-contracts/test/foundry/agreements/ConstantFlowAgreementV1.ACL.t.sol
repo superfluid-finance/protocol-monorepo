@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
 contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
-    using SuperTokenV1Library for SuperToken;
+    using SuperTokenV1Library for ISuperToken;
 
     struct AssertFlowOperator {
         ISuperfluidToken superToken;
@@ -22,7 +22,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
     function testIncreaseFlowRateAllowance(int96 flowRateAllowanceDelta) public {
         vm.assume(flowRateAllowanceDelta > 0);
 
-        bytes32 flowOperatorId = _generate_Flow_Operator_Id(alice, bob);
+        bytes32 flowOperatorId = _getFlowOperatorId(alice, bob);
         (uint8 oldPermissions, int96 oldFlowRateAllowance) = sf.cfa.getFlowOperatorDataByID(superToken, flowOperatorId);
 
         vm.startPrank(alice);
@@ -125,13 +125,9 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         vm.startPrank(alice);
         superToken.setFlowPermissions(bob, true, true, true, 0);
         superToken.increaseFlowRateAllowance(bob, flowRate);
-
         vm.stopPrank();
 
-        vm.prank(bob);
-        superToken.createFlowFrom(alice, bob, flowRate);
-
-        assertEq(superToken.getFlowRate(alice, bob), flowRate);
+        _helperCreateFlowFrom(superToken, bob, alice, bob, flowRate);
     }
 
     function testRevertIfDecreaseFlowRateAllowanceAndACLCreateFlow(int96 flowRateAllowanceIncreaseDelta) public {
@@ -139,6 +135,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
 
         vm.startPrank(alice);
         superToken.setFlowPermissions(bob, true, true, true, 0);
+
         superToken.increaseFlowRateAllowance(bob, flowRateAllowanceIncreaseDelta);
         superToken.decreaseFlowRateAllowance(bob, flowRateAllowanceIncreaseDelta);
 
@@ -177,7 +174,7 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         assertEq(newFlowRateAllowance, data.expectedFlowRateAllowance, "CFAv1 ACL: flow rate allowance not equal");
     }
 
-    function _generate_Flow_Operator_Id(address sender, address flowOperator) private pure returns (bytes32 id) {
+    function _getFlowOperatorId(address sender, address flowOperator) private pure returns (bytes32 id) {
         return keccak256(abi.encode("flowOperator", sender, flowOperator));
     }
 }

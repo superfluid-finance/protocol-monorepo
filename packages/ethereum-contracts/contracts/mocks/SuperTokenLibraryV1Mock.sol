@@ -483,6 +483,14 @@ contract SuperTokenLibraryGDAMock {
         return token.estimateDistributionActualAmount(from, to, requestedAmount);
     }
 
+    function isMemberConnectedTest(ISuperToken token, address pool, address member)
+        external
+        view
+        returns (bool)
+    {
+        return token.isMemberConnected(pool, member);
+    }
+
     //// Admin/Distributor Operations ////
 
     function createPoolTest(ISuperToken token, address admin) external {

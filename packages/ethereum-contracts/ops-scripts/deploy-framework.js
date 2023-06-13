@@ -1228,6 +1228,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             superfluidPoolBeaconContract.address
         );
         output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
+        console.log("Initializing GDA w/ beacon contract...");
         await gdaV1Contract.initialize(superfluidPoolBeaconContract.address);
     } else {
         console.log("Superfluid Pool Beacon exists...");

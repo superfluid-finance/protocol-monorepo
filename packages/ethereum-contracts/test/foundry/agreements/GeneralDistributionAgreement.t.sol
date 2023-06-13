@@ -62,7 +62,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function setUp() public override {
         super.setUp();
         vm.startPrank(alice);
-        pool = SuperfluidPool(address(sf.gda.createPool(alice, superToken)));
+        pool = SuperfluidPool(address(superToken.createPool(alice)));
         vm.stopPrank();
         (liquidationPeriod,) = sf.governance.getPPPConfig(sf.host, superToken);
     }

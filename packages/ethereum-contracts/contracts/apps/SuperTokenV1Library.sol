@@ -787,9 +787,9 @@ library SuperTokenV1Library {
         (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
         uint8 permissionsBitmask;
         (, permissionsBitmask, flowRateAllowance) = cfa.getFlowOperatorData(token, sender, flowOperator);
-        allowCreate = permissionsBitmask & 1 == 1 ? true : false;
-        allowUpdate = permissionsBitmask >> 1 & 1 == 1 ? true : false;
-        allowDelete = permissionsBitmask >> 2 & 1 == 1 ? true : false;
+        allowCreate = permissionsBitmask & 1 == 1;
+        allowUpdate = permissionsBitmask >> 1 & 1 == 1;
+        allowDelete = permissionsBitmask >> 2 & 1 == 1;
     }
 
 
@@ -1648,6 +1648,8 @@ library SuperTokenV1Library {
 
     // ************** private helpers **************
 
+    // @note We must use hardcoded constants here because:
+    // Only direct number constants and references to such constants are supported by inline assembly.
     // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.host")
     bytes32 private constant _HOST_SLOT = 0x65599bf746e17a00ea62e3610586992d88101b78eec3cf380706621fb97ea837;
     // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.cfa")
@@ -1674,14 +1676,9 @@ library SuperTokenV1Library {
             if (address(host) == address(0)) {
                 host = ISuperfluid(token.getHost());
             }
-            cfa = IConstantFlowAgreementV1(
-                address(
-                    ISuperfluid(host).getAgreementClass(
-                        //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3
-                    )
-                )
-            );
+
+            cfa = IConstantFlowAgreementV1(address(ISuperfluid(host).getAgreementClass(
+                keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1"))));
             // now that we got them and are in a transaction context, persist in storage
             assembly {
                 // solium-disable-line
@@ -1710,14 +1707,8 @@ library SuperTokenV1Library {
             if (address(host) == address(0)) {
                 host = ISuperfluid(token.getHost());
             }
-            ida = IInstantDistributionAgreementV1(
-                address(
-                    ISuperfluid(host).getAgreementClass(
-                        // keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
-                        0x8aedc3b5d4bf031e11a7e2940f7251c005698405d58e02e1c247fed3b1b3a674
-                    )
-                )
-            );
+            ida = IInstantDistributionAgreementV1(address(ISuperfluid(host).getAgreementClass(
+                keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1"))));
             // now that we got them and are in a transaction context, persist in storage
             assembly {
                 // solium-disable-line
@@ -1778,14 +1769,8 @@ library SuperTokenV1Library {
             if (address(host) == address(0)) {
                 host = ISuperfluid(token.getHost());
             }
-            cfa = IConstantFlowAgreementV1(
-                address(
-                    ISuperfluid(host).getAgreementClass(
-                        //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                        0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3
-                    )
-                )
-            );
+            cfa = IConstantFlowAgreementV1(address(ISuperfluid(host).getAgreementClass(
+                keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1"))));
         }
         assert(address(host) != address(0));
         assert(address(cfa) != address(0));
@@ -1809,14 +1794,8 @@ library SuperTokenV1Library {
             if (address(host) == address(0)) {
                 host = ISuperfluid(token.getHost());
             }
-            ida = IInstantDistributionAgreementV1(
-                address(
-                    ISuperfluid(host).getAgreementClass(
-                        //keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
-                        0x8aedc3b5d4bf031e11a7e2940f7251c005698405d58e02e1c247fed3b1b3a674
-                    )
-                )
-            );
+            ida = IInstantDistributionAgreementV1(address(ISuperfluid(host).getAgreementClass(
+                keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1"))));
         }
         assert(address(host) != address(0));
         assert(address(ida) != address(0));

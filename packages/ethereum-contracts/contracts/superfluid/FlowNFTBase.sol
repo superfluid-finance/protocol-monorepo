@@ -93,8 +93,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         CONSTANT_FLOW_AGREEMENT_V1 = IConstantFlowAgreementV1(
             address(
                 ISuperfluid(host).getAgreementClass(
-                    //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                    0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3
+                    keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
                 )
             )
         );

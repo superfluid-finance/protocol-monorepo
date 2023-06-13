@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Optimism L1 Stream Closer</title>
+    <meta charset="UTF-8">
+    <script src="https://cdn.jsdelivr.net/npm/ethers@5.5.4/dist/ethers.umd.min.js"
+            integrity="sha256-u2JkA91avqVaE60Vn+iwn8Nh6yQpddB4D6mTLwbEntk="
+            crossorigin="anonymous">
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
+            integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs="
+            crossorigin="anonymous">
+    </script>
+    <style>
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .height-fit-content {
+            height: fit-content;
+        }
+    </style>
+</head>
+<body>
+    <div class="outerDiv">
+        <div class="header-container">
+            <h1>Optimism L1 Stream Closer</h1>
+            <h3 id="loader" style="text-align: center; display: none;">Loading...</h3>
+            <button id='connect-wallet-btn' type="button" class="height-fit-content"
+                    onclick="execFuncWithLoader(connectWallet)">
+                connect wallet
+            </button>
+        </div>
+
+        <div>
+            <label for="superTokenAddr">Super Token address:</label><br/>
+            <input id="superTokenAddr" size="40"/><br/>
+            <label for="senderAddr">Sender address:</label><br/>
+            <input id="senderAddr" size="40"/><br/>
+            <label for="receiverAddr">Receiver address:</label><br/>
+            <input id="receiverAddr" size="40"/><br/>
+            <button onclick="execFuncWithLoader(closeStream)">Close Stream</button><br></br>
+            <span id="flowData"></span><br/>
+            <b><span id="successMsg"></span></b><br/>
+        </div>
+    </div>
+
+    <script type="module">
+        import networks from "https://cdn.jsdelivr.net/gh/superfluid-finance/metadata/module/networks/index.js";
+        // relevant abi extract: callAgreement, getAgreementClass
+        const ISuperfluidAbi = '[{"inputs":[{"internalType":"contract ISuperAgreement","name":"agreementClass","type":"address"},{"internalType":"bytes","name":"callData","type":"bytes"},{"internalType":"bytes","name":"userData","type":"bytes"}],"name":"callAgreement","outputs":[{"internalType":"bytes","name":"returnedData","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"agreementType","type":"bytes32"}],"name":"getAgreementClass","outputs":[{"internalType":"contract ISuperAgreement","name":"agreementClass","type":"address"}],"stateMutability":"view","type":"function"}]';
+        // relevant abi extract: getFlow, deleteFlow
+        const IConstantFlowAgreementV1Abi = '[{"inputs":[{"internalType":"contract ISuperfluidToken","name":"token","type":"address"},{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"receiver","type":"address"},{"internalType":"bytes","name":"ctx","type":"bytes"}],"name":"deleteFlow","outputs":[{"internalType":"bytes","name":"newCtx","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"contract ISuperfluidToken","name":"token","type":"address"},{"internalType":"address","name":"sender","type":"address"},{"internalType":"address","name":"receiver","type":"address"}],"name":"getFlow","outputs":[{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"int96","name":"flowRate","type":"int96"},{"internalType":"uint256","name":"deposit","type":"uint256"},{"internalType":"uint256","name":"owedDeposit","type":"uint256"}],"stateMutability":"view","type":"function"}]';
+        // relevant abi extract: depositTransaction
+        const IOptimismPortalAbi = '[{"inputs":[{"internalType":"address","name":"_to","type":"address"},{"internalType":"uint256","name":"_value","type":"uint256"},{"internalType":"uint64","name":"_gasLimit","type":"uint64"},{"internalType":"bool","name":"_isCreation","type":"bool"},{"internalType":"bytes","name":"_data","type":"bytes"}],"name":"depositTransaction","outputs":[],"stateMutability":"payable","type":"function"}]';
+
+        // maps l1 chainIds to optimism deployments. UI needs a selector once this becomes 1:n
+        const l1l2map = { 
+            1: {
+                l2ChainId: 10, 
+                l1PortalAddr: "0xbEb5Fc579115071764c7423A4f12eDde41f106Ed"
+            },
+            5: {
+                l2ChainId: 420,
+                l1PortalAddr: "0x5b47E1A08Ea6d985D6649300584e6722Ec4B1383"
+            }
+        };
+
+        let connData = {}; // chainId, provider, userAddress, ...
+
+        // pre-fill input fields from query params if present
+        // example queryString: chainId=42&token=0xE3817a5e3e436a9b114A829C9FCc02355193cf41&sender=0x30B125d5Fc58c1b8E3cCB2F1C71a1Cc847f024eE&receiver=0x38EEcBc486111D9B0DD85Eeb9512AF214705617A
+        const params = new URLSearchParams(window.location.search)
+        connData.wantedChainId = Number(params.get("chainId")); // 0 if undefined
+        $("#superTokenAddr").val(params.get("token"));
+        $("#senderAddr").val(params.get("sender"));
+        $("#receiverAddr").val(params.get("receiver"));
+
+        // executes a function and shows a loading UI hint in the meantime
+        window.execFuncWithLoader = async function (func) {
+            $("#loader").toggle();
+            try {
+                await func();
+            } catch (err) {
+                console.error(err);
+            } finally {
+                $("#loader").toggle();
+            }
+        }
+
+        // connects to a browser injected wallet (https://eips.ethereum.org/EIPS/eip-1193)
+        window.connectWallet = async function () {
+            // does nothing if already connected
+            if (!connData.provider) {
+                $("#connect-wallet-btn").text("connecting...");
+                await setAccount();
+
+                if (setNetwork(Number(window.ethereum.chainId))) {
+                    $("#connect-wallet-btn").text(connData.userAddress + " | chain id: " + connData.chainId);
+                } else {
+                    $("#connect-wallet-btn").text("not connected");
+                }
+            }
+        }
+
+        window.setAccount = async function () {
+            const response = await window.ethereum.request({ method: "eth_requestAccounts" });
+            connData.userAddress = response[0];
+        }
+
+        function setNetwork(chainId) {
+            if (connData.wantedChainId !== 0 && chainId !== connData.wantedChainId) {
+                alert(`Wallet NOT connected to a chain with wanted id ${connData.wantedChainId}`);
+                return false;
+            }
+            connData.l1Network = networks.getNetworkByChainId(chainId);
+            if (connData.l1Network === undefined) {
+                alert(`ERR: wallet connected to unsupported network (chainId: ${chainId})`);
+                return false;
+            }
+
+            connData.chainId = Number(chainId);
+
+            if (l1l2map[connData.chainId] === undefined) {
+                alert(`ERR: connected network (chainId: ${chainId}) doesn't have a known Optimism L2`);
+                return false;
+            }
+            connData.l2ChainId = l1l2map[connData.chainId].l2ChainId;
+            connData.l1PortalAddr = l1l2map[connData.chainId].l1PortalAddr;
+
+            console.log(`matching network ${chainId} to L2 ${connData.l2ChainId}`);
+
+            connData.l2Network = networks.getNetworkByChainId(connData.l2ChainId);
+
+            connData.provider = new ethers.providers.Web3Provider(window.ethereum);
+            if (!window.ethereum) {
+                alert("ERR: no injected ethereum provider found");
+                return false;
+            }
+            return true;
+        }
+
+        // handle network or account changes in wallet after init
+        if (window.ethereum) {
+            window.ethereum.on("accountsChanged", async accounts => {
+                console.log("on accounts changed: ", accounts[0]);
+                connData.userAddress = accounts[0];
+                $("#connect-wallet-btn").text(connData.userAddress + " | chain id: " + connData.chainId);
+            });
+            window.ethereum.on("chainChanged", async chainId => {
+                console.log("chain changed")
+                if (connData.userAddress === undefined) {
+                    await setAccount();
+                }
+                if (setNetwork(Number(chainId))) {
+                    $("#connect-wallet-btn").text(connData.userAddress + " | chain id: " + connData.chainId);
+                } else {
+                    $("#connect-wallet-btn").text("not connected");
+                }
+            });
+        }
+
+        window.closeStream = async function () {
+            if(connData.provider === undefined) {
+                alert("no wallet connected");
+                return;
+            }
+
+            const tokenAddr = $("#superTokenAddr").val();
+            const senderAddr = $("#senderAddr").val();
+            const receiverAddr = $("#receiverAddr").val();
+
+            console.log(`close stream with args: ${tokenAddr}, ${senderAddr}, ${receiverAddr}`);
+
+            try {
+                console.log(`hostAddr: ${connData.l2Network.contractsV1.host}`);
+                const host = new ethers.Contract(connData.l2Network.contractsV1.host, ISuperfluidAbi);
+
+                // get CFA
+                const cfaV1Type = ethers.utils.keccak256(
+                    ethers.utils.toUtf8Bytes("org.superfluid-finance.agreements.ConstantFlowAgreement.v1"));
+                const cfaV1Addr = connData.l2Network.contractsV1.cfaV1;
+                console.log(`instantiating CFAv1 contract at ${cfaV1Addr}`);
+                const cfaV1 = new ethers.Contract(cfaV1Addr, IConstantFlowAgreementV1Abi);
+                window.cfaV1 = cfaV1;
+
+                console.log(`getting flow for token ${tokenAddr}, sender ${senderAddr}, receiver ${receiverAddr}`);
+
+                const sgUrl = `https://${connData.l2Network.name}.subgraph.x.superfluid.dev`;
+                console.log(`querying ${sgUrl} ...`);
+                const sgQuery = `{
+                    streams(where: { token_: {id: "${tokenAddr.toLowerCase()}"}, sender_: {id: "${senderAddr.toLowerCase()}"}, receiver_: {id: "${receiverAddr.toLowerCase()}"}}) {
+                        createdAtTimestamp
+                        currentFlowRate
+                        deposit
+                    }
+                }`;
+
+                try {
+                    const sgResponse = await fetch(sgUrl, {
+                        method: 'POST',
+                        headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            query: sgQuery,
+                            variables: {}
+                        })
+                    });
+                    const sgData = await sgResponse.json();
+                    console.log("sgData", JSON.stringify(sgData, null, 2));
+                    
+                    // Check if data is present and there are streams.
+                    if (!(sgData && sgData.data && sgData.data.streams && sgData.data.streams.length > 0 
+                        && sgData.data.streams[sgData.data.streams.length-1].currentFlowRate != 0))
+                    {
+                        console.log('No open stream found on subgraph');
+                        if (!confirm("No open stream found on subgraph. Proceed anyway? (Metamask estimation won't fail if not exists!)")) {
+                            return;
+                        }
+                    } else {
+                        // the subgraph returns multiple entries if a stream between those accounts existed before, we need the last (open) one
+                        const stream = sgData.data.streams[sgData.data.streams.length-1];
+                        const prettyDate = Date(stream.createdAtTimestamp);
+                        const prettyFlowRate = `${ethers.utils.formatUnits(Number(stream.currentFlowRate)*3600*24)}/day`;
+                        const prettyDeposit = ethers.utils.formatUnits(stream.deposit);
+                        console.log(`Stream being closed: created ${prettyDate}, flowRate ${prettyFlowRate}, deposit ${prettyDeposit}`);
+                        $("#flowData").text(`Stream being closed: created ${prettyDate}, flowRate ${prettyFlowRate}, deposit ${prettyDeposit}`);
+                    }
+                } catch(e) {
+                    console.error(`fetching stream from subgraph failed: ${e.toString()}`);
+                    if (!confirm("Querying the subgraph for this stream failed, may not exist. Proceed anyway? (Metamask estimation won't fail if not exists!)")) {
+                        return;
+                    }
+                }
+
+                const encodedHostCall = host.interface.encodeFunctionData(
+                    "callAgreement",
+                    [
+                        cfaV1Addr,
+                        cfaV1.interface.encodeFunctionData(
+                            "deleteFlow", [tokenAddr, senderAddr, receiverAddr, "0x"],
+                        ),
+                        "0x"
+                    ]
+                );
+                console.log("encodedHostCall", encodedHostCall);
+
+                const portal = new ethers.Contract(connData.l1PortalAddr, IOptimismPortalAbi, connData.provider.getSigner());
+                console.log("initialized portal contract at", connData.l1PortalAddr);
+
+                // function depositTransaction(address _to, uint256 _value, uint64 _gasLimit, bool _isCreation, bytes memory _data)
+                // we can be generous with the gas limit (max callback budget) as L2 gas barely affects the actual cost
+                const res = await portal.depositTransaction(connData.l2Network.contractsV1.host, 0, 3500000, false, encodedHostCall);
+
+                console.log(`pending tx: ${res.hash}`);
+                const receipt = await connData.provider.waitForTransaction(res.hash);
+                $("#successMsg").text(`Closing L1 tx ${res.hash} - L2 execution usually follows after a few minutes`);
+                console.log(`receipt: ${JSON.stringify(receipt, null, 2)}`);
+            } catch(e) {
+                const errMsg = typeof e === 'object' ? JSON.stringify(e, null, 2) : e.toString();
+                console.error(`closeStream failed with: ${errMsg}`);
+                alert(`Error: ${errMsg}`);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -2,24 +2,20 @@
 pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
-
 import { ERC1820RegistryCompiled } from "../../../contracts/libs/ERC1820RegistryCompiled.sol";
 import { SlotsBitmapLibrary } from "../../../contracts/libs/SlotsBitmapLibrary.sol";
 import { ISuperToken } from "../../../contracts/interfaces/superfluid/ISuperToken.sol";
 import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
-import { ISuperTokenFactory } from "../../../contracts/interfaces/superfluid/ISuperTokenFactory.sol";
-import { SuperfluidFrameworkDeployer } from "../../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { SuperTokenFactory, ISuperTokenFactory } from "../../../contracts/superfluid/SuperTokenFactory.sol";
 import {
+    SuperfluidFrameworkDeployer,
     TestResolver,
     TestToken,
-    SuperToken,
-    SuperTokenDeployer,
-    SuperTokenFactory
-} from "../../../contracts/utils/SuperTokenDeployer.sol";
+    SuperToken
+} from "../../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 
 contract SlotsBitmapLibraryPropertyTest is Test {
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperTokenDeployer internal immutable superTokenDeployer;
     TestToken private token;
     ISuperToken private immutable superToken;
     address constant subscriber = address(1);
@@ -32,23 +28,14 @@ contract SlotsBitmapLibraryPropertyTest is Test {
     uint256 private constant _SUBSCRIBER_SUB_DATA_STATE_SLOT_ID_START = 1 << 128;
 
     constructor() {
-        vm.startPrank(subscriber);
-        // Deploy ERC1820
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
+        vm.startPrank(subscriber);
         sfDeployer = new SuperfluidFrameworkDeployer();
+        sfDeployer.deployTestFramework();
         vm.stopPrank();
-        SuperfluidFrameworkDeployer.Framework memory sf = sfDeployer.getFramework();
-        vm.prank(address(sfDeployer));
-        superTokenDeployer = new SuperTokenDeployer(
-            address(sf.superTokenFactory),
-            address(sf.resolver)
-        );
-        sfDeployer.transferOwnership(address(superTokenDeployer));
-        TestResolver resolver = TestResolver(sf.resolver);
-        resolver.addAdmin(address(superTokenDeployer));
 
         vm.startPrank(subscriber);
-        (token, superToken) = superTokenDeployer.deployWrapperSuperToken("Test Token", "TST", 18, type(uint256).max);
+        (token, superToken) = sfDeployer.deployWrapperSuperToken("Test Token", "TST", 18, type(uint256).max);
         vm.stopPrank();
     }
 

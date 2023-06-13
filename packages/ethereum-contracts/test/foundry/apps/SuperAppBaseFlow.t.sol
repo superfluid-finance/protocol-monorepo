@@ -3,17 +3,15 @@ pragma solidity 0.8.19;
 
 import "forge-std/console.sol";
 import "../FoundrySuperfluidTester.sol";
-import { SuperAppBaseFlow } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBaseFlow.sol";
-import { SuperAppBaseFlowTester } from
-    "@superfluid-finance/ethereum-contracts/contracts/mocks/SuperAppBaseFlowTester.sol";
+import { SuperAppBaseFlow } from "../../../contracts/apps/SuperAppBaseFlow.sol";
+import { SuperAppBaseFlowTester } from "../../../contracts/mocks/SuperAppBaseFlowTester.sol";
 import {
     ISuperToken,
     ISuperApp,
     SuperAppDefinitions
-} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import { IConstantFlowAgreementV1 } from
-    "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
+} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
 contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
@@ -30,7 +28,7 @@ contract SuperAppBaseFlowTest is FoundrySuperfluidTester {
         vm.startPrank(admin);
         superApp = new SuperAppBaseFlowTester(sf.host, true, true, true);
         superAppAddress = address(superApp);
-        otherSuperToken = superTokenDeployer.deployPureSuperToken("FTT", "FTT", 1e27);
+        otherSuperToken = sfDeployer.deployPureSuperToken("FTT", "FTT", 1e27);
         otherSuperToken.transfer(alice, 1e21);
         vm.stopPrank();
     }

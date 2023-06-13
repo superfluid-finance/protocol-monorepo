@@ -48,6 +48,7 @@ interface ISuperfluid {
     error HOST_AGREEMENT_IS_NOT_REGISTERED();                   // 0x1c9e9bea
     error HOST_MUST_BE_CONTRACT();                              // 0xd4f6b30c
     error HOST_ONLY_LISTED_AGREEMENT();                         // 0x619c5359
+    error HOST_NEED_MORE_GAS();                                 // 0xd4f5d496
 
     // App Related Custom Errors
     // uses SuperAppDefinitions' App Jail Reasons as _code

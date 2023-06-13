@@ -34,7 +34,10 @@ If you're building a smart contract that uses Superfluid protocol, or even your 
 
 ### Installation
 
-Prerequisites: You need node.js v12+ and yarn installed.
+Prerequisites: 
+- [node.js v12+](https://nodejs.org/en/download)
+- [yarn](https://classic.yarnpkg.com/en/docs/install)
+- [forge](https://book.getfoundry.sh/getting-started/installation)
 
 Once you have set up your project, cd into its base directory and add the npm package:
 
@@ -174,69 +177,70 @@ Additionally, we use foundry's assert functions to make debugging easier by prov
 assertEq(newFlowRateAllowance, expectedFlowRateAllowance, "CFAv1 ACL: unexpected flow rate allowance");
 ```
 
-### Writing Tests (Deprecated)
-
-For convenient testing, the package contains deployment scripts which allow you to set up and initialize the protocol and test tokens with a few lines of code.
-Currently, this requires [web3.js](https://github.com/ChainSafe/web3.js), support for other frameworks is work in progress.
-
-```js
-const deployFramework = require("@superfluid-finance/ethereum-contracts/ops-scripts/deploy-framework");
-const deployTestToken = require("@superfluid-finance/ethereum-contracts/ops-scripts/deploy-test-token");
-const deploySuperToken = require("@superfluid-finance/ethereum-contracts/ops-scripts/deploy-super-token");
-
-contract("My Test", accounts => {
-    const [admin, bob, carol, dan] = accounts;
-
-    before(async () => {
-        await deployFramework(errorHandler, {
-            web3,
-            from: admin
-        });
-    });
-
-    beforeEach(async function() {
-        await deployTestToken(errorHandler, [":", "fDAI"], {
-            web3,
-            from: admin
-        });
-        await deploySuperToken(errorHandler, [":", "fDAI"], {
-            web3,
-            from: admin
-        });
-    });
-})
-```
-In order to write concise testing code, we further recommend the use of [`@superfluid-finance/sdk-core`](/packages/sdk-core) not only in your UI code, but also in JS contract tests.
-
 ### Examples
 
 You may also want to check out some example dapps in the [examples repo](https://github.com/superfluid-finance/super-examples) instead of starting from scratch.
 Clone a project, modify and play!
 
-### Deploying Superfluid Protocol
+### Deploying Superfluid Protocol for Testing
 
-In the example test code, you have seen how to deploy protocol contracts from JS code.
-In truffle projects, this deploy scripts can also be used on a CLI. E.g. in order to deploy to a local ganache dev chain:
-```sh
-CREATE_NEW_RESOLVER=1 DISABLE_NATIVE_TRUFFLE=true truffle --network ganache exec "node_modules/@superfluid-finance/ethereum-contracts/ops-scripts/deploy-test-environment.js"
+> NOTE: you must deploy erc1820 registry before deploying the Superfluid protocol. You can do this by running `npx hardhat run dev-scripts/deploy-erc1820.js --network localhost` in the terminal.
+
+#### Hardhat
+You can import the `deployContractsAndToken` function from the `dev-scripts/deploy-contracts-and-token.js` file and use it in your testing scripts. It will deploy the Superfluid protocol and deploy Wrapper, Native Asset and Pure SuperToken's for you. 
+Alternatively, you can execute `npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost` to deploy the contracts and tokens to a local hardhat node, you will know this worked if you see the terminal window with your local hardhat node running spit out a bunch of things.
+
+#### Foundry
+In foundry, you can use the `SuperfluidFrameworkDeployer` to deploy the Superfluid protocol in a forge environment (no local blockchain). For example:
+
+```solidity
+import "forge-std/Test.sol";
+
+import { ERC1820RegistryCompiled } from "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
+import { SuperfluidFrameworkDeployer } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { TestToken } from "@superfluid-finance/ethereum-contracts/contracts/utils/TestToken.sol";
+import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+
+contract SomeTest is Test {
+
+    SuperfluidFrameworkDeployer.Framework internal sf;
+    SuperfluidFrameworkDeployer internal deployer;
+
+    function setUp() {
+        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
+
+        deployer = new SuperfluidFrameworkDeployer();
+        deployer.deployTestFramework();
+        sf = deployer.getFramework();
+        (TestToken underlyingToken, SuperToken superToken) = deployer.deployWrapperSuperToken("MR Token", "MRx", 18, 10000000);
+    }
+}
+```
+See [SuperfluidFrameworkDeployer.sol](contracts/utils/SuperfluidFrameworkDeployer.sol) for more details.
+
+You can also deploy to a local blockchain (`hardhat` or `anvil`) via a forge script. For example, an example `Deploy.s.sol` file:
+
+```solidity
+import "forge-std/Script.sol";
+import "forge-std/Test.sol";
+
+import { ERC1820RegistryCompiled } from "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
+import { SuperfluidFrameworkDeployer } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { TestToken } from "@superfluid-finance/ethereum-contracts/contracts/utils/TestToken.sol";
+import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+
+contract DeployScript is Script, Test {
+    function run() external {
+        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
+        SuperfluidFrameworkDeployer deployer = new SuperfluidFrameworkDeployer();
+        deployer.deployTestFramework();
+        SuperfluidFrameworkDeployer.Framework memory framework = deployer.getFramework();
+        (TestToken underlyingToken, SuperToken superToken) = deployer.deployWrapperSuperToken("MR Token", "MRx", 18, 10000000);
+    }
+}
 ```
 
-In order to deploy to another network, set the `network` argument accordingly.
-
-`CREATE_NEW_RESOLVER=1` forces the script to deploy a new resolver even if there's one already deployed (this is the case on Ethereum testnets). That's useful because otherwise the script would try to use the pre-existing resolver and have failing transactions due to lacking permissions.
-
-`DISABLE_NATIVE_TRUFFLE=true` tells the script to use the contract binaries bundled with the npm package.
-
-After successful execution of this command, you should get something like this:
-```
-...
-======== Super token deployed ========
-=============== TEST ENVIRONMENT RESOLVER ======================
-export RESOLVER_ADDRESS=0x43098b8d85Fe90eCE6B055e135759B558d2c0224
-```
-
-Run the export command to save `RESOLVER_ADDRESS` to your local environment.
-This allows tests/scripts running later in the same environment to find and use the contracts just deployed.
+The command to run the script: `forge script script/Deploy.s.sol:DeployScript --rpc-url http://localhost:8545`.
 
 ## Contributing
 
@@ -301,6 +305,8 @@ When running tests with `yarn test`, those get executed automatically (see [npm 
 ### TDD Session
 
 When working on the contracts, a test driven approach is recommended.
+
+#### Hardhat
 You should choose the tests relevant for what you're working on using the [only keyword](https://mochajs.org/#exclusive-tests).
 You can put the `only` keyword at any level between whole test suites (`only` appended to a top level `describe`, e.g. `describe.only`) and individual testcases (`it`, e.g. `it.only`).
 With the testing scope defined, run:
@@ -327,6 +333,9 @@ After that is done, just simply run the testDataToCharts script and put the fold
 ```
 python3 testDataToCharts.py output
 ```
+
+#### Foundry
+On the other hand, you can run the development session with foundry with the command: `yarn dev-forge`.
 
 ### Other Useful Commands
 

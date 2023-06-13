@@ -1,18 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import { FlowOperatorDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import { ISuperToken } from "../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
+import { FlowOperatorDefinitions } from "../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { IVestingScheduler } from "./../contracts/interface/IVestingScheduler.sol";
 import { VestingScheduler } from "./../contracts/VestingScheduler.sol";
 import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
-import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
-import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
+import { SuperTokenV1Library } from "../../../ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
 /// @title VestingSchedulerTests
 /// @notice Look at me , I am the captain now - Elvijs
 contract VestingSchedulerTests is FoundrySuperfluidTester {
-    using SuperTokenV1Library for SuperToken;
+    using SuperTokenV1Library for ISuperToken;
 
     event VestingScheduleCreated(
         ISuperToken indexed superToken,

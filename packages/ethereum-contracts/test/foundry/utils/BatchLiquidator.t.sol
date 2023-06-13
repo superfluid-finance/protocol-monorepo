@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import "../FoundrySuperfluidTester.sol";
-import { BatchLiquidator } from "@superfluid-finance/ethereum-contracts/contracts/utils/BatchLiquidator.sol";
+import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperfluidTester.sol";
+import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import { BatchLiquidator } from "../../../contracts/utils/BatchLiquidator.sol";
 
 contract BatchLiquidatorTest is FoundrySuperfluidTester {
-    using CFAv1Library for CFAv1Library.InitData;
+    using SuperTokenV1Library for ISuperToken;
 
-    BatchLiquidator batchLiquidator;
-    address liquidator = address(0x1234);
+    BatchLiquidator internal batchLiquidator;
+    address internal liquidator = address(0x1234);
 
-    int96 FLOW_RATE = 10000000000;
+    int96 internal constant FLOW_RATE = 10000000000;
 
     constructor() FoundrySuperfluidTester(5) { }
 
@@ -22,7 +23,7 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
     // Helpers
     function _startStream(address sender, address receiver, int96 flowRate) internal {
         vm.startPrank(sender);
-        sf.cfaLib.createFlow(receiver, superToken, flowRate);
+        superToken.createFlow(receiver, flowRate);
         vm.stopPrank();
     }
 
@@ -33,7 +34,7 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
     }
 
     function _assertNoFlow(address sender, address receiver) internal {
-        (, int96 flow,,) = sf.cfaLib.cfa.getFlow(superToken, alice, bob);
+        (, int96 flow,,) = sf.cfa.getFlow(superToken, sender, receiver);
         assertEq(flow, 0, "BatchLiquidator: Flow should be 0");
     }
 

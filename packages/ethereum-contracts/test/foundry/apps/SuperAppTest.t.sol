@@ -9,23 +9,98 @@ import { ISuperApp, ISuperfluid } from "../../../contracts/interfaces/superfluid
 // app to be tested
 import { FlowSplitter } from "./FlowSplitter.sol";
 
+interface IStreamHandler {
+    function createFlow(address sender, uint32 flowRate) external;
+    function updateFlow(address sender, uint32 flowRate) external;
+    function deleteFlow(address sender) external;
+}
+
+contract Handler is IStreamHandler, Test {
+
+    using SuperTokenV1Library for ISuperToken;
+
+    address public superAppAddress;
+    ISuperToken public superToken;
+
+    // counters
+
+    uint256 public _createFlowCallCount;
+    uint256 public _skipCreateFlowCount;
+    uint256 public _updateFlowCallCount;
+    uint256 public _skipUpdateFlowCount;
+    uint256 public _deleteFlowCallCount;
+    uint256 public _skipDeleteFlowCount;
+
+
+    constructor(address _superAppAddress, ISuperToken _superToken) {
+        superAppAddress = _superAppAddress;
+        superToken = _superToken;
+    }
+
+    function createFlow(address sender, uint32 flowRate) external override {
+        int96 _flowRate = int96(uint96(flowRate));
+        vm.startPrank(sender);
+        if(superToken.getFlowRate(sender, superAppAddress) == 0) {
+            _createFlowCallCount++;
+            superToken.createFlow(superAppAddress, _flowRate);
+        } else {
+            _skipCreateFlowCount++;
+        }
+
+        vm.stopPrank();
+    }
+
+    function updateFlow(address sender, uint32 flowRate) external override {
+        int96 _flowRate = int96(uint96(flowRate));
+        vm.startPrank(sender);
+        if(superToken.getFlowRate(sender, superAppAddress) > 0) {
+            _updateFlowCallCount++;
+            superToken.updateFlow(superAppAddress, _flowRate);
+        } else {
+            _skipUpdateFlowCount++;
+        }
+        vm.stopPrank();
+    }
+
+    function deleteFlow(address sender) external override {
+        vm.startPrank(sender);
+        if(superToken.getFlowRate(sender, superAppAddress) > 0) {
+            _deleteFlowCallCount++;
+            superToken.deleteFlow(sender, superAppAddress);
+        } else {
+            _skipDeleteFlowCount++;
+        }
+        vm.stopPrank();
+    }
+
+    function printCounters() external view {
+        console.log("createFlowCallCount: %s", _createFlowCallCount);
+        console.log("skipCreateFlowCount: %s", _skipCreateFlowCount);
+        console.log("updateFlowCallCount: %s", _updateFlowCallCount);
+        console.log("skipUpdateFlowCount: %s", _skipUpdateFlowCount);
+        console.log("deleteFlowCallCount: %s", _deleteFlowCallCount);
+        console.log("skipDeleteFlowCount: %s", _skipDeleteFlowCount);
+    }
+
+}
+
 contract SuperAppInvariants is Test {
 
     ISuperfluid public host;
     ISuperApp public superApp;
+    Handler public handler;
 
-    /// forge-config: default.invariant.runs = 10
-    /// forge-config: default.invariant.depth = 2
-    /// forge-config: default.invariant.fail-on-revert = true
+
     function invariant_AppNeverJailed() public InitializeTests {
         assertTrue(!host.isAppJailed(superApp));
     }
 
-    /// forge-config: default.invariant.runs = 10
-    /// forge-config: default.invariant.depth = 2
-    /// forge-config: default.invariant.fail-on-revert = true
-    function invariant_AppRegistered() public InitializeTests {
+    function invariant_AppRegistered() external InitializeTests {
         assertTrue(host.isApp(superApp));
+    }
+
+    function invariant_print() public view {
+        handler.printCounters();
     }
 
 
@@ -37,17 +112,10 @@ contract SuperAppInvariants is Test {
 
 }
 
-
-contract SuperAppTest is FoundrySuperfluidTester, SuperAppInvariants {
-
-    using SuperTokenV1Library for ISuperToken;
+contract SuperAppTest is FoundrySuperfluidTester(10), SuperAppInvariants {
 
     // @notice: Very dependable on superApp utility
     int256 constant public MIN_FLOW_RATE = 1000;
-
-    address public superAppAddress;
-
-    constructor() FoundrySuperfluidTester(3) { }
 
     function setUp() public override {
         super.setUp();
@@ -61,47 +129,21 @@ contract SuperAppTest is FoundrySuperfluidTester, SuperAppInvariants {
             sf.host
         )));
 
-        superAppAddress = address(superApp);
+        handler = new Handler(address(superApp), superToken);
+        targetContract(address(handler));
+
+        bytes4[] memory selectors = new bytes4[](3);
+        selectors[0] = handler.createFlow.selector;
+        selectors[1] = handler.updateFlow.selector;
+        selectors[2] = handler.deleteFlow.selector;
+
+
+        targetSelector(FuzzSelector({addr: address(handler), selectors: selectors}));
+
+        for(uint256 i = 0; i < TEST_ACCOUNTS.length; i++) {
+            targetSender(TEST_ACCOUNTS[i]);
+        }
+
     }
-
-    /// forge-config: default.fuzz.runs = 100
-    function testCreateFlowToSuperApp(int96 flowRate) public {
-        flowRate = int96(bound(flowRate, MIN_FLOW_RATE, int96(uint96(type(uint32).max))));
-        vm.startPrank(alice);
-        superToken.createFlow(superAppAddress, flowRate);
-        assertEq(
-            superToken.getFlowRate(alice, superAppAddress), flowRate, "SuperAppTester: createFlow | flowRate incorrect"
-        );
-        vm.stopPrank();
-    }
-
-    function testUpdateFlowToSuperApp(int96 flowRate, int96 updatedFlowRate) public {
-        flowRate = int96(bound(flowRate, MIN_FLOW_RATE, int96(uint96(type(uint32).max))));
-        updatedFlowRate = int96(bound(flowRate, MIN_FLOW_RATE, int96(uint96(type(uint32).max))));
-        vm.startPrank(alice);
-        superToken.createFlow(superAppAddress, flowRate);
-        assertEq(
-            superToken.getFlowRate(alice, superAppAddress), flowRate, "SuperAppTester: updateFlow | flowRate incorrect"
-        );
-        superToken.updateFlow(superAppAddress, updatedFlowRate);
-        assertEq(
-            superToken.getFlowRate(alice, superAppAddress),
-            updatedFlowRate,
-            "SuperAppBase: updateFlow | updatedFlowRate incorrect"
-        );
-        vm.stopPrank();
-    }
-
-    // test delete flow
-    function testDeleteFlowToSuperApp(int96 flowRate) public {
-        flowRate = int96(bound(flowRate, MIN_FLOW_RATE, int96(uint96(type(uint32).max))));
-        vm.startPrank(alice);
-        superToken.createFlow(superAppAddress, flowRate);
-        superToken.deleteFlow(alice, superAppAddress);
-        assertEq(superToken.getFlowRate(alice, superAppAddress), 0, "SuperAppTester: deleteFlow | flowRate incorrect");
-        vm.stopPrank();
-    }
-
-
 
 }

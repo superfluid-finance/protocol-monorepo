@@ -3,12 +3,12 @@
 pragma solidity ^0.8.0;
 import {
     ISuperfluid, ISuperToken, SuperAppDefinitions
-} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import { SuperAppBase } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
+} from "../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import { SuperAppBase } from "../../../ethereum-contracts/contracts/apps/SuperAppBase.sol";
 import {
     IConstantFlowAgreementV1
-} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
+} from "../../../ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { CFAv1Library } from "../../../ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import { IVestingScheduler } from "./interface/IVestingScheduler.sol";
 
 contract VestingScheduler is IVestingScheduler, SuperAppBase {

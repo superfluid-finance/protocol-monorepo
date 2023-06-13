@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 
-import { CallUtils } from "@superfluid-finance/ethereum-contracts/contracts/libs/CallUtils.sol";
+import { CallUtils } from "../../../contracts/libs/CallUtils.sol";
 
 contract CallUtilsAnvil is Test {
     function testPadLength32(uint256 len) public {

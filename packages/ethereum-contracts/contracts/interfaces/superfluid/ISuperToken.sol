@@ -53,7 +53,9 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     function CONSTANT_OUTFLOW_NFT() external view returns (IConstantOutflowNFT);
     // solhint-disable-next-line func-name-mixedcase
     function CONSTANT_INFLOW_NFT() external view returns (IConstantInflowNFT);
+    // solhint-disable-next-line func-name-mixedcase
     function POOL_ADMIN_NFT() external view returns (IPoolAdminNFT);
+    // solhint-disable-next-line func-name-mixedcase
     function POOL_MEMBER_NFT() external view returns (IPoolMemberNFT);
 
     /**************************************************************************

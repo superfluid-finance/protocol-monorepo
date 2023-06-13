@@ -12,7 +12,7 @@ import {
     IGeneralDistributionAgreementV1
 } from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
-import { SuperToken } from "../../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { ISuperToken } from "../../../contracts/interfaces/superfluid/ISuperToken.sol";
 import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../../contracts/superfluid/SuperfluidPool.sol";
 import { SuperfluidPoolStorageLayoutMock } from "../../../contracts/mocks/SuperfluidPoolUpgradabilityMock.sol";
@@ -24,7 +24,7 @@ import { SuperfluidPoolStorageLayoutMock } from "../../../contracts/mocks/Superf
 /// with a range of values when applicable and it aims to ensure that the
 /// these interactions work as expected.
 contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
-    using SuperTokenV1Library for SuperToken;
+    using SuperTokenV1Library for ISuperToken;
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeCast for uint256;
     using SafeCast for int256;

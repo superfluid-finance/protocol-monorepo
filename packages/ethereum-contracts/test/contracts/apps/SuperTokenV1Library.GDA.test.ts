@@ -26,7 +26,7 @@ describe("SuperTokenV1Library.GDA", function () {
         );
     };
 
-    let alice: string;
+    let alice: string, bob: string;
     let superTokenLibraryGDAMock: SuperTokenLibraryGDAMock;
     let superToken: SuperTokenMock;
 
@@ -67,5 +67,6 @@ describe("SuperTokenV1Library.GDA", function () {
         );
         const code = await ethers.provider.getCode(poolContract.address);
         console.log({code});
+        console.log(bob);
     });
 });

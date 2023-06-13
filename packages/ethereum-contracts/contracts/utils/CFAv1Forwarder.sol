@@ -7,29 +7,27 @@ import {
     BatchOperation,
     FlowOperatorDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
-
 import {
     IConstantFlowAgreementV1
 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { ForwarderBase } from "./ForwarderBase.sol";
 
-import { CallUtils } from "../libs/CallUtils.sol";
 
 /**
- * Contract address: 
+ * @title CFAv1Forwarder
+ * @author Superfluid
  * The CFAv1Forwarder contract provides an easy to use interface to
  * ConstantFlowAgreementV1 specific functionality of Super Tokens.
  * Instances of this contract can operate on the protocol only if configured as "trusted forwarder"
  * by protocol governance.
  */
-contract CFAv1Forwarder {
+contract CFAv1Forwarder is ForwarderBase {
     error CFA_FWD_INVALID_FLOW_RATE();
 
-    ISuperfluid internal immutable _host;
     IConstantFlowAgreementV1 internal immutable _cfa;
 
     // is tied to a specific instance of host and agreement contracts at deploy time
-    constructor(ISuperfluid host) {
-        _host = host;
+    constructor(ISuperfluid host) ForwarderBase(host) {
         _cfa = IConstantFlowAgreementV1(address(_host.getAgreementClass(
             keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
         )));
@@ -422,36 +420,5 @@ contract CFAv1Forwarder {
             );
 
         return _forwardBatchCall(address(_cfa), cfaCallData, new bytes(0));
-    }
-
-    // compiles the calldata of a single operation for the host invocation and executes it
-    function _forwardBatchCall(address target, bytes memory callData, bytes memory userData) internal returns (bool) {
-        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
-        ops[0] = ISuperfluid.Operation(
-            BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_AGREEMENT, // type
-            address(target), // target
-            abi.encode( // data
-                callData,
-                userData
-            )
-        );
-
-        bytes memory fwBatchCallData = abi.encodeCall(
-            _host.forwardBatchCall,
-            (
-                ops
-            )
-        );
-
-        // https://eips.ethereum.org/EIPS/eip-2771
-        // we encode the msg.sender as the last 20 bytes per EIP-2771 to extract the original txn signer later on
-        // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory returnedData) = address(_host).call(abi.encodePacked(fwBatchCallData, msg.sender));
-
-        if (!success) {
-            CallUtils.revertFromReturnedData(returnedData);
-        }
-
-        return true;
     }
 }

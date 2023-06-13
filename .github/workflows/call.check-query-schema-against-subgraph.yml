@@ -16,14 +16,16 @@ jobs:
     env:
       sdk-core-working-directory: ./packages/sdk-core
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 16.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Install dependencies"
         run: yarn install --frozen-lockfile
@@ -32,11 +34,6 @@ jobs:
         run: yarn build
         working-directory: ./packages/ethereum-contracts
 
-      - name: "Start hardhat node"
-        run: |
-          ./tasks/startHardhatNode.sh start
-        working-directory: ${{ env.sdk-core-working-directory }}
-
       - name: Run schema check
         run: |
           ./tasks/setupTestEnvironment.sh
@@ -44,7 +41,3 @@ jobs:
         working-directory: ${{ env.sdk-core-working-directory }}
         env:
           SUBGRAPH_RELEASE_TAG:  ${{ inputs.subgraph-release }}
-
-      - name: "Stop Hardhat node"
-        run: ./tasks/startHardhatNode.sh stop
-        working-directory: ${{ env.sdk-core-working-directory }}

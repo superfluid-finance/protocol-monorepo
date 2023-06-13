@@ -116,6 +116,14 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
         }
     });
 
+    it("Should throw an error if attempting to batch no operations", async () => {
+        try {
+            await testEnv.sdkFramework.batchCall([]).exec(testEnv.alice);
+        } catch (err: any) {
+            expect(err.message).to.not.be.undefined;
+        }
+    });
+
     it("Should be able to create and execute a batch call (approve + transferFrom)", async () => {
         const amount = ethers.utils.parseUnits("1000").toString();
         const approveOp = testEnv.wrapperSuperToken.approve({
@@ -240,5 +248,102 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
             );
         await testEnv.sdkFramework.batchCall([operation]).exec(testEnv.alice);
         expect(await superAppTester.val()).to.equal("69");
+    });
+
+    it("Should be able to create a increaseAllowance", async () => {
+        const amount = ethers.utils.parseUnits("1000").toString();
+        const increaseAllowanceOp = testEnv.wrapperSuperToken.increaseAllowance(
+            {
+                spender: testEnv.bob.address,
+                amount,
+            }
+        );
+        const batchCall = testEnv.sdkFramework.batchCall([increaseAllowanceOp]);
+        await expect(batchCall.exec(testEnv.alice))
+            .to.emit(
+                testEnv.wrapperSuperToken.contract.connect(testEnv.alice),
+                "Approval"
+            )
+            .withArgs(testEnv.alice.address, testEnv.bob.address, amount);
+
+        const allowance = await testEnv.wrapperSuperToken.allowance({
+            owner: testEnv.alice.address,
+            spender: testEnv.bob.address,
+            providerOrSigner: testEnv.alice,
+        });
+        expect(allowance).to.equal(amount);
+    });
+
+    it("Should be able to create a decreaseAllowance", async () => {
+        const increaseAmount = ethers.utils.parseUnits("100").toString();
+        const finalAllowance = ethers.utils.parseUnits("69").toString();
+        await testEnv.wrapperSuperToken
+            .increaseAllowance({
+                spender: testEnv.bob.address,
+                amount: increaseAmount,
+            })
+            .exec(testEnv.alice);
+        const decreaseAmount = ethers.utils.parseUnits("31").toString();
+        const decreaseAllowanceOp = testEnv.wrapperSuperToken.decreaseAllowance(
+            {
+                spender: testEnv.bob.address,
+                amount: decreaseAmount,
+            }
+        );
+        const batchCall = testEnv.sdkFramework.batchCall([decreaseAllowanceOp]);
+        await expect(batchCall.exec(testEnv.alice))
+            .to.emit(
+                testEnv.wrapperSuperToken.contract.connect(testEnv.alice),
+                "Approval"
+            )
+            .withArgs(
+                testEnv.alice.address,
+                testEnv.bob.address,
+                finalAllowance
+            );
+
+        const allowance = await testEnv.wrapperSuperToken.allowance({
+            owner: testEnv.alice.address,
+            spender: testEnv.bob.address,
+            providerOrSigner: testEnv.alice,
+        });
+
+        expect(allowance).to.equal(finalAllowance);
+    });
+
+    it("Should be able to create a batch call with both increaseAllowance and decreaseAllowance", async () => {
+        const increaseAmount = ethers.utils.parseUnits("100").toString();
+        const finalAllowance = ethers.utils.parseUnits("169").toString();
+        await testEnv.wrapperSuperToken
+            .increaseAllowance({
+                spender: testEnv.bob.address,
+                amount: increaseAmount,
+            })
+            .exec(testEnv.alice);
+        const decreaseAmount = ethers.utils.parseUnits("31").toString();
+        const decreaseAllowanceOp = testEnv.wrapperSuperToken.decreaseAllowance(
+            {
+                spender: testEnv.bob.address,
+                amount: decreaseAmount,
+            }
+        );
+        const increaseAllowanceOp = testEnv.wrapperSuperToken.increaseAllowance(
+            {
+                spender: testEnv.bob.address,
+                amount: increaseAmount,
+            }
+        );
+        await testEnv.sdkFramework.batchCall([
+            decreaseAllowanceOp,
+            increaseAllowanceOp,
+        ]).exec(testEnv.alice);
+
+        const allowance = await testEnv.wrapperSuperToken.allowance({
+            owner: testEnv.alice.address,
+            spender: testEnv.bob.address,
+            providerOrSigner: testEnv.alice,
+        });
+
+        expect(allowance).to.equal(finalAllowance);
     });
 });

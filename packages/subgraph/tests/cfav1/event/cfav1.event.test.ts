@@ -16,6 +16,7 @@ import {
     createFlowOperatorUpdatedEvent,
     modifyFlowAndAssertFlowUpdatedEventProperties,
 } from "../cfav1.helper";
+import {mockedApprove} from "../../mockedFunctions";
 
 const initialFlowRate = BigInt.fromI32(100);
 
@@ -38,7 +39,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             BIG_INT_ZERO,       // previousSenderFlowRate
             BIG_INT_ZERO,       // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
     });
 
@@ -56,7 +58,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             BIG_INT_ZERO,       // previousSenderFlowRate
             BIG_INT_ZERO,       // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
 
         // update flow: increase flow rate
@@ -73,7 +76,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             increasedFlowRate,  // flowRate
             initialFlowRate,    // previousSenderFlowRate
             initialFlowRate,    // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
 
         // update flow: decrease flow rate
@@ -89,7 +93,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             increasedFlowRate,  // previousSenderFlowRate
             increasedFlowRate,  // previousReceiverFlowRate
-            true // isListed
+            true,               // isListed,
+            ""                  // userData
         );
     });
 
@@ -107,7 +112,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             BIG_INT_ZERO,       // previousSenderFlowRate
             BIG_INT_ZERO,       // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
 
         // update flow: increase flow rate
@@ -124,7 +130,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             increasedFlowRate,  // flowRate
             initialFlowRate,    // previousSenderFlowRate
             initialFlowRate,    // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
 
 
@@ -141,7 +148,8 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             BIG_INT_ZERO,       // flowRate
             increasedFlowRate,  // previousSenderFlowRate
             increasedFlowRate,  // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            ""                  // userData
         );
     });
 
@@ -159,6 +167,7 @@ describe("ConstantFlowAgreementV1 Event Entity Unit Tests", () => {
             permissions,
             flowRateAllowance
         );
+        mockedApprove(superToken, sender, flowOperator, BigInt.fromI32(0));
 
         handleFlowOperatorUpdated(flowOperatorUpdatedEvent);
 

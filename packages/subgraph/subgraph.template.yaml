@@ -256,6 +256,7 @@ templates:
         - TokenUpgradedEvent
         - TokenStatistic
         - TransferEvent
+        - FlowOperator
       abis:
         - name: Resolver
           file: ./abis/Resolver.json
@@ -288,6 +289,9 @@ templates:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleTransfer
           receipt: true
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+          receipt: true
   - kind: ethereum/contract
     name: SuperfluidGovernance
     network: {{ network }}
@@ -300,9 +304,11 @@ templates:
       file: ./src/mappings/superfluidGovernance.ts
       entities:
         - ConfigChangedEvent
+        - DefaultGovernanceConfig
         - CFAv1LiquidationPeriodChangedEvent
         - RewardAddressChangedEvent
         - PPPConfigurationChanged
+        - SuperTokenMinimumDepositChangedEvent
         - TrustedForwarderChangedEvent
       abis:
         - name: SuperfluidGovernanceBase
@@ -319,6 +325,9 @@ templates:
           receipt: true
         - event: PPPConfigurationChanged(indexed address,indexed address,bool,uint256,uint256)
           handler: handlePPPConfigurationChanged
+          receipt: true
+        - event: SuperTokenMinimumDepositChanged(indexed address,indexed address,bool,uint256)
+          handler: handleSuperTokenMinimumDepositChanged
           receipt: true
         - event: TrustedForwarderChanged(indexed address,indexed address,bool,address,bool)
           handler: handleTrustedForwarderChanged

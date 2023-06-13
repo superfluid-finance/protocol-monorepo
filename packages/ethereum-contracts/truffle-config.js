@@ -56,6 +56,7 @@ try {
 const ALIASES = {
     "eth-mainnet": ["mainnet"],
     "eth-goerli": ["goerli"],
+    "eth-sepolia": ["sepolia"],
 
     "xdai-mainnet": ["xdai"],
 
@@ -73,6 +74,11 @@ const ALIASES = {
 
     "bsc-mainnet": ["bsc"],
 
+    "celo-mainnet": ["celo"],
+
+    // wildcard for any network
+    "any": ["any"],
+
     // currently unsupported
     //
     "optimism-kovan": ["opkovan"],
@@ -81,7 +87,6 @@ const ALIASES = {
 
     "bsc-chapel": ["chapel"],
 
-    "celo-mainnet": ["celo"],
     "celo-alfajores": ["alfajores"],
 };
 
@@ -170,6 +175,15 @@ const E = (module.exports = {
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
+
+        "eth-sepolia": {
+            ...createNetworkDefaultConfiguration("eth-sepolia"),
+            network_id: 11155111,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
 
         //
         // Polygon: https://docs.polygon.technology/docs/develop/network-details/network/
@@ -318,6 +332,14 @@ const E = (module.exports = {
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
+        "any": {
+            ...createNetworkDefaultConfiguration("any"),
+            network_id: "*",
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
         /// For truffle development environment
         development: {
             host: "127.0.0.1",
@@ -388,7 +410,7 @@ const E = (module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.8.16", // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.8.19", // Fetch exact version from solc-bin (default: truffle's version)
             settings: {
                 // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {
@@ -408,6 +430,7 @@ const E = (module.exports = {
         bscscan: process.env.BSCSCAN_API_KEY,
         arbiscan: process.env.ARBISCAN_API_KEY,
         gnosisscan: process.env.GNOSISSCAN_API_KEY,
+        celoscan: process.env.CELOSCAN_API_KEY,
     },
 });
 

@@ -8,16 +8,20 @@ TEST_PROP_NUM_RUNS ?= 1000
 TEST_BUILDDIR ?= dist-test
 TEST_COVERAGE_BUILDDIR ?= dist-coverage
 DOCS_BUILDDIR ?= dist-docs
+WASM_BUILDDIR ?= dist-wasm
 
 CABAL_TEST     = $(CABAL) --builddir=$(TEST_BUILDDIR)
 CABAL_COVERAGE = $(CABAL) --builddir=$(TEST_COVERAGE_BUILDDIR)
 CABAL_DOCS     = $(CABAL) --builddir=$(DOCS_BUILDDIR)
+CABAL_WASM     = $(CABAL) --builddir=$(WASM_BUILDDIR)
 
 TEST_OPTIONS = \
 	--test-show-details=$(TEST_SHOW_DETAILS_MODE) \
 	--test-options="--maximum-generated-tests=$(TEST_PROP_NUM_RUNS)"
 
 default: build
+
+.PHONY: check
 
 #
 # Build
@@ -27,6 +31,17 @@ build:
 
 build-test:
 	$(CABAL_TEST) v2-build all
+
+build-wasm: 
+	$(CABAL_WASM) v2-build -v --with-compiler wasm32-wasi-ghc --with-hc-pkg wasm32-wasi-ghc-pkg semantic-money
+	wasm32-wasi-ghc \
+		-odir $(PWD)/$(WASM_BUILDDIR)/wasm -hidir $(PWD)/$(WASM_BUILDDIR)/wasm -stubdir $(PWD)/$(WASM_BUILDDIR)/wasm \
+		-o $(PWD)/$(WASM_BUILDDIR)/semantic-money.wasm -no-hs-main \
+		-optl-mexec-model=reactor -optl-Wl,--export=hs_init,--export=uu_flow2 \
+		-ipkgs/semantic-money/src \
+		-package-db ~/.cabal/store/ghc-$$(wasm32-wasi-ghc --numeric-version)/package.db \
+		-package data-default \
+		pkgs/semantic-money/wasm/Exports.hs
 
 clean:
 	rm -rf $(DOCS_BUILDDIR)
@@ -79,7 +94,7 @@ $(YELLOWPAPER_ROOT)/tex/lhsfmt.tex:
 
 
 .SECONDEXPANSION:
-$(YELLOWPAPER_ROOT)/tex/%.lhs.tex: packages/core/src/Money/Theory/%.lhs
+$(YELLOWPAPER_ROOT)/tex/%.lhs.tex: pkgs/core/src/Money/Theory/%.lhs
 	./utils/lhs2tex.sh "$<" > "$@"
 
 .SECONDEXPANSION:
@@ -135,31 +150,36 @@ freeze:
 	rm -f cabal.project.freeze
 	$(CABAL) v2-freeze
 
-hlint:
-	hlint packages
+lint:
+	for i in $$PWD/pkgs/*/*.cabal;do cd $$(dirname $$i);pwd;cabal -vnormal check || exit 1;done
+	hlint pkgs
+
+
+repl-sm:
+	$(CABAL_TEST) repl semantic-money-test-suite
 
 repl-simple:
-	$(CABAL) repl superfluid-protocol-system-simple
+	$(CABAL_TEST) repl superfluid-protocol-system-simple-test-suite
 
 cloc:
 	@echo '**** Core Source Files ****'
-	cloc packages/core/src/
+	cloc pkgs/core/src/
 	@echo
 
 	@echo '**** Simple System Source Files ****'
-	cloc packages/simple/src/
+	cloc pkgs/simple/src/
 	@echo
 
 	@echo '**** Validator Source Files ****'
-	cloc packages/validator/src/
+	cloc pkgs/validator/src/
 	@echo
 
 	@echo '**** Internal Source ****'
-	cloc packages/src-internal/
+	cloc pkgs/src-internal/
 	@echo
 
 	@echo '**** Test Files ****'
-	cloc packages/*/test
+	cloc pkgs/*/test
 	@echo
 
-.PHONY: dev freeze hlint repl-* cloc
+.PHONY: dev freeze lint repl-* cloc

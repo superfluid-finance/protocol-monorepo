@@ -3,7 +3,14 @@ root = '../../../'
 libs = ['lib']
 src = 'packages/automation-contracts/autowrap'
 remappings = [
+    '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',
     '@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/',
     '@openzeppelin/=node_modules/@openzeppelin/',
     'ds-test/=lib/forge-std/lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/']
+
+[profile.ci]
+offline = true
+
+[profile.ci.fuzz]
+runs = 1000

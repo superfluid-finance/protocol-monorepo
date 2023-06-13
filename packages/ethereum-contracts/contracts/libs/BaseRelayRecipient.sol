@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.16;
+pragma solidity 0.8.19;
 
-import "../interfaces/utils/IRelayRecipient.sol";
+import { IRelayRecipient } from "../interfaces/utils/IRelayRecipient.sol";
 
 
 /**

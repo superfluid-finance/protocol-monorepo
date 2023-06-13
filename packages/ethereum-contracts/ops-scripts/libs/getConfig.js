@@ -49,6 +49,11 @@ module.exports = function getConfig(chainId) {
             patricianPeriod: 3600 * 0.2,
             biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
         },
+        11155111: {
+            // sepolia
+            liquidationPeriod: 3600,
+            patricianPeriod: 3600 * 0.2,
+        },
         4: {
             // rinkeby
             liquidationPeriod: 3600,
@@ -221,9 +226,10 @@ module.exports = function getConfig(chainId) {
         43113: {
             // avalanche fuji testnet
             data: {
-                initialBlockNumber: 3220000,
+                initialBlockNumber: 21012000,
                 getLogsRange: 50000,
             },
+            cfaFwd: "0x2CDd45c5182602a36d391F7F16DD9f8386C3bD8D",
         },
 
         //
@@ -237,10 +243,10 @@ module.exports = function getConfig(chainId) {
             // governance default configs
             gov_enableAppWhiteListing: true,
             // misc
-            // disableTestGovernance: true,
+            disableTestGovernance: true,
             data: {
-                initialBlockNumber: 13075000,
-                getLogsRange: 50000,
+                initialBlockNumber: 16393000,
+                getLogsRange: 20000,
             },
         },
         44787: {
@@ -262,6 +268,7 @@ module.exports = function getConfig(chainId) {
             // default token list for the test deployments
             tokenList: ["fDAIx", "fUSDCx", "fTUSDx"],
             data: {},
+            cfaFwd: "0xcfA132E353cB4E398080B9700609bb008eceB125",
         },
         // network specific configs
         ...DEFAULT_CONFIGS[chainId],

@@ -6,6 +6,10 @@ import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
+import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
 
 /**
  * @title Super token (Superfluid Token + ERC20 + ERC777) interface
@@ -22,12 +26,14 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     error SUPER_TOKEN_NO_UNDERLYING_TOKEN();                     // 0xf79cf656
     error SUPER_TOKEN_ONLY_SELF();                               // 0x7ffa6648
     error SUPER_TOKEN_ONLY_HOST();                               // 0x98f73704
+    error SUPER_TOKEN_ONLY_GOV_OWNER();                          // 0xd9c7ed08
     error SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS();               // 0x81638627
     error SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS();                 // 0xdf070274
     error SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS();                  // 0xba2ab184
     error SUPER_TOKEN_MINT_TO_ZERO_ADDRESS();                    // 0x0d243157
     error SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS();              // 0xeecd6c9b
     error SUPER_TOKEN_TRANSFER_TO_ZERO_ADDRESS();                // 0xe219bd39
+    error SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED();               // 0x6bef249d
 
     /**
      * @dev Initialize the contract
@@ -38,6 +44,15 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         string calldata n,
         string calldata s
     ) external;
+
+    /**************************************************************************
+    * Immutable variables
+    *************************************************************************/
+
+    // solhint-disable-next-line func-name-mixedcase
+    function CONSTANT_OUTFLOW_NFT() external view returns (IConstantOutflowNFT);
+    // solhint-disable-next-line func-name-mixedcase
+    function CONSTANT_INFLOW_NFT() external view returns (IConstantInflowNFT);
 
     /**************************************************************************
     * TokenInfo & ERC777
@@ -449,6 +464,18 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         uint256 amount
     ) external;
 
+    function operationIncreaseAllowance(
+        address account,
+        address spender,
+        uint256 addedValue
+    ) external;
+
+    function operationDecreaseAllowance(
+        address account,
+        address spender,
+        uint256 subtractedValue
+    ) external;
+
     /**
     * @dev Perform ERC20 transferFrom by host contract.
     * @param account The account to spend sender's funds.
@@ -503,6 +530,22 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     */
     function operationDowngrade(address account, uint256 amount) external;
 
+    // Flow NFT events
+    /**
+     * @dev Constant Outflow NFT proxy created event
+     * @param constantOutflowNFT constant outflow nft address
+     */
+    event ConstantOutflowNFTCreated(
+        IConstantOutflowNFT indexed constantOutflowNFT
+    );
+
+    /**
+     * @dev Constant Inflow NFT proxy created event
+     * @param constantInflowNFT constant inflow nft address
+     */
+    event ConstantInflowNFTCreated(
+        IConstantInflowNFT indexed constantInflowNFT
+    );
 
     /**************************************************************************
     * Function modifiers for access control and parameter validations

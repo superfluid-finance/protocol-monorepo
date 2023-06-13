@@ -112,6 +112,38 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         returns(bytes memory newCtx);
 
     /**
+     * @notice msgSender from `ctx` increases flow rate allowance for the `flowOperator` by `addedFlowRateAllowance`
+     * @dev if `addedFlowRateAllowance` is negative, we revert with CFA_ACL_NO_NEGATIVE_ALLOWANCE
+     * @param token Super token address
+     * @param flowOperator The permission grantee address
+     * @param addedFlowRateAllowance The flow rate allowance delta
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The new context bytes
+     */
+    function increaseFlowRateAllowance(
+        ISuperfluidToken token,
+        address flowOperator,
+        int96 addedFlowRateAllowance,
+        bytes calldata ctx
+    ) external virtual returns(bytes memory newCtx);
+
+    /**
+     * @dev msgSender from `ctx` decreases flow rate allowance for the `flowOperator` by `subtractedFlowRateAllowance`
+     * @dev if `subtractedFlowRateAllowance` is negative, we revert with CFA_ACL_NO_NEGATIVE_ALLOWANCE
+     * @param token Super token address
+     * @param flowOperator The permission grantee address
+     * @param subtractedFlowRateAllowance The flow rate allowance delta
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The new context bytes
+     */
+    function decreaseFlowRateAllowance(
+        ISuperfluidToken token,
+        address flowOperator,
+        int96 subtractedFlowRateAllowance,
+        bytes calldata ctx
+    ) external virtual returns(bytes memory newCtx);
+
+    /**
      * @dev msgSender from `ctx` grants `flowOperator` all permissions with flowRateAllowance as type(int96).max
      * @param token Super token address
      * @param flowOperator The permission grantee address

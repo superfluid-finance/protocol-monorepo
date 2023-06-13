@@ -80,7 +80,8 @@ describe("SuperToken Mapper Unit Tests", () => {
                 agreementLiquidatedByEvent.block,
                 currentFlowRate,
                 deposit,
-                BIG_INT_ZERO
+                BIG_INT_ZERO,
+                stringToBytes("")
             );
 
             createStreamRevision(
@@ -193,7 +194,8 @@ describe("SuperToken Mapper Unit Tests", () => {
                 agreementLiquidatedV2Event.block,
                 currentFlowRate,
                 deposit,
-                BIG_INT_ZERO
+                BIG_INT_ZERO,
+                stringToBytes("")
             );
             const tokenAddress = agreementLiquidatedV2Event.address.toHex();
 

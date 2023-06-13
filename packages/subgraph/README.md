@@ -124,7 +124,7 @@ yarn build
 Now go to to `packages/ethereum-contracts` and run the following command to deploy contracts:
 
 ```bash
-npx hardhat run dev-scripts/runDeployContractsAndToken.js
+npx hardhat run dev-scripts/run-deploy-contracts-and-token.js
 ```
 
 This deploys the SuperFluid framework and tokens to your local hardhat node.
@@ -316,7 +316,7 @@ If the subgraph has not been created yet, you must create it first using the das
 When adding new networks, we must do the following:
 
 -   NOTE: The `network` field in the `/config/*.json` file must match the official naming of the network name from the [subgraph docs](https://thegraph.com/docs/developer/create-subgraph-hosted#supported-networks). This name can deviate from the name of the file itself. e.g. `avalanche-c.json` must have field: `"network": "avalanche"`.
--   Add a new file to `./config`, the name of the file should be derived from the canonical network name in `packages/ethereum-contracts/truffle-config.js`. e.g. adding network `avalanche-c` to the array in `./networks.json` and then adding `avalanche-c.json` to `/config`. The name of the network specific file in `/config` will dictate our subgraph endpoint, e.g. `protocol-dev-avalanche-c`.
+-   Add a new file to `./config`, the name of the file should be derived from the canonical network name in `packages/ethereum-contracts/truffle-config.js`. e.g. adding network `avalanche-c` to the array in `./hosted-service-networks.json` and then adding `avalanche-c.json` to `/config`. The name of the network specific file in `/config` will dictate our subgraph endpoint, e.g. `protocol-dev-avalanche-c`.
 -   We also need to add the host and resolver addresses to the `addresses.template.ts` file. NOTE: the `network` we are comparing in the `addresses.template.test` file should match the `"network"` field in `/config/*.json`.
 
 # Contributing

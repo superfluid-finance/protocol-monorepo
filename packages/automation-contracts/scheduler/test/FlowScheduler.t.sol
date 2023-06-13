@@ -1,19 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import { ISuperfluid, FlowOperatorDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import { SuperfluidFrameworkDeployer, SuperfluidTester, Superfluid, ConstantFlowAgreementV1, CFAv1Library, SuperTokenFactory } from "../test/SuperfluidTester.sol";
-import { ERC1820RegistryCompiled } from "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
+import { ISuperToken } from "../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
+import { FlowOperatorDefinitions } from "../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { IFlowScheduler } from "./../contracts/interface/IFlowScheduler.sol";
 import { FlowScheduler } from "./../contracts/FlowScheduler.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IERC1820Registry } from "@openzeppelin/contracts/utils/introspection/IERC1820Registry.sol";
+import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
+import { SuperToken } from "../../../ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import { SuperTokenV1Library } from "../../../ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
-/// @title Example Super Token Test
-/// @author ctle-vn, SuperfluidTester taken from jtriley.eth
-/// @notice For demonstration only. You can delete this file.
-contract FlowSchedulerTest is SuperfluidTester {
+/// @title FlowSchedulerTests
+/// @notice Look at me , I am the captain now - Elvijs
+contract FlowSchedulerTest is FoundrySuperfluidTester {
 
     event FlowScheduleCreated(
         ISuperToken indexed superToken,
@@ -52,41 +50,14 @@ contract FlowSchedulerTest is SuperfluidTester {
         bytes userData
     );
 
-    SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperfluidFrameworkDeployer.Framework internal sf;
-    ISuperfluid host;
-    ConstantFlowAgreementV1 cfa;
+    /// @dev This is required by solidity for using the SupertTokenV1Library in the tester
+    using SuperTokenV1Library for SuperToken;
+    constructor() FoundrySuperfluidTester(3) {}
     FlowScheduler internal flowScheduler;
-    uint256 private _expectedTotalSupply = 0;
 
-    /// @dev This is required by solidity for using the CFAv1Library in the tester
-    using CFAv1Library for CFAv1Library.InitData;
-
-    constructor() SuperfluidTester(3) {
-        vm.startPrank(admin);
-        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
-        sfDeployer = new SuperfluidFrameworkDeployer();
-        sf = sfDeployer.getFramework();
-        host = sf.host;
-        cfa = sf.cfa;
-        vm.stopPrank();
-
-        /// @dev Example Flow Scheduler to test
-        flowScheduler = new FlowScheduler(host, "");
-    }
-
-    function setUp() public virtual {
-        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
-
-        for (uint32 i = 0; i < N_TESTERS; ++i) {
-            token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
-
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-            vm.stopPrank();
-        }
+    function setUp() override public virtual {
+        super.setUp();
+        flowScheduler = new FlowScheduler(sf.host, "");
     }
 
     function getHashID(
@@ -292,10 +263,10 @@ contract FlowSchedulerTest is SuperfluidTester {
         flowScheduler.createFlowSchedule(
             superToken, bob, defaultStartDate, uint32(100), int96(1000), defaultStartAmount, defaultStartDate + uint32(3600), "", ""
         );
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                 superToken,
                 address(flowScheduler),
@@ -344,10 +315,10 @@ contract FlowSchedulerTest is SuperfluidTester {
         flowScheduler.createFlowSchedule(
             superToken, bob, defaultStartDate, uint32(100), int96(1000), 0, defaultStartDate + uint32(3600), "", ""
         );
-        host.callAgreement(
-            cfa,
+        sf.host.callAgreement(
+            sf.cfa,
             abi.encodeCall(
-                cfa.updateFlowOperatorPermissions,
+                sf.cfa.updateFlowOperatorPermissions,
                 (
                 superToken,
                 address(flowScheduler),

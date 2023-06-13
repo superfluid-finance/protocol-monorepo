@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/subgraph",
-    "version": "1.5.0",
+    "version": "1.6.0",
     "description": "Subgraph for the Superfluid Ethereum contracts.",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/subgraph",
     "repository": {
@@ -38,8 +38,6 @@
         "prepare-local:sf-meta": "yarn generate-sf-meta-local",
         "build-and-deploy-local": "yarn codegen && yarn create-local && yarn deploy-local",
         "watch": "graph deploy superfluid-test --node http://localhost:8020/ --ipfs http://localhost:5001 --watch",
-        "deploy:to-hosted-service": "./tasks/deploy-to-hosted-service.sh",
-        "deploy:to-satsuma": "./tasks/deploy-to-satsuma.sh",
         "lint": "run-s lint:*",
         "lint:js-eslint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
@@ -50,9 +48,9 @@
         "cloc": "cloc src"
     },
     "dependencies": {
-        "@graphprotocol/graph-cli": "0.37.0",
-        "@graphprotocol/graph-ts": "0.29.0",
-        "@superfluid-finance/sdk-core": "0.6.1",
+        "@graphprotocol/graph-cli": "0.47.1",
+        "@graphprotocol/graph-ts": "0.29.3",
+        "@superfluid-finance/sdk-core": "0.6.6",
         "mustache": "^4.2.0"
     },
     "devDependencies": {

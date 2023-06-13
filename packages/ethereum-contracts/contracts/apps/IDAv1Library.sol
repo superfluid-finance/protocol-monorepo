@@ -341,12 +341,28 @@ library IDAv1Library {
         );
     }
 
-    /// @dev Distributes tokens in a more developer friendly way than `updateIndex`. Instead of
-    /// passing the new total index value, this function will increase the index value by `amount`.
-    /// @param idaLibrary Storage pointer to host and ida interfaces.
-    /// @param token Super Token used with the index.
-    /// @param indexId ID of the index.
-    /// @param amount Amount by which the index value should increase.
+    /**
+     * @dev Distributes tokens in a more developer friendly way than `updateIndex`. Instead of
+     * passing the new total index value, you pass the amount of tokens desired to be distributed. 
+     * @param token Super Token used with the index.
+     * @param indexId ID of the index.
+     * @param amount - total number of tokens desired to be distributed 
+     * NOTE in many cases, there can be some precision loss 
+     This may cause a slight difference in the amount param specified and the actual amount distributed. 
+     See below for math:
+     //indexDelta = amount the index will be updated by during internal call to _updateIndex(). 
+     It is calculated like so:
+     indexDelta = amount / totalUnits 
+     (see distribute() implementatation in ./agreements/InstantDistributionAgreement.sol)
+     * NOTE Solidity does not support floating point numbers
+     // So the indexDelta will be rounded down to the nearest integer. 
+     This will create a 'remainder' amount of tokens that will not be distributed 
+     (we'll call this the 'distribution modulo')
+     distributionModulo = amount - indexDelta * totalUnits
+     * NOTE due to rounding, there may be a small amount of tokens left in the publisher's account
+     This amount is equal to the 'distributionModulo' value
+     //
+     */
     function distribute(
         InitData storage idaLibrary,
         ISuperfluidToken token,

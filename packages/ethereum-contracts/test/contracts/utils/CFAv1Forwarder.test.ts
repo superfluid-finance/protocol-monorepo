@@ -1,3 +1,4 @@
+import fs from "fs";
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {expect} from "chai";
 import {assert, ethers} from "hardhat";
@@ -11,6 +12,7 @@ import {
 } from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError} from "../../utils/expectRevert";
+import {deploySuperTokenAndNFTContractsAndInitialize} from "../apps/SuperTokenV1Library.CFA.test";
 import {toBN} from "./helpers";
 
 const mintAmount = "1000000000000000000000000000"; // a small loan of a billion dollars
@@ -65,14 +67,22 @@ describe("Agreement Forwarder", function () {
         carolSigner = await ethers.getSigner(carol);
     });
 
-    beforeEach(async () => {
-        const SuperTokenMockFactory = await ethers.getContractFactory(
-            "SuperTokenMock"
-        );
-        superToken = await SuperTokenMockFactory.deploy(host.address, "69");
+    beforeEach(async function () {
+        superToken = await deploySuperTokenAndNFTContractsAndInitialize(t);
         await superToken.mintInternal(alice, mintAmount, "0x", "0x");
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");
+        t.beforeEachTestCaseBenchmark(this);
     });
+
+    afterEach(() => {
+        t.afterEachTestCaseBenchmark();
+    });
+
+    after(() => {
+        const sorted = t.benchmarkingData.sort((a, b) => b.totalTime - a.totalTime);
+        const output = JSON.stringify(sorted, null, 2);
+        fs.writeFileSync("testing-benchmark.json", output);
+    })
 
     describe("Convenience methods", async function () {
         it("Revert on negative flowrate", async () => {

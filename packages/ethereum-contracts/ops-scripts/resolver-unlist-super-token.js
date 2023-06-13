@@ -13,7 +13,7 @@ const {
  * @param {boolean} options.isTruffle Whether the script is used within native truffle framework
  * @param {Web3} options.web3  Injected web3 instance
  * @param {Address} options.from Address to deploy contracts from
- * @param {boolean} options.protocolReleaseVersion Specify the protocol release version to be used
+ * @param {string} options.protocolReleaseVersion Specify the protocol release version to be used
  *
  * Usage: npx truffle exec ops-scripts/resolver-unlist-super-token.js : {SYMBOL}
  */

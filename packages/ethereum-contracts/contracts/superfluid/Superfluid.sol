@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.16;
+pragma solidity 0.8.19;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
-
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
+import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 
 import {
     ISuperfluid,
@@ -63,6 +63,8 @@ contract Superfluid is
 
     // solhint-disable-next-line var-name-mixedcase
     uint64 constant public CALLBACK_GAS_LIMIT = 3000000;
+
+    uint32 constant public MAX_NUM_AGREEMENTS = 256;
 
     /* WARNING: NEVER RE-ORDER VARIABLES! Always double-check that new
        variables are added APPEND-ONLY. Re-ordering variables can
@@ -152,7 +154,7 @@ contract Superfluid is
         if (_agreementClassIndices[agreementType] != 0) {
             revert HOST_AGREEMENT_ALREADY_REGISTERED();
         }
-        if (_agreementClasses.length >= 256) revert HOST_MAX_256_AGREEMENTS();
+        if (_agreementClasses.length >= MAX_NUM_AGREEMENTS) revert HOST_MAX_256_AGREEMENTS();
         ISuperAgreement agreementClass;
         if (!NON_UPGRADABLE_DEPLOYMENT) {
             // initialize the proxy
@@ -804,6 +806,20 @@ contract Superfluid is
                     recipient,
                     amount,
                     userData);
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE) {
+                (address spender, uint256 addedValue) =
+                    abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationIncreaseAllowance(
+                    msgSender,
+                    spender,
+                    addedValue);
+            } else if (operationType == BatchOperation.OPERATION_TYPE_ERC20_DECREASE_ALLOWANCE) {
+                (address spender, uint256 subtractedValue) =
+                    abi.decode(operations[i].data, (address, uint256));
+                ISuperToken(operations[i].target).operationDecreaseAllowance(
+                    msgSender,
+                    spender,
+                    subtractedValue);
             } else if (operationType == BatchOperation.OPERATION_TYPE_SUPERTOKEN_UPGRADE) {
                 ISuperToken(operations[i].target).operationUpgrade(
                     msgSender,
@@ -1008,7 +1024,7 @@ contract Superfluid is
             // "/ 63" is a magic to avoid out of gas attack. 
             // See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2.
             // A callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail rule.
-            if (gasleft() > gasLeftBefore / 63) {
+            if (!SafeGasLibrary._isOutOfGas(gasLeftBefore)) {
                 if (!isTermination) {
                     CallUtils.revertFromReturnedData(returnedData);
                 } else {
@@ -1018,7 +1034,7 @@ contract Superfluid is
                 // For legit out of gas issue, the call may still fail if more gas is provided
                 // and this is okay, because there can be incentive to jail the app by providing
                 // more gas.
-                revert("SF: need more gas");
+                revert HOST_NEED_MORE_GAS();
             }
         }
     }

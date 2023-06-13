@@ -540,6 +540,45 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             governance.registerAgreementClass,
             "Governance registers GDA"
         )(superfluid.address, gda.address);
+    } else {
+        // NOTE that we are reusing the existing deployed external library
+        // here as an optimization, this assumes that we do not change the
+        // library code.
+        // link library in order to avoid spurious code change detections
+        try {
+            const GDAv1 = await GeneralDistributionAgreementV1.at(
+                await superfluid.getAgreementClass.call(GDAv1_TYPE)
+            );
+            slotsBitmapLibraryAddress =
+                await GDAv1.SLOTS_BITMAP_LIBRARY_ADDRESS.call();
+            let superfluidPoolDeployerLibraryAddress =
+                await GDAv1.SUPERFLUID_POOL_DEPLOYER_ADDRESS.call();
+            if (process.env.IS_HARDHAT) {
+                if (slotsBitmapLibraryAddress !== ZERO_ADDRESS) {
+                    const lib = await SlotsBitmapLibrary.at(
+                        slotsBitmapLibraryAddress
+                    );
+                    GeneralDistributionAgreementV1.link(lib);
+                }
+                if (superfluidPoolDeployerLibraryAddress !== ZERO_ADDRESS) {
+                    const lib = await SuperfluidPoolDeployerLibrary.at(
+                        superfluidPoolDeployerLibraryAddress
+                    );
+                    GeneralDistributionAgreementV1.link(lib);
+                }
+            } else {
+                GeneralDistributionAgreementV1.link(
+                    "SlotsBitmapLibrary",
+                    slotsBitmapLibraryAddress
+                );
+                GeneralDistributionAgreementV1.link(
+                    "SuperfluidPoolDeployerLibrary",
+                    superfluidPoolDeployerLibraryAddress
+                );
+            }
+        } catch (e) {
+            console.warn("Cannot get slotsBitmapLibrary address", e.toString());
+        }
     }
     // @note GDA deployment is commented out until we plan on releasing it
 

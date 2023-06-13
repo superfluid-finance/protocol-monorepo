@@ -3,33 +3,16 @@ pragma solidity 0.8.19;
 
 import { console, Test } from "forge-std/Test.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../../../contracts/agreements/ConstantFlowAgreementV1.sol";
-import {
-    IInstantDistributionAgreementV1
-} from "../../../contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
+import { IConstantFlowAgreementV1 } from "../../../contracts/agreements/ConstantFlowAgreementV1.sol";
+import { IInstantDistributionAgreementV1 } from
+    "../../../contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol";
 import { IResolver } from "../../../contracts/interfaces/utils/IResolver.sol";
-import {
-    ISuperfluidGovernance
-} from "../../../contracts/interfaces/superfluid/ISuperfluidGovernance.sol";
-import {
-    SuperfluidLoader
-} from "../../../contracts/utils/SuperfluidLoader.sol";
-import {
-    ISuperfluid
-} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
-import {
-    IERC20,
-    ISuperToken,
-    SafeERC20
-} from "../../../contracts/superfluid/SuperToken.sol";
-import {
-    ISuperTokenFactory
-} from "../../../contracts/superfluid/SuperTokenFactory.sol";
-import {
-    SuperTokenV1Library
-} from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { ISuperfluidGovernance } from "../../../contracts/interfaces/superfluid/ISuperfluidGovernance.sol";
+import { SuperfluidLoader } from "../../../contracts/utils/SuperfluidLoader.sol";
+import { ISuperfluid } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+import { IERC20, ISuperToken, SafeERC20 } from "../../../contracts/superfluid/SuperToken.sol";
+import { ISuperTokenFactory } from "../../../contracts/superfluid/SuperTokenFactory.sol";
+import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
 /// @title ForkSmokeTest
 /// @author Superfluid
@@ -40,7 +23,7 @@ import {
 contract ForkSmokeTest is Test {
     using SuperTokenV1Library for ISuperToken;
 
-     struct SuperfluidFramework {
+    struct SuperfluidFramework {
         ISuperfluid host;
         IInstantDistributionAgreementV1 idaV1;
         IConstantFlowAgreementV1 cfaV1;
@@ -74,28 +57,18 @@ contract ForkSmokeTest is Test {
     SuperfluidFramework public sfFramework;
     uint256 public snapshot;
 
-    constructor(
-        ISuperToken _superToken,
-        address _adminPrankAccount,
-        IResolver resolver,
-        string memory providerURLKey
-    ) {
+    constructor(ISuperToken _superToken, address _adminPrankAccount, IResolver resolver, string memory providerURLKey) {
         string memory providerURL = vm.envString(providerURLKey);
         vm.createSelectFork(providerURL);
 
         adminPrankAccount = _adminPrankAccount;
         superToken = _superToken;
-        SuperfluidLoader superfluidLoader = SuperfluidLoader(
-            resolver.get("SuperfluidLoader-v1")
-        );
-        SuperfluidLoader.Framework memory framework = superfluidLoader
-            .loadFramework("v1");
+        SuperfluidLoader superfluidLoader = SuperfluidLoader(resolver.get("SuperfluidLoader-v1"));
+        SuperfluidLoader.Framework memory framework = superfluidLoader.loadFramework("v1");
 
         sfFramework = SuperfluidFramework({
             host: framework.superfluid,
-            idaV1: IInstantDistributionAgreementV1(
-                address(framework.agreementIDAv1)
-            ),
+            idaV1: IInstantDistributionAgreementV1(address(framework.agreementIDAv1)),
             cfaV1: IConstantFlowAgreementV1(address(framework.agreementCFAv1)),
             superfluidLoader: superfluidLoader,
             superTokenFactory: framework.superTokenFactory,
@@ -111,15 +84,11 @@ contract ForkSmokeTest is Test {
         address receiver,
         int96 expectedFlowRate
     ) public {
-        (, int96 flowRate, , ) = _superToken.getFlowInfo(sender, receiver);
+        (, int96 flowRate,,) = _superToken.getFlowInfo(sender, receiver);
         assertEq(flowRate, expectedFlowRate, "flow rate not equal");
     }
 
-    function assert_Balance_Is_Expected(
-        IERC20 _token,
-        address account,
-        uint256 expectedBalance
-    ) public {
+    function assert_Balance_Is_Expected(IERC20 _token, address account, uint256 expectedBalance) public {
         assertEq(_token.balanceOf(account), expectedBalance, "token balance not equal");
     }
 
@@ -132,31 +101,17 @@ contract ForkSmokeTest is Test {
         bool expectedAllowDelete,
         int96 expectedFlowRateAllowance
     ) public {
-        (
-            bool allowCreate,
-            bool allowUpdate,
-            bool allowDelete,
-            int96 flowRateAllowance
-        ) = token.getFlowPermissions(sender, flowOperator);
-        (, int96 flowRate, , ) = token.getFlowInfo(sender, flowOperator);
+        (bool allowCreate, bool allowUpdate, bool allowDelete, int96 flowRateAllowance) =
+            token.getFlowPermissions(sender, flowOperator);
+        (, int96 flowRate,,) = token.getFlowInfo(sender, flowOperator);
         assertEq(allowCreate, expectedAllowCreate);
         assertEq(allowUpdate, expectedAllowUpdate);
         assertEq(allowDelete, expectedAllowDelete);
     }
 
-    function assert_Expected_Index_Data(
-        ISuperToken _superToken,
-        ExpectedIndexData memory expectedIndexData
-    ) public {
-        (
-            bool exist,
-            uint128 indexValue,
-            uint128 totalUnitsApproved,
-            uint128 totalUnitsPending
-        ) = _superToken.getIndex(
-                expectedIndexData.publisher,
-                expectedIndexData.indexId
-            );
+    function assert_Expected_Index_Data(ISuperToken _superToken, ExpectedIndexData memory expectedIndexData) public {
+        (bool exist, uint128 indexValue, uint128 totalUnitsApproved, uint128 totalUnitsPending) =
+            _superToken.getIndex(expectedIndexData.publisher, expectedIndexData.indexId);
 
         assertEq(exist, expectedIndexData.exist, "index data: exist not equal");
         assertEq(indexValue, expectedIndexData.indexValue, "index data: indexValue not equal");
@@ -168,26 +123,20 @@ contract ForkSmokeTest is Test {
         ISuperToken _superToken,
         ExpectedSubscriptionData memory expectedSubscriptionData
     ) public {
-        (
-            bool exist,
-            bool approved,
-            uint128 units,
-            uint256 pendingDistribution
-        ) = _superToken.getSubscription(
-                expectedSubscriptionData.publisher,
-                expectedSubscriptionData.indexId,
-                expectedSubscriptionData.subscriber
-            );
+        (bool exist, bool approved, uint128 units, uint256 pendingDistribution) = _superToken.getSubscription(
+            expectedSubscriptionData.publisher, expectedSubscriptionData.indexId, expectedSubscriptionData.subscriber
+        );
 
         assertEq(expectedSubscriptionData.exist, exist, "subscription data: exist not equal");
         assertEq(expectedSubscriptionData.units, units, "subscription data: units not equal");
-        assertEq(expectedSubscriptionData.unitsPendingDistribution, approved ? 0 : pendingDistribution, "subscription data: pending distribution not equal");
+        assertEq(
+            expectedSubscriptionData.unitsPendingDistribution,
+            approved ? 0 : pendingDistribution,
+            "subscription data: pending distribution not equal"
+        );
     }
 
-    function helper_Create_Update_Delete_Flow_One_To_One(
-        ISuperToken _superToken,
-        address prankedAccount
-    ) public {
+    function helper_Create_Update_Delete_Flow_One_To_One(ISuperToken _superToken, address prankedAccount) public {
         // test that flows can still be created with SuperTokenFactory updated
         vm.startPrank(prankedAccount);
 
@@ -203,104 +152,47 @@ contract ForkSmokeTest is Test {
         vm.stopPrank();
     }
 
-    function helper_Wrap_Unwrap(
-        ISuperToken _superToken,
-        address prankedAccount
-    ) public {
+    function helper_Wrap_Unwrap(ISuperToken _superToken, address prankedAccount) public {
         // test that flows can still be created with SuperTokenFactory updated
         vm.startPrank(prankedAccount);
         IERC20 underlyingToken = IERC20(_superToken.getUnderlyingToken());
-        uint256 underlyingTokenBalanceBefore = underlyingToken.balanceOf(
-            prankedAccount
-        );
+        uint256 underlyingTokenBalanceBefore = underlyingToken.balanceOf(prankedAccount);
         uint256 superTokenBalanceBefore = _superToken.balanceOf(prankedAccount);
         _superToken.upgrade(42069);
-        assert_Balance_Is_Expected(
-            underlyingToken,
-            prankedAccount,
-            underlyingTokenBalanceBefore - 42069
-        );
-        assert_Balance_Is_Expected(
-            _superToken,
-            prankedAccount,
-            superTokenBalanceBefore + 42069
-        );
+        assert_Balance_Is_Expected(underlyingToken, prankedAccount, underlyingTokenBalanceBefore - 42069);
+        assert_Balance_Is_Expected(_superToken, prankedAccount, superTokenBalanceBefore + 42069);
 
         _superToken.downgrade(420691);
-        assert_Balance_Is_Expected(
-            underlyingToken,
-            prankedAccount,
-            underlyingTokenBalanceBefore - 42069 + 420691
-        );
-        assert_Balance_Is_Expected(
-            _superToken,
-            prankedAccount,
-            superTokenBalanceBefore + 42069 - 420691
-        );
+        assert_Balance_Is_Expected(underlyingToken, prankedAccount, underlyingTokenBalanceBefore - 42069 + 420691);
+        assert_Balance_Is_Expected(_superToken, prankedAccount, superTokenBalanceBefore + 42069 - 420691);
 
         vm.stopPrank();
     }
 
-    function helper_Set_Flow_Permissions(
-        ISuperToken _superToken,
-        address prankedAccount
-    ) public {
+    function helper_Set_Flow_Permissions(ISuperToken _superToken, address prankedAccount) public {
         vm.startPrank(prankedAccount);
         _superToken.setFlowPermissions(address(1), true, true, true, 42069);
-        assert_Flow_Permissions(
-            _superToken,
-            prankedAccount,
-            address(1),
-            true,
-            true,
-            true,
-            42069
-        );
+        assert_Flow_Permissions(_superToken, prankedAccount, address(1), true, true, true, 42069);
         vm.stopPrank();
     }
 
-    function helper_Set_Max_Flow_Permissions(
-        ISuperToken _superToken,
-        address prankedAccount
-    ) public {
+    function helper_Set_Max_Flow_Permissions(ISuperToken _superToken, address prankedAccount) public {
         vm.startPrank(prankedAccount);
         _superToken.setMaxFlowPermissions(address(1));
-        assert_Flow_Permissions(
-            _superToken,
-            prankedAccount,
-            address(1),
-            true,
-            true,
-            true,
-            type(int96).max
-        );
+        assert_Flow_Permissions(_superToken, prankedAccount, address(1), true, true, true, type(int96).max);
         vm.stopPrank();
     }
 
-    function helper_Set_Revoke_Flow_Permissions(
-        ISuperToken _superToken,
-        address prankedAccount
-    ) public {
+    function helper_Set_Revoke_Flow_Permissions(ISuperToken _superToken, address prankedAccount) public {
         vm.startPrank(prankedAccount);
 
         _superToken.revokeFlowPermissions(address(1));
-        assert_Flow_Permissions(
-            _superToken,
-            prankedAccount,
-            address(1),
-            false,
-            false,
-            false,
-            0
-        );
+        assert_Flow_Permissions(_superToken, prankedAccount, address(1), false, false, false, 0);
 
         vm.stopPrank();
     }
 
-    function helper_ACL_Create_Update_Delete_Flow_One_To_One(
-        ISuperToken _superToken,
-        address prankedAccount
-    ) public {
+    function helper_ACL_Create_Update_Delete_Flow_One_To_One(ISuperToken _superToken, address prankedAccount) public {
         helper_Set_Max_Flow_Permissions(_superToken, prankedAccount);
         vm.startPrank(address(1));
         _superToken.createFlowFrom(prankedAccount, address(1), 42069);
@@ -320,11 +212,7 @@ contract ForkSmokeTest is Test {
         vm.startPrank(prankedAccount);
         vm.expectRevert(ISuperTokenFactory.SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED.selector);
         superTokenFactory.createERC20Wrapper(
-            underlyingToken,
-            18,
-            ISuperTokenFactory.Upgradability.NON_UPGRADABLE,
-            "Super Mr.",
-            "MRx"
+            underlyingToken, 18, ISuperTokenFactory.Upgradability.NON_UPGRADABLE, "Super Mr.", "MRx"
         );
         vm.stopPrank();
     }
@@ -336,11 +224,7 @@ contract ForkSmokeTest is Test {
     ) public {
         vm.startPrank(prankedAccount);
         superTokenFactory.createERC20Wrapper(
-            underlyingToken,
-            18,
-            ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
-            "Super Mr.",
-            "MRx"
+            underlyingToken, 18, ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE, "Super Mr.", "MRx"
         );
         vm.stopPrank();
     }
@@ -353,19 +237,12 @@ contract ForkSmokeTest is Test {
         vm.startPrank(prankedAccount);
 
         superTokenFactory.createERC20Wrapper(
-            underlyingToken,
-            18,
-            ISuperTokenFactory.Upgradability.FULL_UPGRADABLE,
-            "Super Mr.",
-            "MRx"
+            underlyingToken, 18, ISuperTokenFactory.Upgradability.FULL_UPGRADABLE, "Super Mr.", "MRx"
         );
         vm.stopPrank();
     }
 
-    function helper_Create_Index(
-        ISuperToken _superToken,
-        address publisher
-    ) public {
+    function helper_Create_Index(ISuperToken _superToken, address publisher) public {
         vm.startPrank(publisher);
         _superToken.createIndex(1);
         assert_Expected_Index_Data(
@@ -382,20 +259,9 @@ contract ForkSmokeTest is Test {
         vm.stopPrank();
     }
 
-    function helper_Update_Index_Value(
-        ISuperToken _superToken,
-        address publisher,
-        uint128 newIndexValue
-    ) public {
-        (
-            bool exist,
-            uint128 indexValue,
-            uint128 totalUnitsApproved,
-            uint128 totalUnitsPending
-        ) = _superToken.getIndex(
-                publisher,
-                1
-            );
+    function helper_Update_Index_Value(ISuperToken _superToken, address publisher, uint128 newIndexValue) public {
+        (bool exist, uint128 indexValue, uint128 totalUnitsApproved, uint128 totalUnitsPending) =
+            _superToken.getIndex(publisher, 1);
         vm.startPrank(publisher);
         _superToken.updateIndexValue(1, newIndexValue);
         assert_Expected_Index_Data(
@@ -413,23 +279,14 @@ contract ForkSmokeTest is Test {
         vm.stopPrank();
     }
 
-    function helper_Distribute(
-        ISuperToken _superToken,
-        address publisher,
-        uint256 distributionAmount
-    ) public {
+    function helper_Distribute(ISuperToken _superToken, address publisher, uint256 distributionAmount) public {
         vm.startPrank(publisher);
         _superToken.distribute(1, distributionAmount);
         vm.stopPrank();
     }
 
-    function helper_Approve_Subscription(
-        ISuperToken _superToken,
-        address publisher,
-        address subscriber
-    ) public {
-        (, , uint128 units, uint256 pendingDistribution) = _superToken
-            .getSubscription(publisher, 1, subscriber);
+    function helper_Approve_Subscription(ISuperToken _superToken, address publisher, address subscriber) public {
+        (,, uint128 units, uint256 pendingDistribution) = _superToken.getSubscription(publisher, 1, subscriber);
         vm.startPrank(subscriber);
         _superToken.approveSubscription(publisher, 1);
         assert_Expected_Subscription_Data(
@@ -447,13 +304,9 @@ contract ForkSmokeTest is Test {
         vm.stopPrank();
     }
 
-    function helper_Revoke_Subscription(
-        ISuperToken _superToken,
-        address publisher,
-        address subscriber
-    ) public {
-        (, bool approved, uint128 units, uint256 pendingDistribution) = _superToken
-            .getSubscription(publisher, 1, subscriber);
+    function helper_Revoke_Subscription(ISuperToken _superToken, address publisher, address subscriber) public {
+        (, bool approved, uint128 units, uint256 pendingDistribution) =
+            _superToken.getSubscription(publisher, 1, subscriber);
         vm.startPrank(subscriber);
         _superToken.revokeSubscription(publisher, 1);
         assert_Expected_Subscription_Data(
@@ -477,18 +330,10 @@ contract ForkSmokeTest is Test {
         address subscriber,
         uint128 newSubscriptionUnits
     ) public {
-        (
-            ,
-            bool approved,
-            uint128 units,
-            uint256 pendingDistribution
-        ) = _superToken.getSubscription(publisher, 1, subscriber);
+        (, bool approved, uint128 units, uint256 pendingDistribution) =
+            _superToken.getSubscription(publisher, 1, subscriber);
         vm.startPrank(publisher);
-        _superToken.updateSubscriptionUnits(
-            1,
-            subscriber,
-            newSubscriptionUnits
-        );
+        _superToken.updateSubscriptionUnits(1, subscriber, newSubscriptionUnits);
         assert_Expected_Subscription_Data(
             _superToken,
             ExpectedSubscriptionData({
@@ -498,18 +343,14 @@ contract ForkSmokeTest is Test {
                 exist: true,
                 units: newSubscriptionUnits,
                 approved: approved,
-                unitsPendingDistribution: 0 
+                unitsPendingDistribution: 0
             })
         );
 
         vm.stopPrank();
     }
 
-    function helper_Delete_Subscription(
-        ISuperToken _superToken,
-        address publisher,
-        address subscriber
-    ) public {
+    function helper_Delete_Subscription(ISuperToken _superToken, address publisher, address subscriber) public {
         vm.startPrank(publisher);
         _superToken.deleteSubscription(publisher, 1, subscriber);
         assert_Expected_Subscription_Data(
@@ -527,13 +368,9 @@ contract ForkSmokeTest is Test {
         vm.stopPrank();
     }
 
-    function helper_Claim(
-        ISuperToken _superToken,
-        address publisher,
-        address subscriber
-    ) public {
-        (bool exist, bool approved, uint128 units, uint256 pendingDistribution) = _superToken
-            .getSubscription(publisher, 1, subscriber);
+    function helper_Claim(ISuperToken _superToken, address publisher, address subscriber) public {
+        (bool exist, bool approved, uint128 units, uint256 pendingDistribution) =
+            _superToken.getSubscription(publisher, 1, subscriber);
         vm.startPrank(subscriber);
         _superToken.claim(publisher, 1, subscriber);
         assert_Expected_Subscription_Data(
@@ -557,29 +394,14 @@ contract ForkSmokeTest is Test {
 
         // SuperTokenFactory Smoke Tests
         ERC20 mrToken = new ERC20("Mr. Token", "MR");
-        helper_Create_Non_Upgradeable_Super_Token(
-            sfFramework.superTokenFactory,
-            mrToken,
-            adminPrankAccount
-        );
+        helper_Create_Non_Upgradeable_Super_Token(sfFramework.superTokenFactory, mrToken, adminPrankAccount);
 
-        helper_Create_Semi_Upgradeable_Super_Token(
-            sfFramework.superTokenFactory,
-            mrToken,
-            adminPrankAccount
-        );
+        helper_Create_Semi_Upgradeable_Super_Token(sfFramework.superTokenFactory, mrToken, adminPrankAccount);
 
-        helper_Create_Fully_Upgradeable_Super_Token(
-            sfFramework.superTokenFactory,
-            mrToken,
-            adminPrankAccount
-        );
+        helper_Create_Fully_Upgradeable_Super_Token(sfFramework.superTokenFactory, mrToken, adminPrankAccount);
 
         // ConstantFlowAgreementV1 Smoke Tests
-        helper_Create_Update_Delete_Flow_One_To_One(
-            superToken,
-            adminPrankAccount
-        );
+        helper_Create_Update_Delete_Flow_One_To_One(superToken, adminPrankAccount);
 
         helper_Set_Flow_Permissions(superToken, adminPrankAccount);
 
@@ -587,39 +409,36 @@ contract ForkSmokeTest is Test {
 
         helper_Set_Revoke_Flow_Permissions(superToken, adminPrankAccount);
 
-        helper_ACL_Create_Update_Delete_Flow_One_To_One(
-            superToken,
-            adminPrankAccount
-        );
+        helper_ACL_Create_Update_Delete_Flow_One_To_One(superToken, adminPrankAccount);
 
         // InstantDistributionAgreementV1 Smoke Tests
         // create index
         helper_Create_Index(superToken, adminPrankAccount);
-        
+
         // update subscription units to three addresses
         helper_Update_Subscription_Units(superToken, adminPrankAccount, address(1), 1);
         helper_Update_Subscription_Units(superToken, adminPrankAccount, address(2), 1);
         helper_Update_Subscription_Units(superToken, adminPrankAccount, address(3), 1);
-        
+
         // approve two subscriptions
         helper_Approve_Subscription(superToken, adminPrankAccount, address(1));
         helper_Approve_Subscription(superToken, adminPrankAccount, address(3));
-        
+
         // revoke one subscription of the approved
         helper_Revoke_Subscription(superToken, adminPrankAccount, address(3));
-        
+
         // delete the revoked subscription
         helper_Delete_Subscription(superToken, adminPrankAccount, address(3));
-        
+
         // update the index value
         helper_Update_Index_Value(superToken, adminPrankAccount, 420);
-        
+
         // claim a subscription
         helper_Claim(superToken, adminPrankAccount, address(2));
-        
+
         // // execute a distribution
         helper_Distribute(superToken, adminPrankAccount, 420);
-        
+
         // // claim a subscription
         helper_Claim(superToken, adminPrankAccount, address(2));
     }

@@ -1034,7 +1034,7 @@ contract Superfluid is
                 // For legit out of gas issue, the call may still fail if more gas is provided
                 // and this is okay, because there can be incentive to jail the app by providing
                 // more gas.
-                revert("SF: need more gas");
+                revert HOST_NEED_MORE_GAS();
             }
         }
     }

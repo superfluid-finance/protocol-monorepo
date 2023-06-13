@@ -233,6 +233,8 @@ jobs:
   publish-npm-packages:
     name: Publish canary packages to registries
 
+    permissions: write-all
+
     needs: [all-packages-tested]
 
     runs-on: ubuntu-latest

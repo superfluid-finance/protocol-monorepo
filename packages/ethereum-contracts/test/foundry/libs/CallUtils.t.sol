@@ -3,11 +3,9 @@ pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 
-import {CallUtils} from "@superfluid-finance/ethereum-contracts/contracts/libs/CallUtils.sol";
-
+import { CallUtils } from "../../../contracts/libs/CallUtils.sol";
 
 contract CallUtilsAnvil is Test {
-
     function testPadLength32(uint256 len) public {
         // rounding up the maximum value will overflow the function, so we skip these values
         vm.assume(len <= type(uint256).max - 32);
@@ -24,5 +22,4 @@ contract CallUtilsAnvil is Test {
     /* function testNegativeIsValidAbiEncodedBytes(bytes memory data) public {
         vm.assume(CallUtils.isValidAbiEncodedBytes(data) == true);
     } */
-
 }

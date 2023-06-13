@@ -3,15 +3,9 @@ pragma solidity 0.8.19;
 
 import "../FoundrySuperfluidTester.sol";
 import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
-import {
-    SuperTokenV1Library
-} from "../../../contracts/apps/SuperTokenV1Library.sol";
-import {
-    ISuperAgreement
-} from "../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
-import {
-    ISuperfluid
-} from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
+import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { ISuperAgreement } from "../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
+import { ISuperfluid } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
 import { AgreementMock } from "../../../contracts/mocks/AgreementMock.sol";
 
 contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
@@ -19,7 +13,7 @@ contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
 
     uint32 private constant _NUM_AGREEMENTS = 2;
 
-    constructor() FoundrySuperfluidTester(3) {}
+    constructor() FoundrySuperfluidTester(3) { }
 
     function testRevertRegisterMax256Agreements() public {
         uint32 maxNumAgreements = sf.host.MAX_NUM_AGREEMENTS();
@@ -35,19 +29,14 @@ contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
             vm.startPrank(sf.governance.owner());
             sf.governance.registerAgreementClass(sf.host, address(mock));
             vm.stopPrank();
+            mock = sf.host.NON_UPGRADABLE_DEPLOYMENT() ? mock : AgreementMock(address(sf.host.getAgreementClass(id)));
             mocks[i + _NUM_AGREEMENTS] = ISuperAgreement(address(mock));
         }
 
-        ISuperAgreement[] memory agreementClasses = sf.host.mapAgreementClasses(
-            type(uint256).max
-        );
+        ISuperAgreement[] memory agreementClasses = sf.host.mapAgreementClasses(type(uint256).max);
 
         for (uint256 i; i < maxNumAgreements; ++i) {
-            assertEq(
-                address(agreementClasses[i]),
-                address(mocks[i]),
-                "Superfluid.t: agreement class not registered"
-            );
+            assertEq(address(agreementClasses[i]), address(mocks[i]), "Superfluid.t: agreement class not registered");
         }
 
         AgreementMock mock = new AgreementMock(

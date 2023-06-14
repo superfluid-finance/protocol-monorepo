@@ -15,8 +15,7 @@ contract SuperAppInvariants is Test {
 
     ISuperfluid public host;
     ISuperApp public superApp;
-    Handler public handler;
-
+    Handler public handler; // Focus test to a set of operations
 
     function invariant_AppNeverJailed() public InitializeTests {
         assertTrue(!host.isAppJailed(superApp));
@@ -29,7 +28,6 @@ contract SuperAppInvariants is Test {
     function invariant_print() public view {
         handler.printCounters();
     }
-
 
     modifier InitializeTests() {
         if (address(superApp) == address(0)) revert("SuperAppTesterBase: no super app set");
@@ -57,20 +55,17 @@ contract SuperAppTest is FoundrySuperfluidTester(10), SuperAppInvariants {
         )));
 
         handler = new Handler(address(superApp), superToken);
+        // we only care about handler interactions
         targetContract(address(handler));
-
+        // we only care about create, update, delete flow
         bytes4[] memory selectors = new bytes4[](3);
         selectors[0] = handler.createFlow.selector;
         selectors[1] = handler.updateFlow.selector;
         selectors[2] = handler.deleteFlow.selector;
-
-
         targetSelector(FuzzSelector({addr: address(handler), selectors: selectors}));
-
+        // we only care about tester accounts
         for(uint256 i = 0; i < TEST_ACCOUNTS.length; i++) {
             targetSender(TEST_ACCOUNTS[i]);
         }
-
     }
-
 }

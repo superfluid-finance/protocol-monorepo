@@ -5,6 +5,7 @@ import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperflu
 import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { TOGA } from "../../../contracts/utils/TOGA.sol";
 import { IERC1820Registry } from "@openzeppelin/contracts/interfaces/IERC1820Registry.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
  * @title TOGATest
@@ -20,6 +21,8 @@ contract TOGATest is FoundrySuperfluidTester {
     uint256 internal constant BOND_AMOUNT_2E18 = 2e18;
     uint256 internal constant BOND_AMOUNT_10E18 = 10e18;
     int96 internal constant EXIT_RATE_1 = 1;
+    int96 internal constant EXIT_RATE_1E3 = 1e3;
+    int96 internal constant EXIT_RATE_1E6 = 1e6;
     IERC1820Registry constant internal _ERC1820_REG = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
     constructor() FoundrySuperfluidTester(5) {}
@@ -43,6 +46,12 @@ contract TOGATest is FoundrySuperfluidTester {
     function _assetNetflow(ISuperToken token, address account, int96 expectedNetFlow) internal {
         int96 flowRate = sf.cfa.getNetFlow(token, account);
         assertTrue(flowRate == expectedNetFlow);
+    }
+
+    function _deleteFlow(ISuperToken token, address sender, address receiver) internal {
+        vm.startPrank(sender);
+        token.deleteFlow(sender, receiver);
+        vm.stopPrank();
     }
 
     function _startStream(address sender, address receiver, int96 flowRate) internal {
@@ -240,21 +249,171 @@ contract TOGATest is FoundrySuperfluidTester {
         assertTrue(bond == BOND_AMOUNT_2E18 + BOND_AMOUNT_1E18);
     }
 
-    // function testPICCanChangeExitRate() public {
-    //     _sendPICBid(alice, superToken, BOND_AMOUNT_1E18, 0);
-    //     _changeExitRate(alice, superToken, EXIT_RATE_1);
-    //     _assetNetflow(superToken, alice, EXIT_RATE_1);
-    //     _changeExitRate(alice, superToken, EXIT_RATE_1E3);
-    //     _assetNetflow(superToken, alice, EXIT_RATE_1E3);
-    //     _changeExitRate(alice, superToken, 0);
-    //     _assetNetflow(superToken, alice, 0);
-    //     uint256 bond = toga.getCurrentPICInfo(superToken).bond;
-    //     uint256 max1 = _shouldMaxExitRate(bond);
-    //     _changeExitRate(alice, superToken, max1);
-    //     _assetNetflow(superToken, alice, max1);
-    //     uint256 max2 = _shouldMaxExitRate(bond);
-    //     assertTrue(max1 == max2);
-    //     vm.expectRevert("TOGA: exitRate too high");
-    //     _changeExitRate(alice, superToken, max2 + 1);
-    // }
+    function testPICCanChangeExitRate() public {
+        _sendPICBid(alice, superToken, BOND_AMOUNT_1E18, abi.encode());
+        vm.expectRevert("TOGA: only PIC allowed");
+        toga.changeExitRate(superToken, EXIT_RATE_1);
+        vm.startPrank(alice);
+        
+        // don't allow negative exitRate
+        vm.expectRevert("TOGA: negative exitRate not allowed");
+        toga.changeExitRate(superToken, -1);
+
+        // lower to 1 wad
+        toga.changeExitRate(superToken, EXIT_RATE_1);
+        _assetNetflow(superToken, alice, EXIT_RATE_1);
+
+        // increase to 1000 wad
+        toga.changeExitRate(superToken, EXIT_RATE_1E3);
+        _assetNetflow(superToken, alice, EXIT_RATE_1E3);
+
+        // to 0
+        toga.changeExitRate(superToken, 0);
+        _assetNetflow(superToken, alice, 0);
+
+        (, uint256 bond, ) = toga.getCurrentPICInfo(superToken);
+        int96 max1 = _shouldMaxExitRate(bond);
+        toga.changeExitRate(superToken, max1);
+        _assetNetflow(superToken, alice, max1);
+        int96 max2 = _shouldMaxExitRate(bond);
+        assertTrue(max1 == max2);
+        vm.expectRevert("TOGA: exitRate too high");
+        toga.changeExitRate(superToken, max2 + 1);
+    }
+
+    function testPICClosesSteam() public {
+        _sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
+        _assetNetflow(superToken, alice, EXIT_RATE_1E3);
+
+        vm.warp(block.timestamp + 1000);
+        _deleteFlow(superToken, address(toga), alice);
+        _assetNetflow(superToken, alice, 0);
+
+        vm.startPrank(alice);
+        toga.changeExitRate(superToken, 0);
+        _assetNetflow(superToken, alice, 0);
+
+        toga.changeExitRate(superToken, EXIT_RATE_1);
+        _assetNetflow(superToken, alice, EXIT_RATE_1);
+
+        vm.stopPrank();
+
+        // stop again and let bob make a bid
+        vm.warp(block.timestamp + 1000);
+        _deleteFlow(superToken, address(toga), alice);
+        _assetNetflow(superToken, alice, 0);
+
+        _sendPICBid(bob, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
+        _assetNetflow(superToken, alice, 0);
+        _assetNetflow(superToken, bob, EXIT_RATE_1E3);
+    }
+
+    function testCollectedRewardsAreAddedToThePICBond() public {
+        _sendPICBid(alice, superToken, BOND_AMOUNT_1E18, 0);
+
+        _collectRewards(superToken, 1e6, 1e6);
+        // 1e6 token/s x 1e6 seconds = ~1e12 tokens collected in the contract
+
+        (, uint256 bond, ) = toga.getCurrentPICInfo(superToken);
+        assertTrue(bond == BOND_AMOUNT_1E18 + 1e12);
+    }
+
+    // TODO: Will fail cause of _liquidateExitStream(superToken)
+    function testBondIsConsumedByExitFlow() public {
+        int96 maxRate = _shouldMaxExitRate(BOND_AMOUNT_1E18);
+        _sendPICBid(alice, superToken, BOND_AMOUNT_1E18, maxRate);
+        _assetNetflow(superToken, alice, maxRate);
+
+        // critical stream is liquidated - remaining bond goes to zero
+        vm.warp(block.timestamp + 1e6);
+
+        // TODO: this is not working
+        // _liquidateExitStream(superToken); // a sentinel would do this
+
+        _assetNetflow(superToken, alice, 0);
+        _assetNetflow(superToken, address(toga), 0);
+
+        // this assumes the flow deletion was not triggered by the PIC - otherwise rewards would be accrued
+        (, uint256 bond, ) = toga.getCurrentPICInfo(superToken);
+        assertTrue(bond == 0);
+
+        // alice tries to re-establish stream - fail because no bond left
+        vm.expectRevert("TOGA: exitRate too high");
+        toga.changeExitRate(superToken, EXIT_RATE_1);
+
+        // after some more rewards being collected, alice can re-establish the exit stream
+        _collectRewards(superToken, EXIT_RATE_1E3, 1e3);
+        (, uint256 bond2, ) = toga.getCurrentPICInfo(superToken);
+        assertTrue(
+            bond2 >= 1e12
+        );
+
+        toga.changeExitRate(superToken, EXIT_RATE_1E3);
+        _assetNetflow(superToken, alice, EXIT_RATE_1E3);
+
+        uint256 alicePreBal = superToken.balanceOf(alice);
+        (, uint256 aliceBondLeft, ) = toga.getCurrentPICInfo(superToken);
+
+        // bob outbids
+        vm.expectRevert("TOGA: bid too low");
+        _sendPICBid(bob, superToken, 1, abi.encode());
+        _sendPICBid(bob, superToken, BOND_AMOUNT_2E18, EXIT_RATE_1E6);
+        _assetNetflow(superToken, alice, 0);
+        _assetNetflow(superToken, bob, EXIT_RATE_1E6);
+
+        assertTrue(
+            (alicePreBal + aliceBondLeft) == superToken.balanceOf(alice)
+        );
+    }
+
+    // TODO: Will fail cause of superToken2, think of a better way
+    function testMultiplePICsInParallel() public {
+        (IERC20 token2, ISuperToken superToken2) = sfDeployer.deployWrapperSuperToken("TEST2", "TEST2", 18, type(uint256).max);
+
+        vm.startPrank(bob);
+        token.mint(bob, INIT_SUPER_TOKEN_BALANCE);
+        token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
+        superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
+        vm.stopPrank();
+
+        vm.startPrank(alice);
+        token.mint(alice, INIT_SUPER_TOKEN_BALANCE);
+        token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
+        superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
+        vm.stopPrank();
+    
+        _sendPICBid(alice, superToken, BOND_AMOUNT_1E18, EXIT_RATE_1E3);
+        _sendPICBid(bob, superToken2, BOND_AMOUNT_2E18, EXIT_RATE_1);
+
+        assertTrue(
+            toga.getCurrentPIC(superToken) == alice
+        );
+        assertTrue(
+            toga.getCurrentPIC(superToken2) == bob
+        );
+
+        vm.expectRevert("TOGA: only PIC allowed");
+        toga.changeExitRate(superToken2, 0);
+
+        vm.expectRevert("TOGA: only PIC allowed");
+        toga.changeExitRate(superToken, 0);
+
+        // let this run for a while...
+        vm.warp(block.timestamp + 1e6);
+
+        // alice takes over superToken2
+        uint256 bobPreBal = superToken2.balanceOf(bob);
+        (,uint256 bobBondLeft,) = toga.getCurrentPICInfo(superToken2);
+
+        vm.expectRevert("TOGA: bid too low");
+        _sendPICBid(alice, superToken2, BOND_AMOUNT_1E18, EXIT_RATE_1);
+
+        _sendPICBid(alice, superToken2, BOND_AMOUNT_10E18, EXIT_RATE_1E3);
+
+        assertTrue(
+            (bobPreBal + bobBondLeft) == superToken2.balanceOf(bob)
+        );
+    }
+
+
 }

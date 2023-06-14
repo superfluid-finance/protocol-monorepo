@@ -18,13 +18,13 @@
         "directory": "packages/hot-fuzz"
     },
     "dependencies": {
-        "@openzeppelin/contracts": "4.7.0"
+        "@openzeppelin/contracts": "4.8.2"
     },
     "peerDependencies": {
         "@superfluid-finance/ethereum-contracts": "1.2.2"
     },
     "devDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.5.0"
+        "@superfluid-finance/ethereum-contracts": "1.7.0"
     },
     "license": "AGPL-3.0",
     "bugs": {

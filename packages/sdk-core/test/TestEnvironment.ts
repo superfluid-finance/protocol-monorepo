@@ -14,7 +14,7 @@ import {
     toBN,
     WrapperSuperToken,
 } from "../src";
-import { deployContractsAndToken } from "@superfluid-finance/ethereum-contracts/dev-scripts/deployContractsAndToken";
+import { deployContractsAndToken } from "@superfluid-finance/ethereum-contracts/dev-scripts/deploy-contracts-and-token";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { JsonRpcProvider } from "@ethersproject/providers";
 import { expect } from "chai";
@@ -72,7 +72,9 @@ export const initializeTestEnvironment = async () => {
     const signers = await ethers.getSigners();
 
     console.log("Deploy Superfluid Test Framework...");
-    testEnv.superfluidFrameworkDeployer = await deployContractsAndToken() as SuperfluidFrameworkDeployer;
+    const result = await deployContractsAndToken();
+    testEnv.superfluidFrameworkDeployer =
+        result.deployer as SuperfluidFrameworkDeployer;
 
     console.log("Initialize Signers...");
     [testEnv.alice, testEnv.bob, testEnv.charlie] = signers;
@@ -114,7 +116,7 @@ export const initializeTestEnvironment = async () => {
             providerOrSigner: testEnv.alice,
         })
     ).div(toBN(testEnv.users.length));
-
+    console.log("Mint and Approve Tokens...");
     for (let i = 0; i < testEnv.users.length; i++) {
         const user = testEnv.users[i];
         await testEnv.token
@@ -127,7 +129,7 @@ export const initializeTestEnvironment = async () => {
                 testEnv.wrapperSuperToken.address,
                 testEnv.constants.INITIAL_TOKEN_BALANCE
             );
-        
+
         // distribute pure super tokens from deployer
         await testEnv.pureSuperToken
             .transfer({
@@ -135,7 +137,7 @@ export const initializeTestEnvironment = async () => {
                 receiver: user.address,
             })
             .exec(testEnv.alice);
-        
+
         // upgrade wrapper super token
         await testEnv.wrapperSuperToken
             .upgrade({

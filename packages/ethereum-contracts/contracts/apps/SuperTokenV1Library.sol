@@ -18,10 +18,11 @@ import {
  * @title Library for Token Centric Interface
  * @author Superfluid
  * @dev Set `using for ISuperToken` in including file, and call any of these functions on an instance
- * of ISuperToken
+ * of ISuperToken.
+ * Note that it is important to "warm up" the cache and cache the host, cfa, ida before calling,
+ * this is only applicable to Foundry tests where the vm.expectRevert() will not work as expected.
  */
 library SuperTokenV1Library {
-
     /** CFA BASE CRUD ************************************* */
 
     /**
@@ -33,16 +34,7 @@ library SuperTokenV1Library {
     function createFlow(ISuperToken token, address receiver, int96 flowRate)
         internal returns (bool)
     {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.createFlow,
-                (token, receiver, flowRate, new bytes(0))
-            ),
-            new bytes(0) // userData
-        );
-        return true;
+        return createFlow(token, receiver, flowRate, new bytes(0));
     }
 
     /**
@@ -77,16 +69,7 @@ library SuperTokenV1Library {
     function updateFlow(ISuperToken token, address receiver, int96 flowRate)
         internal returns (bool)
     {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.updateFlow,
-                (token, receiver, flowRate, new bytes(0))
-            ),
-            new bytes(0) // userData
-        );
-        return true;
+        return updateFlow(token, receiver, flowRate, new bytes(0));
     }
 
 
@@ -121,16 +104,7 @@ library SuperTokenV1Library {
     function deleteFlow(ISuperToken token, address sender, address receiver)
         internal returns (bool)
     {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.deleteFlow,
-                (token, sender, receiver, new bytes(0))
-            ),
-            new bytes(0) // userData
-        );
-        return true;
+        return deleteFlow(token, sender, receiver, new bytes(0));
     }
 
     /**
@@ -232,8 +206,84 @@ library SuperTokenV1Library {
     }
 
     /**
+     * @dev Increases the flow rate allowance for flow operator
+     * @notice allowing userData to be a parameter here triggered stack too deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is increased
+     * @param addedFlowRateAllowance amount to increase allowance by
+     */
+    function increaseFlowRateAllowance(ISuperToken token, address flowOperator, int96 addedFlowRateAllowance)
+        internal
+        returns (bool)
+    {
+        return increaseFlowRateAllowance(token, flowOperator, addedFlowRateAllowance, new bytes(0));
+    }
+
+    /**
+     * @dev Increases the flow rate allowance for flow operator
+     * @notice allowing userData to be a parameter here triggered stack too deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is increased
+     * @param addedFlowRateAllowance amount to increase allowance by
+     * @param userData The userdata passed along with call
+     */
+    function increaseFlowRateAllowance(
+        ISuperToken token,
+        address flowOperator,
+        int96 addedFlowRateAllowance,
+        bytes memory userData
+    ) internal returns (bool) {
+        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
+        host.callAgreement(
+            cfa,
+            abi.encodeCall(cfa.increaseFlowRateAllowance, (token, flowOperator, addedFlowRateAllowance, new bytes(0))),
+            userData
+        );
+        return true;
+    }
+
+    /**
+     * @dev Decreases the flow rate allowance for flow operator
+     * @notice allowing userData to be a parameter here triggered stack too deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is decreased
+     * @param subtractedFlowRateAllowance amount to decrease allowance by
+     */
+    function decreaseFlowRateAllowance(ISuperToken token, address flowOperator, int96 subtractedFlowRateAllowance)
+        internal
+        returns (bool)
+    {
+        return decreaseFlowRateAllowance(token, flowOperator, subtractedFlowRateAllowance, new bytes(0));
+    }
+
+    /**
+     * @dev Decreases the flow rate allowance for flow operator
+     * @notice allowing userData to be a parameter here triggered stack too deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is decreased
+     * @param subtractedFlowRateAllowance amount to decrease allowance by
+     * @param userData The userdata passed along with call
+     */
+    function decreaseFlowRateAllowance(
+        ISuperToken token,
+        address flowOperator,
+        int96 subtractedFlowRateAllowance,
+        bytes memory userData
+    ) internal returns (bool) {
+        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
+        host.callAgreement(
+            cfa,
+            abi.encodeCall(
+                cfa.decreaseFlowRateAllowance, (token, flowOperator, subtractedFlowRateAllowance, new bytes(0))
+            ),
+            userData
+        );
+        return true;
+    }
+
+    /**
      * @dev Update permissions for flow operator in callback
-     * @notice allowing userData to be a parameter here triggered stack to deep error
+     * @notice allowing userData to be a parameter here triggered stack too deep error
      * @param token The token used in flow
      * @param flowOperator The address given flow permissions
      * @param allowCreate creation permissions
@@ -336,16 +386,7 @@ library SuperTokenV1Library {
         address receiver,
         int96 flowRate
     ) internal returns (bool) {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.createFlowByOperator,
-                (token, sender, receiver, flowRate, new bytes(0))
-            ),
-            new bytes(0)
-        );
-        return true;
+        return createFlowFrom(token, sender, receiver, flowRate, new bytes(0));
     }
 
     /**
@@ -389,16 +430,7 @@ library SuperTokenV1Library {
         address receiver,
         int96 flowRate
     ) internal returns (bool) {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.updateFlowByOperator,
-                (token, sender, receiver, flowRate, new bytes(0))
-            ),
-            new bytes(0)
-        );
-        return true;
+        return updateFlowFrom(token, sender, receiver, flowRate, new bytes(0));
     }
 
     /**
@@ -439,16 +471,7 @@ library SuperTokenV1Library {
         address sender,
         address receiver
     ) internal returns (bool) {
-        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
-        host.callAgreement(
-            cfa,
-            abi.encodeCall(
-                cfa.deleteFlowByOperator,
-                (token, sender, receiver, new bytes(0))
-            ),
-            new bytes(0)
-        );
-        return true;
+        return deleteFlowFrom(token, sender, receiver, new bytes(0));
     }
 
     /**
@@ -759,9 +782,9 @@ library SuperTokenV1Library {
         (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
         uint8 permissionsBitmask;
         (, permissionsBitmask, flowRateAllowance) = cfa.getFlowOperatorData(token, sender, flowOperator);
-        allowCreate = permissionsBitmask & 1 == 1 ? true : false;
-        allowUpdate = permissionsBitmask >> 1 & 1 == 1 ? true : false;
-        allowDelete = permissionsBitmask >> 2 & 1 == 1 ? true : false;
+        allowCreate = permissionsBitmask & 1 == 1;
+        allowUpdate = permissionsBitmask >> 1 & 1 == 1;
+        allowDelete = permissionsBitmask >> 2 & 1 == 1;
     }
 
 
@@ -882,20 +905,7 @@ library SuperTokenV1Library {
         ISuperToken token,
         uint32 indexId
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.createIndex,
-                (
-                    token,
-                    indexId,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return createIndex(token, indexId, new bytes(0));
     }
 
     /**
@@ -937,21 +947,7 @@ library SuperTokenV1Library {
         uint32 indexId,
         uint128 indexValue
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.updateIndex,
-                (
-                    token,
-                    indexId,
-                    indexValue,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return updateIndexValue(token, indexId, indexValue, new bytes(0));
     }
 
     /**
@@ -987,31 +983,32 @@ library SuperTokenV1Library {
 
     /**
      * @dev Distributes tokens in a more developer friendly way than `updateIndex`. Instead of
-     * passing the new total index value, this function will increase the index value by `amount`.
+     * passing the new total index value, you pass the amount of tokens desired to be distributed. 
      * @param token Super Token used with the index.
      * @param indexId ID of the index.
-     * @param amount Amount by which the index value should increase.
+     * @param amount - total number of tokens desired to be distributed 
+     * NOTE in many cases, there can be some precision loss 
+     This may cause a slight difference in the amount param specified and the actual amount distributed. 
+     See below for math:
+     //indexDelta = amount the index will be updated by during an internal call to _updateIndex().
+     It is calculated like so:
+     indexDelta = amount / totalUnits 
+     (see the distribute() implementatation in ./agreements/InstantDistributionAgreement.sol)
+     * NOTE Solidity does not support floating point numbers
+     So the indexDelta will be rounded down to the nearest integer. 
+     This will create a 'remainder' amount of tokens that will not be distributed 
+     (we'll call this the 'distribution modulo')
+     distributionModulo = amount - indexDelta * totalUnits
+     * NOTE due to rounding, there may be a small amount of tokens left in the publisher's account
+     This amount is equal to the 'distributionModulo' value
+     //
      */
     function distribute(
         ISuperToken token,
         uint32 indexId,
         uint256 amount
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.distribute,
-                (
-                    token,
-                    indexId,
-                    amount,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return distribute(token, indexId, amount, new bytes(0));
     }
 
     /**
@@ -1059,21 +1056,7 @@ library SuperTokenV1Library {
         address publisher,
         uint32 indexId
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.approveSubscription,
-                (
-                    token,
-                    publisher,
-                    indexId,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return approveSubscription(token, publisher, indexId, new bytes(0));
     }
 
     /**
@@ -1119,21 +1102,7 @@ library SuperTokenV1Library {
         address publisher,
         uint32 indexId
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.revokeSubscription,
-                (
-                    token,
-                    publisher,
-                    indexId,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return revokeSubscription(token, publisher, indexId, new bytes(0));
     }
 
     /**
@@ -1179,22 +1148,7 @@ library SuperTokenV1Library {
         address subscriber,
         uint128 units
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-         ida,
-            abi.encodeCall(
-                ida.updateSubscription,
-                (
-                    token,
-                    indexId,
-                    subscriber,
-                    units,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return updateSubscriptionUnits(token, indexId, subscriber, units, new bytes(0));
     }
 
     /**
@@ -1244,22 +1198,7 @@ library SuperTokenV1Library {
         uint32 indexId,
         address subscriber
     ) internal returns (bool) {
-        (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.deleteSubscription,
-                (
-                    token,
-                    publisher,
-                    indexId,
-                    subscriber,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return deleteSubscription(token, publisher, indexId, subscriber, new bytes(0));
     }
 
     /**
@@ -1308,22 +1247,7 @@ library SuperTokenV1Library {
         uint32 indexId,
         address subscriber
     ) internal returns (bool) {
-         (ISuperfluid host, IInstantDistributionAgreementV1 ida) = _getAndCacheHostAndIDA(token);
-        host.callAgreement(
-            ida,
-            abi.encodeCall(
-                ida.claim,
-                (
-                    token,
-                    publisher,
-                    indexId,
-                    subscriber,
-                    new bytes(0) // ctx placeholder
-                )
-            ),
-            "0x"
-        );
-        return true;
+        return claim(token, publisher, indexId, subscriber, new bytes(0));
     }
 
     /**
@@ -1618,6 +1542,8 @@ library SuperTokenV1Library {
 
     // ************** private helpers **************
 
+    // @note We must use hardcoded constants here because:
+    // Only direct number constants and references to such constants are supported by inline assembly.
     // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.host")
     bytes32 private constant _HOST_SLOT = 0x65599bf746e17a00ea62e3610586992d88101b78eec3cf380706621fb97ea837;
     // keccak256("org.superfluid-finance.apps.SuperTokenLibrary.v1.cfa")
@@ -1641,8 +1567,7 @@ library SuperTokenV1Library {
                 host = ISuperfluid(token.getHost());
             }
             cfa = IConstantFlowAgreementV1(address(ISuperfluid(host).getAgreementClass(
-                //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                    0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3)));
+                keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1"))));
             // now that we got them and are in a transaction context, persist in storage
             assembly {
             // solium-disable-line
@@ -1670,7 +1595,7 @@ library SuperTokenV1Library {
                 host = ISuperfluid(token.getHost());
             }
             ida = IInstantDistributionAgreementV1(address(ISuperfluid(host).getAgreementClass(
-                    keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1"))));
+                keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1"))));
             // now that we got them and are in a transaction context, persist in storage
             assembly {
             // solium-disable-line
@@ -1698,8 +1623,7 @@ library SuperTokenV1Library {
                 host = ISuperfluid(token.getHost());
             }
             cfa = IConstantFlowAgreementV1(address(ISuperfluid(host).getAgreementClass(
-                //keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                    0xa9214cc96615e0085d3bb077758db69497dc2dce3b2b1e97bc93c3d18d83efd3)));
+                keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1"))));
         }
         assert(address(host) != address(0));
         assert(address(cfa) != address(0));
@@ -1721,8 +1645,7 @@ library SuperTokenV1Library {
                 host = ISuperfluid(token.getHost());
             }
             ida = IInstantDistributionAgreementV1(address(ISuperfluid(host).getAgreementClass(
-                //keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1")
-                    0x15609310ae3c30189a1218b7adabaf36c267255e70cf91b6cba384367d9eda32)));
+                keccak256("org.superfluid-finance.agreements.InstantDistributionAgreement.v1"))));
         }
         assert(address(host) != address(0));
         assert(address(ida) != address(0));

@@ -61,6 +61,8 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         1: getConfigData(1),
         // goerli
         5: getConfigData(5),
+        // sepolia
+        11155111: getConfigData(11155111),
 
         //
         // MATIC: https://docs.matic.network/docs/develop/network-details/network/
@@ -104,6 +106,11 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         56: getConfigData(56),
 
         //
+        // Celo: https://github.com/celo-org/celo-monorepo#docs
+        //
+        42220: getConfigData(42220),
+
+        //
         // currently unsupported networks
         //
         69: {
@@ -129,13 +136,7 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
             resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47",
         },
 
-        //
-        // Celo: https://github.com/celo-org/celo-monorepo#docs
-        //
-        42220: {
-            // celo mainnet
-            nativeTokenSymbol: "CELO",
-        },
+        // Celo
         44787: {
             // celo alfajores testnet
             nativeTokenSymbol: "CELO",

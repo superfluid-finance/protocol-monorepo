@@ -941,6 +941,32 @@ type PPPConfigurationChangedEvent implements Event @entity(immutable: true) {
     patricianPeriod: BigInt!
 }
 
+type SuperTokenMinimumDepositChangedEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    The address of the governance contract the event was emitted from.
+    """
+    governanceAddress: Bytes!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+    host: Bytes!
+    superToken: Bytes!
+    isKeySet: Boolean! # changed from Set due to strange bug w/ TheGraph
+    minimumDeposit: BigInt!
+}
+
 type TrustedForwarderChangedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
@@ -1565,7 +1591,7 @@ type Stream @entity {
     deposit: BigInt!
 
     """
-    The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`. 
+    The amount streamed until `updatedAtTimestamp`/`updatedAtBlock`.
     The formula to get the current streamed amount is:
     `streamedUntilUpdatedAt + ((currentTime in seconds) - updatedAtTimestamp) * currentFlowRate`.
     """
@@ -1574,6 +1600,12 @@ type Stream @entity {
     token: Token!
     sender: Account!
     receiver: Account!
+
+    """
+    The `userData` stored on the Stream is the last `userData` that was set in a `FlowUpdatedEvent`,
+    for this particular stream. To see the historical `userData` for this stream, you can query the `flowUpdatedEvents` field.
+    """
+    userData: Bytes!
 
     flowUpdatedEvents: [FlowUpdatedEvent!]! @derivedFrom(field: "stream")
     streamPeriods: [StreamPeriod!]! @derivedFrom(field: "stream")
@@ -1614,6 +1646,10 @@ type FlowOperator @entity {
     """
     flowRateAllowanceRemaining: BigInt!
 
+    """
+    The transfer allowance granted to the `flowOperator` by the `sender`.
+    """
+    allowance: BigInt!
     # ---------------------------------- links ----------------------------------
     flowOperator: Bytes!
     sender: Account!
@@ -1654,6 +1690,54 @@ type StreamPeriod @entity {
     stoppedAtEvent: FlowUpdatedEvent
 
     totalAmountStreamed: BigInt
+}
+
+"""
+TokenGovernanceConfig: A higher order entity that represents the governance configs for a token.
+If `id` is `address(0)`, it will be used as the default config.
+"""
+type TokenGovernanceConfig @entity {
+    """
+    id is the address of the SuperToken
+    NOTE: the zero address is reserved for the default config for all tokens with unset configs.
+    """
+    id: ID!
+    createdAtTimestamp: BigInt!
+    createdAtBlockNumber: BigInt!
+    updatedAtTimestamp: BigInt!
+    updatedAtBlockNumber: BigInt!
+
+    """
+    If true, `id` is `address(0)` and this is the default config for all tokens with unset configs.
+    """
+    isDefault: Boolean!
+
+    """
+    The (default or token-specific) address that receives liquidation rewards for a token prior to 3Ps and the TOGA address after 3Ps.
+    """
+    rewardAddress: Bytes
+
+    """
+    The (default or token-specific) liquidation period (buffer amount required for a token).
+    This field can be used to calculate the liquidation buffer (or deposit) amount for a token: `liquidationBufferAmount = liquidationPeriod * flowRate`.
+    Note that if `minimumDeposit` is set, the liquidation buffer amount will be the greater of the two values.
+    """
+    liquidationPeriod: BigInt
+
+    """
+    The (default or token-specific) patrician period, the patrician period is the window in which a patrician receives all rewards for a liquidation, no matter the liquidating account.
+    """
+    patricianPeriod: BigInt
+
+    """
+    The (default or token-specific) minimum deposit amount.
+    """
+    minimumDeposit: BigInt
+
+    """
+    A reverse lookup to the token it is associated with and null if it is the default config.
+    """
+    token: Token
 }
 
 ####################
@@ -1707,6 +1791,10 @@ type Token @entity {
     The underlying ERC20 token for a ERC20WrapperSuperToken otherwise null.
     """
     underlyingToken: Token
+
+    """
+    """
+    governanceConfig: TokenGovernanceConfig
 }
 
 type ResolverEntry @entity {
@@ -1751,14 +1839,34 @@ type AccountTokenSnapshot @entity {
     maybeCriticalAtTimestamp: BigInt
 
     """
-    The number of currently open streams.
+    The count of currently open streams for an account, both incoming and outgoing.
     """
     totalNumberOfActiveStreams: Int!
 
     """
-    The count of closed streams by `account`.
+    The count of active outgoing streams from this account.
+    """
+    activeOutgoingStreamCount: Int!
+
+    """
+    The count of active incoming streams to this account.
+    """
+    activeIncomingStreamCount: Int!
+
+    """
+    The count of closed streams by `account`, both incoming and outgoing.
     """
     totalNumberOfClosedStreams: Int!
+
+    """
+    The count of closed outgoing streams by `account`.
+    """
+    inactiveOutgoingStreamCount: Int!
+
+    """
+    The count of closed incoming streams by `account`.
+    """
+    inactiveIncomingStreamCount: Int!
 
     """
     The current (as of updatedAt) number of subscriptions with units allocated to them tied to this `account`.
@@ -1840,15 +1948,36 @@ type AccountTokenSnapshotLog @entity {
     Optimistic liquidation estimation property.
     """
     maybeCriticalAtTimestamp: BigInt
+
     """
     The current (as of timestamp) number of open streams.
     """
     totalNumberOfActiveStreams: Int!
 
     """
+    The count of active outgoing streams from this account.
+    """
+    activeOutgoingStreamCount: Int!
+
+    """
+    The count of active incoming streams to this account.
+    """
+    activeIncomingStreamCount: Int!
+
+    """
     The current (as of timestamp) count of closed streams.
     """
     totalNumberOfClosedStreams: Int!
+
+    """
+    The count of closed outgoing streams by `account`.
+    """
+    inactiveOutgoingStreamCount: Int!
+
+    """
+    The count of closed incoming streams by `account`.
+    """
+    inactiveIncomingStreamCount: Int!
 
     """
     The current (as of timestamp) number of subscriptions with units allocated to them tied to this `account`.
@@ -1872,7 +2001,7 @@ type AccountTokenSnapshotLog @entity {
 
     """
     The total (as of timestamp) net flow rate of the `account` as of `timestamp`/`block`.
-    This can be obtained by: `totalInflowRate - totalOutflowRate` 
+    This can be obtained by: `totalInflowRate - totalOutflowRate`
     """
     totalNetFlowRate: BigInt!
 
@@ -2086,3 +2215,4 @@ type SFMeta @entity {
     """
     branch: String!
 }
+

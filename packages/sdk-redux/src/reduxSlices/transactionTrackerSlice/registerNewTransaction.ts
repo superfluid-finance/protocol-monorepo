@@ -1,11 +1,15 @@
 import {ThunkDispatch} from '@reduxjs/toolkit';
-import {ethers} from 'ethers';
-
-import {getFramework} from '../../sdkReduxConfig';
+import {providers} from 'ethers';
 
 import {initiateNewTransactionTrackingThunk} from './thunks/initiateNewTransactionTrackingThunk';
 import {TransactionTitle} from './transactionTitle';
-import {waitForOneConfirmation} from './waitForOneConfirmation';
+
+/**
+ * A simpler TransactionResponse type, similar to wagmi's SendTransactionResult,
+ */
+export type NewTransactionResponse = Flatten<
+    Pick<providers.TransactionResponse, 'hash' | 'wait'> & Partial<providers.TransactionResponse>
+>;
 
 export interface RegisterNewTransactionArg {
     /**
@@ -13,12 +17,8 @@ export interface RegisterNewTransactionArg {
      * WARNING: Don't pass `chainId` off of ether's `TransactionResponse` because it's not set correctly on timely manner.
      */
     chainId: number;
-    signer: string;
-    transactionResponse: ethers.providers.TransactionResponse;
-    /**
-     * Whether to wait for one transaction confirmation.
-     */
-    waitForConfirmation: boolean;
+    signerAddress: string;
+    transactionResponse: NewTransactionResponse;
     /**
      * For dispatching redux thunks.
      */
@@ -37,22 +37,17 @@ export interface RegisterNewTransactionArg {
  * Transactions have to be registered for them to be tracked inside the redux store and monitored for re-orgs.
  */
 export const registerNewTransaction = async (arg: RegisterNewTransactionArg) => {
-    const {chainId, signer, transactionResponse, waitForConfirmation, dispatch, title, extraData} = arg;
-    const framework = await getFramework(chainId);
+    const {chainId, signerAddress, transactionResponse, dispatch, title, extraData} = arg;
 
     dispatch(
         initiateNewTransactionTrackingThunk({
             chainId,
-            signer,
+            signerAddress,
             transactionResponse,
             title,
             extraData: extraData ?? {},
         })
     );
-
-    if (waitForConfirmation) {
-        await waitForOneConfirmation(framework.settings.provider, transactionResponse.hash);
-    }
 };
 
 export const registerNewTransactionAndReturnQueryFnResult = async (arg: RegisterNewTransactionArg) => {
@@ -63,4 +58,9 @@ export const registerNewTransactionAndReturnQueryFnResult = async (arg: Register
             chainId: arg.chainId,
         },
     };
+};
+
+// Prefer flattened/spread syntax for IDE-s. Example: `A: { hash: string } vs B: Pick<TransactionResponse, "hash">`. A is the flattened syntax.
+type Flatten<T> = {
+    [K in keyof T]: T[K];
 };

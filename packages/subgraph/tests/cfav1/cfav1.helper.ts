@@ -78,18 +78,18 @@ export function createFlowOperatorUpdatedEvent(
 // Misc Helper Functions
 /**
  * Create a flowUpdated event and assert the properties were created correctly
- * @param superToken 
- * @param tokenName 
- * @param tokenSymbol 
- * @param sender 
- * @param receiver 
- * @param underlyingToken 
+ * @param superToken
+ * @param tokenName
+ * @param tokenSymbol
+ * @param sender
+ * @param receiver
+ * @param underlyingToken
  * @param expectedType 0 (create), 1 (update) or 2 (delete)
- * @param expectedOwedDeposit 
- * @param flowRate 
- * @param previousSenderFlowRate 
- * @param previousReceiverFlowRate 
- * @param isListed 
+ * @param expectedOwedDeposit
+ * @param flowRate
+ * @param previousSenderFlowRate
+ * @param previousReceiverFlowRate
+ * @param isListed
  * @returns FlowUpdated event
  */
  export function modifyFlowAndAssertFlowUpdatedEventProperties(
@@ -104,13 +104,14 @@ export function createFlowOperatorUpdatedEvent(
     flowRate: BigInt,
     previousSenderFlowRate: BigInt,
     previousReceiverFlowRate: BigInt,
-    isListed: boolean
+    isListed: boolean,
+    stringUserData: string
 ): FlowUpdated {
     const oldFlowRate = previousSenderFlowRate.abs();
     const flowRateDelta = flowRate.minus(previousSenderFlowRate);
     const totalSenderFlowRate = previousSenderFlowRate.minus(flowRateDelta);
     const totalReceiverFlowRate = previousReceiverFlowRate.plus(flowRateDelta);
-    const userData = stringToBytes("");
+    const userData = stringToBytes(stringUserData);
 
     const deposit = getDeposit(flowRate);
 

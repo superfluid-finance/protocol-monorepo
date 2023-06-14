@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
-
-import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
-import { SuperfluidFrameworkDeployer, SuperfluidTester, Superfluid, ConstantFlowAgreementV1, CFAv1Library } from "../test/SuperfluidTester.sol";
-import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { ERC1820RegistryCompiled } from "@superfluid-finance/ethereum-contracts/contracts/libs/ERC1820RegistryCompiled.sol";
+import { ISuperToken } from "../../../ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import { SuperTokenV1Library } from "../../../ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
+import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
 import { Manager } from "./../contracts/Manager.sol";
-import { WrapStrategy } from "./../contracts/strategies/WrapStrategy.sol";
 import { IManager } from "./../contracts/interfaces/IManager.sol";
-
+import { WrapStrategy } from "./../contracts/strategies/WrapStrategy.sol";
+import { ISETH } from "../../../ethereum-contracts/contracts/interfaces/tokens/ISETH.sol";
 
 /// @title ManagerTests
-contract ManagerTests is SuperfluidTester {
+contract ManagerTests is FoundrySuperfluidTester {
+    using SuperTokenV1Library for ISuperToken;
 
     event WrapScheduleCreated(
         bytes32 indexed id,
@@ -36,83 +34,43 @@ contract ManagerTests is SuperfluidTester {
     event RemovedApprovedStrategy(address indexed strategy);
     event LimitsChanged(uint64 lowerLimit, uint64 upperLimit);
 
-    using CFAv1Library for CFAv1Library.InitData;
-    CFAv1Library.InitData public cfaV1;
+    /// SETUP AND HELPERS
+    constructor() FoundrySuperfluidTester(3) {}
 
-    SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    SuperfluidFrameworkDeployer.Framework internal sf;
-    Superfluid host;
-    ConstantFlowAgreementV1 cfa;
-    uint256 private _expectedTotalSupply = 0;
+    uint64 MIN_LOWER = 2 days;
+    uint64 MIN_UPPER = 7 days;
+    uint64 EXPIRY = type(uint64).max;
+    uint256 internal _expectedTotalSupply;
+    ISETH nativeSuperToken;
     Manager public manager;
     WrapStrategy public wrapStrategy;
-    ISuperToken nativeSuperToken;
 
-    /// @dev This is required by solidity for using the CFAv1Library in the tester
-    using CFAv1Library for CFAv1Library.InitData;
-
-    /// @dev Constants for Testing
-
-    uint64 constant MIN_LOWER = 2;
-    uint64 constant MIN_UPPER = 7;
-    uint64 constant EXPIRY = type(uint64).max;
-
-    constructor() SuperfluidTester(3) {
+    function setUp() override public virtual {
+        super.setUp();
+        nativeSuperToken = sfDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
         vm.startPrank(admin);
-        vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
-        sfDeployer = new SuperfluidFrameworkDeployer();
-        sf = sfDeployer.getFramework();
-        host = sf.host;
-        cfa = sf.cfa;
-        cfaV1 = CFAv1Library.InitData(
-            host,
-            IConstantFlowAgreementV1(
-                address(
-                    host.getAgreementClass(
-                        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1")
-                    )
-                )
-            )
-        );
-        manager = new Manager(address(cfa), MIN_LOWER, MIN_UPPER);
+        manager = new Manager(address(sf.cfa), MIN_LOWER, MIN_UPPER);
         wrapStrategy = new WrapStrategy(address(manager));
         vm.stopPrank();
     }
 
-    /// SETUP AND HELPERS
-
-    function setUp() public virtual {
-        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
-
-        for (uint32 i = 0; i < N_TESTERS; ++i) {
-            token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
-            superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
-            _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
-            vm.stopPrank();
-        }
-
-            nativeSuperToken = sfDeployer.deployNativeAssetSuperToken("xFTT", "xFTT");
-    }
-
     function getWrapIndex(
         address user,
-        address superToken,
+        address superToken_,
         address liquidityToken
     ) public pure returns (bytes32) {
-        return keccak256(abi.encode(user, superToken, liquidityToken));
+        return keccak256(abi.encode(user, superToken_, liquidityToken));
     }
 
     function startStream(address sender, address receiver, int96 flowRate) public {
         vm.startPrank(sender);
-        cfaV1.createFlow(receiver, superToken, flowRate);
+        superToken.createFlow(receiver, flowRate);
         vm.stopPrank();
     }
 
     function stopStream(address sender, address receiver) public {
         vm.startPrank(sender);
-        cfaV1.deleteFlow(sender, receiver, superToken);
+        superToken.deleteFlow(sender, receiver);
         vm.stopPrank();
     }
 
@@ -124,14 +82,15 @@ contract ManagerTests is SuperfluidTester {
     }
 
     function testFailDeploymentWrongLimits() public {
-        new Manager(address(cfa), 2, 1);
+        new Manager(address(sf.cfa), 2, 1);
     }
 
     function testDeploymentCheckData() public {
-        assertEq(address(manager.cfaV1()), address(cfa), "manager.cfaV1 not equal");
+        assertEq(address(manager.cfaV1()), address(sf.cfa), "manager.cfaV1 not equal");
         assertEq(manager.owner(), admin, "manager.owner not equal");
         assertEq(manager.minLower(), MIN_LOWER, "manager.minLower not equal");
         assertEq(manager.minUpper(), MIN_UPPER, "manager.minUpper not equal");
+
     }
 
     // Change Limits
@@ -280,6 +239,9 @@ contract ManagerTests is SuperfluidTester {
 
     function testCreateWrap() public {
         bytes32 index = getWrapIndex(address(alice), address(superToken), address(token));
+        vm.prank(admin);
+        manager.addApprovedStrategy(address(wrapStrategy));
+
         vm.expectEmit(true, true, true, true);
         emit WrapScheduleCreated(
             index,
@@ -291,8 +253,6 @@ contract ManagerTests is SuperfluidTester {
             MIN_LOWER,
             MIN_UPPER
         );
-        vm.prank(admin);
-        manager.addApprovedStrategy(address(wrapStrategy));
         vm.prank(alice);
         manager.createWrapSchedule(
             address(superToken),

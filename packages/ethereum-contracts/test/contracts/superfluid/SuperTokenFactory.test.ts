@@ -1,8 +1,12 @@
-import {artifacts, assert, ethers, expect, web3} from "hardhat";
+import {assert, ethers, expect, web3} from "hardhat";
 
 import {
     SuperfluidMock,
+    SuperToken,
     SuperTokenFactory,
+    SuperTokenFactoryMock42,
+    SuperTokenFactoryStorageLayoutTester,
+    SuperTokenMock,
     TestGovernance,
     TestToken,
     TestToken__factory,
@@ -52,12 +56,36 @@ describe("SuperTokenFactory Contract", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     describe("#1 upgradability", () => {
         it("#1.1 storage layout", async () => {
-            const T = artifacts.require("SuperTokenFactoryStorageLayoutTester");
-            const tester = await T.new(superfluid.address);
+            const {
+                constantOutflowNFTProxy,
+                constantInflowNFTProxy,
+                cofNFTLogicAddress,
+                cifNFTLogicAddress,
+            } = await t.deployNFTContracts();
+            const superTokenLogic = await t.deployContract<SuperTokenMock>(
+                "SuperTokenMock",
+                superfluid.address,
+                "0",
+                constantOutflowNFTProxy.address,
+                constantInflowNFTProxy.address
+            );
+            const tester =
+                await t.deployContract<SuperTokenFactoryStorageLayoutTester>(
+                    "SuperTokenFactoryStorageLayoutTester",
+                    superfluid.address,
+                    superTokenLogic.address,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress
+                );
             await tester.validateStorageLayout();
         });
 
@@ -95,6 +123,7 @@ describe("SuperTokenFactory Contract", function () {
                 "SuperTokenFactory",
                 await factory.getCodeAddress()
             );
+
             await expectRevertedWith(
                 factoryLogic.initialize(),
                 "Initializable: contract is already initialized"
@@ -104,6 +133,7 @@ describe("SuperTokenFactory Contract", function () {
                 "SuperTokenMock",
                 await factory.getSuperTokenLogic()
             );
+
             await expectRevertedWith(
                 superTokenLogic.initialize(ZERO_ADDRESS, 0, "", ""),
                 "Initializable: contract is already initialized"
@@ -114,18 +144,27 @@ describe("SuperTokenFactory Contract", function () {
     describe("#2 createERC20Wrapper", () => {
         context("#2.a Mock factory", () => {
             async function updateSuperTokenFactory() {
-                const SuperTokenFactoryMock42 = await ethers.getContractFactory(
-                    "SuperTokenFactoryMock42"
-                );
-                const SuperTokenFactoryMockHelper =
-                    await ethers.getContractFactory(
-                        "SuperTokenFactoryMockHelper"
-                    );
-                const helper = await SuperTokenFactoryMockHelper.deploy();
-                const factory2Logic = await SuperTokenFactoryMock42.deploy(
+                const {
+                    constantOutflowNFTProxy,
+                    constantInflowNFTProxy,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress,
+                } = await t.deployNFTContracts();
+                const superTokenLogic = await t.deployContract<SuperTokenMock>(
+                    "SuperTokenMock",
                     superfluid.address,
-                    helper.address
+                    42,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
                 );
+                const factory2Logic =
+                    await t.deployContract<SuperTokenFactoryMock42>(
+                        "SuperTokenFactoryMock42",
+                        superfluid.address,
+                        superTokenLogic.address,
+                        cofNFTLogicAddress,
+                        cifNFTLogicAddress
+                    );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -135,26 +174,17 @@ describe("SuperTokenFactory Contract", function () {
                 await superfluid.getSuperTokenFactoryLogic();
             }
 
-            it("#2.a.1 non upgradable", async () => {
-                let superToken1 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 0,
-                });
-                await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
-                    token: superToken1.address,
-                });
-                superToken1 = await ethers.getContractAt(
-                    "SuperTokenMock",
-                    superToken1.address
+            it("#2.a.1 non upgradable super token creation is deprecated", async () => {
+                await expectCustomError(
+                    factory["createERC20Wrapper(address,uint8,string,string)"](
+                        token1.address,
+                        0,
+                        "",
+                        ""
+                    ),
+                    factory,
+                    "SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED"
                 );
-                await updateSuperTokenFactory();
-                assert.equal((await superToken1.waterMark()).toString(), "0");
-                await expectRevertedWith(
-                    governance.batchUpdateSuperTokenLogic(superfluid.address, [
-                        superToken1.address,
-                    ]),
-                    "UUPSProxiable: not upgradable"
-                );
-                assert.equal((await superToken1.waterMark()).toString(), "0");
             });
 
             it("#2.a.2 semi upgradable", async () => {
@@ -230,12 +260,26 @@ describe("SuperTokenFactory Contract", function () {
 
         context("#2.b Production Factory", () => {
             it("#2.b.1 use production factory to create different super tokens", async () => {
-                const helper = await (
-                    await ethers.getContractFactory("SuperTokenFactoryHelper")
-                ).deploy();
-                const factory2Logic = await (
-                    await ethers.getContractFactory("SuperTokenFactory")
-                ).deploy(superfluid.address, helper.address);
+                const {
+                    constantOutflowNFTProxy,
+                    constantInflowNFTProxy,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress,
+                } = await t.deployNFTContracts();
+                const superTokenLogic = await t.deployContract<SuperToken>(
+                    "SuperToken",
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
+                );
+                const factory2Logic =
+                    await t.deployContract<SuperTokenFactoryMock42>(
+                        "SuperTokenFactoryMock42",
+                        superfluid.address,
+                        superTokenLogic.address,
+                        cofNFTLogicAddress,
+                        cifNFTLogicAddress
+                    );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -243,15 +287,15 @@ describe("SuperTokenFactory Contract", function () {
                     factory2Logic.address
                 );
 
-                const superToken0 = await t.sf.createERC20Wrapper(token1, {
-                    upgradability: 0,
-                });
-                await expectEvent(superToken0.tx.receipt, "SuperTokenCreated", {
-                    token: superToken0.address,
-                });
-                assert.equal(
-                    await superToken0.getUnderlyingToken(),
-                    token1.address
+                await expectCustomError(
+                    factory["createERC20Wrapper(address,uint8,string,string)"](
+                        token1.address,
+                        0,
+                        "",
+                        ""
+                    ),
+                    factory,
+                    "SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED"
                 );
 
                 const superToken1 = await t.sf.createERC20Wrapper(token1, {

@@ -7,6 +7,11 @@ on:
 jobs:
   post-xkcd:
     runs-on: ubuntu-latest
+
+    permissions:
+      pull-requests: write
+      issues: write
+      
     if: github.event.pull_request.merged == true
     steps:
       - name: Search relif
@@ -17,8 +22,8 @@ jobs:
                 grep -oe '"https://imgs.xkcd.com/comics/[^"]\+"' | \
                 sed 's/"//g' | \
                 head -n1)
-          echo "::set-output name=xkcd_url::$xkcd_url"
-          echo "::set-output name=xkcd_img_url::$xkcd_img_url"
+          echo "xkcd_url=$xkcd_url" >> "$GITHUB_OUTPUT"
+          echo "xkcd_img_url=$xkcd_img_url" >> "$GITHUB_OUTPUT"
 
       - name: Create relif
         uses: peter-evans/create-or-update-comment@v2

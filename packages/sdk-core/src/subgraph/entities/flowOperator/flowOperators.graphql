@@ -1,0 +1,33 @@
+query flowOperators(
+    $first: Int = 10
+    $orderBy: FlowOperator_orderBy = id
+    $orderDirection: OrderDirection = asc
+    $skip: Int = 0
+    $where: FlowOperator_filter = {}
+    $block: Block_height
+) {
+    flowOperators(
+        first: $first
+        orderBy: $orderBy
+        orderDirection: $orderDirection
+        skip: $skip
+        where: $where
+        block: $block
+    ) {
+        id
+        createdAtTimestamp
+        createdAtBlockNumber
+        updatedAtBlockNumber
+        updatedAtTimestamp
+        flowOperator
+        sender {
+            id
+        }
+        token {
+            id
+        }
+        flowRateAllowanceRemaining
+        permissions
+        allowance
+    }
+}

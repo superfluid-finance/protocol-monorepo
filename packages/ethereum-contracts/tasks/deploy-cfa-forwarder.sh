@@ -1,4 +1,5 @@
-#!/usr/bin/env bash -eux
+#!/usr/bin/env bash
+set -eux
 
 # Usage:
 # tasks/deploy-cfa-forwarder.sh <network> <contract-addr>
@@ -23,19 +24,19 @@
 # On some networks you may need to use override ENV vars for the deployment to succeed
 
 network=$1
-cfaAddr=$2
+cfaFwdAddr=0xcfA132E353cB4E398080B9700609bb008eceB125
 
 # deploy
-npx truffle exec --network $network ops-scripts/deploy-deterministically.js : CFAv1Forwarder
+npx truffle exec --network "$network" ops-scripts/deploy-deterministically.js : CFAv1Forwarder
 
 # verify (give it a few seconds to pick up the code)
 sleep 5
-npx truffle run --network $network verify CFAv1Forwarder@$cfaAddr
+npx truffle run --network "$network" verify CFAv1Forwarder@"$cfaFwdAddr"
 
 # set resolver
-ALLOW_UPDATE=1 npx truffle exec --network $network ops-scripts/resolver-set-key-value.js : CFAv1Forwarder $cfaAddr
+ALLOW_UPDATE=1 npx truffle exec --network "$network" ops-scripts/resolver-set-key-value.js : CFAv1Forwarder "$cfaFwdAddr"
 
 # create gov action
-npx truffle exec --network $network ops-scripts/gov-set-trusted-forwarder.js : 0x0000000000000000000000000000000000000000 $cfaAddr 1
+npx truffle exec --network "$network" ops-scripts/gov-set-trusted-forwarder.js : 0x0000000000000000000000000000000000000000 "$cfaFwdAddr" 1
 
 # TODO: on mainnets, the resolver entry should be set only after the gov action was signed & executed

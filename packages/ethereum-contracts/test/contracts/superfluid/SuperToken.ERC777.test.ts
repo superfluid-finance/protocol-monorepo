@@ -70,6 +70,11 @@ describe("SuperToken's ERC777 implementation", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     context("with default operators", async () => {

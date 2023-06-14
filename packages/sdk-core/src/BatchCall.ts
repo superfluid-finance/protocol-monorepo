@@ -22,6 +22,8 @@ const batchOperationTypeStringToTypeMap = new Map<BatchOperationType, number>([
     ["ERC20_APPROVE", 1],
     ["ERC20_TRANSFER_FROM", 2],
     ["ERC777_SEND", 3],
+    ["ERC20_INCREASE_ALLOWANCE", 4],
+    ["ERC20_DECREASE_ALLOWANCE", 5],
     ["SUPERTOKEN_UPGRADE", 101],
     ["SUPERTOKEN_DOWNGRADE", 102],
     ["SUPERFLUID_CALL_AGREEMENT", 201],
@@ -143,6 +145,12 @@ export default class BatchCall {
     exec = async (
         signer: ethers.Signer
     ): Promise<ethers.ContractTransaction> => {
+        if (this.getOperationStructArrayPromises.length === 0) {
+            throw new SFError({
+                type: "BATCH_CALL_ERROR",
+                message: "There are no operations to execute in the batch.",
+            });
+        }
         const operationStructArray = await Promise.all(
             this.getOperationStructArrayPromises
         );
@@ -162,6 +170,12 @@ export default class BatchCall {
     execForward = async (
         signer: ethers.Signer
     ): Promise<ethers.ContractTransaction> => {
+        if (this.getOperationStructArrayPromises.length === 0) {
+            throw new SFError({
+                type: "BATCH_CALL_ERROR",
+                message: "There are no operations to execute in the batch.",
+            });
+        }
         const operationStructArray = await Promise.all(
             this.getOperationStructArrayPromises
         );

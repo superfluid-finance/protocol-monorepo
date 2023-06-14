@@ -1,7 +1,7 @@
 import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {assert, ethers, web3} from "hardhat";
 
-import {Superfluid, SuperfluidGovernanceII} from "../../../typechain-types";
+import {SuperfluidGovernanceII, SuperfluidMock} from "../../../typechain-types";
 import TestEnvironment from "../../TestEnvironment";
 import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
 
@@ -18,7 +18,7 @@ describe("Superfluid Ownable Governance Contract", function () {
 
     let alice: string;
     let aliceSigner: SignerWithAddress;
-    let superfluid: Superfluid;
+    let superfluid: SuperfluidMock;
     let governance: SuperfluidGovernanceII;
 
     before(async () => {
@@ -53,6 +53,14 @@ describe("Superfluid Ownable Governance Contract", function () {
             "SuperfluidGovernanceII",
             newGovProxy.address
         );
+    });
+
+    beforeEach(async function () {
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(() => {
+        t.afterEachTestCaseBenchmark();
     });
 
     it("#0.1 authorization checks", async () => {
@@ -357,6 +365,42 @@ describe("Superfluid Ownable Governance Contract", function () {
                 ),
                 governance,
                 onlyOwnerReason
+            );
+
+            // liquidationPeriod <= patricianPeriod reverts
+            await expectCustomError(
+                governance.setPPPConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    420,
+                    420
+                ),
+                governance,
+                "SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD"
+            );
+
+            // liquidationPeriod >= type(uint32).max reverts
+            // patricianPeriod >= type(uint32).max reverts too
+            await expectCustomError(
+                governance.setPPPConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    4294967296,
+                    420
+                ),
+                governance,
+                "SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD"
+            );
+
+            await expectCustomError(
+                governance.setPPPConfig(
+                    superfluid.address,
+                    ZERO_ADDRESS,
+                    420,
+                    690
+                ),
+                governance,
+                "SF_GOV_INVALID_LIQUIDATION_OR_PATRICIAN_PERIOD"
             );
 
             await expectCustomError(

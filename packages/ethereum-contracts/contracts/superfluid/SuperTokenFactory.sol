@@ -1,22 +1,20 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.16;
+pragma solidity 0.8.19;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     ISuperTokenFactory,
     ISuperToken,
     IERC20,
     ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
-
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-
 import { SuperToken } from "../superfluid/SuperToken.sol";
-
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
+import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
+import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,
@@ -27,21 +25,41 @@ abstract contract SuperTokenFactoryBase is
         address superToken;
     }
 
+    /**************************************************************************
+    * Immutable Variables
+    **************************************************************************/
+
+    // solhint-disable-next-line var-name-mixedcase
+    ISuperToken immutable public _SUPER_TOKEN_LOGIC;
+
+    ISuperfluid immutable internal _host;
+
+    // solhint-disable-next-line var-name-mixedcase
+    IConstantOutflowNFT immutable public CONSTANT_OUTFLOW_NFT_LOGIC;
+
+    // solhint-disable-next-line var-name-mixedcase
+    IConstantInflowNFT immutable public CONSTANT_INFLOW_NFT_LOGIC;
+
+    /**************************************************************************
+    * Storage Variables
+    **************************************************************************/
+
     /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
         Always double-check that new
         variables are added APPEND-ONLY. Re-ordering variables can
         permanently BREAK the deployed proxy contract. */
 
-    ISuperfluid immutable internal _host;
-
-    ISuperToken internal _superTokenLogic;
+    // @dev This is the old SuperToken logic contract that is no longer used
+    // It is kept here for backwards compatibility due to the fact that we cannot
+    // change the storage layout of the contract
+    ISuperToken internal _superTokenLogicDeprecated;
 
     /// @notice A mapping from underlying token addresses to canonical wrapper super token addresses
     /// @dev Reasoning: (1) provide backwards compatibility for existing listed wrapper super tokens
     /// @dev (2) prevent address retrieval issues if we ever choose to modify the bytecode of the UUPSProxy contract
     /// @dev NOTE: address(0) key points to the NativeAssetSuperToken on the network.
     mapping(address => address) internal _canonicalWrapperSuperTokens;
-    
+
     /// NOTE: Whenever modifying the storage layout here it is important to update the validateStorageLayout
     /// function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     /// behaviors/layout when upgrading
@@ -49,9 +67,28 @@ abstract contract SuperTokenFactoryBase is
     error SUPER_TOKEN_FACTORY_ONLY_GOVERNANCE_OWNER();
 
     constructor(
-        ISuperfluid host
+        ISuperfluid host,
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFTLogic,
+        IConstantInflowNFT constantInflowNFTLogic
     ) {
         _host = host;
+
+        // SuperToken logic is now deployed prior to new factory logic deployment
+        // and passed in as a parameter to SuperTokenFactory constructor
+        _SUPER_TOKEN_LOGIC = superTokenLogic;
+
+        UUPSProxiable(address(_SUPER_TOKEN_LOGIC)).castrate();
+
+        CONSTANT_OUTFLOW_NFT_LOGIC = constantOutflowNFTLogic;
+
+        CONSTANT_INFLOW_NFT_LOGIC = constantInflowNFTLogic;
+
+        // emit SuperTokenLogicCreated event
+        // note that creation here means the setting of the super token logic contract
+        // as the canonical super token logic for the Superfluid framework and not the
+        // actual contract creation
+        emit SuperTokenLogicCreated(_SUPER_TOKEN_LOGIC);
     }
 
     /// @inheritdoc ISuperTokenFactory
@@ -68,29 +105,41 @@ abstract contract SuperTokenFactoryBase is
     **************************************************************************/
     /// @inheritdoc ISuperTokenFactory
     function initialize()
-        external override
+        external
+        override
         initializer // OpenZeppelin Initializable
+    // solhint-disable-next-line no-empty-blocks
     {
-        _updateSuperTokenLogic();
+
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.SuperTokenFactory.implementation");
     }
 
+    /// @notice Updates the logic contract for the SuperTokenFactory
+    /// @dev This function updates the logic contract for the SuperTokenFactory
+    /// @param newAddress the new address of the SuperTokenFactory logic contract
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host)) {
             revert SUPER_TOKEN_FACTORY_ONLY_HOST();
         }
         _updateCodeAddress(newAddress);
-        _updateSuperTokenLogic();
-    }
 
-    function _updateSuperTokenLogic() private {
-        // use external call to trigger the new code to update the super token logic contract
-        _superTokenLogic = SuperToken(this.createSuperTokenLogic(_host));
-        UUPSProxiable(address(_superTokenLogic)).castrate();
-        emit SuperTokenLogicCreated(_superTokenLogic);
+        // Upgrade the Flow NFT logic contracts on the canonical proxies
+        // We only do this if the new logic contracts passed in updating the SuperTokenFactory
+        // are different from the current logic contracts
+        SuperTokenFactory newFactory = SuperTokenFactory(newAddress);
+        address newConstantOutflowLogic = address(newFactory.CONSTANT_OUTFLOW_NFT_LOGIC());
+        address newConstantInflowLogic = address(newFactory.CONSTANT_INFLOW_NFT_LOGIC());
+
+        if (address(CONSTANT_OUTFLOW_NFT_LOGIC) != newConstantOutflowLogic) {
+            UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_OUTFLOW_NFT())).updateCode(newConstantOutflowLogic);
+        }
+
+        if (address(CONSTANT_INFLOW_NFT_LOGIC) != newConstantInflowLogic) {
+            UUPSProxiable(address(_SUPER_TOKEN_LOGIC.CONSTANT_INFLOW_NFT())).updateCode(newConstantInflowLogic);
+        }
     }
 
     /**************************************************************************
@@ -101,10 +150,8 @@ abstract contract SuperTokenFactoryBase is
         external view override
         returns (ISuperToken)
     {
-        return _superTokenLogic;
+        return _SUPER_TOKEN_LOGIC;
     }
-
-    function createSuperTokenLogic(ISuperfluid host) external virtual returns (address logic);
 
     /// @inheritdoc ISuperTokenFactory
     function createCanonicalERC20Wrapper(ERC20WithTokenInfo _underlyingToken)
@@ -137,7 +184,7 @@ abstract contract SuperTokenFactoryBase is
         );
 
         // set the implementation/logic contract address for the newly deployed proxy
-        proxy.initializeProxy(address(_superTokenLogic));
+        proxy.initializeProxy(address(_SUPER_TOKEN_LOGIC));
 
         // cast it as the same type as the logic contract
         ISuperToken superToken = ISuperToken(address(proxy));
@@ -175,11 +222,11 @@ abstract contract SuperTokenFactoryBase is
         }
 
         if (upgradability == Upgradability.NON_UPGRADABLE) {
-            superToken = ISuperToken(this.createSuperTokenLogic(_host));
+            revert SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED();
         } else if (upgradability == Upgradability.SEMI_UPGRADABLE) {
             UUPSProxy proxy = new UUPSProxy();
             // initialize the wrapper
-            proxy.initializeProxy(address(_superTokenLogic));
+            proxy.initializeProxy(address(_SUPER_TOKEN_LOGIC));
             superToken = ISuperToken(address(proxy));
         } else /* if (type == Upgradability.FULL_UPGRADABLE) */ {
             FullUpgradableSuperTokenProxy proxy = new FullUpgradableSuperTokenProxy();
@@ -226,7 +273,7 @@ abstract contract SuperTokenFactoryBase is
         // odd solidity stuff..
         // NOTE payable necessary because UUPSProxy has a payable fallback function
         address payable a = payable(address(uint160(customSuperTokenProxy)));
-        UUPSProxy(a).initializeProxy(address(_superTokenLogic));
+        UUPSProxy(a).initializeProxy(address(_SUPER_TOKEN_LOGIC));
 
         emit CustomSuperTokenCreated(ISuperToken(customSuperTokenProxy));
     }
@@ -298,16 +345,6 @@ abstract contract SuperTokenFactoryBase is
     }
 }
 
-// splitting this off because the contract is getting bigger
-contract SuperTokenFactoryHelper {
-    function create(ISuperfluid host)
-        external
-        returns (address logic)
-    {
-        return address(new SuperToken(host));
-    }
-}
-
 contract SuperTokenFactory is SuperTokenFactoryBase
 {
     /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
@@ -315,22 +352,20 @@ contract SuperTokenFactory is SuperTokenFactoryBase
         variables are added APPEND-ONLY. Re-ordering variables can
         permanently BREAK the deployed proxy contract. */
 
-    SuperTokenFactoryHelper immutable private _helper;
-
     constructor(
         ISuperfluid host,
-        SuperTokenFactoryHelper helper
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
-        SuperTokenFactoryBase(host)
-        // solhint-disable-next-line no-empty-blocks
+        SuperTokenFactoryBase(
+            host,
+            superTokenLogic,
+            constantOutflowNFT,
+            constantInflowNFT
+        )
+    // solhint-disable-next-line no-empty-blocks
     {
-        _helper = helper;
-    }
 
-    function createSuperTokenLogic(ISuperfluid host)
-        external override
-        returns (address logic)
-    {
-        return _helper.create(host);
     }
 }

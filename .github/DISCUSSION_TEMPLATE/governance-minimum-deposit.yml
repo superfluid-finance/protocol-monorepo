@@ -1,0 +1,28 @@
+title: "[Minimum Deposit for SuperToken] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Check the [Minimum Deposit Guidelines](https://github.com/superfluid-finance/protocol-monorepo/wiki/Governance-Process:-Minimum-Deposit-Policy)!**
+  - type: input
+    id: token
+    attributes:
+      label: Console link to the SuperToken
+      description: "(example link: https://console.superfluid.finance/optimism-mainnet/supertokens/0x4ac8bD1bDaE47beeF2D1c6Aa62229509b962Aa0d)"
+    validations:
+      required: true
+
+  - type: input
+    id: amount
+    attributes:
+      label: Proposed minimium deposit amount
+      description: "(example amount: 0.03)"
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Comments
+      description: Optional additional comments / context / explanations / clarifications
+    validations:
+      required: false

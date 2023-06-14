@@ -35,8 +35,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await arg.signer.getAddress(),
-                waitForConfirmation: !!arg.waitForConfirmation,
+                signerAddress: await arg.signer.getAddress(),
                 dispatch: queryApi.dispatch,
                 title: 'Upgrade to Super Token',
                 extraData: arg.transactionExtraData,
@@ -87,8 +86,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await arg.signer.getAddress(),
-                waitForConfirmation: !!arg.waitForConfirmation,
+                signerAddress: await arg.signer.getAddress(),
                 dispatch: queryApi.dispatch,
                 title: 'Downgrade from Super Token',
                 extraData: arg.transactionExtraData,
@@ -111,8 +109,7 @@ export const createSuperTokenEndpoints = (builder: RpcEndpointBuilder) => ({
             return await registerNewTransactionAndReturnQueryFnResult({
                 transactionResponse,
                 chainId: arg.chainId,
-                signer: await arg.signer.getAddress(),
-                waitForConfirmation: !!arg.waitForConfirmation,
+                signerAddress: await arg.signer.getAddress(),
                 dispatch: queryApi.dispatch,
                 title: 'Transfer Super Token',
                 extraData: arg.transactionExtraData,

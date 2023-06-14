@@ -10,10 +10,12 @@ import {MillisecondTimes} from '../../../utils';
 import {TransactionInfo} from '../../argTypes';
 import {createGeneralTags} from '../../rtkQuery/cacheTags/CacheTagTypes';
 import {EthersError} from '../ethersError';
+import {NewTransactionResponse} from '../registerNewTransaction';
 import {transactionTrackerSelectors} from '../transactionTrackerAdapter';
 import {TransactionTrackerReducer, transactionTrackerSlicePrefix} from '../transactionTrackerSlice';
 import {trySerializeTransaction} from '../trySerializeTransaction';
-import {waitForOneConfirmation} from '../waitForOneConfirmation';
+
+import {initiateNewTransactionTrackingThunk} from './initiateNewTransactionTrackingThunk';
 
 /**
  * Used for tracking a transaction that has already been put into the redux store.
@@ -23,74 +25,109 @@ export const trackPendingTransactionThunk = createAsyncThunk<
     {
         chainId: number;
         transactionHash: string;
+        wait?: NewTransactionResponse['wait'];
     }
->(`${transactionTrackerSlicePrefix}/trackPendingTransaction`, async (arg, {getState, dispatch}) => {
-    const transactionHash = arg.transactionHash;
-    const state = getState() as {[transactionTrackerSlicePrefix]: TransactionTrackerReducer};
+>(
+    `${transactionTrackerSlicePrefix}/trackPendingTransaction`,
+    async ({chainId, transactionHash, wait}, {getState, dispatch}) => {
+        const state = getState() as {[transactionTrackerSlicePrefix]: TransactionTrackerReducer};
 
-    const transaction = transactionTrackerSelectors.selectById(state, transactionHash);
-    if (!transaction) {
-        throw new Error(`Transaction [${transactionHash}] not found in store.`);
-    }
+        const transaction = transactionTrackerSelectors.selectById(state, transactionHash);
+        if (!transaction) {
+            throw new Error(`Transaction [${transactionHash}] not found in store.`);
+        }
 
-    const framework = await getFramework(arg.chainId);
+        const framework = await getFramework(chainId);
+        const waitForOneConfirmation = wait
+            ? () => wait(1)
+            : () => framework.settings.provider.waitForTransaction(transactionHash, 1, MillisecondTimes.TenMinutes);
 
-    await waitForOneConfirmation(framework.settings.provider, transactionHash)
-        .then(async (transactionReceipt: ethers.providers.TransactionReceipt) => {
-            // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
+        await waitForOneConfirmation()
+            .then(async (transactionReceipt: ethers.providers.TransactionReceipt) => {
+                // When Ethers successfully returns then we assume the transaction was mined as per documentation: https://docs.ethers.io/v5/api/providers/provider/#Provider-waitForTransaction
 
-            if (transactionReceipt.status === 0) {
-                // The transaction was reverted when status is 0: https://docs.ethers.org/v5/api/providers/types/#providers-TransactionReceipt
-                throw logger.makeError('reverted', ErrorCode.CALL_EXCEPTION); // Throw and let error be handled in the catch-block.
-            }
-
-            const {updateTransaction} = getTransactionTrackerSlice().actions;
-            dispatch(
-                updateTransaction({
-                    id: transactionHash,
-                    changes: {
-                        status: 'Succeeded',
-                        transactionReceipt: trySerializeTransaction(transactionReceipt),
-                        blockTransactionSucceededIn: transactionReceipt.blockNumber,
-                    },
-                })
-            );
-
-            dispatch(getRpcApiSlice().util.invalidateTags(createGeneralTags({chainId: arg.chainId})));
-
-            monitorForLateErrors(framework.settings.provider, {chainId: arg.chainId, hash: transactionHash}, dispatch);
-
-            // Poll Subgraph for all the events for this block and then invalidate Subgraph cache based on that.
-            promiseRetry(
-                (retry, _number) =>
-                    new EventQueryHandler()
-                        .list(framework.query.subgraphClient, {
-                            block: {number: transactionReceipt.blockNumber}, // Subgraph returns error when not indexed this far.
-                            filter: {blockNumber: transactionReceipt.blockNumber.toString()}, // Only return events for this block.
-                            pagination: {take: Infinity},
-                        })
-                        .catch(retry),
-                {
-                    minTimeout: 500,
-                    factor: 2,
-                    forever: true,
+                if (transactionReceipt.status === 0) {
+                    // The transaction was reverted when status is 0: https://docs.ethers.org/v5/api/providers/types/#providers-TransactionReceipt
+                    throw logger.makeError('reverted', ErrorCode.CALL_EXCEPTION); // Throw and let error be handled in the catch-block.
                 }
-            ).then((_subgraphEventsQueryResult) => {
-                dispatch(getSubgraphApiSlice().util.invalidateTags(createGeneralTags({chainId: arg.chainId})));
+
+                const {updateTransaction} = getTransactionTrackerSlice().actions;
                 dispatch(
                     updateTransaction({
                         id: transactionHash,
                         changes: {
-                            isSubgraphInSync: true,
+                            status: 'Succeeded',
+                            transactionReceipt: trySerializeTransaction(transactionReceipt),
+                            blockTransactionSucceededIn: transactionReceipt.blockNumber,
                         },
                     })
                 );
+
+                dispatch(getRpcApiSlice().util.invalidateTags(createGeneralTags({chainId})));
+
+                monitorForLateErrors(framework.settings.provider, {chainId, hash: transactionHash}, dispatch);
+
+                // Poll Subgraph for all the events for this block and then invalidate Subgraph cache based on that.
+                promiseRetry(
+                    (retry, _number) =>
+                        new EventQueryHandler()
+                            .list(framework.query.subgraphClient, {
+                                block: {number: transactionReceipt.blockNumber}, // Subgraph returns error when not indexed this far.
+                                filter: {blockNumber: transactionReceipt.blockNumber.toString()}, // Only return events for this block.
+                                pagination: {take: Infinity},
+                            })
+                            .catch(retry),
+                    {
+                        minTimeout: 500,
+                        factor: 2,
+                        forever: true,
+                    }
+                ).then((_subgraphEventsQueryResult) => {
+                    dispatch(getSubgraphApiSlice().util.invalidateTags(createGeneralTags({chainId})));
+                    dispatch(
+                        updateTransaction({
+                            id: transactionHash,
+                            changes: {
+                                isSubgraphInSync: true,
+                            },
+                        })
+                    );
+                });
+            })
+            .catch((ethersError: EthersError) => {
+                // Read more:
+                // https://docs.ethers.org/v5/api/providers/types/#providers-TransactionResponse
+                // https://docs.ethers.org/v5/api/utils/logger/#errors--transaction-replaced
+                if (ethersError?.replacement) {
+                    // Mark replaced transaction as replaced.
+                    dispatch(
+                        getTransactionTrackerSlice().actions.updateTransaction({
+                            id: transactionHash,
+                            changes: {
+                                status: 'Replaced',
+                                ethersErrorCode: ethersError.code,
+                                ethersErrorMessage: ethersError.message,
+                            },
+                        })
+                    );
+
+                    // Track the new transaction.
+                    dispatch(
+                        initiateNewTransactionTrackingThunk({
+                            chainId,
+                            transactionResponse: ethersError.replacement,
+                            // Carry over the data from the replaced transaction:
+                            signerAddress: transaction.signerAddress,
+                            title: transaction.title,
+                            extraData: transaction.extraData,
+                        })
+                    );
+                } else {
+                    notifyOfError(ethersError, {chainId, hash: transactionHash}, dispatch);
+                }
             });
-        })
-        .catch((ethersError: EthersError) => {
-            notifyOfError(ethersError, {chainId: arg.chainId, hash: transactionHash}, dispatch);
-        });
-});
+    }
+);
 
 // i.e. monitor for re-orgs...
 const monitorForLateErrors = (

@@ -14,5 +14,5 @@
         "sourceMap": false
     },
     "files": ["hardhat.config.ts"],
-    "include": ["test", "scripts"]
+    "include": ["test", "scripts", "hardhat.config.ts"]
 }

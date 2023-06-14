@@ -68,11 +68,13 @@ describe("CFAv1 | Non-Callback Tests", function () {
         agreementHelper = t.agreementHelper;
     });
 
-    beforeEach(async () => {
+    beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
     });
 
     afterEach(() => {
+        t.afterEachTestCaseBenchmark();
         if (t.plotData.enabled) {
             t.writePlotDataIntoCSVFile(
                 (this.ctx as any).test.title

@@ -5,7 +5,71 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
-### [v1.5.0] - 2022-12-19
+## [v1.7.0] - 2023-06-09
+### Breaking
+- `SuperfluidFrameworkDeployer.sol` refactored, deployment no longer occurs in the constructor
+  - Migration: Create the contract and then use `deployTestFramework` function to execute the deployments
+- `SuperTokenDeployer.sol` removed
+  - Migration: Remove usage of `SuperTokenDeployer` and use the `SuperfluidFrameworkDeployer` to deploy tokens instead
+- `FlowNFTBase.sol` no longer takes `baseURI` in the constructor, it is now a constant value
+  - Migration: Remove `baseURI` from the constructor for `ConstantOutflowNFT` and `ConstantInflowNFT`
+
+### Changed
+- `SuperTokenDeployer.sol` removed in favor of moving the token deployment functions to `SuperfluidFrameworkDeployer.sol`
+- `SuperfluidFrameworkDeployer.sol` also includes functions which allow you to deploy different parts of the protocol (core, agreements, super tokens, etc.) separately and provides helpful custom errors for debugging
+- Use custom error for out of gas condition in `Superfluid.sol`
+
+### Added
+- `increaseFlowRateAllowance` and `decreaseFlowRateAllowance` added to `SuperTokenV1Library.sol`
+- Testing speed benchmarks
+
+### Fixed
+- `SuperTokenFactory.sol` NFT upgrade logic fixed
+- `SuperTokenV1Library.sol` IDA keccak256 hash fixed
+- `deploy-framework.js` script sets CFAv1Forwarder as trusted forwarder
+- `deploy-framework.js` script fixed up for flow NFT contracts
+
+## [v1.6.0] - 2023-04-26
+### Added
+- FlowNFT contracts: `ConstantOutflowNFT`, `ConstantInflowNFT`, `FlowNFTBase` to replace the OG flow NFTs
+- `SuperAppBaseCFA` base contract to simplify CFA SuperApp development
+- `SuperTokenDeployer.sol` for deploying SuperTokens in local testing (split from `SuperfluidFrameworkDeployer.sol`)
+
+### Changed
+- `SuperToken` logic contract takes `ConstantOutflowNFT` and `ConstantInflowNFT` proxy contract addresses
+- `SuperTokenFactory` logic contract takes `ConstantOutflowNFT` and `ConstantInflowNFT` and handles the upgrade logic for the NFTs
+- Utilize internal `_host` in CFA instead of external call to host on the token
+
+## [v1.5.2] - 2023-03-14
+
+### Added
+- bump solc to 0.8.19
+- New ACL functions: `increaseFlowRateAllowance` and `decreaseFlowRateAllowance` in `ConstantFlowAgreementV1.sol`
+- Support for `superToken.increaseAllowance` and `superToken.decreaseAllowance` in `batchCall` in `Superfluid.sol`
+
+### Breaking
+- `BatchLiquidator.deleteFlows` doesn't take host and CFA address as argument anymore. This makes L2 solvency operations considerably cheaper.
+
+### Changed
+- Added `BatchLiquidator.deleteFlow` for cheaper liquidation of singular flows on L2s.
+
+## [v1.5.1] - 2023-02-28
+
+### Added
+- bump solc to 0.8.18
+
+### Breaking
+- `SuperTokenFactory` contract no longer takes `SuperTokenHelper` contract in its constructor
+  - Migration: Pass in a deployed `SuperToken` (logic) contract address to `SuperTokenFactory` constructor instead
+- `runDeployContractsAndToken.js` is renamed to `run-deploy-contracts-and-token.js`
+  - Migration: Replace `runDeployContractsAndToken.js` with `run-deploy-contracts-and-token.js` instead in imports
+- `deployContractsAndToken.js` is renamed to `deploy-contracts-and-token.js`
+  - Migration: Replace `deployContractsAndToken.js` with `deploy-contracts-and-token.js` instead in imports
+
+### Changed
+- `_superTokenLogic` field in `SuperTokenFactory` contract is now a public immutable field and is no longer a storage variable: `_superTokenLogicDeprecated`
+
+## [v1.5.0] - 2022-12-19
 ### Added
 - `batchCall` supports new `send` batch operation
 - Added `downgradeTo` function in `SuperToken.sol`
@@ -22,7 +86,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `upgradeTo` logic changed to revert if `data` is not empty and `to` is a contract and is not a registered ERC777 recipient
 - `MAX_APP_CALLBACK_LEVEL` is public again
 
-### [v1.4.3] - 2022-10-27
+## [v1.4.3] - 2022-10-27
 ### Added
 
 - `createCanonicalERC20Wrapper` added for creating ERC20 Wrapper Super tokens which will be added to a canonical wrapper super token list based on naming convention and semi-upgradeability. This will be the recommended way of creating ERC20 Wrapper moving forward.

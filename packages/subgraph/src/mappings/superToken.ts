@@ -7,6 +7,7 @@ import {
     TokenDowngraded,
     TokenUpgraded,
     Transfer,
+    Approval
 } from "../../generated/templates/SuperToken/ISuperToken";
 import {
     AgreementLiquidatedByEvent,
@@ -31,6 +32,7 @@ import {
     _createAccountTokenSnapshotLogEntity,
     _createTokenStatisticLogEntity,
     getOrInitAccount,
+    getOrInitFlowOperator,
     getOrInitSuperToken,
     getOrInitTokenStatistic,
     updateAggregateEntitiesTransferData,
@@ -446,4 +448,18 @@ function _createTransferEventEntity(event: Transfer): void {
     ev.value = event.params.value;
     ev.token = event.address;
     ev.save();
+}
+
+export function handleApproval(event: Approval): void {
+    // The entity named `FlowOperators` which currently holds all the user access and approval settings will be renamed to `AccessSettings`.
+    const flowOperator = getOrInitFlowOperator(
+        event.block,
+        event.params.spender,
+        event.address,
+        event.params.owner
+    );
+
+    // Approval will trigger for all type - _transferFrom, approve, increaseAllowance, and decreaseAllowance.
+    flowOperator.allowance = event.params.value;
+    flowOperator.save();
 }

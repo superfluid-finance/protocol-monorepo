@@ -81,7 +81,7 @@ if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
 fi
 
 if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantInflowNFT"${CONSTANT_INFLOW_NFT_LOGIC}"
+    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC}"
 fi
 
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
@@ -118,7 +118,6 @@ fi
 
 if [ -n "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
     try_verify SuperToken@"${SUPERFLUID_SUPER_TOKEN_LOGIC}"
-    mv -f build/contracts/SuperToken.json.bak build/contracts/SuperToken.json
 fi
 
 if [ -n "$CFA_LOGIC" ]; then

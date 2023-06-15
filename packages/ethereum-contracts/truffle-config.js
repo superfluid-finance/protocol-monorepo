@@ -112,6 +112,16 @@ function getEnvValue(networkName, key) {
     return values[0];
 }
 
+function getProviderUrlByTemplate(networkName) {
+    if (process.env.PROVIDER_URL_TEMPLATE !== undefined) {
+        if (! process.env.PROVIDER_URL_TEMPLATE.includes("{{NETWORK}}")) {
+            console.error("env var PROVIDER_URL_TEMPLATE has invalid value");
+        } else {
+            return process.env.PROVIDER_URL_TEMPLATE.replace("{{NETWORK}}", networkName);
+        }
+    }
+}
+
 /**
  * Create default network configurations
  *
@@ -126,7 +136,10 @@ function createNetworkDefaultConfiguration(
         provider: () =>
             new HDWalletProvider({
                 mnemonic: getEnvValue(networkName, "MNEMONIC"),
-                url: providerWrapper(getEnvValue(networkName, "PROVIDER_URL")),
+                url: providerWrapper(
+                    getEnvValue(networkName, "PROVIDER_URL") ||
+                    getProviderUrlByTemplate(networkName)
+                ),
                 addressIndex: 0,
                 numberOfAddresses: 10,
                 shareNonce: true,

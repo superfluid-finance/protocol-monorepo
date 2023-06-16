@@ -480,4 +480,22 @@ contract TOGATest is FoundrySuperfluidTester {
 
         assertTrue((bobPreBal + bobBondLeft) == superToken2.balanceOf(bob));
     }
+
+    function testFuzzBondAndExitRate(uint256 bond, int96 exitRate) public {
+        vm.assume(bond > 0);
+        vm.assume(bond < uint256(type(int256).max)); // SuperToken doesn't support the full uint256 range
+        // with small bonds, opening the stream can fail due to CFA deposit having a flow of 1<<32 due to clipping
+        vm.assume(bond > 1<<32 || exitRate == 0);
+
+        vm.assume(exitRate >= 0);
+        // satisfy exitRate constraints of the TOGA
+        vm.assume(exitRate <= toga.getMaxExitRateFor(superToken, bond));
+        // the clipped CFA deposit needs to fit into 64 bits - since that is flowrate multiplied by
+        // liquidation perdion, 14 bits are added for 14400 seconds, so we can't use the full 96 bits
+        vm.assume(exitRate <= (type(int96).max) >> 14);
+
+        deal(address(superToken), alice, uint256(type(int256).max));
+
+        _sendPICBid(alice, superToken, bond, exitRate);
+    }
 }

@@ -152,6 +152,10 @@ const config: HardhatUserConfig = {
             ...createNetworkConfig("eth-sepolia"),
             url: process.env.ETH_SEPOLIA_PROVIDER_URL || "",
         },
+        "base-goerli": {
+            ...createNetworkConfig("base-goerli"),
+            url: process.env.BASE_GOERLI_PROVIDER_URL || "",
+        },
         coverage: {
             url: "http://127.0.0.1:8555",
         },

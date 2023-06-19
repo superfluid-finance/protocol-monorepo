@@ -41,6 +41,15 @@ contract FoundrySuperfluidTester is Test {
     using SafeCast for uint256;
     using SafeCast for int256;
 
+    enum TestSuperTokenType {
+        WRAPPER_SUPER_TOKEN,
+        NATIVE_ASSET_SUPER_TOKEN,
+        PURE_SUPER_TOKEN,
+        CUSTOM_WRAPPER_SUPER_TOKEN,
+        CUSTOM_PURE_SUPER_TOKEN,
+        UNSUPPORTED_TOKEN_TYPE
+    }
+
     struct RealtimeBalance {
         int256 availableBalance;
         uint256 deposit;
@@ -58,7 +67,7 @@ contract FoundrySuperfluidTester is Test {
     error INVALID_TEST_SUPER_TOKEN_TYPE();
 
     SuperfluidFrameworkDeployer internal immutable sfDeployer;
-    int8 internal immutable testSuperTokenType;
+    TestSuperTokenType internal immutable testSuperTokenType;
 
     uint256 internal constant DEFAULT_WARP_TIME = 1 days;
     uint256 internal constant INIT_TOKEN_BALANCE = type(uint128).max;
@@ -135,17 +144,21 @@ contract FoundrySuperfluidTester is Test {
         string memory tokenType = vm.envOr(TOKEN_TYPE_ENV_KEY, DEFAULT_TEST_TOKEN_TYPE);
         bytes32 hashedTokenType = keccak256(abi.encode(tokenType));
 
+        // @note we must use a ternary expression because immutable variables cannot be initialized
+        // in an if statement
         testSuperTokenType = hashedTokenType == keccak256(abi.encode("WRAPPER_SUPER_TOKEN"))
-            ? int8(0)
+            ? TestSuperTokenType.WRAPPER_SUPER_TOKEN
             : hashedTokenType == keccak256(abi.encode("NATIVE_ASSET_SUPER_TOKEN"))
-                ? int8(1)
+                ? TestSuperTokenType.NATIVE_ASSET_SUPER_TOKEN
                 : hashedTokenType == keccak256(abi.encode("PURE_SUPER_TOKEN"))
-                    ? int8(2)
+                    ? TestSuperTokenType.PURE_SUPER_TOKEN
                     : hashedTokenType == keccak256(abi.encode("CUSTOM_WRAPPER_SUPER_TOKEN"))
-                        ? int8(3)
-                        : hashedTokenType == keccak256(abi.encode("CUSTOM_PURE_SUPER_TOKEN")) ? int8(4) : int8(-1);
+                        ? TestSuperTokenType.CUSTOM_WRAPPER_SUPER_TOKEN
+                        : hashedTokenType == keccak256(abi.encode("CUSTOM_PURE_SUPER_TOKEN"))
+                            ? TestSuperTokenType.CUSTOM_PURE_SUPER_TOKEN
+                            : TestSuperTokenType.UNSUPPORTED_TOKEN_TYPE;
 
-        if (testSuperTokenType == -1) revert INVALID_TEST_SUPER_TOKEN_TYPE();
+        if (testSuperTokenType == TestSuperTokenType.UNSUPPORTED_TOKEN_TYPE) revert INVALID_TEST_SUPER_TOKEN_TYPE();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -199,15 +212,17 @@ contract FoundrySuperfluidTester is Test {
 
     /// @notice Deploys a SuperToken based on the testSuperTokenType selected
     function _setUpSuperToken() internal {
-        if (testSuperTokenType == 0) {
+        if (testSuperTokenType == TestSuperTokenType.WRAPPER_SUPER_TOKEN) {
             _setUpWrapperSuperToken();
-        } else if (testSuperTokenType == 1) {
+        } else if (testSuperTokenType == TestSuperTokenType.NATIVE_ASSET_SUPER_TOKEN) {
             _setUpNativeAssetSuperToken();
-        } else if (testSuperTokenType == 2) {
+        } else if (testSuperTokenType == TestSuperTokenType.PURE_SUPER_TOKEN) {
             _setUpPureSuperToken();
-        } else if (testSuperTokenType == 3) {
+
+            // @note TODO these still have to be implemented
+        } else if (testSuperTokenType == TestSuperTokenType.CUSTOM_WRAPPER_SUPER_TOKEN) {
             // _setUpCustomWrapperSuperToken();
-        } else if (testSuperTokenType == 4) {
+        } else if (testSuperTokenType == TestSuperTokenType.CUSTOM_PURE_SUPER_TOKEN) {
             // _setUpCustomPureSuperToken();
         } else {
             revert("invalid test token type");
@@ -318,11 +333,15 @@ contract FoundrySuperfluidTester is Test {
     /// @param superToken_ The SuperToken to get the AUM for
     /// @return uint256 The AUM for the SuperToken
     function _helperGetSuperTokenAum(ISuperToken superToken_) internal view returns (uint256) {
-        return testSuperTokenType == 0
-            ? _helperGetWrapperSuperTokenAUM(superToken_)
-            : testSuperTokenType == 1
-                ? _helperGetNativeAssetSuperTokenAUM(superToken_)
-                : testSuperTokenType == 2 ? _helperGetPureSuperTokenAUM(superToken_) : 0;
+        if (testSuperTokenType == TestSuperTokenType.WRAPPER_SUPER_TOKEN) {
+            return _helperGetWrapperSuperTokenAUM(superToken_);
+        } else if (testSuperTokenType == TestSuperTokenType.NATIVE_ASSET_SUPER_TOKEN) {
+            return _helperGetNativeAssetSuperTokenAUM(superToken_);
+        } else if (testSuperTokenType == TestSuperTokenType.PURE_SUPER_TOKEN) {
+            return _helperGetPureSuperTokenAUM(superToken_);
+        } else {
+            return 0;
+        }
     }
 
     /// @notice Gets the AUM for Wrapper SuperToken's

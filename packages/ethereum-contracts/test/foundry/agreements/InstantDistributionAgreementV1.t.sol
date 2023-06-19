@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import "../FoundrySuperfluidTester.sol";
-import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 
 contract InstantDistributionAgreementV1IntegrationTest is FoundrySuperfluidTester {

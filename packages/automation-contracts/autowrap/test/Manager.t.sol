@@ -1,16 +1,16 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
-import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
-import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
+import { ISuperToken } from "../../../ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import { SuperTokenV1Library } from "../../../ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
 import { Manager } from "./../contracts/Manager.sol";
 import { IManager } from "./../contracts/interfaces/IManager.sol";
 import { WrapStrategy } from "./../contracts/strategies/WrapStrategy.sol";
-import { ISETH } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/tokens/ISETH.sol";
+import { ISETH } from "../../../ethereum-contracts/contracts/interfaces/tokens/ISETH.sol";
 
 /// @title ManagerTests
 contract ManagerTests is FoundrySuperfluidTester {
-    using SuperTokenV1Library for SuperToken;
+    using SuperTokenV1Library for ISuperToken;
 
     event WrapScheduleCreated(
         bytes32 indexed id,

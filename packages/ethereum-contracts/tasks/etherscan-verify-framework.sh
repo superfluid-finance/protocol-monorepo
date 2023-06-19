@@ -19,6 +19,7 @@ case $TRUFFLE_NETWORK in
     optimism-goerli | \
     arbitrum-goerli | \
     avalanche-fuji | \
+    celo-alfajores | \
     base-goerli )
         echo "$TRUFFLE_NETWORK is testnet"
         IS_TESTNET=1

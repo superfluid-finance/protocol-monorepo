@@ -29,7 +29,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-          network: [eth-goerli, eth-sepolia, polygon-mumbai, optimism-goerli, arbitrum-goerli, avalanche-fuji, base-goerli]
+          network: [eth-goerli, eth-sepolia, polygon-mumbai, optimism-goerli, arbitrum-goerli, avalanche-fuji, base-goerli, celo-alfajores]
 
     steps:
       - uses: actions/checkout@v3
@@ -73,3 +73,4 @@ jobs:
           SNOWTRACE_API_KEY: ${{ secrets.SNOWTRACE_API_KEY }}
           OPTIMISTIC_API_KEY: ${{ secrets.OPTIMISTIC_API_KEY }}
           ARBISCAN_API_KEY: ${{ secrets.ARBISCAN_API_KEY }}
+          CELOCAN_API_KEY: ${{ secrets.CELOSCAN_API_KEY }}

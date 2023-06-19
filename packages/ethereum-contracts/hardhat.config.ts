@@ -72,6 +72,7 @@ const chainIds = {
     "bsc-mainnet": 56,
 
     "celo-mainnet": 42220,
+    "celo-alfajores": 44787,
 
     localhost: 31337,
     hardhat: 31337,
@@ -147,6 +148,10 @@ const config: HardhatUserConfig = {
         "celo-mainnet": {
             ...createNetworkConfig("celo-mainnet"),
             url: process.env.CELO_MAINNET_PROVIDER_URL || "",
+        },
+        "celo-alfajores": {
+            ...createNetworkConfig("celo-alfajores"),
+            url: process.env.CELO_ALFAJORES_PROVIDER_URL || "",
         },
         "eth-sepolia": {
             ...createNetworkConfig("eth-sepolia"),

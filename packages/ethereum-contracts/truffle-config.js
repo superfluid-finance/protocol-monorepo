@@ -75,6 +75,7 @@ const ALIASES = {
     "bsc-mainnet": ["bsc"],
 
     "celo-mainnet": ["celo"],
+    "celo-alfajores": ["alfajores"],
 
     "base-goerli": ["bgoerli"],
 
@@ -89,7 +90,7 @@ const ALIASES = {
 
     "bsc-chapel": ["chapel"],
 
-    "celo-alfajores": ["alfajores"],
+    
 };
 
 const DEFAULT_NETWORK_TIMEOUT = 60000;

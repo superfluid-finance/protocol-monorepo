@@ -108,7 +108,12 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         //
         // Celo: https://github.com/celo-org/celo-monorepo#docs
         //
+        // celo mainnet
         42220: getConfigData(42220),
+        // celo alfajores testnet
+        44787: {
+            nativeTokenSymbol: "CELO",
+        },
 
         //
         // Base: https://base.org/
@@ -140,12 +145,6 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         0x03c401: {
             // (artis) tau1 testnet
             resolverAddress: "0x79D426CD219eDCFEB2dCbcf7ea0F8B3642C56F47",
-        },
-
-        // Celo
-        44787: {
-            // celo alfajores testnet
-            nativeTokenSymbol: "CELO",
         },
     };
 

@@ -45,7 +45,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         console.log(`File with tokens to be skipped: ${skipTokensFile}`);
         const chainId = await web3.eth.getChainId();
         const fileContents = JSON.parse(fs.readFileSync(skipTokensFile));
-        skipTokens = fileContents[chainId];
+        skipTokens = fileContents[chainId] || [];
         for (const t of skipTokens) {
             if (!web3.utils.isAddress(t)) {
                 throw new Error(`Invalid address: ${t}`);

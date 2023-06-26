@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { IConstantFlowAgreementHook } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import {
     IConstantFlowAgreementV1,
     ISuperfluidToken
@@ -75,9 +74,6 @@ contract ConstantFlowAgreementV1 is
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
-    // @note this variable is deprecated and no longer used
-    IConstantFlowAgreementHook public immutable constantFlowAgreementHook;
-
     // An arbitrarily chosen safety limit for the external calls to protect against out-of-gas grief exploits.
     // solhint-disable-next-line var-name-mixedcase
     uint64 constant public CFA_HOOK_GAS_LIMIT = 250000;
@@ -108,11 +104,8 @@ contract ConstantFlowAgreementV1 is
 
     // solhint-disable-next-line no-empty-blocks
     constructor(
-        ISuperfluid host,
-        IConstantFlowAgreementHook _hookAddress
-    ) AgreementBase(address(host)) {
-        constantFlowAgreementHook = _hookAddress;
-    }
+        ISuperfluid host
+    ) AgreementBase(address(host)) {}
 
     /**************************************************************************
      * ISuperAgreement interface

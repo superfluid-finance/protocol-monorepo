@@ -13,6 +13,7 @@ const SuperfluidFlowNFTLogicDeployerLibraryArtifact = require("@superfluid-finan
 const SuperfluidPoolNFTLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPoolNFTLogicDeployerLibrary.json");
 const ProxyDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/ProxyDeployerLibrary.json");
 const CFAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/CFAv1ForwarderDeployerLibrary.json");
+const IDAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/IDAv1ForwarderDeployerLibrary.json");
 const SuperfluidLoaderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidLoaderDeployerLibrary.json");
 const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
@@ -183,6 +184,12 @@ const deployTestFramework = async () => {
             CFAv1ForwarderDeployerLibraryArtifact,
             signer
         );
+    const IDAv1ForwarderDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "IDAv1ForwarderDeployerLibrary",
+            IDAv1ForwarderDeployerLibraryArtifact,
+            signer
+        );
     const SuperfluidLoaderDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidLoaderDeployerLibrary",
@@ -223,6 +230,8 @@ const deployTestFramework = async () => {
                 ProxyDeployerLibrary: ProxyDeployerLibrary.address,
                 CFAv1ForwarderDeployerLibrary:
                     CFAv1ForwarderDeployerLibrary.address,
+                IDAv1ForwarderDeployerLibrary:
+                    IDAv1ForwarderDeployerLibrary.address,
                 SuperfluidLoaderDeployerLibrary:
                     SuperfluidLoaderDeployerLibrary.address,
                 TokenDeployerLibrary: TokenDeployerLibrary.address,

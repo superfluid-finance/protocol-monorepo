@@ -106,6 +106,9 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         // Enable the CFAv1Forwarder as a trusted forwarder via Governance
         _enableCFAv1ForwarderAsTrustedForwarder();
 
+        // Enable the IDAv1Forwarder as a trusted forwarder via Governance
+        _enableIDAv1ForwarderAsTrustedForwarder();
+
         // Set TestGovernance, Superfluid, SuperfluidLoader and CFAv1Forwarder addresses in Resolver
         _setAddressesInResolver();
     }
@@ -279,6 +282,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         testResolver.addAdmin(msg.sender);
 
         _deployCFAv1Forwarder();
+        _deployIDAv1Forwarder();
         _deployTOGA(configs.minBondDuration);
 
         if (address(cfaV1) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();

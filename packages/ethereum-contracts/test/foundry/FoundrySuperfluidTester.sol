@@ -916,9 +916,13 @@ contract FoundrySuperfluidTester is Test {
         superToken_.createIndex(indexId);
         vm.stopPrank();
 
-        _assertIndexData(superToken_, publisher, indexId, true, 0, 0, 0);
+        _helperAssertCreateIndex(superToken_, publisher, indexId);
 
         _indexIDs[superToken_][publisher].add(_generatePublisherId(publisher, indexId));
+    }
+
+    function _helperAssertCreateIndex(ISuperToken superToken_, address publisher, uint32 indexId) internal {
+        _assertIndexData(superToken_, publisher, indexId, true, 0, 0, 0);
     }
 
     /// @notice Updates the index value of an index which distributes tokens to subscribers

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
+import { IDAv1Forwarder } from "./IDAv1Forwarder.sol";
 import { ISuperfluid, ISuperfluidToken, Superfluid } from "../superfluid/Superfluid.sol";
 import { TestGovernance } from "./TestGovernance.sol";
 import { ConstantFlowAgreementV1 } from "../agreements/ConstantFlowAgreementV1.sol";
@@ -21,7 +22,6 @@ import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
 import { SuperfluidUpgradeableBeacon } from "../upgradability/SuperfluidUpgradeableBeacon.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
-import { IConstantFlowAgreementHook } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import { BatchLiquidator } from "./BatchLiquidator.sol";
 import { TOGA } from "./TOGA.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
@@ -58,6 +58,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         TestResolver resolver;
         SuperfluidLoader superfluidLoader;
         CFAv1Forwarder cfaV1Forwarder;
+        IDAv1Forwarder idaV1Forwarder;
     }
 
     uint8 private currentStep;
@@ -91,6 +92,7 @@ contract SuperfluidFrameworkDeploymentSteps {
     TestResolver internal testResolver;
     SuperfluidLoader internal superfluidLoader;
     CFAv1Forwarder internal cfaV1Forwarder;
+    IDAv1Forwarder internal idaV1Forwarder;
     BatchLiquidator internal batchLiquidator;
     TOGA internal toga;
 
@@ -132,8 +134,7 @@ contract SuperfluidFrameworkDeploymentSteps {
     }
 
     function _deployCFAv1() internal {
-        cfaV1Logic =
-            SuperfluidCFAv1DeployerLibrary.deployConstantFlowAgreementV1(host, IConstantFlowAgreementHook(address(0)));
+        cfaV1Logic = SuperfluidCFAv1DeployerLibrary.deployConstantFlowAgreementV1(host);
     }
 
     function _deployIDAv1() internal {
@@ -144,7 +145,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         gdaV1Logic = SuperfluidGDAv1DeployerLibrary.deployGeneralDistributionAgreementV1Harness(host);
     }
 
-    function _deployAgreementContracts() internal virtual{
+    function _deployAgreementContracts() internal virtual {
         _deployCFAv1();
         _deployIDAv1();
         _deployGDAv1();
@@ -192,6 +193,19 @@ contract SuperfluidFrameworkDeploymentSteps {
             ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
 
         gdaV1.initialize(superfluidPoolBeacon);
+    }
+
+    function _deployIDAv1Forwarder() internal {
+        idaV1Forwarder = IDAv1ForwarderDeployerLibrary.deployIDAv1Forwarder(host);
+    }
+
+    function _enableIDAv1ForwarderAsTrustedForwarder() internal {
+        testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(idaV1Forwarder));
+    }
+
+    function _deployIDAv1ForwarderAndEnable() internal {
+        _deployIDAv1Forwarder();
+        _enableIDAv1ForwarderAsTrustedForwarder();
     }
 
     function _deployNFTProxyAndLogicAndInitialize() internal {
@@ -332,6 +346,9 @@ contract SuperfluidFrameworkDeploymentSteps {
 
         // Register CFAv1Forwarder with Resolver
         testResolver.set("CFAv1Forwarder", address(cfaV1Forwarder));
+
+        // Register IDAv1Forwarder with Resolver
+        testResolver.set("IDAv1Forwarder", address(idaV1Forwarder));
     }
 
     function _deployBatchLiquidator() internal {
@@ -355,7 +372,8 @@ contract SuperfluidFrameworkDeploymentSteps {
             superTokenFactory: superTokenFactory,
             resolver: testResolver,
             superfluidLoader: superfluidLoader,
-            cfaV1Forwarder: cfaV1Forwarder
+            cfaV1Forwarder: cfaV1Forwarder,
+            idaV1Forwarder: idaV1Forwarder
         });
         return sf;
     }
@@ -386,6 +404,12 @@ contract SuperfluidFrameworkDeploymentSteps {
         } else if (step == 3) {
             // Deploy CFAv1Forwarder
             _deployCFAv1ForwarderAndEnable();
+
+            // Deploy IDAv1Forwarder
+            _deployIDAv1ForwarderAndEnable();
+
+            // Deploy GDAv1Forwarder
+            // TODO
         } else if (step == 4) {
             // Deploy SuperfluidPool
             // Initialize GDA with SuperfluidPool beacon
@@ -483,13 +507,9 @@ library SuperfluidGDAv1DeployerLibrary {
 library SuperfluidCFAv1DeployerLibrary {
     /// @notice deploys ConstantFlowAgreementV1 contract
     /// @param _host address of the Superfluid contract
-    /// @param _cfaHook address of the IConstantFlowAgreementHook contract
     /// @return newly deployed ConstantFlowAgreementV1 contract
-    function deployConstantFlowAgreementV1(ISuperfluid _host, IConstantFlowAgreementHook _cfaHook)
-        external
-        returns (ConstantFlowAgreementV1)
-    {
-        return new ConstantFlowAgreementV1(_host, _cfaHook);
+    function deployConstantFlowAgreementV1(ISuperfluid _host) external returns (ConstantFlowAgreementV1) {
+        return new ConstantFlowAgreementV1(_host);
     }
 }
 
@@ -560,6 +580,15 @@ library CFAv1ForwarderDeployerLibrary {
     /// @return newly deployed CFAv1Forwarder contract
     function deployCFAv1Forwarder(ISuperfluid _host) external returns (CFAv1Forwarder) {
         return new CFAv1Forwarder(_host);
+    }
+}
+
+library IDAv1ForwarderDeployerLibrary {
+    /// @notice deploys the Superfluid IDAv1Forwarder contract
+    /// @param _host Superfluid host address
+    /// @return newly deployed IDAv1Forwarder contract
+    function deployIDAv1Forwarder(ISuperfluid _host) external returns (IDAv1Forwarder) {
+        return new IDAv1Forwarder(_host);
     }
 }
 

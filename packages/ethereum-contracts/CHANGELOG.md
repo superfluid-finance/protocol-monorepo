@@ -4,6 +4,8 @@ All notable changes to the ethereum-contracts will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+### Changed
+- Dual licenses going forward: AGPLv3 for core contracts and MIT for external developers.
 
 ## [v1.7.0] - 2023-06-09
 ### Breaking

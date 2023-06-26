@@ -7,12 +7,16 @@ import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperTokenFactory } from "../interfaces/superfluid/ISuperTokenFactory.sol";
 import { IPoolNFTBase } from "../interfaces/superfluid/IPoolNFTBase.sol";
+import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
 
 abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
     string public constant baseURI = "https://nft.superfluid.finance/pool/v2/getmeta";
 
     /// @notice Superfluid host contract address
     ISuperfluid public immutable HOST;
+
+    /// @notice Superfluid GDAv1 contract address
+    IGeneralDistributionAgreementV1 public immutable GDA;
 
     //// Storage Variables ////
 
@@ -60,6 +64,13 @@ abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
 
     constructor(ISuperfluid host) {
         HOST = host;
+        GDA = IGeneralDistributionAgreementV1(
+            address(
+                ISuperfluid(host).getAgreementClass(
+                    keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
+                )
+            )
+        );
     }
 
     function initialize(string memory nftName, string memory nftSymbol)

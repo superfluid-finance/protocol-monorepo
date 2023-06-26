@@ -68,6 +68,10 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     /// @inheritdoc ISuperfluidPool
     function getTotalUnits() external view override returns (uint128) {
+        return _getTotalUnits();
+    }
+
+    function _getTotalUnits() internal view returns (uint128) {
         return _index.totalUnits;
     }
 
@@ -131,7 +135,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     /// @notice Returns the total number of units for a pool
     function totalSupply() external view override returns (uint256) {
-        return _index.totalUnits;
+        return _getTotalUnits();
     }
 
     /// @inheritdoc ISuperfluidPool
@@ -159,7 +163,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     /// @param account The account to query
     /// @return The total number of owned units of the account
     function balanceOf(address account) external view override returns (uint256) {
-        return uint256(_membersData[account].ownedUnits);
+        return uint256(_getUnits(account));
     }
 
     /// @inheritdoc ISuperfluidPool
@@ -184,7 +188,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     /// @inheritdoc ISuperfluidPool
     function getMemberFlowRate(address memberAddr) external view override returns (int96) {
-        uint128 units = _membersData[memberAddr].ownedUnits;
+        uint128 units = _getUnits(memberAddr);
         if (units == 0) return 0;
         else return (_index.wrappedFlowRate * uint256(units).toInt256()).toInt96();
     }
@@ -326,8 +330,12 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
                 poolMemberNFT.burn(tokenId);
             }
         } else {
+            // if not minted, we mint a new pool member nft
             if (poolMemberNFT.getPoolMemberData(tokenId).member == address(0)) {
                 poolMemberNFT.mint(address(this), memberAddr);
+            // if minted, we update the pool member nft
+            } else {
+                poolMemberNFT.update(tokenId);
             }
         }
 
@@ -369,7 +377,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     // WARNING for operators: it is undefined behavior if member is already connected or disconnected
     function operatorConnectMember(address memberAddr, bool doConnect, uint32 time) external onlyGDA returns (bool) {
         int256 claimedAmount = _claimAll(memberAddr, time);
-        int128 units = uint256(_membersData[memberAddr].ownedUnits).toInt256().toInt128();
+        int128 units = uint256(_getUnits(memberAddr)).toInt256().toInt128();
         if (doConnect) {
             _shiftDisconnectedUnits(Unit.wrap(-units), Value.wrap(claimedAmount), Time.wrap(time));
         } else {

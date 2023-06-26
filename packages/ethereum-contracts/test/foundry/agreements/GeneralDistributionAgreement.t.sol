@@ -575,6 +575,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     ) public {
         vm.assume(uint32(distributionFlowRate) >= minDepositMultiplier);
         vm.assume(distributionFlowRate > 0);
+        vm.assume(member != address(0));
         vm.assume(member != address(pool));
         vm.startPrank(address(sf.governance.owner()));
 
@@ -815,7 +816,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(transferAmount <= unitsAmount);
         _helperUpdateMemberUnits(pool, alice, from, uint128(int128(unitsAmount)));
 
-        _helperTransfer(pool, from, to, uint256(uint128(transferAmount)));
+        _helperPoolUnitsTransfer(pool, from, to, uint256(uint128(transferAmount)));
     }
 
     function testApproveAndTransferFrom(address owner, address spender, int128 transferAmount) public {
@@ -825,7 +826,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(spender != owner);
         _helperUpdateMemberUnits(pool, alice, owner, uint128(int128(transferAmount)));
         _helperApprove(pool, owner, spender, uint256(uint128(transferAmount)));
-        _helperTransferFrom(pool, spender, owner, spender, uint256(uint128(transferAmount)));
+        _helperPoolUnitsTransferFrom(pool, spender, owner, spender, uint256(uint128(transferAmount)));
     }
 
     function testIncreaseAllowanceAndTransferFrom(address owner, address spender, int128 transferAmount) public {
@@ -835,7 +836,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.assume(spender != owner);
         _helperUpdateMemberUnits(pool, alice, owner, uint128(int128(transferAmount)));
         _helperIncreaseAllowance(pool, owner, spender, uint256(uint128(transferAmount)));
-        _helperTransferFrom(pool, spender, owner, spender, uint256(uint128(transferAmount)));
+        _helperPoolUnitsTransferFrom(pool, spender, owner, spender, uint256(uint128(transferAmount)));
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -1057,7 +1058,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         _assertPoolAllowance(_pool, owner, spender, allowanceBefore - subtractedValue);
     }
 
-    function _helperTransfer(ISuperfluidPool _pool, address from, address to, uint256 amount) internal {
+    function _helperPoolUnitsTransfer(ISuperfluidPool _pool, address from, address to, uint256 amount) internal {
         uint256 fromBalanceOfBefore = _pool.balanceOf(from);
         uint256 toBalanceOfBefore = _pool.balanceOf(to);
 
@@ -1067,13 +1068,17 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         uint256 fromBalanceOfAfter = _pool.balanceOf(from);
         uint256 toBalanceOfAfter = _pool.balanceOf(to);
-        assertEq(fromBalanceOfBefore - amount, fromBalanceOfAfter, "_helperTransfer: from balance mismatch");
-        assertEq(toBalanceOfBefore + amount, toBalanceOfAfter, "_helperTransfer: to balance mismatch");
+        assertEq(fromBalanceOfBefore - amount, fromBalanceOfAfter, "_helperPoolUnitsTransfer: from balance mismatch");
+        assertEq(toBalanceOfBefore + amount, toBalanceOfAfter, "_helperPoolUnitsTransfer: to balance mismatch");
     }
 
-    function _helperTransferFrom(ISuperfluidPool _pool, address caller, address from, address to, uint256 amount)
-        internal
-    {
+    function _helperPoolUnitsTransferFrom(
+        ISuperfluidPool _pool,
+        address caller,
+        address from,
+        address to,
+        uint256 amount
+    ) internal {
         uint256 fromBalanceOfBefore = _pool.balanceOf(from);
         uint256 toBalanceOfBefore = _pool.balanceOf(to);
         uint256 allowanceBefore = _pool.allowance(from, caller);
@@ -1085,9 +1090,11 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         uint256 fromBalanceOfAfter = _pool.balanceOf(from);
         uint256 toBalanceOfAfter = _pool.balanceOf(to);
         uint256 allowanceAfter = _pool.allowance(from, caller);
-        assertEq(fromBalanceOfBefore - amount, fromBalanceOfAfter, "_helperTransferFrom: from balance mismatch");
-        assertEq(toBalanceOfBefore + amount, toBalanceOfAfter, "_helperTransferFrom: to balance mismatch");
-        assertEq(allowanceBefore - amount, allowanceAfter, "_helperTransferFrom: allowance mismatch");
+        assertEq(
+            fromBalanceOfBefore - amount, fromBalanceOfAfter, "_helperPoolUnitsTransferFrom: from balance mismatch"
+        );
+        assertEq(toBalanceOfBefore + amount, toBalanceOfAfter, "_helperPoolUnitsTransferFrom: to balance mismatch");
+        assertEq(allowanceBefore - amount, allowanceAfter, "_helperPoolUnitsTransferFrom: allowance mismatch");
     }
 
     /*//////////////////////////////////////////////////////////////////////////

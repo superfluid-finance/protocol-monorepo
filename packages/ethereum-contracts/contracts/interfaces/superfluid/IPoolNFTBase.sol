@@ -9,6 +9,7 @@ interface IPoolNFTBase is IERC721Metadata {
     error POOL_NFT_INVALID_TOKEN_ID();
     error POOL_NFT_APPROVE_TO_CURRENT_OWNER();
     error POOL_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
+    error POOL_NFT_NOT_REGISTERED_POOL();
     error POOL_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
 
     /// @notice Informs third-party platforms that NFT metadata should be updated

@@ -71,7 +71,7 @@ contract FoundrySuperfluidTester is Test {
 
     uint256 internal constant DEFAULT_WARP_TIME = 1 days;
     uint256 internal constant INIT_TOKEN_BALANCE = type(uint128).max;
-    uint256 internal constant INIT_SUPER_TOKEN_BALANCE = type(uint64).max;
+    uint256 internal constant INIT_SUPER_TOKEN_BALANCE = type(uint88).max;
     string internal constant DEFAULT_TEST_TOKEN_TYPE = "WRAPPER_SUPER_TOKEN";
     string internal constant TOKEN_TYPE_ENV_KEY = "TOKEN_TYPE";
 
@@ -318,8 +318,8 @@ contract FoundrySuperfluidTester is Test {
     /// @dev Flow rate must be greater than 0 and less than or equal to int32.max
     function _assumeValidFlowRate(int96 desiredFlowRate) internal pure returns (int96 flowRate) {
         vm.assume(desiredFlowRate > 0);
-        vm.assume(desiredFlowRate <= int96(type(int32).max));
-        flowRate = int96(int32(desiredFlowRate));
+        vm.assume(desiredFlowRate <= int96(uint96(uint256(type(uint64).max))));
+        flowRate = desiredFlowRate;
     }
 
     /*//////////////////////////////////////////////////////////////////////////

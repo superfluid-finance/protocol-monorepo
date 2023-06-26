@@ -6,6 +6,7 @@ import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 import { PoolNFTBase } from "./PoolNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
+import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
 contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
     //// Storage Variables ////
@@ -53,25 +54,48 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
     function _getTokenId(address pool, address member) internal view returns (uint256 tokenId) {
         return uint256(keccak256(abi.encode("PoolMemberNFT", block.chainid, pool, member)));
     }
+
     /// @inheritdoc PoolNFTBase
     function tokenURI(uint256 tokenId) external view override(IERC721Metadata, PoolNFTBase) returns (string memory) {
         return super._tokenURI(tokenId);
     }
 
+    /// @notice Mints `newTokenId` and transfers it to `member`
+    /// @dev `pool` must be a registered pool in the GDA.
+    /// `newTokenId` must not exist, `member` cannot be `address(0)`, `pool` cannot be `address(0)`,
+    /// and `pool` cannot be `member`.
+    /// We emit a {Transfer} event.
+    /// @param pool The pool address
+    /// @param member The member address
     function mint(address pool, address member) external override {
         _mint(pool, member);
     }
 
+    /// @notice Updates token with `tokenId`.
+    /// @dev `tokenId` must exist AND we emit a {MetadataUpdate} event
+    /// @param tokenId the id of the token we are updating metadata for (when we update member units)
+    function update(uint256 tokenId) external {
+        address owner = _ownerOf(tokenId);
+        assert(owner != address(0));
+        PoolMemberNFTData storage data = _poolMemberDataByTokenId[tokenId];
+        data.units = ISuperfluidPool(data.pool).getUnits(data.member);
+
+        _triggerMetadataUpdate(tokenId);
+    }
+
+    /// @notice Destroys token with `tokenId` and clears approvals from previous owner.
+    /// @dev `tokenId` must exist AND we emit a {Transfer} event
+    /// @param tokenId the id of the token we are destroying
     function burn(uint256 tokenId) external override {
         _burn(tokenId);
     }
 
-    /// @notice Mints `newTokenId` and transfers it to `flowSender`
-    /// @dev `newTokenId` must not exist `flowSender` cannot be `address(0)` and we emit a {Transfer} event.
-    /// `flowSender` cannot be equal to `flowReceiver`.
-    /// @param pool The pool address
-    /// @param member The member address
     function _mint(address pool, address member) internal {
+        ISuperfluidToken superToken = ISuperfluidPool(pool).superToken();
+        if (!GDA.isPool(superToken, pool)) {
+            revert POOL_NFT_NOT_REGISTERED_POOL();
+        }
+
         assert(pool != address(0));
         assert(member != address(0));
         assert(pool != member);
@@ -92,9 +116,6 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
         emit Transfer(address(0), member, newTokenId);
     }
 
-    /// @notice Destroys token with `tokenId` and clears approvals from previous owner.
-    /// @dev `tokenId` must exist AND we emit a {Transfer} event
-    /// @param tokenId the id of the token we are destroying
     function _burn(uint256 tokenId) internal override {
         PoolMemberNFTData storage data = _poolMemberDataByTokenId[tokenId];
         if (ISuperfluidPool(data.pool).getUnits(data.member) > 0) {
@@ -102,7 +123,7 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
         }
 
         address owner = _ownerOf(tokenId);
-
+        assert(owner != address(0));
         super._burn(tokenId);
 
         // remove previous tokenId flow data mapping

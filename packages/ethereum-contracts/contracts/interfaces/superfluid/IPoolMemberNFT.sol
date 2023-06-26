@@ -28,6 +28,8 @@ interface IPoolMemberNFT is IPoolNFTBase {
 
     function mint(address pool, address member) external;
 
+    function update(uint256 tokenId) external;
+
     function burn(uint256 tokenId) external;
 
     /// View Functions ///

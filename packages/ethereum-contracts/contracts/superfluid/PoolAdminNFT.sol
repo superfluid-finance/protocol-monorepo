@@ -6,6 +6,7 @@ import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
 import { PoolNFTBase } from "./PoolNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
+import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
 contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
     //// Storage Variables ////
@@ -60,10 +61,15 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
     }
 
     /// @notice Mints `newTokenId` and transfers it to `admin`
-    /// @dev `newTokenId` must not exist, `admin` cannot be `address(0)` and we emit a {Transfer} event.
+    /// @dev `pool` must be a registered pool in the GDA.
+    /// `newTokenId` must not exist, `admin` cannot be `address(0)` and we emit a {Transfer} event.
     /// `admin` cannot be equal to `pool`.
     /// @param pool The pool address
     function _mint(address pool) internal {
+        ISuperfluidToken superToken = ISuperfluidPool(pool).superToken();
+        if (!GDA.isPool(superToken, pool)) {
+            revert POOL_NFT_NOT_REGISTERED_POOL();
+        }
         ISuperfluidPool poolContract = ISuperfluidPool(pool);
         address admin = poolContract.admin();
         assert(pool != admin);

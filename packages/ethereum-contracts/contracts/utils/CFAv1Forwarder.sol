@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity >= 0.8.4;
+pragma solidity 0.8.19;
 
 import {
     ISuperfluid,
@@ -15,7 +15,7 @@ import {
 import { CallUtils } from "../libs/CallUtils.sol";
 
 /**
- * Contract address: 
+ * Contract address:
  * The CFAv1Forwarder contract provides an easy to use interface to
  * ConstantFlowAgreementV1 specific functionality of Super Tokens.
  * Instances of this contract can operate on the protocol only if configured as "trusted forwarder"
@@ -197,7 +197,7 @@ contract CFAv1Forwarder {
         address sender,
         address receiver,
         bytes memory userData
-    ) 
+    )
         external returns (bool)
     {
         return _deleteFlow(token, sender, receiver, userData);

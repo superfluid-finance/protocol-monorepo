@@ -66,6 +66,7 @@ The paths in the npm package are the same as in this repository.
 ### Writing Tests 
 
 For all future tests, we will be using Foundry as the main framework for writing property, integration and invariant tests. 
+Please read this section if you would like to contribute to the test suite.
 
 #### Testing Principles
 
@@ -137,7 +138,8 @@ function testRevertIfDecreaseFlowRateAllowanceAndACLCreateFlow() {
 
 #### Internal Helper Functions
 
-If you are writing a test that requires a helper function, the helper function is prefixed with `_` and uses camelCase and snake case to indicate that it is an internal helper function. For example:
+See [`FoundrySuperfluidTester.sol`](test/foundry/FoundrySuperfluidTester.sol) for examples of commonly used internal helper functions.
+If you are writing a test that requires a helper function, the helper function is prefixed with `_` and uses camelCase to indicate that it is an internal helper function. For example:
 
 ```solidity
 function _assertFlowOperatorData(AssertFlowOperatorData memory data) internal {

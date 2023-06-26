@@ -20,6 +20,14 @@ describe("Miscellaneous for test coverages", () => {
         });
     });
 
+    beforeEach(async function () {
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(() => {
+        t.afterEachTestCaseBenchmark();
+    });
+
     describe("UUPS", () => {
         let UUPSProxyFactory: UUPSProxy__factory;
         let UUPSProxiableMock: UUPSProxiableMock__factory;

@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 
 import {
     IConstantFlowAgreementV1
-} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+} from "../../../ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./interfaces/IERC20Mod.sol";
 import "./interfaces/IManager.sol";
@@ -202,6 +202,8 @@ contract Manager is IManager, Ownable {
         WrapSchedule storage wrap = wrapSchedule[index];
 
         address user = wrap.user;
+
+        if (user == address(0)) revert ZeroAddress();
 
         if (user != msg.sender && wrap.expiry >= block.timestamp)
             revert UnauthorizedCaller(msg.sender, user);

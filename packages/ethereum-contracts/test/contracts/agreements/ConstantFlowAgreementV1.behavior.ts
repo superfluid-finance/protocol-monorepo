@@ -239,7 +239,6 @@ export async function _shouldChangeFlow({
             superfluid = await testenv.sf.contracts.ISuperfluid.at(
                 testenv.contracts.superfluid.address
             );
-            console.log("HENLO", cfa);
             tx = await superfluid.callAgreement(
                 testenv.contracts.cfa.address,
                 cfa.contract.methods[fn](
@@ -289,6 +288,9 @@ export async function _shouldChangeFlow({
 
     // calculate additional expected balance changes per liquidation rules
     if (isDeleteFlow) {
+        const superTokenContract = await testenv.sf.contracts.ISuperToken.at(
+            superToken.address
+        );
         if (isSenderCritical) {
             console.log("validating liquidation rules...");
             // the tx itself may move the balance more
@@ -360,7 +362,7 @@ export async function _shouldChangeFlow({
                 );
                 await expectEvent.inTransaction(
                     tx.tx,
-                    testenv.sf.contracts.ISuperToken,
+                    superTokenContract,
                     "AgreementLiquidatedV2",
                     {
                         agreementClass: testenv.contracts.cfa.address,
@@ -376,12 +378,11 @@ export async function _shouldChangeFlow({
                         liquidationTypeData,
                     }
                 );
-
                 // targetAccount (sender) transferring remaining deposit to
                 // rewardAccount / liquidatorAccount depending on isPatricianPeriod
                 await expectEvent.inTransaction(
                     tx.tx,
-                    testenv.sf.contracts.ISuperToken,
+                    superTokenContract,
                     "Transfer",
                     {
                         from: cfaDataModel.roles.sender,
@@ -437,7 +438,7 @@ export async function _shouldChangeFlow({
                 );
                 await expectEvent.inTransaction(
                     tx.tx,
-                    testenv.sf.contracts.ISuperToken,
+                    superTokenContract,
                     "AgreementLiquidatedV2",
                     {
                         agreementClass: testenv.contracts.cfa.address,
@@ -455,7 +456,7 @@ export async function _shouldChangeFlow({
                 // liquidator (agent)
                 await expectEvent.inTransaction(
                     tx.tx,
-                    testenv.sf.contracts.ISuperToken,
+                    superTokenContract,
                     "Transfer",
                     {
                         from: cfaDataModel.roles.reward,
@@ -467,7 +468,7 @@ export async function _shouldChangeFlow({
                 // reward account bailing out the targetAccount (sender)
                 await expectEvent.inTransaction(
                     tx.tx,
-                    testenv.sf.contracts.ISuperToken,
+                    superTokenContract,
                     "Transfer",
                     {
                         from: cfaDataModel.roles.reward,

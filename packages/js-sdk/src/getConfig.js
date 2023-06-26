@@ -61,6 +61,8 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         1: getConfigData(1),
         // goerli
         5: getConfigData(5),
+        // sepolia
+        11155111: getConfigData(11155111),
 
         //
         // MATIC: https://docs.matic.network/docs/develop/network-details/network/
@@ -107,6 +109,12 @@ Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
         // Celo: https://github.com/celo-org/celo-monorepo#docs
         //
         42220: getConfigData(42220),
+
+        //
+        // Base: https://base.org/
+        //
+        // base goerli testnet
+        84531: getConfigData(84531),
 
         //
         // currently unsupported networks

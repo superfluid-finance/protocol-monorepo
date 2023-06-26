@@ -1,10 +1,1 @@
-{
-    "network": "matic",
-    "hostStartBlock": 11650607,
-    "hostAddress": "0x3E14dC1b13c488a8d5D310918780c983bD5982E7",
-    "cfaAddress": "0x6EeE6060f715257b970700bc2656De21dEdF074C",
-    "idaAddress": "0xB0aABBA4B2783A72C52956CDEF62d438ecA2d7a1",
-    "superTokenFactoryAddress": "0x2C90719f25B10Fc5646c82DA3240C76Fa5BcCF34",
-    "resolverV1Address": "0xE0cc76334405EE8b39213E620587d815967af39C",
-    "nativeAssetSuperTokenAddress": "0x3ad736904e9e65189c3000c7dd2c8ac8bb7cd4e3"
-}
+polygon-mainnet.json

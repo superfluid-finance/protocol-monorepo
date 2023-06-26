@@ -1,4 +1,3 @@
-import { TransactionRequest } from "@ethersproject/abstract-provider";
 import { ethers } from "ethers";
 
 export type BatchOperationType =
@@ -6,6 +5,8 @@ export type BatchOperationType =
     | "ERC20_APPROVE" // 1
     | "ERC20_TRANSFER_FROM" // 2
     | "ERC777_SEND" // 3
+    | "ERC20_INCREASE_ALLOWANCE" // 4
+    | "ERC20_DECREASE_ALLOWANCE" // 5
     | "SUPERTOKEN_UPGRADE" // 101
     | "SUPERTOKEN_DOWNGRADE" // 102
     | "SUPERFLUID_CALL_AGREEMENT" // 201
@@ -53,50 +54,61 @@ export default class Operation {
 
     /**
      * Get the populated transaction by awaiting `populateTransactionPromise`.
-     * @description Note that we need to populate the txn with the signer.
+     * `providerOrSigner` is used for gas estimation if necessary.
      * NOTE: we use the forwarder populated promise if this exists
-     * @returns {Promise<TransactionRequest>}
      */
     getPopulatedTransactionRequest = async (
-        signer: ethers.Signer,
+        providerOrSigner: ethers.providers.Provider | ethers.Signer,
         gasLimitMultiplier = 1.2
-    ): Promise<TransactionRequest> => {
-        const txnToPopulate = this.forwarderPopulatedPromise
+    ): Promise<ethers.PopulatedTransaction> => {
+        const populatedTransaction = this.forwarderPopulatedPromise
             ? await this.forwarderPopulatedPromise
             : await this.populateTransactionPromise;
-        const signerPopulatedTransaction = await signer.populateTransaction(
-            txnToPopulate
-        );
 
         // if gasLimit exists, an Overrides object has been passed or the user has explicitly set
         // a gasLimit for their transaction prior to execution and so we keep it as is else we apply
         // a specified or the default (1.2) multiplier on the gas limit.
-        return txnToPopulate.gasLimit
-            ? txnToPopulate
-            : {
-                  ...signerPopulatedTransaction,
-                  gasLimit:
-                      // @note if gasLimit is null, this function will throw due to
-                      // conversion to BigNumber, so we must round this number
-                      // we can be more conservative by using Math.ceil instead of Math.round
-                      Math.ceil(
-                          Number(
-                              signerPopulatedTransaction.gasLimit?.toString()
-                          ) * gasLimitMultiplier
-                      ),
-              };
+        if (!populatedTransaction.gasLimit) {
+            const estimatedGasLimit = await providerOrSigner.estimateGas(
+                populatedTransaction
+            );
+
+            // NOTE: BigNumber doesn't support multiplication with decimals.
+            const commonDenominator = 100;
+            const multipliedGasLimit =
+                gasLimitMultiplier === 1 // No need to modify estimated gas limit when multiplier is 1.
+                    ? estimatedGasLimit
+                    : estimatedGasLimit
+                          .div(commonDenominator)
+                          .mul(
+                              Math.round(gasLimitMultiplier * commonDenominator)
+                          );
+
+            populatedTransaction.gasLimit = multipliedGasLimit;
+        }
+
+        return populatedTransaction;
     };
     /**
      * Signs the populated transaction via the provided signer (what you intend on sending to the network).
      * @param signer The signer of the transaction
      * @returns {Promise<string>} Fully serialized, signed transaction
      */
-    getSignedTransaction = async (signer: ethers.Signer): Promise<string> => {
+    getSignedTransaction = async (
+        signer: ethers.Signer,
+        gasLimitMultiplier = 1.2
+    ): Promise<string> => {
         const populatedTransaction = await this.getPopulatedTransactionRequest(
-            signer
+            signer,
+            gasLimitMultiplier
         );
-        const signedTxn = await signer.signTransaction(populatedTransaction);
-        return signedTxn;
+        const signerPopulatedTransaction = await signer.populateTransaction(
+            populatedTransaction
+        );
+        const signedTransaction = await signer.signTransaction(
+            signerPopulatedTransaction
+        );
+        return signedTransaction;
     };
 
     /**

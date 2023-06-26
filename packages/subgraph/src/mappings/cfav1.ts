@@ -90,6 +90,7 @@ export function handleFlowUpdated(event: FlowUpdated): void {
     stream.updatedAtTimestamp = currentTimestamp;
     stream.updatedAtBlockNumber = event.block.number;
     stream.deposit = newDeposit;
+    stream.userData = event.params.userData;
     stream.save();
 
     const flowRateDelta = flowRate.minus(oldFlowRate);
@@ -201,7 +202,6 @@ export function handleFlowOperatorUpdated(event: FlowOperatorUpdated): void {
         event.params.token,
         event.params.sender
     );
-
     flowOperator.permissions = event.params.permissions;
     flowOperator.flowRateAllowanceGranted = event.params.flowRateAllowance;
     flowOperator.flowRateAllowanceRemaining = event.params.flowRateAllowance;

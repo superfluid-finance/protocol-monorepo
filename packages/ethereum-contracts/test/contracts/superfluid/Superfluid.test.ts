@@ -14,7 +14,6 @@ import {
     SuperfluidMock,
     SuperToken,
     SuperTokenFactory,
-    SuperTokenFactoryUpdateLogicContractsTester,
     SuperTokenMock,
     TestGovernance,
 } from "../../../typechain-types";
@@ -62,6 +61,11 @@ describe("Superfluid Host Contract", function () {
 
         beforeEach(async function () {
             await t.beforeEachTestCase();
+            t.beforeEachTestCaseBenchmark(this);
+        });
+
+        afterEach(async () => {
+            t.afterEachTestCaseBenchmark();
         });
 
         async function createAgreementMock(type: string, version: number) {
@@ -338,48 +342,9 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#2.5 cannot register more than 256 agreements", async function () {
-                const mocks: string[] = [];
-                mocks.push(t.contracts.cfa.address);
-                mocks.push(t.contracts.ida.address);
-                for (let i = 0; i < 254; ++i) {
-                    process.stdout.write(".");
-                    const typeN = web3.utils.sha3("type." + i)!;
-                    const mock = await createAgreementMock(typeN, 1);
-                    await governance.registerAgreementClass(
-                        superfluid.address,
-                        mock.address
-                    );
-                    mocks.push(await superfluid.getAgreementClass(typeN));
-                }
-                process.stdout.write("\n");
+            // @note previous #2.5 moved to foundry
 
-                const agreements = await superfluid.mapAgreementClasses(
-                    MAX_UINT256
-                );
-                for (let i = 0; i < 256; ++i) {
-                    assert.equal(
-                        agreements[i],
-                        mocks[i],
-                        `agreement no.${i} mismatch`
-                    );
-                }
-
-                const badMock = await createAgreementMock(
-                    web3.utils.sha3("type.bad")!,
-                    1
-                );
-                await expectCustomError(
-                    governance.registerAgreementClass(
-                        superfluid.address,
-                        badMock.address
-                    ),
-                    superfluid,
-                    "HOST_MAX_256_AGREEMENTS"
-                );
-            });
-
-            it("#2.6 agreement must be registered first", async () => {
+            it("#2.5 agreement must be registered first", async () => {
                 const typeA = web3.utils.sha3("typeA")!;
                 const mockA = await createAgreementMock(typeA, 1);
 
@@ -411,7 +376,7 @@ describe("Superfluid Host Contract", function () {
                 );
             });
 
-            it("#2.7 mapAgreementClasses", async () => {
+            it("#2.6 mapAgreementClasses", async () => {
                 const agreements = await superfluid.mapAgreementClasses(1);
                 assert.equal(agreements.length, 1);
                 assert.equal(agreements[0], t.contracts.cfa.address);
@@ -434,18 +399,26 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.2 update super token factory", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
-                const superTokenLogicFactory = await ethers.getContractFactory(
-                    "SuperToken"
-                );
-                const superTokenLogic = await superTokenLogicFactory.deploy(
-                    superfluid.address
+                const {
+                    constantOutflowNFTProxy,
+                    constantInflowNFTProxy,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress,
+                } = await t.deployNFTContracts();
+                const superTokenLogic = await t.deployContract<SuperToken>(
+                    "SuperToken",
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
                 );
                 const factory2LogicFactory = await ethers.getContractFactory(
                     "SuperTokenFactory"
                 );
                 const factory2Logic = await factory2LogicFactory.deploy(
                     superfluid.address,
-                    superTokenLogic.address
+                    superTokenLogic.address,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress
                 );
                 await governance.updateContracts(
                     superfluid.address,
@@ -467,16 +440,27 @@ describe("Superfluid Host Contract", function () {
 
             it("#3.3 update super token factory double check if new code is called", async () => {
                 const factory = await superfluid.getSuperTokenFactory();
+                const {
+                    constantOutflowNFTProxy,
+                    constantInflowNFTProxy,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress,
+                } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
-                    superfluid.address
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
                 );
-                const factory2Logic =
-                    await t.deployContract<SuperTokenFactoryUpdateLogicContractsTester>(
-                        "SuperTokenFactoryUpdateLogicContractsTester",
-                        superfluid.address,
-                        superTokenLogic.address
-                    );
+                const factory2LogicFactory = await ethers.getContractFactory(
+                    "SuperTokenFactoryUpdateLogicContractsTester"
+                );
+                const factory2Logic = await factory2LogicFactory.deploy(
+                    superfluid.address,
+                    superTokenLogic.address,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress
+                );
                 await governance.updateContracts(
                     superfluid.address,
                     ZERO_ADDRESS,
@@ -1389,7 +1373,7 @@ describe("Superfluid Host Contract", function () {
                     );
 
                     // provide less gas
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
                             agreementMockInterface.encodeFunctionData(
@@ -1401,7 +1385,9 @@ describe("Superfluid Host Contract", function () {
                                 gasLimit: Math.ceil(Number(gasLimit) / 2),
                             }
                         ),
-                        "SF: need more gas"
+
+                        superfluid,
+                        "HOST_NEED_MORE_GAS"
                     );
                 });
 
@@ -1438,7 +1424,7 @@ describe("Superfluid Host Contract", function () {
                     );
 
                     // provide less gas
-                    await expectRevertedWith(
+                    await expectCustomError(
                         superfluid.callAgreement(
                             agreement.address,
                             agreementMockInterface.encodeFunctionData(
@@ -1450,7 +1436,8 @@ describe("Superfluid Host Contract", function () {
                                 gasLimit: Math.ceil(Number(gasLimit) / 2),
                             }
                         ),
-                        "SF: need more gas"
+                        superfluid,
+                        "HOST_NEED_MORE_GAS"
                     );
                 });
 
@@ -1524,10 +1511,8 @@ describe("Superfluid Host Contract", function () {
                             ++errorCount;
                         } catch (error: any) {
                             // with error, check error and increase gas
-                            // @note this doesn't currently work with custom errors
-                            // not sure why though
                             assert.isNotNull(
-                                error.message.match("SF: need more gas")
+                                error.message.match("HOST_NEED_MORE_GAS()")
                             );
                             console.debug(
                                 "Caught error, increasing gas with gap",
@@ -2642,14 +2627,24 @@ describe("Superfluid Host Contract", function () {
                     await superfluid.getSuperTokenFactory(),
                     await superfluid.getSuperTokenFactoryLogic()
                 );
+                const {
+                    constantOutflowNFTProxy,
+                    constantInflowNFTProxy,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress,
+                } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperToken>(
                     "SuperToken",
-                    superfluid.address
+                    superfluid.address,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
                 );
                 const factory2Logic = await t.deployContract<SuperTokenFactory>(
                     "SuperTokenFactory",
                     superfluid.address,
-                    superTokenLogic.address
+                    superTokenLogic.address,
+                    cofNFTLogicAddress,
+                    cifNFTLogicAddress
                 );
                 await expectCustomError(
                     governance.updateContracts(

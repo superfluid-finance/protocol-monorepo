@@ -48,6 +48,11 @@ describe("Superfluid Super Upgrader Contract", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     describe("#1 SuperUpgrader Deployment", async () => {

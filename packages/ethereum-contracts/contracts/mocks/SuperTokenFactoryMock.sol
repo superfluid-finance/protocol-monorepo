@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import { SuperTokenMock } from "./SuperTokenMock.sol";
 import {
@@ -9,12 +9,22 @@ import {
     SuperTokenFactoryBase
 } from "../superfluid/SuperTokenFactory.sol";
 
+import { IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+
 contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
     constructor(
         ISuperfluid host,
-        ISuperToken superTokenLogic
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
-        SuperTokenFactoryBase(host, superTokenLogic)
+        SuperTokenFactoryBase(
+            host,
+            superTokenLogic,
+            constantOutflowNFT,
+            constantInflowNFT
+        )
     // solhint-disable-next-line no-empty-blocks
     {
 
@@ -33,12 +43,6 @@ contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
         assembly { slot := _canonicalWrapperSuperTokens.slot offset := _canonicalWrapperSuperTokens.offset }
         require(slot == 1 && offset == 0, "_canonicalWrapperSuperTokens changed location");
     }
-
-    function createSuperTokenLogic(
-        ISuperfluid // host
-    ) external override returns (address) {
-        return address(_SUPER_TOKEN_LOGIC);
-    }
 }
 
 contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
@@ -46,53 +50,56 @@ contract SuperTokenFactoryUpdateLogicContractsTester is SuperTokenFactoryBase {
 
     constructor(
         ISuperfluid host,
-        ISuperToken superTokenLogic
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
-        SuperTokenFactoryBase(host, superTokenLogic)
+        SuperTokenFactoryBase(
+            host,
+            superTokenLogic,
+            constantOutflowNFT,
+            constantInflowNFT
+        )
     // solhint-disable-next-line no-empty-blocks
     {
 
-    }
-
-    function createSuperTokenLogic(
-        ISuperfluid // host
-    ) external override returns (address) {
-        return address(_SUPER_TOKEN_LOGIC);
     }
 }
 
 contract SuperTokenFactoryMock is SuperTokenFactoryBase {
     constructor(
         ISuperfluid host,
-        ISuperToken superTokenLogic
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
-        SuperTokenFactoryBase(host, superTokenLogic)
+        SuperTokenFactoryBase(
+            host,
+            superTokenLogic,
+            constantOutflowNFT,
+            constantInflowNFT
+        )
     // solhint-disable-next-line no-empty-blocks
     {
 
-    }
-
-    function createSuperTokenLogic(
-        ISuperfluid // host
-    ) external override returns (address) {
-        return address(_SUPER_TOKEN_LOGIC);
     }
 }
 
 contract SuperTokenFactoryMock42 is SuperTokenFactoryBase {
     constructor(
         ISuperfluid host,
-        ISuperToken superTokenLogic
+        ISuperToken superTokenLogic,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
-        SuperTokenFactoryBase(host, superTokenLogic)
+        SuperTokenFactoryBase(
+            host,
+            superTokenLogic,
+            constantOutflowNFT,
+            constantInflowNFT
+        )
     // solhint-disable-next-line no-empty-blocks
     {
 
-    }
-
-    function createSuperTokenLogic(
-        ISuperfluid // host
-    ) external override returns (address) {
-        return address(_SUPER_TOKEN_LOGIC);
     }
 }

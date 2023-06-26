@@ -17,6 +17,7 @@ import { alice, bob, maticXAddress, maticXName, maticXSymbol } from "../../const
 import {
     createFlowOperatorUpdatedEvent, getDeposit, modifyFlowAndAssertFlowUpdatedEventProperties,
 } from "../cfav1.helper";
+import {mockedApprove} from "../../mockedFunctions";
 
 const initialFlowRate = BigInt.fromI32(100);
 
@@ -39,7 +40,8 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
             initialFlowRate,    // flowRate
             BIG_INT_ZERO,       // previousSenderFlowRate
             BIG_INT_ZERO,       // previousReceiverFlowRate
-            true                // isListed
+            true,               // isListed,
+            "henlo"             // userData
         );
 
         const id = getStreamID(
@@ -67,14 +69,19 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
         assert.fieldEquals("Stream", id, "token", flowUpdatedEvent.params.token.toHexString());
         assert.fieldEquals("Stream", id, "sender", flowUpdatedEvent.params.sender.toHexString());
         assert.fieldEquals("Stream", id, "receiver", flowUpdatedEvent.params.receiver.toHexString());
+        assert.fieldEquals("Stream", id, "userData", flowUpdatedEvent.params.userData.toHexString());
     });
 
     test("handleFlowOperatorUpdated() - Should create a new FlowOperator entity", () => {
         const superToken = maticXAddress;
         const permissions = 1; // create only
         const flowRateAllowance = BigInt.fromI32(100);
+        const allowance = BigInt.fromI32(0);
         const sender = alice;
         const flowOperator = bob;
+
+        mockedApprove(superToken, sender, flowOperator, allowance);
+        // Mocking is required here since it calls RPC inside getOrInitFlowOperator, when it is null.
 
         const flowOperatorUpdatedEvent = createFlowOperatorUpdatedEvent(
             superToken,
@@ -86,7 +93,6 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
 
         handleFlowOperatorUpdated(flowOperatorUpdatedEvent);
 
-        
         const id = getFlowOperatorID(
             Address.fromString(flowOperator),
             Address.fromString(superToken),
@@ -105,6 +111,7 @@ describe("ConstantFlowAgreementV1 Higher Order Level Entity Unit Tests", () => {
         assert.fieldEquals("FlowOperator", id, "flowRateAllowanceGranted", flowRateAllowance.toString());
         assert.fieldEquals("FlowOperator", id, "flowRateAllowanceRemaining", flowRateAllowance.toString());
         assert.fieldEquals("FlowOperator", id, "flowOperator", flowOperator);
+        assert.fieldEquals("FlowOperator", id, "allowance", allowance.toString());
         assert.fieldEquals("FlowOperator", id, "sender", sender);
         assert.fieldEquals("FlowOperator", id, "token", superToken);
         assert.fieldEquals("FlowOperator", id, "accountTokenSnapshot", atsId);

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
 import {
     ISuperfluid,
@@ -74,26 +74,110 @@ contract SuperTokenLibraryCFAMock {
      * CFA Operations
      *************************************************************************/
 
-    function createFlowTest(ISuperToken token, address receiver, int96 flowRate) public {
+    function createFlowTest(
+        ISuperToken token,
+        address receiver,
+        int96 flowRate
+    ) public {
         token.createFlow(receiver, flowRate);
     }
-    function deleteFlowTest(ISuperToken token, address sender, address receiver) public {
+
+    function createFlowWithUserDataTest(
+        ISuperToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        token.createFlow(receiver, flowRate, userData);
+    }
+
+    function deleteFlowTest(
+        ISuperToken token,
+        address sender,
+        address receiver
+    ) public {
         token.deleteFlow(sender, receiver);
     }
 
-    function updateFlowTest(ISuperToken token, address receiver, int96 flowRate) public {
+    function deleteFlowWithUserDataTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        bytes memory userData
+    ) public {
+        token.deleteFlow(sender, receiver, userData);
+    }
+
+    function updateFlowWithUserDataTest(
+        ISuperToken token,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        token.updateFlow(receiver, flowRate, userData);
+    }
+
+    function updateFlowTest(
+        ISuperToken token,
+        address receiver,
+        int96 flowRate
+    ) public {
         token.updateFlow(receiver, flowRate);
     }
 
-    function createFlowFromTest(ISuperToken token, address sender, address receiver, int96 flowRate) public {
+    function createFlowFromTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int96 flowRate
+    ) public {
         token.createFlowFrom(sender, receiver, flowRate);
     }
-    function deleteFlowFromTest(ISuperToken token, address sender, address receiver) public {
+
+    function createFlowFromWithUserDataTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        token.createFlowFrom(sender, receiver, flowRate, userData);
+    }
+
+    function deleteFlowFromTest(
+        ISuperToken token,
+        address sender,
+        address receiver
+    ) public {
         token.deleteFlowFrom(sender, receiver);
     }
 
-    function updateFlowFromTest(ISuperToken token, address sender, address receiver, int96 flowRate) public {
+    function deleteFlowFromWithUserDataTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        bytes memory userData
+    ) public {
+        token.deleteFlowFrom(sender, receiver, userData);
+    }
+
+    function updateFlowFromTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int96 flowRate
+    ) public {
         token.updateFlowFrom(sender, receiver, flowRate);
+    }
+
+    function updateFlowFromWithUserDataTest(
+        ISuperToken token,
+        address sender,
+        address receiver,
+        int96 flowRate,
+        bytes memory userData
+    ) public {
+        token.updateFlowFrom(sender, receiver, flowRate, userData);
     }
 
     function setFlowPermissionsTest(
@@ -122,6 +206,35 @@ contract SuperTokenLibraryCFAMock {
         token.revokeFlowPermissions(flowOperator);
     }
 
+    function increaseFlowRateAllowanceTest(ISuperToken token, address flowOperator, int96 addedFlowRateAllowance)
+        public
+    {
+        token.increaseFlowRateAllowance(flowOperator, addedFlowRateAllowance);
+    }
+
+    function decreaseFlowRateAllowanceTest(ISuperToken token, address flowOperator, int96 subtractedFlowRateAllowance)
+        public
+    {
+        token.decreaseFlowRateAllowance(flowOperator, subtractedFlowRateAllowance);
+    }
+
+    function increaseFlowRateAllowanceWithUserDataTest(
+        ISuperToken token,
+        address flowOperator,
+        int96 addedFlowRateAllowance,
+        bytes memory userData
+    ) public {
+        token.increaseFlowRateAllowance(flowOperator, addedFlowRateAllowance, userData);
+    }
+
+    function decreaseFlowRateAllowanceWithUserDataTest(
+        ISuperToken token,
+        address flowOperator,
+        int96 subtractedFlowRateAllowance,
+        bytes memory userData
+    ) public {
+        token.decreaseFlowRateAllowance(flowOperator, subtractedFlowRateAllowance, userData);
+    }
 }
 
 contract SuperTokenLibraryIDAMock {

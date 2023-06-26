@@ -3,7 +3,7 @@ import {BigNumber} from "ethers";
 import {ethers, expect} from "hardhat";
 
 import TestEnvironment from "../../TestEnvironment";
-import {expectCustomError, expectRevertedWith} from "../../utils/expectRevert";
+import {expectCustomError} from "../../utils/expectRevert";
 import {toBN} from "../utils/helpers";
 
 import {
@@ -42,19 +42,19 @@ describe("SuperToken's ERC20 compliance", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
+        t.beforeEachTestCaseBenchmark(this);
+    });
+
+    afterEach(async () => {
+        t.afterEachTestCaseBenchmark();
     });
 
     describe("ERC20 compliance", () => {
-        shouldBehaveLikeERC20(
-            "SuperToken",
-            initialSupply,
-            () => ({
-                initialHolder: alice,
-                recipient: bob,
-                anotherAccount: carol,
-            }),
-            t
-        );
+        shouldBehaveLikeERC20("SuperToken", initialSupply, () => ({
+            initialHolder: alice,
+            recipient: bob,
+            anotherAccount: carol,
+        }));
     });
 
     describe("decrease allowance", function () {
@@ -68,10 +68,11 @@ describe("SuperToken's ERC20 compliance", function () {
             function shouldDecreaseApproval(amount: BigNumber) {
                 describe("when there was no approved amount before", function () {
                     it("reverts", async function () {
-                        await expectRevertedWith(
+                        await expect(
                             this.token
                                 .connect(aliceSigner)
-                                .decreaseAllowance(spender, amount),
+                                .decreaseAllowance(spender, amount)
+                        ).to.be.revertedWith(
                             "SuperToken: decreased allowance below zero"
                         );
                     });
@@ -116,13 +117,14 @@ describe("SuperToken's ERC20 compliance", function () {
                     });
 
                     it("reverts when more than the full allowance is removed", async function () {
-                        await expectRevertedWith(
+                        await expect(
                             this.token
                                 .connect(aliceSigner)
                                 .decreaseAllowance(
                                     spender,
                                     approvedAmount.add(1)
-                                ),
+                                )
+                        ).to.be.revertedWith(
                             "SuperToken: decreased allowance below zero"
                         );
                     });
@@ -147,10 +149,11 @@ describe("SuperToken's ERC20 compliance", function () {
             const spender = ZERO_ADDRESS;
 
             it("reverts", async function () {
-                await expectRevertedWith(
+                await expect(
                     this.token
                         .connect(aliceSigner)
-                        .decreaseAllowance(spender, amount),
+                        .decreaseAllowance(spender, amount)
+                ).to.be.revertedWith(
                     "SuperToken: decreased allowance below zero"
                 );
             });
@@ -277,8 +280,7 @@ describe("SuperToken's ERC20 compliance", function () {
             }),
             function (this: any, from: string, to: string, amount: BigNumber) {
                 return this.token.transferInternal(from, to, amount);
-            },
-            t
+            }
         );
 
         describe("when the sender is the zero address", function () {
@@ -311,8 +313,7 @@ describe("SuperToken's ERC20 compliance", function () {
                 amount: BigNumber
             ) {
                 return this.token.approveInternal(owner, spender, amount);
-            },
-            t
+            }
         );
 
         describe("when the owner is the zero address", function () {

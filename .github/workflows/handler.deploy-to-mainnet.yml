@@ -24,16 +24,11 @@ jobs:
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
       DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
-      # testnet web3 providers (leaving for testing)
-      AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
-      # mainnet web3 providers
-      ETH_MAINNET_PROVIDER_URL: ${{ secrets.ETH_MAINNET_PROVIDER_URL }}
-      XDAI_MAINNET_PROVIDER_URL: ${{ secrets.XDAI_MAINNET_PROVIDER_URL }}
-      POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
-      OPTIMISM_MAINNET_PROVIDER_URL: ${{ secrets.OPTIMISM_MAINNET_PROVIDER_URL }}
-      ARBITRUM_ONE_PROVIDER_URL: ${{ secrets.ARBITRUM_ONE_PROVIDER_URL }}
-      AVALANCHE_C_PROVIDER_URL: ${{ secrets.AVALANCHE_C_PROVIDER_URL }}
-      BSC_MAINNET_PROVIDER_URL: ${{ secrets.BSC_MAINNET_PROVIDER_URL }}
+      PROVIDER_URL_TEMPLATE: ${{ secrets.PROVIDER_URL_TEMPLATE }}
+
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -43,11 +38,9 @@ jobs:
           repository: superfluid-finance/build-scripts
           path: build-scripts
 
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 16.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build
         run: |

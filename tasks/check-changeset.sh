@@ -1,16 +1,18 @@
-#!/bin/bash -e
+#!/usr/bin/env bash
+
+set -e
 
 SOURCE_REF=$1
 BASE_REF=$2
 
-echo SOURCE_REF: $SOURCE_REF
-echo BASE_REF: $BASE_REF
+echo "SOURCE_REF: $SOURCE_REF"
+echo "BASE_REF: $BASE_REF"
 
 # fetch the latest commit of the base ref
-git fetch origin --depth=1 refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}
+git fetch origin --depth=1 refs/heads/"${BASE_REF}":refs/remotes/origin/"${BASE_REF}"
 
 # compare the source branch with the dev branch
-git diff --name-only ${SOURCE_REF} refs/remotes/origin/${BASE_REF} > changed-files.list
+git diff --name-only "${SOURCE_REF}" refs/remotes/origin/"${BASE_REF}" > changed-files.list
 echo Changed files:
 echo ---
 cat changed-files.list
@@ -24,12 +26,13 @@ function setBuildAll() {
     BUILD_SPEC_HASKELL=1
     BUILD_SUBGRAPH=1
     BUILD_AUTOMATION_CONTRACTS=1
+    BUILD_SOLIDITY_SEMANTIC_MONEY=1
     echo Everything will be tested.
 }
 
 # set BUILD_* variables to GITHUB_ENV
 # (dependency graph implied below)
-if ! [ -z "$GITHUB_ENV" ];then
+if [ -n "$GITHUB_ENV" ];then
     # if ci workflows changed
     if grep -E "^.github/workflows/ci.*.yml$" changed-files.list;then
         echo "CI workflows changed."
@@ -41,7 +44,7 @@ if ! [ -z "$GITHUB_ENV" ];then
         setBuildAll
     fi
     # if root package.json changed, rebuild everything
-    if grep -E "^package.json$" changed-files.list;then
+    if grep -E "^package.json|yarn.lock$" changed-files.list;then
         echo "Root package.json changed."
         setBuildAll
     fi
@@ -53,7 +56,7 @@ if ! [ -z "$GITHUB_ENV" ];then
         echo Ethereum contracts, HotFuzz and Subgraph will be tested.
     fi
     # if specified hot-fuzz folders and files changed
-    if grep -E "^packages/hot-fuzz/(contracts/|scripts/|*.js|*.yaml|hot-fuzz|package.json)" changed-files.list;then
+    if grep -E "^packages/hot-fuzz/(contracts/|scripts/|.+.js|.+.yaml|hot-fuzz|package.json)" changed-files.list;then
         BUILD_HOT_FUZZ=1
         echo HotFuzz will be tested.
     fi
@@ -79,26 +82,36 @@ if ! [ -z "$GITHUB_ENV" ];then
         BUILD_SPEC_HASKELL=1
         echo SPEC-HASKELL will be tested.
     fi
-    # if specified automation-contracts-scheduler folders and files changed
+    # if specified automation-contracts/scheduler folders and files changed
     if grep -E "^packages/automation-contracts/scheduler/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_AUTOMATION_CONTRACTS=1
         echo Automation Contracts will be tested.
     fi
-    # if specified automation-contracts-autowrap folders and files changed
+    # if specified automation-contracts/autowrap folders and files changed
     if grep -E "^packages/automation-contracts/autowrap/(contracts/|scripts/|test/|truffle-config.js|package.json)" changed-files.list;then
         BUILD_AUTOMATION_CONTRACTS=1
         echo Automation Contracts will be tested.
     fi
-
-    echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}" >> $GITHUB_ENV
-    echo "BUILD_HOT_FUZZ=${BUILD_HOT_FUZZ}" >> $GITHUB_ENV
-    echo "BUILD_SDK_CORE=${BUILD_SDK_CORE}" >> $GITHUB_ENV
-    echo "BUILD_SDK_REDUX=${BUILD_SDK_REDUX}" >> $GITHUB_ENV
-    echo "BUILD_SUBGRAPH=${BUILD_SUBGRAPH}" >> $GITHUB_ENV
-    echo "BUILD_SPEC_HASKELL=${BUILD_SPEC_HASKELL}" >> $GITHUB_ENV
-    echo "BUILD_AUTOMATION_CONTRACTS=${BUILD_AUTOMATION_CONTRACTS}" >> $GITHUB_ENV
-    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ];then
-        echo PR packages will be published.
-        echo "PUBLISH_PR_ARTIFACT=1" >> $GITHUB_ENV
+    # if specified solidity-semantic-money folders and files changed
+    if grep -E "^packages/solidity-semantic-money/(src/|test/|foundry.toml|Makefile|package.json)" changed-files.list;then
+        BUILD_SOLIDITY_SEMANTIC_MONEY=1
+        echo Solidity semantic money will be tested.
     fi
+
+    if [ "$BUILD_ETHEREUM_CONTRACTS" == 1 ] || [ "$BUILD_SDK_CORE" == 1 ] || [ "$BUILD_SDK_REDUX" == 1 ];then
+        echo "PR packages will be published."
+        PUBLISH_PR_ARTIFACT=1
+    fi
+
+    {
+        echo "BUILD_ETHEREUM_CONTRACTS=${BUILD_ETHEREUM_CONTRACTS}"
+        echo "BUILD_HOT_FUZZ=${BUILD_HOT_FUZZ}"
+        echo "BUILD_SDK_CORE=${BUILD_SDK_CORE}"
+        echo "BUILD_SDK_REDUX=${BUILD_SDK_REDUX}"
+        echo "BUILD_SUBGRAPH=${BUILD_SUBGRAPH}"
+        echo "BUILD_SPEC_HASKELL=${BUILD_SPEC_HASKELL}"
+        echo "BUILD_AUTOMATION_CONTRACTS=${BUILD_AUTOMATION_CONTRACTS}"
+        echo "BUILD_SOLIDITY_SEMANTIC_MONEY=${BUILD_SOLIDITY_SEMANTIC_MONEY}"
+        echo "PUBLISH_PR_ARTIFACT=${PUBLISH_PR_ARTIFACT}"
+    } >> "$GITHUB_ENV"
 fi

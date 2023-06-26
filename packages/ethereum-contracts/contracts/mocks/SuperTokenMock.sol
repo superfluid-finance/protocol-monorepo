@@ -1,19 +1,26 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
 
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     ISuperfluid,
     ISuperAgreement,
     SuperToken
 } from "../superfluid/SuperToken.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 
 contract SuperTokenStorageLayoutTester is SuperToken {
 
-    constructor(ISuperfluid host)
-        SuperToken(host)
-    // solhint-disable-next-line no-empty-blocks
-    {
-    }
+    constructor(
+        ISuperfluid host,
+        IConstantOutflowNFT constantOutflowNFTProxy,
+        IConstantInflowNFT constantInflowNFTProxy
+    )
+        SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy) // solhint-disable-next-line no-empty-blocks
+    {}
 
     // @dev Make sure the storage layout never change over the course of the development
     function validateStorageLayout() external pure {
@@ -76,9 +83,12 @@ contract SuperTokenMock is SuperToken {
 
     uint256 immutable public waterMark;
 
-    constructor(ISuperfluid host, uint256 w)
-        SuperToken(host)
-    {
+    constructor(
+        ISuperfluid host,
+        uint256 w,
+        IConstantOutflowNFT constantOutflowNFTProxy,
+        IConstantInflowNFT constantInflowNFTProxy
+    ) SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy) {
         waterMark = w;
     }
 
@@ -109,5 +119,4 @@ contract SuperTokenMock is SuperToken {
         // set requireReceptionAck to true always
         _mint(msg.sender, to, amount, true, userData, operatorData);
     }
-
 }

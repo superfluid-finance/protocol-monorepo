@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.18;
+pragma solidity 0.8.19;
+
+// solhint-disable max-states-count
+// Notes: SuperToken is rich with states, disable this default rule here.
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {
     ISuperfluid,
     ISuperfluidGovernance,
@@ -13,15 +16,18 @@ import {
     TokenInfo
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
-
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
-
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -41,6 +47,12 @@ contract SuperToken is
     using SafeERC20 for IERC20;
 
     uint8 constant private _STANDARD_DECIMALS = 18;
+
+    // solhint-disable-next-line var-name-mixedcase
+    IConstantOutflowNFT immutable public CONSTANT_OUTFLOW_NFT;
+    
+    // solhint-disable-next-line var-name-mixedcase
+    IConstantInflowNFT immutable public CONSTANT_INFLOW_NFT;
 
     /* WARNING: NEVER RE-ORDER VARIABLES! Including the base contracts.
        Always double-check that new
@@ -82,22 +94,39 @@ contract SuperToken is
     uint256 private _reserve29;
     uint256 private _reserve30;
     uint256 internal _reserve31;
+    
+    // NOTE: You cannot add more storage here. Refer to CustomSuperTokenBase.sol
+    // to see the hard-coded storage padding used by SETH and PureSuperToken
 
     constructor(
-        ISuperfluid host
+        ISuperfluid host,
+        IConstantOutflowNFT constantOutflowNFT,
+        IConstantInflowNFT constantInflowNFT
     )
         SuperfluidToken(host)
         // solhint-disable-next-line no-empty-blocks
     {
+        // @note This constructor is only run for the initial
+        // deployment of the logic contract.
+
+        // set the immutable canonical NFT proxy addresses
+        CONSTANT_OUTFLOW_NFT = constantOutflowNFT;
+        CONSTANT_INFLOW_NFT = constantInflowNFT;
+
+        emit ConstantOutflowNFTCreated(constantOutflowNFT);
+        emit ConstantInflowNFTCreated(constantInflowNFT);
     }
 
+    
+    /// @dev Initialize the Super Token proxy
     function initialize(
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,
         string calldata s
     )
-        external override
+        external
+        override
         initializer // OpenZeppelin Initializable
     {
         _underlyingToken = underlyingToken;
@@ -120,6 +149,18 @@ contract SuperToken is
     function updateCode(address newAddress) external override {
         if (msg.sender != address(_host)) revert SUPER_TOKEN_ONLY_HOST();
         UUPSProxiable._updateCodeAddress(newAddress);
+
+        // @note This is another check to ensure that when updating to a new SuperToken logic contract
+        // that we have passed the correct NFT proxy contracts in the construction of the new SuperToken
+        // logic contract
+        if (
+            CONSTANT_OUTFLOW_NFT !=
+            SuperToken(newAddress).CONSTANT_OUTFLOW_NFT() ||
+            CONSTANT_INFLOW_NFT !=
+            SuperToken(newAddress).CONSTANT_INFLOW_NFT()
+        ) {
+            revert SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED();
+        }
     }
 
     /**************************************************************************
@@ -674,6 +715,29 @@ contract SuperToken is
         onlyHost
     {
         _approve(account, spender, amount);
+    }
+
+    function operationIncreaseAllowance(
+        address account,
+        address spender,
+        uint256 addedValue
+    )
+        external override
+        onlyHost
+    {
+        _approve(account, spender, _allowances[account][spender] + addedValue);
+    }
+
+    function operationDecreaseAllowance(
+        address account,
+        address spender,
+        uint256 subtractedValue
+    ) 
+        external override
+        onlyHost
+    {
+        _approve(account, spender, _allowances[account][spender].sub(subtractedValue,
+            "SuperToken: decreased allowance below zero"));
     }
 
     function operationTransferFrom(

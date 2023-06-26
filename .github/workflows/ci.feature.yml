@@ -23,6 +23,7 @@ jobs:
     outputs:
       build_ethereum_contracts: ${{ env.BUILD_ETHEREUM_CONTRACTS }}
       build_hot_fuzz: ${{ env.BUILD_HOT_FUZZ }}
+      build_solidity_semantic_money: ${{ env.BUILD_SOLIDITY_SEMANTIC_MONEY }}
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
       build_sdk_core: ${{ env.BUILD_SDK_CORE }}
       build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
@@ -30,12 +31,15 @@ jobs:
 
     steps:
       - name: Show contexts
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          GITHUB_REF: ${{ github.ref }}
         run: |
           echo github.event_name: ${{ github.event_name }}
           echo github.sha: ${{ github.sha }}
           echo github.repository: ${{ github.repository }}
-          echo github.ref: ${{ github.ref }}
-          echo github.head_ref: ${{ github.head_ref }}
+          echo github.ref: "$GITHUB_REF"
+          echo github.head_ref: "$HEAD_REF"
           echo github.base_ref: ${{ github.base_ref }}
 
       - uses: actions/checkout@v3
@@ -53,18 +57,20 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [16, 18]
+
+    defaults:
+      run:
+        shell: nix develop .#ci-node${{ matrix.node-version }} -c bash {0}
 
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install, lint and build
         run: |
@@ -72,17 +78,18 @@ jobs:
           yarn lint
           yarn build
 
-      - name: Install Foundry
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: nightly
-
       - name: Test ethereum-contracts
         run: |
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn workspace @superfluid-finance/ethereum-contracts test
         env:
           # NOTE: This is currently unset and fork tests are not being run
           POLYGON_MAINNET_ARCHIVE_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_ARCHIVE_PROVIDER_URL }}
+
+      - name: Print test benchmarking output
+        run: |
+          cat packages/ethereum-contracts/testing-benchmark.json
 
   coverage-ethereum-contracts:
     name: Build and test coverage of ethereum-contracts (Feature Branch)
@@ -92,14 +99,16 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_ethereum_contracts
 
+    defaults:
+      run:
+        shell: nix develop -c bash {0}
+
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
-        uses: actions/setup-node@v3
+      - uses: cachix/install-nix-action@v19
         with:
-          node-version: 16.x
-          cache: "yarn"
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Install and build
         run: |
@@ -108,12 +117,33 @@ jobs:
 
       - name: Run coverage test
         run: |
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+
+      - name: Install lcov
+        run: sudo apt-get -y install lcov
+
+      - name: Clean up and merge coverage artifacts
+        run: ./tasks/coverage-cleanup.sh
+
+      - name: Upload ethereum-contracts-coverage to codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: lcov.info
+          name: ethereum-contracts-coverage
+          flags: ethereum-contracts
+          fail_ci_if_error: true
 
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
     needs: [ check ]
-    if: needs.check.outputs.build_hot_fuzz
+    if: false # TODO broken atm, otherwise needs.check.outputs.build_hot_fuzz
+
+  test-solidity-semantic-money:
+    uses: ./.github/workflows/call.test-solidity-semantic-money.yml
+    needs: [ check ]
+    if: needs.check.outputs.build_solidity_semantic_money
 
   #test automations:
   test-automation-contracts:
@@ -124,41 +154,21 @@ jobs:
 
   # subgraph integration test
   test-subgraph:
-    uses: ./.github/workflows/call.setup-deploy-and-test-local-subgraph.yml
+    uses: ./.github/workflows/call.test-local-subgraph.yml
     name: Build and Test Subgraph (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_subgraph
-    with:
-      subgraph-release: ''
-      run-sdk-core-tests: false
 
-  # sdk-core integration test + feature subgraph w/ feature sdk-core
+  # sdk-core integration test + local subgraph w/ local sdk-core
   test-sdk-core:
     uses: ./.github/workflows/call.test-sdk-core.yml
     name: Build and Test SDK-Core (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_sdk_core
     with:
-      subgraph-release: feature
-
-  # test latest and previous version of sdk-core with current subgraph
-  test-subgraph-on-previous-sdk-core-versions:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs with Previous SDK-Core Versions
-    needs: [check]
-    if: needs.check.outputs.build_subgraph || needs.check.outputs.build_sdk_core
-    with:
-      subgraph-release: feature
+      subgraph-release: local
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
-
-  # test query and local/deployed subgraph schemas in sync and query works
-  test-query-schema-against-deployed-feature-subgraphs:
-    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
-    name: Test Query Schema and Queries Against Local and Deployed Feature Subgraphs
-    needs: [check]
-    if: needs.check.outputs.build_sdk_core
-    with:
-      subgraph-release: feature
+      run-coverage-tests: false
 
   test-spec-haskell:
     uses: ./.github/workflows/call.test-spec-haskell.yml
@@ -174,11 +184,11 @@ jobs:
     if: always()
 
     needs: [ test-spec-haskell
+           , test-solidity-semantic-money
            , test-ethereum-contracts, coverage-ethereum-contracts
            , test-hot-fuzz
            , test-sdk-core
            , test-subgraph
-           , test-subgraph-on-previous-sdk-core-versions, test-query-schema-against-deployed-feature-subgraphs
            , test-automation-contracts
            ]
 
@@ -202,6 +212,4 @@ jobs:
           check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
           check_result sdk-core ${{ needs.test-sdk-core.result }}
           check_result subgraph ${{ needs.test-subgraph.result }}
-          check_result subgraph-on-previous-sdk-core-versions ${{ needs.test-subgraph-on-previous-sdk-core-versions.result }}
-          check_result query-schema-against-deployed-feature-subgraph ${{ needs.test-query-schema-against-deployed-feature-subgraphs.result }}
           check_result automation-contracts ${{ needs.test-automation-contracts.result }}

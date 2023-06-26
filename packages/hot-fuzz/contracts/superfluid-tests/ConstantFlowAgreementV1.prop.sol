@@ -7,7 +7,7 @@ import "../HotFuzzBase.sol";
 
 contract ConstantFlowAgreementV1Mock is ConstantFlowAgreementV1 {
     // solhint-disable-next-line no-empty-blocks
-    constructor() ConstantFlowAgreementV1(ISuperfluid(address(0)), IConstantFlowAgreementHook(address(0))) {}
+    constructor() ConstantFlowAgreementV1(ISuperfluid(address(0))) {}
 
     function getMaximumFlowRateFromDepositPure(
         uint256 liquidationPeriod,

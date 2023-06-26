@@ -160,6 +160,24 @@ library BatchOperation {
      */
     uint32 constant internal OPERATION_TYPE_ERC777_SEND = 3;
     /**
+     * @dev ERC20.increaseAllowance batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationIncreaseAllowance(
+     *     abi.decode(data, (address account, address spender, uint256 addedValue))
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE = 4;
+    /**
+     * @dev ERC20.decreaseAllowance batch operation type
+     *
+     * Call spec:
+     * ISuperToken(target).operationDecreaseAllowance(
+     *     abi.decode(data, (address account, address spender, uint256 subtractedValue))
+     * )
+     */
+    uint32 constant internal OPERATION_TYPE_ERC20_DECREASE_ALLOWANCE = 5;
+    /**
      * @dev SuperToken.upgrade batch operation type
      *
      * Call spec:
@@ -218,20 +236,25 @@ library SuperfluidGovernanceConfigs {
             forwarder));
     }
 
-    function getAppRegistrationConfigKey(address deployer, string memory registrationKey) internal pure returns (bytes32) {
+    function getAppRegistrationConfigKey(address deployer, string memory registrationKey) internal pure
+        returns (bytes32)
+    {
         return keccak256(abi.encode(
             "org.superfluid-finance.superfluid.appWhiteListing.registrationKey",
             deployer,
             registrationKey));
     }
 
-    function getAppFactoryConfigKey(address factory) internal pure returns (bytes32) {
+    function getAppFactoryConfigKey(address factory) internal pure returns (bytes32)
+    {
         return keccak256(abi.encode(
             "org.superfluid-finance.superfluid.appWhiteListing.factory",
             factory));
     }
 
-    function decodePPPConfig(uint256 pppConfig) internal pure returns (uint256 liquidationPeriod, uint256 patricianPeriod) {
+    function decodePPPConfig(uint256 pppConfig) internal pure
+        returns (uint256 liquidationPeriod, uint256 patricianPeriod)
+    {
         liquidationPeriod = (pppConfig >> 32) & type(uint32).max;
         patricianPeriod = pppConfig & type(uint32).max;
     }

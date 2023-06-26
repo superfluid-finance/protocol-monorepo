@@ -3,7 +3,7 @@ name:          superfluid-protocol-system-simple
 version:       0.0.1.0
 license:       MIT
 maintainer:    miao@superfluid.finance
-author:        Miao ZhiCheng
+author:        Miao, ZhiCheng
 tested-with:   ghc ==9.2.4, ghc ==9.4.4
 homepage:      https://www.superfluid.finance/
 synopsis:      Superfluid protocol simple system instances.
@@ -36,7 +36,7 @@ library
         bytestring,
         superfluid-protocol-spec-core ==0.0.1.0
 
-test-suite tests
+test-suite superfluid-protocol-system-simple-test-suite
     type:             exitcode-stdio-1.0
     main-is:          Tests.hs
     hs-source-dirs:   test

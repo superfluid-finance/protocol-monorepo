@@ -56,6 +56,7 @@ try {
 const ALIASES = {
     "eth-mainnet": ["mainnet"],
     "eth-goerli": ["goerli"],
+    "eth-sepolia": ["sepolia"],
 
     "xdai-mainnet": ["xdai"],
 
@@ -75,7 +76,12 @@ const ALIASES = {
 
     "celo-mainnet": ["celo"],
 
+    "base-goerli": ["bgoerli"],
+      
     "polygon-zkevm": ["zkevm"],
+
+    // wildcard for any network
+    "any": ["any"],
 
     // currently unsupported
     //
@@ -108,6 +114,16 @@ function getEnvValue(networkName, key) {
     return values[0];
 }
 
+function getProviderUrlByTemplate(networkName) {
+    if (process.env.PROVIDER_URL_TEMPLATE !== undefined) {
+        if (! process.env.PROVIDER_URL_TEMPLATE.includes("{{NETWORK}}")) {
+            console.error("env var PROVIDER_URL_TEMPLATE has invalid value");
+        } else {
+            return process.env.PROVIDER_URL_TEMPLATE.replace("{{NETWORK}}", networkName);
+        }
+    }
+}
+
 /**
  * Create default network configurations
  *
@@ -122,7 +138,10 @@ function createNetworkDefaultConfiguration(
         provider: () =>
             new HDWalletProvider({
                 mnemonic: getEnvValue(networkName, "MNEMONIC"),
-                url: providerWrapper(getEnvValue(networkName, "PROVIDER_URL")),
+                url: providerWrapper(
+                    getEnvValue(networkName, "PROVIDER_URL") ||
+                    getProviderUrlByTemplate(networkName)
+                ),
                 addressIndex: 0,
                 numberOfAddresses: 10,
                 shareNonce: true,
@@ -173,6 +192,15 @@ const E = (module.exports = {
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
+
+        "eth-sepolia": {
+            ...createNetworkDefaultConfiguration("eth-sepolia"),
+            network_id: 11155111,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
 
         //
         // Polygon: https://docs.polygon.technology/docs/develop/network-details/network/
@@ -321,9 +349,28 @@ const E = (module.exports = {
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
+        //
+        // Base: https://base.org/
+        //
+        "base-goerli": {
+            ...createNetworkDefaultConfiguration("base-goerli"),
+            network_id: 84531,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+          
         "polygon-zkevm": {
             ...createNetworkDefaultConfiguration("polygon-zkevm"),
             network_id: 1442,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
+        "any": {
+            ...createNetworkDefaultConfiguration("any"),
+            network_id: "*",
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
@@ -399,7 +446,7 @@ const E = (module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.8.18", // Fetch exact version from solc-bin (default: truffle's version)
+            version: "0.8.19", // Fetch exact version from solc-bin (default: truffle's version)
             settings: {
                 // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {

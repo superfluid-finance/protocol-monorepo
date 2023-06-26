@@ -17,7 +17,6 @@ import { ISuperToken, SuperToken } from "../superfluid/SuperToken.sol";
 import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
-import { IConstantFlowAgreementHook } from "../interfaces/agreements/IConstantFlowAgreementHook.sol";
 import { BatchLiquidator } from "./BatchLiquidator.sol";
 import { TOGA } from "./TOGA.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
@@ -124,7 +123,7 @@ contract SuperfluidFrameworkDeploymentSteps {
 
     function _deployCFAv1() internal {
         cfaV1Logic =
-            SuperfluidCFAv1DeployerLibrary.deployConstantFlowAgreementV1(host, IConstantFlowAgreementHook(address(0)));
+            SuperfluidCFAv1DeployerLibrary.deployConstantFlowAgreementV1(host);
     }
 
     function _deployIDAv1() internal {
@@ -425,13 +424,12 @@ library SuperfluidIDAv1DeployerLibrary {
 library SuperfluidCFAv1DeployerLibrary {
     /// @notice deploys ConstantFlowAgreementV1 contract
     /// @param _host address of the Superfluid contract
-    /// @param _cfaHook address of the IConstantFlowAgreementHook contract
     /// @return newly deployed ConstantFlowAgreementV1 contract
-    function deployConstantFlowAgreementV1(ISuperfluid _host, IConstantFlowAgreementHook _cfaHook)
+    function deployConstantFlowAgreementV1(ISuperfluid _host)
         external
         returns (ConstantFlowAgreementV1)
     {
-        return new ConstantFlowAgreementV1(_host, _cfaHook);
+        return new ConstantFlowAgreementV1(_host);
     }
 }
 

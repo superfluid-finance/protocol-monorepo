@@ -8,7 +8,7 @@
         "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
         "directory": "packages/ethereum-contracts"
     },
-    "license": "AGPL-3.0",
+    "license": "(AGPLv3 OR MIT)",
     "files": [
         "/contracts/**/*",
         "!/contracts/mocks/*",

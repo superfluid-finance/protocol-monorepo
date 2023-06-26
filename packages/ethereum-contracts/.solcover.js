@@ -10,6 +10,7 @@ module.exports = {
         // we override the functions in child contracts
         "apps/SuperAppBase.sol",
         "apps/SuperAppBaseCFA.sol",
+        "apps/SuperfluidLoaderLibrary.sol",
 
         // we skip the coverage for these contracts because they are
         // only used for testing

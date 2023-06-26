@@ -76,6 +76,8 @@ const ALIASES = {
 
     "celo-mainnet": ["celo"],
 
+    "base-goerli": ["bgoerli"],
+
     // wildcard for any network
     "any": ["any"],
 
@@ -110,6 +112,16 @@ function getEnvValue(networkName, key) {
     return values[0];
 }
 
+function getProviderUrlByTemplate(networkName) {
+    if (process.env.PROVIDER_URL_TEMPLATE !== undefined) {
+        if (! process.env.PROVIDER_URL_TEMPLATE.includes("{{NETWORK}}")) {
+            console.error("env var PROVIDER_URL_TEMPLATE has invalid value");
+        } else {
+            return process.env.PROVIDER_URL_TEMPLATE.replace("{{NETWORK}}", networkName);
+        }
+    }
+}
+
 /**
  * Create default network configurations
  *
@@ -124,7 +136,10 @@ function createNetworkDefaultConfiguration(
         provider: () =>
             new HDWalletProvider({
                 mnemonic: getEnvValue(networkName, "MNEMONIC"),
-                url: providerWrapper(getEnvValue(networkName, "PROVIDER_URL")),
+                url: providerWrapper(
+                    getEnvValue(networkName, "PROVIDER_URL") ||
+                    getProviderUrlByTemplate(networkName)
+                ),
                 addressIndex: 0,
                 numberOfAddresses: 10,
                 shareNonce: true,
@@ -327,6 +342,17 @@ const E = (module.exports = {
         "celo-alfajores": {
             ...createNetworkDefaultConfiguration("celo-alfajores"),
             network_id: 44787,
+            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
+        //
+        // Base: https://base.org/
+        //
+        "base-goerli": {
+            ...createNetworkDefaultConfiguration("base-goerli"),
+            network_id: 84531,
             timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
             skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
             networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,

@@ -18,7 +18,8 @@ case $TRUFFLE_NETWORK in
     polygon-mumbai | \
     optimism-goerli | \
     arbitrum-goerli | \
-    avalanche-fuji )
+    avalanche-fuji | \
+    base-goerli )
         echo "$TRUFFLE_NETWORK is testnet"
         IS_TESTNET=1
         ;;
@@ -133,7 +134,6 @@ fi
 
 if [ -n "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
     try_verify SuperToken@"${SUPERFLUID_SUPER_TOKEN_LOGIC}"
-    mv -f build/contracts/SuperToken.json.bak build/contracts/SuperToken.json
 fi
 
 if [ -n "$CFA_LOGIC" ]; then

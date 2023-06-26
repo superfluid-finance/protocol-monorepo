@@ -256,6 +256,17 @@ module.exports = function getConfig(chainId) {
                 getLogsRange: 50000,
             },
         },
+
+        //
+        // Base: https://base.org/
+        //
+        84531: {
+            // base testnet (goerli)
+            data: {
+                initialBlockNumber: 5249500,
+                getLogsRange: 50000,
+            },
+        },
     };
 
     return {

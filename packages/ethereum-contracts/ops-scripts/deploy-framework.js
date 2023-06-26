@@ -1047,7 +1047,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                             ConstantOutflowNFT,
                             "ConstantOutflowNFT",
                             "CONSTANT_OUTFLOW_NFT",
-                            [superfluid.address, constantInflowNFTProxy.address]
+                            [superfluid.address, cifNFTProxyAddress]
                         );
                         // @note we set the cofNFTLogicAddress to be passed to SuperTokenFactoryLogic here
                         cofNFTLogicAddress = cofNFTLogic.address;
@@ -1068,7 +1068,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                             "CONSTANT_INFLOW_NFT",
                             [
                                 superfluid.address,
-                                constantOutflowNFTProxy.address,
+                                cofNFTProxyAddress,
                             ]
                         );
                         // @note we set the cifNFTLogicAddress to be passed to SuperTokenFactoryLogic here

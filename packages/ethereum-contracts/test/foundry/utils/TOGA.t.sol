@@ -61,19 +61,73 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
      * @dev Sends a PIC bid.
      * @param sender The address of the sender.
      * @param superToken_ The Super Token representing the asset.
-     * @param bond The bond amount.
+     * @param newBond The bond amount.
      * @param exitRate The exit rate.
      */
-    function _sendPICBid(address sender, ISuperToken superToken_, uint256 bond, int96 exitRate) internal {
-        vm.startPrank(sender);
-        superToken_.send(address(toga), bond, abi.encode(exitRate));
-        vm.stopPrank();
+    function _helperSendPICBid(address sender, ISuperToken superToken_, uint256 newBond, int96 exitRate) internal {
+        _helperSendPICBid(sender, superToken_, newBond, abi.encode(exitRate));
     }
 
-    function _sendPICBid(address sender, ISuperToken superToken_, uint256 bond, bytes memory data) internal {
-        vm.startPrank(sender);
-        superToken_.send(address(toga), bond, data);
+    function _helperSendPICBid(address newPIC, ISuperToken superToken_, uint256 newBond, bytes memory data) internal {
+        uint256 balanceOfTogaBefore = superToken_.balanceOf(address(toga));
+        int96 netFlowRateBefore = sf.cfa.getNetFlow(superToken_, newPIC);
+        // this should be 0
+        (, int96 togaToPicFlowRate,,) = sf.cfa.getFlow(superToken_, address(toga), newPIC);
+
+        (address picBefore, uint256 picBondBefore,) = toga.getCurrentPICInfo(superToken_);
+
+        vm.startPrank(newPIC);
+        superToken_.send(address(toga), newBond, data);
         vm.stopPrank();
+
+        int96 desiredExitRate;
+        if (data.length > 0) {
+            (desiredExitRate) = abi.decode(data, (int96));
+        } else {
+            // if no exit rate is sent in the send call, we use the default exit rate for the supertoken based on the
+            // newBond amount
+            desiredExitRate = toga.getDefaultExitRateFor(superToken_, newBond);
+        }
+
+        // Assert PIC, Bond and Exit Rate are set correctly after a succesful send
+        {
+            (address pic, uint256 picBond, int96 picExitRate) = toga.getCurrentPICInfo(superToken_);
+            assertEq(newPIC, pic, "_helperSendPICBid: PIC not equal");
+            newBond = picBefore == address(0) && balanceOfTogaBefore > 0
+                // if there was no pic before and there was balance in the TOGA contract
+                // the new PIC gets the bond + existing balance
+                ? balanceOfTogaBefore + newBond
+                : picBefore == newPIC
+                    // if it is the same pic sending tokens, they are just increasing the bond by newBond amount
+                    ? newBond + picBondBefore
+                    // otherwise, in the outbidding scenario, the new bond amount is set as is
+                    : newBond;
+            assertEq(newBond, picBond, "_helperSendPICBid: PIC bond not equal");
+            assertEq(desiredExitRate, picExitRate, "_helperSendPICBid: PIC exit rate not equal");
+        }
+
+        // Assert Net Flow Rate of newPIC is correct after a succesful send
+        {
+            int96 netFlowRateAfter = sf.cfa.getNetFlow(superToken_, newPIC);
+            int96 flowRateDelta = desiredExitRate - togaToPicFlowRate;
+            assertEq(netFlowRateAfter, netFlowRateBefore + flowRateDelta, "_helperChangeExitRate: net flow not equal");
+        }
+    }
+
+    function _helperChangeExitRate(ISuperToken superToken_, address pic, int96 newExitRate) internal {
+        int96 netFlowRateBefore = sf.cfa.getNetFlow(superToken_, pic);
+        (, int96 togaToPicFlowRate,,) = sf.cfa.getFlow(superToken_, address(toga), pic);
+        int96 flowRateDelta = newExitRate - togaToPicFlowRate;
+
+        vm.startPrank(pic);
+        toga.changeExitRate(superToken, newExitRate);
+        vm.stopPrank();
+
+        int96 netFlowRateAfter = sf.cfa.getNetFlow(superToken_, pic);
+        assertEq(netFlowRateAfter, netFlowRateBefore + flowRateDelta, "_helperChangeExitRate: net flow not equal");
+
+        (,, int96 exitRate) = toga.getCurrentPICInfo(superToken_);
+        assertEq(exitRate, newExitRate, "_helperChangeExitRate: exit rate not equal");
     }
 
     function _boundBondValue(uint256 bond_) internal view returns (uint256 bond) {
@@ -83,17 +137,6 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
 
     function _boundBondValue(uint256 bond_, uint256 gtValue, uint256 ltValue) internal view returns (uint256 bond) {
         bond = bound(bond_, gtValue, ltValue);
-    }
-
-    function _helperChangeExitRate(ISuperToken superToken_, address pic, int96 exitRate) internal {
-        int96 netFlowRateBefore = sf.cfa.getNetFlow(superToken_, pic);
-        (, int96 togaToPicFlowRate,,) = sf.cfa.getFlow(superToken_, address(toga), pic);
-        int96 flowRateDelta = exitRate - togaToPicFlowRate;
-        vm.startPrank(pic);
-        toga.changeExitRate(superToken, exitRate);
-        vm.stopPrank();
-        int96 netFlowRateAfter = sf.cfa.getNetFlow(superToken_, pic);
-        assertEq(netFlowRateAfter, netFlowRateBefore + flowRateDelta, "_helperChangeExitRate: net flow not equal");
     }
 
     // test
@@ -130,17 +173,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         vm.expectEmit(true, true, true, true, address(toga));
         emit NewPIC(superToken, alice, bond_, exitRate);
 
-        _sendPICBid(alice, superToken, bond_, exitRate);
-
-        assertEq(toga.getCurrentPIC(superToken), alice);
-
-        (address pic, uint256 bond, int96 exitRatePIC) = toga.getCurrentPICInfo(superToken);
-
-        assertEq(pic, alice);
-        assertEq(bond_, bond);
-        assertEq(exitRatePIC, exitRate);
-
-        _assertNetFlow(superToken, alice, exitRate);
+        _helperSendPICBid(alice, superToken, bond_, exitRate);
     }
 
     /**
@@ -152,7 +185,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         vm.assume(bobBond > aliceBond);
 
         // Send PIC bid from Alice
-        _sendPICBid(alice, superToken, aliceBond, 0);
+        _helperSendPICBid(alice, superToken, aliceBond, 0);
 
         // Assert Alice is the current PIC
         assertEq(toga.getCurrentPIC(superToken), alice);
@@ -164,14 +197,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         vm.expectEmit(true, true, true, true, address(toga));
         emit NewPIC(superToken, bob, bobBond, 0);
 
-        _sendPICBid(bob, superToken, bobBond, 0);
-
-        // Assert Bob becomes the current PIC
-        assertEq(toga.getCurrentPIC(superToken), bob);
-
-        // Assert the bond amount for Bob
-        (, uint256 bond2,) = toga.getCurrentPICInfo(superToken);
-        assertEq(bond2, bobBond);
+        _helperSendPICBid(bob, superToken, bobBond, 0);
     }
 
     function testTOGARegisteredWithERC1820() public {
@@ -185,7 +211,9 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function testRevertIfNegativeExitRateIsRequested() public {
         // lower limit: 0 wei/second (no negative value allowed)
         vm.expectRevert("TOGA: negative exitRate not allowed");
-        _sendPICBid(alice, superToken, BOND_AMOUNT_1E18, -1);
+        vm.startPrank(alice);
+        superToken.send(address(toga), BOND_AMOUNT_1E18, abi.encode(-1));
+        vm.stopPrank();
     }
 
     function testRevertIfBondIsEmpty() public {
@@ -204,10 +232,12 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function testRevertIfBidSmallerThanCurrentPICBond(uint256 bond, uint256 smallerBond) public {
         bond = _boundBondValue(bond);
         smallerBond = _boundBondValue(smallerBond, 0, bond);
-        _sendPICBid(alice, superToken, bond, 0);
+        _helperSendPICBid(alice, superToken, bond, 0);
 
+        vm.startPrank(bob);
         vm.expectRevert("TOGA: bid too low");
-        _sendPICBid(bob, superToken, smallerBond, 0);
+        superToken.send(address(toga), smallerBond, abi.encode(0));
+        vm.stopPrank();
     }
 
     function testRevertIfExitRateTooHigh(uint256 bond, int96 exitRate) public {
@@ -221,8 +251,10 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
 
         // upper limit: 1 wei/second
         int96 highExitRate = toga.getMaxExitRateFor(superToken, BOND_AMOUNT_1E18) + 1;
+        vm.startPrank(alice);
         vm.expectRevert("TOGA: exitRate too high");
-        _sendPICBid(alice, superToken, BOND_AMOUNT_1E18, highExitRate);
+        superToken.send(address(toga), BOND_AMOUNT_1E18, abi.encode(highExitRate));
+        vm.stopPrank();
     }
 
     function testRevertIfNonPICTriesToChangeExitRate(int96 exitRate) public {
@@ -241,8 +273,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         bond = _boundBondValue(bond);
         vm.assume(bond > 1 << 32);
 
-        _sendPICBid(alice, superToken, bond, abi.encode());
-        _assertNetFlow(superToken, alice, toga.getDefaultExitRateFor(superToken, bond));
+        _helperSendPICBid(alice, superToken, bond, abi.encode());
     }
 
     function testFirstBidderGetsTokensPreOwnedByContract(uint256 bond, uint256 outBidBond) public {
@@ -251,7 +282,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         deal(address(superToken), address(toga), 1e6);
 
         uint256 togaPrelimBal = superToken.balanceOf(address(toga));
-        _sendPICBid(alice, superToken, bond, 0);
+        _helperSendPICBid(alice, superToken, bond, 0);
         (, uint256 aliceBond,) = toga.getCurrentPICInfo(superToken);
 
         // the tokens previously collected in the contract are attributed to Alice's bond
@@ -262,7 +293,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         vm.assume(outBidBond < INIT_SUPER_TOKEN_BALANCE); // User only has 64 bits test super tokens
 
         uint256 alicePreOutbidBal = superToken.balanceOf(alice);
-        _sendPICBid(bob, superToken, outBidBond, 0);
+        _helperSendPICBid(bob, superToken, outBidBond, 0);
 
         // the tokens previously collected are paid out to Alice if outbid
         assertEq(superToken.balanceOf(alice), (alicePreOutbidBal + aliceBond));
@@ -271,7 +302,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function testCurrentPICCanIncreaseBond(uint256 bond, uint256 increaseBond) public {
         bond = bound(bond, 1 << 32, INIT_SUPER_TOKEN_BALANCE / 2);
 
-        _sendPICBid(alice, superToken, bond, 0);
+        _helperSendPICBid(alice, superToken, bond, 0);
         uint256 aliceIntermediateBal = superToken.balanceOf(alice);
         vm.assume(increaseBond > 0);
         vm.assume(increaseBond < aliceIntermediateBal);
@@ -280,13 +311,9 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         vm.expectEmit(true, true, false, false, address(toga));
         emit BondIncreased(superToken, increaseBond);
 
-        _sendPICBid(alice, superToken, increaseBond, 0);
+        _helperSendPICBid(alice, superToken, increaseBond, 0);
 
-        assertEq(toga.getCurrentPIC(superToken), alice);
-        _assertNetFlow(superToken, alice, 0);
         assertEq(superToken.balanceOf(alice), (aliceIntermediateBal - increaseBond));
-        (, uint256 picBond,) = toga.getCurrentPICInfo(superToken);
-        assertEq(picBond, bond + increaseBond);
     }
 
     function testPICCanChangeExitRate(int96 exitRate, int96 changeExitRate) public {
@@ -299,7 +326,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         vm.assume(changeExitRate >= 0);
         vm.assume(changeExitRate <= toga.getMaxExitRateFor(superToken, bond));
 
-        _sendPICBid(alice, superToken, bond, abi.encode());
+        _helperSendPICBid(alice, superToken, bond, abi.encode());
 
         vm.expectEmit(true, true, false, false, address(toga));
         emit ExitRateChanged(superToken, changeExitRate);
@@ -311,8 +338,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         bond = _boundBondValue(bond);
         vm.assume(bond > 1 << 32);
 
-        _sendPICBid(alice, superToken, bond, EXIT_RATE_1E3);
-        _assertNetFlow(superToken, alice, EXIT_RATE_1E3);
+        _helperSendPICBid(alice, superToken, bond, EXIT_RATE_1E3);
 
         vm.warp(block.timestamp + 1000);
         _helperDeleteFlow(superToken, alice, address(toga), alice);
@@ -326,9 +352,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         _helperDeleteFlow(superToken, alice, address(toga), alice);
         _assertNetFlow(superToken, alice, 0);
 
-        _sendPICBid(bob, superToken, bond, EXIT_RATE_1E3);
+        _helperSendPICBid(bob, superToken, bond, EXIT_RATE_1E3);
         _assertNetFlow(superToken, alice, 0);
-        _assertNetFlow(superToken, bob, EXIT_RATE_1E3);
     }
 
     function testCollectedRewardsAreAddedToThePICBond(uint256 bond, uint256 rewards) public {
@@ -337,7 +362,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         vm.assume(rewards > 0);
         vm.assume(rewards < INIT_SUPER_TOKEN_BALANCE);
 
-        _sendPICBid(alice, superToken, bond, 0);
+        _helperSendPICBid(alice, superToken, bond, 0);
 
         vm.startPrank(admin);
         superToken.transfer(address(toga), rewards);
@@ -351,8 +376,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         aliceBond = bound(aliceBond, 1 << 32, INIT_SUPER_TOKEN_BALANCE / 2);
 
         int96 maxRate = toga.getMaxExitRateFor(superToken, aliceBond);
-        _sendPICBid(alice, superToken, aliceBond, maxRate);
-        _assertNetFlow(superToken, alice, maxRate);
+        _helperSendPICBid(alice, superToken, aliceBond, maxRate);
 
         // critical stream is liquidated - remaining bond goes to zero
         vm.warp(block.timestamp + 1e6);
@@ -380,9 +404,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         (, uint256 aliceBondLeft,) = toga.getCurrentPICInfo(superToken);
 
         // bob outbids
-        _sendPICBid(bob, superToken, aliceBondLeft + 1, toga.getMaxExitRateFor(superToken, aliceBondLeft + 1));
+        _helperSendPICBid(bob, superToken, aliceBondLeft + 1, toga.getMaxExitRateFor(superToken, aliceBondLeft + 1));
         _assertNetFlow(superToken, alice, 0);
-        _assertNetFlow(superToken, bob, toga.getMaxExitRateFor(superToken, aliceBondLeft + 1));
 
         assertEq((alicePreBal + aliceBondLeft), superToken.balanceOf(alice));
     }
@@ -396,11 +419,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         deal(address(superToken2), alice, INIT_SUPER_TOKEN_BALANCE);
         deal(address(superToken2), bob, INIT_SUPER_TOKEN_BALANCE);
 
-        _sendPICBid(alice, superToken, bond, toga.getDefaultExitRateFor(superToken, bond));
-        _sendPICBid(bob, superToken2, bond, toga.getDefaultExitRateFor(superToken, bond));
-
-        assertEq(toga.getCurrentPIC(superToken), alice);
-        assertEq(toga.getCurrentPIC(superToken2), bob);
+        _helperSendPICBid(alice, superToken, bond, toga.getDefaultExitRateFor(superToken, bond));
+        _helperSendPICBid(bob, superToken2, bond, toga.getDefaultExitRateFor(superToken, bond));
 
         // let this run for a while...
         vm.warp(block.timestamp + 1e6);
@@ -409,7 +429,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         uint256 bobPreBal = superToken2.balanceOf(bob);
         (, uint256 bobBondLeft,) = toga.getCurrentPICInfo(superToken2);
 
-        _sendPICBid(alice, superToken2, bobBondLeft + 1, 0);
+        _helperSendPICBid(alice, superToken2, bobBondLeft + 1, 0);
 
         assertEq((bobPreBal + bobBondLeft), superToken2.balanceOf(bob));
     }

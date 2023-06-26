@@ -17,6 +17,8 @@ module.exports = eval(`(${S.toString()})()`)(async function () {
     console.log("chain ID: ", chainId);
     const config = getConfig(chainId);
 
+    console.log(`config: ${JSON.stringify(config, null, 2)}`);
+
     // infer deployment from AgreementClassRegistered events
     const AgreementClassRegistered = web3.utils.sha3(
         "AgreementClassRegistered(bytes32,address)"

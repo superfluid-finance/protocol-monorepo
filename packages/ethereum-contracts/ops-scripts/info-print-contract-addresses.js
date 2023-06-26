@@ -57,6 +57,9 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const UUPSProxiable = artifacts.require("UUPSProxiable");
     const ISuperTokenFactory = artifacts.require("ISuperTokenFactory");
 
+    if (config.isTestnet) {
+        output += "IS_TESTNET=1\n";
+    }
     output += `NETWORK_ID=${networkId}\n`;
     output += `SUPERFLUID_LOADER=${sf.loader.address}\n`;
     output += `SUPERFLUID_HOST_PROXY=${sf.host.address}\n`;

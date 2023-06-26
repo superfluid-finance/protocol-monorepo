@@ -12,7 +12,6 @@ import { Handler } from "./handlers/Handler.sol";
 import { FlowSplitter } from "./FlowSplitter.sol";
 
 contract SuperAppInvariants is Test {
-
     ISuperfluid public host;
     ISuperApp public superApp;
     Handler public handler; // Focus test to a set of operations
@@ -34,27 +33,29 @@ contract SuperAppInvariants is Test {
         if (address(host) == address(0)) revert("SuperAppTesterBase: no host set");
         _;
     }
-
 }
 
 contract SuperAppTest is FoundrySuperfluidTester(10), SuperAppInvariants {
-
-    // @notice: Very dependable on superApp utility
-    int256 constant public MIN_FLOW_RATE = 1000;
+    int96 public constant MIN_FLOW_RATE = 1000;
+    int96 public constant MAX_FLOW_RATE = (type(int96).max) >> 14;
 
     function setUp() public override {
         super.setUp();
         host = sf.host;
         // create super app
-        superApp = ISuperApp(address(new FlowSplitter(
-            address(0x51),
-            address(0x52),
-            300,
-            superToken,
-            sf.host
-        )));
+        superApp = ISuperApp(
+            address(
+                new FlowSplitter(
+                address(0x51),
+                address(0x52),
+                300,
+                superToken,
+                sf.host
+                )
+            )
+        );
 
-        handler = new Handler(address(superApp), superToken);
+        handler = new Handler(address(superApp), superToken, 1000, 0);
         // we only care about handler interactions
         targetContract(address(handler));
         // we only care about create, update, delete flow
@@ -62,9 +63,9 @@ contract SuperAppTest is FoundrySuperfluidTester(10), SuperAppInvariants {
         selectors[0] = handler.createFlow.selector;
         selectors[1] = handler.updateFlow.selector;
         selectors[2] = handler.deleteFlow.selector;
-        targetSelector(FuzzSelector({addr: address(handler), selectors: selectors}));
+        targetSelector(FuzzSelector({ addr: address(handler), selectors: selectors }));
         // we only care about tester accounts
-        for(uint256 i = 0; i < TEST_ACCOUNTS.length; i++) {
+        for (uint256 i = 0; i < TEST_ACCOUNTS.length; i++) {
             targetSender(TEST_ACCOUNTS[i]);
         }
     }

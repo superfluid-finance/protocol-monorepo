@@ -9,10 +9,10 @@ import { IERC1820Registry } from "@openzeppelin/contracts/interfaces/IERC1820Reg
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
- * @title TOGATest
+ * @title TOGAIntegrationTest
  * @dev A contract for testing the functionality of the TOGA contract.
  */
-contract TOGATest is FoundrySuperfluidTester {
+contract TOGAIntegrationTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for ISuperToken;
 
     TOGA internal toga;

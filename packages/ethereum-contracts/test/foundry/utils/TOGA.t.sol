@@ -190,12 +190,12 @@ contract TOGATest is FoundrySuperfluidTester {
 
     function testRevertIfBondIsEmpty() public {
         // this assumes the flow deletion was not triggered by the PIC - otherwise rewards would be accrued
-        (, uint256 bond,) = toga.getCurrentPICInfo(superToken);
+        (address pic, uint256 bond,) = toga.getCurrentPICInfo(superToken);
         assertEq(bond, 0);
 
         // alice tries to re-establish stream - fail because no bond left
-        vm.startPrank(alice);
-        int96 exitRate = toga.getDefaultExitRateFor(superToken, aliceBond);
+        vm.startPrank(pic);
+        int96 exitRate = toga.getDefaultExitRateFor(superToken, MIN_BOND_DURATION * 4);
         vm.expectRevert("TOGA: exitRate too high");
         toga.changeExitRate(superToken, exitRate);
         vm.stopPrank();

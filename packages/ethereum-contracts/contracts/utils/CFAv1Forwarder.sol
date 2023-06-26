@@ -195,7 +195,7 @@ contract CFAv1Forwarder is ForwarderBase {
         address sender,
         address receiver,
         bytes memory userData
-    ) 
+    )
         external returns (bool)
     {
         return _deleteFlow(token, sender, receiver, userData);

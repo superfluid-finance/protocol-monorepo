@@ -6,7 +6,6 @@ pragma solidity >= 0.8.0;
 import {
     Superfluid,
     ConstantFlowAgreementV1,
-    IConstantFlowAgreementHook,
     InstantDistributionAgreementV1,
     SuperToken,
     SuperfluidFrameworkDeployer

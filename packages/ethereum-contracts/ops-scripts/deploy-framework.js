@@ -376,7 +376,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         const agreement = await web3tx(
             ConstantFlowAgreementV1.new,
             "ConstantFlowAgreementV1.new"
-        )(superfluid.address, ZERO_ADDRESS);
+        )(superfluid.address);
 
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
         output += `CFA_LOGIC=${agreement.address}\n`;

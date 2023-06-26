@@ -365,6 +365,7 @@ The primary license for Superfluid Protocol is the GNU Affero General Public Lic
 
 - [Interfaces](./contracts/interfaces) have a MIT license.
 - [Libraries for Super Apps development](./contracts/apps) have a MIT license.
+- [Some of the utils](./contracts/utils) have a MIT license.
 
 Each of these files states their license type.
 

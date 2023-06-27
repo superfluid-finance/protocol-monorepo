@@ -132,11 +132,15 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const networkType = await web3.eth.net.getNetworkType();
     const networkId = await web3.eth.net.getId();
     const chainId = await web3.eth.getChainId();
+    const deployerAddr = (await web3.eth.getAccounts())[0];
     console.log("network Type: ", networkType);
     console.log("network ID: ", networkId);
     console.log("chain ID: ", chainId);
+    console.log("deployer: ", deployerAddr);
     const config = getConfig(chainId);
     output += `NETWORK_ID=${networkId}\n`;
+
+    const deployerInitialBalance = await web3.eth.getBalance(deployerAddr);
 
     const CFAv1_TYPE = web3.utils.sha3(
         "org.superfluid-finance.agreements.ConstantFlowAgreement.v1"
@@ -320,6 +324,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             return superfluid;
         }
     );
+    // this is needed later on
+    const superfluidConstructorParam = superfluid.address
+        .toLowerCase().slice(2).padStart(64, "0");
 
     // load existing governance if needed
     if (!governance) {
@@ -369,7 +376,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         const agreement = await web3tx(
             ConstantFlowAgreementV1.new,
             "ConstantFlowAgreementV1.new"
-        )(superfluid.address, ZERO_ADDRESS);
+        )(superfluid.address);
 
         console.log("New ConstantFlowAgreementV1 address", agreement.address);
         output += `CFA_LOGIC=${agreement.address}\n`;
@@ -517,11 +524,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             }
         );
 
-        const superfluidConstructorParam = superfluid.address
-            .toLowerCase()
-            .slice(2)
-            .padStart(64, "0");
-
         // deploy new CFA logic
         const cfaNewLogicAddress = await deployContractIfCodeChanged(
             web3,
@@ -601,16 +603,13 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             try {
                 if (factoryAddress === ZERO_ADDRESS) return true;
                 const factory = await SuperTokenFactoryLogic.at(factoryAddress);
-                console.log("   factory.getSuperTokenLogic.call()");
                 const superTokenLogicAddress =
                     await factory.getSuperTokenLogic.call();
                 const superTokenLogic = await SuperTokenLogic.at(
                     superTokenLogicAddress
                 );
-                console.log("   superTokenLogic.CONSTANT_OUTFLOW_NFT()");
                 const constantOutflowNFTAddress =
                     await superTokenLogic.CONSTANT_OUTFLOW_NFT();
-                console.log("   superTokenLogic.CONSTANT_INFLOW_NFT()");
                 const constantInflowNFTAddress =
                     await superTokenLogic.CONSTANT_INFLOW_NFT();
 
@@ -622,32 +621,40 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 );
 
                 const constantInflowNFTParam = constantInflowNFTAddress
-                    .toLowerCase()
-                    .slice(2)
-                    .padStart(64, "0");
+                    .toLowerCase().slice(2).padStart(64, "0");
                 const constantOutflowNFTParam = constantOutflowNFTAddress
-                    .toLowerCase()
-                    .slice(2)
-                    .padStart(64, "0");
+                    .toLowerCase().slice(2).padStart(64, "0");
+                const cfaParam = (await superfluid.getAgreementClass.call(CFAv1_TYPE))
+                    .toLowerCase().slice(2).padStart(64, "0");
 
                 constantOutflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantOutflowNFT,
-                    await constantOutflowNFTContract.getCodeAddress(),
-                    [superfluidConstructorParam, constantInflowNFTParam]
+                    await (
+                        await UUPSProxiable.at(constantOutflowNFTAddress)
+                    ).getCodeAddress(),
+                    [superfluidConstructorParam, constantInflowNFTParam, cfaParam]
                 );
+                console.log("   constantOutflowNFTLogicChanged:", constantOutflowNFTLogicChanged);
+
                 constantInflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantInflowNFT,
-                    await constantInflowNFTContract.getCodeAddress(),
-                    [superfluidConstructorParam, constantOutflowNFTParam]
+                    await (
+                        await UUPSProxiable.at(constantInflowNFTAddress)
+                    ).getCodeAddress(),
+                    [superfluidConstructorParam, constantOutflowNFTParam, cfaParam]
                 );
+                console.log("   constantInflowNFTLogicChanged:", constantInflowNFTLogicChanged);
+
                 const superTokenFactoryCodeChanged = await codeChanged(
                     web3,
                     SuperTokenFactoryLogic,
                     await superfluid.getSuperTokenFactoryLogic.call(),
                     [superfluidConstructorParam]
                 );
+                console.log("   superTokenFactoryCodeChanged:", superTokenFactoryCodeChanged);
+
                 const superTokenLogicCodeChanged = await codeChanged(
                     web3,
                     SuperTokenLogic,
@@ -660,6 +667,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                         constantInflowNFTParam,
                     ]
                 );
+                console.log("   superTokenLogicCodeChanged:", superTokenLogicCodeChanged);
                 return (
                     // check if super token factory logic has changed
                     // or super token logic has changed
@@ -879,4 +887,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             `List of newly deployed contracts written to ${outputFile}`
         );
     }
+
+    const deployerFinalBalance = await web3.eth.getBalance(deployerAddr);
+    const consumed = web3.utils.fromWei(
+        (new web3.utils.BN(deployerInitialBalance)).sub(new web3.utils.BN(deployerFinalBalance)));
+    console.log(`consumed native coins: ${consumed}`);
 });

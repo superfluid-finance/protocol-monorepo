@@ -58,7 +58,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     /// @param token The token address
     /// @param account The account address
     /// @return net flow rate
-    function getNetFlowRate(ISuperfluidToken token, address account) external view virtual returns (int96);
+    function getNetFlow(ISuperfluidToken token, address account) external view virtual returns (int96);
 
     /// @notice Gets the GDA flow rate of `from` to `to` for `token`.
     /// @dev This is primarily used to get the flow distribution flow rate from a distributor to a pool or the

@@ -27,6 +27,8 @@ import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
+// TODO: add summed CFA + GDA net flow rate onto SuperToken.sol/SuperfluidToken.sol
+
 /**
  * @title General Distribution Agreement
  * @author Superfluid
@@ -181,7 +183,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
-    function getNetFlowRate(ISuperfluidToken token, address account)
+    function getNetFlow(ISuperfluidToken token, address account)
         external
         view
         override
@@ -393,6 +395,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         if (token.isAccountCriticalNow(from)) {
             revert GDA_INSUFFICIENT_BALANCE();
         }
+
+        // TODO: tokens are moving from sender => pool, including a transfer event makes sense here
+        // trigger from the supertoken contract
 
         emit InstantDistributionUpdated(
             token,

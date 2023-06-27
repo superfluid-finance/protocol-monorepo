@@ -607,8 +607,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         superToken.createFlow(alice, requestedDistributionFlowRate * 10);
         vm.stopPrank();
 
-        int96 aliceGDANetFlowRate = sf.gda.getNetFlowRate(superToken, alice);
-        int96 bobGDANetFlowRate = sf.gda.getNetFlowRate(superToken, bob);
+        int96 aliceGDANetFlowRate = sf.gda.getNetFlow(superToken, alice);
+        int96 bobGDANetFlowRate = sf.gda.getNetFlow(superToken, bob);
         int96 aliceCFANetFlowRate = sf.cfa.getNetFlow(superToken, alice);
         int96 bobCFANetFlowRate = sf.cfa.getNetFlow(superToken, bob);
         assertEq(
@@ -1205,7 +1205,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
                 (int256 own, int256 fromPools, int256 buffer) =
                     sf.gda.realtimeBalanceVectorAt(superToken, address(pool), block.timestamp);
                 int96 connectedFlowRate = pool.getTotalConnectedFlowRate();
-                int96 nr = sf.gda.getNetFlowRate(superToken, address(pool));
+                int96 nr = sf.gda.getNetFlow(superToken, address(pool));
                 emit log_string("> pool before time warp");
                 emit log_named_int("own", own);
                 emit log_named_int("fromPoolsBalance", fromPools);
@@ -1220,7 +1220,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
                 (int256 own, int256 fromPools, int256 buffer) =
                     sf.gda.realtimeBalanceVectorAt(superToken, address(pool), block.timestamp);
                 int96 connectedFlowRate = pool.getTotalConnectedFlowRate();
-                int96 nr = sf.gda.getNetFlowRate(superToken, address(pool));
+                int96 nr = sf.gda.getNetFlow(superToken, address(pool));
                 emit log_string("> pool before time warp");
                 emit log_named_int("own", own);
                 emit log_named_int("fromPoolsBalance", fromPools);
@@ -1235,14 +1235,14 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
                 sf.gda.realtimeBalanceVectorAt(superToken, address(pool), block.timestamp);
             int96 poolDisconnectedRate = pool.getTotalDisconnectedFlowRate();
             (,, int96 poolAdjustmentRate) = sf.gda.getPoolAdjustmentFlowInfo(pool);
-            int96 poolNetFlowRate = sf.gda.getNetFlowRate(superToken, address(pool));
+            int96 poolNetFlowRate = sf.gda.getNetFlow(superToken, address(pool));
             flowRatesSum = flowRatesSum + poolNetFlowRate;
         }
 
         for (uint256 i = 1; i <= N_MEMBERS; ++i) {
             (int256 own, int256 fromPools, int256 buffer) =
                 sf.gda.realtimeBalanceVectorAt(superToken, TEST_ACCOUNTS[i], block.timestamp);
-            int96 flowRate = sf.gda.getNetFlowRate(superToken, TEST_ACCOUNTS[i]);
+            int96 flowRate = sf.gda.getNetFlow(superToken, TEST_ACCOUNTS[i]);
             flowRatesSum = flowRatesSum + flowRate;
         }
 

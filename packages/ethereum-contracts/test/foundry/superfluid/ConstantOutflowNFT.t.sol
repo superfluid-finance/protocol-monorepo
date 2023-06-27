@@ -158,29 +158,34 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         constantOutflowNFTProxy.safeTransferFrom(_flowSender, _flowReceiver, nftId, "0x");
     }
 
-    function testRevertIfOnCreateIsNotCalledByCFAv1(address caller) public {
+    function testRevertIfOnCreateIsNotCalledByFlowAgreement(address caller) public {
         _assumeCallerIsNotOtherAddress(caller, address(sf.cfa));
+        _assumeCallerIsNotOtherAddress(caller, address(sf.gda));
+
         vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_FLOW_AGREEMENTS.selector);
         vm.prank(caller);
         constantOutflowNFTProxy.onCreate(superToken, address(1), address(2));
     }
 
-    function testRevertIfOnUpdateIsNotCalledByCFAv1(address caller) public {
+    function testRevertIfOnUpdateIsNotCalledByFlowAgreement(address caller) public {
         _assumeCallerIsNotOtherAddress(caller, address(sf.cfa));
+        _assumeCallerIsNotOtherAddress(caller, address(sf.gda));
+
         vm.startPrank(caller);
         vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_FLOW_AGREEMENTS.selector);
         constantOutflowNFTProxy.onUpdate(superToken, address(1), address(2));
         vm.stopPrank();
     }
 
-    function testRevertIfOnDeleteIsNotCalledByCFAv1(address caller) public {
+    function testRevertIfOnDeleteIsNotCalledByFlowAgreement(address caller) public {
         _assumeCallerIsNotOtherAddress(caller, address(sf.cfa));
+        _assumeCallerIsNotOtherAddress(caller, address(sf.gda));
         vm.prank(caller);
         vm.expectRevert(IConstantOutflowNFT.COF_NFT_ONLY_FLOW_AGREEMENTS.selector);
         constantOutflowNFTProxy.onDelete(superToken, address(1), address(2));
     }
 
-    function testRevertGetNoFlowTokenURI() public {
+    function testRevertIfGetNoFlowTokenURI() public {
         uint256 nftId = _helperGetNFTID(address(superTokenMock), alice, bob);
         vm.expectRevert();
         constantOutflowNFTProxy.tokenURI(nftId);

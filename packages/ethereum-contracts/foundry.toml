@@ -11,6 +11,11 @@ remappings = [
     'forge-std/=lib/forge-std/src/']
 out = 'packages/ethereum-contracts/build/foundry/out'
 
+[invariant]
+runs = 2000
+depth = 10
+fail_on_revert = false
+
 [fmt]
 bracket_spacing = true
 tab_width = 4

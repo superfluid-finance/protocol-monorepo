@@ -102,6 +102,7 @@ dataSources:
           entities:
               - Account
               - AccountTokenSnapshot
+              - AccountTokenSnapshotLog
               - FlowOperator
               - FlowOperatorUpdatedEvent
               - FlowUpdatedEvent
@@ -109,6 +110,7 @@ dataSources:
               - StreamPeriod
               - StreamRevision
               - TokenStatistic
+              - TokenStatisticLog
           abis:
               - name: IConstantFlowAgreementV1
                 file: ./abis/IConstantFlowAgreementV1.json
@@ -143,6 +145,7 @@ dataSources:
         entities:
           - Account
           - AccountTokenSnapshot
+          - AccountTokenSnapshotLog
           - Index
           - IndexCreatedEvent
           - IndexDistributionClaimedEvent
@@ -153,6 +156,7 @@ dataSources:
           - IndexUnsubscribedEvent
           - Token
           - TokenStatistic
+          - TokenStatisticLog
           - SubscriptionApprovedEvent
           - SubscriptionDistributionClaimedEvent
           - SubscriptionRevokedEvent
@@ -196,6 +200,53 @@ dataSources:
             receipt: true
           - event: SubscriptionUnitsUpdated(indexed address,indexed address,address,uint32,uint128,bytes)
             handler: handleSubscriptionUnitsUpdated
+            receipt: true
+    - kind: ethereum/contract
+      name: GeneralDistributionAgreementV1
+      network: {{ network }}
+      source:
+        address: "{{ idaAddress }}"
+        abi: IGeneralDistributionAgreementV1
+        startBlock: {{ hostStartBlock }}
+      mapping:
+        kind: ethereum/events
+        apiVersion: 0.0.7
+        language: wasm/assemblyscript
+        file: ./src/mappings/gdav1.ts
+        entities:
+          - Account
+          - AccountTokenSnapshot
+          - AccountTokenSnapshotLog
+          - FlowDistributionUpdatedEvent
+          - InstantDistributionUpdatedEvent
+          - Pool
+          - PoolConnectionUpdatedEvent
+          - PoolCreatedEvent
+          - PoolDistributor
+          - PoolMember
+          - Token
+          - TokenStatistic
+          - TokenStatisticLog
+        abis:
+          - name: IGeneralDistributionAgreementV1
+            file: ./abis/IGeneralDistributionAgreementV1.json
+          - name: ISuperfluidPool
+            file: ./abis/ISuperfluidPool.json
+        eventHandlers:
+          - event: BufferAdjusted(indexed address,indexed address,indexed address,int256,uint256,uint256)
+            handler: handleBufferAdjusted
+            receipt: true
+          - event: FlowDistributionUpdated(indexed address,indexed address,indexed address,address,int96,int96,int96,address,int96)
+            handler: handleFlowDistributionUpdated
+            receipt: true
+          - event: InstantDistributionUpdated(indexed address,indexed address,indexed address,address,uint256,uint256)
+            handler: handleInstantDistributionUpdated
+            receipt: true
+          - event: PoolConnectionUpdated(indexed address,indexed address,indexed address,bool)
+            handler: handlePoolConnectionUpdated
+            receipt: true
+          - event: PoolCreated(indexed address,indexed address,address)
+            handler: handlePoolCreated
             receipt: true
     - kind: ethereum/contract
       name: ResolverV1
@@ -358,4 +409,35 @@ templates:
           receipt: true
         - event: BondIncreased(indexed address,uint256)
           handler: handleBondIncreased
+          receipt: true
+  - kind: ethereum/contract
+    name: SuperfluidPool
+    network: {{ network }}
+    source:
+      abi: ISuperfluidPool
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/superfluidPool.ts
+      entities:
+        - Account
+        - AccountTokenSnapshot
+        - AccountTokenSnapshotLog
+        - DistributionClaimedEvent
+        - MemberUpdatedEvent
+        - Pool
+        - PoolMember
+        - Token
+        - TokenStatistic
+        - TokenStatisticLog
+      abis:
+        - name: ISuperfluidPool
+          file: ./abis/ISuperfluidPool.json
+      eventHandlers:
+        - event: MemberUpdated(indexed address,indexed address,uint128)
+          handler: handleMemberUpdated
+          receipt: true
+        - event: DistributionClaimed(indexed address,indexed address,int256,int256)
+          handler: handleDistributionClaimed
           receipt: true

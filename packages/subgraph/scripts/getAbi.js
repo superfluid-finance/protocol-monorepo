@@ -2,18 +2,16 @@ const fs = require("fs");
 const path = require("path");
 
 const contracts = [
-    "ConstantFlowAgreementV1",
     "ERC20",
     "IConstantFlowAgreementV1",
-    "IResolver",
     "ISuperTokenFactory",
     "ISuperToken",
     "ISuperfluid",
     "Resolver",
     "IInstantDistributionAgreementV1",
-    "InstantDistributionAgreementV1",
+    "IGeneralDistributionAgreementV1",
+    "ISuperfluidPool",
     "SuperfluidGovernanceBase",
-    "SuperToken",
     "TestToken",
     "TOGA",
 ];

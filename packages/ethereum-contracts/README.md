@@ -34,7 +34,7 @@ If you're building a smart contract that uses Superfluid protocol, or even your 
 
 ### Installation
 
-Prerequisites: 
+Prerequisites:
 - [node.js v12+](https://nodejs.org/en/download)
 - [yarn](https://classic.yarnpkg.com/en/docs/install)
 - [forge](https://book.getfoundry.sh/getting-started/installation)
@@ -63,9 +63,10 @@ import { IConstantFlowAgreementV1 } from "@superfluid-finance/ethereum-contracts
 ```
 The paths in the npm package are the same as in this repository.
 
-### Writing Tests 
+### Writing Tests
 
-For all future tests, we will be using Foundry as the main framework for writing property, integration and invariant tests. 
+For all future tests, we will be using Foundry as the main framework for writing property, integration and invariant tests.
+Please read this section if you would like to contribute to the test suite.
 
 #### Testing Principles
 
@@ -95,7 +96,7 @@ Tests should be placed in the `test/foundry` folder. The folder structure must f
 
 #### Test Contract Naming
 
-The naming convention for test contracts is taken from: 
+The naming convention for test contracts is taken from:
 - The contract you are testing (e.g. `ConstantFlowAgreementV1.sol`)
 - The type of test you are writing (e.g. `property, integration, invariant`)
 - The name of the contract will follow the format: `ContractName.(Property|Integration|Invariant)Test`
@@ -115,7 +116,7 @@ The reason for this naming convention is for multiple reasons:
 
 The naming convention for test functions must use camelCase and should be descriptive enough so the reader can have a good idea of what the test is doing before even reading the actual test code.
 
-There are two primary type of tests written for unit and integration tests: 
+There are two primary type of tests written for unit and integration tests:
 - tests that are expected to pass
 - tests that are expected to revert
 
@@ -137,7 +138,8 @@ function testRevertIfDecreaseFlowRateAllowanceAndACLCreateFlow() {
 
 #### Internal Helper Functions
 
-If you are writing a test that requires a helper function, the helper function is prefixed with `_` and uses camelCase and snake case to indicate that it is an internal helper function. For example:
+See [`FoundrySuperfluidTester.sol`](test/foundry/FoundrySuperfluidTester.sol) for examples of commonly used internal helper functions.
+If you are writing a test that requires a helper function, the helper function is prefixed with `_` and uses camelCase to indicate that it is an internal helper function. For example:
 
 ```solidity
 function _assertFlowOperatorData(AssertFlowOperatorData memory data) internal {
@@ -172,7 +174,7 @@ _assertFlowOperatorData(
 ```
 
 Additionally, we use foundry's assert functions to make debugging easier by providing a descriptive and unique error message. For example:
-  
+
 ```solidity
 assertEq(newFlowRateAllowance, expectedFlowRateAllowance, "CFAv1 ACL: unexpected flow rate allowance");
 ```
@@ -187,7 +189,7 @@ Clone a project, modify and play!
 > NOTE: you must deploy erc1820 registry before deploying the Superfluid protocol. You can do this by running `npx hardhat run dev-scripts/deploy-erc1820.js --network localhost` in the terminal.
 
 #### Hardhat
-You can import the `deployContractsAndToken` function from the `dev-scripts/deploy-contracts-and-token.js` file and use it in your testing scripts. It will deploy the Superfluid protocol and deploy Wrapper, Native Asset and Pure SuperToken's for you. 
+You can import the `deployContractsAndToken` function from the `dev-scripts/deploy-contracts-and-token.js` file and use it in your testing scripts. It will deploy the Superfluid protocol and deploy Wrapper, Native Asset and Pure SuperToken's for you.
 Alternatively, you can execute `npx hardhat run dev-scripts/run-deploy-contracts-and-token.js --network localhost` to deploy the contracts and tokens to a local hardhat node, you will know this worked if you see the terminal window with your local hardhat node running spit out a bunch of things.
 
 #### Foundry
@@ -356,6 +358,16 @@ In the [scripts folder](/scripts) you can find several scripts for deploying/con
 ## Show your support
 
 Give a ⭐️ if this project helped you!
+
+# License
+
+The primary license for Superfluid Protocol is the GNU Affero General Public License v3 (`AGPL-v3`), see [LICENSE](https://github.com/superfluid-finance/protocol-monorepo/blob/dev/packages/ethereum-contracts/LICENSE). Minus the following exceptions:
+
+- [Interfaces](./contracts/interfaces) have a MIT license.
+- [Libraries for Super Apps development](./contracts/apps) have a MIT license.
+- [Some of the utils](./contracts/utils) have a MIT license.
+
+Each of these files states their license type.
 
 ---
 

@@ -21,6 +21,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     uint256 internal constant BOND_AMOUNT_1E18 = 1e18;
     uint256 internal constant BOND_AMOUNT_2E18 = 2e18;
     uint256 internal constant BOND_AMOUNT_10E18 = 10e18;
+    uint256 internal constant DEFAULT_MIN_BOND_AMOUNT = 10 ether / 10;
     int96 internal constant EXIT_RATE_1 = 1;
     int96 internal constant EXIT_RATE_1E3 = 1e3;
     int96 internal constant EXIT_RATE_1E6 = 1e6;
@@ -132,7 +133,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
 
     function _boundBondValue(uint256 bond_) internal view returns (uint256 bond) {
         // User only has 64 bits test super tokens
-        bond = bound(bond_, 1, INIT_SUPER_TOKEN_BALANCE);
+        bond = bound(bond_, DEFAULT_MIN_BOND_AMOUNT, INIT_SUPER_TOKEN_BALANCE);
     }
 
     function _boundBondValue(uint256 bond_, uint256 gtValue, uint256 ltValue) internal view returns (uint256 bond) {
@@ -161,14 +162,13 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         bond_ = _boundBondValue(bond_);
 
         // with small bonds, opening the stream can fail due to CFA deposit having a flow of 1<<32 due to clipping
-        vm.assume(bond_ > 1 << 32 || exitRate == 0);
-
-        vm.assume(exitRate >= 0);
-        // satisfy exitRate constraints of the TOGA
-        vm.assume(exitRate <= toga.getMaxExitRateFor(superToken, bond_));
-        // the clipped CFA deposit needs to fit into 64 bits - since that is flowrate multiplied by
-        // liquidation period, 14 bits are added for 14400 seconds, so we can't use the full 96 bits
-        vm.assume(exitRate <= (type(int96).max) >> 14);
+        int96 maxExitRate = toga.getMaxExitRateFor(superToken, bond_) > (type(int96).max) >> 14
+            // the clipped CFA deposit needs to fit into 64 bits - since that is flowrate multiplied by
+            // liquidation period, 14 bits are added for 14400 seconds, so we can't use the full 96 bits
+            ? (type(int96).max) >> 14
+            // satisfy exitRate constraints of the TOGA
+            : toga.getMaxExitRateFor(superToken, bond_);
+        exitRate = int96(bound(exitRate, 0, maxExitRate));
 
         vm.expectEmit(true, true, true, true, address(toga));
         emit NewPIC(superToken, alice, bond_, exitRate);
@@ -231,7 +231,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
 
     function testRevertIfBidSmallerThanCurrentPICBond(uint256 bond, uint256 smallerBond) public {
         bond = _boundBondValue(bond);
-        smallerBond = _boundBondValue(smallerBond, 0, bond);
+        smallerBond = bound(smallerBond, 0, bond);
         _helperSendPICBid(alice, superToken, bond, 0);
 
         vm.startPrank(bob);
@@ -240,14 +240,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function testRevertIfExitRateTooHigh(uint256 bond, int96 exitRate) public {
+    function testRevertIfExitRateTooHigh(uint256 bond) public {
         bond = _boundBondValue(bond);
-
-        // with small bonds, opening the stream can fail due to CFA deposit having a flow of 1<<32 due to clipping
-        vm.assume(bond > 1 << 32 || exitRate == 0);
-        vm.assume(exitRate >= 0);
-        // satisfy maxExitRate constraints of the TOGA
-        vm.assume(exitRate == toga.getMaxExitRateFor(superToken, bond));
 
         // upper limit: 1 wei/second
         int96 highExitRate = toga.getMaxExitRateFor(superToken, BOND_AMOUNT_1E18) + 1;
@@ -271,13 +265,12 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
 
     function testUseDefaultExitRateAsFallbackIfNoExitRateSpecified(uint256 bond) public {
         bond = _boundBondValue(bond);
-        vm.assume(bond > 1 << 32);
 
         _helperSendPICBid(alice, superToken, bond, abi.encode());
     }
 
     function testFirstBidderGetsTokensPreOwnedByContract(uint256 bond, uint256 outBidBond) public {
-        bond = bound(bond, 1 << 32, INIT_SUPER_TOKEN_BALANCE / 2);
+        bond = bound(bond, DEFAULT_MIN_BOND_AMOUNT, INIT_SUPER_TOKEN_BALANCE / 2);
 
         deal(address(superToken), address(toga), 1e6);
 
@@ -288,9 +281,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         // the tokens previously collected in the contract are attributed to Alice's bond
         assertEq(aliceBond, (togaPrelimBal + bond));
 
-        vm.assume(outBidBond > aliceBond);
-        vm.assume(outBidBond > 1 << 32);
-        vm.assume(outBidBond < INIT_SUPER_TOKEN_BALANCE); // User only has 64 bits test super tokens
+        outBidBond = bound(outBidBond, aliceBond + 1, INIT_SUPER_TOKEN_BALANCE - 1);
 
         uint256 alicePreOutbidBal = superToken.balanceOf(alice);
         _helperSendPICBid(bob, superToken, outBidBond, 0);
@@ -300,13 +291,12 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     }
 
     function testCurrentPICCanIncreaseBond(uint256 bond, uint256 increaseBond) public {
-        bond = bound(bond, 1 << 32, INIT_SUPER_TOKEN_BALANCE / 2);
+        bond = bound(bond, DEFAULT_MIN_BOND_AMOUNT, INIT_SUPER_TOKEN_BALANCE / 4);
 
         _helperSendPICBid(alice, superToken, bond, 0);
+
         uint256 aliceIntermediateBal = superToken.balanceOf(alice);
-        vm.assume(increaseBond > 0);
-        vm.assume(increaseBond < aliceIntermediateBal);
-        vm.assume(increaseBond > 1 << 32);
+        increaseBond = bound(increaseBond, bond + 1, aliceIntermediateBal);
 
         vm.expectEmit(true, true, false, false, address(toga));
         emit BondIncreased(superToken, increaseBond);
@@ -316,15 +306,10 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         assertEq(superToken.balanceOf(alice), (aliceIntermediateBal - increaseBond));
     }
 
-    function testPICCanChangeExitRate(int96 exitRate, int96 changeExitRate) public {
+    function testPICCanChangeExitRate(int96 changeExitRate) public {
         uint256 bond = 1 ether;
 
-        vm.assume(exitRate >= 0);
-        // satisfy maxExitRate constraints of the TOGA
-        vm.assume(exitRate <= toga.getMaxExitRateFor(superToken, bond));
-
-        vm.assume(changeExitRate >= 0);
-        vm.assume(changeExitRate <= toga.getMaxExitRateFor(superToken, bond));
+        changeExitRate = int96(bound(changeExitRate, 0, toga.getMaxExitRateFor(superToken, bond)));
 
         _helperSendPICBid(alice, superToken, bond, abi.encode());
 
@@ -335,8 +320,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     }
 
     function testPICClosesSteam(uint256 bond) public {
+        bond = 26959946667150639794667015427301997594575607885933626656945531256832;
         bond = _boundBondValue(bond);
-        vm.assume(bond > 1 << 32);
 
         _helperSendPICBid(alice, superToken, bond, EXIT_RATE_1E3);
 
@@ -347,20 +332,19 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         _helperChangeExitRate(superToken, alice, 0);
         _helperChangeExitRate(superToken, alice, EXIT_RATE_1);
 
-        // stop again and let bob make a bid
+        // close flow again
         vm.warp(block.timestamp + 1000);
         _helperDeleteFlow(superToken, alice, address(toga), alice);
         _assertNetFlow(superToken, alice, 0);
 
+        // bob sends a bid to
         _helperSendPICBid(bob, superToken, bond, EXIT_RATE_1E3);
         _assertNetFlow(superToken, alice, 0);
     }
 
     function testCollectedRewardsAreAddedToThePICBond(uint256 bond, uint256 rewards) public {
         bond = _boundBondValue(bond);
-        vm.assume(bond > 1 << 32);
-        vm.assume(rewards > 0);
-        vm.assume(rewards < INIT_SUPER_TOKEN_BALANCE);
+        rewards = bound(rewards, 1, INIT_SUPER_TOKEN_BALANCE - 1);
 
         _helperSendPICBid(alice, superToken, bond, 0);
 
@@ -373,7 +357,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     }
 
     function testBondIsConsumedByExitFlow(uint256 aliceBond) public {
-        aliceBond = bound(aliceBond, 1 << 32, INIT_SUPER_TOKEN_BALANCE / 2);
+        aliceBond = bound(aliceBond, DEFAULT_MIN_BOND_AMOUNT, INIT_SUPER_TOKEN_BALANCE / 2);
 
         int96 maxRate = toga.getMaxExitRateFor(superToken, aliceBond);
         _helperSendPICBid(alice, superToken, aliceBond, maxRate);
@@ -410,9 +394,31 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         assertEq((alicePreBal + aliceBondLeft), superToken.balanceOf(alice));
     }
 
+    // This test tests that our assumptions about bond and exit rate in the other tests
+    // are safe to make by testing a more full
+    function testBondAndExitRateLimits(uint256 bond, int96 exitRate) public {
+        // SuperToken doesn't support the full uint256 range
+        bond = bound(bond, 1, uint256(type(int256).max));
+
+        // with small bonds, opening the stream can fail due to CFA deposit having a flow of 1<<32 due to clipping
+        vm.assume(bond > 1 << 32 || exitRate == 0);
+
+        int96 maxExitRate = toga.getMaxExitRateFor(superToken, bond) > (type(int96).max) >> 14
+            // the clipped CFA deposit needs to fit into 64 bits - since that is flowrate multiplied by
+            // liquidation period, 14 bits are added for 14400 seconds, so we can't use the full 96 bits
+            ? (type(int96).max) >> 14
+            // satisfy exitRate constraints of the TOGA
+            : toga.getMaxExitRateFor(superToken, bond);
+
+        exitRate = int96(bound(exitRate, 0, maxExitRate));
+
+        deal(address(superToken), alice, uint256(type(int256).max));
+
+        _helperSendPICBid(alice, superToken, bond, exitRate);
+    }
+
     function testMultiplePICsInParallel(uint256 bond) public {
         bond = _boundBondValue(bond);
-        vm.assume(bond > 1 << 32);
 
         (, ISuperToken superToken2) = sfDeployer.deployWrapperSuperToken("TEST2", "TEST2", 18, type(uint256).max);
 

@@ -114,7 +114,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     /// @param token The token address
     /// @param pool The pool address
     /// @return adjustment flow rate
-    function getPoolAdjustmentFlowRate(address token, address pool) external view virtual returns (int96);
+    function getPoolAdjustmentFlowRate(ISuperfluidToken token, address pool) external view virtual returns (int96);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Pool Operations
@@ -123,7 +123,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     /// @notice Creates a new pool for `token` where the admin is `admin`.
     /// @param admin The admin of the pool
     /// @param token The token address
-    function createPool(address admin, ISuperfluidToken token) external virtual returns (ISuperfluidPool pool);
+    function createPool(ISuperfluidToken token, address admin) external virtual returns (ISuperfluidPool pool);
 
     /// @notice Connects `msg.sender` to `pool`.
     /// @dev This is used to connect a pool to the GDA.

@@ -255,7 +255,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
-    function createPool(address admin, ISuperfluidToken token) external override returns (ISuperfluidPool pool) {
+    function createPool(ISuperfluidToken token, address admin) external override returns (ISuperfluidPool pool) {
         if (admin == address(0)) revert GDA_NO_ZERO_ADDRESS_ADMIN();
 
         pool =
@@ -647,8 +647,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         UniversalIndexData memory universalIndexData = _getUIndexData(eff, from);
         universalIndexData.totalBuffer =
-            // new buffer
-            (universalIndexData.totalBuffer.toInt256() + Value.unwrap(bufferDelta)).toUint256();
+        // new buffer
+         (universalIndexData.totalBuffer.toInt256() + Value.unwrap(bufferDelta)).toUint256();
         ISuperfluidToken(token).updateAgreementStateSlot(
             from, _UNIVERSAL_INDEX_STATE_SLOT_ID, _encodeUniversalIndexData(universalIndexData)
         );
@@ -927,7 +927,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         flowRate = FlowRate.wrap(int128(rawFlowRate)); // upcasting to int128 is safe
     }
 
-    function getPoolAdjustmentFlowRate(address token, address pool) external view override returns (int96) {
+    function getPoolAdjustmentFlowRate(ISuperfluidToken token, address pool) external view override returns (int96) {
         bytes memory eff = abi.encode(token);
         return int256(FlowRate.unwrap(_getPoolAdjustmentFlowRate(eff, pool))).toInt96();
     }

@@ -185,7 +185,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
                 _settled_value: Value.wrap(wrappedSettledValue)
             })
         });
-        ISuperfluidPool anotherPool = sf.gda.createPool(owner, superToken);
+        ISuperfluidPool anotherPool = sf.gda.createPool(superToken, owner);
 
         vm.startPrank(address(sf.gda));
         sf.gda.setPDPIndex(eff, address(anotherPool), pdpIndex);
@@ -395,7 +395,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function testCreatePool() public {
         vm.prank(alice);
-        SuperfluidPool localPool = SuperfluidPool(address(sf.gda.createPool(alice, superToken)));
+        SuperfluidPool localPool = SuperfluidPool(address(sf.gda.createPool(superToken, alice)));
         assertTrue(sf.gda.isPool(superToken, address(localPool)), "GDAv1.t: Created pool is not pool");
     }
 
@@ -730,7 +730,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         _helperDistributeFlow(superToken, alice, alice, pool, 100);
         assertEq(
-            sf.gda.getPoolAdjustmentFlowRate(address(superToken), address(pool)),
+            sf.gda.getPoolAdjustmentFlowRate(superToken, address(pool)),
             0,
             "GDAv1.t: Pool adjustment rate is non-zero"
         );

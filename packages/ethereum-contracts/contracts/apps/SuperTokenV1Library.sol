@@ -1580,7 +1580,7 @@ library SuperTokenV1Library {
 
     function createPool(ISuperToken token, address admin) internal returns (ISuperfluidPool pool) {
         (, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
-        pool = gda.createPool(admin, token);
+        pool = gda.createPool(token, admin);
     }
 
     function connectPool(ISuperToken token, ISuperfluidPool pool) internal returns (bool) {

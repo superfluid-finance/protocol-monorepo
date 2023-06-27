@@ -18,7 +18,6 @@ import "../test/contracts/scenarios/scenarios.test";
 // Utility contracts
 import "../test/contracts/utils/Resolver.test";
 import "../test/contracts/utils/SuperUpgrader.test";
-import "../test/contracts/utils/TOGA.test";
 
 // Agreement forwarders
 import "../test/contracts/utils/CFAv1Forwarder.test";

@@ -1400,8 +1400,11 @@ contract FoundrySuperfluidTester is Test {
             sf.cfa.getAccountFlowInfo(superToken, account);
 
         int96 expectedNetFlowRate = flowInfoBefore.flowRate + (isSender ? -flowRateDelta : flowRateDelta);
-        uint256 depositDelta = superToken.getBufferAmountByFlowRate(flowRateDelta < 0 ? -flowRateDelta : flowRateDelta);
-        uint256 expectedDeposit = flowInfoBefore.deposit + (isSender ? depositDelta : 0);
+        int256 depositDelta =
+            superToken.getBufferAmountByFlowRate(flowRateDelta < 0 ? -flowRateDelta : flowRateDelta).toInt256();
+        depositDelta = flowRateDelta < 0 ? -depositDelta : depositDelta;
+        uint256 expectedDeposit =
+            (flowInfoBefore.deposit.toInt256() + (isSender ? depositDelta : int256(0))).toUint256();
         // TODO: we may need to pass expectedTimestamp at some point
         assertEq(lastUpdated, block.timestamp, "AccountFlowInfo: lastUpdated");
         assertEq(netFlowRate, expectedNetFlowRate, "AccountFlowInfo: net flow rate");

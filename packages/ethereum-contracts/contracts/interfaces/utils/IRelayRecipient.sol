@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPLv3
+// SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.4;
 
 // MODIFIED FROM: https://github.com/opengsn/forwarder/blob/master/contracts/interfaces/IRelayRecipient.sol

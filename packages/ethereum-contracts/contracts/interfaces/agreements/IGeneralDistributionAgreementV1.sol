@@ -15,7 +15,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     error GDA_NON_CRITICAL_SENDER(); // 0x666f381d
     error GDA_INSUFFICIENT_BALANCE(); // 0x33115c3f
     error GDA_NO_NEGATIVE_FLOW_RATE(); // 0x15f25663
-    error GDA_NO_ZERO_ADDRESS_ADMIN(); //
+    error GDA_NO_ZERO_ADDRESS_ADMIN(); // 0x82c5d837
     error GDA_ONLY_SUPER_TOKEN_POOL(); // 0x90028c37
 
     // Events
@@ -47,6 +47,15 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
 
     event PoolConnectionUpdated(
         ISuperfluidToken indexed token, ISuperfluidPool indexed pool, address indexed account, bool connected
+    );
+
+    event BufferAdjusted(
+        ISuperfluidToken indexed token,
+        address indexed pool,
+        address indexed from,
+        int256 bufferDelta,
+        uint256 newBufferAmount,
+        uint256 totalBufferAmount
     );
 
     /// @dev ISuperAgreement.agreementType implementation

@@ -320,7 +320,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             _membersData[memberAddr] = _pdPoolMemberToMemberData(pdPoolMember, claimedValue);
             assert(GDA.appendIndexUpdateByPool(superToken, p, t));
         }
-        emit MemberUpdated(memberAddr, newUnits);
+        emit MemberUpdated(superToken, memberAddr, newUnits);
 
         // TODO should try/catch
         IPoolMemberNFT poolMemberNFT = ISuperToken(address(superToken)).POOL_MEMBER_NFT();
@@ -333,7 +333,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             // if not minted, we mint a new pool member nft
             if (poolMemberNFT.getPoolMemberData(tokenId).member == address(0)) {
                 poolMemberNFT.mint(address(this), memberAddr);
-            // if minted, we update the pool member nft
+                // if minted, we update the pool member nft
             } else {
                 poolMemberNFT.update(tokenId);
             }
@@ -347,7 +347,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         assert(GDA.poolSettleClaim(superToken, memberAddr, (amount)));
         _membersData[memberAddr].claimedValue += amount;
 
-        emit DistributionClaimed(memberAddr, amount, _membersData[memberAddr].claimedValue);
+        emit DistributionClaimed(superToken, memberAddr, amount, _membersData[memberAddr].claimedValue);
     }
 
     /// @inheritdoc ISuperfluidPool

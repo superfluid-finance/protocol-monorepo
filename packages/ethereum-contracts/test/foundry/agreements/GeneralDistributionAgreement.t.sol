@@ -79,7 +79,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             _settled_value: Value.wrap(settledValue)
         });
         sf.gda.setUIndex(eff, owner, p);
-        BasicParticle memory setP = sf.gda.getUIndex(eff, owner);
+        (BasicParticle memory setP,) = sf.gda.getUIndexAndUindexData(eff, owner);
 
         assertEq(Time.unwrap(p._settled_at), Time.unwrap(setP._settled_at), "settledAt not equal");
         assertEq(FlowRate.unwrap(p._flow_rate), FlowRate.unwrap(setP._flow_rate), "flowRate not equal");
@@ -96,7 +96,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             _settled_value: Value.wrap(settledValue)
         });
         sf.gda.setUIndex(eff, owner, p);
-        GeneralDistributionAgreementV1.UniversalIndexData memory setUIndexData = sf.gda.getUIndexData(eff, owner);
+        (,GeneralDistributionAgreementV1.UniversalIndexData memory setUIndexData) = sf.gda.getUIndexAndUindexData(eff, owner);
 
         assertEq(settledAt, setUIndexData.settledAt, "settledAt not equal");
         assertEq(flowRate, setUIndexData.flowRate, "flowRate not equal");
@@ -220,6 +220,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         uint256 expectedBuffer = uint256(int256(newFlowRate)) * liquidationPeriod;
         sf.gda.adjustBuffer(
             abi.encode(superToken),
+            address(pool),
             from,
             flowHash,
             FlowRate.wrap(int128(oldFlowRate)),
@@ -248,20 +249,21 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         bytes32 flowHash = sf.gda.getFlowDistributionId(from, to);
         uint256 bufferDelta = uint256(int256(newFlowRate)) * liquidationPeriod; // expected buffer == buffer delta
             // because of fresh state
-        GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataBefore =
-            sf.gda.getUIndexData(abi.encode(superToken), from);
-        GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataBefore =
-            sf.gda.getUIndexData(abi.encode(superToken), address(sf.gda));
+        (,GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataBefore) =
+            sf.gda.getUIndexAndUindexData(abi.encode(superToken), from);
+        (,GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataBefore) =
+            sf.gda.getUIndexAndUindexData(abi.encode(superToken), address(sf.gda));
         sf.gda.adjustBuffer(
             abi.encode(superToken),
+            address(pool),
             from,
             flowHash,
             FlowRate.wrap(int128(oldFlowRate)),
             FlowRate.wrap(int128(newFlowRate))
         );
 
-        GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataAfter =
-            sf.gda.getUIndexData(abi.encode(superToken), from);
+        (,GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataAfter) =
+            sf.gda.getUIndexAndUindexData(abi.encode(superToken), from);
 
         assertEq(
             fromUindexDataBefore.totalBuffer + bufferDelta,
@@ -274,8 +276,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             "from settled value not shifted to gda"
         );
 
-        GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataAfter =
-            sf.gda.getUIndexData(abi.encode(superToken), address(sf.gda));
+        (,GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataAfter) =
+            sf.gda.getUIndexAndUindexData(abi.encode(superToken), address(sf.gda));
         assertEq(
             gdaUindexDataBefore.settledValue + int256(bufferDelta),
             gdaUindexDataAfter.settledValue,

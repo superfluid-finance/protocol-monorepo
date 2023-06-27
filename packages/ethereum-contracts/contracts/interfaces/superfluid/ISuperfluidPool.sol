@@ -17,8 +17,10 @@ interface ISuperfluidPool is IERC20 {
     error SUPERFLUID_POOL_NOT_GDA();            // 0xfcbe3f9e
 
     // Events
-    event MemberUpdated(address indexed member, uint128 units);
-    event DistributionClaimed(address indexed member, int256 claimableAmount, int256 totalClaimed);
+    event MemberUpdated(ISuperfluidToken indexed token, address indexed member, uint128 units);
+    event DistributionClaimed(
+        ISuperfluidToken indexed token, address indexed member, int256 claimableAmount, int256 totalClaimed
+    );
 
     /// @notice The pool admin
     /// @dev The admin is the creator of the pool and has permissions to update member units

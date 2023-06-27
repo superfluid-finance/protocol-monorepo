@@ -183,12 +183,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
-    function getNetFlow(ISuperfluidToken token, address account)
-        external
-        view
-        override
-        returns (int96 netFlowRate)
-    {
+    function getNetFlow(ISuperfluidToken token, address account) external view override returns (int96 netFlowRate) {
         netFlowRate = int256(FlowRate.unwrap(_getUIndex(abi.encode(token), account).flow_rate())).toInt96();
 
         if (_isPool(token, account)) {
@@ -473,7 +468,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         {
-            _adjustBuffer(abi.encode(token), from, distributionFlowHash, oldFlowRate, actualFlowRate);
+            _adjustBuffer(abi.encode(token), address(pool), from, distributionFlowHash, oldFlowRate, actualFlowRate);
         }
 
         // ensure sender has enough balance to execute transaction
@@ -609,6 +604,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
     function _adjustBuffer(
         bytes memory eff,
+        address pool,
         address from,
         bytes32 flowHash,
         FlowRate, // oldFlowRate,
@@ -650,12 +646,24 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         UniversalIndexData memory universalIndexData = _getUIndexData(eff, from);
-        int256 newBuffer = universalIndexData.totalBuffer.toInt256() + Value.unwrap(bufferDelta);
-        universalIndexData.totalBuffer = newBuffer.toUint256();
+        universalIndexData.totalBuffer =
+            // new buffer
+            (universalIndexData.totalBuffer.toInt256() + Value.unwrap(bufferDelta)).toUint256();
         ISuperfluidToken(token).updateAgreementStateSlot(
             from, _UNIVERSAL_INDEX_STATE_SLOT_ID, _encodeUniversalIndexData(universalIndexData)
         );
         universalIndexData = _getUIndexData(eff, from);
+
+        {
+            emit BufferAdjusted(
+                ISuperfluidToken(token),
+                pool,
+                from,
+                Value.unwrap(bufferDelta),
+                Value.unwrap(newBufferAmount).toUint256(),
+                universalIndexData.totalBuffer
+            );
+        }
 
         return eff;
     }

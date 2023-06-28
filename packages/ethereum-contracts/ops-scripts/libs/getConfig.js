@@ -36,14 +36,14 @@ module.exports = function getConfig(chainId) {
     };
 
     const sfNw = sfMetadata.getNetworkByChainId(chainId);
-
+    // if no entry exists in metadata, it's probably a devnet and gets the same default params as testnets
     return {
         isTestnet: process.env.IS_TESTNET || !sfNw || sfNw.isTestnet ? true : false,
         // default liquidation period is 4h for mainnets, 1h for testnets
         liquidationPeriod: 3600 * (!sfNw || sfNw.isTestnet ? 1 : 4),
         // default patrician period is 20% of theliquidation period
         patricianPeriod: 3600 * (!sfNw || sfNw.isTestnet ? 1 : 4) * 0.2,
-        gov_enableAppWhiteListing: true,
+        gov_enableAppWhiteListing: !sfNw || sfNw.isTestnet ? false : true,
         // mainnets don't use the TestGovernance contract
         disableTestGovernance: process.env.DISABLE_TEST_GOVERNANCE || !sfNw || sfNw.isTestnet ? false : true,
         // default token list for the test deployments (empty for mainnets)
@@ -53,8 +53,8 @@ module.exports = function getConfig(chainId) {
             getLogsRange: sfNw?.logsQueryRange || 5000,
         },
         cfaFwd: sfNw?.contractsV1?.cfaV1Forwarder || "0xcfA132E353cB4E398080B9700609bb008eceB125",
-        nativeTokenSymbol: sfNw?.nativeTokenSymbol,
-        resolverAddress: sfNw?.contractsV1?.resolver,
+        nativeTokenSymbol: sfNw?.nativeTokenSymbol || "ETH",
+        resolverAddress: global?.process.env.RESOLVER_ADDRESS || sfNw?.contractsV1?.resolver,
         ...EXTRA_CONFIG[chainId]
     };
 };

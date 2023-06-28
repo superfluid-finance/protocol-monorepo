@@ -32,31 +32,11 @@ const getConfigData = (chainId) => {
 let Superfluid_getConfig;
 // eslint-disable-next-line no-unused-vars
 Superfluid_getConfig = module.exports = function getConfig(chainId, version) {
-    console.log(`js-sdk getConfig(chainId ${chainId}, version ${version})`);
     const CONFIG_OVERRIDES = {
-        //
-        // Local testing
-        //
-        1337: {
-            // for default ganache setup
-            nativeTokenSymbol: "ETH",
-        },
-        4447: {
-            // for local testing (truffle internal ganache and TestEnvironment)
-            nativeTokenSymbol: "ETH",
-        },
-        5777: {
-            // for local testing (external ganache)
-            nativeTokenSymbol: "ETH",
-        },
-        31337: {
-            // for local testing hardhat
-            nativeTokenSymbol: "ETH",
-        },
-
         //
         // currently unsupported networks
         //
+
         97: {
             // BSC chapel testnet
             nativeTokenSymbol: "BNB",

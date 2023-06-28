@@ -9,6 +9,7 @@ const getConfigData = (chainId) => {
     if (!networkData) {
         console.log(`no metadata found for network with chainId ${chainId}`);
         return {
+            nativeTokenSymbol: "ETH",
             versions: {
                 v1: {
                     subgraphQueryEndpoint: "",

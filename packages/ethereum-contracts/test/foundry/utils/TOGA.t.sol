@@ -167,10 +167,9 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     /**
      * @dev Tests that Bob can outbid Alice with a higher bond.
      */
-    function testBobOutBidsAlice(uint256 bobBond, uint256 aliceBond) public {
-        bobBond = _boundBondValue(bobBond);
-        aliceBond = _boundBondValue(aliceBond);
-        vm.assume(bobBond > aliceBond);
+    function testBobOutBidsAlice(uint256 aliceBond, uint256 bobBond) public {
+        aliceBond = bound(aliceBond, 1, INIT_SUPER_TOKEN_BALANCE - 1);
+        bobBond = bound(bobBond, aliceBond + 1, INIT_SUPER_TOKEN_BALANCE);
 
         // Send PIC bid from Alice
         _helperSendPICBid(alice, superToken, aliceBond, 0);
@@ -384,11 +383,11 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     // This test tests that our assumptions about bond and exit rate in the other tests
     // are safe to make by testing a larger range of values
     function testBondAndExitRateLimits(uint256 bond, int96 exitRate) public {
-        // SuperToken doesn't support the full uint256 range
-        bond = bound(bond, 1, uint256(type(int256).max));
-
-        // with small bonds, opening the stream can fail due to CFA deposit having a flow of 1<<32 due to clipping
-        vm.assume(bond > 1 << 32 || exitRate == 0);
+        bond = bound(
+            bond,
+            exitRate == 0 ? 1 : 1 << 32, // with small bonds, opening the stream can fail due to CFA deposit having a flow of 1<<32 due to clipping
+            uint256(type(int256).max) // SuperToken doesn't support the full uint256 range
+        );
 
         int96 maxExitRate = toga.getMaxExitRateFor(superToken, bond) > (type(int96).max) >> 14
             // the clipped CFA deposit needs to fit into 64 bits - since that is flowrate multiplied by

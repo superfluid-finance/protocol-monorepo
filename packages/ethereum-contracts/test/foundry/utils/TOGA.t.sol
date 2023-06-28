@@ -306,7 +306,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         _helperChangeExitRate(superToken, alice, newExitRate);
     }
 
-    function testPICClosesSteam(uint256 bond) public {
+    function testPICClosesStream(uint256 bond) public {
         bond = _boundBondValue(bond);
 
         _helperSendPICBid(alice, superToken, bond, 1E3);

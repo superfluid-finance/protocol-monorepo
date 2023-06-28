@@ -7,6 +7,9 @@ import {
     FlowOperator,
     Index,
     IndexSubscription,
+    Pool,
+    PoolDistributor,
+    PoolMember,
     ResolverEntry,
     Stream,
     StreamRevision,
@@ -30,6 +33,8 @@ import {
     getInitialTotalSupplyForSuperToken,
     ZERO_ADDRESS,
     handleTokenRPCCalls,
+    getPoolMemberID,
+    getPoolDistributorID,
 } from "./utils";
 import { SuperToken as SuperTokenTemplate } from "../generated/templates";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
@@ -39,6 +44,7 @@ import {
     getResolverAddress,
 } from "./addresses";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
+import { PoolCreated } from "../generated/GeneralDistributionAgreementV1/IGeneralDistributionAgreementV1";
 
 /**************************************************************************
  * HOL initializer functions
@@ -475,6 +481,146 @@ export function getOrInitResolverEntry(
 
     resolverEntry.save();
     return resolverEntry as ResolverEntry;
+}
+
+export function getOrInitPool(event: ethereum.Event, poolId: string): Pool {
+    // get existing pool
+    let pool = Pool.load(poolId);
+
+    // init new pool if non-existent
+    if (pool == null) {
+        pool = new Pool(poolId);
+        pool.createdAtTimestamp = event.block.timestamp;
+        pool.createdAtBlockNumber = event.block.number;
+        pool.updatedAtTimestamp = event.block.timestamp;
+        pool.updatedAtBlockNumber = event.block.number;
+
+        pool.totalUnits = BIG_INT_ZERO;
+        pool.totalConnectedUnits = BIG_INT_ZERO;
+        pool.totalDisconnectedUnits = BIG_INT_ZERO;
+        pool.totalAmountInstantlyDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        pool.totalAmountFlowedDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        pool.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        pool.totalMembers = 0;
+        pool.totalConnectedMembers = 0;
+        pool.totalDisconnectedMembers = 0;
+        pool.adjustmentFlowRate = BIG_INT_ZERO;
+        pool.flowRate = BIG_INT_ZERO;
+        pool.totalBuffer = BIG_INT_ZERO;
+        pool.token = ZERO_ADDRESS.toHex();
+        pool.admin = ZERO_ADDRESS.toHex();
+    }
+
+    return pool;
+}
+
+export function updatePoolTotalAmountFlowedAndDistributed(
+    event: ethereum.Event,
+    pool: Pool
+): Pool {
+    const timeDelta = event.block.timestamp.minus(pool.updatedAtTimestamp);
+    const amountFlowedSinceLastUpdate = pool.flowRate.times(timeDelta);
+
+    pool.updatedAtBlockNumber = event.block.number;
+    pool.updatedAtTimestamp = event.block.timestamp;
+
+    pool.totalAmountFlowedDistributedUntilUpdatedAt =
+        pool.totalAmountFlowedDistributedUntilUpdatedAt.plus(
+            amountFlowedSinceLastUpdate
+        );
+    pool.totalAmountDistributedUntilUpdatedAt =
+        pool.totalAmountDistributedUntilUpdatedAt.plus(
+            amountFlowedSinceLastUpdate
+        );
+
+    pool.save();
+
+    return pool;
+}
+
+export function getOrInitPoolMember(
+    event: ethereum.Event,
+    poolAddress: Address,
+    poolMemberAddress: Address
+): PoolMember {
+    const poolMemberID = getPoolMemberID(poolAddress, poolMemberAddress);
+    let poolMember = PoolMember.load(poolMemberID);
+
+    if (poolMember == null) {
+        poolMember = new PoolMember(poolMemberID);
+        poolMember.createdAtTimestamp = event.block.timestamp;
+        poolMember.createdAtBlockNumber = event.block.number;
+        poolMember.updatedAtTimestamp = event.block.timestamp;
+        poolMember.updatedAtBlockNumber = event.block.number;
+
+        poolMember.units = BIG_INT_ZERO;
+        poolMember.isConnected = false;
+        poolMember.totalAmountClaimed = BIG_INT_ZERO;
+
+        poolMember.account = poolMemberAddress.toHex();
+        poolMember.pool = poolAddress.toHex();
+    }
+
+    return poolMember;
+}
+
+export function getOrInitPoolDistributor(
+    event: ethereum.Event,
+    poolAddress: Address,
+    poolDistributorAddress: Address
+): PoolDistributor {
+    const poolDistributorID = getPoolDistributorID(
+        poolAddress,
+        poolDistributorAddress
+    );
+    let poolDistributor = PoolDistributor.load(poolDistributorID);
+
+    if (poolDistributor == null) {
+        poolDistributor = new PoolDistributor(poolDistributorID);
+        poolDistributor.createdAtTimestamp = event.block.timestamp;
+        poolDistributor.createdAtBlockNumber = event.block.number;
+        poolDistributor.updatedAtTimestamp = event.block.timestamp;
+        poolDistributor.updatedAtBlockNumber = event.block.number;
+
+        poolDistributor.totalAmountInstantlyDistributedUntilUpdatedAt =
+            BIG_INT_ZERO;
+        poolDistributor.totalAmountFlowedDistributedUntilUpdatedAt =
+            BIG_INT_ZERO;
+        poolDistributor.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
+        poolDistributor.totalBuffer = BIG_INT_ZERO;
+        poolDistributor.flowRate = BIG_INT_ZERO;
+
+        poolDistributor.account = poolDistributorAddress.toHex();
+        poolDistributor.pool = poolAddress.toHex();
+    }
+
+    return poolDistributor;
+}
+export function updatePoolDistributorTotalAmountFlowedAndDistributed(
+    event: ethereum.Event,
+    poolDistributor: PoolDistributor
+): PoolDistributor {
+    const timeDelta = event.block.timestamp.minus(
+        poolDistributor.updatedAtTimestamp
+    );
+    const amountFlowedSinceLastUpdate =
+        poolDistributor.flowRate.times(timeDelta);
+
+    poolDistributor.updatedAtBlockNumber = event.block.number;
+    poolDistributor.updatedAtTimestamp = event.block.timestamp;
+
+    poolDistributor.totalAmountFlowedDistributedUntilUpdatedAt =
+        poolDistributor.totalAmountFlowedDistributedUntilUpdatedAt.plus(
+            amountFlowedSinceLastUpdate
+        );
+    poolDistributor.totalAmountDistributedUntilUpdatedAt =
+        poolDistributor.totalAmountDistributedUntilUpdatedAt.plus(
+            amountFlowedSinceLastUpdate
+        );
+
+    poolDistributor.save();
+
+    return poolDistributor;
 }
 
 /**************************************************************************

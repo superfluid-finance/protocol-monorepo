@@ -636,9 +636,10 @@ type PoolCreatedEvent implements Event @entity(immutable: true) {
     order: BigInt!
 
     token: Bytes!
-    pool: Pool!
     caller: Bytes!
     admin: Bytes!
+
+    pool: Pool!
 }
 
 type PoolConnectionUpdatedEvent implements Event @entity(immutable: true) {
@@ -661,9 +662,10 @@ type PoolConnectionUpdatedEvent implements Event @entity(immutable: true) {
     order: BigInt!
 
     token: Bytes!
+    connected: Boolean!
+
     pool: Pool!
     poolMember: PoolMember!
-    connected: Boolean!
 }
 
 type BufferAdjustedEvent implements Event @entity(immutable: true) {
@@ -679,6 +681,7 @@ type BufferAdjustedEvent implements Event @entity(immutable: true) {
     addresses[0] = `token` (superToken)
     addresses[1] = `pool`
     addresses[2] = `distributor`
+    addresses[3] = `operator`
     """
     addresses: [Bytes!]!
     blockNumber: BigInt!
@@ -686,11 +689,12 @@ type BufferAdjustedEvent implements Event @entity(immutable: true) {
     order: BigInt!
 
     token: Bytes!
-    pool: Pool!
-    poolDistributor: PoolDistributor!
     bufferDelta: BigInt!
     newBufferAmount: BigInt!
     totalBufferAmount: BigInt!
+
+    pool: Pool!
+    poolDistributor: PoolDistributor!
 }
 
 type InstantDistributionUpdatedEvent implements Event @entity(immutable: true) {
@@ -714,11 +718,12 @@ type InstantDistributionUpdatedEvent implements Event @entity(immutable: true) {
     order: BigInt!
 
     token: Bytes!
-    pool: Pool!
-    poolDistributor: PoolDistributor!
     operator: Bytes!
     requestedAmount: BigInt!
     actualAmount: BigInt!
+
+    pool: Pool!
+    poolDistributor: PoolDistributor!
 }
 
 type FlowDistributionUpdatedEvent implements Event @entity(immutable: true) {
@@ -742,39 +747,15 @@ type FlowDistributionUpdatedEvent implements Event @entity(immutable: true) {
     order: BigInt!
 
     token: Bytes!
-    pool: Pool!
-    poolDistributor: PoolDistributor!
     operator: Bytes!
     oldFlowRate: BigInt!
     newDistributorToPoolFlowRate: BigInt!
     newTotalDistributionFlowRate: BigInt!
     adjustmentFlowRecipient: Bytes!
     adjustmentFlowRate: BigInt!
-}
 
-type MemberUpdatedEvent implements Event @entity(immutable: true) {
-    id: ID!
-    transactionHash: Bytes!
-    gasPrice: BigInt!
-    gasUsed: BigInt!
-    timestamp: BigInt!
-    name: String!
-
-    """
-    Contains the addresses that were impacted by this event:
-    addresses[0] = `token` (superToken)
-    addresses[1] = `pool`
-    addresses[2] = `member`
-    """
-    addresses: [Bytes!]!
-    blockNumber: BigInt!
-    logIndex: BigInt!
-    order: BigInt!
-
-    token: Bytes!
     pool: Pool!
-    poolMember: PoolMember!
-    units: BigInt!
+    poolDistributor: PoolDistributor!
 }
 
 type DistributionClaimedEvent implements Event @entity(immutable: true) {
@@ -797,11 +778,39 @@ type DistributionClaimedEvent implements Event @entity(immutable: true) {
     order: BigInt!
 
     token: Bytes!
-    pool: Pool!
-    poolMember: PoolMember!
     claimableAmount: BigInt!
     totalClaimed: BigInt!
+
+    pool: Pool!
+    poolMember: PoolMember!
 }
+
+type MemberUpdatedEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Contains the addresses that were impacted by this event:
+    addresses[0] = `token` (superToken)
+    addresses[1] = `pool`
+    addresses[2] = `member`
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    token: Bytes!
+    units: BigInt!
+
+    pool: Pool!
+    poolMember: PoolMember!
+}
+
 
 #     Host    #
 
@@ -1622,7 +1631,7 @@ type Account @entity {
     publishedIndexes: [Index!]! @derivedFrom(field: "publisher")
 
     pools: [Pool!]! @derivedFrom(field: "admin")
-    poolMemberships: [PoolMembership!]! @derivedFrom(field: "member")
+    poolMemberships: [PoolMember!]! @derivedFrom(field: "account")
 
     sentTransferEvents: [TransferEvent!]! @derivedFrom(field: "from")
     receivedTransferEvents: [TransferEvent!]! @derivedFrom(field: "to")
@@ -1670,11 +1679,14 @@ type Pool @entity {
     admin: Account!
 
     # ---------------------------------- links ----------------------------------
+    # HOL Entity Links
     poolDistributors: [PoolDistributor!]! @derivedFrom(field: "pool")
     poolMembers: [PoolMember!]! @derivedFrom(field: "pool")
-
+    
+    # Created Event Entity Link
     poolCreatedEvent: PoolCreatedEvent! @derivedFrom(field: "pool")
 
+    # Event Entity Links
     poolConnectionUpdatedEvents: [PoolConnectionUpdatedEvent!]!
         @derivedFrom(field: "pool")
     bufferAdjustedEvents: [BufferAdjustedEvent!]! @derivedFrom(field: "pool")
@@ -1699,8 +1711,9 @@ type PoolMember @entity {
 
     units: BigInt!
     isConnected: Boolean!
+    totalAmountClaimed: BigInt!
 
-    member: Account!
+    account: Account!
     pool: Pool!
 
     # ---------------------------------- links ----------------------------------
@@ -1726,6 +1739,7 @@ type PoolDistributor @entity {
     totalAmountFlowedDistributedUntilUpdatedAt: BigInt!
     totalAmountDistributedUntilUpdatedAt: BigInt!
     totalBuffer: BigInt!
+    flowRate: BigInt!
 
     account: Account!
     pool: Pool!

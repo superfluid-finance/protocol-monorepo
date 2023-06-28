@@ -189,7 +189,8 @@ async function setResolver(sf, key, value) {
  * process.env.GOVERNANCE_ADMIN_TYPE:
  * - MULTISIG
  * - OWNABLE
- * - (default) auto-detect
+ * - SAFE
+ * - (default) auto-detect (doesn't yet detect Safe)
  */
 async function sendGovernanceAction(sf, actionFn) {
     const gov = await sf.contracts.SuperfluidGovernanceBase.at(
@@ -225,6 +226,66 @@ async function sendGovernanceAction(sf, actionFn) {
             console.log("Governance action executed.");
             break;
         }
+        case "SAFE": {
+            const Web3Adapter = require('@safe-global/safe-web3-lib').default;
+            const Safe = require('@safe-global/safe-core-sdk').default;
+            const SafeServiceClient = require('@safe-global/safe-service-client').default;
+
+            const safeOwner = (await web3.eth.getAccounts())[0]; // tx sender
+            console.log("Address used as Safe owner (1st signer):", safeOwner);
+            const safeAddress = govOwner;
+
+            const ethAdapterOwner1 = new Web3Adapter({
+                web3,
+                signerAddress: safeOwner
+            });
+
+            const safeSdk = await Safe.create({ ethAdapter: ethAdapterOwner1, safeAddress });
+            const safeService = new SafeServiceClient({
+                txServiceUrl: getSafeTxServiceUrl(await web3.eth.getChainId()),
+                ethAdapter: ethAdapterOwner1
+            });
+
+            const data = actionFn(gov.contract.methods).encodeABI();
+            const nextNonce = await safeService.getNextNonce(safeAddress);
+            const safeTransactionData = {
+                to: gov.address,
+                value: 0,
+                data: data,
+                nonce: process.env.SAFE_REPLACE_LAST_TX ? nextNonce-1 : nextNonce
+            };
+            const safeTransaction = await safeSdk.createTransaction({ safeTransactionData });
+            console.log("Safe tx:", safeTransaction);
+
+            const safeTxHash = await safeSdk.getTransactionHash(safeTransaction);
+            console.log("Safe tx hash:", safeTxHash);
+            const signature = await safeSdk.signTransactionHash(safeTxHash);
+            console.log("Signature:", signature);
+
+            const transactionConfig = {
+                safeAddress,
+                safeTxHash,
+                safeTransactionData: safeTransaction.data,
+                senderAddress: safeOwner,
+                senderSignature: signature.data,
+                origin: "ops-scripts"
+            };
+
+            const pendingTxsBefore = await safeService.getPendingTransactions(safeAddress);
+
+            // according to the docs this should return the tx hash, but always returns undefined although succeeding
+            const ret = await safeService.proposeTransaction(transactionConfig);
+            console.log("returned:", ret);
+
+            const pendingTxsAfter = await safeService.getPendingTransactions(safeAddress);
+            console.log(`pending txs before ${pendingTxsBefore.count}, after ${pendingTxsAfter.count}`);
+
+            // workaround for verifying that the proposal was added
+            if (!pendingTxsAfter.count > pendingTxsBefore.count) {
+                throw new Error("Safe pending transactions count didn't increase, propose may have failed!");
+            }
+            break;
+        }
         default: {
             throw new Error("No known admin type specified and autodetect failed");
         }
@@ -234,6 +295,7 @@ async function sendGovernanceAction(sf, actionFn) {
 // Probes the given account to see what kind of admin it is.
 // Possible return values: "MULTISIG", "OWNABLE".
 // Throws when encountering an unknown contract.
+// TODO: add support for detecting SAFE
 async function autodetectGovAdminType(sf, account) {
     if (!await hasCode(web3, account)) {
         console.log("account has no code");
@@ -243,6 +305,28 @@ async function autodetectGovAdminType(sf, account) {
     // this will throw if not exists
     const moc = await multis.required();
     return "MULTISIG";
+}
+
+// returns the Safe Tx Service URL or throws if none available
+// source: https://github.com/safe-global/safe-docs/blob/main/learn/safe-core/safe-core-api/available-services.md
+function getSafeTxServiceUrl(chainId) {
+    const safeChainNames = {
+        // mainnets
+        1: "mainnet",
+        10: "optimism",
+        56: "bsc",
+        100: "gnosis-chain",
+        137: "polygon",
+        42161: "arbitrum",
+        43114: "avalanche",
+        // testnets
+        5: "goerli",
+        84531: "base-testnet"
+    };
+    if (safeChainNames[chainId] === undefined) {
+        throw new Error(`no Safe tx service url known for chainId ${chainId}`);
+    }
+    return `https://safe-transaction-${safeChainNames[chainId]}.safe.global`;
 }
 
 /****************************************************************

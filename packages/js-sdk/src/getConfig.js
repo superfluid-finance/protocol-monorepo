@@ -11,9 +11,7 @@ const getConfigData = (chainId) => {
         return {
             nativeTokenSymbol: "ETH",
             versions: {
-                v1: {
-                    subgraphQueryEndpoint: "",
-                },
+                v1: {},
             },
         };
     }

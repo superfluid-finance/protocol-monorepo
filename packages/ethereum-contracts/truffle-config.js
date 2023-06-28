@@ -399,6 +399,7 @@ const E = (module.exports = {
         arbiscan: process.env.ARBISCAN_API_KEY,
         gnosisscan: process.env.GNOSISSCAN_API_KEY,
         celoscan: process.env.CELOSCAN_API_KEY,
+        basescan: process.env.BASESCAN_API_KEY,
     },
 });
 

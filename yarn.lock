@@ -17053,10 +17053,10 @@ truffle-flattener@^1.6.0:
     mkdirp "^1.0.4"
     tsort "0.0.1"
 
-truffle-plugin-verify@0.6.2:
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/truffle-plugin-verify/-/truffle-plugin-verify-0.6.2.tgz#80158d4daf8c99d5ca3515c03cacbd392af58130"
-  integrity sha512-TkVik2PeHK0Jx1bnyKJFTYKi2H6W2XUHmIwkrTSv9xgxfB34FoET2zCFwagRNeJvVVNeqbBRTxvJmz+CWNowXA==
+truffle-plugin-verify@0.6.4:
+  version "0.6.4"
+  resolved "https://registry.yarnpkg.com/truffle-plugin-verify/-/truffle-plugin-verify-0.6.4.tgz#c8f7b8ea62d94888ea82e92c36431e519bdac6c1"
+  integrity sha512-EkgU7AudgQebGwIjge2JNAYXJwQxrwuTd2LjUZLgIDyG8OygFZp23B0KE7PiGGtH/Erm53a4z4dxHskit9uLpg==
   dependencies:
     "@truffle/resolver" "^9.0.35"
     axios "^0.26.1"

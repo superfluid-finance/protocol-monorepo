@@ -5,6 +5,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+## [v1.7.1] - 2023-06-27
+
+### Added
+- `SuperfluidLoaderLibrary.sol` added to easily get the canonical host contract address on different networks
+- `IDAv1Forwarder.sol` added
+
+### Changed
+- Dual licenses going forward: AGPLv3 for core contracts and MIT for external developers.
+
 ## [v1.7.0] - 2023-06-09
 ### Breaking
 - `SuperfluidFrameworkDeployer.sol` refactored, deployment no longer occurs in the constructor

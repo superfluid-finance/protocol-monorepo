@@ -1,4 +1,4 @@
-const loadContracts = require("./libs/loadContracts");
+const Framework= require("./libs/Framework");
 
 const {
     getScriptRunnerFactory: S,
@@ -45,7 +45,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("reset token: ", resetToken);
     console.log("protocol release version:", protocolReleaseVersion);
 
-    const sf = new SuperfluidSDK.Framework({
+    const sf = new Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
         additionalContracts: [

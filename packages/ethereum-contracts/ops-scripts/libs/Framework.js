@@ -132,4 +132,45 @@ module.exports = class Framework {
             ]);
         console.log("Superfluid Framework initialized.");
     }
+
+    /**
+     * @dev Create the ERC20 wrapper from underlying token
+     * @param {Any} tokenInfo the TokenInfo contract object to the underlying token
+     * @param {string} superTokenName (optional) overriding superTokenName
+     * @param {string} superTokenSymbol (optional) overriding superTokenSymbol
+     * @param {address} from (optional) send transaction from
+     * @param {address} upgradability (optional) send transaction from
+     * @return {Promise<Transaction>} web3 transaction object
+     */
+    async createERC20Wrapper(
+        tokenInfo,
+        {superTokenSymbol, superTokenName, from, upgradability} = {}
+    ) {
+        const tokenName = await tokenInfo.name.call();
+        const tokenSymbol = await tokenInfo.symbol.call();
+        superTokenName = superTokenName || `Super ${tokenName}`;
+        superTokenSymbol = superTokenSymbol || `${tokenSymbol}x`;
+        const factory = await this.contracts.ISuperTokenFactory.at(
+            await this.host.getSuperTokenFactory()
+        );
+        upgradability =
+            typeof upgradability === "undefined" ? 1 : upgradability;
+        const tx = await factory.createERC20Wrapper(
+            tokenInfo.address,
+            upgradability,
+            superTokenName,
+            superTokenSymbol,
+            ...((from && [{from}]) || []) // don't mind this silly js stuff, thanks to web3.js
+        );
+        const wrapperAddress = tx.logs[0].args.token;
+        const u = ["Non upgradable", "Semi upgrdable", "Full upgradable"][
+            upgradability
+        ];
+        console.log(
+            `${u} super token ${superTokenSymbol} created at ${wrapperAddress}`
+        );
+        const superToken = await this.contracts.ISuperToken.at(wrapperAddress);
+        superToken.tx = tx;
+        return superToken;
+    }
 };

@@ -1,4 +1,4 @@
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const Framework= require("./libs/Framework");
 const {
     getScriptRunnerFactory: S,
     extractWeb3Options,
@@ -40,7 +40,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("forwarder address", forwarderAddr);
     console.log("enable", enable);
 
-    const sf = new SuperfluidSDK.Framework({
+    const sf = new Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
         additionalContracts: [

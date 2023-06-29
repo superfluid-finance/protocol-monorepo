@@ -10,7 +10,7 @@ import {
     handleSuperTokenCreated,
     handleSuperTokenLogicCreated,
 } from "../../src/mappings/superTokenFactory";
-import { assertEventBaseProperties, assertTokenStatisticProperties } from "../assertionHelpers";
+import { assertEmptyTokenStatisticProperties, assertEventBaseProperties, assertTokenStatisticProperties } from "../assertionHelpers";
 import {
     daiAddress,
     daiName,
@@ -233,23 +233,12 @@ describe("SuperTokenFactory Mapper Unit Tests", () => {
             handleSuperTokenCreated(SuperTokenCreatedEvent);
 
             // Validate Created TokenStatistic properties
-            assertTokenStatisticProperties(
+            assertEmptyTokenStatisticProperties(
                 SuperTokenCreatedEvent,
                 "SuperTokenCreated",
                 maticXAddress,
                 SuperTokenCreatedEvent.block.timestamp,
                 SuperTokenCreatedEvent.block.number,
-                0,                             // totalNumberOfActiveStreams
-                0,                             // totalNumberOfClosedStreams
-                0,                             // totalNumberOfIndexes
-                0,                             // totalNumberOfActiveIndexes
-                0,                             // totalSubscriptionsWithUnits
-                0,                             // totalApprovedSubscriptions
-                BIG_INT_ZERO,                  // totalDeposit
-                BIG_INT_ZERO,                  // totalOutflowRate
-                BIG_INT_ZERO,                  // totalAmountStreamedUntilUpdatedAt
-                BIG_INT_ZERO,                  // totalAmountTransferredUntilUpdatedAt
-                BIG_INT_ZERO,                  // totalAmountDistributedUntilUpdatedAt
                 FAKE_SUPER_TOKEN_TOTAL_SUPPLY  // totalSupply = 100
             );
 

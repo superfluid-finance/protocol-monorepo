@@ -811,7 +811,6 @@ type MemberUpdatedEvent implements Event @entity(immutable: true) {
     poolMember: PoolMember!
 }
 
-
 #     Host    #
 
 type AgreementClassRegisteredEvent implements Event @entity(immutable: true) {
@@ -1682,7 +1681,7 @@ type Pool @entity {
     # HOL Entity Links
     poolDistributors: [PoolDistributor!]! @derivedFrom(field: "pool")
     poolMembers: [PoolMember!]! @derivedFrom(field: "pool")
-    
+
     # Created Event Entity Link
     poolCreatedEvent: PoolCreatedEvent! @derivedFrom(field: "pool")
 
@@ -2156,12 +2155,12 @@ type AccountTokenSnapshot @entity {
     The count of currently open streams for an account, both incoming and outgoing for all agreements.
     """
     totalNumberOfActiveStreams: Int!
-    
+
     """
     The count of currently open streams for an account, both incoming and outgoing for the CFA.
     """
     totalCFANumberOfActiveStreams: Int!
-    
+
     """
     The count of currently open streams for an account, both incoming and outgoing for the GDA.
     """
@@ -2171,12 +2170,12 @@ type AccountTokenSnapshot @entity {
     The count of active outgoing streams from this account for all agreements.
     """
     activeOutgoingStreamCount: Int!
-    
+
     """
     The count of active outgoing streams from this account for the CFA.
     """
     activeCFAOutgoingStreamCount: Int!
-    
+
     """
     The count of active outgoing streams from this account for the GDA.
     """
@@ -2758,7 +2757,7 @@ type TokenStatisticLog @entity {
     triggeredByEventName: String!
     # ---------------------------------- state ----------------------------------
     """
-    The total number of currently active `token` streams.
+    The total number of currently active `token` streams for all flow agreements.
     """
     totalNumberOfActiveStreams: Int!
 
@@ -2772,12 +2771,19 @@ type TokenStatisticLog @entity {
     """
     totalGDANumberOfActiveStreams: Int!
 
-
     """
-    The count of closed streams for `token`.
+    The count of closed streams for `token` for all flow agreements.
     """
     totalNumberOfClosedStreams: Int!
+
+    """
+    The count of closed streams for `token` for the CFA.
+    """
     totalCFANumberOfClosedStreams: Int!
+
+    """
+    The count of closed streams for `token` for the GDA.
+    """
     totalGDANumberOfClosedStreams: Int!
 
     """
@@ -2801,24 +2807,48 @@ type TokenStatisticLog @entity {
     totalApprovedSubscriptions: Int!
 
     """
-    The total deposit held by the CFA agreement for this particular `token`.
+    The total deposit held by the CFA agreement for this particular `token` for all flow agreements.
     """
     totalDeposit: BigInt!
+
+    """
+    The total deposit held by the CFA agreement for this particular `token` for the CFA.
+    """
     totalCFADeposit: BigInt!
+
+    """
+    The total deposit held by the CFA agreement for this particular `token` for the GDA.
+    """
     totalGDADeposit: BigInt!
 
     """
-    The total outflow rate of the `token` (how much value is being moved).
+    The total outflow rate of the `token` (how much value is being moved) for all flow agreements.
     """
     totalOutflowRate: BigInt!
+
+    """
+    The total outflow rate of the `token` (how much value is being moved) for the CFA.
+    """
     totalCFAOutflowRate: BigInt!
+
+    """
+    The total outflow rate of the `token` (how much value is being moved) for the GDA.
+    """
     totalGDAOutflowRate: BigInt!
 
     """
-    The all-time total amount of `token` streamed (outflows) until the `timestamp`/`block`.
+    The all-time total amount of `token` streamed (outflows) until the `timestamp`/`block` for all flow agreements.
     """
     totalAmountStreamed: BigInt!
+
+    """
+    The all-time total amount of `token` streamed (outflows) until the `timestamp`/`block` for the CFA.
+    """
     totalCFAAmountStreamed: BigInt!
+
+    """
+    The all-time total amount of `token` streamed (outflows) until the `timestamp`/`block` for the GDA.
+    """
     totalGDAAmountStreamed: BigInt!
 
     """

@@ -639,25 +639,57 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
         accountTokenSnapshot.updatedAtBlockNumber = block.number;
         accountTokenSnapshot.totalNumberOfActiveStreams = 0;
+        accountTokenSnapshot.totalCFANumberOfActiveStreams = 0;
+        accountTokenSnapshot.totalGDANumberOfActiveStreams = 0;
         accountTokenSnapshot.activeIncomingStreamCount = 0;
+        accountTokenSnapshot.activeCFAIncomingStreamCount = 0;
+        accountTokenSnapshot.activeGDAIncomingStreamCount = 0;
         accountTokenSnapshot.activeOutgoingStreamCount = 0;
+        accountTokenSnapshot.activeCFAOutgoingStreamCount = 0;
+        accountTokenSnapshot.activeGDAOutgoingStreamCount = 0;
         accountTokenSnapshot.inactiveIncomingStreamCount = 0;
+        accountTokenSnapshot.inactiveCFAIncomingStreamCount = 0;
+        accountTokenSnapshot.inactiveGDAIncomingStreamCount = 0;
         accountTokenSnapshot.inactiveOutgoingStreamCount = 0;
+        accountTokenSnapshot.inactiveCFAOutgoingStreamCount = 0;
+        accountTokenSnapshot.inactiveGDAOutgoingStreamCount = 0;
         accountTokenSnapshot.totalNumberOfClosedStreams = 0;
+        accountTokenSnapshot.totalCFANumberOfClosedStreams = 0;
+        accountTokenSnapshot.totalGDANumberOfClosedStreams = 0;
         accountTokenSnapshot.totalSubscriptionsWithUnits = 0;
         accountTokenSnapshot.isLiquidationEstimateOptimistic = false;
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
         accountTokenSnapshot.balanceUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
+        accountTokenSnapshot.totalCFANetFlowRate = BIG_INT_ZERO;
+        accountTokenSnapshot.totalGDANetFlowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalInflowRate = BIG_INT_ZERO;
+        accountTokenSnapshot.totalCFAInflowRate = BIG_INT_ZERO;
+        accountTokenSnapshot.totalGDAInflowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalOutflowRate = BIG_INT_ZERO;
+        accountTokenSnapshot.totalCFAOutflowRate = BIG_INT_ZERO;
+        accountTokenSnapshot.totalGDAOutflowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountStreamedInUntilUpdatedAt = BIG_INT_ZERO;
+        accountTokenSnapshot.totalCFAAmountStreamedInUntilUpdatedAt =
+            BIG_INT_ZERO;
+        accountTokenSnapshot.totalGDAAmountStreamedInUntilUpdatedAt =
+            BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountStreamedOutUntilUpdatedAt =
             BIG_INT_ZERO;
+        accountTokenSnapshot.totalCFAAmountStreamedOutUntilUpdatedAt =
+            BIG_INT_ZERO;
+        accountTokenSnapshot.totalGDAAmountStreamedOutUntilUpdatedAt =
+            BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
+        accountTokenSnapshot.totalCFAAmountStreamedUntilUpdatedAt =
+            BIG_INT_ZERO;
+        accountTokenSnapshot.totalGDAAmountStreamedUntilUpdatedAt =
+            BIG_INT_ZERO;
         accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt =
             BIG_INT_ZERO;
         accountTokenSnapshot.totalDeposit = BIG_INT_ZERO;
+        accountTokenSnapshot.totalCFADeposit = BIG_INT_ZERO;
+        accountTokenSnapshot.totalGDADeposit = BIG_INT_ZERO;
         accountTokenSnapshot.maybeCriticalAtTimestamp = null;
         accountTokenSnapshot.account = accountAddress.toHex();
         accountTokenSnapshot.token = tokenAddress.toHex();
@@ -675,14 +707,14 @@ export function _createAccountTokenSnapshotLogEntity(
     if (accountAddress.equals(ZERO_ADDRESS)) {
         return;
     }
-    const accountTokenSnapshot = getOrInitAccountTokenSnapshot(
+    const ats = getOrInitAccountTokenSnapshot(
         accountAddress,
         tokenAddress,
         event.block
     );
     // Transaction
     const atsLog = new AccountTokenSnapshotLog(
-        createLogID("ATSLog", accountTokenSnapshot.id, event)
+        createLogID("ATSLog", ats.id, event)
     );
     atsLog.transactionHash = event.transaction.hash;
     atsLog.timestamp = event.block.timestamp;
@@ -691,40 +723,57 @@ export function _createAccountTokenSnapshotLogEntity(
     atsLog.logIndex = event.logIndex;
     atsLog.triggeredByEventName = eventName;
     // Account token snapshot state
-    atsLog.totalNumberOfActiveStreams =
-        accountTokenSnapshot.totalNumberOfActiveStreams;
-    atsLog.activeIncomingStreamCount =
-        accountTokenSnapshot.activeIncomingStreamCount;
-    atsLog.activeOutgoingStreamCount =
-        accountTokenSnapshot.activeOutgoingStreamCount;
-    atsLog.totalNumberOfClosedStreams =
-        accountTokenSnapshot.totalNumberOfClosedStreams;
-    atsLog.inactiveIncomingStreamCount =
-        accountTokenSnapshot.inactiveIncomingStreamCount;
-    atsLog.inactiveOutgoingStreamCount =
-        accountTokenSnapshot.inactiveOutgoingStreamCount;
-    atsLog.totalSubscriptionsWithUnits =
-        accountTokenSnapshot.totalSubscriptionsWithUnits;
-    atsLog.totalApprovedSubscriptions =
-        accountTokenSnapshot.totalApprovedSubscriptions;
-    atsLog.balance = accountTokenSnapshot.balanceUntilUpdatedAt;
-    atsLog.totalNetFlowRate = accountTokenSnapshot.totalNetFlowRate;
-    atsLog.totalInflowRate = accountTokenSnapshot.totalInflowRate;
-    atsLog.totalOutflowRate = accountTokenSnapshot.totalOutflowRate;
-    atsLog.totalAmountStreamed =
-        accountTokenSnapshot.totalAmountStreamedUntilUpdatedAt;
-    atsLog.totalAmountStreamedIn =
-        accountTokenSnapshot.totalAmountStreamedInUntilUpdatedAt;
-    atsLog.totalAmountStreamedOut =
-        accountTokenSnapshot.totalAmountStreamedOutUntilUpdatedAt;
-    atsLog.totalAmountTransferred =
-        accountTokenSnapshot.totalAmountTransferredUntilUpdatedAt;
-    atsLog.totalDeposit = accountTokenSnapshot.totalDeposit;
-    atsLog.maybeCriticalAtTimestamp =
-        accountTokenSnapshot.maybeCriticalAtTimestamp;
-    atsLog.account = accountTokenSnapshot.account;
-    atsLog.token = accountTokenSnapshot.token;
-    atsLog.accountTokenSnapshot = accountTokenSnapshot.id;
+    atsLog.totalNumberOfActiveStreams = ats.totalNumberOfActiveStreams;
+    atsLog.totalCFANumberOfActiveStreams = ats.totalCFANumberOfActiveStreams;
+    atsLog.totalGDANumberOfActiveStreams = ats.totalGDANumberOfActiveStreams;
+    atsLog.activeIncomingStreamCount = ats.activeIncomingStreamCount;
+    atsLog.activeCFAIncomingStreamCount = ats.activeCFAIncomingStreamCount;
+    atsLog.activeGDAIncomingStreamCount = ats.activeGDAIncomingStreamCount;
+    atsLog.activeOutgoingStreamCount = ats.activeOutgoingStreamCount;
+    atsLog.activeCFAOutgoingStreamCount = ats.activeCFAOutgoingStreamCount;
+    atsLog.activeGDAOutgoingStreamCount = ats.activeGDAOutgoingStreamCount;
+    atsLog.totalNumberOfClosedStreams = ats.totalNumberOfClosedStreams;
+    atsLog.totalCFANumberOfClosedStreams = ats.totalCFANumberOfClosedStreams;
+    atsLog.totalGDANumberOfClosedStreams = ats.totalGDANumberOfClosedStreams;
+    atsLog.inactiveIncomingStreamCount = ats.inactiveIncomingStreamCount;
+    atsLog.inactiveCFAIncomingStreamCount = ats.inactiveCFAIncomingStreamCount;
+    atsLog.inactiveGDAIncomingStreamCount = ats.inactiveGDAIncomingStreamCount;
+    atsLog.inactiveOutgoingStreamCount = ats.inactiveOutgoingStreamCount;
+    atsLog.inactiveCFAOutgoingStreamCount = ats.inactiveCFAOutgoingStreamCount;
+    atsLog.inactiveGDAOutgoingStreamCount = ats.inactiveGDAOutgoingStreamCount;
+    atsLog.totalSubscriptionsWithUnits = ats.totalSubscriptionsWithUnits;
+    atsLog.totalApprovedSubscriptions = ats.totalApprovedSubscriptions;
+    atsLog.balance = ats.balanceUntilUpdatedAt;
+    atsLog.totalNetFlowRate = ats.totalNetFlowRate;
+    atsLog.totalCFANetFlowRate = ats.totalCFANetFlowRate;
+    atsLog.totalGDANetFlowRate = ats.totalGDANetFlowRate;
+    atsLog.totalInflowRate = ats.totalInflowRate;
+    atsLog.totalCFAInflowRate = ats.totalCFAInflowRate;
+    atsLog.totalGDAInflowRate = ats.totalGDAInflowRate;
+    atsLog.totalOutflowRate = ats.totalOutflowRate;
+    atsLog.totalCFAOutflowRate = ats.totalCFAOutflowRate;
+    atsLog.totalGDAOutflowRate = ats.totalGDAOutflowRate;
+    atsLog.totalAmountStreamed = ats.totalAmountStreamedUntilUpdatedAt;
+    atsLog.totalCFAAmountStreamed = ats.totalCFAAmountStreamedUntilUpdatedAt;
+    atsLog.totalGDAAmountStreamed = ats.totalGDAAmountStreamedUntilUpdatedAt;
+    atsLog.totalAmountStreamedIn = ats.totalAmountStreamedInUntilUpdatedAt;
+    atsLog.totalCFAAmountStreamedIn =
+        ats.totalCFAAmountStreamedInUntilUpdatedAt;
+    atsLog.totalAmountStreamedOut = ats.totalAmountStreamedOutUntilUpdatedAt;
+    atsLog.totalGDAAmountStreamedIn =
+        ats.totalGDAAmountStreamedInUntilUpdatedAt;
+    atsLog.totalCFAAmountStreamedOut =
+        ats.totalCFAAmountStreamedOutUntilUpdatedAt;
+    atsLog.totalGDAAmountStreamedOut =
+        ats.totalGDAAmountStreamedOutUntilUpdatedAt;
+    atsLog.totalAmountTransferred = ats.totalAmountTransferredUntilUpdatedAt;
+    atsLog.totalDeposit = ats.totalDeposit;
+    atsLog.totalCFADeposit = ats.totalCFADeposit;
+    atsLog.totalGDADeposit = ats.totalGDADeposit;
+    atsLog.maybeCriticalAtTimestamp = ats.maybeCriticalAtTimestamp;
+    atsLog.account = ats.account;
+    atsLog.token = ats.token;
+    atsLog.accountTokenSnapshot = ats.id;
     atsLog.save();
 }
 
@@ -739,17 +788,27 @@ export function getOrInitTokenStatistic(
         tokenStatistic.updatedAtTimestamp = block.timestamp;
         tokenStatistic.updatedAtBlockNumber = block.number;
         tokenStatistic.totalNumberOfActiveStreams = 0;
+        tokenStatistic.totalCFANumberOfActiveStreams = 0;
+        tokenStatistic.totalGDANumberOfActiveStreams = 0;
         tokenStatistic.totalNumberOfClosedStreams = 0;
+        tokenStatistic.totalCFANumberOfClosedStreams = 0;
+        tokenStatistic.totalGDANumberOfClosedStreams = 0;
         tokenStatistic.totalNumberOfIndexes = 0;
         tokenStatistic.totalNumberOfActiveIndexes = 0;
         tokenStatistic.totalSubscriptionsWithUnits = 0;
         tokenStatistic.totalApprovedSubscriptions = 0;
         tokenStatistic.totalOutflowRate = BIG_INT_ZERO;
+        tokenStatistic.totalCFAOutflowRate = BIG_INT_ZERO;
+        tokenStatistic.totalGDAOutflowRate = BIG_INT_ZERO;
         tokenStatistic.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
+        tokenStatistic.totalCFAAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
+        tokenStatistic.totalGDAAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountTransferredUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalSupply = BIG_INT_ZERO;
         tokenStatistic.totalDeposit = BIG_INT_ZERO;
+        tokenStatistic.totalCFADeposit = BIG_INT_ZERO;
+        tokenStatistic.totalGDADeposit = BIG_INT_ZERO;
         tokenStatistic.token = tokenId;
         tokenStatistic.save();
     }
@@ -777,8 +836,16 @@ export function _createTokenStatisticLogEntity(
     // Token Statistic State
     tokenStatisticLog.totalNumberOfActiveStreams =
         tokenStatistic.totalNumberOfActiveStreams;
+    tokenStatisticLog.totalCFANumberOfActiveStreams =
+        tokenStatistic.totalCFANumberOfActiveStreams;
+    tokenStatisticLog.totalGDANumberOfActiveStreams =
+        tokenStatistic.totalGDANumberOfActiveStreams;
     tokenStatisticLog.totalNumberOfClosedStreams =
         tokenStatistic.totalNumberOfClosedStreams;
+    tokenStatisticLog.totalCFANumberOfClosedStreams =
+        tokenStatistic.totalCFANumberOfClosedStreams;
+    tokenStatisticLog.totalGDANumberOfClosedStreams =
+        tokenStatistic.totalGDANumberOfClosedStreams;
     tokenStatisticLog.totalNumberOfIndexes =
         tokenStatistic.totalNumberOfIndexes;
     tokenStatisticLog.totalNumberOfActiveIndexes =
@@ -788,9 +855,17 @@ export function _createTokenStatisticLogEntity(
     tokenStatisticLog.totalApprovedSubscriptions =
         tokenStatistic.totalApprovedSubscriptions;
     tokenStatisticLog.totalDeposit = tokenStatistic.totalDeposit;
+    tokenStatisticLog.totalCFADeposit = tokenStatistic.totalCFADeposit;
+    tokenStatisticLog.totalGDADeposit = tokenStatistic.totalGDADeposit;
     tokenStatisticLog.totalOutflowRate = tokenStatistic.totalOutflowRate;
+    tokenStatisticLog.totalCFAOutflowRate = tokenStatistic.totalCFAOutflowRate;
+    tokenStatisticLog.totalGDAOutflowRate = tokenStatistic.totalGDAOutflowRate;
     tokenStatisticLog.totalAmountStreamed =
         tokenStatistic.totalAmountStreamedUntilUpdatedAt;
+    tokenStatisticLog.totalCFAAmountStreamed =
+        tokenStatistic.totalCFAAmountStreamedUntilUpdatedAt;
+    tokenStatisticLog.totalGDAAmountStreamed =
+        tokenStatistic.totalGDAAmountStreamedUntilUpdatedAt;
     tokenStatisticLog.totalAmountTransferred =
         tokenStatistic.totalAmountTransferredUntilUpdatedAt;
     tokenStatisticLog.totalAmountDistributed =

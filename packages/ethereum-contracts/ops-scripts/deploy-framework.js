@@ -138,6 +138,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     console.log("chain ID: ", chainId);
     console.log("deployer: ", deployerAddr);
     const config = getConfig(chainId);
+    if (config.isTestnet) {
+        output += "IS_TESTNET=1\n";
+    }
     output += `NETWORK_ID=${networkId}\n`;
 
     const deployerInitialBalance = await web3.eth.getBalance(deployerAddr);

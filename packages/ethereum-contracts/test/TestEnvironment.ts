@@ -36,7 +36,9 @@ import {
 } from "./types";
 
 const {web3tx, wad4human} = require("@decentral.ee/web3-helpers");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+
+// TODO: needs to be arranged somehow else
+const Framework= require("../ops-scripts/libs/Framework");
 const traveler = require("ganache-time-traveler");
 
 const deployFramework = require("../ops-scripts/deploy-framework");
@@ -274,7 +276,7 @@ export default class TestEnvironment {
         }
 
         // load the SDK
-        this.sf = new SuperfluidSDK.Framework({
+        this.sf = new Framework({
             gasReportType: this.gasReportType,
             isTruffle: isTruffle,
             web3,

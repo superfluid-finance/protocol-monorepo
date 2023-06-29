@@ -1,4 +1,4 @@
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const Framework= require("./libs/Framework");
 const {
     getScriptRunnerFactory: S,
     extractWeb3Options,
@@ -50,7 +50,7 @@ module.exports = eval(`(${S.toString()})({
 
     console.log("protocol release version:", protocolReleaseVersion);
 
-    const sf = new SuperfluidSDK.Framework({
+    const sf = new Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
         additionalContracts: [

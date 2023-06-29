@@ -1,5 +1,5 @@
 const {web3tx} = require("@decentral.ee/web3-helpers");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const loadContracts = require("./libs/loadContracts");
 const getConfig = require("./libs/getConfig");
 
 const {
@@ -47,7 +47,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     console.log("chain ID: ", chainId);
     const config = getConfig(chainId);
 
-    const {Resolver, TestToken} = await SuperfluidSDK.loadContracts({
+    const {Resolver, TestToken} = await loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: ["Resolver", "TestToken"],
         contractLoader: builtTruffleContractLoader,

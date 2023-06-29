@@ -1,7 +1,7 @@
 const fs = require("fs");
 const util = require("util");
 const getConfig = require("./libs/getConfig");
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const loadContracts = require("./libs/loadContracts");
 const {web3tx} = require("@decentral.ee/web3-helpers");
 const deployERC1820 = require("../ops-scripts/deploy-erc1820");
 
@@ -223,7 +223,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         InstantDistributionAgreementV1,
         ConstantOutflowNFT,
         ConstantInflowNFT,
-    } = await SuperfluidSDK.loadContracts({
+    } = await loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
         contractLoader: builtTruffleContractLoader,

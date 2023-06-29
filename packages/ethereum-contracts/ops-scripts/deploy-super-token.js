@@ -1,4 +1,4 @@
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const loadContracts = require("./libs/loadContracts");
 
 const {
     getScriptRunnerFactory: S,

@@ -159,6 +159,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         appWhiteListing ||
         config.gov_enableAppWhiteListing ||
         !!process.env.ENABLE_APP_WHITELISTING;
+    console.log("app whitelisting enabled:", appWhiteListing);
     if (newTestResolver) {
         console.log("**** !ATTN! CREATING NEW RESOLVER ****");
     }

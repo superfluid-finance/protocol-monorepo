@@ -33,6 +33,11 @@ module.exports = function getConfig(chainId) {
         80001: {
             biconomyForwarder: "0x2B99251eC9650e507936fa9530D11dE4d6C9C05c",
         },
+
+        // Celo Mainnet
+        42220: {
+            gov_enableAppWhiteListing: false,
+        }
     };
 
     const sfNw = sfMetadata.getNetworkByChainId(chainId);

@@ -138,6 +138,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     console.log("chain ID: ", chainId);
     console.log("deployer: ", deployerAddr);
     const config = getConfig(chainId);
+    if (config.isTestnet) {
+        output += "IS_TESTNET=1\n";
+    }
     output += `NETWORK_ID=${networkId}\n`;
 
     const deployerInitialBalance = await web3.eth.getBalance(deployerAddr);
@@ -159,6 +162,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         appWhiteListing ||
         config.gov_enableAppWhiteListing ||
         !!process.env.ENABLE_APP_WHITELISTING;
+    console.log("app whitelisting enabled:", appWhiteListing);
     if (newTestResolver) {
         console.log("**** !ATTN! CREATING NEW RESOLVER ****");
     }

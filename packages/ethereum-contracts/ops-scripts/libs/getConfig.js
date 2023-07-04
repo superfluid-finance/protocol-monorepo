@@ -1,4 +1,4 @@
-const SuperfluidSDK = require("@superfluid-finance/js-sdk");
+const sfMetadata = require("@superfluid-finance/metadata");
 
 /*
  * REFERENCES:
@@ -6,10 +6,8 @@ const SuperfluidSDK = require("@superfluid-finance/js-sdk");
  */
 
 module.exports = function getConfig(chainId) {
-    const DEFAULT_CONFIGS = {
-        //
+    const EXTRA_CONFIG = {
         // Local Testing
-        //
         4447: {
             // for local testing (truffle internal ganache and TestEnvironment)
             // this is a fake forwarder address, it is to test the deployment script
@@ -26,264 +24,42 @@ module.exports = function getConfig(chainId) {
             biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
         },
 
-        //
-        // ETHEREUM
-        //
-        1: {
-            // mainnet
-            liquidationPeriod: 3600 * 4,
-            patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: [],
-            // governance default configs
-            gov_enableAppWhiteListing: true,
-            // misc
-            disableTestGovernance: true,
-            data: {
-                initialBlockNumber: 15870000,
-                getLogsRange: 10000,
-            },
-        },
+        // Ethereum Goerli Testnet
         5: {
-            // goerli
-            liquidationPeriod: 3600,
-            patricianPeriod: 3600 * 0.2,
             biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
         },
-        11155111: {
-            // sepolia
-            liquidationPeriod: 3600,
-            patricianPeriod: 3600 * 0.2,
-        },
-        4: {
-            // rinkeby
-            liquidationPeriod: 3600,
-            patricianPeriod: 3600 * 0.2,
-            biconomyForwarder: "0x1730cAe53340aB01228019618C2b544642f3650A",
-        },
 
-        3: {
-            // ropsten
-            liquidationPeriod: 3600,
-            patricianPeriod: 3600 * 0.2,
-            biconomyForwarder: "0x1De6349B96774ed5E3569e47D609C19A8dE15C89",
-        },
-        42: {
-            // kovan
-            liquidationPeriod: 3600,
-            patricianPeriod: 3600 * 0.2,
-            biconomyForwarder: "0xE8Df44bcaedD41586cE73eB85e409bcaa834497B",
-        },
-
-        //
-        // MATIC: https://docs.matic.network/docs/develop/network-details/network/
-        //
+        // Polygon Mumbai Testnet
         80001: {
-            // (matic) mumbai testnet
-            liquidationPeriod: 3600,
-            patricianPeriod: 3600 * 0.2,
             biconomyForwarder: "0x2B99251eC9650e507936fa9530D11dE4d6C9C05c",
         },
-        137: {
-            // (matic) mainnet
-            liquidationPeriod: 3600 * 4,
-            patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["DAIx", "USDCx", "ETHx"],
-            // governance default configs
-            gov_enableAppWhiteListing: true,
-            // misc
-            disableTestGovernance: true,
-            data: {
-                initialBlockNumber: 10000000,
-                getLogsRange: 10000,
-            },
-        },
 
-        //
-        // xDAI: https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup
-        //
-        100: {
-            liquidationPeriod: 3600 * 4,
-            patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["ETHx"],
-            // governance default configs
-            gov_enableAppWhiteListing: true,
-            // misc
-            disableTestGovernance: true,
-        },
-
-        //
-        // BSC: https://docs.binance.org/smart-chain/developer/rpc.html
-        //
-        56: {
-            liquidationPeriod: 3600 * 4,
-            patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: [],
-            // governance default configs
-            gov_enableAppWhiteListing: true,
-            // misc
-            disableTestGovernance: true,
-            data: {
-                initialBlockNumber: 18800000,
-                getLogsRange: 5000,
-            },
-        },
-        97: {
-            // BSC chapel testnet
-            data: {
-                initialBlockNumber: 19437500,
-                getLogsRange: 10000,
-            },
-        },
-
-        //
-        // Optimistic Ethereum: https://community.optimism.io/docs/
-        //
-        10: {
-            // optimism mainnet
-            liquidationPeriod: 3600 * 4,
-            patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["DAIx", "USDCx"],
-            // governance default configs
-            gov_enableAppWhiteListing: true,
-            // misc
-            disableTestGovernance: true,
-            data: {
-                initialBlockNumber: 4300000,
-                getLogsRange: 50000,
-            },
-        },
-        69: {
-            // optimism testnet (kovan)
-            data: {
-                initialBlockNumber: 300000,
-                getLogsRange: 50000,
-            },
-        },
-        420: {
-            // optimism testnet (goerli)
-            data: {
-                initialBlockNumber: 340000,
-                getLogsRange: 50000,
-            },
-        },
-
-        //
-        // Arbitrum: https://developer.offchainlabs.com
-        //
-        42161: {
-            // arbitrum one mainnet
-            liquidationPeriod: 3600 * 4,
-            patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: ["DAIx", "USDCx"],
-            // governance default configs
-            gov_enableAppWhiteListing: true,
-            // misc
-            disableTestGovernance: true,
-            data: {
-                initialBlockNumber: 7600000,
-                getLogsRange: 50000,
-            },
-        },
-        421611: {
-            // arbitrum testnet (rinkeby)
-            data: {
-                initialBlockNumber: 7300000,
-                getLogsRange: 50000,
-            },
-        },
-        421613: {
-            // arbitrum testnet (goerli)
-            data: {
-                initialBlockNumber: 93000,
-                getLogsRange: 50000,
-            },
-        },
-
-        //
-        // ARTIS
-        //
-        0x03c401: {
-            // (artis) tau1 testnet
-        },
-
-        //
-        // Avalanche C-Chain: https://docs.avax.network/learn/platform-overview#contract-chain-c-chain
-        //
-        43114: {
-            // avalanche mainnet
-            liquidationPeriod: 3600 * 4,
-            patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: [],
-            // governance default configs
-            gov_enableAppWhiteListing: true,
-            // misc
-            disableTestGovernance: true,
-            data: {
-                initialBlockNumber: 14700000,
-                getLogsRange: 50000,
-            },
-        },
-        43113: {
-            // avalanche fuji testnet
-            data: {
-                initialBlockNumber: 21012000,
-                getLogsRange: 50000,
-            },
-            cfaFwd: "0x2CDd45c5182602a36d391F7F16DD9f8386C3bD8D",
-        },
-
-        //
-        // Celo: https://github.com/celo-org/celo-monorepo#docs
-        //
+        // Celo Mainnet
         42220: {
-            // celo mainnet
-            liquidationPeriod: 3600 * 4,
-            patricianPeriod: 3600 * 4 * 0.2,
-            tokenList: [],
-            // governance default configs
-            gov_enableAppWhiteListing: true,
-            // misc
-            disableTestGovernance: true,
-            data: {
-                initialBlockNumber: 16393000,
-                getLogsRange: 20000,
-            },
-        },
-        44787: {
-            // Celo alfajores testnet
-            data: {
-                initialBlockNumber: 11519000,
-                getLogsRange: 50000,
-            },
-        },
-
-        //
-        // Base: https://base.org/
-        //
-        84531: {
-            // base testnet (goerli)
-            data: {
-                initialBlockNumber: 5249500,
-                getLogsRange: 50000,
-            },
-        },
+            gov_enableAppWhiteListing: false,
+        }
     };
 
+    const sfNw = sfMetadata.getNetworkByChainId(chainId);
+    // if no entry exists in metadata, it's probably a devnet and gets the same default params as testnets
     return {
-        // global default configs
-        ...{
-            // default liquidation period for the test deployments
-            liquidationPeriod: 3600,
-            // default patrician period for test deployments
-            patricianPeriod: 3600 * 0.2,
-            // default token list for the test deployments
-            tokenList: ["fDAIx", "fUSDCx", "fTUSDx"],
-            data: {},
-            cfaFwd: "0xcfA132E353cB4E398080B9700609bb008eceB125",
+        isTestnet: process.env.IS_TESTNET || !sfNw || sfNw.isTestnet ? true : false,
+        // default liquidation period is 4h for mainnets, 1h for testnets
+        liquidationPeriod: 3600 * (!sfNw || sfNw.isTestnet ? 1 : 4),
+        // default patrician period is 20% of theliquidation period
+        patricianPeriod: 3600 * (!sfNw || sfNw.isTestnet ? 1 : 4) * 0.2,
+        gov_enableAppWhiteListing: !sfNw || sfNw.isTestnet ? false : true,
+        // mainnets don't use the TestGovernance contract
+        disableTestGovernance: process.env.DISABLE_TEST_GOVERNANCE || !sfNw || sfNw.isTestnet ? false : true,
+        // default token list for the test deployments (empty for mainnets)
+        tokenList: !sfNw || sfNw.isTestnet ? ["fDAIx", "fUSDCx", "fTUSDx"] : [],
+        data: {
+            initialBlockNumber: sfNw?.startBlockV1 || 0,
+            getLogsRange: sfNw?.logsQueryRange || 5000,
         },
-        // network specific configs
-        ...DEFAULT_CONFIGS[chainId],
-        // SDK provided configs
-        ...SuperfluidSDK.getConfig(chainId),
+        cfaFwd: sfNw?.contractsV1?.cfaV1Forwarder || "0xcfA132E353cB4E398080B9700609bb008eceB125",
+        nativeTokenSymbol: sfNw?.nativeTokenSymbol || "ETH",
+        resolverAddress: global?.process.env.RESOLVER_ADDRESS || sfNw?.contractsV1?.resolver,
+        ...EXTRA_CONFIG[chainId]
     };
 };

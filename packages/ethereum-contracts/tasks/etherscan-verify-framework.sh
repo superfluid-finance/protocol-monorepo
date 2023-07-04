@@ -11,38 +11,6 @@ set -x
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
 
-# network specifics
-case $TRUFFLE_NETWORK in
-    eth-goerli | \
-    eth-sepolia | \
-    polygon-mumbai | \
-    optimism-goerli | \
-    arbitrum-goerli | \
-    avalanche-fuji | \
-    base-goerli )
-        echo "$TRUFFLE_NETWORK is testnet"
-        IS_TESTNET=1
-        ;;
-    eth-mainnet | \
-    polygon-mainnet | \
-    optimism-mainnet | \
-    arbitrum-one | \
-    avalanche-c | \
-    bsc-mainnet | \
-    celo-mainnet | \
-    xdai-mainnet )
-        echo "$TRUFFLE_NETWORK is mainnet"
-        IS_TESTNET=
-        ;;
-    *)
-        echo "Unknown network: $TRUFFLE_NETWORK"
-        if [ -z "$SKIP_IF_UNSUPPORTED" ]; then
-            exit 1;
-        else
-            exit 0;
-        fi
-esac
-
 # shellcheck disable=SC1090
 source "$ADDRESSES_VARS"
 

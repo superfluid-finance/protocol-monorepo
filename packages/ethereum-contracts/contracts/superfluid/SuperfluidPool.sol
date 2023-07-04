@@ -11,6 +11,7 @@ import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
 import { GeneralDistributionAgreementV1 } from "../agreements/GeneralDistributionAgreementV1.sol";
 import { BeaconProxiable } from "../upgradability/BeaconProxiable.sol";
 import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
+import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 
 /**
  * @title SuperfluidPool
@@ -290,6 +291,27 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         return true;
     }
 
+    /**
+     * @notice Checks whether or not the NFT hook can be called.
+     * @dev A staticcall, so `POOL_MEMBER_NFT` must be a view otherwise the assumption is that it reverts
+     * @param token the super token that is being streamed
+     * @return poolMemberNFT the address returned by low level call
+     */
+    function _canCallNFTHook(ISuperfluidToken token) internal view returns (address poolMemberNFT) {
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory data) =
+            address(token).staticcall(abi.encodeWithSelector(ISuperToken.POOL_MEMBER_NFT.selector));
+
+        if (success) {
+            // @note We are aware this may revert if a Custom SuperToken's
+            // POOL_MEMBER_NFT does not return data that can be
+            // decoded to an address. This would mean it was intentionally
+            // done by the creator of the Custom SuperToken logic and is
+            // fully expected to revert in that case as the author desired.
+            poolMemberNFT = abi.decode(data, (address));
+        }
+    }
+
     function _updateMember(address memberAddr, uint128 newUnits) internal returns (bool) {
         if (GDA.isPool(superToken, memberAddr)) revert SUPERFLUID_POOL_NO_POOL_MEMBERS();
         if (memberAddr == address(0)) revert SUPERFLUID_POOL_NO_ZERO_ADDRESS();
@@ -322,20 +344,37 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         }
         emit MemberUpdated(superToken, memberAddr, newUnits);
 
-        // TODO should try/catch
-        IPoolMemberNFT poolMemberNFT = ISuperToken(address(superToken)).POOL_MEMBER_NFT();
-        uint256 tokenId = poolMemberNFT.getTokenId(address(this), memberAddr);
-        if (newUnits == 0) {
-            if (poolMemberNFT.getPoolMemberData(tokenId).member != address(0)) {
-                poolMemberNFT.burn(tokenId);
-            }
-        } else {
-            // if not minted, we mint a new pool member nft
-            if (poolMemberNFT.getPoolMemberData(tokenId).member == address(0)) {
-                poolMemberNFT.mint(address(this), memberAddr);
-                // if minted, we update the pool member nft
+        IPoolMemberNFT poolMemberNFT = IPoolMemberNFT(_canCallNFTHook(superToken));
+        if (address(poolMemberNFT) != address(0)) {
+            uint256 tokenId = poolMemberNFT.getTokenId(address(this), memberAddr);
+            uint256 gasLeftBefore;
+            if (newUnits == 0) {
+                if (poolMemberNFT.getPoolMemberData(tokenId).member != address(0)) {
+                    gasLeftBefore = gasleft();
+                    try poolMemberNFT.burn(tokenId) {
+                        // solhint-disable-next-line no-empty-blocks
+                    } catch {
+                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+                    }
+                }
             } else {
-                poolMemberNFT.update(tokenId);
+                // if not minted, we mint a new pool member nft
+                if (poolMemberNFT.getPoolMemberData(tokenId).member == address(0)) {
+                    gasLeftBefore = gasleft();
+                    try poolMemberNFT.mint(address(this), memberAddr) {
+                        // solhint-disable-next-line no-empty-blocks
+                    } catch {
+                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+                    }
+                    // if minted, we update the pool member nft
+                } else {
+                    gasLeftBefore = gasleft();
+                    try poolMemberNFT.update(tokenId) {
+                        // solhint-disable-next-line no-empty-blocks
+                    } catch {
+                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+                    }
+                }
             }
         }
 

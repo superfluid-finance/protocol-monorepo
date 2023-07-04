@@ -96,7 +96,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             _settled_value: Value.wrap(settledValue)
         });
         sf.gda.setUIndex(eff, owner, p);
-        (,GeneralDistributionAgreementV1.UniversalIndexData memory setUIndexData) = sf.gda.getUIndexAndUindexData(eff, owner);
+        (, GeneralDistributionAgreementV1.UniversalIndexData memory setUIndexData) =
+            sf.gda.getUIndexAndUindexData(eff, owner);
 
         assertEq(settledAt, setUIndexData.settledAt, "settledAt not equal");
         assertEq(flowRate, setUIndexData.flowRate, "flowRate not equal");
@@ -106,16 +107,19 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     }
 
     // Flow Distribution Data Setters/Getters
-    function testSetGetFlowDistributionData(address from, address to, uint32 newFlowRate, uint96 newFlowRateDelta)
-        public
-    {
-        bytes32 flowHash = sf.gda.getFlowDistributionId(from, to);
+    function testSetGetFlowDistributionData(
+        address from,
+        ISuperfluidPool to,
+        uint32 newFlowRate,
+        uint96 newFlowRateDelta
+    ) public {
+        bytes32 flowHash = sf.gda.getFlowDistributionId(from, address(to));
         uint256 lastUpdated = block.timestamp;
         sf.gda.setFlowInfo(
             abi.encode(superToken),
             flowHash,
             from,
-            to,
+            address(to),
             FlowRate.wrap(int128(uint128(newFlowRate))),
             FlowRate.wrap(int128(uint128(newFlowRateDelta)))
         );
@@ -237,7 +241,11 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             int96(newFlowRate),
             "_getFlowRate: flow rate not equal"
         );
-        assertEq(sf.gda.getFlowRate(superToken, from, to), int96(newFlowRate), "getFlowRate: flow rate not equal");
+        assertEq(
+            sf.gda.getFlowRate(superToken, from, ISuperfluidPool(to)),
+            int96(newFlowRate),
+            "getFlowRate: flow rate not equal"
+        );
     }
 
     // Adjust Buffer => UniversalIndexData modified
@@ -249,9 +257,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         bytes32 flowHash = sf.gda.getFlowDistributionId(from, to);
         uint256 bufferDelta = uint256(int256(newFlowRate)) * liquidationPeriod; // expected buffer == buffer delta
             // because of fresh state
-        (,GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataBefore) =
+        (, GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataBefore) =
             sf.gda.getUIndexAndUindexData(abi.encode(superToken), from);
-        (,GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataBefore) =
+        (, GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataBefore) =
             sf.gda.getUIndexAndUindexData(abi.encode(superToken), address(sf.gda));
         sf.gda.adjustBuffer(
             abi.encode(superToken),
@@ -262,7 +270,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             FlowRate.wrap(int128(newFlowRate))
         );
 
-        (,GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataAfter) =
+        (, GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataAfter) =
             sf.gda.getUIndexAndUindexData(abi.encode(superToken), from);
 
         assertEq(
@@ -276,7 +284,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             "from settled value not shifted to gda"
         );
 
-        (,GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataAfter) =
+        (, GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataAfter) =
             sf.gda.getUIndexAndUindexData(abi.encode(superToken), address(sf.gda));
         assertEq(
             gdaUindexDataBefore.settledValue + int256(bufferDelta),
@@ -333,7 +341,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedDistributionFlowRate);
 
         _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
-        int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
+        int96 fr = sf.gda.getFlowRate(superToken, alice, pool);
 
         uint256 aliceBalance = superToken.balanceOf(alice);
 
@@ -380,7 +388,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         (int256 aliceRTB, uint256 deposit,,) = superToken.realtimeBalanceOfNow(alice);
 
         _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
-        int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
+        int96 fr = sf.gda.getFlowRate(superToken, alice, pool);
 
         vm.warp(block.timestamp + (INIT_SUPER_TOKEN_BALANCE / uint256(uint96(fr))));
 
@@ -627,7 +635,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function testDistributeFlowToEmptyPool(int32 flowRate) public {
         vm.assume(flowRate >= 0);
         _helperDistributeFlow(superToken, alice, alice, pool, flowRate);
-        int96 distributionFlowRate = sf.gda.getFlowRate(superToken, alice, address(pool));
+        int96 distributionFlowRate = sf.gda.getFlowRate(superToken, alice, pool);
         assertEq(distributionFlowRate, 0, "GDAv1.t: distributionFlowRate should be 0");
     }
 
@@ -645,7 +653,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedDistributionFlowRate);
 
         _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
-        int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
+        int96 fr = sf.gda.getFlowRate(superToken, alice, pool);
 
         uint256 aliceBalance = superToken.balanceOf(alice);
 
@@ -671,7 +679,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, pool, requestedDistributionFlowRate);
 
         _helperDistributeFlow(superToken, alice, alice, pool, requestedDistributionFlowRate);
-        int96 fr = sf.gda.getFlowRate(superToken, alice, address(pool));
+        int96 fr = sf.gda.getFlowRate(superToken, alice, pool);
 
         uint256 aliceBalance = superToken.balanceOf(alice);
 
@@ -730,9 +738,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         _helperDistributeFlow(superToken, alice, alice, pool, 100);
         assertEq(
-            sf.gda.getPoolAdjustmentFlowRate(superToken, address(pool)),
-            0,
-            "GDAv1.t: Pool adjustment rate is non-zero"
+            sf.gda.getPoolAdjustmentFlowRate(superToken, address(pool)), 0, "GDAv1.t: Pool adjustment rate is non-zero"
         );
     }
 

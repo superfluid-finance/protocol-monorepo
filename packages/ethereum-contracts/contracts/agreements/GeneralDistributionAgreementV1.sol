@@ -200,7 +200,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
-    function getFlowRate(ISuperfluidToken token, address from, address to) external view override returns (int96) {
+    function getFlowRate(ISuperfluidToken token, address from, ISuperfluidPool to)
+        external
+        view
+        override
+        returns (int96)
+    {
         bytes32 distributionFlowHash = _getFlowDistributionHash(from, to);
         (, FlowDistributionData memory data) = _getFlowDistributionData(token, distributionFlowHash);
         return data.flowRate;
@@ -214,7 +219,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         int96 requestedFlowRate
     ) external view override returns (int96 actualFlowRate, int96 totalDistributionFlowRate) {
         bytes memory eff = abi.encode(token);
-        bytes32 distributionFlowHash = _getFlowDistributionHash(from, address(to));
+        bytes32 distributionFlowHash = _getFlowDistributionHash(from, to);
 
         BasicParticle memory fromUIndexData = _getUIndex(eff, from);
 
@@ -267,7 +272,14 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         data[0] = bytes32(uint256(1));
         token.updateAgreementStateSlot(address(pool), _UNIVERSAL_INDEX_STATE_SLOT_ID, data);
 
-        ISuperToken(address(token)).POOL_ADMIN_NFT().mint(address(pool));
+        IPoolAdminNFT poolAdminNFT = IPoolAdminNFT(_canCallPoolAdminNFTHook(token));
+
+        uint256 gasLeftBefore = gasleft();
+        try poolAdminNFT.mint(address(pool)) {
+            // solhint-disable-next-line no-empty-blocks
+        } catch {
+            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+        }
 
         emit PoolCreated(token, admin, pool);
     }
@@ -423,7 +435,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         newCtx = ctx;
 
-        bytes32 distributionFlowHash = _getFlowDistributionHash(from, address(pool));
+        bytes32 distributionFlowHash = _getFlowDistributionHash(from, pool);
         FlowRate oldFlowRate = _getFlowRate(abi.encode(token), distributionFlowHash);
 
         (, FlowRate actualFlowRate, FlowRate newDistributionFlowRate) = _doDistributeFlowViaPool(
@@ -482,7 +494,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         // mint/burn FlowNFT to flow distributor
         {
-            address constantOutflowNFTAddress = _canCallNFTHook(token);
+            address constantOutflowNFTAddress = _canCallConstantOutflowNFTHook(token);
 
             if (constantOutflowNFTAddress != address(0)) {
                 uint256 gasLeftBefore;
@@ -542,7 +554,11 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
      * @param token the super token that is being streamed
      * @return constantOutflowNFTAddress the address returned by low level call
      */
-    function _canCallNFTHook(ISuperfluidToken token) internal view returns (address constantOutflowNFTAddress) {
+    function _canCallConstantOutflowNFTHook(ISuperfluidToken token)
+        internal
+        view
+        returns (address constantOutflowNFTAddress)
+    {
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory data) =
             address(token).staticcall(abi.encodeWithSelector(ISuperToken.CONSTANT_OUTFLOW_NFT.selector));
@@ -554,6 +570,21 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             // done by the creator of the Custom SuperToken logic and is
             // fully expected to revert in that case as the author desired.
             constantOutflowNFTAddress = abi.decode(data, (address));
+        }
+    }
+
+    function _canCallPoolAdminNFTHook(ISuperfluidToken token) internal view returns (address poolAdminNFTAddress) {
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory data) =
+            address(token).staticcall(abi.encodeWithSelector(ISuperToken.POOL_ADMIN_NFT.selector));
+
+        if (success) {
+            // @note We are aware this may revert if a Custom SuperToken's
+            // POOL_ADMIN_NFT does not return data that can be
+            // decoded to an address. This would mean it was intentionally
+            // done by the creator of the Custom SuperToken logic and is
+            // fully expected to revert in that case as the author desired.
+            poolAdminNFTAddress = abi.decode(data, (address));
         }
     }
 
@@ -657,7 +688,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         {
             emit BufferAdjusted(
                 ISuperfluidToken(token),
-                pool,
+                ISuperfluidPool(pool),
                 from,
                 Value.unwrap(bufferDelta),
                 Value.unwrap(newBufferAmount).toUint256(),
@@ -729,7 +760,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         return keccak256(abi.encode(block.chainid, "poolMember", poolMember, address(pool)));
     }
 
-    function _getFlowDistributionHash(address from, address to) internal view returns (bytes32) {
+    function _getFlowDistributionHash(address from, ISuperfluidPool to) internal view returns (bytes32) {
         return keccak256(abi.encode(block.chainid, "distributionFlow", from, to));
     }
 

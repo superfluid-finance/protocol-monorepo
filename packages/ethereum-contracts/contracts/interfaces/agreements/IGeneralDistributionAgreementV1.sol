@@ -51,7 +51,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
 
     event BufferAdjusted(
         ISuperfluidToken indexed token,
-        address indexed pool,
+        ISuperfluidPool indexed pool,
         address indexed from,
         int256 bufferDelta,
         uint256 newBufferAmount,
@@ -74,9 +74,13 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     /// adjustment flow rate of a pool.
     /// @param token The token address
     /// @param from The sender address
-    /// @param to The receiver address
+    /// @param to The receiver address (the pool)
     /// @return flow rate
-    function getFlowRate(ISuperfluidToken token, address from, address to) external view virtual returns (int96);
+    function getFlowRate(ISuperfluidToken token, address from, ISuperfluidPool to)
+        external
+        view
+        virtual
+        returns (int96);
 
     /// @notice Executes an optimistic estimation of what the actual flow distribution flow rate may be.
     /// The actual flow distribution flow rate is the flow rate that will be sent from `from`.

@@ -458,7 +458,7 @@ contract SuperTokenLibraryGDAMock {
     using SuperTokenV1Library for ISuperToken;
     //// View Functions ////
 
-    function getFlowDistributionFlowRateTest(ISuperToken token, address from, address to)
+    function getFlowDistributionFlowRateTest(ISuperToken token, address from, ISuperfluidPool to)
         external
         view
         returns (int96)

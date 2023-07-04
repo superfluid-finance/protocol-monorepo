@@ -898,7 +898,11 @@ library SuperTokenV1Library {
     }
 
     /** GDA VIEW FUNCTIONS ************************************* */
-    function getFlowDistributionFlowRate(ISuperToken token, address from, address to) internal view returns (int96) {
+    function getFlowDistributionFlowRate(ISuperToken token, address from, ISuperfluidPool to)
+        internal
+        view
+        returns (int96)
+    {
         (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
         return gda.getFlowRate(token, from, to);
     }

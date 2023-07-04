@@ -132,7 +132,7 @@ contract GDAv1Forwarder is ForwarderBase {
      * @param to The receiver address (the pool address).
      * @return The flow distribution flow rate
      */
-    function getFlowDistributionFlowRate(ISuperfluidToken token, address from, address to)
+    function getFlowDistributionFlowRate(ISuperfluidToken token, address from, ISuperfluidPool to)
         internal
         view
         returns (int96)

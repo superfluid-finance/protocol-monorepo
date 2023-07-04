@@ -72,7 +72,7 @@ contract GeneralDistributionAgreementV1Harness is GeneralDistributionAgreementV1
     }
 
     function getFlowDistributionId(address from, address to) external view returns (bytes32) {
-        return _getFlowDistributionHash(from, to);
+        return _getFlowDistributionHash(from, ISuperfluidPool(to));
     }
 
     function getPoolMemberId(address poolMember, ISuperfluidPool pool) external view returns (bytes32) {

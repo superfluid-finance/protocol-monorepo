@@ -4,7 +4,6 @@ import { ethers } from "ethers";
 import Host from "./Host";
 import Operation, { BatchOperationType } from "./Operation";
 import { SFError } from "./SFError";
-import { EthersParams } from "./interfaces";
 import { getTransactionDescription } from "./utils";
 
 export interface IBatchCallOptions {
@@ -80,7 +79,7 @@ export default class BatchCall {
         );
     }
 
-    async toOperation({ overrides }: EthersParams = {}) {
+    async toOperation() {
         if (this.getOperationStructArrayPromises.length === 0) {
             throw new SFError({
                 type: "BATCH_CALL_ERROR",
@@ -90,23 +89,25 @@ export default class BatchCall {
         const operationStructArray = await Promise.all(
             this.getOperationStructArrayPromises
         );
-        const tx = this.host.contract.populateTransaction.batchCall(
-            operationStructArray,
-            overrides
-        );
+        const tx =
+            this.host.contract.populateTransaction.batchCall(
+                operationStructArray
+            );
         return new Operation(tx, "UNSUPPORTED");
     }
 
     /**
      * Executes a batch call given the operations on this class.
      * @param signer the signer of the transaction
+     * @param gasLimitMultiplier A multiplier to provide gasLimit buffer on top of the estimated gas limit (1.2x is the default)
      * @returns {Promise<ethers.ContractTransaction>} ContractTransaction object
      */
     exec = async (
-        signer: ethers.Signer
+        signer: ethers.Signer,
+        gasLimitMultiplier = 1.2
     ): Promise<ethers.ContractTransaction> => {
         const operation = await this.toOperation();
-        return operation.exec(signer);
+        return await operation.exec(signer, gasLimitMultiplier);
     };
 
     /* istanbul ignore next */

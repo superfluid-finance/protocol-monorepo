@@ -1,42 +1,26 @@
 // SPDX-License-Identifier: AGPLv3
+// solhint-disable reason-string
 pragma solidity 0.8.19;
 
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { PoolNFTBase } from "../superfluid/PoolNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
-import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
-import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
+import { PoolMemberNFT } from "../superfluid/PoolMemberNFT.sol";
+import { PoolAdminNFT } from "../superfluid/PoolAdminNFT.sol";
 import { IStorageLayoutBase } from "./IStorageLayoutBase.sol";
 
-/*//////////////////////////////////////////////////////////////////////////
-                                FlowNFTBase Mocks
-//////////////////////////////////////////////////////////////////////////*/
+contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
+    constructor(ISuperfluid host) PoolNFTBase(host) { }
 
-/// @title FlowNFTBaseStorageLayoutMock
-/// @author Superfluid
-/// @notice A mock FlowNFTBase contract for testing storage layout.
-/// @dev This contract *MUST* have the same storage layout as FlowNFTBase.sol
-contract FlowNFTBaseStorageLayoutMock is FlowNFTBase, IStorageLayoutBase {
-    constructor(
-        ISuperfluid host
-    ) FlowNFTBase(host) {}
-
-    /// @notice Validates storage layout
-    /// @dev This function is used by all the FlowNFTBase mock contracts to validate the layout
     function validateStorageLayout() public virtual {
         uint256 slot;
-        uint256 offset; // in bytes
-
-        // slot 0 taken is occupied by these variables:
-        // Initializable._initialized (uint8) 1byte
-        // Initializable._initializing (bool) 1byte
+        uint256 offset;
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
 
         assembly { slot := _symbol.slot offset := _symbol.offset }
         if (slot != 2 || offset != 0) revert STORAGE_LOCATION_CHANGED("_symbol");
-        
+
         assembly { slot := _tokenApprovals.slot offset := _tokenApprovals.offset }
         if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
 
@@ -51,24 +35,20 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase, IStorageLayoutBase {
     }
 
     // Dummy implementations for abstract functions
-    function flowDataByTokenId(
-        uint256 //tokenId
-    ) public pure override returns (FlowNFTData memory flowData) {
-        return flowData;
-    }
-    // Dummy implementations for abstract functions
     function _ownerOf(
         uint256 //tokenId
-        ) internal pure override returns (address) {
+    ) internal pure override returns (address) {
         return address(0);
     }
+
     function _transfer(
         address, //from,
         address, //to,
-        uint256  //tokenId
+        uint256 //tokenId
     ) internal pure override {
         return;
     }
+
     function _safeTransfer(
         address from,
         address to,
@@ -77,6 +57,7 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase, IStorageLayoutBase {
     ) internal override {
         _transfer(from, to, tokenId);
     }
+
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("");
     }
@@ -86,27 +67,12 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase, IStorageLayoutBase {
     }
 }
 
+contract PoolAdminNFTStorageLayoutMock is PoolAdminNFT, IStorageLayoutBase {
+    constructor(ISuperfluid host) PoolAdminNFT(host) { }
 
-/// @title ConstantInflowNFTStorageLayoutMock
-/// @author Superfluid
-/// @notice A mock ConstantOutflowNFT contract for testing storage layout.
-/// @dev This contract *MUST* have the same storage layout as ConstantOutflowNFT.sol
-contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT, IStorageLayoutBase {
-
-    constructor(
-        ISuperfluid host,
-        IConstantOutflowNFT constantOutflowNFT
-    ) ConstantInflowNFT(host, constantOutflowNFT) {}
-
-    /// @notice Validates storage layout
-    /// @dev This function is used to validate storage layout of ConstantInflowNFT
     function validateStorageLayout() public virtual {
         uint256 slot;
-        uint256 offset; // in bytes
-
-        // slot 0 taken is occupied by these variables:
-        // Initializable._initialized (uint8) 1byte
-        // Initializable._initializing (bool) 1byte
+        uint256 offset;
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
@@ -125,21 +91,26 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT, IStorageLayout
 
         assembly { slot := _reserve21.slot offset := _reserve21.offset }
         if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
+
+        assembly { slot := _poolAdminDataByTokenId.slot offset := _poolAdminDataByTokenId.offset }
+        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_poolAdminDataByTokenId");
     }
 
     // Dummy implementations for abstract functions
     function _ownerOf(
         uint256 //tokenId
-        ) internal pure override returns (address) {
+    ) internal pure override returns (address) {
         return address(0);
     }
+
     function _transfer(
         address, //from,
         address, //to,
-        uint256  //tokenId
+        uint256 //tokenId
     ) internal pure override {
         return;
     }
+
     function _safeTransfer(
         address from,
         address to,
@@ -150,26 +121,12 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT, IStorageLayout
     }
 }
 
-/// @title ConstantOutflowNFTStorageLayoutMock
-/// @author Superfluid
-/// @notice A mock ConstantOutflowNFT contract for testing storage layout.
-/// @dev This contract *MUST* have the same storage layout as ConstantOutflowNFT.sol
-contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT, IStorageLayoutBase {
+contract PoolMemberNFTStorageLayoutMock is PoolMemberNFT, IStorageLayoutBase {
+    constructor(ISuperfluid host) PoolMemberNFT(host) { }
 
-    constructor(
-        ISuperfluid host,
-        IConstantInflowNFT constantInflowNFT
-    ) ConstantOutflowNFT(host, constantInflowNFT) {}
-
-    /// @notice Validates storage layout
-    /// @dev This function is used to validate storage layout of ConstantOutflowNFT
     function validateStorageLayout() public virtual {
         uint256 slot;
-        uint256 offset; // in bytes
-
-        // slot 0 taken is occupied by these variables:
-        // Initializable._initialized (uint8) 1byte
-        // Initializable._initializing (bool) 1byte
+        uint256 offset;
 
         assembly { slot := _name.slot offset := _name.offset }
         if (slot != 1 || offset != 0) revert STORAGE_LOCATION_CHANGED("_name");
@@ -188,24 +145,26 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT, IStorageLayo
 
         assembly { slot := _reserve21.slot offset := _reserve21.offset }
         if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
-        
-        assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
-        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_flowDataByTokenId");
+
+        assembly { slot := _poolMemberDataByTokenId.slot offset := _poolMemberDataByTokenId.offset }
+        if (slot != 22 || offset != 0) revert STORAGE_LOCATION_CHANGED("_poolMemberDataByTokenId");
     }
 
     // Dummy implementations for abstract functions
     function _ownerOf(
         uint256 //tokenId
-        ) internal pure override returns (address) {
+    ) internal pure override returns (address) {
         return address(0);
     }
+
     function _transfer(
         address, //from,
         address, //to,
-        uint256  //tokenId
+        uint256 //tokenId
     ) internal pure override {
         return;
     }
+
     function _safeTransfer(
         address from,
         address to,

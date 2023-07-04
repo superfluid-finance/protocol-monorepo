@@ -10,8 +10,8 @@ import {
     IConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
-import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/superfluid/PoolAdminNFT.sol";
-import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/superfluid/PoolMemberNFT.sol";
+import { IPoolAdminNFT } from "../../../contracts/superfluid/PoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../../../contracts/superfluid/PoolMemberNFT.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
@@ -291,14 +291,14 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
     /*//////////////////////////////////////////////////////////////////////////
                                 Storage Layout Tests
     //////////////////////////////////////////////////////////////////////////*/
-    function testStorageLayoutOfFlowNFTBase() public {
+    function testFlowNFTBaseStorageLayout() public {
         FlowNFTBaseStorageLayoutMock flowNFTBaseStorageLayoutMock = new FlowNFTBaseStorageLayoutMock(
                 sf.host
             );
         flowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
-    function testStorageLayoutOfConstantInflowNFT() public {
+    function testConstantInflowNFTStorageLayout() public {
         ConstantInflowNFTStorageLayoutMock constantInflowNFTBaseStorageLayoutMock =
         new ConstantInflowNFTStorageLayoutMock(
                 sf.host,
@@ -307,7 +307,7 @@ contract ConstantFAv1NFTsUpgradabilityTest is FlowNFTBaseTest {
         constantInflowNFTBaseStorageLayoutMock.validateStorageLayout();
     }
 
-    function testStorageLayoutOfConstantOutflowNFT() public {
+    function testConstantOutflowNFTStorageLayout() public {
         ConstantOutflowNFTStorageLayoutMock constantOutflowNFTBaseStorageLayoutMock =
         new ConstantOutflowNFTStorageLayoutMock(
                 sf.host,

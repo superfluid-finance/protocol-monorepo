@@ -165,7 +165,7 @@ contract ConstantInflowNFTTest is FlowNFTBaseTest {
             nftId, address(superTokenMock), _flowSender, uint32(block.timestamp), _flowReceiver
         );
 
-        IFlowNFTBase.FlowNFTData memory flowData = constantInflowNFTProxy.mockFlowNFTDataByTokenId(nftId);
+        IFlowNFTBase.FlowNFTData memory flowData = constantInflowNFTProxy.flowDataByTokenId(nftId);
         assertEq(flowData.flowSender, _flowSender);
         assertEq(flowData.flowReceiver, _flowReceiver);
     }

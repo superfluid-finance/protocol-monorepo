@@ -19,7 +19,7 @@ interface ISuperfluidPool is IERC20 {
     // Events
     event MemberUpdated(ISuperfluidToken indexed token, address indexed member, uint128 units);
     event DistributionClaimed(
-        ISuperfluidToken indexed token, address indexed member, int256 claimableAmount, int256 totalClaimed
+        ISuperfluidToken indexed token, address indexed member, int256 claimedAmount, int256 totalClaimed
     );
 
     /// @notice The pool admin

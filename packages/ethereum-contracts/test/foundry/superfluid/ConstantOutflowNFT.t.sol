@@ -14,7 +14,8 @@ import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperflu
 import { IFlowNFTBase } from "../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
 import { FlowNFTBaseTest } from "./FlowNFTBase.t.sol";
 import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
-import { ConstantOutflowNFTMock, NoNFTSuperTokenMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
+import { ConstantOutflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
+import { NoNFTSuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";

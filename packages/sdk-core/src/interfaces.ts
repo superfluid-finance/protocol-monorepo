@@ -48,7 +48,7 @@ export interface IShouldUseCallAgreement {
     readonly shouldUseCallAgreement?: boolean;
 }
 
-interface EthersParams {
+export interface EthersParams {
     readonly overrides?: Overrides & { from?: string | Promise<string> };
 }
 

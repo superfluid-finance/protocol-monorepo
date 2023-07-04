@@ -1,24 +1,26 @@
 import { JsonFragment } from "@ethersproject/abi";
-import { Superfluid__factory } from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
 import Host from "./Host";
 import Operation, { BatchOperationType } from "./Operation";
 import { SFError } from "./SFError";
-import { getTransactionDescription, removeSigHashFromCallData } from "./utils";
+import { getTransactionDescription } from "./utils";
 
-interface IBatchCallOptions {
+export interface IBatchCallOptions {
     hostAddress: string;
     operations: ReadonlyArray<Operation>;
 }
 
-interface OperationStruct {
+export interface OperationStruct {
     readonly operationType: number;
     readonly target: string;
     readonly data: string;
 }
 
-const batchOperationTypeStringToTypeMap = new Map<BatchOperationType, number>([
+export const batchOperationTypeStringToTypeMap = new Map<
+    BatchOperationType,
+    number
+>([
     ["ERC20_APPROVE", 1],
     ["ERC20_TRANSFER_FROM", 2],
     ["ERC777_SEND", 3],
@@ -29,6 +31,17 @@ const batchOperationTypeStringToTypeMap = new Map<BatchOperationType, number>([
     ["SUPERFLUID_CALL_AGREEMENT", 201],
     ["CALL_APP_ACTION", 202],
 ]);
+
+/**
+ * Gets function arguments given an ABI and callData.
+ * @param abi the abi fragments of a contract/function
+ * @param callData call data of the function
+ * @returns {ethers.utils.Result} call agreement function arguments
+ */
+export const getCallDataFunctionArgs = (
+    abi: string | readonly (string | ethers.utils.Fragment | JsonFragment)[],
+    callData: string
+): ethers.utils.Result => getTransactionDescription(abi, callData).args;
 
 /**
  * BatchCall Helper Class
@@ -43,18 +56,7 @@ export default class BatchCall {
         this.host = new Host(options.hostAddress);
     }
 
-    /**
-     * Gets function arguments given an ABI and callData.
-     * @param abi the abi fragments of a contract/function
-     * @param callData call data of the function
-     * @returns {ethers.utils.Result} call agreement function arguments
-     */
-    getCallDataFunctionArgs = (
-        abi:
-            | string
-            | readonly (string | ethers.utils.Fragment | JsonFragment)[],
-        callData: string
-    ): ethers.utils.Result => getTransactionDescription(abi, callData).args;
+    getCallDataFunctionArgs = getCallDataFunctionArgs;
 
     /**
      * Given an `Operation` object, gets the `OperationStruct` object.
@@ -65,67 +67,7 @@ export default class BatchCall {
     getOperationStruct = async (
         operation: Operation,
         index: number
-    ): Promise<OperationStruct> => {
-        const batchOperationType = batchOperationTypeStringToTypeMap.get(
-            operation.type
-        );
-        const populatedTransaction = await operation.populateTransactionPromise;
-        if (!batchOperationType) {
-            throw new SFError({
-                type: "UNSUPPORTED_OPERATION",
-                message: "The operation at index " + index + " is unsupported.",
-            });
-        }
-
-        /* istanbul ignore next */
-        if (!populatedTransaction.to || !populatedTransaction.data) {
-            throw new SFError({
-                type: "MISSING_TRANSACTION_PROPERTIES",
-                message: "The transaction is missing the to or data property.",
-            });
-        }
-
-        const encoder = ethers.utils.defaultAbiCoder;
-
-        // Handles Superfluid.callAgreement
-        if (operation.type === "SUPERFLUID_CALL_AGREEMENT") {
-            const functionArgs = this.getCallDataFunctionArgs(
-                Superfluid__factory.abi,
-                populatedTransaction.data
-            );
-            const data = encoder.encode(
-                ["bytes", "bytes"],
-                [functionArgs["callData"], functionArgs["userData"]]
-            );
-
-            return {
-                operationType: batchOperationType,
-                target: functionArgs["agreementClass"],
-                data,
-            };
-        }
-
-        // Handles Superfluid.callAppAction
-        if (operation.type === "CALL_APP_ACTION") {
-            const functionArgs = this.getCallDataFunctionArgs(
-                Superfluid__factory.abi,
-                populatedTransaction.data
-            );
-
-            return {
-                operationType: batchOperationType,
-                target: functionArgs["app"],
-                data: functionArgs["callData"],
-            };
-        }
-
-        // Handles remaining ERC20/ERC777/SuperToken Operations
-        return {
-            operationType: batchOperationType,
-            target: populatedTransaction.to,
-            data: removeSigHashFromCallData(populatedTransaction.data),
-        };
-    };
+    ): Promise<OperationStruct> => operation.toOperationStruct(index);
 
     /**
      * Gets an array of `OperationStruct` objects to be passed to batchCall.
@@ -137,14 +79,7 @@ export default class BatchCall {
         );
     }
 
-    /**
-     * Executes a batch call given the operations on this class.
-     * @param signer the signer of the transaction
-     * @returns {Promise<ethers.ContractTransaction>} ContractTransaction object
-     */
-    exec = async (
-        signer: ethers.Signer
-    ): Promise<ethers.ContractTransaction> => {
+    async toOperation() {
         if (this.getOperationStructArrayPromises.length === 0) {
             throw new SFError({
                 type: "BATCH_CALL_ERROR",
@@ -154,9 +89,25 @@ export default class BatchCall {
         const operationStructArray = await Promise.all(
             this.getOperationStructArrayPromises
         );
-        return await this.host.contract
-            .connect(signer)
-            .batchCall(operationStructArray);
+        const tx =
+            this.host.contract.populateTransaction.batchCall(
+                operationStructArray
+            );
+        return new Operation(tx, "UNSUPPORTED");
+    }
+
+    /**
+     * Executes a batch call given the operations on this class.
+     * @param signer the signer of the transaction
+     * @param gasLimitMultiplier A multiplier to provide gasLimit buffer on top of the estimated gas limit (1.2x is the default)
+     * @returns {Promise<ethers.ContractTransaction>} ContractTransaction object
+     */
+    exec = async (
+        signer: ethers.Signer,
+        gasLimitMultiplier = 1.2
+    ): Promise<ethers.ContractTransaction> => {
+        const operation = await this.toOperation();
+        return await operation.exec(signer, gasLimitMultiplier);
     };
 
     /* istanbul ignore next */

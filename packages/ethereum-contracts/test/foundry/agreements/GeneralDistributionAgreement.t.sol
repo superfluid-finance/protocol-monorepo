@@ -789,6 +789,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         }
     }
 
+    // Pool ERC20 functions
+
     function testApproveOnly(address owner, address spender, uint256 amount) public {
         vm.assume(owner != address(0));
         vm.assume(spender != address(0));
@@ -812,6 +814,24 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         _helperIncreaseAllowance(pool, owner, spender, addedValue);
         _helperDecreaseAllowance(pool, owner, spender, subtractedValue);
+    }
+
+    function testRevertIfUnitsTransferReceiverIsPool(address from, address to, int96 unitsAmount, int128 transferAmount)
+        public
+    {
+        // @note we use int96 because overflow will happen otherwise
+        vm.assume(unitsAmount >= 0);
+        vm.assume(transferAmount > 0);
+        vm.assume(from != address(0));
+        vm.assume(to != address(0));
+        vm.assume(from != to);
+        vm.assume(transferAmount <= unitsAmount);
+        _helperUpdateMemberUnits(pool, alice, from, uint128(int128(unitsAmount)));
+
+        vm.startPrank(from);
+        vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NO_POOL_MEMBERS.selector);
+        pool.transfer(address(pool), uint256(uint128(transferAmount)));
+        vm.stopPrank();
     }
 
     function testBasicTransfer(address from, address to, int96 unitsAmount, int128 transferAmount) public {

@@ -8,7 +8,7 @@ import {
     PoolAdminNFTStorageLayoutMock,
     PoolMemberNFTStorageLayoutMock
 } from "../../../contracts/mocks/PoolNFTUpgradabilityMock.sol";
-import { IPoolNFTBase } from "../../../contracts/interfaces/superfluid/IPoolNFTBase.sol";
+import { IPoolNFTBase, PoolNFTBase } from "../../../contracts/superfluid/PoolNFTBase.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
@@ -17,9 +17,29 @@ import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/superfluid/Poo
 import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
 import { ERC721IntegrationTest } from "./ERC721.t.sol";
 
+/// @title PoolNFTBaseIntegrationTest
+/// @author Superfluid
+/// @dev This is a base contract for testing PoolNFTBase
+/// We test the functions in the PoolNFTBase directly via the base contract
+/// and the assumption is that because it is tested here, it is tested for all
+/// the derived contracts.
 abstract contract PoolNFTBaseIntegrationTest is ERC721IntegrationTest {
+    string public constant NAME = "Pool NFT Base";
+    string public constant SYMBOL = "PNFTB";
+    PoolNFTBase public poolNFTBase;
+
     function setUp() public virtual override {
         super.setUp();
+        poolNFTBase = new PoolNFTBase(sf.host);
+        poolNFTBase.initialize(NAME, SYMBOL);
+    }
+
+    function _helperGetPoolAdminNftID(address _pool, address _poolAdmin) internal view returns (uint256) {
+        return poolAdminNFT.getTokenId(_pool, _poolAdmin);
+    }
+
+    function _helperGetPoolMemberNftID(address _pool, address _poolMember) internal view returns (uint256) {
+        return poolMemberNFT.getTokenId(_pool, _poolMember);
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -67,14 +87,37 @@ abstract contract PoolNFTBaseIntegrationTest is ERC721IntegrationTest {
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
     function testHostIsProperlySetInConstructor() public {
-        assertEq(address(poolAdminNFT.HOST()), address(sf.host));
-        assertEq(address(poolMemberNFT.HOST()), address(sf.host));
+        assertEq(address(poolNFTBase.HOST()), address(sf.host));
     }
 
     function testGDAv1IsProperlySetInConstructor() public {
-        assertEq(address(poolAdminNFT.GENERAL_DISTRIBUTION_AGREEMENT_V1()), address(sf.gda));
-        assertEq(address(poolMemberNFT.GENERAL_DISTRIBUTION_AGREEMENT_V1()), address(sf.gda));
+        assertEq(address(poolNFTBase.GENERAL_DISTRIBUTION_AGREEMENT_V1()), address(sf.gda));
     }
+
+    function testBalanceOfIsAlwaysOne(address owner) public {
+        assertEq(poolNFTBase.balanceof(owner), 1, "PoolNFTBase: balanceOf is not always one");
+    }
+
+    function testContractSupportsExpectedInterfaces() public {
+        assertEq(poolNFTBase.supportsInterface(type(IERC165).interfaceId), true);
+        assertEq(poolNFTBase.supportsInterface(type(IERC721).interfaceId), true);
+        assertEq(poolNFTBase.supportsInterface(type(IERC721Metadata).interfaceId), true);
+    }
+    
+    // TODO
+    // create a FlowNFTBase mock contract
+    // create a PoolNFTBase mock contract 
+    // which allows mock minting and other mock functions
+    // so that we can test the functions in the PoolNFTBase directly
+    // test initialization worked as expected
+    // test approve works as expected
+    // test approve reverst if approve to current owner
+    // test approve reverts if caller is not owner or approved for all
+    // test tokenURI is correct
+    // test trigger metadata works as expected
+    // test owner of reverts if tokenId is not valid
+    // test get approved reverts if not minted
+    // test set approval for all works as expected
 }
 
 /// @title PoolNFTUpgradabilityTest

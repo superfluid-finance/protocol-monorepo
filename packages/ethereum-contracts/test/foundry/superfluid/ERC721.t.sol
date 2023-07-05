@@ -15,6 +15,10 @@ import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.so
 import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
 
 contract ERC721IntegrationTest is FoundrySuperfluidTester {
+    string internal constant POOL_MEMBER_NFT_NAME_TEMPLATE = "Pool Member NFT";
+    string internal constant POOL_MEMBER_NFT_SYMBOL_TEMPLATE = "PMF";
+    string internal constant POOL_ADMIN_NFT_NAME_TEMPLATE = "Pool Admin NFT";
+    string internal constant POOL_ADMIN_NFT_SYMBOL_TEMPLATE = "PAF";
     string internal constant OUTFLOW_NFT_NAME_TEMPLATE = "Constant Outflow NFT";
     string internal constant OUTFLOW_NFT_SYMBOL_TEMPLATE = "COF";
     string internal constant INFLOW_NFT_NAME_TEMPLATE = "Constant Inflow NFT";
@@ -105,6 +109,10 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
         poolMemberNFT = PoolMemberNFTMock(address(poolMemberProxy));
         poolAdminNFT = PoolAdminNFTMock(address(poolAdminProxy));
 
+        poolMemberNFT.initialize(POOL_MEMBER_NFT_NAME_TEMPLATE, POOL_MEMBER_NFT_SYMBOL_TEMPLATE);
+
+        poolAdminNFT.initialize(POOL_ADMIN_NFT_NAME_TEMPLATE, POOL_ADMIN_NFT_SYMBOL_TEMPLATE);
+
         // Deploy TestToken
         TestToken testTokenMock = new TestToken(
             "Mock Test",
@@ -134,6 +142,65 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
         for (uint256 i = 0; i < N_TESTERS; i++) {
             superTokenMock.mintInternal(TEST_ACCOUNTS[i], INIT_SUPER_TOKEN_BALANCE, "0x", "0x");
         }
+    }
+
+    // If we properly create mock contracts for the base NFT contracts
+    // then we can just use the base NFT contracts for testing these reverts
+    // and the other functionality of ERC721 here
+    // Instead of testing each of the NFT contracts separately
+    function _helperRevertIfOwnerOf(IERC721Metadata _nftContract, uint256 _tokenId, bytes4 _errorSelector) internal {
+        vm.expectRevert(_errorSelector);
+        _nftContract.ownerOf(_tokenId);
+    }
+
+    function _helperRevertIfGetApproved(IERC721Metadata _nftContract, uint256 _tokenId, bytes4 _errorSelector)
+        internal
+    {
+        vm.expectRevert(_errorSelector);
+        _nftContract.getApproved(_tokenId);
+    }
+
+    function _helperRevertIfTransferFrom(
+        IERC721Metadata _nftContract,
+        address _caller,
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        bytes4 _errorSelector
+    ) internal {
+        vm.startPrank(_caller);
+        vm.expectRevert(_errorSelector);
+        _nftContract.transferFrom(_from, _to, _tokenId);
+        vm.stopPrank();
+    }
+
+    function _helperRevertIfSafeTransferFrom(
+        IERC721Metadata _nftContract,
+        address _caller,
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        bytes4 _errorSelector
+    ) internal {
+        vm.startPrank(_caller);
+        vm.expectRevert(_errorSelector);
+        _nftContract.safeTransferFrom(_from, _to, _tokenId);
+        vm.stopPrank();
+    }
+
+    function _helperRevertIfSafeTransferFrom(
+        IERC721Metadata _nftContract,
+        address _caller,
+        address _from,
+        address _to,
+        uint256 _tokenId,
+        bytes memory _data,
+        bytes4 _errorSelector
+    ) internal {
+        vm.startPrank(_caller);
+        vm.expectRevert(_errorSelector);
+        _nftContract.safeTransferFrom(_from, _to, _tokenId, _data);
+        vm.stopPrank();
     }
 
     /*//////////////////////////////////////////////////////////////////////////

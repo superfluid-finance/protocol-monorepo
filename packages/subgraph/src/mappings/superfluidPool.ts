@@ -117,7 +117,7 @@ function _createDistributionClaimedEntity(
     ]);
 
     ev.token = event.params.token;
-    ev.claimableAmount = event.params.claimedAmount;
+    ev.claimedAmount = event.params.claimedAmount;
     ev.totalClaimed = event.params.totalClaimed;
     ev.pool = event.address.toHex();
     ev.poolMember = event.params.member.toHex();

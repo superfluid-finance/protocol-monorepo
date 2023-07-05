@@ -8,10 +8,8 @@ interface IPoolAdminNFT is IPoolNFTBase {
     // b = bits
     // WORD 1: | pool   | FREE
     //         | 160b   | 96b
-    // WORD 2: | member | FREE
+    // WORD 2: | admin  | FREE
     //         | 160b   | 96b
-    // WORD 3: | units  | FREE
-    //         | 128b   | 128b
     struct PoolAdminNFTData {
         address pool;
         address admin;

@@ -2,7 +2,6 @@
 pragma solidity 0.8.19;
 
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperTokenFactory } from "../interfaces/superfluid/ISuperTokenFactory.sol";
@@ -16,7 +15,7 @@ abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
     ISuperfluid public immutable HOST;
 
     /// @notice Superfluid GDAv1 contract address
-    IGeneralDistributionAgreementV1 public immutable GDA;
+    IGeneralDistributionAgreementV1 public immutable GENERAL_DISTRIBUTION_AGREEMENT_V1;
 
     //// Storage Variables ////
 
@@ -64,7 +63,7 @@ abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
 
     constructor(ISuperfluid host) {
         HOST = host;
-        GDA = IGeneralDistributionAgreementV1(
+        GENERAL_DISTRIBUTION_AGREEMENT_V1 = IGeneralDistributionAgreementV1(
             address(
                 ISuperfluid(host).getAgreementClass(
                     keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")

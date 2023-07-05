@@ -1,119 +1,86 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
-import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
+import { IERC721Metadata } from "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
-import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
-import { SuperToken, SuperTokenMock } from "../../../contracts/mocks/SuperTokenMock.sol";
-import { PoolNFTBaseStorageLayoutMock, PoolAdminNFTStorageLayoutMock, PoolMemberNFTStorageLayoutMock } from "../../../contracts/mocks/PoolNFTUpgradabilityMock.sol";
+import {
+    PoolNFTBaseStorageLayoutMock,
+    PoolAdminNFTStorageLayoutMock,
+    PoolMemberNFTStorageLayoutMock
+} from "../../../contracts/mocks/PoolNFTUpgradabilityMock.sol";
+import { IPoolNFTBase } from "../../../contracts/interfaces/superfluid/IPoolNFTBase.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/superfluid/PoolAdminNFT.sol";
 import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/superfluid/PoolMemberNFT.sol";
 import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
-import { PoolAdminNFTMock, PoolMemberNFTMock } from "../../../contracts/mocks/PoolNFTMock.sol";
+import { ERC721IntegrationTest } from "./ERC721.t.sol";
 
-abstract contract PoolNFTBaseIntegrationTest is FoundrySuperfluidTester {
-    SuperTokenMock public superTokenMock;
-
-    PoolMemberNFTMock public poolMemberNFTLogic;
-    PoolAdminNFTMock public poolAdminNFTLogic;
-
-    PoolMemberNFTMock public poolMemberNFT;
-    PoolAdminNFTMock public poolAdminNFT;
-
-    constructor() FoundrySuperfluidTester(5) { }
-
+abstract contract PoolNFTBaseIntegrationTest is ERC721IntegrationTest {
     function setUp() public virtual override {
         super.setUp();
-
-        // Deploy Flow NFTs
-
-        // deploy outflow NFT contract
-        UUPSProxy outflowProxy = new UUPSProxy();
-
-        // deploy inflow NFT contract
-        UUPSProxy inflowProxy = new UUPSProxy();
-
-        // we deploy mock NFT contracts for the tests to access internal functions
-        ConstantOutflowNFTMock constantOutflowNFTLogic = new ConstantOutflowNFTMock(
-            sf.host,
-            IConstantInflowNFT(address(inflowProxy))
-        );
-        ConstantInflowNFTMock constantInflowNFTLogic = new ConstantInflowNFTMock(
-            sf.host,
-            IConstantOutflowNFT(address(outflowProxy))
-        );
-
-        constantOutflowNFTLogic.castrate();
-        constantInflowNFTLogic.castrate();
-
-        ConstantOutflowNFTMock constantOutflowNFT = ConstantOutflowNFTMock(address(outflowProxy));
-        ConstantInflowNFTMock constantInflowNFT = ConstantInflowNFTMock(address(inflowProxy));
-
-        constantOutflowNFT.initialize("Constant Outflow NFT", "COF");
-
-        constantInflowNFT.initialize("Constant Inflow NFT", "CIF");
-
-        // Deploy Pool NFTs
-
-        // deploy pool member NFT contract
-        UUPSProxy poolMemberProxy = new UUPSProxy();
-
-        // deploy pool admin NFT contract
-        UUPSProxy poolAdminProxy = new UUPSProxy();
-
-        // we deploy mock NFT contracts for the tests to access internal functions
-        poolMemberNFTLogic = new PoolMemberNFTMock(sf.host);
-        poolAdminNFTLogic = new PoolAdminNFTMock(sf.host);
-
-        poolMemberNFTLogic.castrate();
-        poolAdminNFTLogic.castrate();
-
-        // initialize proxy to point at logic
-        poolMemberProxy.initializeProxy(address(poolMemberNFTLogic));
-
-        // initialize proxy to point at logic
-        poolAdminProxy.initializeProxy(address(poolAdminNFTLogic));
-
-        poolMemberNFT = PoolMemberNFTMock(address(poolMemberProxy));
-        poolAdminNFT = PoolAdminNFTMock(address(poolAdminProxy));
-
-        // Deploy TestToken
-        TestToken testTokenMock = new TestToken(
-            "Mock Test",
-            "MT",
-            18,
-            100000000
-        );
-
-        // Deploy SuperToken proxy
-        UUPSProxy superTokenMockProxy = new UUPSProxy();
-
-        // deploy super token mock for testing with mock constant outflow/inflow NFTs
-        SuperTokenMock superTokenMockLogic = new SuperTokenMock(
-            sf.host,
-            0,
-            IConstantOutflowNFT(address(constantOutflowNFT)),
-            IConstantInflowNFT(address(constantInflowNFT)),
-            IPoolAdminNFT(address(poolMemberNFT)),
-            IPoolMemberNFT(address(poolAdminNFT))
-        );
-        superTokenMockProxy.initializeProxy(address(superTokenMockLogic));
-
-        superTokenMock = SuperTokenMock(address(superTokenMockProxy));
-        superTokenMock.initialize(testTokenMock, 18, "Super Mock Test", "MTx");
-
-        // mint tokens to test accounts
-        for (uint256 i = 0; i < N_TESTERS; i++) {
-            superTokenMock.mintInternal(TEST_ACCOUNTS[i], INIT_SUPER_TOKEN_BALANCE, "0x", "0x");
-        }
-
-        vm.prank(sf.governance.owner());
     }
 
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Assertion Helpers
+    //////////////////////////////////////////////////////////////////////////*/
+    function _assertPoolAdminNftStateIsExpected(uint256 _tokenId, address _expectedPool, address _expectedAdmin)
+        public
+    {
+        PoolAdminNFT.PoolAdminNFTData memory poolAdminNFTData = poolAdminNFT.poolAdminDataByTokenId(_tokenId);
+
+        assertEq(poolAdminNFTData.pool, _expectedPool, "PoolAdminNFT: pool address not as expected");
+
+        // assert admin is equal to expected admin
+        assertEq(poolAdminNFTData.admin, _expectedAdmin, "PoolAdminNFT: admin address not as expected");
+
+        // assert owner of pool admin nft equal to expected admin
+        _assertOwnerOfIsExpected(
+            poolAdminNFT, _tokenId, _expectedAdmin, "PoolAdminNFT: owner of pool admin nft not as expected"
+        );
+    }
+
+    function _assertPoolMemberNftStateIsExpected(
+        uint256 _tokenId,
+        address _expectedPool,
+        address _expectedMember,
+        uint128 _expectedUnits
+    ) public {
+        PoolMemberNFT.PoolMemberNFTData memory poolMemberNFTData = poolMemberNFT.poolMemberDataByTokenId(_tokenId);
+
+        assertEq(poolMemberNFTData.pool, _expectedPool, "PoolMemberNFT: pool address not as expected");
+
+        // assert member is equal to expected member
+        assertEq(poolMemberNFTData.member, _expectedMember, "PoolMemberNFT: member address not as expected");
+
+        // assert units is equal to expected units
+        assertEq(poolMemberNFTData.units, _expectedUnits, "PoolMemberNFT: units not as expected");
+
+        // assert owner of pool member nft equal to expected member
+        _assertOwnerOfIsExpected(
+            poolAdminNFT, _tokenId, _expectedMember, "PoolMemberNFT: owner of pool member nft not as expected"
+        );
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Passing Tests
+    //////////////////////////////////////////////////////////////////////////*/
+    function testHostIsProperlySetInConstructor() public {
+        assertEq(address(poolAdminNFT.HOST()), address(sf.host));
+        assertEq(address(poolMemberNFT.HOST()), address(sf.host));
+    }
+
+    function testGDAv1IsProperlySetInConstructor() public {
+        assertEq(address(poolAdminNFT.GENERAL_DISTRIBUTION_AGREEMENT_V1()), address(sf.gda));
+        assertEq(address(poolMemberNFT.GENERAL_DISTRIBUTION_AGREEMENT_V1()), address(sf.gda));
+    }
+}
+
+/// @title PoolNFTUpgradabilityTest
+/// @author Superfluid
+/// @notice Used for testing storage layout and upgradability of Pool NFT contracts
+contract PoolNFTUpgradabilityTest is PoolNFTBaseIntegrationTest {
     /*//////////////////////////////////////////////////////////////////////////
                                 Storage Layout Tests
     //////////////////////////////////////////////////////////////////////////*/
@@ -133,5 +100,42 @@ abstract contract PoolNFTBaseIntegrationTest is FoundrySuperfluidTester {
         PoolAdminNFTStorageLayoutMock poolAdminNFTStorageLayoutMock = new PoolAdminNFTStorageLayoutMock(sf.host);
 
         poolAdminNFTStorageLayoutMock.validateStorageLayout();
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Revert Tests
+    //////////////////////////////////////////////////////////////////////////*/
+    function testRevertPoolNFTContractsCannotBeUpgradedByNonSuperTokenFactory(address notSuperTokenFactory) public {
+        vm.assume(notSuperTokenFactory != address(sf.superTokenFactory));
+        PoolAdminNFT newPoolAdminNFT = new PoolAdminNFT(
+            sf.host
+        );
+        vm.expectRevert(IPoolNFTBase.POOL_NFT_ONLY_SUPER_TOKEN_FACTORY.selector);
+        vm.prank(notSuperTokenFactory);
+        poolAdminNFT.updateCode(address(newPoolAdminNFT));
+
+        PoolMemberNFT newPoolMemberNFT = new PoolMemberNFT(
+            sf.host
+        );
+        vm.expectRevert(IPoolNFTBase.POOL_NFT_ONLY_SUPER_TOKEN_FACTORY.selector);
+        vm.prank(notSuperTokenFactory);
+        poolMemberNFT.updateCode(address(newPoolMemberNFT));
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Passing Tests
+    //////////////////////////////////////////////////////////////////////////*/
+    function testPoolNFTContractsCanBeUpgradedBySuperTokenFactory() public {
+        PoolAdminNFT newPoolAdminNFT = new PoolAdminNFT(
+            sf.host
+        );
+        vm.prank(address(sf.superTokenFactory));
+        poolAdminNFT.updateCode(address(newPoolAdminNFT));
+
+        PoolMemberNFT newPoolMemberNFT = new PoolMemberNFT(
+            sf.host
+        );
+        vm.prank(address(sf.superTokenFactory));
+        poolMemberNFT.updateCode(address(newPoolMemberNFT));
     }
 }

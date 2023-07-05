@@ -33,6 +33,10 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
         return _poolAdminDataByTokenId[tokenId].admin;
     }
 
+    function poolAdminDataByTokenId(uint256 tokenId) external view returns (PoolAdminNFTData memory data) {
+        return _poolAdminDataByTokenId[tokenId];
+    }
+
     /// @notice Reverts - Transfer of pool member NFT is not allowed.
     /// @dev We revert when users attempt to transfer pool member NFTs.
     function _transfer(
@@ -67,7 +71,7 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
     /// @param pool The pool address
     function _mint(address pool) internal {
         ISuperfluidToken superToken = ISuperfluidPool(pool).superToken();
-        if (!GDA.isPool(superToken, pool)) {
+        if (!GENERAL_DISTRIBUTION_AGREEMENT_V1.isPool(superToken, pool)) {
             revert POOL_NFT_NOT_REGISTERED_POOL();
         }
         ISuperfluidPool poolContract = ISuperfluidPool(pool);

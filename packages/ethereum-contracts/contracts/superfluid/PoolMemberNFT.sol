@@ -33,7 +33,7 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
         return _poolMemberDataByTokenId[tokenId].member;
     }
 
-    function getPoolMemberData(uint256 tokenId) public view override returns (PoolMemberNFTData memory data) {
+    function poolMemberDataByTokenId(uint256 tokenId) public view override returns (PoolMemberNFTData memory data) {
         return _poolMemberDataByTokenId[tokenId];
     }
 
@@ -92,7 +92,7 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
 
     function _mint(address pool, address member) internal {
         ISuperfluidToken superToken = ISuperfluidPool(pool).superToken();
-        if (!GDA.isPool(superToken, pool)) {
+        if (!GENERAL_DISTRIBUTION_AGREEMENT_V1.isPool(superToken, pool)) {
             revert POOL_NFT_NOT_REGISTERED_POOL();
         }
 

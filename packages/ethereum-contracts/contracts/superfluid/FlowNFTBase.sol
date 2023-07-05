@@ -2,7 +2,6 @@
 pragma solidity 0.8.19;
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-import { IERC20Metadata } from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { IFlowNFTBase } from "../interfaces/superfluid/IFlowNFTBase.sol";
@@ -100,8 +99,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         GENERAL_DISTRIBUTION_AGREEMENT_V1 = IGeneralDistributionAgreementV1(
             address(
                 ISuperfluid(host).getAgreementClass(
-                    //keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
-                    0xdfd8ece9bfbcb8c5c540edb935641f63d67686490a1ab97f000288759f30a946
+                    keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
                 )
             )
         );

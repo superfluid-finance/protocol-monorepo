@@ -349,7 +349,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             uint256 tokenId = poolMemberNFT.getTokenId(address(this), memberAddr);
             uint256 gasLeftBefore;
             if (newUnits == 0) {
-                if (poolMemberNFT.getPoolMemberData(tokenId).member != address(0)) {
+                if (poolMemberNFT.poolMemberDataByTokenId(tokenId).member != address(0)) {
                     gasLeftBefore = gasleft();
                     try poolMemberNFT.burn(tokenId) {
                         // solhint-disable-next-line no-empty-blocks
@@ -359,7 +359,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
                 }
             } else {
                 // if not minted, we mint a new pool member nft
-                if (poolMemberNFT.getPoolMemberData(tokenId).member == address(0)) {
+                if (poolMemberNFT.poolMemberDataByTokenId(tokenId).member == address(0)) {
                     gasLeftBefore = gasleft();
                     try poolMemberNFT.mint(address(this), memberAddr) {
                         // solhint-disable-next-line no-empty-blocks

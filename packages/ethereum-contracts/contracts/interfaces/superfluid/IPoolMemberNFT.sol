@@ -36,5 +36,5 @@ interface IPoolMemberNFT is IPoolNFTBase {
 
     function getTokenId(address pool, address member) external view returns (uint256 tokenId);
 
-    function getPoolMemberData(uint256 tokenId) external view returns (PoolMemberNFTData memory data);
+    function poolMemberDataByTokenId(uint256 tokenId) external view returns (PoolMemberNFTData memory data);
 }

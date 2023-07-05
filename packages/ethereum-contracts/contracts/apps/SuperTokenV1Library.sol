@@ -1826,8 +1826,7 @@ library SuperTokenV1Library {
             gda = IGeneralDistributionAgreementV1(
                 address(
                     ISuperfluid(host).getAgreementClass(
-                        //keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
-                        0x6ab5cb4fc759246ffbb5247f4c17b3ac31afd4bb6931fadab67666c95e9c3b8c
+                        keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1")
                     )
                 )
             );

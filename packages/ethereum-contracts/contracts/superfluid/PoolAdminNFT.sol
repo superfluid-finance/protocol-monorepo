@@ -29,7 +29,7 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
         return keccak256("org.superfluid-finance.contracts.PoolAdminNFT.implementation");
     }
 
-    function _ownerOf(uint256 tokenId) internal view virtual override returns (address) {
+    function _ownerOf(uint256 tokenId) internal view override returns (address) {
         return _poolAdminDataByTokenId[tokenId].admin;
     }
 
@@ -43,7 +43,7 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
         address, // from,
         address, // to,
         uint256 // tokenId
-    ) internal virtual override {
+    ) internal override {
         revert POOL_NFT_TRANSFER_NOT_ALLOWED();
     }
 

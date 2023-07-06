@@ -1,19 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import {
-    IERC721Metadata
-} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import {
-    IConstantOutflowNFT
-} from "../interfaces/superfluid/IConstantOutflowNFT.sol";
-import {
-    IConstantInflowNFT
-} from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 
@@ -25,18 +17,12 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
     IConstantOutflowNFT public immutable CONSTANT_OUTFLOW_NFT;
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(
-        ISuperfluid host,
-        IConstantOutflowNFT constantOutflowNFT
-    ) FlowNFTBase(host) {
+    constructor(ISuperfluid host, IConstantOutflowNFT constantOutflowNFT) FlowNFTBase(host) {
         CONSTANT_OUTFLOW_NFT = constantOutflowNFT;
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
-        return
-            keccak256(
-                "org.superfluid-finance.contracts.ConstantInflowNFT.implementation"
-            );
+        return keccak256("org.superfluid-finance.contracts.ConstantInflowNFT.implementation");
     }
 
     /// @notice The mint function emits the "mint" `Transfer` event.
@@ -45,10 +31,7 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
     /// Only callable by ConstantOutflowNFT
     /// @param to the receiver of the inflow nft and desired flow receiver
     /// @param newTokenId the new token id
-    function mint(
-        address to,
-        uint256 newTokenId
-    ) external onlyConstantOutflowNFT {
+    function mint(address to, uint256 newTokenId) external onlyConstantOutflowNFT {
         _mint(to, newTokenId);
     }
 
@@ -61,9 +44,7 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
         _burn(tokenId);
     }
 
-    function flowDataByTokenId(
-        uint256 tokenId
-    )
+    function flowDataByTokenId(uint256 tokenId)
         public
         view
         override(FlowNFTBase, IFlowNFTBase)
@@ -72,21 +53,12 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
         flowData = CONSTANT_OUTFLOW_NFT.flowDataByTokenId(tokenId);
     }
 
-    function tokenURI(
-        uint256 tokenId
-    )
-        external
-        view
-        override(FlowNFTBase, IERC721Metadata)
-        returns (string memory)
-    {
+    function tokenURI(uint256 tokenId) external view override(FlowNFTBase, IERC721Metadata) returns (string memory) {
         return _tokenURI(tokenId, true);
     }
 
     /// @inheritdoc FlowNFTBase
-    function _ownerOf(
-        uint256 tokenId
-    ) internal view virtual override returns (address) {
+    function _ownerOf(uint256 tokenId) internal view override returns (address) {
         FlowNFTData memory flowData = flowDataByTokenId(tokenId);
         return flowData.flowReceiver;
     }
@@ -97,7 +69,7 @@ contract ConstantInflowNFT is FlowNFTBase, IConstantInflowNFT {
         address, // from,
         address, // to,
         uint256 // tokenId
-    ) internal virtual override {
+    ) internal override {
         revert CFA_NFT_TRANSFER_IS_NOT_ALLOWED();
     }
 

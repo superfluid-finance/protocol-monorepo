@@ -25,11 +25,11 @@ interface IPoolMemberNFT is IPoolNFTBase {
     error POOL_MEMBER_NFT_NO_UNITS();
     error POOL_MEMBER_NFT_HAS_UNITS();
 
-    function mint(address pool, address member) external;
+    function onCreate(address pool, address member) external;
 
-    function update(uint256 tokenId) external;
+    function onUpdate(address pool, address member) external;
 
-    function burn(uint256 tokenId) external;
+    function onDelete(address pool, address member) external;
 
     /// View Functions ///
 

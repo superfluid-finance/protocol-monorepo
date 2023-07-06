@@ -2,21 +2,11 @@
 // solhint-disable not-rely-on-time
 pragma solidity 0.8.19;
 
-import {
-    IERC721Metadata
-} from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import {
-    ISuperfluidToken
-} from "../interfaces/superfluid/ISuperfluidToken.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import {
-    IConstantInflowNFT
-} from "../interfaces/superfluid/IConstantInflowNFT.sol";
-import {
-    IConstantOutflowNFT
-} from "../interfaces/superfluid/IConstantOutflowNFT.sol";
+import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
@@ -34,27 +24,19 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     mapping(uint256 => FlowNFTData) internal _flowDataByTokenId;
 
     // solhint-disable-next-line no-empty-blocks
-    constructor(
-        ISuperfluid host,
-        IConstantInflowNFT constantInflowNFT
-    ) FlowNFTBase(host) {
+    constructor(ISuperfluid host, IConstantInflowNFT constantInflowNFT) FlowNFTBase(host) {
         CONSTANT_INFLOW_NFT = constantInflowNFT;
     }
 
     // note that this is used so we don't upgrade to wrong logic contract
     function proxiableUUID() public pure override returns (bytes32) {
-        return
-            keccak256(
-                "org.superfluid-finance.contracts.ConstantOutflowNFT.implementation"
-            );
+        return keccak256("org.superfluid-finance.contracts.ConstantOutflowNFT.implementation");
     }
 
     /// @notice An external function for querying flow data by `tokenId``
     /// @param tokenId the token id
     /// @return flowData the flow data associated with `tokenId`
-    function flowDataByTokenId(
-        uint256 tokenId
-    )
+    function flowDataByTokenId(uint256 tokenId)
         public
         view
         override(FlowNFTBase, IFlowNFTBase)
@@ -63,14 +45,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         flowData = _flowDataByTokenId[tokenId];
     }
 
-    function tokenURI(
-        uint256 tokenId
-    )
-        external
-        view
-        override(FlowNFTBase, IERC721Metadata)
-        returns (string memory)
-    {
+    function tokenURI(uint256 tokenId) external view override(FlowNFTBase, IERC721Metadata) returns (string memory) {
         return _tokenURI(tokenId, false);
     }
 
@@ -80,18 +55,13 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver
     /// NOTE: We do an existence check in here to determine whether or not to execute the hook
-    function onCreate(
-        ISuperfluidToken superToken,
-        address flowSender,
-        address flowReceiver
-    ) external onlyFlowAgreements {
+    function onCreate(ISuperfluidToken superToken, address flowSender, address flowReceiver)
+        external
+        onlyFlowAgreements
+    {
         // we don't check matching super token because the nft token id
         // is generated based on the superToken
-        uint256 newTokenId = _getTokenId(
-            address(superToken),
-            flowSender,
-            flowReceiver
-        );
+        uint256 newTokenId = _getTokenId(address(superToken), flowSender, flowReceiver);
         if (_flowDataByTokenId[newTokenId].flowSender == address(0)) {
             _mint(address(superToken), flowSender, flowReceiver, newTokenId);
 
@@ -105,16 +75,11 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver
     /// NOTE: We do an existence check in here to determine whether or not to execute the hook
-    function onUpdate(
-        ISuperfluidToken superToken,
-        address flowSender,
-        address flowReceiver
-    ) external onlyFlowAgreements {
-        uint256 tokenId = _getTokenId(
-            address(superToken),
-            flowSender,
-            flowReceiver
-        );
+    function onUpdate(ISuperfluidToken superToken, address flowSender, address flowReceiver)
+        external
+        onlyFlowAgreements
+    {
+        uint256 tokenId = _getTokenId(address(superToken), flowSender, flowReceiver);
         if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
             _triggerMetadataUpdate(tokenId);
 
@@ -128,16 +93,11 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @param flowSender the flow sender
     /// @param flowReceiver the flow receiver
     /// NOTE: We do an existence check in here to determine whether or not to execute the hook
-    function onDelete(
-        ISuperfluidToken superToken,
-        address flowSender,
-        address flowReceiver
-    ) external onlyFlowAgreements {
-        uint256 tokenId = _getTokenId(
-            address(superToken),
-            flowSender,
-            flowReceiver
-        );
+    function onDelete(ISuperfluidToken superToken, address flowSender, address flowReceiver)
+        external
+        onlyFlowAgreements
+    {
+        uint256 tokenId = _getTokenId(address(superToken), flowSender, flowReceiver);
         if (_flowDataByTokenId[tokenId].flowSender != address(0)) {
             // must "burn" inflow NFT first because we clear storage when burning outflow NFT
 
@@ -148,9 +108,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     }
 
     /// @inheritdoc FlowNFTBase
-    function _ownerOf(
-        uint256 tokenId
-    ) internal view virtual override returns (address) {
+    function _ownerOf(uint256 tokenId) internal view override returns (address) {
         return _flowDataByTokenId[tokenId].flowSender;
     }
 
@@ -160,7 +118,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         address, // from,
         address, // to,
         uint256 // tokenId
-    ) internal virtual override {
+    ) internal override {
         revert CFA_NFT_TRANSFER_IS_NOT_ALLOWED();
     }
 
@@ -171,12 +129,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @param flowSender the receiver of the newly minted outflow nft (to)
     /// @param flowReceiver the flow receiver (owner of the InflowNFT)
     /// @param newTokenId the new token id to be minted
-    function _mint(
-        address superToken,
-        address flowSender,
-        address flowReceiver,
-        uint256 newTokenId
-    ) internal {
+    function _mint(address superToken, address flowSender, address flowReceiver, uint256 newTokenId) internal {
         assert(flowSender != address(0));
         assert(flowSender != flowReceiver);
         assert(!_exists(newTokenId));

@@ -29,7 +29,7 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
         return keccak256("org.superfluid-finance.contracts.PoolMemberNFT.implementation");
     }
 
-    function _ownerOf(uint256 tokenId) internal view virtual override returns (address) {
+    function _ownerOf(uint256 tokenId) internal view override returns (address) {
         return _poolMemberDataByTokenId[tokenId].member;
     }
 
@@ -43,7 +43,7 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
         address, // from,
         address, // to,
         uint256 // tokenId
-    ) internal virtual override {
+    ) internal override {
         revert POOL_NFT_TRANSFER_NOT_ALLOWED();
     }
 
@@ -67,14 +67,16 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
     /// We emit a {Transfer} event.
     /// @param pool The pool address
     /// @param member The member address
-    function mint(address pool, address member) external override {
+    function onCreate(address pool, address member) external override {
         _mint(pool, member);
     }
 
     /// @notice Updates token with `tokenId`.
     /// @dev `tokenId` must exist AND we emit a {MetadataUpdate} event
-    /// @param tokenId the id of the token we are updating metadata for (when we update member units)
-    function update(uint256 tokenId) external {
+    /// @param pool The pool address
+    /// @param member The member address
+    function onUpdate(address pool, address member) external override {
+        uint256 tokenId = _getTokenId(pool, member);
         address owner = _ownerOf(tokenId);
         assert(owner != address(0));
         PoolMemberNFTData storage data = _poolMemberDataByTokenId[tokenId];
@@ -85,8 +87,10 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
 
     /// @notice Destroys token with `tokenId` and clears approvals from previous owner.
     /// @dev `tokenId` must exist AND we emit a {Transfer} event
-    /// @param tokenId the id of the token we are destroying
-    function burn(uint256 tokenId) external override {
+    /// @param pool The pool address
+    /// @param member The member address
+    function onDelete(address pool, address member) external override {
+        uint256 tokenId = _getTokenId(pool, member);
         _burn(tokenId);
     }
 

@@ -396,3 +396,13 @@ contract PoolNFTUpgradabilityTest is PoolNFTBaseIntegrationTest {
         poolMemberNFT.updateCode(address(newPoolMemberNFT));
     }
 }
+
+contract FakePool {
+    address public admin;
+    address public superToken;
+
+    constructor(address _admin, address _superToken) {
+        admin = _admin;
+        superToken = _superToken;
+    }
+}

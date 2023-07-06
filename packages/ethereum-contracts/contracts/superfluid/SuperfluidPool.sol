@@ -351,7 +351,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             if (newUnits == 0) {
                 if (poolMemberNFT.poolMemberDataByTokenId(tokenId).member != address(0)) {
                     gasLeftBefore = gasleft();
-                    try poolMemberNFT.burn(tokenId) {
+                    try poolMemberNFT.onDelete(address(this), memberAddr) {
                         // solhint-disable-next-line no-empty-blocks
                     } catch {
                         SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
@@ -361,7 +361,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
                 // if not minted, we mint a new pool member nft
                 if (poolMemberNFT.poolMemberDataByTokenId(tokenId).member == address(0)) {
                     gasLeftBefore = gasleft();
-                    try poolMemberNFT.mint(address(this), memberAddr) {
+                    try poolMemberNFT.onCreate(address(this), memberAddr) {
                         // solhint-disable-next-line no-empty-blocks
                     } catch {
                         SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
@@ -369,7 +369,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
                     // if minted, we update the pool member nft
                 } else {
                     gasLeftBefore = gasleft();
-                    try poolMemberNFT.update(tokenId) {
+                    try poolMemberNFT.onUpdate(address(this), memberAddr) {
                         // solhint-disable-next-line no-empty-blocks
                     } catch {
                         SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);

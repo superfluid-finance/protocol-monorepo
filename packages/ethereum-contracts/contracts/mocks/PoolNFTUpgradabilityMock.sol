@@ -101,20 +101,6 @@ contract PoolAdminNFTStorageLayoutMock is PoolAdminNFT, IStorageLayoutBase {
     }
 
     // Dummy implementations for abstract functions
-    function _ownerOf(
-        uint256 //tokenId
-    ) internal pure override returns (address) {
-        return address(0);
-    }
-
-    function _transfer(
-        address, //from,
-        address, //to,
-        uint256 //tokenId
-    ) internal pure override {
-        return;
-    }
-
     function _safeTransfer(
         address from,
         address to,
@@ -155,20 +141,6 @@ contract PoolMemberNFTStorageLayoutMock is PoolMemberNFT, IStorageLayoutBase {
     }
 
     // Dummy implementations for abstract functions
-    function _ownerOf(
-        uint256 //tokenId
-    ) internal pure override returns (address) {
-        return address(0);
-    }
-
-    function _transfer(
-        address, //from,
-        address, //to,
-        uint256 //tokenId
-    ) internal pure override {
-        return;
-    }
-
     function _safeTransfer(
         address from,
         address to,

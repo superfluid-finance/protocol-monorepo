@@ -130,8 +130,8 @@ contract ERC721IntegrationTest is FoundrySuperfluidTester {
             0,
             IConstantOutflowNFT(address(constantOutflowNFT)),
             IConstantInflowNFT(address(constantInflowNFT)),
-            IPoolAdminNFT(address(poolMemberNFT)),
-            IPoolMemberNFT(address(poolAdminNFT))
+            IPoolAdminNFT(address(poolAdminNFT)),
+            IPoolMemberNFT(address(poolMemberNFT))
         );
         superTokenMockProxy.initializeProxy(address(superTokenMockLogic));
 

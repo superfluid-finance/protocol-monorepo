@@ -2,9 +2,58 @@
 // solhint-disable reason-string
 pragma solidity 0.8.19;
 
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
+
+/// @title FlowNFTBaseMock
+/// @author Superfluid
+/// @dev A mock contract for testing the functionality on FlowNFTBase
+contract FlowNFTBaseMock is FlowNFTBase {
+    using Strings for uint256;
+
+    mapping(uint256 => FlowNFTData) internal _flowDataByTokenId;
+
+    constructor(ISuperfluid host) FlowNFTBase(host) { }
+
+    function proxiableUUID() public pure override returns (bytes32) {
+        return keccak256("org.superfluid-finance.contracts.FlowNFTBaseMock.implementation");
+    }
+
+    /// @dev The owner of here is always the flow sender
+    function _ownerOf(uint256 tokenId) internal view override returns (address) {
+        return _flowDataByTokenId[tokenId].flowSender;
+    }
+
+    /// @dev a mock mint function that sets the FlowNFTData
+    function mockMint(address _superToken, address _flowSender, address _flowReceiver) public {
+        uint256 tokenId = _getTokenId(_superToken, _flowSender, _flowReceiver);
+        _flowDataByTokenId[tokenId] = FlowNFTData({
+            flowSender: _flowSender,
+            flowStartDate: uint32(block.timestamp),
+            flowReceiver: _flowReceiver,
+            superToken: _superToken
+        });
+    }
+
+    function _transfer(
+        address, //from,
+        address, //to,
+        uint256 //tokenId
+    ) internal override {
+        revert CFA_NFT_TRANSFER_IS_NOT_ALLOWED();
+    }
+
+    function flowDataByTokenId(uint256 tokenId) public view override returns (FlowNFTData memory flowData) {
+        return _flowDataByTokenId[tokenId];
+    }
+
+    function tokenURI(uint256 tokenId) external view override returns (string memory) {
+        return string(abi.encodePacked("tokenId=", tokenId.toString()));
+    }
+}
 
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     constructor(ISuperfluid host, IConstantInflowNFT constantInflowNFT) ConstantOutflowNFT(host, constantInflowNFT) { }

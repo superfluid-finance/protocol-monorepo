@@ -4,7 +4,6 @@ pragma solidity 0.8.19;
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import {
     FlowNFTBase, ConstantOutflowNFT, IConstantOutflowNFT
@@ -28,61 +27,6 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
     /*//////////////////////////////////////////////////////////////////////////
                                     Revert Tests
     //////////////////////////////////////////////////////////////////////////*/
-    function testRevertIfContractAlreadyInitialized() public {
-        vm.expectRevert("Initializable: contract is already initialized");
-
-        constantOutflowNFT.initialize(
-            string.concat("henlo", OUTFLOW_NFT_NAME_TEMPLATE), string.concat("goodbye", OUTFLOW_NFT_SYMBOL_TEMPLATE)
-        );
-    }
-
-    function testRevertIfOwnerOfForNonExistentToken(uint256 _tokenId) public {
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
-        constantOutflowNFT.ownerOf(_tokenId);
-    }
-
-    function testRevertIfGetApprovedForNonExistentToken(uint256 _tokenId) public {
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
-        constantOutflowNFT.getApproved(_tokenId);
-    }
-
-    function testRevertIfSetApprovalForAllOperatorApproveToCaller(address _flowSender, address _flowReceiver) public {
-        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(_flowSender, _flowReceiver);
-
-        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
-        constantOutflowNFT.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_APPROVE_TO_CALLER.selector);
-        vm.prank(_flowSender);
-        constantOutflowNFT.setApprovalForAll(_flowSender, true);
-    }
-
-    function testRevertIfApproveToCurrentOwner(address _flowSender, address _flowReceiver) public {
-        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(_flowSender, _flowReceiver);
-
-        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
-        constantOutflowNFT.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_APPROVE_TO_CURRENT_OWNER.selector);
-        vm.prank(_flowSender);
-        constantOutflowNFT.approve(_flowSender, nftId);
-    }
-
-    function testRevertIfApproveAsNonOwner(
-        address _flowSender,
-        address _flowReceiver,
-        address _approver,
-        address _approvedAccount
-    ) public {
-        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(_flowSender, _flowReceiver);
-        /// @dev _flowSender is owner of outflow NFT
-        vm.assume(_approver != _flowSender);
-        vm.assume(_approvedAccount != _flowSender);
-
-        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
-        constantOutflowNFT.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL.selector);
-        vm.prank(_approver);
-        constantOutflowNFT.approve(_approvedAccount, nftId);
-    }
 
     function testRevertIfInternalMintToZeroAddress(address _flowReceiver) public {
         uint256 nftId = _helperGetNFTID(address(superTokenMock), address(0), _flowReceiver);
@@ -105,58 +49,6 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowSender);
         vm.expectRevert();
         constantOutflowNFT.mockMint(address(superTokenMock), _flowSender, _flowSender, nftId);
-    }
-
-    function testRevertIfYouTryToTransferOutflowNFT(address _flowSender, address _flowReceiver) public {
-        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(_flowSender, _flowReceiver);
-
-        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
-
-        _assertEventTransfer(address(constantOutflowNFT), address(0), _flowSender, nftId);
-
-        constantOutflowNFT.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
-        _assertNFTFlowDataStateIsExpected(
-            nftId, address(superTokenMock), _flowSender, uint32(block.timestamp), _flowReceiver
-        );
-
-        vm.prank(_flowSender);
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_TRANSFER_IS_NOT_ALLOWED.selector);
-        constantOutflowNFT.transferFrom(_flowSender, _flowReceiver, nftId);
-
-        vm.prank(_flowSender);
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_TRANSFER_IS_NOT_ALLOWED.selector);
-        constantOutflowNFT.safeTransferFrom(_flowSender, _flowReceiver, nftId);
-
-        vm.prank(_flowSender);
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_TRANSFER_IS_NOT_ALLOWED.selector);
-        constantOutflowNFT.safeTransferFrom(_flowSender, _flowReceiver, nftId, "0x");
-    }
-
-    function testRevertIfYouAreNotTheOwnerAndTryToTransferOutflowNFT(address _flowSender, address _flowReceiver)
-        public
-    {
-        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(_flowSender, _flowReceiver);
-
-        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
-
-        _assertEventTransfer(address(constantOutflowNFT), address(0), _flowSender, nftId);
-
-        constantOutflowNFT.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
-        _assertNFTFlowDataStateIsExpected(
-            nftId, address(superTokenMock), _flowSender, uint32(block.timestamp), _flowReceiver
-        );
-
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL.selector);
-        vm.prank(_flowReceiver);
-        constantOutflowNFT.transferFrom(_flowSender, _flowReceiver, nftId);
-
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL.selector);
-        vm.prank(_flowReceiver);
-        constantOutflowNFT.safeTransferFrom(_flowSender, _flowReceiver, nftId);
-
-        vm.expectRevert(IFlowNFTBase.CFA_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL.selector);
-        vm.prank(_flowReceiver);
-        constantOutflowNFT.safeTransferFrom(_flowSender, _flowReceiver, nftId, "0x");
     }
 
     function testRevertIfOnCreateIsNotCalledByFlowAgreement(address caller) public {
@@ -193,25 +85,28 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         vm.expectRevert();
         constantInflowNFT.tokenURI(nftId);
     }
+    
+    function testRevertIfYouTryToTransferOutflowNFT(address _flowSender, address _flowReceiver) public {
+        _assumeSenderNEQReceiverAndNeitherAreZeroAddress(_flowSender, _flowReceiver);
+
+        uint256 nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
+        constantOutflowNFT.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
+
+        vm.startPrank(_flowSender);
+        vm.expectRevert(IFlowNFTBase.CFA_NFT_TRANSFER_IS_NOT_ALLOWED.selector);
+        constantOutflowNFT.transferFrom(_flowSender, _flowReceiver, nftId);
+        vm.stopPrank();
+    }
 
     /*//////////////////////////////////////////////////////////////////////////
                                     Passing Tests
     //////////////////////////////////////////////////////////////////////////*/
-    function testContractSupportsExpectedInterfaces() public {
-        assertEq(constantOutflowNFT.supportsInterface(type(IERC165).interfaceId), true);
-        assertEq(constantOutflowNFT.supportsInterface(type(IERC721).interfaceId), true);
-        assertEq(constantOutflowNFT.supportsInterface(type(IERC721Metadata).interfaceId), true);
-    }
 
     function testProxiableUUIDIsExpectedValue() public {
         assertEq(
             constantOutflowNFT.proxiableUUID(),
             keccak256("org.superfluid-finance.contracts.ConstantOutflowNFT.implementation")
         );
-    }
-
-    function testNFTBalanceOfIsAlwaysOne(address _owner) public {
-        assertEq(constantInflowNFT.balanceOf(_owner), 1);
     }
 
     function testConstantOutflowNFTIsProperlyInitialized() public {
@@ -249,6 +144,7 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
 
     function testApprove(address _flowSender, address _flowReceiver, address _approvedAccount)
         public
+        override
         returns (uint256 nftId)
     {
         _assumeSenderNEQReceiverAndNeitherAreZeroAddress(_flowSender, _flowReceiver);
@@ -256,14 +152,12 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
 
         nftId = _helperGetNFTID(address(superTokenMock), _flowSender, _flowReceiver);
         constantOutflowNFT.mockMint(address(superTokenMock), _flowSender, _flowReceiver, nftId);
-        _assertNFTFlowDataStateIsExpected(
-            nftId, address(superTokenMock), _flowSender, uint32(block.timestamp), _flowReceiver
-        );
 
         _assertEventApproval(address(constantOutflowNFT), _flowSender, _approvedAccount, nftId);
 
-        vm.prank(_flowSender);
+        vm.startPrank(_flowSender);
         constantOutflowNFT.approve(_approvedAccount, nftId);
+        vm.stopPrank();
 
         _assertApprovalIsExpected(constantOutflowNFT, nftId, _approvedAccount);
     }
@@ -273,18 +167,6 @@ contract ConstantOutflowNFTTest is FlowNFTBaseTest {
         constantOutflowNFT.mockBurn(nftId);
 
         assertEq(constantOutflowNFT.mockGetApproved(nftId), address(0));
-    }
-
-    function testSetApprovalForAll(address _tokenOwner, address _operator, bool _approved) public {
-        vm.assume(_tokenOwner != address(0));
-        vm.assume(_tokenOwner != _operator);
-
-        _assertEventApprovalForAll(address(constantOutflowNFT), _tokenOwner, _operator, _approved);
-
-        vm.prank(_tokenOwner);
-        constantOutflowNFT.setApprovalForAll(_operator, _approved);
-
-        _assertOperatorApprovalIsExpected(constantOutflowNFT, _tokenOwner, _operator, _approved);
     }
 
     function testCreateFlowMintsOutflowAndInflowNFTsAndEmitsTransferEvents() public {

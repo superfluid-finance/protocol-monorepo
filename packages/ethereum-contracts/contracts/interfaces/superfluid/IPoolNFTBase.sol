@@ -10,6 +10,7 @@ interface IPoolNFTBase is IERC721Metadata {
     error POOL_NFT_APPROVE_TO_CURRENT_OWNER();
     error POOL_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
     error POOL_NFT_NOT_REGISTERED_POOL();
+    error POOL_NFT_TRANSFER_NOT_ALLOWED();
     error POOL_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL();
 
     /// @notice Informs third-party platforms that NFT metadata should be updated
@@ -20,4 +21,8 @@ interface IPoolNFTBase is IERC721Metadata {
     function initialize(string memory nftName, string memory nftSymbol) external; // initializer;
 
     function triggerMetadataUpdate(uint256 tokenId) external;
+
+    /// @notice Gets the token id
+    /// @dev For PoolAdminNFT, `account` is admin and for PoolMemberNFT, `account` is member
+    function getTokenId(address pool, address account) external view returns (uint256 tokenId);
 }

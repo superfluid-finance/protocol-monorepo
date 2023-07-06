@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { IERC721Metadata } from "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
+import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/interfaces/IERC721Metadata.sol";
+import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import {
     PoolNFTBaseStorageLayoutMock,
@@ -15,6 +16,8 @@ import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/superfluid/PoolAdminNFT.sol";
 import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/superfluid/PoolMemberNFT.sol";
 import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";
+import { PoolNFTBaseMock } from "../../../contracts/mocks/PoolNFTMock.sol";
+import { ISuperfluidPool } from "../../../contracts/superfluid/SuperfluidPool.sol";
 import { ERC721IntegrationTest } from "./ERC721.t.sol";
 
 /// @title PoolNFTBaseIntegrationTest
@@ -24,21 +27,268 @@ import { ERC721IntegrationTest } from "./ERC721.t.sol";
 /// and the assumption is that because it is tested here, it is tested for all
 /// the derived contracts.
 abstract contract PoolNFTBaseIntegrationTest is ERC721IntegrationTest {
+    using Strings for uint256;
+
     string public constant NAME = "Pool NFT Base";
     string public constant SYMBOL = "PNFTB";
-    PoolNFTBase public poolNFTBase;
+
+    PoolNFTBaseMock public poolNFTBaseMock;
 
     function setUp() public virtual override {
         super.setUp();
-        poolNFTBase = new PoolNFTBase(sf.host);
-        poolNFTBase.initialize(NAME, SYMBOL);
+        poolNFTBaseMock = new PoolNFTBaseMock(sf.host);
+        poolNFTBaseMock.initialize(NAME, SYMBOL);
     }
 
-    function _helperGetPoolAdminNftID(address _pool, address _poolAdmin) internal view returns (uint256) {
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Revert Tests
+    //////////////////////////////////////////////////////////////////////////*/
+    function testRevertIfContractAlreadyInitialized() public {
+        vm.expectRevert("Initializable: contract is already initialized");
+
+        poolNFTBaseMock.initialize(NAME, SYMBOL);
+    }
+
+    function testRevertIfOwnerOfForNonExistentToken(uint256 _tokenId) public {
+        _helperRevertIfOwnerOf(poolAdminNFT, _tokenId, IPoolNFTBase.POOL_NFT_INVALID_TOKEN_ID.selector);
+    }
+
+    function testRevertIfGetApprovedCalledForNonExistentToken(uint256 _tokenId) public {
+        _helperRevertIfGetApproved(poolAdminNFT, _tokenId, IPoolNFTBase.POOL_NFT_INVALID_TOKEN_ID.selector);
+    }
+
+    function testRevertIfSetApprovalForAllOperatorApproveToCaller(address _account) public {
+        vm.assume(_account != address(0));
+
+        vm.startPrank(_account);
+        vm.expectRevert(IPoolNFTBase.POOL_NFT_APPROVE_TO_CALLER.selector);
+        poolNFTBaseMock.setApprovalForAll(_account, true);
+        vm.stopPrank();
+    }
+
+    function testRevertIfApproveToCurrentOwner(address _pool, address _account) public {
+        vm.assume(_pool != address(0));
+        vm.assume(_account != address(0));
+
+        uint256 nftId = _helperGetPoolNFTBaseMockNftId(_pool, _account);
+        poolNFTBaseMock.mockMint(_pool, _account);
+
+        vm.startPrank(_account);
+        vm.expectRevert(IPoolNFTBase.POOL_NFT_APPROVE_TO_CURRENT_OWNER.selector);
+        poolNFTBaseMock.approve(_account, nftId);
+        vm.stopPrank();
+    }
+
+    function testRevertIfApproveAsNonOwner(address _pool, address _account, address _approver, address _approvedAccount)
+        public
+    {
+        vm.assume(_pool != address(0));
+        vm.assume(_account != address(0));
+        /// @dev _account is owner of pool NFT
+        vm.assume(_approver != _account);
+        vm.assume(_approvedAccount != _account);
+
+        uint256 nftId = _helperGetPoolNFTBaseMockNftId(_pool, _account);
+        poolNFTBaseMock.mockMint(_pool, _account);
+        vm.expectRevert(IPoolNFTBase.POOL_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL.selector);
+        vm.startPrank(_approver);
+        poolNFTBaseMock.approve(_approvedAccount, nftId);
+        vm.stopPrank();
+    }
+
+    function testRevertIfTransferFrom(address _pool, address _account, address _recipient) public {
+        vm.assume(_pool != address(0));
+        vm.assume(_account != address(0));
+        vm.assume(_recipient != address(0));
+
+        uint256 nftId = _helperGetPoolNFTBaseMockNftId(_pool, _account);
+
+        poolNFTBaseMock.mockMint(address(_pool), _account);
+
+        _helperRevertIfTransferFrom(
+            poolNFTBaseMock, _account, _account, _recipient, nftId, IPoolNFTBase.POOL_NFT_TRANSFER_NOT_ALLOWED.selector
+        );
+    }
+
+    function testRevertIfSafeTransferFrom(address _pool, address _account, address _recipient) public {
+        vm.assume(_pool != address(0));
+        vm.assume(_account != address(0));
+        vm.assume(_recipient != address(0));
+
+        uint256 nftId = _helperGetPoolNFTBaseMockNftId(_pool, _account);
+
+        poolNFTBaseMock.mockMint(address(_pool), _account);
+
+        _helperRevertIfSafeTransferFrom(
+            poolNFTBaseMock, _account, _account, _recipient, nftId, IPoolNFTBase.POOL_NFT_TRANSFER_NOT_ALLOWED.selector
+        );
+    }
+
+    function testRevertIfSafeTransferFromWithData(address _pool, address _account, address _recipient) public {
+        vm.assume(_pool != address(0));
+        vm.assume(_account != address(0));
+        vm.assume(_recipient != address(0));
+
+        uint256 nftId = _helperGetPoolNFTBaseMockNftId(_pool, _account);
+
+        poolNFTBaseMock.mockMint(address(_pool), _account);
+
+        _helperRevertIfSafeTransferFrom(
+            poolNFTBaseMock,
+            _account,
+            _account,
+            _recipient,
+            nftId,
+            "0x",
+            IPoolNFTBase.POOL_NFT_TRANSFER_NOT_ALLOWED.selector
+        );
+    }
+
+    function testRevertIfTransferFromAsNonOwner(address _pool, address _account, address _recipient) public {
+        vm.assume(_pool != address(0));
+        vm.assume(_account != address(0));
+        vm.assume(_recipient != address(0));
+        vm.assume(_recipient != _account);
+
+        uint256 nftId = _helperGetPoolNFTBaseMockNftId(_pool, _account);
+
+        poolNFTBaseMock.mockMint(address(_pool), _account);
+
+        _helperRevertIfTransferFrom(
+            poolNFTBaseMock,
+            _recipient,
+            _account,
+            _recipient,
+            nftId,
+            IPoolNFTBase.POOL_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL.selector
+        );
+    }
+
+    function testRevertIfSafeTransferFromAsNonOwner(address _pool, address _account, address _recipient) public {
+        vm.assume(_pool != address(0));
+        vm.assume(_account != address(0));
+        vm.assume(_recipient != address(0));
+        vm.assume(_recipient != _account);
+
+        uint256 nftId = _helperGetPoolNFTBaseMockNftId(_pool, _account);
+
+        poolNFTBaseMock.mockMint(address(_pool), _account);
+
+        _helperRevertIfSafeTransferFrom(
+            poolNFTBaseMock,
+            _recipient,
+            _account,
+            _recipient,
+            nftId,
+            IPoolNFTBase.POOL_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL.selector
+        );
+    }
+
+    function testRevertIfSafeTransferFromWithDataAsNonOwner(address _pool, address _account, address _recipient)
+        public
+    {
+        vm.assume(_pool != address(0));
+        vm.assume(_account != address(0));
+        vm.assume(_recipient != address(0));
+        vm.assume(_recipient != _account);
+
+        uint256 nftId = _helperGetPoolNFTBaseMockNftId(_pool, _account);
+
+        poolNFTBaseMock.mockMint(address(_pool), _account);
+
+        _helperRevertIfSafeTransferFrom(
+            poolNFTBaseMock,
+            _recipient,
+            _account,
+            _recipient,
+            nftId,
+            "0x",
+            IPoolNFTBase.POOL_NFT_TRANSFER_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL.selector
+        );
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Passing Tests
+    //////////////////////////////////////////////////////////////////////////*/
+
+    function testContractSupportsExpectedInterfaces() public {
+        assertEq(poolNFTBaseMock.supportsInterface(type(IERC165).interfaceId), true);
+        assertEq(poolNFTBaseMock.supportsInterface(type(IERC721).interfaceId), true);
+        assertEq(poolNFTBaseMock.supportsInterface(type(IERC721Metadata).interfaceId), true);
+    }
+
+    function testBalanceOfIsAlwaysOne(address owner) public {
+        assertEq(poolNFTBaseMock.balanceOf(owner), 1, "PoolNFTBase: balanceOf is not always one");
+    }
+
+    function testHostIsProperlySetInConstructor() public {
+        assertEq(address(poolNFTBaseMock.HOST()), address(sf.host));
+    }
+
+    function testGDAv1IsProperlySetInConstructor() public {
+        assertEq(address(poolNFTBaseMock.GENERAL_DISTRIBUTION_AGREEMENT_V1()), address(sf.gda));
+    }
+
+    function testNFTMetadataIsProperlyInitialized() public {
+        assertEq(poolNFTBaseMock.name(), NAME);
+        assertEq(poolNFTBaseMock.symbol(), SYMBOL);
+    }
+
+    function testTokenURI(uint256 tokenId) public {
+        assertEq(poolNFTBaseMock.tokenURI(tokenId), string(abi.encodePacked("tokenId=", tokenId.toString())));
+    }
+
+    function testTriggerMetadataUpdate(uint256 tokenId) public {
+        _assertEventMetadataUpdate(address(poolNFTBaseMock), tokenId);
+        poolNFTBaseMock.triggerMetadataUpdate(tokenId);
+    }
+
+    function testApprove(address _account, address _pool, address _approvedAccount)
+        public
+        virtual
+        returns (uint256 nftId)
+    {
+        vm.assume(_account != address(0));
+        vm.assume(_pool != address(0));
+        vm.assume(_account != _approvedAccount);
+
+        nftId = _helperGetPoolNFTBaseMockNftId(_pool, _account);
+        poolNFTBaseMock.mockMint(_pool, _account);
+
+        _assertEventApproval(address(poolNFTBaseMock), _account, _approvedAccount, nftId);
+
+        vm.startPrank(_account);
+        poolNFTBaseMock.approve(_approvedAccount, nftId);
+        vm.stopPrank();
+
+        _assertApprovalIsExpected(poolNFTBaseMock, nftId, _approvedAccount);
+    }
+
+    function testSetApprovalForAll(address _tokenOwner, address _operator, bool _approved) public {
+        vm.assume(_tokenOwner != address(0));
+        vm.assume(_tokenOwner != _operator);
+
+        _assertEventApprovalForAll(address(poolNFTBaseMock), _tokenOwner, _operator, _approved);
+
+        vm.startPrank(_tokenOwner);
+        poolNFTBaseMock.setApprovalForAll(_operator, _approved);
+        vm.stopPrank();
+
+        _assertOperatorApprovalIsExpected(poolNFTBaseMock, _tokenOwner, _operator, _approved);
+    }
+
+    /*//////////////////////////////////////////////////////////////////////////
+                                    Helper Functions
+    //////////////////////////////////////////////////////////////////////////*/
+    function _helperGetPoolNFTBaseMockNftId(address _pool, address _account) internal view returns (uint256) {
+        return poolNFTBaseMock.getTokenId(_pool, _account);
+    }
+
+    function _helperGetPoolAdminNftId(address _pool, address _poolAdmin) internal view returns (uint256) {
         return poolAdminNFT.getTokenId(_pool, _poolAdmin);
     }
 
-    function _helperGetPoolMemberNftID(address _pool, address _poolMember) internal view returns (uint256) {
+    function _helperGetPoolMemberNftId(address _pool, address _poolMember) internal view returns (uint256) {
         return poolMemberNFT.getTokenId(_pool, _poolMember);
     }
 
@@ -82,42 +332,6 @@ abstract contract PoolNFTBaseIntegrationTest is ERC721IntegrationTest {
             poolAdminNFT, _tokenId, _expectedMember, "PoolMemberNFT: owner of pool member nft not as expected"
         );
     }
-
-    /*//////////////////////////////////////////////////////////////////////////
-                                    Passing Tests
-    //////////////////////////////////////////////////////////////////////////*/
-    function testHostIsProperlySetInConstructor() public {
-        assertEq(address(poolNFTBase.HOST()), address(sf.host));
-    }
-
-    function testGDAv1IsProperlySetInConstructor() public {
-        assertEq(address(poolNFTBase.GENERAL_DISTRIBUTION_AGREEMENT_V1()), address(sf.gda));
-    }
-
-    function testBalanceOfIsAlwaysOne(address owner) public {
-        assertEq(poolNFTBase.balanceof(owner), 1, "PoolNFTBase: balanceOf is not always one");
-    }
-
-    function testContractSupportsExpectedInterfaces() public {
-        assertEq(poolNFTBase.supportsInterface(type(IERC165).interfaceId), true);
-        assertEq(poolNFTBase.supportsInterface(type(IERC721).interfaceId), true);
-        assertEq(poolNFTBase.supportsInterface(type(IERC721Metadata).interfaceId), true);
-    }
-    
-    // TODO
-    // create a FlowNFTBase mock contract
-    // create a PoolNFTBase mock contract 
-    // which allows mock minting and other mock functions
-    // so that we can test the functions in the PoolNFTBase directly
-    // test initialization worked as expected
-    // test approve works as expected
-    // test approve reverst if approve to current owner
-    // test approve reverts if caller is not owner or approved for all
-    // test tokenURI is correct
-    // test trigger metadata works as expected
-    // test owner of reverts if tokenId is not valid
-    // test get approved reverts if not minted
-    // test set approval for all works as expected
 }
 
 /// @title PoolNFTUpgradabilityTest

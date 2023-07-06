@@ -41,6 +41,10 @@ contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
         return address(0);
     }
 
+    function getTokenId(address pool, address account) external view override returns (uint256 tokenId) {
+        return 0;
+    }
+
     function _transfer(
         address, //from,
         address, //to,

@@ -11,20 +11,13 @@ contract PoolAdminNFTIntegrationTest is PoolNFTBaseIntegrationTest {
     /*//////////////////////////////////////////////////////////////////////////
                                     Revert Tests
     //////////////////////////////////////////////////////////////////////////*/
-    function testRevertIfOwnerOfForNonExistentToken(uint256 _tokenId) public {
-        _helperRevertIfOwnerOf(poolAdminNFT, _tokenId, IPoolNFTBase.POOL_NFT_INVALID_TOKEN_ID.selector);
-    }
-
-    function testRevertIfGetApprovedForNonExistentToken(uint256 _tokenId) public {
-        _helperRevertIfGetApproved(poolAdminNFT, _tokenId, IPoolNFTBase.POOL_NFT_INVALID_TOKEN_ID.selector);
-    }
 
     function testRevertIfTransferFrom(address _poolAdmin, address _receiver) public {
         vm.assume(_poolAdmin != address(0));
         vm.assume(_receiver != address(0));
 
         ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _poolAdmin);
-        uint256 nftId = _helperGetPoolAdminNftID(address(pool), _poolAdmin);
+        uint256 nftId = _helperGetPoolAdminNftId(address(pool), _poolAdmin);
 
         _helperMockMint(address(pool));
 
@@ -34,7 +27,7 @@ contract PoolAdminNFTIntegrationTest is PoolNFTBaseIntegrationTest {
             _poolAdmin,
             _receiver,
             nftId,
-            IPoolAdminNFT.POOL_ADMIN_NFT_TRANSFER_NOT_ALLOWED.selector
+            IPoolNFTBase.POOL_NFT_TRANSFER_NOT_ALLOWED.selector
         );
     }
 
@@ -52,7 +45,7 @@ contract PoolAdminNFTIntegrationTest is PoolNFTBaseIntegrationTest {
     function _helperMockMint(address _pool) internal returns (uint256) {
         address poolAdmin = ISuperfluidPool(_pool).admin();
 
-        uint256 tokenId = _helperGetPoolAdminNftID(_pool, poolAdmin);
+        uint256 tokenId = _helperGetPoolAdminNftId(_pool, poolAdmin);
 
         _assertEventTransfer(address(poolAdminNFT), address(0), poolAdmin, tokenId);
         poolAdminNFT.mockMint(_pool);

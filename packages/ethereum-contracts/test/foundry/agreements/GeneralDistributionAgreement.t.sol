@@ -769,29 +769,31 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         for (uint256 i; i < members.length; ++i) {
             address member = members[i].member;
-            // @note we test realtimeBalanceOfNow here as well
-            (int256 memberRTB,,) = sf.gda.realtimeBalanceOf(superToken, member, block.timestamp);
-            (int256 rtbNow,,,) = sf.gda.realtimeBalanceOfNow(superToken, member);
-            assertEq(memberRTB, rtbNow, "testDistributeFlowToUnconnectedMembers: rtb != rtbNow");
+            if (member != address(0)) {
+                // @note we test realtimeBalanceOfNow here as well
+                (int256 memberRTB,,) = sf.gda.realtimeBalanceOf(superToken, member, block.timestamp);
+                (int256 rtbNow,,,) = sf.gda.realtimeBalanceOfNow(superToken, member);
+                assertEq(memberRTB, rtbNow, "testDistributeFlowToUnconnectedMembers: rtb != rtbNow");
 
-            assertEq(
-                pool.getTotalDisconnectedFlowRate(),
-                actualDistributionFlowRate,
-                "GDAv1.t.sol: pendingDistributionFlowRate != actualDistributionFlowRate"
-            );
-            (int256 memberClaimable,) = pool.getClaimableNow(member);
-            assertEq(
-                memberClaimable,
-                (actualDistributionFlowRate * int96(int256(uint256(warpTime)))) * int96(uint96(members[i].newUnits))
-                    / uint256(totalUnits).toInt256(),
-                "GDAv1.t.sol: memberClaimable != (actualDistributionFlowRate * warpTime) / totalUnits"
-            );
-            assertEq(memberRTB, 0, "GDAv1.t.sol: memberRTB != 0");
-            vm.prank(member);
-            pool.claimAll();
+                assertEq(
+                    pool.getTotalDisconnectedFlowRate(),
+                    actualDistributionFlowRate,
+                    "GDAv1.t.sol: pendingDistributionFlowRate != actualDistributionFlowRate"
+                );
+                (int256 memberClaimable,) = pool.getClaimableNow(member);
+                assertEq(
+                    memberClaimable,
+                    (actualDistributionFlowRate * int96(int256(uint256(warpTime)))) * int96(uint96(members[i].newUnits))
+                        / uint256(totalUnits).toInt256(),
+                    "GDAv1.t.sol: memberClaimable != (actualDistributionFlowRate * warpTime) / totalUnits"
+                );
+                assertEq(memberRTB, 0, "GDAv1.t.sol: memberRTB != 0");
+                vm.prank(member);
+                pool.claimAll();
 
-            (memberRTB,,) = sf.gda.realtimeBalanceOf(superToken, member, block.timestamp);
-            assertEq(memberRTB, memberClaimable, "GDAv1.t.sol: memberRTB != memberClaimable");
+                (memberRTB,,) = sf.gda.realtimeBalanceOf(superToken, member, block.timestamp);
+                assertEq(memberRTB, memberClaimable, "GDAv1.t.sol: memberRTB != memberClaimable");
+            }
         }
     }
 
@@ -1243,7 +1245,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         } else {
             vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
             constantOutflowNFT.ownerOf(tokenId);
-            
+
             vm.expectRevert(IFlowNFTBase.CFA_NFT_INVALID_TOKEN_ID.selector);
             constantInflowNFT.ownerOf(tokenId);
         }

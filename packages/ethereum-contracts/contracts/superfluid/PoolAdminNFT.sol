@@ -44,10 +44,10 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
         address, // to,
         uint256 // tokenId
     ) internal virtual override {
-        revert POOL_ADMIN_NFT_TRANSFER_NOT_ALLOWED();
+        revert POOL_NFT_TRANSFER_NOT_ALLOWED();
     }
 
-    function getTokenId(address pool, address admin) external view returns (uint256 tokenId) {
+    function getTokenId(address pool, address admin) external view override returns (uint256 tokenId) {
         return _getTokenId(pool, admin);
     }
 

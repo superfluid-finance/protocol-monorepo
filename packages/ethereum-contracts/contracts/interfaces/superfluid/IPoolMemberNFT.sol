@@ -22,7 +22,6 @@ interface IPoolMemberNFT is IPoolNFTBase {
 
     error POOL_MEMBER_NFT_NO_ZERO_POOL();
     error POOL_MEMBER_NFT_NO_ZERO_MEMBER();
-    error POOL_MEMBER_NFT_TRANSFER_NOT_ALLOWED();
     error POOL_MEMBER_NFT_NO_UNITS();
     error POOL_MEMBER_NFT_HAS_UNITS();
 
@@ -33,8 +32,6 @@ interface IPoolMemberNFT is IPoolNFTBase {
     function burn(uint256 tokenId) external;
 
     /// View Functions ///
-
-    function getTokenId(address pool, address member) external view returns (uint256 tokenId);
 
     function poolMemberDataByTokenId(uint256 tokenId) external view returns (PoolMemberNFTData memory data);
 }

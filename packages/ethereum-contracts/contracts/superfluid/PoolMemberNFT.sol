@@ -44,10 +44,10 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
         address, // to,
         uint256 // tokenId
     ) internal virtual override {
-        revert POOL_MEMBER_NFT_TRANSFER_NOT_ALLOWED();
+        revert POOL_NFT_TRANSFER_NOT_ALLOWED();
     }
 
-    function getTokenId(address pool, address member) external view returns (uint256 tokenId) {
+    function getTokenId(address pool, address member) external view override returns (uint256 tokenId) {
         return _getTokenId(pool, member);
     }
 

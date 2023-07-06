@@ -80,19 +80,4 @@ contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
     function testTokenURIForPoolMemberNFT(uint256 tokenId) public {
         assertEq(poolMemberNFT.tokenURI(tokenId), string(abi.encodePacked(poolMemberNFT.baseURI())));
     }
-
-    function _helperMockMint(address _pool, address _member, uint128 _newUnits) internal returns (uint256) {
-        uint256 tokenId = _helperGetPoolMemberNftId(_pool, _member);
-
-        _assertEventTransfer(address(poolMemberNFT), address(0), _member, tokenId);
-
-        poolMemberNFT.mockMint(_pool, _member);
-        
-        IPoolMemberNFT.PoolMemberNFTData memory poolMemberData = poolMemberNFT.poolMemberDataByTokenId(tokenId);
-        assertEq(poolMemberData.pool, _pool);
-        assertEq(poolMemberData.member, _member);
-        assertEq(poolMemberData.units, _newUnits);
-
-        return tokenId;
-    }
 }

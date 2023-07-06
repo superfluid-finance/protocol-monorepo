@@ -33,7 +33,7 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
         return _poolAdminDataByTokenId[tokenId].admin;
     }
 
-    function poolAdminDataByTokenId(uint256 tokenId) external view returns (PoolAdminNFTData memory data) {
+    function poolAdminDataByTokenId(uint256 tokenId) external view override returns (PoolAdminNFTData memory data) {
         return _poolAdminDataByTokenId[tokenId];
     }
 

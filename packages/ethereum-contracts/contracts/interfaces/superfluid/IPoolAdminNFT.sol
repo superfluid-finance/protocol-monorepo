@@ -17,4 +17,6 @@ interface IPoolAdminNFT is IPoolNFTBase {
 
     /// Write Functions ///
     function mint(address pool) external;
+
+    function poolAdminDataByTokenId(uint256 tokenId) external view returns (PoolAdminNFTData memory data);
 }

@@ -888,11 +888,16 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         IPoolAdminNFT poolAdminNft = SuperToken(address(_superToken)).POOL_ADMIN_NFT();
         uint256 tokenId = poolAdminNft.getTokenId(address(localPool), _poolAdmin);
+
+        // Assert Owner is expected
         assertEq(
-            SuperToken(address(_superToken)).POOL_ADMIN_NFT().ownerOf(tokenId),
-            _poolAdmin,
-            "GDAv1.t: Pool Admin NFT is not owned by pool admin"
+            poolAdminNft.ownerOf(tokenId), _poolAdmin, "_helperCreatePool: Pool Admin NFT is not owned by pool admin"
         );
+
+        // Assert PoolAdminNFTData is expected
+        IPoolAdminNFT.PoolAdminNFTData memory poolAdminData = poolAdminNft.poolAdminDataByTokenId(tokenId);
+        assertEq(poolAdminData.pool, address(localPool), "_helperCreatePool: Pool Admin NFT pool mismatch");
+        assertEq(poolAdminData.admin, _poolAdmin, "_helperCreatePool: Pool Admin NFT admin mismatch");
     }
 
     function _helperGetValidDrainFlowRate(int256 balance) internal pure returns (int96) {
@@ -1215,7 +1220,14 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         IPoolMemberNFT poolMemberNFT = SuperToken(address(_superToken)).POOL_MEMBER_NFT();
         uint256 tokenId = poolMemberNFT.getTokenId(address(_pool), address(_member));
         if (_newUnits > 0) {
+            // Assert Pool Member NFT owner
             assertEq(poolMemberNFT.ownerOf(tokenId), _member, "_assertPoolMemberNFT: member doesn't own NFT");
+
+            // Assert Pool Member NFT data
+            IPoolMemberNFT.PoolMemberNFTData memory poolMemberData = poolMemberNFT.poolMemberDataByTokenId(tokenId);
+            assertEq(poolMemberData.pool, address(_pool), "_assertPoolMemberNFT: Pool Member NFT pool mismatch");
+            assertEq(poolMemberData.member, _member, "_assertPoolMemberNFT: Pool Member NFT member mismatch");
+            assertEq(poolMemberData.units, _newUnits, "_assertPoolMemberNFT: Pool Member NFT units mismatch");
         } else {
             vm.expectRevert(IPoolNFTBase.POOL_NFT_INVALID_TOKEN_ID.selector);
             poolMemberNFT.ownerOf(tokenId);

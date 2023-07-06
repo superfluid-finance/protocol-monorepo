@@ -53,22 +53,4 @@ contract PoolAdminNFTIntegrationTest is PoolNFTBaseIntegrationTest {
         assertEq(poolAdminNFT.tokenURI(tokenId), string(abi.encodePacked(poolAdminNFT.baseURI())));
     }
 
-    /*//////////////////////////////////////////////////////////////////////////
-                                    Helper Functions
-    //////////////////////////////////////////////////////////////////////////*/
-
-    function _helperMockMint(address _pool) internal returns (uint256) {
-        address poolAdmin = ISuperfluidPool(_pool).admin();
-
-        uint256 tokenId = _helperGetPoolAdminNftId(_pool, poolAdmin);
-
-        poolAdminNFT.mockMint(_pool);
-
-        IPoolAdminNFT.PoolAdminNFTData memory poolAdminData = poolAdminNFT.poolAdminDataByTokenId(tokenId);
-        assertEq(poolAdminData.pool, address(_pool), "_helperMockMint: pool address mismatch");
-        assertEq(poolAdminData.admin, poolAdmin, "_helperMockMint: pool admin address mismatch");
-
-        return tokenId;
-    }
-
 }

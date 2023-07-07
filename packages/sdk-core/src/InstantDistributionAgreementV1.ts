@@ -7,6 +7,7 @@ import { ethers } from "ethers";
 import Host from "./Host";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
+import SuperfluidAgreement from "./SuperfluidAgreement";
 import {
     IApproveSubscriptionParams,
     IClaimParams,
@@ -29,11 +30,12 @@ const idaInterface = IInstantDistributionAgreementV1__factory.createInterface();
  * Instant Distribution Agreement V1 Helper Class
  * @description A helper class to interact with the IDAV1 contract.
  */
-export default class InstantDistributionAgreementV1 {
+export default class InstantDistributionAgreementV1 extends SuperfluidAgreement {
     readonly host: Host;
     readonly contract: IInstantDistributionAgreementV1;
 
     constructor(hostAddress: string, idaV1Address: string) {
+        super();
         this.host = new Host(hostAddress);
         this.contract = new ethers.Contract(
             idaV1Address,

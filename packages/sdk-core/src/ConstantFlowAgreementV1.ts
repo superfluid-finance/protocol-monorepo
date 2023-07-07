@@ -9,6 +9,7 @@ import { ethers } from "ethers";
 import Host from "./Host";
 import Operation from "./Operation";
 import { SFError } from "./SFError";
+import SuperfluidAgreement from "./SuperfluidAgreement";
 import {
     FlowRateAllowanceParams,
     ICreateFlowByOperatorParams,
@@ -39,7 +40,7 @@ const cfaInterface = IConstantFlowAgreementV1__factory.createInterface();
  * Constant Flow Agreement V1 Helper Class
  * @description A helper class to interact with the CFAV1 contract.
  */
-export default class ConstantFlowAgreementV1 {
+export default class ConstantFlowAgreementV1 extends SuperfluidAgreement {
     readonly host: Host;
     readonly contract: IConstantFlowAgreementV1;
     readonly forwarder: CFAv1Forwarder;
@@ -49,6 +50,7 @@ export default class ConstantFlowAgreementV1 {
         cfaV1Address: string,
         cfaV1ForwarderAddress: string
     ) {
+        super();
         this.host = new Host(hostAddress);
         this.contract = new ethers.Contract(
             cfaV1Address,
@@ -659,26 +661,6 @@ export default class ConstantFlowAgreementV1 {
     };
 
     /** ### Internal Helper Functions ### */
-
-    /**
-     * Returns the desired Operation based on shouldUseCallAgreement.
-     * @param shouldUseCallAgreement whether or not to use host.callAgreement
-     * @param callAgreementOperation the host.callAgreement created Operation
-     * @param forwarderPopulatedTransactionPromise the populated forwarder transaction promise
-     */
-    _getCallAgreementOperation = (
-        callAgreementOperation: Operation,
-        forwarderPopulatedTransactionPromise?: Promise<ethers.PopulatedTransaction>,
-        shouldUseCallAgreement?: boolean
-    ) => {
-        return shouldUseCallAgreement
-            ? callAgreementOperation
-            : new Operation(
-                  callAgreementOperation.populateTransactionPromise,
-                  callAgreementOperation.type,
-                  forwarderPopulatedTransactionPromise
-              );
-    };
 
     /**
      * Sanitizes flow info, converting BigNumber to string.

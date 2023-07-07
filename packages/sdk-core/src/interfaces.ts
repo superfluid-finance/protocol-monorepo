@@ -44,7 +44,7 @@ export interface ISuperTokenRequestFilter {
 // A better thought out inheritance pattern - SuperToken is parent
 // CFA/IDA inherits and tacks on superToken property
 
-export interface IShouldUseCallAgreement {
+export interface ShouldUseCallAgreement {
     readonly shouldUseCallAgreement?: boolean;
 }
 
@@ -54,7 +54,7 @@ export interface EthersParams {
 
 // write request interfaces
 export interface ISuperTokenModifyFlowParams
-    extends IShouldUseCallAgreement,
+    extends ShouldUseCallAgreement,
         EthersParams {
     readonly flowRate?: string;
     readonly receiver: string;
@@ -126,7 +126,7 @@ export interface ISuperTokenUpdateSubscriptionUnitsParams extends EthersParams {
 }
 
 export interface IModifyFlowParams
-    extends IShouldUseCallAgreement,
+    extends ShouldUseCallAgreement,
         EthersParams {
     readonly flowRate?: string;
     readonly receiver: string;
@@ -165,13 +165,13 @@ export interface ISuperTokenFullControlParams extends EthersParams {
 
 export interface IUpdateFlowOperatorPermissionsParams
     extends ISuperTokenUpdateFlowOperatorPermissionsParams,
-        IShouldUseCallAgreement {
+        ShouldUseCallAgreement {
     readonly superToken: string;
 }
 
 export interface IFullControlParams
     extends ISuperTokenFullControlParams,
-        IShouldUseCallAgreement {
+        ShouldUseCallAgreement {
     readonly superToken: string;
 }
 
@@ -511,6 +511,25 @@ export interface IWeb3GovernanceParams {
     readonly minimumDeposit: string;
 }
 
+export interface ERC20AllowanceParams extends EthersParams {
+    readonly owner: string;
+    readonly spender: string;
+}
+
+export interface ERC20ApproveParams extends EthersParams {
+    readonly spender: string;
+    readonly amount: string;
+}
+
+export interface ERC20TransferParams extends EthersParams {
+    readonly to: string;
+    readonly amount: string;
+}
+
+export interface ERC20TransferFromParams extends ERC20TransferParams {
+    readonly from: string;
+}
+
 export interface ERC20IncreaseAllowanceParams extends EthersParams {
     readonly spender: string;
     readonly amount: string;
@@ -526,4 +545,97 @@ export interface SuperTokenFlowRateAllowanceParams extends EthersParams {
 export interface FlowRateAllowanceParams
     extends SuperTokenFlowRateAllowanceParams {
     readonly superToken: string;
+}
+
+export interface GDAGetNetFlowParams {
+    readonly token: string;
+    readonly account: string;
+}
+
+export interface GDAGetFlowRateParams {
+    readonly token: string;
+    readonly from: string;
+    readonly pool: string;
+}
+
+export interface EstimateFlowDistributionActualFlowRateParams {
+    readonly token: string;
+    readonly from: string;
+    readonly pool: string;
+    readonly requestedFlowRate: string;
+}
+
+export interface EstimateDistributionActualAmountParams {
+    readonly token: string;
+    readonly from: string;
+    readonly pool: string;
+    readonly requestedAmount: string;
+}
+
+export interface GetPoolAdjustmentFlowRateParams {
+    readonly token: string;
+    readonly pool: string;
+}
+
+export interface IsPoolParams {
+    readonly token: string;
+    readonly account: string;
+}
+
+export interface IsMemberConnectedParams {
+    readonly pool: string;
+    readonly member: string;
+}
+
+export interface PoolAdjustmentFlowInfo {
+    readonly recipient: string;
+    readonly flowRate: string;
+    readonly flowHash: string;
+}
+
+export interface CreatePoolParams {
+    readonly token: string;
+    readonly admin: string;
+}
+
+export interface ConnectPoolParams
+    extends EthersParams,
+        ShouldUseCallAgreement {
+    readonly pool: string;
+    readonly userData?: string;
+}
+
+export interface DisconnectPoolParams
+    extends EthersParams,
+        ShouldUseCallAgreement {
+    readonly pool: string;
+    readonly userData?: string;
+}
+
+export interface DistributeParams extends EthersParams, ShouldUseCallAgreement {
+    readonly token: string;
+    readonly from: string;
+    readonly pool: string;
+    readonly requestedAmount: string;
+    readonly userData?: string;
+}
+
+export interface DistributeFlowParams
+    extends EthersParams,
+        ShouldUseCallAgreement {
+    readonly token: string;
+    readonly from: string;
+    readonly pool: string;
+    readonly requestedFlowRate: string;
+    readonly userData?: string;
+}
+
+export interface FlowDistributionActualFlowRateData {
+    readonly actualFlowRate: string;
+    readonly totalDistributionFlowRate: string;
+}
+
+export interface GetClaimableParams {
+    readonly member: string;
+    readonly time: string;
 }

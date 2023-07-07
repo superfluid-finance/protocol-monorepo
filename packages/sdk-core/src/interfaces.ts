@@ -639,3 +639,8 @@ export interface GetClaimableParams {
     readonly member: string;
     readonly time: string;
 }
+
+export interface UpdateMemberParams {
+    readonly member: string;
+    readonly newUnits: string;
+}

@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "release-sdk-core-stable"
+      - "dev"
     paths:
       - "packages/sdk-core/**"
       - ".github/workflows/cd.sdk-core-stable.create-release-drafts.yml"

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "release-subgraph-v1"
+      - "dev"
     paths:
       - "packages/subgraph/**"
       - ".github/workflows/cd.subgraph-stable.create-release-drafts.yml"

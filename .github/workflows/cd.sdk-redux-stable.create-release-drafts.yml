@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "release-sdk-redux-stable"
+      - "dev"
     paths:
       - "packages/sdk-redux/**"
       - ".github/workflows/cd.sdk-redux-stable.create-release-drafts.yml"

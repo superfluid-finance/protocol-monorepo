@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "release-ethereum-contracts-stable"
+      - "dev"
     paths:
       - "packages/ethereum-contracts/**"
       - ".github/workflows/cd.ethereum-contracts-stable.create-release-drafts.yml"

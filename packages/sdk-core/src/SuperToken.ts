@@ -8,6 +8,7 @@ import { BytesLike, ethers, Overrides } from "ethers";
 
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
 import ERC20Token from "./ERC20Token";
+import GeneralDistributionAgreementV1 from "./GeneralDistributionAgreementV1";
 import Governance from "./Governance";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
 import Operation from "./Operation";
@@ -15,11 +16,16 @@ import { SFError } from "./SFError";
 import { chainIdToResolverDataMap, networkNameToChainIdMap } from "./constants";
 import { getNetworkName } from "./frameworkHelpers";
 import {
+    ConnectPoolParams,
+    DisconnectPoolParams,
     ERC20DecreaseAllowanceParams,
     ERC20IncreaseAllowanceParams,
     ERC777SendParams,
+    FlowDistributionActualFlowRateData,
+    GetPoolAdjustmentFlowInfoParams,
     IConfig,
     IRealtimeBalanceOfParams,
+    IsMemberConnectedParams,
     ISuperTokenBaseIDAParams,
     ISuperTokenCreateFlowByOperatorParams,
     ISuperTokenCreateFlowParams,
@@ -45,7 +51,16 @@ import {
     IWeb3Index,
     IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
+    SuperTokenCreatePoolParams,
+    SuperTokenDistributeFlowParams,
+    SuperTokenDistributeParams,
+    SuperTokenEstimateDistributionActualAmountParams,
+    SuperTokenEstimateDistributionActualFlowRateParams,
     SuperTokenFlowRateAllowanceParams,
+    SuperTokenGDAGetFlowRateParams,
+    SuperTokenGDAGetNetFlowParams,
+    SuperTokenGetPoolAdjustmentFlowRateParams,
+    SuperTokenIsPoolParams,
 } from "./interfaces";
 import {
     getSanitizedTimestamp,
@@ -78,6 +93,7 @@ export default abstract class SuperToken extends ERC20Token {
     readonly settings: ITokenSettings;
     readonly cfaV1: ConstantFlowAgreementV1;
     readonly idaV1: InstantDistributionAgreementV1;
+    readonly gdaV1: GeneralDistributionAgreementV1;
     readonly governance: Governance;
     readonly underlyingToken?: ERC20Token;
     override readonly contract: ISuperToken;
@@ -96,6 +112,11 @@ export default abstract class SuperToken extends ERC20Token {
         this.idaV1 = new InstantDistributionAgreementV1(
             settings.config.hostAddress,
             settings.config.idaV1Address
+        );
+        this.gdaV1 = new GeneralDistributionAgreementV1(
+            settings.config.hostAddress,
+            settings.config.gdaV1Address,
+            settings.config.gdaV1ForwarderAddress
         );
         this.governance = new Governance(
             settings.config.hostAddress,
@@ -686,6 +707,212 @@ export default abstract class SuperToken extends ERC20Token {
     claim = (params: ISuperTokenPubSubParams): Operation => {
         return this.idaV1.claim({
             superToken: this.settings.address,
+            ...params,
+        });
+    };
+
+    /** ### GDA Read Functions ### */
+
+    /**
+     * Retrieves the net flow for a specific token and account.
+     *
+     * @param account The account address.
+     * @returns The net flow of the account for the token.
+     */
+    getGDANetFlow = async (
+        params: SuperTokenGDAGetNetFlowParams
+    ): Promise<string> => {
+        return this.gdaV1.getNetFlow({
+            token: this.settings.address,
+            ...params,
+        });
+    };
+
+    /**
+     * Retrieves the flow rate for a specific token, sender, and pool.
+     *
+     * @param from The sender address.
+     * @param pool The pool address.
+     * @returns The flow rate from the sender to the pool for the token.
+     */
+    getFlowRate = async (
+        params: SuperTokenGDAGetFlowRateParams
+    ): Promise<string> => {
+        return this.gdaV1.getFlowRate({
+            token: this.settings.address,
+            ...params,
+        });
+    };
+
+    /**
+     * Estimates the flow distribution's actual flow rate for a specific token, sender, and pool.
+     *
+     * @param from The sender address.
+     * @param pool The pool address.
+     * @param requestedFlowRate The requested flow rate.
+     * @returns The flow distribution's actual flow rate and the total distribution flow rate for the pool.
+     */
+    estimateFlowDistributionActualFlowRate = async (
+        params: SuperTokenEstimateDistributionActualFlowRateParams
+    ): Promise<FlowDistributionActualFlowRateData> => {
+        return this.gdaV1.estimateFlowDistributionActualFlowRate({
+            token: this.settings.address,
+            ...params,
+        });
+    };
+
+    /**
+     * Estimates the distribution's actual amount for a specific token, sender, and pool.
+     *
+     * @param from The sender address.
+     * @param pool The pool address.
+     * @param requestedAmount The requested amount.
+     * @returns The actual amount that will be distributed.
+     */
+    estimateDistributionActualAmount = async (
+        params: SuperTokenEstimateDistributionActualAmountParams
+    ): Promise<string> => {
+        return this.gdaV1.estimateDistributionActualAmount({
+            token: this.settings.address,
+            ...params,
+        });
+    };
+
+    /**
+     * Retrieves the pool adjustment flow rate for a specific token and pool.
+     *
+     * @param pool The pool address.
+     * @returns The pool adjustment flow rate for the token and pool.
+     */
+    getPoolAdjustmentFlowRate = async (
+        params: SuperTokenGetPoolAdjustmentFlowRateParams
+    ): Promise<string> => {
+        return this.gdaV1.getPoolAdjustmentFlowRate({
+            token: this.settings.address,
+            ...params,
+        });
+    };
+
+    /**
+     * Checks if a given token and account form a pool.
+     *
+     * @param account The account address.
+     * @returns Whether the account is a pool for the token.
+     */
+    isPool = async (params: SuperTokenIsPoolParams): Promise<boolean> => {
+        return this.gdaV1.isPool({
+            token: this.settings.address,
+            ...params,
+        });
+    };
+
+    /**
+     * Checks if a member is connected to a specific pool.
+     *
+     * @param pool The pool address.
+     * @param member The member address.
+     * @returns Whether the member is connected to the pool.
+     */
+    isMemberConnected = async (
+        params: IsMemberConnectedParams
+    ): Promise<boolean> => {
+        return this.gdaV1.isMemberConnected({
+            ...params,
+        });
+    };
+
+    /**
+     * Retrieves the pool adjustment flow information for a specific pool.
+     *
+     * @param poolAddress The address of the pool.
+     * @returns The recipient of the pool adjustment flow, the flow hash and the rate of the adjustment flow.
+     */
+    getPoolAdjustmentFlowInfo = async (
+        params: GetPoolAdjustmentFlowInfoParams
+    ) => {
+        return this.gdaV1.getPoolAdjustmentFlowInfo(params);
+    };
+
+    /** ### GDA Write Functions ### */
+
+    /**
+     * Creates a new pool with the given token and admin.
+     *
+     * @param admin The admin address.
+     * @param overrides The transaction overrides.
+     * @returns The contract transaction and the pool address
+     */
+    createPool = async (params: SuperTokenCreatePoolParams) => {
+        return await this.gdaV1.createPool({
+            token: this.settings.address,
+            ...params,
+        });
+    };
+
+    /**
+     * Connects a pool to the contract.
+     *
+     * @param pool The pool address.
+     * @param userData The user data.
+     * @param overrides The transaction overrides.
+     * @returns The call agreement operation result.
+     */
+    connectPool = async (params: ConnectPoolParams): Promise<Operation> => {
+        return await this.gdaV1.connectPool({
+            ...params,
+        });
+    };
+
+    /**
+     * Disconnects a pool from the contract.
+     *
+     * @param pool The pool address.
+     * @param userData The user data.
+     * @param overrides The transaction overrides.
+     * @returns The call agreement operation result.
+     */
+    disconnectPool = async (
+        params: DisconnectPoolParams
+    ): Promise<Operation> => {
+        return await this.gdaV1.disconnectPool({
+            ...params,
+        });
+    };
+
+    /**
+     * Distributes funds from the sender's account to the specified pool.
+     *
+     * @param from The sender's address.
+     * @param pool The pool address.
+     * @param requestedAmount The requested amount to distribute.
+     * @param userData The user data.
+     * @param overrides The transaction overrides.
+     * @returns The call agreement operation result.
+     */
+    distributeWithGDA = async (
+        params: SuperTokenDistributeParams
+    ): Promise<Operation> => {
+        return await this.gdaV1.distribute({
+            token: this.settings.address,
+            ...params,
+        });
+    };
+
+    /**
+     * Distributes the flow from the sender's account to the specified pool.
+     *
+     * @param from The sender's address.
+     * @param pool The pool address.
+     * @param requestedFlowRate The requested flow rate.
+     * @param userData The user data.
+     * @param overrides The transaction overrides.
+     * @returns The call agreement operation result.
+     */
+    distributeFlow = async (
+        params: SuperTokenDistributeFlowParams
+    ): Promise<Operation> => {
+        return await this.gdaV1.distributeFlow({
+            token: this.settings.address,
             ...params,
         });
     };

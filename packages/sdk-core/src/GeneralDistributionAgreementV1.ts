@@ -7,6 +7,7 @@ import {
 import { ethers } from "ethers";
 
 import Host from "./Host";
+import { SFError } from "./SFError";
 import SuperfluidAgreement from "./SuperfluidAgreement";
 import {
     ConnectPoolParams,
@@ -19,6 +20,7 @@ import {
     FlowDistributionActualFlowRateData,
     GDAGetFlowRateParams,
     GDAGetNetFlowParams,
+    GetPoolAdjustmentFlowInfoParams,
     GetPoolAdjustmentFlowRateParams,
     IsMemberConnectedParams,
     IsPoolParams,
@@ -54,28 +56,72 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
         ) as GDAv1Forwarder;
     }
 
+    /**
+     * Retrieves the net flow for a specific token and account.
+     *
+     * @param token The token address.
+     * @param account The account address.
+     * @returns The net flow of the account for the token.
+     */
     getNetFlow = async (params: GDAGetNetFlowParams): Promise<string> => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedAccount = normalizeAddress(params.account);
-        return (
-            await this.contract.getNetFlow(normalizedToken, normalizedAccount)
-        ).toString();
+        try {
+            return (
+                await this.contract
+                    .connect(params.providerOrSigner)
+                    .getNetFlow(normalizedToken, normalizedAccount)
+            ).toString();
+        } catch (err) {
+            throw new SFError({
+                type: "GDAV1_READ",
+                message: "There was an error getting the GDA net flow.",
+                cause: err,
+            });
+        }
     };
 
+    /**
+     * Retrieves the flow rate for a specific token, sender, and pool.
+     *
+     * @param token The token address.
+     * @param from The sender address.
+     * @param pool The pool address.
+     * @returns The flow rate from the sender to the pool for the token.
+     */
     getFlowRate = async (params: GDAGetFlowRateParams): Promise<string> => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedFrom = normalizeAddress(params.from);
         const normalizedPool = normalizeAddress(params.pool);
 
-        return (
-            await this.contract.getFlowRate(
-                normalizedToken,
-                normalizedFrom,
-                normalizedPool
-            )
-        ).toString();
+        try {
+            return (
+                await this.contract
+                    .connect(params.providerOrSigner)
+                    .getFlowRate(
+                        normalizedToken,
+                        normalizedFrom,
+                        normalizedPool
+                    )
+            ).toString();
+        } catch (err) {
+            throw new SFError({
+                type: "GDAV1_READ",
+                message: "There was an error getting the GDA flow rate.",
+                cause: err,
+            });
+        }
     };
 
+    /**
+     * Estimates the flow distribution's actual flow rate for a specific token, sender, and pool.
+     *
+     * @param token The token address.
+     * @param from The sender address.
+     * @param pool The pool address.
+     * @param requestedFlowRate The requested flow rate.
+     * @returns The flow distribution's actual flow rate and the total distribution flow rate for the pool.
+     */
     estimateFlowDistributionActualFlowRate = async (
         params: EstimateFlowDistributionActualFlowRateParams
     ): Promise<FlowDistributionActualFlowRateData> => {
@@ -83,91 +129,222 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
         const normalizedFrom = normalizeAddress(params.from);
         const normalizedPool = normalizeAddress(params.pool);
 
-        const data = await this.contract.estimateFlowDistributionActualFlowRate(
-            normalizedToken,
-            normalizedFrom,
-            normalizedPool,
-            params.requestedFlowRate
-        );
-        return {
-            actualFlowRate: data.actualFlowRate.toString(),
-            totalDistributionFlowRate:
-                data.totalDistributionFlowRate.toString(),
-        };
+        try {
+            const data = await this.contract
+                .connect(params.providerOrSigner)
+                .estimateFlowDistributionActualFlowRate(
+                    normalizedToken,
+                    normalizedFrom,
+                    normalizedPool,
+                    params.requestedFlowRate
+                );
+            return {
+                actualFlowRate: data.actualFlowRate.toString(),
+                totalDistributionFlowRate:
+                    data.totalDistributionFlowRate.toString(),
+            };
+        } catch (err) {
+            throw new SFError({
+                type: "GDAV1_READ",
+                message:
+                    "There was an error estimating the GDA flow distribution's actual flow rate.",
+                cause: err,
+            });
+        }
     };
 
+    /**
+     * Estimates the distribution's actual amount for a specific token, sender, and pool.
+     *
+     * @param token The token address.
+     * @param from The sender address.
+     * @param pool The pool address.
+     * @param requestedAmount The requested amount.
+     * @returns The actual amount that will be distributed.
+     */
     estimateDistributionActualAmount = async (
         params: EstimateDistributionActualAmountParams
     ): Promise<string> => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedFrom = normalizeAddress(params.from);
         const normalizedPool = normalizeAddress(params.pool);
-
-        return (
-            await this.contract.estimateDistributionActualAmount(
-                normalizedToken,
-                normalizedFrom,
-                normalizedPool,
-                params.requestedAmount
-            )
-        ).toString();
+        try {
+            return (
+                await this.contract
+                    .connect(params.providerOrSigner)
+                    .estimateDistributionActualAmount(
+                        normalizedToken,
+                        normalizedFrom,
+                        normalizedPool,
+                        params.requestedAmount
+                    )
+            ).toString();
+        } catch (err) {
+            throw new SFError({
+                type: "GDAV1_READ",
+                message:
+                    "There was an error estimating the GDA distribution's actual amount.",
+                cause: err,
+            });
+        }
     };
 
+    /**
+     * Retrieves the pool adjustment flow rate for a specific token and pool.
+     *
+     * @param token The token address.
+     * @param pool The pool address.
+     * @returns The pool adjustment flow rate for the token and pool.
+     */
     getPoolAdjustmentFlowRate = async (
         params: GetPoolAdjustmentFlowRateParams
     ): Promise<string> => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedPool = normalizeAddress(params.pool);
 
-        return (
-            await this.contract.getPoolAdjustmentFlowRate(
-                normalizedToken,
-                normalizedPool
-            )
-        ).toString();
+        try {
+            return (
+                await this.contract
+                    .connect(params.providerOrSigner)
+                    .getPoolAdjustmentFlowRate(normalizedToken, normalizedPool)
+            ).toString();
+        } catch (err) {
+            throw new SFError({
+                type: "GDAV1_READ",
+                message:
+                    "There was an error getting the GDA pool adjustment flow rate.",
+                cause: err,
+            });
+        }
     };
 
+    /**
+     * Checks if a given token and account form a pool.
+     *
+     * @param token The token address.
+     * @param account The account address.
+     * @returns Whether the account is a pool for the token.
+     */
     isPool = async (params: IsPoolParams): Promise<boolean> => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedAccount = normalizeAddress(params.account);
 
-        return await this.contract.isPool(normalizedToken, normalizedAccount);
+        try {
+            return await this.contract
+                .connect(params.providerOrSigner)
+                .isPool(normalizedToken, normalizedAccount);
+        } catch (err) {
+            throw new SFError({
+                type: "GDAV1_READ",
+                message:
+                    "There was an error checking if the account is a pool.",
+                cause: err,
+            });
+        }
     };
 
+    /**
+     * Checks if a member is connected to a specific pool.
+     *
+     * @param pool The pool address.
+     * @param member The member address.
+     * @returns Whether the member is connected to the pool.
+     */
     isMemberConnected = async (
         params: IsMemberConnectedParams
     ): Promise<boolean> => {
         const normalizedPool = normalizeAddress(params.pool);
         const normalizedMember = normalizeAddress(params.member);
 
-        return await this.contract["isMemberConnected(address,address)"](
-            normalizedPool,
-            normalizedMember
-        );
+        try {
+            return await this.contract
+                .connect(params.providerOrSigner)
+                ["isMemberConnected(address,address)"](
+                    normalizedPool,
+                    normalizedMember
+                );
+        } catch (err) {
+            throw new SFError({
+                type: "GDAV1_READ",
+                message:
+                    "There was an error checking if the member is connected to the pool.",
+                cause: err,
+            });
+        }
     };
 
+    /**
+     * Retrieves the pool adjustment flow information for a specific pool.
+     *
+     * @param poolAddress The address of the pool.
+     * @returns The recipient of the pool adjustment flow, the flow hash and the rate of the adjustment flow.
+     */
     getPoolAdjustmentFlowInfo = async (
-        poolAddress: string
+        params: GetPoolAdjustmentFlowInfoParams
     ): Promise<PoolAdjustmentFlowInfo> => {
-        const normalizedPool = normalizeAddress(poolAddress);
+        const normalizedPool = normalizeAddress(params.pool);
 
-        const data = await this.contract.getPoolAdjustmentFlowInfo(
-            normalizedPool
-        );
-        return {
-            recipient: data[0],
-            flowHash: data[1],
-            flowRate: data[2].toString(),
-        };
+        try {
+            const data = await this.contract
+                .connect(params.providerOrSigner)
+                .getPoolAdjustmentFlowInfo(normalizedPool);
+            return {
+                recipient: data[0],
+                flowHash: data[1],
+                flowRate: data[2].toString(),
+            };
+        } catch (err) {
+            throw new SFError({
+                type: "GDAV1_READ",
+                message:
+                    "There was an error getting the GDA pool adjustment flow information.",
+                cause: err,
+            });
+        }
     };
 
+    /**
+     * Creates a new pool with the given token and admin.
+     *
+     * @param token The token address.
+     * @param admin The admin address.
+     * @returns The created pool.
+     */
     createPool = async (params: CreatePoolParams) => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedAdmin = normalizeAddress(params.admin);
 
-        return this.contract.createPool(normalizedToken, normalizedAdmin);
+        try {
+            const createPoolTxn = await this.contract
+                .connect(params.signer)
+                .createPool(normalizedToken, normalizedAdmin);
+            const txnReceipt = await createPoolTxn.wait();
+            const poolCreatedEvent = txnReceipt.events?.find(
+                (x) => x.event === "PoolCreated"
+            );
+            const poolAddress =
+                poolCreatedEvent?.args?.pool || ethers.constants.AddressZero;
+            return {
+                createPoolTxn,
+                poolAddress,
+            };
+        } catch (err) {
+            throw new SFError({
+                type: "GDAV1_WRITE",
+                message: "There was an error creating the GDA pool.",
+                cause: err,
+            });
+        }
     };
 
+    /**
+     * Connects a pool to the contract.
+     *
+     * @param pool The pool address.
+     * @param userData The user data.
+     * @param overrides The transaction overrides.
+     * @returns The call agreement operation result.
+     */
     connectPool = async (params: ConnectPoolParams) => {
         const normalizedPool = normalizeAddress(params.pool);
         const callData = gdaInterface.encodeFunctionData("connectPool", [
@@ -196,6 +373,14 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
         );
     };
 
+    /**
+     * Disconnects a pool from the contract.
+     *
+     * @param pool The pool address.
+     * @param userData The user data.
+     * @param overrides The transaction overrides.
+     * @returns The call agreement operation result.
+     */
     disconnectPool = async (params: DisconnectPoolParams) => {
         const normalizedPool = normalizeAddress(params.pool);
         const callData = gdaInterface.encodeFunctionData("disconnectPool", [
@@ -224,6 +409,17 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
         );
     };
 
+    /**
+     * Distributes funds from the sender's account to the specified pool.
+     *
+     * @param token The token address.
+     * @param from The sender's address.
+     * @param pool The pool address.
+     * @param requestedAmount The requested amount to distribute.
+     * @param userData The user data.
+     * @param overrides The transaction overrides.
+     * @returns The call agreement operation result.
+     */
     distribute = async (params: DistributeParams) => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedFrom = normalizeAddress(params.from);
@@ -261,6 +457,17 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
         );
     };
 
+    /**
+     * Distributes the flow from the sender's account to the specified pool.
+     *
+     * @param token The token address.
+     * @param from The sender's address.
+     * @param pool The pool address.
+     * @param requestedFlowRate The requested flow rate.
+     * @param userData The user data.
+     * @param overrides The transaction overrides.
+     * @returns The call agreement operation result.
+     */
     distributeFlow = async (params: DistributeFlowParams) => {
         const normalizedToken = normalizeAddress(params.token);
         const normalizedFrom = normalizeAddress(params.from);

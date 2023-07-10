@@ -10,6 +10,7 @@ import Web3 from "web3";
 
 import BatchCall from "./BatchCall";
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
+import GeneralDistributionAgreementV1 from "./GeneralDistributionAgreementV1";
 import Governance from "./Governance";
 import Host from "./Host";
 import InstantDistributionAgreementV1 from "./InstantDistributionAgreementV1";
@@ -69,6 +70,7 @@ export default class Framework {
     governance: Governance;
     host: Host;
     idaV1: InstantDistributionAgreementV1;
+    gdaV1: GeneralDistributionAgreementV1;
     query: Query;
 
     private constructor(
@@ -92,6 +94,11 @@ export default class Framework {
             settings.config.hostAddress,
             settings.config.idaV1Address
         );
+        this.gdaV1 = new GeneralDistributionAgreementV1(
+            settings.config.hostAddress,
+            settings.config.gdaV1Address,
+            settings.config.gdaV1ForwarderAddress
+        );
         this.query = new Query(settings);
         const resolver = new ethers.Contract(
             settings.config.resolverAddress,
@@ -103,6 +110,7 @@ export default class Framework {
             governance: this.governance.contract,
             host: this.host.contract,
             idaV1: this.idaV1.contract,
+            gdaV1: this.gdaV1.contract,
             resolver,
         };
     }
@@ -187,6 +195,14 @@ export default class Framework {
                         hostAddress: networkData.addresses.host,
                         cfaV1Address: networkData.addresses.cfaV1,
                         idaV1Address: networkData.addresses.idaV1,
+                        // @note TODO - remove the any once you add gdaV1 and gdaV1Forwarder to metadata
+                        // add idaV1Forwarder to metadata as well
+                        gdaV1Address:
+                            (networkData.addresses as any).gdaV1 ||
+                            networkData.addresses.idaV1,
+                        gdaV1ForwarderAddress:
+                            (networkData.addresses as any).gdaV1Forwarder ||
+                            networkData.addresses.idaV1,
                         governanceAddress: networkData.addresses.governance,
                         cfaV1ForwarderAddress:
                             networkData.addresses.cfaV1Forwarder,
@@ -201,6 +217,9 @@ export default class Framework {
                 );
                 const cfaV1ForwarderAddress = await resolver.get(
                     "CFAv1Forwarder"
+                );
+                const gdaV1ForwarderAddress = await resolver.get(
+                    "GDAv1Forwarder"
                 );
                 const superfluidLoader = SuperfluidLoader__factory.connect(
                     superfluidLoaderAddress,
@@ -222,8 +241,10 @@ export default class Framework {
                         hostAddress: framework.superfluid,
                         cfaV1Address: framework.agreementCFAv1,
                         idaV1Address: framework.agreementIDAv1,
+                        gdaV1Address: framework.agreementGDAv1,
                         governanceAddress,
                         cfaV1ForwarderAddress,
+                        gdaV1ForwarderAddress,
                     },
                 };
 

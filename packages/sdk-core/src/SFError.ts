@@ -7,6 +7,9 @@ export type ErrorType =
     | "SUPERTOKEN_READ"
     | "CFAV1_READ"
     | "IDAV1_READ"
+    | "GDAV1_READ"
+    | "SUPERFLUID_POOL_READ"
+    | "GDAV1_WRITE"
     | "INVALID_ADDRESS"
     | "INVALID_OBJECT"
     | "UNCLEAN_PERMISSIONS"
@@ -23,6 +26,9 @@ const errorTypeToTitleMap = new Map<ErrorType, string>([
     ["SUPERTOKEN_READ", "SuperToken Read"],
     ["CFAV1_READ", "ConstantFlowAgreementV1 Read"],
     ["IDAV1_READ", "InstantDistributionAgreementV1 Read"],
+    ["GDAV1_READ", "GeneralDistributionAgreementV1 Read"],
+    ["GDAV1_WRITE", "GeneralDistributionAgreementV1 Write"],
+    ["SUPERFLUID_POOL_READ", "Superfluid Pool Read"],
     ["INVALID_ADDRESS", "Invalid Address"],
     ["INVALID_OBJECT", "Invalid Object"],
     ["UNSUPPORTED_OPERATION", "Unsupported Batch Call Operation"],

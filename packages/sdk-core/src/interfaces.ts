@@ -1,5 +1,6 @@
 import {
     IConstantFlowAgreementV1,
+    IGeneralDistributionAgreementV1,
     IInstantDistributionAgreementV1,
     IResolver,
     Superfluid,
@@ -444,8 +445,10 @@ export interface IConfig {
     readonly hostAddress: string;
     readonly cfaV1Address: string;
     readonly idaV1Address: string;
+    readonly gdaV1Address: string;
     readonly governanceAddress: string;
     readonly cfaV1ForwarderAddress: string;
+    readonly gdaV1ForwarderAddress: string;
 }
 
 export interface IContracts {
@@ -453,6 +456,7 @@ export interface IContracts {
     readonly governance: SuperfluidGovernanceII;
     readonly host: Superfluid;
     readonly idaV1: IInstantDistributionAgreementV1;
+    readonly gdaV1: IGeneralDistributionAgreementV1;
     readonly resolver: IResolver;
 }
 
@@ -511,31 +515,48 @@ export interface IWeb3GovernanceParams {
     readonly minimumDeposit: string;
 }
 
+export interface ERC20BalanceOfParams extends EthersParams {
+    readonly account: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
 export interface ERC20AllowanceParams extends EthersParams {
     readonly owner: string;
     readonly spender: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
 export interface ERC20ApproveParams extends EthersParams {
     readonly spender: string;
     readonly amount: string;
+    readonly signer: ethers.Signer;
 }
 
 export interface ERC20TransferParams extends EthersParams {
     readonly to: string;
     readonly amount: string;
+    readonly signer: ethers.Signer;
 }
 
 export interface ERC20TransferFromParams extends ERC20TransferParams {
     readonly from: string;
+    readonly signer: ethers.Signer;
 }
 
-export interface ERC20IncreaseAllowanceParams extends EthersParams {
+export interface ERC20IncreaseAllowanceParams {
     readonly spender: string;
     readonly amount: string;
 }
 
 export type ERC20DecreaseAllowanceParams = ERC20IncreaseAllowanceParams;
+
+export interface SuperfluidPoolIncreaseAllowanceParams
+    extends ERC20IncreaseAllowanceParams {
+    readonly signer: ethers.Signer;
+}
+
+export type SuperfluidPoolDecreaseAllowanceParams =
+    SuperfluidPoolIncreaseAllowanceParams;
 
 export interface SuperTokenFlowRateAllowanceParams extends EthersParams {
     readonly flowOperator: string;
@@ -547,44 +568,76 @@ export interface FlowRateAllowanceParams
     readonly superToken: string;
 }
 
-export interface GDAGetNetFlowParams {
-    readonly token: string;
+export interface SuperTokenGDAGetNetFlowParams {
     readonly account: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
-export interface GDAGetFlowRateParams {
+export interface GDAGetNetFlowParams extends SuperTokenGDAGetNetFlowParams {
     readonly token: string;
+}
+
+export interface SuperTokenGDAGetFlowRateParams {
     readonly from: string;
     readonly pool: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
-export interface EstimateFlowDistributionActualFlowRateParams {
+export interface GDAGetFlowRateParams extends SuperTokenGDAGetFlowRateParams {
     readonly token: string;
+}
+
+export interface SuperTokenEstimateDistributionActualFlowRateParams {
     readonly from: string;
     readonly pool: string;
     readonly requestedFlowRate: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
-export interface EstimateDistributionActualAmountParams {
+export interface EstimateFlowDistributionActualFlowRateParams
+    extends SuperTokenEstimateDistributionActualFlowRateParams {
     readonly token: string;
+}
+
+export interface SuperTokenEstimateDistributionActualAmountParams {
     readonly from: string;
     readonly pool: string;
     readonly requestedAmount: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+export interface EstimateDistributionActualAmountParams
+    extends SuperTokenEstimateDistributionActualAmountParams {
+    readonly token: string;
 }
 
-export interface GetPoolAdjustmentFlowRateParams {
-    readonly token: string;
+export interface SuperTokenGetPoolAdjustmentFlowRateParams {
     readonly pool: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
-export interface IsPoolParams {
+export interface GetPoolAdjustmentFlowRateParams
+    extends SuperTokenGetPoolAdjustmentFlowRateParams {
     readonly token: string;
+}
+
+export interface SuperTokenIsPoolParams {
     readonly account: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface IsPoolParams extends SuperTokenIsPoolParams {
+    readonly token: string;
 }
 
 export interface IsMemberConnectedParams {
     readonly pool: string;
     readonly member: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface GetPoolAdjustmentFlowInfoParams {
+    readonly pool: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
 export interface PoolAdjustmentFlowInfo {
@@ -593,9 +646,12 @@ export interface PoolAdjustmentFlowInfo {
     readonly flowHash: string;
 }
 
-export interface CreatePoolParams {
-    readonly token: string;
+export interface SuperTokenCreatePoolParams {
     readonly admin: string;
+    readonly signer: ethers.Signer;
+}
+export interface CreatePoolParams extends SuperTokenCreatePoolParams {
+    readonly token: string;
 }
 
 export interface ConnectPoolParams
@@ -612,22 +668,29 @@ export interface DisconnectPoolParams
     readonly userData?: string;
 }
 
-export interface DistributeParams extends EthersParams, ShouldUseCallAgreement {
-    readonly token: string;
+export interface SuperTokenDistributeParams
+    extends EthersParams,
+        ShouldUseCallAgreement {
     readonly from: string;
     readonly pool: string;
     readonly requestedAmount: string;
     readonly userData?: string;
 }
+export interface DistributeParams extends SuperTokenDistributeParams {
+    readonly token: string;
+}
 
-export interface DistributeFlowParams
+export interface SuperTokenDistributeFlowParams
     extends EthersParams,
         ShouldUseCallAgreement {
-    readonly token: string;
     readonly from: string;
     readonly pool: string;
     readonly requestedFlowRate: string;
     readonly userData?: string;
+}
+
+export interface DistributeFlowParams extends SuperTokenDistributeFlowParams {
+    readonly token: string;
 }
 
 export interface FlowDistributionActualFlowRateData {
@@ -638,9 +701,36 @@ export interface FlowDistributionActualFlowRateData {
 export interface GetClaimableParams {
     readonly member: string;
     readonly time: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface GetClaimableNowParams {
+    readonly member: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface GetUnitsParams {
+    readonly member: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface GetDisconnectedBalanceParams {
+    readonly time: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface GetMemberFlowRateParams {
+    readonly member: string;
+    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+}
+
+export interface ClaimAllForMemberParams {
+    readonly member: string;
+    readonly signer: ethers.Signer;
 }
 
 export interface UpdateMemberParams {
     readonly member: string;
     readonly newUnits: string;
+    readonly signer: ethers.Signer;
 }

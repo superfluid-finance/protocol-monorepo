@@ -1,8 +1,10 @@
 import hre, { ethers } from "hardhat";
 import {
     IConstantFlowAgreementV1,
+    IGeneralDistributionAgreementV1,
     IInstantDistributionAgreementV1,
     SuperfluidFrameworkDeployer,
+    SuperfluidFrameworkDeploymentSteps,
     TestToken,
     TestToken__factory,
 } from "@superfluid-finance/ethereum-contracts/build/typechain";
@@ -34,7 +36,7 @@ export interface TestEnvironment {
     provider: JsonRpcProvider;
     sdkFramework: Framework;
     superfluidFrameworkDeployer: SuperfluidFrameworkDeployer;
-    frameworkAddresses: SuperfluidFrameworkDeployer.FrameworkStructOutput;
+    frameworkAddresses: SuperfluidFrameworkDeploymentSteps.FrameworkStructOutput;
     constants: typeof TEST_ENVIRONMENT_CONSTANTS;
     users: SignerWithAddress[];
     alice: SignerWithAddress;
@@ -42,6 +44,7 @@ export interface TestEnvironment {
     charlie: SignerWithAddress;
     cfaV1: IConstantFlowAgreementV1;
     idaV1: IInstantDistributionAgreementV1;
+    gdaV1: IGeneralDistributionAgreementV1;
     wrapperSuperToken: WrapperSuperToken;
     nativeAssetSuperToken: NativeAssetSuperToken;
     pureSuperToken: PureSuperToken;
@@ -53,7 +56,8 @@ const testEnv: TestEnvironment = {
     provider: hre.ethers.provider,
     sdkFramework: {} as Framework,
     superfluidFrameworkDeployer: {} as SuperfluidFrameworkDeployer,
-    frameworkAddresses: {} as SuperfluidFrameworkDeployer.FrameworkStructOutput,
+    frameworkAddresses:
+        {} as SuperfluidFrameworkDeploymentSteps.FrameworkStructOutput,
     constants: TEST_ENVIRONMENT_CONSTANTS,
     alice: {} as SignerWithAddress,
     bob: {} as SignerWithAddress,
@@ -61,6 +65,7 @@ const testEnv: TestEnvironment = {
     users: [],
     cfaV1: {} as IConstantFlowAgreementV1,
     idaV1: {} as IInstantDistributionAgreementV1,
+    gdaV1: {} as IGeneralDistributionAgreementV1,
     token: {} as TestToken,
     wrapperSuperToken: {} as WrapperSuperToken,
     nativeAssetSuperToken: {} as NativeAssetSuperToken,
@@ -96,6 +101,7 @@ export const initializeTestEnvironment = async () => {
     console.log("Set Agreement Contracts...");
     testEnv.cfaV1 = testEnv.sdkFramework.cfaV1.contract.connect(testEnv.alice);
     testEnv.idaV1 = testEnv.sdkFramework.idaV1.contract.connect(testEnv.alice);
+    testEnv.gdaV1 = testEnv.sdkFramework.gdaV1.contract.connect(testEnv.alice);
 
     console.log("Load SuperToken and TestToken...");
     testEnv.wrapperSuperToken =

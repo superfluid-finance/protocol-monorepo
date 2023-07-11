@@ -271,6 +271,7 @@ jobs:
           tasks/npm-publish.sh packages/ethereum-contracts/ dev --verbose
           tasks/npm-publish.sh packages/sdk-core/ dev --verbose
           tasks/npm-publish.sh packages/sdk-redux/ dev --verbose
+          tasks/npm-publish.sh packages/metadata/ dev --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}

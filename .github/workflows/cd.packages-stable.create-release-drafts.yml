@@ -33,7 +33,7 @@ jobs:
 
       - name: Check package versions
         run: |
-          ./tasks/check-package-version.sh ethereum-contracts SHOULD_PUBLISH_ETHEREUM_CONTRACTS ETHEREUM-CONTRACTS_NEW_VERSION >> $GITHUB_ENV
+          ./tasks/check-package-version.sh ethereum-contracts SHOULD_PUBLISH_ETHEREUM_CONTRACTS ETHEREUM-CONTRACTS_NEW_VERSION >> "$GITHUB_ENV"
 
       - name: Create ethereum-contracts stable release draft
         if: env.SHOULD_PUBLISH_ETHEREUM_CONTRACTS == 1
@@ -69,7 +69,7 @@ jobs:
 
       - name: Check package versions
         run: |
-          ./tasks/check-package-version.sh subgraph SHOULD_PUBLISH_SUBGRAPH SUBGRAPH_NEW_VERSION >> $GITHUB_ENV
+          ./tasks/check-package-version.sh subgraph SHOULD_PUBLISH_SUBGRAPH SUBGRAPH_NEW_VERSION >> "$GITHUB_ENV"
 
       - name: Create subgraph stable release draft
         if: env.SHOULD_PUBLISH_SUBGRAPH == 1
@@ -125,7 +125,7 @@ jobs:
 
       - name: Check package versions
         run: |
-          ./tasks/check-package-version.sh sdk-core SHOULD_PUBLISH_SDK_CORE SDK_CORE_NEW_VERSION >> $GITHUB_ENV
+          ./tasks/check-package-version.sh sdk-core SHOULD_PUBLISH_SDK_CORE SDK_CORE_NEW_VERSION >> "$GITHUB_ENV"
 
       - name: Create sdk-core stable release draft
         if: env.SHOULD_PUBLISH_SDK_CORE == 1
@@ -161,7 +161,7 @@ jobs:
 
       - name: Check package versions
         run: |
-          ./tasks/check-package-version.sh sdk-redux SHOULD_PUBLISH_SDK_REDUX SDK_REDUX_NEW_VERSION >> $GITHUB_ENV
+          ./tasks/check-package-version.sh sdk-redux SHOULD_PUBLISH_SDK_REDUX SDK_REDUX_NEW_VERSION >> "$GITHUB_ENV"
 
       - name: Create sdk-redux stable release draft
         if: env.SHOULD_PUBLISH_SDK_REDUX == 1

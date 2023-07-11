@@ -61,6 +61,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      *
      * @param token The token address.
      * @param account The account address.
+     * @param providerOrSigner A provider or signer object
      * @returns The net flow of the account for the token.
      */
     getNetFlow = async (params: GDAGetNetFlowParams): Promise<string> => {
@@ -87,6 +88,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      * @param token The token address.
      * @param from The sender address.
      * @param pool The pool address.
+     * @param providerOrSigner A provider or signer object
      * @returns The flow rate from the sender to the pool for the token.
      */
     getFlowRate = async (params: GDAGetFlowRateParams): Promise<string> => {
@@ -120,6 +122,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      * @param from The sender address.
      * @param pool The pool address.
      * @param requestedFlowRate The requested flow rate.
+     * @param providerOrSigner A provider or signer object
      * @returns The flow distribution's actual flow rate and the total distribution flow rate for the pool.
      */
     estimateFlowDistributionActualFlowRate = async (
@@ -160,6 +163,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      * @param from The sender address.
      * @param pool The pool address.
      * @param requestedAmount The requested amount.
+     * @param providerOrSigner A provider or signer object
      * @returns The actual amount that will be distributed.
      */
     estimateDistributionActualAmount = async (
@@ -194,6 +198,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      *
      * @param token The token address.
      * @param pool The pool address.
+     * @param providerOrSigner A provider or signer object
      * @returns The pool adjustment flow rate for the token and pool.
      */
     getPoolAdjustmentFlowRate = async (
@@ -223,6 +228,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      *
      * @param token The token address.
      * @param account The account address.
+     * @param providerOrSigner A provider or signer object
      * @returns Whether the account is a pool for the token.
      */
     isPool = async (params: IsPoolParams): Promise<boolean> => {
@@ -248,6 +254,7 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
      *
      * @param pool The pool address.
      * @param member The member address.
+     * @param providerOrSigner A provider or signer object
      * @returns Whether the member is connected to the pool.
      */
     isMemberConnected = async (
@@ -276,7 +283,8 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
     /**
      * Retrieves the pool adjustment flow information for a specific pool.
      *
-     * @param poolAddress The address of the pool.
+     * @param pool The address of the pool.
+     * @param providerOrSigner A provider or signer object
      * @returns The recipient of the pool adjustment flow, the flow hash and the rate of the adjustment flow.
      */
     getPoolAdjustmentFlowInfo = async (

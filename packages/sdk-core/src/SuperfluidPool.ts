@@ -50,7 +50,7 @@ export default class SuperfluidPool {
         } catch (err) {
             throw new SFError({
                 type: "SUPERFLUID_POOL_READ",
-                message: "There was an error getting pool admin.",
+                message: "There was an error getting the pool admin.",
                 cause: err,
             });
         }
@@ -69,7 +69,7 @@ export default class SuperfluidPool {
         } catch (err) {
             throw new SFError({
                 type: "SUPERFLUID_POOL_READ",
-                message: "There was an error getting SuperToken.",
+                message: "There was an error getting the pool's SuperToken.",
                 cause: err,
             });
         }

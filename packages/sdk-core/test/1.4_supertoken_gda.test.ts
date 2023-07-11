@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { TestEnvironment, makeSuite } from "./TestEnvironment";
 import SuperfluidPool from "../src/SuperfluidPool";
-import { Signer } from "ethers";
+import { Signer, ethers } from "ethers";
 import { WrapperSuperToken, toBN } from "../src";
 
 const createPoolAndReturnPoolClass = async (
@@ -20,7 +20,7 @@ makeSuite(
     "SuperToken-GDA and SuperfluidPool Tests",
     (testEnv: TestEnvironment) => {
         describe("Revert cases", () => {
-            it.only("Should throw an error on GDA view functions when wrong params passed", async () => {
+            it("Should throw an error on GDA view functions when wrong params passed", async () => {
                 try {
                     await testEnv.wrapperSuperToken.getGDANetFlow({
                         account: "",
@@ -75,6 +75,189 @@ makeSuite(
                     expect(err.type).to.equal("GDAV1_READ");
                     expect(err.message).to.have.string(
                         "There was an error estimating the GDA distribution's actual amount."
+                    );
+                }
+
+                try {
+                    await testEnv.wrapperSuperToken.getPoolAdjustmentFlowRate({
+                        pool: "",
+                        providerOrSigner: testEnv.alice,
+                    });
+                } catch (err) {
+                    expect(err.type).to.equal("GDAV1_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting the GDA pool adjustment flow rate."
+                    );
+                }
+
+                try {
+                    await testEnv.wrapperSuperToken.isPool({
+                        account: "",
+                        providerOrSigner: testEnv.alice,
+                    });
+                } catch (err) {
+                    expect(err.type).to.equal("GDAV1_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error checking if the account is a pool."
+                    );
+                }
+
+                try {
+                    await testEnv.wrapperSuperToken.isMemberConnected({
+                        pool: "",
+                        member: "",
+                        providerOrSigner: testEnv.alice,
+                    });
+                } catch (err) {
+                    expect(err.type).to.equal("GDAV1_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error checking if the member is connected to the pool."
+                    );
+                }
+
+                try {
+                    await testEnv.wrapperSuperToken.getPoolAdjustmentFlowInfo({
+                        pool: "",
+                        providerOrSigner: testEnv.alice,
+                    });
+                } catch (err) {
+                    expect(err.type).to.equal("GDAV1_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting the GDA pool adjustment flow information."
+                    );
+                }
+            });
+
+            it("Should throw an error on SuperfluidPool view functions when wrong params passed", async () => {
+                const pool = await createPoolAndReturnPoolClass(
+                    testEnv.wrapperSuperToken,
+                    testEnv.alice,
+                    testEnv.alice.address
+                );
+
+                try {
+                    await pool.getPoolAdmin("" as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting the pool admin."
+                    );
+                }
+
+                try {
+                    await pool.getSuperToken("" as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting the pool's SuperToken."
+                    );
+                }
+
+                try {
+                    await pool.getTotalUnits("" as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting total units."
+                    );
+                }
+
+                try {
+                    await pool.getTotalConnectedUnits("" as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting total connected units."
+                    );
+                }
+
+                try {
+                    await pool.getUnits({} as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting units."
+                    );
+                }
+
+                try {
+                    await pool.getTotalConnectedFlowRate("" as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting total connected flow rate."
+                    );
+                }
+
+                try {
+                    await pool.getTotalDisconnectedFlowRate("" as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting total disconnected flow rate."
+                    );
+                }
+
+                try {
+                    await pool.getDisconnectedBalance({} as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting disconnected balance."
+                    );
+                }
+
+                try {
+                    await pool.getMemberFlowRate({} as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting member flow rate."
+                    );
+                }
+
+                try {
+                    await pool.getClaimable({} as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting claimable amount."
+                    );
+                }
+
+                try {
+                    await pool.getClaimableNow({} as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting claimable amount."
+                    );
+                }
+
+                try {
+                    await pool.totalSupply({} as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting total supply."
+                    );
+                }
+
+                try {
+                    await pool.balanceOf({} as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting balance."
+                    );
+                }
+
+                try {
+                    await pool.allowance({} as any);
+                } catch (err) {
+                    expect(err.type).to.equal("SUPERFLUID_POOL_READ");
+                    expect(err.message).to.have.string(
+                        "There was an error getting allowance."
                     );
                 }
             });
@@ -476,11 +659,6 @@ makeSuite(
                     testEnv.alice,
                     testEnv.alice.address
                 );
-                const aliceBalanceBefore =
-                    await testEnv.wrapperSuperToken.balanceOf({
-                        account: testEnv.alice.address,
-                        providerOrSigner: testEnv.alice,
-                    });
                 const newUnits = "10";
                 await pool.updateMember({
                     member: testEnv.bob.address,
@@ -488,7 +666,7 @@ makeSuite(
                     signer: testEnv.alice,
                 });
                 const requestedFlowRate = "1000";
-                const actualAmountDistributed =
+                const actualDistributionFlowRate =
                     await testEnv.wrapperSuperToken.estimateFlowDistributionActualFlowRate(
                         {
                             from: testEnv.alice.address,
@@ -502,14 +680,57 @@ makeSuite(
                         from: testEnv.alice.address,
                         requestedFlowRate: requestedFlowRate,
                         pool: pool.contract.address,
+                        shouldUseCallAgreement: true,
                     });
                 await operation.exec(testEnv.alice);
 
-                const aliceBalanceAfter =
-                    await testEnv.wrapperSuperToken.balanceOf({
-                        account: testEnv.alice.address,
+                expect(await testEnv.wrapperSuperToken.getGDANetFlow({
+                    account: testEnv.alice.address,
+                    providerOrSigner: testEnv.alice,
+                })).to.equal(toBN(actualDistributionFlowRate.actualFlowRate).mul(toBN("-1")));
+
+                const connectPoolOperation =
+                    await testEnv.wrapperSuperToken.connectPool({
+                        pool: pool.contract.address,
+                        shouldUseCallAgreement: true,
+                    });
+                await connectPoolOperation.exec(testEnv.bob);
+
+                expect(await testEnv.wrapperSuperToken.getGDANetFlow({
+                    account: testEnv.bob.address,
+                    providerOrSigner: testEnv.alice,
+                })).to.equal(toBN(actualDistributionFlowRate.actualFlowRate));
+
+                expect(
+                    await testEnv.wrapperSuperToken.getPoolAdjustmentFlowRate({
+                        pool: pool.contract.address,
+                        providerOrSigner: testEnv.alice,
+                    })
+                ).to.equal("0");
+
+                const poolAdjustmentFlowInfo =
+                    await testEnv.wrapperSuperToken.getPoolAdjustmentFlowInfo({
+                        pool: pool.contract.address,
                         providerOrSigner: testEnv.alice,
                     });
+                expect(poolAdjustmentFlowInfo.flowRate).to.equal("0");
+                expect(poolAdjustmentFlowInfo.recipient).to.equal(
+                    testEnv.alice.address
+                );
+                const encoder = new ethers.utils.AbiCoder();
+                const network = await testEnv.alice.provider?.getNetwork();
+                if (!network) throw new Error("no network");
+                const encodedData = encoder.encode(
+                    ["uint256", "string", "address", "address"],
+                    [
+                        network.chainId,
+                        "poolAdjustmentFlow",
+                        pool.contract.address,
+                        testEnv.alice.address,
+                    ]
+                );
+                const flowHash = ethers.utils.keccak256(encodedData);
+                expect(poolAdjustmentFlowInfo.flowHash).to.equal(flowHash);
             });
 
             it("Should be able to claimAllForMember as the member", async () => {});

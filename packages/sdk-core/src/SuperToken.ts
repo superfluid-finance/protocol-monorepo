@@ -717,6 +717,7 @@ export default abstract class SuperToken extends ERC20Token {
      * Retrieves the net flow for a specific token and account.
      *
      * @param account The account address.
+     * @param providerOrSigner A provider or signer object
      * @returns The net flow of the account for the token.
      */
     getGDANetFlow = async (
@@ -733,6 +734,7 @@ export default abstract class SuperToken extends ERC20Token {
      *
      * @param from The sender address.
      * @param pool The pool address.
+     * @param providerOrSigner A provider or signer object
      * @returns The flow rate from the sender to the pool for the token.
      */
     getFlowRate = async (
@@ -750,6 +752,7 @@ export default abstract class SuperToken extends ERC20Token {
      * @param from The sender address.
      * @param pool The pool address.
      * @param requestedFlowRate The requested flow rate.
+     * @param providerOrSigner A provider or signer object
      * @returns The flow distribution's actual flow rate and the total distribution flow rate for the pool.
      */
     estimateFlowDistributionActualFlowRate = async (
@@ -767,6 +770,7 @@ export default abstract class SuperToken extends ERC20Token {
      * @param from The sender address.
      * @param pool The pool address.
      * @param requestedAmount The requested amount.
+     * @param providerOrSigner A provider or signer object
      * @returns The actual amount that will be distributed.
      */
     estimateDistributionActualAmount = async (
@@ -782,6 +786,7 @@ export default abstract class SuperToken extends ERC20Token {
      * Retrieves the pool adjustment flow rate for a specific token and pool.
      *
      * @param pool The pool address.
+     * @param providerOrSigner A provider or signer object
      * @returns The pool adjustment flow rate for the token and pool.
      */
     getPoolAdjustmentFlowRate = async (
@@ -797,6 +802,7 @@ export default abstract class SuperToken extends ERC20Token {
      * Checks if a given token and account form a pool.
      *
      * @param account The account address.
+     * @param providerOrSigner A provider or signer object
      * @returns Whether the account is a pool for the token.
      */
     isPool = async (params: SuperTokenIsPoolParams): Promise<boolean> => {
@@ -811,6 +817,7 @@ export default abstract class SuperToken extends ERC20Token {
      *
      * @param pool The pool address.
      * @param member The member address.
+     * @param providerOrSigner A provider or signer object
      * @returns Whether the member is connected to the pool.
      */
     isMemberConnected = async (
@@ -825,6 +832,7 @@ export default abstract class SuperToken extends ERC20Token {
      * Retrieves the pool adjustment flow information for a specific pool.
      *
      * @param poolAddress The address of the pool.
+     * @param providerOrSigner A provider or signer object
      * @returns The recipient of the pool adjustment flow, the flow hash and the rate of the adjustment flow.
      */
     getPoolAdjustmentFlowInfo = async (

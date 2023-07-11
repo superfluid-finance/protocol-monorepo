@@ -57,7 +57,7 @@
     "dependencies": {
         "@nomiclabs/hardhat-ethers": "^2.2.1",
         "@superfluid-finance/ethereum-contracts": "1.7.1",
-        "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
+        "@superfluid-finance/metadata": "1.1.7",
         "browserify": "^17.0.0",
         "graphql-request": "^4.3.0",
         "lodash": "^4.17.21",

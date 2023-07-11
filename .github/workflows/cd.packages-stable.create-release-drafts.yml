@@ -105,7 +105,7 @@ jobs:
           release_name: metadata@v${{ env.METADATA_NEW_VERSION }}
           body: |
             Please refer to the CHANGELOG.md file in metadata package for more details on the changeset.
-          draft: true
+          draft: false
       - name: Publish metadata package
         if: env.SHOULD_PUBLISH_METADATA == 1
         run: |

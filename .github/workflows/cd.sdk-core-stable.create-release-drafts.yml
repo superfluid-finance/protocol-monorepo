@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - "dev"
+      - "release-sdk-core-stable"
     paths:
       - "packages/sdk-core/**"
       - ".github/workflows/cd.sdk-core-stable.create-release-drafts.yml"
@@ -49,28 +49,17 @@ jobs:
 
       - name: Check package versions
         id: check_versions
-        run: |
-          # sdk-core
-          PUBLISHED_SDK_CORE_VERSION=$(npm show @superfluid-finance/sdk-core@latest version)
-          NEW_SDK_CORE_VERSION=$(jq -r .version packages/sdk-core/package.json)
-          if [ "$PUBLISHED_SDK_CORE_VERSION" != "$NEW_SDK_CORE_VERSION" ];then
-            echo "PUBLISHED_SDK_CORE_VERSION=1" >> "$GITHUB_ENV"
-            echo "sdk-core changed: $PUBLISHED_SDK_CORE_VERSION -> $NEW_SDK_CORE_VERSION"
-          else
-            echo sdk-core unchanged: "$PUBLISHED_SDK_CORE_VERSION"
-          fi
-
-          echo "NEW_SDK_CORE_VERSION=$NEW_SDK_CORE_VERSION" >> "$GITHUB_OUTPUT"
+        run: ./tasks/check-package-version.sh sdk-core
 
       - name: Create sdk-core stable release draft
-        if: env.PUBLISHED_SDK_CORE_VERSION == 1
+        if: env.sdk-core == 1
         id: create_release_sdk_core
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: sdk-core@v${{ steps.check_versions.outputs.NEW_SDK_CORE_VERSION }}
-          release_name: sdk-core@v${{ steps.check_versions.outputs.NEW_SDK_CORE_VERSION }}
+          tag_name: sdk-core@v${{ steps.check_versions.outputs.sdk-core }}
+          release_name: sdk-core@v${{ steps.check_versions.outputs.sdk-core }}
           body: |
             Changes in this sdk-core stable release
             ## Changed

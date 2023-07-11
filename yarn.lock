@@ -3224,6 +3224,10 @@
   dependencies:
     antlr4ts "^0.5.0-alpha.4"
 
+"@superfluid-finance/metadata@git+https://github.com/superfluid-finance/metadata.git":
+  version "1.1.7"
+  resolved "git+https://github.com/superfluid-finance/metadata.git#ffb77dee8bb8cb5ce4bed56287e2fc5fe4e56f01"
+
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@szmarczak/http-timer/-/http-timer-1.1.2.tgz#b1665e2c461a2cd92f4c1bbf50d5454de0d4b421"
@@ -9920,9 +9924,9 @@ globby@^10.0.1:
     merge2 "^1.2.3"
     slash "^3.0.0"
 
-"gluegun@git+https://github.com/edgeandnode/gluegun.git#v4.3.1-pin-colors-dep":
+"gluegun@https://github.com/edgeandnode/gluegun#v4.3.1-pin-colors-dep":
   version "4.3.1"
-  resolved "git+https://github.com/edgeandnode/gluegun.git#b34b9003d7bf556836da41b57ef36eb21570620a"
+  resolved "https://github.com/edgeandnode/gluegun#b34b9003d7bf556836da41b57ef36eb21570620a"
   dependencies:
     apisauce "^1.0.1"
     app-module-path "^2.2.0"

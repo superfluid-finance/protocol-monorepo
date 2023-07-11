@@ -3,9 +3,9 @@ import nl from "./list.js";
 export default {
     networks: nl,
 
-    mainnets: nl.filter(e => ! e.isTestnet),
+    mainnets: nl.filter((e) => !e.isTestnet),
 
-    testnets: nl.filter(e => e.isTestnet),
+    testnets: nl.filter((e) => e.isTestnet),
 
     getNetworkByChainId: function (chainId) {
         return this.networks.filter((n) => n.chainId === chainId)[0];

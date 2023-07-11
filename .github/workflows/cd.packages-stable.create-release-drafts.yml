@@ -42,12 +42,7 @@ jobs:
         with:
           tag_name: ethereum-contracts@v${{ env.ETHEREUM-CONTRACTS_NEW_VERSION }}
           release_name: ethereum-contracts@v${{ env.ETHEREUM-CONTRACTS_NEW_VERSION }}
-          body: |
-            Changes in this ethereum-contracts stable release
-            ## Changed
-            ## Added
-            ## Fixes
-            ## Breaking
+          body_path: .github/RELEASE_TEMPLATE/release-notes.md
           draft: true
 
   create-subgraph-release-draft:
@@ -77,12 +72,7 @@ jobs:
         with:
           tag_name: subgraph@v${{ env.SUBGRAPH_NEW_VERSION }}
           release_name: subgraph@v${{ env.SUBGRAPH_NEW_VERSION }}
-          body: |
-            Changes in this subgraph stable release
-            ## Changed
-            ## Added
-            ## Fixes
-            ## Breaking
+          body_path: .github/RELEASE_TEMPLATE/release-notes.md
           draft: true
 
   test-sdk-core-query-schema-against-deployed-v1-subgraphs:
@@ -132,12 +122,7 @@ jobs:
         with:
           tag_name: sdk-core@v${{ env.SDK_CORE_NEW_VERSION }}
           release_name: sdk-core@v${{ env.SDK_CORE_NEW_VERSION }}
-          body: |
-            Changes in this sdk-core stable release
-            ## Changed
-            ## Added
-            ## Fixes
-            ## Breaking
+          body_path: .github/RELEASE_TEMPLATE/release-notes.md
           draft: true
 
   create-sdk-redux-release-draft:
@@ -167,10 +152,5 @@ jobs:
         with:
           tag_name: sdk-redux@v${{ env.SDK_REDUX_NEW_VERSION }}
           release_name: sdk-redux@v${{ env.SDK_REDUX_NEW_VERSION }}
-          body: |
-            Changes in this sdk-redux stable release
-            ## Changed
-            ## Added
-            ## Fixes
-            ## Breaking
+          body_path: .github/RELEASE_TEMPLATE/release-notes.md
           draft: true

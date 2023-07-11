@@ -1,4 +1,4 @@
-/* eslint-disable */  
+/* eslint-disable */
 module.exports =
 [
     {

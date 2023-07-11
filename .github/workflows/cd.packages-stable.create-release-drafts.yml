@@ -32,7 +32,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
 
       - name: Check package versions
-        run: ./tasks/check-package-version.sh ethereum-contracts SHOULD_PUBLISH_ETHEREUM_CONTRACTS ETHEREUM-CONTRACTS_NEW_VERSION >> "$GITHUB_ENV"
+        run: ./tasks/check-package-version.sh ethereum-contracts SHOULD_PUBLISH_ETHEREUM_CONTRACTS ETHEREUM_CONTRACTS_NEW_VERSION >> "$GITHUB_ENV"
 
       - name: Create ethereum-contracts stable release draft
         if: env.SHOULD_PUBLISH_ETHEREUM_CONTRACTS == 1
@@ -40,8 +40,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ethereum-contracts@v${{ env.ETHEREUM-CONTRACTS_NEW_VERSION }}
-          release_name: ethereum-contracts@v${{ env.ETHEREUM-CONTRACTS_NEW_VERSION }}
+          tag_name: ethereum-contracts@v${{ env.ETHEREUM_CONTRACTS_NEW_VERSION }}
+          release_name: ethereum-contracts@v${{ env.ETHEREUM_CONTRACTS_NEW_VERSION }}
           body_path: .github/RELEASE_TEMPLATE/release-notes.md
           draft: true
 

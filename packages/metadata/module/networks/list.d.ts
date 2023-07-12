@@ -9,6 +9,9 @@ interface ContractAddresses {
     readonly superTokenFactory: string;
     readonly superfluidLoader: string;
     readonly toga: string;
+    readonly vestingScheduler: string;
+    readonly flowScheduler: string;
+    readonly batchLiquidator: string;
 }
 interface SubgraphData {
     readonly name: string;
@@ -22,6 +25,7 @@ export interface NetworkMetaData {
     readonly chainId: number;
     readonly shortName: string;
     readonly uppercaseName: string;
+    readonly humanReadableName: string;
     readonly nativeTokenSymbol: string;
     readonly nativeTokenWrapper: string;
     readonly contractsV1: ContractAddresses;

@@ -271,6 +271,7 @@ jobs:
           tasks/npm-publish.sh packages/ethereum-contracts/ dev --verbose
           tasks/npm-publish.sh packages/sdk-core/ dev --verbose
           tasks/npm-publish.sh packages/sdk-redux/ dev --verbose
+          tasks/npm-publish.sh packages/metadata/ dev --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
@@ -365,6 +366,8 @@ jobs:
         run: |
           cd packages/ethereum-contracts
           npx truffle exec --network ${{ matrix.network }} ops-scripts/deploy-test-environment.js
+          npx truffle exec --network ${{ matrix.network }} ops-scripts/info-print-contract-addresses.js : addresses.vars
+          tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:
           RELEASE_VERSION: master
           AVALANCHE_FUJI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}

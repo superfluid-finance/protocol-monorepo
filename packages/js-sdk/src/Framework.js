@@ -393,11 +393,14 @@ module.exports = class Framework {
      * @return {Promise<object[]>}
      */
     async subgraphQuery(query) {
-        const response = await fetch(this.config.subgraphQueryEndpoint, {
-            method: "POST",
-            body: JSON.stringify({query}),
-            headers: {"Content-Type": "application/json"},
-        });
+        const response = await fetch(
+            this.config.versions.v1.subgraphQueryEndpoint,
+            {
+                method: "POST",
+                body: JSON.stringify({query}),
+                headers: {"Content-Type": "application/json"},
+            }
+        );
         if (response.ok) {
             const result = JSON.parse(await response.text());
             if (!result.errors) {
@@ -425,7 +428,7 @@ module.exports = class Framework {
         const eventABI = contract.abi.filter((i) => i.name === eventName)[0];
         if (!eventABI) throw new Error("Event not found");
 
-        if (this.config.subgraphQueryEndpoint && !forceWeb3) {
+        if (this.config.versions.v1.subgraphQueryEndpoint && !forceWeb3) {
             const entityName = lcfirst(`${eventName}Events`);
             const fields = eventABI.inputs.map((i) => i.name);
             const where = eventABI.inputs

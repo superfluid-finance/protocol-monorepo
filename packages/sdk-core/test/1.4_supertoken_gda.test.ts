@@ -1,19 +1,60 @@
 import { expect } from "chai";
-import { TestEnvironment, makeSuite } from "./TestEnvironment";
+import {
+    TestEnvironment,
+    makeSuite,
+    validateOperationShouldUseCallAgreement,
+} from "./TestEnvironment";
 import SuperfluidPool from "../src/SuperfluidPool";
-import { Signer, ethers } from "ethers";
+import { ethers } from "ethers";
 import { WrapperSuperToken, toBN } from "../src";
+import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
+
+interface ShouldDistributeTokensParams {
+    shouldUseCallAgreement: boolean;
+    newUnits: string;
+    amountToDistribute: string;
+    admin: SignerWithAddress;
+    distributor: SignerWithAddress;
+    member: SignerWithAddress;
+}
+
+interface ShouldConnectPoolParams {
+    shouldUseCallAgreement: boolean;
+    superToken: WrapperSuperToken;
+    pool: SuperfluidPool;
+    member: SignerWithAddress;
+    doConnect: boolean;
+}
+
+interface ShouldUpdateMemberParams {
+    pool: SuperfluidPool;
+    newUnits: string;
+    member: SignerWithAddress;
+    admin: SignerWithAddress;
+}
 
 const createPoolAndReturnPoolClass = async (
     superToken: WrapperSuperToken,
-    signer: Signer,
+    signer: SignerWithAddress,
     admin: string
 ) => {
     const data = await superToken.createPool({
         admin,
         signer,
     });
-    return new SuperfluidPool(data.poolAddress);
+
+    expect(
+        await superToken.isPool({
+            account: data.poolAddress,
+            providerOrSigner: signer,
+        })
+    ).to.be.true;
+    const pool = new SuperfluidPool(data.poolAddress);
+
+    expect(await pool.getPoolAdmin(signer)).to.be.equal(signer.address);
+    expect(await pool.getSuperToken(signer)).to.be.equal(superToken.address);
+
+    return pool;
 };
 
 makeSuite(
@@ -286,38 +327,67 @@ makeSuite(
                 );
             });
 
-            it("Should be able to assign units to pool", async () => {
+            const shouldUpdateMember = async (
+                params: ShouldUpdateMemberParams
+            ) => {
+                const providerSigner = params.member;
+                const memberUnitsBefore = await params.pool.getUnits({
+                    member: params.member.address,
+                    providerOrSigner: providerSigner,
+                });
+                const balanceOfBefore = await params.pool.balanceOf({
+                    account: params.member.address,
+                    providerOrSigner: providerSigner,
+                });
+                const totalSupplyBefore = await params.pool.totalSupply(
+                    providerSigner
+                );
+                const totalUnitsBefore = await params.pool.getTotalUnits(
+                    providerSigner
+                );
+                const unitsDelta = toBN(params.newUnits).sub(memberUnitsBefore);
+                await params.pool.updateMember({
+                    member: params.member.address,
+                    newUnits: params.newUnits,
+                    signer: params.admin,
+                });
+
+                // assert total balance/total supply
+                expect(await params.pool.totalSupply(providerSigner)).to.equal(
+                    toBN(totalSupplyBefore).add(unitsDelta)
+                );
+                expect(await params.pool.getTotalUnits(providerSigner)).to.equal(
+                    toBN(totalUnitsBefore).add(unitsDelta)
+                );
+
+                // assert member's balance/units
+                expect(
+                    await params.pool.balanceOf({
+                        account: params.member.address,
+                        providerOrSigner: providerSigner,
+                    })
+                ).to.equal(toBN(balanceOfBefore).add(unitsDelta));
+                expect(
+                    await params.pool.getUnits({
+                        member: params.member.address,
+                        providerOrSigner: providerSigner,
+                    })
+                ).to.equal(toBN(memberUnitsBefore).add(unitsDelta));
+            };
+
+            it("Should be able to update units for member", async () => {
                 const pool = await createPoolAndReturnPoolClass(
                     testEnv.wrapperSuperToken,
                     testEnv.alice,
                     testEnv.alice.address
                 );
                 const newUnits = "10000";
-                await pool.updateMember({
-                    member: testEnv.bob.address,
-                    newUnits,
-                    signer: testEnv.alice,
-                });
-
-                // assert total balance/total supply
-                expect(await pool.totalSupply(testEnv.bob)).to.equal(newUnits);
-                expect(await pool.getTotalUnits(testEnv.bob)).to.equal(
+                await shouldUpdateMember({
+                    pool,
+                    admin: testEnv.alice,
+                    member: testEnv.bob,
                     newUnits
-                );
-
-                // assert bob's balance/units
-                expect(
-                    await pool.balanceOf({
-                        account: testEnv.bob.address,
-                        providerOrSigner: testEnv.bob,
-                    })
-                ).to.equal(newUnits);
-                expect(
-                    await pool.getUnits({
-                        member: testEnv.bob.address,
-                        providerOrSigner: testEnv.bob,
-                    })
-                ).to.equal(newUnits);
+                });
             });
 
             it("Should be able to approve units", async () => {
@@ -561,96 +631,181 @@ makeSuite(
                 ).to.equal("0");
             });
 
-            it("Should be able to connect and disconnect from pool", async () => {
-                const pool = await createPoolAndReturnPoolClass(
-                    testEnv.wrapperSuperToken,
-                    testEnv.alice,
-                    testEnv.alice.address
-                );
-                const newUnits = "420";
-                await pool.updateMember({
-                    member: testEnv.bob.address,
-                    newUnits,
-                    signer: testEnv.alice,
-                });
-                const connectPoolOperation =
-                    await testEnv.wrapperSuperToken.connectPool({
-                        pool: pool.contract.address,
-                        shouldUseCallAgreement: true,
-                    });
-                await connectPoolOperation.exec(testEnv.bob);
-                expect(
-                    await testEnv.wrapperSuperToken.isMemberConnected({
-                        pool: pool.contract.address,
-                        member: testEnv.bob.address,
-                        providerOrSigner: testEnv.bob,
-                    })
-                ).to.equal(true);
-                expect(
-                    await pool.getTotalConnectedUnits(testEnv.alice)
-                ).to.equal(newUnits);
-                const disconnectPoolOperation =
-                    await testEnv.wrapperSuperToken.disconnectPool({
-                        pool: pool.contract.address,
-                        shouldUseCallAgreement: true,
-                    });
-                await disconnectPoolOperation.exec(testEnv.bob);
-                expect(
-                    await testEnv.wrapperSuperToken.isMemberConnected({
-                        pool: pool.contract.address,
-                        member: testEnv.bob.address,
-                        providerOrSigner: testEnv.bob,
-                    })
-                ).to.equal(false);
-                expect(
-                    await pool.getTotalConnectedUnits(testEnv.alice)
-                ).to.equal("0");
-            });
+            const shouldConnectPool = async (
+                params: ShouldConnectPoolParams
+            ) => {
+                const connectPoolOperation = params.doConnect
+                    ? await params.superToken.connectPool({
+                          pool: params.pool.contract.address,
+                          shouldUseCallAgreement: params.shouldUseCallAgreement,
+                      })
+                    : await params.superToken.disconnectPool({
+                          pool: params.pool.contract.address,
+                          shouldUseCallAgreement: params.shouldUseCallAgreement,
+                      });
+                await connectPoolOperation.exec(params.member);
 
-            it("Should be able to distribute tokens", async () => {
+                expect(
+                    await params.superToken.isMemberConnected({
+                        pool: params.pool.contract.address,
+                        member: params.member.address,
+                        providerOrSigner: params.member,
+                    })
+                ).to.equal(params.doConnect);
+
+                if (params.doConnect) {
+                    expect(
+                        await params.pool.getTotalConnectedUnits(params.member)
+                    ).to.equal(
+                        await params.pool.getUnits({
+                            member: params.member.address,
+                            providerOrSigner: params.member,
+                        })
+                    );
+                } else {
+                    expect(
+                        await params.pool.getTotalConnectedUnits(params.member)
+                    ).to.equal("0");
+                }
+            };
+
+            context(
+                "Should be able to connect and disconnect from pool",
+                async () => {
+                    it("With Call Agreement", async () => {
+                        const pool = await createPoolAndReturnPoolClass(
+                            testEnv.wrapperSuperToken,
+                            testEnv.alice,
+                            testEnv.alice.address
+                        );
+                        const newUnits = "420";
+                        await pool.updateMember({
+                            member: testEnv.bob.address,
+                            newUnits,
+                            signer: testEnv.alice,
+                        });
+                        await shouldConnectPool({
+                            shouldUseCallAgreement: true,
+                            superToken: testEnv.wrapperSuperToken,
+                            pool,
+                            member: testEnv.bob,
+                            doConnect: true,
+                        });
+                        await shouldConnectPool({
+                            shouldUseCallAgreement: true,
+                            superToken: testEnv.wrapperSuperToken,
+                            pool,
+                            member: testEnv.bob,
+                            doConnect: false,
+                        });
+                    });
+                }
+            );
+
+            const shouldDistributeTokens = async (
+                params: ShouldDistributeTokensParams
+            ) => {
                 const pool = await createPoolAndReturnPoolClass(
                     testEnv.wrapperSuperToken,
-                    testEnv.alice,
-                    testEnv.alice.address
+                    params.admin,
+                    params.admin.address
                 );
-                const aliceBalanceBefore =
+                const distributorBalanceBefore =
                     await testEnv.wrapperSuperToken.balanceOf({
-                        account: testEnv.alice.address,
-                        providerOrSigner: testEnv.alice,
+                        account: params.distributor.address,
+                        providerOrSigner: params.distributor,
                     });
-                const newUnits = "10";
+                const memberBalanceBefore =
+                    await testEnv.wrapperSuperToken.balanceOf({
+                        account: params.member.address,
+                        providerOrSigner: params.member,
+                    });
                 await pool.updateMember({
-                    member: testEnv.bob.address,
-                    newUnits,
-                    signer: testEnv.alice,
+                    member: params.member.address,
+                    newUnits: params.newUnits,
+                    signer: params.admin,
                 });
-                const amountToDistribute = "1000";
                 const actualAmountDistributed =
                     await testEnv.wrapperSuperToken.estimateDistributionActualAmount(
                         {
-                            from: testEnv.alice.address,
-                            requestedAmount: amountToDistribute,
+                            from: params.distributor.address,
+                            requestedAmount: params.amountToDistribute,
                             pool: pool.contract.address,
-                            providerOrSigner: testEnv.alice,
+                            providerOrSigner: params.distributor,
                         }
                     );
                 const operation =
                     await testEnv.wrapperSuperToken.distributeWithGDA({
-                        from: testEnv.alice.address,
-                        requestedAmount: amountToDistribute,
+                        from: params.distributor.address,
+                        requestedAmount: params.amountToDistribute,
                         pool: pool.contract.address,
+                        shouldUseCallAgreement: params.shouldUseCallAgreement,
+                    });
+                await operation.exec(params.distributor);
+                validateOperationShouldUseCallAgreement(
+                    testEnv,
+                    operation,
+                    params.shouldUseCallAgreement,
+                    testEnv.sdkFramework.gdaV1.forwarder.address
+                );
+
+                const distributorBalanceAfter =
+                    await testEnv.wrapperSuperToken.balanceOf({
+                        account: params.distributor.address,
+                        providerOrSigner: params.distributor,
+                    });
+                const memberBalanceAfter =
+                    await testEnv.wrapperSuperToken.balanceOf({
+                        account: params.member.address,
+                        providerOrSigner: params.member,
+                    });
+                expect(distributorBalanceAfter).to.equal(
+                    toBN(distributorBalanceBefore).sub(
+                        toBN(actualAmountDistributed)
+                    )
+                );
+
+                const isMemberConnected =
+                    await testEnv.wrapperSuperToken.isMemberConnected({
+                        pool: pool.contract.address,
+                        member: params.member.address,
+                        providerOrSigner: params.member,
+                    });
+                if (isMemberConnected) {
+                    expect(memberBalanceAfter).to.equal(
+                        toBN(memberBalanceBefore).add(
+                            toBN(actualAmountDistributed)
+                        )
+                    );
+                } else {
+                    expect(memberBalanceAfter).to.equal(memberBalanceBefore);
+                }
+
+                return pool;
+            };
+
+            context("Should be able to distribute tokens", async () => {
+                it("With Call Agreement", async () => {
+                    await shouldDistributeTokens({
+                        newUnits: "10",
+                        amountToDistribute: "1000",
+                        admin: testEnv.alice,
+                        distributor: testEnv.alice,
+                        member: testEnv.bob,
                         shouldUseCallAgreement: true,
                     });
-                await operation.exec(testEnv.alice);
+                });
 
-                const aliceBalanceAfter =
-                    await testEnv.wrapperSuperToken.balanceOf({
-                        account: testEnv.alice.address,
-                        providerOrSigner: testEnv.alice,
+                it("With forwarder", async () => {
+                    await shouldDistributeTokens({
+                        newUnits: "10",
+                        amountToDistribute: "1000",
+                        admin: testEnv.alice,
+                        distributor: testEnv.alice,
+                        member: testEnv.bob,
+                        shouldUseCallAgreement: false,
                     });
-                expect(aliceBalanceAfter).to.equal(
-                    toBN(aliceBalanceBefore).sub(toBN(actualAmountDistributed))
-                );
+                });
             });
 
             it("Should be able to distribute flow tokens", async () => {
@@ -684,10 +839,16 @@ makeSuite(
                     });
                 await operation.exec(testEnv.alice);
 
-                expect(await testEnv.wrapperSuperToken.getGDANetFlow({
-                    account: testEnv.alice.address,
-                    providerOrSigner: testEnv.alice,
-                })).to.equal(toBN(actualDistributionFlowRate.actualFlowRate).mul(toBN("-1")));
+                expect(
+                    await testEnv.wrapperSuperToken.getGDANetFlow({
+                        account: testEnv.alice.address,
+                        providerOrSigner: testEnv.alice,
+                    })
+                ).to.equal(
+                    toBN(actualDistributionFlowRate.actualFlowRate).mul(
+                        toBN("-1")
+                    )
+                );
 
                 const connectPoolOperation =
                     await testEnv.wrapperSuperToken.connectPool({
@@ -696,10 +857,12 @@ makeSuite(
                     });
                 await connectPoolOperation.exec(testEnv.bob);
 
-                expect(await testEnv.wrapperSuperToken.getGDANetFlow({
-                    account: testEnv.bob.address,
-                    providerOrSigner: testEnv.alice,
-                })).to.equal(toBN(actualDistributionFlowRate.actualFlowRate));
+                expect(
+                    await testEnv.wrapperSuperToken.getGDANetFlow({
+                        account: testEnv.bob.address,
+                        providerOrSigner: testEnv.alice,
+                    })
+                ).to.equal(toBN(actualDistributionFlowRate.actualFlowRate));
 
                 expect(
                     await testEnv.wrapperSuperToken.getPoolAdjustmentFlowRate({
@@ -733,11 +896,32 @@ makeSuite(
                 expect(poolAdjustmentFlowInfo.flowHash).to.equal(flowHash);
             });
 
-            it("Should be able to claimAllForMember as the member", async () => {});
+            // it("Should be able to claimAllForMember as the member", async () => {
+            //     const pool = await shouldDistributeTokens({
+            //         ...DEFAULT_DISTRIBUTE_PARAMS,
+            //     });
+            //     await pool.claimAllForMember({
+            //         member: testEnv.bob.address,
+            //         signer: testEnv.bob,
+            //     });
+            // });
 
-            it("Should be able to claimAllForMember for a member", async () => {});
+            // it("Should be able to claimAllForMember for a member", async () => {
+            //     const pool = await shouldDistributeTokens({
+            //         ...DEFAULT_DISTRIBUTE_PARAMS,
+            //     });
+            //     await pool.claimAllForMember({
+            //         member: testEnv.bob.address,
+            //         signer: testEnv.alice,
+            //     });
+            // });
 
-            it("Should be able to claimAll", async () => {});
+            // it("Should be able to claimAll", async () => {
+            //     const pool = await shouldDistributeTokens({
+            //         ...DEFAULT_DISTRIBUTE_PARAMS,
+            //     });
+            //     await pool.claimAll(testEnv.bob);
+            // });
         });
     }
 );

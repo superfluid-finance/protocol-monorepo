@@ -600,33 +600,21 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     // @note GDA deployment is commented out until we plan on releasing it
 
     if (protocolReleaseVersion === "test") {
-        const deployAndRegisterForwarder = async (
-            artifact,
-            resolverKey,
-            outputString
-        ) => {
-            await deployAndRegisterContractIf(
-                artifact,
-                resolverKey,
-                async (contractAddress) => contractAddress === ZERO_ADDRESS,
-                async () => {
-                    const forwarder = await artifact.new(superfluid.address);
-                    output += `${outputString}=${forwarder.address}\n`;
-                    await web3tx(
-                        governance.enableTrustedForwarder,
-                        `Governance set ${resolverKey}`
-                    )(superfluid.address, ZERO_ADDRESS, forwarder.address);
-                    return forwarder;
-                }
-            );
-        };
-
         // deploy CFAv1Forwarder for test deployments
         // for other (permanent) deployments, it's not handled by this script
-        await deployAndRegisterForwarder(
+        await deployAndRegisterContractIf(
             CFAv1Forwarder,
             "CFAv1Forwarder",
-            "CFA_V1_FORWARDER"
+            async (contractAddress) => contractAddress === ZERO_ADDRESS,
+            async () => {
+                const forwarder = await CFAv1Forwarder.new(superfluid.address);
+                output += `CFA_V1_FORWARDER=${forwarder.address}\n`;
+                await web3tx(
+                    governance.enableTrustedForwarder,
+                    `Governance set CFAv1Forwarder`
+                )(superfluid.address, ZERO_ADDRESS, forwarder.address);
+                return forwarder;
+            }
         );
 
         // deploy IDAv1Forwarder for test deployments
@@ -634,7 +622,16 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         await deployAndRegisterContractIf(
             IDAv1Forwarder,
             "IDAv1Forwarder",
-            "IDA_V1_FORWARDER"
+            async (contractAddress) => contractAddress === ZERO_ADDRESS,
+            async () => {
+                const forwarder = await IDAv1Forwarder.new(superfluid.address);
+                output += `IDA_V1_FORWARDER=${forwarder.address}\n`;
+                await web3tx(
+                    governance.enableTrustedForwarder,
+                    `Governance set IDAv1Forwarder`
+                )(superfluid.address, ZERO_ADDRESS, forwarder.address);
+                return forwarder;
+            }
         );
 
         // deploy GDAv1Forwarder for test deployments
@@ -642,7 +639,16 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         await deployAndRegisterContractIf(
             GDAv1Forwarder,
             "GDAv1Forwarder",
-            "GDA_V1_FORWARDER"
+            async (contractAddress) => contractAddress === ZERO_ADDRESS,
+            async () => {
+                const forwarder = await GDAv1Forwarder.new(superfluid.address);
+                output += `GDA_V1_FORWARDER=${forwarder.address}\n`;
+                await web3tx(
+                    governance.enableTrustedForwarder,
+                    `Governance set GDAv1Forwarder`
+                )(superfluid.address, ZERO_ADDRESS, forwarder.address);
+                return forwarder;
+            }
         );
     }
 

@@ -9,3 +9,4 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Changed
 - Updated Type info of ContractAddresses and NetworkMetaData
+- Renamed `zkevm-testnet` => `polygon-zkevm-testnet`

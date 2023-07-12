@@ -3,6 +3,7 @@ pragma solidity >=0.8.4;
 
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { IDAv1Forwarder } from "./IDAv1Forwarder.sol";
+import { GDAv1Forwarder } from "./GDAv1Forwarder.sol";
 import { ISuperfluid, ISuperfluidToken, Superfluid } from "../superfluid/Superfluid.sol";
 import { TestGovernance } from "./TestGovernance.sol";
 import { ConstantFlowAgreementV1 } from "../agreements/ConstantFlowAgreementV1.sol";
@@ -59,6 +60,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         SuperfluidLoader superfluidLoader;
         CFAv1Forwarder cfaV1Forwarder;
         IDAv1Forwarder idaV1Forwarder;
+        GDAv1Forwarder gdaV1Forwarder;
     }
 
     uint8 private currentStep;
@@ -93,8 +95,14 @@ contract SuperfluidFrameworkDeploymentSteps {
     SuperfluidLoader internal superfluidLoader;
     CFAv1Forwarder internal cfaV1Forwarder;
     IDAv1Forwarder internal idaV1Forwarder;
+    GDAv1Forwarder internal gdaV1Forwarder;
     BatchLiquidator internal batchLiquidator;
     TOGA internal toga;
+
+    error DEPLOY_AGREEMENTS_REQUIRES_DEPLOY_CORE();
+    error DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
+    error DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();
+    error DEPLOY_SUPER_TOKEN_CONTRACTS_REQUIRES_DEPLOY_CORE();
 
     function _deployGovernance(address newOwner) internal {
         // Deploy TestGovernance. Needs initialization later.
@@ -146,6 +154,8 @@ contract SuperfluidFrameworkDeploymentSteps {
     }
 
     function _deployAgreementContracts() internal virtual {
+        if (address(host) == address(0)) revert DEPLOY_AGREEMENTS_REQUIRES_DEPLOY_CORE();
+
         _deployCFAv1();
         _deployIDAv1();
         _deployGDAv1();
@@ -181,6 +191,32 @@ contract SuperfluidFrameworkDeploymentSteps {
         _enableCFAv1ForwarderAsTrustedForwarder();
     }
 
+    function _deployIDAv1Forwarder() internal {
+        idaV1Forwarder = IDAv1ForwarderDeployerLibrary.deployIDAv1Forwarder(host);
+    }
+
+    function _enableIDAv1ForwarderAsTrustedForwarder() internal {
+        testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(idaV1Forwarder));
+    }
+
+    function _deployIDAv1ForwarderAndEnable() internal {
+        _deployIDAv1Forwarder();
+        _enableIDAv1ForwarderAsTrustedForwarder();
+    }
+
+    function _deployGDAv1Forwarder() internal {
+        gdaV1Forwarder = GDAv1ForwarderDeployerLibrary.deployGDAv1Forwarder(host);
+    }
+
+    function _enableGDAv1ForwarderAsTrustedForwarder() internal {
+        testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(gdaV1Forwarder));
+    }
+
+    function _deployGDAv1ForwarderAndEnable() internal {
+        _deployGDAv1Forwarder();
+        _enableGDAv1ForwarderAsTrustedForwarder();
+    }
+
     function _deploySuperfluidPoolLogicAndInitializeGDA() internal {
         /// Deploy SuperfluidPool logic contract
         SuperfluidPool superfluidPoolLogic = SuperfluidPoolLogicDeployerLibrary.deploySuperfluidPool(gdaV1);
@@ -195,20 +231,8 @@ contract SuperfluidFrameworkDeploymentSteps {
         gdaV1.initialize(superfluidPoolBeacon);
     }
 
-    function _deployIDAv1Forwarder() internal {
-        idaV1Forwarder = IDAv1ForwarderDeployerLibrary.deployIDAv1Forwarder(host);
-    }
-
-    function _enableIDAv1ForwarderAsTrustedForwarder() internal {
-        testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(idaV1Forwarder));
-    }
-
-    function _deployIDAv1ForwarderAndEnable() internal {
-        _deployIDAv1Forwarder();
-        _enableIDAv1ForwarderAsTrustedForwarder();
-    }
-
     function _deployNFTProxyAndLogicAndInitialize() internal {
+        if (address(host) == address(0)) revert DEPLOY_SUPER_TOKEN_CONTRACTS_REQUIRES_DEPLOY_CORE();
         // Deploy canonical Constant Outflow NFT proxy contract
         UUPSProxy constantOutflowNFTProxy = ProxyDeployerLibrary.deployUUPSProxy();
 
@@ -320,6 +344,7 @@ contract SuperfluidFrameworkDeploymentSteps {
     }
 
     function _deployTestResolver(address resolverAdmin) internal {
+        if (address(host) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
         testResolver = SuperfluidPeripheryDeployerLibrary.deployTestResolver(resolverAdmin);
     }
 
@@ -349,9 +374,14 @@ contract SuperfluidFrameworkDeploymentSteps {
 
         // Register IDAv1Forwarder with Resolver
         testResolver.set("IDAv1Forwarder", address(idaV1Forwarder));
+
+        // Register GDAv1Forwarder with Resolver
+        testResolver.set("GDAv1Forwarder", address(gdaV1Forwarder));
     }
 
     function _deployBatchLiquidator() internal {
+        if (address(cfaV1) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
+        if (address(cfaV1) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();
         batchLiquidator = new BatchLiquidator(address(host), address(cfaV1));
     }
 
@@ -373,7 +403,8 @@ contract SuperfluidFrameworkDeploymentSteps {
             resolver: testResolver,
             superfluidLoader: superfluidLoader,
             cfaV1Forwarder: cfaV1Forwarder,
-            idaV1Forwarder: idaV1Forwarder
+            idaV1Forwarder: idaV1Forwarder,
+            gdaV1Forwarder: gdaV1Forwarder
         });
         return sf;
     }
@@ -392,15 +423,20 @@ contract SuperfluidFrameworkDeploymentSteps {
     function _executeStep(uint8 step) internal {
         if (step != currentStep) revert("Incorrect step");
 
+        // CORE CONTRACTS
         if (step == 0) {
             // Deploy Superfluid Governance
             _deployGovernance(address(this));
         } else if (step == 1) {
             // Deploy Superfluid Host
             _deployHostAndInitializeHostAndGovernance(true, false);
+        
+        // AGREEMENT CONTRACTS
         } else if (step == 2) {
             // Deploy Superfluid CFA, IDA, GDA
             _deployAgreementsAndRegister();
+
+        // PERIPHERAL CONTRACTS: FORWARDERS
         } else if (step == 3) {
             // Deploy CFAv1Forwarder
             _deployCFAv1ForwarderAndEnable();
@@ -409,18 +445,26 @@ contract SuperfluidFrameworkDeploymentSteps {
             _deployIDAv1ForwarderAndEnable();
 
             // Deploy GDAv1Forwarder
-            // TODO
+            _deployGDAv1ForwarderAndEnable();
+        
+        // PERIPHERAL CONTRACTS: SuperfluidPool Logic
         } else if (step == 4) {
             // Deploy SuperfluidPool
             // Initialize GDA with SuperfluidPool beacon
             _deploySuperfluidPoolLogicAndInitializeGDA();
+        
+        // PERIPHERAL CONTRACTS: NFT Proxy and Logic
         } else if (step == 5) {
             // Deploy Superfluid NFTs (Proxy and Logic contracts)
             _deployNFTProxyAndLogicAndInitialize();
+
+        // PERIPHERAL CONTRACTS: SuperToken Logic and SuperTokenFactory Logic
         } else if (step == 6) {
             // Deploy SuperToken Logic
             // Deploy SuperToken Factory
             _deploySuperTokenLogicAndSuperTokenFactoryAndUpdateContracts();
+        
+        // PERIPHERAL CONTRACTS: Resolver, SuperfluidLoader, TOGA, BatchLiquidator
         } else if (step == 7) {
             // Deploy TestResolver
             // Deploy SuperfluidLoader and make SuperfluidFrameworkDpeloyer an admin for the TestResolver
@@ -428,6 +472,10 @@ contract SuperfluidFrameworkDeploymentSteps {
             _deployTestResolverAndSuperfluidLoaderAndSet(address(this));
             // Make SuperfluidFrameworkDeployer deployer an admin for the TestResolver as well
             testResolver.addAdmin(msg.sender);
+
+            _deployTOGA(DEFAULT_TOGA_MIN_BOND_DURATION);
+
+            _deployBatchLiquidator();
         } else {
             revert("Invalid step");
         }
@@ -589,6 +637,15 @@ library IDAv1ForwarderDeployerLibrary {
     /// @return newly deployed IDAv1Forwarder contract
     function deployIDAv1Forwarder(ISuperfluid _host) external returns (IDAv1Forwarder) {
         return new IDAv1Forwarder(_host);
+    }
+}
+
+library GDAv1ForwarderDeployerLibrary {
+    /// @notice deploys the Superfluid GDAv1Forwarder contract
+    /// @param _host Superfluid host address
+    /// @return newly deployed GDAv1Forwarder contract
+    function deployGDAv1Forwarder(ISuperfluid _host) external returns (GDAv1Forwarder) {
+        return new GDAv1Forwarder(_host);
     }
 }
 

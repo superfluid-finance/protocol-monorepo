@@ -543,7 +543,7 @@ export interface ERC20TransferFromParams extends ERC20TransferParams {
     readonly signer: ethers.Signer;
 }
 
-export interface ERC20IncreaseAllowanceParams {
+export interface ERC20IncreaseAllowanceParams extends EthersParams {
     readonly spender: string;
     readonly amount: string;
 }

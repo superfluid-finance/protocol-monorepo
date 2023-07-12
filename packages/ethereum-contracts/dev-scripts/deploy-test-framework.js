@@ -14,6 +14,7 @@ const SuperfluidPoolNFTLogicDeployerLibraryArtifact = require("@superfluid-finan
 const ProxyDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/ProxyDeployerLibrary.json");
 const CFAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/CFAv1ForwarderDeployerLibrary.json");
 const IDAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/IDAv1ForwarderDeployerLibrary.json");
+const GDAv1ForwarderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/GDAv1ForwarderDeployerLibrary.json");
 const SuperfluidLoaderDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidLoaderDeployerLibrary.json");
 const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeployer.sol/SuperfluidFrameworkDeployer.json");
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
@@ -119,7 +120,6 @@ const deployTestFramework = async () => {
             }
         );
 
-
     const SuperfluidPoolDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidPoolDeployerLibrary",
@@ -190,6 +190,12 @@ const deployTestFramework = async () => {
             IDAv1ForwarderDeployerLibraryArtifact,
             signer
         );
+    const GDAv1ForwarderDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "GDAv1ForwarderDeployerLibrary",
+            GDAv1ForwarderDeployerLibraryArtifact,
+            signer
+        );
     const SuperfluidLoaderDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidLoaderDeployerLibrary",
@@ -232,6 +238,8 @@ const deployTestFramework = async () => {
                     CFAv1ForwarderDeployerLibrary.address,
                 IDAv1ForwarderDeployerLibrary:
                     IDAv1ForwarderDeployerLibrary.address,
+                GDAv1ForwarderDeployerLibrary:
+                    GDAv1ForwarderDeployerLibrary.address,
                 SuperfluidLoaderDeployerLibrary:
                     SuperfluidLoaderDeployerLibrary.address,
                 TokenDeployerLibrary: TokenDeployerLibrary.address,

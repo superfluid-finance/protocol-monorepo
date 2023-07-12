@@ -27,18 +27,6 @@ contract GDAv1Forwarder is ForwarderBase {
     }
 
     /**
-     * @dev Creates a new pool for the specified token and admin.
-     * @param token The Super Token address.
-     * @param admin The admin address for the pool.
-     * @return A boolean value indicating whether the pool creation was successful.
-     */
-    function createPool(ISuperfluidToken token, address admin) external returns (bool) {
-        bytes memory callData = abi.encodeCall(_gda.createPool, (token, admin));
-
-        return _forwardBatchCall(address(_gda), callData, new bytes(0));
-    }
-
-    /**
      * @dev Connects a pool member to `pool`.
      * @param pool The Superfluid Pool to connect.
      * @param userData User-specific data.

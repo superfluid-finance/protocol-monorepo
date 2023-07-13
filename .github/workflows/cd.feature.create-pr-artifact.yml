@@ -44,9 +44,7 @@ jobs:
           echo "  .draft" ${{ github.event.pull_request.draft }}
 
       - name: Check changeset
-        run: |
-          tasks/check-changeset.sh ${{ github.sha }} dev
-          echo "PUBLISH_PR_ARTIFACT=1" >> "$GITHUB_ENV"
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
 
       - name: Install dependencies
         if: env.PUBLISH_PR_ARTIFACT == 1

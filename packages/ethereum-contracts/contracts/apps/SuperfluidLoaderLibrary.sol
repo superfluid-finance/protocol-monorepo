@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPLv3
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.19;
 
 library SuperfluidLoaderLibrary {
@@ -22,6 +22,7 @@ library SuperfluidLoaderLibrary {
     uint256 private constant ARBITRUM_GOERLI = 421613;
     uint256 private constant OPTIMISM_GOERLI = 420;
     uint256 private constant AVALANCHE_FUJI = 43113;
+    uint256 private constant ZKEVM_TESTNET = 1442;
     
 
     function getHost() public view returns (address) {
@@ -53,8 +54,10 @@ library SuperfluidLoaderLibrary {
             return 0xEB796bdb90fFA0f28255275e16936D25d3418603;
         } else if (block.chainid == ETH_SEPOLIA) {
             return 0x109412E3C84f0539b43d39dB691B08c90f58dC7c;
-         } else if (block.chainid == BASE_GOERLI) {
+        } else if (block.chainid == BASE_GOERLI) {
             return 0x507c3a7C6Ccc253884A2e3a3ee2A211cC7E796a6;
+        } else if (block.chainid == ZKEVM_TESTNET) {
+            return 0xe64f81d5dDdA1c7172e5C6d964E8ef1BD82D8704;
         } else {
             revert UnsupportedNetwork();
         }

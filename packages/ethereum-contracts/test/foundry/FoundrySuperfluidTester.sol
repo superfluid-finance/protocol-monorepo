@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: AGPLv3
-pragma solidity 0.8.19;
+// SPDX-License-Identifier: MIT
+pragma solidity >=0.8.4;
 
 import "forge-std/Test.sol";
 
@@ -916,9 +916,13 @@ contract FoundrySuperfluidTester is Test {
         superToken_.createIndex(indexId);
         vm.stopPrank();
 
-        _assertIndexData(superToken_, publisher, indexId, true, 0, 0, 0);
+        _helperAssertCreateIndex(superToken_, publisher, indexId);
 
         _indexIDs[superToken_][publisher].add(_generatePublisherId(publisher, indexId));
+    }
+
+    function _helperAssertCreateIndex(ISuperToken superToken_, address publisher, uint32 indexId) internal {
+        _assertIndexData(superToken_, publisher, indexId, true, 0, 0, 0);
     }
 
     /// @notice Updates the index value of an index which distributes tokens to subscribers
@@ -1396,8 +1400,11 @@ contract FoundrySuperfluidTester is Test {
             sf.cfa.getAccountFlowInfo(superToken, account);
 
         int96 expectedNetFlowRate = flowInfoBefore.flowRate + (isSender ? -flowRateDelta : flowRateDelta);
-        uint256 depositDelta = superToken.getBufferAmountByFlowRate(flowRateDelta < 0 ? -flowRateDelta : flowRateDelta);
-        uint256 expectedDeposit = flowInfoBefore.deposit + (isSender ? depositDelta : 0);
+        int256 depositDelta =
+            superToken.getBufferAmountByFlowRate(flowRateDelta < 0 ? -flowRateDelta : flowRateDelta).toInt256();
+        depositDelta = flowRateDelta < 0 ? -depositDelta : depositDelta;
+        uint256 expectedDeposit =
+            (flowInfoBefore.deposit.toInt256() + (isSender ? depositDelta : int256(0))).toUint256();
         // TODO: we may need to pass expectedTimestamp at some point
         assertEq(lastUpdated, block.timestamp, "AccountFlowInfo: lastUpdated");
         assertEq(netFlowRate, expectedNetFlowRate, "AccountFlowInfo: net flow rate");

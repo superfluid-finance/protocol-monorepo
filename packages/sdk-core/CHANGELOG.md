@@ -3,13 +3,12 @@ All notable changes to the SDK-core will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Unreleased
+
+## [0.6.7] - 2023-07-13
 
 ### Added 
 - `BatchCall.toOperation` function which unifies `BatchCall` to `Operation` type
 - `Operation.toOperationStruct` moved from `BatchCall` to `Operation` class
-
-## [0.6.7] - 2023-07-13
 
 ### Updated
 - Bump version to support metadata v1.1.8.

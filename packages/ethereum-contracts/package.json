@@ -24,7 +24,8 @@
         "dev-scripts/**/*",
         "scripts/**/*",
         "utils/**/*",
-        "/build/typechain/**/*"
+        "/build/typechain/**/*",
+        "ops-scripts/artifacts/ERC1820Registry.json"
     ],
     "main": "./dev-scripts/index.js",
     "typings": "./types/index.d.ts",

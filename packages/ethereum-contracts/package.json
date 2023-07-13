@@ -86,7 +86,7 @@
     },
     "devDependencies": {
         "@nomiclabs/hardhat-truffle5": "^2.0.7",
-        "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
+        "@superfluid-finance/metadata": "1.1.8",
         "async": "^3.2.4",
         "csv-writer": "^1.6.0",
         "ganache-time-traveler": "1.0.16",

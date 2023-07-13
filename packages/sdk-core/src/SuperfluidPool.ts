@@ -6,6 +6,7 @@ import { ContractTransaction, ethers } from "ethers";
 
 import { SFError } from "./SFError";
 import {
+    ClaimableData,
     ClaimAllForMemberParams,
     ERC20AllowanceParams,
     ERC20ApproveParams,
@@ -266,17 +267,19 @@ export default class SuperfluidPool {
      * Retrieves the claimable amount for a specific member at the current time.
      * @param member The member's address.
      * @param providerOrSigner A provider or signer object
-     * @returns The claimable amount.
+     * @returns ClaimableData: { timestamp, claimableBalance }
      */
     getClaimableNow = async (
         params: GetClaimableNowParams
-    ): Promise<string> => {
+    ): Promise<ClaimableData> => {
         try {
-            return (
-                await this.contract
-                    .connect(params.providerOrSigner)
-                    .getClaimableNow(params.member)
-            ).toString();
+            const data = await this.contract
+                .connect(params.providerOrSigner)
+                .getClaimableNow(params.member);
+            return {
+                timestamp: data.timestamp.toString(),
+                claimableBalance: data.claimableBalance.toString(),
+            };
         } catch (err) {
             throw new SFError({
                 type: "SUPERFLUID_POOL_READ",

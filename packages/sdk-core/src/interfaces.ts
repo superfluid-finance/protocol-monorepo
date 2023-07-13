@@ -709,6 +709,11 @@ export interface GetClaimableNowParams {
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
 }
 
+export interface ClaimableData {
+    readonly claimableBalance: string;
+    readonly timestamp: string;
+}
+
 export interface GetUnitsParams {
     readonly member: string;
     readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;

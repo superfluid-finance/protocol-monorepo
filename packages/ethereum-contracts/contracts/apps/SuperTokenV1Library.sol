@@ -728,7 +728,7 @@ library SuperTokenV1Library {
     }
 
     /**
-     * @dev get net flow rate for given account for given token
+     * @dev get net flow rate for given account for given token (CFA + GDA)
      * @param token Super token address
      * @param account Account to query
      * @return flowRate The net flow rate of the account
@@ -737,7 +737,10 @@ library SuperTokenV1Library {
         internal view returns (int96 flowRate)
     {
         (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
-        return cfa.getNetFlow(token, account);
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        int96 cfaNetFlow = cfa.getNetFlow(token, account);
+        int96 gdaNetFlow = gda.getNetFlow(token, account);
+        return cfaNetFlow + gdaNetFlow;
     }
 
     /**

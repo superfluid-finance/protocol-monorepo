@@ -71,7 +71,7 @@ jobs:
           else
           echo "subgraph changed: $SUBGRAPH_NEW_VERSION" >&2
             echo "SHOULD_PUBLISH_SUBGRAPH=1" >> "$GITHUB_ENV"
-            echo "SUBGRAPH_NEW_VERSION=$NEW_SUBGRAPH_VERSION" >> "$GITHUB_ENV"
+            echo "SUBGRAPH_NEW_VERSION=$SUBGRAPH_NEW_VERSION" >> "$GITHUB_ENV"
           fi
 
       - name: Create subgraph stable release draft

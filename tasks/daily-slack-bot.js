@@ -132,27 +132,31 @@ async function getDataAsJson(url) {
 
 async function sendMessageToSlack(data) {
     const slackHostName = "hooks.slack.com";
-    const topSecret = process.env.CI_SLACK_WEBHOOK.split(slackHostName)[1];
-
-    const options = {
+    let topSecret = process.env.CI_SLACK_WEBHOOK.split(slackHostName)[1];
+    let options = {
         headers: {
             "Content-Type": "application/json",
             "User-Agent": "Elvi.js slack bot",
         },
-        baseURL: `https://${slackHostName}`,
-        url: topSecret,
+        hostname: slackHostName,
+        path: topSecret,
         method: "POST",
-        data: data,
     };
 
-    try {
-        const response = await axios(options);
-        console.log("Status Code:", response.status);
-        return response.data;
-    } catch (error) {
-        console.error("Error:", error.message);
-        throw error;
-    }
+    const req = https
+        .request(options, (res) => {
+            console.log("Status Code:", res.statusCode);
+
+            res.on("data", (chunk) => {
+                data += chunk;
+            });
+        })
+        .on("error", (err) => {
+            console.log("Error: ", err.message);
+        });
+
+    req.write(data);
+    req.end();
 }
 
 async function checkNetworkContractVerification(network) {

@@ -998,7 +998,7 @@ contract FoundrySuperfluidTester is Test {
         // Assert that balance for subscriber has been updated (dependent on approval status)
     }
 
-    /// @notice Distributes tokens to subscribers
+    /// @notice Executes an IDA distribution of tokens to subscribers
     /// @dev We assert:
     ///     - The index data has been updated as expected
     ///     - the publisher's balance and deposit has been updated as expected
@@ -1368,20 +1368,27 @@ contract FoundrySuperfluidTester is Test {
         SuperfluidPool localPool = SuperfluidPool(address(sf.gda.createPool(_superToken, _poolAdmin)));
         vm.stopPrank();
 
-        assertTrue(sf.gda.isPool(_superToken, address(localPool)), "GDAv1.t: Created pool is not pool");
+        // Assert Pool Creation was properly handled
+        {
+            assertTrue(sf.gda.isPool(_superToken, address(localPool)), "GDAv1.t: Created pool is not pool");
+            assertEq(localPool.admin(), _poolAdmin, "GDAv1.t: Pool admin is incorrect");
+            assertEq(address(localPool.superToken()), address(_superToken), "GDAv1.t: Pool super token is incorrect");
+        }
 
         IPoolAdminNFT poolAdminNft = SuperToken(address(_superToken)).POOL_ADMIN_NFT();
         uint256 tokenId = poolAdminNft.getTokenId(address(localPool), _poolAdmin);
 
-        // Assert Owner is expected
+        // Assert PoolAdminNFT Owner is expected
         assertEq(
             poolAdminNft.ownerOf(tokenId), _poolAdmin, "_helperCreatePool: Pool Admin NFT is not owned by pool admin"
         );
 
         // Assert PoolAdminNFTData is expected
-        IPoolAdminNFT.PoolAdminNFTData memory poolAdminData = poolAdminNft.poolAdminDataByTokenId(tokenId);
-        assertEq(poolAdminData.pool, address(localPool), "_helperCreatePool: Pool Admin NFT pool mismatch");
-        assertEq(poolAdminData.admin, _poolAdmin, "_helperCreatePool: Pool Admin NFT admin mismatch");
+        {
+            IPoolAdminNFT.PoolAdminNFTData memory poolAdminData = poolAdminNft.poolAdminDataByTokenId(tokenId);
+            assertEq(poolAdminData.pool, address(localPool), "_helperCreatePool: Pool Admin NFT pool mismatch");
+            assertEq(poolAdminData.admin, _poolAdmin, "_helperCreatePool: Pool Admin NFT admin mismatch");
+        }
     }
 
     function _helperUpdateMemberUnits(ISuperfluidPool pool_, address caller_, address member_, uint128 newUnits_)

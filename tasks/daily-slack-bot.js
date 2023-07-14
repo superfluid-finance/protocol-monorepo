@@ -1,9 +1,9 @@
 const https = require("https");
 
 const workflowPath =
-    "/repos/superfluid-finance/protocol-monorepo/actions/runs?per_page=100";
+    "https://api.github.com/repos/superfluid-finance/protocol-monorepo/actions/runs?per_page=100";
 const pullRequestPath =
-    "/repos/superfluid-finance/protocol-monorepo/pulls?state=open";
+    "https://api.github.com/repos/superfluid-finance/protocol-monorepo/pulls?state=open";
 const allPullRequests =
     "https://github.com/superfluid-finance/protocol-monorepo/pulls";
 const warningIcon =
@@ -11,12 +11,14 @@ const warningIcon =
 const greenCheckMark =
     "https://emojipedia-us.s3.amazonaws.com/source/skype/289/check-mark-button_2705.png";
 const redWarningIcon =
-    "https://www.clipartkey.com/mpngs/m/72-728395_red-attention-sign-png-no-background-warning-icon.png";
+    "https://cdn-icons-png.flaticon.com/512/4201/4201973.png";
 const sadPepeKidImage =
     "https://www.pngmart.com/files/11/Sad-Pepe-The-Frog-PNG-Transparent-Picture.png";
 const topSectionMessage =
     "Looks like there are some lonely pull requests open in your area";
 const workflowFileName = ".github/workflows/ci.canary.yml";
+const metadataLink =
+    "https://raw.githubusercontent.com/superfluid-finance/metadata/master/networks.json";
 
 const redImage =
     "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Solid_red.svg/512px-Solid_red.svg.png?20150316143248";
@@ -25,19 +27,90 @@ const orangeImage =
 const greenImage =
     "https://upload.wikimedia.org/wikipedia/commons/thumb/3/32/Auto_Racing_Green.svg/1280px-Auto_Racing_Green.svg.png";
 
-async function getDataAsJson(path) {
+const networkSpecificData = {
+    "eth-goerli": {
+        url: "https://api-goerli.etherscan.io/api",
+        key: process.env.ETHERSCAN_API_KEY,
+        wrapperTokenAddress: "0xf2d68898557ccb2cf4c10c3ef2b034b2a69dad00",
+    },
+    "polygon-mumbai": {
+        url: "https://api-testnet.polygonscan.com/api",
+        key: process.env.POLYGONSCAN_API_KEY,
+        wrapperTokenAddress: "0x5d8b4c2554aeb7e86f387b4d6c00ac33499ed01f",
+    },
+    "optimism-goerli": {
+        url: "https://api-goerli-optimistic.etherscan.io/api",
+        key: process.env.OPTIMISTIC_API_KEY,
+        wrapperTokenAddress: "0xac7a5cf2e0a6db31456572871ee33eb6212014a9",
+    },
+    "arbitrum-goerli": {
+        url: "https://api-goerli.arbiscan.io/api",
+        key: process.env.ARBISCAN_API_KEY,
+        wrapperTokenAddress: "0xac7a5cf2e0a6db31456572871ee33eb6212014a9",
+    },
+    "avalanche-fuji": {
+        url: "https://api-testnet.snowtrace.io/api",
+        key: process.env.SNOWTRACE_API_KEY,
+        wrapperTokenAddress: "0x24f3631dbbf6880c684c5e59578c21194e285baf",
+    },
+    "eth-sepolia": {
+        url: "https://api-sepolia.etherscan.io/api",
+        key: process.env.ETHERSCAN_API_KEY,
+        wrapperTokenAddress: "0x9Ce2062b085A2268E8d769fFC040f6692315fd2c",
+    },
+    "xdai-mainnet": {
+        url: "https://api.gnosisscan.io/api",
+        key: process.env.GNOSISSCAN_API_KEY,
+        wrapperTokenAddress: "0x66e454105ae553cfa87ad4dc4cdf128c841fcd73",
+    },
+    "polygon-mainnet": {
+        url: "https://api.polygonscan.com/api",
+        key: process.env.POLYGONSCAN_API_KEY,
+        wrapperTokenAddress: "0xcaa7349cea390f89641fe306d93591f87595dc1f",
+    },
+    "optimism-mainnet": {
+        url: "https://api-optimistic.etherscan.io/api",
+        key: process.env.OPTIMISTIC_API_KEY,
+        wrapperTokenAddress: "0x7d342726B69C28D942ad8BfE6Ac81b972349d524",
+    },
+    "arbitrum-one": {
+        url: "https://api.arbiscan.io/api",
+        key: process.env.ARBISCAN_API_KEY,
+        wrapperTokenAddress: "0x521677a61d101a80ce0fb903b13cb485232774ee",
+    },
+    "avalanche-c": {
+        url: "https://api.snowtrace.io/api",
+        key: process.env.SNOWTRACE_API_KEY,
+        wrapperTokenAddress: "0x7cd00c2b9a78f270b897457ab070274e4a17de83",
+    },
+    "bsc-mainnet": {
+        url: "https://api.bscscan.com/api",
+        key: process.env.BSCSCAN_API_KEY,
+        wrapperTokenAddress: "0x744786ab00ed5a0b77ca754eb6f3ec0607c7fa79",
+    },
+    "eth-mainnet": {
+        url: "https://api.etherscan.io/api",
+        key: process.env.ETHERSCAN_API_KEY,
+        wrapperTokenAddress: "0x4f228bf911ed67730e4b51b1f82ac291b49053ee",
+    },
+    "celo-mainnet": {
+        url: "https://api.celoscan.io/api",
+        key: process.env.CELOSCAN_API_KEY,
+        wrapperTokenAddress: "0x3acb9a08697b6db4cd977e8ab42b6f24722e6d6e",
+    },
+};
+
+async function getDataAsJson(url) {
     let options = {
         headers: {
             "Content-Type": "application/json",
             "User-Agent": "Elvi.js slack bot",
         },
-        hostname: "api.github.com",
-        path: path,
         method: "GET",
     };
 
     return new Promise((resolve) => {
-        const req = https.request(options, (res) => {
+        const req = https.request(url, options, (res) => {
             let body = "";
             res.on("data", function (chunk) {
                 body += chunk;
@@ -59,34 +132,76 @@ async function getDataAsJson(path) {
 
 async function sendMessageToSlack(data) {
     const slackHostName = "hooks.slack.com";
-    let topSecret = process.argv[2].split(slackHostName)[1];
-    let options = {
+    const topSecret = process.env.CI_SLACK_WEBHOOK.split(slackHostName)[1];
+
+    const options = {
         headers: {
             "Content-Type": "application/json",
             "User-Agent": "Elvi.js slack bot",
         },
-        hostname: slackHostName,
-        path: topSecret,
+        baseURL: `https://${slackHostName}`,
+        url: topSecret,
         method: "POST",
+        data: data,
     };
 
-    const req = https
-        .request(options, (res) => {
-            console.log("Status Code:", res.statusCode);
+    try {
+        const response = await axios(options);
+        console.log("Status Code:", response.status);
+        return response.data;
+    } catch (error) {
+        console.error("Error:", error.message);
+        throw error;
+    }
+}
 
-            res.on("data", (chunk) => {
-                data += chunk;
-            });
-        })
-        .on("error", (err) => {
-            console.log("Error: ", err.message);
-        });
+async function checkNetworkContractVerification(network) {
+    if (networkSpecificData[network.name] === undefined) {
+        return "";
+    }
+    let contractsToCheck = network.contractsV1;
+    contractsToCheck.nativeTokenWrapper = network.nativeTokenWrapper;
+    contractsToCheck.wrapperToken =
+        networkSpecificData[network.name].wrapperTokenAddress;
+    let networkMessage = "";
+    for (const [contractName, address] of Object.entries(contractsToCheck)) {
+        networkMessage += await checkIndividualContractVerification(
+            network,
+            contractName,
+            address
+        );
+    }
 
-    req.write(data);
-    req.end();
+    if (networkMessage === "") {
+        return "";
+    } else {
+        return `*❌ ${network.humanReadableName}*\n${networkMessage}\n`;
+    }
+}
+
+async function checkIndividualContractVerification(
+    network,
+    contractName,
+    contractAddress
+) {
+    let endpoint = networkSpecificData[network.name];
+    const url = `${endpoint.url}/?apikey=${endpoint.key}&module=contract&action=getabi&address=${contractAddress}`;
+    if (!endpoint.key) {
+        throw new Error(`Please specify the API key for ${network.name}`);
+    }
+    const result = await getDataAsJson(url);
+    if (result.status === undefined) {
+        throw new Error(`Failed checking ${contractName}: ${contractAddress}`);
+    }
+    if (result.status === "0") {
+        return `*<${network.explorer}/address/${contractAddress}|${contractName}>*\n`;
+    } else {
+        return "";
+    }
 }
 
 (async () => {
+    const allNetworkMetadata = await getDataAsJson(metadataLink);
     const prJson = await getDataAsJson(pullRequestPath);
     const workflowJson = await getDataAsJson(workflowPath);
     const openPRs = prJson.filter((x) => x.draft === false);
@@ -109,7 +224,7 @@ async function sendMessageToSlack(data) {
     )[0];
     const lastWorkflowId = lastWorkflow.id;
     const lastWorkflowUsage = await getDataAsJson(
-        "/repos/superfluid-finance/protocol-monorepo/actions/runs/" +
+        "https://api.github.com/repos/superfluid-finance/protocol-monorepo/actions/runs/" +
             lastWorkflowId +
             "/timing"
     );
@@ -131,7 +246,7 @@ async function sendMessageToSlack(data) {
 
     async function getPrOldestCommit(prJson) {
         let allCommits = await getDataAsJson(
-            "/repos/superfluid-finance/protocol-monorepo/pulls/" +
+            "https://api.github.com/repos/superfluid-finance/protocol-monorepo/pulls/" +
                 prJson.number +
                 "/commits"
         );
@@ -168,6 +283,24 @@ async function sendMessageToSlack(data) {
         msInADay
     ).toFixed(0);
 
+    async function addContractVerificationSections(metadata) {
+        let allContractsVerified = true;
+        for (const [key, value] of Object.entries(metadata)) {
+            let networkResult = await checkNetworkContractVerification(value);
+            if (networkResult !== "") {
+                allContractsVerified = false;
+                addMarkdownText(webhookPayload, networkResult);
+                addDivider(webhookPayload);
+            }
+        }
+        if (allContractsVerified) {
+            addMarkdownText(
+                webhookPayload,
+                "All contracts are verified ✅✅✅"
+            );
+        }
+    }
+
     function convertMS(ms) {
         let d, h, m, s;
         s = Math.floor(ms / 1000);
@@ -200,6 +333,17 @@ async function sendMessageToSlack(data) {
                 type: "plain_text",
                 text: text,
                 emoji: true,
+            },
+        };
+        payload.blocks.push(header);
+    }
+
+    function addMarkdownText(payload, text) {
+        let header = {
+            type: "section",
+            text: {
+                type: "mrkdwn",
+                text: text,
             },
         };
         payload.blocks.push(header);
@@ -440,5 +584,7 @@ async function sendMessageToSlack(data) {
     );
     addWorkflowSection();
     addDivider(webhookPayload);
+    addHeader(webhookPayload, "Contract verification checker ✔️");
+    await addContractVerificationSections(allNetworkMetadata);
     await sendMessageToSlack(JSON.stringify(webhookPayload));
 })();

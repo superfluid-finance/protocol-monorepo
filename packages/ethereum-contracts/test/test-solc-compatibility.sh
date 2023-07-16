@@ -35,5 +35,10 @@ find contracts/interfaces/ -name '*.sol' | while read i;do
   $SOLC --allow-paths . $i
 done
 
+find contracts/apps/ -name '*.sol' | while read i;do
+  echo $i
+  $SOLC --allow-paths . $i
+done
+
 echo SUCCESS
 rm -f @openzeppelin

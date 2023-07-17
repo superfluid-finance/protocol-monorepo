@@ -438,6 +438,11 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         bytes32 distributionFlowHash = _getFlowDistributionHash(from, pool);
         FlowRate oldFlowRate = _getFlowRate(abi.encode(token), distributionFlowHash);
 
+        if (FlowRate.unwrap(oldFlowRate) == 0 && requestedFlowRate == 0) {
+            // @note TODO is this necessary??
+            // revert GDA_FLOW_DOES_NOT_EXIST();
+        }
+
         (, FlowRate actualFlowRate, FlowRate newDistributionFlowRate) = _doDistributeFlowViaPool(
             abi.encode(token),
             from,

@@ -423,6 +423,13 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
+    function testRevertIfDistributeFlowToZeroDoesNotExist() public {
+        vm.startPrank(alice);
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_FLOW_DOES_NOT_EXIST.selector);
+        superToken.distributeFlow(alice, currentPool, 0);
+        vm.stopPrank();
+    }
+
     function testRevertDistributeFlowWithNegativeFlowRate(int96 requestedFlowRate) public {
         vm.assume(requestedFlowRate < 0);
 

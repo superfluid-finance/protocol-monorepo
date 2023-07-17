@@ -12,6 +12,7 @@ import { ISuperfluidPool } from "../superfluid/ISuperfluidPool.sol";
 abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     // Custom Errors
     error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED(); // 0xf67d263e
+    error GDA_FLOW_DOES_NOT_EXIST();
     error GDA_NON_CRITICAL_SENDER(); // 0x666f381d
     error GDA_INSUFFICIENT_BALANCE(); // 0x33115c3f
     error GDA_NO_NEGATIVE_FLOW_RATE(); // 0x15f25663

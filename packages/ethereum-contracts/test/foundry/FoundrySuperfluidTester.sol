@@ -1365,7 +1365,7 @@ contract FoundrySuperfluidTester is Test {
 
     // Write Helpers - GeneralDistributionAgreementV1/SuperfluidPool
 
-    function _helperCreatePool(ISuperToken _superToken, address _caller, address _poolAdmin) internal {
+    function _helperCreatePool(ISuperToken _superToken, address _caller, address _poolAdmin) internal returns (SuperfluidPool) {
         vm.startPrank(_caller);
         SuperfluidPool localPool = SuperfluidPool(address(sf.gda.createPool(_superToken, _poolAdmin)));
         vm.stopPrank();
@@ -1391,6 +1391,8 @@ contract FoundrySuperfluidTester is Test {
             assertEq(poolAdminData.pool, address(localPool), "_helperCreatePool: Pool Admin NFT pool mismatch");
             assertEq(poolAdminData.admin, _poolAdmin, "_helperCreatePool: Pool Admin NFT admin mismatch");
         }
+
+        return localPool;
     }
 
     function _helperUpdateMemberUnits(ISuperfluidPool pool_, address caller_, address member_, uint128 newUnits_)

@@ -393,14 +393,13 @@ module.exports = class Framework {
      * @return {Promise<object[]>}
      */
     async subgraphQuery(query) {
-        const response = await fetch(
-            this.config.versions.v1.subgraphQueryEndpoint,
-            {
-                method: "POST",
-                body: JSON.stringify({query}),
-                headers: {"Content-Type": "application/json"},
-            }
-        );
+        console.log("config:", JSON.stringify(this.config, null, 2));
+        console.log("endpoint:", this.config.subgraphQueryEndpoint);
+        const response = await fetch(this.config.subgraphQueryEndpoint, {
+            method: "POST",
+            body: JSON.stringify({query}),
+            headers: {"Content-Type": "application/json"},
+        });
         if (response.ok) {
             const result = JSON.parse(await response.text());
             if (!result.errors) {

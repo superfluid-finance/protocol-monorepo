@@ -551,5 +551,26 @@
             "https://rpc.ankr.com/celo"
         ],
         "coinGeckoId": "celo"
+    },
+    {
+        "name": "base-mainnet",
+        "isTestnet": false,
+        "networkId": 8453,
+        "chainId": 8453,
+        "shortName": "base",
+        "uppercaseName": "BASE_MAINNET",
+        "humanReadableName": "Base",
+        "nativeTokenSymbol": "ETH",
+        "contractsV1": {},
+        "startBlockV1": 1,
+        "logsQueryRange": 20000,
+        "explorer": "https://basescan.org",
+        "subgraphV1": {
+            "name": "protocol-v1-base-mainnet"
+        },
+        "publicRPCs": [
+            "https://developer-access-mainnet.base.org"
+        ],
+        "coinGeckoId": "base"
     }
 ]

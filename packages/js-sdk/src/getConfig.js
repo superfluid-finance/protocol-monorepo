@@ -4,6 +4,25 @@ const sfMetadata = require("@superfluid-finance/metadata");
 /* istanbul ignore next */
 if (typeof module === "undefined") module = {};
 
+function getSubgraphEndpoint(networkName) {
+    // use the override endpoint if set
+    const overrideEndpointVarName = `${networkName
+        .replace(/-/g, "_")
+        .toUpperCase()}_SUBGRAPH_ENDPOINT`;
+    if (process.env[overrideEndpointVarName]) {
+        return process.env[overrideEndpointVarName];
+    }
+
+    // else the template endpoint must be set
+    if (process.env.SUBGRAPH_ENDPOINT_TEMPLATE) {
+        return process.env.SUBGRAPH_ENDPOINT_TEMPLATE.replace(
+            "{{NETWORK}}",
+            networkName
+        );
+    }
+    return undefined;
+}
+
 const getConfigData = (chainId) => {
     const networkData = sfMetadata.getNetworkByChainId(chainId);
     if (!networkData) {
@@ -11,9 +30,6 @@ const getConfigData = (chainId) => {
         return {
             isTestnet: true,
             nativeTokenSymbol: "ETH",
-            versions: {
-                v1: {},
-            },
         };
     }
 
@@ -21,11 +37,10 @@ const getConfigData = (chainId) => {
         isTestnet: networkData.isTestnet,
         nativeTokenSymbol: networkData.nativeTokenSymbol,
         resolverAddress: networkData.contractsV1.resolver,
-        versions: {
-            v1: {
-                subgraphQueryEndpoint: networkData.subgraphV1.hostedEndpoint,
-            },
-        },
+        subgraphQueryEndpoint: getSubgraphEndpoint(
+            networkData.name,
+            networkData.subgraphV1.name
+        ),
     };
 };
 

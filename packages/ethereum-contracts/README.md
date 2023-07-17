@@ -35,7 +35,7 @@ If you're building a smart contract that uses Superfluid protocol, or even your 
 ### Installation
 
 Prerequisites:
-- [node.js v12+](https://nodejs.org/en/download)
+- [node.js v16+](https://nodejs.org/en/download)
 - [yarn](https://classic.yarnpkg.com/en/docs/install)
 - [forge](https://book.getfoundry.sh/getting-started/installation)
 
@@ -250,7 +250,7 @@ If you want contribute to Superfluid protocol contracts instead of just interfac
 
 ### Setup Development Environment
 
-Prerequisites: You need node.js v12+ and yarn installed.
+Prerequisites: You need node.js v16+ and yarn installed.
 
 First, check out this repository and cd into it.
 ```sh

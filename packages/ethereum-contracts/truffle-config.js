@@ -78,7 +78,9 @@ const ALIASES = {
 
     "base-goerli": ["bgoerli"],
       
-    "zkevm-testnet": ["zktest"],
+    "polygon-zkevm-testnet": ["pzkevmtest"],
+
+    "base-mainnet": ["base"],
 
     // wildcard for any network
     "any": ["any"],
@@ -211,6 +213,12 @@ const E = (module.exports = {
             network_id: 80001,
         },
 
+        "polygon-zkevm-testnet": {
+            ...createNetworkDefaultConfiguration("polygon-zkevm-testnet"),
+            network_id: 1442,
+        },
+
+
         //
         // xDAI: https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup
         //
@@ -281,14 +289,13 @@ const E = (module.exports = {
         //
         // Base: https://base.org/
         //
+        "base-mainnet": {
+            ...createNetworkDefaultConfiguration("base-mainnet"),
+            network_id: 8453,
+        },
         "base-goerli": {
             ...createNetworkDefaultConfiguration("base-goerli"),
             network_id: 84531,
-        },
-          
-        "zkevm-testnet": {
-            ...createNetworkDefaultConfiguration("zkevm-testnet"),
-            network_id: 1442,
         },
 
         //

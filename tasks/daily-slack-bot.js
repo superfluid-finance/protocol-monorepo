@@ -596,6 +596,5 @@ async function checkIndividualContractVerification(
     addDivider(webhookPayload);
     addHeader(webhookPayload, "Contract verification checker ✔️");
     await addContractVerificationSections(allNetworkMetadata);
-    console.log(JSON.stringify(webhookPayload))
-    //await sendMessageToSlack(JSON.stringify(webhookPayload));
+    await sendMessageToSlack(JSON.stringify(webhookPayload));
 })();

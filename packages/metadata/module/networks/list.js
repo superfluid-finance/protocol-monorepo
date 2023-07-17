@@ -229,7 +229,7 @@ export default
         "isTestnet": true,
         "networkId": 1442,
         "chainId": 1442,
-        "shortName": "polgyon-zktest",
+        "shortName": "pzkevmtest",
         "uppercaseName": "POLYGON_ZKEVM_TESTNET",
         "humanReadableName": "Polygon zkEVM Testnet",
         "nativeTokenSymbol": "ETH",

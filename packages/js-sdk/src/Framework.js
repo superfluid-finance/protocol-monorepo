@@ -425,7 +425,7 @@ module.exports = class Framework {
         const eventABI = contract.abi.filter((i) => i.name === eventName)[0];
         if (!eventABI) throw new Error("Event not found");
 
-        if (this.config.versions.v1.subgraphQueryEndpoint && !forceWeb3) {
+        if (this.config.subgraphQueryEndpoint && !forceWeb3) {
             const entityName = lcfirst(`${eventName}Events`);
             const fields = eventABI.inputs.map((i) => i.name);
             const where = eventABI.inputs

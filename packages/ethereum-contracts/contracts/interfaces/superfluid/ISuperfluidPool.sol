@@ -43,6 +43,9 @@ interface ISuperfluidPool is IERC20 {
     /// @param memberAddress The address of the member
     function getUnits(address memberAddress) external view returns (uint128);
 
+    /// @notice The total flow rate of the pool
+    function getTotalFlowRate() external view returns (int96);
+
     /// @notice The flow rate of the connected members
     function getTotalConnectedFlowRate() external view returns (int96);
 

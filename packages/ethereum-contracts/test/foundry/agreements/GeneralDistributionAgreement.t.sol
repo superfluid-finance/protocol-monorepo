@@ -309,7 +309,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     }
 
     function testProxiableUUIDIsExpectedValue() public {
-        assertEq(currentPool.proxiableUUID(), keccak256("org.superfluid-finance.contracts.SuperfluidPool.implementation"));
+        assertEq(
+            currentPool.proxiableUUID(), keccak256("org.superfluid-finance.contracts.SuperfluidPool.implementation")
+        );
     }
 
     function testPositiveBalanceIsPatricianPeriodNow(address account) public {
@@ -424,8 +426,10 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     function testRevertDistributeFlowWithNegativeFlowRate(int96 requestedFlowRate) public {
         vm.assume(requestedFlowRate < 0);
 
+        vm.startPrank(alice);
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_NO_NEGATIVE_FLOW_RATE.selector);
-        _helperDistributeFlow(superToken, alice, alice, currentPool, requestedFlowRate);
+        superToken.distributeFlow(alice, currentPool, requestedFlowRate);
+        vm.stopPrank();
     }
 
     function testRevertDistributeToNonPool(uint256 requestedAmount) public {
@@ -710,7 +714,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         _helperDistributeFlow(superToken, alice, alice, currentPool, 100);
         assertEq(
-            sf.gda.getPoolAdjustmentFlowRate(superToken, address(currentPool)), 0, "GDAv1.t: Pool adjustment rate is non-zero"
+            sf.gda.getPoolAdjustmentFlowRate(superToken, address(currentPool)),
+            0,
+            "GDAv1.t: Pool adjustment rate is non-zero"
         );
     }
 
@@ -853,7 +859,8 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     struct PoolUpdateStep {
         uint8 u; // which user
-        uint8 a; // action types: 0 update units, 1 distribute flow, 2 currentPool connection, 3 currentPool claim for, 4 distribute
+        uint8 a; // action types: 0 update units, 1 distribute flow, 2 currentPool connection, 3 currentPool claim for,
+            // 4 distribute
         uint32 v; // action param
         uint16 dt; // time delta
     }
@@ -892,7 +899,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
                 bool doConnect = s.v % 2 == 0 ? false : true;
                 emit log_named_string("action", "doConnectPool");
                 emit log_named_string("doConnect", doConnect ? "true" : "false");
-                doConnect ? _helperConnectPool(user, superToken, currentPool) : _helperDisconnectPool(user, superToken, currentPool);
+                doConnect
+                    ? _helperConnectPool(user, superToken, currentPool)
+                    : _helperDisconnectPool(user, superToken, currentPool);
             } else if (action == 4) {
                 // TODO uncomment this and it should work
                 // emit log_named_string("action", "distribute");

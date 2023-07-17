@@ -168,16 +168,29 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     /// @inheritdoc ISuperfluidPool
-    function getTotalConnectedFlowRate() external view override returns (int96) {
+    function getTotalFlowRate() external view override returns (int96) {
+        return _getTotalFlowRate();
+    }
+
+    function _getTotalFlowRate() internal view returns (int96) {
         return (_index.wrappedFlowRate * uint256(_index.totalUnits).toInt256()).toInt96();
     }
 
     /// @inheritdoc ISuperfluidPool
-    function getTotalDisconnectedFlowRate() external view override returns (int96 flowRate) {
+    function getTotalConnectedFlowRate() external view override returns (int96) {
+        return _getTotalFlowRate() - _getTotalDisconnectedFlowRate();
+    }
+
+    function _getTotalDisconnectedFlowRate() internal view returns (int96 flowRate) {
         PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
         PDPoolMember memory disconnectedMembers = _memberDataToPDPoolMember(_disconnectedMembers);
 
         return int256(FlowRate.unwrap(pdPoolIndex.flow_rate_per_unit().mul(disconnectedMembers.owned_units))).toInt96();
+    }
+
+    /// @inheritdoc ISuperfluidPool
+    function getTotalDisconnectedFlowRate() external view override returns (int96 flowRate) {
+        return _getTotalDisconnectedFlowRate();
     }
 
     /// @inheritdoc ISuperfluidPool

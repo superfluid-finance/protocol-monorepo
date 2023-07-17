@@ -1402,6 +1402,7 @@ contract FoundrySuperfluidTester is Test {
         vm.startPrank(caller_);
         pool_.updateMember(member_, newUnits_);
         vm.stopPrank();
+
         assertEq(pool_.getUnits(member_), newUnits_, "GDAv1.t: Units incorrectly set");
 
         int256 unitsDelta = uint256(newUnits_).toInt256() - oldUnits;
@@ -1528,9 +1529,29 @@ contract FoundrySuperfluidTester is Test {
         ISuperfluidPool _pool,
         int96 requestedFlowRate
     ) internal {
+        int96 fromGlobalNetFlowRateBefore = sf.gda.getNetFlow(_superToken, from);
+        int96 fromToPoolFlowRateBefore = sf.gda.getFlowRate(_superToken, from, _pool);
+
+        (int96 actualFlowRate, int96 totalDistributionFlowRate) =
+            sf.gda.estimateFlowDistributionActualFlowRate(_superToken, from, _pool, requestedFlowRate);
+
+        int96 poolTotalFlowRateBefore = _pool.getTotalFlowRate();
+
         vm.startPrank(caller);
         _superToken.distributeFlow(from, _pool, requestedFlowRate);
         vm.stopPrank();
+
+        int96 poolTotalFlowRateAfter = _pool.getTotalFlowRate();
+        int96 fromGlobalNetFlowRateAfter = sf.gda.getNetFlow(_superToken, from);
+        int96 fromToPoolFlowRateAfter = sf.gda.getFlowRate(_superToken, from, _pool);
+
+        int96 fromGlobalNetFlowRateDelta = fromGlobalNetFlowRateAfter - fromGlobalNetFlowRateBefore;
+
+        assertEq(
+            poolTotalFlowRateAfter,
+            totalDistributionFlowRate,
+            "_helperDistributeFlow: pool total flow rate != total distribution flow rate"
+        );
 
         // Assert Outflow NFT is minted to distributor
         // Assert Inflow NFT is minted to pool

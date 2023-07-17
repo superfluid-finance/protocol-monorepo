@@ -61,6 +61,8 @@ contract SuperfluidFrameworkDeploymentSteps {
         CFAv1Forwarder cfaV1Forwarder;
         IDAv1Forwarder idaV1Forwarder;
         GDAv1Forwarder gdaV1Forwarder;
+        BatchLiquidator batchLiquidator;
+        TOGA toga;
     }
 
     uint8 private currentStep;
@@ -404,7 +406,9 @@ contract SuperfluidFrameworkDeploymentSteps {
             superfluidLoader: superfluidLoader,
             cfaV1Forwarder: cfaV1Forwarder,
             idaV1Forwarder: idaV1Forwarder,
-            gdaV1Forwarder: gdaV1Forwarder
+            gdaV1Forwarder: gdaV1Forwarder,
+            batchLiquidator: batchLiquidator,
+            toga: toga
         });
         return sf;
     }

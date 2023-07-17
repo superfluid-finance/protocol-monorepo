@@ -18,14 +18,20 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertTrue(address(sf.host) != address(0), "SFDeployer: host not deployed");
         assertTrue(address(sf.cfa) != address(0), "SFDeployer: cfa not deployed");
         assertTrue(address(sf.ida) != address(0), "SFDeployer: ida not deployed");
+        assertTrue(address(sf.gda) != address(0), "SFDeployer: gda not deployed");
         assertTrue(address(sf.superTokenFactory) != address(0), "SFDeployer: superTokenFactory not deployed");
         assertTrue(address(sf.resolver) != address(0), "SFDeployer: resolver not deployed");
         assertTrue(address(sf.superfluidLoader) != address(0), "SFDeployer: superfluidLoader not deployed");
         assertTrue(address(sf.cfaV1Forwarder) != address(0), "SFDeployer: cfaV1Forwarder not deployed");
+        assertTrue(address(sf.idaV1Forwarder) != address(0), "SFDeployer: idaV1Forwarder not deployed");
+        assertTrue(address(sf.gdaV1Forwarder) != address(0), "SFDeployer: gdaV1Forwarder not deployed");
+        assertTrue(address(sf.batchLiquidator) != address(0), "SFDeployer: batchLiquidator not deployed");
     }
 
     function testResolverGetsGovernance() public {
-        assertEq(sf.resolver.get("TestGovernance.test"), address(sf.governance), "SFDeployer: governance not registered");
+        assertEq(
+            sf.resolver.get("TestGovernance.test"), address(sf.governance), "SFDeployer: governance not registered"
+        );
     }
 
     function testResolverGetsHost() public {
@@ -74,7 +80,8 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertEq(_superToken.symbol(), string.concat(_symbol, "x"), "SFDeployer: Super token symbol not properly set");
 
         // assert proper resolver listing for underlying and wrapper super token
-        address resolverUnderlyingTokenAddress = sf.resolver.get(string.concat("tokens.test.", underlyingToken.symbol()));
+        address resolverUnderlyingTokenAddress =
+            sf.resolver.get(string.concat("tokens.test.", underlyingToken.symbol()));
         assertEq(
             resolverUnderlyingTokenAddress,
             address(underlyingToken),
@@ -94,7 +101,8 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         );
 
         // assert proper resolver listing
-        address resolverTokenAddress = sf.resolver.get(string.concat("supertokens.test.", nativeAssetSuperToken.symbol()));
+        address resolverTokenAddress =
+            sf.resolver.get(string.concat("supertokens.test.", nativeAssetSuperToken.symbol()));
         assertEq(
             resolverTokenAddress,
             address(nativeAssetSuperToken),

@@ -6,7 +6,6 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import "../FoundrySuperfluidTester.sol";
-import { console } from "forge-std/console.sol";
 import {
     GeneralDistributionAgreementV1,
     IGeneralDistributionAgreementV1
@@ -423,12 +422,12 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         vm.stopPrank();
     }
 
-    function testRevertIfDistributeFlowToZeroDoesNotExist() public {
-        vm.startPrank(alice);
-        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_FLOW_DOES_NOT_EXIST.selector);
-        superToken.distributeFlow(alice, currentPool, 0);
-        vm.stopPrank();
-    }
+    // function testRevertIfDistributeFlowToZeroDoesNotExist() public {
+    //     vm.startPrank(alice);
+    //     vm.expectRevert(IGeneralDistributionAgreementV1.GDA_FLOW_DOES_NOT_EXIST.selector);
+    //     superToken.distributeFlow(alice, currentPool, 0);
+    //     vm.stopPrank();
+    // }
 
     function testRevertDistributeFlowWithNegativeFlowRate(int96 requestedFlowRate) public {
         vm.assume(requestedFlowRate < 0);

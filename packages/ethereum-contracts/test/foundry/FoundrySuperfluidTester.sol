@@ -1365,7 +1365,10 @@ contract FoundrySuperfluidTester is Test {
 
     // Write Helpers - GeneralDistributionAgreementV1/SuperfluidPool
 
-    function _helperCreatePool(ISuperToken _superToken, address _caller, address _poolAdmin) internal returns (SuperfluidPool) {
+    function _helperCreatePool(ISuperToken _superToken, address _caller, address _poolAdmin)
+        internal
+        returns (SuperfluidPool)
+    {
         vm.startPrank(_caller);
         SuperfluidPool localPool = SuperfluidPool(address(sf.gda.createPool(_superToken, _poolAdmin)));
         vm.stopPrank();
@@ -1407,6 +1410,10 @@ contract FoundrySuperfluidTester is Test {
         pool_.updateMember(member_, newUnits_);
         vm.stopPrank();
 
+        {
+            _helperTakeBalanceSnapshot(ISuperToken(address(poolSuperToken)), member_);
+        }
+
         assertEq(pool_.getUnits(member_), newUnits_, "GDAv1.t: Units incorrectly set");
 
         int256 unitsDelta = uint256(newUnits_).toInt256() - oldUnits;
@@ -1434,6 +1441,9 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert Pool Member NFT is minted/burned
         _assertPoolMemberNFT(poolSuperToken, pool_, member_, newUnits_);
+
+        // Assert RTB for all users
+        // _assertRealTimeBalances(ISuperToken(address(poolSuperToken)));
     }
 
     function _helperConnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_) internal {
@@ -1447,6 +1457,10 @@ contract FoundrySuperfluidTester is Test {
         );
         vm.stopPrank();
 
+        {
+            _helperTakeBalanceSnapshot(superToken_, caller_);
+        }
+
         assertEq(sf.gda.isMemberConnected(superToken_, address(pool_), caller_), true, "GDAv1.t: Member not connected");
 
         // Update Expected Pool Data
@@ -1457,6 +1471,9 @@ contract FoundrySuperfluidTester is Test {
 
         // Update Expected Member Data
         // TODO how does the flow rate change here
+
+        // Assert RTB for all users
+        // _assertRealTimeBalances(superToken_);
     }
 
     function _helperDisconnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_) internal {
@@ -1465,6 +1482,10 @@ contract FoundrySuperfluidTester is Test {
         vm.startPrank(caller_);
         sf.host.callAgreement(sf.gda, abi.encodeCall(sf.gda.disconnectPool, (pool_, new bytes(0))), new bytes(0));
         vm.stopPrank();
+
+        {
+            _helperTakeBalanceSnapshot(superToken_, caller_);
+        }
 
         assertEq(
             sf.gda.isMemberConnected(superToken_, address(pool_), caller_),
@@ -1480,6 +1501,9 @@ contract FoundrySuperfluidTester is Test {
 
         // Update Expected Member Data
         // TODO how does the flow rate change here
+
+        // Assert RTB for all users
+        // _assertRealTimeBalances(superToken_);
     }
 
     function _helperDistributeViaGDA(
@@ -1509,6 +1533,10 @@ contract FoundrySuperfluidTester is Test {
             new bytes(0)
         );
         vm.stopPrank();
+
+        {
+            _helperTakeBalanceSnapshot(_superToken, from);
+        }
 
         uint256 amountPerUnit = _pool.getTotalUnits() > 0 ? actualAmountDistributed / _pool.getTotalUnits() : 0;
 
@@ -1543,6 +1571,9 @@ contract FoundrySuperfluidTester is Test {
                 );
             }
         }
+
+        // Assert RTB for all users
+        // _assertRealTimeBalances(_superToken);
     }
 
     function _helperDistributeFlow(
@@ -1564,6 +1595,10 @@ contract FoundrySuperfluidTester is Test {
         _superToken.distributeFlow(from, _pool, requestedFlowRate);
         vm.stopPrank();
 
+        {
+            _helperTakeBalanceSnapshot(_superToken, from);
+        }
+
         int96 poolTotalFlowRateAfter = _pool.getTotalFlowRate();
         int96 fromGlobalNetFlowRateAfter = sf.gda.getNetFlow(_superToken, from);
         int96 fromToPoolFlowRateAfter = sf.gda.getFlowRate(_superToken, from, _pool);
@@ -1579,6 +1614,9 @@ contract FoundrySuperfluidTester is Test {
         // Assert Outflow NFT is minted to distributor
         // Assert Inflow NFT is minted to pool
         _assertFlowNftOnDistributeFlow(_superToken, _pool, from, requestedFlowRate);
+
+        // Assert RTB for all users
+        // _assertRealTimeBalances(_superToken);
     }
 
     function _helperSuperfluidPoolApprove(ISuperfluidPool _pool, address owner, address spender, uint256 amount)

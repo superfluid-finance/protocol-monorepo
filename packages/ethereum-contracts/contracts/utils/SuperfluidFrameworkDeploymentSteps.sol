@@ -384,7 +384,7 @@ contract SuperfluidFrameworkDeploymentSteps {
     function _deployBatchLiquidator() internal {
         if (address(cfaV1) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
         if (address(cfaV1) == address(0)) revert DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_AGREEMENTS();
-        batchLiquidator = new BatchLiquidator(address(host), address(cfaV1));
+        batchLiquidator = new BatchLiquidator(address(host));
     }
 
     function _deployTOGA(uint256 minBondDuration) internal virtual {

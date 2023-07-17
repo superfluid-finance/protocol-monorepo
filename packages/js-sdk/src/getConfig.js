@@ -37,10 +37,7 @@ const getConfigData = (chainId) => {
         isTestnet: networkData.isTestnet,
         nativeTokenSymbol: networkData.nativeTokenSymbol,
         resolverAddress: networkData.contractsV1.resolver,
-        subgraphQueryEndpoint: getSubgraphEndpoint(
-            networkData.name,
-            networkData.subgraphV1.name
-        ),
+        subgraphQueryEndpoint: getSubgraphEndpoint(networkData.name),
     };
 };
 

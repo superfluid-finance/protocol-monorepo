@@ -1006,7 +1006,9 @@ contract FoundrySuperfluidTester is Test {
     /// @param publisher The publisher of the index
     /// @param indexId The indexId to update
     /// @param amount The new index value to update to
-    function _helperDistribute(ISuperToken superToken_, address publisher, uint32 indexId, uint256 amount) internal {
+    function _helperDistributeViaIDA(ISuperToken superToken_, address publisher, uint32 indexId, uint256 amount)
+        internal
+    {
         // Get Index Data and Publisher Balance Before
         (, uint128 indexValueBefore, uint128 totalUnitsApprovedBefore, uint128 totalUnitsPendingBefore) =
             superToken_.getIndex(publisher, indexId);
@@ -1478,7 +1480,7 @@ contract FoundrySuperfluidTester is Test {
         // TODO how does the flow rate change here
     }
 
-    function _helperDistribute(
+    function _helperDistributeViaGDA(
         ISuperToken _superToken,
         address caller,
         address from,
@@ -1487,7 +1489,8 @@ contract FoundrySuperfluidTester is Test {
     ) internal {
         (int256 fromRTBBefore,,,) = superToken.realtimeBalanceOfNow(from);
 
-        uint256 actualAmount = sf.gda.estimateDistributionActualAmount(superToken, alice, _pool, requestedAmount);
+        uint256 actualAmountDistributed =
+            sf.gda.estimateDistributionActualAmount(superToken, alice, _pool, requestedAmount);
 
         address[] memory members = _poolMembers[address(_pool)].values();
         uint256[] memory memberBalancesBefore = new uint256[](members.length);
@@ -1505,20 +1508,38 @@ contract FoundrySuperfluidTester is Test {
         );
         vm.stopPrank();
 
+        uint256 amountPerUnit = _pool.getTotalUnits() > 0 ? actualAmountDistributed / _pool.getTotalUnits() : 0;
+
         // Assert Distributor RTB
         (int256 fromRTBAfter,,,) = superToken.realtimeBalanceOfNow(from);
-        assertEq(fromRTBAfter, fromRTBBefore - int256(actualAmount), "GDAv1.t D: Distributor RTB incorrect");
+        uint256 amountReceived = sf.gda.isMemberConnected(superToken, address(_pool), from)
+            ? uint256(_pool.getUnits(from)) * amountPerUnit
+            : 0;
+        assertEq(
+            fromRTBAfter,
+            fromRTBBefore - int256(actualAmountDistributed) + int256(amountReceived),
+            "GDAv1.t D: Distributor RTB incorrect"
+        );
 
         if (members.length == 0) return;
 
         // Assert Members RTB
-        uint256 amountPerUnit = actualAmount / _pool.getTotalUnits();
         for (uint256 i = 0; i < members.length; ++i) {
             (int256 memberRTB,,,) = superToken.realtimeBalanceOfNow(members[i]);
             uint256 amountReceived = sf.gda.isMemberConnected(superToken, address(_pool), members[i])
                 ? uint256(_pool.getUnits(members[i])) * amountPerUnit
                 : 0;
-            assertEq(uint256(memberRTB), memberBalancesBefore[i] + amountReceived, "GDAv1.t D: Member RTB incorrect");
+            if (members[i] == from) {
+                assertEq(
+                    memberRTB,
+                    int256(memberBalancesBefore[i]) - int256(actualAmountDistributed) + int256(amountReceived),
+                    "GDAv1.t D: Distributor who is Member RTB incorrect"
+                );
+            } else {
+                assertEq(
+                    uint256(memberRTB), memberBalancesBefore[i] + amountReceived, "GDAv1.t D: Member RTB incorrect"
+                );
+            }
         }
     }
 

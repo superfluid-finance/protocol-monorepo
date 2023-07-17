@@ -357,6 +357,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         }
         emit MemberUpdated(superToken, memberAddr, newUnits);
 
+        // Pool Member NFT Logic
         IPoolMemberNFT poolMemberNFT = IPoolMemberNFT(_canCallNFTHook(superToken));
         if (address(poolMemberNFT) != address(0)) {
             uint256 tokenId = poolMemberNFT.getTokenId(address(this), memberAddr);

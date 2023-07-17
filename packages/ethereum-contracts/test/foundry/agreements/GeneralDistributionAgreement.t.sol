@@ -613,14 +613,13 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
     }
 
     function testDistributeToEmptyPool(uint64 distributionAmount) public {
-        _helperDistribute(superToken, alice, alice, currentPool, distributionAmount);
+        _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount);
     }
 
     function testDistributeFlowToEmptyPool(int32 flowRate) public {
         vm.assume(flowRate >= 0);
         _helperDistributeFlow(superToken, alice, alice, currentPool, flowRate);
-        int96 distributionFlowRate = sf.gda.getFlowRate(superToken, alice, currentPool);
-        assertEq(distributionFlowRate, 0, "GDAv1.t: distributionFlowRate should be 0");
+        assertEq(sf.gda.getFlowRate(superToken, alice, currentPool), 0, "GDAv1.t: distributionFlowRate should be 0");
     }
 
     function testDistributeFlowCriticalLiquidation(uint64 units) public {
@@ -680,7 +679,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         for (uint256 i = 0; i < members.length; ++i) {
             _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits);
         }
-        _helperDistribute(superToken, alice, alice, currentPool, distributionAmount);
+        _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount);
     }
 
     function testDistributeToConnectedMembers(
@@ -698,7 +697,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
             _helperConnectPool(members[i].member, superToken, currentPool);
             _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits);
         }
-        _helperDistribute(superToken, alice, alice, currentPool, distributionAmount);
+        _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount);
     }
 
     function testDistributeFlowToConnectedMembers(UpdateMemberData[5] memory members, int32 flowRate, uint16 warpTime)
@@ -869,6 +868,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
         uint256 N_MEMBERS = 5;
 
         for (uint256 i = 0; i < steps.length; ++i) {
+            emit log_named_string("", "");
             emit log_named_uint(">>> STEP", i);
             PoolUpdateStep memory s = steps[i];
             uint256 action = s.a % 5;
@@ -903,10 +903,9 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
                     ? _helperConnectPool(user, superToken, currentPool)
                     : _helperDisconnectPool(user, superToken, currentPool);
             } else if (action == 4) {
-                // TODO uncomment this and it should work
-                // emit log_named_string("action", "distribute");
-                // emit log_named_uint("distributionAmount", s.v);
-                // _helperDistribute(superToken, user, user, currentPool, uint256(s.v));
+                emit log_named_string("action", "distribute");
+                emit log_named_uint("distributionAmount", s.v);
+                _helperDistributeViaGDA(superToken, user, user, currentPool, uint256(s.v));
             } else {
                 assert(false);
             }

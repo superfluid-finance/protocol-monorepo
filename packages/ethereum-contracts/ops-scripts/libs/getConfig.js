@@ -1,11 +1,12 @@
 const sfMetadata = require("@superfluid-finance/metadata");
 
+module.exports = function getConfig(chainId) {
+
 /*
  * REFERENCES:
  * - https://docs.biconomy.io/misc/contract-addresses
  */
 
-module.exports = function getConfig(chainId) {
     const EXTRA_CONFIG = {
         // Local Testing
         4447: {

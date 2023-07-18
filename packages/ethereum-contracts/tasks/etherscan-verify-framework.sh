@@ -44,13 +44,8 @@ EOF
         ) > "build/contracts/${contract_name}.json"
 }
 
-
-if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC}"
-fi
-
-if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC}"
+if [ -n "$RESOLVER" ]; then
+    try_verify Resolver@"${RESOLVER}"
 fi
 
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
@@ -75,6 +70,14 @@ if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC" ]; then
 fi
 if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY" ]; then
     try_verify SuperTokenFactory@"${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY}" --custom-proxy UUPSProxy
+fi
+
+if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
+    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC}"
+fi
+
+if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
+    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC}"
 fi
 
 if [ -n "$CONSTANT_OUTFLOW_NFT_PROXY" ]; then

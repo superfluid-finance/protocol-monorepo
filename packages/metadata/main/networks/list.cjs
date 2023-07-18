@@ -225,13 +225,13 @@ module.exports =
         ]
     },
     {
-        "name": "zkevm-testnet",
+        "name": "polygon-zkevm-testnet",
         "isTestnet": true,
         "networkId": 1442,
         "chainId": 1442,
-        "shortName": "zktest",
-        "uppercaseName": "ZKEVM_TESTNET",
-        "humanReadableName": "zkEVM Testnet",
+        "shortName": "pzkevmtest",
+        "uppercaseName": "POLYGON_ZKEVM_TESTNET",
+        "humanReadableName": "Polygon zkEVM Testnet",
         "nativeTokenSymbol": "ETH",
         "nativeTokenWrapper": "0x6345Aa6cec42a85160CF436810F97661e28c1876",
         "contractsV1": {
@@ -248,7 +248,7 @@ module.exports =
         "logsQueryRange": 20000,
         "explorer": "https://testnet-zkevm.polygonscan.org/",
         "subgraphV1": {
-            "name": "protocol-v1-zkevm-testnet"
+            "name": "protocol-v1-polygon-zkevm-testnet"
         },
         "publicRPCs": [
             "https://rpc.public.zkevm-test.net"

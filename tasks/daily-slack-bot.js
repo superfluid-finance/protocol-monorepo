@@ -197,7 +197,13 @@ async function checkIndividualContractVerification(
     if (result.status === undefined) {
         throw new Error(`Failed checking ${contractName}: ${contractAddress}`);
     }
-    if (result.status === "0") {
+    if(result.result === "Invalid API Key") {
+        throw new Error(`Invalid API key for ${network.name}}`);
+    }
+    if (
+        result.status === "0" &&
+        result.result === "Contract source code not verified"
+    ) {
         return `*<${network.explorer}/address/${contractAddress}|${contractName}>*\n`;
     } else {
         return "";

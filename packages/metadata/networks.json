@@ -561,17 +561,18 @@
         "uppercaseName": "BASE_MAINNET",
         "humanReadableName": "Base",
         "nativeTokenSymbol": "ETH",
+        "nativeTokenWrapper": "0x46fd5cfB4c12D87acD3a13e92BAa53240C661D93",
         "contractsV1": {
             "resolver": "0x6a214c324553F96F04eFBDd66908685525Da0E0d",
             "host": "0x4C073B3baB6d8826b8C5b229f3cfdC1eC6E47E74",
             "governance": "0xEA143996DdFaF5f2318eEa25D311B5e6Bc8D912E",
-            "cfaV1": "0xc3a28eA91cB3A020c30F2E19b7F61AfCfea2eB20",
+            "cfaV1": "0x19ba78B9cDB05A877718841c574325fdB53601bb",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
-            "idaV1": "0x114532D411f1f4c2Ee76927099ebB21EA32E00D9",
+            "idaV1": "0x66DF3f8e14CF870361378d8F61356D15d9F425C4",
             "superTokenFactory": "0xe20B9a38E0c96F61d1bA6b42a61512D56Fea1Eb3",
-            "superfluidLoader": "0x6B24A6F34ab96267Fef9F8AC9fe6CC104C228127",
+            "superfluidLoader": "0x6B24A6F34ab96267Fef9F8AC9fe6CC104C228127"
         },
-        "startBlockV1": 1,
+        "startBlockV1": 1000000,
         "logsQueryRange": 20000,
         "explorer": "https://basescan.org",
         "subgraphV1": {

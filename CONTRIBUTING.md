@@ -149,6 +149,11 @@ Arguments:
 ```
 * [Relevant StackOverflow question](https://stackoverflow.com/questions/67475457/why-cant-i-just-run-npm-install-via-a-child-process-exec-call-npm-exit-243-wit)
 
+## Signing Git commits
+In order to protect us from impersonation attacks and prove that you were the author of a specific code change we require signed commits.
+
+[GitHub - Signing commits](https://docs.github.com/en/authentication/managing-commit-signature-verification/signing-commits)
+
 ## Git Submodule Workflow Helpers
 
 Git submodule is required for external dependences such as `lib/forge-std`.

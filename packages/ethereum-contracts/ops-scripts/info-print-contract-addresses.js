@@ -61,6 +61,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         output += "IS_TESTNET=1\n";
     }
     output += `NETWORK_ID=${networkId}\n`;
+    output += `RESOLVER=${sf.resolver.address}\n`;
     output += `SUPERFLUID_LOADER=${sf.loader.address}\n`;
     output += `SUPERFLUID_HOST_PROXY=${sf.host.address}\n`;
     output += `SUPERFLUID_HOST_LOGIC=${await getCodeAddress(

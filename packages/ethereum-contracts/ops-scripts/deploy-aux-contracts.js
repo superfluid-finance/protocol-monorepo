@@ -18,6 +18,7 @@ const BatchLiquidator = artifacts.require("BatchLiquidator");
  * To be used after a community mainnet deployment,
  * with the "handover account" set as message sender.
  * - deploy SuperfluidGovernanceII with proxy
+ * - replace governance
  * - set 3Ps config
  * - deploy TOGA
  * - set TOGA as rewardAddress
@@ -33,7 +34,7 @@ const BatchLiquidator = artifacts.require("BatchLiquidator");
  * - GOV_PATRICIAN_PERIOD overrides the default value of 30 minutes
  * - TOGA_MIN_BOND_DURATION overrides the default value of 7 days
  *
- * You may also need to set RESOLVER_ADDRESS if not yet set in js-sdk.
+ * You may also need to set RESOLVER_ADDRESS if not yet set in metadata.
  */
 module.exports = eval(`(${S.toString()})()`)(async function (
     args,
@@ -48,6 +49,11 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         version: protocolReleaseVersion,
     });
     await sf.initialize();
+
+    const oldGov = await sf.contracts.ISuperfluidGovernance.at(
+        await sf.host.getGovernance.call()
+    );
+    console.log(`previous governance: ${oldGov.address}`);
 
     console.log("deploying production governance...");
     const govProxy = await SuperfluidGovernanceIIProxy.new();
@@ -87,13 +93,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     );
     console.log("reward address set to TOGA");
 
-    const batchLiquidator = await BatchLiquidator.new();
+    const batchLiquidator = await BatchLiquidator.new(
+        sf.host.address,
+        sf.agreements.cfa.address,
+    );
     console.log("BatchLiquidator deployed at:", batchLiquidator.address);
 
-    console.log("");
-    console.log("LEFT TO BE DONE MANUALLY:");
-    console.log("replace old governance with new governance:");
-    console.log(
-        `gov.replaceGovernance(${sf.host.address}, ${govProxy.address})`
-    );
+    await oldGov.replaceGovernance(sf.host.address, govProxy.address);
+    console.log("replaced governance");
 });

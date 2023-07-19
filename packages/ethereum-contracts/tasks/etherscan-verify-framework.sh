@@ -115,7 +115,7 @@ mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/In
 if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
     # special case: verify only the proxy
     # it is expected to point to a SuperToken logic contract which is already verified
-    try_verify SETHProxy@"${SUPER_TOKEN_NATIVE_COIN}"
+    try_verify SuperToken@"${SUPER_TOKEN_NATIVE_COIN}" --custom-proxy SETHProxy
 fi
 
 set +x

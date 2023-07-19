@@ -43,7 +43,7 @@
         "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
-        "@superfluid-finance/metadata": "1.1.8",
+        "@superfluid-finance/metadata": "1.1.9",
         "@truffle/contract": "4.5.23",
         "auto-bind": "^4.0.0",
         "node-fetch": "^2.6.7"

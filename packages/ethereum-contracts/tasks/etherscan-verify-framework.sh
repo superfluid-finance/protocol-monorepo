@@ -11,6 +11,12 @@ set -x
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
 
+if [ -z "$ADDRESSES_VARS" ]; then
+    echo "no addresses provided, fetching myself..."
+    ADDRESSES_VARS="/tmp/$TRUFFLE_NETWORK.addrs"
+    npx truffle exec --network "$TRUFFLE_NETWORK" ops-scripts/info-print-contract-addresses.js : "$ADDRESSES_VARS" || exit 1
+fi
+
 # shellcheck disable=SC1090
 source "$ADDRESSES_VARS"
 

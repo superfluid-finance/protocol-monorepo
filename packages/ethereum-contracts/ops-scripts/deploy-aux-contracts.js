@@ -18,11 +18,11 @@ const BatchLiquidator = artifacts.require("BatchLiquidator");
  * To be used after a community mainnet deployment,
  * with the "handover account" set as message sender.
  * - deploy SuperfluidGovernanceII with proxy
- * - replace governance
  * - set 3Ps config
  * - deploy TOGA
  * - set TOGA as rewardAddress
  * - deploy BatchLiquidator
+ * - replace governance
  *
  * @param web3 The web3 instance to be used
  * @param from address to use for funding the deployer account
@@ -36,7 +36,7 @@ const BatchLiquidator = artifacts.require("BatchLiquidator");
  *
  * You may also need to set RESOLVER_ADDRESS if not yet set in metadata.
  */
-module.exports = eval(`(${S.toString()})()`)(async function (
+module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     args,
     options = {}
 ) {

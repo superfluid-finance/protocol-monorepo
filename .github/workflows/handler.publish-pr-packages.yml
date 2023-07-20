@@ -83,7 +83,7 @@ jobs:
 
       - name: Create comment
         if: ${{ steps.pr.outputs.n_packages > 0 && steps.fc.outputs.comment-id == 0 && steps.download_artifact.outcome == 'success'}}
-        uses: peter-evans/create-or-update-comment@v1
+        uses: peter-evans/create-or-update-comment@v2
         with:
           issue-number: ${{ steps.pr.outputs.pr_number }}
           body: |

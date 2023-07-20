@@ -136,5 +136,20 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         }
     }
 
+    // optional periphery contracts
+
+    if (config.metadata?.contractsV1?.toga) {
+        output += `TOGA=${config.metadata.contractsV1.toga}\n`;
+    }
+    if (config.metadata?.contractsV1?.batchLiquidator) {
+        output += `BATCH_LIQUIDATOR=${config.metadata.contractsV1.batchLiquidator}\n`;
+    }
+    if (config.metadata?.contractsV1?.flowScheduler) {
+        output += `FLOW_SCHEDULER=${config.metadata.contractsV1.flowScheduler}\n`;
+    }
+    if (config.metadata?.contractsV1?.vestingScheduler) {
+        output += `VESTING_SCHEDULER=${config.metadata.contractsV1.vestingScheduler}\n`;
+    }
+
     await util.promisify(fs.writeFile)(outputFilename, output);
 });

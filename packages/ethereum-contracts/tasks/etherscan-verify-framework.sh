@@ -118,6 +118,24 @@ if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
     try_verify SuperToken@"${SUPER_TOKEN_NATIVE_COIN}" --custom-proxy SETHProxy
 fi
 
+# optional peripery contracts
+
+if [ -n "$TOGA" ];then
+    try_verify TOGA@"${TOGA}"
+fi
+
+if [ -n "$BATCH_LIQUIDATOR" ];then
+    try_verify BatchLiquidator@"${BATCH_LIQUIDATOR}"
+fi
+
+if [ -n "$FLOW_SCHEDULER" ];then
+    try_verify FlowScheduler@"${FLOW_SCHEDULER}"
+fi
+
+if [ -n "$VESTING_SCHEDULER" ];then
+    try_verify VestingScheduler@"${VESTING_SCHEDULER}"
+fi
+
 set +x
 
 echo "Failed verifications (may be incomplete, better visually check the log!):"

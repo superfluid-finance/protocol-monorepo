@@ -11,6 +11,12 @@ set -x
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
 
+if [ -z "$ADDRESSES_VARS" ]; then
+    echo "no addresses provided, fetching myself..."
+    ADDRESSES_VARS="/tmp/$TRUFFLE_NETWORK.addrs"
+    npx truffle exec --network "$TRUFFLE_NETWORK" ops-scripts/info-print-contract-addresses.js : "$ADDRESSES_VARS" || exit 1
+fi
+
 # shellcheck disable=SC1090
 source "$ADDRESSES_VARS"
 
@@ -115,7 +121,25 @@ mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/In
 if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
     # special case: verify only the proxy
     # it is expected to point to a SuperToken logic contract which is already verified
-    try_verify SETHProxy@"${SUPER_TOKEN_NATIVE_COIN}"
+    try_verify SuperToken@"${SUPER_TOKEN_NATIVE_COIN}" --custom-proxy SETHProxy
+fi
+
+# optional peripery contracts
+
+if [ -n "$TOGA" ];then
+    try_verify TOGA@"${TOGA}"
+fi
+
+if [ -n "$BATCH_LIQUIDATOR" ];then
+    try_verify BatchLiquidator@"${BATCH_LIQUIDATOR}"
+fi
+
+if [ -n "$FLOW_SCHEDULER" ];then
+    try_verify FlowScheduler@"${FLOW_SCHEDULER}"
+fi
+
+if [ -n "$VESTING_SCHEDULER" ];then
+    try_verify VestingScheduler@"${VESTING_SCHEDULER}"
 fi
 
 set +x

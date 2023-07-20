@@ -1,5 +1,5 @@
 {
-    "network": "base-mainnet",
+    "network": "base",
     "hostStartBlock": 1000000,
     "hostAddress": "0x4C073B3baB6d8826b8C5b229f3cfdC1eC6E47E74",
     "cfaAddress": "0x19ba78B9cDB05A877718841c574325fdB53601bb",

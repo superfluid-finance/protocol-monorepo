@@ -8,11 +8,13 @@ set -xe
 cd "$(dirname "$0")"/..
 
 VERSION="0.8.11"
-LIST_JSON_URL="https://raw.githubusercontent.com/ethereum/solc-bin/gh-pages/linux-amd64/list.json"
 
 # Download solc if needed and verify its checksum
 SOLC=solc-$VERSION
 if ! which $SOLC; then
+  # Note: we hard code the checksum to minimize the trust assumptions.
+  let EXPECTED_CHECKSUM=717c239f3a1dc3a4834c16046a0b4b9f46964665c8ffa82051a6d09fe741cd4f
+
   # This process assuming ubuntu Linux.
   # [ -z "$(apt list --installed | grep coreutils)" ] && apt-get install coreutils
   mkdir -p ./build/bin
@@ -22,8 +24,6 @@ if ! which $SOLC; then
       chmod +x ./$SOLC
   fi
   CHECKSUM="0x$(sha256sum ./$SOLC | awk '{print $1}')"
-  JSON_DATA=$(curl -s "$LIST_JSON_URL" | jq '.builds | map(select(.version == "'"$VERSION"'"))[0]')
-  EXPECTED_CHECKSUM=$(echo "$JSON_DATA" | jq -r '.sha256')
   [ "$CHECKSUM" == "$EXPECTED_CHECKSUM" ]
 fi
 

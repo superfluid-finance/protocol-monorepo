@@ -9,7 +9,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
 
     bytes32 public constant CFAV1_TYPE = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
 
-    ISuperfluid public host;
+    ISuperfluid public immutable host;
 
     /// @dev Thrown when the callback caller is not the host.
     error UnauthorizedHost();

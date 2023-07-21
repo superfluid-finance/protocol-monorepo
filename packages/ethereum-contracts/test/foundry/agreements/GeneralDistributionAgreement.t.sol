@@ -539,7 +539,7 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
         vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NO_POOL_MEMBERS.selector);
         vm.startPrank(alice);
-        currentPool.updateMember(address(currentPool), units);
+        currentPool.updateMemberUnits(address(currentPool), units);
         vm.stopPrank();
     }
 

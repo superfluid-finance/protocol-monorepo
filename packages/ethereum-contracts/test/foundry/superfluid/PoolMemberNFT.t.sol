@@ -24,7 +24,7 @@ contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
         uint256 nftId = _helperGetPoolMemberNftId(address(pool), _member);
 
         vm.startPrank(_poolAdmin);
-        pool.updateMember(_member, 1);
+        pool.updateMemberUnits(_member, 1);
         vm.stopPrank();
 
         _helperRevertIfTransferFrom(
@@ -60,7 +60,7 @@ contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
         uint256 nftId = _helperGetPoolMemberNftId(address(pool), _member);
 
         vm.startPrank(_admin);
-        pool.updateMember(_member, 1);
+        pool.updateMemberUnits(_member, 1);
         vm.stopPrank();
 
         vm.expectRevert(IPoolMemberNFT.POOL_MEMBER_NFT_HAS_UNITS.selector);

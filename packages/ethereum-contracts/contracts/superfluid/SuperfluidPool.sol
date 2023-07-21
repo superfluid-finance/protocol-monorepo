@@ -23,6 +23,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     using SafeCast for uint256;
     using SafeCast for int256;
 
+    // @note TODO add some struct validation layout
+    // refer to solidity docs for struct layout
     struct PoolIndexData {
         uint128 totalUnits;
         uint32 wrappedSettledAt;
@@ -52,6 +54,13 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     constructor(GeneralDistributionAgreementV1 gda) {
         GDA = gda;
+    }
+
+    // TODO transferability of admin should be allowed
+    // nft transferable 
+    // customizable metadata for the NFT can be considered
+    function transferAdmin(address admin_) external {
+        // What happens to the Admin NFT?
     }
 
     function initialize(address admin_, ISuperfluidToken superToken_) external initializer {
@@ -128,8 +137,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         // @note this is a brute forced initial approach
         uint128 fromUnitsBefore = _getUnits(from);
         uint128 toUnitsBefore = _getUnits(to);
-        _updateMember(from, fromUnitsBefore - amount.toUint128());
-        _updateMember(to, toUnitsBefore + amount.toUint128());
+        _updateMemberUnits(from, fromUnitsBefore - amount.toUint128());
+        _updateMemberUnits(to, toUnitsBefore + amount.toUint128());
         // assert that the units are updated correctly for from and for to.
         emit Transfer(from, to, amount);
     }
@@ -259,6 +268,14 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         });
     }
 
+    // TODO replace .toInt256().toUint128());
+    // look for other repeated casting here
+    function _toSemanticMoneyUnit(uint128 units) internal returns (Unit) {
+        // @note safe upcasting from uint128 to uint256
+        // + use of safecast library
+        return Unit.wrap(uint256(units).toInt256().toInt128());
+    }
+
     function _pdPoolMemberToMemberData(PDPoolMember memory pdPoolMember, int256 claimedValue)
         internal
         pure
@@ -296,10 +313,10 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     /// @inheritdoc ISuperfluidPool
-    function updateMember(address memberAddr, uint128 newUnits) external returns (bool) {
+    function updateMemberUnits(address memberAddr, uint128 newUnits) external returns (bool) {
         if (admin != msg.sender) revert SUPERFLUID_POOL_NOT_POOL_ADMIN();
 
-        _updateMember(memberAddr, newUnits);
+        _updateMemberUnits(memberAddr, newUnits);
 
         return true;
     }
@@ -325,7 +342,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         }
     }
 
-    function _updateMember(address memberAddr, uint128 newUnits) internal returns (bool) {
+    function _updateMemberUnits(address memberAddr, uint128 newUnits) internal returns (bool) {
         if (GDA.isPool(superToken, memberAddr)) revert SUPERFLUID_POOL_NO_POOL_MEMBERS();
         if (memberAddr == address(0)) revert SUPERFLUID_POOL_NO_ZERO_ADDRESS();
 
@@ -340,6 +357,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         // update pool's disconnected units
         if (!GDA.isMemberConnected(superToken, address(this), memberAddr)) {
             // trigger the side effect of claiming all if not connected
+            // @note claiming is a bit surprising here given the function name
             int256 claimedAmount = _claimAll(memberAddr, time);
 
             // update pool's disconnected units

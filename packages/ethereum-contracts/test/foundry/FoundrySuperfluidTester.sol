@@ -1407,7 +1407,7 @@ contract FoundrySuperfluidTester is Test {
         (bool isConnected, int256 oldUnits, int96 oldFlowRate) = _helperGetMemberInitialState(pool_, member_);
 
         vm.startPrank(caller_);
-        pool_.updateMember(member_, newUnits_);
+        pool_.updateMemberUnits(member_, newUnits_);
         vm.stopPrank();
 
         {

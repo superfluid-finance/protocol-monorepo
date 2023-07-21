@@ -69,10 +69,10 @@ interface ISuperfluidPool is IERC20 {
     /// @param memberAddr The address of the member
     function getClaimableNow(address memberAddr) external view returns (int256 claimableBalance, uint256 timestamp);
 
-    /// @notice Sets `memberAddr`'s ownedUnits to `newUnits`
+    /// @notice Sets `memberAddr` ownedUnits to `newUnits`
     /// @param memberAddr The address of the member
     /// @param newUnits The new units for the member
-    function updateMember(address memberAddr, uint128 newUnits) external returns (bool);
+    function updateMemberUnits(address memberAddr, uint128 newUnits) external returns (bool);
 
     /// @notice Claims the claimable balance for `memberAddr` at `block.timestamp`
     /// @param memberAddr The address of the member

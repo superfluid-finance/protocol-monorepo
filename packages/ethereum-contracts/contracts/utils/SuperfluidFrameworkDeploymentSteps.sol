@@ -389,6 +389,7 @@ contract SuperfluidFrameworkDeploymentSteps {
 
     function _deployTOGA(uint256 minBondDuration) internal virtual {
         toga = new TOGA(host, minBondDuration);
+        testGovernance.setRewardAddress(host, ISuperfluidToken(address(0)), address(toga));
     }
 
     /// @notice Fetches the framework contracts

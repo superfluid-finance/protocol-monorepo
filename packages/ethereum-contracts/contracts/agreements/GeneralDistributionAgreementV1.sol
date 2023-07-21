@@ -262,6 +262,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     /// @inheritdoc IGeneralDistributionAgreementV1
     function createPool(ISuperfluidToken token, address admin) external override returns (ISuperfluidPool pool) {
         if (admin == address(0)) revert GDA_NO_ZERO_ADDRESS_ADMIN();
+        // @note some sort of token logic
+        // if (token == address(0)) revert GDA_NO_ZERO_ADDRESS_TOKEN();
 
         pool =
             ISuperfluidPool(address(SuperfluidPoolDeployerLibrary.deploy(address(superfluidPoolBeacon), admin, token)));
@@ -980,6 +982,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         internal
         returns (bytes memory)
     {
+        // @note should this also always be 
         address adjustmentRecipient = ISuperfluidPool(pool).admin();
         bytes32 adjustmentFlowHash = _getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
 

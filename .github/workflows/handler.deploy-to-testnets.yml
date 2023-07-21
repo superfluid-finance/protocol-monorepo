@@ -24,17 +24,12 @@ jobs:
     env:
       RELEASE_VERSION: ${{ github.event.inputs.release_version }}
       DEFAULT_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC }}
-      # network web3 providers
-      ETH_GOERLI_PROVIDER_URL: ${{ secrets.ETH_GOERLI_PROVIDER_URL }}
-      POLYGON_MUMBAI_PROVIDER_URL: ${{ secrets.POLYGON_MUMBAI_PROVIDER_URL }}
-      OPTIMISM_GOERLI_PROVIDER_URL: ${{ secrets.OPTIMISM_GOERLI_PROVIDER_URL }}
-      ARBITRUM_GOERLI_PROVIDER_URL: ${{ secrets.ARBITRUM_GOERLI_PROVIDER_URL }}
-      AVALANCHE_FUJI_PROVIDER_URL: ${{ secrets.AVALANCHE_FUJI_PROVIDER_URL }}
+      PROVIDER_URL_TEMPLATE: ${{ secrets.PROVIDER_URL_TEMPLATE }}
 
     strategy:
       fail-fast: false
       matrix:
-          network: [eth-goerli, eth-sepolia, polygon-mumbai, optimism-goerli, arbitrum-goerli, avalanche-fuji]
+          network: [eth-goerli, eth-sepolia, polygon-mumbai, optimism-goerli, arbitrum-goerli, avalanche-fuji, base-goerli, polygon-zkevm-testnet]
 
     steps:
       - uses: actions/checkout@v3

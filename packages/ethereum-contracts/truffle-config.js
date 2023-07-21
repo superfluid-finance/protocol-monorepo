@@ -76,6 +76,12 @@ const ALIASES = {
 
     "celo-mainnet": ["celo"],
 
+    "base-goerli": ["bgoerli"],
+      
+    "polygon-zkevm-testnet": ["pzkevmtest"],
+
+    "base-mainnet": ["base"],
+
     // wildcard for any network
     "any": ["any"],
 
@@ -110,6 +116,16 @@ function getEnvValue(networkName, key) {
     return values[0];
 }
 
+function getProviderUrlByTemplate(networkName) {
+    if (process.env.PROVIDER_URL_TEMPLATE !== undefined) {
+        if (! process.env.PROVIDER_URL_TEMPLATE.includes("{{NETWORK}}")) {
+            console.error("env var PROVIDER_URL_TEMPLATE has invalid value");
+        } else {
+            return process.env.PROVIDER_URL_TEMPLATE.replace("{{NETWORK}}", networkName);
+        }
+    }
+}
+
 /**
  * Create default network configurations
  *
@@ -124,7 +140,10 @@ function createNetworkDefaultConfiguration(
         provider: () =>
             new HDWalletProvider({
                 mnemonic: getEnvValue(networkName, "MNEMONIC"),
-                url: providerWrapper(getEnvValue(networkName, "PROVIDER_URL")),
+                url: providerWrapper(
+                    getEnvValue(networkName, "PROVIDER_URL") ||
+                    getProviderUrlByTemplate(networkName)
+                ),
                 addressIndex: 0,
                 numberOfAddresses: 10,
                 shareNonce: true,
@@ -132,6 +151,9 @@ function createNetworkDefaultConfiguration(
         gasPrice: +getEnvValue(networkName, "GAS_PRICE"),
         maxFeePerGas: +getEnvValue(networkName, "MAX_FEE_PER_GAS"),
         maxPriorityFeePerGas: +getEnvValue(networkName, "MAX_PRIORITY_FEE_PER_GAS"),
+        timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
+        skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
+        networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
     };
 }
 
@@ -163,25 +185,16 @@ const E = (module.exports = {
         "eth-mainnet": {
             ...createNetworkDefaultConfiguration("eth-mainnet"),
             network_id: 1, // mainnet's id
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         "eth-goerli": {
             ...createNetworkDefaultConfiguration("eth-goerli"),
             network_id: 5,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         "eth-sepolia": {
             ...createNetworkDefaultConfiguration("eth-sepolia"),
             network_id: 11155111,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
 
@@ -191,9 +204,6 @@ const E = (module.exports = {
         "polygon-mainnet": {
             ...createNetworkDefaultConfiguration("polygon-mainnet"),
             network_id: 137,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
             maxPriorityFeePerGas: 31e9,
             maxFeePerGas: 500e9,
         },
@@ -201,10 +211,13 @@ const E = (module.exports = {
         "polygon-mumbai": {
             ...createNetworkDefaultConfiguration("polygon-mumbai"),
             network_id: 80001,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
+
+        "polygon-zkevm-testnet": {
+            ...createNetworkDefaultConfiguration("polygon-zkevm-testnet"),
+            network_id: 1442,
+        },
+
 
         //
         // xDAI: https://www.xdaichain.com/for-users/wallets/metamask/metamask-setup
@@ -212,9 +225,6 @@ const E = (module.exports = {
         "xdai-mainnet": {
             ...createNetworkDefaultConfiguration("xdai-mainnet"),
             network_id: 100,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         //
@@ -223,17 +233,11 @@ const E = (module.exports = {
         "optimism-mainnet": {
             ...createNetworkDefaultConfiguration("optimism-mainnet"),
             network_id: 10,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         "optimism-goerli": {
             ...createNetworkDefaultConfiguration("optimism-goerli"),
             network_id: 420,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         //
@@ -242,17 +246,11 @@ const E = (module.exports = {
         "arbitrum-one": {
             ...createNetworkDefaultConfiguration("arbitrum-one"),
             network_id: 42161,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         "arbitrum-goerli": {
             ...createNetworkDefaultConfiguration("arbitrum-goerli"),
             network_id: 421613,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         //
@@ -261,17 +259,11 @@ const E = (module.exports = {
         "avalanche-c": {
             ...createNetworkDefaultConfiguration("avalanche-c"),
             network_id: 43114,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         "avalanche-fuji": {
             ...createNetworkDefaultConfiguration("avalanche-fuji"),
             network_id: 43113,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         //
@@ -280,38 +272,6 @@ const E = (module.exports = {
         "bsc-mainnet": {
             ...createNetworkDefaultConfiguration("bsc-mainnet"),
             network_id: 56,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
-        },
-
-        //
-        // Currently unsupported networks
-        //
-
-        "optimism-kovan": {
-            ...createNetworkDefaultConfiguration("optimism-kovan"),
-            network_id: 69,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
-        },
-
-        "arbitrum-rinkeby": {
-            ...createNetworkDefaultConfiguration("arbitrum-rinkeby"),
-            network_id: 421611,
-            gas: 250e6, // arbgas is different and estimation fails for expensive txs
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
-        },
-
-        "bsc-chapel": {
-            ...createNetworkDefaultConfiguration("bsc-chapel"),
-            network_id: 97,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
         //
@@ -320,24 +280,39 @@ const E = (module.exports = {
         "celo-mainnet": {
             ...createNetworkDefaultConfiguration("celo-mainnet"),
             network_id: 42220,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
         "celo-alfajores": {
             ...createNetworkDefaultConfiguration("celo-alfajores"),
             network_id: 44787,
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
         },
 
+        //
+        // Base: https://base.org/
+        //
+        "base-mainnet": {
+            ...createNetworkDefaultConfiguration("base-mainnet"),
+            network_id: 8453,
+        },
+        "base-goerli": {
+            ...createNetworkDefaultConfiguration("base-goerli"),
+            network_id: 84531,
+        },
+
+        //
+        // Wildcard
+        //
         "any": {
             ...createNetworkDefaultConfiguration("any"),
             network_id: "*",
-            timeoutBlocks: 50, // # of blocks before a deployment times out  (minimum/default: 50)
-            skipDryRun: false, // Skip dry run before migrations? (default: false for public nets )
-            networkCheckTimeout: DEFAULT_NETWORK_TIMEOUT,
+        },
+
+        //
+        // Currently unsupported networks
+        //
+
+        "bsc-chapel": {
+            ...createNetworkDefaultConfiguration("bsc-chapel"),
+            network_id: 97,
         },
 
         /// For truffle development environment
@@ -431,6 +406,7 @@ const E = (module.exports = {
         arbiscan: process.env.ARBISCAN_API_KEY,
         gnosisscan: process.env.GNOSISSCAN_API_KEY,
         celoscan: process.env.CELOSCAN_API_KEY,
+        basescan: process.env.BASESCAN_API_KEY,
     },
 });
 

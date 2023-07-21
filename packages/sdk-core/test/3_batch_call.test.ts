@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { getPerSecondFlowRateByMonth } from "../src";
+import { Operation, getPerSecondFlowRateByMonth } from "../src";
 import { ethers } from "ethers";
 import { createCallAppActionOperation } from "./2_operation.test";
 import { TestEnvironment, makeSuite } from "./TestEnvironment";
@@ -7,7 +7,13 @@ import { TestEnvironment, makeSuite } from "./TestEnvironment";
 makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
     it("Should throw an error when empty", async () => {
         try {
-            await testEnv.sdkFramework.batchCall([{} as any]).exec(testEnv.bob);
+            const unsupportedOperation = new Operation(
+                {} as any,
+                "UNSUPPORTED"
+            );
+            await testEnv.sdkFramework
+                .batchCall([unsupportedOperation])
+                .exec(testEnv.bob);
         } catch (err: any) {
             expect(err.type).to.equal("UNSUPPORTED_OPERATION");
             expect(err.message).to.contain(
@@ -17,12 +23,16 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
     });
 
     it("Should throw an error when data not provided", async () => {
+        const noTxnDataOperation = new Operation({} as any, "ERC20_APPROVE");
         try {
             await testEnv.sdkFramework
-                .batchCall([{ type: "ERC20_APPROVE" } as any])
+                .batchCall([noTxnDataOperation])
                 .exec(testEnv.bob);
         } catch (err: any) {
-            expect(err.message).to.contain("undefined");
+            expect(err.type).to.equal("MISSING_TRANSACTION_PROPERTIES");
+            expect(err.message).to.contain(
+                "The transaction is missing the to or data property."
+            );
         }
     });
 
@@ -31,14 +41,13 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
             receiver: testEnv.bob.address,
             amount: ethers.utils.parseUnits("1000").toString(),
         });
+        const noTypeOperation = new Operation(
+            transferOp.populateTransactionPromise,
+            null!
+        );
         try {
             await testEnv.sdkFramework
-                .batchCall([
-                    {
-                        populateTransactionPromise:
-                            transferOp.populateTransactionPromise,
-                    } as any,
-                ])
+                .batchCall([noTypeOperation])
                 .exec(testEnv.bob);
         } catch (err: any) {
             expect(err.type).to.equal("UNSUPPORTED_OPERATION");
@@ -333,10 +342,9 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
                 amount: increaseAmount,
             }
         );
-        await testEnv.sdkFramework.batchCall([
-            decreaseAllowanceOp,
-            increaseAllowanceOp,
-        ]).exec(testEnv.alice);
+        await testEnv.sdkFramework
+            .batchCall([decreaseAllowanceOp, increaseAllowanceOp])
+            .exec(testEnv.alice);
 
         const allowance = await testEnv.wrapperSuperToken.allowance({
             owner: testEnv.alice.address,

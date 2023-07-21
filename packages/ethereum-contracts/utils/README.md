@@ -8,7 +8,7 @@ python -m SimpleHTTPServer 1337
 ```
 Then navigate to http://localhost:1337/supertoken-deployer.html
 
-Alternatively, you can also find it on IPFS: [QmP9ruumtpxFGMJdz2G38rqARAUWPHdRbGc2hQg2tXWYTd](https://ipfs.io/ipfs/QmP9ruumtpxFGMJdz2G38rqARAUWPHdRbGc2hQg2tXWYTd)
+Alternatively, you can also find it on IPFS: [QmP9ruumtpxFGMJdz2G38rqARAUWPHdRbGc2hQg2tXWYTd](https://cloudflare-ipfs.com/ipfs/QmP9ruumtpxFGMJdz2G38rqARAUWPHdRbGc2hQg2tXWYTd)
 
 ## Stream Closer
 
@@ -21,10 +21,17 @@ python -m SimpleHTTPServer 1337
 
 Then navigate to http://localhost:1337/stream-closer.html
 
-Alternatively, you can also find it on IPFS: [QmPu6h7w2LCAeLdN4GVR2CTa7wTtEsi4iJokXTW7QiQy2z](https://ipfs.io/ipfs/QmPu6h7w2LCAeLdN4GVR2CTa7wTtEsi4iJokXTW7QiQy2z)
+Alternatively, you can also find it on IPFS: [QmPu6h7w2LCAeLdN4GVR2CTa7wTtEsi4iJokXTW7QiQy2z](https://cloudflare-ipfs.com/ipfs/QmPu6h7w2LCAeLdN4GVR2CTa7wTtEsi4iJokXTW7QiQy2z)
 
 In order to set the parameter in the URL, use this format:
 stream-closer.html?chainId=<chainId>&token=<tokenAddress>&sender=<senderAddress>&receiver=<receiverAddress>
+
+### Optimism L1 Stream Closer
+
+For Optimism, there's a dedicated Dapp at `optimism-l1-stream-closer.html` which transacts directly to L1, providing a mechanism not dependent on the centralized sequencer.
+For more details for how this works, see [the Optimism docs](https://github.com/ethereum-optimism/optimism/blob/develop/specs/deposits.md).
+
+It can be used the same way as the conventional Stream Closer. IPFS link: [QmbWsxPc98oRtP1AkcqT6vNJWrxiVaBmiyQt6SMeNJDtc7](https://cloudflare-ipfs.com/ipfs/QmbWsxPc98oRtP1AkcqT6vNJWrxiVaBmiyQt6SMeNJDtc7)
 
 ## MFA Tester
 

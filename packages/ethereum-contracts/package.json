@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/ethereum-contracts",
-    "version": "1.7.0",
+    "version": "1.7.1",
     "description": " Ethereum contracts implementation for the Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/ethereum-contracts#readme",
     "repository": {
@@ -8,7 +8,7 @@
         "url": "https://github.com/superfluid-finance/protocol-monorepo.git",
         "directory": "packages/ethereum-contracts"
     },
-    "license": "AGPL-3.0",
+    "license": "AGPL-3.0-or-later OR MIT",
     "files": [
         "/contracts/**/*",
         "!/contracts/mocks/*",
@@ -22,7 +22,6 @@
         "artifacts/contracts/**/*.json",
         "!/**/*.dbg.json",
         "dev-scripts/**/*",
-        "ops-scripts/**/*",
         "scripts/**/*",
         "utils/**/*",
         "/build/typechain/**/*"
@@ -43,6 +42,7 @@
         "build:typechain": "tsc -p tsconfig.typechain.json",
         "build:dev-scripts": "rm -rf dev-scripts/*.d.ts dev-scripts/*.d.ts.map; tsc -p tsconfig.scripts.json",
         "build:contracts-size": "tasks/print-contract-sizes.sh | tee build/contracts-sizes.txt",
+        "verify-framework": "tasks/etherscan-verify-framework.sh",
         "testenv:start": "test/testenv-ctl.sh start",
         "testenv:stop": "test/testenv-ctl.sh stop",
         "testenv:deploy": "yarn run-truffle exec ops-scripts/deploy-test-environment.js : TEST",
@@ -76,6 +76,9 @@
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.8.2",
+        "@safe-global/safe-core-sdk": "^3.3.3",
+        "@safe-global/safe-service-client": "^2.0.1",
+        "@safe-global/safe-web3-lib": "^1.9.3",
         "@superfluid-finance/js-sdk": "0.6.3",
         "@truffle/contract": "4.6.18",
         "ethereumjs-tx": "2.1.2",
@@ -84,7 +87,7 @@
     },
     "devDependencies": {
         "@nomiclabs/hardhat-truffle5": "^2.0.7",
-        "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
+        "@superfluid-finance/metadata": "1.1.9",
         "async": "^3.2.4",
         "csv-writer": "^1.6.0",
         "ganache-time-traveler": "1.0.16",
@@ -94,6 +97,6 @@
         "solidity-coverage": "0.8.2",
         "solidity-docgen": "^0.6.0-beta.35",
         "truffle-flattener": "^1.6.0",
-        "truffle-plugin-verify": "0.6.2"
+        "truffle-plugin-verify": "0.6.4"
     }
 }

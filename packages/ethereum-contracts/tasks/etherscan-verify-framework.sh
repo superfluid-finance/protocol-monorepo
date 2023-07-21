@@ -11,36 +11,11 @@ set -x
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
 
-# network specifics
-case $TRUFFLE_NETWORK in
-    eth-goerli | \
-    eth-sepolia | \
-    polygon-mumbai | \
-    optimism-goerli | \
-    arbitrum-goerli | \
-    avalanche-fuji )
-        echo "$TRUFFLE_NETWORK is testnet"
-        IS_TESTNET=1
-        ;;
-    eth-mainnet | \
-    polygon-mainnet | \
-    optimism-mainnet | \
-    arbitrum-one | \
-    avalanche-c | \
-    bsc-mainnet | \
-    celo-mainnet | \
-    xdai-mainnet )
-        echo "$TRUFFLE_NETWORK is mainnet"
-        IS_TESTNET=
-        ;;
-    *)
-        echo "Unknown network: $TRUFFLE_NETWORK"
-        if [ -z "$SKIP_IF_UNSUPPORTED" ]; then
-            exit 1;
-        else
-            exit 0;
-        fi
-esac
+if [ -z "$ADDRESSES_VARS" ]; then
+    echo "no addresses provided, fetching myself..."
+    ADDRESSES_VARS="/tmp/$TRUFFLE_NETWORK.addrs"
+    npx truffle exec --network "$TRUFFLE_NETWORK" ops-scripts/info-print-contract-addresses.js : "$ADDRESSES_VARS" || exit 1
+fi
 
 # shellcheck disable=SC1090
 source "$ADDRESSES_VARS"
@@ -75,13 +50,8 @@ EOF
         ) > "build/contracts/${contract_name}.json"
 }
 
-
-if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC}"
-fi
-
-if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
-    try_verify ConstantInflowNFT"${CONSTANT_INFLOW_NFT_LOGIC}"
+if [ -n "$RESOLVER" ]; then
+    try_verify Resolver@"${RESOLVER}"
 fi
 
 if [ -n "$SUPERFLUID_HOST_LOGIC" ]; then
@@ -108,6 +78,14 @@ if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY" ]; then
     try_verify SuperTokenFactory@"${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY}" --custom-proxy UUPSProxy
 fi
 
+if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
+    try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_LOGIC}"
+fi
+
+if [ -n "$CONSTANT_INFLOW_NFT_LOGIC" ]; then
+    try_verify ConstantInflowNFT@"${CONSTANT_INFLOW_NFT_LOGIC}"
+fi
+
 if [ -n "$CONSTANT_OUTFLOW_NFT_PROXY" ]; then
     try_verify ConstantOutflowNFT@"${CONSTANT_OUTFLOW_NFT_PROXY}" --custom-proxy UUPSProxy
 fi
@@ -118,7 +96,6 @@ fi
 
 if [ -n "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
     try_verify SuperToken@"${SUPERFLUID_SUPER_TOKEN_LOGIC}"
-    mv -f build/contracts/SuperToken.json.bak build/contracts/SuperToken.json
 fi
 
 if [ -n "$CFA_LOGIC" ]; then
@@ -144,7 +121,25 @@ mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/In
 if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
     # special case: verify only the proxy
     # it is expected to point to a SuperToken logic contract which is already verified
-    try_verify SETHProxy@"${SUPER_TOKEN_NATIVE_COIN}"
+    try_verify SuperToken@"${SUPER_TOKEN_NATIVE_COIN}" --custom-proxy SETHProxy
+fi
+
+# optional peripery contracts
+
+if [ -n "$TOGA" ];then
+    try_verify TOGA@"${TOGA}"
+fi
+
+if [ -n "$BATCH_LIQUIDATOR" ];then
+    try_verify BatchLiquidator@"${BATCH_LIQUIDATOR}"
+fi
+
+if [ -n "$FLOW_SCHEDULER" ];then
+    try_verify FlowScheduler@"${FLOW_SCHEDULER}"
+fi
+
+if [ -n "$VESTING_SCHEDULER" ];then
+    try_verify VestingScheduler@"${VESTING_SCHEDULER}"
 fi
 
 set +x

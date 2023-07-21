@@ -5,6 +5,7 @@ const deployFramework = require("../../ops-scripts/deploy-framework");
 const deployTestToken = require("../../ops-scripts/deploy-test-token");
 const deploySuperToken = require("../../ops-scripts/deploy-super-token");
 const deployTestEnvironment = require("../../ops-scripts/deploy-test-environment");
+const deployAuxContracts = require("../../ops-scripts/deploy-aux-contracts");
 const {expect} = require("chai");
 const Resolver = artifacts.require("Resolver");
 const TestToken = artifacts.require("TestToken");
@@ -135,7 +136,7 @@ contract("Embedded deployment scripts", (accounts) => {
             const a1 = await web3tx(
                 ConstantFlowAgreementV1.new,
                 "ConstantFlowAgreementV1.new 1"
-            )(ZERO_ADDRESS, ZERO_ADDRESS);
+            )(ZERO_ADDRESS);
             assert.isFalse(
                 await codeChanged(web3, ConstantFlowAgreementV1, a1.address)
             );
@@ -501,6 +502,15 @@ contract("Embedded deployment scripts", (accounts) => {
 
         it("ops-scripts/deploy-test-environment.js", async () => {
             await deployTestEnvironment(errorHandler, [], deploymentOptions);
+        });
+
+        it("ops-scripts/deploy-aux-contracts.js", async () => {
+            const resolver = await web3tx(Resolver.new, "Resolver.new")();
+            process.env.RESOLVER_ADDRESS = resolver.address;
+
+            await deployFramework(errorHandler, deploymentOptions);
+
+            await deployAuxContracts(errorHandler, deploymentOptions);
         });
     });
 

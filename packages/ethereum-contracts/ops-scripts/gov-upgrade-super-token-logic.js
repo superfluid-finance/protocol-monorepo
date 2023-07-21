@@ -45,7 +45,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         console.log(`File with tokens to be skipped: ${skipTokensFile}`);
         const chainId = await web3.eth.getChainId();
         const fileContents = JSON.parse(fs.readFileSync(skipTokensFile));
-        skipTokens = fileContents[chainId];
+        skipTokens = fileContents[chainId] || [];
         for (const t of skipTokens) {
             if (!web3.utils.isAddress(t)) {
                 throw new Error(`Invalid address: ${t}`);
@@ -185,7 +185,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                     }
                 } catch (e) {
                     console.log(`failed to read constantOutflowNFT addr: ${e.toString()}`);
-                    console.log("this is expected if running againt a pre-1.6.0 deployment");
+                    console.log("this is expected if running against a pre-1.6.0 deployment");
                 }
             }
         }

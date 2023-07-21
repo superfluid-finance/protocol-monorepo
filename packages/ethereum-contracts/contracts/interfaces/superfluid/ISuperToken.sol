@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: AGPLv3
+// SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.4;
 
 import { ISuperfluid } from "./ISuperfluid.sol";
@@ -48,7 +48,10 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     /**************************************************************************
     * Immutable variables
     *************************************************************************/
+
+    // solhint-disable-next-line func-name-mixedcase
     function CONSTANT_OUTFLOW_NFT() external view returns (IConstantOutflowNFT);
+    // solhint-disable-next-line func-name-mixedcase
     function CONSTANT_INFLOW_NFT() external view returns (IConstantInflowNFT);
 
     /**************************************************************************

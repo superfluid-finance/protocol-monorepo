@@ -25,6 +25,7 @@
   flake-utils.lib.eachDefaultSystem (system:
   let
     solcVer = "solc_0_8_19";
+    minDevSolcVer = "solc_0_8_4"; # minimum solidity version used for external development
     ghcVer92 = "ghc928";
     ghcVer94 = "ghc945";
 
@@ -52,6 +53,7 @@
     # solidity dev inputs
     ethDevInputs = with pkgs; [
       foundry-bin
+      pkgs.${minDevSolcVer}
       pkgs.${solcVer}
     ];
 

@@ -1,0 +1,10 @@
+{
+    "network": "base-testnet",
+    "hostStartBlock": 5249500,
+    "hostAddress": "0x507c3a7C6Ccc253884A2e3a3ee2A211cC7E796a6",
+    "cfaAddress": "0x4C476F2Fb27272680F2f6f2592E94d9e704691bC",
+    "idaAddress": "0xaa4FCc799B8857FA87b2945Dc6572D5d76b35485",
+    "superTokenFactoryAddress": "0x1015BE31D7711D95d2c3444708FB53cC851ba856",
+    "resolverV1Address": "0x598D5dB9902cbBd6e8Ee9CDb3A231377cdA2f018",
+    "nativeAssetSuperTokenAddress": "0x7fFCE315B2014546bA461d54eDed7AAc70DF4f53"
+}

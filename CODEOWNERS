@@ -12,6 +12,7 @@
 #
 /packages/spec-haskell/ @hellwolf
 /packages/ethereum-contracts/ @hellwolf @0xdavinchee
+/packages/metadata @hellwolf @d10r @ngmachado @0xdavinchee @kasparkallas @vmichalik @philipandersson
 /packages/js-sdk/ @hellwolf @kasparkallas @0xdavinchee
 /packages/subgraph/ @0xdavinchee @kasparkallas @hellwolf
 /packages/sdk-core/ @0xdavinchee @kasparkallas @hellwolf

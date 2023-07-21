@@ -185,7 +185,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                     }
                 } catch (e) {
                     console.log(`failed to read constantOutflowNFT addr: ${e.toString()}`);
-                    console.log("this is expected if running againt a pre-1.6.0 deployment");
+                    console.log("this is expected if running against a pre-1.6.0 deployment");
                 }
             }
         }

@@ -229,7 +229,7 @@ export default
         "isTestnet": true,
         "networkId": 1442,
         "chainId": 1442,
-        "shortName": "polgyon-zktest",
+        "shortName": "pzkevmtest",
         "uppercaseName": "POLYGON_ZKEVM_TESTNET",
         "humanReadableName": "Polygon zkEVM Testnet",
         "nativeTokenSymbol": "ETH",
@@ -553,5 +553,38 @@ export default
             "https://rpc.ankr.com/celo"
         ],
         "coinGeckoId": "celo"
+    },
+    {
+        "name": "base-mainnet",
+        "isTestnet": false,
+        "networkId": 8453,
+        "chainId": 8453,
+        "shortName": "base",
+        "uppercaseName": "BASE_MAINNET",
+        "humanReadableName": "Base",
+        "nativeTokenSymbol": "ETH",
+        "nativeTokenWrapper": "0x46fd5cfB4c12D87acD3a13e92BAa53240C661D93",
+        "contractsV1": {
+            "resolver": "0x6a214c324553F96F04eFBDd66908685525Da0E0d",
+            "host": "0x4C073B3baB6d8826b8C5b229f3cfdC1eC6E47E74",
+            "governance": "0x55F7758dd99d5e185f4CC08d4Ad95B71f598264D",
+            "cfaV1": "0x19ba78B9cDB05A877718841c574325fdB53601bb",
+            "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
+            "idaV1": "0x66DF3f8e14CF870361378d8F61356D15d9F425C4",
+            "superTokenFactory": "0xe20B9a38E0c96F61d1bA6b42a61512D56Fea1Eb3",
+            "superfluidLoader": "0x6B24A6F34ab96267Fef9F8AC9fe6CC104C228127",
+            "toga": "0xA87F76e99f6C8Ff8996d14f550ceF47f193D9A09",
+            "batchLiquidator": "0x889ebeCaD5F8C34Fd96023456d0fC5cE54eb74Cb"
+        },
+        "startBlockV1": 1000000,
+        "logsQueryRange": 20000,
+        "explorer": "https://basescan.org",
+        "subgraphV1": {
+            "name": "protocol-v1-base-mainnet"
+        },
+        "publicRPCs": [
+            "https://developer-access-mainnet.base.org"
+        ],
+        "coinGeckoId": "base"
     }
 ]

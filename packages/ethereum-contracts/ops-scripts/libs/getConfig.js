@@ -1,11 +1,12 @@
 const sfMetadata = require("@superfluid-finance/metadata");
 
+module.exports = function getConfig(chainId) {
+
 /*
  * REFERENCES:
  * - https://docs.biconomy.io/misc/contract-addresses
  */
 
-module.exports = function getConfig(chainId) {
     const EXTRA_CONFIG = {
         // Local Testing
         4447: {
@@ -59,6 +60,7 @@ module.exports = function getConfig(chainId) {
         },
         cfaFwd: sfNw?.contractsV1?.cfaV1Forwarder || "0xcfA132E353cB4E398080B9700609bb008eceB125",
         nativeTokenSymbol: sfNw?.nativeTokenSymbol || "ETH",
+        metadata: sfNw,
         resolverAddress: global?.process.env.RESOLVER_ADDRESS || sfNw?.contractsV1?.resolver,
         ...EXTRA_CONFIG[chainId]
     };

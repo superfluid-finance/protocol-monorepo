@@ -25,8 +25,8 @@
   outputs = { self, nixpkgs, flake-utils, foundry, solc, certora } :
   flake-utils.lib.eachDefaultSystem (system:
   let
-    solcVer = "solc_0_8_19"; # solidity version used for local development
-    minDevSolcVer = "solc_0_8_4"; # minimum solidity version used for external development
+    solcVer = "solc_0_8_21"; # solidity version used for local development
+    minDevSolcVer = "solc_0_8_11"; # minimum solidity version used for external development
     ghcVer = "ghc944";
 
     pkgs = import nixpkgs {

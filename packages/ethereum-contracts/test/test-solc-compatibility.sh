@@ -32,7 +32,7 @@ ln -sf ../../node_modules/@openzeppelin .
 
 # verify they are compatible with the minimum version of the SOLC we support
 find contracts/{interfaces/,apps/} -name '*.sol' | while read i;do
-  $SOLC --allow-paths . $i
+  $SOLC --allow-paths @openzeppelin $i
 done
 
 echo SUCCESS

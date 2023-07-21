@@ -67,6 +67,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         output += "IS_TESTNET=1\n";
     }
     output += `NETWORK_ID=${networkId}\n`;
+    output += `RESOLVER=${sf.resolver.address}\n`;
     output += `SUPERFLUID_LOADER=${sf.loader.address}\n`;
     output += `SUPERFLUID_HOST_PROXY=${sf.host.address}\n`;
     output += `SUPERFLUID_HOST_LOGIC=${await getCodeAddress(
@@ -182,6 +183,21 @@ module.exports = eval(`(${S.toString()})()`)(async function (
                 sf.tokens[sf.config.nativeTokenSymbol + "x"].address
             }\n`;
         }
+    }
+
+    // optional periphery contracts
+
+    if (config.metadata?.contractsV1?.toga) {
+        output += `TOGA=${config.metadata.contractsV1.toga}\n`;
+    }
+    if (config.metadata?.contractsV1?.batchLiquidator) {
+        output += `BATCH_LIQUIDATOR=${config.metadata.contractsV1.batchLiquidator}\n`;
+    }
+    if (config.metadata?.contractsV1?.flowScheduler) {
+        output += `FLOW_SCHEDULER=${config.metadata.contractsV1.flowScheduler}\n`;
+    }
+    if (config.metadata?.contractsV1?.vestingScheduler) {
+        output += `VESTING_SCHEDULER=${config.metadata.contractsV1.vestingScheduler}\n`;
     }
 
     await util.promisify(fs.writeFile)(outputFilename, output);

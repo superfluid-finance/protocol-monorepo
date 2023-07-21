@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # This script checks that the built files are consistent with the committed files.
 
 set -xe

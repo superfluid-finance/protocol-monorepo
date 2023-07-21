@@ -63,11 +63,11 @@
       nodejs.pkgs.yarn
       nodejs.pkgs.nodemon
     ];
+    node16DevInputs = nodeDevInputsWith pkgs.nodejs-16_x;
     node18DevInputs = nodeDevInputsWith pkgs.nodejs-18_x;
-    node20DevInputs = nodeDevInputsWith pkgs.nodejs-20_x;
 
     # minimem development shell
-    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node20DevInputs;
+    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
 
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
@@ -138,11 +138,11 @@
         ++ specInputs;
     };
     # CI shells
+    devShells.ci-node16 = mkShell {
+      buildInputs = commonDevInputs ++ ethDevInputs ++ node16DevInputs;
+    };
     devShells.ci-node18 = mkShell {
       buildInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
-    };
-    devShells.ci-node20 = mkShell {
-      buildInputs = commonDevInputs ++ ethDevInputs ++ node20DevInputs;
     };
     devShells.ci-spec-ghc92 = ci-spec-with-ghc ghcVer92;
     devShells.ci-spec-ghc94 = ci-spec-with-ghc ghcVer94;

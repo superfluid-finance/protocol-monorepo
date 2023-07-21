@@ -17,6 +17,7 @@ import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
  * @title SuperfluidPool
  * @author Superfluid
  * @notice A SuperfluidPool which can be used to distribute any SuperToken.
+ * @dev Because we are using uint128, uint256 doesn't work here.
  */
 contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     using SemanticMoney for BasicParticle;
@@ -234,7 +235,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         returns (PDPoolIndex memory pdPoolIndex)
     {
         pdPoolIndex = PDPoolIndex({
-            total_units: Unit.wrap(uint256(data.totalUnits).toInt256().toInt128()),
+            total_units: _toSemanticMoneyUnit(data.totalUnits),
             _wrapped_particle: _poolIndexDataToWrappedParticle(data)
         });
     }
@@ -258,7 +259,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         returns (PDPoolMember memory pdPoolMember)
     {
         pdPoolMember = PDPoolMember({
-            owned_units: Unit.wrap(uint256(memberData.ownedUnits).toInt256().toInt128()),
+            owned_units: _toSemanticMoneyUnit(memberData.ownedUnits),
             _synced_particle: BasicParticle({
                 _settled_at: Time.wrap(memberData.syncedSettledAt),
                 _flow_rate: FlowRate.wrap(int128(memberData.syncedFlowRate)), // upcast from int96 is safe
@@ -268,11 +269,9 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         });
     }
 
-    // TODO replace .toInt256().toUint128());
-    // look for other repeated casting here
-    function _toSemanticMoneyUnit(uint128 units) internal returns (Unit) {
+    function _toSemanticMoneyUnit(uint128 units) internal pure returns (Unit) {
         // @note safe upcasting from uint128 to uint256
-        // + use of safecast library
+        // and use of safecast library for downcasting from uint256 to int128
         return Unit.wrap(uint256(units).toInt256().toInt128());
     }
 
@@ -348,7 +347,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
         uint32 time = uint32(ISuperfluid(superToken.getHost()).getNow());
         Time t = Time.wrap(time);
-        Unit wrappedUnits = Unit.wrap(uint256(newUnits).toInt256().toInt128());
+        Unit wrappedUnits = _toSemanticMoneyUnit(newUnits);
 
         PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
         PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(_membersData[memberAddr]);

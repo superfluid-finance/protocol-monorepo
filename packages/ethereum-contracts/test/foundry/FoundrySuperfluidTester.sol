@@ -1405,10 +1405,15 @@ contract FoundrySuperfluidTester is Test {
         if (caller_ == address(0) || member_ == address(0) || sf.gda.isPool(poolSuperToken, member_)) return;
 
         (bool isConnected, int256 oldUnits, int96 oldFlowRate) = _helperGetMemberInitialState(pool_, member_);
+        (uint128 totalUnitsBefore, uint128 connectedUnitsBefore, uint128 disconnectedUnitsBefore) =
+            _helperGetPoolUnitsData(pool_);
 
         vm.startPrank(caller_);
         pool_.updateMemberUnits(member_, newUnits_);
         vm.stopPrank();
+
+        (uint128 totalUnitsAfter, uint128 connectedUnitsAfter, uint128 disconnectedUnitsAfter) =
+            _helperGetPoolUnitsData(pool_);
 
         {
             _helperTakeBalanceSnapshot(ISuperToken(address(poolSuperToken)), member_);
@@ -1437,6 +1442,18 @@ contract FoundrySuperfluidTester is Test {
         // TODO: how does flowRate/netFlowRate for a member get impacted by this?
 
         // Assert Pool Units are set
+        assertEq(totalUnitsBefore + unitsDelta, totalUnitsAfter, "_helperUpdateMemberUnits: Pool total units incorrect");
+        assertEq(
+            connectedUnitsBefore + (isConnected ? unitsDelta : int128(0)),
+            connectedUnitsAfter,
+            "_helperUpdateMemberUnits: Pool connected units incorrect"
+        );
+        assertEq(
+            disconnectedUnitsBefore + (isConnected ? int128(0) : unitsDelta),
+            disconnectedUnitsAfter,
+            "_helperUpdateMemberUnits: Pool disconnected units incorrect"
+        );
+
         _assertPoolUnits(pool_);
 
         // Assert Pool Member NFT is minted/burned
@@ -1712,16 +1729,22 @@ contract FoundrySuperfluidTester is Test {
 
     function _helperGetMemberInitialState(ISuperfluidPool pool_, address member_)
         internal
+        view
         returns (bool isConnected, int256 oldUnits, int96 oldFlowRate)
     {
         oldUnits = uint256(pool_.getUnits(member_)).toInt256();
-        assertEq(
-            oldUnits,
-            pool_.balanceOf(member_).toInt256(),
-            "_helperGetMemberInitialState: member units != member balanceOf"
-        );
         isConnected = sf.gda.isMemberConnected(pool_, member_);
         oldFlowRate = pool_.getMemberFlowRate(member_);
+    }
+
+    function _helperGetPoolUnitsData(ISuperfluidPool pool_)
+        internal
+        view
+        returns (uint128 totalUnits, uint128 connectedUnits, uint128 disconnectedUnits)
+    {
+        totalUnits = pool_.getTotalUnits();
+        connectedUnits = pool_.getTotalConnectedUnits();
+        disconnectedUnits = pool_.getTotalDisconnectedUnits();
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -1877,43 +1900,6 @@ contract FoundrySuperfluidTester is Test {
     }
 
     // GeneralDistributionAgreement Assertions
-
-    function _assertPoolUnits(ISuperfluidPool _pool) internal {
-        _assertPoolTotalUnits(_pool);
-        _assertPoolConnectedUnits(_pool);
-        _assertPoolDisconnectedUnits(_pool);
-    }
-
-    function _assertPoolDisconnectedUnits(ISuperfluidPool _pool) internal {
-        int128 disconnectedUnits = uint256(_pool.getTotalDisconnectedUnits()).toInt256().toInt128();
-        assertEq(
-            _expectedPoolData[address(_pool)].disconnectedUnits,
-            disconnectedUnits,
-            "_assertPoolDisconnectedUnits: Pool disconnected units incorrect"
-        );
-    }
-
-    function _assertPoolConnectedUnits(ISuperfluidPool _pool) internal {
-        int128 connectedUnits = uint256(_pool.getTotalConnectedUnits()).toInt256().toInt128();
-
-        assertEq(
-            _expectedPoolData[address(_pool)].totalUnits - _expectedPoolData[address(_pool)].disconnectedUnits,
-            connectedUnits,
-            "_assertPoolConnectedUnits: Pool disconnected units incorrect"
-        );
-    }
-
-    function _assertPoolTotalUnits(ISuperfluidPool _pool) internal {
-        int128 totalUnits = uint256(_pool.getTotalUnits()).toInt256().toInt128();
-        int128 totalSupply = _pool.totalSupply().toInt256().toInt128();
-
-        assertEq(
-            _expectedPoolData[address(_pool)].totalUnits,
-            totalUnits,
-            "_assertPoolTotalUnits: Pool total units incorrect"
-        );
-        assertEq(totalUnits, totalSupply, "_assertPoolTotalUnits: Pool total units != total supply");
-    }
 
     function _assertPoolAllowance(ISuperfluidPool _pool, address owner, address spender, uint256 expectedAllowance)
         internal

@@ -35,9 +35,11 @@
         foundry.overlay
         solc.overlay
       ];
-      permittedInsecurePackages = [
+      config = {
+        permittedInsecurePackages = [
           "nodejs-16.20.1"
-      ];
+        ];
+      };
     };
 
     # ghc ecosystem

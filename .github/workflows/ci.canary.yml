@@ -60,7 +60,6 @@ jobs:
 
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
-    if: false # broken atm
 
   test-subgraph:
     uses: ./.github/workflows/call.test-local-subgraph.yml
@@ -203,7 +202,7 @@ jobs:
     needs: [ essential-build-and-test
            , test-spec-haskell
            , test-solidity-semantic-money
-          #  , test-hot-fuzz
+           , test-hot-fuzz
            , test-subgraph
            , coverage-ethereum-contracts
            , coverage-sdk-core

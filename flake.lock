@@ -1,28 +1,5 @@
 {
   "nodes": {
-    "certora": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1683365667,
-        "narHash": "sha256-AWhzUCjztJT8L1Mp+Rsh29Yy3ZzvWHQrQUgd57knO8c=",
-        "owner": "hellwolf",
-        "repo": "certora.nix",
-        "rev": "40f53c4cdab334629604d444ef286585418c79da",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hellwolf",
-        "repo": "certora.nix",
-        "type": "github"
-      }
-    },
     "flake-utils": {
       "inputs": {
         "systems": "systems"
@@ -67,11 +44,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1689844446,
-        "narHash": "sha256-ud/6XYWbXFAJuTTApWyYlFtlc54NAxChS1T9Ns+qT7M=",
+        "lastModified": 1690026219,
+        "narHash": "sha256-oOduRk/kzQxOBknZXTLSEYd7tk+GoKvr8wV6Ab+t4AU=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "2d82894fa1e2d23a22f40275a78bfbb09b92ffde",
+        "rev": "f465da166263bc0d4b39dfd4ca28b777c92d4b73",
         "type": "github"
       },
       "original": {
@@ -83,7 +60,6 @@
     },
     "root": {
       "inputs": {
-        "certora": "certora",
         "flake-utils": "flake-utils",
         "foundry": "foundry",
         "nixpkgs": "nixpkgs",

@@ -14,14 +14,9 @@
       inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    certora = {
-      url = "github:hellwolf/certora.nix";
-      inputs.flake-utils.follows = "flake-utils";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, foundry, solc, certora } :
+  outputs = { self, nixpkgs, flake-utils, foundry, solc } :
   flake-utils.lib.eachDefaultSystem (system:
   let
     solcVer = "solc_0_8_19";
@@ -72,7 +67,7 @@
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [
       slither-analyzer
-      # echidna # disable for now
+      echidna
     ];
 
     # spec developing specification
@@ -99,12 +94,7 @@
         collection-bibtexextra collection-mathscience
         collection-fontsrecommended collection-fontsextra;
       })
-    ]
-
-    # certora tooling
-    ++ [
-      python3
-    ] ++ certora.devInputs.${system};
+    ];
 
     # mkShell wrapper, to expose additional environment variables
     mkShell = o : pkgs.mkShell ({

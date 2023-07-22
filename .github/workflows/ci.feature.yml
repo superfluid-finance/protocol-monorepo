@@ -138,7 +138,6 @@ jobs:
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
     needs: [ check ]
-    if: false # TODO broken atm, otherwise needs.check.outputs.build_hot_fuzz
 
   test-solidity-semantic-money:
     uses: ./.github/workflows/call.test-solidity-semantic-money.yml

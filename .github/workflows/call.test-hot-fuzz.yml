@@ -24,7 +24,7 @@ jobs:
         run: |
           set -xe
           slither --version
-          echidna-test --version
+          echidna --version
 
       - name: Run Yarn Install
         run: yarn install

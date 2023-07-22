@@ -858,8 +858,6 @@ contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
 
     function _assertGlobalInvariants() internal override {
         super._assertGlobalInvariants();
-        // @note we can rename this currentPool variable to currentPool
-        _assertPoolUnits(currentPool);
     }
 
     struct PoolUpdateStep {

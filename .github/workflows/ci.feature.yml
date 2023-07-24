@@ -130,7 +130,6 @@ jobs:
       - name: Upload ethereum-contracts-coverage to codecov
         uses: codecov/codecov-action@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov.info
           name: ethereum-contracts-coverage
           flags: ethereum-contracts

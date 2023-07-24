@@ -930,7 +930,7 @@ library SuperTokenV1Library {
         return gda.estimateDistributionActualAmount(token, from, to, requestedAmount);
     }
 
-    function isMemberConnected(ISuperToken token, address pool, address member) public view returns (bool) {
+    function isMemberConnected(ISuperToken token, address pool, address member) internal view returns (bool) {
         (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
         return gda.isMemberConnected(token, pool, member);
     }

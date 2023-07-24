@@ -407,6 +407,7 @@ const E = (module.exports = {
         gnosisscan: process.env.GNOSISSCAN_API_KEY,
         celoscan: process.env.CELOSCAN_API_KEY,
         basescan: process.env.BASESCAN_API_KEY,
+        zkevm_polygonscan: process.env.ZKEVM_POLYGONSCAN_API_KEY,
     },
 });
 

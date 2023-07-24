@@ -296,13 +296,13 @@ export default class SuperfluidPool {
      * @param signer The transaction signer.
      * @returns A promise that resolves when the update is complete.
      */
-    updateMember = async (
+    updateMemberUnits = async (
         params: UpdateMemberParams
     ): Promise<ContractTransaction> => {
         const normalizedMember = normalizeAddress(params.member);
         return await this.contract
             .connect(params.signer)
-            .updateMember(normalizedMember, params.newUnits);
+            .updateMemberUnits(normalizedMember, params.newUnits);
     };
 
     /**

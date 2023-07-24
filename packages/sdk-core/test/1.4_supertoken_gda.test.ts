@@ -347,7 +347,7 @@ makeSuite(
                     testEnv.alice.address
                 );
                 const newUnits = "10000";
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits,
                     signer: testEnv.alice,
@@ -374,7 +374,7 @@ makeSuite(
                     testEnv.alice.address
                 );
                 const newUnits = "10000";
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits,
                     signer: testEnv.alice,
@@ -407,7 +407,7 @@ makeSuite(
                     testEnv.alice.address
                 );
                 const newUnits = "10000";
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits,
                     signer: testEnv.alice,
@@ -440,7 +440,7 @@ makeSuite(
                     testEnv.alice.address
                 );
                 const newUnits = "10000";
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits,
                     signer: testEnv.alice,
@@ -472,7 +472,7 @@ makeSuite(
                     testEnv.alice.address
                 );
                 const newUnits = "10000";
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits,
                     signer: testEnv.alice,
@@ -511,13 +511,13 @@ makeSuite(
                     testEnv.alice.address
                 );
                 const newUnits = "69";
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits,
                     signer: testEnv.alice,
                 });
                 const increasedUnits = "420";
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits: increasedUnits,
                     signer: testEnv.alice,
@@ -537,13 +537,13 @@ makeSuite(
                     testEnv.alice.address
                 );
                 const newUnits = "420";
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits,
                     signer: testEnv.alice,
                 });
                 const decreasedUnits = "69";
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits: decreasedUnits,
                     signer: testEnv.alice,
@@ -563,12 +563,12 @@ makeSuite(
                     testEnv.alice.address
                 );
                 const newUnits = "420";
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits,
                     signer: testEnv.alice,
                 });
-                await pool.updateMember({
+                await pool.updateMemberUnits({
                     member: testEnv.bob.address,
                     newUnits: "0",
                     signer: testEnv.alice,
@@ -592,7 +592,7 @@ makeSuite(
                             testEnv.alice.address
                         );
                         const newUnits = "420";
-                        await pool.updateMember({
+                        await pool.updateMemberUnits({
                             member: testEnv.bob.address,
                             newUnits,
                             signer: testEnv.alice,
@@ -789,7 +789,7 @@ const shouldUpdateMember = async (params: ShouldUpdateMemberParams) => {
     const totalSupplyBefore = await params.pool.totalSupply(providerSigner);
     const totalUnitsBefore = await params.pool.getTotalUnits(providerSigner);
     const unitsDelta = toBN(params.newUnits).sub(memberUnitsBefore);
-    await params.pool.updateMember({
+    await params.pool.updateMemberUnits({
         member: params.member.address,
         newUnits: params.newUnits,
         signer: params.admin,
@@ -879,7 +879,7 @@ const shouldInstantDistributeTokensToOneMember = async (
             account: params.member.address,
             providerOrSigner: params.member,
         });
-    await pool.updateMember({
+    await pool.updateMemberUnits({
         member: params.member.address,
         newUnits: params.newUnits,
         signer: params.admin,
@@ -946,7 +946,7 @@ const shouldDistributeFlow = async (params: ShouldFlowDistributeParams) => {
         params.admin.address
     );
     const newUnits = "10";
-    await pool.updateMember({
+    await pool.updateMemberUnits({
         member: params.member.address,
         newUnits,
         signer: params.admin,

@@ -104,7 +104,7 @@ describe("SuperTokenV1Library.GDA", function () {
 
         it("#1.2 Should be able to distribute to pool", async () => {
             expect(await pool.getUnits(bob)).to.equal("0");
-            await pool.connect(admin).updateMember(bob, "10");
+            await pool.connect(admin).updateMemberUnits(bob, "10");
             expect(await pool.getUnits(bob)).to.equal("10");
             const bobBalanceBefore = await superToken.balanceOf(bob);
             const requestedDistributionAmount = "100";
@@ -136,7 +136,7 @@ describe("SuperTokenV1Library.GDA", function () {
 
         it("#1.3 Should be able to distribute flow to pool", async () => {
             expect(await pool.getUnits(bob)).to.equal("0");
-            await pool.connect(admin).updateMember(bob, "10");
+            await pool.connect(admin).updateMemberUnits(bob, "10");
             expect(await pool.getUnits(bob)).to.equal("10");
             const requestedFlowRate = "99";
             const estimatedFlowDistributionActualFlowRate =

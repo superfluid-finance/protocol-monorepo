@@ -50,6 +50,7 @@
       foundry-bin
       pkgs.${minDevSolcVer}
       pkgs.${solcVer}
+      (solc.mkDefault pkgs pkgs.${solcVer})
     ];
 
     # nodejs ecosystem

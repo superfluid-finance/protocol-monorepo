@@ -135,6 +135,7 @@ jobs:
           name: ethereum-contracts-coverage
           flags: ethereum-contracts
           fail_ci_if_error: true
+          verbose: true
 
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml

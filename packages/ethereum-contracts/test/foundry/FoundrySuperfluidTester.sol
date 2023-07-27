@@ -1678,13 +1678,10 @@ contract FoundrySuperfluidTester is Test {
         ISuperfluidPool _pool,
         int96 requestedFlowRate
     ) internal {
-        int96 fromGlobalNetFlowRateBefore = sf.gda.getNetFlow(_superToken, from);
         int96 fromToPoolFlowRateBefore = sf.gda.getFlowRate(_superToken, from, _pool);
 
         (int96 actualFlowRate, int96 totalDistributionFlowRate) =
             sf.gda.estimateFlowDistributionActualFlowRate(_superToken, from, _pool, requestedFlowRate);
-
-        int96 poolTotalFlowRateBefore = _pool.getTotalFlowRate();
 
         vm.startPrank(caller);
         _superToken.distributeFlow(from, _pool, requestedFlowRate);
@@ -1694,17 +1691,23 @@ contract FoundrySuperfluidTester is Test {
             _helperTakeBalanceSnapshot(_superToken, from);
         }
 
-        int96 poolTotalFlowRateAfter = _pool.getTotalFlowRate();
-        int96 fromGlobalNetFlowRateAfter = sf.gda.getNetFlow(_superToken, from);
-        int96 fromToPoolFlowRateAfter = sf.gda.getFlowRate(_superToken, from, _pool);
+        {
+            // Assert distributor flow rate
+            int96 fromToPoolFlowRateAfter = sf.gda.getFlowRate(_superToken, from, _pool);
+            assertEq(
+                fromToPoolFlowRateAfter,
+                actualFlowRate,
+                "_helperDistributeFlow: from flow rate should be actual flow rate"
+            );
 
-        int96 fromGlobalNetFlowRateDelta = fromGlobalNetFlowRateAfter - fromGlobalNetFlowRateBefore;
-
-        // assertEq(
-        //     poolTotalFlowRateAfter,
-        //     totalDistributionFlowRate,
-        //     "_helperDistributeFlow: pool total flow rate != total distribution flow rate"
-        // );
+            // Assert pool total flow rate
+            int96 poolTotalFlowRateAfter = _pool.getTotalFlowRate();
+            assertEq(
+                poolTotalFlowRateAfter,
+                totalDistributionFlowRate,
+                "_helperDistributeFlow: pool total flow rate != total distribution flow rate"
+            );
+        }
 
         // Assert Outflow NFT is minted to distributor
         // Assert Inflow NFT is minted to pool

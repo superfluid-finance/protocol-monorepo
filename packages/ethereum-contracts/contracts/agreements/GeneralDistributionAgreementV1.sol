@@ -237,8 +237,13 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             fromUIndexData.shift_flow2b(pdpIndex, flowRateDelta + currentAdjustmentFlowRate, t);
         newActualFlowRate =
             oldFlowRate + (newDistributionFlowRate - oldDistributionFlowRate) - currentAdjustmentFlowRate;
+
         actualFlowRate = int256(FlowRate.unwrap(newActualFlowRate)).toInt96();
         totalDistributionFlowRate = int256(FlowRate.unwrap(newDistributionFlowRate)).toInt96();
+
+        if (actualFlowRate < 0) {
+            actualFlowRate = 0;
+        }
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1

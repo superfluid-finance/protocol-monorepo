@@ -891,6 +891,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             } else if (action == 1) {
                 emit log_named_string("action", "distributeFlow");
                 emit log_named_uint("flow rate", s.v);
+                if (sf.gda.getFlowRate(superToken, user, currentPool) == 0) {
+                    vm.assume(s.v > 0);
+                }
                 _helperDistributeFlow(superToken, user, user, currentPool, int96(uint96(s.v)));
             } else if (action == 2) {
                 address u4 = TEST_ACCOUNTS[1 + (s.v % N_MEMBERS)];

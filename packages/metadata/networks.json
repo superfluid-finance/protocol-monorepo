@@ -239,7 +239,7 @@
             "cfaV1": "0x1EAa5ceA064aab2692AF257FB31f5291fdA3Cdee",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0xBf22019a4A4430bA67D3B0c8B4d5Edc48F913301",
-            "superTokenFactory": "0xC95346B7394009ccEfaA62Eca28797804B2bCF1C",
+            "superTokenFactory": "0x0F3B163623F05b2BfF42956f7C7bd31456bd83a2",
             "superfluidLoader": "0xda6db863cb2EE39b196edB8159c38A1ed5c55344"
         },
         "startBlockV1": 726000,

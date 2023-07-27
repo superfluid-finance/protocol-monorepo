@@ -154,7 +154,6 @@ contract FoundrySuperfluidTester is Test {
     mapping(ISuperToken => mapping(bytes32 subId => uint128 indexValue)) internal _lastUpdatedSubIndexValues;
 
     /// @notice A mapping from pool to
-    mapping(address pool => ExpectedSuperfluidPoolData expectedData) internal _expectedPoolData;
     mapping(address pool => EnumerableSet.AddressSet members) internal _poolMembers;
     mapping(address pool => mapping(address member => ExpectedPoolMemberData expectedData)) internal
         _poolToExpectedMemberData;
@@ -1433,9 +1432,7 @@ contract FoundrySuperfluidTester is Test {
             _helperTakeBalanceSnapshot(ISuperToken(address(poolSuperToken)), member_);
         }
 
-        assertEq(pool_.getUnits(member_), newUnits_, "GDAv1.t: Units incorrectly set");
-
-        int256 unitsDelta = uint256(newUnits_).toInt256() - oldUnits;
+        assertEq(pool_.getUnits(member_), newUnits_, "GDAv1.t: Members' units incorrectly set");
 
         // Assert that pending balance is claimed if user is disconnected
         if (!isConnected) {
@@ -1445,22 +1442,28 @@ contract FoundrySuperfluidTester is Test {
             );
         }
 
-        // TODO: how do we get the connected/disconnected/adjustment flow rates and connected balance?
-        // NOTE: actualFlowRate of all distributors should be totalDistributionFlowRate + adjustmentFlowRate
-        // we should not recalculate the adjustment flow rate and other flow rates, but we should keep track
-        // of the changes in flow rates and ensure that the global invariants hold for those instead of
-        // duplicating the logic here and asserting that the state changes occuring in the code is the same
-        // as the state changes replicated in here
+        // Assert that the flow rate for a member is updated accordingly
+        {
+            int96 poolTotalFlowRate = pool_.getTotalFlowRate();
+            uint128 totalUnits = pool_.getTotalUnits();
+            uint128 flowRatePerUnit = totalUnits == 0 ? 0 : uint128(uint96(poolTotalFlowRate)) / totalUnits;
+            int96 memberFlowRate = pool_.getMemberFlowRate(member_);
+            assertEq(
+                flowRatePerUnit * newUnits_,
+                uint128(uint96(memberFlowRate)),
+                "_helperUpdateMemberUnits: Member flow rate incorrect"
+            );
+        }
 
         // Update Expected Member Data
         if (newUnits_ > 0) {
             // @note You are only considered a member if you are given units
             _poolMembers[address(pool_)].add(member_);
         }
-        // TODO: how does flowRate/netFlowRate for a member get impacted by this?
 
-        // Assert Pool Units are set
+        // Assert Pool Total, Connected and Disconnect Units are correct
         {
+            int256 unitsDelta = uint256(newUnits_).toInt256() - oldUnits;
             assertEq(
                 uint256(uint256(poolUnitDataBefore.totalUnits).toInt256() + unitsDelta),
                 poolUnitDataAfter.totalUnits,
@@ -1579,8 +1582,6 @@ contract FoundrySuperfluidTester is Test {
                 "_helperDisconnectPool: Pool disconnected flow rate incorrect"
             );
         }
-        _expectedPoolData[address(pool_)].connectedFlowRate -= isConnectedBefore ? oldFlowRate : int96(0);
-        _expectedPoolData[address(pool_)].disconnectedFlowRate += isConnectedBefore ? oldFlowRate : int96(0);
 
         // Assert RTB for all users
         // _assertRealTimeBalances(superToken_);

@@ -1588,43 +1588,48 @@ contract FoundrySuperfluidTester is Test {
     }
 
     function _helperDistributeViaGDA(
-        ISuperToken _superToken,
-        address caller,
-        address from,
-        ISuperfluidPool _pool,
+        ISuperToken superToken_,
+        address caller_,
+        address from_,
+        ISuperfluidPool pool_,
         uint256 requestedAmount
     ) internal {
-        (int256 fromRTBBefore,,,) = superToken.realtimeBalanceOfNow(from);
+        (int256 fromRTBBefore,,,) = superToken.realtimeBalanceOfNow(from_);
 
         uint256 actualAmountDistributed =
-            sf.gda.estimateDistributionActualAmount(superToken, alice, _pool, requestedAmount);
+            sf.gda.estimateDistributionActualAmount(superToken, alice, pool_, requestedAmount);
 
-        address[] memory members = _poolMembers[address(_pool)].values();
+        address[] memory members = _poolMembers[address(pool_)].values();
         uint256[] memory memberBalancesBefore = new uint256[](members.length);
+        uint256[] memory memberClaimableBefore = new uint256[](members.length);
 
         for (uint256 i = 0; i < members.length; ++i) {
             (int256 memberRTB,,,) = superToken.realtimeBalanceOfNow(members[i]);
             memberBalancesBefore[i] = uint256(memberRTB);
+            (int256 claimable,) = pool_.getClaimableNow(members[i]);
+            memberClaimableBefore[i] = uint256(claimable);
         }
 
-        vm.startPrank(caller);
+        vm.startPrank(caller_);
         sf.host.callAgreement(
             sf.gda,
-            abi.encodeCall(sf.gda.distribute, (_superToken, from, _pool, requestedAmount, new bytes(0))),
+            abi.encodeCall(sf.gda.distribute, (superToken_, from_, pool_, requestedAmount, new bytes(0))),
             new bytes(0)
         );
         vm.stopPrank();
 
         {
-            _helperTakeBalanceSnapshot(_superToken, from);
+            _helperTakeBalanceSnapshot(superToken_, from_);
         }
 
-        uint256 amountPerUnit = _pool.getTotalUnits() > 0 ? actualAmountDistributed / _pool.getTotalUnits() : 0;
+        uint256 amountPerUnit = pool_.getTotalUnits() > 0 ? actualAmountDistributed / pool_.getTotalUnits() : 0;
 
         // Assert Distributor RTB
-        (int256 fromRTBAfter,,,) = superToken.realtimeBalanceOfNow(from);
-        uint256 amountReceived = sf.gda.isMemberConnected(superToken, address(_pool), from)
-            ? uint256(_pool.getUnits(from)) * amountPerUnit
+        (int256 fromRTBAfter,,,) = superToken.realtimeBalanceOfNow(from_);
+        // If the distributor is a connected member themselves, they will receive the units
+        // they have just distributed
+        uint256 amountReceived = sf.gda.isMemberConnected(superToken, address(pool_), from_)
+            ? uint256(pool_.getUnits(from_)) * amountPerUnit
             : 0;
         assertEq(
             fromRTBAfter,
@@ -1637,24 +1642,33 @@ contract FoundrySuperfluidTester is Test {
         // Assert Members RTB
         for (uint256 i = 0; i < members.length; ++i) {
             (int256 memberRTB,,,) = superToken.realtimeBalanceOfNow(members[i]);
-            uint256 amountReceived = sf.gda.isMemberConnected(superToken, address(_pool), members[i])
-                ? uint256(_pool.getUnits(members[i])) * amountPerUnit
-                : 0;
-            if (members[i] == from) {
-                assertEq(
-                    memberRTB,
-                    int256(memberBalancesBefore[i]) - int256(actualAmountDistributed) + int256(amountReceived),
-                    "GDAv1.t D: Distributor who is Member RTB incorrect"
-                );
+            bool memberConnected = sf.gda.isMemberConnected(superToken, address(pool_), members[i]);
+
+            uint256 amountReceived = uint256(pool_.getUnits(members[i])) * amountPerUnit;
+            if (memberConnected) {
+                if (members[i] == from_) {
+                    assertEq(
+                        memberRTB,
+                        int256(memberBalancesBefore[i]) - int256(actualAmountDistributed) + int256(amountReceived),
+                        "GDAv1.t D: Distributor who is Member RTB incorrect"
+                    );
+                } else {
+                    assertEq(
+                        uint256(memberRTB), memberBalancesBefore[i] + amountReceived, "GDAv1.t D: Member RTB incorrect"
+                    );
+                }
             } else {
+                (int256 claimable,) = pool_.getClaimableNow(members[i]);
                 assertEq(
-                    uint256(memberRTB), memberBalancesBefore[i] + amountReceived, "GDAv1.t D: Member RTB incorrect"
+                    uint256(claimable),
+                    amountReceived + uint256(memberClaimableBefore[i]),
+                    "GDAv1.t D: Member claimable incorrect"
                 );
             }
         }
 
         // Assert RTB for all users
-        // _assertRealTimeBalances(_superToken);
+        // _assertRealTimeBalances(superToken_);
     }
 
     function _helperDistributeFlow(

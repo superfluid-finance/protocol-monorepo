@@ -28,7 +28,7 @@ import { IConstantInflowNFT } from "../../../contracts/interfaces/superfluid/ICo
 /// It tests interactions between contracts and more complicated interactions
 /// with a range of values when applicable and it aims to ensure that the
 /// these interactions work as expected.
-contract GeneralDistributionAgreementV1Test is FoundrySuperfluidTester {
+contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for ISuperToken;
     using EnumerableSet for EnumerableSet.AddressSet;
     using SafeCast for uint256;

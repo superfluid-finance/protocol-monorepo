@@ -58,7 +58,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     // TODO transferability of admin should be allowed
-    // nft transferable 
+    // nft transferable?
     // customizable metadata for the NFT can be considered
     function transferAdmin(address admin_) external {
         // What happens to the Admin NFT?
@@ -341,39 +341,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         }
     }
 
-    function _updateMemberUnits(address memberAddr, uint128 newUnits) internal returns (bool) {
-        if (GDA.isPool(superToken, memberAddr)) revert SUPERFLUID_POOL_NO_POOL_MEMBERS();
-        if (memberAddr == address(0)) revert SUPERFLUID_POOL_NO_ZERO_ADDRESS();
-
-        uint32 time = uint32(ISuperfluid(superToken.getHost()).getNow());
-        Time t = Time.wrap(time);
-        Unit wrappedUnits = _toSemanticMoneyUnit(newUnits);
-
-        PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
-        PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(_membersData[memberAddr]);
-        PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
-
-        // update pool's disconnected units
-        if (!GDA.isMemberConnected(superToken, address(this), memberAddr)) {
-            // trigger the side effect of claiming all if not connected
-            // @note claiming is a bit surprising here given the function name
-            int256 claimedAmount = _claimAll(memberAddr, time);
-
-            // update pool's disconnected units
-            _shiftDisconnectedUnits(wrappedUnits - mu.m.owned_units, Value.wrap(claimedAmount), t);
-        }
-
-        // update pool member's units
-        {
-            BasicParticle memory p;
-            (pdPoolIndex, pdPoolMember, p) = mu.pool_member_update(p, wrappedUnits, t);
-            _index = _pdPoolIndexToPoolIndexData(pdPoolIndex);
-            int256 claimedValue = _membersData[memberAddr].claimedValue;
-            _membersData[memberAddr] = _pdPoolMemberToMemberData(pdPoolMember, claimedValue);
-            assert(GDA.appendIndexUpdateByPool(superToken, p, t));
-        }
-        emit MemberUpdated(superToken, memberAddr, newUnits);
-
+    function _handlePoolMemberNFT(address memberAddr, uint128 newUnits) internal {
         // Pool Member NFT Logic
         IPoolMemberNFT poolMemberNFT = IPoolMemberNFT(_canCallNFTHook(superToken));
         if (address(poolMemberNFT) != address(0)) {
@@ -408,6 +376,42 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
                 }
             }
         }
+    }
+
+    function _updateMemberUnits(address memberAddr, uint128 newUnits) internal returns (bool) {
+        if (GDA.isPool(superToken, memberAddr)) revert SUPERFLUID_POOL_NO_POOL_MEMBERS();
+        if (memberAddr == address(0)) revert SUPERFLUID_POOL_NO_ZERO_ADDRESS();
+
+        uint32 time = uint32(ISuperfluid(superToken.getHost()).getNow());
+        Time t = Time.wrap(time);
+        Unit wrappedUnits = _toSemanticMoneyUnit(newUnits);
+
+        PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
+        PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(_membersData[memberAddr]);
+        PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
+
+        // update pool's disconnected units
+        if (!GDA.isMemberConnected(superToken, address(this), memberAddr)) {
+            // trigger the side effect of claiming all if not connected
+            // @note claiming is a bit surprising here given the function name
+            int256 claimedAmount = _claimAll(memberAddr, time);
+
+            // update pool's disconnected units
+            _shiftDisconnectedUnits(wrappedUnits - mu.m.owned_units, Value.wrap(claimedAmount), t);
+        }
+
+        // update pool member's units
+        {
+            BasicParticle memory p;
+            (pdPoolIndex, pdPoolMember, p) = mu.pool_member_update(p, wrappedUnits, t);
+            _index = _pdPoolIndexToPoolIndexData(pdPoolIndex);
+            int256 claimedValue = _membersData[memberAddr].claimedValue;
+            _membersData[memberAddr] = _pdPoolMemberToMemberData(pdPoolMember, claimedValue);
+            assert(GDA.appendIndexUpdateByPool(superToken, p, t));
+        }
+        emit MemberUpdated(superToken, memberAddr, newUnits);
+
+        _handlePoolMemberNFT(memberAddr, newUnits);
 
         return true;
     }

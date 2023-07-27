@@ -1327,7 +1327,7 @@ contract FoundrySuperfluidTester is Test {
     /// @param publisher The publisher of the subscription
     /// @param indexId The index ID of the index
     /// @param subscriber The subscriber of the subscription
-    function _helperClaim(
+    function _helperClaimViaIDA(
         ISuperToken superToken_,
         address caller,
         address publisher,
@@ -1416,9 +1416,12 @@ contract FoundrySuperfluidTester is Test {
         ISuperfluidToken poolSuperToken = pool_.superToken();
         if (caller_ == address(0) || member_ == address(0) || sf.gda.isPool(poolSuperToken, member_)) return;
 
-        (bool isConnected, int256 oldUnits, int96 oldFlowRate) = _helperGetMemberInitialState(pool_, member_);
+        (bool isConnected, int256 oldUnits,) = _helperGetMemberPoolState(pool_, member_);
 
         PoolUnitData memory poolUnitDataBefore = _helperGetPoolUnitsData(pool_);
+
+        (int256 claimableBalance,) = pool_.getClaimableNow(member_);
+        (int256 balanceBefore,,,) = poolSuperToken.realtimeBalanceOfNow(member_);
 
         vm.startPrank(caller_);
         pool_.updateMemberUnits(member_, newUnits_);
@@ -1433,6 +1436,14 @@ contract FoundrySuperfluidTester is Test {
         assertEq(pool_.getUnits(member_), newUnits_, "GDAv1.t: Units incorrectly set");
 
         int256 unitsDelta = uint256(newUnits_).toInt256() - oldUnits;
+
+        // Assert that pending balance is claimed if user is disconnected
+        if (!isConnected) {
+            (int256 balanceAfter,,,) = poolSuperToken.realtimeBalanceOfNow(member_);
+            assertEq(
+                balanceAfter, balanceBefore + claimableBalance, "_helperUpdateMemberUnits: Pending balance not claimed"
+            );
+        }
 
         // TODO: how do we get the connected/disconnected/adjustment flow rates and connected balance?
         // NOTE: actualFlowRate of all distributors should be totalDistributionFlowRate + adjustmentFlowRate
@@ -1449,21 +1460,25 @@ contract FoundrySuperfluidTester is Test {
         // TODO: how does flowRate/netFlowRate for a member get impacted by this?
 
         // Assert Pool Units are set
-        assertEq(
-            uint256(uint256(poolUnitDataBefore.totalUnits).toInt256() + unitsDelta),
-            poolUnitDataAfter.totalUnits,
-            "_helperUpdateMemberUnits: Pool total units incorrect"
-        );
-        assertEq(
-            uint256(uint256(poolUnitDataBefore.connectedUnits).toInt256() + (isConnected ? unitsDelta : int128(0))),
-            poolUnitDataAfter.connectedUnits,
-            "_helperUpdateMemberUnits: Pool connected units incorrect"
-        );
-        assertEq(
-            uint256(uint256(poolUnitDataBefore.disconnectedUnits).toInt256() + (isConnected ? int128(0) : unitsDelta)),
-            poolUnitDataAfter.disconnectedUnits,
-            "_helperUpdateMemberUnits: Pool disconnected units incorrect"
-        );
+        {
+            assertEq(
+                uint256(uint256(poolUnitDataBefore.totalUnits).toInt256() + unitsDelta),
+                poolUnitDataAfter.totalUnits,
+                "_helperUpdateMemberUnits: Pool total units incorrect"
+            );
+            assertEq(
+                uint256(uint256(poolUnitDataBefore.connectedUnits).toInt256() + (isConnected ? unitsDelta : int128(0))),
+                poolUnitDataAfter.connectedUnits,
+                "_helperUpdateMemberUnits: Pool connected units incorrect"
+            );
+            assertEq(
+                uint256(
+                    uint256(poolUnitDataBefore.disconnectedUnits).toInt256() + (isConnected ? int128(0) : unitsDelta)
+                ),
+                poolUnitDataAfter.disconnectedUnits,
+                "_helperUpdateMemberUnits: Pool disconnected units incorrect"
+            );
+        }
 
         // Assert Pool Member NFT is minted/burned
         _assertPoolMemberNFT(poolSuperToken, pool_, member_, newUnits_);
@@ -1473,7 +1488,7 @@ contract FoundrySuperfluidTester is Test {
     }
 
     function _helperConnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_) internal {
-        (bool isConnected, int256 oldUnits, int96 oldFlowRate) = _helperGetMemberInitialState(pool_, caller_);
+        (bool isConnectedBefore, int256 oldUnits, int96 oldFlowRate) = _helperGetMemberPoolState(pool_, caller_);
 
         PoolUnitData memory poolUnitDataBefore = _helperGetPoolUnitsData(pool_);
         PoolFlowRateData memory poolFlowRateDataBefore = _helperGetPoolFlowRatesData(pool_);
@@ -1495,34 +1510,34 @@ contract FoundrySuperfluidTester is Test {
 
         assertEq(sf.gda.isMemberConnected(superToken_, address(pool_), caller_), true, "GDAv1.t: Member not connected");
 
-        // Assert connected and disconnected units for the pool
+        // Assert connected units delta for the pool
         {
-            // assertEq(uint256(oldUnits), poolUnitDataAfter.connectedUnits, "_helperConnectPool: Pool connected units incorrect");
-            // assertEq(0, poolUnitDataAfter.disconnectedUnits, "_helperConnectPool: Pool disconnected units incorrect");
+            assertEq(
+                isConnectedBefore ? 0 : uint256(oldUnits),
+                poolUnitDataAfter.connectedUnits - poolUnitDataBefore.connectedUnits,
+                "_helperConnectPool: Pool connected units incorrect"
+            );
         }
 
         // Assert connected and disconnected flow rate for the pool
         {
             assertEq(
-                poolFlowRateDataBefore.totalConnectedFlowRate + (isConnected ? int96(0) : oldFlowRate),
+                poolFlowRateDataBefore.totalConnectedFlowRate + (isConnectedBefore ? int96(0) : oldFlowRate),
                 poolFlowRateDataAfter.totalConnectedFlowRate,
                 "_helperConnectPool: Pool connected flow rate incorrect"
             );
             assertEq(
-                poolFlowRateDataBefore.totalDisconnectedFlowRate - (isConnected ? int96(0) : oldFlowRate),
+                poolFlowRateDataBefore.totalDisconnectedFlowRate - (isConnectedBefore ? int96(0) : oldFlowRate),
                 poolFlowRateDataAfter.totalDisconnectedFlowRate,
                 "_helperConnectPool: Pool disconnected flow rate incorrect"
             );
         }
-        // Update Expected Member Data
-        // TODO how does the flow rate change here
-
         // Assert RTB for all users
         // _assertRealTimeBalances(superToken_);
     }
 
     function _helperDisconnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_) internal {
-        (bool isConnected, int256 oldUnits, int96 oldFlowRate) = _helperGetMemberInitialState(pool_, caller_);
+        (bool isConnectedBefore, int256 oldUnits, int96 oldFlowRate) = _helperGetMemberPoolState(pool_, caller_);
 
         PoolUnitData memory poolUnitDataBefore = _helperGetPoolUnitsData(pool_);
         PoolFlowRateData memory poolFlowRateDataBefore = _helperGetPoolFlowRatesData(pool_);
@@ -1544,32 +1559,28 @@ contract FoundrySuperfluidTester is Test {
             "GDAv1.t D/C: Member not disconnected"
         );
 
-        // Update Expected Pool Data
+        // Assert disconnected units delta for the pool
         {
-            // assertEq(0, poolUnitDataAfter.connectedUnits, "_helperDisconnectPool: Pool connected units incorrect");
-            // assertEq(
-            //     uint256(oldUnits),
-            //     poolUnitDataAfter.disconnectedUnits,
-            //     "_helperDisconnectPool: Pool disconnected units incorrect"
-            // );
+            assertEq(
+                isConnectedBefore ? uint256(oldUnits) : 0,
+                poolUnitDataAfter.disconnectedUnits - poolUnitDataBefore.disconnectedUnits,
+                "_helperDisconnectPool: Pool disconnected units incorrect"
+            );
         }
         {
             assertEq(
-                poolFlowRateDataBefore.totalConnectedFlowRate - (isConnected ? oldFlowRate : int96(0)),
+                poolFlowRateDataBefore.totalConnectedFlowRate - (isConnectedBefore ? oldFlowRate : int96(0)),
                 poolFlowRateDataAfter.totalConnectedFlowRate,
                 "_helperDisconnectPool: Pool connected flow rate incorrect"
             );
             assertEq(
-                poolFlowRateDataBefore.totalDisconnectedFlowRate + (isConnected ? oldFlowRate : int96(0)),
+                poolFlowRateDataBefore.totalDisconnectedFlowRate + (isConnectedBefore ? oldFlowRate : int96(0)),
                 poolFlowRateDataAfter.totalDisconnectedFlowRate,
                 "_helperDisconnectPool: Pool disconnected flow rate incorrect"
             );
         }
-        _expectedPoolData[address(pool_)].connectedFlowRate -= isConnected ? oldFlowRate : int96(0);
-        _expectedPoolData[address(pool_)].disconnectedFlowRate += isConnected ? oldFlowRate : int96(0);
-
-        // Update Expected Member Data
-        // TODO how does the flow rate change here
+        _expectedPoolData[address(pool_)].connectedFlowRate -= isConnectedBefore ? oldFlowRate : int96(0);
+        _expectedPoolData[address(pool_)].disconnectedFlowRate += isConnectedBefore ? oldFlowRate : int96(0);
 
         // Assert RTB for all users
         // _assertRealTimeBalances(superToken_);
@@ -1688,6 +1699,8 @@ contract FoundrySuperfluidTester is Test {
         // _assertRealTimeBalances(_superToken);
     }
 
+    // Write Helpers - SuperfluidPool ERC20 Functionality
+
     function _helperSuperfluidPoolApprove(ISuperfluidPool _pool, address owner, address spender, uint256 amount)
         internal
     {
@@ -1779,14 +1792,14 @@ contract FoundrySuperfluidTester is Test {
         assertEq(allowanceBefore - amount, allowanceAfter, "_helperSuperfluidPoolUnitsTransferFrom: allowance mismatch");
     }
 
-    function _helperGetMemberInitialState(ISuperfluidPool pool_, address member_)
+    function _helperGetMemberPoolState(ISuperfluidPool pool_, address member_)
         internal
         view
-        returns (bool isConnected, int256 oldUnits, int96 oldFlowRate)
+        returns (bool isConnected, int256 units, int96 flowRate)
     {
-        oldUnits = uint256(pool_.getUnits(member_)).toInt256();
+        units = uint256(pool_.getUnits(member_)).toInt256();
         isConnected = sf.gda.isMemberConnected(pool_, member_);
-        oldFlowRate = pool_.getMemberFlowRate(member_);
+        flowRate = pool_.getMemberFlowRate(member_);
     }
 
     function _helperGetPoolUnitsData(ISuperfluidPool pool_) internal view returns (PoolUnitData memory poolUnitData) {

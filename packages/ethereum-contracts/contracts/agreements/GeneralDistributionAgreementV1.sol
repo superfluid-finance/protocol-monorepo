@@ -440,11 +440,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         bytes32 distributionFlowHash = _getFlowDistributionHash(from, pool);
         FlowRate oldFlowRate = _getFlowRate(abi.encode(token), distributionFlowHash);
 
-        // if (FlowRate.unwrap(oldFlowRate) == 0 && requestedFlowRate == 0) {
-            // @note TODO is this necessary??
-            // revert GDA_FLOW_DOES_NOT_EXIST();
-        // }
-
         (, FlowRate actualFlowRate, FlowRate newDistributionFlowRate) = _doDistributeFlowViaPool(
             abi.encode(token),
             from,
@@ -501,40 +496,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         // mint/burn FlowNFT to flow distributor
         {
-            address constantOutflowNFTAddress = _canCallConstantOutflowNFTHook(token);
-
-            if (constantOutflowNFTAddress != address(0)) {
-                uint256 gasLeftBefore;
-                // create flow (mint)
-                if (requestedFlowRate > 0 && FlowRate.unwrap(oldFlowRate) == 0) {
-                    gasLeftBefore = gasleft();
-                    try IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(token, from, address(pool)) {
-                        // solhint-disable-next-line no-empty-blocks
-                    } catch {
-                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-                    }
-                }
-
-                // update flow (update metadata)
-                if (requestedFlowRate > 0 && FlowRate.unwrap(oldFlowRate) > 0) {
-                    gasLeftBefore = gasleft();
-                    try IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(token, from, address(pool)) {
-                        // solhint-disable-next-line no-empty-blocks
-                    } catch {
-                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-                    }
-                }
-
-                // delete flow (burn)
-                if (requestedFlowRate == 0) {
-                    gasLeftBefore = gasleft();
-                    try IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(token, from, address(pool)) {
-                        // solhint-disable-next-line no-empty-blocks
-                    } catch {
-                        SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
-                    }
-                }
-            }
+            _handleFlowNFT(token, from, pool, requestedFlowRate, oldFlowRate);
         }
 
         {
@@ -552,6 +514,49 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                 adjustmentFlowRecipient,
                 adjustmentFlowRate
             );
+        }
+    }
+
+    function _handleFlowNFT(
+        ISuperfluidToken token,
+        address from,
+        ISuperfluidPool pool,
+        int96 requestedFlowRate,
+        FlowRate oldFlowRate
+    ) internal {
+        address constantOutflowNFTAddress = _canCallConstantOutflowNFTHook(token);
+
+        if (constantOutflowNFTAddress != address(0)) {
+            uint256 gasLeftBefore;
+            // create flow (mint)
+            if (requestedFlowRate > 0 && FlowRate.unwrap(oldFlowRate) == 0) {
+                gasLeftBefore = gasleft();
+                try IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(token, from, address(pool)) {
+                    // solhint-disable-next-line no-empty-blocks
+                } catch {
+                    SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+                }
+            }
+
+            // update flow (update metadata)
+            if (requestedFlowRate > 0 && FlowRate.unwrap(oldFlowRate) > 0) {
+                gasLeftBefore = gasleft();
+                try IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(token, from, address(pool)) {
+                    // solhint-disable-next-line no-empty-blocks
+                } catch {
+                    SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+                }
+            }
+
+            // delete flow (burn)
+            if (requestedFlowRate == 0) {
+                gasLeftBefore = gasleft();
+                try IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(token, from, address(pool)) {
+                    // solhint-disable-next-line no-empty-blocks
+                } catch {
+                    SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+                }
+            }
         }
     }
 
@@ -982,7 +987,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         internal
         returns (bytes memory)
     {
-        // @note should this also always be 
+        // @note should this also always be
         address adjustmentRecipient = ISuperfluidPool(pool).admin();
         bytes32 adjustmentFlowHash = _getPoolAdjustmentFlowHash(pool, adjustmentRecipient);
 

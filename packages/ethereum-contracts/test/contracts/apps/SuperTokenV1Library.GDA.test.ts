@@ -43,17 +43,8 @@ describe("SuperTokenV1Library.GDA", function () {
 
     beforeEach(async function () {
         await t.beforeEachTestCase();
-        const superTokenV1LibraryFactory = await ethers.getContractFactory(
-            "SuperTokenV1Library"
-        );
-        const superTokenV1Library = await superTokenV1LibraryFactory.deploy();
         const mockFactory = await ethers.getContractFactory(
-            "SuperTokenLibraryGDAMock",
-            {
-                libraries: {
-                    SuperTokenV1Library: superTokenV1Library.address,
-                },
-            }
+            "SuperTokenLibraryGDAMock"
         );
         superTokenLibraryGDAMock = await mockFactory.deploy();
 

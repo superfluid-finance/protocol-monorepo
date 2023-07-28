@@ -411,7 +411,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         // TODO: tokens are moving from sender => pool, including a transfer event makes sense here
-        // trigger from the supertoken contract
+        // trigger from the supertoken contract - @note this is possible since solc 0.8.21
 
         emit InstantDistributionUpdated(
             token,

@@ -337,6 +337,17 @@ export function getAmountStreamedSinceLastUpdatedAt(
     return timeDelta.times(flowRate);
 }
 
+export function getActiveStreamsDelta(
+    isCreate: boolean,
+    isDelete: boolean
+): i32 {
+    return isCreate ? 1 : isDelete ? -1 : 0;
+}
+
+export function getClosedStreamsDelta(isDelete: boolean): i32 {
+    return isDelete ? 1 : 0;
+}
+
 /**
  * calculateMaybeCriticalAtTimestamp will return optimistic date based on updatedAtTimestamp, balanceUntilUpdatedAt and totalNetFlowRate.
  * @param updatedAtTimestamp

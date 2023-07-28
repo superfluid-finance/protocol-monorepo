@@ -54,7 +54,6 @@ export function handleIndexCreated(event: IndexCreated): void {
         return;
     }
 
-    const currentTimestamp = event.block.timestamp;
     const indexCreatedId = createEventID(eventName, event);
     const index = getOrInitIndex(
         event,
@@ -75,8 +74,7 @@ export function handleIndexCreated(event: IndexCreated): void {
     );
     tokenStatistic.totalNumberOfIndexes =
         tokenStatistic.totalNumberOfIndexes + 1;
-    tokenStatistic.updatedAtTimestamp = currentTimestamp;
-    tokenStatistic.updatedAtBlockNumber = event.block.number;
+
     tokenStatistic.save();
 
     updateATSStreamedAndBalanceUntilUpdatedAt(

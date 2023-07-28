@@ -14,17 +14,23 @@ import {
 } from "../../generated/schema";
 import { SuperfluidPool as SuperfluidPoolTemplate } from "../../generated/templates";
 import {
+    _createAccountTokenSnapshotLogEntity,
+    _createTokenStatisticLogEntity,
     getOrInitPool,
     getOrInitPoolDistributor,
     getOrInitPoolMember,
+    getOrInitTokenStatistic,
+    updateATSStreamedAndBalanceUntilUpdatedAt,
     updatePoolDistributorTotalAmountFlowedAndDistributed,
     updatePoolTotalAmountFlowedAndDistributed,
+    updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
 import { BIG_INT_ZERO, createEventID, initializeEventEntity } from "../utils";
 
 // @note use deltas where applicable
 
 export function handlePoolCreated(event: PoolCreated): void {
+    const eventName = "PoolCreated";
     // Create Event Entity
     _createPoolCreatedEntity(event);
 
@@ -37,11 +43,31 @@ export function handlePoolCreated(event: PoolCreated): void {
     // template data source events.
     SuperfluidPoolTemplate.create(event.params.pool);
 
-    // aggregate (TBD):
-    // - AccountTokenSnapshot
-    // - AccountTokenSnapshotLog
-    // - TokenStatistic
-    // - TokenStatisticLog
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+
+    const tokenStatistic = getOrInitTokenStatistic(
+        event.params.token,
+        event.block
+    );
+    tokenStatistic.totalNumberOfPools = tokenStatistic.totalNumberOfPools + 1;
+
+    tokenStatistic.save();
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        event.params.admin,
+        event.params.token,
+        event.block,
+        null
+    );
+
+    _createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.admin,
+        event.params.token,
+        eventName
+    );
+
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
 }
 
 export function handlePoolConnectionUpdated(
@@ -94,11 +120,55 @@ export function handlePoolConnectionUpdated(
     }
     pool.save();
 
-    // aggregate (TBD):
-    // - AccountTokenSnapshot
-    // - AccountTokenSnapshotLog
-    // - TokenStatistic
-    // - TokenStatisticLog
+    _handlePoolConnectionUpdatedAggregateEntities(
+        event,
+        memberConnectedStatusUpdated
+    );
+}
+
+function _handlePoolConnectionUpdatedAggregateEntities(
+    event: PoolConnectionUpdated,
+    memberConnectedStatusUpdated: boolean
+): void {
+    const eventName = "PoolConnectionUpdated";
+    // Update Aggregate
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+
+    const tokenStatistic = getOrInitTokenStatistic(
+        event.params.token,
+        event.block
+    );
+
+    if (memberConnectedStatusUpdated) {
+        if (event.params.connected) {
+            tokenStatistic.totalConnectedMemberships =
+                tokenStatistic.totalConnectedMemberships + 1;
+        } else {
+            tokenStatistic.totalConnectedMemberships =
+                tokenStatistic.totalConnectedMemberships - 1;
+        }
+    }
+
+    tokenStatistic.save();
+
+    // TODO: @note we need updateAggregateIDASubscriptionsData equivalent
+    // for GDA here as well...
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        event.params.account,
+        event.params.token,
+        event.block,
+        null
+    );
+
+    _createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.account,
+        event.params.token,
+        eventName
+    );
+
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
 }
 
 export function handleBufferAdjusted(event: BufferAdjusted): void {

@@ -2678,6 +2678,26 @@ type TokenStatistic @entity {
     totalApprovedSubscriptions: Int!
 
     """
+    The total number of Pools created with `token`.
+    """
+    totalNumberOfPools: Int!
+
+    """
+    The total number of "active" (has greater than 0 units and has distributed it at least once) Pools created with `token`.
+    """
+    totalNumberOfActivePools: Int!
+
+    """
+    The number of memberships which have units allocated to them created with Pools that distribute `token`.
+    """
+    totalMembershipsWithUnits: Int!
+
+    """
+    Counts all approved memberships whether or not they have units.
+    """
+    totalConnectedMemberships: Int!
+
+    """
     The total deposit held by all flow agreements for this particular `token`.
     """
     totalDeposit: BigInt!
@@ -2805,6 +2825,26 @@ type TokenStatisticLog @entity {
     Counts all approved subscriptions whether or not they have units.
     """
     totalApprovedSubscriptions: Int!
+
+    """
+    The total number of Pools created with `token`.
+    """
+    totalNumberOfPools: Int!
+
+    """
+    The total number of "active" (has greater than 0 units and has distributed it at least once) Pools created with `token`.
+    """
+    totalNumberOfActivePools: Int!
+
+    """
+    The number of memberships which have units allocated to them created with Pools that distribute `token`.
+    """
+    totalMembershipsWithUnits: Int!
+
+    """
+    Counts all connected memberships whether or not they have units.
+    """
+    totalConnectedMemberships: Int!
 
     """
     The total deposit held by the CFA agreement for this particular `token` for all flow agreements.

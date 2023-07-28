@@ -26,53 +26,41 @@ contract GeneralDistributionAgreementV1Harness is GeneralDistributionAgreementV1
         universalIndexData = _getUIndexData(eff, owner);
     }
 
-    function setPDPIndex(bytes memory eff, address owner, PDPoolIndex memory pdpIndex)
+    function setAndGetPDPIndex(bytes memory eff, address owner, PDPoolIndex memory pdpIndex)
+        external
+        returns (bytes memory, PDPoolIndex memory returnedPdpIndex)
+    {
+        return (_setPDPIndex(eff, owner, pdpIndex), _getPDPIndex(eff, owner));
+    }
+
+    function adjustBuffer(bytes memory eff, address pool, address from, FlowRate oldFlowRate, FlowRate newFlowRate)
         external
         returns (bytes memory)
     {
-        return _setPDPIndex(eff, owner, pdpIndex);
-    }
-
-    function getPDPIndex(bytes memory eff, address owner) external view returns (PDPoolIndex memory pdpIndex) {
-        return _getPDPIndex(eff, owner);
-    }
-
-    function adjustBuffer(
-        bytes memory eff,
-        address pool,
-        address from,
-        bytes32 flowHash,
-        FlowRate oldFlowRate,
-        FlowRate newFlowRate
-    ) external returns (bytes memory) {
+        bytes32 flowHash = _getFlowDistributionHash(from, ISuperfluidPool(pool));
         return _adjustBuffer(eff, pool, from, flowHash, oldFlowRate, newFlowRate);
     }
 
-    function setFlowInfo(
-        bytes memory eff,
-        bytes32 flowHash,
-        address from,
-        address to,
-        FlowRate newFlowRate,
-        FlowRate flowRateDelta
-    ) external returns (bytes memory) {
+    function setFlowInfo(bytes memory eff, address from, address to, FlowRate newFlowRate, FlowRate flowRateDelta)
+        external
+        returns (bytes memory)
+    {
+        bytes32 flowHash = _getFlowDistributionHash(from, ISuperfluidPool(to));
         return _setFlowInfo(eff, flowHash, from, to, newFlowRate, flowRateDelta);
     }
 
-    function getFlowDistributionData(ISuperfluidToken token, bytes32 distributionFlowId)
+    function getFlowDistributionData(ISuperfluidToken token, address from, address to)
         external
         view
         returns (bool exist, FlowDistributionData memory flowDistributionData)
     {
+        bytes32 distributionFlowId = _getFlowDistributionHash(from, ISuperfluidPool(to));
         return _getFlowDistributionData(token, distributionFlowId);
     }
 
-    function getFlowRate(bytes memory eff, bytes32 distributionFlowId) external view returns (FlowRate flowRate) {
+    function getFlowRate(bytes memory eff, address from, address to) external view returns (FlowRate flowRate) {
+        bytes32 distributionFlowId = _getFlowDistributionHash(from, ISuperfluidPool(to));
         return _getFlowRate(eff, distributionFlowId);
-    }
-
-    function getFlowDistributionId(address from, address to) external view returns (bytes32) {
-        return _getFlowDistributionHash(from, ISuperfluidPool(to));
     }
 
     function getPoolMemberId(address poolMember, ISuperfluidPool pool) external view returns (bytes32) {

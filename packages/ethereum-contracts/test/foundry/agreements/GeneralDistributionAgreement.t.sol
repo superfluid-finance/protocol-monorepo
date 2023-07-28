@@ -100,11 +100,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         uint32 newFlowRate,
         uint96 newFlowRateDelta
     ) public {
-        bytes32 flowHash = sf.gda.getFlowDistributionId(from, address(to));
         uint256 lastUpdated = block.timestamp;
         sf.gda.setFlowInfo(
             abi.encode(superToken),
-            flowHash,
             from,
             address(to),
             FlowRate.wrap(int128(uint128(newFlowRate))),
@@ -114,7 +112,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.warp(1000);
 
         (bool exist, GeneralDistributionAgreementV1.FlowDistributionData memory setFlowDistributionData) =
-            sf.gda.getFlowDistributionData(superToken, flowHash);
+            sf.gda.getFlowDistributionData(superToken, from, address(to));
 
         assertEq(true, exist, "flow distribution data does not exist");
 
@@ -124,7 +122,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
         assertEq(0, setFlowDistributionData.buffer, "buffer not equal");
         assertEq(
-            int96(FlowRate.unwrap(sf.gda.getFlowRate(abi.encode(superToken), flowHash))),
+            int96(FlowRate.unwrap(sf.gda.getFlowRate(abi.encode(superToken), from, address(to)))),
             int96(uint96(newFlowRate)),
             "_getFlowRate: flow rate not equal"
         );
@@ -179,9 +177,8 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         ISuperfluidPool anotherPool = sf.gda.createPool(superToken, owner);
 
         vm.startPrank(address(sf.gda));
-        sf.gda.setPDPIndex(eff, address(anotherPool), pdpIndex);
+        (, PDPoolIndex memory setPdpIndex) = sf.gda.setAndGetPDPIndex(eff, address(anotherPool), pdpIndex);
         vm.stopPrank();
-        PDPoolIndex memory setPdpIndex = sf.gda.getPDPIndex(eff, address(anotherPool));
 
         assertEq(Unit.unwrap(pdpIndex.total_units), Unit.unwrap(setPdpIndex.total_units), "total units not equal");
         assertEq(
@@ -202,34 +199,30 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     // Adjust Buffer => FlowDistributionData modified
-    function testAdjustBufferUpdatesFlowDistributionData(address from, address to, int32 oldFlowRate, int32 newFlowRate)
-        public
-    {
+    function testAdjustBufferUpdatesFlowDistributionData(address from, int32 oldFlowRate, int32 newFlowRate) public {
         vm.assume(newFlowRate >= 0);
 
-        bytes32 flowHash = sf.gda.getFlowDistributionId(from, to);
         uint256 expectedBuffer = uint256(int256(newFlowRate)) * liquidationPeriod;
         sf.gda.adjustBuffer(
             abi.encode(superToken),
             address(currentPool),
             from,
-            flowHash,
             FlowRate.wrap(int128(oldFlowRate)),
             FlowRate.wrap(int128(newFlowRate))
         );
 
         (bool exist, GeneralDistributionAgreementV1.FlowDistributionData memory flowDistributionData) =
-            sf.gda.getFlowDistributionData(superToken, flowHash);
+            sf.gda.getFlowDistributionData(superToken, from, address(currentPool));
         assertEq(exist, true, "flow distribution data does not exist");
         assertEq(flowDistributionData.buffer, expectedBuffer, "buffer not equal");
         assertEq(flowDistributionData.flowRate, int96(newFlowRate), "buffer not equal");
         assertEq(
-            int96(FlowRate.unwrap(sf.gda.getFlowRate(abi.encode(superToken), flowHash))),
+            int96(FlowRate.unwrap(sf.gda.getFlowRate(abi.encode(superToken), from, address(currentPool)))),
             int96(newFlowRate),
             "_getFlowRate: flow rate not equal"
         );
         assertEq(
-            sf.gda.getFlowRate(superToken, from, ISuperfluidPool(to)),
+            sf.gda.getFlowRate(superToken, from, ISuperfluidPool(currentPool)),
             int96(newFlowRate),
             "getFlowRate: flow rate not equal"
         );
@@ -241,7 +234,6 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     {
         vm.assume(newFlowRate >= 0);
 
-        bytes32 flowHash = sf.gda.getFlowDistributionId(from, to);
         uint256 bufferDelta = uint256(int256(newFlowRate)) * liquidationPeriod; // expected buffer == buffer delta
             // because of fresh state
         (, GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataBefore) =
@@ -252,7 +244,6 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             abi.encode(superToken),
             address(currentPool),
             from,
-            flowHash,
             FlowRate.wrap(int128(oldFlowRate)),
             FlowRate.wrap(int128(newFlowRate))
         );

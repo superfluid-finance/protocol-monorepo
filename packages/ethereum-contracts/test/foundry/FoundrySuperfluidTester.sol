@@ -1412,6 +1412,8 @@ contract FoundrySuperfluidTester is Test {
     function _helperUpdateMemberUnits(ISuperfluidPool pool_, address caller_, address member_, uint128 newUnits_)
         internal
     {
+        // there is a hard restriction in which total units must never exceed type(int96).max
+        vm.assume(newUnits_ < type(uint72).max);
         ISuperfluidToken poolSuperToken = pool_.superToken();
         if (caller_ == address(0) || member_ == address(0) || sf.gda.isPool(poolSuperToken, member_)) return;
 
@@ -1640,7 +1642,7 @@ contract FoundrySuperfluidTester is Test {
         if (members.length == 0) return;
 
         // Assert Members RTB
-        for (uint256 i = 0; i < members.length; ++i) {
+        for (uint256 i; i < members.length; ++i) {
             (int256 memberRTB,,,) = superToken.realtimeBalanceOfNow(members[i]);
             bool memberConnected = sf.gda.isMemberConnected(superToken, address(pool_), members[i]);
 
@@ -1672,28 +1674,35 @@ contract FoundrySuperfluidTester is Test {
     }
 
     function _helperDistributeFlow(
-        ISuperToken _superToken,
+        ISuperToken superToken_,
         address caller,
         address from,
-        ISuperfluidPool _pool,
+        ISuperfluidPool pool_,
         int96 requestedFlowRate
     ) internal {
-        int96 fromToPoolFlowRateBefore = sf.gda.getFlowRate(_superToken, from, _pool);
-
         (int96 actualFlowRate, int96 totalDistributionFlowRate) =
-            sf.gda.estimateFlowDistributionActualFlowRate(_superToken, from, _pool, requestedFlowRate);
+            sf.gda.estimateFlowDistributionActualFlowRate(superToken_, from, pool_, requestedFlowRate);
+
+        address[] memory members = _poolMembers[address(pool_)].values();
+        int96[] memory memberFlowRatesBefore = new int96[](members.length);
+
+        for (uint256 i = 0; i < members.length; ++i) {
+            int96 memberFlowRate = pool_.getMemberFlowRate(members[i]);
+            memberFlowRatesBefore[i] = memberFlowRate;
+        }
 
         vm.startPrank(caller);
-        _superToken.distributeFlow(from, _pool, requestedFlowRate);
+        superToken_.distributeFlow(from, pool_, requestedFlowRate);
         vm.stopPrank();
 
         {
-            _helperTakeBalanceSnapshot(_superToken, from);
+            _helperTakeBalanceSnapshot(superToken_, from);
         }
 
+        int96 poolTotalFlowRateAfter = pool_.getTotalFlowRate();
         {
             // Assert distributor flow rate
-            int96 fromToPoolFlowRateAfter = sf.gda.getFlowRate(_superToken, from, _pool);
+            int96 fromToPoolFlowRateAfter = sf.gda.getFlowRate(superToken_, from, pool_);
             assertEq(
                 fromToPoolFlowRateAfter,
                 actualFlowRate,
@@ -1701,7 +1710,6 @@ contract FoundrySuperfluidTester is Test {
             );
 
             // Assert pool total flow rate
-            int96 poolTotalFlowRateAfter = _pool.getTotalFlowRate();
             assertEq(
                 poolTotalFlowRateAfter,
                 totalDistributionFlowRate,
@@ -1711,8 +1719,26 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert Outflow NFT is minted to distributor
         // Assert Inflow NFT is minted to pool
-        _assertFlowNftOnDistributeFlow(_superToken, _pool, from, requestedFlowRate);
+        _assertFlowNftOnDistributeFlow(superToken_, pool_, from, requestedFlowRate);
+        
+        {
+            if (members.length == 0) return;
+            uint128 poolTotalUnitsAfter = pool_.getTotalUnits();
+            int96 flowRatePerUnit = poolTotalUnitsAfter == 0
+                ? int96(0)
+                : poolTotalFlowRateAfter / uint256(poolTotalUnitsAfter).toInt256().toInt96();
 
+            for (uint256 i; i < members.length; ++i) {
+                int96 memberFlowRate = pool_.getMemberFlowRate(members[i]);
+                uint128 memberUnits = pool_.getUnits(members[i]);
+                int96 expectedMemberFlowRate = flowRatePerUnit * uint256(memberUnits).toInt256().toInt96();
+                assertEq(
+                    expectedMemberFlowRate,
+                    memberFlowRate,
+                    "_helperDistributeFlow: member flow rate != expected member flow rate"
+                );
+            }
+        }
         // Assert RTB for all users
         // _assertRealTimeBalances(_superToken);
     }

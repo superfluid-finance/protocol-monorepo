@@ -214,6 +214,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     function getMemberFlowRate(address memberAddr) external view override returns (int96) {
         uint128 units = _getUnits(memberAddr);
         if (units == 0) return 0;
+        // @note total units must never exceed type(int96).max
         else return (_index.wrappedFlowRate * uint256(units).toInt256()).toInt96();
     }
 

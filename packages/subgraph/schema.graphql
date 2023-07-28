@@ -2111,6 +2111,16 @@ type TokenStatistic @entity {
     """
     totalSupply: BigInt!
 
+    """
+    The total number of 'token' accounts.
+    """
+    totalNumberOfAccounts: Int!
+
+    """
+    The total number of 'token' accounts holding a balance.
+    """
+    totalNumberOfHolders: Int!
+
     # ---------------------------------- links ----------------------------------
     token: Token!
     tokenStatisticLogs: [TokenStatisticLog!]!
@@ -2189,6 +2199,16 @@ type TokenStatisticLog @entity {
     The total supply of the token - this is impacted by users upgrading/downgrading their tokens.
     """
     totalSupply: BigInt!
+
+    """
+    The total number of 'token' accounts.
+    """
+    totalNumberOfAccounts: Int!
+
+    """
+    The total number of 'token' accounts holding a balance.
+    """
+    totalNumberOfHolders: Int!
 
     # ---------------------------------- links ----------------------------------
     token: Token!

@@ -747,6 +747,8 @@ export function _createAccountTokenSnapshotLogEntity(
     atsLog.inactiveGDAOutgoingStreamCount = ats.inactiveGDAOutgoingStreamCount;
     atsLog.totalSubscriptionsWithUnits = ats.totalSubscriptionsWithUnits;
     atsLog.totalApprovedSubscriptions = ats.totalApprovedSubscriptions;
+    atsLog.totalMembershipsWithUnits = ats.totalMembershipsWithUnits;
+    atsLog.totalConnectedMemberships = ats.totalConnectedMemberships;
     atsLog.balance = ats.balanceUntilUpdatedAt;
     atsLog.totalNetFlowRate = ats.totalNetFlowRate;
     atsLog.totalCFANetFlowRate = ats.totalCFANetFlowRate;

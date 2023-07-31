@@ -819,7 +819,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
         block
     );
 
-    let balanceUntilUpdatedAtBeforeUpdate = accountTokenSnapshot.balanceUntilUpdatedAt;
+    const balanceUntilUpdatedAtBeforeUpdate = accountTokenSnapshot.balanceUntilUpdatedAt;
     
     const amountStreamedSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(
@@ -877,7 +877,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     );
     accountTokenSnapshot.save();
 
-    let balanceUntilUpdatedAtAfterUpdate = accountTokenSnapshot.balanceUntilUpdatedAt;
+    const balanceUntilUpdatedAtAfterUpdate = accountTokenSnapshot.balanceUntilUpdatedAt;
 
     if (
         balanceUntilUpdatedAtBeforeUpdate.equals(BIG_INT_ZERO) &&

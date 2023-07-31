@@ -58,6 +58,7 @@ contract SuperAppMock is ISuperApp {
     }
 
     function tryRegisterApp(uint256 configWord) external {
+        // @note this is deprecated keeping this here for testing/coverage
         _host.registerApp(configWord);
     }
 
@@ -606,6 +607,7 @@ contract SuperAppMockWithRegistrationKey {
 // An Super App that uses registerAppWithKey
 contract SuperAppMockUsingDeprecatedRegisterApp {
     constructor(ISuperfluid host, uint256 configWord) {
+        // @note this is deprecated keeping this here for testing/coverage
         host.registerApp(configWord);
     }
 }

@@ -425,7 +425,7 @@ templates:
         - AccountTokenSnapshot
         - AccountTokenSnapshotLog
         - DistributionClaimedEvent
-        - MemberUpdatedEvent
+        - MemberUnitsUpdatedEvent
         - Pool
         - PoolMember
         - Token
@@ -435,8 +435,8 @@ templates:
         - name: ISuperfluidPool
           file: ./abis/ISuperfluidPool.json
       eventHandlers:
-        - event: MemberUpdated(indexed address,indexed address,uint128)
-          handler: handleMemberUpdated
+        - event: MemberUnitsUpdated(indexed address,indexed address,uint128)
+          handler: handleMemberUnitsUpdated
           receipt: true
         - event: DistributionClaimed(indexed address,indexed address,int256,int256)
           handler: handleDistributionClaimed

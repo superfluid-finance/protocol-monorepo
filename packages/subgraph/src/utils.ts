@@ -10,7 +10,7 @@ import {
 } from "@graphprotocol/graph-ts";
 import { ISuperToken as SuperToken } from "../generated/templates/SuperToken/ISuperToken";
 import { Resolver } from "../generated/ResolverV1/Resolver";
-import { IndexSubscription, Token, TokenStatistic } from "../generated/schema";
+import { IndexSubscription, PoolMember, Token, TokenStatistic } from "../generated/schema";
 import { getIsLocalIntegrationTesting } from "./addresses";
 
 /**************************************************************************
@@ -323,9 +323,22 @@ export function getAccountTokenSnapshotID(
  * @param id
  * @returns
  */
-export function subscriptionExists(id: string): boolean {
+export function subscriptionWithUnitsExists(id: string): boolean {
     const subscription = IndexSubscription.load(id);
     return subscription != null && subscription.units.gt(BIG_INT_ZERO);
+}
+
+/**
+ * If your units get set to 0, you will still have a pool member
+ * entity, but your pool member technically no longer exists.
+ * Similarly, you may be approved, but the pool member by this
+ * definition does not exist.
+ * @param id
+ * @returns
+ */
+export function membershipWithUnitsExists(id: string): boolean {
+    const poolMembership = PoolMember.load(id);
+    return poolMembership != null && poolMembership.units.gt(BIG_INT_ZERO);
 }
 
 export function getAmountStreamedSinceLastUpdatedAt(

@@ -28,7 +28,7 @@ import {
     createEventID,
     getIndexID,
     initializeEventEntity,
-    subscriptionExists as subscriptionWithUnitsExists,
+    subscriptionWithUnitsExists,
     tokenHasValidHost,
 } from "../utils";
 import {
@@ -37,7 +37,7 @@ import {
     getOrInitIndex,
     getOrInitSubscription,
     getOrInitTokenStatistic,
-    updateAggregateIDASubscriptionsData,
+    updateAggregateDistributionAgreementData,
     updateATSStreamedAndBalanceUntilUpdatedAt,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
@@ -295,16 +295,17 @@ export function handleSubscriptionApproved(event: SubscriptionApproved): void {
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
     // we only want to increment approved here ALWAYS
-    updateAggregateIDASubscriptionsData(
+    updateAggregateDistributionAgreementData(
         event.params.subscriber,
         event.params.token,
         hasSubscriptionWithUnits || subscription.approved,
         subscription.approved,
         false, // don't increment subWithUnits
         false, // not revoking
-        false, // not deleting
+        false, // not deleting (setting units to 0)
         true, // approving subscription here
-        event.block
+        event.block,
+        true // isIDA
     );
     index.save();
 
@@ -449,7 +450,7 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
 
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
 
-    updateAggregateIDASubscriptionsData(
+    updateAggregateDistributionAgreementData(
         event.params.subscriber,
         event.params.token,
         true,
@@ -458,7 +459,8 @@ export function handleSubscriptionRevoked(event: SubscriptionRevoked): void {
         true, // revoking subscription here
         false, // not deleting
         false, // not approving
-        event.block
+        event.block,
+        true // isIDA
     );
     // mimic ida logic more closely
     updateATSStreamedAndBalanceUntilUpdatedAt(
@@ -576,7 +578,7 @@ export function handleSubscriptionUnitsUpdated(
     // and therefore subtracts the number of totalSubscriptionWithUnits and
     // totalApprovedSubscriptions
     if (units.equals(BIG_INT_ZERO)) {
-        updateAggregateIDASubscriptionsData(
+        updateAggregateDistributionAgreementData(
             event.params.subscriber,
             event.params.token,
             hasSubscriptionWithUnits,
@@ -585,7 +587,8 @@ export function handleSubscriptionUnitsUpdated(
             false, // not revoking subscription
             true, // only place we decrement subWithUnits IF subscriber has subWithUnits
             false, // not approving
-            event.block
+            event.block,
+            true // isIDA
         );
         index.totalSubscriptionsWithUnits = hasSubscriptionWithUnits
             ? index.totalSubscriptionsWithUnits - 1
@@ -602,7 +605,7 @@ export function handleSubscriptionUnitsUpdated(
         index.totalSubscriptionsWithUnits =
             index.totalSubscriptionsWithUnits + 1;
 
-        updateAggregateIDASubscriptionsData(
+        updateAggregateDistributionAgreementData(
             event.params.subscriber,
             event.params.token,
             hasSubscriptionWithUnits,
@@ -611,7 +614,8 @@ export function handleSubscriptionUnitsUpdated(
             false, // not revoking
             false, // not deleting
             false, // not approving
-            event.block
+            event.block,
+            true // isIDA
         );
     }
 

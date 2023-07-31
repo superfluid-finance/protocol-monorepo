@@ -785,7 +785,7 @@ type DistributionClaimedEvent implements Event @entity(immutable: true) {
     poolMember: PoolMember!
 }
 
-type MemberUpdatedEvent implements Event @entity(immutable: true) {
+type MemberUnitsUpdatedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!
     gasPrice: BigInt!
@@ -1693,7 +1693,7 @@ type Pool @entity {
         @derivedFrom(field: "pool")
     flowDistributionUpdatedEvents: [FlowDistributionUpdatedEvent!]!
         @derivedFrom(field: "pool")
-    poolMemberUpdatedEvents: [MemberUpdatedEvent!]! @derivedFrom(field: "pool")
+    poolMemberUnitsUpdatedEvents: [MemberUnitsUpdatedEvent!]! @derivedFrom(field: "pool")
     distributionClaimedEvents: [DistributionClaimedEvent!]!
         @derivedFrom(field: "pool")
 }
@@ -1718,7 +1718,7 @@ type PoolMember @entity {
     # ---------------------------------- links ----------------------------------
     poolConnectionUpdatedEvents: [PoolConnectionUpdatedEvent!]!
         @derivedFrom(field: "poolMember")
-    poolMemberUpdatedEvents: [MemberUpdatedEvent!]!
+    poolMemberUnitsUpdatedEvents: [MemberUnitsUpdatedEvent!]!
         @derivedFrom(field: "poolMember")
     distributionClaimedEvents: [DistributionClaimedEvent!]!
         @derivedFrom(field: "poolMember")
@@ -2252,6 +2252,16 @@ type AccountTokenSnapshot @entity {
     totalApprovedSubscriptions: Int!
 
     """
+    The current (as of updatedAt) number of membership with units allocated to them tied to this `account`.
+    """
+    totalMembershipsWithUnits: Int!
+
+    """
+    Counts all currently (as of updatedAt) approved membership whether or not they have units.
+    """
+    totalConnectedMemberships: Int!
+
+    """
     Balance of `account` as of `updatedAtTimestamp`/`updatedAtBlock`.
     """
     balanceUntilUpdatedAt: BigInt!
@@ -2492,6 +2502,16 @@ type AccountTokenSnapshotLog @entity {
     Counts all currently (as of timestamp) approved subscriptions whether or not they have units.
     """
     totalApprovedSubscriptions: Int!
+
+    """
+    The current (as of timestamp) number of membership with units allocated to them tied to this `account`.
+    """
+    totalMembershipsWithUnits: Int!
+
+    """
+    Counts all currently (as of timestamp) connected membership whether or not they have units.
+    """
+    totalConnectedMemberships: Int!
 
     """
     Balance of `account` as of `timestamp`/`block`.

@@ -21,11 +21,18 @@ import {
     getOrInitPoolMember,
     getOrInitTokenStatistic,
     updateATSStreamedAndBalanceUntilUpdatedAt,
+    updateAggregateDistributionAgreementData,
     updatePoolDistributorTotalAmountFlowedAndDistributed,
     updatePoolTotalAmountFlowedAndDistributed,
+    updateTokenStatisticStreamData,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
-import { BIG_INT_ZERO, createEventID, initializeEventEntity } from "../utils";
+import {
+    BIG_INT_ZERO,
+    createEventID,
+    initializeEventEntity,
+    membershipWithUnitsExists,
+} from "../utils";
 
 // @note use deltas where applicable
 
@@ -88,7 +95,9 @@ export function handlePoolConnectionUpdated(
     poolMember.isConnected = event.params.connected;
     poolMember.save();
 
-    // Update Pool
+    const hasMembershipWithUnits = membershipWithUnitsExists(poolMember.id);
+
+    // Update Pool Entity
     let pool = getOrInitPool(event, event.params.pool.toHex());
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
     if (poolMember.units.gt(BIG_INT_ZERO)) {
@@ -120,40 +129,9 @@ export function handlePoolConnectionUpdated(
     }
     pool.save();
 
-    _handlePoolConnectionUpdatedAggregateEntities(
-        event,
-        memberConnectedStatusUpdated
-    );
-}
-
-function _handlePoolConnectionUpdatedAggregateEntities(
-    event: PoolConnectionUpdated,
-    memberConnectedStatusUpdated: boolean
-): void {
-    const eventName = "PoolConnectionUpdated";
-    // Update Aggregate
+    // Update Token Stats Streamed Until Updated At
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
-
-    const tokenStatistic = getOrInitTokenStatistic(
-        event.params.token,
-        event.block
-    );
-
-    if (memberConnectedStatusUpdated) {
-        if (event.params.connected) {
-            tokenStatistic.totalConnectedMemberships =
-                tokenStatistic.totalConnectedMemberships + 1;
-        } else {
-            tokenStatistic.totalConnectedMemberships =
-                tokenStatistic.totalConnectedMemberships - 1;
-        }
-    }
-
-    tokenStatistic.save();
-
-    // TODO: @note we need updateAggregateIDASubscriptionsData equivalent
-    // for GDA here as well...
-
+    // Update ATS Balance and Streamed Until Updated At
     updateATSStreamedAndBalanceUntilUpdatedAt(
         event.params.account,
         event.params.token,
@@ -161,6 +139,27 @@ function _handlePoolConnectionUpdatedAggregateEntities(
         null
     );
 
+    const isConnecting = event.params.connected;
+
+    // there is no concept of revoking in GDA, but in the subgraph
+    // revoking is disconnecting and deleting is setting units to 0
+    const isRevoking = !event.params.connected;
+
+    updateAggregateDistributionAgreementData(
+        event.params.account,
+        event.params.token,
+        hasMembershipWithUnits || poolMember.isConnected,
+        poolMember.isConnected,
+        false, // don't increment memberWithUnits
+        isRevoking, // isRevoking
+        false, // not deleting (setting units to 0)
+        isConnecting, // approving membership here
+        event.block,
+        false // isIDA
+    );
+
+    // Create ATS and Token Statistic Log Entities
+    const eventName = "PoolConnectionUpdated";
     _createAccountTokenSnapshotLogEntity(
         event,
         event.params.account,
@@ -194,11 +193,15 @@ export function handleBufferAdjusted(event: BufferAdjusted): void {
     pool.totalBuffer = pool.totalBuffer.plus(event.params.bufferDelta);
     pool.save();
 
-    // aggregate (TBD):
-    // - AccountTokenSnapshot
-    // - AccountTokenSnapshotLog
-    // - TokenStatistic
-    // - TokenStatisticLog
+    // Update Token Stats Buffer
+    const tokenStatistic = getOrInitTokenStatistic(
+        event.params.token,
+        event.block
+    );
+    tokenStatistic.totalGDADeposit = tokenStatistic.totalGDADeposit.plus(
+        event.params.bufferDelta
+    );
+    tokenStatistic.save();
 }
 
 export function handleFlowDistributionUpdated(
@@ -227,11 +230,43 @@ export function handleFlowDistributionUpdated(
     pool.adjustmentFlowRate = event.params.adjustmentFlowRate;
     pool.save();
 
-    // aggregate (TBD):
-    // - AccountTokenSnapshot
-    // - AccountTokenSnapshotLog
-    // - TokenStatistic
-    // - TokenStatisticLog
+    const flowRateDelta = event.params.newDistributorToPoolFlowRate.minus(
+        event.params.oldFlowRate
+    );
+
+    const isCreate = event.params.oldFlowRate.equals(BIG_INT_ZERO);
+    const isDelete =
+        event.params.newDistributorToPoolFlowRate.equals(BIG_INT_ZERO);
+
+    // Update Token Statistics
+    const eventName = "FlowDistributionUpdated";
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
+    updateTokenStatisticStreamData(
+        event.params.token,
+        event.params.newDistributorToPoolFlowRate,
+        flowRateDelta,
+        BIG_INT_ZERO,
+        isCreate,
+        isDelete,
+        false,
+        event.block
+    );
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
+
+    // Update ATS
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        event.params.distributor,
+        event.params.token,
+        event.block,
+        null
+    );
+    _createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.distributor,
+        event.params.token,
+        eventName
+    );
 }
 
 export function handleInstantDistributionUpdated(
@@ -263,6 +298,8 @@ export function handleInstantDistributionUpdated(
     // Update Pool
     let pool = getOrInitPool(event, event.params.pool.toHex());
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
+    const previousTotalAmountDistributed =
+        pool.totalAmountDistributedUntilUpdatedAt;
     pool.totalAmountInstantlyDistributedUntilUpdatedAt =
         pool.totalAmountInstantlyDistributedUntilUpdatedAt.plus(
             event.params.actualAmount
@@ -273,11 +310,41 @@ export function handleInstantDistributionUpdated(
         );
     pool.save();
 
-    // aggregate (TBD):
-    // - AccountTokenSnapshot
-    // - AccountTokenSnapshotLog
-    // - TokenStatistic
-    // - TokenStatisticLog
+    // Update Token Statistic
+    const tokenStatistic = getOrInitTokenStatistic(
+        event.params.token,
+        event.block
+    );
+
+    if (previousTotalAmountDistributed.equals(BIG_INT_ZERO)) {
+        tokenStatistic.totalNumberOfActivePools =
+            tokenStatistic.totalNumberOfActivePools + 1;
+    }
+
+    tokenStatistic.totalAmountDistributedUntilUpdatedAt =
+        tokenStatistic.totalAmountDistributedUntilUpdatedAt.plus(
+            event.params.actualAmount
+        );
+    tokenStatistic.save();
+
+    const eventName = "InstantDistributionUpdated";
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
+
+    // Update ATS
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        event.params.distributor,
+        event.params.token,
+        event.block,
+        null
+    );
+
+    _createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.distributor,
+        event.params.token,
+        eventName
+    );
 }
 
 // Event Entity Creation Functions

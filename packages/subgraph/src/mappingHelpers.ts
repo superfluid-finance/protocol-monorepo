@@ -658,9 +658,11 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.totalNumberOfClosedStreams = 0;
         accountTokenSnapshot.totalCFANumberOfClosedStreams = 0;
         accountTokenSnapshot.totalGDANumberOfClosedStreams = 0;
-        accountTokenSnapshot.totalSubscriptionsWithUnits = 0;
         accountTokenSnapshot.isLiquidationEstimateOptimistic = false;
+        accountTokenSnapshot.totalSubscriptionsWithUnits = 0;
         accountTokenSnapshot.totalApprovedSubscriptions = 0;
+        accountTokenSnapshot.totalMembershipsWithUnits = 0;
+        accountTokenSnapshot.totalConnectedMemberships = 0;
         accountTokenSnapshot.balanceUntilUpdatedAt = BIG_INT_ZERO;
         accountTokenSnapshot.totalNetFlowRate = BIG_INT_ZERO;
         accountTokenSnapshot.totalCFANetFlowRate = BIG_INT_ZERO;
@@ -911,9 +913,9 @@ export function updateAccountUpdatedAt(
  *************************************************************************/
 
 /**
- * Updates ATS and TokenStats IDA Subscriptions data.
+ * Updates ATS and TokenStats distribution agreement data (IDA or GDA).
  */
-export function updateAggregateIDASubscriptionsData(
+export function updateAggregateDistributionAgreementData(
     accountAddress: Address,
     tokenAddress: Address,
     subscriptionWithUnitsExists: boolean,
@@ -922,9 +924,9 @@ export function updateAggregateIDASubscriptionsData(
     isRevokingSubscription: boolean,
     isDeletingSubscription: boolean,
     isApproving: boolean,
-    block: ethereum.Block
+    block: ethereum.Block,
+    isIDA: boolean
 ): void {
-    const tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
     const totalSubscriptionWithUnitsDelta =
         // we only decrement if the subscription exists and we are deleting
         isDeletingSubscription && subscriptionWithUnitsExists
@@ -933,7 +935,7 @@ export function updateAggregateIDASubscriptionsData(
             isIncrementingSubWithUnits && !subscriptionWithUnitsExists
             ? 1
             : 0;
-    
+
     const totalApprovedSubscriptionsDelta = isApproving
         ? 1
         : isRevokingSubscription && subscriptionApproved
@@ -947,26 +949,47 @@ export function updateAggregateIDASubscriptionsData(
         block
     );
 
-    accountTokenSnapshot.totalSubscriptionsWithUnits =
-        accountTokenSnapshot.totalSubscriptionsWithUnits +
-        totalSubscriptionWithUnitsDelta;
+    if (isIDA) {
+        accountTokenSnapshot.totalSubscriptionsWithUnits =
+            accountTokenSnapshot.totalSubscriptionsWithUnits +
+            totalSubscriptionWithUnitsDelta;
+        accountTokenSnapshot.totalApprovedSubscriptions =
+            accountTokenSnapshot.totalApprovedSubscriptions +
+            totalApprovedSubscriptionsDelta;
+    } else {
+        accountTokenSnapshot.totalMembershipsWithUnits =
+            accountTokenSnapshot.totalMembershipsWithUnits +
+            totalSubscriptionWithUnitsDelta;
+        accountTokenSnapshot.totalConnectedMemberships =
+            accountTokenSnapshot.totalConnectedMemberships +
+            totalApprovedSubscriptionsDelta;
+    }
+
     accountTokenSnapshot.isLiquidationEstimateOptimistic =
-        accountTokenSnapshot.totalSubscriptionsWithUnits > 0;
-    accountTokenSnapshot.totalApprovedSubscriptions =
-        accountTokenSnapshot.totalApprovedSubscriptions +
-        totalApprovedSubscriptionsDelta;
+        accountTokenSnapshot.totalSubscriptionsWithUnits > 0 ||
+        accountTokenSnapshot.totalMembershipsWithUnits > 0;
     accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
     accountTokenSnapshot.updatedAtBlockNumber = block.number;
-
     accountTokenSnapshot.save();
 
-    // update tokenStatistic Subscription data
-    tokenStatistic.totalSubscriptionsWithUnits =
-        tokenStatistic.totalSubscriptionsWithUnits +
-        totalSubscriptionWithUnitsDelta;
-    tokenStatistic.totalApprovedSubscriptions =
-        tokenStatistic.totalApprovedSubscriptions +
-        totalApprovedSubscriptionsDelta;
+    // update TokenStatistic entity
+    const tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
+    if (isIDA) {
+        tokenStatistic.totalSubscriptionsWithUnits =
+            tokenStatistic.totalSubscriptionsWithUnits +
+            totalSubscriptionWithUnitsDelta;
+        tokenStatistic.totalApprovedSubscriptions =
+            tokenStatistic.totalApprovedSubscriptions +
+            totalApprovedSubscriptionsDelta;
+    } else {
+        tokenStatistic.totalMembershipsWithUnits =
+            tokenStatistic.totalMembershipsWithUnits +
+            totalSubscriptionWithUnitsDelta;
+        tokenStatistic.totalConnectedMemberships =
+            tokenStatistic.totalConnectedMemberships +
+            totalApprovedSubscriptionsDelta;
+    }
+
     tokenStatistic.updatedAtTimestamp = block.timestamp;
     tokenStatistic.updatedAtBlockNumber = block.number;
 
@@ -1044,7 +1067,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
         block
     );
 
-    //// CFA + GDA streamed amounts ////
+    //////////////// CFA + GDA streamed amounts ////////////////
     const totalAmountStreamedSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
@@ -1093,7 +1116,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
             : balanceDelta
     );
 
-    //// CFA streamed amounts ////
+    //////////////// CFA streamed amounts ////////////////
     const totalCFAAmountStreamedSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
@@ -1131,7 +1154,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
             totalCFAAmountStreamedOutSinceLastUpdatedAt
         );
 
-    //// GDA streamed amounts ////
+    //////////////// GDA streamed amounts ////////////////
     const totalGDAAmountStreamedSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
@@ -1176,7 +1199,9 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
 }
 
 /**
- * This function should always be called with updateATSStreamedAndBalanceUntilUpdatedAt
+ * This function updates the token stats streamed amounts as well as the
+ * updatedAtTimestamp and updatedAtBlockNumber.
+ * It should always be called with updateATSStreamedAndBalanceUntilUpdatedAt.
  * @param tokenAddress
  * @param block
  */

@@ -410,7 +410,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             _membersData[memberAddr] = _pdPoolMemberToMemberData(pdPoolMember, claimedValue);
             assert(GDA.appendIndexUpdateByPool(superToken, p, t));
         }
-        emit MemberUpdated(superToken, memberAddr, newUnits);
+        emit MemberUnitsUpdated(superToken, memberAddr, newUnits);
 
         _handlePoolMemberNFT(memberAddr, newUnits);
 

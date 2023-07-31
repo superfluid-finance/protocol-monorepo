@@ -1,10 +1,10 @@
 import {
     DistributionClaimed,
-    MemberUpdated,
+    MemberUnitsUpdated,
 } from "../../generated/GeneralDistributionAgreementV1/ISuperfluidPool";
 import {
     DistributionClaimedEvent,
-    MemberUpdatedEvent,
+    MemberUnitsUpdatedEvent,
 } from "../../generated/schema";
 import {
     getOrInitPool,
@@ -39,9 +39,9 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     // - TokenStatistic
     // - TokenStatisticLog
 }
-export function handleMemberUpdated(event: MemberUpdated): void {
+export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     // Create Event Entity
-    _createMemberUpdatedEntity(event);
+    _createMemberUnitsUpdatedEntity(event);
 
     // - PoolMember
     // - units
@@ -126,8 +126,12 @@ function _createDistributionClaimedEntity(
     return ev;
 }
 
-function _createMemberUpdatedEntity(event: MemberUpdated): MemberUpdatedEvent {
-    const ev = new MemberUpdatedEvent(createEventID("MemberUpdated", event));
+function _createMemberUnitsUpdatedEntity(
+    event: MemberUnitsUpdated
+): MemberUnitsUpdatedEvent {
+    const ev = new MemberUnitsUpdatedEvent(
+        createEventID("MemberUnitsUpdated", event)
+    );
     initializeEventEntity(ev, event, [
         event.params.token,
         event.address,

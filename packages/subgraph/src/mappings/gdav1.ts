@@ -84,7 +84,7 @@ export function handlePoolConnectionUpdated(
     _createPoolConnectionUpdatedEntity(event);
 
     // Update Pool Member Entity
-    let poolMember = getOrInitPoolMember(
+    const poolMember = getOrInitPoolMember(
         event,
         event.params.pool,
         event.params.account

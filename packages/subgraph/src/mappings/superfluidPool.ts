@@ -7,15 +7,26 @@ import {
     MemberUnitsUpdatedEvent,
 } from "../../generated/schema";
 import {
+    _createAccountTokenSnapshotLogEntity,
+    _createTokenStatisticLogEntity,
     getOrInitPool,
     getOrInitPoolMember,
+    updateATSStreamedAndBalanceUntilUpdatedAt,
+    updateAggregateDistributionAgreementData,
     updatePoolTotalAmountFlowedAndDistributed,
+    updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
-import { BIG_INT_ZERO, createEventID, initializeEventEntity } from "../utils";
+import {
+    BIG_INT_ZERO,
+    createEventID,
+    initializeEventEntity,
+    membershipWithUnitsExists,
+} from "../utils";
 
 // @note use deltas where applicable
 
 export function handleDistributionClaimed(event: DistributionClaimed): void {
+    const token = event.params.token;
     // Create Event Entity
     _createDistributionClaimedEntity(event);
 
@@ -25,7 +36,7 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     pool.save();
 
     // Update PoolMember
-    let poolMember = getOrInitPoolMember(
+    const poolMember = getOrInitPoolMember(
         event,
         event.address,
         event.params.member
@@ -33,28 +44,61 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     poolMember.totalAmountClaimed = event.params.totalClaimed;
     poolMember.save();
 
-    // aggregate (TBD):
-    // - AccountTokenSnapshot
-    // - AccountTokenSnapshotLog
-    // - TokenStatistic
-    // - TokenStatisticLog
+    // Update Token Statistics
+    const eventName = "DistributionClaimed";
+    updateTokenStatsStreamedUntilUpdatedAt(token, event.block);
+    _createTokenStatisticLogEntity(event, token, eventName);
+
+    // Update ATS
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        event.params.member,
+        token,
+        event.block,
+        null
+    );
+    _createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.member,
+        token,
+        eventName
+    );
 }
+
 export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     // Create Event Entity
     _createMemberUnitsUpdatedEntity(event);
 
     // - PoolMember
     // - units
-    let poolMember = getOrInitPoolMember(
+    const poolMember = getOrInitPoolMember(
         event,
         event.address,
         event.params.member
     );
+    const hasMembershipWithUnits = membershipWithUnitsExists(poolMember.id);
+
     const previousUnits = poolMember.units;
     const unitsDelta = event.params.units.minus(poolMember.units);
     poolMember.units = event.params.units;
 
     poolMember.save();
+
+    const eventName = "MemberUnitsUpdated";
+    updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
+    _createTokenStatisticLogEntity(event, event.params.token, eventName);
+
+    updateATSStreamedAndBalanceUntilUpdatedAt(
+        event.params.member,
+        event.params.token,
+        event.block,
+        null
+    );
+    _createAccountTokenSnapshotLogEntity(
+        event,
+        event.params.member,
+        event.params.token,
+        eventName
+    );
 
     let pool = getOrInitPool(event, event.address.toHex());
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
@@ -78,6 +122,19 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             // if the member is disconnected with units now, we add one to disconnected
             pool.totalDisconnectedMembers = pool.totalDisconnectedMembers + 1;
         }
+
+        updateAggregateDistributionAgreementData(
+            event.params.member,
+            event.params.token,
+            hasMembershipWithUnits,
+            poolMember.isConnected,
+            true, // only place we increment subWithUnits
+            false, // not deleting
+            false, // not deleting
+            false, // not connecting
+            event.block,
+            false // isIDA
+        );
     }
 
     // > 0 units to 0 units
@@ -93,15 +150,22 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             // if the member is disconnected with no units now, we subtract one from disconnected
             pool.totalDisconnectedMembers = pool.totalDisconnectedMembers - 1;
         }
+
+        updateAggregateDistributionAgreementData(
+            event.params.member,
+            event.params.token,
+            hasMembershipWithUnits,
+            poolMember.isConnected,
+            false, // don't increment memberWithUnits
+            false, // not disconnecting membership
+            true, // only place we decrement membershipWithUnits IF member has memberShipWithUnits
+            false, // not connecting
+            event.block,
+            false // isIDA
+        );
     }
     pool.totalUnits.plus(unitsDelta);
     pool.save();
-
-    // aggregate (TBD):
-    // - AccountTokenSnapshot
-    // - AccountTokenSnapshotLog
-    // - TokenStatistic
-    // - TokenStatisticLog
 }
 
 function _createDistributionClaimedEntity(

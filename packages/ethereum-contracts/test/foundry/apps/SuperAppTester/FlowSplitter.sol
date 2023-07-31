@@ -36,7 +36,7 @@ contract FlowSplitter is SuperAppBaseFlow {
         int96 _sideReceiverPortion,
         ISuperToken _acceptedSuperToken,
         ISuperfluid _host
-    ) SuperAppBaseFlow(_host, true, true, true) {
+    ) SuperAppBaseFlow(_host, true, true, true, "") {
         mainReceiver = _mainReceiver;
         sideReceiver = _sideReceiver;
         sideReceiverPortion = _sideReceiverPortion;

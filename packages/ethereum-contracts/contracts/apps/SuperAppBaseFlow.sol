@@ -28,7 +28,8 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         ISuperfluid host_,
         bool activateOnCreated,
         bool activateOnUpdated,
-        bool activateOnDeleted
+        bool activateOnDeleted,
+        string memory registrationKey
     ) {
         HOST = host_;
 
@@ -49,7 +50,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
                 | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
         }
 
-        host_.registerApp(callBackDefinitions);
+        host_.registerAppWithKey(callBackDefinitions, registrationKey);
     }
 
     /**

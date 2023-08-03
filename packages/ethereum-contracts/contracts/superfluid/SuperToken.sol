@@ -637,7 +637,7 @@ contract SuperToken is
         uint256 amount,
         bytes memory userData,
         bytes memory operatorData
-    ) private {
+    ) internal virtual {
         if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
 
         (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
@@ -661,7 +661,8 @@ contract SuperToken is
         address to,       // the account receiving the underlying tokens
         uint256 amount,
         bytes memory data,
-        bytes memory operatorData) private {
+        bytes memory operatorData
+    ) internal virtual {
         if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
 
         (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);

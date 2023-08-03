@@ -758,6 +758,7 @@ type FlowDistributionUpdatedEvent implements Event @entity(immutable: true) {
     poolDistributor: PoolDistributor!
 }
 
+#  SuperfluidPool #
 type DistributionClaimedEvent implements Event @entity(immutable: true) {
     id: ID!
     transactionHash: Bytes!

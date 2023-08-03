@@ -281,11 +281,13 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         IPoolAdminNFT poolAdminNFT = IPoolAdminNFT(_canCallPoolAdminNFTHook(token));
 
-        uint256 gasLeftBefore = gasleft();
-        try poolAdminNFT.mint(address(pool)) {
-            // solhint-disable-next-line no-empty-blocks
-        } catch {
-            SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+        if (address(poolAdminNFT) != address(0)) {
+            uint256 gasLeftBefore = gasleft();
+            try poolAdminNFT.mint(address(pool)) {
+                // solhint-disable-next-line no-empty-blocks
+            } catch {
+                SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
+            }
         }
 
         emit PoolCreated(token, admin, pool);
@@ -455,6 +457,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         );
 
         // handle distribute flow on behalf of someone else
+        // @note move to internal maybe
         {
             if (from != currentContext.msgSender) {
                 if (requestedFlowRate > 0) {

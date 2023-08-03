@@ -18,6 +18,7 @@ export const bob = "0x70997970c51812dc3a010c7d01b50e0d17dc79c8";
 export const charlie = "0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc";
 export const delta = "0x90f79bf6eb2c4f870365e785982e1f101e93b906";
 export const echo = "0x15d34aaf54267db7d7c367839aaf71a00a2c6a65";
+export const superfluidPool = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
 
 // contract addresses (polygon)
 export const hostAddress = "0x3e14dc1b13c488a8d5d310918780c983bd5982e7";

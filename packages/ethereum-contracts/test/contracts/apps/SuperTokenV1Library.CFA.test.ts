@@ -54,7 +54,10 @@ export const deploySuperTokenAndNFTContractsAndInitialize = async (
     return superToken;
 };
 
-describe("CFAv1 Library testing", function () {
+// @note at this point, this file is mostly just for coverage
+// we utilize the SuperTokenV1 Library throughout our tests
+// and the code is simply a mapping of the functions
+describe("SuperTokenV1 Library CFA testing", function () {
     this.timeout(300e3);
     const t = TestEnvironment.getSingleton();
 
@@ -1068,6 +1071,124 @@ describe("CFAv1 Library testing", function () {
                 flowPermissionsCheck.flowRateAllowance.toString(),
                 "0"
             );
+        });
+
+        it("2.20 - Can increase flow allowance with permissions", async () => {
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .increaseFlowAllowanceWithPermissionsTest(
+                    superToken.address,
+                    alice,
+                    callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,
+                    flowRate
+                );
+
+            const flowPermissionsCheck =
+                await superTokenLibCFAMock.getFlowPermissionsTest(
+                    superToken.address,
+                    superTokenLibCFAMock.address,
+                    alice
+                );
+            assert.equal(
+                flowPermissionsCheck.flowRateAllowance.toString(),
+                flowRate
+            );
+            assert.equal(flowPermissionsCheck.allowCreate, true);
+            assert.equal(flowPermissionsCheck.allowUpdate, true);
+            assert.equal(flowPermissionsCheck.allowDelete, true);
+        });
+
+        it("2.21 - Can increase flow allowance with permissions with user data", async () => {
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .increaseFlowAllowanceWithPermissionsWithUserDataTest(
+                    superToken.address,
+                    alice,
+                    callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,
+                    flowRate,
+                    "0x"
+                );
+
+            const flowPermissionsCheck =
+                await superTokenLibCFAMock.getFlowPermissionsTest(
+                    superToken.address,
+                    superTokenLibCFAMock.address,
+                    alice
+                );
+            assert.equal(
+                flowPermissionsCheck.flowRateAllowance.toString(),
+                flowRate
+            );
+            assert.equal(flowPermissionsCheck.allowCreate, true);
+            assert.equal(flowPermissionsCheck.allowUpdate, true);
+            assert.equal(flowPermissionsCheck.allowDelete, true);
+        });
+
+        it("2.22 - Can decrease flow allowance with permissions", async () => {
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .increaseFlowRateAllowanceTest(
+                    superToken.address,
+                    alice,
+                    flowRate
+                );
+
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .decreaseFlowAllowanceWithPermissionsTest(
+                    superToken.address,
+                    alice,
+                    callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,
+                    flowRate
+                );
+
+            const flowPermissionsCheck =
+                await superTokenLibCFAMock.getFlowPermissionsTest(
+                    superToken.address,
+                    superTokenLibCFAMock.address,
+                    alice
+                );
+            assert.equal(
+                flowPermissionsCheck.flowRateAllowance.toString(),
+                "0"
+            );
+            assert.equal(flowPermissionsCheck.allowCreate, false);
+            assert.equal(flowPermissionsCheck.allowUpdate, false);
+            assert.equal(flowPermissionsCheck.allowDelete, false);
+        });
+
+        it("2.23 - Can decrease flow allowance with permissions with user data", async () => {
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .increaseFlowRateAllowanceTest(
+                    superToken.address,
+                    alice,
+                    flowRate
+                );
+
+            await superTokenLibCFAMock
+                .connect(aliceSigner)
+                .decreaseFlowAllowanceWithPermissionsWithUserDataTest(
+                    superToken.address,
+                    alice,
+                    callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,
+                    flowRate,
+                    "0x"
+                );
+
+            const flowPermissionsCheck =
+                await superTokenLibCFAMock.getFlowPermissionsTest(
+                    superToken.address,
+                    superTokenLibCFAMock.address,
+                    alice
+                );
+            assert.equal(
+                flowPermissionsCheck.flowRateAllowance.toString(),
+                "0"
+            );
+            assert.equal(flowPermissionsCheck.allowCreate, false);
+            assert.equal(flowPermissionsCheck.allowUpdate, false);
+            assert.equal(flowPermissionsCheck.allowDelete, false);
         });
     });
 });

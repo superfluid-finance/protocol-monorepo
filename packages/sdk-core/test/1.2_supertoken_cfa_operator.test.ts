@@ -3,6 +3,8 @@ import { expect } from "chai";
 import {
     AUTHORIZE_FLOW_OPERATOR_CREATE,
     AUTHORIZE_FULL_CONTROL,
+    _deltaAddPermissions,
+    _deltaRemovePermissions,
     clipDepositNumber,
     getFlowOperatorId,
     getPerSecondFlowRateByMonth,
@@ -138,24 +140,34 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
         it("Should be able to increase flow rate allowance with permissions", async () => {
             const flowRateAllowanceDelta = getPerSecondFlowRateByMonth("100");
             const permissions = AUTHORIZE_FULL_CONTROL;
-            await testEnv.wrapperSuperToken
-                .increaseFlowAllowanceWithPermissions({
-                    flowRateAllowanceDelta,
-                    flowOperator: flowOperator.address,
-                    permissions,
-                })
-                .exec(sender);
-            const flowOperatorData =
+
+            const flowOperatorDataBefore =
                 await testEnv.wrapperSuperToken.getFlowOperatorData({
                     sender: sender.address,
                     flowOperator: flowOperator.address,
                     providerOrSigner: sender,
                 });
-            expect(flowOperatorData.flowRateAllowance).to.equal(
+            await testEnv.wrapperSuperToken
+                .increaseFlowAllowanceWithPermissions({
+                    flowRateAllowanceDelta,
+                    flowOperator: flowOperator.address,
+                    permissionsDelta: permissions,
+                })
+                .exec(sender);
+            const flowOperatorDataAfter =
+                await testEnv.wrapperSuperToken.getFlowOperatorData({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    providerOrSigner: sender,
+                });
+            expect(flowOperatorDataAfter.flowRateAllowance).to.equal(
                 flowRateAllowanceDelta
             );
-            expect(flowOperatorData.permissions).to.equal(
-                permissions.toString()
+            expect(flowOperatorDataAfter.permissions).to.equal(
+                _deltaAddPermissions(
+                    Number(flowOperatorDataBefore.permissions),
+                    permissions
+                ).toString()
             );
         });
 
@@ -166,7 +178,7 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
                 .increaseFlowAllowanceWithPermissions({
                     flowRateAllowanceDelta,
                     flowOperator: flowOperator.address,
-                    permissions,
+                    permissionsDelta: permissions,
                 })
                 .exec(sender);
             const flowOperatorDataBefore =
@@ -181,7 +193,7 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
                 .decreaseFlowAllowanceWithPermissions({
                     flowRateAllowanceDelta: decreaseFlowRateAllowanceDelta,
                     flowOperator: flowOperator.address,
-                    permissions,
+                    permissionsDelta: permissions,
                 })
                 .exec(sender);
             const flowOperatorDataAfter =
@@ -196,7 +208,10 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
                     .toString()
             );
             expect(flowOperatorDataAfter.permissions).to.equal(
-                permissions.toString()
+                _deltaRemovePermissions(
+                    Number(flowOperatorDataBefore.permissions),
+                    permissions
+                ).toString()
             );
         });
 

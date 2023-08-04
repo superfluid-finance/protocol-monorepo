@@ -235,6 +235,46 @@ contract SuperTokenLibraryCFAMock {
     ) public {
         token.decreaseFlowRateAllowance(flowOperator, subtractedFlowRateAllowance, userData);
     }
+
+    function increaseFlowAllowanceWithPermissionsTest(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissionsToAdd,
+        int96 addedFlowRateAllowance
+    ) public {
+        token.increaseFlowAllowanceWithPermissions(flowOperator, permissionsToAdd, addedFlowRateAllowance);
+    }
+
+    function decreaseFlowAllowanceWithPermissionsTest(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissionsToRemove,
+        int96 subtractedFlowRateAllowance
+    ) public {
+        token.decreaseFlowAllowanceWithPermissions(flowOperator, permissionsToRemove, subtractedFlowRateAllowance);
+    }
+
+    function increaseFlowAllowanceWithPermissionsWithUserDataTest(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissionsToAdd,
+        int96 addedFlowRateAllowance,
+        bytes memory userData
+    ) public {
+        token.increaseFlowAllowanceWithPermissions(flowOperator, permissionsToAdd, addedFlowRateAllowance, userData);
+    }
+
+    function decreaseFlowAllowanceWithPermissionsWithUserDataTest(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissionsToRemove,
+        int96 subtractedFlowRateAllowance,
+        bytes memory userData
+    ) public {
+        token.decreaseFlowAllowanceWithPermissions(
+            flowOperator, permissionsToRemove, subtractedFlowRateAllowance, userData
+        );
+    }
 }
 
 contract SuperTokenLibraryIDAMock {

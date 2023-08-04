@@ -48,6 +48,20 @@ export const isPermissionsClean = (permissions: number): boolean => {
     );
 };
 
+export const _deltaAddPermissions = (
+    oldPermissions: number,
+    permissionsDelta: number
+): number => {
+    return oldPermissions | permissionsDelta;
+};
+
+export const _deltaRemovePermissions = (
+    oldPermissions: number,
+    permissionsDelta: number
+): number => {
+    return oldPermissions & ~permissionsDelta;
+};
+
 export const isNullOrEmpty = (str: string | null | undefined) => {
     return str == null || str === "";
 };

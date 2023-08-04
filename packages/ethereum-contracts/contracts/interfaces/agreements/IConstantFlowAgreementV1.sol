@@ -148,7 +148,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @dev if `addedFlowRateAllowance` is negative, we revert with CFA_ACL_NO_NEGATIVE_ALLOWANCE
      * @param token Super token address
      * @param flowOperator The permission grantee address
-     * @param permissions A bitmask representation of the granted permissions
+     * @param permissionsToAdd A bitmask representation of the granted permissions to add as a delta
      * @param addedFlowRateAllowance The flow rate allowance delta
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @return newCtx The new context bytes
@@ -156,7 +156,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     function increaseFlowAllowanceWithPermissions(
         ISuperfluidToken token,
         address flowOperator,
-        uint8 permissions,
+        uint8 permissionsToAdd,
         int96 addedFlowRateAllowance,
         bytes calldata ctx
     ) external virtual returns(bytes memory newCtx);
@@ -166,7 +166,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @dev if `subtractedFlowRateAllowance` is negative, we revert with CFA_ACL_NO_NEGATIVE_ALLOWANCE
      * @param token Super token address
      * @param flowOperator The permission grantee address
-     * @param permissions A bitmask representation of the granted permissions
+     * @param permissionsToRemove A bitmask representation of the granted permissions to remove as a delta
      * @param subtractedFlowRateAllowance The flow rate allowance delta
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @return newCtx The new context bytes
@@ -174,7 +174,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     function decreaseFlowAllowanceWithPermissions(
         ISuperfluidToken token,
         address flowOperator,
-        uint8 permissions,
+        uint8 permissionsToRemove,
         int96 subtractedFlowRateAllowance,
         bytes calldata ctx
     ) external virtual returns(bytes memory newCtx);

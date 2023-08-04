@@ -407,7 +407,7 @@ export default class ConstantFlowAgreementV1 {
      * Increase the flow rate allowance and sets permissions for an ACL operator.
      * @param superToken The token to be flowed.
      * @param flowOperator The operator of the flow.
-     * @param permissions The permissions to be set for the operator.
+     * @param permissionsDelta The permissions to be add for the operator.
      * @param flowRateAllowanceDelta The amount to increase the flow rate allowance by.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
@@ -418,7 +418,7 @@ export default class ConstantFlowAgreementV1 {
     ): Operation {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedFlowOperator = normalizeAddress(params.flowOperator);
-        if (!isPermissionsClean(params.permissions)) {
+        if (!isPermissionsClean(params.permissionsDelta)) {
             throw new SFError({
                 type: "UNCLEAN_PERMISSIONS",
                 message: "The desired permissions are unclean",
@@ -430,7 +430,7 @@ export default class ConstantFlowAgreementV1 {
             [
                 normalizedToken,
                 normalizedFlowOperator,
-                params.permissions,
+                params.permissionsDelta,
                 params.flowRateAllowanceDelta,
                 "0x",
             ]
@@ -447,7 +447,7 @@ export default class ConstantFlowAgreementV1 {
      * Decrease the flow rate allowance and sets permissions for an ACL operator.
      * @param superToken The token to be flowed.
      * @param flowOperator The operator of the flow.
-     * @param permissions The permissions to be set for the operator.
+     * @param permissionsDelta The permissions to be remove from the operator.
      * @param flowRateAllowanceDelta The amount to decrease the flow rate allowance by.
      * @param userData Extra user data provided.
      * @param overrides ethers overrides object for more control over the transaction sent.
@@ -458,7 +458,7 @@ export default class ConstantFlowAgreementV1 {
     ): Operation {
         const normalizedToken = normalizeAddress(params.superToken);
         const normalizedFlowOperator = normalizeAddress(params.flowOperator);
-        if (!isPermissionsClean(params.permissions)) {
+        if (!isPermissionsClean(params.permissionsDelta)) {
             throw new SFError({
                 type: "UNCLEAN_PERMISSIONS",
                 message: "The desired permissions are unclean",
@@ -470,7 +470,7 @@ export default class ConstantFlowAgreementV1 {
             [
                 normalizedToken,
                 normalizedFlowOperator,
-                params.permissions,
+                params.permissionsDelta,
                 params.flowRateAllowanceDelta,
                 "0x",
             ]

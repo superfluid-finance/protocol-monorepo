@@ -530,10 +530,10 @@ export interface FlowRateAllowanceParams
 
 export interface FlowRateAllowanceWithPermissionsParams
     extends FlowRateAllowanceParams {
-    readonly permissions: number;
+    readonly permissionsDelta: number;
 }
 
 export interface SuperTokenFlowRateAllowanceWithPermissionsParams
     extends SuperTokenFlowRateAllowanceParams {
-    readonly permissions: number;
+    readonly permissionsDelta: number;
 }

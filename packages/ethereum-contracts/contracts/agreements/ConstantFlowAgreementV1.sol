@@ -930,58 +930,78 @@ contract ConstantFlowAgreementV1 is
         emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, flowRateAllowance);
     }
 
-
     /// @dev IConstantFlowAgreementV1.increaseFlowAllowanceWithPermissions implementation
     function increaseFlowAllowanceWithPermissions(
         ISuperfluidToken token,
         address flowOperator,
-        uint8 permissions,
+        uint8 permissionsToAdd,
         int96 addedFlowRateAllowance,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
         newCtx = ctx;
         ISuperfluid.Context memory currentContext =
-            _validateUpdateFlowOperatorDataInput(token, flowOperator, permissions, addedFlowRateAllowance, ctx);
+            _validateUpdateFlowOperatorDataInput(token, flowOperator, permissionsToAdd, addedFlowRateAllowance, ctx);
 
-        (bytes32 flowOperatorId,, int96 oldFlowRateAllowance) =
+        (bytes32 flowOperatorId, uint8 oldPermissions, int96 oldFlowRateAllowance) =
             getFlowOperatorData(token, currentContext.msgSender, flowOperator);
 
         FlowOperatorData memory flowOperatorData;
-        flowOperatorData.permissions = permissions;
+        flowOperatorData.permissions = deltaAddPermissions(oldPermissions, permissionsToAdd);
         // @note this will revert if it overflows
         int96 newFlowRateAllowance = oldFlowRateAllowance + addedFlowRateAllowance;
         flowOperatorData.flowRateAllowance = newFlowRateAllowance;
         token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
 
-        emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, newFlowRateAllowance);
+        emit FlowOperatorUpdated(
+            token, currentContext.msgSender, flowOperator, flowOperatorData.permissions, newFlowRateAllowance
+        );
     }
 
     /// @dev IConstantFlowAgreementV1.decreaseFlowAllowanceWithPermissions implementation
     function decreaseFlowAllowanceWithPermissions(
         ISuperfluidToken token,
         address flowOperator,
-        uint8 permissions,
+        uint8 permissionsToRemove,
         int96 subtractedFlowRateAllowance,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
         newCtx = ctx;
-        ISuperfluid.Context memory currentContext =
-            _validateUpdateFlowOperatorDataInput(token, flowOperator, permissions, subtractedFlowRateAllowance, ctx);
+        ISuperfluid.Context memory currentContext = _validateUpdateFlowOperatorDataInput(
+            token, flowOperator, permissionsToRemove, subtractedFlowRateAllowance, ctx
+        );
 
-        (bytes32 flowOperatorId,, int96 oldFlowRateAllowance) =
+        (bytes32 flowOperatorId, uint8 oldPermissions, int96 oldFlowRateAllowance) =
             getFlowOperatorData(token, currentContext.msgSender, flowOperator);
 
         FlowOperatorData memory flowOperatorData;
-        flowOperatorData.permissions = permissions;
+        flowOperatorData.permissions = deltaRemovePermissions(oldPermissions, permissionsToRemove);
         int96 newFlowRateAllowance = oldFlowRateAllowance - subtractedFlowRateAllowance;
-        
+
         // @note this defends against negative allowance
         if (newFlowRateAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
         flowOperatorData.flowRateAllowance = newFlowRateAllowance;
 
         token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
 
-        emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, newFlowRateAllowance);
+        emit FlowOperatorUpdated(
+            token, currentContext.msgSender, flowOperator, flowOperatorData.permissions, newFlowRateAllowance
+        );
+    }
+
+    function deltaAddPermissions(uint8 existingPermissions, uint8 permissionDelta)
+        public
+        pure
+        returns (uint8)
+    {
+        return existingPermissions | permissionDelta;
+    }
+
+    function deltaRemovePermissions(uint8 existingPermissions, uint8 permissionDelta)
+        public
+        pure
+        returns (uint8)
+    {
+        return existingPermissions & (~permissionDelta);
     }
     
     /// @dev This function ensures:

@@ -247,16 +247,18 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
         vm.assume(flowAllowance > 0);
         vm.assume(address(this) != flowOperator);
 
-        (bytes32 flowOperatorId,, int96 oldFlowRateAllowance) =
+        (bytes32 flowOperatorId, uint8 oldPermissions, int96 oldFlowRateAllowance) =
             sf.cfa.getFlowOperatorData(superToken, address(this), flowOperator);
 
         superToken.increaseFlowAllowanceWithPermissions(flowOperator, permissions, flowAllowance);
+
+        uint8 newPermissions = sf.cfa.deltaAddPermissions(oldPermissions, permissions);
 
         _assertFlowOperatorData(
             AssertFlowOperator({
                 superToken: superToken,
                 flowOperatorId: flowOperatorId,
-                expectedPermissions: permissions,
+                expectedPermissions: newPermissions,
                 expectedFlowRateAllowance: oldFlowRateAllowance + flowAllowance
             })
         );
@@ -279,13 +281,17 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
 
         superToken.increaseFlowAllowanceWithPermissions(flowOperator, permissions, increaseFlowAllowance);
 
+        (, uint8 oldPermissions,) = sf.cfa.getFlowOperatorData(superToken, address(this), flowOperator);
+
         superToken.decreaseFlowAllowanceWithPermissions(flowOperator, permissions, decreaseAllowance);
+
+        uint8 newPermissions = sf.cfa.deltaRemovePermissions(oldPermissions, permissions);
 
         _assertFlowOperatorData(
             AssertFlowOperator({
                 superToken: superToken,
                 flowOperatorId: flowOperatorId,
-                expectedPermissions: permissions,
+                expectedPermissions: newPermissions,
                 expectedFlowRateAllowance: oldFlowRateAllowance + increaseFlowAllowance - decreaseAllowance
             })
         );

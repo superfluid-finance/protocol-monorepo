@@ -376,7 +376,7 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
             testEnv.wrapperSuperToken.increaseFlowAllowanceWithPermissions({
                 flowRateAllowanceDelta,
                 flowOperator: flowOperator.address,
-                permissions,
+                permissionsDelta: permissions,
             });
         const decreaseFlowRateAllowanceDelta =
             getPerSecondFlowRateByMonth("31");
@@ -384,7 +384,7 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
             testEnv.wrapperSuperToken.decreaseFlowAllowanceWithPermissions({
                 flowRateAllowanceDelta: decreaseFlowRateAllowanceDelta,
                 flowOperator: flowOperator.address,
-                permissions,
+                permissionsDelta: permissions,
             });
         await testEnv.sdkFramework
             .batchCall([increaseAllowanceOp, decreaseAllowanceOp])
@@ -402,8 +402,10 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
                 .sub(toBN(decreaseFlowRateAllowanceDelta))
                 .toString()
         );
+
+        // we remove all permissions after
         expect(flowOperatorDataAfter.permissions).to.equal(
-            permissions.toString()
+            "0"
         );
     });
 });

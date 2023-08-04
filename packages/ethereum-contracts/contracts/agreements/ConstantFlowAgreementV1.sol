@@ -983,7 +983,12 @@ contract ConstantFlowAgreementV1 is
 
         emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, newFlowRateAllowance);
     }
-
+    
+    /// @dev This function ensures:
+    /// - token access
+    /// - passed permissions are "clean"
+    /// - no sender flow operator
+    /// - no negative allowance
     function _validateUpdateFlowOperatorDataInput(
         ISuperfluidToken token,
         address flowOperator,

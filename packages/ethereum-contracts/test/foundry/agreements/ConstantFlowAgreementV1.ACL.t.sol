@@ -3,6 +3,7 @@ pragma solidity 0.8.19;
 
 import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { FlowOperatorDefinitions } from "../../../contracts/interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
@@ -18,6 +19,15 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
     }
 
     constructor() FoundrySuperfluidTester(3) { }
+
+    function setUp() public override {
+        super.setUp();
+
+        // @note this is done prior to the actual call to save addresses to the cache
+        // and so that this is skipped when we execute the actual call
+        // this fixes the issue where expect revert fails because it expects getHost to revert
+        superToken.increaseFlowRateAllowance(address(1), 0);
+    }
 
     function testIncreaseFlowRateAllowance(int96 flowRateAllowanceDelta) public {
         vm.assume(flowRateAllowanceDelta > 0);
@@ -155,15 +165,130 @@ contract ConstantFlowAgreementV1ACLTest is FoundrySuperfluidTester {
     }
 
     function testRevertIfDecreaseFlowRateAllowanceUnderflows() public {
-        // @note this is done prior to the actual call to save addresses to the cache
-        // and so that this is skipped when we execute the actual call
-        // this fixes the issue where expect revert fails because it expects getHost to revert
-        superToken.decreaseFlowRateAllowance(bob, 0);
-
         vm.startPrank(alice);
         vm.expectRevert(IConstantFlowAgreementV1.CFA_ACL_NO_NEGATIVE_ALLOWANCE.selector);
         superToken.decreaseFlowRateAllowance(bob, 10);
         vm.stopPrank();
+    }
+
+    function testRevertIfIncreaseFlowAllowanceWithBadPermissions(address flowOperator, uint8 permissions) public {
+        vm.assume(!FlowOperatorDefinitions.isPermissionsClean(permissions));
+
+        vm.expectRevert(IConstantFlowAgreementV1.CFA_ACL_UNCLEAN_PERMISSIONS.selector);
+        superToken.increaseFlowAllowanceWithPermissions(flowOperator, permissions, 1);
+    }
+
+    function testRevertIfDecreaseFlowAllowanceWithBadPermissions(address flowOperator, uint8 permissions) public {
+        vm.assume(!FlowOperatorDefinitions.isPermissionsClean(permissions));
+
+        vm.expectRevert(IConstantFlowAgreementV1.CFA_ACL_UNCLEAN_PERMISSIONS.selector);
+        superToken.decreaseFlowAllowanceWithPermissions(flowOperator, permissions, 0);
+    }
+
+    function testRevertIfIncreaseFlowAllowanceWithPermissionsToSelf(address flowOperator, uint8 permissions) public {
+        vm.assume(FlowOperatorDefinitions.isPermissionsClean(permissions));
+
+        vm.expectRevert(IConstantFlowAgreementV1.CFA_ACL_NO_SENDER_FLOW_OPERATOR.selector);
+        vm.startPrank(flowOperator);
+        superToken.increaseFlowAllowanceWithPermissions(flowOperator, permissions, 1);
+        vm.stopPrank();
+    }
+
+    function testRevertIfDecreaseFlowAllowanceWithPermissionsToSelf(address flowOperator, uint8 permissions) public {
+        vm.assume(FlowOperatorDefinitions.isPermissionsClean(permissions));
+
+        vm.expectRevert(IConstantFlowAgreementV1.CFA_ACL_NO_SENDER_FLOW_OPERATOR.selector);
+        vm.startPrank(flowOperator);
+        superToken.decreaseFlowAllowanceWithPermissions(flowOperator, permissions, 0);
+        vm.stopPrank();
+    }
+
+    function testRevertIfIncreaseFlowAllowanceWithNegativeAllowance(
+        address flowOperator,
+        uint8 permissions,
+        int96 flowAllowance
+    ) public {
+        vm.assume(FlowOperatorDefinitions.isPermissionsClean(permissions));
+        vm.assume(flowAllowance < 0);
+        vm.assume(address(this) != flowOperator);
+
+        vm.expectRevert(IConstantFlowAgreementV1.CFA_ACL_NO_NEGATIVE_ALLOWANCE.selector);
+        superToken.increaseFlowAllowanceWithPermissions(flowOperator, permissions, flowAllowance);
+    }
+
+    function testRevertIfDecreaseFlowAllowanceWithNegativeAllowance(
+        address flowOperator,
+        uint8 permissions,
+        int96 flowAllowance
+    ) public {
+        vm.assume(FlowOperatorDefinitions.isPermissionsClean(permissions));
+        vm.assume(flowAllowance < 0);
+        vm.assume(address(this) != flowOperator);
+
+        vm.expectRevert(IConstantFlowAgreementV1.CFA_ACL_NO_NEGATIVE_ALLOWANCE.selector);
+        superToken.decreaseFlowAllowanceWithPermissions(flowOperator, permissions, flowAllowance);
+    }
+
+    function testRevertIfIncreaseFlowRateAllowanceWithPermissionsOverflows(address flowOperator, uint8 permissions)
+        public
+    {
+        vm.assume(FlowOperatorDefinitions.isPermissionsClean(permissions));
+        vm.assume(address(this) != flowOperator);
+
+        superToken.increaseFlowAllowanceWithPermissions(flowOperator, permissions, type(int96).max);
+        vm.expectRevert("CallUtils: target panicked: 0x11");
+        superToken.increaseFlowRateAllowance(flowOperator, 1);
+    }
+
+    function testIncreaseFlowAllowanceWithPermissions(address flowOperator, uint8 permissions, int96 flowAllowance)
+        public
+    {
+        vm.assume(FlowOperatorDefinitions.isPermissionsClean(permissions));
+        vm.assume(flowAllowance > 0);
+        vm.assume(address(this) != flowOperator);
+
+        (bytes32 flowOperatorId,, int96 oldFlowRateAllowance) =
+            sf.cfa.getFlowOperatorData(superToken, address(this), flowOperator);
+
+        superToken.increaseFlowAllowanceWithPermissions(flowOperator, permissions, flowAllowance);
+
+        _assertFlowOperatorData(
+            AssertFlowOperator({
+                superToken: superToken,
+                flowOperatorId: flowOperatorId,
+                expectedPermissions: permissions,
+                expectedFlowRateAllowance: oldFlowRateAllowance + flowAllowance
+            })
+        );
+    }
+
+    function testDecreaseFlowAllowanceWithPermissions(
+        address flowOperator,
+        uint8 permissions,
+        int96 increaseFlowAllowance,
+        int96 decreaseAllowance
+    ) public {
+        vm.assume(FlowOperatorDefinitions.isPermissionsClean(permissions));
+        vm.assume(increaseFlowAllowance > 0);
+        vm.assume(decreaseAllowance > 0);
+        vm.assume(increaseFlowAllowance >= decreaseAllowance);
+        vm.assume(address(this) != flowOperator);
+
+        (bytes32 flowOperatorId,, int96 oldFlowRateAllowance) =
+            sf.cfa.getFlowOperatorData(superToken, address(this), flowOperator);
+
+        superToken.increaseFlowAllowanceWithPermissions(flowOperator, permissions, increaseFlowAllowance);
+
+        superToken.decreaseFlowAllowanceWithPermissions(flowOperator, permissions, decreaseAllowance);
+
+        _assertFlowOperatorData(
+            AssertFlowOperator({
+                superToken: superToken,
+                flowOperatorId: flowOperatorId,
+                expectedPermissions: permissions,
+                expectedFlowRateAllowance: oldFlowRateAllowance + increaseFlowAllowance - decreaseAllowance
+            })
+        );
     }
 
     function _assertFlowOperatorData(AssertFlowOperator memory data) internal {

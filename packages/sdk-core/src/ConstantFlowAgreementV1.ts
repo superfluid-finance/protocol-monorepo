@@ -11,6 +11,7 @@ import Operation from "./Operation";
 import { SFError } from "./SFError";
 import {
     FlowRateAllowanceParams,
+    FlowRateAllowanceWithPermissionsParams,
     ICreateFlowByOperatorParams,
     ICreateFlowParams,
     IDeleteFlowParams,
@@ -350,6 +351,7 @@ export default class ConstantFlowAgreementV1 {
      * @param flowOperator The operator of the flow.
      * @param flowRateAllowanceDelta The amount to increase the flow rate allowance by.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     increaseFlowRateAllowance(params: FlowRateAllowanceParams): Operation {
@@ -378,6 +380,7 @@ export default class ConstantFlowAgreementV1 {
      * @param flowOperator The operator of the flow.
      * @param flowRateAllowanceDelta The amount to decrease the flow rate allowance by.
      * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
     decreaseFlowRateAllowance(params: FlowRateAllowanceParams): Operation {
@@ -388,6 +391,86 @@ export default class ConstantFlowAgreementV1 {
             [
                 normalizedToken,
                 normalizedFlowOperator,
+                params.flowRateAllowanceDelta,
+                "0x",
+            ]
+        );
+        return this.host.callAgreement(
+            this.contract.address,
+            callData,
+            params.userData,
+            params.overrides
+        );
+    }
+
+    /**
+     * Increase the flow rate allowance and sets permissions for an ACL operator.
+     * @param superToken The token to be flowed.
+     * @param flowOperator The operator of the flow.
+     * @param permissions The permissions to be set for the operator.
+     * @param flowRateAllowanceDelta The amount to increase the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    increaseFlowAllowanceWithPermissions(
+        params: FlowRateAllowanceWithPermissionsParams
+    ): Operation {
+        const normalizedToken = normalizeAddress(params.superToken);
+        const normalizedFlowOperator = normalizeAddress(params.flowOperator);
+        if (!isPermissionsClean(params.permissions)) {
+            throw new SFError({
+                type: "UNCLEAN_PERMISSIONS",
+                message: "The desired permissions are unclean",
+            });
+        }
+
+        const callData = cfaInterface.encodeFunctionData(
+            "increaseFlowAllowanceWithPermissions",
+            [
+                normalizedToken,
+                normalizedFlowOperator,
+                params.permissions,
+                params.flowRateAllowanceDelta,
+                "0x",
+            ]
+        );
+        return this.host.callAgreement(
+            this.contract.address,
+            callData,
+            params.userData,
+            params.overrides
+        );
+    }
+
+    /**
+     * Decrease the flow rate allowance and sets permissions for an ACL operator.
+     * @param superToken The token to be flowed.
+     * @param flowOperator The operator of the flow.
+     * @param permissions The permissions to be set for the operator.
+     * @param flowRateAllowanceDelta The amount to decrease the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    decreaseFlowAllowanceWithPermissions(
+        params: FlowRateAllowanceWithPermissionsParams
+    ): Operation {
+        const normalizedToken = normalizeAddress(params.superToken);
+        const normalizedFlowOperator = normalizeAddress(params.flowOperator);
+        if (!isPermissionsClean(params.permissions)) {
+            throw new SFError({
+                type: "UNCLEAN_PERMISSIONS",
+                message: "The desired permissions are unclean",
+            });
+        }
+
+        const callData = cfaInterface.encodeFunctionData(
+            "decreaseFlowAllowanceWithPermissions",
+            [
+                normalizedToken,
+                normalizedFlowOperator,
+                params.permissions,
                 params.flowRateAllowanceDelta,
                 "0x",
             ]

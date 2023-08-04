@@ -282,6 +282,105 @@ library SuperTokenV1Library {
     }
 
     /**
+     * @dev Increases the flow rate allowance for flow operator and sets the permissions
+     * @notice allowing userData to be a parameter here triggered stack too deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is increased
+     * @param permissions The permissions to set for the flow operator
+     * @param addedFlowRateAllowance amount to increase allowance by
+     */
+    function increaseFlowAllowanceWithPermissions(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 addedFlowRateAllowance
+    ) internal returns (bool) {
+        return
+            increaseFlowAllowanceWithPermissions(
+                token,
+                flowOperator,
+                permissions,
+                addedFlowRateAllowance,
+                new bytes(0)
+            );
+    }
+
+    /**
+     * @dev Increases the flow rate allowance for flow operator and sets the permissions
+     * @notice allowing userData to be a parameter here triggered stack too deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is increased
+     * @param permissions The permissions to set for the flow operator
+     * @param addedFlowRateAllowance amount to increase allowance by
+     * @param userData The userdata passed along with call
+     */
+    function increaseFlowAllowanceWithPermissions(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 addedFlowRateAllowance,
+        bytes memory userData
+    ) internal returns (bool) {
+        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
+        host.callAgreement(
+            cfa,
+            abi.encodeCall(
+                cfa.increaseFlowAllowanceWithPermissions,
+                (token, flowOperator, permissions, addedFlowRateAllowance, new bytes(0))
+            ),
+            userData
+        );
+        return true;
+    }
+
+    /**
+     * @dev Decreases the flow rate allowance for flow operator and sets the permissions
+     * @notice allowing userData to be a parameter here triggered stack too deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is subtracted
+     * @param permissions The permissions to set for the flow operator
+     * @param subtractedFlowRateAllowance amount to subtract allowance by
+     */
+    function decreaseFlowAllowanceWithPermissions(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 subtractedFlowRateAllowance
+    ) internal returns (bool) {
+        return decreaseFlowAllowanceWithPermissions(
+            token, flowOperator, permissions, subtractedFlowRateAllowance, new bytes(0)
+        );
+    }
+
+    /**
+     * @dev Decreases the flow rate allowance for flow operator and sets the permissions
+     * @notice allowing userData to be a parameter here triggered stack too deep error
+     * @param token The token used in flow
+     * @param flowOperator The address whose flow rate allowance is subtracted
+     * @param permissions The permissions to set for the flow operator
+     * @param subtractedFlowRateAllowance amount to subtract allowance by
+     * @param userData The userdata passed along with call
+     */
+    function decreaseFlowAllowanceWithPermissions(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 subtractedFlowRateAllowance,
+        bytes memory userData
+    ) internal returns (bool) {
+        (ISuperfluid host, IConstantFlowAgreementV1 cfa) = _getAndCacheHostAndCFA(token);
+        host.callAgreement(
+            cfa,
+            abi.encodeCall(
+                cfa.decreaseFlowAllowanceWithPermissions,
+                (token, flowOperator, permissions, subtractedFlowRateAllowance, new bytes(0))
+            ),
+            userData
+        );
+        return true;
+    }
+
+    /**
      * @dev Update permissions for flow operator in callback
      * @notice allowing userData to be a parameter here triggered stack too deep error
      * @param token The token used in flow

@@ -826,30 +826,6 @@ contract ConstantFlowAgreementV1 is
         newCtx = _deleteFlow(flowVars, hasPermissions, ctx, currentContext);
     }
 
-    /// @dev IConstantFlowAgreementV1.updateFlowOperatorPermissions implementation
-    function updateFlowOperatorPermissions(
-        ISuperfluidToken token,
-        address flowOperator,
-        uint8 permissions,
-        int96 flowRateAllowance, // flowRateBudget
-        bytes calldata ctx
-    ) public override returns(bytes memory newCtx) {
-        newCtx = ctx;
-        if (!FlowOperatorDefinitions.isPermissionsClean(permissions)) revert CFA_ACL_UNCLEAN_PERMISSIONS();
-        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
-        // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
-        // authorizeTokenAccess:
-        if (currentContext.msgSender == flowOperator) revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();
-        if (flowRateAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
-        FlowOperatorData memory flowOperatorData;
-        flowOperatorData.permissions = permissions;
-        flowOperatorData.flowRateAllowance = flowRateAllowance;
-        bytes32 flowOperatorId = _generateFlowOperatorId(currentContext.msgSender, flowOperator);
-        token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
-
-        emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, flowRateAllowance);
-    }
-
     /// @dev IConstantFlowAgreementV1.increaseFlowRateAllowance implementation
     function increaseFlowRateAllowance(
         ISuperfluidToken token,
@@ -932,6 +908,95 @@ contract ConstantFlowAgreementV1 is
             oldPermissions,
             newFlowRateAllowance
         );
+    }
+
+    /// @dev IConstantFlowAgreementV1.updateFlowOperatorPermissions implementation
+    function updateFlowOperatorPermissions(
+        ISuperfluidToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 flowRateAllowance, // flowRateBudget
+        bytes calldata ctx
+    ) public override returns (bytes memory newCtx) {
+        newCtx = ctx;
+        ISuperfluid.Context memory currentContext =
+            _validateUpdateFlowOperatorDataInput(token, flowOperator, permissions, flowRateAllowance, ctx);
+        FlowOperatorData memory flowOperatorData;
+        flowOperatorData.permissions = permissions;
+        flowOperatorData.flowRateAllowance = flowRateAllowance;
+        bytes32 flowOperatorId = _generateFlowOperatorId(currentContext.msgSender, flowOperator);
+        token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
+
+        emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, flowRateAllowance);
+    }
+
+
+    /// @dev IConstantFlowAgreementV1.increaseFlowAllowanceWithPermissions implementation
+    function increaseFlowAllowanceWithPermissions(
+        ISuperfluidToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 addedFlowRateAllowance,
+        bytes calldata ctx
+    ) external override returns (bytes memory newCtx) {
+        newCtx = ctx;
+        ISuperfluid.Context memory currentContext =
+            _validateUpdateFlowOperatorDataInput(token, flowOperator, permissions, addedFlowRateAllowance, ctx);
+
+        (bytes32 flowOperatorId,, int96 oldFlowRateAllowance) =
+            getFlowOperatorData(token, currentContext.msgSender, flowOperator);
+
+        FlowOperatorData memory flowOperatorData;
+        flowOperatorData.permissions = permissions;
+        // @note this will revert if it overflows
+        int96 newFlowRateAllowance = oldFlowRateAllowance + addedFlowRateAllowance;
+        flowOperatorData.flowRateAllowance = newFlowRateAllowance;
+        token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
+
+        emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, newFlowRateAllowance);
+    }
+
+    /// @dev IConstantFlowAgreementV1.decreaseFlowAllowanceWithPermissions implementation
+    function decreaseFlowAllowanceWithPermissions(
+        ISuperfluidToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 subtractedFlowRateAllowance,
+        bytes calldata ctx
+    ) external override returns (bytes memory newCtx) {
+        newCtx = ctx;
+        ISuperfluid.Context memory currentContext =
+            _validateUpdateFlowOperatorDataInput(token, flowOperator, permissions, subtractedFlowRateAllowance, ctx);
+
+        (bytes32 flowOperatorId,, int96 oldFlowRateAllowance) =
+            getFlowOperatorData(token, currentContext.msgSender, flowOperator);
+
+        FlowOperatorData memory flowOperatorData;
+        flowOperatorData.permissions = permissions;
+        int96 newFlowRateAllowance = oldFlowRateAllowance - subtractedFlowRateAllowance;
+        
+        // @note this defends against negative allowance
+        if (newFlowRateAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
+        flowOperatorData.flowRateAllowance = newFlowRateAllowance;
+
+        token.updateAgreementData(flowOperatorId, _encodeFlowOperatorData(flowOperatorData));
+
+        emit FlowOperatorUpdated(token, currentContext.msgSender, flowOperator, permissions, newFlowRateAllowance);
+    }
+
+    function _validateUpdateFlowOperatorDataInput(
+        ISuperfluidToken token,
+        address flowOperator,
+        uint8 permissions,
+        int96 flowAllowance,
+        bytes calldata ctx
+    ) internal returns (ISuperfluid.Context memory currentContext) {
+        if (!FlowOperatorDefinitions.isPermissionsClean(permissions)) revert CFA_ACL_UNCLEAN_PERMISSIONS();
+        // [SECURITY] NOTE: we are holding the assumption here that ctx is correct and we validate it with
+        // authorizeTokenAccess:
+        currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+        if (currentContext.msgSender == flowOperator) revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();
+        if (flowAllowance < 0) revert CFA_ACL_NO_NEGATIVE_ALLOWANCE();
     }
 
     /// @dev IConstantFlowAgreementV1.authorizeFlowOperatorWithFullControl implementation

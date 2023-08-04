@@ -29,8 +29,8 @@
     "main": "./dev-scripts/index.js",
     "typings": "./types/index.d.ts",
     "scripts": {
-        "dev": "tasks/dev.sh",
-        "dev-forge": "nodemon -e sol -x yarn run-forge test --hardhat",
+        "dev": "nodemon -e sol -x yarn run-forge test --hardhat",
+        "dev-hardhat": "tasks/dev.sh",
         "clean": "rm -rf node_modules; rm -rf cache; rm -rf build; rm -rf artifacts; rm -rf typechain-types; rm -rf dev-scripts/*.d.ts dev-scripts/*.d.ts.map",
         "run-hardhat": "IS_HARDHAT=true hardhat",
         "run-truffle": "IS_TRUFFLE=true truffle",

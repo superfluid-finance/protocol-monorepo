@@ -33,6 +33,11 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
     /// @dev The token id is uint256(keccak256(abi.encode(flowSender, flowReceiver)))
     mapping(uint256 => FlowNFTData) internal _flowDataByTokenId;
 
+    // data structures for keeping track of flow receivers
+    mapping(ISuperfluidToken => address[]) public flowReceivers;
+    // indices are offset by +1 in order to have value 0 available as representing "not set"
+    mapping(ISuperfluidToken => mapping(address => uint256)) internal _flowReceiverIndices;
+
     // solhint-disable-next-line no-empty-blocks
     constructor(
         ISuperfluid host,
@@ -96,6 +101,8 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
             _mint(address(superToken), flowSender, flowReceiver, newTokenId);
 
             CONSTANT_INFLOW_NFT.mint(flowReceiver, newTokenId);
+
+            _addFlowReceiver(superToken, flowReceiver);
         }
     }
 
@@ -144,6 +151,8 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
             CONSTANT_INFLOW_NFT.burn(tokenId);
 
             _burn(tokenId);
+
+            _removeFlowReceiver(superToken, flowReceiver);
         }
     }
 
@@ -206,6 +215,35 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
 
         // emit burn of outflow token with tokenId
         emit Transfer(owner, address(0), tokenId);
+    }
+
+    function _addFlowReceiver(ISuperfluidToken superToken, address receiver) internal {
+        flowReceivers[superToken].push(receiver);
+        _flowReceiverIndices[superToken][receiver] = flowReceivers[superToken].length;
+    }
+
+    // deleting from a dynamic array can be expensive, thus we avoid reshuffling
+    // by swapping the last element with the element to be deleted
+    // precondition: receiver must exist in the array
+    function _removeFlowReceiver(ISuperfluidToken superToken, address receiver) internal {
+        uint256 index = _flowReceiverIndices[superToken][receiver] - 1;
+
+        // Move the last element to the place of the one to delete
+        uint256 lastReceiverIndex = flowReceivers[superToken].length - 1;
+        address lastReceiver = flowReceivers[superToken][lastReceiverIndex];
+        flowReceivers[superToken][index] = lastReceiver;
+        _flowReceiverIndices[superToken][lastReceiver] = index + 1; // +1 to satisfy the offset
+
+        // Reset index mapping of the receiver to delete
+        _flowReceiverIndices[superToken][receiver] = 0;
+
+        // Remove the last element
+        flowReceivers[superToken].pop();
+    }
+
+    // returns the next receiver or the zero address if none left
+    function nextFlowReceiver(address superToken) external view returns (address) {
+        return flowReceivers[ISuperfluidToken(superToken)][0];
     }
 
     modifier onlyFlowAgreements() {

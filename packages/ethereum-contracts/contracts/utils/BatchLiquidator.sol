@@ -4,6 +4,7 @@ pragma solidity 0.8.19;
 import { ISuperfluid, ISuperAgreement, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 
 /**
  * @title Batch liquidator contract
@@ -109,6 +110,17 @@ contract BatchLiquidator {
             if (balance > 0) {
                 ERC20(superToken).transferFrom(address(this), msg.sender, balance);
             }
+        }
+    }
+
+    // Deletes outflows of the given sender account as long as there is enough gas
+    // Requires a FlowNFT contract keeping track of the outflows
+    function deleteFlowsUsingFlowNFT(address superToken, address sender, ConstantOutflowNFT flowNFT) external {
+        // this is not a scientific limit. Idea: don't run out of gas for typical (non-SuperApp) liquidations
+        while (gasleft() > 500_000) {
+            address receiver = flowNFT.nextFlowReceiver(superToken);
+            if (receiver == address(0)) break;
+            this.deleteFlow(superToken, sender, receiver);
         }
     }
 }

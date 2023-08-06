@@ -488,7 +488,7 @@ export function getOrInitAccountTokenSnapshot(
     const atsId = getAccountTokenSnapshotID(accountAddress, tokenAddress);
     let accountTokenSnapshot = AccountTokenSnapshot.load(atsId);
 
-    if (accountTokenSnapshot == null) {
+if (accountTokenSnapshot == null) {
         accountTokenSnapshot = new AccountTokenSnapshot(atsId);
         accountTokenSnapshot.updatedAtTimestamp = block.timestamp;
         accountTokenSnapshot.updatedAtBlockNumber = block.number;
@@ -516,7 +516,13 @@ export function getOrInitAccountTokenSnapshot(
         accountTokenSnapshot.account = accountAddress.toHex();
         accountTokenSnapshot.token = tokenAddress.toHex();
         accountTokenSnapshot.save();
+
+        const tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
+        tokenStatistic.totalNumberOfAccounts = tokenStatistic.totalNumberOfAccounts + 1;
+        tokenStatistic.save();
+
     }
+    
     return accountTokenSnapshot as AccountTokenSnapshot;
 }
 
@@ -599,11 +605,13 @@ export function getOrInitTokenStatistic(
         tokenStatistic.totalSubscriptionsWithUnits = 0;
         tokenStatistic.totalApprovedSubscriptions = 0;
         tokenStatistic.totalOutflowRate = BIG_INT_ZERO;
+        tokenStatistic.totalNumberOfAccounts = 0;
         tokenStatistic.totalAmountStreamedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountTransferredUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalAmountDistributedUntilUpdatedAt = BIG_INT_ZERO;
         tokenStatistic.totalSupply = BIG_INT_ZERO;
         tokenStatistic.totalDeposit = BIG_INT_ZERO;
+        tokenStatistic.totalNumberOfHolders = 0;
         tokenStatistic.token = tokenId;
         tokenStatistic.save();
     }
@@ -651,6 +659,8 @@ export function _createTokenStatisticLogEntity(
         tokenStatistic.totalAmountDistributedUntilUpdatedAt;
     tokenStatisticLog.totalSupply = tokenStatistic.totalSupply;
     tokenStatisticLog.token = tokenStatistic.token;
+    tokenStatisticLog.totalNumberOfAccounts = tokenStatistic.totalNumberOfAccounts;
+    tokenStatisticLog.totalNumberOfHolders  = tokenStatistic.totalNumberOfHolders;
     tokenStatisticLog.tokenStatistic = tokenStatistic.id;
     tokenStatisticLog.save();
 }
@@ -808,6 +818,9 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
         tokenAddress,
         block
     );
+
+    const balanceUntilUpdatedAtBeforeUpdate = accountTokenSnapshot.balanceUntilUpdatedAt;
+    
     const amountStreamedSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(
             block.timestamp,
@@ -863,6 +876,31 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
             : balanceDelta
     );
     accountTokenSnapshot.save();
+
+    const balanceUntilUpdatedAtAfterUpdate = accountTokenSnapshot.balanceUntilUpdatedAt;
+
+    if (
+        balanceUntilUpdatedAtBeforeUpdate.equals(BIG_INT_ZERO) &&
+        balanceUntilUpdatedAtAfterUpdate.gt(BIG_INT_ZERO)
+    ) {
+        const tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
+        tokenStatistic.totalNumberOfHolders =
+            tokenStatistic.totalNumberOfHolders + 1;
+        tokenStatistic.save();
+    } else if (
+        balanceUntilUpdatedAtAfterUpdate.equals(BIG_INT_ZERO) &&
+        balanceUntilUpdatedAtBeforeUpdate.gt(BIG_INT_ZERO)
+    ) {
+        const tokenStatistic = getOrInitTokenStatistic(tokenAddress, block);
+        tokenStatistic.totalNumberOfHolders =
+            tokenStatistic.totalNumberOfHolders - 1;
+        // TODO: this should be not possible, since we first receive money and then spend it.
+        if (tokenStatistic.totalNumberOfHolders < 0) {
+            tokenStatistic.totalNumberOfHolders = 0;
+        }
+        tokenStatistic.save();
+    }
+
 
     // update the updatedAt property of the account that just made an update
     updateAccountUpdatedAt(accountAddress, block);

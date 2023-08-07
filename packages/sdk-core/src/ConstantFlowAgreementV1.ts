@@ -413,7 +413,7 @@ export default class ConstantFlowAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    increaseFlowAllowanceWithPermissions(
+    increaseFlowRateAllowanceWithPermissions(
         params: FlowRateAllowanceWithPermissionsParams
     ): Operation {
         const normalizedToken = normalizeAddress(params.superToken);
@@ -426,7 +426,7 @@ export default class ConstantFlowAgreementV1 {
         }
 
         const callData = cfaInterface.encodeFunctionData(
-            "increaseFlowAllowanceWithPermissions",
+            "increaseFlowRateAllowanceWithPermissions",
             [
                 normalizedToken,
                 normalizedFlowOperator,
@@ -453,7 +453,7 @@ export default class ConstantFlowAgreementV1 {
      * @param overrides ethers overrides object for more control over the transaction sent.
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    decreaseFlowAllowanceWithPermissions(
+    decreaseFlowRateAllowanceWithPermissions(
         params: FlowRateAllowanceWithPermissionsParams
     ): Operation {
         const normalizedToken = normalizeAddress(params.superToken);
@@ -466,7 +466,7 @@ export default class ConstantFlowAgreementV1 {
         }
 
         const callData = cfaInterface.encodeFunctionData(
-            "decreaseFlowAllowanceWithPermissions",
+            "decreaseFlowRateAllowanceWithPermissions",
             [
                 normalizedToken,
                 normalizedFlowOperator,

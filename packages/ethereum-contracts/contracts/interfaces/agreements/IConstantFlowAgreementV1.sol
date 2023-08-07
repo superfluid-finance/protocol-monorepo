@@ -153,7 +153,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @return newCtx The new context bytes
      */
-    function increaseFlowAllowanceWithPermissions(
+    function increaseFlowRateAllowanceWithPermissions(
         ISuperfluidToken token,
         address flowOperator,
         uint8 permissionsToAdd,
@@ -171,7 +171,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @return newCtx The new context bytes
      */
-    function decreaseFlowAllowanceWithPermissions(
+    function decreaseFlowRateAllowanceWithPermissions(
         ISuperfluidToken token,
         address flowOperator,
         uint8 permissionsToRemove,

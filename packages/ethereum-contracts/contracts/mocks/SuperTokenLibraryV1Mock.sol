@@ -236,42 +236,47 @@ contract SuperTokenLibraryCFAMock {
         token.decreaseFlowRateAllowance(flowOperator, subtractedFlowRateAllowance, userData);
     }
 
-    function increaseFlowAllowanceWithPermissionsTest(
+    function increaseFlowRateAllowanceWithPermissionsTest(
         ISuperToken token,
         address flowOperator,
         uint8 permissionsToAdd,
         int96 addedFlowRateAllowance
     ) public {
-        token.increaseFlowAllowanceWithPermissions(flowOperator, permissionsToAdd, addedFlowRateAllowance);
+        token.increaseFlowRateAllowanceWithPermissions(flowOperator, permissionsToAdd, addedFlowRateAllowance);
     }
 
-    function decreaseFlowAllowanceWithPermissionsTest(
+    function decreaseFlowRateAllowanceWithPermissionsTest(
         ISuperToken token,
         address flowOperator,
         uint8 permissionsToRemove,
         int96 subtractedFlowRateAllowance
     ) public {
-        token.decreaseFlowAllowanceWithPermissions(flowOperator, permissionsToRemove, subtractedFlowRateAllowance);
+        token.decreaseFlowRateAllowanceWithPermissions(flowOperator, permissionsToRemove, subtractedFlowRateAllowance);
     }
 
-    function increaseFlowAllowanceWithPermissionsWithUserDataTest(
+    function increaseFlowRateAllowanceWithPermissionsWithUserDataTest(
         ISuperToken token,
         address flowOperator,
         uint8 permissionsToAdd,
         int96 addedFlowRateAllowance,
         bytes memory userData
     ) public {
-        token.increaseFlowAllowanceWithPermissions(flowOperator, permissionsToAdd, addedFlowRateAllowance, userData);
+        token.increaseFlowRateAllowanceWithPermissions(
+            flowOperator,
+            permissionsToAdd,
+            addedFlowRateAllowance,
+            userData
+        );
     }
 
-    function decreaseFlowAllowanceWithPermissionsWithUserDataTest(
+    function decreaseFlowRateAllowanceWithPermissionsWithUserDataTest(
         ISuperToken token,
         address flowOperator,
         uint8 permissionsToRemove,
         int96 subtractedFlowRateAllowance,
         bytes memory userData
     ) public {
-        token.decreaseFlowAllowanceWithPermissions(
+        token.decreaseFlowRateAllowanceWithPermissions(
             flowOperator, permissionsToRemove, subtractedFlowRateAllowance, userData
         );
     }

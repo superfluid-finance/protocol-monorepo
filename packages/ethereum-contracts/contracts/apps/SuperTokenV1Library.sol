@@ -289,14 +289,14 @@ library SuperTokenV1Library {
      * @param permissionsToAdd The permissions to add for the flow operator
      * @param addedFlowRateAllowance amount to increase allowance by
      */
-    function increaseFlowAllowanceWithPermissions(
+    function increaseFlowRateAllowanceWithPermissions(
         ISuperToken token,
         address flowOperator,
         uint8 permissionsToAdd,
         int96 addedFlowRateAllowance
     ) internal returns (bool) {
         return
-            increaseFlowAllowanceWithPermissions(
+            increaseFlowRateAllowanceWithPermissions(
                 token,
                 flowOperator,
                 permissionsToAdd,
@@ -314,7 +314,7 @@ library SuperTokenV1Library {
      * @param addedFlowRateAllowance amount to increase allowance by
      * @param userData The userdata passed along with call
      */
-    function increaseFlowAllowanceWithPermissions(
+    function increaseFlowRateAllowanceWithPermissions(
         ISuperToken token,
         address flowOperator,
         uint8 permissionsToAdd,
@@ -325,7 +325,7 @@ library SuperTokenV1Library {
         host.callAgreement(
             cfa,
             abi.encodeCall(
-                cfa.increaseFlowAllowanceWithPermissions,
+                cfa.increaseFlowRateAllowanceWithPermissions,
                 (token, flowOperator, permissionsToAdd, addedFlowRateAllowance, new bytes(0))
             ),
             userData
@@ -341,13 +341,13 @@ library SuperTokenV1Library {
      * @param permissionsToRemove The permissions to remove for the flow operator
      * @param subtractedFlowRateAllowance amount to subtract allowance by
      */
-    function decreaseFlowAllowanceWithPermissions(
+    function decreaseFlowRateAllowanceWithPermissions(
         ISuperToken token,
         address flowOperator,
         uint8 permissionsToRemove,
         int96 subtractedFlowRateAllowance
     ) internal returns (bool) {
-        return decreaseFlowAllowanceWithPermissions(
+        return decreaseFlowRateAllowanceWithPermissions(
             token, flowOperator, permissionsToRemove, subtractedFlowRateAllowance, new bytes(0)
         );
     }
@@ -361,7 +361,7 @@ library SuperTokenV1Library {
      * @param subtractedFlowRateAllowance amount to subtract allowance by
      * @param userData The userdata passed along with call
      */
-    function decreaseFlowAllowanceWithPermissions(
+    function decreaseFlowRateAllowanceWithPermissions(
         ISuperToken token,
         address flowOperator,
         uint8 permissionsToRemove,
@@ -372,7 +372,7 @@ library SuperTokenV1Library {
         host.callAgreement(
             cfa,
             abi.encodeCall(
-                cfa.decreaseFlowAllowanceWithPermissions,
+                cfa.decreaseFlowRateAllowanceWithPermissions,
                 (token, flowOperator, permissionsToRemove, subtractedFlowRateAllowance, new bytes(0))
             ),
             userData

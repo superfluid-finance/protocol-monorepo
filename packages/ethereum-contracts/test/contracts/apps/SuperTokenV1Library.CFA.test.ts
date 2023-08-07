@@ -1076,7 +1076,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
         it("2.20 - Can increase flow allowance with permissions", async () => {
             await superTokenLibCFAMock
                 .connect(aliceSigner)
-                .increaseFlowAllowanceWithPermissionsTest(
+                .increaseFlowRateAllowanceWithPermissionsTest(
                     superToken.address,
                     alice,
                     callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,
@@ -1101,7 +1101,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
         it("2.21 - Can increase flow allowance with permissions with user data", async () => {
             await superTokenLibCFAMock
                 .connect(aliceSigner)
-                .increaseFlowAllowanceWithPermissionsWithUserDataTest(
+                .increaseFlowRateAllowanceWithPermissionsWithUserDataTest(
                     superToken.address,
                     alice,
                     callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,
@@ -1135,7 +1135,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
 
             await superTokenLibCFAMock
                 .connect(aliceSigner)
-                .decreaseFlowAllowanceWithPermissionsTest(
+                .decreaseFlowRateAllowanceWithPermissionsTest(
                     superToken.address,
                     alice,
                     callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,
@@ -1168,7 +1168,7 @@ describe("SuperTokenV1 Library CFA testing", function () {
 
             await superTokenLibCFAMock
                 .connect(aliceSigner)
-                .decreaseFlowAllowanceWithPermissionsWithUserDataTest(
+                .decreaseFlowRateAllowanceWithPermissionsWithUserDataTest(
                     superToken.address,
                     alice,
                     callbackFunctionIndex.AUTHORIZE_FLOW_OPERATOR_WITH_FULL_CONTROL,

@@ -373,7 +373,7 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
                 providerOrSigner: sender,
             });
         const increaseAllowanceOp =
-            testEnv.wrapperSuperToken.increaseFlowAllowanceWithPermissions({
+            testEnv.wrapperSuperToken.increaseFlowRateAllowanceWithPermissions({
                 flowRateAllowanceDelta,
                 flowOperator: flowOperator.address,
                 permissionsDelta: permissions,
@@ -381,7 +381,7 @@ makeSuite("Batch Call Tests", (testEnv: TestEnvironment) => {
         const decreaseFlowRateAllowanceDelta =
             getPerSecondFlowRateByMonth("31");
         const decreaseAllowanceOp =
-            testEnv.wrapperSuperToken.decreaseFlowAllowanceWithPermissions({
+            testEnv.wrapperSuperToken.decreaseFlowRateAllowanceWithPermissions({
                 flowRateAllowanceDelta: decreaseFlowRateAllowanceDelta,
                 flowOperator: flowOperator.address,
                 permissionsDelta: permissions,

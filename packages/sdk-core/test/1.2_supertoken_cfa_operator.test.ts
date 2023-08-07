@@ -3,8 +3,8 @@ import { expect } from "chai";
 import {
     AUTHORIZE_FLOW_OPERATOR_CREATE,
     AUTHORIZE_FULL_CONTROL,
-    _deltaAddPermissions,
-    _deltaRemovePermissions,
+    _addPermissions,
+    _removePermissions,
     clipDepositNumber,
     getFlowOperatorId,
     getPerSecondFlowRateByMonth,
@@ -148,7 +148,7 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
                     providerOrSigner: sender,
                 });
             await testEnv.wrapperSuperToken
-                .increaseFlowAllowanceWithPermissions({
+                .increaseFlowRateAllowanceWithPermissions({
                     flowRateAllowanceDelta,
                     flowOperator: flowOperator.address,
                     permissionsDelta: permissions,
@@ -164,7 +164,7 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
                 flowRateAllowanceDelta
             );
             expect(flowOperatorDataAfter.permissions).to.equal(
-                _deltaAddPermissions(
+                _addPermissions(
                     Number(flowOperatorDataBefore.permissions),
                     permissions
                 ).toString()
@@ -175,7 +175,7 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
             const flowRateAllowanceDelta = getPerSecondFlowRateByMonth("100");
             const permissions = AUTHORIZE_FULL_CONTROL;
             await testEnv.wrapperSuperToken
-                .increaseFlowAllowanceWithPermissions({
+                .increaseFlowRateAllowanceWithPermissions({
                     flowRateAllowanceDelta,
                     flowOperator: flowOperator.address,
                     permissionsDelta: permissions,
@@ -190,7 +190,7 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
             const decreaseFlowRateAllowanceDelta =
                 getPerSecondFlowRateByMonth("31");
             await testEnv.wrapperSuperToken
-                .decreaseFlowAllowanceWithPermissions({
+                .decreaseFlowRateAllowanceWithPermissions({
                     flowRateAllowanceDelta: decreaseFlowRateAllowanceDelta,
                     flowOperator: flowOperator.address,
                     permissionsDelta: permissions,
@@ -208,7 +208,7 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
                     .toString()
             );
             expect(flowOperatorDataAfter.permissions).to.equal(
-                _deltaRemovePermissions(
+                _removePermissions(
                     Number(flowOperatorDataBefore.permissions),
                     permissions
                 ).toString()

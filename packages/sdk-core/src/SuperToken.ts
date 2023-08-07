@@ -433,10 +433,10 @@ export default abstract class SuperToken extends ERC20Token {
      *
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    increaseFlowAllowanceWithPermissions(
+    increaseFlowRateAllowanceWithPermissions(
         params: SuperTokenFlowRateAllowanceWithPermissionsParams
     ): Operation {
-        return this.cfaV1.increaseFlowAllowanceWithPermissions({
+        return this.cfaV1.increaseFlowRateAllowanceWithPermissions({
             superToken: this.settings.address,
             ...params,
         });
@@ -452,10 +452,10 @@ export default abstract class SuperToken extends ERC20Token {
      *
      * @returns {Operation} An instance of Operation which can be executed or batched.
      */
-    decreaseFlowAllowanceWithPermissions(
+    decreaseFlowRateAllowanceWithPermissions(
         params: SuperTokenFlowRateAllowanceWithPermissionsParams
     ): Operation {
-        return this.cfaV1.decreaseFlowAllowanceWithPermissions({
+        return this.cfaV1.decreaseFlowRateAllowanceWithPermissions({
             superToken: this.settings.address,
             ...params,
         });

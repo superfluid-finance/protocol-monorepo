@@ -41,6 +41,8 @@ library AgreementLibrary {
     {
         require(token.getHost() == msg.sender, "unauthorized host");
         require(ISuperfluid(msg.sender).isCtxValid(ctx), "invalid ctx");
+        // [SECURITY] NOTE: we are holding the assumption here that the decoded ctx is correct
+        // at this point.
         return ISuperfluid(msg.sender).decodeCtx(ctx);
     }
 

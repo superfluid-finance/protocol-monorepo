@@ -1,0 +1,2986 @@
+[
+  {
+    "totalTime": 25045.50391769409,
+    "testName": "#6.2x callback gas limit | #6.24 beforeCreated try to burn just enough gas [ @skip-on-coverage ]"
+  },
+  {
+    "totalTime": 9430.94187450409,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.3 1to2[50,50]_100pct_create-full_updates-full_delete"
+  },
+  {
+    "totalTime": 8203.925834655762,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.4 1to2[50,50]_50pct_create-full_updates-full_delete"
+  },
+  {
+    "totalTime": 8090.096792221069,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.5 1to2[50,50]_150pct_create-full_updates-full_delete"
+  },
+  {
+    "totalTime": 7234.525792121887,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.1 1to1_100pct_create-full_updates-full_delete"
+  },
+  {
+    "totalTime": 7191.327499389648,
+    "testName": "#1.6 sender multi flow with inflow liquidations | #1.6.4 should be able to liquidate critical flow then insolvent flow with an inflow"
+  },
+  {
+    "totalTime": 6621.817416191101,
+    "testName": "#1.6 sender multi flow with inflow liquidations | #1.6.1 should be able to liquidate multiple critical flows with an inflow"
+  },
+  {
+    "totalTime": 6614.049959182739,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.2 1to0_create-updates-delete"
+  },
+  {
+    "totalTime": 6292.792916297913,
+    "testName": "#1.5 multiple flow liquidations | #1.5.4 should be able to liquidate a critical flow and then an insolvent one"
+  },
+  {
+    "totalTime": 5837.017499923706,
+    "testName": "#1.6 sender multi flow with inflow liquidations | #1.6.3 should be able to liquidate insolvent flow then critical flow with an inflow"
+  },
+  {
+    "totalTime": 5691.024042129517,
+    "testName": "#1.5 multiple flow liquidations | #1.5.8 test agent insolvent then critical flow liquidations out of patrician period"
+  },
+  {
+    "totalTime": 5641.000666618347,
+    "testName": "#1.6 sender multi flow with inflow liquidations | #1.6.2 should be able to liquidate multiple insolvent flows with an inflow"
+  },
+  {
+    "totalTime": 5586.111207962036,
+    "testName": "#1.5 multiple flow liquidations | #1.5.5 test agent multiple critical flow liquidations out of patrician period"
+  },
+  {
+    "totalTime": 5451.728750228882,
+    "testName": "#2.x Multi-accounts IDA Scenarios | #2.1 1to3 distribution scenario"
+  },
+  {
+    "totalTime": 5412.81379032135,
+    "testName": "#1.5 multiple flow liquidations | #1.5.3 should be able to liquidate an insolvent flow and then a critical one"
+  },
+  {
+    "totalTime": 5345.726042747498,
+    "testName": "#1.6 sender multi flow with inflow liquidations | #1.6.5 should be able to liquidate a user with a negative\n                 AB and a net flow rate of 0 (crit->crit)"
+  },
+  {
+    "totalTime": 5318.569707870483,
+    "testName": "#1.5 multiple flow liquidations | #1.5.7 test agent critical then insolvent flow liquidations out of patrician period"
+  },
+  {
+    "totalTime": 5295.00154209137,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.10 1to1_100pct_create_full_delete_mfa_sender_flow_by_liquidator"
+  },
+  {
+    "totalTime": 5244.678624153137,
+    "testName": "#1.5 multiple flow liquidations | #1.5.1 should be able to liquidate multiple flows when critical"
+  },
+  {
+    "totalTime": 5144.07658290863,
+    "testName": "#1.5 multiple flow liquidations | #1.5.2 should be able to liquidate multiple flows when insolvent"
+  },
+  {
+    "totalTime": 5097.105625152588,
+    "testName": "#1.5 multiple flow liquidations | #1.5.6 test agent multiple insolvent flow liquidations out of patrician period"
+  },
+  {
+    "totalTime": 5091.082540512085,
+    "testName": "#1.6 sender multi flow with inflow liquidations | #1.6.7 should reject when account is not critical after a bailout"
+  },
+  {
+    "totalTime": 4813.451333999634,
+    "testName": "#1.6 sender multi flow with inflow liquidations | #1.6.8 should reject when account is not critical after a liquidation"
+  },
+  {
+    "totalTime": 4297.330958366394,
+    "testName": "#1.4.8 test agent liquidation out of patrician period | #1.4.8.b can liquidate and bail out when insolvent"
+  },
+  {
+    "totalTime": 4128.060209274292,
+    "testName": "#1.4.12 with receiver as liquidator out of patrician period | #1.4.12.b can liquidate and bail out when insolvent"
+  },
+  {
+    "totalTime": 3957.5611248016357,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.9 1to2[50,50]_100pct_create_full_delete_by_receiver"
+  },
+  {
+    "totalTime": 3893.035500526428,
+    "testName": "#1.4.4 with reward address as admin (agent is liquidator) | #1.4.4.a should be liquidated when critical but solvent"
+  },
+  {
+    "totalTime": 3854.6369590759277,
+    "testName": "#1.12 Access Control List | #1.12.26 Should allow a flowOperator to create/update multiple flows"
+  },
+  {
+    "totalTime": 3732.76570892334,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.11 1to1_150pct_create_full_delete_mfa_receiver_flow_by_liquidator"
+  },
+  {
+    "totalTime": 3603.3245000839233,
+    "testName": "#2.x Multi-accounts IDA Scenarios | #2.2 2to1 distribution scenario"
+  },
+  {
+    "totalTime": 3537.475333213806,
+    "testName": "#1.4.4 with reward address as admin (agent is liquidator) | #1.4.4.b can liquidate and bail out when insolvent"
+  },
+  {
+    "totalTime": 3462.3332090377808,
+    "testName": "#1.x Multi-accounts CFA scenarios | #1.3 a slight complex flow map"
+  },
+  {
+    "totalTime": 3457.1701250076294,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.7 1to2[50,50]_100pct_create-partial_delete"
+  },
+  {
+    "totalTime": 3299.7022914886475,
+    "testName": "#1.12 Access Control List | #1.12.15 should allow creating/updating/deleting flow rate as full control flow operator"
+  },
+  {
+    "totalTime": 3207.8540830612183,
+    "testName": "#1.4.8 test agent liquidation out of patrician period | #1.4.8.a should be liquidated when critical but solvent"
+  },
+  {
+    "totalTime": 3194.3102083206177,
+    "testName": "#1.4.9 test sender reward account liquidation out of patrician period | #1.4.9.a should be liquidated when critical but solvent"
+  },
+  {
+    "totalTime": 3191.186792373657,
+    "testName": "#1.12 Access Control List | #1.12.14 should allow creating/updating/deleting flow rate as approved flow operator"
+  },
+  {
+    "totalTime": 3111.710624694824,
+    "testName": "#1.3 deleteFlow (non liquidation) | #1.3.1.b can delete existing flow by receiver"
+  },
+  {
+    "totalTime": 3057.682333946228,
+    "testName": "#1.4.5 with zero reward address (agent is liquidator) | #1.4.5.b can liquidate and bail out when insolvent"
+  },
+  {
+    "totalTime": 3012.3067083358765,
+    "testName": "#1.5 complex sequences | #1.5.4 subscribe -> distribute -> unsubscribe -> distribute -> subscribe -> distribute"
+  },
+  {
+    "totalTime": 2965.906792640686,
+    "testName": "#1.4.6 with reward address as admin (sender is liquidator) | #1.4.6.b can liquidate and bail out when insolvent"
+  },
+  {
+    "totalTime": 2954.214292526245,
+    "testName": "#1.12 Access Control List | #1.12.23 Should allow multiple flowOperators to create/update/delete"
+  },
+  {
+    "totalTime": 2954.205083847046,
+    "testName": "#1.4.10 test reward account liquidation out of patrician period | #1.4.10.b can liquidate and bail out when insolvent"
+  },
+  {
+    "totalTime": 2939.3079166412354,
+    "testName": "#1.3 deleteFlow (non liquidation) | #1.3.2 can delete an updated flow"
+  },
+  {
+    "totalTime": 2909.720624923706,
+    "testName": "#1.x Multi-accounts CFA scenarios | #1.2 three accounts forming a flow loop"
+  },
+  {
+    "totalTime": 2828.6765422821045,
+    "testName": "#1.4.6 with reward address as admin (sender is liquidator) | #1.4.6.a should be liquidated when critical but solvent"
+  },
+  {
+    "totalTime": 2826.528917312622,
+    "testName": "#1.4.5 with zero reward address (agent is liquidator) | #1.4.5.a should be liquidated when critical but solvent"
+  },
+  {
+    "totalTime": 2752.385000228882,
+    "testName": "#1.4.10 test reward account liquidation out of patrician period | #1.4.10.a should be liquidated when critical but solvent"
+  },
+  {
+    "totalTime": 2679.578416824341,
+    "testName": "#1.4.9 test sender reward account liquidation out of patrician period | #1.4.9.b can liquidate and bail out when insolvent"
+  },
+  {
+    "totalTime": 2630.0125007629395,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.8 loopback-100pct"
+  },
+  {
+    "totalTime": 2628.6357078552246,
+    "testName": "#1.4.7 with zero reward address (sender is liquidator) | #1.4.7.b can liquidate and bail out when insolvent"
+  },
+  {
+    "totalTime": 2617.827790260315,
+    "testName": "#1.4.12 with receiver as liquidator out of patrician period | #1.4.12.a should be liquidated when critical but solvent"
+  },
+  {
+    "totalTime": 2606.7961254119873,
+    "testName": "#1.10 should support different flow rates | #1.10.1 should support typical flow rate (277777777777777)"
+  },
+  {
+    "totalTime": 2576.1147089004517,
+    "testName": "#1.4.11 with zero reward address out of patrician period | #1.4.11.a should be liquidated when critical but solvent"
+  },
+  {
+    "totalTime": 2568.8528327941895,
+    "testName": "#1.4.11 with zero reward address out of patrician period | #1.4.11.b can liquidate and bail out when insolvent"
+  },
+  {
+    "totalTime": 2559.9077920913696,
+    "testName": "#1.4.7 with zero reward address (sender is liquidator) | #1.4.7.a should be liquidated when critical but solvent"
+  },
+  {
+    "totalTime": 2256.764750480652,
+    "testName": "#1.3 distribution workflows | #1.3.1 approveSubscription -> updateSubscription -> updateIndex"
+  },
+  {
+    "totalTime": 2226.229250907898,
+    "testName": "#1.3 distribution workflows | #1.3.2 updateSubscription -> updateIndex -> approveSubscription"
+  },
+  {
+    "totalTime": 2210.1304998397827,
+    "testName": "#1.4 claim workflows | #1.4.1 subscriber can claim distribution from its pending subscription"
+  },
+  {
+    "totalTime": 2187.4797496795654,
+    "testName": "#1.6 Access Control List Callback | #1.6.5 SuperApp to SuperApp (agreement creation originates from SuperApp)-Alice deletes"
+  },
+  {
+    "totalTime": 2178.036874771118,
+    "testName": "#1.x Multi-accounts CFA scenarios | #1.1 two accounts sending to each other with the same flow rate"
+  },
+  {
+    "totalTime": 2164.539708137512,
+    "testName": "#1.12 Access Control List | #1.12.17 shouldn't decrease flowRateAllowance if the user updates to an equal or lower flowRate"
+  },
+  {
+    "totalTime": 2157.0767917633057,
+    "testName": "#1.12 Access Control List | #1.12.21 flowRateAllowance should remain unchanged if sender creates/updates/deletes flow"
+  },
+  {
+    "totalTime": 2138.016707420349,
+    "testName": "#1.10 should support different flow rates | #1.10.0 should support small flow rate (2)"
+  },
+  {
+    "totalTime": 2112.2273330688477,
+    "testName": "#1.2 subscription operations | #1.2.7 subscriber can revoke and resubscribe multiple times to subscription"
+  },
+  {
+    "totalTime": 2073.2585830688477,
+    "testName": "#1.12 Access Control List | #1.12.13 should revert if create/update with flow rate exceeding flowRateAllowance"
+  },
+  {
+    "totalTime": 2039.0623331069946,
+    "testName": "#1.12 Access Control List | #1.12.24 Should allow flowOperator to update/delete a flow they didn't create"
+  },
+  {
+    "totalTime": 1996.2863750457764,
+    "testName": "#1.3 distribution workflows | #1.3.4 2x(updateSubscription -> shouldDistribute) ->  approveSubscription"
+  },
+  {
+    "totalTime": 1990.1440410614014,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.12 1to2[50,50]_100pct_create-partial_delete-negative_app_balance"
+  },
+  {
+    "totalTime": 1979.857707977295,
+    "testName": "#1.6 sender multi flow with inflow liquidations | #1.6.6 should reject when account is not critical"
+  },
+  {
+    "totalTime": 1958.7875833511353,
+    "testName": "#1.2 updateFlow | #1.2.3 can decrease (-10%) existing flow rate"
+  },
+  {
+    "totalTime": 1958.1780414581299,
+    "testName": "#1.2 subscription operations | #1.2.8 subscriber can have multiple subscription and then with subId 0 revoked"
+  },
+  {
+    "totalTime": 1952.2436256408691,
+    "testName": "CFAv1 | Callback Tests | #1.5 FlowExchangeTestApp"
+  },
+  {
+    "totalTime": 1922.6315002441406,
+    "testName": "#1.3 deleteFlow (non liquidation) | #1.3.1.a can delete existing flow by sender"
+  },
+  {
+    "totalTime": 1915.7585000991821,
+    "testName": "#1.2 subscription operations | #1.2.11 subscriber can revoke its subscription"
+  },
+  {
+    "totalTime": 1796.2699575424194,
+    "testName": "CFAv1 | Callback Tests | #1.1 ExclusiveInflowTestApp"
+  },
+  {
+    "totalTime": 1768.3393745422363,
+    "testName": "#1.10 should support different flow rates | #1.10.3 should support maximum flow rate (11003911460314491332436659)"
+  },
+  {
+    "totalTime": 1763.748125076294,
+    "testName": "#3.x Special CFA+IDA Scenarios | #3.2 receiving a distribution with an incoming stream"
+  },
+  {
+    "totalTime": 1742.4709997177124,
+    "testName": "#1.2 updateFlow | #1.2.1 can maintain existing flow rate"
+  },
+  {
+    "totalTime": 1717.806833267212,
+    "testName": "CFAv1 | Callback Tests | #1.2 NonClosableOutflowTestApp"
+  },
+  {
+    "totalTime": 1672.5438327789307,
+    "testName": "#1.12 Access Control List | #1.12.29 Should not allow ACL flow to be created if flow sender balance < 0"
+  },
+  {
+    "totalTime": 1659.9647912979126,
+    "testName": "#1.2 updateFlow | #1.2.2 can increase (+10%) existing flow rate"
+  },
+  {
+    "totalTime": 1611.044249534607,
+    "testName": "#1.6 Access Control List Callback | #1.6.6 SuperApp to SuperApp (agreement creation originates from SuperApp)-RDB deletes"
+  },
+  {
+    "totalTime": 1524.5104999542236,
+    "testName": "#1.10 should support different flow rates | #1.10.2 should support large flow rate (11666666666666666)"
+  },
+  {
+    "totalTime": 1512.1622505187988,
+    "testName": "#1.12 Access Control List | #1.12.19 flowRateAllowance should remain unchanged if operator deletes a flow"
+  },
+  {
+    "totalTime": 1494.5344171524048,
+    "testName": "IDAv1 | Callback Tests | #1.7 claim callbacks"
+  },
+  {
+    "totalTime": 1487.5089168548584,
+    "testName": "#1.2 subscription operations | #1.2.3 subscriber can revoke its approved subscription"
+  },
+  {
+    "totalTime": 1425.4459161758423,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.15b correct reward attribution for plebs period with two-way flows"
+  },
+  {
+    "totalTime": 1416.2145824432373,
+    "testName": "#1.11.3 should be able to create flow where calcDeposit = min deposit. | #1.11.3.a should handle update flow where calcDeposit < min deposit."
+  },
+  {
+    "totalTime": 1361.4174995422363,
+    "testName": "#1.12 Access Control List | #1.12.20 should decrease flowRateAllowance if operator updates to a higher flowRate"
+  },
+  {
+    "totalTime": 1297.442708015442,
+    "testName": "#1.3 deleteFlow (non liquidation) | #1.3.3 should not delete non-existing flow"
+  },
+  {
+    "totalTime": 1250.7482500076294,
+    "testName": "#1.8 misc | #1.8.1 getNetflow should return net flow rate"
+  },
+  {
+    "totalTime": 1242.7300834655762,
+    "testName": "CFAv1 | Callback Tests | #1.4 ClosingOnUpdateFlowTestApp"
+  },
+  {
+    "totalTime": 1241.6355419158936,
+    "testName": "#1.2 subscription operations | #1.2.15 publisher should be able to delete an approved subscription"
+  },
+  {
+    "totalTime": 1234.2094583511353,
+    "testName": "#1.3 distribution workflows | #1.3.3 updateSubscription -> approveSubscription -> updateIndex"
+  },
+  {
+    "totalTime": 1211.4028329849243,
+    "testName": "#3.x Special CFA+IDA Scenarios | #3.5 distributing with an outgoing stream"
+  },
+  {
+    "totalTime": 1194.4561252593994,
+    "testName": "#6.2x callback gas limit | #6.20 beforeCreated callback burn all gas"
+  },
+  {
+    "totalTime": 1186.141833305359,
+    "testName": "IDAv1 | Callback Tests | #1.2 approveSubscription AgreementUpdated callbacks"
+  },
+  {
+    "totalTime": 1185.9910831451416,
+    "testName": "#1.2 subscription operations | #1.2.4 publisher can delete a subscription"
+  },
+  {
+    "totalTime": 1183.4634580612183,
+    "testName": "#1.11.2 should be able to create flow where calcDeposit > min deposit. | #1.11.2.c should be able to update flow where calcDeposit = min deposit."
+  },
+  {
+    "totalTime": 1182.1814594268799,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.15c correct reward attribution for plebs period with multiple outflows"
+  },
+  {
+    "totalTime": 1177.189167022705,
+    "testName": "#6.2x callback gas limit | #6.22 afterTerminated burn all gas"
+  },
+  {
+    "totalTime": 1168.6471672058105,
+    "testName": "#1.11.2 should be able to create flow where calcDeposit > min deposit. | #1.11.2.b should be able to update flow where calcDeposit > min deposit."
+  },
+  {
+    "totalTime": 1159.963291168213,
+    "testName": "#1.3 deleteFlow (non liquidation) | #1.3.4 should reject when receiver is zero address"
+  },
+  {
+    "totalTime": 1158.198124885559,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.14c correct reward attribution for patrician period with multiple outflows"
+  },
+  {
+    "totalTime": 1146.3706245422363,
+    "testName": "#1.11.2 should be able to create flow where calcDeposit > min deposit. | #1.11.2.a should handle update flow where calcDeposit < min deposit."
+  },
+  {
+    "totalTime": 1141.3300828933716,
+    "testName": "#1.11.3 should be able to create flow where calcDeposit = min deposit. | #1.11.3.c should be able to update flow where calcDeposit = min deposit."
+  },
+  {
+    "totalTime": 1140.2846670150757,
+    "testName": "#1.11.1 should be able to create flow where calcDeposit < min deposit. | #1.11.1.c should be able to create flow where calcDeposit = min deposit."
+  },
+  {
+    "totalTime": 1135.0111255645752,
+    "testName": "#1.11.1 should be able to create flow where calcDeposit < min deposit. | #1.11.1.b should be able to create flow where calcDeposit > min deposit."
+  },
+  {
+    "totalTime": 1133.6182918548584,
+    "testName": "#1.11.3 should be able to create flow where calcDeposit = min deposit. | #1.11.3.b should be able to update flow where calcDeposit > min deposit."
+  },
+  {
+    "totalTime": 1127.4251251220703,
+    "testName": "#1.11.1 should be able to create flow where calcDeposit < min deposit. | #1.11.1.a should handle update flow where calcDeposit < min deposit."
+  },
+  {
+    "totalTime": 1101.4648332595825,
+    "testName": "#1.1 createFlow | #1.1.1 should create when there is enough balance"
+  },
+  {
+    "totalTime": 1100.3876667022705,
+    "testName": "#1.1 index operations | #1.1.7 publisher can distribute by specifying amount"
+  },
+  {
+    "totalTime": 1090.7321252822876,
+    "testName": "#1.1 index operations | #1.1.6 publisher should fail to update index with smaller value"
+  },
+  {
+    "totalTime": 1077.1267929077148,
+    "testName": "when TokensSender does not revert | TokensSender receives burn data and is called before state mutation"
+  },
+  {
+    "totalTime": 1075.6792078018188,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.14b correct reward attribution for patrician period with two-way flows"
+  },
+  {
+    "totalTime": 1070.4311256408691,
+    "testName": "#1.6 Access Control List Callback | #1.6.1 SuperApp with ACL permissions should be able to stream to itself"
+  },
+  {
+    "totalTime": 1056.2943334579468,
+    "testName": "#1.6 Access Control List Callback | #1.6.2 SuperApp with permissions should be able to stream to itself (blue elephant)"
+  },
+  {
+    "totalTime": 1044.8017492294312,
+    "testName": "#1.6 Access Control List Callback | #1.6.7 SuperApp to SuperApp (agreement creation originates from SuperApp)-RDA deletes"
+  },
+  {
+    "totalTime": 1044.3663330078125,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.6 1to1-?pct_create-should-fail-without-extra-funds"
+  },
+  {
+    "totalTime": 1030.685459136963,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.16a correct reward attribution for pirate period"
+  },
+  {
+    "totalTime": 1027.767665863037,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.15a correct reward attribution for plebs period"
+  },
+  {
+    "totalTime": 1019.799708366394,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.14a correct reward attribution for patrician period"
+  },
+  {
+    "totalTime": 1013.6367502212524,
+    "testName": "#1.5 complex sequences | #1.5.1 distributions using the correct token"
+  },
+  {
+    "totalTime": 964.3542909622192,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.13 allow liquidation with sender positive net flowrate"
+  },
+  {
+    "totalTime": 964.0119171142578,
+    "testName": "#1.3 deleteFlow (non liquidation) | #1.3.5 should reject when sender is zero address"
+  },
+  {
+    "totalTime": 933.7434587478638,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.16b correct reward attribution for pirate period with two-way flows"
+  },
+  {
+    "totalTime": 916.7945003509521,
+    "testName": "#1.4 claim workflows | #1.4.2 anyone can claim distribution on behalf of other"
+  },
+  {
+    "totalTime": 915.531042098999,
+    "testName": "#1.1 index operations | #1.1.4 publisher can update the index"
+  },
+  {
+    "totalTime": 902.2133331298828,
+    "testName": "2 - Flow Operator Ops | 2.10 - Can Create Flow By Operator in Callback"
+  },
+  {
+    "totalTime": 891.9120826721191,
+    "testName": "#1.12 Access Control List | #1.12.11 should revert if attempting to create/update/delete without permissions to do so"
+  },
+  {
+    "totalTime": 890.4013338088989,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.1 should reject when sender account is not critical"
+  },
+  {
+    "totalTime": 883.3217926025391,
+    "testName": "#3.x Special CFA+IDA Scenarios | #3.3 critical user receiver receiving distribution and not being critical anymore"
+  },
+  {
+    "totalTime": 863.0043344497681,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.18 isPatricianPeriod should handle case when user deposit is 0 (no flow)"
+  },
+  {
+    "totalTime": 847.430417060852,
+    "testName": "#1.12 Access Control List | #1.12.18 should reset flowRateAllowance properly if the user updates the flowOperatorData"
+  },
+  {
+    "totalTime": 841.0600423812866,
+    "testName": "IDAv1 | Callback Tests | #1.3 updateSubscription AgreementCreated callbacks"
+  },
+  {
+    "totalTime": 833.269832611084,
+    "testName": "#1.12 Access Control List | #1.12.16 shouldn't decrease flowRateAllowance if it is type(int96).max"
+  },
+  {
+    "totalTime": 818.1413745880127,
+    "testName": "#1.5 complex sequences | #1.5.3 publisher subscribing to their own index and receiving a distribution"
+  },
+  {
+    "totalTime": 808.2690410614014,
+    "testName": "IDAv1 | Callback Tests | #1.6 publisher deleteSubscription callbacks"
+  },
+  {
+    "totalTime": 803.2815828323364,
+    "testName": "IDAv1 | Callback Tests | #1.4 updateSubscription AgreementUpdated callbacks"
+  },
+  {
+    "totalTime": 756.3269577026367,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.3 should reject when sender account is not critical"
+  },
+  {
+    "totalTime": 756.0056667327881,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.17 Patrician period updates when user is not solvent"
+  },
+  {
+    "totalTime": 754.611499786377,
+    "testName": "2 - Flow Operator Ops | 2.8 - Can Delete Flow By Operator"
+  },
+  {
+    "totalTime": 730.2561254501343,
+    "testName": "#1.6 Access Control List Callback | #1.6.4 SuperApp to SuperApp is not allowed (ACL)"
+  },
+  {
+    "totalTime": 724.6837921142578,
+    "testName": "#1.4 deleteFlow (liquidations) | #1.4.2 should reject when sender is zero address"
+  },
+  {
+    "totalTime": 716.0348749160767,
+    "testName": "#1.2 updateFlow | #1.2.8 should reject when there is not enough balance"
+  },
+  {
+    "totalTime": 710.9076652526855,
+    "testName": "#1.1 createFlow | #1.1.6 should not create same flow"
+  },
+  {
+    "totalTime": 690.9608325958252,
+    "testName": "#1.2 updateFlow | #1.2.9 should reject when overflow flow rate"
+  },
+  {
+    "totalTime": 684.0534162521362,
+    "testName": "#1.2 updateFlow | #1.2.4 should not update with zero flow rate"
+  },
+  {
+    "totalTime": 681.3922080993652,
+    "testName": "#1.2 updateFlow | #1.2.6 should not update non existing flow"
+  },
+  {
+    "totalTime": 679.2263746261597,
+    "testName": "#6.4x invalid ctx returned by the callback | #6.41 should jail the app in termination callbacks"
+  },
+  {
+    "totalTime": 653.9979572296143,
+    "testName": "CFAv1 | Callback Tests | #1.3 SelfDeletingFlowTestApp"
+  },
+  {
+    "totalTime": 617.1287498474121,
+    "testName": "#1.2 updateFlow | #1.2.7 should not update non existing flow (self flow)"
+  },
+  {
+    "totalTime": 611.371416091919,
+    "testName": "#1.2 updateFlow | #1.2.10 should reject when receiver is zero address"
+  },
+  {
+    "totalTime": 609.0401258468628,
+    "testName": "#1.2 updateFlow | #1.2.5 should not update with negative flow rate"
+  },
+  {
+    "totalTime": 590.423749923706,
+    "testName": "#3 SuperToken custom token support | #3.4 Custom token can use selfTransferFrom"
+  },
+  {
+    "totalTime": 576.3834161758423,
+    "testName": "when TokensSender reverts | send reverts"
+  },
+  {
+    "totalTime": 572.7128744125366,
+    "testName": "#3.x Special CFA+IDA Scenarios | #3.4 not enough balance for distribution -> receive stream -> distribute"
+  },
+  {
+    "totalTime": 554.6407089233398,
+    "testName": "#1.6 Access Control List Callback | #1.6.3 SuperApp to SuperApp is not allowed (non-ACL)"
+  },
+  {
+    "totalTime": 552.8892498016357,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.3 - should downgrade by single account"
+  },
+  {
+    "totalTime": 541.921875,
+    "testName": "#6.2x callback gas limit | #6.21 beforeCreated callback try to burn all gas but less gas provided"
+  },
+  {
+    "totalTime": 538.2425403594971,
+    "testName": "#6.2x callback gas limit | #6.23 afterTerminated try to burn all gas but with less gas provided"
+  },
+  {
+    "totalTime": 517.6994171142578,
+    "testName": "#3.c static balance | #3.c.1 should adjust static balance"
+  },
+  {
+    "totalTime": 512.2054576873779,
+    "testName": "#1.2 subscription operations | #1.2.1 subscriber can approve a subscription"
+  },
+  {
+    "totalTime": 510.7820825576782,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.6 - should convert from smaller underlying decimals"
+  },
+  {
+    "totalTime": 492.70891666412354,
+    "testName": "#3.x Special CFA+IDA Scenarios | #3.1 distributions should not dip into the flow deposit"
+  },
+  {
+    "totalTime": 451.84045791625977,
+    "testName": "when TokensSender reverts | burn reverts"
+  },
+  {
+    "totalTime": 445.2232074737549,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.8 should be able to downgradeTo self"
+  },
+  {
+    "totalTime": 441.04208278656006,
+    "testName": "#10.2 batchCall send | #10.2.3 batchCall send with non-empty userData to EOA allowed"
+  },
+  {
+    "totalTime": 436.800124168396,
+    "testName": "when TokensSender does not revert | TokensSender receives operatorSend data and is called before state mutation"
+  },
+  {
+    "totalTime": 427.5373754501343,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.10 should be able to downgradeTo contract (doesn't make a difference)"
+  },
+  {
+    "totalTime": 425.94387435913086,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.4 - should downgrade by multiple accounts"
+  },
+  {
+    "totalTime": 420.36425018310547,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.9 should be able to downgradeTo other EOA"
+  },
+  {
+    "totalTime": 420.29529094696045,
+    "testName": "#4 - Callback Index Operations | #4.7 - approve subscription in callback"
+  },
+  {
+    "totalTime": 420.0943326950073,
+    "testName": "#1.12 Access Control List | #1.12.10 should be able to revoke flow operator with full control"
+  },
+  {
+    "totalTime": 415.5729160308838,
+    "testName": "IDAv1 | Callback Tests | #1.1 approveSubscription AgreementCreated callbacks"
+  },
+  {
+    "totalTime": 413.93633460998535,
+    "testName": "when the sender has tokens | reverts when burning more than the balance"
+  },
+  {
+    "totalTime": 409.5342092514038,
+    "testName": "#6.1x agreement callback rules | #6.18 agreement callback noops masks"
+  },
+  {
+    "totalTime": 407.92175006866455,
+    "testName": "#10 batchCall | #10.1 batchCall upgrade/approve/transfer/downgrade in one"
+  },
+  {
+    "totalTime": 400.769624710083,
+    "testName": "2 - Flow Operator Ops | 2.12 - Can Delete Flow By Operator in Callback"
+  },
+  {
+    "totalTime": 390.09283351898193,
+    "testName": "#1.2 subscription operations | #1.2.6 one should fail to delete other's subscription"
+  },
+  {
+    "totalTime": 388.36229133605957,
+    "testName": "2 - Flow Operator Ops | 2.9 - Can Delete Flow By Operator in Callback"
+  },
+  {
+    "totalTime": 387.0113754272461,
+    "testName": "when TokensSender does not revert | TokensSender receives operatorSend data and is called before state mutation"
+  },
+  {
+    "totalTime": 385.305082321167,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.21 1to2[50,50]_150pct_create-full should fail without app balance"
+  },
+  {
+    "totalTime": 373.65537548065186,
+    "testName": "#1.12 Access Control List | #1.12.9 should be able to authorize flow operator with full control"
+  },
+  {
+    "totalTime": 372.39599990844727,
+    "testName": "#1.1 index operations | #1.1.8 publisher cannot distribute with insufficient balance"
+  },
+  {
+    "totalTime": 370.01375007629395,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.8 - should upgradeTo if enough balance"
+  },
+  {
+    "totalTime": 368.6996250152588,
+    "testName": "when TokensSender does not revert | TokensSender receives send data and is called before state mutation"
+  },
+  {
+    "totalTime": 362.6969995498657,
+    "testName": "when the sender has no tokens | can send an amount of 0"
+  },
+  {
+    "totalTime": 361.855375289917,
+    "testName": "1 - Flow Ops | 1.9 - Delete Flow in Callback"
+  },
+  {
+    "totalTime": 361.62687492370605,
+    "testName": "#1.12 Access Control List | #1.12.22 should be able to set multiple flow operators"
+  },
+  {
+    "totalTime": 360.18683338165283,
+    "testName": "when TokensSender does not revert | TokensSender receives send data and is called before state mutation"
+  },
+  {
+    "totalTime": 356.65562438964844,
+    "testName": "when TokensSender does not revert | TokensSender receives operatorBurn data and is called before state mutation"
+  },
+  {
+    "totalTime": 353.02816677093506,
+    "testName": "1 - Flow Ops | 1.6 - Delete Flow in Callback"
+  },
+  {
+    "totalTime": 352.96612548828125,
+    "testName": "when the sender has no tokens | reverts when sending a non-zero amount"
+  },
+  {
+    "totalTime": 352.7420835494995,
+    "testName": "#1.12 Access Control List | #1.12.5 should properly update flow operator permissions with different flowRateAllowance"
+  },
+  {
+    "totalTime": 351.7438335418701,
+    "testName": "#1.12 Access Control List | #1.12.3 should properly update flow operator permissions with same flowRateAllowance"
+  },
+  {
+    "totalTime": 349.030499458313,
+    "testName": "#1.12 Access Control List | #1.12.6 should properly update one flow operator permission with same flowRateAllowance"
+  },
+  {
+    "totalTime": 347.97895908355713,
+    "testName": "#1.12 Access Control List | #1.12.28 Should revert when trying to pass in dirty context"
+  },
+  {
+    "totalTime": 346.62983322143555,
+    "testName": "2 - Flow Operator Ops | 2.8 - Can Update Flow By Operator in Callback"
+  },
+  {
+    "totalTime": 345.455041885376,
+    "testName": "when the sender has no tokens | can send an amount of 0"
+  },
+  {
+    "totalTime": 342.1007499694824,
+    "testName": "2 - Flow Operator Ops | 2.11 - Can Update Flow By Operator in Callback"
+  },
+  {
+    "totalTime": 341.0002918243408,
+    "testName": "#1.2 subscription operations | #1.2.2 subscriber should fail to approve a subscription twice"
+  },
+  {
+    "totalTime": 339.5940408706665,
+    "testName": "#1.12 Access Control List | #1.12.4 should properly update one flow operator permission with different flowRateAllowance"
+  },
+  {
+    "totalTime": 336.78579235076904,
+    "testName": "#1.4 claim workflows | #1.4.5 subscriber should not claim from a already approved subscription"
+  },
+  {
+    "totalTime": 336.7380838394165,
+    "testName": "when the sender has no tokens | can send an amount of 0"
+  },
+  {
+    "totalTime": 336.328125,
+    "testName": "1 - Flow Ops | 1.8 - Update Flow in Callback"
+  },
+  {
+    "totalTime": 335.0230827331543,
+    "testName": "when the sender has no tokens | can send an amount of 0"
+  },
+  {
+    "totalTime": 332.43962574005127,
+    "testName": "Convenience methods | Grant all flowOperator permissions"
+  },
+  {
+    "totalTime": 330.9248752593994,
+    "testName": "#1.12 Access Control List | #1.12.12 should revert if attempting to call create/update/delete flowByOperator as the sender"
+  },
+  {
+    "totalTime": 328.20699977874756,
+    "testName": "#10.2 batchCall send | #10.2.2 batchCall send with non-empty userData to registered contract allowed"
+  },
+  {
+    "totalTime": 326.7249994277954,
+    "testName": "#1.2 subscription operations | #1.2.12 subscriber should fail to revoke an pending subscription"
+  },
+  {
+    "totalTime": 324.6927080154419,
+    "testName": "when TokensSender does not revert | TokensSender receives burn data and is called before state mutation"
+  },
+  {
+    "totalTime": 322.0127077102661,
+    "testName": "when TokensSender does not revert | TokensSender receives operatorBurn data and is called before state mutation"
+  },
+  {
+    "totalTime": 319.8353748321533,
+    "testName": "1 - Flow Ops | 1.5 - Update Flow in Callback"
+  },
+  {
+    "totalTime": 316.4139165878296,
+    "testName": "when the sender has no tokens | can send an amount of 0"
+  },
+  {
+    "totalTime": 311.39199924468994,
+    "testName": "when the sender has no tokens | can burn an amount of 0"
+  },
+  {
+    "totalTime": 298.23725032806396,
+    "testName": "#4 - Callback Index Operations | #4.3 - update index in callback"
+  },
+  {
+    "totalTime": 296.426082611084,
+    "testName": "Wrapper methods | create/update/delete Flow by flowOperator"
+  },
+  {
+    "totalTime": 293.73674964904785,
+    "testName": "#1.12 Access Control List | #1.12.27 Should revert when trying to upate flow operator permissions with negative allowance"
+  },
+  {
+    "totalTime": 293.6517496109009,
+    "testName": "#4 - Callback Index Operations | #4.5 - distribute in callback"
+  },
+  {
+    "totalTime": 292.6047077178955,
+    "testName": "when TokensSender reverts | operatorBurn reverts"
+  },
+  {
+    "totalTime": 291.26604175567627,
+    "testName": "#1.12 Access Control List | #1.12.25 Should getFlowOperatorDataByID"
+  },
+  {
+    "totalTime": 289.6984176635742,
+    "testName": "#4 - Callback Index Operations | #4.6 - distribute in callback with user data"
+  },
+  {
+    "totalTime": 289.69162464141846,
+    "testName": "#4 - Callback Index Operations | #4.4 - update index in callback with user data"
+  },
+  {
+    "totalTime": 289.68095874786377,
+    "testName": "#1.12 Access Control List | #1.12.8 should be able to set flowRateAllowance whilst not settings permissions"
+  },
+  {
+    "totalTime": 287.60329246520996,
+    "testName": "#1.12 Access Control List | #1.12.7 should be able to set permissions whilst setting flowRateAllowance as 0"
+  },
+  {
+    "totalTime": 286.4264163970947,
+    "testName": "#1.12 Access Control List | #1.12.1 should revert if attempting to encode unclean permissions"
+  },
+  {
+    "totalTime": 283.14391708374023,
+    "testName": "when the sender has no tokens | can burn an amount of 0"
+  },
+  {
+    "totalTime": 282.12341690063477,
+    "testName": "#11 forwardBatchCall | #11.1 forwardBatchCall with mocked transaction signer"
+  },
+  {
+    "totalTime": 278.52124977111816,
+    "testName": "#1.12 Access Control List | #1.12.2 You should not be able to set yourself as a flowOperator"
+  },
+  {
+    "totalTime": 276.49141693115234,
+    "testName": "#4 - Callback Index Operations | #4.6 - distribute in callback with user data"
+  },
+  {
+    "totalTime": 275.02070903778076,
+    "testName": "#2 Upgrades to SuperToken | #2.8 Owner should define optout/optin blocking backend upgrade"
+  },
+  {
+    "totalTime": 272.0377082824707,
+    "testName": "#4 - Callback Index Operations | #4.4 - update index in callback with user data"
+  },
+  {
+    "totalTime": 271.894624710083,
+    "testName": "when the sender has no tokens | can burn an amount of 0"
+  },
+  {
+    "totalTime": 269.58866691589355,
+    "testName": "2 - Flow Operator Ops | 2.7 - Can Create Flow By Operator in Callback"
+  },
+  {
+    "totalTime": 268.63208293914795,
+    "testName": "#4 - Callback Index Operations | #4.5 - distribute in callback"
+  },
+  {
+    "totalTime": 266.69658279418945,
+    "testName": "#4 - Callback Index Operations | #4.3 - update index in callback"
+  },
+  {
+    "totalTime": 265.2013750076294,
+    "testName": "Wrapper methods | create/update/delete Flow"
+  },
+  {
+    "totalTime": 263.82133293151855,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.1 - should upgrade if enough balance"
+  },
+  {
+    "totalTime": 262.4975004196167,
+    "testName": "#4 - Callback Index Operations | #4.14 - delete subscription in callback with user data"
+  },
+  {
+    "totalTime": 262.3085832595825,
+    "testName": "#4 - Callback Index Operations | #4.12 - update subscription units in callback with user data"
+  },
+  {
+    "totalTime": 262.2127914428711,
+    "testName": "#4.a default reward account (admin) | #4.a.2 liquidation without bailout by admin (reward address) directly"
+  },
+  {
+    "totalTime": 261.8035831451416,
+    "testName": "#1.1 index operations | #1.1.11 calling distribute when total units = 0 doesn't revert"
+  },
+  {
+    "totalTime": 261.48124980926514,
+    "testName": "when the sender has no tokens | can burn an amount of 0"
+  },
+  {
+    "totalTime": 256.9910001754761,
+    "testName": "#4 - Callback Index Operations | #4.13 - delete subscription in callback"
+  },
+  {
+    "totalTime": 256.18629264831543,
+    "testName": "2 - Flow Operator Ops | 2.15 - Can Revoke Flow Operator With Full Control in Callback"
+  },
+  {
+    "totalTime": 255.15191650390625,
+    "testName": "#10.2 batchCall send | #10.2.1 batchCall send with non-empty userData to unregistered contract reverts"
+  },
+  {
+    "totalTime": 254.2993745803833,
+    "testName": "#10 misc | #10.2 transferAll"
+  },
+  {
+    "totalTime": 253.96199989318848,
+    "testName": "when the sender has no tokens | can burn an amount of 0"
+  },
+  {
+    "totalTime": 253.0706663131714,
+    "testName": "#4 - Callback Index Operations | #4.13 - delete subscription in callback"
+  },
+  {
+    "totalTime": 252.68991565704346,
+    "testName": "when TokensSender reverts | operatorBurn reverts"
+  },
+  {
+    "totalTime": 251.8278751373291,
+    "testName": "#1.11 should properly handle minimum deposit | #1.11.4 should revert if trying to create a flow without enough minimum deposit."
+  },
+  {
+    "totalTime": 251.1373748779297,
+    "testName": "when TokensSender does not revert | TokensSender receives send data and is called before state mutation"
+  },
+  {
+    "totalTime": 250.7946252822876,
+    "testName": "#4 - Callback Index Operations | #4.14 - delete subscription in callback with user data"
+  },
+  {
+    "totalTime": 250.0919589996338,
+    "testName": "when TokensRecipient does not revert | TokensRecipient receives operatorSend data and is called after state mutation"
+  },
+  {
+    "totalTime": 248.03533267974854,
+    "testName": "Wrapper methods | create/update/delete Flow with userData"
+  },
+  {
+    "totalTime": 247.79600048065186,
+    "testName": "1 - Flow Ops | 1.4 - Update Flow w/ userData"
+  },
+  {
+    "totalTime": 246.48845863342285,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.7 - should convert from larger underlying decimals"
+  },
+  {
+    "totalTime": 245.77733325958252,
+    "testName": "2 - Flow Operator Ops | 2.12 - Can Revoke Flow Operator With Full Control in Callback"
+  },
+  {
+    "totalTime": 245.17370796203613,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.4 - revoke subscription with user data"
+  },
+  {
+    "totalTime": 244.26049995422363,
+    "testName": "when TokensRecipient does not revert | TokensRecipient receives operatorSend data and is called after state mutation"
+  },
+  {
+    "totalTime": 243.33366775512695,
+    "testName": "2 - Flow Operator Ops | 2.7 - Can Update Flow By Operator w/ userData"
+  },
+  {
+    "totalTime": 243.11133289337158,
+    "testName": "#10.2 batchCall send | #10.2.0 batchCall send with empty userData to EOA allowed"
+  },
+  {
+    "totalTime": 242.47283363342285,
+    "testName": "2 - Flow Operator Ops | 2.10 - Can Update Flow Operator Permissions in Callback"
+  },
+  {
+    "totalTime": 241.93220806121826,
+    "testName": "1 - Flow Ops | 1.7 - Create Flow in Callback"
+  },
+  {
+    "totalTime": 238.52741622924805,
+    "testName": "when TokensRecipient does not revert | TokensRecipient receives send data and is called after state mutation"
+  },
+  {
+    "totalTime": 237.4111671447754,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.2 - should not upgrade without enough underlying balance"
+  },
+  {
+    "totalTime": 237.41004085540771,
+    "testName": "when the sender has tokens | can send an amount of 0"
+  },
+  {
+    "totalTime": 237.26750087738037,
+    "testName": "1 - Flow Ops | 1.4 - Create Flow in Callback"
+  },
+  {
+    "totalTime": 233.27099990844727,
+    "testName": "#2.b double agreement real-time balances | #2.b.1 without deposit"
+  },
+  {
+    "totalTime": 231.87208366394043,
+    "testName": "#1.1 index operations | #1.1.1 publisher can create a new index"
+  },
+  {
+    "totalTime": 226.36054229736328,
+    "testName": "Wrapper methods | updateFlowOperatorPermissions: can only delete"
+  },
+  {
+    "totalTime": 224.76479148864746,
+    "testName": "#4 - Callback Index Operations | #4.10 - revoke subscription in callback with user data"
+  },
+  {
+    "totalTime": 224.1376657485962,
+    "testName": "when the sender has tokens | can send an amount of 0"
+  },
+  {
+    "totalTime": 223.81537532806396,
+    "testName": "2 - Flow Operator Ops | 2.14 - Can Authorize Flow Operator With Full Control in Callback"
+  },
+  {
+    "totalTime": 223.69454193115234,
+    "testName": "when TokensRecipient does not revert | TokensRecipient receives operatorSend data and is called after state mutation"
+  },
+  {
+    "totalTime": 223.571457862854,
+    "testName": "when TokensRecipient does not revert | TokensRecipient receives send data and is called after state mutation"
+  },
+  {
+    "totalTime": 223.3880844116211,
+    "testName": "#4 - Callback Index Operations | #4.9 - revoke subscription in callback"
+  },
+  {
+    "totalTime": 222.82829093933105,
+    "testName": "when TokensSender does not revert | TokensSender receives operatorBurn data and is called before state mutation"
+  },
+  {
+    "totalTime": 221.97608375549316,
+    "testName": "#3 SuperToken custom token support | #3.5 Custom token can use selfApproveFor"
+  },
+  {
+    "totalTime": 221.6530408859253,
+    "testName": "#3 SuperToken custom token support | #3.3 Custom token that mints/burn and disabling upgrade/downgrade"
+  },
+  {
+    "totalTime": 220.44487476348877,
+    "testName": "#4 - Callback Index Operations | #4.10 - revoke subscription in callback with user data"
+  },
+  {
+    "totalTime": 220.34783363342285,
+    "testName": "when TokensSender does not revert | TokensSender receives operatorSend data and is called before state mutation"
+  },
+  {
+    "totalTime": 220.06004238128662,
+    "testName": "#4 - Callback Index Operations | #4.11 - update subscription units in callback"
+  },
+  {
+    "totalTime": 218.6465826034546,
+    "testName": "#4 - Callback Index Operations | #4.9 - revoke subscription in callback"
+  },
+  {
+    "totalTime": 216.62112522125244,
+    "testName": "#4 - Callback Index Operations | #4.11 - update subscription units in callback"
+  },
+  {
+    "totalTime": 215.5247917175293,
+    "testName": "2 - Flow Operator Ops | 2.11 - Can Authorize Flow Operator With Full Control in Callback"
+  },
+  {
+    "totalTime": 215.03033351898193,
+    "testName": "#2 Agreement Whitelisting | #2.1 Agreement whitelisting operations"
+  },
+  {
+    "totalTime": 214.1832914352417,
+    "testName": "#6.x agreement framework access control | #6.5 bad agreement implementations"
+  },
+  {
+    "totalTime": 214.18141651153564,
+    "testName": "#4 - Callback Index Operations | #4.12 - update subscription units in callback with user data"
+  },
+  {
+    "totalTime": 212.27045917510986,
+    "testName": "2 - Flow Operator Ops | 2.13 - Can Update Flow Operator Permissions in Callback"
+  },
+  {
+    "totalTime": 211.64016723632812,
+    "testName": "when the sender has tokens | can send an amount of 1"
+  },
+  {
+    "totalTime": 211.09287452697754,
+    "testName": "when TokensRecipient does not revert | TokensRecipient receives send data and is called after state mutation"
+  },
+  {
+    "totalTime": 210.82529163360596,
+    "testName": "when the sender has tokens | can send an amount of 0"
+  },
+  {
+    "totalTime": 210.2262086868286,
+    "testName": "when the sender has no tokens | reverts when sending from the zero address"
+  },
+  {
+    "totalTime": 208.50954246520996,
+    "testName": "when the sender has tokens | can send an amount of 1"
+  },
+  {
+    "totalTime": 207.55004119873047,
+    "testName": "when the sender has tokens | can send an amount of 1"
+  },
+  {
+    "totalTime": 206.91287517547607,
+    "testName": "when TokensSender reverts | operatorSend reverts"
+  },
+  {
+    "totalTime": 205.37945747375488,
+    "testName": "Wrapper methods | updateFlowOperatorPermissions: enforce flowrateAllowance"
+  },
+  {
+    "totalTime": 204.9404172897339,
+    "testName": "when the sender has tokens | can send an amount of 1"
+  },
+  {
+    "totalTime": 203.86170864105225,
+    "testName": "when TokensSender does not revert | TokensSender receives burn data and is called before state mutation"
+  },
+  {
+    "totalTime": 202.23004150390625,
+    "testName": "when the sender has tokens | can send an amount of 0"
+  },
+  {
+    "totalTime": 201.77770900726318,
+    "testName": "Convenience methods | Revoke all flowOperator permissions"
+  },
+  {
+    "totalTime": 201.30333423614502,
+    "testName": "2 - Flow Operator Ops | 2.6 - Can Update Flow By Operator"
+  },
+  {
+    "totalTime": 200.81979179382324,
+    "testName": "#4 - Callback Index Operations | #4.8 - approve subscription in callback with user data"
+  },
+  {
+    "totalTime": 200.43200016021729,
+    "testName": "when the sender has tokens | can send an amount of 1"
+  },
+  {
+    "totalTime": 199.2269163131714,
+    "testName": "when the sender has tokens | can send an amount of 0"
+  },
+  {
+    "totalTime": 196.20008277893066,
+    "testName": "2 - Flow Operator Ops | 2.9 - Can Delete Flow By Operator w/ userData"
+  },
+  {
+    "totalTime": 192.954083442688,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.15 upgrade and self-upgradeTo should not trigger tokenReceived"
+  },
+  {
+    "totalTime": 192.5175838470459,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.12 - upgradeTo should not revert for registered contract if userData is passed to tokensReceived"
+  },
+  {
+    "totalTime": 191.73904132843018,
+    "testName": "1 - Flow Ops | 1.3 - Update Flow"
+  },
+  {
+    "totalTime": 191.71283340454102,
+    "testName": "when the sender has no tokens | reverts when burning a non-zero amount"
+  },
+  {
+    "totalTime": 191.59354209899902,
+    "testName": "#5 Context Utilities | #5.1 test replacePlaceholderCtx with testCtxFuncX"
+  },
+  {
+    "totalTime": 190.42004203796387,
+    "testName": "#4.a default reward account (admin) | #4.a.3 liquidation with bailout by alice (liquidator)"
+  },
+  {
+    "totalTime": 189.56391716003418,
+    "testName": "#4.a default reward account (admin) | #4.a.1 liquidation without bailout by alice (liquidator)"
+  },
+  {
+    "totalTime": 188.48020839691162,
+    "testName": "#4 - Callback Index Operations | #4.8 - approve subscription in callback with user data"
+  },
+  {
+    "totalTime": 185.60533332824707,
+    "testName": "2 - Flow Operator Ops | 2.6 - Can Delete Flow By Operator"
+  },
+  {
+    "totalTime": 185.16383457183838,
+    "testName": "when TokensRecipient does not revert | TokensRecipient receives mint (internal) data and is called after state mutation"
+  },
+  {
+    "totalTime": 184.43462467193604,
+    "testName": "2 - Flow Operator Ops | 2.5 - Can Update Flow By Operator"
+  },
+  {
+    "totalTime": 183.29008388519287,
+    "testName": "when the sender has no tokens | reverts when burning a non-zero amount"
+  },
+  {
+    "totalTime": 181.7080421447754,
+    "testName": "Convenience methods | Set flow to 0 with pre-existing flow (delete)"
+  },
+  {
+    "totalTime": 181.6148328781128,
+    "testName": "Readonly methods | getAccountFlowInfo"
+  },
+  {
+    "totalTime": 180.12758350372314,
+    "testName": "when TokensRecipient does not revert | TokensRecipient receives mint (internal) data and is called after state mutation"
+  },
+  {
+    "totalTime": 179.90687465667725,
+    "testName": "#4 - Callback Index Operations | #4.7 - approve subscription in callback"
+  },
+  {
+    "totalTime": 179.67145919799805,
+    "testName": "when the sender has no tokens | reverts when burning a non-zero amount"
+  },
+  {
+    "totalTime": 179.2708339691162,
+    "testName": "when the sender has no tokens | reverts when sending a non-zero amount"
+  },
+  {
+    "totalTime": 178.02737522125244,
+    "testName": "when the sender has no tokens | reverts when sending a non-zero amount"
+  },
+  {
+    "totalTime": 177.75408267974854,
+    "testName": "when the sender has no tokens | reverts when burning a non-zero amount"
+  },
+  {
+    "totalTime": 177.71433353424072,
+    "testName": "when TokensSender reverts | send reverts"
+  },
+  {
+    "totalTime": 177.06958389282227,
+    "testName": "when TokensSender reverts | burn reverts"
+  },
+  {
+    "totalTime": 175.3062925338745,
+    "testName": "#4 - Callback Index Operations | #4.15 - claim in callback with user data"
+  },
+  {
+    "totalTime": 174.58991622924805,
+    "testName": "#4 - Callback Index Operations | #4.1 - create index in callback"
+  },
+  {
+    "totalTime": 174.02441596984863,
+    "testName": "Wrapper methods | delete flow as receiver"
+  },
+  {
+    "totalTime": 173.92099952697754,
+    "testName": "when the sender has no tokens | reverts when burning a non-zero amount"
+  },
+  {
+    "totalTime": 173.69525051116943,
+    "testName": "1 - Flow Ops | 1.6 - Delete Flow w/ userData"
+  },
+  {
+    "totalTime": 172.8211669921875,
+    "testName": "#4 - Callback Index Operations | #4.15 - claim in callback with user data"
+  },
+  {
+    "totalTime": 172.24012565612793,
+    "testName": "when TokensSender reverts | operatorSend reverts"
+  },
+  {
+    "totalTime": 171.63379096984863,
+    "testName": "#4 - Callback Index Operations | #4.15 - claim in callback"
+  },
+  {
+    "totalTime": 171.42229080200195,
+    "testName": "#4 - Callback Index Operations | #4.2 - create index in callback with user data"
+  },
+  {
+    "totalTime": 171.3657922744751,
+    "testName": "when the sender has no tokens | reverts when sending a non-zero amount"
+  },
+  {
+    "totalTime": 171.24433422088623,
+    "testName": "#4 - Callback Index Operations | #4.15 - claim in callback"
+  },
+  {
+    "totalTime": 169.68200016021729,
+    "testName": "1 - Flow Ops | 1.2 - Update Flow"
+  },
+  {
+    "totalTime": 168.17224979400635,
+    "testName": "when the sender has no tokens | reverts when sending a non-zero amount"
+  },
+  {
+    "totalTime": 168.10820960998535,
+    "testName": "Convenience methods | Set flowrateFrom to 0 with pre-existing flow (delete) as receiver"
+  },
+  {
+    "totalTime": 166.86299991607666,
+    "testName": "Convenience methods | Set flow with pre-existing flow (update)"
+  },
+  {
+    "totalTime": 166.70691585540771,
+    "testName": "1 - Flow Ops | 1.5 - Delete Flow"
+  },
+  {
+    "totalTime": 166.1639165878296,
+    "testName": "when the sender has no tokens | reverts when burning from the zero address"
+  },
+  {
+    "totalTime": 164.90762519836426,
+    "testName": "Readonly methods | getAccountFlowrate"
+  },
+  {
+    "totalTime": 164.503999710083,
+    "testName": "#6.3x composite app rules | #6.31 composite app cannot be jailed"
+  },
+  {
+    "totalTime": 164.01366710662842,
+    "testName": "#4 - Callback Index Operations | #4.2 - create index in callback with user data"
+  },
+  {
+    "totalTime": 163.82779216766357,
+    "testName": "when the sender has no tokens | reverts when burning from the zero address"
+  },
+  {
+    "totalTime": 163.54220867156982,
+    "testName": "1 - Flow Ops | 1.3 - Delete Flow"
+  },
+  {
+    "totalTime": 162.2344160079956,
+    "testName": "#4 - Callback Index Operations | #4.1 - create index in callback"
+  },
+  {
+    "totalTime": 161.24854183197021,
+    "testName": "when the sender has tokens | can burn an amount of 1"
+  },
+  {
+    "totalTime": 159.39541721343994,
+    "testName": "#1 - Non-Callback Index Operations | #1.5 - distribute"
+  },
+  {
+    "totalTime": 157.41208362579346,
+    "testName": "when the sender has no tokens | reverts when sending from the zero address"
+  },
+  {
+    "totalTime": 157.28575038909912,
+    "testName": "#1.2 subscription operations | #1.2.5 publisher should fail to delete a non-existent subscription"
+  },
+  {
+    "totalTime": 155.66775035858154,
+    "testName": "when TokensRecipient does not revert | TokensRecipient receives mint (internal) data and is called after state mutation"
+  },
+  {
+    "totalTime": 152.98345756530762,
+    "testName": "#6.3x composite app rules | #6.30 composite app must be whitelisted"
+  },
+  {
+    "totalTime": 148.60991764068604,
+    "testName": "when the sender has no tokens | reverts when burning from the zero address"
+  },
+  {
+    "totalTime": 148.42658233642578,
+    "testName": "#1 - Non-Callback Index Operations | #1.6 - distribute with user data"
+  },
+  {
+    "totalTime": 146.9208745956421,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.8 - delete subscription with user data"
+  },
+  {
+    "totalTime": 146.569917678833,
+    "testName": "#6.1x agreement callback rules | #6.13 afterAgreementCreated callback assert or revert"
+  },
+  {
+    "totalTime": 146.5071668624878,
+    "testName": "2 - Flow Operator Ops | 2.5 - Can Create Flow By Operator w/ userData"
+  },
+  {
+    "totalTime": 146.03637504577637,
+    "testName": "#2 Upgrades to SuperToken | #2.7 Owner of tokens can use SuperUpgrader directly"
+  },
+  {
+    "totalTime": 144.6545000076294,
+    "testName": "when the sender has tokens | can burn an amount of 0"
+  },
+  {
+    "totalTime": 143.28258419036865,
+    "testName": "when the sender has no tokens | reverts when sending from the zero address"
+  },
+  {
+    "totalTime": 142.46816635131836,
+    "testName": "#2.d.1 Initialize Canonical Wrapper Super Token Function Tests | #2.d.1b it should be able to call initialize canonical wrapper super tokens"
+  },
+  {
+    "totalTime": 140.89225006103516,
+    "testName": "when the sender has tokens | can burn an amount of 0"
+  },
+  {
+    "totalTime": 140.7115421295166,
+    "testName": "#2.b double agreement real-time balances | #2.b.4 with deposit and owed deposit case 2"
+  },
+  {
+    "totalTime": 139.49908351898193,
+    "testName": "when the sender has no tokens | reverts when burning from the zero address"
+  },
+  {
+    "totalTime": 139.34433269500732,
+    "testName": "when the sender has no tokens | reverts when sending from the zero address"
+  },
+  {
+    "totalTime": 138.94920825958252,
+    "testName": "when the sender has tokens | can burn an amount of 1"
+  },
+  {
+    "totalTime": 138.86345767974854,
+    "testName": "Super ETH (SETH) Contract | #1.4 downgradeToETH"
+  },
+  {
+    "totalTime": 137.83858394622803,
+    "testName": "#6.1x agreement callback rules | #6.11 beforeAgreementCreated callback assert or revert"
+  },
+  {
+    "totalTime": 137.8380823135376,
+    "testName": "#1 - Non-Callback Index Operations | #1.6 - distribute with user data"
+  },
+  {
+    "totalTime": 137.33816623687744,
+    "testName": "when the sender has tokens | can burn an amount of 1"
+  },
+  {
+    "totalTime": 136.65337467193604,
+    "testName": "#1 - Non-Callback Index Operations | #1.5 - distribute"
+  },
+  {
+    "totalTime": 136.06962490081787,
+    "testName": "when the sender has tokens | can burn an amount of 0"
+  },
+  {
+    "totalTime": 132.64758396148682,
+    "testName": "#2.a Mock factory | #2.a.2 semi upgradable"
+  },
+  {
+    "totalTime": 132.07158279418945,
+    "testName": "when the sender has tokens | can burn an amount of 1"
+  },
+  {
+    "totalTime": 131.87091636657715,
+    "testName": "when the sender has tokens | can burn an amount of 1"
+  },
+  {
+    "totalTime": 130.00362491607666,
+    "testName": "when the sender has tokens | can burn an amount of 0"
+  },
+  {
+    "totalTime": 128.78208446502686,
+    "testName": "when the sender does not have enough balance | reverts"
+  },
+  {
+    "totalTime": 128.305832862854,
+    "testName": "#2.b Production Factory | #2.b.1 use production factory to create different super tokens"
+  },
+  {
+    "totalTime": 128.16600036621094,
+    "testName": "when the sender has tokens | can burn an amount of 0"
+  },
+  {
+    "totalTime": 127.10845756530762,
+    "testName": "when the token owner has enough balance | transfers the requested amount"
+  },
+  {
+    "totalTime": 126.68112564086914,
+    "testName": "#6.4x invalid ctx returned by the callback | #6.40 should give explicit error message in non-termination callbacks"
+  },
+  {
+    "totalTime": 125.62587547302246,
+    "testName": "#3 - View Operations | #3.3 - list subscriptions"
+  },
+  {
+    "totalTime": 124.61775016784668,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.7 - delete subscription"
+  },
+  {
+    "totalTime": 124.31787586212158,
+    "testName": "#2.a Mock factory | #2.a.3 full upgradable"
+  },
+  {
+    "totalTime": 122.85308265686035,
+    "testName": "when the sender has tokens | reverts when burning more than the balance"
+  },
+  {
+    "totalTime": 118.39283275604248,
+    "testName": "1 - Flow Ops | 1.1 - Create Flow"
+  },
+  {
+    "totalTime": 118.15383434295654,
+    "testName": "CFAv1 | Multi Flow Super App Tests | #1.20 createFlow via app action should respect deposit rule"
+  },
+  {
+    "totalTime": 117.87283420562744,
+    "testName": "#4.b zero reward account | #4.b.2 liquidation with bailout by alice (liquidator and bailout account)"
+  },
+  {
+    "totalTime": 117.8256664276123,
+    "testName": "when the sender transfers all balance | transfers the requested amount"
+  },
+  {
+    "totalTime": 117.36845779418945,
+    "testName": "#3 - View Operations | #3.3 - list subscriptions"
+  },
+  {
+    "totalTime": 116.55887508392334,
+    "testName": "when the sender transfers zero tokens | transfers the requested amount"
+  },
+  {
+    "totalTime": 114.10783386230469,
+    "testName": "when the sender transfers all balance | transfers the requested amount"
+  },
+  {
+    "totalTime": 113.9147081375122,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.8 - delete subscription with user data"
+  },
+  {
+    "totalTime": 113.83758354187012,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.7 - delete subscription"
+  },
+  {
+    "totalTime": 112.78362464904785,
+    "testName": "#2.b double agreement real-time balances | #2.b.3 with deposit and owed deposit case 1"
+  },
+  {
+    "totalTime": 112.19179153442383,
+    "testName": "when the sender transfers zero tokens | transfers the requested amount"
+  },
+  {
+    "totalTime": 111.80491733551025,
+    "testName": "2 - Flow Operator Ops | 2.4 - Can Create Flow By Operator"
+  },
+  {
+    "totalTime": 111.11787509918213,
+    "testName": "#2.b double agreement real-time balances | #2.b.2 with deposit"
+  },
+  {
+    "totalTime": 109.79245853424072,
+    "testName": "#2.d Canonical Wrapper Super Token Creation | #2.d.5 it should be able to create multiple canonical erc20 wrappers"
+  },
+  {
+    "totalTime": 109.37312507629395,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.11 - upgradeTo should not revert for registered contract if no userData is passed to tokensReceived"
+  },
+  {
+    "totalTime": 107.39962482452393,
+    "testName": "when the sender has tokens | reverts when sending more than the balance"
+  },
+  {
+    "totalTime": 107.16695785522461,
+    "testName": "#4.b zero reward account | #4.b.1 liquidation without bailout by alice (liquidator)"
+  },
+  {
+    "totalTime": 105.32329177856445,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.3 - revoke subscription"
+  },
+  {
+    "totalTime": 103.2107925415039,
+    "testName": "#3 Control list of roles | #3.1 Admin should add/remove backend accounts"
+  },
+  {
+    "totalTime": 102.17595767974854,
+    "testName": "#1 - Non-Callback Index Operations | #1.4 - update index value with user data"
+  },
+  {
+    "totalTime": 101.7070837020874,
+    "testName": "when the sender has tokens | reverts when sending more than the balance"
+  },
+  {
+    "totalTime": 101.56387519836426,
+    "testName": "2 - Flow Operator Ops | 2.4 - Can Create Flow By Operator"
+  },
+  {
+    "totalTime": 101.23962497711182,
+    "testName": "#2 Upgrades to SuperToken | #2.4 Should upgrade large amount"
+  },
+  {
+    "totalTime": 100.29033279418945,
+    "testName": "when TokensRecipient reverts | operatorSend reverts"
+  },
+  {
+    "totalTime": 95.65999984741211,
+    "testName": "#1 - Non-Callback Index Operations | #1.3 - update index value"
+  },
+  {
+    "totalTime": 95.64691638946533,
+    "testName": "#1 - Non-Callback Index Operations | #1.4 - update index value with user data"
+  },
+  {
+    "totalTime": 95.21345901489258,
+    "testName": "IDAv1 | Callback Tests | #1.8 getSubscriptionByID revert with IDA_SUBSCRIPTION_DOES_NOT_EXIST"
+  },
+  {
+    "totalTime": 94.94408321380615,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.4 - revoke subscription with user data"
+  },
+  {
+    "totalTime": 94.8782091140747,
+    "testName": "Convenience methods | Set flow with same flowrate as before (do nothing)"
+  },
+  {
+    "totalTime": 94.51783275604248,
+    "testName": "#2 Upgrades to SuperToken | #2.2 Should upgrade amount and give it back to user"
+  },
+  {
+    "totalTime": 94.03200054168701,
+    "testName": "#10 batchCall | #10.4 batchCall call app action"
+  },
+  {
+    "totalTime": 93.51545810699463,
+    "testName": "UUPS | UUPSProxiable"
+  },
+  {
+    "totalTime": 92.97112560272217,
+    "testName": "#3 Super Token Factory | #3.3 update super token factory double check if new code is called"
+  },
+  {
+    "totalTime": 92.71195793151855,
+    "testName": "#1 - Non-Callback Index Operations | #1.3 - update index value"
+  },
+  {
+    "totalTime": 92.56141662597656,
+    "testName": "when the sender has tokens | reverts when burning more than the balance"
+  },
+  {
+    "totalTime": 91.87737560272217,
+    "testName": "#2 Upgrades to SuperToken | #2.3 Should upgrade small amount"
+  },
+  {
+    "totalTime": 91.35895824432373,
+    "testName": "when the sender has tokens | reverts when sending more than the balance"
+  },
+  {
+    "totalTime": 91.24987506866455,
+    "testName": "#3 SuperToken custom token support | #3.1 Custom token storage should not overlap with super token"
+  },
+  {
+    "totalTime": 90.5277910232544,
+    "testName": "Convenience methods | Set flow without pre-existing flow (create)"
+  },
+  {
+    "totalTime": 90.30154037475586,
+    "testName": "#3 - View Operations | #3.4 - get subscription"
+  },
+  {
+    "totalTime": 89.60104179382324,
+    "testName": "Readonly methods | getFlowInfo"
+  },
+  {
+    "totalTime": 89.26070785522461,
+    "testName": "#3 - View Operations | #3.2 - calculate distribution"
+  },
+  {
+    "totalTime": 89.161208152771,
+    "testName": "when the sender has tokens | reverts when sending more than the balance"
+  },
+  {
+    "totalTime": 88.8469591140747,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.3 - revoke subscription"
+  },
+  {
+    "totalTime": 88.67941665649414,
+    "testName": "when the sender has tokens | reverts when burning more than the balance"
+  },
+  {
+    "totalTime": 88.47070789337158,
+    "testName": "#3 Super Token Factory | #3.2 update super token factory"
+  },
+  {
+    "totalTime": 88.06341648101807,
+    "testName": "when the sender has tokens | reverts when burning more than the balance"
+  },
+  {
+    "totalTime": 87.46074962615967,
+    "testName": "#3 - View Operations | #3.5 - get subscription by id"
+  },
+  {
+    "totalTime": 87.26983261108398,
+    "testName": "#2 real-time balance | #2.1 default real-time balance is zeros"
+  },
+  {
+    "totalTime": 87.0440845489502,
+    "testName": "when the sender has tokens | reverts when sending more than the balance"
+  },
+  {
+    "totalTime": 86.27566623687744,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.1 - approve subscription"
+  },
+  {
+    "totalTime": 85.67670822143555,
+    "testName": "PureSuperToken Contract | #1 initialization"
+  },
+  {
+    "totalTime": 84.11124992370605,
+    "testName": "Readonly methods | getFlowrate"
+  },
+  {
+    "totalTime": 83.18879222869873,
+    "testName": "1 - Flow Ops | 1.2 - Create Flow w/ userData"
+  },
+  {
+    "totalTime": 83.12466716766357,
+    "testName": "#3 - View Operations | #3.5 - get subscription by id"
+  },
+  {
+    "totalTime": 82.47674942016602,
+    "testName": "#3 - View Operations | #3.4 - get subscription"
+  },
+  {
+    "totalTime": 81.62291717529297,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.6 - update subscription with user data"
+  },
+  {
+    "totalTime": 81.41762447357178,
+    "testName": "#1.8 misc | #1.8.4 only authorized host can access token"
+  },
+  {
+    "totalTime": 81.32037544250488,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.10 - claim with user data"
+  },
+  {
+    "totalTime": 80.74716663360596,
+    "testName": "#3.c static balance | #3.c.1 should only be called by listed agreement"
+  },
+  {
+    "totalTime": 80.52012538909912,
+    "testName": "#1 upgradability | #1.5 update the code by governance"
+  },
+  {
+    "totalTime": 80.5069169998169,
+    "testName": "when TokensRecipient reverts | send reverts"
+  },
+  {
+    "totalTime": 80.34945869445801,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.5 - update subscription units"
+  },
+  {
+    "totalTime": 79.56520748138428,
+    "testName": "1 - Flow Ops | 1.1 - Create Flow"
+  },
+  {
+    "totalTime": 78.33554172515869,
+    "testName": "2 - Flow Operator Ops | 2.19 - Can decrease flow rate allowance with user data"
+  },
+  {
+    "totalTime": 78.08804130554199,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.6 - update subscription with user data"
+  },
+  {
+    "totalTime": 78.06145858764648,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.9 - claim"
+  },
+  {
+    "totalTime": 77.70616722106934,
+    "testName": "when TokensRecipient reverts | operatorSend reverts"
+  },
+  {
+    "totalTime": 77.62258338928223,
+    "testName": "#3 - View Operations | #3.2 - calculate distribution"
+  },
+  {
+    "totalTime": 76.98266696929932,
+    "testName": "with contract recipient | (ERC20) transferFrom succeeds"
+  },
+  {
+    "totalTime": 76.4303331375122,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.9 - claim"
+  },
+  {
+    "totalTime": 76.4164571762085,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.5 - update subscription units"
+  },
+  {
+    "totalTime": 76.18245887756348,
+    "testName": "when TokensRecipient reverts | send reverts"
+  },
+  {
+    "totalTime": 76.03270816802979,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.10 - claim with user data"
+  },
+  {
+    "totalTime": 75.03054141998291,
+    "testName": "#10 batchCall | #10.5 batchCall one fail revert all"
+  },
+  {
+    "totalTime": 74.88825035095215,
+    "testName": "#1.2 subscription operations | #1.2.13 subscriber should fail to revoke a non-existent subscription"
+  },
+  {
+    "totalTime": 74.77008247375488,
+    "testName": "when TokensRecipient reverts | send reverts"
+  },
+  {
+    "totalTime": 73.71858406066895,
+    "testName": "when TokensRecipient reverts | operatorSend reverts"
+  },
+  {
+    "totalTime": 73.64900016784668,
+    "testName": "when TokensRecipient reverts | mint (internal) reverts"
+  },
+  {
+    "totalTime": 73.32204151153564,
+    "testName": "#1.1 createFlow | #1.1.2 should reject when there is not enough balance"
+  },
+  {
+    "totalTime": 73.04387474060059,
+    "testName": "#1 upgradability | #1.1 storage layout"
+  },
+  {
+    "totalTime": 72.97550010681152,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.16 upgrade and self-upgradeTo should not trigger tokenReceived if self is contract"
+  },
+  {
+    "totalTime": 72.66154193878174,
+    "testName": "#6.1x agreement callback rules | #6.12 afterAgreementCreated callback noop should work"
+  },
+  {
+    "totalTime": 71.58391761779785,
+    "testName": "#6.1x agreement callback rules | #6.17 afterAgreementTerminated callback readonly ctx jail rule"
+  },
+  {
+    "totalTime": 70.34720802307129,
+    "testName": "#4 App Registry | #4.5 allowCompositeApp"
+  },
+  {
+    "totalTime": 70.26645946502686,
+    "testName": "#10 batchCall | #10.3 batchCall call agreement"
+  },
+  {
+    "totalTime": 69.49545860290527,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.1 - approve subscription"
+  },
+  {
+    "totalTime": 68.43533325195312,
+    "testName": "#7 callAgreement | #7.1 only listed agreement allowed"
+  },
+  {
+    "totalTime": 68.35395908355713,
+    "testName": "with contract recipient | (ERC20) transfer succeeds"
+  },
+  {
+    "totalTime": 67.93624973297119,
+    "testName": "#1 upgradability | #1.1 storage layout"
+  },
+  {
+    "totalTime": 67.7239580154419,
+    "testName": "#2 configurations | #2.2 TrustedForwarders"
+  },
+  {
+    "totalTime": 66.0942907333374,
+    "testName": "#1.4 claim workflows | #1.4.3 one should not claim from a non-existent subscription"
+  },
+  {
+    "totalTime": 65.38866710662842,
+    "testName": "2 - Flow Operator Ops | 2.18 - Can decrease flow rate allowance"
+  },
+  {
+    "totalTime": 64.40012550354004,
+    "testName": "when the token owner has enough balance | emits an approval event"
+  },
+  {
+    "totalTime": 63.64824962615967,
+    "testName": "with contract recipient | send reverts"
+  },
+  {
+    "totalTime": 63.6118745803833,
+    "testName": "2 - Flow Operator Ops | 2.23 - Can decrease flow allowance with permissions with user data"
+  },
+  {
+    "totalTime": 62.872249603271484,
+    "testName": "2 - Flow Operator Ops | 2.1 - Can Update Flow Operator Permissions"
+  },
+  {
+    "totalTime": 62.305999755859375,
+    "testName": "#6.x agreement framework access control | #6.2 use agreement framework as an unregistered agreement"
+  },
+  {
+    "totalTime": 62.21525001525879,
+    "testName": "#6.x agreement framework access control | #6.3 use agreement framework as an impersonating agreement"
+  },
+  {
+    "totalTime": 61.9714994430542,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.7 should not be able to downgradeTo others if there is no balance"
+  },
+  {
+    "totalTime": 61.389166831970215,
+    "testName": "2 - Flow Operator Ops | 2.3 - Can Revoke Flow Operator With Full Control"
+  },
+  {
+    "totalTime": 58.02920722961426,
+    "testName": "2 - Flow Operator Ops | 2.22 - Can decrease flow allowance with permissions"
+  },
+  {
+    "totalTime": 57.913166999816895,
+    "testName": "CallUtils | CallUtils.revertFromReturnedData"
+  },
+  {
+    "totalTime": 57.80000019073486,
+    "testName": "#1.1 index operations | #1.1.2 publisher should fail to create the same index"
+  },
+  {
+    "totalTime": 57.48200035095215,
+    "testName": "#2.a single agreement real-time balance | #2.a.5 with deposit and large owedDeposit"
+  },
+  {
+    "totalTime": 56.849915504455566,
+    "testName": "when the token owner has enough balance | emits a transfer event"
+  },
+  {
+    "totalTime": 56.341665267944336,
+    "testName": "#1.1 index operations | #1.1.10 publisher should not be able to delete zero address subscription"
+  },
+  {
+    "totalTime": 56.25608444213867,
+    "testName": "with contract recipient | operatorSend reverts"
+  },
+  {
+    "totalTime": 56.13604164123535,
+    "testName": "#6.1x agreement callback rules | #6.10 beforeAgreementCreated callback noop should work"
+  },
+  {
+    "totalTime": 56.10612487792969,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.2 - approve subscription with user data"
+  },
+  {
+    "totalTime": 56.002583503723145,
+    "testName": "#2 configurations | #2.7 external set/clear config"
+  },
+  {
+    "totalTime": 55.8650426864624,
+    "testName": "#6.1x agreement callback rules | #6.15 beforeAgreementTerminated callback revert jail rule"
+  },
+  {
+    "totalTime": 55.8278751373291,
+    "testName": "#2.a single agreement real-time balance | #2.a.4 with deposit and equal owedDeposit"
+  },
+  {
+    "totalTime": 55.712708473205566,
+    "testName": "#4 App Registry | #4.8 register app by factory"
+  },
+  {
+    "totalTime": 55.667667388916016,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.6 should not be able to downgradeTo self if there is no balance"
+  },
+  {
+    "totalTime": 55.572792053222656,
+    "testName": "#6.1x agreement callback rules | #6.16 afterAgreementTerminated callback revert jail rule"
+  },
+  {
+    "totalTime": 55.33637523651123,
+    "testName": "#1.4 claim workflows | #1.4.6 cannot claim from zero address"
+  },
+  {
+    "totalTime": 53.71250057220459,
+    "testName": "UUPS | UUPSProxy"
+  },
+  {
+    "totalTime": 53.325249671936035,
+    "testName": "when the token owner has enough balance | decreases the spender allowance"
+  },
+  {
+    "totalTime": 52.72216510772705,
+    "testName": "when TokensSender reverts | operatorSend reverts"
+  },
+  {
+    "totalTime": 52.705124855041504,
+    "testName": "#2.a single agreement real-time balance | #2.a.2 with deposit"
+  },
+  {
+    "totalTime": 52.70320796966553,
+    "testName": "#2.a single agreement real-time balance | #2.a.3 with deposit and small owedDeposit"
+  },
+  {
+    "totalTime": 52.41983413696289,
+    "testName": "#1.2 subscription operations | #1.2.10 one should fail to use a subscription of a non-existent index"
+  },
+  {
+    "totalTime": 52.35700035095215,
+    "testName": "#2.a single agreement real-time balance | #2.a.1 without deposit"
+  },
+  {
+    "totalTime": 51.64566707611084,
+    "testName": "#6.1x agreement callback rules | #6.14 afterAgreementCreated callback altering ctx"
+  },
+  {
+    "totalTime": 51.465209007263184,
+    "testName": "2 - Flow Operator Ops | 2.3 - Can Revoke Flow Operator With Full Control"
+  },
+  {
+    "totalTime": 51.22112464904785,
+    "testName": "#1.1 index operations | #1.1.9 publisher should not be able to update subscription to zero address"
+  },
+  {
+    "totalTime": 51.159667015075684,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.5 - should not downgrade if there is no balance"
+  },
+  {
+    "totalTime": 51.11133289337158,
+    "testName": "#3 SuperToken custom token support | #3.2 Custom token functions can only be called by self"
+  },
+  {
+    "totalTime": 50.80862522125244,
+    "testName": "#1.1 index operations | #1.1.5 publisher should fail to update non-existent index"
+  },
+  {
+    "totalTime": 50.219125747680664,
+    "testName": "when the sender transfers zero tokens | emits a transfer event"
+  },
+  {
+    "totalTime": 50.19804096221924,
+    "testName": "#2 Agreement Whitelisting | #2.4 agreement cannot be registered twice"
+  },
+  {
+    "totalTime": 49.39412498474121,
+    "testName": "#4 liquidation rules | #4.1 should only be called by listed agreement"
+  },
+  {
+    "totalTime": 48.736000061035156,
+    "testName": "when the token owner does not have enough balance | reverts"
+  },
+  {
+    "totalTime": 48.70358371734619,
+    "testName": "#2 - Non-Callback Subscription Operations | #2.2 - approve subscription with user data"
+  },
+  {
+    "totalTime": 48.48454189300537,
+    "testName": "Super ETH (SETH) Contract | #1.1 upgradeByETH"
+  },
+  {
+    "totalTime": 48.38124942779541,
+    "testName": "when the token owner has enough balance | reverts"
+  },
+  {
+    "totalTime": 48.192832946777344,
+    "testName": "Super ETH (SETH) Contract | #1.2 upgradeByETHTo"
+  },
+  {
+    "totalTime": 47.8016242980957,
+    "testName": "when the token owner does not have enough balance | reverts"
+  },
+  {
+    "totalTime": 47.65345764160156,
+    "testName": "#4 App Registry | #4.3 app registration with bad config"
+  },
+  {
+    "totalTime": 47.38895893096924,
+    "testName": "#2 Upgrades to SuperToken | #2.6 Should revert approval is less than need it"
+  },
+  {
+    "totalTime": 47.28950023651123,
+    "testName": "#3 misc | #3.1 only authorized host can access token"
+  },
+  {
+    "totalTime": 46.36220836639404,
+    "testName": "#2 configurations | #2.4 SuperTokenMinimumDeposit"
+  },
+  {
+    "totalTime": 46.2413330078125,
+    "testName": "operator management | non-operators can be revoked"
+  },
+  {
+    "totalTime": 46.05233287811279,
+    "testName": "#2 configurations | #2.3 PPPConfig"
+  },
+  {
+    "totalTime": 45.53604221343994,
+    "testName": "#3.a agreement data | #3.a.2 should not create the same agreement twice"
+  },
+  {
+    "totalTime": 45.52162551879883,
+    "testName": "when the sender does not have enough balance | reverts"
+  },
+  {
+    "totalTime": 45.08966541290283,
+    "testName": "when the sender transfers zero tokens | emits a transfer event"
+  },
+  {
+    "totalTime": 44.68020820617676,
+    "testName": "#2 configurations | #2.6 authorizeAppFactory"
+  },
+  {
+    "totalTime": 44.28120803833008,
+    "testName": "when the sender transfers all balance | emits a transfer event"
+  },
+  {
+    "totalTime": 44.224541664123535,
+    "testName": "#3.a agreement data | #3.a.4 should update data"
+  },
+  {
+    "totalTime": 44.12970733642578,
+    "testName": "Super ETH (SETH) Contract | #1.5 - Direct send Ether"
+  },
+  {
+    "totalTime": 44.09812545776367,
+    "testName": "when the sender transfers all balance | emits a transfer event"
+  },
+  {
+    "totalTime": 43.25562572479248,
+    "testName": "#8 callAppAction | #8.5 app callAgreementWithContext which doPing"
+  },
+  {
+    "totalTime": 42.99149990081787,
+    "testName": "#3 - View Operations | #3.1 - get index"
+  },
+  {
+    "totalTime": 41.95583248138428,
+    "testName": "when TokensRecipient reverts | mint (internal) reverts"
+  },
+  {
+    "totalTime": 41.21120834350586,
+    "testName": "#4 App Registry | #4.6 deprecated register app should continues to work"
+  },
+  {
+    "totalTime": 40.951125144958496,
+    "testName": "#1 SuperUpgrader Deployment | #1.1 Should deploy adminRole address"
+  },
+  {
+    "totalTime": 40.853875160217285,
+    "testName": "when TokensSender reverts | operatorBurn reverts"
+  },
+  {
+    "totalTime": 40.31837558746338,
+    "testName": "when the requested account has no tokens | returns zero"
+  },
+  {
+    "totalTime": 40.17287540435791,
+    "testName": "when TokensSender reverts | burn reverts"
+  },
+  {
+    "totalTime": 40.12612533569336,
+    "testName": "#2 Upgrades to SuperToken | #2.1 Should revert if not in role"
+  },
+  {
+    "totalTime": 40.10249996185303,
+    "testName": "#2 Upgrades to SuperToken | #2.5 Should revert without approval"
+  },
+  {
+    "totalTime": 39.912458419799805,
+    "testName": "#4 App Registry | #4.2 app registration rules"
+  },
+  {
+    "totalTime": 39.684207916259766,
+    "testName": "#3 Control list of roles | #3.2 Admin should add/remove admin accounts"
+  },
+  {
+    "totalTime": 39.54395771026611,
+    "testName": "#2.d Canonical Wrapper Super Token Creation | #2.d.4 it should not be able to create token twice in a row"
+  },
+  {
+    "totalTime": 39.219207763671875,
+    "testName": "#3 - View Operations | #3.1 - get index"
+  },
+  {
+    "totalTime": 38.86070728302002,
+    "testName": "#6.x agreement framework access control | #6.4 callback will not be called for jailed apps"
+  },
+  {
+    "totalTime": 38.70395851135254,
+    "testName": "#1 upgradability | #1.4 only can initialize once"
+  },
+  {
+    "totalTime": 38.36999988555908,
+    "testName": "when the requested account has some tokens | returns the total amount of tokens"
+  },
+  {
+    "totalTime": 38.01279163360596,
+    "testName": "#3.b agreement account state | #3.b.2 should overlap agreement state data"
+  },
+  {
+    "totalTime": 37.75716686248779,
+    "testName": "#2 Agreement Whitelisting | #2.5 agreement must be registered first"
+  },
+  {
+    "totalTime": 37.59587478637695,
+    "testName": "#3.a agreement data | #3.a.5 should terminate agreement"
+  },
+  {
+    "totalTime": 37.56916618347168,
+    "testName": "Readonly methods | getFlowOperatorPermissions"
+  },
+  {
+    "totalTime": 37.3836669921875,
+    "testName": "#8 callAppAction | #8.7 app callAppActionWithContext which noop"
+  },
+  {
+    "totalTime": 37.36637496948242,
+    "testName": "#4 App Registry | #4.1 basic app info"
+  },
+  {
+    "totalTime": 36.568416595458984,
+    "testName": "2 - Flow Operator Ops | 2.16 - Can increase flow rate allowance"
+  },
+  {
+    "totalTime": 36.566834449768066,
+    "testName": "when TokensRecipient reverts | mint (internal) reverts"
+  },
+  {
+    "totalTime": 36.51570796966553,
+    "testName": "when TokensSender reverts | send reverts"
+  },
+  {
+    "totalTime": 36.37612533569336,
+    "testName": "#1 - Non-Callback Index Operations | #1.2 - create index with user data"
+  },
+  {
+    "totalTime": 35.98345756530762,
+    "testName": "2 - Flow Operator Ops | 2.17 - Can increase flow rate allowance with user data"
+  },
+  {
+    "totalTime": 35.411624908447266,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.10 - upgradeTo should revert for unregistered contract if user data is passed to tokensReceived"
+  },
+  {
+    "totalTime": 35.26200008392334,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.9 - upgradeTo should not revert for unregistered contract if no user data is passed to tokensReceived"
+  },
+  {
+    "totalTime": 35.19766616821289,
+    "testName": "#1 - Non-Callback Index Operations | #1.2 - create index with user data"
+  },
+  {
+    "totalTime": 35.03929138183594,
+    "testName": "#2.d Canonical Wrapper Super Token Creation | #2.d.3 it should properly compute address and use create2"
+  },
+  {
+    "totalTime": 35.02991580963135,
+    "testName": "2 - Flow Operator Ops | 2.20 - Can increase flow allowance with permissions"
+  },
+  {
+    "totalTime": 34.984333992004395,
+    "testName": "#1 - Non-Callback Index Operations | #1.1 - create index"
+  },
+  {
+    "totalTime": 34.66220951080322,
+    "testName": "#1 upgradability | #1.2 proxiable info"
+  },
+  {
+    "totalTime": 34.59724998474121,
+    "testName": "2 - Flow Operator Ops | 2.21 - Can increase flow allowance with permissions with user data"
+  },
+  {
+    "totalTime": 33.784667015075684,
+    "testName": "#8 callAppAction | #8.3 callAppAction assert or revert"
+  },
+  {
+    "totalTime": 33.464165687561035,
+    "testName": "#10 misc | #10.3 batchCall should only be called by host"
+  },
+  {
+    "totalTime": 33.446499824523926,
+    "testName": "2 - Flow Operator Ops | 2.2 - Can Authorize Flow Operator With full Control"
+  },
+  {
+    "totalTime": 33.00075054168701,
+    "testName": "#1.8 misc | #1.8.3 getDepositRequiredForFlowRate"
+  },
+  {
+    "totalTime": 32.77612495422363,
+    "testName": "#2 configurations | #2.1 RewardAddress"
+  },
+  {
+    "totalTime": 32.604125022888184,
+    "testName": "#4 App Registry | #4.4 app double registration should fail"
+  },
+  {
+    "totalTime": 32.54558277130127,
+    "testName": "#1 - Non-Callback Index Operations | #1.1 - create index"
+  },
+  {
+    "totalTime": 32.40541744232178,
+    "testName": "UUPS | Can't initialize castrated UUPSProxiable"
+  },
+  {
+    "totalTime": 32.3035831451416,
+    "testName": "#11 forwardBatchCall | #11.2 untrusted forwarder"
+  },
+  {
+    "totalTime": 31.904250144958496,
+    "testName": "#1.1 createFlow | #1.1.7 should reject when overflow flow rate"
+  },
+  {
+    "totalTime": 31.390583038330078,
+    "testName": "#1 - Non-Callback Index Operations | #1.7 - _getHostAndIDA empty cache test"
+  },
+  {
+    "totalTime": 31.102707862854004,
+    "testName": "operator send | reverts"
+  },
+  {
+    "totalTime": 31.102624893188477,
+    "testName": "#3.b agreement account state | #3.b.1 should update agreement state"
+  },
+  {
+    "totalTime": 30.36458396911621,
+    "testName": "#3 Control list of roles | #3.3 List all Backend accounts"
+  },
+  {
+    "totalTime": 29.9087495803833,
+    "testName": "operator burn | reverts"
+  },
+  {
+    "totalTime": 29.8435001373291,
+    "testName": "Convenience methods | On failure: provide correct error"
+  },
+  {
+    "totalTime": 28.92341709136963,
+    "testName": "2 - Flow Operator Ops | 2.2 - Can Authorize Flow Operator With full Control"
+  },
+  {
+    "totalTime": 28.40812587738037,
+    "testName": "#8 callAppAction | #8.12 should not be able to call callbacks"
+  },
+  {
+    "totalTime": 28.339916229248047,
+    "testName": "#9 Contextual Call Proxies | #9.1 must call with valid ctx"
+  },
+  {
+    "totalTime": 27.607667922973633,
+    "testName": "2 - Flow Operator Ops | 2.1 - Can Update Flow Operator Permissions"
+  },
+  {
+    "totalTime": 27.48491668701172,
+    "testName": "basic information | returns the default operators"
+  },
+  {
+    "totalTime": 27.462166786193848,
+    "testName": "#8 callAppAction | #8.4 app action should not callAgreement or callAppAction without ctx"
+  },
+  {
+    "totalTime": 27.388041496276855,
+    "testName": "#1.8 misc | #1.8.2 getMaximumFlowRateFromDeposit"
+  },
+  {
+    "totalTime": 27.07533359527588,
+    "testName": "#4 App Registry | #4.7 app registration as factory by EOA should fail"
+  },
+  {
+    "totalTime": 26.7405424118042,
+    "testName": "#8 callAppAction | #8.6 app callAgreementWithContext which reverts"
+  },
+  {
+    "totalTime": 26.54699993133545,
+    "testName": "with contract recipient | mint (internal) reverts"
+  },
+  {
+    "totalTime": 25.935667037963867,
+    "testName": "#9 Contextual Call Proxies | #9.2 app action should not alter ctx"
+  },
+  {
+    "totalTime": 25.770499229431152,
+    "testName": "#6.x agreement framework access control | #6.1 use agreement framework as an EOA"
+  },
+  {
+    "totalTime": 24.94225025177002,
+    "testName": "Readonly methods | getBufferAmountByFlowrate"
+  },
+  {
+    "totalTime": 24.53362464904785,
+    "testName": "#1.1 createFlow | #1.1.5 should reject when self flow"
+  },
+  {
+    "totalTime": 24.425792694091797,
+    "testName": "#2 configurations | #2.5 setAppRegistrationKey"
+  },
+  {
+    "totalTime": 24.40383243560791,
+    "testName": "#3.a agreement data | #3.a.6 should not terminate agreement twice"
+  },
+  {
+    "totalTime": 24.38458251953125,
+    "testName": "#8 callAppAction | #8.8 app callAppActionWithContext which reverts"
+  },
+  {
+    "totalTime": 24.226333618164062,
+    "testName": "with revoked default operator | default operators list is not modified"
+  },
+  {
+    "totalTime": 23.956665992736816,
+    "testName": "#3.a agreement data | #3.a.3 should not overlap data"
+  },
+  {
+    "totalTime": 23.922040939331055,
+    "testName": "#1.1 createFlow | #1.1.4 should reject when negative flow rate"
+  },
+  {
+    "totalTime": 23.806249618530273,
+    "testName": "with revoked default operator | revoked default operator can be re-authorized"
+  },
+  {
+    "totalTime": 23.777249336242676,
+    "testName": "#20 Governance | #20.3 replace with new governance"
+  },
+  {
+    "totalTime": 23.24916648864746,
+    "testName": "new operators | can be re-authorized"
+  },
+  {
+    "totalTime": 23.022958755493164,
+    "testName": "#3.a agreement data | #3.a.1 should create new agreement"
+  },
+  {
+    "totalTime": 22.984959602355957,
+    "testName": "#1.4 claim workflows | #1.4.4 one should not claim from a subscription of a non-existent index"
+  },
+  {
+    "totalTime": 22.95883274078369,
+    "testName": "#1.1 createFlow | #1.1.3 should reject when zero flow rate"
+  },
+  {
+    "totalTime": 22.924833297729492,
+    "testName": "#1.2 subscription operations | #1.2.14 subscriber should fail to revoke a subscription of a non-existent index"
+  },
+  {
+    "totalTime": 22.229125022888184,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.14 - upgradeTo should not revert for EOA if empty userData is passed to tokensReceived"
+  },
+  {
+    "totalTime": 21.902915954589844,
+    "testName": "#1 SuperUpgrader Deployment | #1.3 Should add new Backend addresses"
+  },
+  {
+    "totalTime": 21.885624885559082,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.13 - upgradeTo should not revert for EOA if userData is passed to tokensReceived"
+  },
+  {
+    "totalTime": 21.743000030517578,
+    "testName": "Superfluid Ownable Governance Contract | #0.1 authorization checks"
+  },
+  {
+    "totalTime": 21.730584144592285,
+    "testName": "#1.1 createFlow | #1.1.8 should reject when receiver is zero address"
+  },
+  {
+    "totalTime": 21.45525074005127,
+    "testName": "#1 upgradability | #1.3 update the code"
+  },
+  {
+    "totalTime": 21.451125144958496,
+    "testName": "#2.a Mock factory | #2.a.4 Create Custom Token"
+  },
+  {
+    "totalTime": 21.44562530517578,
+    "testName": "#2 SuperToken.upgrade/downgrade | #2.17 Revert upgrade and self-upgradeTo if trigger tokenReceived on unregistered wallet with userData"
+  },
+  {
+    "totalTime": 21.14395809173584,
+    "testName": "operator burn | reverts"
+  },
+  {
+    "totalTime": 20.929333686828613,
+    "testName": "with contract recipient | mint (internal) to zero address reverts"
+  },
+  {
+    "totalTime": 20.814374923706055,
+    "testName": "#1 upgradability | #1.4 initializeProxy can't be invoked again"
+  },
+  {
+    "totalTime": 20.696958541870117,
+    "testName": "#1 upgradability | #1.1 storage layout"
+  },
+  {
+    "totalTime": 20.41758441925049,
+    "testName": "#1 upgradability | #1.5 block initialization of logic contracts"
+  },
+  {
+    "totalTime": 20.17441749572754,
+    "testName": "new operators | can be revoked"
+  },
+  {
+    "totalTime": 20.171542167663574,
+    "testName": "operator send | reverts"
+  },
+  {
+    "totalTime": 20.093292236328125,
+    "testName": "#1 SuperUpgrader Deployment | #1.2 Should revert without owner address"
+  },
+  {
+    "totalTime": 20.006166458129883,
+    "testName": "when the sender has tokens | reverts when sending to the zero address"
+  },
+  {
+    "totalTime": 19.998833656311035,
+    "testName": "#8 callAppAction | #8.2 actionNoop"
+  },
+  {
+    "totalTime": 19.703834533691406,
+    "testName": "when the sender has tokens | reverts when sending to the zero address"
+  },
+  {
+    "totalTime": 19.683124542236328,
+    "testName": "operator management | non-operators can be authorized"
+  },
+  {
+    "totalTime": 19.474166870117188,
+    "testName": "1 - Flow Ops | 1.10 - _getHostAndCFA empty cache test"
+  },
+  {
+    "totalTime": 19.36091709136963,
+    "testName": "with revoked default operator | other default operators are not revoked"
+  },
+  {
+    "totalTime": 19.163166999816895,
+    "testName": "when the spender had an approved amount | approves the requested amount and replaces the previous one"
+  },
+  {
+    "totalTime": 18.71537494659424,
+    "testName": "#11 forwardBatchCall | #11.3 forwarder with malformatted message"
+  },
+  {
+    "totalTime": 18.240625381469727,
+    "testName": "with revoked default operator | default operator is not revoked for other holders"
+  },
+  {
+    "totalTime": 18.159542083740234,
+    "testName": "#1 upgradability | #1.1 storage layout"
+  },
+  {
+    "totalTime": 17.602957725524902,
+    "testName": "when the spender had an approved amount | sets the allowance to zero when all allowance is removed"
+  },
+  {
+    "totalTime": 17.565041542053223,
+    "testName": "#9 Contextual Call Proxies | #9.3 callAgreementWithContext should from the same app"
+  },
+  {
+    "totalTime": 17.3139591217041,
+    "testName": "#2.d.1 Initialize Canonical Wrapper Super Token Function Tests | #2.d.1c it should throw if already set"
+  },
+  {
+    "totalTime": 17.23533344268799,
+    "testName": "when the spender had an approved amount | decreases the spender allowance subtracting the requested amount"
+  },
+  {
+    "totalTime": 16.97499942779541,
+    "testName": "#1 upgradability | #1.3 only host can update the code"
+  },
+  {
+    "totalTime": 16.95674991607666,
+    "testName": "when the spender had an approved amount | increases the spender allowance adding the requested amount"
+  },
+  {
+    "totalTime": 16.896583557128906,
+    "testName": "basic information | the ERC20Token interface is registered in the registry"
+  },
+  {
+    "totalTime": 16.664209365844727,
+    "testName": "new operators | are not added to the default operators list"
+  },
+  {
+    "totalTime": 16.317540168762207,
+    "testName": "operator management | reverts when self-authorizing"
+  },
+  {
+    "totalTime": 16.29479217529297,
+    "testName": "operator management | reverts when self-revoking"
+  },
+  {
+    "totalTime": 16.288582801818848,
+    "testName": "#9 Contextual Call Proxies | #9.4 callAppActionWithContext should from the same app"
+  },
+  {
+    "totalTime": 15.98595905303955,
+    "testName": "when the spender had an approved amount | increases the spender allowance adding the requested amount"
+  },
+  {
+    "totalTime": 15.779542922973633,
+    "testName": "default operators | cannot be revoked for themselves"
+  },
+  {
+    "totalTime": 15.775500297546387,
+    "testName": "default operators | can be re-authorized"
+  },
+  {
+    "totalTime": 15.536791801452637,
+    "testName": "when the spender had an approved amount | emits an approval event"
+  },
+  {
+    "totalTime": 15.51129150390625,
+    "testName": "when the sender has tokens | reverts when sending to the zero address"
+  },
+  {
+    "totalTime": 15.412708282470703,
+    "testName": "default operators | can be revoked"
+  },
+  {
+    "totalTime": 15.37891674041748,
+    "testName": "#1 upgradability | #1.6 context struct layout"
+  },
+  {
+    "totalTime": 15.108708381652832,
+    "testName": "when the sender has tokens | reverts when sending to the zero address"
+  },
+  {
+    "totalTime": 15.02941608428955,
+    "testName": "#1.8 misc | #1.8.5 ctx should not be exploited"
+  },
+  {
+    "totalTime": 15.005332946777344,
+    "testName": "when the spender had an approved amount | approves the requested amount and replaces the previous one"
+  },
+  {
+    "totalTime": 14.934249877929688,
+    "testName": "#1.5 complex sequences | #1.5.2 context should not be exploited"
+  },
+  {
+    "totalTime": 14.756417274475098,
+    "testName": "#1 upgradability | #1.2 proxiable info"
+  },
+  {
+    "totalTime": 14.73075008392334,
+    "testName": "when the spender had an approved amount | emits an approval event"
+  },
+  {
+    "totalTime": 14.69012451171875,
+    "testName": "when the spender had an approved amount | reverts when more than the full allowance is removed"
+  },
+  {
+    "totalTime": 14.677083969116211,
+    "testName": "when the spender had an approved amount | decreases the spender allowance subtracting the requested amount"
+  },
+  {
+    "totalTime": 14.677042007446289,
+    "testName": "#10 misc | #10.1 should return underlying token"
+  },
+  {
+    "totalTime": 14.643375396728516,
+    "testName": "#6.1x agreement callback rules | #6.19 Jail event should not be emitted twice"
+  },
+  {
+    "totalTime": 14.019583702087402,
+    "testName": "basic information | default operators are operators for all accounts"
+  },
+  {
+    "totalTime": 13.755457878112793,
+    "testName": "#8 callAppAction | #8.9 app action should not alter ctx"
+  },
+  {
+    "totalTime": 13.094291687011719,
+    "testName": "when the spender had an approved amount | sets the allowance to zero when all allowance is removed"
+  },
+  {
+    "totalTime": 12.94254207611084,
+    "testName": "when there was no approved amount before | approves the requested amount"
+  },
+  {
+    "totalTime": 12.653417587280273,
+    "testName": "basic information | the ERC777Token interface is registered in the registry"
+  },
+  {
+    "totalTime": 12.471625328063965,
+    "testName": "basic information | returns the name"
+  },
+  {
+    "totalTime": 12.342415809631348,
+    "testName": "#8 callAppAction | #8.10 should not be able call jailed app"
+  },
+  {
+    "totalTime": 12.065167427062988,
+    "testName": "when there was no approved amount before | approves the requested amount"
+  },
+  {
+    "totalTime": 12.057124137878418,
+    "testName": "#3 Super Token Factory | #3.1 only governance can update super token factory"
+  },
+  {
+    "totalTime": 12.047457695007324,
+    "testName": "when the recipient is the zero address | reverts"
+  },
+  {
+    "totalTime": 11.909041404724121,
+    "testName": "operator management | accounts are their own operator"
+  },
+  {
+    "totalTime": 11.419707298278809,
+    "testName": "#8 callAppAction | #8.11 should give explicit error message when empty ctx returned by the action"
+  },
+  {
+    "totalTime": 11.227375030517578,
+    "testName": "when there was no approved amount before | approves the requested amount"
+  },
+  {
+    "totalTime": 11.219124794006348,
+    "testName": "basic information | returns the total supply"
+  },
+  {
+    "totalTime": 11.207666397094727,
+    "testName": "when the spender had an approved amount | approves the requested amount and replaces the previous one"
+  },
+  {
+    "totalTime": 11.20412540435791,
+    "testName": "when the sender has tokens | reverts when sending to the zero address"
+  },
+  {
+    "totalTime": 11.117792129516602,
+    "testName": "Convenience methods | Revert on negative flowrate"
+  },
+  {
+    "totalTime": 11.073542594909668,
+    "testName": "#20 Governance | #20.2 only governance can replace itself"
+  },
+  {
+    "totalTime": 11.071666717529297,
+    "testName": "basic information | returns decimals (non-ERC777 standard)"
+  },
+  {
+    "totalTime": 11.056624412536621,
+    "testName": "when the spender had an approved amount | reverts when more than the full allowance is removed"
+  },
+  {
+    "totalTime": 10.712041854858398,
+    "testName": "when the token owner is the zero address | reverts"
+  },
+  {
+    "totalTime": 10.6830415725708,
+    "testName": "basic information | returns a granularity of 1"
+  },
+  {
+    "totalTime": 10.558250427246094,
+    "testName": "basic information | returns 18 when decimals is called"
+  },
+  {
+    "totalTime": 10.490541458129883,
+    "testName": "Convenience methods | Set flow to 0 without pre-existing flow (do nothing)"
+  },
+  {
+    "totalTime": 10.472582817077637,
+    "testName": "when the spender had an approved amount | approves the requested amount and replaces the previous one"
+  },
+  {
+    "totalTime": 10.456375122070312,
+    "testName": "when there was no approved amount before | reverts"
+  },
+  {
+    "totalTime": 10.169541358947754,
+    "testName": "when there was no approved amount before | approves the requested amount"
+  },
+  {
+    "totalTime": 10.16349983215332,
+    "testName": "when the sender has enough balance | emits an approval event"
+  },
+  {
+    "totalTime": 10.081499099731445,
+    "testName": "#1 upgradability | #1.3 only governance can update the code"
+  },
+  {
+    "totalTime": 10.055334091186523,
+    "testName": "when the sender has enough balance | emits an approval event"
+  },
+  {
+    "totalTime": 10.001334190368652,
+    "testName": "when the sender has enough balance | emits an approval event"
+  },
+  {
+    "totalTime": 9.99145793914795,
+    "testName": "#8 callAppAction | #8.1 only super app can be called"
+  },
+  {
+    "totalTime": 9.696708679199219,
+    "testName": "when the sender does not have enough balance | emits an approval event"
+  },
+  {
+    "totalTime": 9.635042190551758,
+    "testName": "#2 Agreement Whitelisting | #2.2 only governance can update agreement listings"
+  },
+  {
+    "totalTime": 9.457042694091797,
+    "testName": "when there was no approved amount before | approves the requested amount"
+  },
+  {
+    "totalTime": 8.755791664123535,
+    "testName": "#1 upgradability | #1.4 only can be initialized once"
+  },
+  {
+    "totalTime": 8.728583335876465,
+    "testName": "#1 upgradability | #1.3 only host can update the code"
+  },
+  {
+    "totalTime": 8.710832595825195,
+    "testName": "when the recipient is the zero address | reverts"
+  },
+  {
+    "totalTime": 8.614250183105469,
+    "testName": "#2.d.1 Initialize Canonical Wrapper Super Token Function Tests | #2.d.1a it should throw if not permitted"
+  },
+  {
+    "totalTime": 8.519375801086426,
+    "testName": "#7 callAgreement | #7.2 callData without correct selector"
+  },
+  {
+    "totalTime": 8.51341724395752,
+    "testName": "basic information | returns the symbol"
+  },
+  {
+    "totalTime": 8.29366683959961,
+    "testName": "#1 upgradability | #1.2 proxiable info"
+  },
+  {
+    "totalTime": 8.21816635131836,
+    "testName": "when the spender is the zero address | reverts"
+  },
+  {
+    "totalTime": 8.100167274475098,
+    "testName": "when the sender does not have enough balance | emits an approval event"
+  },
+  {
+    "totalTime": 7.7755842208862305,
+    "testName": "#2 Agreement Whitelisting | #2.6 mapAgreementClasses"
+  },
+  {
+    "totalTime": 7.614749908447266,
+    "testName": "when there was no approved amount before | approves the requested amount"
+  },
+  {
+    "totalTime": 7.607290267944336,
+    "testName": "total supply | returns the total amount of tokens"
+  },
+  {
+    "totalTime": 7.507124900817871,
+    "testName": "#2.d Canonical Wrapper Super Token Creation | #2.d.2 it should throw if attempting to create before initialize"
+  },
+  {
+    "totalTime": 7.480999946594238,
+    "testName": "#10 batchCall | #10.6 batchCall invalid operation type"
+  },
+  {
+    "totalTime": 7.368999481201172,
+    "testName": "#2.a Mock factory | #2.a.1 non upgradable super token creation is deprecated"
+  },
+  {
+    "totalTime": 7.341625213623047,
+    "testName": "when the sender does not have enough balance | emits an approval event"
+  },
+  {
+    "totalTime": 7.307957649230957,
+    "testName": "when the spender is the zero address | reverts"
+  },
+  {
+    "totalTime": 7.094207763671875,
+    "testName": "when the recipient is the zero address | reverts"
+  },
+  {
+    "totalTime": 6.772624969482422,
+    "testName": "when the sender is the zero address | reverts"
+  },
+  {
+    "totalTime": 6.593791961669922,
+    "testName": "#2 createERC20Wrapper | #2.c.1 should fail on ZERO_ADDRESS"
+  },
+  {
+    "totalTime": 5.485625267028809,
+    "testName": "#1.1 index operations | #1.1.3 publisher should fail to query non-existant index"
+  },
+  {
+    "totalTime": 5.403250694274902,
+    "testName": "when the spender is the zero address | reverts"
+  },
+  {
+    "totalTime": 5.119832992553711,
+    "testName": "CallUtils | CallUtils.isValidAbiEncodedBytes"
+  },
+  {
+    "totalTime": 4.925583839416504,
+    "testName": "when there was no approved amount before | reverts"
+  },
+  {
+    "totalTime": 4.754500389099121,
+    "testName": "#2 Agreement Whitelisting | #2.3 only host can update agreement code"
+  },
+  {
+    "totalTime": 4.374542236328125,
+    "testName": "when the spender is the zero address | reverts"
+  },
+  {
+    "totalTime": 3.9160423278808594,
+    "testName": "when the owner is the zero address | reverts"
+  },
+  {
+    "totalTime": 3.664250373840332,
+    "testName": "#1 upgradability | #1.4 only can initialize once"
+  },
+  {
+    "totalTime": 3.575624465942383,
+    "testName": "#20 Governance | #20.1 getGovernance"
+  },
+  {
+    "totalTime": 3.2573328018188477,
+    "testName": "#1 upgradability | #1.2 proxiable info"
+  },
+  {
+    "totalTime": 2.9867496490478516,
+    "testName": "#1 basic information | #1.1 should return host"
+  },
+  {
+    "totalTime": 2.949666976928711,
+    "testName": "with no default operators | default operators list is empty"
+  }
+]

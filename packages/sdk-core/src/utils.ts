@@ -48,14 +48,14 @@ export const isPermissionsClean = (permissions: number): boolean => {
     );
 };
 
-export const _deltaAddPermissions = (
+export const _addPermissions = (
     oldPermissions: number,
     permissionsDelta: number
 ): number => {
     return oldPermissions | permissionsDelta;
 };
 
-export const _deltaRemovePermissions = (
+export const _removePermissions = (
     oldPermissions: number,
     permissionsDelta: number
 ): number => {

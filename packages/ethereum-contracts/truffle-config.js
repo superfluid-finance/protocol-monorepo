@@ -392,7 +392,10 @@ const E = (module.exports = {
                     enabled: true,
                     runs: 200,
                 },
-                // evmVersion: use default
+                // see https://docs.soliditylang.org/en/latest/using-the-compiler.html#target-options
+                // we don't switch to "shanghai" or later as long as there's networks
+                // without EIP-3855 support (PUSH0)
+                evmVersion: "paris",
             },
         },
     },

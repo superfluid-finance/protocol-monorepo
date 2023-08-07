@@ -33,9 +33,9 @@ export function createPoolConnectionUpdatedEvent(
     const newPoolConnectionUpdatedEvent = changetype<PoolConnectionUpdated>(newMockEvent());
     newPoolConnectionUpdatedEvent.parameters = new Array();
     newPoolConnectionUpdatedEvent.parameters.push(getAddressEventParam("token", token));
-    newPoolConnectionUpdatedEvent.parameters.push(getBooleanEventParam("connected", connected));
     newPoolConnectionUpdatedEvent.parameters.push(getAddressEventParam("pool", pool));
     newPoolConnectionUpdatedEvent.parameters.push(getAddressEventParam("poolMember", poolMember));
+    newPoolConnectionUpdatedEvent.parameters.push(getBooleanEventParam("connected", connected));
 
     return newPoolConnectionUpdatedEvent;
 }
@@ -51,11 +51,11 @@ export function createBufferAdjustedEvent(
     const newBufferAdjustedEvent = changetype<BufferAdjusted>(newMockEvent());
     newBufferAdjustedEvent.parameters = new Array();
     newBufferAdjustedEvent.parameters.push(getAddressEventParam("token", token));
+    newBufferAdjustedEvent.parameters.push(getAddressEventParam("pool", pool));
+    newBufferAdjustedEvent.parameters.push(getAddressEventParam("poolDistributor", poolDistributor));
     newBufferAdjustedEvent.parameters.push(getBigIntEventParam("bufferDelta", bufferDelta));
     newBufferAdjustedEvent.parameters.push(getBigIntEventParam("newBufferAmount", newBufferAmount));
     newBufferAdjustedEvent.parameters.push(getBigIntEventParam("totalBufferAmount", totalBufferAmount));
-    newBufferAdjustedEvent.parameters.push(getAddressEventParam("pool", pool));
-    newBufferAdjustedEvent.parameters.push(getAddressEventParam("poolDistributor", poolDistributor));
 
     return newBufferAdjustedEvent;
 }
@@ -71,11 +71,11 @@ export function createInstantDistributionUpdatedEvent(
     const newInstantDistributionUpdatedEvent = changetype<InstantDistributionUpdated>(newMockEvent());
     newInstantDistributionUpdatedEvent.parameters = new Array();
     newInstantDistributionUpdatedEvent.parameters.push(getAddressEventParam("token", token));
+    newInstantDistributionUpdatedEvent.parameters.push(getAddressEventParam("pool", pool));
+    newInstantDistributionUpdatedEvent.parameters.push(getAddressEventParam("poolDistributor", poolDistributor));
     newInstantDistributionUpdatedEvent.parameters.push(getAddressEventParam("operator", operator));
     newInstantDistributionUpdatedEvent.parameters.push(getBigIntEventParam("requestedAmount", requestedAmount));
     newInstantDistributionUpdatedEvent.parameters.push(getBigIntEventParam("actualAmount", actualAmount));
-    newInstantDistributionUpdatedEvent.parameters.push(getAddressEventParam("pool", pool));
-    newInstantDistributionUpdatedEvent.parameters.push(getAddressEventParam("poolDistributor", poolDistributor));
 
     return newInstantDistributionUpdatedEvent;
 }
@@ -94,6 +94,8 @@ export function createFlowDistributionUpdatedEvent(
     const newFlowDistributionUpdatedEvent = changetype<FlowDistributionUpdated>(newMockEvent());
     newFlowDistributionUpdatedEvent.parameters = new Array();
     newFlowDistributionUpdatedEvent.parameters.push(getAddressEventParam("token", token));
+    newFlowDistributionUpdatedEvent.parameters.push(getAddressEventParam("pool", pool));
+    newFlowDistributionUpdatedEvent.parameters.push(getAddressEventParam("poolDistributor", poolDistributor));
     newFlowDistributionUpdatedEvent.parameters.push(getAddressEventParam("operator", operator));
     newFlowDistributionUpdatedEvent.parameters.push(getBigIntEventParam("oldFlowRate", oldFlowRate));
     newFlowDistributionUpdatedEvent.parameters.push(
@@ -106,8 +108,6 @@ export function createFlowDistributionUpdatedEvent(
         getAddressEventParam("adjustmentFlowRecipient", adjustmentFlowRecipient)
     );
     newFlowDistributionUpdatedEvent.parameters.push(getBigIntEventParam("adjustmentFlowRate", adjustmentFlowRate));
-    newFlowDistributionUpdatedEvent.parameters.push(getAddressEventParam("pool", pool));
-    newFlowDistributionUpdatedEvent.parameters.push(getAddressEventParam("poolDistributor", poolDistributor));
 
     return newFlowDistributionUpdatedEvent;
 }

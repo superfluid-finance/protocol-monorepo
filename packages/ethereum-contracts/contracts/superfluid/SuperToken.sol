@@ -193,7 +193,7 @@ contract SuperToken is
      * For more context, see https://github.com/superfluid-finance/protocol-monorepo/wiki/About-ERC-777
      */
     function _transferFrom(address spender, address holder, address recipient, uint amount)
-        internal virtual returns (bool)
+        internal returns (bool)
     {
         if (holder == address(0)) {
             revert SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS();
@@ -234,7 +234,7 @@ contract SuperToken is
         bytes memory operatorData,
         bool requireReceptionAck
     )
-        internal virtual
+        internal
     {
         if (from == address(0)) {
             revert SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS();
@@ -291,7 +291,7 @@ contract SuperToken is
         bytes memory userData,
         bytes memory operatorData
     )
-        internal virtual
+        internal
     {
         if (account == address(0)) {
             revert SUPER_TOKEN_MINT_TO_ZERO_ADDRESS();
@@ -319,7 +319,7 @@ contract SuperToken is
         bytes memory userData,
         bytes memory operatorData
     )
-        internal virtual
+        internal
     {
         if (from == address(0)) {
             revert SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS();
@@ -637,7 +637,7 @@ contract SuperToken is
         uint256 amount,
         bytes memory userData,
         bytes memory operatorData
-    ) internal virtual {
+    ) internal {
         if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
 
         (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
@@ -662,7 +662,7 @@ contract SuperToken is
         uint256 amount,
         bytes memory data,
         bytes memory operatorData
-    ) internal virtual {
+    ) internal {
         if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
 
         (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);

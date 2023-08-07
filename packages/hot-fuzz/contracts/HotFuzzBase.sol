@@ -47,6 +47,7 @@ contract HotFuzzBase {
 
     constructor(uint nTesters_) {
         _sfDeployer = new SuperfluidFrameworkDeployer();
+        _sfDeployer.deployTestFramework();
         sf = _sfDeployer.getFramework();
 
         (token, superToken) = _sfDeployer.deployWrapperSuperToken(

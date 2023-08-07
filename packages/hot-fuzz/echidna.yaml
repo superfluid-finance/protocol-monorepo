@@ -2,6 +2,9 @@
 # testLimit: 1000
 corpusDir: "corpus"
 cryticArgs: [
+  "--compile-force-framework=${CRYTIC_COMPILE_FRAMEWORK}",
+  "--truffle-build-directory=build/truffle",
+  "--foundry-out-directory=build/foundry/out",
   # to generate:
   # $ (j=$((0xf01));tasks/list-all-linked-libraries.sh | while read i;do echo -n "($i,$(printf "0x%x" $j)),";j=$((j+1));done)
   "--compile-libraries=(CFAv1ForwarderDeployerLibrary,0xf01),(IDAv1ForwarderDeployerLibrary,0xf02),(ProxyDeployerLibrary,0xf03),(SlotsBitmapLibrary,0xf04),(SuperfluidCFAv1DeployerLibrary,0xf05),(SuperfluidGovDeployerLibrary,0xf06),(SuperfluidHostDeployerLibrary,0xf07),(SuperfluidIDAv1DeployerLibrary,0xf08),(SuperfluidLoaderDeployerLibrary,0xf09),(SuperfluidNFTLogicDeployerLibrary,0xf0a),(SuperfluidPeripheryDeployerLibrary,0xf0b),(SuperTokenDeployerLibrary,0xf0c),(TokenDeployerLibrary,0xf0d)"

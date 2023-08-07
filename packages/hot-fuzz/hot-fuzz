@@ -61,23 +61,20 @@ function hott() {
 
     case $mode in
         truffle)
-            "$ECHIDNA" .  \
-                --config <(cat echidna.yaml ${TEST_CONTRACT_CONFIG}) \
-                --crytic-args "--compile-force-framework=truffle --truffle-build-directory=build/truffle" \
-                --contract $TEST_CONTRACT \
-            && digests
+            export CRYTIC_COMPILE_FRAMEWORK=truffle
             ;;
         foundry)
-            "$ECHIDNA" .  \
-                --config <(cat echidna.yaml ${TEST_CONTRACT_CONFIG}) \
-                --crytic-args "--compile-force-framework=foundry --foundry-out-directory=build/foundry/out" \
-                --contract $TEST_CONTRACT \
-            && digests
+            export CRYTIC_COMPILE_FRAMEWORK=foundry
             ;;
         *)
             echo "Unknown mode: $mode"
             ;;
     esac
+
+    "$ECHIDNA" .  \
+        --config <(cat echidna.yaml ${TEST_CONTRACT_CONFIG}) \
+        --contract $TEST_CONTRACT \
+    && digests
 }
 
 TEST_CONTRACT_CONFIG=$1

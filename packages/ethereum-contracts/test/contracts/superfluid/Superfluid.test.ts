@@ -391,7 +391,10 @@ describe("Superfluid Host Contract", function () {
                     "HOST_ONLY_GOVERNANCE"
                 );
                 await expectCustomError(
-                    superfluid.updateSuperTokenLogic(ZERO_ADDRESS),
+                    superfluid.updateSuperTokenLogic(
+                        ZERO_ADDRESS,
+                        ZERO_ADDRESS
+                    ),
                     superfluid,
                     "HOST_ONLY_GOVERNANCE"
                 );

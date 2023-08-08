@@ -225,9 +225,10 @@ describe("SuperTokenFactory Contract", function () {
                 await updateSuperTokenFactory();
                 assert.equal((await superToken1.waterMark()).toString(), "42");
                 await expectRevertedWith(
-                    governance[
-                        "batchUpdateSuperTokenLogic(address, address[])"
-                    ](superfluid.address, [superToken1.address]),
+                    governance["batchUpdateSuperTokenLogic(address,address[])"](
+                        superfluid.address,
+                        [superToken1.address]
+                    ),
                     "UUPSProxiable: not upgradable"
                 );
                 await expectCustomError(

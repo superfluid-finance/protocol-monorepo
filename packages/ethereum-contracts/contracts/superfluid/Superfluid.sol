@@ -292,23 +292,16 @@ contract Superfluid is
         emit SuperTokenFactoryUpdated(_superTokenFactory);
     }
 
-    function updateSuperTokenLogic(ISuperToken token)
+    function updateSuperTokenLogic(ISuperToken token, address newLogicOverride)
         external override
         onlyGovernance
     {
-        address code = address(_superTokenFactory.getSuperTokenLogic());
+        if (newLogicOverride == address(0)) {
+            newLogicOverride = address(_superTokenFactory.getSuperTokenLogic());
+        }
         // assuming it's uups proxiable
-        UUPSProxiable(address(token)).updateCode(code);
-        emit SuperTokenLogicUpdated(token, code);
-    }
-
-    function updateSuperTokenLogicCustom(ISuperToken token, address newLogic)
-        external override
-        onlyGovernance
-    {
-        // assuming it's uups proxiable
-        UUPSProxiable(address(token)).updateCode(newLogic);
-        emit SuperTokenLogicUpdated(token, newLogic);
+        UUPSProxiable(address(token)).updateCode(newLogicOverride);
+        emit SuperTokenLogicUpdated(token, newLogicOverride);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -97,11 +97,11 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         onlyAuthorized(host)
     {
         for (uint i = 0; i < tokens.length; ++i) {
-            host.updateSuperTokenLogic(tokens[i]);
+            host.updateSuperTokenLogic(tokens[i], address(0));
         }
     }
 
-    function batchUpdateSuperTokenLogicCustom(
+    function batchUpdateSuperTokenLogic(
         ISuperfluid host,
         ISuperToken[] calldata tokens,
         address[] calldata tokenLogics
@@ -111,7 +111,7 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
     {
         if (tokens.length != tokenLogics.length) revert SF_GOV_ARRAYS_NOT_SAME_LENGTH();
         for (uint i = 0; i < tokens.length; ++i) {
-            host.updateSuperTokenLogicCustom(tokens[i], tokenLogics[i]);
+            host.updateSuperTokenLogic(tokens[i], tokenLogics[i]);
         }
     }
 

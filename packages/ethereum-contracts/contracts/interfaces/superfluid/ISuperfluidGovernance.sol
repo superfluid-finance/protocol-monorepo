@@ -56,8 +56,9 @@ interface ISuperfluidGovernance {
 
     /**
      * @dev Update supertoken logic contract to the provided logic contracts
+     * Note that this is an overloaded version taking an additional argument `tokenLogics`
      */
-    function batchUpdateSuperTokenLogicCustom(
+    function batchUpdateSuperTokenLogic(
         ISuperfluid host,
         ISuperToken[] calldata tokens,
         address[] calldata tokenLogics) external;

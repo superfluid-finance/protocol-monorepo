@@ -572,7 +572,7 @@ contract SuperToken is
        external virtual override
        onlySelf
     {
-       _burn(msg.sender, account, amount, userData.length > 0 /* invokeHook */, userData, new bytes(0));
+       _burn(msg.sender, account, amount, userData.length != 0 /* invokeHook */, userData, new bytes(0));
     }
 
     function selfApproveFor(

@@ -296,12 +296,13 @@ contract Superfluid is
         external override
         onlyGovernance
     {
-        if (newLogicOverride == address(0)) {
-            newLogicOverride = address(_superTokenFactory.getSuperTokenLogic());
-        }
+        address newLogic = newLogicOverride != address(0) ?
+            newLogicOverride :
+            address(_superTokenFactory.getSuperTokenLogic());
+
         // assuming it's uups proxiable
-        UUPSProxiable(address(token)).updateCode(newLogicOverride);
-        emit SuperTokenLogicUpdated(token, newLogicOverride);
+        UUPSProxiable(address(token)).updateCode(newLogic);
+        emit SuperTokenLogicUpdated(token, newLogic);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

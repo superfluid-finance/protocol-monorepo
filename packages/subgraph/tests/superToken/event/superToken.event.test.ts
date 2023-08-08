@@ -264,6 +264,28 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals(entityName, id, "liquidationType", liquidationType.toString());
             assert.fieldEquals(entityName, id, "deposit", deposit.toString());
             assert.fieldEquals(entityName, id, "flowRateAtLiquidation", currentFlowRate.toString());
+
+            assertTokenStatisticProperties(
+                null,
+                null,
+                agreementLiquidatedV2Event.address.toHex(),
+                agreementLiquidatedV2Event.block.timestamp,
+                agreementLiquidatedV2Event.block.number,
+                0, // totalNumberOfActiveStreams
+                0, // totalNumberOfClosedStreams
+                0, // totalNumberOfIndexes
+                0, // totalNumberOfActiveIndexes
+                0, // totalSubscriptionsWithUnits
+                0, // totalApprovedSubscriptions
+                BIG_INT_ZERO, // totalDeposit
+                BIG_INT_ZERO, // totalOutflowRate
+                BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+                BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
+                BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
+                BigInt.fromI32(1000000), // totalSupply = 100
+                3, // totalNumberOfAccounts
+                3 // totalNumberOfHolders
+            );
         });
 
         test("handleTokenUpgraded() - Should create a new TokenUpgradedEvent entity", () => {
@@ -328,6 +350,27 @@ describe("SuperToken Mapper Unit Tests", () => {
             assert.fieldEquals("TransferEvent", id, "from", from);
             assert.fieldEquals("TransferEvent", id, "to", to);
             assert.fieldEquals("TransferEvent", id, "value", value.toString());
+            assertTokenStatisticProperties(
+                null,
+                null,
+                transferEvent.address.toHex(),
+                transferEvent.block.timestamp,
+                transferEvent.block.number,
+                0, // totalNumberOfActiveStreams
+                0, // totalNumberOfClosedStreams
+                0, // totalNumberOfIndexes
+                0, // totalNumberOfActiveIndexes
+                0, // totalSubscriptionsWithUnits
+                0, // totalApprovedSubscriptions
+                BIG_INT_ZERO, // totalDeposit
+                BIG_INT_ZERO, // totalOutflowRate
+                BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+                value, // totalAmountTransferredUntilUpdatedAt
+                BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
+                BigInt.fromI32(1000000), // totalSupply = 100
+                2, // totalNumberOfAccounts,
+                2 // totalNumberOfHolders
+            );
         });
 
         test("handleSent() - Should create a new SentEvent entity", () => {
@@ -420,6 +463,90 @@ describe("SuperToken Mapper Unit Tests", () => {
                 id,
                 "operatorData",
                 operatorData.toHexString()
+            );
+        });
+
+        test("TokenStatistic::totalNumberOfHolders should decrease its count when a user transfers tokens and the balance reaches 0.", () => {
+            const from = alice;
+            const to = bob;
+            const value = BigInt.fromI32(100);
+    
+            const transferEvent = createTransferEvent(
+                from,
+                to,
+                value
+            );
+    
+            handleTransfer(transferEvent);
+    
+            const id = assertEventBaseProperties(
+                transferEvent,
+                "Transfer"
+            );
+            assert.fieldEquals("TransferEvent", id, "from", from);
+            assert.fieldEquals("TransferEvent", id, "to", to);
+            assert.fieldEquals("TransferEvent", id, "value", value.toString());
+    
+            assertTokenStatisticProperties(
+                null,
+                null,
+                transferEvent.address.toHex(),
+                transferEvent.block.timestamp,
+                transferEvent.block.number,
+                0, // totalNumberOfActiveStreams
+                0, // totalNumberOfClosedStreams
+                0, // totalNumberOfIndexes
+                0, // totalNumberOfActiveIndexes
+                0, // totalSubscriptionsWithUnits
+                0, // totalApprovedSubscriptions
+                BIG_INT_ZERO, // totalDeposit
+                BIG_INT_ZERO, // totalOutflowRate
+                BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+                value, // totalAmountTransferredUntilUpdatedAt
+                BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
+                BigInt.fromI32(1000000), // totalSupply = 100
+                2, // totalNumberOfAccounts,
+                2 // totalNumberOfHolders
+            ); 
+
+
+            const secondTransferEvent = createTransferEvent(
+                from,
+                to,
+                value
+            );
+
+            mockedRealtimeBalanceOf(
+                secondTransferEvent.address.toHex(),
+                from,
+                secondTransferEvent.block.timestamp,
+                BIG_INT_ZERO,
+                BIG_INT_ZERO,
+                BIG_INT_ZERO
+            );
+
+            handleTransfer(secondTransferEvent);
+
+            assertTokenStatisticProperties(
+                null,
+                null,
+                secondTransferEvent.address.toHex(),
+                secondTransferEvent.block.timestamp,
+                secondTransferEvent.block.number,
+                0, // totalNumberOfActiveStreams
+                0, // totalNumberOfClosedStreams
+                0, // totalNumberOfIndexes
+                0, // totalNumberOfActiveIndexes
+                0, // totalSubscriptionsWithUnits
+                0, // totalApprovedSubscriptions
+                BIG_INT_ZERO, // totalDeposit
+                BIG_INT_ZERO, // totalOutflowRate
+                BIG_INT_ZERO, // totalAmountStreamedUntilUpdatedAt
+                value.times(BigInt.fromI32(2)), // totalAmountTransferredUntilUpdatedAt
+                BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
+                BigInt.fromI32(1000000), // totalSupply = 100
+                2, // totalNumberOfAccounts,
+                1 // totalNumberOfHolders
             );
         });
     });

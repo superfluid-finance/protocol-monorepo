@@ -73,7 +73,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
        address account,
        uint256 timestamp
     )
-       public view override
+       public view virtual override
        returns (
            int256 availableBalance,
            uint256 deposit,
@@ -108,7 +108,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     function realtimeBalanceOfNow(
        address account
     )
-        public view override
+        public view virtual override
         returns (
             int256 availableBalance,
             uint256 deposit,
@@ -127,7 +127,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         address account,
         uint256 timestamp
     )
-        public view override
+        public view virtual override
         returns(bool isCritical)
     {
         (int256 availableBalance,,) = realtimeBalanceOf(account, timestamp);
@@ -137,7 +137,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     function isAccountCriticalNow(
        address account
     )
-        external view override
+        external view virtual override
        returns(bool isCritical)
     {
         return isAccountCritical(account, _host.getNow());
@@ -147,7 +147,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         address account,
         uint256 timestamp
     )
-        public view override
+        public view virtual override
         returns(bool isSolvent)
     {
         (int256 availableBalance, uint256 deposit, uint256 owedDeposit) =
@@ -161,7 +161,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
     function isAccountSolventNow(
        address account
     )
-       external view override
+       external view virtual override
        returns(bool isSolvent)
     {
         return isAccountSolvent(account, _host.getNow());
@@ -169,7 +169,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
 
     /// @dev ISuperfluidToken.getAccountActiveAgreements implementation
     function getAccountActiveAgreements(address account)
-       public view override
+       public view virtual override
        returns(ISuperAgreement[] memory)
     {
        return _host.mapAgreementClasses(~_inactiveAgreementBitmap[account]);
@@ -232,7 +232,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         bytes32 id,
         bytes32[] calldata data
     )
-        external override
+        external virtual override
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
@@ -249,7 +249,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         bytes32 id,
         uint dataLength
     )
-        external view override
+        external view virtual override
         returns(bytes32[] memory data)
     {
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
@@ -261,7 +261,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         bytes32 id,
         bytes32[] calldata data
     )
-        external override
+        external virtual override
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
@@ -274,7 +274,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         bytes32 id,
         uint dataLength
     )
-        external override
+        external virtual override
     {
         address agreementClass = msg.sender;
         bytes32 slot = keccak256(abi.encode("AgreementData", agreementClass, id));
@@ -291,7 +291,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         uint256 slotId,
         bytes32[] calldata slotData
     )
-        external override
+        external virtual override
     {
         bytes32 slot = keccak256(abi.encode("AgreementState", msg.sender, account, slotId));
         FixedSizeData.storeData(slot, slotData);
@@ -305,7 +305,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         uint256 slotId,
         uint dataLength
     )
-        external override view
+        external view virtual override
         returns (bytes32[] memory slotData) {
         bytes32 slot = keccak256(abi.encode("AgreementState", agreementClass, account, slotId));
         slotData = FixedSizeData.loadData(slot, dataLength);
@@ -316,7 +316,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         address account,
         int256 delta
     )
-        external override
+        external virtual override
         onlyAgreement
     {
         _sharedSettledBalances[account] = _sharedSettledBalances[account] + delta;
@@ -331,7 +331,7 @@ abstract contract SuperfluidToken is ISuperfluidToken
         address targetAccount, // Account to be liquidated
         uint256 rewardAmount, // The amount the rewarded account will receive
         int256 targetAccountBalanceDelta // The delta amount the target account balance should change by
-    ) external override onlyAgreement {
+    ) external virtual override onlyAgreement {
         address rewardAccount = _getRewardAccount();
 
         // we set the rewardAccount to the user who executed the liquidation if

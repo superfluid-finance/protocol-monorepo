@@ -167,6 +167,8 @@ export function assertIDAEventBaseProperties(
  * @param totalAmountTransferredUntilUpdatedAt expected total amount transferred until updated at timestamp
  * @param totalAmountDistributedUntilUpdatedAt expected total amount distributed (with IDA) until updated at timestamp
  * @param totalSupply expected total supply
+ * @param totalNumberOfAccounts total number of unique accounts
+ * @param totalNumberOfHolders total number of balance holders
  */
 export function assertTokenStatisticProperties(
     event: ethereum.Event | null,
@@ -195,7 +197,9 @@ export function assertTokenStatisticProperties(
     totalGDAAmountStreamedUntilUpdatedAt: BigInt,
     totalAmountTransferredUntilUpdatedAt: BigInt,
     totalAmountDistributedUntilUpdatedAt: BigInt,
-    totalSupply: BigInt
+    totalSupply: BigInt,
+    totalNumberOfAccounts: i32,
+    totalNumberOfHolders: i32
 ): void {
     if (event && ! triggeredByEventName || !event && triggeredByEventName) {
         log.error("You cannot pass event OR triggeredByEventName, you must pass both.", []);
@@ -226,6 +230,9 @@ export function assertTokenStatisticProperties(
     assert.fieldEquals(entityName, id, "totalAmountDistributedUntilUpdatedAt", totalAmountDistributedUntilUpdatedAt.toString());
     assert.fieldEquals(entityName, id, "totalSupply", totalSupply.toString());
     assert.fieldEquals(entityName, id, "token", id); // NOTE: id of tokenStatistic is token address
+    assert.fieldEquals(entityName, id, "totalNumberOfAccounts", totalNumberOfAccounts.toString());
+    assert.fieldEquals(entityName, id, "totalNumberOfHolders", totalNumberOfHolders.toString());
+
 
     if (event && triggeredByEventName) {
         assertTokenStatisticLogProperties(
@@ -253,7 +260,9 @@ export function assertTokenStatisticProperties(
             totalAmountTransferredUntilUpdatedAt,
             totalAmountDistributedUntilUpdatedAt,
             totalSupply,
-            id
+            id,
+            totalNumberOfAccounts,
+            totalNumberOfHolders
         );
     }
 }
@@ -304,6 +313,8 @@ export function assertTokenStatisticProperties(
  * @param totalAmountDistributed expected total amount distributed (with IDA) until timestamp
  * @param totalSupply expected total supply
  * @param tokenAddress expected token address
+ * @param totalNumberOfAccounts total number of unique accounts
+ * @param totalNumberOfHolders total number of balance holders
  */
 export function assertTokenStatisticLogProperties(
     event: ethereum.Event,
@@ -330,7 +341,9 @@ export function assertTokenStatisticLogProperties(
     totalAmountTransferred: BigInt,
     totalAmountDistributed: BigInt,
     totalSupply: BigInt,
-    tokenAddress: string
+    tokenAddress: string,
+    totalNumberOfAccounts: i32,
+    totalNumberOfHolders: i32,
 ): void {
     const entityName = "TokenStatisticLog";
     const timestamp = event.block.timestamp;
@@ -369,6 +382,8 @@ export function assertTokenStatisticLogProperties(
     assert.fieldEquals(entityName, id, "totalSupply", totalSupply.toString());
     assert.fieldEquals(entityName, id, "token", tokenAddress);
     assert.fieldEquals(entityName, id, "tokenStatistic", tokenAddress);
+    assert.fieldEquals(entityName, id, "totalNumberOfAccounts", totalNumberOfAccounts.toString());
+    assert.fieldEquals(entityName, id, "totalNumberOfHolders", totalNumberOfHolders.toString());
 }
 
 /**
@@ -416,5 +431,7 @@ export function assertEmptyTokenStatisticProperties(
         BIG_INT_ZERO, // totalAmountTransferredUntilUpdatedAt
         BIG_INT_ZERO, // totalAmountDistributedUntilUpdatedAt
         totalSupply, // totalSupply
+        0,           // totalNumberOfAccounts
+        0            // totalNumberOfHolders
     )
 }

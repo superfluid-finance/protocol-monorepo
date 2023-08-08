@@ -26,9 +26,9 @@ export function createPoolCreatedEvent(token: string, admin: string, pool: strin
 
 export function createPoolConnectionUpdatedEvent(
     token: string,
-    connected: boolean,
     pool: string,
-    poolMember: string
+    poolMember: string,
+    connected: boolean
 ): PoolConnectionUpdated {
     const newPoolConnectionUpdatedEvent = changetype<PoolConnectionUpdated>(newMockEvent());
     newPoolConnectionUpdatedEvent.parameters = new Array();
@@ -42,11 +42,11 @@ export function createPoolConnectionUpdatedEvent(
 
 export function createBufferAdjustedEvent(
     token: string,
+    pool: string,
+    poolDistributor: string,
     bufferDelta: BigInt,
     newBufferAmount: BigInt,
-    totalBufferAmount: BigInt,
-    pool: string,
-    poolDistributor: string
+    totalBufferAmount: BigInt
 ): BufferAdjusted {
     const newBufferAdjustedEvent = changetype<BufferAdjusted>(newMockEvent());
     newBufferAdjustedEvent.parameters = new Array();
@@ -62,11 +62,11 @@ export function createBufferAdjustedEvent(
 
 export function createInstantDistributionUpdatedEvent(
     token: string,
+    pool: string,
+    poolDistributor: string,
     operator: string,
     requestedAmount: BigInt,
-    actualAmount: BigInt,
-    pool: string,
-    poolDistributor: string
+    actualAmount: BigInt
 ): InstantDistributionUpdated {
     const newInstantDistributionUpdatedEvent = changetype<InstantDistributionUpdated>(newMockEvent());
     newInstantDistributionUpdatedEvent.parameters = new Array();
@@ -82,14 +82,14 @@ export function createInstantDistributionUpdatedEvent(
 
 export function createFlowDistributionUpdatedEvent(
     token: string,
+    pool: string,
+    poolDistributor: string,
     operator: string,
     oldFlowRate: BigInt,
     newDistributorToPoolFlowRate: BigInt,
     newTotalDistributionFlowRate: BigInt,
     adjustmentFlowRecipient: string,
-    adjustmentFlowRate: BigInt,
-    pool: string,
-    poolDistributor: string
+    adjustmentFlowRate: BigInt
 ): FlowDistributionUpdated {
     const newFlowDistributionUpdatedEvent = changetype<FlowDistributionUpdated>(newMockEvent());
     newFlowDistributionUpdatedEvent.parameters = new Array();
@@ -114,34 +114,26 @@ export function createFlowDistributionUpdatedEvent(
 
 export function createDistributionClaimedEvent(
     token: string,
+    poolMember: string,
     claimedAmount: BigInt,
-    totalClaimed: BigInt,
-    pool: string,
-    poolMember: string
+    totalClaimed: BigInt
 ): DistributionClaimed {
     const newDistributionClaimedEvent = changetype<DistributionClaimed>(newMockEvent());
     newDistributionClaimedEvent.parameters = new Array();
     newDistributionClaimedEvent.parameters.push(getAddressEventParam("token", token));
+    newDistributionClaimedEvent.parameters.push(getAddressEventParam("poolMember", poolMember));
     newDistributionClaimedEvent.parameters.push(getBigIntEventParam("claimedAmount", claimedAmount));
     newDistributionClaimedEvent.parameters.push(getBigIntEventParam("totalClaimed", totalClaimed));
-    newDistributionClaimedEvent.parameters.push(getAddressEventParam("pool", pool));
-    newDistributionClaimedEvent.parameters.push(getAddressEventParam("poolMember", poolMember));
 
     return newDistributionClaimedEvent;
 }
 
-export function createMemberUnitsUpdatedEvent(
-    token: string,
-    units: BigInt,
-    pool: string,
-    poolMember: string
-): MemberUnitsUpdated {
+export function createMemberUnitsUpdatedEvent(token: string, poolMember: string, units: BigInt): MemberUnitsUpdated {
     const newMemberUnitsUpdatedEvent = changetype<MemberUnitsUpdated>(newMockEvent());
     newMemberUnitsUpdatedEvent.parameters = new Array();
     newMemberUnitsUpdatedEvent.parameters.push(getAddressEventParam("token", token));
-    newMemberUnitsUpdatedEvent.parameters.push(getBigIntEventParam("units", units));
-    newMemberUnitsUpdatedEvent.parameters.push(getAddressEventParam("pool", pool));
     newMemberUnitsUpdatedEvent.parameters.push(getAddressEventParam("poolMember", poolMember));
+    newMemberUnitsUpdatedEvent.parameters.push(getBigIntEventParam("units", units));
 
     return newMemberUnitsUpdatedEvent;
 }

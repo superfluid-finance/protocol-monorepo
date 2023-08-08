@@ -46,7 +46,6 @@ import {
     getResolverAddress,
 } from "./addresses";
 import { FlowUpdated } from "../generated/ConstantFlowAgreementV1/IConstantFlowAgreementV1";
-import { PoolCreated } from "../generated/GeneralDistributionAgreementV1/IGeneralDistributionAgreementV1";
 
 /**************************************************************************
  * HOL initializer functions

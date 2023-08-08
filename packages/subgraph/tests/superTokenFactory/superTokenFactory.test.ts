@@ -10,7 +10,7 @@ import {
     handleSuperTokenCreated,
     handleSuperTokenLogicCreated,
 } from "../../src/mappings/superTokenFactory";
-import { assertEmptyTokenStatisticProperties, assertEventBaseProperties, assertTokenStatisticProperties } from "../assertionHelpers";
+import { assertEmptyTokenStatisticProperties, assertEventBaseProperties } from "../assertionHelpers";
 import {
     daiAddress,
     daiName,

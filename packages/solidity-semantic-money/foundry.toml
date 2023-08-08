@@ -4,6 +4,7 @@ src = 'packages/solidity-semantic-money/src'
 out = 'packages/solidity-semantic-money/out/default'
 cache_path = 'packages/solidity-semantic-money/out/default.cache'
 solc_version = '0.8.19'
+evm_version = 'paris' # no PUSH0 for now
 via_ir = false
 remappings = [
     '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',

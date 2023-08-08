@@ -3,6 +3,8 @@ root = '../..'
 src = 'packages/ethereum-contracts/contracts'
 test = 'packages/ethereum-contracts/test/foundry/'
 solc_version = "0.8.19"
+# keep in sync with truffle-config.js
+evm_version = 'paris'
 remappings = [
     '@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/',
     '@openzeppelin/=node_modules/@openzeppelin/',

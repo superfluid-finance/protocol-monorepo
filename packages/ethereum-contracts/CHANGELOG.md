@@ -8,6 +8,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 - `increaseFlowRateAllowanceWithPermissions` and `decreaseFlowRateAllowanceWithPermissions` added to `ConstantFlowAgreementV1.sol`
 
+### Changed
+- `SuperToken.sol` made external and public methods virtual to facilitate creation of customized implementations.
+- Explicitly set EVM target to "paris" because EIP-3855 isn't yet supported on all chains with Superfluid deployment.
+
 ## [v1.7.1] - 2023-06-27
 
 ### Added

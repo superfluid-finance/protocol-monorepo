@@ -317,6 +317,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Mint new tokens for the account
+     * If `userData` is not empty, the `tokensReceived` hook is invoked according to ERC777 semantics.
      *
      * @custom:modifiers 
      *  - onlySelf
@@ -329,6 +330,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
    /**
     * @dev Burn existing tokens for the account
+    * If `userData` is not empty, the `tokensToSend` hook is invoked according to ERC777 semantics.
     *
     * @custom:modifiers 
     *  - onlySelf

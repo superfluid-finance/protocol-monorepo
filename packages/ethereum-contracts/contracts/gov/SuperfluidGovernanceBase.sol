@@ -101,6 +101,20 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         }
     }
 
+    function batchUpdateSuperTokenLogicCustom(
+        ISuperfluid host,
+        ISuperToken[] calldata tokens,
+        address[] calldata tokenLogics
+    )
+        external override
+        onlyAuthorized(host)
+    {
+        if (tokens.length != tokenLogics.length) revert SF_GOV_ARRAYS_NOT_SAME_LENGTH();
+        for (uint i = 0; i < tokens.length; ++i) {
+            host.updateSuperTokenLogicCustom(tokens[i], tokenLogics[i]);
+        }
+    }
+
     function batchUpdateSuperTokenMinimumDeposit(
         ISuperfluid host,
         ISuperToken[] calldata tokens,

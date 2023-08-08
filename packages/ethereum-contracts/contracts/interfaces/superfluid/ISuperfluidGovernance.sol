@@ -53,6 +53,14 @@ interface ISuperfluidGovernance {
     function batchUpdateSuperTokenLogic(
         ISuperfluid host,
         ISuperToken[] calldata tokens) external;
+
+    /**
+     * @dev Update supertoken logic contract to the provided logic contracts
+     */
+    function batchUpdateSuperTokenLogicCustom(
+        ISuperfluid host,
+        ISuperToken[] calldata tokens,
+        address[] calldata tokenLogics) external;
     
     /**
      * @dev Set configuration as address value

@@ -302,6 +302,15 @@ contract Superfluid is
         emit SuperTokenLogicUpdated(token, code);
     }
 
+    function updateSuperTokenLogicCustom(ISuperToken token, address newLogic)
+        external override
+        onlyGovernance
+    {
+        // assuming it's uups proxiable
+        UUPSProxiable(address(token)).updateCode(newLogic);
+        emit SuperTokenLogicUpdated(token, newLogic);
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // App Registry
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -207,6 +207,11 @@ interface ISuperfluid {
      */
     function updateSuperTokenLogic(ISuperToken token) external;
     /**
+     * @notice Update the super token logic to the provided one
+     * @dev newLogic must implement UUPSProxiable with matching proxiableUUID
+     */
+    function updateSuperTokenLogicCustom(ISuperToken token, address newLogic) external;
+    /**
      * @dev SuperToken logic updated event
      * @param code Address of the new SuperToken logic
      */

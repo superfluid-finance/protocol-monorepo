@@ -85,9 +85,10 @@ describe("Superfluid Ownable Governance Contract", function () {
             onlyOwnerReason
         );
         await expectCustomError(
-            governance.batchUpdateSuperTokenLogic(superfluid.address, [
-                ZERO_ADDRESS,
-            ]),
+            governance["batchUpdateSuperTokenLogic(address,address[])"](
+                superfluid.address,
+                [ZERO_ADDRESS]
+            ),
             governance,
             onlyOwnerReason
         );

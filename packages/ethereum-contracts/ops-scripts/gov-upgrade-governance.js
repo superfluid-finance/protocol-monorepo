@@ -4,6 +4,7 @@ const {
     getScriptRunnerFactory: S,
     extractWeb3Options,
     builtTruffleContractLoader,
+    sendGovernanceAction,
 } = require("./libs/common");
 
 /**
@@ -71,17 +72,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     await govLogic.castrate();
     console.log("Marked gov logic as initialized (castrate)");
 
-    // prepare multisig transaction for executing the upgrade
-    const multis = await sf.contracts.IMultiSigWallet.at(
-        await (await sf.contracts.Ownable.at(gov.address)).owner()
-    );
-    console.log("MultiSig address:", multis.address);
-
-    const data = gov.contract.methods.updateCode(govLogic.address).encodeABI();
-    console.log("MultiSig data", data);
-    console.log("Sending governance action to multisig...");
-    await multis.submitTransaction(gov.address, 0, data);
-    console.log(
-        "Governance action sent, but it may still need confirmation(s)."
+    await sendGovernanceAction(sf, (gov) =>
+        gov.updateCode(govLogic.address)
     );
 });

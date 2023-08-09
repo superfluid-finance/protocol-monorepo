@@ -48,7 +48,7 @@
     </div>
 
     <script type="module">
-        import networks from "https://cdn.jsdelivr.net/gh/superfluid-finance/metadata/module/networks/index.js";
+        import networks from "https://cdn.jsdelivr.net/npm/@superfluid-finance/metadata/module/networks/index.js";
         // relevant abi extract: callAgreement, getAgreementClass
         const ISuperfluidAbi = '[{"inputs":[{"internalType":"contract ISuperAgreement","name":"agreementClass","type":"address"},{"internalType":"bytes","name":"callData","type":"bytes"},{"internalType":"bytes","name":"userData","type":"bytes"}],"name":"callAgreement","outputs":[{"internalType":"bytes","name":"returnedData","type":"bytes"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bytes32","name":"agreementType","type":"bytes32"}],"name":"getAgreementClass","outputs":[{"internalType":"contract ISuperAgreement","name":"agreementClass","type":"address"}],"stateMutability":"view","type":"function"}]';
         // relevant abi extract: getFlow, deleteFlow

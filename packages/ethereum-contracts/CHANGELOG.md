@@ -11,6 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `SuperToken.sol` made external and public methods virtual to facilitate creation of customized implementations.
 - Explicitly set EVM target to "paris" because EIP-3855 isn't yet supported on all chains with Superfluid deployment.
 - `SuperAppBaseFlow.sol` uses `registerAppWithKey` instead of deprecated `registerApp`
+- `SuperfluidGovernanceBase.sol` add a method for updating SuperTokens to other than the canonical implementation.
 
 ## [v1.7.1] - 2023-06-27
 

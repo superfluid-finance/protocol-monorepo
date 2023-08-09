@@ -19,7 +19,7 @@ library CallUtils {
             assembly {
                 errorSelector := mload(add(returnedData, 0x20))
             }
-            if (errorSelector == bytes4(0x4e487b71) /* `seth sig "Panic(uint256)"` */) {
+            if (errorSelector == bytes4(0x4e487b71) /* $ seth sig "Panic(uint256)" */) {
                 // case 2: Panic(uint256) (Defined since 0.8.0)
                 // solhint-disable-next-line max-line-length
                 // ref: https://docs.soliditylang.org/en/v0.8.0/control-structures.html#panic-via-assert-and-error-via-require)
@@ -40,12 +40,14 @@ library CallUtils {
                 }
                 revert(reason);
             } else {
-                // case 3: Error(string) (Defined at least since 0.7.0)
-                // case 4: Custom errors (Defined since 0.8.0)
+                // - case 3: Error(string) (Defined at least since 0.7.0)
+                //   - "The require function either creates an error without any data or an error of type Error(string).
+                //     It should be used to ensure valid conditions that cannot be detected until execution time."
+                //   - $ cast sig 'Error(string)' # 0x08c379a0
+                // - case 4: Custom errors (Defined since 0.8.0)
+                // - In all these cases, we bubble up the error directly.
                 uint len = returnedData.length;
-                assembly {
-                    revert(add(returnedData, 32), len)
-                }
+                assembly { revert(add(returnedData, 0x20), len) }
             }
         }
     }

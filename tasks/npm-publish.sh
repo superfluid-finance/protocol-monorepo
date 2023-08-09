@@ -1,4 +1,6 @@
-#!/bin/bash -xe
+#!/usr/bin/env bash
+
+set -xe
 
 D="$(dirname "$0")"
 

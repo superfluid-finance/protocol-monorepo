@@ -201,10 +201,9 @@ describe("SuperTokenFactory Contract", function () {
                 assert.equal((await superToken1.waterMark()).toString(), "0");
                 await updateSuperTokenFactory();
                 assert.equal((await superToken1.waterMark()).toString(), "0");
-                await governance.batchUpdateSuperTokenLogic(
-                    superfluid.address,
-                    [superToken1.address]
-                );
+                await governance[
+                    "batchUpdateSuperTokenLogic(address,address[])"
+                ](superfluid.address, [superToken1.address]);
                 assert.equal((await superToken1.waterMark()).toString(), "42");
             });
 
@@ -226,9 +225,10 @@ describe("SuperTokenFactory Contract", function () {
                 await updateSuperTokenFactory();
                 assert.equal((await superToken1.waterMark()).toString(), "42");
                 await expectRevertedWith(
-                    governance.batchUpdateSuperTokenLogic(superfluid.address, [
-                        superToken1.address,
-                    ]),
+                    governance["batchUpdateSuperTokenLogic(address,address[])"](
+                        superfluid.address,
+                        [superToken1.address]
+                    ),
                     "UUPSProxiable: not upgradable"
                 );
                 await expectCustomError(
@@ -255,6 +255,41 @@ describe("SuperTokenFactory Contract", function () {
                 )
                     .to.emit(factory, "CustomSuperTokenCreated")
                     .withArgs(customToken.address);
+            });
+
+            it("#2.a.5 upgrade to custom logic", async () => {
+                let superToken1 = await t.sf.createERC20Wrapper(token1, {
+                    upgradability: 1,
+                });
+                await expectEvent(superToken1.tx.receipt, "SuperTokenCreated", {
+                    token: superToken1.address,
+                });
+                superToken1 = await ethers.getContractAt(
+                    "SuperTokenMock",
+                    superToken1.address
+                );
+                assert.equal((await superToken1.waterMark()).toString(), "0");
+                await updateSuperTokenFactory();
+                assert.equal((await superToken1.waterMark()).toString(), "0");
+
+                const {constantOutflowNFTProxy, constantInflowNFTProxy} =
+                    await t.deployNFTContracts();
+                const superTokenLogic = await t.deployContract<SuperTokenMock>(
+                    "SuperTokenMock",
+                    superfluid.address,
+                    69,
+                    constantOutflowNFTProxy.address,
+                    constantInflowNFTProxy.address
+                );
+
+                await governance[
+                    "batchUpdateSuperTokenLogic(address,address[],address[])"
+                ](
+                    superfluid.address,
+                    [superToken1.address],
+                    [superTokenLogic.address]
+                );
+                assert.equal((await superToken1.waterMark()).toString(), "69");
             });
         });
 

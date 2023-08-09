@@ -391,7 +391,10 @@ describe("Superfluid Host Contract", function () {
                     "HOST_ONLY_GOVERNANCE"
                 );
                 await expectCustomError(
-                    superfluid.updateSuperTokenLogic(ZERO_ADDRESS),
+                    superfluid.updateSuperTokenLogic(
+                        ZERO_ADDRESS,
+                        ZERO_ADDRESS
+                    ),
                     superfluid,
                     "HOST_ONLY_GOVERNANCE"
                 );
@@ -1441,14 +1444,27 @@ describe("Superfluid Host Contract", function () {
                     );
                 });
 
+                /**
+                 * This slow test case is to ensure that a well behaved app callback
+                 * is not mistakenly jailed for APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK.
+                 *
+                 * It uses the BurnGas operation from the mock super app, which burns as much gas as CALLBACK_GAS_LIMIT
+                 * allows (minus a small amount as heuristics for solidity gas overhead). This is a mischievious but
+                 * well behaved within the rule.
+                 *
+                 * To explore the gasLimit possibilities exhaustively in reasonable time, a binary search strategy is
+                 * used. The test starts with a gas range that includes the maximum gas limit is used by the mock
+                 * app. Then the test case shrinks the range to the point where the range is at a single value.
+                 *
+                 * This may take awhile, hence it is skipped in coverage test suite.
+                 */
                 it("#6.24 beforeCreated try to burn just enough gas [ @skip-on-coverage ]", async function () {
-                    const actionOverhead = 20000; /* some action overhead */
                     const setNextAction = async () => {
                         await app.setNextCallbackAction(
                             5 /* BurnGas */,
                             web3.eth.abi.encodeParameter(
                                 "uint256",
-                                Number(gasLimit) - actionOverhead
+                                Number(gasLimit - 30000) // leave some space for gas overhead
                             )
                         );
                     };
@@ -1510,12 +1526,13 @@ describe("Superfluid Host Contract", function () {
                             gasUpperBound = gas;
                             ++errorCount;
                         } catch (error: any) {
+                            console.debug("Caught error", error.message);
                             // with error, check error and increase gas
                             assert.isNotNull(
                                 error.message.match("HOST_NEED_MORE_GAS()")
                             );
                             console.debug(
-                                "Caught error, increasing gas with gap",
+                                "Need more gas, increasing gas with gap",
                                 gasLowerBound,
                                 gas,
                                 gasUpperBound

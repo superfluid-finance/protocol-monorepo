@@ -202,13 +202,15 @@ interface ISuperfluid {
     event SuperTokenFactoryUpdated(ISuperTokenFactory newFactory);
 
     /**
-     * @notice Update the super token logic to the latest
+     * @notice Update the super token logic to the latest (canonical) implementation
+     * if `newLogicOverride` is zero, or to `newLogicOverride` otherwise.
+     * or to the provided implementation `.
      * @dev Refer to ISuperTokenFactory.Upgradability for expected behaviours
      */
-    function updateSuperTokenLogic(ISuperToken token) external;
+    function updateSuperTokenLogic(ISuperToken token, address newLogicOverride) external;
     /**
-     * @dev SuperToken logic updated event
-     * @param code Address of the new SuperToken logic
+     * @notice Update the super token logic to the provided one
+     * @dev newLogic must implement UUPSProxiable with matching proxiableUUID
      */
     event SuperTokenLogicUpdated(ISuperToken indexed token, address code);
 

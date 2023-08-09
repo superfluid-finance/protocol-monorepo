@@ -73,6 +73,7 @@ function hott() {
 
     "$ECHIDNA" .  \
         --config <(cat echidna.yaml ${TEST_CONTRACT_CONFIG}) \
+        --workers 6 \
         --contract $TEST_CONTRACT \
     && digests
 }

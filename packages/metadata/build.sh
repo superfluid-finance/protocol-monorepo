@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This script builds the files in the main and module directories.
 
 rm main/networks/list.cjs

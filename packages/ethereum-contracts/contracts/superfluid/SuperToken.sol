@@ -271,7 +271,7 @@ contract SuperToken is
      * the total supply.
      *
      * If invokeHook is true and a send hook is registered for `account`,
-     * the corresponding function will be called with `operator`, `data` and `operatorData`.
+     * the corresponding function will be called with `operator`, `userData` and `operatorData`.
      *
      * See {IERC777Sender} and {IERC777Recipient}.
      *
@@ -493,12 +493,12 @@ contract SuperToken is
 
     function granularity() external pure virtual override returns (uint256) { return 1; }
 
-    function send(address recipient, uint256 amount, bytes calldata data) external virtual override {
-        _send(msg.sender, msg.sender, recipient, amount, data, "", true);
+    function send(address recipient, uint256 amount, bytes calldata userData) external virtual override {
+        _send(msg.sender, msg.sender, recipient, amount, userData, "", true);
     }
 
-    function burn(uint256 amount, bytes calldata data) external virtual override {
-        _downgrade(msg.sender, msg.sender, msg.sender, amount, data, "");
+    function burn(uint256 amount, bytes calldata userData) external virtual override {
+        _downgrade(msg.sender, msg.sender, msg.sender, amount, userData, "");
     }
 
     function isOperatorFor(address operator, address tokenHolder) external virtual override view returns (bool) {
@@ -525,23 +525,23 @@ contract SuperToken is
         address sender,
         address recipient,
         uint256 amount,
-        bytes calldata data,
+        bytes calldata userData,
         bytes calldata operatorData
     ) external virtual override {
         address operator = msg.sender;
         if (!_operators.isOperatorFor(operator, sender)) revert SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
-        _send(operator, sender, recipient, amount, data, operatorData, true);
+        _send(operator, sender, recipient, amount, userData, operatorData, true);
     }
 
     function operatorBurn(
         address account,
         uint256 amount,
-        bytes calldata data,
+        bytes calldata userData,
         bytes calldata operatorData
     ) external virtual override {
         address operator = msg.sender;
         if (!_operators.isOperatorFor(operator, account)) revert SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
-        _downgrade(operator, account, account, amount, data, operatorData);
+        _downgrade(operator, account, account, amount, userData, operatorData);
     }
 
     function _setupDefaultOperators(address[] memory operators) internal {
@@ -623,8 +623,8 @@ contract SuperToken is
     }
 
     /// @dev ISuperToken.upgradeTo implementation
-    function upgradeTo(address to, uint256 amount, bytes calldata data) external virtual override {
-        _upgrade(msg.sender, msg.sender, to, amount, data, "");
+    function upgradeTo(address to, uint256 amount, bytes calldata userData) external virtual override {
+        _upgrade(msg.sender, msg.sender, to, amount, userData, "");
     }
 
     /// @dev ISuperToken.downgrade implementation

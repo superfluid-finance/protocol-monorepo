@@ -1,11 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This script checks that the built files are consistent with the committed files.
 
 set -xe
 
+cd "$(dirname "$0")"/..
+
 # Hash a file using sha256sum and cut the hash from the output
 function hashFiles() {
-    sha256sum $1 | cut -d ' ' -f 1
+    sha256sum "$1" | cut -d ' ' -f 1
 }
 
 # Hash the commited files

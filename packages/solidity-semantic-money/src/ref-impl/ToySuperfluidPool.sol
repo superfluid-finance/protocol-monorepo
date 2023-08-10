@@ -31,7 +31,7 @@ contract ToySuperfluidPool is Initializable, ISuperfluidPool {
     mapping (address member => Value claimed_value) internal _claimedValues;
     // This is a pseudo member, representing all the disconnected members
     PDPoolMember internal _disconnectedMembers;
-    Value _claimedByDisconnectedMembers;
+    Value internal _claimedByDisconnectedMembers;
 
     constructor () {
         POOL_OPERATOR = msg.sender;

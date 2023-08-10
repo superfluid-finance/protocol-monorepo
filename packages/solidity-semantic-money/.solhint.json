@@ -2,6 +2,11 @@
     "extends": ["solhint:recommended"],
     "rules": {
         "no-inline-assembly": "off",
+        "func-named-parameters": "off",
+        "explicit-types": ["off"],
+        "no-unused-import": "off",
+        "var-name-mixedcase": "off",
+        "contract-name-camelcase": "off",
         "max-line-length": ["error", 120],
         "func-param-name-mixedcase": "error",
         "modifier-name-mixedcase": "error",

@@ -21,7 +21,7 @@
         "@openzeppelin/contracts": "4.9.3"
     },
     "peerDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.2.2"
+        "@superfluid-finance/ethereum-contracts": "1.7.1"
     },
     "devDependencies": {
         "@superfluid-finance/ethereum-contracts": "1.7.1"

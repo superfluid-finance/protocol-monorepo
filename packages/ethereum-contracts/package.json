@@ -82,6 +82,7 @@
         "@safe-global/safe-web3-lib": "^1.9.4",
         "@superfluid-finance/js-sdk": "0.6.3",
         "@truffle/contract": "4.6.28",
+        "ethers": "^5.7.2",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.1.5",
         "stack-trace": "0.0.10"

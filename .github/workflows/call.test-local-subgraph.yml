@@ -21,7 +21,6 @@ jobs:
 
       - name: Initialize devShell
         run: |
-          set -xe
           node --version
           yarn --version
 

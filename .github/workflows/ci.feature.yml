@@ -76,7 +76,7 @@ jobs:
           node --version
           yarn --version
           solc --version
-          hardhat --version
+          npx hardhat --version
 
       - name: Install, lint and build
         run: |
@@ -118,11 +118,10 @@ jobs:
 
       - name: Initialize devShell
         run: |
-          set -xe
           node --version
           yarn --version
           solc --version
-          hardhat --version
+          npx hardhat --version
 
       - name: Install and build
         run: |

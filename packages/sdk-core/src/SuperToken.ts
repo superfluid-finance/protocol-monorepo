@@ -768,7 +768,7 @@ export class WrapperSuperToken extends SuperToken {
         overrides,
     }: {
         amount: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }): Operation => {
         const txn = this.contract.populateTransaction.downgrade(
             amount,
@@ -791,7 +791,7 @@ export class WrapperSuperToken extends SuperToken {
     }: {
         amount: string;
         to: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }) => {
         const txn = this.contract.populateTransaction.downgradeTo(to, amount, {
             ...overrides,
@@ -810,7 +810,7 @@ export class WrapperSuperToken extends SuperToken {
         overrides,
     }: {
         amount: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }): Operation => {
         const txn = this.contract.populateTransaction.upgrade(
             amount,
@@ -836,7 +836,7 @@ export class WrapperSuperToken extends SuperToken {
         amount: string;
         to: string;
         data?: BytesLike;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }) => {
         const txn = this.contract.populateTransaction.upgradeTo(
             to,
@@ -891,7 +891,7 @@ export class NativeAssetSuperToken extends SuperToken {
         overrides,
     }: {
         amount: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }): Operation => {
         const txn = this.nativeAssetContract.populateTransaction.upgradeByETH({
             ...overrides,
@@ -914,7 +914,7 @@ export class NativeAssetSuperToken extends SuperToken {
     }: {
         amount: string;
         to: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }) => {
         const txn = this.nativeAssetContract.populateTransaction.upgradeByETHTo(
             to,
@@ -937,7 +937,7 @@ export class NativeAssetSuperToken extends SuperToken {
         overrides,
     }: {
         amount: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }) => {
         const txn = this.nativeAssetContract.populateTransaction.downgradeToETH(
             amount,

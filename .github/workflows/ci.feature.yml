@@ -77,12 +77,16 @@ jobs:
           yarn --version
           solc --version
 
-      - name: Install, lint and build
+      - name: Yarn Install
         run: |
           set -ex
           yarn install --frozen-lockfile
           npx tsc --version
           npx hardhat --version
+
+      - name: Lint and build
+        run: |
+          set -ex
           yarn lint
           yarn build
 
@@ -125,12 +129,16 @@ jobs:
           yarn --version
           solc --version
 
-      - name: Install and build
+      - name: Yarn Install
         run: |
           set -ex
           yarn install --frozen-lockfile
           npx tsc --version
           npx hardhat --version
+
+      - name: build
+        run: |
+          set -ex
           yarn build
 
       - name: Run coverage test

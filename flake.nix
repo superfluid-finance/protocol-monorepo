@@ -38,7 +38,7 @@
 
     # common dev inputs
     commonDevInputs = with pkgs; [
-       gnumake
+      gnumake
       # for shell script linting
       shellcheck
       # used by some scripts
@@ -138,7 +138,7 @@
     devShells.ci-spec-ghc92 = ci-spec-with-ghc ghcVer92;
     devShells.ci-spec-ghc94 = ci-spec-with-ghc ghcVer94;
     devShells.ci-hot-fuzz = mkShell {
-      buildInputs = with pkgs; [
+      buildInputs = with pkgs; commonDevInputs ++ ethDevInputs ++ [
         slither-analyzer
         echidna
       ];

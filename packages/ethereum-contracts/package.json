@@ -95,7 +95,7 @@
         "mochawesome": "^7.1.3",
         "readline": "1.3.0",
         "solhint": "3.4.1",
-        "solidity-coverage": "0.8.2",
+        "solidity-coverage": "0.8.4",
         "solidity-docgen": "^0.6.0-beta.35",
         "truffle-flattener": "^1.6.0",
         "truffle-plugin-verify": "0.6.4"

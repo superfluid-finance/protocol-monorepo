@@ -1,6 +1,11 @@
 {
     "extends": ["solhint:recommended"],
     "rules": {
+        "func-named-parameters": "off",
+        "no-global-import": "off",
+        "immutable-vars-naming": "off",
+        "explicit-types": ["off"],
+        "no-unused-import": "off",
         "max-states-count": "off",
         "no-inline-assembly": "off",
         "mark-callable-contracts": "off",

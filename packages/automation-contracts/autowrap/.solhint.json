@@ -2,6 +2,10 @@
     "extends": ["solhint:recommended"],
     "rules": {
         "max-states-count": "off",
+        "func-named-parameters": "off",
+        "no-global-import": "off",
+        "immutable-vars-naming": "off",
+        "no-unused-import": "off",
         "no-inline-assembly": "off",
         "mark-callable-contracts": "off",
         "max-line-length": ["error", 120],

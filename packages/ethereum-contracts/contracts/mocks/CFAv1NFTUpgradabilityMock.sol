@@ -52,7 +52,7 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
 
         assembly { slot := _symbol.slot offset := _symbol.offset }
         if (slot != 2 || offset != 0) revert STORAGE_LOCATION_CHANGED("_symbol");
-        
+
         assembly { slot := _tokenApprovals.slot offset := _tokenApprovals.offset }
         if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
 
@@ -97,7 +97,7 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
         return keccak256("");
     }
 
-    function tokenURI(uint256 tokenId) external view override returns (string memory) {
+    function tokenURI(uint256 /* tokenId */) external view override returns (string memory) {
         return "";
     }
 }
@@ -210,7 +210,7 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT {
 
         assembly { slot := _reserve21.slot offset := _reserve21.offset }
         if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
-        
+
         assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
     }
 

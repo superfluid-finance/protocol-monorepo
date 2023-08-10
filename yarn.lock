@@ -1313,7 +1313,7 @@
     "@graphql-codegen/plugin-helpers" "^3.1.1"
     tslib "~2.4.0"
 
-"@graphql-codegen/cli@^2.13.12":
+"@graphql-codegen/cli@^2.16.5":
   version "2.16.5"
   resolved "https://registry.yarnpkg.com/@graphql-codegen/cli/-/cli-2.16.5.tgz#b3b5eeec357af01c1cb72f6a4ea96e52bd49e662"
   integrity sha512-XYPIp+q7fB0xAGSAoRykiTe4oY80VU+z+dw5nuv4mLY0+pv7+pa2C6Nwhdw7a65lXOhFviBApWCCZeqd54SMnA==
@@ -1364,7 +1364,7 @@
     "@graphql-tools/utils" "^9.1.1"
     tslib "~2.4.0"
 
-"@graphql-codegen/introspection@^2.2.1":
+"@graphql-codegen/introspection@^2.2.3":
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/@graphql-codegen/introspection/-/introspection-2.2.3.tgz#6f5df5084b75ba646779b62a68dab27b8aa4e473"
   integrity sha512-iS0xhy64lapGCsBIBKFpAcymGW+A0LiLSGP9dPl6opZwU1bm/rsahkKvJnc+oCI/xfdQ3Q33zgUKOSCkqmM4Bw==
@@ -1373,7 +1373,7 @@
     "@graphql-codegen/visitor-plugin-common" "^2.13.5"
     tslib "~2.4.0"
 
-"@graphql-codegen/near-operation-file-preset@^2.4.4":
+"@graphql-codegen/near-operation-file-preset@^2.5.0":
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/@graphql-codegen/near-operation-file-preset/-/near-operation-file-preset-2.5.0.tgz#987d9bb8d0101e944b9afc406b77d098a4c1e978"
   integrity sha512-S9PNJP5tTkUWBQ6inbviOsTREzsMxYVqJGrtPcIdMWkKLZAAItAfAb60klB1T64vt6Oru+nUf8IYUNrchJ8MYg==
@@ -1418,7 +1418,7 @@
     "@graphql-tools/utils" "^9.0.0"
     tslib "~2.4.0"
 
-"@graphql-codegen/typed-document-node@^2.3.7":
+"@graphql-codegen/typed-document-node@^2.3.13":
   version "2.3.13"
   resolved "https://registry.yarnpkg.com/@graphql-codegen/typed-document-node/-/typed-document-node-2.3.13.tgz#bbfb8e376d6680e05509b5d13089add74b6ff3fd"
   integrity sha512-vt1hvBAbYTYUCXblks9KYwR5Ho16hWQljid5xgx77jeVufj5PjnWrOjJfEFKFx17VOM4CKHP8ryoeT4NyjYNWw==
@@ -1429,7 +1429,7 @@
     change-case-all "1.0.15"
     tslib "~2.4.0"
 
-"@graphql-codegen/typescript-operations@^2.5.7":
+"@graphql-codegen/typescript-operations@^2.5.13":
   version "2.5.13"
   resolved "https://registry.yarnpkg.com/@graphql-codegen/typescript-operations/-/typescript-operations-2.5.13.tgz#f286c37f9c023356aacaa983ebd32e9e021a05ca"
   integrity sha512-3vfR6Rx6iZU0JRt29GBkFlrSNTM6t+MSLF86ChvL4d/Jfo/JYAGuB3zNzPhirHYzJPCvLOAx2gy9ID1ltrpYiw==
@@ -1440,7 +1440,7 @@
     auto-bind "~4.0.0"
     tslib "~2.4.0"
 
-"@graphql-codegen/typescript@^2.8.2", "@graphql-codegen/typescript@^2.8.8":
+"@graphql-codegen/typescript@^2.8.8":
   version "2.8.8"
   resolved "https://registry.yarnpkg.com/@graphql-codegen/typescript/-/typescript-2.8.8.tgz#8c3b9153e334db43c65f8f31ced69b4c60d14861"
   integrity sha512-A0oUi3Oy6+DormOlrTC4orxT9OBZkIglhbJBcDmk34jAKKUgesukXRd4yOhmTrnbchpXz2T8IAOFB3FWIaK4Rw==
@@ -2351,11 +2351,6 @@
     "@nomicfoundation/solidity-analyzer-win32-arm64-msvc" "0.1.1"
     "@nomicfoundation/solidity-analyzer-win32-ia32-msvc" "0.1.1"
     "@nomicfoundation/solidity-analyzer-win32-x64-msvc" "0.1.1"
-
-"@nomiclabs/hardhat-ethers@^2.2.1":
-  version "2.2.2"
-  resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-ethers/-/hardhat-ethers-2.2.2.tgz#812d48929c3bf8fe840ec29eab4b613693467679"
-  integrity sha512-NLDlDFL2us07C0jB/9wzvR0kuLivChJWCXTKcj3yqjZqMoYp7g7wwS157F70VHx/+9gHIBGzak5pKDwG8gEefA==
 
 "@nomiclabs/hardhat-ethers@^2.2.3":
   version "2.2.3"
@@ -4810,7 +4805,7 @@ ajv@^6.10.0, ajv@^6.12.3, ajv@^6.12.4, ajv@^6.12.5, ajv@^6.12.6:
     json-schema-traverse "^0.4.1"
     uri-js "^4.2.2"
 
-ajv@^8.0.0, ajv@^8.0.1, ajv@^8.11.2, ajv@^8.6.3:
+ajv@^8.0.0, ajv@^8.0.1, ajv@^8.12.0, ajv@^8.6.3:
   version "8.12.0"
   resolved "https://registry.yarnpkg.com/ajv/-/ajv-8.12.0.tgz#d1a0527323e22f53562c567c00991577dfbe19d1"
   integrity sha512-sRu1kpcO9yLtYxBKvqfTeh9KzZEwO3STyX1HT+4CaDzC6HpTGYhIhPIzj9XuKU7KYDwnaeh5hcOwjy1QuJzBPA==
@@ -13438,7 +13433,7 @@ mocha@7.1.2:
     yargs-parser "13.1.2"
     yargs-unparser "1.6.0"
 
-mocha@^10.0.0, mocha@^10.1.0:
+mocha@^10.0.0, mocha@^10.2.0:
   version "10.2.0"
   resolved "https://registry.yarnpkg.com/mocha/-/mocha-10.2.0.tgz#1fd4a7c32ba5ac372e03a17eef435bd00e5c68b8"
   integrity sha512-IDY7fl/BecMwFHzoqF2sg/SHHANeBoMMXFlS9r0OXKDssYE1M5O43wUY/9BVPeIvfH2zmEbBfseqN9gBQZzXkg==

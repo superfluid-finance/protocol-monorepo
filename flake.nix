@@ -43,8 +43,9 @@
       shellcheck
       # used by some scripts
       jq
-      # test coverage
+      # test utilities
       lcov
+      actionlint
     ];
 
     # solidity dev inputs

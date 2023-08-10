@@ -65,7 +65,7 @@ jobs:
     name: Hot Fuzz Superfluid Protocol (Feature Branch)
     uses: ./.github/workflows/call.test-hot-fuzz.yml
     needs: [ check ]
-    if: needs.check.outputs.build_hot_fuzz:
+    if: needs.check.outputs.build_hot_fuzz
 
   test-solidity-semantic-money:
     name: Test Solidity Semantic Money Library (Feature Branch)

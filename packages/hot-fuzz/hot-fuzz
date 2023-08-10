@@ -20,8 +20,6 @@ function apply_crytic_workaround() {
 function cleanup_crytic_workaround() {
     rm -f "node_modules/@superfluid-finance" || true
     rm -f "node_modules/@openzeppelin" || true
-    rmdir "node_modules" || true
-    rm -f "node_modules" || true
     rm -f packages || true
 }
 

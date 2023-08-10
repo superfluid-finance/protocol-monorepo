@@ -44,9 +44,9 @@
     },
     "dependencies": {
         "@superfluid-finance/metadata": "1.1.10",
-        "@truffle/contract": "4.5.23",
-        "auto-bind": "^4.0.0",
-        "node-fetch": "^2.6.7"
+        "@truffle/contract": "4.6.28",
+        "auto-bind": "4.0.0",
+        "node-fetch": "2.6.12"
     },
     "peerDependencies": {
         "@truffle/contract": "^4.0.0"
@@ -54,8 +54,8 @@
     "devDependencies": {
         "@superfluid-finance/ethereum-contracts": "1.7.1",
         "chai-as-promised": "^7.1.1",
-        "webpack": "^5.74.0",
-        "webpack-bundle-analyzer": "^4.6.1",
+        "webpack": "^5.88.2",
+        "webpack-bundle-analyzer": "^4.9.0",
         "webpack-cli": "^4.10.0"
     }
 }

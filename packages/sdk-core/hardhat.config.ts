@@ -40,6 +40,7 @@ const config: HardhatUserConfig = {
     mocha: {
         timeout: 250000,
     },
+    typechain: {target: "ethers-v5"},
 };
 
 export default config;

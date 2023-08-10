@@ -15,7 +15,7 @@
     "pre-commit:lint": "yarn lint"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "4.8.0"
+    "@openzeppelin/contracts": "4.9.3"
   },
   "repository": {
     "type": "git",

@@ -46,150 +46,51 @@ jobs:
         run: tasks/check-changeset.sh ${{ github.sha }} dev
 
   test-ethereum-contracts:
-    name: Build and test ethereum-contracts (Feature Branch)
-
-    runs-on: ubuntu-latest
-
+    name: Test ethereum-contracts (Feature Branch)
+    uses: ./.github/workflows/call.test-ethereum-contracts.yml
     needs: [check]
     if: needs.check.outputs.build_ethereum_contracts
-
-    strategy:
-      matrix:
-        node-version: [18, 20]
-
-    defaults:
-      run:
-        shell: nix develop .#ci-node${{ matrix.node-version }} -c bash {0}
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-
-      - uses: cachix/install-nix-action@v19
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Initialize devShell
-        run: |
-          set -ex
-          node --version
-          yarn --version
-          solc --version
-
-      - name: Yarn Install
-        run: |
-          set -ex
-          yarn install --frozen-lockfile
-          npx tsc --version
-          npx hardhat --version
-
-      - name: Lint and build
-        run: |
-          set -ex
-          yarn lint
-          yarn build
-
-      - name: Test ethereum-contracts
-        run: |
-          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
-          yarn workspace @superfluid-finance/ethereum-contracts test
-        env:
-          # NOTE: This is currently unset and fork tests are not being run
-          POLYGON_MAINNET_ARCHIVE_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_ARCHIVE_PROVIDER_URL }}
-
-      - name: Print test benchmarking output
-        run: |
-          cat packages/ethereum-contracts/testing-benchmark.json
+    with:
+      run-coverage-tests: false
 
   coverage-ethereum-contracts:
-    name: Build and test coverage of ethereum-contracts (Feature Branch)
-
-    runs-on: ubuntu-latest
-
+    name: Coverage test ethereum-contracts (Feature Branch)
+    uses: ./.github/workflows/call.test-ethereum-contracts.yml
     needs: [check]
     if: needs.check.outputs.build_ethereum_contracts
-
-    defaults:
-      run:
-        shell: nix develop -c bash {0}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: cachix/install-nix-action@v19
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Initialize devShell
-        run: |
-          set -ex
-          node --version
-          yarn --version
-          solc --version
-
-      - name: Yarn Install
-        run: |
-          set -ex
-          yarn install --frozen-lockfile
-          npx tsc --version
-          npx hardhat --version
-
-      - name: build
-        run: |
-          set -ex
-          yarn build
-
-      - name: Run coverage test
-        run: |
-          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
-          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
-
-      - name: Install lcov
-        run: sudo apt-get -y install lcov
-
-      - name: Clean up and merge coverage artifacts
-        run: ./tasks/coverage-cleanup.sh
-
-      - name: Upload ethereum-contracts-coverage to codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: lcov.info
-          name: ethereum-contracts-coverage
-          flags: ethereum-contracts
-          fail_ci_if_error: true
-          verbose: true
+    with:
+      run-coverage-tests: true
 
   test-hot-fuzz:
+    name: Hot Fuzz Superfluid Protocol (Feature Branch)
     uses: ./.github/workflows/call.test-hot-fuzz.yml
     needs: [ check ]
+    if: needs.check.outputs.build_hot_fuzz:
 
   test-solidity-semantic-money:
+    name: Test Solidity Semantic Money Library (Feature Branch)
     uses: ./.github/workflows/call.test-solidity-semantic-money.yml
     needs: [ check ]
     if: needs.check.outputs.build_solidity_semantic_money
 
   #test automations:
   test-automation-contracts:
+    name: Test Automation Contracts (Feature Branch)
     uses: ./.github/workflows/call.test-automation-contracts.yml
-    name: Build and Test Automation Contracts
     needs: [ check ]
     if: needs.check.outputs.build_automation_contracts
 
   # subgraph integration test
   test-subgraph:
+    name: Test Subgraph (Feature Branch)
     uses: ./.github/workflows/call.test-local-subgraph.yml
-    name: Build and Test Subgraph (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_subgraph
 
   # sdk-core integration test + local subgraph w/ local sdk-core
   test-sdk-core:
+    name: Test SDK-Core (Feature Branch)
     uses: ./.github/workflows/call.test-sdk-core.yml
-    name: Build and Test SDK-Core (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_sdk_core
     with:
@@ -198,8 +99,8 @@ jobs:
       run-coverage-tests: false
 
   test-spec-haskell:
+    name: Test Spec Haskell (Feature Branch)
     uses: ./.github/workflows/call.test-spec-haskell.yml
-    name: Build and Test Spec Haskell (Feature Branch)
     needs: [check]
     if: needs.check.outputs.build_spec_haskell
 

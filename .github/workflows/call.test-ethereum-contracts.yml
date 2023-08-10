@@ -1,0 +1,83 @@
+name: Reusable Workflow | Test Ethereum Contracts
+
+on:
+  workflow_call:
+    inputs:
+      run-coverage-tests:
+        required: true
+        type: boolean
+
+jobs:
+  test-ethereum-contracts:
+    name: Test ethereum-contracts
+
+    runs-on: ubuntu-latest
+
+    needs: [check]
+
+    strategy:
+      matrix:
+        node-version: [18, 20]
+
+    defaults:
+      run:
+        shell: nix develop .#ci-node${{ matrix.node-version }} -c bash -xe {0}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - uses: cachix/install-nix-action@v19
+        with:
+          github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialize devShell
+        run: |
+          node --version
+          yarn --version
+          solc --version
+
+      - name: Yarn Install
+        run: |
+          yarn install --frozen-lockfile
+          npx tsc --version
+          npx hardhat --version
+
+      - name: Lint and build
+        run: |
+          yarn lint
+          yarn build
+
+      - name: Run test suite
+        if: inputs.run-coverage-tests == false
+        run: |
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
+          yarn workspace @superfluid-finance/ethereum-contracts test
+          cat packages/ethereum-contracts/testing-benchmark.json
+        env:
+          # NOTE: This is currently unset and fork tests are not being run
+          POLYGON_MAINNET_ARCHIVE_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_ARCHIVE_PROVIDER_URL }}
+
+      - name: Run coverage test
+        if: inputs.run-coverage-tests == true
+        run: |
+          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
+          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+
+      - name: Clean up and merge coverage artifacts
+        if: inputs.run-coverage-tests == true
+        run: ./tasks/coverage-cleanup.sh
+
+      - name: Upload ethereum-contracts-coverage to codecov
+        if: inputs.run-coverage-tests == true
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: lcov.info
+          name: ethereum-contracts-coverage
+          flags: ethereum-contracts
+          fail_ci_if_error: true
+          verbose: true

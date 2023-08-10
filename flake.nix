@@ -43,6 +43,8 @@
       shellcheck
       # used by some scripts
       jq
+      # test coverage
+      lcov
     ];
 
     # solidity dev inputs
@@ -63,7 +65,7 @@
     node20DevInputs = nodeDevInputsWith pkgs.nodejs_20;
 
     # minimem development shell
-    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node20DevInputs;
+    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
 
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [

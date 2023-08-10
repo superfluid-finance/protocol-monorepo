@@ -12,6 +12,20 @@ on:
       - ".github/workflows/call.test-local-subgraph.yml"
 
 jobs:
+  check:
+    name: Checking what packages need to be built
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      build_subgraph: ${{ env.BUILD_SUBGRAPH }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check changeset
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
+
   essential-build-and-test:
     name: Build and test essential packages of dev branch
 
@@ -73,20 +87,6 @@ jobs:
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
       run-coverage-tests: false
 
-  check:
-    name: Checking what packages need to be built
-
-    runs-on: ubuntu-latest
-
-    outputs:
-      build_subgraph: ${{ env.BUILD_SUBGRAPH }}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
-
   # deploy subgraph if changes are made, we can call this every time, but we won't actually do any deployments
   # if the IPFS hash generated stays the same (no mapping logic changes)
   deploy-subgraph-changes:
@@ -135,9 +135,6 @@ jobs:
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
           echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
-
-      - name: Install lcov
-        run: sudo apt-get -y install lcov
 
       - name: Clean up and merge coverage artifacts
         run: ./tasks/coverage-cleanup.sh

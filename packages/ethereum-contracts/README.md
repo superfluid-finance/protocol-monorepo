@@ -313,14 +313,14 @@ You should choose the tests relevant for what you're working on using the [only 
 You can put the `only` keyword at any level between whole test suites (`only` appended to a top level `describe`, e.g. `describe.only`) and individual testcases (`it`, e.g. `it.only`).
 With the testing scope defined, run:
 ```
-yarn dev
+yarn dev-hardhat
 ```
 This has [testsuites/all-contracts.js](testsuites/all-contracts.js) as its entrypoint, but if there's an `only` keyword at any nesting level in any of the tests traversed, only that selected subset of tests will be executed.
 The selected test(s) will run once when starting the session and re-run everytime you save changes in a relevant file.
 
-You may also focus on a specific testsuite with yarn dev:
+You may also focus on a specific testsuite with yarn dev-hardhat:
 ```
-yarn dev test/contracts/libs/CallUtils.test.js
+yarn dev-hardhat test/contracts/libs/CallUtils.test.js
 ```
 
 After finishing the session, you can stop the hardhat instance you started in the first step (Ctrl-C).
@@ -337,15 +337,15 @@ python3 testDataToCharts.py output
 ```
 
 #### Foundry
-On the other hand, you can run the development session with foundry with the command: `yarn dev-forge`.
+On the other hand, you can run the development session with foundry with the command: `yarn dev-foundry`.
 
 ### Other Useful Commands
 
 ```
 yarn run-hardhat # run hardhat
 yarn run-truffle # run truffle
-yarn run-forge # run foundry forge
-yarn run-nodemon forge test # use nodemon to run forge test
+yarn run-foundry # run foundry forge
+yarn run-nodemon forge test # use nodemon to run foundry test
 ```
 
 ### Troubleshooting

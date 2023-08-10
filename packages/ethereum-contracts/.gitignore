@@ -11,3 +11,4 @@
 /.gas-snapshot
 /lib
 /packages
+/testing-benchmark.json

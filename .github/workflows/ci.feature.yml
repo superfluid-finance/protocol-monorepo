@@ -72,10 +72,11 @@ jobs:
 
       - name: Initialize devShell
         run: |
-          set -xe
+          set -ex
           node --version
           yarn --version
           solc --version
+          npx ts-node --version
           npx hardhat --version
 
       - name: Install, lint and build
@@ -118,9 +119,11 @@ jobs:
 
       - name: Initialize devShell
         run: |
+          set -ex
           node --version
           yarn --version
           solc --version
+          npx ts-node --version
           npx hardhat --version
 
       - name: Install and build

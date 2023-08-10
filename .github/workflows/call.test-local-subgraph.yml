@@ -21,8 +21,10 @@ jobs:
 
       - name: Initialize devShell
         run: |
+          set -ex
           node --version
           yarn --version
+          npx ts-node --version
 
       - name: "Install dependencies"
         run: yarn install --frozen-lockfile

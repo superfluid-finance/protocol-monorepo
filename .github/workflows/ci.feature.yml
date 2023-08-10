@@ -70,6 +70,14 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Initialize devShell
+        run: |
+          set -xe
+          node --version
+          yarn --version
+          solc --version
+          hardhat --version
+
       - name: Install, lint and build
         run: |
           yarn install --frozen-lockfile
@@ -107,6 +115,14 @@ jobs:
       - uses: cachix/install-nix-action@v19
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Initialize devShell
+        run: |
+          set -xe
+          node --version
+          yarn --version
+          solc --version
+          hardhat --version
 
       - name: Install and build
         run: |

@@ -23,7 +23,7 @@ import {
 import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../../mockedFunctions";
 
 const initialFlowRate = BigInt.fromI32(100);
-const pool = maticXAddress;
+const superToken = maticXAddress;
 
 describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     beforeEach(() => {
@@ -31,7 +31,6 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     });
 
     test("handlePoolCreated() - Should create a new PoolCreatedEvent entity", () => {
-        const superToken = maticXAddress;
         const admin = bob;
 
         const poolCreatedEvent = createPoolCreatedEvent(superToken, admin, superfluidPool);
@@ -59,7 +58,6 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     });
 
     test("handlePoolConnectionUpdated() - Should create a new handlePoolConnectionUpdatedEvent entity (connected)", () => {
-        const superToken = maticXAddress;
         const account = bob;
         const connected = true;
 
@@ -93,7 +91,6 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     });
 
     test("handlePoolConnectionUpdated() - Should create a new handlePoolConnectionUpdatedEvent entity (disconnected)", () => {
-        const superToken = maticXAddress;
         const account = bob;
         const connected = false;
 
@@ -153,7 +150,6 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     });
 
     test("handleInstantDistributionUpdated() - Should create a new handleInstantDistributionUpdatedEvent entity", () => {
-        const superToken = maticXAddress;
         const operator = alice;
         const requestedAmount = BigInt.fromI32(69);
         const actualAmount = BigInt.fromI32(70);
@@ -180,7 +176,6 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     });
 
     test("handleFlowDistributionUpdated() - Should create a new handleFlowDistributionUpdatedEvent entity", () => {
-        const superToken = maticXAddress;
         const operator = alice;
         const oldFlowRate = BigInt.fromI32(69);
         const newDistributorToPoolFlowRate = BigInt.fromI32(420);
@@ -226,7 +221,6 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     });
 
     test("handleDistributionClaimed() - Should create a new DistributionClaimedEvent entity", () => {
-        const superToken = maticXAddress;
         const poolMember = alice;
         const claimedAmount = BigInt.fromI32(69);
         const totalClaimed = BigInt.fromI32(420);
@@ -261,7 +255,6 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     });
 
     test("handleMemberUnitsUpdated() - Should create a new MemberUnitsUpdatedEvent entity", () => {
-        const superToken = maticXAddress;
         const units = BigInt.fromI32(69);
         const poolMember = bob;
 

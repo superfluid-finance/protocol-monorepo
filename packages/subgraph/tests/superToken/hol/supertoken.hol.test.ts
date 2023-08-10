@@ -1,19 +1,9 @@
 import { assert, beforeEach, clearStore, describe, test } from "matchstick-as";
-import {
-    createFlowOperatorUpdatedEvent,
-} from "../../cfav1/cfav1.helper";
-import {
-    alice,
-    bob,
-    maticXAddress,
-} from "../../constants";
-import {
-    BIG_INT_ZERO,
-    getAccountTokenSnapshotID,
-    getFlowOperatorID,
-} from "../../../src/utils";
+import { createFlowOperatorUpdatedEvent } from "../../cfav1/cfav1.helper";
+import { alice, bob, maticXAddress } from "../../constants";
+import { BIG_INT_ZERO, getAccountTokenSnapshotID, getFlowOperatorID } from "../../../src/utils";
 import { Address, BigInt } from "@graphprotocol/graph-ts";
-import {mockedApprove, mockedGetAppManifest} from "../../mockedFunctions";
+import { mockedApprove, mockedGetAppManifest } from "../../mockedFunctions";
 import { handleFlowOperatorUpdated } from "../../../src/mappings/cfav1";
 import { handleApproval } from "../../../src/mappings/superToken";
 import { assertHigherOrderBaseProperties } from "../../assertionHelpers";
@@ -53,35 +43,17 @@ describe("SuperToken Higher Order Level Entity Unit Tests", () => {
         assert.fieldEquals("FlowOperator", id, "allowance", "0");
 
         // trigger approve event
-        const approvalEvent = createApprovalEvent(
-            superToken,
-            sender,
-            flowOperator,
-            allowance
-        );
+        const approvalEvent = createApprovalEvent(superToken, sender, flowOperator, allowance);
 
         handleApproval(approvalEvent);
 
-        const atsId = getAccountTokenSnapshotID(
-            Address.fromString(sender),
-            Address.fromString(superToken)
-        );
-        assertHigherOrderBaseProperties(
-            "FlowOperator",
-            id,
-            flowOperatorUpdatedEvent.block.timestamp,
-            flowOperatorUpdatedEvent.block.number,
-            flowOperatorUpdatedEvent.block.timestamp,
-            flowOperatorUpdatedEvent.block.number
-        );
-        assert.fieldEquals("FlowOperator", id, "permissions", permissions.toString()
-        );
+        const atsId = getAccountTokenSnapshotID(Address.fromString(sender), Address.fromString(superToken));
+        assertHigherOrderBaseProperties("FlowOperator", id, flowOperatorUpdatedEvent);
+        assert.fieldEquals("FlowOperator", id, "permissions", permissions.toString());
         assert.fieldEquals("FlowOperator", id, "flowRateAllowanceGranted", flowRateAllowance.toString());
-        assert.fieldEquals("FlowOperator", id, "flowRateAllowanceRemaining", flowRateAllowance.toString()
-        );
+        assert.fieldEquals("FlowOperator", id, "flowRateAllowanceRemaining", flowRateAllowance.toString());
         assert.fieldEquals("FlowOperator", id, "flowOperator", flowOperator);
-        assert.fieldEquals("FlowOperator", id, "allowance", allowance.toString()
-        );
+        assert.fieldEquals("FlowOperator", id, "allowance", allowance.toString());
         assert.fieldEquals("FlowOperator", id, "sender", sender);
         assert.fieldEquals("FlowOperator", id, "token", superToken);
         assert.fieldEquals("FlowOperator", id, "accountTokenSnapshot", atsId);

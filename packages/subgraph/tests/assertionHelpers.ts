@@ -45,14 +45,11 @@ export function assertEventBaseProperties(
 export function assertHigherOrderBaseProperties(
     entityName: string,
     id: string,
-    createdAtTimestamp: BigInt,
-    createdAtBlockNumber: BigInt,
-    updatedAtTimestamp: BigInt,
-    updatedAtBlockNumber: BigInt
+    event: ethereum.Event,
 ): void {
-    assertAggregateBaseProperties(entityName, id, updatedAtTimestamp, updatedAtBlockNumber);
-    assert.fieldEquals(entityName, id, "createdAtTimestamp", createdAtTimestamp.toString());
-    assert.fieldEquals(entityName, id, "createdAtBlockNumber", createdAtBlockNumber.toString());
+    assertAggregateBaseProperties(entityName, id, event.block.timestamp, event.block.number);
+    assert.fieldEquals(entityName, id, "createdAtTimestamp", event.block.timestamp.toString());
+    assert.fieldEquals(entityName, id, "createdAtBlockNumber", event.block.number.toString());
 }
 
 /**

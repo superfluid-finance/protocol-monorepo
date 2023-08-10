@@ -144,6 +144,42 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     ) external virtual returns(bytes memory newCtx);
 
     /**
+     * @dev msgSender from `ctx` increases flow rate allowance for the `flowOperator` by `addedFlowRateAllowance`
+     * @dev if `addedFlowRateAllowance` is negative, we revert with CFA_ACL_NO_NEGATIVE_ALLOWANCE
+     * @param token Super token address
+     * @param flowOperator The permission grantee address
+     * @param permissionsToAdd A bitmask representation of the granted permissions to add as a delta
+     * @param addedFlowRateAllowance The flow rate allowance delta
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The new context bytes
+     */
+    function increaseFlowRateAllowanceWithPermissions(
+        ISuperfluidToken token,
+        address flowOperator,
+        uint8 permissionsToAdd,
+        int96 addedFlowRateAllowance,
+        bytes calldata ctx
+    ) external virtual returns(bytes memory newCtx);
+
+    /**
+     * @dev msgSender from `ctx` decreases flow rate allowance for the `flowOperator` by `subtractedFlowRateAllowance`
+     * @dev if `subtractedFlowRateAllowance` is negative, we revert with CFA_ACL_NO_NEGATIVE_ALLOWANCE
+     * @param token Super token address
+     * @param flowOperator The permission grantee address
+     * @param permissionsToRemove A bitmask representation of the granted permissions to remove as a delta
+     * @param subtractedFlowRateAllowance The flow rate allowance delta
+     * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
+     * @return newCtx The new context bytes
+     */
+    function decreaseFlowRateAllowanceWithPermissions(
+        ISuperfluidToken token,
+        address flowOperator,
+        uint8 permissionsToRemove,
+        int96 subtractedFlowRateAllowance,
+        bytes calldata ctx
+    ) external virtual returns(bytes memory newCtx);
+
+    /**
      * @dev msgSender from `ctx` grants `flowOperator` all permissions with flowRateAllowance as type(int96).max
      * @param token Super token address
      * @param flowOperator The permission grantee address

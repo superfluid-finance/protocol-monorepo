@@ -3,6 +3,8 @@ import { expect } from "chai";
 import {
     AUTHORIZE_FLOW_OPERATOR_CREATE,
     AUTHORIZE_FULL_CONTROL,
+    _addPermissions,
+    _removePermissions,
     clipDepositNumber,
     getFlowOperatorId,
     getPerSecondFlowRateByMonth,
@@ -114,7 +116,8 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
                     flowOperator: flowOperator.address,
                     providerOrSigner: sender,
                 });
-            const decreaseFlowRateAllowanceDelta = getPerSecondFlowRateByMonth("31");
+            const decreaseFlowRateAllowanceDelta =
+                getPerSecondFlowRateByMonth("31");
             await testEnv.wrapperSuperToken
                 .decreaseFlowRateAllowance({
                     flowRateAllowanceDelta: decreaseFlowRateAllowanceDelta,
@@ -131,6 +134,84 @@ makeSuite("SuperToken-CFA-Operator Tests", (testEnv: TestEnvironment) => {
                 toBN(flowOperatorDataBefore.flowRateAllowance)
                     .sub(toBN(decreaseFlowRateAllowanceDelta))
                     .toString()
+            );
+        });
+
+        it("Should be able to increase flow rate allowance with permissions", async () => {
+            const flowRateAllowanceDelta = getPerSecondFlowRateByMonth("100");
+            const permissions = AUTHORIZE_FULL_CONTROL;
+
+            const flowOperatorDataBefore =
+                await testEnv.wrapperSuperToken.getFlowOperatorData({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    providerOrSigner: sender,
+                });
+            await testEnv.wrapperSuperToken
+                .increaseFlowRateAllowanceWithPermissions({
+                    flowRateAllowanceDelta,
+                    flowOperator: flowOperator.address,
+                    permissionsDelta: permissions,
+                })
+                .exec(sender);
+            const flowOperatorDataAfter =
+                await testEnv.wrapperSuperToken.getFlowOperatorData({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    providerOrSigner: sender,
+                });
+            expect(flowOperatorDataAfter.flowRateAllowance).to.equal(
+                flowRateAllowanceDelta
+            );
+            expect(flowOperatorDataAfter.permissions).to.equal(
+                _addPermissions(
+                    Number(flowOperatorDataBefore.permissions),
+                    permissions
+                ).toString()
+            );
+        });
+
+        it("Should be able to decrease flow rate allowance with permissions", async () => {
+            const flowRateAllowanceDelta = getPerSecondFlowRateByMonth("100");
+            const permissions = AUTHORIZE_FULL_CONTROL;
+            await testEnv.wrapperSuperToken
+                .increaseFlowRateAllowanceWithPermissions({
+                    flowRateAllowanceDelta,
+                    flowOperator: flowOperator.address,
+                    permissionsDelta: permissions,
+                })
+                .exec(sender);
+            const flowOperatorDataBefore =
+                await testEnv.wrapperSuperToken.getFlowOperatorData({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    providerOrSigner: sender,
+                });
+            const decreaseFlowRateAllowanceDelta =
+                getPerSecondFlowRateByMonth("31");
+            await testEnv.wrapperSuperToken
+                .decreaseFlowRateAllowanceWithPermissions({
+                    flowRateAllowanceDelta: decreaseFlowRateAllowanceDelta,
+                    flowOperator: flowOperator.address,
+                    permissionsDelta: permissions,
+                })
+                .exec(sender);
+            const flowOperatorDataAfter =
+                await testEnv.wrapperSuperToken.getFlowOperatorData({
+                    sender: sender.address,
+                    flowOperator: flowOperator.address,
+                    providerOrSigner: sender,
+                });
+            expect(flowOperatorDataAfter.flowRateAllowance).to.equal(
+                toBN(flowOperatorDataBefore.flowRateAllowance)
+                    .sub(toBN(decreaseFlowRateAllowanceDelta))
+                    .toString()
+            );
+            expect(flowOperatorDataAfter.permissions).to.equal(
+                _removePermissions(
+                    Number(flowOperatorDataBefore.permissions),
+                    permissions
+                ).toString()
             );
         });
 

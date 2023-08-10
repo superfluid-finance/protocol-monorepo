@@ -19,8 +19,8 @@
   outputs = { self, nixpkgs, flake-utils, foundry, solc } :
   flake-utils.lib.eachDefaultSystem (system:
   let
-    solcVer = "solc_0_8_19";
     minDevSolcVer = "solc_0_8_4"; # minimum solidity version used for external development
+    solcVer = "solc_0_8_19";
     ghcVer92 = "ghc928";
     ghcVer94 = "ghc945";
 
@@ -63,7 +63,7 @@
     node20DevInputs = nodeDevInputsWith pkgs.nodejs_20;
 
     # minimem development shell
-    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
+    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node20DevInputs;
 
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [

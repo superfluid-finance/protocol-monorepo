@@ -205,7 +205,7 @@ dataSources:
       name: GeneralDistributionAgreementV1
       network: {{ network }}
       source:
-        address: "{{ idaAddress }}"
+        address: "{{ gdaAddress }}"
         abi: IGeneralDistributionAgreementV1
         startBlock: {{ hostStartBlock }}
       mapping:

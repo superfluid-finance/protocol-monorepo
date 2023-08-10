@@ -4,6 +4,7 @@
     "hostAddress": "0xEB796bdb90fFA0f28255275e16936D25d3418603",
     "cfaAddress": "0x49e565Ed1bdc17F3d220f72DF0857C26FA83F873",
     "idaAddress": "0x804348D4960a61f2d5F9ce9103027A3E849E09b8",
+    "gdaAddress": "0x63ab406B6eF6c8be732c1edbd15464de16a8F46D",
     "superTokenFactoryAddress": "0x200657E2f123761662567A1744f9ACAe50dF47E6",
     "resolverV1Address": "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3",
     "nativeAssetSuperTokenAddress": "0x96b82b65acf7072efeb00502f45757f254c2a0d4"

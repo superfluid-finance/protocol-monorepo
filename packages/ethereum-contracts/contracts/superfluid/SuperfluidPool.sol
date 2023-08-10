@@ -380,6 +380,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     function _updateMemberUnits(address memberAddr, uint128 newUnits) internal returns (bool) {
+        // @note normally we keep the sanitization in the external functions, but here
+        // this is used in both updateMemberUnits and transfer
         if (GDA.isPool(superToken, memberAddr)) revert SUPERFLUID_POOL_NO_POOL_MEMBERS();
         if (memberAddr == address(0)) revert SUPERFLUID_POOL_NO_ZERO_ADDRESS();
 

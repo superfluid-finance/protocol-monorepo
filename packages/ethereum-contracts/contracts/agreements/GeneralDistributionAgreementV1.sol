@@ -133,15 +133,15 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     function realtimeBalanceVectorAt(ISuperfluidToken token, address account, uint256 time)
         public
         view
-        returns (int256 own, int256 fromPools, int256 buffer)
+        returns (int256 available, int256 fromPools, int256 buffer)
     {
         UniversalIndexData memory universalIndexData = _getUIndexData(abi.encode(token), account);
         BasicParticle memory uIndexParticle = _getBasicParticleFromUIndex(universalIndexData);
 
         if (_isPool(token, account)) {
-            own = ISuperfluidPool(account).getDisconnectedBalance(uint32(time));
+            available = ISuperfluidPool(account).getDisconnectedBalance(uint32(time));
         } else {
-            own = Value.unwrap(uIndexParticle.rtb(Time.wrap(uint32(time))));
+            available = Value.unwrap(uIndexParticle.rtb(Time.wrap(uint32(time))));
         }
 
         {
@@ -266,6 +266,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
     /// @inheritdoc IGeneralDistributionAgreementV1
     function createPool(ISuperfluidToken token, address admin) external override returns (ISuperfluidPool pool) {
+        // @note ensure if token and admin are the same that nothing funky happens with echidna
         if (admin == address(0)) revert GDA_NO_ZERO_ADDRESS_ADMIN();
         // @note some sort of token logic
         // if (token == address(0)) revert GDA_NO_ZERO_ADDRESS_TOKEN();
@@ -279,7 +280,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         data[0] = bytes32(uint256(1));
         token.updateAgreementStateSlot(address(pool), _UNIVERSAL_INDEX_STATE_SLOT_ID, data);
 
-        IPoolAdminNFT poolAdminNFT = IPoolAdminNFT(_canCallPoolAdminNFTHook(token));
+        IPoolAdminNFT poolAdminNFT = IPoolAdminNFT(_getPoolAdminNFTAddress(token));
 
         if (address(poolAdminNFT) != address(0)) {
             uint256 gasLeftBefore = gasleft();
@@ -303,6 +304,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         return connectPool(pool, false, ctx);
     }
 
+    // @note setPoolConnection function naming
     function connectPool(ISuperfluidPool pool, bool doConnect, bytes calldata ctx)
         public
         returns (bytes memory newCtx)
@@ -318,6 +320,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                 uint32 poolSlotID =
                     _findAndFillPoolConnectionsBitmap(token, msgSender, bytes32(uint256(uint160(address(pool)))));
 
+                // malicious token can reenter here
+                // external call to untrusted contract
+                // what sort of boundary can we trust
                 token.createAgreement(
                     _getPoolMemberHash(msgSender, pool),
                     _encodePoolMemberData(PoolMemberData({ poolID: poolSlotID, pool: address(pool) }))
@@ -353,35 +358,32 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     }
 
     function appendIndexUpdateByPool(ISuperfluidToken token, BasicParticle memory p, Time t) external returns (bool) {
+        if (_isPool(token, msg.sender) == false) {
+            revert GDA_ONLY_SUPER_TOKEN_POOL();
+        }
         _appendIndexUpdateByPool(abi.encode(token), msg.sender, p, t);
         return true;
     }
 
     function _appendIndexUpdateByPool(bytes memory eff, address pool, BasicParticle memory p, Time t) internal {
-        address token = abi.decode(eff, (address));
-        if (_isPool(ISuperfluidToken(token), msg.sender) == false) {
-            revert GDA_ONLY_SUPER_TOKEN_POOL();
-        }
-
         _setUIndex(eff, pool, _getUIndex(eff, pool).mappend(p));
         _setPoolAdjustmentFlowRate(eff, pool, true, /* doShift? */ p.flow_rate(), t);
-    }
-
-    function _poolSettleClaim(bytes memory eff, address claimRecipient, Value amount) internal {
-        address token = abi.decode(eff, (address));
-        if (_isPool(ISuperfluidToken(token), msg.sender) == false) {
-            revert GDA_ONLY_SUPER_TOKEN_POOL();
-        }
-        _doShift(eff, msg.sender, claimRecipient, amount);
     }
 
     function poolSettleClaim(ISuperfluidToken superToken, address claimRecipient, int256 amount)
         external
         returns (bool)
     {
+        if (_isPool(superToken, msg.sender) == false) {
+            revert GDA_ONLY_SUPER_TOKEN_POOL();
+        }
         bytes memory eff = abi.encode(superToken);
         _poolSettleClaim(eff, claimRecipient, Value.wrap(amount));
         return true;
+    }
+
+    function _poolSettleClaim(bytes memory eff, address claimRecipient, Value amount) internal {
+        _doShift(eff, msg.sender, claimRecipient, amount);
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
@@ -532,7 +534,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         int96 requestedFlowRate,
         FlowRate oldFlowRate
     ) internal {
-        address constantOutflowNFTAddress = _canCallConstantOutflowNFTHook(token);
+        address constantOutflowNFTAddress = _getConstantOutflowNFTAddress(token);
 
         if (constantOutflowNFTAddress != address(0)) {
             uint256 gasLeftBefore;
@@ -574,7 +576,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
      * @param token the super token that is being streamed
      * @return constantOutflowNFTAddress the address returned by low level call
      */
-    function _canCallConstantOutflowNFTHook(ISuperfluidToken token)
+    function _getConstantOutflowNFTAddress(ISuperfluidToken token)
         internal
         view
         returns (address constantOutflowNFTAddress)
@@ -593,7 +595,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
     }
 
-    function _canCallPoolAdminNFTHook(ISuperfluidToken token) internal view returns (address poolAdminNFTAddress) {
+    function _getPoolAdminNFTAddress(ISuperfluidToken token) internal view returns (address poolAdminNFTAddress) {
         // solhint-disable-next-line avoid-low-level-calls
         (bool success, bytes memory data) =
             address(token).staticcall(abi.encodeWithSelector(ISuperToken.POOL_ADMIN_NFT.selector));

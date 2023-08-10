@@ -527,3 +527,13 @@ export interface FlowRateAllowanceParams
     extends SuperTokenFlowRateAllowanceParams {
     readonly superToken: string;
 }
+
+export interface FlowRateAllowanceWithPermissionsParams
+    extends FlowRateAllowanceParams {
+    readonly permissionsDelta: number;
+}
+
+export interface SuperTokenFlowRateAllowanceWithPermissionsParams
+    extends SuperTokenFlowRateAllowanceParams {
+    readonly permissionsDelta: number;
+}

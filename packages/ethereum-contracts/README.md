@@ -318,7 +318,7 @@ yarn dev-hardhat
 This has [testsuites/all-contracts.js](testsuites/all-contracts.js) as its entrypoint, but if there's an `only` keyword at any nesting level in any of the tests traversed, only that selected subset of tests will be executed.
 The selected test(s) will run once when starting the session and re-run everytime you save changes in a relevant file.
 
-You may also focus on a specific testsuite with yarn dev:
+You may also focus on a specific testsuite with yarn dev-hardhat:
 ```
 yarn dev-hardhat test/contracts/libs/CallUtils.test.js
 ```
@@ -337,7 +337,7 @@ python3 testDataToCharts.py output
 ```
 
 #### Foundry
-On the other hand, you can run the development session with foundry with the command: `yarn dev`.
+On the other hand, you can run the development session with foundry with the command: `yarn dev-foundry`.
 
 ### Other Useful Commands
 

@@ -24,10 +24,12 @@ jobs:
           set -ex
           node --version
           yarn --version
-          npx ts-node --version
 
       - name: "Install dependencies"
-        run: yarn install --frozen-lockfile
+        run: |
+          set -ex
+          yarn install --frozen-lockfile
+          npx tsc --version
 
       - name: "Build contracts"
         run: yarn build

@@ -6,6 +6,10 @@
 	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-18-bookworm",
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	"features": {
+		// If having issues with Nix then consult:
+		// * Nix Dev Containers feature repo: https://github.com/devcontainers/features/tree/main/src/nix
+		// * Nix issue about using with GitHub Codespaces: https://github.com/NixOS/nix/issues/6680
+		// * Nix discourse talk about using with GitHub Codespaces: https://discourse.nixos.org/t/github-codespace-support/27152/2
 		"ghcr.io/devcontainers/features/nix:1": {
 			"multiUser": true,
 			"version": "latest",

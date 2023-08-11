@@ -64,9 +64,9 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn lint
-          yarn build
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
           echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
+          yarn build
           yarn test
         env:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}

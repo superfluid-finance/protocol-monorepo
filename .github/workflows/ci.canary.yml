@@ -74,6 +74,7 @@ jobs:
 
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
+    name: Hot Fuzz (Development Branch)
 
   test-subgraph:
     uses: ./.github/workflows/call.test-local-subgraph.yml
@@ -160,7 +161,7 @@ jobs:
           }
           check_result essential-build-and-test ${{ needs.essential-build-and-test.result }}
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
-          # removed check_result hot-fuzz
+          check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
           check_result subgraph ${{ needs.test-subgraph.result }}
           check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
           check_result sdk-core-coverage ${{ needs.coverage-sdk-core.result }}

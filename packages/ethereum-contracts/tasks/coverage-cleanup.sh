@@ -5,7 +5,7 @@ set -ex
 cd "$(dirname "$0")"/..
 
 # extract coverage for NFT contracts from forge coverage
-lcov -e lcov.info \
+lcov -e ../../lcov.info \
      'contracts/*' \
      -o lcov.info
 

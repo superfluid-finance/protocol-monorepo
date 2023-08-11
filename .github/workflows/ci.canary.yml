@@ -37,7 +37,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop .#ci-node${{ matrix.node-version }} -c bash {0}
+        shell: nix develop .#ci-node${{ matrix.node-version }} -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -113,39 +113,11 @@ jobs:
     name: Build and Test Automation Contracts (Canary Branch)
 
   coverage-ethereum-contracts:
-    name: Run coverage test of ethereum-contracts of dev branch
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        shell: nix develop -c bash {0}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: cachix/install-nix-action@v19
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install, run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
-          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
-
-      - name: Clean up and merge coverage artifacts
-        run: ./tasks/coverage-cleanup.sh
-        working-directory: ./packages/ethereum-contracts
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ethereum-contracts-coverage
-          path: |
-            packages/ethereum-contracts/coverage/
+    name: Coverage test ethereum-contracts (Canary Branch)
+    uses: ./.github/workflows/call.test-ethereum-contracts.yml
+    if: needs.check.outputs.build_ethereum_contracts
+    with:
+      run-coverage-tests: true
 
   coverage-sdk-core:
     uses: ./.github/workflows/call.test-sdk-core.yml
@@ -155,44 +127,10 @@ jobs:
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
       run-coverage-tests: true
 
-  publish-coverage-reports:
-    name: Publish coverage reports
-    needs: [coverage-ethereum-contracts, coverage-sdk-core]
-
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Download ethereum-contracts-coverage
-        uses: actions/download-artifact@v3
-        with:
-          name: ethereum-contracts-coverage
-          path: packages/ethereum-contracts/coverage
-      - name: Upload ethereum-contracts-coverage to codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: packages/ethereum-contracts/coverage/lcov.info
-          name: ethereum-contracts-coverage
-          flags: ethereum-contracts
-          fail_ci_if_error: true
-
-      - name: Download sdk-core-coverage
-        uses: actions/download-artifact@v3
-        with:
-          name: sdk-core-coverage
-          path: packages/sdk-core/coverage
-      - name: Upload sdk-core-coverage to codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: packages/sdk-core/coverage/lcov.info
-          name: sdk-core-coverage
-          flags: sdk-core
-          fail_ci_if_error: true
+  upload-coverage-reports:
+    name: Upload Coverage Reports (Feature Branch)
+    uses: ./.github/workflows/call.upload-coverage-reports.yml
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts]
 
   all-packages-tested:
     name: All packages tested (Dev Branch)
@@ -239,7 +177,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -283,7 +221,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -346,7 +284,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3

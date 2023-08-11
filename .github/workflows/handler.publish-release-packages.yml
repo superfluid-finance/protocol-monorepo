@@ -12,7 +12,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -62,7 +62,7 @@ jobs:
           tasks/npm-publish.sh packages/sdk-core/ latest
 
           PUBLISHED_VERSION=$(jq -r .version packages/sdk-core/package.json)
-          
+
           echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> "$GITHUB_OUTPUT"
 
           # Build documentation with redirect from root
@@ -107,7 +107,7 @@ jobs:
           tasks/npm-publish.sh packages/sdk-redux/ latest
 
           PUBLISHED_VERSION=$(jq -r .version packages/sdk-redux/package.json)
-          
+
           echo "PUBLISHED_VERSION=$PUBLISHED_VERSION" >> "$GITHUB_OUTPUT"
 
           # Build documentation with redirect from root

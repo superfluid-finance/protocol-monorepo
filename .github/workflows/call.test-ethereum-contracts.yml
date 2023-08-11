@@ -21,6 +21,9 @@ jobs:
       run:
         shell: nix develop .#ci-node${{ matrix.node-version }} -c bash -xe {0}
 
+    # Note: only do coverage test for node 20
+    if: inputs.run-coverage-tests == false || matrix.node-version == 20
+
     steps:
       - uses: actions/checkout@v3
         with:
@@ -67,7 +70,7 @@ jobs:
       ## Coverage Test
       ########################################
       - name: Run coverage test
-        if: inputs.run-coverage-tests == true && matrix.node-version == 20
+        if: inputs.run-coverage-tests == true
         run: |
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
           echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
@@ -75,12 +78,12 @@ jobs:
         working-directory: ./packages/ethereum-contracts
 
       - name: Clean up and merge coverage artifacts
-        if: inputs.run-coverage-tests == true && matrix.node-version == 20
+        if: inputs.run-coverage-tests == true
         run: ./tasks/coverage-cleanup.sh
         working-directory: ./packages/ethereum-contracts
 
       - name: Create coverage artifact
-        if: inputs.run-coverage-tests == true && matrix.node-version == 20
+        if: inputs.run-coverage-tests == true
         uses: actions/upload-artifact@v3
         with:
           name: ethereum-contracts-coverage

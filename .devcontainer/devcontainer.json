@@ -26,7 +26,7 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "curl -L https://foundry.paradigm.xyz | bash & foundryup & yarn install && yarn build"
+	"postCreateCommand": "./tasks/fix-devcontainer.sh && nix develop . -c bash <(echo \"yarn install && yarn build\")"
 	
 	// Configure tool-specific properties.
 	// "customizations": {},

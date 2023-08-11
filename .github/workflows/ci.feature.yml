@@ -98,6 +98,16 @@ jobs:
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
       run-coverage-tests: false
 
+  coverage-sdk-core:
+    name: Test SDK-Core (Feature Branch)
+    uses: ./.github/workflows/call.test-sdk-core.yml
+    needs: [check]
+    if: needs.check.outputs.build_sdk_core
+    with:
+      subgraph-release: local
+      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+      run-coverage-tests: true
+
   test-spec-haskell:
     name: Test Spec Haskell (Feature Branch)
     uses: ./.github/workflows/call.test-spec-haskell.yml
@@ -107,7 +117,7 @@ jobs:
   upload-coverage-reports:
     name: Upload Coverage Reports (Feature Branch)
     uses: ./.github/workflows/call.upload-coverage-reports.yml
-    needs: [coverage-ethereum-contracts]
+    needs: [coverage-ethereum-contracts, coverage-sdk-core]
 
   # Note:
   #
@@ -125,7 +135,7 @@ jobs:
            , test-solidity-semantic-money
            , test-ethereum-contracts, coverage-ethereum-contracts
            , test-hot-fuzz
-           , test-sdk-core
+           , test-sdk-core, coverage-sdk-core
            , test-subgraph
            , test-automation-contracts
            ]

@@ -61,6 +61,7 @@ import {
     SuperTokenGDAGetNetFlowParams,
     SuperTokenGetPoolAdjustmentFlowRateParams,
     SuperTokenIsPoolParams,
+    SuperTokenFlowRateAllowanceWithPermissionsParams,
 } from "./interfaces";
 import {
     getSanitizedTimestamp,
@@ -438,6 +439,44 @@ export default abstract class SuperToken extends ERC20Token {
      */
     decreaseFlowRateAllowance(params: SuperTokenFlowRateAllowanceParams) {
         return this.cfaV1.decreaseFlowRateAllowance({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
+
+    /**
+     * Increase the flow rate allowance and sets permissions for an ACL operator.
+     * @param flowOperator The permission grantee address
+     * @param permission The permissions to set.
+     * @param flowRateAllowance The amount to increase the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     *
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    increaseFlowRateAllowanceWithPermissions(
+        params: SuperTokenFlowRateAllowanceWithPermissionsParams
+    ): Operation {
+        return this.cfaV1.increaseFlowRateAllowanceWithPermissions({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
+
+    /**
+     * Decrease the flow rate allowance and sets permissions for an ACL operator.
+     * @param flowOperator The permission grantee address
+     * @param permission The permissions to set.
+     * @param flowRateAllowance The amount to decrease the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     *
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    decreaseFlowRateAllowanceWithPermissions(
+        params: SuperTokenFlowRateAllowanceWithPermissionsParams
+    ): Operation {
+        return this.cfaV1.decreaseFlowRateAllowanceWithPermissions({
             superToken: this.settings.address,
             ...params,
         });

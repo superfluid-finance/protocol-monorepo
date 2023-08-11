@@ -198,7 +198,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * @dev Moves `amount` tokens from the caller's account to `recipient`.
      *
      * @dev If send or receive hooks are registered for the caller and `recipient`,
-     *      the corresponding functions will be called with `data` and empty
+     *      the corresponding functions will be called with `userData` and empty
      *      `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
      *
      * @custom:emits a {Sent} event.
@@ -209,21 +209,21 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * - if `recipient` is a contract, it must implement the {IERC777Recipient}
      * interface.
      */
-    function send(address recipient, uint256 amount, bytes calldata data) external override(IERC777);
+    function send(address recipient, uint256 amount, bytes calldata userData) external override(IERC777);
 
     /**
      * @dev Destroys `amount` tokens from the caller's account, reducing the
      * total supply and transfers the underlying token to the caller's account.
      *
      * If a send hook is registered for the caller, the corresponding function
-     * will be called with `data` and empty `operatorData`. See {IERC777Sender}.
+     * will be called with `userData` and empty `operatorData`. See {IERC777Sender}.
      *
      * @custom:emits a {Burned} event.
      *
      * @custom:requirements 
      * - the caller must have at least `amount` tokens.
      */
-    function burn(uint256 amount, bytes calldata data) external override(IERC777);
+    function burn(uint256 amount, bytes calldata userData) external override(IERC777);
 
     /**
      * @dev Returns true if an account is an operator of `tokenHolder`.
@@ -273,7 +273,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * be an operator of `sender`.
      *
      * If send or receive hooks are registered for `sender` and `recipient`,
-     * the corresponding functions will be called with `data` and
+     * the corresponding functions will be called with `userData` and
      * `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
      *
      * @custom:emits a {Sent} event.
@@ -290,7 +290,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         address sender,
         address recipient,
         uint256 amount,
-        bytes calldata data,
+        bytes calldata userData,
         bytes calldata operatorData
     ) external override(IERC777);
 
@@ -299,7 +299,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * The caller must be an operator of `account`.
      *
      * If a send hook is registered for `account`, the corresponding function
-     * will be called with `data` and `operatorData`. See {IERC777Sender}.
+     * will be called with `userData` and `operatorData`. See {IERC777Sender}.
      *
      * @custom:emits a {Burned} event.
      *
@@ -311,7 +311,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     function operatorBurn(
         address account,
         uint256 amount,
-        bytes calldata data,
+        bytes calldata userData,
         bytes calldata operatorData
     ) external override(IERC777);
 
@@ -321,6 +321,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
     /**
      * @dev Mint new tokens for the account
+     * If `userData` is not empty, the `tokensReceived` hook is invoked according to ERC777 semantics.
      *
      * @custom:modifiers 
      *  - onlySelf
@@ -333,6 +334,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
 
    /**
     * @dev Burn existing tokens for the account
+    * If `userData` is not empty, the `tokensToSend` hook is invoked according to ERC777 semantics.
     *
     * @custom:modifiers 
     *  - onlySelf
@@ -403,7 +405,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * @dev Upgrade ERC20 to SuperToken and transfer immediately
      * @param to The account to receive upgraded tokens
      * @param amount Number of tokens to be upgraded (in 18 decimals)
-     * @param data User data for the TokensRecipient callback
+     * @param userData User data for the TokensRecipient callback
      *
      * @custom:note It will use `transferFrom` to get tokens. Before calling this
      * function you should `approve` this contract
@@ -411,9 +413,10 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * @custom:warning
      * - there is potential of reentrancy IF the "to" account is a registered ERC777 recipient.
      * @custom:requirements 
-     * - if `data` is NOT empty AND `to` is a contract, it MUST be a registered ERC777 recipient otherwise it reverts.
+     * - if `userData` is NOT empty AND `to` is a contract, it MUST be a registered ERC777 recipient
+     *   otherwise it reverts.
      */
-    function upgradeTo(address to, uint256 amount, bytes calldata data) external;
+    function upgradeTo(address to, uint256 amount, bytes calldata userData) external;
 
     /**
      * @dev Token upgrade event
@@ -502,7 +505,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * @param spender The account where the funds is sent from.
     * @param recipient The recipient of the funds.
     * @param amount Number of tokens to be transferred.
-    * @param data Arbitrary user inputted data
+    * @param userData Arbitrary user inputted data
     *
     * @custom:modifiers 
     *  - onlyHost
@@ -511,7 +514,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         address spender,
         address recipient,
         uint256 amount,
-        bytes memory data
+        bytes memory userData
     ) external;
 
     /**

@@ -122,8 +122,7 @@ contract SuperTokenMock is SuperToken {
         bytes memory userData,
         bytes memory operatorData
     ) external {
-        // set requireReceptionAck to true always
-        _mint(msg.sender, to, amount, true, userData, operatorData);
+        _mint(msg.sender, to, amount, true /* invokeHook */, true /* requireReceptionAck */, userData, operatorData);
     }
 }
 

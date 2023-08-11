@@ -283,23 +283,25 @@ contract SuperToken is
      * @dev Creates `amount` tokens and assigns them to `account`, increasing
      * the total supply.
      *
-     * If a send hook is registered for `account`, the corresponding function
-     * will be called with `operator`, `data` and `operatorData`.
+     * If invokeHook is true and a send hook is registered for `account`,
+     * the corresponding function will be called with `operator`, `userData` and `operatorData`.
      *
      * See {IERC777Sender} and {IERC777Recipient}.
      *
-     * Emits {Minted} and {IERC20-Transfer} events.
+     * Emits {Minted} and {IERC20.Transfer} events.
      *
      * Requirements
      *
      * - `account` cannot be the zero address.
-     * - if `account` is a contract, it must implement the {IERC777Recipient}
+     * - if `invokeHook` and `requireReceptionAck` are set and `account` is a contract,
+     *   it must implement the {IERC777Recipient}
      * interface.
      */
     function _mint(
         address operator,
         address account,
         uint256 amount,
+        bool invokeHook,
         bool requireReceptionAck,
         bytes memory userData,
         bytes memory operatorData
@@ -312,7 +314,9 @@ contract SuperToken is
 
         SuperfluidToken._mint(account, amount);
 
-        _callTokensReceived(operator, address(0), account, amount, userData, operatorData, requireReceptionAck);
+        if (invokeHook) {
+            _callTokensReceived(operator, address(0), account, amount, userData, operatorData, requireReceptionAck);
+        }
 
         emit Minted(operator, account, amount, userData, operatorData);
         emit Transfer(address(0), account, amount);
@@ -329,6 +333,7 @@ contract SuperToken is
         address operator,
         address from,
         uint256 amount,
+        bool invokeHook,
         bytes memory userData,
         bytes memory operatorData
     )
@@ -338,7 +343,9 @@ contract SuperToken is
             revert SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS();
         }
 
-        _callTokensToSend(operator, from, address(0), amount, userData, operatorData);
+        if (invokeHook) {
+            _callTokensToSend(operator, from, address(0), amount, userData, operatorData);
+        }
 
         SuperfluidToken._burn(from, amount);
 
@@ -499,12 +506,12 @@ contract SuperToken is
 
     function granularity() external pure virtual override returns (uint256) { return 1; }
 
-    function send(address recipient, uint256 amount, bytes calldata data) external virtual override {
-        _send(msg.sender, msg.sender, recipient, amount, data, "", true);
+    function send(address recipient, uint256 amount, bytes calldata userData) external virtual override {
+        _send(msg.sender, msg.sender, recipient, amount, userData, "", true);
     }
 
-    function burn(uint256 amount, bytes calldata data) external virtual override {
-        _downgrade(msg.sender, msg.sender, msg.sender, amount, data, "");
+    function burn(uint256 amount, bytes calldata userData) external virtual override {
+        _downgrade(msg.sender, msg.sender, msg.sender, amount, userData, "");
     }
 
     function isOperatorFor(address operator, address tokenHolder) external virtual override view returns (bool) {
@@ -531,23 +538,23 @@ contract SuperToken is
         address sender,
         address recipient,
         uint256 amount,
-        bytes calldata data,
+        bytes calldata userData,
         bytes calldata operatorData
     ) external virtual override {
         address operator = msg.sender;
         if (!_operators.isOperatorFor(operator, sender)) revert SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
-        _send(operator, sender, recipient, amount, data, operatorData, true);
+        _send(operator, sender, recipient, amount, userData, operatorData, true);
     }
 
     function operatorBurn(
         address account,
         uint256 amount,
-        bytes calldata data,
+        bytes calldata userData,
         bytes calldata operatorData
     ) external virtual override {
         address operator = msg.sender;
         if (!_operators.isOperatorFor(operator, account)) revert SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
-        _downgrade(operator, account, account, amount, data, operatorData);
+        _downgrade(operator, account, account, amount, userData, operatorData);
     }
 
     function _setupDefaultOperators(address[] memory operators) internal {
@@ -566,8 +573,8 @@ contract SuperToken is
         external virtual override
         onlySelf
     {
-        _mint(msg.sender, account, amount,
-            false /* requireReceptionAck */, userData, new bytes(0));
+        _mint(msg.sender, account, amount, userData.length != 0 /* invokeHook */,
+            userData.length != 0 /* requireReceptionAck */, userData, new bytes(0));
     }
 
     function selfBurn(
@@ -578,7 +585,7 @@ contract SuperToken is
        external virtual override
        onlySelf
     {
-       _burn(msg.sender, account, amount, userData, new bytes(0));
+       _burn(msg.sender, account, amount, userData.length != 0 /* invokeHook */, userData, new bytes(0));
     }
 
     function selfApproveFor(
@@ -629,8 +636,8 @@ contract SuperToken is
     }
 
     /// @dev ISuperToken.upgradeTo implementation
-    function upgradeTo(address to, uint256 amount, bytes calldata data) external virtual override {
-        _upgrade(msg.sender, msg.sender, to, amount, data, "");
+    function upgradeTo(address to, uint256 amount, bytes calldata userData) external virtual override {
+        _upgrade(msg.sender, msg.sender, to, amount, userData, "");
     }
 
     /// @dev ISuperToken.downgrade implementation
@@ -662,8 +669,8 @@ contract SuperToken is
         if (underlyingAmount != actualUpgradedAmount) revert SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED();
 
         _mint(operator, to, adjustedAmount,
-            // if `userData.length` than 0, we requireReceptionAck
-            userData.length != 0, userData, operatorData);
+            // if `userData.length` is greater than 0, we set invokeHook and requireReceptionAck true
+            userData.length != 0, userData.length != 0, userData, operatorData);
 
         emit TokenUpgraded(to, adjustedAmount);
     }
@@ -673,7 +680,7 @@ contract SuperToken is
         address account,  // the account whose super tokens we are burning
         address to,       // the account receiving the underlying tokens
         uint256 amount,
-        bytes memory data,
+        bytes memory userData,
         bytes memory operatorData
     ) internal {
         if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
@@ -681,7 +688,7 @@ contract SuperToken is
         (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
 
          // _burn will check the (actual) amount availability again
-         _burn(operator, account, adjustedAmount, data, operatorData);
+         _burn(operator, account, adjustedAmount, userData.length != 0, userData, operatorData);
 
         uint256 amountBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransfer(to, underlyingAmount);

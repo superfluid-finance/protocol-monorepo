@@ -1,17 +1,13 @@
 # Superfluid Metadata
 
 Contains metadata around the Superfluid framework.  
-The goal of this repository is to make it as easy as possible to reference contained metadata from various contexts (e.g. backend script or browser page) and independently of the tech stack used there. Convenience wrappers are provided for JS/TS, other environments can fall back to parsing plain JSON files.
-
-## Making Changes
-
-When adding new changes (new addresses), add it to `networks.json` and make sure to run `./build.sh` before pushing so that both the list files in `main` and `module` are updated.
-If you are adding a new property, please also modify the .d.ts files in the module folder accordingly as well.
+The goal of this package is to make it as easy as possible to reference contained metadata from various contexts (e.g. backend script or browser page) and independently of the tech stack used there. Convenience wrappers are provided for JS/TS, other environments can fall back to parsing plain JSON files, or autogenerate language specific representations.
 
 ## Networks
 
 List of EVM networks with the Superfluid protocol deployed.
-Example uses
+
+Example uses:
 
 ### Use in an HTML page
 
@@ -20,7 +16,7 @@ You can of course also self-host a copy or use another service, anything signall
 
 ```html
 <script type="module">
-  import networks from "https://cdn.jsdelivr.net/gh/superfluid-finance/metadata/module/networks/index.js";
+  import networks from "https://cdn.jsdelivr.net/npm/@superfluid-finance/metadata/module/networks/index.js";
   // example use
   const network = networks.getNetworkByChainId(networkId);
 ```
@@ -39,70 +35,55 @@ If that's the case, you can use the networks metadata like this:
 import sfMeta from "@superfluid-finance/metadata";
 
 // example use
-const network = sfMeta.getNetworkByName("eth-goerli");
+const network = sfMeta.getNetworkByName("eth-sepolia");
 ```
 
 ### Use in a nodejs project using CommonJS (legacy)
 
-Nodejs projects still using CommonJS (if you're unsure, check [the docs](https://nodejs.org/api/packages.html#determining-module-system)), can use ES modules using the syntax of [dynamic imports](https://nodejs.org/api/esm.html#import-expressions):
 ```js
-import("@superfluid-finance/metadata").then(module => {
-  const sfMeta = module;
+const sfMeta = require("@superfluid-finance/metadata");
 
-  // example use
-  const network = sfMeta.getNetworkByName("eth-goerli");
+// example use
+const network = sfMeta.getNetworkByName("eth-sepolia");
 }
 ```
 
-Alternative using await:
-```js
-const sfMetaPromise = import("@superfluid-finance/metadata");
-(async () => {
-  const sfMeta = (await sfMetaPromise).default;
-
-  // example use
-  const network = sfMeta.getNetworkByName("eth-goerli");
-}
-```
-
-### Use in a node REPL:
-
-The repl uses CommonJS too, thus usage looks like this:
+### Use in a nodejs REPL:
 
 ```js
-let sfMeta
-import("@superfluid-finance/metadata").then(module => sfMeta = module)
+> sfMeta = require("@superfluid-finance/metadata")
 > sfMeta.networks.length
-12
+17
 > sfMeta.testnets.length
-7
+8
 > sfMeta.mainnets.length
-5
+9
 > sfMeta.mainnets.filter(n => n.nativeTokenSymbol === "ETH").map(n => n.name)
-[
-  'eth-goerli',
-  'optimism-goerli',
-  'arbitrum-goerli',
-  'optimism-mainnet',
-  'arbitrum-one'
-]
-> m.getNetworkByChainId(10)
+[ 'optimism-mainnet', 'arbitrum-one', 'eth-mainnet', 'base-mainnet' ]
+> sfMeta.getNetworkByChainId(10)
 {
   name: 'optimism-mainnet',
   isTestnet: false,
   networkId: 10,
   chainId: 10,
   shortName: 'optimism',
+  uppercaseName: 'OPTIMISM_MAINNET',
+  humanReadableName: 'Optimism',
   nativeTokenSymbol: 'ETH',
+  nativeTokenWrapper: '0x4ac8bD1bDaE47beeF2D1c6Aa62229509b962Aa0d',
   contractsV1: {
     resolver: '0x743B5f46BC86caF41bE4956d9275721E0531B186',
     host: '0x567c4B141ED61923967cA25Ef4906C8781069a10',
     governance: '0x0170FFCC75d178d426EBad5b1a31451d00Ddbd0D',
     cfaV1: '0x204C6f131bb7F258b2Ea1593f5309911d8E458eD',
+    cfaV1Forwarder: '0xcfA132E353cB4E398080B9700609bb008eceB125',
     idaV1: '0xc4ce5118C3B20950ee288f086cb7FC166d222D4c',
     superTokenFactory: '0x8276469A443D5C6B7146BED45e2abCaD3B6adad9',
     superfluidLoader: '0x8E310ce29Ab7Fa2878944A65BB0eaF97B1853d40',
-    toga: '0xA3c8502187fD7a7118eAD59dc811281448946C8f'
+    toga: '0xA3c8502187fD7a7118eAD59dc811281448946C8f',
+    batchLiquidator: '0x36Df169DBf5CE3c6f58D46f0addeF58F01381232',
+    flowScheduler: '0x55c8fc400833eEa791087cF343Ff2409A39DeBcC',
+    vestingScheduler: '0x65377d4dfE9c01639A41952B5083D58964782892'
   },
   startBlockV1: 4300000,
   logsQueryRange: 50000,
@@ -110,14 +91,18 @@ import("@superfluid-finance/metadata").then(module => sfMeta = module)
   subgraphV1: {
     name: 'protocol-v1-optimism-mainnet',
     hostedEndpoint: 'https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet'
-  }
+  },
+  publicRPCs: [ 'https://mainnet.optimism.io', 'https://rpc.ankr.com/optimism' ],
+  coinGeckoId: 'optimistic-ethereum'
 }
+
 ```
 
 ### Use in a bash script
 
 With the help of [jq](https://jqlang.github.io/jq/), it's also possible to parse metadata from within a bash script.
-Here's an example:
+Here's an example for a script which iterates through all testnets and prints the addresses of the host contract and of the
+native token wrapper to the console:
 
 ```sh
 #!/bin/bash
@@ -125,7 +110,7 @@ Here's an example:
 # exit on error or undefined var
 set -eu
 
-metadata=$(curl -f -s "https://raw.githubusercontent.com/superfluid-finance/metadata/master/networks.json")
+metadata=$(curl -f -s "https://raw.githubusercontent.com/superfluid-finance/protocol-monorepo/dev/packages/metadata/networks.json")
 testnets=$(echo "$metadata" | jq -r '.[] | select(.isTestnet == false).name')
 
 for network in $testnets; do
@@ -135,3 +120,9 @@ for network in $testnets; do
         echo "$network | host address: $host, native token wrapper address: $native_token_wrapper"
 done
 ```
+
+### Making Changes
+
+When changing the metadata of a network or adding/remoing a network, only modify `networks.json` and then run `./build.sh`.  
+This updates the autogenerated files derived from that json file.  
+If you add a new property, also modify the .d.ts files in the module folder accordingly.

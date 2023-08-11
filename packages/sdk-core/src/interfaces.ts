@@ -739,3 +739,12 @@ export interface UpdateMemberParams {
     readonly newUnits: string;
     readonly signer: ethers.Signer;
 }
+export interface FlowRateAllowanceWithPermissionsParams
+    extends FlowRateAllowanceParams {
+    readonly permissionsDelta: number;
+}
+
+export interface SuperTokenFlowRateAllowanceWithPermissionsParams
+    extends SuperTokenFlowRateAllowanceParams {
+    readonly permissionsDelta: number;
+}

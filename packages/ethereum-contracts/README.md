@@ -337,15 +337,15 @@ python3 testDataToCharts.py output
 ```
 
 #### Foundry
-On the other hand, you can run the development session with foundry with the command: `yarn dev`.
+On the other hand, you can run the development session with foundry with the command: `yarn dev-foundry`.
 
 ### Other Useful Commands
 
 ```
 yarn run-hardhat # run hardhat
 yarn run-truffle # run truffle
-yarn run-forge # run foundry forge
-yarn run-nodemon forge test # use nodemon to run forge test
+yarn run-foundry # run foundry forge
+yarn run-nodemon forge test # use nodemon to run foundry test
 ```
 
 ### Troubleshooting

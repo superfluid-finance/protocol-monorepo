@@ -7,11 +7,8 @@ on:
 jobs:
   upload-coverage-reports:
     name: Upload coverage reports
-    needs: [coverage-ethereum-contracts, coverage-sdk-core]
 
     runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v3

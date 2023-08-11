@@ -107,7 +107,7 @@ jobs:
   upload-coverage-reports:
     name: Upload Coverage Reports (Feature Branch)
     uses: ./.github/workflows/call.upload-coverage-reports.yml
-    needs: [test-ethereum-contracts, coverage-ethereum-contracts]
+    needs: [coverage-ethereum-contracts]
 
   # Note:
   #

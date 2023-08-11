@@ -115,7 +115,6 @@ jobs:
   coverage-ethereum-contracts:
     name: Coverage test ethereum-contracts (Canary Branch)
     uses: ./.github/workflows/call.test-ethereum-contracts.yml
-    if: needs.check.outputs.build_ethereum_contracts
     with:
       run-coverage-tests: true
 
@@ -130,7 +129,7 @@ jobs:
   upload-coverage-reports:
     name: Upload Coverage Reports (Feature Branch)
     uses: ./.github/workflows/call.upload-coverage-reports.yml
-    needs: [test-ethereum-contracts, coverage-ethereum-contracts]
+    needs: [coverage-ethereum-contracts, coverage-sdk-core]
 
   all-packages-tested:
     name: All packages tested (Dev Branch)

@@ -5,7 +5,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
-## [v1.7.2] - 2023-08-09
+## [v1.7.2] - 2023-08-11
 
 ### Added
 - `increaseFlowRateAllowanceWithPermissions` and `decreaseFlowRateAllowanceWithPermissions` added to `ConstantFlowAgreementV1.sol`

@@ -1,4 +1,5 @@
 import { newMockEvent } from "matchstick-as";
+import { assert } from "matchstick-as/assembly/index";
 import {
     BufferAdjusted,
     FlowDistributionUpdated,
@@ -12,6 +13,62 @@ import {
 } from "../../generated/GeneralDistributionAgreementV1/ISuperfluidPool";
 import { getAddressEventParam, getBigIntEventParam, getBooleanEventParam } from "../converters";
 import { BigInt } from "@graphprotocol/graph-ts";
+import { handlePoolConnectionUpdated, handlePoolCreated } from "../../src/mappings/gdav1";
+import { BIG_INT_ZERO } from "../../src/utils";
+import { assertEventBaseProperties } from "../assertionHelpers";
+import { FAKE_INITIAL_BALANCE } from "../constants";
+import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../mockedFunctions";
+
+export function createPoolAndReturnPoolCreatedEvent(
+    admin: string,
+    superToken: string,
+    superfluidPool: string,
+    initialFlowRate: BigInt = BIG_INT_ZERO
+): PoolCreated {
+    const poolCreatedEvent = createPoolCreatedEvent(superToken, admin, superfluidPool);
+
+    // getOrInitAccountTokenSnapshot(event) => getOrInitAccount(admin) => host.try_getAppManifest(admin)
+    mockedGetAppManifest(admin, false, false, BIG_INT_ZERO);
+
+    // updateATSStreamedAndBalanceUntilUpdatedAt => updateATSBalanceAndUpdatedAt => try_realtimeBalanceOf(admin)
+    mockedRealtimeBalanceOf(
+        superToken,
+        admin,
+        poolCreatedEvent.block.timestamp,
+        FAKE_INITIAL_BALANCE.plus(initialFlowRate),
+        initialFlowRate,
+        BIG_INT_ZERO
+    );
+
+    handlePoolCreated(poolCreatedEvent);
+    return poolCreatedEvent;
+}
+
+export function updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
+    superToken: string,
+    account: string,
+    superfluidPool: string,
+    connected: boolean,
+    initialFlowRate: BigInt
+): PoolConnectionUpdated {
+    const poolConnectionUpdatedEvent = createPoolConnectionUpdatedEvent(superToken, superfluidPool, account, connected);
+
+    // getOrInitAccountTokenSnapshot(event) => getOrInitAccount(account) => host.try_getAppManifest(account)
+    mockedGetAppManifest(account, false, false, BIG_INT_ZERO);
+
+    // updateATSStreamedAndBalanceUntilUpdatedAt => updateATSBalanceAndUpdatedAt => try_realtimeBalanceOf(account)
+    mockedRealtimeBalanceOf(
+        superToken,
+        account,
+        poolConnectionUpdatedEvent.block.timestamp,
+        FAKE_INITIAL_BALANCE.plus(initialFlowRate),
+        initialFlowRate,
+        BIG_INT_ZERO
+    );
+
+    handlePoolConnectionUpdated(poolConnectionUpdatedEvent);
+    return poolConnectionUpdatedEvent;
+}
 
 // Mock Event Creators
 export function createPoolCreatedEvent(token: string, admin: string, pool: string): PoolCreated {

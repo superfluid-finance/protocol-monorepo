@@ -5,7 +5,6 @@ import {
     handleFlowDistributionUpdated,
     handleInstantDistributionUpdated,
     handlePoolConnectionUpdated,
-    handlePoolCreated,
 } from "../../../src/mappings/gdav1";
 import { handleDistributionClaimed, handleMemberUnitsUpdated } from "../../../src/mappings/superfluidPool";
 import { BIG_INT_ZERO } from "../../../src/utils";
@@ -17,8 +16,8 @@ import {
     createFlowDistributionUpdatedEvent,
     createInstantDistributionUpdatedEvent,
     createMemberUnitsUpdatedEvent,
+    createPoolAndReturnPoolCreatedEvent,
     createPoolConnectionUpdatedEvent,
-    createPoolCreatedEvent,
 } from "../gdav1.helper";
 import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../../mockedFunctions";
 
@@ -32,23 +31,7 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
 
     test("handlePoolCreated() - Should create a new PoolCreatedEvent entity", () => {
         const admin = bob;
-
-        const poolCreatedEvent = createPoolCreatedEvent(superToken, admin, superfluidPool);
-
-        // getOrInitAccountTokenSnapshot(event) => getOrInitAccount(admin) => host.try_getAppManifest(admin)
-        mockedGetAppManifest(admin, false, false, BIG_INT_ZERO);
-
-        // updateATSStreamedAndBalanceUntilUpdatedAt => updateATSBalanceAndUpdatedAt => try_realtimeBalanceOf(admin)
-        mockedRealtimeBalanceOf(
-            superToken,
-            admin,
-            poolCreatedEvent.block.timestamp,
-            FAKE_INITIAL_BALANCE.plus(initialFlowRate),
-            initialFlowRate,
-            BIG_INT_ZERO
-        );
-
-        handlePoolCreated(poolCreatedEvent);
+        const poolCreatedEvent = createPoolAndReturnPoolCreatedEvent(admin, superToken, superfluidPool);
 
         const id = assertEventBaseProperties(poolCreatedEvent, "PoolCreated");
         assert.fieldEquals("PoolCreatedEvent", id, "token", superToken);

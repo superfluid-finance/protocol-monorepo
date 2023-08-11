@@ -57,11 +57,11 @@ import {
     SuperTokenEstimateDistributionActualAmountParams,
     SuperTokenEstimateDistributionActualFlowRateParams,
     SuperTokenFlowRateAllowanceParams,
+    SuperTokenFlowRateAllowanceWithPermissionsParams,
     SuperTokenGDAGetFlowRateParams,
     SuperTokenGDAGetNetFlowParams,
     SuperTokenGetPoolAdjustmentFlowRateParams,
     SuperTokenIsPoolParams,
-    SuperTokenFlowRateAllowanceWithPermissionsParams,
 } from "./interfaces";
 import {
     getSanitizedTimestamp,

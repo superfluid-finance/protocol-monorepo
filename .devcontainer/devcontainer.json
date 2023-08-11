@@ -26,7 +26,10 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "./tasks/fix-devcontainer.sh && nix develop . -c bash <(echo \"yarn install && yarn build\")"
+	// 1. using nix to create a reproduciable build
+	// 2. install foundry for people don't want to use nix
+	// 3. if you want to use nix further, do "nix develop"
+	"postCreateCommand": "./tasks/fix-devcontainer.sh && nix develop . -c bash <(echo \"yarn install && yarn build\") && curl -L https://foundry.paradigm.xyz | bash & foundryup"
 	
 	// Configure tool-specific properties.
 	// "customizations": {},

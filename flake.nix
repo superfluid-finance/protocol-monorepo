@@ -2,32 +2,27 @@
   description = "Overlay for working with Superfluid protocol monorepo";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     foundry = {
       url = "github:shazow/foundry.nix/monthly";
+      inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
     solc = {
       url = "github:hellwolf/solc.nix";
+      inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    certora = {
-      url = "github:hellwolf/certora.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-    # TODO use ghc 9.6 when available
-    #ghc-wasm.url = "gitlab:ghc/ghc-wasm-meta?host=gitlab.haskell.org";
-    #ghc-wasm.inputs.nixpkgs.follows = "nixpkgs";
-    #ghc-wasm.inputs.flake-utils.follows = "flake-utils";
   };
 
-  outputs = { self, nixpkgs, flake-utils, foundry, solc, certora } :
+  outputs = { self, nixpkgs, flake-utils, foundry, solc } :
   flake-utils.lib.eachDefaultSystem (system:
   let
-    solcVer = "solc_0_8_19"; # solidity version used for local development
     minDevSolcVer = "solc_0_8_4"; # minimum solidity version used for external development
-    ghcVer = "ghc944";
+    solcVer = "solc_0_8_19";
+    ghcVer92 = "ghc928";
+    ghcVer94 = "ghc945";
 
     pkgs = import nixpkgs {
       inherit system;
@@ -38,16 +33,19 @@
     };
 
     # ghc ecosystem
-    ghc = pkgs.haskell.compiler.${ghcVer};
-    ghcPkgs = pkgs.haskell.packages.${ghcVer};
+    ghc = pkgs.haskell.compiler.${ghcVer94};
+    ghcPkgs = pkgs.haskell.packages.${ghcVer94};
 
     # common dev inputs
     commonDevInputs = with pkgs; [
-       gnumake
+      gnumake
       # for shell script linting
       shellcheck
       # used by some scripts
       jq
+      # test utilities
+      lcov
+      actionlint
     ];
 
     # solidity dev inputs
@@ -55,6 +53,7 @@
       foundry-bin
       pkgs.${minDevSolcVer}
       pkgs.${solcVer}
+      (solc.mkDefault pkgs pkgs.${solcVer})
     ];
 
     # nodejs ecosystem
@@ -63,8 +62,8 @@
       nodejs.pkgs.yarn
       nodejs.pkgs.nodemon
     ];
-    node16DevInputs = nodeDevInputsWith pkgs.nodejs-16_x;
-    node18DevInputs = nodeDevInputsWith pkgs.nodejs-18_x;
+    node18DevInputs = nodeDevInputsWith pkgs.nodejs_18;
+    node20DevInputs = nodeDevInputsWith pkgs.nodejs_20;
 
     # minimem development shell
     minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
@@ -83,8 +82,6 @@
       # for haskell spec
       cabal-install
       ghc
-      #ghc-wasm.packages.${system}.default
-      ghcPkgs.haskell-language-server
       hlint
       stylish-haskell
       # sage math
@@ -101,16 +98,11 @@
         collection-bibtexextra collection-mathscience
         collection-fontsrecommended collection-fontsextra;
       })
-    ]
-
-    # certora tooling
-    ++ [
-      python3
-    ] ++ certora.devInputs.${system};
+    ];
 
     # mkShell wrapper, to expose additional environment variables
     mkShell = o : pkgs.mkShell ({
-      SOLC_PATH = pkgs.lib.getExe pkgs.${solcVer};
+      SOLC = pkgs.lib.getExe pkgs.${solcVer};
     } // o);
 
     # ci-spec-with-ghc
@@ -140,16 +132,16 @@
         ++ specInputs;
     };
     # CI shells
-    devShells.ci-node16 = mkShell {
-      buildInputs = commonDevInputs ++ ethDevInputs ++ node16DevInputs;
-    };
     devShells.ci-node18 = mkShell {
       buildInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
     };
-    devShells.ci-spec-ghc925 = ci-spec-with-ghc "ghc925";
-    devShells.ci-spec-ghc944 = ci-spec-with-ghc "ghc944";
+    devShells.ci-node20 = mkShell {
+      buildInputs = commonDevInputs ++ ethDevInputs ++ node20DevInputs;
+    };
+    devShells.ci-spec-ghc92 = ci-spec-with-ghc ghcVer92;
+    devShells.ci-spec-ghc94 = ci-spec-with-ghc ghcVer94;
     devShells.ci-hot-fuzz = mkShell {
-      buildInputs = with pkgs; [
+      buildInputs = with pkgs; commonDevInputs ++ ethDevInputs ++ [
         slither-analyzer
         echidna
       ];

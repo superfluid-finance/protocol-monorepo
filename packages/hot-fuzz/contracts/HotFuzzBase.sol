@@ -3,14 +3,18 @@
 // solhint-disable func-name-mixedcase
 pragma solidity >= 0.8.0;
 
+import { TestToken } from "@superfluid-finance/ethereum-contracts/contracts/utils/TestToken.sol";
+import { Superfluid } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/Superfluid.sol";
+import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
 import {
-    Superfluid,
-    ConstantFlowAgreementV1,
-    InstantDistributionAgreementV1,
-    SuperToken,
+    ConstantFlowAgreementV1
+} from "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
+import {
+    InstantDistributionAgreementV1
+} from "@superfluid-finance/ethereum-contracts/contracts/agreements/InstantDistributionAgreementV1.sol";
+import {
     SuperfluidFrameworkDeployer
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
-import { TestToken } from "@superfluid-finance/ethereum-contracts/contracts/utils/TestToken.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
 
@@ -43,6 +47,7 @@ contract HotFuzzBase {
 
     constructor(uint nTesters_) {
         _sfDeployer = new SuperfluidFrameworkDeployer();
+        _sfDeployer.deployTestFramework();
         sf = _sfDeployer.getFramework();
 
         (token, superToken) = _sfDeployer.deployWrapperSuperToken(

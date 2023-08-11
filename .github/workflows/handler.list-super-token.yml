@@ -35,7 +35,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3

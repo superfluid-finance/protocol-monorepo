@@ -2,6 +2,10 @@
     "extends": ["solhint:recommended"],
     "rules": {
         "no-inline-assembly": "off",
+        "func-named-parameters": "off",
+        "immutable-vars-naming": "off",
+        "no-unused-import": "off",
+        "explicit-types": ["off"],
         "max-line-length": ["error", 120],
         "func-name-mixedcase": "error",
         "func-param-name-mixedcase": "error",
@@ -10,6 +14,10 @@
         "compiler-version": ["off"],
         "func-visibility": ["error", {"ignoreConstructors": true}],
         "constructor-syntax": "error",
-        "quotes": ["error", "double"]
+        "quotes": ["error", "double"],
+        "max-states-count": ["off"],
+        "no-empty-blocks": "off",
+        "const-name-snakecase": "off",
+        "var-name-mixedcase": "off"
     }
 }

@@ -9,20 +9,12 @@
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
-        "pre-commit:lint": "yarn lint"
-    },
-    "peerDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.2.2"
-    },
-    "devDependencies": {
-        "@nomiclabs/hardhat-etherscan": "^3.1.3",
-        "@openzeppelin/contracts": "^4.8.0",
-        "@superfluid-finance/ethereum-contracts": "1.7.2",
-        "dotenv": "^16.0.3"
+        "pre-commit:lint": "yarn lint",
+        "check-updates": "ncu --target minor"
     },
     "dependencies": {
-        "@superfluid-finance/metadata": "1.1.10",
-        "hardhat": "^2.12.4",
-        "hardhat-deploy": "^0.11.22"
+        "@openzeppelin/contracts": "4.9.3",
+        "@superfluid-finance/ethereum-contracts": "1.7.2",
+        "@superfluid-finance/metadata": "1.1.10"
     }
 }

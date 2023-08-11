@@ -34,7 +34,7 @@ export interface SubgraphListQuery<
         id?: InputMaybe<Scalars["ID"]>;
         id_gt?: InputMaybe<Scalars["ID"]>;
     },
-    TOrderBy extends string
+    TOrderBy extends string,
 > {
     filter?: TFilter;
     pagination?: Paging;
@@ -67,7 +67,7 @@ export interface SubgraphListQueryHandler<
     TResult extends ILightEntity,
     TQuery extends SubgraphListQuery<TFilter, TOrderBy>,
     TFilter extends { [key: string]: unknown } = NonNullable<TQuery["filter"]>,
-    TOrderBy extends string = NonNullable<TQuery["order"]>["orderBy"]
+    TOrderBy extends string = NonNullable<TQuery["order"]>["orderBy"],
 > {
     list(
         subgraphClient: SubgraphClient,
@@ -110,23 +110,24 @@ export interface RelevantAddressProviderFromResult<TResult> {
  * A base class to handle common Subgraph query logic.
  */
 export abstract class SubgraphQueryHandler<
-    TResult extends ILightEntity,
-    TListQuery extends SubgraphListQuery<TFilter, TOrderBy>,
-    TSubgraphQuery,
-    TSubgraphQueryVariables extends Exact<{
-        first?: InputMaybe<Scalars["Int"]>;
-        orderBy?: InputMaybe<TOrderBy>;
-        orderDirection?: InputMaybe<OrderDirection>;
-        skip?: InputMaybe<Scalars["Int"]>;
-        where?: InputMaybe<TFilter>;
-        block?: InputMaybe<Block_Height>;
-    }>,
-    TFilter extends {
-        id?: InputMaybe<Scalars["ID"]>;
-        id_gt?: InputMaybe<Scalars["ID"]>;
-    } = NonNullable<TListQuery["filter"]>,
-    TOrderBy extends string = NonNullable<TListQuery["order"]>["orderBy"]
-> implements
+        TResult extends ILightEntity,
+        TListQuery extends SubgraphListQuery<TFilter, TOrderBy>,
+        TSubgraphQuery,
+        TSubgraphQueryVariables extends Exact<{
+            first?: InputMaybe<Scalars["Int"]>;
+            orderBy?: InputMaybe<TOrderBy>;
+            orderDirection?: InputMaybe<OrderDirection>;
+            skip?: InputMaybe<Scalars["Int"]>;
+            where?: InputMaybe<TFilter>;
+            block?: InputMaybe<Block_Height>;
+        }>,
+        TFilter extends {
+            id?: InputMaybe<Scalars["ID"]>;
+            id_gt?: InputMaybe<Scalars["ID"]>;
+        } = NonNullable<TListQuery["filter"]>,
+        TOrderBy extends string = NonNullable<TListQuery["order"]>["orderBy"],
+    >
+    implements
         SubgraphGetQueryHandler<TResult>,
         SubgraphListQueryHandler<TResult, TListQuery, TFilter, TOrderBy>,
         RelevantAddressProviderFromFilter<TFilter>,

@@ -25,9 +25,9 @@ jobs:
     - id: set-matrix
       run: |
         if [ "${{ inputs.run-coverage-tests }}" == "true" ];then
-          echo "matrix={\"node-version\": [20]" >> "$GITHUB_OUTPUT"
+          echo "matrix={\"node-version\": [20]}" >> "$GITHUB_OUTPUT"
         else
-          echo "matrix={\"node-version\": [18, 20]" >> "$GITHUB_OUTPUT"
+          echo "matrix={\"node-version\": [18, 20]}" >> "$GITHUB_OUTPUT"
         fi
 
   test-ethereum-contracts:
@@ -38,7 +38,7 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      matrix: ${{fromJson(needs.matrix-prep.outputs.matrix)}}
+      matrix: ${{ fromJson(needs.matrix-prep.outputs.matrix) }}
 
     defaults:
       run:

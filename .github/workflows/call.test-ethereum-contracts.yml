@@ -33,7 +33,7 @@ jobs:
   test-ethereum-contracts:
     name: Test ethereum-contracts
 
-    needs: matrix-prep
+    needs: [matrix-prep]
 
     runs-on: ubuntu-latest
 

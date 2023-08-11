@@ -145,7 +145,7 @@ jobs:
             fi
           }
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
-          check_result test-solidity-semantic-money ${{ needs.test-solidity-semantic-money.result }}
+          check_result solidity-semantic-money ${{ needs.test-solidity-semantic-money.result }}
           check_result ethereum-contracts ${{ needs.test-ethereum-contracts.result }}
           check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
           check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}

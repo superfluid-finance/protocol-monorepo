@@ -8,21 +8,41 @@ on:
         type: boolean
 
 jobs:
+  # Ahhhhhhhhhh, it is silly, but the only way to preparing conditional matrix.
+  # Ref: https://stackoverflow.com/questions/65384420/how-do-i-make-a-github-action-matrix-element-conditional
+  matrix-prep:
+    name: Preparing Conditional Strategy Matrix
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v2
+
+    - id: set-matrix
+      run: |
+        if [ "${{ inputs.run-coverage-tests }}" == "true" ];then
+          echo "matrix={\"node-version\": [20]" >> "$GITHUB_OUTPUT"
+        else
+          echo "matrix={\"node-version\": [18, 20]" >> "$GITHUB_OUTPUT"
+        fi
+
   test-ethereum-contracts:
     name: Test ethereum-contracts
+
+    needs: matrix-prep
 
     runs-on: ubuntu-latest
 
     strategy:
-      matrix:
-        node-version: [18, 20]
+      matrix: ${{fromJson(needs.matrix-prep.outputs.matrix)}}
 
     defaults:
       run:
         shell: nix develop .#ci-node${{ matrix.node-version }} -c bash -xe {0}
-
-    # Note: only do coverage test for node 20
-    if: inputs.run-coverage-tests == false || matrix.node-version == 20
 
     steps:
       - uses: actions/checkout@v3

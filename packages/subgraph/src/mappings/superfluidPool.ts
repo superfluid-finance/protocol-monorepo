@@ -2,10 +2,7 @@ import {
     DistributionClaimed,
     MemberUnitsUpdated,
 } from "../../generated/GeneralDistributionAgreementV1/ISuperfluidPool";
-import {
-    DistributionClaimedEvent,
-    MemberUnitsUpdatedEvent,
-} from "../../generated/schema";
+import { DistributionClaimedEvent, MemberUnitsUpdatedEvent } from "../../generated/schema";
 import {
     _createAccountTokenSnapshotLogEntity,
     _createTokenStatisticLogEntity,
@@ -16,12 +13,7 @@ import {
     updatePoolTotalAmountFlowedAndDistributed,
     updateTokenStatsStreamedUntilUpdatedAt,
 } from "../mappingHelpers";
-import {
-    BIG_INT_ZERO,
-    createEventID,
-    initializeEventEntity,
-    membershipWithUnitsExists,
-} from "../utils";
+import { BIG_INT_ZERO, createEventID, initializeEventEntity, membershipWithUnitsExists } from "../utils";
 
 // @note use deltas where applicable
 
@@ -36,11 +28,7 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     pool.save();
 
     // Update PoolMember
-    const poolMember = getOrInitPoolMember(
-        event,
-        event.address,
-        event.params.member
-    );
+    const poolMember = getOrInitPoolMember(event, event.address, event.params.member);
     poolMember.totalAmountClaimed = event.params.totalClaimed;
     poolMember.save();
 
@@ -50,18 +38,8 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     _createTokenStatisticLogEntity(event, token, eventName);
 
     // Update ATS
-    updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.member,
-        token,
-        event.block,
-        null
-    );
-    _createAccountTokenSnapshotLogEntity(
-        event,
-        event.params.member,
-        token,
-        eventName
-    );
+    updateATSStreamedAndBalanceUntilUpdatedAt(event.params.member, token, event.block, null);
+    _createAccountTokenSnapshotLogEntity(event, event.params.member, token, eventName);
 }
 
 export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
@@ -70,15 +48,11 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
 
     // - PoolMember
     // - units
-    const poolMember = getOrInitPoolMember(
-        event,
-        event.address,
-        event.params.member
-    );
+    const poolMember = getOrInitPoolMember(event, event.address, event.params.member);
     const hasMembershipWithUnits = membershipWithUnitsExists(poolMember.id);
 
     const previousUnits = poolMember.units;
-    const unitsDelta = event.params.units.minus(poolMember.units);
+    const unitsDelta = event.params.units.minus(previousUnits);
     poolMember.units = event.params.units;
 
     poolMember.save();
@@ -87,33 +61,21 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     updateTokenStatsStreamedUntilUpdatedAt(event.params.token, event.block);
     _createTokenStatisticLogEntity(event, event.params.token, eventName);
 
-    updateATSStreamedAndBalanceUntilUpdatedAt(
-        event.params.member,
-        event.params.token,
-        event.block,
-        null
-    );
-    _createAccountTokenSnapshotLogEntity(
-        event,
-        event.params.member,
-        event.params.token,
-        eventName
-    );
+    updateATSStreamedAndBalanceUntilUpdatedAt(event.params.member, event.params.token, event.block, null);
+    _createAccountTokenSnapshotLogEntity(event, event.params.member, event.params.token, eventName);
 
     let pool = getOrInitPool(event, event.address.toHex());
     pool = updatePoolTotalAmountFlowedAndDistributed(event, pool);
     if (poolMember.isConnected) {
         pool.totalConnectedUnits = pool.totalConnectedUnits.plus(unitsDelta);
     } else {
-        pool.totalDisconnectedUnits =
-            pool.totalDisconnectedUnits.plus(unitsDelta);
+        pool.totalDisconnectedUnits = pool.totalDisconnectedUnits.plus(unitsDelta);
     }
+    pool.totalUnits = pool.totalUnits.plus(unitsDelta);
+    pool.save();
 
     // 0 units to > 0 units
-    if (
-        previousUnits.equals(BIG_INT_ZERO) &&
-        poolMember.units.gt(BIG_INT_ZERO)
-    ) {
+    if (previousUnits.equals(BIG_INT_ZERO) && event.params.units.gt(BIG_INT_ZERO)) {
         pool.totalMembers = pool.totalMembers + 1;
         // if the member is connected with units now, we add one to connected
         if (poolMember.isConnected) {
@@ -122,6 +84,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             // if the member is disconnected with units now, we add one to disconnected
             pool.totalDisconnectedMembers = pool.totalDisconnectedMembers + 1;
         }
+        pool.save();
 
         updateAggregateDistributionAgreementData(
             event.params.member,
@@ -136,12 +99,8 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             false // isIDA
         );
     }
-
     // > 0 units to 0 units
-    if (
-        previousUnits.gt(BIG_INT_ZERO) &&
-        poolMember.units.equals(BIG_INT_ZERO)
-    ) {
+    if (previousUnits.gt(BIG_INT_ZERO) && poolMember.units.equals(BIG_INT_ZERO)) {
         pool.totalMembers = pool.totalMembers - 1;
         // if the member is connected with no units now, we subtract one from connected
         if (poolMember.isConnected) {
@@ -150,6 +109,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             // if the member is disconnected with no units now, we subtract one from disconnected
             pool.totalDisconnectedMembers = pool.totalDisconnectedMembers - 1;
         }
+        pool.save();
 
         updateAggregateDistributionAgreementData(
             event.params.member,
@@ -164,21 +124,11 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             false // isIDA
         );
     }
-    pool.totalUnits.plus(unitsDelta);
-    pool.save();
 }
 
-function _createDistributionClaimedEntity(
-    event: DistributionClaimed
-): DistributionClaimedEvent {
-    const ev = new DistributionClaimedEvent(
-        createEventID("DistributionClaimed", event)
-    );
-    initializeEventEntity(ev, event, [
-        event.params.token,
-        event.address,
-        event.params.member,
-    ]);
+function _createDistributionClaimedEntity(event: DistributionClaimed): DistributionClaimedEvent {
+    const ev = new DistributionClaimedEvent(createEventID("DistributionClaimed", event));
+    initializeEventEntity(ev, event, [event.params.token, event.address, event.params.member]);
 
     ev.token = event.params.token;
     ev.claimedAmount = event.params.claimedAmount;
@@ -190,17 +140,9 @@ function _createDistributionClaimedEntity(
     return ev;
 }
 
-function _createMemberUnitsUpdatedEntity(
-    event: MemberUnitsUpdated
-): MemberUnitsUpdatedEvent {
-    const ev = new MemberUnitsUpdatedEvent(
-        createEventID("MemberUnitsUpdated", event)
-    );
-    initializeEventEntity(ev, event, [
-        event.params.token,
-        event.address,
-        event.params.member,
-    ]);
+function _createMemberUnitsUpdatedEntity(event: MemberUnitsUpdated): MemberUnitsUpdatedEvent {
+    const ev = new MemberUnitsUpdatedEvent(createEventID("MemberUnitsUpdated", event));
+    initializeEventEntity(ev, event, [event.params.token, event.address, event.params.member]);
 
     ev.token = event.params.token;
     ev.units = event.params.units;

@@ -20,6 +20,8 @@ import {
     createPoolConnectionUpdatedEvent,
 } from "../gdav1.helper";
 import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../../mockedFunctions";
+import { updatePoolConnectionAndReturnPoolConnectionUpdatedEvent } from "../gdav1.helper";
+import { updateMemberUnitsAndReturnMemberUnitsUpdatedEvent } from "../gdav1.helper";
 
 const initialFlowRate = BigInt.fromI32(100);
 const superToken = maticXAddress;
@@ -44,27 +46,13 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
         const account = bob;
         const connected = true;
 
-        const poolConnectionUpdatedEvent = createPoolConnectionUpdatedEvent(
+        const poolConnectionUpdatedEvent = updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
             superToken,
+            account,
             superfluidPool,
-            account,
-            connected
+            connected,
+            initialFlowRate
         );
-
-        // getOrInitAccountTokenSnapshot(event) => getOrInitAccount(account) => host.try_getAppManifest(account)
-        mockedGetAppManifest(account, false, false, BIG_INT_ZERO);
-
-        // updateATSStreamedAndBalanceUntilUpdatedAt => updateATSBalanceAndUpdatedAt => try_realtimeBalanceOf(account)
-        mockedRealtimeBalanceOf(
-            superToken,
-            account,
-            poolConnectionUpdatedEvent.block.timestamp,
-            FAKE_INITIAL_BALANCE.plus(initialFlowRate),
-            initialFlowRate,
-            BIG_INT_ZERO
-        );
-
-        handlePoolConnectionUpdated(poolConnectionUpdatedEvent);
 
         const id = assertEventBaseProperties(poolConnectionUpdatedEvent, "PoolConnectionUpdated");
         assert.fieldEquals("PoolConnectionUpdatedEvent", id, "token", superToken);
@@ -77,27 +65,13 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
         const account = bob;
         const connected = false;
 
-        const poolConnectionUpdatedEvent = createPoolConnectionUpdatedEvent(
+        const poolConnectionUpdatedEvent = updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
             superToken,
+            account,
             superfluidPool,
-            account,
-            connected
+            connected,
+            initialFlowRate
         );
-
-        // getOrInitAccountTokenSnapshot(event) => getOrInitAccount(account) => host.try_getAppManifest(account)
-        mockedGetAppManifest(account, false, false, BIG_INT_ZERO);
-
-        // updateATSStreamedAndBalanceUntilUpdatedAt => updateATSBalanceAndUpdatedAt => try_realtimeBalanceOf(account)
-        mockedRealtimeBalanceOf(
-            superToken,
-            account,
-            poolConnectionUpdatedEvent.block.timestamp,
-            FAKE_INITIAL_BALANCE.plus(initialFlowRate),
-            initialFlowRate,
-            BIG_INT_ZERO
-        );
-
-        handlePoolConnectionUpdated(poolConnectionUpdatedEvent);
 
         const id = assertEventBaseProperties(poolConnectionUpdatedEvent, "PoolConnectionUpdated");
         assert.fieldEquals("PoolConnectionUpdatedEvent", id, "token", superToken);
@@ -241,9 +215,7 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
         const units = BigInt.fromI32(69);
         const poolMember = bob;
 
-        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
-
-        handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
+        const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(superToken, poolMember, units);
 
         const id = assertEventBaseProperties(memberUnitsUpdatedEvent, "MemberUnitsUpdated");
         assert.fieldEquals("MemberUnitsUpdatedEvent", id, "token", superToken);

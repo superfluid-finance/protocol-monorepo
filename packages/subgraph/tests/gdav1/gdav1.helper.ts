@@ -1,5 +1,4 @@
 import { newMockEvent } from "matchstick-as";
-import { assert } from "matchstick-as/assembly/index";
 import {
     BufferAdjusted,
     FlowDistributionUpdated,
@@ -15,9 +14,9 @@ import { getAddressEventParam, getBigIntEventParam, getBooleanEventParam } from 
 import { BigInt } from "@graphprotocol/graph-ts";
 import { handlePoolConnectionUpdated, handlePoolCreated } from "../../src/mappings/gdav1";
 import { BIG_INT_ZERO } from "../../src/utils";
-import { assertEventBaseProperties } from "../assertionHelpers";
 import { FAKE_INITIAL_BALANCE } from "../constants";
 import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../mockedFunctions";
+import { handleMemberUnitsUpdated } from "../../src/mappings/superfluidPool";
 
 export function createPoolAndReturnPoolCreatedEvent(
     admin: string,
@@ -68,6 +67,18 @@ export function updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
 
     handlePoolConnectionUpdated(poolConnectionUpdatedEvent);
     return poolConnectionUpdatedEvent;
+}
+
+export function updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(
+    superToken: string,
+    poolMember: string,
+    units: BigInt
+): MemberUnitsUpdated {
+    const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+
+    handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
+
+    return memberUnitsUpdatedEvent;
 }
 
 // Mock Event Creators

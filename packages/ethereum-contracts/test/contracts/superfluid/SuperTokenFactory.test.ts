@@ -288,14 +288,20 @@ describe("SuperTokenFactory Contract", function () {
                 await updateSuperTokenFactory();
                 assert.equal((await superToken1.waterMark()).toString(), "0");
 
-                const {constantOutflowNFTProxy, constantInflowNFTProxy} =
-                    await t.deployNFTContracts();
+                const {
+                    constantOutflowNFTProxy,
+                    constantInflowNFTProxy,
+                    poolAdminNFTProxy,
+                    poolMemberNFTProxy,
+                } = await t.deployNFTContracts();
                 const superTokenLogic = await t.deployContract<SuperTokenMock>(
                     "SuperTokenMock",
                     superfluid.address,
                     69,
                     constantOutflowNFTProxy.address,
-                    constantInflowNFTProxy.address
+                    constantInflowNFTProxy.address,
+                    poolAdminNFTProxy.address,
+                    poolMemberNFTProxy.address
                 );
 
                 await governance[

@@ -77,7 +77,7 @@ const ALIASES = {
     "celo-mainnet": ["celo"],
 
     "base-goerli": ["bgoerli"],
-      
+
     "polygon-zkevm-testnet": ["pzkevmtest"],
 
     "base-mainnet": ["base"],
@@ -385,7 +385,10 @@ const E = (module.exports = {
     // Configure your compilers
     compilers: {
         solc: {
-            version: "0.8.19", // Fetch exact version from solc-bin (default: truffle's version)
+            // Fetch exact version from solc-bin (default: truffle's version)
+            // If SOLC environment variable is provided, assuming it is available as "solc", use it instead.
+            // Ref, this maybe possible in the future: https://github.com/trufflesuite/truffle/pull/6007
+            version: process.env.SOLC ? "native" : "0.8.19",
             settings: {
                 // See the solidity docs for advice about optimization and evmVersion
                 optimizer: {

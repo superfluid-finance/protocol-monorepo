@@ -102,7 +102,7 @@
 
     # mkShell wrapper, to expose additional environment variables
     mkShell = o : pkgs.mkShell ({
-      SOLC_PATH = pkgs.lib.getExe pkgs.${solcVer};
+      SOLC = pkgs.lib.getExe pkgs.${solcVer};
     } // o);
 
     # ci-spec-with-ghc

@@ -66,7 +66,7 @@ jobs:
           yarn lint
           yarn build
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
           yarn test
         env:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
@@ -133,11 +133,12 @@ jobs:
           yarn install --frozen-lockfile
           yarn build
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
           yarn workspace @superfluid-finance/ethereum-contracts test-coverage
 
       - name: Clean up and merge coverage artifacts
         run: ./tasks/coverage-cleanup.sh
+        working-directory: ./packages/ethereum-contracts
 
       - name: Create coverage artifact
         uses: actions/upload-artifact@v3
@@ -226,7 +227,6 @@ jobs:
           check_result subgraph ${{ needs.test-subgraph.result }}
           check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
           check_result sdk-core-coverage ${{ needs.coverage-sdk-core.result }}
-
 
   publish-npm-packages:
     name: Publish canary packages to registries

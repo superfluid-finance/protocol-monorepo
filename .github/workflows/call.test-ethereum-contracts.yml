@@ -46,36 +46,43 @@ jobs:
         run: |
           yarn lint
           yarn build
+        working-directory: ./packages/ethereum-contracts
 
+      ########################################
+      ## Test Suite
+      ########################################
       - name: Run test suite
         if: inputs.run-coverage-tests == false
         run: |
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
-          yarn workspace @superfluid-finance/ethereum-contracts test
-          cat packages/ethereum-contracts/testing-benchmark.json
+          echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
+          yarn test
+          cat testing-benchmark.json
+        working-directory: ./packages/ethereum-contracts
         env:
           # NOTE: This is currently unset and fork tests are not being run
           POLYGON_MAINNET_ARCHIVE_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_ARCHIVE_PROVIDER_URL }}
 
+      ########################################
+      ## Coverage Test
+      ########################################
       - name: Run coverage test
-        if: inputs.run-coverage-tests == true
+        if: inputs.run-coverage-tests == true && matrix.node-version == 20
         run: |
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
-          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
+          echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
+          yarn test-coverage
+        working-directory: ./packages/ethereum-contracts
 
       - name: Clean up and merge coverage artifacts
-        if: inputs.run-coverage-tests == true
+        if: inputs.run-coverage-tests == true && matrix.node-version == 20
         run: ./tasks/coverage-cleanup.sh
+        working-directory: ./packages/ethereum-contracts
 
-      - name: Upload ethereum-contracts-coverage to codecov
-        if: inputs.run-coverage-tests == true
-        uses: codecov/codecov-action@v3
+      - name: Create coverage artifact
+        if: inputs.run-coverage-tests == true && matrix.node-version == 20
+        uses: actions/upload-artifact@v3
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: lcov.info
           name: ethereum-contracts-coverage
-          flags: ethereum-contracts
-          fail_ci_if_error: true
-          verbose: true
+          path: |
+            packages/ethereum-contracts/coverage/

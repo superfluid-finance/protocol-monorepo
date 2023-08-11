@@ -19,9 +19,9 @@ jobs:
     runs-on: ubuntu-latest
 
     outputs:
+      build_solidity_semantic_money: ${{ env.BUILD_SOLIDITY_SEMANTIC_MONEY }}
       build_ethereum_contracts: ${{ env.BUILD_ETHEREUM_CONTRACTS }}
       build_hot_fuzz: ${{ env.BUILD_HOT_FUZZ }}
-      build_solidity_semantic_money: ${{ env.BUILD_SOLIDITY_SEMANTIC_MONEY }}
       build_subgraph: ${{ env.BUILD_SUBGRAPH }}
       build_sdk_core: ${{ env.BUILD_SDK_CORE }}
       build_spec_haskell: ${{ env.BUILD_SPEC_HASKELL }}
@@ -104,6 +104,16 @@ jobs:
     needs: [check]
     if: needs.check.outputs.build_spec_haskell
 
+  upload-coverage-reports:
+    name: Upload Coverage Reports (Feature Branch)
+    uses: ./.github/workflows/call.upload-coverage-reports.yml
+    needs: [test-ethereum-contracts, coverage-ethereum-contracts]
+
+  # Note:
+  #
+  # Since we have a poor man's incremental CI where packages that are not affected in the feature branche
+  # is not tested, it is important to distinguish jobs that were skipped versus jobs that were failed. And
+  # this aggregation job does just that.
   all-packages-tested:
     name: All packages tested (Feature Branch)
 
@@ -135,6 +145,7 @@ jobs:
             fi
           }
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
+          check_result test-solidity-semantic-money ${{ needs.test-solidity-semantic-money.result }}
           check_result ethereum-contracts ${{ needs.test-ethereum-contracts.result }}
           check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
           check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}

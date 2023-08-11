@@ -28,10 +28,10 @@
         "show-versions": "lerna ls --long",
         "postinstall": "husky install",
         "pre-commit": "yarn lint:shellcheck && yarn workspaces run pre-commit",
-        "shell": "nix develop",
-        "shell:spec": "nix develop .#spec",
-        "shell:whitehat": "nix develop .#whitehat",
-        "shell:full": "nix develop .#full"
+        "shell": "nix develop --extra-experimental-features 'nix-command flakes'",
+        "shell:spec": "nix develop .#spec --extra-experimental-features 'nix-command flakes'",
+        "shell:whitehat": "nix develop .#whitehat --extra-experimental-features 'nix-command flakes'",
+        "shell:full": "nix develop .#full --extra-experimental-features 'nix-command flakes'"
     },
     "devDependencies": {
         "@nomicfoundation/hardhat-chai-matchers": "^1.0.6",

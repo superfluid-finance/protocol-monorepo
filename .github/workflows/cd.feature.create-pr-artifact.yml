@@ -14,10 +14,7 @@ jobs:
       run:
         shell: nix develop -c bash -xe {0}
 
-    # BUG related to lerna dependency: https://github.com/nrwl/nx/issues/18247
-    # Disabling for now:
-    if: false
-    # if: ${{ !github.event.pull_request.draft }}
+    if: ${{ !github.event.pull_request.draft }}
 
     steps:
       - uses: actions/checkout@v3

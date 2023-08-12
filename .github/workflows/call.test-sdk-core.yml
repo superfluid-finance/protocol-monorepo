@@ -26,7 +26,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -72,7 +72,7 @@ jobs:
 
       - name: "Build and deploy local subgraph"
         run: |
-          yarn build-and-deploy-local 
+          yarn build-and-deploy-local
           # artificial slow down to give the subgraph time to sync
           sleep 30
         working-directory: ${{ env.subgraph-working-directory }}

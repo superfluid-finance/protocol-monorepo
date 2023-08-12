@@ -261,9 +261,7 @@ describe("SuperTokenFactory Contract", function () {
                     );
                 const customToken = await ethers.getContractAt(
                     "CustomSuperTokenMock",
-                    (
-                        await CustomSuperTokenProxyMockFactory.deploy()
-                    ).address
+                    (await CustomSuperTokenProxyMockFactory.deploy()).address
                 );
                 console.log("initializeCustomSuperToken");
                 await expect(

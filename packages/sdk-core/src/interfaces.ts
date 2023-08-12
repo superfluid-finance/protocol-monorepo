@@ -50,7 +50,7 @@ export interface ShouldUseCallAgreement {
 }
 
 export interface EthersParams {
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
+    readonly overrides?: Overrides & { from?: string };
 }
 
 // write request interfaces

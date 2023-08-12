@@ -32,7 +32,7 @@ export default class Host {
         agreementAddress: string,
         callData: string,
         userData: string | undefined,
-        overrides?: Overrides & { from?: string | Promise<string> }
+        overrides?: Overrides & { from?: string }
     ): Operation => {
         const txn = this.contract.populateTransaction.callAgreement(
             agreementAddress,
@@ -53,7 +53,7 @@ export default class Host {
     callAppAction = (
         app: string,
         callData: string,
-        overrides?: Overrides & { from?: string | Promise<string> }
+        overrides?: Overrides & { from?: string }
     ): Operation => {
         const txn = this.contract.populateTransaction.callAppAction(
             app,

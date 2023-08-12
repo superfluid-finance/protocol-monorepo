@@ -10,7 +10,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -19,8 +19,17 @@ jobs:
         with:
           github_access_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Initialize devShell
+        run: |
+          set -ex
+          node --version
+          yarn --version
+
       - name: "Install dependencies"
-        run: yarn install --frozen-lockfile
+        run: |
+          set -ex
+          yarn install --frozen-lockfile
+          npx tsc --version
 
       - name: "Build contracts"
         run: yarn build
@@ -41,7 +50,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3

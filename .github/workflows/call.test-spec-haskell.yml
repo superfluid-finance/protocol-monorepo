@@ -12,15 +12,15 @@ jobs:
     strategy:
       matrix:
         include:
-          - compiler-name: ghc-9.2.5
-            dev-shell-type: ci-spec-ghc925
-          - compiler-name: ghc-9.4.4
-            dev-shell-type: ci-spec-ghc944
+          - compiler-name: ghc-9.2
+            dev-shell-type: ci-spec-ghc92
+          - compiler-name: ghc-9.4
+            dev-shell-type: ci-spec-ghc94
       fail-fast: false
 
     defaults:
       run:
-        shell: nix develop .#${{ matrix.dev-shell-type }} -c bash {0}
+        shell: nix develop .#${{ matrix.dev-shell-type }} -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3

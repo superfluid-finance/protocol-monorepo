@@ -3,3 +3,5 @@
 .certora_recent_jobs.json
 .zip-output-url.txt
 *.zip
+# slither temporary files
+/packages

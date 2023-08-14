@@ -53,3 +53,14 @@ jobs:
       network: "all"
     secrets:
       SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
+
+  deploy-self-hosted-subgraph:
+    uses: ./.github/workflows/call.deploy-self-hosted-subgraph.yml
+    needs: [ 
+            build-and-test-local-subgraph
+           , build-and-test-local-subgraph-against-previous-sdk-core-releases
+           ]
+    name: Deploy Self Hosted Subgraph
+    with:
+      version_label: "v1"
+      network: "all"

@@ -65,8 +65,8 @@ function deploy_subgraph {
     fi
 
     # Create and deploy the subgraph
-    $GRAPH_CLI create protocol-v1 --node "https://$network.subgraph.x.superfluid.dev" && \
-    $GRAPH_CLI deploy "$network" \
+    $GRAPH_CLI create "protocol-$version_label" --node "$NODE_URL" && \
+    $GRAPH_CLI deploy "protocol-$version_label" \
         --version-label "$version_label" \
         --node "$NODE_URL" \
         --ipfs "$IPFS_API"

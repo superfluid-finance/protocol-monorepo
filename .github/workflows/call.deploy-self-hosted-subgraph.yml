@@ -89,12 +89,12 @@ jobs:
             exit 1
           fi
 
-      - name: "Deploy to All Hosted Subgraph Superfluid endpoints"
+      - name: "Deploy to All self-hosted Subgraph Superfluid endpoints"
         if: inputs.network == 'all'
         run: ./tasks/deploy-self-hosted-network.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: "Deploy to Hosted Subgraph Superfluid endpoint"
+      - name: "Deploy to self-hosted Subgraph Superfluid endpoint"
         if: inputs.network != 'all'
         run: ./tasks/deploy-self-hosted-network.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}

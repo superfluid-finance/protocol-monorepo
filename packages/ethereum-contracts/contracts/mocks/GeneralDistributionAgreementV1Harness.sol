@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+import {
+    BasicParticle, PDPoolIndex,
+    FlowRate
+} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 import { GeneralDistributionAgreementV1 } from "../agreements/GeneralDistributionAgreementV1.sol";

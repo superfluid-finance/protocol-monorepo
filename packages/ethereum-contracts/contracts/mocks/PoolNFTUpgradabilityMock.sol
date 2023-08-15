@@ -41,7 +41,7 @@ contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
         return address(0);
     }
 
-    function getTokenId(address pool, address account) external view override returns (uint256 tokenId) {
+    function getTokenId(address /*pool*/, address /*account*/) external view override returns (uint256 tokenId) {
         return 0;
     }
 
@@ -66,7 +66,7 @@ contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
         return keccak256("");
     }
 
-    function tokenURI(uint256 tokenId) external view override returns (string memory) {
+    function tokenURI(uint256 /*tokenId*/) external view override returns (string memory) {
         return "";
     }
 }

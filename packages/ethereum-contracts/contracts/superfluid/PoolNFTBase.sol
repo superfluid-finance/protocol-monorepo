@@ -145,7 +145,7 @@ abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
     /// @return the token URI
     function tokenURI(uint256 tokenId) external view virtual returns (string memory);
 
-    function _tokenURI(uint256 tokenId) internal view virtual returns (string memory) {
+    function _tokenURI(uint256 /*tokenId*/) internal view virtual returns (string memory) {
         return string(abi.encodePacked(baseURI));
     }
 

@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: AGPLv3
+// solhint-disable not-rely-on-time
 pragma solidity 0.8.19;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
@@ -12,7 +13,10 @@ import {
     ContextDefinitions,
     SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+import {
+    BasicParticle, PDPoolIndex, SemanticMoney,
+    Value, Time, FlowRate
+} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { TokenMonad } from "@superfluid-finance/solidity-semantic-money/src/TokenMonad.sol";
 import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
 import { SuperfluidPoolDeployerLibrary } from "../libs/SuperfluidPoolDeployerLibrary.sol";
@@ -113,7 +117,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         uint32 poolID; // the slot id in the pool's subs bitmap
     }
 
-    struct _StackVars_Liquidation {
+    struct StackVarsLiquidation {
         ISuperfluidToken token;
         int256 availableBalance;
         address sender;
@@ -469,8 +473,8 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
                 } else {
                     // liquidation case, requestedFlowRate == 0
                     (int256 availableBalance,,) = token.realtimeBalanceOf(from, currentContext.timestamp);
-                    // _StackVars_Liquidation used to handle good ol' stack too deep
-                    _StackVars_Liquidation memory liquidationData;
+                    // StackVarsLiquidation used to handle good ol' stack too deep
+                    StackVarsLiquidation memory liquidationData;
                     {
                         // @note it would be nice to have oldflowRate returned from _doDistributeFlow
                         UniversalIndexData memory fromUIndexData = _getUIndexData(abi.encode(token), from);
@@ -610,7 +614,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
     }
 
-    function _makeLiquidationPayouts(_StackVars_Liquidation memory data) internal {
+    function _makeLiquidationPayouts(StackVarsLiquidation memory data) internal {
         (, FlowDistributionData memory flowDistributionData) =
             _getFlowDistributionData(ISuperfluidToken(data.token), data.distributionFlowHash);
         int256 signedSingleDeposit = flowDistributionData.buffer.toInt256();

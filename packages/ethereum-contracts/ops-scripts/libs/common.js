@@ -191,12 +191,21 @@ async function setResolver(sf, key, value) {
  * - OWNABLE
  * - SAFE
  * - (default) auto-detect (doesn't yet detect Safe)
+ *
+ * @param sf instance of SuperfluidSDK
+ * @param actionFn function that gets governance methods as argument
+ *
+ * @note if the caller intends to invoke methods only available in SuperfluidGovernanceII
+ * (e.g. UUPSProxiable or Ownable), it must provide the SuperfluidGovernanceII artifact
+ * in the sf object.
  */
 async function sendGovernanceAction(sf, actionFn) {
-    const gov = await sf.contracts.SuperfluidGovernanceBase.at(
-        await sf.host.getGovernance.call()
-    );
-    console.log("Governance address:", gov.address);
+    const govAddr = await sf.host.getGovernance.call();
+    console.log("Governance address:", govAddr);
+    const gov = sf.contracts.SuperfluidGovernanceII !== undefined ?
+        await sf.contracts.SuperfluidGovernanceII.at(govAddr) :
+        await sf.contracts.SuperfluidGovernanceBase.at(govAddr);
+
     const govOwner = await (await sf.contracts.Ownable.at(gov.address)).owner();
     console.log("Governance owner:", govOwner);
 
@@ -308,7 +317,7 @@ async function autodetectGovAdminType(sf, account) {
 }
 
 // returns the Safe Tx Service URL or throws if none available
-// source: https://github.com/safe-global/safe-docs/blob/main/learn/safe-core/safe-core-api/available-services.md
+// source: https://github.com/safe-global/safe-docs/blob/main/safe-core-api/available-services.md
 function getSafeTxServiceUrl(chainId) {
     const safeChainNames = {
         // mainnets
@@ -317,6 +326,7 @@ function getSafeTxServiceUrl(chainId) {
         56: "bsc",
         100: "gnosis-chain",
         137: "polygon",
+        8453: "base",
         42161: "arbitrum",
         43114: "avalanche",
         // testnets

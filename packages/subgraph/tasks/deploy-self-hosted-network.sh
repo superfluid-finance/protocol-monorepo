@@ -64,8 +64,8 @@ function deploy_subgraph {
     
 
     # Check if the provided network is in the array
-    if [[ ! " ${HOSTED_NETWORKS[@]} " =~ " $network " ]]; then
-        echo "The network, $network ,is currently not deployed to Superfluid hosted subgraphs."
+    if [[ ! " ${HOSTED_NETWORKS[*]} " =~ $network ]]; then
+        echo "The network, $network, is currently not deployed to Superfluid hosted subgraphs."
         exit 1
     fi
 

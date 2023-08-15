@@ -64,7 +64,7 @@ jobs:
       - name: Check package versions
         run: |
           SUBGRAPH_NEW_VERSION=$(jq -r .version packages/subgraph/package.json)
-          git tag
+          git fetch --prune --tags # github checkout action by default doesn't fetch these
           if git tag | grep -e "^subgraph@v${SUBGRAPH_NEW_VERSION}$"; then
             echo "subgraph version unchanged: $SUBGRAPH_NEW_VERSION" >&2
             echo "SHOULD_PUBLISH_SUBGRAPH=0" >> "$GITHUB_ENV"

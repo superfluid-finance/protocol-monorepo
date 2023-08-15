@@ -26,7 +26,6 @@ import {
     SuperfluidTester
 } from "./SuperfluidTester.sol";
 
-
 contract HotFuzzBase {
     // constants
     uint private constant INIT_TOKEN_BALANCE = type(uint160).max;

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.11;
 
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { IDAv1Forwarder } from "./IDAv1Forwarder.sol";

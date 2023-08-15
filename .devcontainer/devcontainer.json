@@ -1,0 +1,39 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/typescript-node
+{
+	"name": "Node.js & TypeScript",
+	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:1-18-bookworm",
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	"features": {
+		// If having issues with Nix then consult:
+		// * Nix Dev Containers feature repo: https://github.com/devcontainers/features/tree/main/src/nix
+		// * Nix issue about using with GitHub Codespaces: https://github.com/NixOS/nix/issues/6680
+		// * Nix discourse talk about using with GitHub Codespaces: https://discourse.nixos.org/t/github-codespace-support/27152/2
+		"ghcr.io/devcontainers/features/nix:1": {
+			"multiUser": true,
+			"version": "latest",
+			"extraNixConfig": "experimental-features = nix-command flakes"
+		},
+		"ghcr.io/eitsupi/devcontainer-features/jq-likes:1": {},
+		"ghcr.io/lukewiwa/features/shellcheck:0": {},
+		"ghcr.io/devcontainers-contrib/features/curl-apt-get:1": {},
+		"ghcr.io/devcontainers/features/docker-in-docker:2": {},
+		"ghcr.io/devcontainers-contrib/features/act:1": {}
+	},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// 1. using nix to create a reproduciable build
+	// 2. install foundry for people don't want to use nix
+	// 3. if you want to use nix further, do "nix develop"
+	"postCreateCommand": "./tasks/fix-devcontainer.sh && nix develop . -c bash <(echo \"yarn install && yarn build\") && curl -L https://foundry.paradigm.xyz | bash & foundryup"
+	
+	// Configure tool-specific properties.
+	// "customizations": {},
+	
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	// "remoteUser": "root"
+}

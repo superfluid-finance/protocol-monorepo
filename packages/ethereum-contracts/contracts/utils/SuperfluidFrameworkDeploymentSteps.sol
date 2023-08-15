@@ -36,6 +36,8 @@ contract SuperfluidFrameworkDeploymentSteps {
     uint256 public constant DEFAULT_LIQUIDATION_PERIOD = 4 hours;
     uint256 public constant DEFAULT_PATRICIAN_PERIOD = 30 minutes;
     uint256 public constant DEFAULT_TOGA_MIN_BOND_DURATION = 1 weeks;
+    // TODO we blame solidity that does not suppor this yet
+    // solhint-disable-next-line var-name-mixedcase
     address[] public DEFAULT_TRUSTED_FORWARDERS = new address[](0);
 
     string public constant RESOLVER_BASE_SUPER_TOKEN_KEY = "supertokens.test.";
@@ -277,7 +279,7 @@ contract SuperfluidFrameworkDeploymentSteps {
 
         // Register CFAv1Forwarder with Resolver
         testResolver.set("CFAv1Forwarder", address(cfaV1Forwarder));
-        
+
         // Register IDAv1Forwarder with Resolver
         testResolver.set("IDAv1Forwarder", address(idaV1Forwarder));
     }

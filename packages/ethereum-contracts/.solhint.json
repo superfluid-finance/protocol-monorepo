@@ -3,21 +3,14 @@
     "rules": {
         "no-inline-assembly": "off",
         "func-named-parameters": "off",
-        "immutable-vars-naming": "off",
-        "no-unused-import": "off",
-        "explicit-types": ["off"],
-        "max-line-length": ["error", 120],
         "func-name-mixedcase": "error",
         "func-param-name-mixedcase": "error",
         "modifier-name-mixedcase": "error",
+        "explicit-types": ["off"],
         "reason-string": ["error", {"maxLength": 64}],
         "compiler-version": ["off"],
-        "func-visibility": ["error", {"ignoreConstructors": true}],
         "constructor-syntax": "error",
         "quotes": ["error", "double"],
-        "max-states-count": ["off"],
-        "no-empty-blocks": "off",
-        "const-name-snakecase": "off",
-        "var-name-mixedcase": "off"
+        "max-line-length": ["error", 120]
     }
 }

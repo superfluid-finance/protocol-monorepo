@@ -32,7 +32,9 @@ import {
 abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     using Strings for uint256;
 
-    string public constant baseURI = "https://nft.superfluid.finance/cfa/v2/getmeta";
+    string public constant DEFAULT_BASE_URI = "https://nft.superfluid.finance/cfa/v2/getmeta";
+
+    function baseURI() public view returns (string memory) { return DEFAULT_BASE_URI; }
 
     /// @notice ConstantFlowAgreementV1 contract address
     /// @dev This is the address of the CFAv1 contract cached so we don't have to
@@ -202,7 +204,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
         return
             string(
                 abi.encodePacked(
-                    baseURI,
+                    baseURI(),
                     "?flowRate=",
                     uint256(uint96(flowRate)).toString(),
                     "&outgoing=",

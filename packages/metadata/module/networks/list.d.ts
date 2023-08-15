@@ -1,3 +1,7 @@
+interface AutowrapAddresses {
+    readonly manager: string;
+    readonly wrapStrategy: string;
+}
 interface ContractAddresses {
     readonly resolver: string;
     readonly host: string;
@@ -12,6 +16,7 @@ interface ContractAddresses {
     readonly vestingScheduler: string;
     readonly flowScheduler: string;
     readonly batchLiquidator: string;
+    readonly autowrap: AutowrapAddresses;
 }
 interface SubgraphData {
     readonly name: string;

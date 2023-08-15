@@ -5,7 +5,7 @@
 # Define networks as an array
 # TODO: Generate Superfluid self-hosted naming schema
 # and use jq and get the networks from metadata.json networks file
-HOSTED_NETWORKS=("polygon-zkevm-testnet" "xdai-mainnet" "polygon-mainnet")
+HOSTED_NETWORKS=("polygon-zkevm-testnet")
 GRAPH_CLI="npx --package=@graphprotocol/graph-cli -- graph"
 DEFAULT_IPFS_API="https://ipfs-api.x.superfluid.dev"
 
@@ -68,6 +68,9 @@ function deploy_subgraph {
         echo "The network, $network ,is currently not deployed to Superfluid hosted subgraphs."
         exit 1
     fi
+
+    # Prepare manifests
+    ./tasks/prepare-manifest.sh "$network"
 
     # Create and deploy the subgraph
     $GRAPH_CLI create "protocol-$version_label-$network" --node "$NODE_URL" && \

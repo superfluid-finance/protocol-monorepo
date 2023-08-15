@@ -3,7 +3,7 @@ name: Reusable Workflow | Deploy Subgraph to Self Hosted Service
 on:
   workflow_call:
     inputs:
-      version_label:
+      release_branch:
         required: true
         type: string
         description: 'The subgraph release: feature, dev, v1'
@@ -82,19 +82,19 @@ jobs:
         run: "yarn codegen"
         working-directory: ${{ env.subgraph-working-directory }}
 
-      # - name: Ensure release_branch property is passed
-      #   run: |
-      #     if [ "${{ inputs.release_branch }}" == "" ];then
-      #       echo "You must pass in the release_branch at a minimum."
-      #       exit 1
-      #     fi
+      - name: Ensure release_branch property is passed
+        run: |
+          if [ "${{ inputs.release_branch }}" == "" ];then
+            echo "You must pass in the release_branch at a minimum."
+            exit 1
+          fi
 
       - name: "Deploy to All self-hosted Subgraph Superfluid endpoints"
         if: inputs.network == 'all'
-        run: ./tasks/deploy-self-hosted-network.sh -n ${{ inputs.network }} -v ${{ inputs.version_label }}
+        run: ./tasks/deploy-self-hosted-network.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Deploy to self-hosted Subgraph Superfluid endpoint"
         if: inputs.network != 'all'
-        run: ./tasks/deploy-self-hosted-network.sh -n ${{ inputs.network }} -v ${{ inputs.version_label }}
+        run: ./tasks/deploy-self-hosted-network.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}

@@ -1,6 +1,6 @@
 # Handler Workflow Summary
 # This handler workflow file can be used to deploy our production subgraphs.
-# It will deploy to all networks on both the Hosted Service and Satsuma.
+# It will deploy to all networks on self-hosted nodes, the Graph Hosted Service and Satsuma.
 # This takes a satsuma_version_label and will set it for all networks on Satsuma.
 # When we add a new hosted solution (self-hosted, graph studio), we should create a
 # new call.deploy-<solution>-subgraph.yml file and add it here.
@@ -16,9 +16,6 @@ on:
         required: true
         type: string
         description: 'The version label for Satsuma endpoint (e.g. v0.0.x)'
-  push:
-    branches: [ "self-hosted-subgraph-#1548" ]
-
 jobs:
   build-and-test-local-subgraph:
     uses: ./.github/workflows/call.test-local-subgraph.yml
@@ -31,31 +28,31 @@ jobs:
       subgraph-release: ''
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
-  # deploy-hosted-service-subgraph:
-  #   uses: ./.github/workflows/call.deploy-hosted-service-subgraph.yml
-  #   needs: [ 
-  #           build-and-test-local-subgraph
-  #          , build-and-test-local-subgraph-against-previous-sdk-core-releases
-  #          ]
-  #   name: Deploy Hosted Service Subgraph
-  #   with:
-  #     release_branch: "v1"
-  #     network: "all"
-  #   secrets:
-  #     THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
+  deploy-hosted-service-subgraph:
+    uses: ./.github/workflows/call.deploy-hosted-service-subgraph.yml
+    needs: [ 
+            build-and-test-local-subgraph
+           , build-and-test-local-subgraph-against-previous-sdk-core-releases
+           ]
+    name: Deploy Hosted Service Subgraph
+    with:
+      release_branch: "v1"
+      network: "all"
+    secrets:
+      THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
-  # deploy-satsuma-subgraph:
-  #   uses: ./.github/workflows/call.deploy-satsuma-subgraph.yml
-  #   needs: [ 
-  #           build-and-test-local-subgraph
-  #          , build-and-test-local-subgraph-against-previous-sdk-core-releases
-  #          ]
-  #   name: Deploy Satsuma Subgraph
-  #   with:
-  #     satsuma_version_label: ${{ github.event.inputs.satsuma_version_label }}
-  #     network: "all"
-  #   secrets:
-  #     SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
+  deploy-satsuma-subgraph:
+    uses: ./.github/workflows/call.deploy-satsuma-subgraph.yml
+    needs: [ 
+            build-and-test-local-subgraph
+           , build-and-test-local-subgraph-against-previous-sdk-core-releases
+           ]
+    name: Deploy Satsuma Subgraph
+    with:
+      satsuma_version_label: ${{ github.event.inputs.satsuma_version_label }}
+      network: "all"
+    secrets:
+      SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
 
   deploy-self-hosted-subgraph:
     uses: ./.github/workflows/call.deploy-self-hosted-subgraph.yml
@@ -65,5 +62,5 @@ jobs:
            ]
     name: Deploy Self Hosted Subgraph
     with:
-      version_label: "v1"
+      release_branch: "v1"
       network: "all"

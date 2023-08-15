@@ -41,7 +41,7 @@ contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
         return address(0);
     }
 
-    function getTokenId(address /*pool*/, address /*account*/) external view override returns (uint256 tokenId) {
+    function getTokenId(address /*pool*/, address /*account*/) external pure override returns (uint256 tokenId) {
         return 0;
     }
 
@@ -58,7 +58,7 @@ contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal override {
+    ) internal pure override {
         _transfer(from, to, tokenId);
     }
 
@@ -66,7 +66,7 @@ contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {
         return keccak256("");
     }
 
-    function tokenURI(uint256 /*tokenId*/) external view override returns (string memory) {
+    function tokenURI(uint256 /*tokenId*/) external pure override returns (string memory) {
         return "";
     }
 }
@@ -106,7 +106,7 @@ contract PoolAdminNFTStorageLayoutMock is PoolAdminNFT, IStorageLayoutBase {
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal override {
+    ) internal pure override {
         _transfer(from, to, tokenId);
     }
 }
@@ -146,7 +146,7 @@ contract PoolMemberNFTStorageLayoutMock is PoolMemberNFT, IStorageLayoutBase {
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal override {
+    ) internal pure override {
         _transfer(from, to, tokenId);
     }
 }

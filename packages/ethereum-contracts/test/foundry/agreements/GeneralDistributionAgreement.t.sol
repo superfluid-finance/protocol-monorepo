@@ -229,9 +229,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     // Adjust Buffer => UniversalIndexData modified
-    function testAdjustBufferUpdatesUniversalIndexData(address from, address to, int32 oldFlowRate, int32 newFlowRate)
-        public
-    {
+    function testAdjustBufferUpdatesUniversalIndexData(address from, int32 oldFlowRate, int32 newFlowRate) public {
         vm.assume(newFlowRate >= 0);
 
         uint256 bufferDelta = uint256(int256(newFlowRate)) * liquidationPeriod; // expected buffer == buffer delta
@@ -348,7 +346,6 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
     function testNegativeBalanceIsPatricianPeriodNowIsFalseWithZeroDeposit() public {
         uint256 aliceBalance = superToken.balanceOf(alice);
-        uint256 bobBalance = superToken.balanceOf(bob);
         int96 flowRate = aliceBalance.toInt256().toInt96() / type(int32).max;
         int96 requestedDistributionFlowRate = int96(flowRate);
 
@@ -665,7 +662,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     function testDistributeToDisconnectedMembers(
         UpdateMemberData[5] memory members,
         uint256 distributionAmount,
-        uint16 warpTime
+        uint16 /* warpTime */
     ) public {
         address distributor = alice;
         uint256 distributorBalance = superToken.balanceOf(distributor);
@@ -682,7 +679,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     function testDistributeToConnectedMembers(
         UpdateMemberData[5] memory members,
         uint256 distributionAmount,
-        uint16 warpTime
+        uint16 /* warpTime */
     ) public {
         address distributor = alice;
         uint256 distributorBalance = superToken.balanceOf(distributor);
@@ -697,7 +694,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount);
     }
 
-    function testDistributeFlowToConnectedMembers(UpdateMemberData[5] memory members, int32 flowRate, uint16 warpTime)
+    function testDistributeFlowToConnectedMembers(UpdateMemberData[5] memory members, int32 flowRate, uint16 /* warpTime */)
         public
     {
         vm.assume(members.length > 0);
@@ -915,7 +912,6 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             {
                 (int256 own, int256 fromPools, int256 buffer) =
                     sf.gda.realtimeBalanceVectorAt(superToken, address(currentPool), block.timestamp);
-                int96 connectedFlowRate = currentPool.getTotalConnectedFlowRate();
                 int96 nr = sf.gda.getNetFlow(superToken, address(currentPool));
                 emit log_string("> currentPool before time warp");
                 emit log_named_int("own", own);
@@ -930,7 +926,6 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             {
                 (int256 own, int256 fromPools, int256 buffer) =
                     sf.gda.realtimeBalanceVectorAt(superToken, address(currentPool), block.timestamp);
-                int96 connectedFlowRate = currentPool.getTotalConnectedFlowRate();
                 int96 nr = sf.gda.getNetFlow(superToken, address(currentPool));
                 emit log_string("> currentPool before time warp");
                 emit log_named_int("own", own);
@@ -942,17 +937,11 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
         int96 flowRatesSum;
         {
-            (int256 own, int256 fromPools, int256 buffer) =
-                sf.gda.realtimeBalanceVectorAt(superToken, address(currentPool), block.timestamp);
-            int96 poolDisconnectedRate = currentPool.getTotalDisconnectedFlowRate();
-            (,, int96 poolAdjustmentRate) = sf.gda.getPoolAdjustmentFlowInfo(currentPool);
             int96 poolNetFlowRate = sf.gda.getNetFlow(superToken, address(currentPool));
             flowRatesSum = flowRatesSum + poolNetFlowRate;
         }
 
         for (uint256 i = 1; i <= N_MEMBERS; ++i) {
-            (int256 own, int256 fromPools, int256 buffer) =
-                sf.gda.realtimeBalanceVectorAt(superToken, TEST_ACCOUNTS[i], block.timestamp);
             int96 flowRate = sf.gda.getNetFlow(superToken, TEST_ACCOUNTS[i]);
             flowRatesSum = flowRatesSum + flowRate;
         }

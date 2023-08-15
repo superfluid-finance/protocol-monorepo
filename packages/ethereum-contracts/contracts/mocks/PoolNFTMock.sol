@@ -42,11 +42,11 @@ contract PoolNFTBaseMock is PoolNFTBase {
         address, //from,
         address, //to,
         uint256 //tokenId
-    ) internal override {
+    ) internal pure override {
         revert POOL_NFT_TRANSFER_NOT_ALLOWED();
     }
 
-    function tokenURI(uint256 tokenId) external view override returns (string memory) {
+    function tokenURI(uint256 tokenId) external pure override returns (string memory) {
         return string(abi.encodePacked("tokenId=", tokenId.toString()));
     }
 }

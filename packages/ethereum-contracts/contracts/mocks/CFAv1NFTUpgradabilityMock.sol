@@ -74,14 +74,14 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase, IStorageLayoutBase {
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal override {
+    ) internal pure override {
         _transfer(from, to, tokenId);
     }
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("");
     }
 
-    function tokenURI(uint256 /* tokenId */) external view override returns (string memory) {
+    function tokenURI(uint256 /* tokenId */) external pure override returns (string memory) {
         return "";
     }
 }
@@ -133,7 +133,7 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT, IStorageLayout
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal override {
+    ) internal pure override {
         _transfer(from, to, tokenId);
     }
 }
@@ -187,7 +187,7 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT, IStorageLayo
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal override {
+    ) internal pure override {
         _transfer(from, to, tokenId);
     }
 }

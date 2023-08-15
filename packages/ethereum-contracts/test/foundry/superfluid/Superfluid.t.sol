@@ -25,13 +25,13 @@ contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
         mocks[2] = ISuperAgreement(address(sf.gda));
         for (uint256 i; i < maxNumAgreements - _NUM_AGREEMENTS; ++i) {
             bytes32 id = keccak256(abi.encode("type.", i));
-            AgreementMock mock = new AgreementMock(address(sf.host), id, i);
+            AgreementMock agreementMock = new AgreementMock(address(sf.host), id, i);
 
             vm.startPrank(sf.governance.owner());
-            sf.governance.registerAgreementClass(sf.host, address(mock));
+            sf.governance.registerAgreementClass(sf.host, address(agreementMock));
             vm.stopPrank();
-            mock = sf.host.NON_UPGRADABLE_DEPLOYMENT() ? mock : AgreementMock(address(sf.host.getAgreementClass(id)));
-            mocks[i + _NUM_AGREEMENTS] = ISuperAgreement(address(mock));
+            agreementMock = sf.host.NON_UPGRADABLE_DEPLOYMENT() ? agreementMock : AgreementMock(address(sf.host.getAgreementClass(id)));
+            mocks[i + _NUM_AGREEMENTS] = ISuperAgreement(address(agreementMock));
         }
 
         ISuperAgreement[] memory agreementClasses = sf.host.mapAgreementClasses(type(uint256).max);

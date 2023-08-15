@@ -53,7 +53,7 @@ contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
         poolMemberNFT.mockMint(address(pool), _member);
     }
 
-    function testRevertIfBurningNFTOfMemberWithUnits(address _admin, address _member, address _receiver) public {
+    function testRevertIfBurningNFTOfMemberWithUnits(address _admin, address _member) public {
         vm.assume(_admin != address(0));
         vm.assume(_member != address(0));
         ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _admin);

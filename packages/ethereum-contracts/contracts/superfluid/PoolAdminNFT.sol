@@ -43,7 +43,7 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
         address, // from,
         address, // to,
         uint256 // tokenId
-    ) internal override {
+    ) internal pure override {
         revert POOL_NFT_TRANSFER_NOT_ALLOWED();
     }
 

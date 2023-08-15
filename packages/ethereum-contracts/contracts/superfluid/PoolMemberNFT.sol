@@ -43,7 +43,7 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
         address, // from,
         address, // to,
         uint256 // tokenId
-    ) internal override {
+    ) internal pure override {
         revert POOL_NFT_TRANSFER_NOT_ALLOWED();
     }
 

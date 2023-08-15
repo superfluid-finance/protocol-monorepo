@@ -951,7 +951,7 @@ contract ConstantFlowAgreementV1 is
         uint8 permissions,
         int96 flowAllowance,
         bytes calldata ctx
-    ) internal returns (ISuperfluid.Context memory currentContext) {
+    ) internal view returns (ISuperfluid.Context memory currentContext) {
         if (!FlowOperatorDefinitions.isPermissionsClean(permissions)) revert CFA_ACL_UNCLEAN_PERMISSIONS();
         currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
         if (currentContext.msgSender == flowOperator) revert CFA_ACL_NO_SENDER_FLOW_OPERATOR();

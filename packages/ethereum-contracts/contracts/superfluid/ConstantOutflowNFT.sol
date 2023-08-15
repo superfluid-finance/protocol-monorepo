@@ -118,7 +118,7 @@ contract ConstantOutflowNFT is FlowNFTBase, IConstantOutflowNFT {
         address, // from,
         address, // to,
         uint256 // tokenId
-    ) internal override {
+    ) internal pure override {
         revert CFA_NFT_TRANSFER_IS_NOT_ALLOWED();
     }
 

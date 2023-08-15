@@ -459,6 +459,7 @@ contract FoundrySuperfluidTester is Test {
     /// @return receiverFlowInfo The account flow info for a receiver
     function _helperGetAllFlowInfo(ISuperToken superToken_, address sender, address receiver)
         internal
+        view
         returns (
             ConstantFlowAgreementV1.FlowData memory flowInfo,
             ConstantFlowAgreementV1.FlowData memory senderFlowInfo,
@@ -1630,12 +1631,12 @@ contract FoundrySuperfluidTester is Test {
         (int256 fromRTBAfter,,,) = superToken.realtimeBalanceOfNow(from_);
         // If the distributor is a connected member themselves, they will receive the units
         // they have just distributed
-        uint256 amountReceived = sf.gda.isMemberConnected(superToken, address(pool_), from_)
+        uint256 amountReceivedInitial = sf.gda.isMemberConnected(superToken, address(pool_), from_)
             ? uint256(pool_.getUnits(from_)) * amountPerUnit
             : 0;
         assertEq(
             fromRTBAfter,
-            fromRTBBefore - int256(actualAmountDistributed) + int256(amountReceived),
+            fromRTBBefore - int256(actualAmountDistributed) + int256(amountReceivedInitial),
             "GDAv1.t D: Distributor RTB incorrect"
         );
 

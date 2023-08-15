@@ -8,6 +8,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 
 - Node dependency updates.
+- Raise minimum solc development requirement for ethereum-contracts to 0.8.11.
 
 ## [v1.7.2] - 2023-08-11
 

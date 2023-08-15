@@ -17,6 +17,10 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         -v|--version-label)
+            if [ -z "$2" ]; then
+                echo "Error: Value for --version_label option is missing."
+                exit 1
+            fi
             VERSION_LABEL="$2"
             shift 2
             ;;
@@ -35,11 +39,6 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Check if required arguments are provided
-if [ -z "$NETWORK" ] || [ -z "$VERSION_LABEL" ]; then
-    echo "Please provide both --network and --version-label options."
-    exit 1
-fi
 
 # Set default Subgraph node URL and IPFS API if not provided
 IPFS_API=${IPFS_API:-$DEFAULT_IPFS_API}
@@ -49,6 +48,12 @@ function deploy_subgraph {
     local version_label="$1"
     local network="$2"
     NODE_URL=${NODE_URL:-"https://$2.subgraph.x.superfluid.dev/admin/"}
+
+    # Check if required arguments are provided
+    if [ -z "$network" ] || [ -z "$version_label" ]; then
+        echo "Please provide both --network and --version-label options."
+        exit 1
+    fi
 
     echo "Deploying subgraph $version_label to $network network..."
 

@@ -32,7 +32,7 @@ jobs:
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   deploy-subgraph:
-    uses: ./.github/workflows/call.call.deploy-self-hosted-subgraph.yml
+    uses: ./.github/workflows/call.deploy-self-hosted-subgraph.yml
     needs: [ 
             build-and-test-local-subgraph
            , build-and-test-local-subgraph-against-previous-sdk-core-releases

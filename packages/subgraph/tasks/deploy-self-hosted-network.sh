@@ -5,7 +5,7 @@
 # Define networks as an array
 # TODO: Generate Superfluid self-hosted naming schema
 # and use jq and get the networks from metadata.json networks file
-HOSTED_NETWORKS=("polygon-zkevm-testnet" "xdai-mainnet")
+HOSTED_NETWORKS=("polygon-zkevm-testnet" "xdai-mainnet" "polygon-mainnet")
 GRAPH_CLI="npx --package=@graphprotocol/graph-cli -- graph"
 DEFAULT_IPFS_API="https://ipfs-api.x.superfluid.dev"
 
@@ -47,7 +47,7 @@ IPFS_API=${IPFS_API:-$DEFAULT_IPFS_API}
 function deploy_subgraph {
     local version_label="$1"
     local network="$2"
-    NODE_URL=${NODE_URL:-"https://$2.subgraph.x.superfluid.dev/admin/"}
+    NODE_URL=${EXTERNAL_NODE_URL:-"https://$network.subgraph.x.superfluid.dev/admin/"}
 
     # Check if required arguments are provided
     if [ -z "$network" ] || [ -z "$version_label" ]; then
@@ -55,7 +55,7 @@ function deploy_subgraph {
         exit 1
     fi
 
-    echo "Deploying subgraph $version_label to $network network..."
+    echo "********* Deploying protocol-$version_label-$network subgraph to $network network... **********"
 
     echo "Version label is: $version_label"
     echo "Network is: $network"
@@ -70,23 +70,18 @@ function deploy_subgraph {
     fi
 
     # Create and deploy the subgraph
-    $GRAPH_CLI create "protocol-$version_label" --node "$NODE_URL" && \
-    $GRAPH_CLI deploy "protocol-$version_label" \
+    $GRAPH_CLI create "protocol-$version_label-$network" --node "$NODE_URL" && \
+    $GRAPH_CLI deploy "protocol-$version_label-$network" \
         --version-label "$version_label" \
         --node "$NODE_URL" \
         --ipfs "$IPFS_API"
 }
 
 
-function deploy_all_networks {
-    for network in "${HOSTED_NETWORKS[@]}"; do
-        deploy_subgraph "$1" "$network"
-    done
-}
-
-
 if [[ "$NETWORK" == "all" ]]; then
-    deploy_all_networks "$VERSION_LABEL"
+    for network in "${HOSTED_NETWORKS[@]}"; do
+        deploy_subgraph "$VERSION_LABEL" "$network"
+    done
 else
     deploy_subgraph "$VERSION_LABEL" "$NETWORK"
 fi

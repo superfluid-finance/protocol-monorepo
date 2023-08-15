@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - "dev"
-      - "fix-erc1820-artifact-in-npm"
     paths:
       - "packages/ethereum-contracts/**"
       - "packages/subgraph/**"

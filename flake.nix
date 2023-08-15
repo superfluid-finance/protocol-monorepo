@@ -19,7 +19,7 @@
   outputs = { self, nixpkgs, flake-utils, foundry, solc } :
   flake-utils.lib.eachDefaultSystem (system:
   let
-    minDevSolcVer = "solc_0_8_4"; # minimum solidity version used for external development
+    minDevSolcVer = "solc_0_8_11"; # minimum solidity version used for external development
     solcVer = "solc_0_8_19";
     ghcVer92 = "ghc928";
     ghcVer94 = "ghc945";

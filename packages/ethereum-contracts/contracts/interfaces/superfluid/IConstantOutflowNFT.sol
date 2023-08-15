@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.11;
 
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { IFlowNFTBase } from "./IFlowNFTBase.sol";

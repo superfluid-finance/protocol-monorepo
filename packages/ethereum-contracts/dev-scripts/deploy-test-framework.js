@@ -20,7 +20,7 @@ const SuperfluidFrameworkDeployerArtifact = require("@superfluid-finance/ethereu
 const SlotsBitmapLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/libs/SlotsBitmapLibrary.sol/SlotsBitmapLibrary.json");
 const TokenDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/TokenDeployerLibrary.json");
 
-const ERC1820Registry = require("../ops-scripts/artifacts/ERC1820Registry.json");
+const ERC1820Registry = require("../dev-scripts/artifacts/ERC1820Registry.json");
 
 const ERC1820_ADDRESS = "0x1820a4b7618bde71dce8cdc73aab6c95905fad24";
 const ERC1820_BIN = ERC1820Registry.bin;

@@ -4,7 +4,7 @@ const assert = require("assert").strict;
 const Transaction = require("ethereumjs-tx").Transaction;
 const ethUtils = require("ethereumjs-util");
 // TODO: this is a weird dependency, should probably get this from elsewhere
-const ERC1820Registry = require("./artifacts/ERC1820Registry.json");
+const ERC1820Registry = require("../dev-scripts/artifacts/ERC1820Registry.json");
 const {getScriptRunnerFactory: S, hasCode} = require("./libs/common");
 
 /**

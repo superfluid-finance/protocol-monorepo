@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Fixes
+
+- Ship ERC1820Registry.json with dev-scripts.
+
 ### Changed
 
 - Node dependency updates.

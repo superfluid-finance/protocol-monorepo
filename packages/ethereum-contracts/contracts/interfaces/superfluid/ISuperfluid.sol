@@ -8,12 +8,16 @@ import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { ISuperApp } from "./ISuperApp.sol";
 import {
-    BatchOperation,
+    SuperAppDefinitions,
     ContextDefinitions,
     FlowOperatorDefinitions,
-    SuperAppDefinitions,
+    BatchOperation,
     SuperfluidGovernanceConfigs
 } from "./Definitions.sol";
+import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
+import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
+import { IConstantFlowAgreementV1 } from "../agreements/IConstantFlowAgreementV1.sol";
+import { IInstantDistributionAgreementV1 } from "../agreements/IInstantDistributionAgreementV1.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";

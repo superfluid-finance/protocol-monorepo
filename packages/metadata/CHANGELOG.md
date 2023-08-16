@@ -3,7 +3,7 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [v1.1.11]
 
 - Node dependency updates.
 - Added addresses of autowrap contracts

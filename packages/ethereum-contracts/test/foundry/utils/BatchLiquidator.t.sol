@@ -94,7 +94,6 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         _assertNoFlow(carol, bob);
         _assertNoFlow(dan, bob);
 
-        uint256 balanceAfter = superToken.balanceOf(liquidator);
         assertTrue(
             superToken.balanceOf(liquidator) > balance, "BatchLiquidator: BL - Balance should be greater than before"
         );
@@ -125,7 +124,6 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         _assertNoFlow(carol, bob);
         _assertNoFlow(dan, bob);
 
-        uint256 balanceAfter = superToken.balanceOf(liquidator);
         assertTrue(
             superToken.balanceOf(liquidator) > balance, "BatchLiquidator: BLR - Balance should be greater than before"
         );

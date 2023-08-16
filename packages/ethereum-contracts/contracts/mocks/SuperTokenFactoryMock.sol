@@ -6,11 +6,10 @@ import {
     ISuperfluid,
     ISuperToken,
     SuperToken,
-    SuperTokenFactoryBase
+    SuperTokenFactoryBase,
+    IConstantInflowNFT,
+    IConstantOutflowNFT
 } from "../superfluid/SuperTokenFactory.sol";
-
-import { IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 
 contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
     constructor(

@@ -1,7 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.11;
 
-import { ISuperToken } from "./ISuperToken.sol";
+import {
+    ISuperToken,
+    IConstantInflowNFT,
+    IConstantOutflowNFT
+} from "./ISuperToken.sol";
 
 import {
     IERC20,

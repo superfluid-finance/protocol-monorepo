@@ -5,12 +5,12 @@ import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     ISuperfluid,
     ISuperAgreement,
-    SuperToken
+    SuperToken,
+    IConstantInflowNFT,
+    IConstantOutflowNFT,
+    IPoolAdminNFT,
+    IPoolMemberNFT
 } from "../superfluid/SuperToken.sol";
-import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
-import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
-import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 
 contract SuperTokenStorageLayoutTester is SuperToken {
 

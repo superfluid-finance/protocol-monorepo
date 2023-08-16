@@ -16,6 +16,8 @@ import {
 } from "./Definitions.sol";
 import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
+import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
 import { IConstantFlowAgreementV1 } from "../agreements/IConstantFlowAgreementV1.sol";
 import { IInstantDistributionAgreementV1 } from "../agreements/IInstantDistributionAgreementV1.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";

@@ -17,8 +17,7 @@ import {
     SuperfluidGovernanceConfigs,
     ISuperfluidToken,
     ISuperToken,
-    ISuperTokenFactory,
-    IERC20
+    ISuperTokenFactory
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { CallUtils } from "../libs/CallUtils.sol";

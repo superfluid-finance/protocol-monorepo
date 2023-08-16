@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.11;
 
+// ISuperfluid.sol may also be used as an umbrella-import for everything Superfluid,
+// hence we should have these unused import.
+// solhint-disable no-unused-import
+
 import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { ISuperToken } from "./ISuperToken.sol";
@@ -103,7 +107,7 @@ interface ISuperfluid {
      * @dev Register a new agreement class to the system
      * @param agreementClassLogic Initial agreement class code
      *
-     * @custom:modifiers 
+     * @custom:modifiers
      * - onlyGovernance
      */
     function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -119,7 +123,7 @@ interface ISuperfluid {
     * @dev Update code of an agreement class
     * @param agreementClassLogic New code for the agreement class
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlyGovernance
     */
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -522,9 +526,9 @@ interface ISuperfluid {
         // app credit used, allowing negative values over a callback session
         // the appCreditUsed value over a callback sessions is calculated with:
         // existing flow data owed deposit + sum of the callback agreements
-        // deposit deltas 
+        // deposit deltas
         // the final value used to modify the state is determined by the
-        // _adjustNewAppCreditUsed function (in AgreementLibrary.sol) which takes 
+        // _adjustNewAppCreditUsed function (in AgreementLibrary.sol) which takes
         // the appCreditUsed value reached in the callback session and the app
         // credit granted
         int256 appCreditUsed;

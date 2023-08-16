@@ -6,17 +6,12 @@ import {
     ISuperTokenFactory,
     ISuperToken,
     IERC20,
-    ERC20WithTokenInfo,
-    IConstantInflowNFT,
-    IConstantOutflowNFT
+    ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperfluid, IConstantInflowNFT, IConstantOutflowNFT } from "../interfaces/superfluid/ISuperfluid.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-import { SuperToken } from "../superfluid/SuperToken.sol";
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
-import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
-import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,

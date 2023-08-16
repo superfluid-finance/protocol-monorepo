@@ -1,16 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
-import {
-    ISuperfluid,
-    ISuperAgreement,
-    SuperToken,
-    IConstantInflowNFT,
-    IConstantOutflowNFT,
-    IPoolAdminNFT,
-    IPoolMemberNFT
-} from "../superfluid/SuperToken.sol";
+import { ISuperfluid, IConstantInflowNFT, IConstantOutflowNFT } from "../interfaces/superfluid/ISuperfluid.sol";
+import { SuperToken } from "../superfluid/SuperToken.sol";
 
 contract SuperTokenStorageLayoutTester is SuperToken {
 

@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "forge-std/Test.sol";
-import "../src/SemanticMoney.sol";
+import { Test } from "forge-std/Test.sol";
+import {
+    Value, FlowRate, Time, Unit,
+    BasicParticle, PDPoolIndex, PDPoolMember, PDPoolMemberMU
+} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 
 contract SemanticMoneyTest is Test {
 

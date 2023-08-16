@@ -7,9 +7,9 @@ import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableS
 import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
 import { FlowId, ISuperfluidToken } from "./ISuperfluidToken.sol";
 import {
-    Time, Value, FlowRate, Unit,
+    Time, Value, FlowRate,
     BasicParticle,
-    PDPoolIndex, PDPoolMember, PDPoolMemberMU
+    PDPoolIndex
 } from "../SemanticMoney.sol";
 import { TokenMonad } from "../TokenMonad.sol";
 import {

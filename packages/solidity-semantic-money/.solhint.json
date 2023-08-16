@@ -3,8 +3,10 @@
     "rules": {
         "no-inline-assembly": "off",
         "func-named-parameters": "off",
+        "func-name-mixedcase": "off",
+        "const-name-snakecase": "off",
+        "not-rely-on-time": "off",
         "explicit-types": ["off"],
-        "no-unused-import": "off",
         "var-name-mixedcase": "off",
         "contract-name-camelcase": "off",
         "max-line-length": ["error", 120],

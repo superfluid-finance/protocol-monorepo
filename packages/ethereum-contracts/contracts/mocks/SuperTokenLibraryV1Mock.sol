@@ -1,19 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import {
-    ISuperfluid,
-    ISuperToken
-} from "../interfaces/superfluid/ISuperfluid.sol";
-
-import { ISuperApp, ISuperAgreement } from "../interfaces/superfluid/ISuperfluid.sol";
-
-import { ContextDefinitions, SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
-
+import { ISuperfluid, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
+import { SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperAppBase } from "../apps/SuperAppBase.sol";
-
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { IInstantDistributionAgreementV1 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
 contract SuperTokenLibraryCFAMock {

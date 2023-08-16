@@ -6,6 +6,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [Unreleased]
 
 - Node dependency updates.
+- Added addresses of autowrap contracts
 
 ## [v1.1.10] - 2023-07-25
 - Fixed address of SuperTokenFactory for polygon-zkevm-testnet

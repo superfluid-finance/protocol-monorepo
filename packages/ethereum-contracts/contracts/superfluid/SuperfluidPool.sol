@@ -2,12 +2,20 @@
 // solhint-disable not-rely-on-time
 pragma solidity 0.8.19;
 
+// Notes: We use these interfaces in natspec documentation below, grep @inheritdoc
+// solhint-disable-next-line no-unused-import
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import {
-    BasicParticle, SemanticMoney,
-    PDPoolMember, PDPoolIndex, PDPoolMemberMU,
-    Value, Time, FlowRate, Unit
+    BasicParticle,
+    SemanticMoney,
+    PDPoolMember,
+    PDPoolIndex,
+    PDPoolMemberMU,
+    Value,
+    Time,
+    FlowRate,
+    Unit
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
@@ -65,6 +73,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     // TODO transferability of admin should be allowed
     // nft transferable?
     // customizable metadata for the NFT can be considered
+    // solhint-disable-next-line no-empty-blocks
     function transferAdmin(address admin_) external {
         // What happens to the Admin NFT?
     }
@@ -356,9 +365,9 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             if (newUnits == 0) {
                 if (poolMemberNFT.poolMemberDataByTokenId(tokenId).member != address(0)) {
                     gasLeftBefore = gasleft();
-                    try poolMemberNFT.onDelete(address(this), memberAddr) {
-                        // solhint-disable-next-line no-empty-blocks
-                    } catch {
+                    // solhint-disable-next-line no-empty-blocks
+                    try poolMemberNFT.onDelete(address(this), memberAddr) { }
+                    catch {
                         SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
                     }
                 }
@@ -366,17 +375,17 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
                 // if not minted, we mint a new pool member nft
                 if (poolMemberNFT.poolMemberDataByTokenId(tokenId).member == address(0)) {
                     gasLeftBefore = gasleft();
-                    try poolMemberNFT.onCreate(address(this), memberAddr) {
-                        // solhint-disable-next-line no-empty-blocks
-                    } catch {
+                    // solhint-disable-next-line no-empty-blocks
+                    try poolMemberNFT.onCreate(address(this), memberAddr) { }
+                    catch {
                         SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
                     }
                     // if minted, we update the pool member nft
                 } else {
                     gasLeftBefore = gasleft();
-                    try poolMemberNFT.onUpdate(address(this), memberAddr) {
-                        // solhint-disable-next-line no-empty-blocks
-                    } catch {
+                    // solhint-disable-next-line no-empty-blocks
+                    try poolMemberNFT.onUpdate(address(this), memberAddr) { }
+                    catch {
                         SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
                     }
                 }

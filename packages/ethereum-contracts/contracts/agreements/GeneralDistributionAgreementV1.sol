@@ -6,16 +6,15 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 
 import {
-    ISuperfluid,
-    ISuperfluidGovernance,
-    ISuperApp,
-    SuperAppDefinitions,
-    ContextDefinitions,
-    SuperfluidGovernanceConfigs
+    ISuperfluid, ISuperfluidGovernance, SuperfluidGovernanceConfigs
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import {
-    BasicParticle, PDPoolIndex, SemanticMoney,
-    Value, Time, FlowRate
+    BasicParticle,
+    PDPoolIndex,
+    SemanticMoney,
+    Value,
+    Time,
+    FlowRate
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { TokenMonad } from "@superfluid-finance/solidity-semantic-money/src/TokenMonad.sol";
 import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
@@ -288,9 +287,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
 
         if (address(poolAdminNFT) != address(0)) {
             uint256 gasLeftBefore = gasleft();
-            try poolAdminNFT.mint(address(pool)) {
-                // solhint-disable-next-line no-empty-blocks
-            } catch {
+            // solhint-disable-next-line no-empty-blocks
+            try poolAdminNFT.mint(address(pool)) { }
+            catch {
                 SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
             }
         }
@@ -545,9 +544,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             // create flow (mint)
             if (requestedFlowRate > 0 && FlowRate.unwrap(oldFlowRate) == 0) {
                 gasLeftBefore = gasleft();
-                try IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(token, from, address(pool)) {
-                    // solhint-disable-next-line no-empty-blocks
-                } catch {
+                // solhint-disable-next-line no-empty-blocks
+                try IConstantOutflowNFT(constantOutflowNFTAddress).onCreate(token, from, address(pool)) { }
+                catch {
                     SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
                 }
             }
@@ -555,9 +554,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             // update flow (update metadata)
             if (requestedFlowRate > 0 && FlowRate.unwrap(oldFlowRate) > 0) {
                 gasLeftBefore = gasleft();
-                try IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(token, from, address(pool)) {
-                    // solhint-disable-next-line no-empty-blocks
-                } catch {
+                // solhint-disable-next-line no-empty-blocks
+                try IConstantOutflowNFT(constantOutflowNFTAddress).onUpdate(token, from, address(pool)) { }
+                catch {
                     SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
                 }
             }
@@ -565,9 +564,9 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             // delete flow (burn)
             if (requestedFlowRate == 0) {
                 gasLeftBefore = gasleft();
-                try IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(token, from, address(pool)) {
-                    // solhint-disable-next-line no-empty-blocks
-                } catch {
+                // solhint-disable-next-line no-empty-blocks
+                try IConstantOutflowNFT(constantOutflowNFTAddress).onDelete(token, from, address(pool)) { }
+                catch {
                     SafeGasLibrary._revertWhenOutOfGas(gasLeftBefore);
                 }
             }

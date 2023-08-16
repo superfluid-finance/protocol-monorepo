@@ -15,6 +15,7 @@ import { IPoolAdminNFT } from "../../contracts/interfaces/superfluid/IPoolAdminN
 import { IPoolMemberNFT } from "../../contracts/interfaces/superfluid/IPoolMemberNFT.sol";
 import { IConstantOutflowNFT } from "../../contracts/interfaces/superfluid/IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "../../contracts/interfaces/superfluid/IConstantInflowNFT.sol";
+import { ISuperfluidToken } from "../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { ISETH } from "../../contracts/interfaces/tokens/ISETH.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { ConstantFlowAgreementV1 } from "../../contracts/agreements/ConstantFlowAgreementV1.sol";

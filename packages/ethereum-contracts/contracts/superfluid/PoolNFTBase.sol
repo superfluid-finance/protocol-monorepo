@@ -1,6 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
+// Notes: We use reserved slots for upgradable contracts.
+// solhint-disable max-states-count
+
+// Notes: We use these interfaces in natspec documentation below, grep @inheritdoc
+// solhint-disable-next-line no-unused-import
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
@@ -9,7 +14,9 @@ import { IPoolNFTBase } from "../interfaces/superfluid/IPoolNFTBase.sol";
 import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
 
 abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
-    string public constant baseURI = "https://nft.superfluid.finance/pool/v2/getmeta";
+    string public constant DEFAULT_BASE_URI = "https://nft.superfluid.finance/pool/v2/getmeta";
+
+    function baseURI() public pure returns (string memory) { return DEFAULT_BASE_URI; }
 
     /// @notice Superfluid host contract address
     ISuperfluid public immutable HOST;
@@ -146,7 +153,7 @@ abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
     function tokenURI(uint256 tokenId) external view virtual returns (string memory);
 
     function _tokenURI(uint256 /*tokenId*/) internal view virtual returns (string memory) {
-        return string(abi.encodePacked(baseURI));
+        return string(abi.encodePacked(baseURI()));
     }
 
     /// @inheritdoc IERC721

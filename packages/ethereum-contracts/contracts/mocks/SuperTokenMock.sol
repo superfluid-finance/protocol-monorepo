@@ -2,7 +2,6 @@
 pragma solidity 0.8.19;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
 import { ISuperfluid, SuperToken } from "../superfluid/SuperToken.sol";
@@ -11,19 +10,19 @@ import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ISuperfluid, SuperToken } from "../superfluid/SuperToken.sol";
 import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 
 contract SuperTokenStorageLayoutTester is SuperToken {
-
     constructor(
         ISuperfluid host,
         IConstantOutflowNFT constantOutflowNFTProxy,
         IConstantInflowNFT constantInflowNFTProxy,
         IPoolAdminNFT poolAdminNFTProxy,
         IPoolMemberNFT poolMemberNFTProxy
-    )
-        SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy, poolAdminNFTProxy, poolMemberNFTProxy)
-        // solhint-disable-next-line no-empty-blocks
-    {}
+    ) SuperToken(host, constantOutflowNFTProxy, constantInflowNFTProxy, poolAdminNFTProxy, poolMemberNFTProxy) 
+    // solhint-disable-next-line no-empty-blocks
+    { }
 
     // @dev Make sure the storage layout never change over the course of the development
     function validateStorageLayout() external pure {
@@ -83,8 +82,7 @@ contract SuperTokenStorageLayoutTester is SuperToken {
 }
 
 contract SuperTokenMock is SuperToken {
-
-    uint256 immutable public waterMark;
+    uint256 public immutable waterMark;
 
     constructor(
         ISuperfluid host,
@@ -115,13 +113,8 @@ contract SuperTokenMock is SuperToken {
         _setupDefaultOperators(operators);
     }
 
-    function mintInternal(
-        address to,
-        uint256 amount,
-        bytes memory userData,
-        bytes memory operatorData
-    ) external {
-        _mint(msg.sender, to, amount, true /* invokeHook */, true /* requireReceptionAck */, userData, operatorData);
+    function mintInternal(address to, uint256 amount, bytes memory userData, bytes memory operatorData) external {
+        _mint(msg.sender, to, amount, true, /* invokeHook */ true, /* requireReceptionAck */ userData, operatorData);
     }
 }
 
@@ -248,7 +241,6 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
         return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
-    function updateCode(address newAddress) external override {
-        // dummy impl
-    }
+    // solhint-disable-next-line no-empty-blocks
+    function updateCode(address newAddress) external override { }
 }

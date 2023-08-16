@@ -8,7 +8,7 @@ import {
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 import { GeneralDistributionAgreementV1 } from "../agreements/GeneralDistributionAgreementV1.sol";
-import { ISuperfluidPool, SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
+import { ISuperfluidPool } from "../superfluid/SuperfluidPool.sol";
 
 /// @title GeneralDistributionAgreementV1Harness
 /// @author Superfluid

@@ -50,6 +50,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         super.setUp();
         vm.startPrank(alice);
         currentPool = SuperfluidPool(address(superToken.createPool(alice)));
+        _addAccount(address(currentPool));
         vm.stopPrank();
         (liquidationPeriod,) = sf.governance.getPPPConfig(sf.host, superToken);
     }
@@ -713,6 +714,14 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         );
     }
 
+    function testDistributeFlowToDisconnectedMembers(UpdateMemberData memory member, int32 flowRate, uint16 warpTime) public {
+        vm.assume(flowRate > 0);
+        
+        _helperUpdateMemberUnits(currentPool, alice, member.member, 1);
+
+        _helperDistributeFlow(superToken, alice, alice, currentPool, 1);
+    }
+
     function testDistributeFlowToUnconnectedMembers(UpdateMemberData[5] memory members, int32 flowRate, uint16 warpTime)
         public
     {
@@ -847,10 +856,6 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     /*//////////////////////////////////////////////////////////////////////////
                                     Assertion Functions
     //////////////////////////////////////////////////////////////////////////*/
-
-    function _assertGlobalInvariants() internal override {
-        super._assertGlobalInvariants();
-    }
 
     struct PoolUpdateStep {
         uint8 u; // which user

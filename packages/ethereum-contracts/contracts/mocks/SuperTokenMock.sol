@@ -10,6 +10,8 @@ import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ISuperfluid, SuperToken } from "../superfluid/SuperToken.sol";
 import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
+import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 
 contract SuperTokenStorageLayoutTester is SuperToken {
     constructor(

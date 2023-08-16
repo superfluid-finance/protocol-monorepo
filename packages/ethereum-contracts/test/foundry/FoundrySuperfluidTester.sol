@@ -121,6 +121,9 @@ contract FoundrySuperfluidTester is Test {
     address internal constant heidi = address(0x428);
     address internal constant ivan = address(0x429);
     address[] internal TEST_ACCOUNTS = [admin, alice, bob, carol, dan, eve, frank, grace, heidi, ivan];
+    
+    /// @dev Other account addresses added that aren't testers (pools, super apps, smart contracts)
+    address[] internal OTHER_ACCOUNTS;
 
     uint256 internal immutable N_TESTERS;
 
@@ -131,6 +134,7 @@ contract FoundrySuperfluidTester is Test {
 
     /// @dev The current super token being tested
     ISuperToken internal superToken;
+
 
     /// @dev The expected total supply of the current super token being tested
     uint256 private _expectedTotalSupply;
@@ -177,6 +181,7 @@ contract FoundrySuperfluidTester is Test {
         sfDeployer.deployTestFramework();
         sf = sfDeployer.getFramework();
 
+        OTHER_ACCOUNTS = new address[](0);
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
         N_TESTERS = nTesters;
 
@@ -211,16 +216,18 @@ contract FoundrySuperfluidTester is Test {
     /// @notice Deploys a Wrapper SuperToken with an underlying test token and gives tokens to the test accounts
     function _setUpWrapperSuperToken() internal {
         (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        
+        address[] memory accounts = _listAccounts();
+        for (uint256 i = 0; i < accounts.length; ++i) {
+            address account = accounts[i];
+            token.mint(account, INIT_TOKEN_BALANCE);
 
-        for (uint256 i = 0; i < N_TESTERS; ++i) {
-            token.mint(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
-
-            vm.startPrank(TEST_ACCOUNTS[i]);
+            vm.startPrank(account);
             token.approve(address(superToken), INIT_SUPER_TOKEN_BALANCE);
             superToken.upgrade(INIT_SUPER_TOKEN_BALANCE);
             _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
             vm.stopPrank();
-            _helperTakeBalanceSnapshot(superToken, TEST_ACCOUNTS[i]);
+            _helperTakeBalanceSnapshot(superToken, account);
         }
     }
 
@@ -228,25 +235,32 @@ contract FoundrySuperfluidTester is Test {
     /// @dev We use vm.deal to give each account a starting amount of ether
     function _setUpNativeAssetSuperToken() internal {
         (superToken) = sfDeployer.deployNativeAssetSuperToken("Super ETH", "ETHx");
-        for (uint256 i = 0; i < N_TESTERS; ++i) {
-            vm.startPrank(TEST_ACCOUNTS[i]);
-            vm.deal(TEST_ACCOUNTS[i], INIT_TOKEN_BALANCE);
+
+        address[] memory accounts = _listAccounts();
+        for (uint256 i = 0; i < accounts.length; ++i) {
+            address account = accounts[i];
+            vm.startPrank(account);
+            vm.deal(account, INIT_TOKEN_BALANCE);
             ISETH(address(superToken)).upgradeByETH{ value: INIT_SUPER_TOKEN_BALANCE }();
             _expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
             vm.stopPrank();
-            _helperTakeBalanceSnapshot(superToken, TEST_ACCOUNTS[i]);
+            _helperTakeBalanceSnapshot(superToken, account);
         }
     }
 
     /// @notice Deploys a Pure SuperToken and gives tokens to the test accounts
     /// @dev This contract receives the total supply then doles it out to the test accounts
     function _setUpPureSuperToken() internal {
-        uint256 initialSupply = INIT_SUPER_TOKEN_BALANCE * N_TESTERS;
+        address[] memory accounts = _listAccounts();
+
+        uint256 initialSupply = INIT_SUPER_TOKEN_BALANCE * accounts.length;
         (superToken) = sfDeployer.deployPureSuperToken("Super MR", "MRx", initialSupply);
         _expectedTotalSupply = initialSupply;
-        for (uint256 i = 0; i < N_TESTERS; ++i) {
-            superToken.transfer(TEST_ACCOUNTS[i], INIT_SUPER_TOKEN_BALANCE);
-            _helperTakeBalanceSnapshot(superToken, TEST_ACCOUNTS[i]);
+
+        for (uint256 i = 0; i < accounts.length; ++i) {
+            address account = accounts[i];
+            superToken.transfer(account, INIT_SUPER_TOKEN_BALANCE);
+            _helperTakeBalanceSnapshot(superToken, account);
         }
     }
 
@@ -267,6 +281,22 @@ contract FoundrySuperfluidTester is Test {
         } else {
             revert("invalid test token type");
         }
+    }
+
+    /// @notice Adds an account to the testing mix
+    function _addAccount(address account)
+        internal
+    {
+        OTHER_ACCOUNTS.push(account);
+    }
+
+    function _listAccounts()
+        internal view
+        returns (address[] memory accounts)
+    {
+        accounts = new address[](N_TESTERS + OTHER_ACCOUNTS.length);
+        for (uint i = 0; i < N_TESTERS; ++i) accounts[i] = address(TEST_ACCOUNTS[i]);
+        for (uint i = 0; i < OTHER_ACCOUNTS.length; ++i) accounts[i + N_TESTERS] = OTHER_ACCOUNTS[i];
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -409,9 +439,10 @@ contract FoundrySuperfluidTester is Test {
     /// @param superToken_ The SuperToken to get the liquidity sum for
     /// @return liquiditySum The liquidity sum for the SuperToken
     function _helperGetSuperTokenLiquiditySum(ISuperToken superToken_) internal view returns (int256 liquiditySum) {
-        for (uint256 i = 0; i < N_TESTERS; ++i) {
+        address[] memory accounts = _listAccounts();
+        for (uint256 i = 0; i < accounts.length; ++i) {
             (int256 availableBalance, uint256 deposit, uint256 owedDeposit,) =
-                superToken_.realtimeBalanceOfNow(TEST_ACCOUNTS[i]);
+                superToken_.realtimeBalanceOfNow(accounts[i]);
 
             liquiditySum += availableBalance + int256(deposit) - int256(owedDeposit);
         }
@@ -422,8 +453,9 @@ contract FoundrySuperfluidTester is Test {
     /// @param superToken_ The SuperToken to get the net flow rate sum for
     /// @return netFlowRateSum The net flow rate sum for the SuperToken
     function _helperGetNetFlowRateSum(ISuperToken superToken_) internal view returns (int96 netFlowRateSum) {
-        for (uint256 i = 0; i < N_TESTERS; ++i) {
-            netFlowRateSum += superToken_.getNetFlowRate(TEST_ACCOUNTS[i]);
+        address[] memory accounts = _listAccounts();
+        for (uint256 i = 0; i < accounts.length; ++i) {
+            netFlowRateSum += superToken_.getNetFlowRate(accounts[i]);
         }
     }
 
@@ -659,6 +691,7 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
     }
 
     /// @notice Updates a flow between a sender and receiver at a given flow rate
@@ -702,6 +735,7 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
     }
 
     /// @notice Deletes a flow between a sender and receiver
@@ -744,6 +778,7 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
     }
 
     /// @notice Creates an ACL flow by the opeartor between a sender and receiver at a given flow rate
@@ -814,6 +849,7 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
     }
 
     /// @notice Updates an ACL flow by the opeartor between a sender and receiver at a given flow rate
@@ -882,6 +918,7 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
 
         // TODO
         // Assert that flow rate allowance has been deducted accordingly (if flow rate is increased by delta amount)
@@ -940,6 +977,7 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert RTB for all users
         _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
     }
 
     // Write Helpers - InstantDistributionAgreementV1
@@ -1381,6 +1419,7 @@ contract FoundrySuperfluidTester is Test {
         vm.startPrank(_caller);
         SuperfluidPool localPool = SuperfluidPool(address(sf.gda.createPool(_superToken, _poolAdmin)));
         vm.stopPrank();
+        _addAccount(address(localPool));
 
         // Assert Pool Creation was properly handled
         {
@@ -1537,6 +1576,7 @@ contract FoundrySuperfluidTester is Test {
         }
         // Assert RTB for all users
         // _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
     }
 
     function _helperDisconnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_) internal {
@@ -1585,6 +1625,7 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert RTB for all users
         // _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
     }
 
     function _helperDistributeViaGDA(
@@ -1669,6 +1710,7 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert RTB for all users
         // _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
     }
 
     function _helperDistributeFlow(
@@ -1738,7 +1780,8 @@ contract FoundrySuperfluidTester is Test {
             }
         }
         // Assert RTB for all users
-        // _assertRealTimeBalances(_superToken);
+        // _assertRealTimeBalances(superToken_);
+        _assertGlobalInvariants();
     }
 
     // Write Helpers - SuperfluidPool ERC20 Functionality
@@ -1998,8 +2041,9 @@ contract FoundrySuperfluidTester is Test {
     /// @dev We also take a balance snapshot after each assertion
     /// @param superToken_ The SuperToken to check
     function _assertRealTimeBalances(ISuperToken superToken_) internal {
-        for (uint i; i < N_TESTERS; ++i) {
-            address account = TEST_ACCOUNTS[i];
+        address[] memory accounts = _listAccounts();
+        for (uint i; i < accounts.length; ++i) {
+            address account = accounts[i];
             RealtimeBalance memory balanceSnapshot = _balanceSnapshots[superToken_][account];
             (int256 avb, uint256 deposit, uint256 owedDeposit, uint256 currentTime) =
                 superToken_.realtimeBalanceOfNow(account);

@@ -29,18 +29,19 @@ contract BatchLiquidator {
      * @param superToken - The super token the flows belong to.
      * @param senders - List of senders.
      * @param receivers - Corresponding list of receivers.
+     * @return nSuccess - Number of succeeded deletions.
      */
     function deleteFlows(
         address superToken,
         address[] calldata senders, address[] calldata receivers
-    ) external {
+    ) external returns (uint nSuccess) {
         uint256 length = senders.length;
         if(length != receivers.length) revert ARRAY_SIZES_DIFFERENT();
         for (uint256 i; i < length;) {
             // We tolerate any errors occured during liquidations.
             // It could be due to flow had been liquidated by others.
             // solhint-disable-next-line avoid-low-level-calls
-            address(host).call(
+            (bool success,) = address(host).call(
                 abi.encodeCall(
                     ISuperfluid(host).callAgreement,
                     (
@@ -58,6 +59,7 @@ contract BatchLiquidator {
                     )
                 )
             );
+            if (success) ++nSuccess;
             unchecked { i++; }
         }
 

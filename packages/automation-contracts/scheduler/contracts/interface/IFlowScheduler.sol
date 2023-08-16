@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {
     ISuperToken, ISuperfluid, IConstantFlowAgreementV1
-} from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
+} from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 interface IFlowScheduler {
 

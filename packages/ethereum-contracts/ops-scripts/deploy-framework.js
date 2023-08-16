@@ -343,7 +343,19 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     // initialize the new governance
     if (governanceInitializationRequired) {
         const accounts = await web3.eth.getAccounts();
-        console.log(`initializing governance with config: ${JSON.stringify(config, null, 2)}`);
+        const trustedForwarders = [];
+        if (config.biconomyForwarder) {
+            trustedForwarders.push(config.biconomyForwarder);
+        }
+        if (config.cfaFwd) {
+            trustedForwarders.push(config.cfaFwd);
+        }
+        console.log(`initializing governance with config: ${JSON.stringify({
+            liquidationPeriod: config.liquidationPeriod,
+            patricianPeriod: config.patricityPeriod,
+            trustedForwarders
+        }, null, 2)}`);
+
         await web3tx(governance.initialize, "governance.initialize")(
             superfluid.address,
             // let rewardAddress the first account
@@ -353,15 +365,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             // patricianPeriod
             config.patricianPeriod,
             // trustedForwarders
-            config.biconomyForwarder ? [config.biconomyForwarder] : []
+            trustedForwarders
         );
-        if (config.cfaFwd !== undefined) {
-            await web3tx(governance.enableTrustedForwarder, "governance.enableTrustedForwarder")(
-                superfluid.address,
-                ZERO_ADDRESS,
-                config.cfaFwd
-            )
-        };
     }
 
     // replace with new governance
@@ -857,6 +862,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         agreementsToUpdate.length > 0 ||
         superTokenFactoryNewLogicAddress !== ZERO_ADDRESS
     ) {
+        console.log(`invoking gov.updateContracts(${superfluid.address}, ${superfluidNewLogicAddress}, [${agreementsToUpdate}], ${superTokenFactoryNewLogicAddress})})`);
         await sendGovernanceAction(
             {
                 host: superfluid,

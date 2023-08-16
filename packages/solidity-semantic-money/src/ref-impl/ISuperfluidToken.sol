@@ -5,8 +5,7 @@ import {
     ISuperfluidPool, ISuperfluidPoolOperator
 } from "./ISuperfluidPool.sol";
 import {
-    Time, FlowRate, Value, Unit,
-    BasicParticle
+    Time, FlowRate, Value
 } from "../SemanticMoney.sol";
 
 

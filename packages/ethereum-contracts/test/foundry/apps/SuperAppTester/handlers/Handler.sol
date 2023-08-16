@@ -49,7 +49,6 @@ contract Handler is IStreamHandler, Test {
 
     function updateFlow(address sender, int96 flowRate) external override {
         bound(flowRate, minFlowRate, maxFlowRate);
-        int96 _flowRate = int96(uint96(flowRate));
         vm.startPrank(sender);
         if (superToken.getFlowRate(sender, superAppAddress) > 0) {
             _updateFlowCallCount++;

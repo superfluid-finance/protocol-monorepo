@@ -7,9 +7,9 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {
-    Time, Value, FlowRate, Unit,
-    BasicParticle, PDPoolIndex, PDPoolMember, PDPoolMemberMU,
-    ISuperfluidPool, ToySuperfluidPool,
+    Time, Value, FlowRate,
+    BasicParticle, PDPoolIndex,
+    ISuperfluidPool,
     FlowId, ToySuperfluidToken
 } from "./ToySuperfluidToken.sol";
 

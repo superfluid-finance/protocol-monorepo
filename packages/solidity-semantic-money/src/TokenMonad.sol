@@ -2,9 +2,9 @@
 pragma solidity ^0.8.19;
 
 import {
-    Time, Value, FlowRate, Unit,
+    Time, Value, FlowRate,
     BasicParticle,
-    PDPoolIndex, PDPoolMember, PDPoolMemberMU
+    PDPoolIndex
 } from "./SemanticMoney.sol";
 
 /**

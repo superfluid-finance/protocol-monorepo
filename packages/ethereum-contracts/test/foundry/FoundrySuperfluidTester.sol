@@ -7,17 +7,14 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
-import {
-    SuperfluidFrameworkDeployer,
-    TestResolver,
-    SuperfluidLoader
-} from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
-import { Superfluid } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { SuperfluidFrameworkDeployer } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { ISETH } from "../../contracts/interfaces/tokens/ISETH.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { ConstantFlowAgreementV1 } from "../../contracts/agreements/ConstantFlowAgreementV1.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
+import { SuperfluidLoader } from "../../contracts/utils/SuperfluidLoader.sol";
+import { TestResolver } from "../../contracts/utils/TestResolver.sol";
 import { TestToken } from "../../contracts/utils/TestToken.sol";
 
 /// @title FoundrySuperfluidTester
@@ -416,7 +413,7 @@ contract FoundrySuperfluidTester is Test {
     /// @return senderFlowInfo The account flow info for a sender
     /// @return receiverFlowInfo The account flow info for a receiver
     function _helperGetAllFlowInfo(ISuperToken superToken_, address sender, address receiver)
-        internal
+        internal view
         returns (
             ConstantFlowAgreementV1.FlowData memory flowInfo,
             ConstantFlowAgreementV1.FlowData memory senderFlowInfo,

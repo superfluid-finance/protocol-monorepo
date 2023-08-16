@@ -1,25 +1,22 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
+// We use reserved slots for upgradable contracts.
+// solhint-disable max-states-count
+
+// They are used in solidity docs.
 import {
-    IERC20Metadata
-} from "@openzeppelin/contracts/interfaces/IERC20Metadata.sol";
-import {
-    IERC165,
-    IERC721,
-    IERC721Metadata
+    // solhint-disable-next-line no-unused-import
+    IERC165, IERC721, IERC721Metadata
 } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { IFlowNFTBase } from "../interfaces/superfluid/IFlowNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
-import {
-    ISuperTokenFactory
-} from "../interfaces/superfluid/ISuperTokenFactory.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { ISuperTokenFactory } from "../interfaces/superfluid/ISuperTokenFactory.sol";
+import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /// @title FlowNFTBase abstract contract
 /// @author Superfluid
@@ -34,7 +31,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
 
     string public constant DEFAULT_BASE_URI = "https://nft.superfluid.finance/cfa/v2/getmeta";
 
-    function baseURI() public view returns (string memory) { return DEFAULT_BASE_URI; }
+    function baseURI() public pure returns (string memory) { return DEFAULT_BASE_URI; }
 
     /// @notice ConstantFlowAgreementV1 contract address
     /// @dev This is the address of the CFAv1 contract cached so we don't have to

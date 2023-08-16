@@ -61,7 +61,7 @@ contract ForkPolygonGasTest is Test {
         assertEq(vm.activeFork(), polygonFork);
     }
 
-    function xTestRetrieveBalance() public {
+    function xTestRetrieveBalance() public view {
         uint256 balance = ethX.balanceOf(TEST_ACCOUNT);
     }
 

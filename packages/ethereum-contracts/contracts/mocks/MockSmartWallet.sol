@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { ISuperToken, IERC20 } from "../superfluid/Superfluid.sol";
+import { ISuperToken, IERC20 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 contract MockSmartWallet {
 

@@ -17,6 +17,9 @@ import {
 } from "@superfluid-finance/ethereum-contracts/contracts/utils/SuperfluidFrameworkDeployer.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/IDAv1Library.sol";
+import {
+    SuperTokenV1Library
+} from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
 import {
     IERC20,
@@ -27,6 +30,7 @@ import {
 } from "./SuperfluidTester.sol";
 
 contract HotFuzzBase {
+    using SuperTokenV1Library for SuperToken;
     // constants
     uint private constant INIT_TOKEN_BALANCE = type(uint160).max;
     uint private constant INIT_SUPER_TOKEN_BALANCE = type(uint128).max;
@@ -56,10 +60,10 @@ contract HotFuzzBase {
         otherAccounts = new address[](0);
     }
 
-    function initTesters() virtual internal {
+    function _initTesters() virtual internal {
         testers = new SuperfluidTester[](nTesters);
         for (uint i = 0; i < nTesters; ++i) {
-            testers[i] = createTester();
+            testers[i] = _createTester();
             token.mint(address(testers[i]), INIT_TOKEN_BALANCE);
             testers[i].upgradeSuperToken(INIT_SUPER_TOKEN_BALANCE);
             expectedTotalSupply += INIT_SUPER_TOKEN_BALANCE;
@@ -70,20 +74,20 @@ contract HotFuzzBase {
      * IHotFuzz implementation
      **************************************************************************/
 
-    function createTester()
+    function _createTester()
         virtual internal
         returns (SuperfluidTester)
     {
         return new SuperfluidTester(sf, token, superToken);
     }
 
-    function addAccount(address a)
+    function _addAccount(address a)
         internal
     {
         otherAccounts.push(a);
     }
 
-    function listAccounts()
+    function _listAccounts()
         internal view
         returns (address[] memory accounts)
     {
@@ -92,14 +96,15 @@ contract HotFuzzBase {
         for (uint i = 0; i < otherAccounts.length; ++i) accounts[i + nTesters] = otherAccounts[i];
     }
 
-    function getOneTester(uint8 a)
+    function _getOneTester(uint8 a)
         internal view
         returns (SuperfluidTester testerA)
     {
         testerA = testers[a % nTesters];
     }
 
-    function getTwoTesters(uint8 a, uint8 b)
+    /// @dev The testers returned will never be the same
+    function _getTwoTesters(uint8 a, uint8 b)
         internal view
         returns (SuperfluidTester testerA, SuperfluidTester testerB)
     {
@@ -108,7 +113,7 @@ contract HotFuzzBase {
         testerB = testers[((a % nTesters) + (b % (nTesters - 1))) % nTesters];
     }
 
-    function superTokenBalanceOfNow(address a) internal view returns (int256 avb) {
+    function _superTokenBalanceOfNow(address a) internal view returns (int256 avb) {
         (avb,,,) = superToken.realtimeBalanceOfNow(a);
     }
 
@@ -123,7 +128,7 @@ contract HotFuzzBase {
 
     function echidna_check_liquiditySumInvariance() public view returns (bool) {
         int256 liquiditySum = 0;
-        address[] memory accounts = listAccounts();
+        address[] memory accounts = _listAccounts();
         for (uint i = 0; i < accounts.length; ++i) {
             (int256 avb, uint256 d, uint256 od, ) = superToken.realtimeBalanceOfNow(accounts[i]);
             // FIXME: correct formula
@@ -137,9 +142,9 @@ contract HotFuzzBase {
 
     function echidna_check_netFlowRateSumInvariant() public view returns (bool) {
         int96 netFlowRateSum = 0;
-        address[] memory accounts = listAccounts();
+        address[] memory accounts = _listAccounts();
         for (uint i = 0; i < accounts.length; ++i) {
-            netFlowRateSum += sf.cfa.getNetFlow(superToken, accounts[i]);
+            netFlowRateSum += superToken.getNetFlowRate(accounts[i]);
         }
         assert(netFlowRateSum == 0);
         return netFlowRateSum == 0;

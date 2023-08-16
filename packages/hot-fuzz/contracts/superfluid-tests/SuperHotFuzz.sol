@@ -9,6 +9,6 @@ import "./SuperToken.hott.sol";
 // Combine all the hot fuzzes
 contract SuperHotFuzz is HotFuzzBase(10), CFAHotFuzzMixin, IDAHotFuzzMixin, GDAHotFuzzMixin, SuperTokenHotFuzzMixin {
     constructor() {
-        initTesters();
+        _initTesters();
     }
 }

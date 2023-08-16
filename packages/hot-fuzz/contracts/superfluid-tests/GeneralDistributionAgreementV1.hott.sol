@@ -16,13 +16,13 @@ abstract contract GDAHotFuzzMixin is HotFuzzBase {
     }
 
     function createPool(uint8 a) public {
-        (SuperfluidTester tester) = getOneTester(a);
-
-        pools.push(tester.createPool(address(tester)));
+        (SuperfluidTester tester) = _getOneTester(a);
+        ISuperfluidPool pool = tester.createPool(address(tester));
+        _addPool(pool);
     }
 
     function maybeConnectPool(bool doConnect, uint8 a, uint8 b) public {
-        (SuperfluidTester tester) = getOneTester(a);
+        (SuperfluidTester tester) = _getOneTester(a);
         ISuperfluidPool pool = getRandomPool(b);
         if (doConnect) {
             tester.connectPool(pool);
@@ -32,38 +32,43 @@ abstract contract GDAHotFuzzMixin is HotFuzzBase {
     }
 
     function distributeToPool(uint8 a, uint8 b, uint128 requestedAmount) public {
-        (SuperfluidTester tester) = getOneTester(a);
+        (SuperfluidTester tester) = _getOneTester(a);
         ISuperfluidPool pool = getRandomPool(b);
 
         tester.distributeToPool(pool, address(tester), requestedAmount);
     }
 
     function distributeFlow(uint8 a, uint8 b, uint8 c, int96 flowRate) public {
-        (SuperfluidTester testerA, SuperfluidTester testerB) = getTwoTesters(a, b);
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
         ISuperfluidPool pool = getRandomPool(c);
 
         testerA.distributeFlow(pool, address(testerB), flowRate);
     }
 
     function updateMemberUnits(uint8 a, uint8 b, uint128 units) public {
-        (SuperfluidTester tester) = getOneTester(a);
+        (SuperfluidTester tester) = _getOneTester(a);
         ISuperfluidPool pool = getRandomPool(b);
 
         tester.updateMemberUnits(pool, address(tester), units);
     }
 
     function claimAll(uint8 a, uint8 b) public {
-        (SuperfluidTester tester) = getOneTester(a);
+        (SuperfluidTester tester) = _getOneTester(a);
         ISuperfluidPool pool = getRandomPool(b);
 
         tester.claimAll(pool);
     }
 
     function claimAllForMember(uint8 a, uint8 b) public {
-        (SuperfluidTester testerA, SuperfluidTester testerB) = getTwoTesters(a, b);
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
         ISuperfluidPool pool = getRandomPool(b);
 
         testerA.claimAll(pool, address(testerB));
+    }
+
+    function _addPool(ISuperfluidPool pool) internal {
+        pools.push(pool);
+        _addAccount(address(pool));
     }
 }
 
@@ -71,14 +76,13 @@ contract GDAHotFuzz is HotFuzzBase(10), GDAHotFuzzMixin {
     uint256 public constant NUM_POOLS = 3;
 
     constructor() {
-        initTesters();
+        _initTesters();
 
         for (uint256 i; i < NUM_POOLS; i++) {
-            (SuperfluidTester tester) = getOneTester(uint8(i));
+            (SuperfluidTester tester) = _getOneTester(uint8(i));
             // create a pool breaks
             ISuperfluidPool pool = tester.createPool(address(tester));
-            pools.push(pool);
-            addAccount(address(pool));
+            _addPool(pool);
         }
     }
 }

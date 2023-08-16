@@ -1,12 +1,7 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
-import {
-    ISuperToken, ISuperfluid
-} from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../../../../ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+import { ISuperToken } from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
 
 interface IFlowScheduler {
 

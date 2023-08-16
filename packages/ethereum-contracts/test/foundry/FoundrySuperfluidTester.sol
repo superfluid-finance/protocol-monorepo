@@ -456,8 +456,7 @@ contract FoundrySuperfluidTester is Test {
     /// @return senderFlowInfo The account flow info for a sender
     /// @return receiverFlowInfo The account flow info for a receiver
     function _helperGetAllFlowInfo(ISuperToken superToken_, address sender, address receiver)
-        internal
-        view
+        internal view
         returns (
             ConstantFlowAgreementV1.FlowData memory flowInfo,
             ConstantFlowAgreementV1.FlowData memory senderFlowInfo,

@@ -16,8 +16,6 @@ import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sende
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
 import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
-import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
-import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 
 /**
  * @title Superfluid's super token implementation

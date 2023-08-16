@@ -26,26 +26,26 @@ import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
  * @author Superfluid
  * @dev Please read IConstantFlowAgreementV1 for implementation notes.
  * @dev For more technical notes, please visit protocol-monorepo wiki area.
- * 
+ *
  * Storage Layout Notes
  * Agreement State
  * NOTE The Agreement State slot is computed with the following function:
  * keccak256(abi.encode("AgreementState", msg.sender, account, slotId))
  * slotId           = 0
  * msg.sender       = address of CFAv1
- * account          = context.msgSender 
+ * account          = context.msgSender
  * Flow Agreement State stores the global FlowData state for an account.
- * 
- * 
+ *
+ *
  * Agreement Data
  * NOTE The Agreement Data slot is calculated with the following function:
  * keccak256(abi.encode("AgreementData", agreementClass, agreementId))
  * agreementClass   = address of CFAv1
  * agreementId      = FlowId | FlowOperatorId
- * 
+ *
  * FlowId           = keccak256(abi.encode(flowSender, flowReceiver))
  * FlowId stores FlowData between a flowSender and flowReceiver.
- * 
+ *
  * FlowOperatorId   = keccak256(abi.encode("flowOperator", flowSender, flowOperator))
  * FlowOperatorId stores FlowOperatorData between a flowSender and flowOperator.
  */
@@ -435,7 +435,7 @@ contract ConstantFlowAgreementV1 is
         if (flowParams.flowRate <= 0) revert CFA_INVALID_FLOW_RATE();
     }
 
-    
+
     /**
      * @notice Checks whether or not the NFT hook can be called.
      * @dev A staticcall, so `CONSTANT_OUTFLOW_NFT` must be a view otherwise the assumption is that it reverts
@@ -939,7 +939,7 @@ contract ConstantFlowAgreementV1 is
     {
         return existingPermissions & (~permissionDelta);
     }
-    
+
     /// @dev This function ensures:
     /// - token access is authorized
     /// - passed permissions are "clean"

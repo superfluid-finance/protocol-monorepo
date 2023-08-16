@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
@@ -133,7 +132,7 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT, IStorageLayout
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal pure override {
+    ) internal override pure {
         _transfer(from, to, tokenId);
     }
 }

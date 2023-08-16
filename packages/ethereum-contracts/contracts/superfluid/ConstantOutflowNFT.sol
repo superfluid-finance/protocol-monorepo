@@ -4,12 +4,10 @@ pragma solidity 0.8.19;
 
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
 import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { FlowNFTBase, IFlowNFTBase } from "./FlowNFTBase.sol";
-import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 
 /// @title ConstantOutflowNFT contract (COF NFT)
 /// @author Superfluid

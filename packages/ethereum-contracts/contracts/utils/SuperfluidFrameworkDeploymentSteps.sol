@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.11;
 
+// What do you expect...
+// solhint-disable max-states-count
+
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { IDAv1Forwarder } from "./IDAv1Forwarder.sol";
 import { GDAv1Forwarder } from "./GDAv1Forwarder.sol";
@@ -13,7 +16,7 @@ import { PoolAdminNFT, IPoolAdminNFT } from "../superfluid/PoolAdminNFT.sol";
 import { PoolMemberNFT, IPoolMemberNFT } from "../superfluid/PoolMemberNFT.sol";
 import { GeneralDistributionAgreementV1Harness } from "../mocks/GeneralDistributionAgreementV1Harness.sol";
 import { InstantDistributionAgreementV1 } from "../agreements/InstantDistributionAgreementV1.sol";
-import { ISuperTokenFactory, SuperTokenFactory, ERC20WithTokenInfo } from "../superfluid/SuperTokenFactory.sol";
+import { SuperTokenFactory } from "../superfluid/SuperTokenFactory.sol";
 import { TestToken } from "./TestToken.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
 import { SETHProxy } from "../tokens/SETH.sol";
@@ -42,6 +45,8 @@ contract SuperfluidFrameworkDeploymentSteps {
     uint256 public constant DEFAULT_LIQUIDATION_PERIOD = 4 hours;
     uint256 public constant DEFAULT_PATRICIAN_PERIOD = 30 minutes;
     uint256 public constant DEFAULT_TOGA_MIN_BOND_DURATION = 1 weeks;
+    // TODO we blame solidity that does not suppor this yet
+    // solhint-disable-next-line var-name-mixedcase
     address[] public DEFAULT_TRUSTED_FORWARDERS = new address[](0);
 
     string public constant RESOLVER_BASE_SUPER_TOKEN_KEY = "supertokens.test.";

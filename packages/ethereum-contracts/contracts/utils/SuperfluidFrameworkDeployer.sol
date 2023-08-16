@@ -2,15 +2,9 @@
 pragma solidity >=0.8.11;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IResolver } from "../interfaces/utils/IResolver.sol";
-import { CFAv1Library } from "../apps/CFAv1Library.sol";
-import { IDAv1Library } from "../apps/IDAv1Library.sol";
-import { Superfluid } from "../superfluid/Superfluid.sol";
-import { TestResolver } from "./TestResolver.sol";
-import { SuperfluidLoader } from "./SuperfluidLoader.sol";
 import { SuperfluidFrameworkDeploymentSteps, TokenDeployerLibrary } from "./SuperfluidFrameworkDeploymentSteps.sol";
-import { ISuperTokenFactory, SuperTokenFactory, ERC20WithTokenInfo } from "../superfluid/SuperTokenFactory.sol";
-import { ISuperToken, SuperToken } from "../superfluid/SuperToken.sol";
+import { ISuperTokenFactory, ERC20WithTokenInfo } from "../superfluid/SuperTokenFactory.sol";
+import { SuperToken } from "../superfluid/SuperToken.sol";
 import { TestToken } from "./TestToken.sol";
 import { ISETH } from "../interfaces/tokens/ISETH.sol";
 import { IPureSuperToken } from "../interfaces/tokens/IPureSuperToken.sol";

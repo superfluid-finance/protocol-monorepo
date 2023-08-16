@@ -3,12 +3,12 @@ pragma solidity 0.8.19;
 
 import { FoundrySuperfluidTester } from "./FoundrySuperfluidTester.sol";
 import {
-    SuperfluidLoader,
     IPureSuperToken,
     ISETH,
     TestToken,
     SuperToken
 } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { SuperfluidLoader } from "../../contracts/utils/SuperfluidLoader.sol";
 
 contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
     constructor() FoundrySuperfluidTester(1) { }

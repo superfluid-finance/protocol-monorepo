@@ -1,15 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.11;
 
-import { ISuperfluid } from "./ISuperfluid.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
-import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
-import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
 
 /**
  * @title Super token (Superfluid Token + ERC20 + ERC777) interface
@@ -161,7 +158,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:emits an {Approval} event indicating the updated allowance.
      *
-     * @custom:requirements 
+     * @custom:requirements
      * - `spender` cannot be the zero address.
      */
     function increaseAllowance(address spender, uint256 addedValue) external returns (bool);
@@ -174,7 +171,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:emits an {Approval} event indicating the updated allowance.
      *
-     * @custom:requirements 
+     * @custom:requirements
      * - `spender` cannot be the zero address.
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
@@ -203,7 +200,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:emits a {Sent} event.
      *
-     * @custom:requirements 
+     * @custom:requirements
      * - the caller must have at least `amount` tokens.
      * - `recipient` cannot be the zero address.
      * - if `recipient` is a contract, it must implement the {IERC777Recipient}
@@ -220,7 +217,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:emits a {Burned} event.
      *
-     * @custom:requirements 
+     * @custom:requirements
      * - the caller must have at least `amount` tokens.
      */
     function burn(uint256 amount, bytes calldata userData) external override(IERC777);
@@ -241,7 +238,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:emits an {AuthorizedOperator} event.
      *
-     * @custom:requirements 
+     * @custom:requirements
      * - `operator` cannot be calling address.
      */
     function authorizeOperator(address operator) external override(IERC777);
@@ -253,7 +250,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:emits a {RevokedOperator} event.
      *
-     * @custom:requirements 
+     * @custom:requirements
      * - `operator` cannot be calling address.
      */
     function revokeOperator(address operator) external override(IERC777);
@@ -278,7 +275,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:emits a {Sent} event.
      *
-     * @custom:requirements 
+     * @custom:requirements
      * - `sender` cannot be the zero address.
      * - `sender` must have at least `amount` tokens.
      * - the caller must be an operator for `sender`.
@@ -303,7 +300,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:emits a {Burned} event.
      *
-     * @custom:requirements 
+     * @custom:requirements
      * - `account` cannot be the zero address.
      * - `account` must have at least `amount` tokens.
      * - the caller must be an operator for `account`.
@@ -323,7 +320,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * @dev Mint new tokens for the account
      * If `userData` is not empty, the `tokensReceived` hook is invoked according to ERC777 semantics.
      *
-     * @custom:modifiers 
+     * @custom:modifiers
      *  - onlySelf
      */
     function selfMint(
@@ -336,7 +333,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * @dev Burn existing tokens for the account
     * If `userData` is not empty, the `tokensToSend` hook is invoked according to ERC777 semantics.
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlySelf
     */
    function selfBurn(
@@ -350,7 +347,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * If `spender` isn't the same as `sender`, checks if `spender` has allowance to
     * spend tokens of `sender`.
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlySelf
     */
    function selfTransferFrom(
@@ -364,7 +361,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * @dev Give `spender`, `amount` allowance to spend the tokens of
     * `account`.
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlySelf
     */
    function selfApproveFor(
@@ -409,10 +406,10 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      *
      * @custom:note It will use `transferFrom` to get tokens. Before calling this
      * function you should `approve` this contract
-     * 
+     *
      * @custom:warning
      * - there is potential of reentrancy IF the "to" account is a registered ERC777 recipient.
-     * @custom:requirements 
+     * @custom:requirements
      * - if `userData` is NOT empty AND `to` is a contract, it MUST be a registered ERC777 recipient
      *   otherwise it reverts.
      */
@@ -462,7 +459,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * @param spender The spender of account owner's funds.
     * @param amount Number of tokens to be approved.
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlyHost
     */
     function operationApprove(
@@ -490,7 +487,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * @param recipient The recipient of the funds.
     * @param amount Number of tokens to be transferred.
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlyHost
     */
     function operationTransferFrom(
@@ -507,7 +504,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * @param amount Number of tokens to be transferred.
     * @param userData Arbitrary user inputted data
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlyHost
     */
     function operationSend(
@@ -522,7 +519,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * @param account The account to be changed.
     * @param amount Number of tokens to be upgraded (in 18 decimals)
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlyHost
     */
     function operationUpgrade(address account, uint256 amount) external;
@@ -532,7 +529,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     * @param account The account to be changed.
     * @param amount Number of tokens to be downgraded (in 18 decimals)
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlyHost
     */
     function operationDowngrade(address account, uint256 amount) external;

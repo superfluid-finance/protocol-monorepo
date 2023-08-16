@@ -5,14 +5,9 @@ import "forge-std/Test.sol";
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
-
 import { ERC1820RegistryCompiled } from "../../contracts/libs/ERC1820RegistryCompiled.sol";
-import {
-    SuperfluidFrameworkDeployer,
-    TestResolver,
-    SuperfluidLoader
-} from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
-import { Superfluid } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { SuperfluidFrameworkDeployer } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { Superfluid } from "../../contracts/superfluid/Superfluid.sol";
 import { ISuperfluidPool, SuperfluidPool } from "../../contracts/superfluid/SuperfluidPool.sol";
 import { IFlowNFTBase } from "../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
 import { IPoolNFTBase } from "../../contracts/interfaces/superfluid/IPoolNFTBase.sol";
@@ -25,7 +20,9 @@ import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { ConstantFlowAgreementV1 } from "../../contracts/agreements/ConstantFlowAgreementV1.sol";
 import { IGeneralDistributionAgreementV1 } from "../../contracts/agreements/GeneralDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
-import { ISuperfluidToken, ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
+import { ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
+import { SuperfluidLoader } from "../../contracts/utils/SuperfluidLoader.sol";
+import { TestResolver } from "../../contracts/utils/TestResolver.sol";
 import { TestToken } from "../../contracts/utils/TestToken.sol";
 
 /// @title FoundrySuperfluidTester
@@ -1721,7 +1718,7 @@ contract FoundrySuperfluidTester is Test {
         // Assert Outflow NFT is minted to distributor
         // Assert Inflow NFT is minted to pool
         _assertFlowNftOnDistributeFlow(superToken_, pool_, from, requestedFlowRate);
-        
+
         {
             if (members.length == 0) return;
             uint128 poolTotalUnitsAfter = pool_.getTotalUnits();

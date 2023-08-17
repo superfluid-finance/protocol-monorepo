@@ -37,6 +37,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function setUp() public override {
         super.setUp();
         toga = new TOGA(sf.host, MIN_BOND_DURATION);
+        _addAccount(address(toga));
     }
 
     // Helpers

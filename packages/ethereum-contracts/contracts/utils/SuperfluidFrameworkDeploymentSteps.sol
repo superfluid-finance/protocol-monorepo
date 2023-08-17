@@ -58,6 +58,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         SuperfluidLoader superfluidLoader;
         CFAv1Forwarder cfaV1Forwarder;
         IDAv1Forwarder idaV1Forwarder;
+        TOGA toga;
     }
 
     uint8 private currentStep;
@@ -308,7 +309,8 @@ contract SuperfluidFrameworkDeploymentSteps {
             resolver: testResolver,
             superfluidLoader: superfluidLoader,
             cfaV1Forwarder: cfaV1Forwarder,
-            idaV1Forwarder: idaV1Forwarder
+            idaV1Forwarder: idaV1Forwarder,
+            toga: toga
         });
         return sf;
     }

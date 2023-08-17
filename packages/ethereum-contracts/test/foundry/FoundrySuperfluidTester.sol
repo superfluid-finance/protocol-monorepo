@@ -397,9 +397,10 @@ contract FoundrySuperfluidTester is Test {
     /// @param superToken_ The SuperToken to get the liquidity sum for
     /// @return liquiditySum The liquidity sum for the SuperToken
     function _helperGetSuperTokenLiquiditySum(ISuperToken superToken_) internal view returns (int256 liquiditySum) {
-        for (uint256 i = 0; i < N_TESTERS; ++i) {
+        address[] memory accounts = _listAccounts();
+        for (uint256 i = 0; i < accounts.length; ++i) {
             (int256 availableBalance, uint256 deposit, uint256 owedDeposit,) =
-                superToken_.realtimeBalanceOfNow(TEST_ACCOUNTS[i]);
+                superToken_.realtimeBalanceOfNow(accounts[i]);
 
             liquiditySum += availableBalance + int256(deposit) - int256(owedDeposit);
         }
@@ -410,8 +411,9 @@ contract FoundrySuperfluidTester is Test {
     /// @param superToken_ The SuperToken to get the net flow rate sum for
     /// @return netFlowRateSum The net flow rate sum for the SuperToken
     function _helperGetNetFlowRateSum(ISuperToken superToken_) internal view returns (int96 netFlowRateSum) {
-        for (uint256 i = 0; i < N_TESTERS; ++i) {
-            netFlowRateSum += superToken_.getNetFlowRate(TEST_ACCOUNTS[i]);
+        address[] memory accounts = _listAccounts();
+        for (uint256 i = 0; i < accounts.length; ++i) {
+            netFlowRateSum += superToken_.getNetFlowRate(accounts[i]);
         }
     }
 
@@ -1530,8 +1532,9 @@ contract FoundrySuperfluidTester is Test {
     /// @dev We also take a balance snapshot after each assertion
     /// @param superToken_ The SuperToken to check
     function _assertRealTimeBalances(ISuperToken superToken_) internal {
-        for (uint i; i < N_TESTERS; ++i) {
-            address account = TEST_ACCOUNTS[i];
+        address[] memory accounts = _listAccounts();
+        for (uint i; i < accounts.length; ++i) {
+            address account = accounts[i];
             RealtimeBalance memory balanceSnapshot = _balanceSnapshots[superToken_][account];
             (int256 avb, uint256 deposit, uint256 owedDeposit, uint256 currentTime) =
                 superToken_.realtimeBalanceOfNow(account);

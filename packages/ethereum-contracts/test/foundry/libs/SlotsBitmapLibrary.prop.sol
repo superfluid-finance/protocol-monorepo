@@ -9,7 +9,6 @@ import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISupe
 import { SuperTokenFactory, ISuperTokenFactory } from "../../../contracts/superfluid/SuperTokenFactory.sol";
 import {
     SuperfluidFrameworkDeployer,
-    TestResolver,
     TestToken,
     SuperToken
 } from "../../../contracts/utils/SuperfluidFrameworkDeployer.sol";

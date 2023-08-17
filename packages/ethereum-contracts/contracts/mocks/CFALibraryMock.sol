@@ -2,15 +2,9 @@
 pragma solidity 0.8.19;
 
 import {ISuperfluid, ISuperfluidToken, ISuperToken} from "../interfaces/superfluid/ISuperfluid.sol";
-
-import {ISuperApp, ISuperAgreement} from "../interfaces/superfluid/ISuperfluid.sol";
-
-import {ContextDefinitions, SuperAppDefinitions} from "../interfaces/superfluid/ISuperfluid.sol";
-
+import {SuperAppDefinitions} from "../interfaces/superfluid/ISuperfluid.sol";
 import {SuperAppBase} from "../apps/SuperAppBase.sol";
-
 import {IConstantFlowAgreementV1} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-
 import {CFAv1Library} from "../apps/CFAv1Library.sol";
 
 contract CFALibraryMock {

@@ -4,7 +4,6 @@ pragma solidity 0.8.19;
 import {
     ISuperfluid,
     ISuperToken,
-    BatchOperation,
     FlowOperatorDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import {

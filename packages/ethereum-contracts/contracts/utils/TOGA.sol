@@ -4,9 +4,7 @@ pragma solidity 0.8.19;
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {
-    ISuperfluid,
-    ISuperToken,
-    ISuperfluidToken
+    ISuperfluid, ISuperToken
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 

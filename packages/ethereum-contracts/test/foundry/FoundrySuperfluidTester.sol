@@ -185,6 +185,8 @@ contract FoundrySuperfluidTester is Test {
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
         N_TESTERS = nTesters;
 
+        _addAccount(address(sf.gda));
+
         // Set the token type being tested
         string memory tokenType = vm.envOr(TOKEN_TYPE_ENV_KEY, DEFAULT_TEST_TOKEN_TYPE);
         bytes32 hashedTokenType = keccak256(abi.encode(tokenType));

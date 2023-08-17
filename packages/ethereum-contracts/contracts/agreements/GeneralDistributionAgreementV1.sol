@@ -169,7 +169,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         returns (int256 rtb, uint256 buf, uint256 owedBuffer)
     {
         (int256 available, int256 fromPools, int256 buffer) = realtimeBalanceVectorAt(token, account, time);
-        rtb = available + fromPools - buffer;
+        rtb = available + fromPools;
 
         buf = uint256(buffer); // upcasting to uint256 is safe
         owedBuffer = 0;
@@ -686,8 +686,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         Value bufferDelta = newBufferAmount - Value.wrap(uint256(flowDistributionData.buffer).toInt256());
-
-        eff = _doShift(eff, from, address(this), bufferDelta);
 
         {
             bytes32[] memory data = _encodeFlowDistributionData(

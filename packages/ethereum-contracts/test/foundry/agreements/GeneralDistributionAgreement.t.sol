@@ -714,7 +714,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         );
     }
 
-    function testDistributeFlowToDisconnectedMembers(UpdateMemberData memory member, int32 flowRate, uint16 warpTime) public {
+    function testDistributeFlowToDisconnectedMember(UpdateMemberData memory member, int32 flowRate) public {
         vm.assume(flowRate > 0);
         
         _helperUpdateMemberUnits(currentPool, alice, member.member, 1);

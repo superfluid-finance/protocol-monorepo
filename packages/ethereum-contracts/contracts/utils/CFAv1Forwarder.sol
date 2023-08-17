@@ -4,11 +4,9 @@ pragma solidity 0.8.19;
 import {
     ISuperfluid,
     ISuperToken,
-    FlowOperatorDefinitions
-} from "../interfaces/superfluid/ISuperfluid.sol";
-import {
+    FlowOperatorDefinitions,
     IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import { ForwarderBase } from "./ForwarderBase.sol";
 
 

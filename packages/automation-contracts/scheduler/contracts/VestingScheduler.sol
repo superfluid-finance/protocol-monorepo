@@ -2,12 +2,9 @@
 // solhint-disable not-rely-on-time
 pragma solidity ^0.8.0;
 import {
-    ISuperfluid, ISuperToken, SuperAppDefinitions
+    ISuperfluid, ISuperToken, SuperAppDefinitions, IConstantFlowAgreementV1
 } from "../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { SuperAppBase } from "../../../ethereum-contracts/contracts/apps/SuperAppBase.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../../../ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
 import { CFAv1Library } from "../../../ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import { IVestingScheduler } from "./interface/IVestingScheduler.sol";
 

@@ -5,7 +5,13 @@ pragma solidity 0.8.19;
 // Notes: SuperToken is rich with states, disable this default rule here.
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-import { ISuperfluid, ISuperToken, IERC20 } from "../interfaces/superfluid/ISuperfluid.sol";
+import {
+    ISuperfluid,
+    ISuperToken,
+    IERC20,
+    IConstantInflowNFT,
+    IConstantOutflowNFT
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperfluidToken } from "./SuperfluidToken.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -14,8 +20,6 @@ import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -38,7 +42,7 @@ contract SuperToken is
 
     // solhint-disable-next-line var-name-mixedcase
     IConstantOutflowNFT immutable public CONSTANT_OUTFLOW_NFT;
-
+    
     // solhint-disable-next-line var-name-mixedcase
     IConstantInflowNFT immutable public CONSTANT_INFLOW_NFT;
 
@@ -82,7 +86,7 @@ contract SuperToken is
     uint256 private _reserve29;
     uint256 private _reserve30;
     uint256 internal _reserve31;
-
+    
     // NOTE: You cannot add more storage here. Refer to CustomSuperTokenBase.sol
     // to see the hard-coded storage padding used by SETH and PureSuperToken
 
@@ -105,7 +109,7 @@ contract SuperToken is
         emit ConstantInflowNFTCreated(constantInflowNFT);
     }
 
-
+    
     /// @dev Initialize the Super Token proxy
     function initialize(
         IERC20 underlyingToken,
@@ -730,7 +734,7 @@ contract SuperToken is
         address account,
         address spender,
         uint256 subtractedValue
-    )
+    ) 
         external virtual override
         onlyHost
     {
@@ -755,7 +759,7 @@ contract SuperToken is
         address recipient,
         uint256 amount,
         bytes memory userData
-    )
+    ) 
         external virtual override
         onlyHost
     {

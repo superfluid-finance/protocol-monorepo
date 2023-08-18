@@ -5,9 +5,9 @@ import {
     ISuperfluid,
     ISuperToken,
     SuperAppBase,
-    SuperAppDefinitions
+    SuperAppDefinitions,
+    IConstantFlowAgreementV1
 } from "../apps/SuperAppBase.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /**
  * @title Multi Flow tester App (MFA)

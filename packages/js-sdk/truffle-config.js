@@ -8,7 +8,7 @@ module.exports = {
     // use pre-built artifacts from ethereum-contracts
     contracts_build_directory: path.join(
         __dirname,
-        "../ethereum-contracts/build/truffle/contracts"
+        "../ethereum-contracts/build/truffle"
     ),
     // Configure your compilers
     compilers: {

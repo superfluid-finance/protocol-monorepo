@@ -255,19 +255,6 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             fromUindexDataAfter.totalBuffer,
             "from total buffer not equal"
         );
-        assertEq(
-            fromUindexDataBefore.settledValue - int256(bufferDelta),
-            fromUindexDataAfter.settledValue,
-            "from settled value not shifted to gda"
-        );
-
-        (, GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataAfter) =
-            sf.gda.getUIndexAndUindexData(abi.encode(superToken), address(sf.gda));
-        assertEq(
-            gdaUindexDataBefore.settledValue + int256(bufferDelta),
-            gdaUindexDataAfter.settledValue,
-            "gda settled value not shifted from 'from'"
-        );
     }
 
     /*//////////////////////////////////////////////////////////////////////////

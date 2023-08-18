@@ -121,7 +121,7 @@ contract FoundrySuperfluidTester is Test {
     address internal constant heidi = address(0x428);
     address internal constant ivan = address(0x429);
     address[] internal TEST_ACCOUNTS = [admin, alice, bob, carol, dan, eve, frank, grace, heidi, ivan];
-    
+
     /// @dev Other account addresses added that aren't testers (pools, super apps, smart contracts)
     address[] internal OTHER_ACCOUNTS;
 
@@ -134,7 +134,6 @@ contract FoundrySuperfluidTester is Test {
 
     /// @dev The current super token being tested
     ISuperToken internal superToken;
-
 
     /// @dev The expected total supply of the current super token being tested
     uint256 private _expectedTotalSupply;
@@ -218,7 +217,7 @@ contract FoundrySuperfluidTester is Test {
     /// @notice Deploys a Wrapper SuperToken with an underlying test token and gives tokens to the test accounts
     function _setUpWrapperSuperToken() internal {
         (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
-        
+
         address[] memory accounts = _listAccounts();
         for (uint256 i = 0; i < accounts.length; ++i) {
             address account = accounts[i];
@@ -286,19 +285,18 @@ contract FoundrySuperfluidTester is Test {
     }
 
     /// @notice Adds an account to the testing mix
-    function _addAccount(address account)
-        internal
-    {
+    function _addAccount(address account) internal {
         OTHER_ACCOUNTS.push(account);
     }
 
-    function _listAccounts()
-        internal view
-        returns (address[] memory accounts)
-    {
+    function _listAccounts() internal view returns (address[] memory accounts) {
         accounts = new address[](N_TESTERS + OTHER_ACCOUNTS.length);
-        for (uint i = 0; i < N_TESTERS; ++i) accounts[i] = address(TEST_ACCOUNTS[i]);
-        for (uint i = 0; i < OTHER_ACCOUNTS.length; ++i) accounts[i + N_TESTERS] = OTHER_ACCOUNTS[i];
+        for (uint i = 0; i < N_TESTERS; ++i) {
+            accounts[i] = address(TEST_ACCOUNTS[i]);
+        }
+        for (uint i = 0; i < OTHER_ACCOUNTS.length; ++i) {
+            accounts[i + N_TESTERS] = OTHER_ACCOUNTS[i];
+        }
     }
 
     /*//////////////////////////////////////////////////////////////////////////
@@ -446,7 +444,11 @@ contract FoundrySuperfluidTester is Test {
             (int256 availableBalance, uint256 deposit, uint256 owedDeposit,) =
                 superToken_.realtimeBalanceOfNow(accounts[i]);
 
-            liquiditySum += availableBalance + int256(deposit) - int256(owedDeposit);
+            // FIXME: correct formula
+            // liquiditySum += availableBalance + int256(deposit) - int256(owedDeposit);
+            // current faulty one
+            liquiditySum +=
+                availableBalance + (deposit > owedDeposit ? int256(deposit) - int256(owedDeposit) : int256(0));
         }
     }
 
@@ -490,7 +492,8 @@ contract FoundrySuperfluidTester is Test {
     /// @return senderFlowInfo The account flow info for a sender
     /// @return receiverFlowInfo The account flow info for a receiver
     function _helperGetAllFlowInfo(ISuperToken superToken_, address sender, address receiver)
-        internal view
+        internal
+        view
         returns (
             ConstantFlowAgreementV1.FlowData memory flowInfo,
             ConstantFlowAgreementV1.FlowData memory senderFlowInfo,

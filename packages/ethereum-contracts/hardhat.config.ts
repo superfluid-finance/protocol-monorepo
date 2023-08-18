@@ -100,6 +100,9 @@ const config: HardhatUserConfig = {
             evmVersion: "paris",
         },
     },
+    paths: {
+        artifacts: "build/hardhat",
+    },
     networks: {
         "bsc-mainnet": {
             ...createNetworkConfig("bsc-mainnet"),

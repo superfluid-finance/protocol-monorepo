@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2207
 
+set -e
+
 cd "$(dirname "$0")/.." || exit 1
 
 JQ="npx --package=node-jq -- jq"
 
-CONTRACTS=( $($JQ -r .[] ./src/contracts.json) ) || exit 2
+CONTRACTS=( $($JQ -r .[] tasks/bundled-abi-contracts-list.json) ) || exit 2
 
 {
     echo "if (typeof module === \"undefined\") module = {};"
@@ -13,8 +15,10 @@ CONTRACTS=( $($JQ -r .[] ./src/contracts.json) ) || exit 2
     echo "let Superfluid_ABI;"
     echo "Superfluid_ABI = module.exports = {"
     for i in "${CONTRACTS[@]}";do
-        ABI="$($JQ ".abi" ../ethereum-contracts/build/contracts/"$i".json)" || exit 3
+        ABI="$($JQ ".abi" build/truffle/"$i".json)" || exit 3
         echo "    $i: $ABI,"
     done
     echo "};"
-} > src/abi.js
+} > build/bundled-abi.js
+
+cp tasks/bundled-abi-contracts-list.json build/

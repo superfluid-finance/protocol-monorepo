@@ -17,6 +17,9 @@
     "ISuperfluidGovernance",
     "SuperfluidGovernanceBase",
     "IConstantFlowAgreementV1",
+    "IConstantInflowNFT",
+    "IConstantOutflowNFT",
+    "IPureSuperToken",
     "IInstantDistributionAgreementV1",
     "TestToken",
     "ISETH"

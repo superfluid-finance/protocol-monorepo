@@ -5,9 +5,9 @@ import {
     ISuperfluid,
     ISuperToken,
     SuperAppBase,
-    SuperAppDefinitions
+    SuperAppDefinitions,
+    IConstantFlowAgreementV1
 } from "../apps/SuperAppBase.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 
 /**
  * @dev This is a CFA SuperApp that maintains at most one inflow from a sender at any moment.

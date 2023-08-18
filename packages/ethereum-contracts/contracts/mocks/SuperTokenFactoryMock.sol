@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { ISuperfluid, ISuperToken, SuperTokenFactoryBase } from "../superfluid/SuperTokenFactory.sol";
-
-import { IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+import { 
+    ISuperfluid,
+    ISuperToken,
+    SuperTokenFactoryBase,
+    IConstantInflowNFT,
+    IConstantOutflowNFT
+} from "../superfluid/SuperTokenFactory.sol";
 
 contract SuperTokenFactoryStorageLayoutTester is SuperTokenFactoryBase {
     constructor(

@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { ISuperfluid, ISuperAgreement, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+import {
+    ISuperfluid, ISuperAgreement, ISuperToken, IConstantFlowAgreementV1
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 /**

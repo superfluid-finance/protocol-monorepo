@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.11;
 
-import { ISuperToken } from "./ISuperToken.sol";
-import { ISuperfluidToken  } from "./ISuperfluidToken.sol";
 import { ISuperfluid } from "./ISuperfluid.sol";
-
+import { ISuperToken } from "./ISuperToken.sol";
+import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 
 /**
  * @title Superfluid governance interface

@@ -7,15 +7,9 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
 import { SuperfluidToken } from "../superfluid/SuperfluidToken.sol";
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import {
-    ConstantOutflowNFT,
-    IConstantOutflowNFT
-} from "../superfluid/ConstantOutflowNFT.sol";
-import {
-    ConstantInflowNFT,
-    IConstantInflowNFT
-} from "../superfluid/ConstantInflowNFT.sol";
+import { ISuperfluid, IConstantInflowNFT, IConstantOutflowNFT } from "../interfaces/superfluid/ISuperfluid.sol";
+import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     constructor(

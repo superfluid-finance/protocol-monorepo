@@ -101,7 +101,7 @@ export default
             "idaV1": "0x96215257F2FcbB00135578f766c0449d239bd92F",
             "gdaV1": "0xe87F46A15C410F151309Bf7516e130087Fc6a5E5",
             "superTokenFactory": "0xfafe31cf998Df4e5D8310B03EBa8fb5bF327Eaf5",
-            "superfluidLoader": "0x5Bb5908dcCC9Bb0fC39a78CfDf9e47B4C08E9521"
+            "superfluidLoader": "0x5AD965F6F73Df9feCB4fb62400b8522fcdC0B70b"
         },
         "startBlockV1": 340000,
         "logsQueryRange": 50000,
@@ -159,7 +159,7 @@ export default
             "idaV1": "0xA44dEC7A0Dde1a56AeDe4143C1ef89cf5d956782",
             "gdaV1": "0x48ac69a0f8bc90d5b3b81f6162ec87c864ebd052",
             "superTokenFactory": "0x1C92042426B6bAAe497bEf461B6d8342D03aEc92",
-            "superfluidLoader": "0x96C3C2d23d143301cF363a02cB7fe3596d2834d7",
+            "superfluidLoader": "0x36446Ec9C7909608065dEB7f491701d815B880e5",
             "autowrap": {
                 "manager": "0x30aE282CF477E2eF28B14d0125aCEAd57Fe1d7a1",
                 "wrapStrategy": "0x1D65c6d3AD39d454Ea8F682c49aE7744706eA96d"

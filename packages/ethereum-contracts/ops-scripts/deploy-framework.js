@@ -98,6 +98,8 @@ async function deployContractIfCodeChanged(
  *                  (overriding env: RELEASE_VERSION)
  * @param {string} options.outputFile Name of file where to log addresses of newly deployed contracts
  *                  (overriding env: OUTPUT_FILE)
+ * @param {boolean} options.newSuperfluidLoader Deploy a new superfluid loader contract
+ *                  (overriding env: NEW_SUPERFLUID_LOADER)
  *
  * Usage: npx truffle exec ops-scripts/deploy-framework.js
  */
@@ -114,6 +116,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         appWhiteListing,
         protocolReleaseVersion,
         outputFile,
+        newSuperfluidLoader,
     } = options;
     resetSuperfluidFramework = options.resetSuperfluidFramework;
 
@@ -162,6 +165,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         appWhiteListing ||
         config.gov_enableAppWhiteListing ||
         !!process.env.ENABLE_APP_WHITELISTING;
+    newSuperfluidLoader = newSuperfluidLoader || !!process.env.NEW_SUPERFLUID_LOADER;
+
     console.log("app whitelisting enabled:", appWhiteListing);
     if (newTestResolver) {
         console.log("**** !ATTN! CREATING NEW RESOLVER ****");
@@ -172,8 +177,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     if (nonUpgradable) {
         console.log("**** !ATTN! DISABLED UPGRADABILITY ****");
     }
-    if (appWhiteListing) {
-        console.log("**** !ATTN! ENABLING APP WHITELISTING ****");
+    if (newSuperfluidLoader) {
+        console.log("**** !ATTN! DEPLOYING NEW SUPERFLUID LOADER ****");
     }
 
     await deployERC1820((err) => {
@@ -284,7 +289,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     await deployAndRegisterContractIf(
         SuperfluidLoader,
         "SuperfluidLoader-v1",
-        async (contractAddress) => contractAddress === ZERO_ADDRESS,
+        async (contractAddress) => newSuperfluidLoader === true || contractAddress === ZERO_ADDRESS,
         async () => {
             const c = await web3tx(
                 SuperfluidLoader.new,
@@ -763,64 +768,48 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         web3,
         SuperTokenFactoryLogic,
         async () => {
-            console.log(
-                "checking if SuperTokenFactory needs to be redeployed..."
-            );
+            // helper function: encode an address as word
+            const ap = function(addr) {
+                return addr.toLowerCase().slice(2).padStart(64, "0");
+            }
+
+            console.log("checking if SuperTokenFactory needs to be redeployed...");
             // check if super token factory or super token logic changed
             try {
                 if (factoryAddress === ZERO_ADDRESS) return true;
                 const factory = await SuperTokenFactoryLogic.at(factoryAddress);
-                const superTokenLogicAddress =
-                    await factory.getSuperTokenLogic.call();
-                const superTokenLogic = await SuperTokenLogic.at(
-                    superTokenLogicAddress
-                );
-                const constantOutflowNFTAddress =
-                    await superTokenLogic.CONSTANT_OUTFLOW_NFT();
-                const constantInflowNFTAddress =
-                    await superTokenLogic.CONSTANT_INFLOW_NFT();
-                console.log("   superTokenLogic.POOL_ADMIN_NFT()");
-                const poolAdminNFTAddress =
-                    await superTokenLogic.POOL_ADMIN_NFT();
-                console.log("   superTokenLogic.POOL_MEMBER_NFT()");
-                const poolMemberNFTAddress =
-                    await superTokenLogic.POOL_MEMBER_NFT();
+                const superTokenLogicAddress = await factory.getSuperTokenLogic.call();
+                const superTokenLogic = await SuperTokenLogic.at(superTokenLogicAddress);
+                const cofNFTPAddr = await superTokenLogic.CONSTANT_OUTFLOW_NFT();
+                const cifNFTPAddr = await superTokenLogic.CONSTANT_INFLOW_NFT();
+                const cofNFTContract = await ConstantOutflowNFT.at(cofNFTPAddr);
+                const cifNFTContract = await ConstantInflowNFT.at(cifNFTPAddr);
+                const cofNFTLAddr = await cofNFTContract.getCodeAddress();
+                const cifNFTLAddr = await cifNFTContract.getCodeAddress();
 
-                const constantOutflowNFTContract = ConstantOutflowNFT.at(
-                    constantOutflowNFTAddress
-                );
-                const constantInflowNFTContract = ConstantInflowNFT.at(
-                    constantInflowNFTAddress
-                );
-                const poolAdminNFTContract =
-                    PoolAdminNFT.at(poolAdminNFTAddress);
-                const poolMemberNFTContract =
-                    PoolMemberNFT.at(poolMemberNFTAddress);
+                const poolAdminNFTPAddr = await superTokenLogic.POOL_ADMIN_NFT();
+                const poolMemberNFTPAddr = await superTokenLogic.POOL_MEMBER_NFT();
+                const poolAdminNFTContract = await PoolAdminNFT.at(poolAdminNFTPAddr);
+                const poolMemberNFTContract = await PoolMemberNFT.at(poolMemberNFTPAddr);
+                const poolAdminNFTLAddr = await poolAdminNFTContract.getCodeAddress();
+                const poolMemberNFTLAddr = await poolMemberNFTContract.getCodeAddress();
 
-                const constantInflowNFTParam = constantInflowNFTAddress
-                    .toLowerCase().slice(2).padStart(64, "0");
-                const constantOutflowNFTParam = constantOutflowNFTAddress
-                    .toLowerCase().slice(2).padStart(64, "0");
-                const cfaParam = (await superfluid.getAgreementClass.call(CFAv1_TYPE))
-                    .toLowerCase().slice(2).padStart(64, "0");
+                const cfaPAddr = await superfluid.getAgreementClass.call(CFAv1_TYPE);
+                const gdaPAddr = await superfluid.getAgreementClass.call(GDAv1_TYPE);
 
                 constantOutflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantOutflowNFT,
-                    await (
-                        await UUPSProxiable.at(constantOutflowNFTAddress)
-                    ).getCodeAddress(),
-                    [superfluidConstructorParam, constantInflowNFTParam, cfaParam]
+                    cofNFTLAddr,
+                    [superfluidConstructorParam, ap(cifNFTPAddr), ap(cfaPAddr), ap(gdaPAddr)]
                 );
                 console.log("   constantOutflowNFTLogicChanged:", constantOutflowNFTLogicChanged);
 
                 constantInflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantInflowNFT,
-                    await (
-                        await UUPSProxiable.at(constantInflowNFTAddress)
-                    ).getCodeAddress(),
-                    [superfluidConstructorParam, constantOutflowNFTParam, cfaParam]
+                    cifNFTLAddr,
+                    [superfluidConstructorParam, ap(cofNFTPAddr), ap(cfaPAddr), ap(gdaPAddr)]
                 );
                 console.log("   constantInflowNFTLogicChanged:", constantInflowNFTLogicChanged);
 
@@ -828,7 +817,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     web3,
                     PoolAdminNFT,
                     await poolAdminNFTContract.getCodeAddress(),
-                    [superfluidConstructorParam]
+                    [superfluidConstructorParam, ap(gdaPAddr)]
                 );
                 console.log("   poolAdminNFTLogicChanged:", poolAdminNFTLogicChanged);
 
@@ -836,7 +825,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     web3,
                     PoolMemberNFT,
                     await poolMemberNFTContract.getCodeAddress(),
-                    [superfluidConstructorParam]
+                    [superfluidConstructorParam, ap(gdaPAddr)]
                 );
                 console.log("   poolMemberNFTLogicChanged:", poolMemberNFTLogicChanged);
 
@@ -844,7 +833,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     web3,
                     SuperTokenFactoryLogic,
                     await superfluid.getSuperTokenFactoryLogic.call(),
-                    [superfluidConstructorParam]
+                    [superfluidConstructorParam, ap(superTokenLogicAddress), ap(cofNFTLAddr), ap(cifNFTLAddr),
+                    ap(poolAdminNFTLAddr), ap(poolMemberNFTLAddr)]
                 );
                 console.log("   superTokenFactoryCodeChanged:", superTokenFactoryCodeChanged);
 
@@ -854,10 +844,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     await factory.getSuperTokenLogic.call(),
                     // this replacement does not support SuperTokenMock
                     [
-                        // See SuperToken constructor parameter
-                        superfluidConstructorParam,
-                        constantOutflowNFTParam,
-                        constantInflowNFTParam,
+                        superfluidConstructorParam, ap(cofNFTPAddr), ap(cifNFTPAddr),
+                        ap(poolAdminNFTPAddr), ap(poolMemberNFTPAddr)
                     ]
                 );
                 console.log("   superTokenLogicCodeChanged:", superTokenLogicCodeChanged);

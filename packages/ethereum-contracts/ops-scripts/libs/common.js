@@ -80,6 +80,7 @@ async function hasCode(web3, address) {
 
 /**
  * @dev Check if the code at the address differs from the contract object provided
+ * @param replacements should contain all immutable contract fields, encoded as words
  * TODO: this isn't always working as intended, see https://github.com/superfluid-finance/protocol-monorepo/issues/1448
  */
 async function codeChanged(

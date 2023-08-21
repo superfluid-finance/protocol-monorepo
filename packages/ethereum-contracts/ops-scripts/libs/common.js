@@ -424,6 +424,38 @@ function getScriptRunnerFactory(runnerOpts = {}) {
     };
 }
 
+/****************************************************************
+ * Helpers to store versionString in Resolver
+ ****************************************************************/
+
+// versionString format: [x]x.[y]y.[z]z-rrrrrrrr
+// x: major version, y: minor version, z: patch, r: 8-digit git revision (hex)
+
+// takes an argument of the form [x]x.[y]y.[z]z-rrrrrrrr and returns a pseudo address
+function versionStringToPseudoAddress(versionString) {
+    const [versions, suffix] = versionString.split('-');
+    const [major, minor, patch] = versions.split('.').map(v => v.padStart(2, '0'));  // Pad with leading zeros
+    return `0x00000000000000000000000000${major}${minor}${patch}${suffix}`;
+}
+
+// takes a pseudo address as argument and decodes it to a versionString
+function pseudoAddressToVersionString(pseudoAddress) {
+    const str = pseudoAddress.replace(/^0x/, '').toLowerCase(); // remove leading 0x
+    const major = parseInt(str.slice(26, 28), 10);
+    const minor = parseInt(str.slice(28, 30), 10);
+    const patch = parseInt(str.slice(30, 32), 10);
+    const revision = str.slice(32);
+
+    if (
+        !str.startsWith("00000000000000000000000000") ||
+        isNaN(major) || isNaN(minor) || isNaN(patch)
+    ) {
+        throw new Error("Provided address doesn't encode a valid versionString");
+    }
+
+    return `${major}.${minor}.${patch}-${revision}`;
+}
+
 module.exports = {
     ZERO_ADDRESS,
 
@@ -443,4 +475,7 @@ module.exports = {
     getPastEvents,
 
     getScriptRunnerFactory,
+
+    versionStringToPseudoAddress,
+    pseudoAddressToVersionString,
 };

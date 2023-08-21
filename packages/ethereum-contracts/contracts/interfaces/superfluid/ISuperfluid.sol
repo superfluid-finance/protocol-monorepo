@@ -19,8 +19,8 @@ import {
     SuperfluidGovernanceConfigs
 } from "./Definitions.sol";
 import { IFlowNFTBase } from "./IFlowNFTBase.sol";
-import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 import { IConstantFlowAgreementV1 } from "../agreements/IConstantFlowAgreementV1.sol";
 import { IInstantDistributionAgreementV1 } from "../agreements/IInstantDistributionAgreementV1.sol";
 import { TokenInfo } from "../tokens/TokenInfo.sol";

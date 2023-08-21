@@ -16,6 +16,7 @@
     "ISuperAgreement",
     "ISuperfluidGovernance",
     "SuperfluidGovernanceBase",
+    "SuperfluidGovernanceII",
     "IConstantFlowAgreementV1",
     "IInstantDistributionAgreementV1",
     "TestToken",

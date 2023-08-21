@@ -82,7 +82,11 @@ abstract contract SuperTokenFactoryBase is
         // and passed in as a parameter to SuperTokenFactory constructor
         _SUPER_TOKEN_LOGIC = superTokenLogic;
 
-        UUPSProxiable(address(_SUPER_TOKEN_LOGIC)).castrate();
+        // this is optional - allow to fail in order to not force re-deployment
+        // solhint-disable-next-line no-empty-blocks
+        try UUPSProxiable(address(_SUPER_TOKEN_LOGIC)).castrate() {}
+        // solhint-disable-next-line no-empty-blocks
+        catch {}
 
         CONSTANT_OUTFLOW_NFT_LOGIC = constantOutflowNFTLogic;
 
@@ -375,21 +379,19 @@ contract SuperTokenFactory is SuperTokenFactoryBase
     constructor(
         ISuperfluid host,
         ISuperToken superTokenLogic,
-        IConstantOutflowNFT constantOutflowNFT,
-        IConstantInflowNFT constantInflowNFT,
+        IConstantOutflowNFT constantOutflowNFTLogic,
+        IConstantInflowNFT constantInflowNFTLogic,
         IPoolAdminNFT poolAdminNFT,
         IPoolMemberNFT poolMemberNFT
     )
         SuperTokenFactoryBase(
             host,
             superTokenLogic,
-            constantOutflowNFT,
-            constantInflowNFT,
+            constantOutflowNFTLogic,
+            constantInflowNFTLogic,
             poolAdminNFT,
             poolMemberNFT
         )
     // solhint-disable-next-line no-empty-blocks
-    {
-
-    }
+    {}
 }

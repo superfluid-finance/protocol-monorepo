@@ -1,5 +1,6 @@
 const fs = require("fs");
 const util = require("util");
+const { execSync } = require('child_process');
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {web3tx} = require("@decentral.ee/web3-helpers");
@@ -14,6 +15,9 @@ const {
     extractWeb3Options,
     builtTruffleContractLoader,
     sendGovernanceAction,
+    setResolver,
+    versionStringToPseudoAddress,
+    pseudoAddressToVersionString,
 } = require("./libs/common");
 
 let resetSuperfluidFramework;
@@ -146,6 +150,11 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
     output += `NETWORK_ID=${networkId}\n`;
 
+    const gitRevision = execSync('git rev-parse --short HEAD').toString().trim();
+    const packageVersion = require('../package.json').version;
+    const versionString = `${packageVersion}-${gitRevision}`;
+    console.log(`versionString: ${versionString}`);
+
     const deployerInitialBalance = await web3.eth.getBalance(deployerAddr);
 
     const CFAv1_TYPE = web3.utils.sha3(
@@ -248,6 +257,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         ConstantInflowNFT,
         PoolAdminNFT,
         PoolMemberNFT,
+        IAccessControlEnumerable,
     } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
@@ -369,13 +379,19 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     // initialize the new governance
     if (governanceInitializationRequired) {
         const accounts = await web3.eth.getAccounts();
-        console.log(
-            `initializing governance with config: ${JSON.stringify(
-                config,
-                null,
-                2
-            )}`
-        );
+        const trustedForwarders = [];
+        if (config.biconomyForwarder) {
+            trustedForwarders.push(config.biconomyForwarder);
+        }
+        if (config.cfaFwd) {
+            trustedForwarders.push(config.cfaFwd);
+        }
+        console.log(`initializing governance with config: ${JSON.stringify({
+            liquidationPeriod: config.liquidationPeriod,
+            patricianPeriod: config.patricityPeriod,
+            trustedForwarders
+        }, null, 2)}`);
+
         await web3tx(governance.initialize, "governance.initialize")(
             superfluid.address,
             // let rewardAddress the first account
@@ -385,14 +401,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             // patricianPeriod
             config.patricianPeriod,
             // trustedForwarders
-            config.biconomyForwarder ? [config.biconomyForwarder] : []
+            trustedForwarders
         );
-        if (config.cfaFwd !== undefined) {
-            await web3tx(
-                governance.enableTrustedForwarder,
-                "governance.enableTrustedForwarder"
-            )(superfluid.address, ZERO_ADDRESS, config.cfaFwd);
-        }
     }
 
     // replace with new governance
@@ -774,6 +784,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             }
 
             console.log("checking if SuperTokenFactory needs to be redeployed...");
+
             // check if super token factory or super token logic changed
             try {
                 if (factoryAddress === ZERO_ADDRESS) return true;
@@ -1191,6 +1202,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         agreementsToUpdate.length > 0 ||
         superTokenFactoryNewLogicAddress !== ZERO_ADDRESS
     ) {
+        console.log(`invoking gov.updateContracts(${superfluid.address}, ${superfluidNewLogicAddress}, [${agreementsToUpdate}], ${superTokenFactoryNewLogicAddress})})`);
         await sendGovernanceAction(
             {
                 host: superfluid,
@@ -1285,6 +1297,27 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             );
             await superfluidPoolBeacon.upgradeTo(superfluidPoolLogicAddress);
         }
+    }
+    // finally, set the version string in resolver
+
+    const previousVersionString = pseudoAddressToVersionString(
+        await resolver.get(`versionString.${protocolReleaseVersion}`)
+    );
+    console.log(`previous versionString: ${previousVersionString}`);
+    console.log(`new versionString:      ${versionString}`);
+
+    if (previousVersionString !== versionString) {
+        const sfObjForResolver = {
+            contracts: {
+                Resolver,
+                IAccessControlEnumerable,
+            },
+            resolver: {
+                address: resolver.address
+            }
+        };
+        const encodedVersionString = versionStringToPseudoAddress(versionString);
+        await setResolver(sfObjForResolver, `versionString.${protocolReleaseVersion}`, encodedVersionString);
     }
 
     console.log("======== Superfluid framework deployed ========");

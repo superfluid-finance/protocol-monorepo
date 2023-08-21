@@ -19,8 +19,8 @@ import {
     SuperfluidGovernanceConfigs
 } from "./Definitions.sol";
 import { IFlowNFTBase } from "./IFlowNFTBase.sol";
-import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 import { ISuperfluidPool } from "./ISuperfluidPool.sol";
 import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";

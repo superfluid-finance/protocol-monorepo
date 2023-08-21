@@ -9,7 +9,7 @@ VERSION_LABEL=""
 
 # Usage, instructions
 usage() {
-    echo "Usage: $0 -n <network_name> -v <version_label> [--vendor <vendor_name>]"
+    echo "Usage: $0 -n <network_name> -v <version_label>"
     exit 1
 }
 
@@ -47,11 +47,11 @@ deploy_subgraph() {
     fi
 
     echo "********* Deploying $network subgraph to Satsuma. **********"
-    # $GRAPH deploy "$network" \
-    #     --version-label "$version_label" \
-    #     --node https://app.satsuma.xyz/api/subgraphs/deploy \
-    #     --deploy-key "$SATSUMA_DEPLOY_KEY" \
-    #     --ipfs https://ipfs.satsuma.xyz
+    $GRAPH deploy "$network" \
+        --version-label "$version_label" \
+        --node https://app.satsuma.xyz/api/subgraphs/deploy \
+        --deploy-key "$SATSUMA_DEPLOY_KEY" \
+        --ipfs https://ipfs.satsuma.xyz
 
 }
 

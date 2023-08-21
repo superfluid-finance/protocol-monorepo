@@ -5,12 +5,13 @@ on:
     inputs:
       vendor:
         required: true
-        description: "Where to deploy subgraph to; superfluid, thegraph, or satsuma"
+        description: "Where to deploy subgraph to; superfluid, graph, or satsuma"
         type: string
       release_branch:
-        required: true
+        required: false
         type: string
         description: 'The subgraph release: feature, dev, v1'
+  
       network:
         required: true
         type: string
@@ -103,22 +104,31 @@ jobs:
       #       exit 1
       #     fi
 
+      # If tagged, get subgraph tag name that starts with subgraph@. Outputs $GIT_TAG_NAME
+      - uses: olegtarasov/get-tag@v2.1.2
+        id: "getSubgraphTag"
+        with:
+          tagRegex: "subgraph@(.*)" 
+
+
+      # Deploy all networks or 1 single network to Superfluid self-hosted nodes.
       - name: "Deploy to All self-hosted Subgraph Superfluid endpoints"
         if: inputs.network == 'all' && inputs.vendor == 'superfluid'
         run: ./tasks/deploy-self-hosted-network.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
-          PROVIDER_URL_TEMPLATE: ${{ secrets.PROVIDER_URL_TEMPLATE }}
+          SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}
           SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}
 
-      - name: "Deploy to self-hosted Subgraph Superfluid endpoint"
+      - name: "Deploy ${{ inputs.network }} to self-hosted Subgraph Superfluid endpoint"
         if: inputs.network != 'all' && inputs.vendor == 'superfluid'
         run: ./tasks/deploy-self-hosted-network.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
-          PROVIDER_URL_TEMPLATE: ${{ secrets.PROVIDER_URL_TEMPLATE }}
+          SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}
           SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}
 
+      # Deploy all networks or 1 single network to The Graph.
       - name: "Deploy to All The Graph Hosted Subgraph endpoints"
         if: inputs.network == 'all' && inputs.vendor == 'graph'
         run: ./tasks/deploy-graph-networks.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
@@ -126,29 +136,31 @@ jobs:
         env:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
-      - name: "Deploy to The Graph Hosted Subgraph Superfluid endpoint"
+      - name: "Deploy ${{ inputs.network }} to The Graph Hosted Subgraph endpoint"
         if: inputs.network != 'all' && inputs.vendor == 'thegraph'
-        run: ./tasks/deploy-graph-networks.sh ${{ inputs.release_branch }} ${{ inputs.network }}
+        run: ./tasks/deploy-graph-networks.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
+      # Deploy all networks or 1 single network to Satsuma. Versioning is either Tag from a tagged branch
+      # Github short sha of the branch it is deployed from.
       - name: "Deploy to All Satsuma endpoints"
         if: inputs.network == 'all' && inputs.vendor == 'satsuma'
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
-          versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
-          ./tasks/deploy-satsuma-networks.sh ${{ inputs.release_branch }} ${{ inputs.network }}
+          versionLabel="${GIT_TAG_NAME:-$shortRev}"
+          ./tasks/deploy-satsuma-networks.sh -n ${{ inputs.network }} -v $versionLabel
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
 
-      - name: "Deploy to Satsuma endpoint"
+      - name: "Deploy ${{ inputs.network }} to Satsuma endpoint"
         if: inputs.network != 'all' && inputs.vendor == 'satsuma'
         run: |
           shortRev=$(git rev-parse --short ${{ github.sha }})
-          versionLabel=${{ inputs.satsuma_version_label }}-${shortRev}
-          ./tasks/deploy-satsuma-networks.sh ${{ inputs.release_branch }} ${{ inputs.network }}
+          versionLabel="${GIT_TAG_NAME:-$shortRev}"
+          ./tasks/deploy-satsuma-networks.sh -n ${{ inputs.network }} -v $versionLabel
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

@@ -13,7 +13,7 @@ VERSION_LABEL=""
 
 # Usage, instructions
 usage() {
-    echo "Usage: $0 -n <network_name> -v <version_label> [--vendor <vendor_name>]"
+    echo "Usage: $0 -n <network_name> -v <version_label>"
     exit 1
 }
 
@@ -51,13 +51,13 @@ deploy_subgraph() {
     fi
 
     echo "********* Deploying protocol-$version_label-$network subgraph to $network network... **********"
-    NODE_URL=$(echo "$PROVIDER_URL_TEMPLATE" | sed "s/{{NETWORK}}/$network/")
-    echo "Node URL: $NODE_URL"
-    # $GRAPH_CLI create "protocol-$version_label-$network" --node "$NODE_URL" && \
-    # $GRAPH_CLI deploy "protocol-$version_label-$network" \
-    #     --version-label "$version_label" \
-    #     --node "$NODE_URL" \
-    #     --ipfs "$IPFS_API"
+    NODE_URL=$(echo "$SUBGRAPH_URL_TEMPLATE" | sed "s/{{NETWORK}}/$network/")
+
+    $GRAPH_CLI create "protocol-$version_label-$network" --node "$NODE_URL" && \
+    $GRAPH_CLI deploy "protocol-$version_label-$network" \
+        --version-label "$version_label" \
+        --node "$NODE_URL/admin/" \
+        --ipfs "$IPFS_API"
 }
 
 # Main deployment logic

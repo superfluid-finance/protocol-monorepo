@@ -11,7 +11,7 @@ VERSION_LABEL=""
 
 # Usage, instructions
 usage() {
-    echo "Usage: $0 -n <network_name> -v <version_label> [--vendor <vendor_name>]"
+    echo "Usage: $0 -n <network_name> -v <version_label>"
     exit 1
 }
 
@@ -49,12 +49,12 @@ deploy_subgraph() {
     fi
 
     echo "********* Deploying $network subgraph to The Graph. **********"
-    # $GRAPH deploy \
-    #     --product hosted-service \
-    #     superfluid-finance/protocol-"$1"-"$2" \
-    #     --node https://api.thegraph.com/deploy/ \
-    #     --ipfs https://api.thegraph.com/ipfs \
-    #     --access-token "$THE_GRAPH_ACCESS_TOKEN"
+    $GRAPH deploy \
+        --product hosted-service \
+        superfluid-finance/protocol-"$1"-"$2" \
+        --node https://api.thegraph.com/deploy/ \
+        --ipfs https://api.thegraph.com/ipfs \
+        --access-token "$THE_GRAPH_ACCESS_TOKEN"
 
 }
 

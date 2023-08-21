@@ -47,7 +47,7 @@ deploy_subgraph() {
     fi
 
     echo "********* Deploying $network subgraph to Satsuma. **********"
-    $GRAPH deploy "$network" \
+    $GRAPH_CLI deploy "$network" \
         --version-label "$version_label" \
         --node https://app.satsuma.xyz/api/subgraphs/deploy \
         --deploy-key "$SATSUMA_DEPLOY_KEY" \

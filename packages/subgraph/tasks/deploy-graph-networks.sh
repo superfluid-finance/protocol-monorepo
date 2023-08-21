@@ -49,7 +49,7 @@ deploy_subgraph() {
     fi
 
     echo "********* Deploying $network subgraph to The Graph. **********"
-    $GRAPH deploy \
+    $GRAPH_CLI deploy \
         --product hosted-service \
         superfluid-finance/protocol-"$1"-"$2" \
         --node https://api.thegraph.com/deploy/ \

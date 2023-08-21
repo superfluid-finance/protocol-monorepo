@@ -51,7 +51,7 @@ deploy_subgraph() {
     fi
 
     echo "********* Deploying protocol-$version_label-$network subgraph to $network network... **********"
-    NODE_URL=$(echo "$SUBGRAPH_URL_TEMPLATE" | sed "s/{{NETWORK}}/$network/")
+    NODE_URL="${SUBGRAPH_URL_TEMPLATE//\{\{NETWORK\}\}/$network}"
 
     $GRAPH_CLI create "protocol-$version_label-$network" --node "$NODE_URL" && \
     $GRAPH_CLI deploy "protocol-$version_label-$network" \

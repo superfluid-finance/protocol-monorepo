@@ -12,12 +12,10 @@ import {
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { IFlowNFTBase } from "../interfaces/superfluid/IFlowNFTBase.sol";
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
-import { ISuperTokenFactory } from "../interfaces/superfluid/ISuperTokenFactory.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
+import {
+    ISuperfluid, ISuperToken, ISuperTokenFactory, IFlowNFTBase,
+    IConstantFlowAgreementV1, IGeneralDistributionAgreementV1
+} from "../interfaces/superfluid/ISuperfluid.sol";
 
 /// @title FlowNFTBase abstract contract
 /// @author Superfluid

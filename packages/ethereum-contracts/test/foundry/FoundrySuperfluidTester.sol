@@ -190,6 +190,8 @@ contract FoundrySuperfluidTester is Test {
         string memory tokenType = vm.envOr(TOKEN_TYPE_ENV_KEY, DEFAULT_TEST_TOKEN_TYPE);
         bytes32 hashedTokenType = keccak256(abi.encode(tokenType));
 
+        _addAccount(address(sf.toga));
+
         // @note we must use a ternary expression because immutable variables cannot be initialized
         // in an if statement
         testSuperTokenType = hashedTokenType == keccak256(abi.encode("WRAPPER_SUPER_TOKEN"))
@@ -310,6 +312,10 @@ contract FoundrySuperfluidTester is Test {
     function _definitionLiquiditySumInvariant() internal view returns (bool) {
         int256 liquiditySum = _helperGetSuperTokenLiquiditySum(superToken);
 
+        console.log("_expectedTotalSupply");
+        console.log(_expectedTotalSupply);
+        console.log("liquiditySum");
+        console.logInt(liquiditySum);
         return int256(_expectedTotalSupply) == liquiditySum;
     }
 
@@ -925,6 +931,9 @@ contract FoundrySuperfluidTester is Test {
         _assertRealTimeBalances(superToken_);
         _assertGlobalInvariants();
 
+        // Assert Global Invariants
+        _assertGlobalInvariants();
+
         // TODO
         // Assert that flow rate allowance has been deducted accordingly (if flow rate is increased by delta amount)
     }
@@ -1002,6 +1011,9 @@ contract FoundrySuperfluidTester is Test {
         _helperAssertCreateIndex(superToken_, publisher, indexId);
 
         _indexIDs[superToken_][publisher].add(_generatePublisherId(publisher, indexId));
+
+        // Assert Global Invariants
+        _assertGlobalInvariants();
     }
 
     function _helperAssertCreateIndex(ISuperToken superToken_, address publisher, uint32 indexId) internal {
@@ -1048,6 +1060,9 @@ contract FoundrySuperfluidTester is Test {
         }
         // TODO we could actually save all the subscribers of an index and loop over them down the line
         // Assert that balance for subscriber has been updated (dependent on approval status)
+
+        // Assert Global Invariants
+        _assertGlobalInvariants();
     }
 
     /// @notice Executes an IDA distribution of tokens to subscribers
@@ -1139,6 +1154,9 @@ contract FoundrySuperfluidTester is Test {
             uint256 pending = approved ? 0 : indexValue - subIndexValue * units;
 
             _assertSubscriptionData(params.superToken, subId, approved, units, pending);
+
+        // Assert Global Invariants
+        _assertGlobalInvariants();
         }
     }
 
@@ -1215,6 +1233,9 @@ contract FoundrySuperfluidTester is Test {
         }
 
         _lastUpdatedSubIndexValues[params.superToken][subId] = indexValue;
+
+        // Assert Global Invariants
+        _assertGlobalInvariants();
     }
 
     /// @notice Revokes a subscription
@@ -1283,6 +1304,9 @@ contract FoundrySuperfluidTester is Test {
         }
 
         _lastUpdatedSubIndexValues[params.superToken][subId] = indexValue;
+
+        // Assert Global Invariants
+        _assertGlobalInvariants();
     }
 
     /// @notice Deletes a subscription
@@ -1356,6 +1380,9 @@ contract FoundrySuperfluidTester is Test {
         }
 
         _lastUpdatedSubIndexValues[params.superToken][subId] = 0;
+
+        // Assert Global Invariants
+        _assertGlobalInvariants();
     }
 
     /// @notice Executes a claim for a subscription
@@ -1413,6 +1440,9 @@ contract FoundrySuperfluidTester is Test {
         }
 
         _lastUpdatedSubIndexValues[superToken_][subId] = indexValue;
+
+        // Assert Global Invariants
+        _assertGlobalInvariants();
     }
 
     // Write Helpers - GeneralDistributionAgreementV1/SuperfluidPool

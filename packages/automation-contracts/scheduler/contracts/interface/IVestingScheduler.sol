@@ -2,14 +2,10 @@
 pragma solidity ^0.8.0;
 
 import {
-    ISuperToken, ISuperfluid
-} from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../../../../ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+    ISuperToken, ISuperfluid, IConstantFlowAgreementV1
+} from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 interface IVestingScheduler {
-
     error TimeWindowInvalid();
     error AccountInvalid();
     error ZeroAddress();
@@ -104,12 +100,9 @@ interface IVestingScheduler {
      * @param endDate The timestamp when the stream should stop
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
      */
-    function updateVestingSchedule(
-        ISuperToken superToken,
-        address receiver,
-        uint32 endDate,
-        bytes memory ctx
-    ) external returns(bytes memory newCtx);
+    function updateVestingSchedule(ISuperToken superToken, address receiver, uint32 endDate, bytes memory ctx)
+        external
+        returns (bytes memory newCtx);
 
     /**
      * @dev Event emitted on deletion of a vesting schedule
@@ -117,11 +110,7 @@ interface IVestingScheduler {
      * @param sender Vesting sender
      * @param receiver Vesting receiver
      */
-    event VestingScheduleDeleted(
-        ISuperToken indexed superToken,
-        address indexed sender,
-        address indexed receiver
-    );
+    event VestingScheduleDeleted(ISuperToken indexed superToken, address indexed sender, address indexed receiver);
 
     /**
      * @dev Event emitted on end of a vesting that failed because there was no running stream
@@ -131,10 +120,7 @@ interface IVestingScheduler {
      * @param endDate The timestamp when the stream should stop
      */
     event VestingEndFailed(
-        ISuperToken indexed superToken,
-        address indexed sender,
-        address indexed receiver,
-        uint32 endDate
+        ISuperToken indexed superToken, address indexed sender, address indexed receiver, uint32 endDate
     );
 
     /**
@@ -143,11 +129,9 @@ interface IVestingScheduler {
      * @param receiver Vesting receiver
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
      */
-    function deleteVestingSchedule(
-        ISuperToken superToken,
-        address receiver,
-        bytes memory ctx
-    ) external returns (bytes memory newCtx);
+    function deleteVestingSchedule(ISuperToken superToken, address receiver, bytes memory ctx)
+        external
+        returns (bytes memory newCtx);
 
     /**
      * @dev Emitted when the cliff of a scheduled vesting is executed
@@ -176,11 +160,9 @@ interface IVestingScheduler {
      * @param sender Account who will be send the stream
      * @param receiver Account who will be receiving the stream
      */
-    function executeCliffAndFlow(
-        ISuperToken superToken,
-        address sender,
-        address receiver
-    ) external returns(bool success);
+    function executeCliffAndFlow(ISuperToken superToken, address sender, address receiver)
+        external
+        returns (bool success);
 
     /**
      * @dev Emitted when the end of a scheduled vesting is executed
@@ -207,11 +189,9 @@ interface IVestingScheduler {
      * @param sender Vesting sender
      * @param receiver Vesting receiver
      */
-    function executeEndVesting(
-        ISuperToken superToken,
-        address sender,
-        address receiver
-    ) external returns(bool success);
+    function executeEndVesting(ISuperToken superToken, address sender, address receiver)
+        external
+        returns (bool success);
 
     /**
      * @dev Gets data currently stored for a vesting schedule
@@ -219,9 +199,8 @@ interface IVestingScheduler {
      * @param sender Vesting sender
      * @param receiver Vesting receiver
      */
-    function getVestingSchedule(
-        address superToken,
-        address sender,
-        address receiver
-    ) external view returns (VestingSchedule memory);
+    function getVestingSchedule(address superToken, address sender, address receiver)
+        external
+        view
+        returns (VestingSchedule memory);
 }

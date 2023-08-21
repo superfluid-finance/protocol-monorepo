@@ -2,20 +2,18 @@
 pragma solidity 0.8.19;
 
 import {
-    IConstantFlowAgreementV1,
-    ISuperfluidToken
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import {
     ISuperfluid,
     ISuperfluidGovernance,
     ISuperApp,
     ISuperToken,
+    ISuperfluidToken,
+    IConstantFlowAgreementV1,
     FlowOperatorDefinitions,
     SuperAppDefinitions,
     ContextDefinitions,
-    SuperfluidGovernanceConfigs
+    SuperfluidGovernanceConfigs,
+    IConstantOutflowNFT
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";

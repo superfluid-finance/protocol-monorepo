@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
 
     - id: set-matrix
       run: |
@@ -82,8 +82,8 @@ jobs:
           cat testing-benchmark.json
         working-directory: ./packages/ethereum-contracts
         env:
-          # NOTE: This is currently unset and fork tests are not being run
-          POLYGON_MAINNET_ARCHIVE_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_ARCHIVE_PROVIDER_URL }}
+          HARDHAT_TEST_JOBS: 4
+          HARDHAT_RUN_PARALLEL: true
 
       ########################################
       ## Coverage Test

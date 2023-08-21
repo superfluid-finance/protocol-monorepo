@@ -4,9 +4,9 @@
 pragma solidity 0.8.19;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
-import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+import { ISuperfluid, IConstantInflowNFT, IConstantOutflowNFT } from "../interfaces/superfluid/ISuperfluid.sol";
+import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
+import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
 
 /// @title FlowNFTBaseMock

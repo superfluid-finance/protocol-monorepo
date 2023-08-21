@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { ISuperfluid, ISuperToken, SuperAppBase, ISuperApp, SuperAppDefinitions } from "../apps/SuperAppBase.sol";
+import {
+    ISuperfluid, ISuperToken, SuperAppBase, ISuperApp, SuperAppDefinitions, IConstantFlowAgreementV1, ISuperAgreement
+} from "../apps/SuperAppBase.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { ISuperAgreement } from "../interfaces/superfluid/ISuperfluid.sol";
 
 contract StreamRedirector is SuperAppBase {
     using CFAv1Library for CFAv1Library.InitData;

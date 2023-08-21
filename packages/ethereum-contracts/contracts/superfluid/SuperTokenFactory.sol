@@ -3,19 +3,14 @@ pragma solidity 0.8.19;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import {
-    ISuperTokenFactory,
-    ISuperToken,
-    IERC20,
-    ERC20WithTokenInfo
+    ISuperTokenFactory, ISuperToken, IERC20, ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import {
+    ISuperfluid, IConstantInflowNFT, IConstantOutflowNFT, IPoolAdminNFT, IPoolMemberNFT
+} from "../interfaces/superfluid/ISuperfluid.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
-import { IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
-import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
-import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,

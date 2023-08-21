@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
 
-# Define networks as an array
-# TODO: Generate Superfluid self-hosted naming schema
-# and use jq and get the networks from metadata.json networks file
-HOSTED_NETWORKS=("polygon-zkevm-testnet" "polygon-mainnet")
-
+# TODO: use jq and get the networks from metadata.json networks file
+HOSTED_NETWORKS=( "matic" "xdai" "eth-mainnet" "eth-sepolia" "optimism-mainnet" )
 GRAPH_CLI="npx --package=@graphprotocol/graph-cli -- graph"
-IPFS_API=${EXTERNAL_IPFS_API:-$SUPERFLUID_IPFS_API}
 NETWORK=""
 VERSION_LABEL=""
 
@@ -46,18 +42,17 @@ deploy_subgraph() {
     fi    
 
     if [[ ! " ${HOSTED_NETWORKS[*]} " =~ $network ]]; then
-        echo "The network, $network, is not deployed to Superfluid hosted subgraphs."
+        echo "The network, $network, is currently not on the list of networks deployed to Satsuma."
         exit 1
     fi
 
-    echo "********* Deploying protocol-$version_label-$network subgraph to $network network... **********"
-    NODE_URL=$(echo "$PROVIDER_URL_TEMPLATE" | sed "s/{{NETWORK}}/$network/")
-    echo "Node URL: $NODE_URL"
-    # $GRAPH_CLI create "protocol-$version_label-$network" --node "$NODE_URL" && \
-    # $GRAPH_CLI deploy "protocol-$version_label-$network" \
+    echo "********* Deploying $network subgraph to Satsuma. **********"
+    # $GRAPH deploy "$network" \
     #     --version-label "$version_label" \
-    #     --node "$NODE_URL" \
-    #     --ipfs "$IPFS_API"
+    #     --node https://app.satsuma.xyz/api/subgraphs/deploy \
+    #     --deploy-key "$SATSUMA_DEPLOY_KEY" \
+    #     --ipfs https://ipfs.satsuma.xyz
+
 }
 
 # Main deployment logic

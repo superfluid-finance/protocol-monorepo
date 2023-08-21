@@ -16,6 +16,20 @@ on:
         required: true
         type: string
         description: 'The version label for Satsuma endpoint (e.g. v0.0.x)'
+      vendor:
+        required: true
+        description: "Where to deploy subgraph to; superfluid, thegraph, or satsuma"
+        default: 'superfluid'
+        type: choice
+        options:
+          - superfluid
+          - satsuma
+          - thegraph
+
+  push:
+    branches:
+      - self-hosted-subgraph-#1548
+
 jobs:
   build-and-test-local-subgraph:
     uses: ./.github/workflows/call.test-local-subgraph.yml
@@ -38,6 +52,7 @@ jobs:
     with:
       release_branch: "v1"
       network: "all"
+      vendor: "graph"
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
@@ -49,8 +64,9 @@ jobs:
            ]
     name: Deploy Satsuma Subgraph
     with:
-      satsuma_version_label: ${{ github.event.inputs.satsuma_version_label }}
+      satsuma_version_label: "v1.61.1" #${{ github.event.inputs.satsuma_version_label }}
       network: "all"
+      vendor: "satsuma"
     secrets:
       SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
 
@@ -64,3 +80,4 @@ jobs:
     with:
       release_branch: "v1"
       network: "all"
+      vendor: "superfluid"

@@ -9,8 +9,8 @@ import {
     ISuperfluid,
     ISuperToken,
     IERC20,
-    IConstantInflowNFT,
-    IConstantOutflowNFT
+    IConstantOutflowNFT,
+    IConstantInflowNFT
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperfluidToken } from "./SuperfluidToken.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";

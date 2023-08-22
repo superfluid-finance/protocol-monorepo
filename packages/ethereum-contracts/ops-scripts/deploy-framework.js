@@ -1,5 +1,6 @@
 const fs = require("fs");
 const util = require("util");
+const { execSync } = require('child_process');
 const getConfig = require("./libs/getConfig");
 const SuperfluidSDK = require("@superfluid-finance/js-sdk");
 const {web3tx} = require("@decentral.ee/web3-helpers");
@@ -14,6 +15,9 @@ const {
     extractWeb3Options,
     builtTruffleContractLoader,
     sendGovernanceAction,
+    setResolver,
+    versionStringToPseudoAddress,
+    pseudoAddressToVersionString,
 } = require("./libs/common");
 
 let resetSuperfluidFramework;
@@ -143,6 +147,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
     output += `NETWORK_ID=${networkId}\n`;
 
+    const gitRevision = execSync('git rev-parse HEAD').toString().slice(0,16).trim();
+    const packageVersion = require('../package.json').version;
+    const versionString = `${packageVersion}-${gitRevision}`;
+
     const deployerInitialBalance = await web3.eth.getBalance(deployerAddr);
 
     const CFAv1_TYPE = web3.utils.sha3(
@@ -224,6 +232,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         InstantDistributionAgreementV1,
         ConstantOutflowNFT,
         ConstantInflowNFT,
+        IAccessControlEnumerable,
     } = await SuperfluidSDK.loadContracts({
         ...extractWeb3Options(options),
         additionalContracts: contracts.concat(useMocks ? mockContracts : []),
@@ -239,6 +248,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         process.env.RESOLVER_ADDRESS = resolver.address;
     }
     console.log("Resolver address", resolver.address);
+
+    const previousVersionString = pseudoAddressToVersionString(
+        await resolver.get(`versionString.${protocolReleaseVersion}`)
+    );
+    console.log(`previous versionString: ${previousVersionString}`);
+    console.log(`new versionString:      ${versionString}`);
 
     // deploy new governance contract
     let governanceInitializationRequired = false;
@@ -343,7 +358,19 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     // initialize the new governance
     if (governanceInitializationRequired) {
         const accounts = await web3.eth.getAccounts();
-        console.log(`initializing governance with config: ${JSON.stringify(config, null, 2)}`);
+        const trustedForwarders = [];
+        if (config.biconomyForwarder) {
+            trustedForwarders.push(config.biconomyForwarder);
+        }
+        if (config.cfaFwd) {
+            trustedForwarders.push(config.cfaFwd);
+        }
+        console.log(`initializing governance with config: ${JSON.stringify({
+            liquidationPeriod: config.liquidationPeriod,
+            patricianPeriod: config.patricityPeriod,
+            trustedForwarders
+        }, null, 2)}`);
+
         await web3tx(governance.initialize, "governance.initialize")(
             superfluid.address,
             // let rewardAddress the first account
@@ -353,15 +380,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             // patricianPeriod
             config.patricianPeriod,
             // trustedForwarders
-            config.biconomyForwarder ? [config.biconomyForwarder] : []
+            trustedForwarders
         );
-        if (config.cfaFwd !== undefined) {
-            await web3tx(governance.enableTrustedForwarder, "governance.enableTrustedForwarder")(
-                superfluid.address,
-                ZERO_ADDRESS,
-                config.cfaFwd
-            )
-        };
     }
 
     // replace with new governance
@@ -600,6 +620,10 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         web3,
         SuperTokenFactoryLogic,
         async () => {
+            // helper function: encode an address as word
+            const ap = function(addr) {
+                return addr.toLowerCase().slice(2).padStart(64, "0");
+            }
             console.log(
                 "checking if SuperTokenFactory needs to be redeployed..."
             );
@@ -607,47 +631,30 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             try {
                 if (factoryAddress === ZERO_ADDRESS) return true;
                 const factory = await SuperTokenFactoryLogic.at(factoryAddress);
-                const superTokenLogicAddress =
-                    await factory.getSuperTokenLogic.call();
-                const superTokenLogic = await SuperTokenLogic.at(
-                    superTokenLogicAddress
-                );
-                const constantOutflowNFTAddress =
-                    await superTokenLogic.CONSTANT_OUTFLOW_NFT();
-                const constantInflowNFTAddress =
-                    await superTokenLogic.CONSTANT_INFLOW_NFT();
+                const superTokenLogicAddress = await factory.getSuperTokenLogic.call();
+                const superTokenLogic = await SuperTokenLogic.at(superTokenLogicAddress);
+                const cofNFTPAddr = await superTokenLogic.CONSTANT_OUTFLOW_NFT();
+                const cifNFTPAddr = await superTokenLogic.CONSTANT_INFLOW_NFT();
+                const cofNFTContract = await ConstantOutflowNFT.at(cofNFTPAddr);
+                const cifNFTContract = await ConstantInflowNFT.at(cifNFTPAddr);
+                const cofNFTLAddr = await cofNFTContract.getCodeAddress();
+                const cifNFTLAddr = await cifNFTContract.getCodeAddress();
 
-                const constantOutflowNFTContract = ConstantOutflowNFT.at(
-                    constantOutflowNFTAddress
-                );
-                const constantInflowNFTContract = ConstantInflowNFT.at(
-                    constantInflowNFTAddress
-                );
-
-                const constantInflowNFTParam = constantInflowNFTAddress
-                    .toLowerCase().slice(2).padStart(64, "0");
-                const constantOutflowNFTParam = constantOutflowNFTAddress
-                    .toLowerCase().slice(2).padStart(64, "0");
-                const cfaParam = (await superfluid.getAgreementClass.call(CFAv1_TYPE))
-                    .toLowerCase().slice(2).padStart(64, "0");
+                const cfaPAddr = await superfluid.getAgreementClass.call(CFAv1_TYPE);
 
                 constantOutflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantOutflowNFT,
-                    await (
-                        await UUPSProxiable.at(constantOutflowNFTAddress)
-                    ).getCodeAddress(),
-                    [superfluidConstructorParam, constantInflowNFTParam, cfaParam]
+                    cofNFTLAddr,
+                    [superfluidConstructorParam, ap(cifNFTPAddr), ap(cfaPAddr)]
                 );
                 console.log("   constantOutflowNFTLogicChanged:", constantOutflowNFTLogicChanged);
 
                 constantInflowNFTLogicChanged = await codeChanged(
                     web3,
                     ConstantInflowNFT,
-                    await (
-                        await UUPSProxiable.at(constantInflowNFTAddress)
-                    ).getCodeAddress(),
-                    [superfluidConstructorParam, constantOutflowNFTParam, cfaParam]
+                    cifNFTLAddr,
+                    [superfluidConstructorParam, ap(cofNFTPAddr), ap(cfaPAddr)]
                 );
                 console.log("   constantInflowNFTLogicChanged:", constantInflowNFTLogicChanged);
 
@@ -655,7 +662,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     web3,
                     SuperTokenFactoryLogic,
                     await superfluid.getSuperTokenFactoryLogic.call(),
-                    [superfluidConstructorParam]
+                    [superfluidConstructorParam, ap(superTokenLogicAddress), ap(cofNFTLAddr), ap(cifNFTLAddr)]
                 );
                 console.log("   superTokenFactoryCodeChanged:", superTokenFactoryCodeChanged);
 
@@ -664,12 +671,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     SuperTokenLogic,
                     await factory.getSuperTokenLogic.call(),
                     // this replacement does not support SuperTokenMock
-                    [
-                        // See SuperToken constructor parameter
-                        superfluidConstructorParam,
-                        constantOutflowNFTParam,
-                        constantInflowNFTParam,
-                    ]
+                    [superfluidConstructorParam, ap(cofNFTPAddr), ap(cifNFTPAddr)]
                 );
                 console.log("   superTokenLogicCodeChanged:", superTokenLogicCodeChanged);
                 return (
@@ -857,6 +859,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         agreementsToUpdate.length > 0 ||
         superTokenFactoryNewLogicAddress !== ZERO_ADDRESS
     ) {
+        console.log(`invoking gov.updateContracts(${superfluid.address}, ${superfluidNewLogicAddress}, [${agreementsToUpdate}], ${superTokenFactoryNewLogicAddress})})`);
         await sendGovernanceAction(
             {
                 host: superfluid,
@@ -874,6 +877,22 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     superTokenFactoryNewLogicAddress
                 )
         );
+    }
+
+    // finally, set the version string in resolver
+
+    if (previousVersionString !== versionString) {
+        const sfObjForResolver = {
+            contracts: {
+                Resolver,
+                IAccessControlEnumerable,
+            },
+            resolver: {
+                address: resolver.address
+            }
+        };
+        const encodedVersionString = versionStringToPseudoAddress(versionString);
+        await setResolver(sfObjForResolver, `versionString.${protocolReleaseVersion}`, encodedVersionString);
     }
 
     console.log("======== Superfluid framework deployed ========");

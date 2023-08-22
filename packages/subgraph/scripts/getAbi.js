@@ -16,7 +16,10 @@ const contracts = [
     "TOGA",
 ];
 
-const directoryPath = path.join(__dirname, "../../ethereum-contracts/build/contracts");
+const directoryPath = path.join(
+    __dirname,
+    "../../ethereum-contracts/build/truffle"
+);
 
 fs.mkdir("abis/", (err) => {
     if (err) return; //console.error(err);

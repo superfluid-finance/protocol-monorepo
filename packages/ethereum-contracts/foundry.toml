@@ -13,7 +13,7 @@ remappings = [
     '@openzeppelin/=node_modules/@openzeppelin/',
     'ds-test/=lib/forge-std/lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/']
-out = 'packages/ethereum-contracts/build/foundry/out'
+out = 'packages/ethereum-contracts/build/foundry/default'
 
 [invariant]
 runs = 2000

@@ -3,7 +3,7 @@ import {
     ISETH__factory,
     ISuperToken,
     ISuperToken__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain";
+} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { BytesLike, ethers, Overrides } from "ethers";
 
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";

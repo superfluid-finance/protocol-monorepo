@@ -436,19 +436,19 @@ function getScriptRunnerFactory(runnerOpts = {}) {
 function versionStringToPseudoAddress(versionString) {
     const [versions, suffix] = versionString.split('-');
     const [major, minor, patch] = versions.split('.').map(v => v.padStart(2, '0'));  // Pad with leading zeros
-    return `0x00000000000000000000000000${major}${minor}${patch}${suffix}`;
+    return `0x000000000000000000${major}${minor}${patch}${suffix}`;
 }
 
 // takes a pseudo address as argument and decodes it to a versionString
 function pseudoAddressToVersionString(pseudoAddress) {
     const str = pseudoAddress.replace(/^0x/, '').toLowerCase(); // remove leading 0x
-    const major = parseInt(str.slice(26, 28), 10);
-    const minor = parseInt(str.slice(28, 30), 10);
-    const patch = parseInt(str.slice(30, 32), 10);
-    const revision = str.slice(32);
+    const major = parseInt(str.slice(18, 20), 10);
+    const minor = parseInt(str.slice(20, 22), 10);
+    const patch = parseInt(str.slice(22, 24), 10);
+    const revision = str.slice(24);
 
     if (
-        !str.startsWith("00000000000000000000000000") ||
+        !str.startsWith("000000000000000000") ||
         isNaN(major) || isNaN(minor) || isNaN(patch)
     ) {
         throw new Error("Provided address doesn't encode a valid versionString");

@@ -136,7 +136,7 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
     {
         // not using oldFlowRate in this model
         // surprising effect: reducing flow rate may require more buffer when liquidation_period adjusted upward
-        Value newBufferAmount = newFlowRate.mul(LIQUIDATION_PERIOD);
+        Value newBufferAmount = newFlowRate.mul(liquidationPeriod);
         Value bufferDelta = newBufferAmount - flowData[flowHash].buffer;
         eff = _doShift(eff, from, address(this), bufferDelta);
         accountData[from].totalBuffer = accountData[from].totalBuffer + bufferDelta;

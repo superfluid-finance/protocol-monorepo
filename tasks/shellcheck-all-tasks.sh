@@ -9,7 +9,7 @@ if command -v shellcheck > /dev/null 2>&1; then
     # check .shellcheckrc
     find tasks packages/*/tasks -name '*.sh' -print0 \
         | xargs -0 -- shellcheck
-elif [ "$CI" == true ]; then
+elif [ -n "$CI" ]; then
     # CI is set to true per https://docs.github.com/en/actions/learn-github-actions/variables
     echo "ERROR: shellcheck is not installed, bailing." && exit 1
 else

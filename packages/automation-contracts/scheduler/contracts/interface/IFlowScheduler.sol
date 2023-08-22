@@ -1,7 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity ^0.8.0;
 
-import { ISuperToken } from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
+import {
+    ISuperToken
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 interface IFlowScheduler {
     error TimeWindowInvalid();

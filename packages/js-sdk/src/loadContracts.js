@@ -1,5 +1,5 @@
-const contractNames = require("./contracts.json");
-const abis = require("./abi");
+const contractNames = require("@superfluid-finance/ethereum-contracts/build/bundled-abi-contracts-list.json");
+const abis = require("@superfluid-finance/ethereum-contracts/build/bundled-abi");
 
 function defaultContractLoader(name) {
     if (name in abis) {

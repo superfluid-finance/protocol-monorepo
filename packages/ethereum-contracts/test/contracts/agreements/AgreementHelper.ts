@@ -2,9 +2,9 @@ import {SignerWithAddress} from "@nomiclabs/hardhat-ethers/signers";
 import {FunctionFragment, Interface} from "ethers/lib/utils";
 import {ethers} from "hardhat";
 
-import IConstantFlowAgreementV1Artifact from "../../../artifacts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol/IConstantFlowAgreementV1.json";
-import IInstantDistributionAgreementV1Artifact from "../../../artifacts/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol/IInstantDistributionAgreementV1.json";
-import SuperfluidMockArtifact from "../../../artifacts/contracts/mocks/SuperfluidMock.sol/SuperfluidMock.json";
+import IConstantFlowAgreementV1Artifact from "../../../build/hardhat/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol/IConstantFlowAgreementV1.json";
+import IInstantDistributionAgreementV1Artifact from "../../../build/hardhat/contracts/interfaces/agreements/IInstantDistributionAgreementV1.sol/IInstantDistributionAgreementV1.json";
+import SuperfluidMockArtifact from "../../../build/hardhat/contracts/mocks/SuperfluidMock.sol/SuperfluidMock.json";
 import TestEnvironment from "../../TestEnvironment";
 
 import {

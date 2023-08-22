@@ -147,7 +147,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
     output += `NETWORK_ID=${networkId}\n`;
 
-    const gitRevision = execSync('git rev-parse --short HEAD').toString().trim();
+    const gitRevision = execSync('git rev-parse HEAD').toString().slice(0,8).trim();
     const packageVersion = require('../package.json').version;
     const versionString = `${packageVersion}-${gitRevision}`;
     console.log(`versionString: ${versionString}`);

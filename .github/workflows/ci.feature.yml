@@ -9,7 +9,7 @@ on:
   # NOTE To continue the old behaviour, these code snipeets is needed in the check job
   ## triggered by internal pushes or external PRs
   ## if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != 'superfluid-finance/protocol-monorepo'
-
+  merge_group:
   pull_request:
 
 jobs:

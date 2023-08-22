@@ -3,9 +3,9 @@
 pragma solidity ^0.8.0;
 import {
     ISuperfluid, ISuperToken, SuperAppDefinitions, IConstantFlowAgreementV1
-} from "../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import { SuperAppBase } from "../../../ethereum-contracts/contracts/apps/SuperAppBase.sol";
-import { CFAv1Library } from "../../../ethereum-contracts/contracts/apps/CFAv1Library.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import { SuperAppBase } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperAppBase.sol";
+import { CFAv1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";
 import { IFlowScheduler } from "./interface/IFlowScheduler.sol";
 
 /**

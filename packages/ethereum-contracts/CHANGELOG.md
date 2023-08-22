@@ -5,6 +5,16 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+
+- Publish `build/bundled-abi.{js,json}` in the npm package.
+
+### Breaking
+
+- Publish `build/truffle/*.json` truffle contract artifacts in the npm package instead.
+- Publish `build/typechain-ethers-v5` in the npm package instead.
+- Removed scripts from npm package, use dev-scripts instead.
+
 ### Fixes
 
 - Ship ERC1820Registry.json with dev-scripts.

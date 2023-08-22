@@ -3,11 +3,14 @@
 pragma solidity ^0.8.0;
 
 import {
+    ISuperToken,
     IConstantFlowAgreementV1
-} from "../../../ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "./interfaces/IERC20Mod.sol";
-import "./interfaces/IManager.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import { IERC20Mod } from "./interfaces/IERC20Mod.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { IManager } from "./interfaces/IManager.sol";
+import { IStrategy } from "./interfaces/IStrategy.sol";
+
 
 contract Manager is IManager, Ownable {
 

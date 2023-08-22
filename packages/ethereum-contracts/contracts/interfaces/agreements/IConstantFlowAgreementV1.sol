@@ -56,7 +56,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @dev Calculates the deposit based on the liquidationPeriod and flowRate
      * @param flowRate Flow rate to be tested
      * @return deposit The deposit amount based on flowRate and liquidationPeriod
-     * @custom:note 
+     * @custom:note
      * - if calculated deposit (flowRate * liquidationPeriod) is less
      *   than the minimum deposit, we use the minimum deposit otherwise
      *   we use the calculated deposit
@@ -107,7 +107,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
         uint8 permissions,
         int96 flowRateAllowance,
         bytes calldata ctx
-    ) 
+    )
         external virtual
         returns(bytes memory newCtx);
 
@@ -254,12 +254,12 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param flowRate New flow rate in amount per second
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
-     * @custom:callbacks 
+     * @custom:callbacks
      * - AgreementCreated
      *   - agreementId - can be used in getFlowByID
      *   - agreementData - abi.encode(address flowSender, address flowReceiver)
      *
-     * @custom:note 
+     * @custom:note
      * - A deposit is taken as safety margin for the solvency agents
      * - A extra gas fee may be taken to pay for solvency agent liquidations
      */
@@ -299,12 +299,12 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param flowRate New flow rate in amount per second
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      *
-     * @custom:callbacks 
+     * @custom:callbacks
      * - AgreementUpdated
      *   - agreementId - can be used in getFlowByID
      *   - agreementData - abi.encode(address flowSender, address flowReceiver)
      *
-     * @custom:note 
+     * @custom:note
      * - Only the flow sender may update the flow rate
      * - Even if the flow rate is zero, the flow is not deleted
      * from the system
@@ -424,12 +424,12 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
      * @param ctx Context bytes (see ISuperfluid.sol for Context struct)
      * @param receiver Flow receiver address
      *
-     * @custom:callbacks 
+     * @custom:callbacks
      * - AgreementTerminated
      *   - agreementId - can be used in getFlowByID
      *   - agreementData - abi.encode(address flowSender, address flowReceiver)
      *
-     * @custom:note 
+     * @custom:note
      * - Both flow sender and receiver may delete the flow
      * - If Sender account is insolvent or in critical state, a solvency agent may
      *   also terminate the agreement
@@ -459,7 +459,7 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     )
         external virtual
         returns(bytes memory newCtx);
-     
+
     /**
      * @dev Flow operator updated event
      * @param token Super token address

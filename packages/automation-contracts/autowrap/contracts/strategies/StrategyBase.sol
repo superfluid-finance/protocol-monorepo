@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../interfaces/IERC20Mod.sol";
-import "../interfaces/IStrategy.sol";
+import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { IERC20Mod } from "../interfaces/IERC20Mod.sol";
+import { IStrategy } from "../interfaces/IStrategy.sol";
 
 /// @title Base abstract contract for all strategies.
 abstract contract StrategyBase is IStrategy, Ownable {

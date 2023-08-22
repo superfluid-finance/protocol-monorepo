@@ -86,7 +86,7 @@ abstract contract TokenMonad {
     }
 
     // Note: because of no-via-ir builds and stack too deep :)
-    struct _DistributeFlowVars {
+    struct DistributeFlowVars {
         FlowRate currentAdjustmentFlowRate;
         FlowRate newAdjustmentFlowRate;
         FlowRate actualFlowRateDelta;
@@ -102,7 +102,7 @@ abstract contract TokenMonad {
         BasicParticle memory a = _getUIndex(eff, from);
         BasicParticle memory b = _getUIndex(eff, pool);
         PDPoolIndex memory c = _getPDPIndex(eff, pool);
-        _DistributeFlowVars memory vars;
+        DistributeFlowVars memory vars;
         vars.currentAdjustmentFlowRate = _getPoolAdjustmentFlowRate(eff, pool);
 
         {

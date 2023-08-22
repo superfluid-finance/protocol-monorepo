@@ -33,6 +33,7 @@ import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { IConstantFlowAgreementV1 } from "../agreements/IConstantFlowAgreementV1.sol";
 import { IInstantDistributionAgreementV1 } from "../agreements/IInstantDistributionAgreementV1.sol";
+import { IGeneralDistributionAgreementV1 } from "../agreements/IGeneralDistributionAgreementV1.sol";
 import { ISuperfluidPool } from "./ISuperfluidPool.sol";
 /// Superfluid App interfaces:
 import { ISuperApp } from "./ISuperApp.sol";

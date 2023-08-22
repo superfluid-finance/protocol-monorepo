@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPL-3.0-only
 pragma solidity ^0.8.0;
 
-import { ISuperToken } from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
-import "../interfaces/IStrategy.sol";
+import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import { IStrategy } from "../interfaces/IStrategy.sol";
 
 interface IManager {
     event WrapScheduleCreated(

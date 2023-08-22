@@ -3,9 +3,10 @@ pragma solidity ^0.8.0;
 
 import {
     ISuperfluid, ISuperToken, IConstantFlowAgreementV1, IERC20
-} from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
-import "../interfaces/IManager.sol";
+import { IManager } from "../interfaces/IManager.sol";
+
 
 contract MockReceiverContract {
 

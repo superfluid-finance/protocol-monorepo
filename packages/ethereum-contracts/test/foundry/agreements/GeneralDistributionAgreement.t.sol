@@ -237,8 +237,6 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             // because of fresh state
         (, GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataBefore) =
             sf.gda.getUIndexAndUindexData(abi.encode(superToken), from);
-        (, GeneralDistributionAgreementV1.UniversalIndexData memory gdaUindexDataBefore) =
-            sf.gda.getUIndexAndUindexData(abi.encode(superToken), address(sf.gda));
         sf.gda.adjustBuffer(
             abi.encode(superToken),
             address(currentPool),
@@ -349,14 +347,13 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         _helperDistributeFlow(superToken, alice, alice, currentPool, requestedDistributionFlowRate);
         int96 fr = sf.gda.getFlowRate(superToken, alice, currentPool);
 
-        vm.warp(block.timestamp + (INIT_SUPER_TOKEN_BALANCE / uint256(uint96(fr))));
+        vm.warp(block.timestamp + (INIT_SUPER_TOKEN_BALANCE / uint256(uint96(fr))) + 1);
 
         (aliceRTB, deposit,,) = superToken.realtimeBalanceOfNow(alice);
 
         _helperDistributeFlow(superToken, bob, alice, currentPool, 0);
 
         (bool isPatricianPeriod,) = sf.gda.isPatricianPeriodNow(superToken, alice);
-        // TODO
         assertEq(isPatricianPeriod, false, "false patrician period");
     }
 
@@ -532,6 +529,8 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(member != address(currentPool));
         vm.assume(member != address(0));
 
+        _addAccount(member);
+
         vm.startPrank(address(sf.governance.owner()));
         uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
         sf.governance.setSuperTokenMinimumDeposit(sf.host, superToken, minimumDeposit);
@@ -553,6 +552,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(distributionFlowRate > 0);
         vm.assume(member != address(0));
         vm.assume(member != address(currentPool));
+
+        _addAccount(member);
+
         vm.startPrank(address(sf.governance.owner()));
 
         uint256 minimumDeposit = 4 hours * uint256(minDepositMultiplier);
@@ -647,11 +649,9 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         }
     }
 
-    function testDistributeToDisconnectedMembers(
-        UpdateMemberData[5] memory members,
-        uint256 distributionAmount,
-        uint16 /* warpTime */
-    ) public {
+    function testDistributeToDisconnectedMembers(UpdateMemberData[5] memory members, uint256 distributionAmount)
+        public
+    {
         address distributor = alice;
         uint256 distributorBalance = superToken.balanceOf(distributor);
 
@@ -664,11 +664,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount);
     }
 
-    function testDistributeToConnectedMembers(
-        UpdateMemberData[5] memory members,
-        uint256 distributionAmount,
-        uint16 /* warpTime */
-    ) public {
+    function testDistributeToConnectedMembers(UpdateMemberData[5] memory members, uint256 distributionAmount) public {
         address distributor = alice;
         uint256 distributorBalance = superToken.balanceOf(distributor);
 
@@ -678,19 +674,19 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         for (uint256 i = 0; i < members.length; ++i) {
             _helperConnectPool(members[i].member, superToken, currentPool);
             _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits);
+            _addAccount(members[i].member);
         }
         _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount);
     }
 
-    function testDistributeFlowToConnectedMembers(UpdateMemberData[5] memory members, int32 flowRate, uint16 /* warpTime */)
-        public
-    {
+    function testDistributeFlowToConnectedMembers(UpdateMemberData[5] memory members, int32 flowRate) public {
         vm.assume(members.length > 0);
         vm.assume(flowRate > 0);
 
         for (uint256 i = 0; i < members.length; ++i) {
             _helperConnectPool(members[i].member, superToken, currentPool);
             _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits);
+            _addAccount(members[i].member);
         }
 
         _helperDistributeFlow(superToken, alice, alice, currentPool, 100);
@@ -703,7 +699,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
     function testDistributeFlowToDisconnectedMember(UpdateMemberData memory member, int32 flowRate) public {
         vm.assume(flowRate > 0);
-        
+
         _helperUpdateMemberUnits(currentPool, alice, member.member, 1);
 
         _helperDistributeFlow(superToken, alice, alice, currentPool, 1);

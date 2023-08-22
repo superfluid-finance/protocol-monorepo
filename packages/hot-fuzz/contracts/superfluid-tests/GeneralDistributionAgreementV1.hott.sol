@@ -52,6 +52,42 @@ abstract contract GDAHotFuzzMixin is HotFuzzBase {
         tester.updateMemberUnits(pool, address(tester), units);
     }
 
+    function poolTransfer(uint8 a, uint8 b, uint256 amount) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        ISuperfluidPool pool = getRandomPool(b);
+
+        testerA.transfer(pool, address(testerB), amount);
+    }
+
+    function poolTransferFrom(uint8 a, uint8 b, uint8 c, uint256 amount) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        (SuperfluidTester tester) = _getOneTester(c);
+        ISuperfluidPool pool = getRandomPool(b);
+
+        testerA.transferFrom(pool, address(tester), address(testerB), amount);
+    }
+
+    function poolIncreaseAllowance(uint8 a, uint8 b, uint256 addedValue) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        ISuperfluidPool pool = getRandomPool(b);
+
+        testerA.increaseAllowance(pool, address(testerB), addedValue);
+    }
+
+    function poolDecreaseAllowance(uint8 a, uint8 b, uint256 subtractedValue) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        ISuperfluidPool pool = getRandomPool(b);
+
+        testerA.decreaseAllowance(pool, address(testerB), subtractedValue);
+    }
+
+    function poolApprove(uint8 a, uint8 b, uint256 amount) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        ISuperfluidPool pool = getRandomPool(b);
+
+        testerA.approve(pool, address(testerB), amount);
+    }
+
     function claimAll(uint8 a, uint8 b) public {
         (SuperfluidTester tester) = _getOneTester(a);
         ISuperfluidPool pool = getRandomPool(b);

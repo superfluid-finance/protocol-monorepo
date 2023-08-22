@@ -123,7 +123,7 @@ contract FoundrySuperfluidTester is Test {
     address[] internal TEST_ACCOUNTS = [admin, alice, bob, carol, dan, eve, frank, grace, heidi, ivan];
 
     /// @dev Other account addresses added that aren't testers (pools, super apps, smart contracts)
-    address[] internal OTHER_ACCOUNTS;
+    EnumerableSet.AddressSet internal OTHER_ACCOUNTS;
 
     uint256 internal immutable N_TESTERS;
 
@@ -180,7 +180,6 @@ contract FoundrySuperfluidTester is Test {
         sfDeployer.deployTestFramework();
         sf = sfDeployer.getFramework();
 
-        OTHER_ACCOUNTS = new address[](0);
         require(nTesters <= TEST_ACCOUNTS.length, "too many testers");
         N_TESTERS = nTesters;
 
@@ -288,16 +287,18 @@ contract FoundrySuperfluidTester is Test {
 
     /// @notice Adds an account to the testing mix
     function _addAccount(address account) internal {
-        OTHER_ACCOUNTS.push(account);
+        if (OTHER_ACCOUNTS.contains(account)) return;
+
+        OTHER_ACCOUNTS.add(account);
     }
 
     function _listAccounts() internal view returns (address[] memory accounts) {
-        accounts = new address[](N_TESTERS + OTHER_ACCOUNTS.length);
+        accounts = new address[](N_TESTERS + OTHER_ACCOUNTS.values().length);
         for (uint i = 0; i < N_TESTERS; ++i) {
             accounts[i] = address(TEST_ACCOUNTS[i]);
         }
-        for (uint i = 0; i < OTHER_ACCOUNTS.length; ++i) {
-            accounts[i + N_TESTERS] = OTHER_ACCOUNTS[i];
+        for (uint i = 0; i < OTHER_ACCOUNTS.values().length; ++i) {
+            accounts[i + N_TESTERS] = OTHER_ACCOUNTS.values()[i];
         }
     }
 
@@ -312,10 +313,6 @@ contract FoundrySuperfluidTester is Test {
     function _definitionLiquiditySumInvariant() internal view returns (bool) {
         int256 liquiditySum = _helperGetSuperTokenLiquiditySum(superToken);
 
-        console.log("_expectedTotalSupply");
-        console.log(_expectedTotalSupply);
-        console.log("liquiditySum");
-        console.logInt(liquiditySum);
         return int256(_expectedTotalSupply) == liquiditySum;
     }
 
@@ -1155,8 +1152,8 @@ contract FoundrySuperfluidTester is Test {
 
             _assertSubscriptionData(params.superToken, subId, approved, units, pending);
 
-        // Assert Global Invariants
-        _assertGlobalInvariants();
+            // Assert Global Invariants
+            _assertGlobalInvariants();
         }
     }
 

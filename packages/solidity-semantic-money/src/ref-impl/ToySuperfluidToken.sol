@@ -30,7 +30,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
 
     ToySuperfluidPool public immutable POOL_CONTRACT_MASTER_COPY;
 
-    Time public LIQUIDATION_PERIOD = Time.wrap(1000 seconds);
+    Time public liquidationPeriod = Time.wrap(1000 seconds);
 
     struct AccountData {
         Value    totalBuffer;
@@ -61,7 +61,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     }
 
     function setLiquidationPeriod(Time a) external {
-        LIQUIDATION_PERIOD = a;
+        liquidationPeriod = a;
     }
 
     ////////////////////////////////////////////////////////////////////////////////

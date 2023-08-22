@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
+// solhint-disable not-rely-on-time
 
 import { Test } from "forge-std/Test.sol";
 
@@ -27,6 +28,7 @@ contract AqueductTest is Test {
     address internal constant ivan  = address(0x429);
     uint internal immutable N_TESTERS;
 
+    // solhint-disable-next-line var-name-mixedcase
     address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
     ToySuperToken internal token1;
     ToySuperToken internal token2;

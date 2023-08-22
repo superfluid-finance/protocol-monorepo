@@ -3,7 +3,7 @@ import {
     GDAv1Forwarder__factory,
     IGeneralDistributionAgreementV1,
     IGeneralDistributionAgreementV1__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain";
+} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers } from "ethers";
 
 import Host from "./Host";

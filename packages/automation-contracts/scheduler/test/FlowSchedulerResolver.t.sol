@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import { ISuperToken } from "../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import { FlowOperatorDefinitions } from "../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
+import { ISuperToken } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
+import { FlowOperatorDefinitions } from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 import { FlowScheduler } from "./../contracts/FlowScheduler.sol";
 import { FlowSchedulerResolver } from "./../contracts/FlowSchedulerResolver.sol";
-import { FoundrySuperfluidTester } from "../../../ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
-import { SuperToken } from "../../../ethereum-contracts/contracts/superfluid/SuperToken.sol";
-import { SuperTokenV1Library } from "../../../ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
+import { FoundrySuperfluidTester } from "@superfluid-finance/ethereum-contracts/test/foundry/FoundrySuperfluidTester.sol";
+import { SuperToken } from "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
+import { SuperTokenV1Library } from "@superfluid-finance/ethereum-contracts/contracts/apps/SuperTokenV1Library.sol";
 
 /// @title FlowSchedulerResolverTests
 /// @notice Look at me , I am the captain now - Elvijs

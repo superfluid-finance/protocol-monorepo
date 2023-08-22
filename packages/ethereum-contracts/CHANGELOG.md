@@ -7,7 +7,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-- Publish `build/bundled-abi.js` in the npm package.
+- Publish `build/bundled-abi.{js,json}` in the npm package.
 
 ### Breaking
 

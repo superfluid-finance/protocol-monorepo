@@ -29,5 +29,6 @@ CONTRACTS=( $($JQ -r .[] tasks/bundled-abi-contracts-list.json) ) || exit 2
     echo "};"
 
 } > build/bundled-abi.js
+node -e 'console.log(JSON.stringify(require("./build/bundled-abi")))' > build/bundled-abi.json
 
 cp tasks/bundled-abi-contracts-list.json build/

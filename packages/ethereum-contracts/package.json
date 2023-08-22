@@ -20,6 +20,7 @@
         "/build/typechain-ethers-v5/**/*",
         "/build/contracts-sizes.txt",
         "/build/bundled-abi.js",
+        "/build/bundled-abi.json",
         "dev-scripts/**/*",
         "utils/**/*"
     ],

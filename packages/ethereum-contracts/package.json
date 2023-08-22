@@ -85,7 +85,7 @@
     },
     "devDependencies": {
         "@nomiclabs/hardhat-truffle5": "^2.0.7",
-        "@superfluid-finance/metadata": "1.1.11",
+        "@superfluid-finance/metadata": "1.1.12",
         "@superfluid-finance/js-sdk": "0.6.3",
         "@safe-global/safe-core-sdk": "^3.3.4",
         "@safe-global/safe-service-client": "^2.0.2",

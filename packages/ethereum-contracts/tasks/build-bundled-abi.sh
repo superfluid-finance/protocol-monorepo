@@ -14,11 +14,20 @@ CONTRACTS=( $($JQ -r .[] tasks/bundled-abi-contracts-list.json) ) || exit 2
     echo "// eslint-disable-next-line no-unused-vars"
     echo "let Superfluid_ABI;"
     echo "Superfluid_ABI = module.exports = {"
-    for i in "${CONTRACTS[@]}";do
-        ABI="$($JQ ".abi" build/truffle/"$i".json)" || exit 3
-        echo "    $i: $ABI,"
-    done
+
+    # parallel processing of abi inputs
+    echo "${CONTRACTS[@]}" | xargs -n1 -P4 bash -c "
+        {
+            echo -n \"    \$1: \"
+            $JQ \".abi\" build/truffle/\"\$1\".json || exit 3
+            echo ','
+        } > build/bundled-abi.\$1.frag
+        " --
+    cat build/bundled-abi.*.frag
+    rm build/bundled-abi.*.frag
+
     echo "};"
+
 } > build/bundled-abi.js
 
 cp tasks/bundled-abi-contracts-list.json build/

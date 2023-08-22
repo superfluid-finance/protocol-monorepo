@@ -147,10 +147,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
     output += `NETWORK_ID=${networkId}\n`;
 
-    const gitRevision = execSync('git rev-parse HEAD').toString().slice(0,8).trim();
+    const gitRevision = execSync('git rev-parse HEAD').toString().slice(0,16).trim();
     const packageVersion = require('../package.json').version;
     const versionString = `${packageVersion}-${gitRevision}`;
-    console.log(`versionString: ${versionString}`);
 
     const deployerInitialBalance = await web3.eth.getBalance(deployerAddr);
 
@@ -249,6 +248,12 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         process.env.RESOLVER_ADDRESS = resolver.address;
     }
     console.log("Resolver address", resolver.address);
+
+    const previousVersionString = pseudoAddressToVersionString(
+        await resolver.get(`versionString.${protocolReleaseVersion}`)
+    );
+    console.log(`previous versionString: ${previousVersionString}`);
+    console.log(`new versionString:      ${versionString}`);
 
     // deploy new governance contract
     let governanceInitializationRequired = false;
@@ -875,12 +880,6 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     }
 
     // finally, set the version string in resolver
-
-    const previousVersionString = pseudoAddressToVersionString(
-        await resolver.get(`versionString.${protocolReleaseVersion}`)
-    );
-    console.log(`previous versionString: ${previousVersionString}`);
-    console.log(`new versionString:      ${versionString}`);
 
     if (previousVersionString !== versionString) {
         const sfObjForResolver = {

@@ -403,6 +403,8 @@ const E = (module.exports = {
         },
     },
 
+    contracts_build_directory: "./build/truffle",
+
     api_keys: {
         etherscan: process.env.ETHERSCAN_API_KEY,
         polygonscan: process.env.POLYGONSCAN_API_KEY,

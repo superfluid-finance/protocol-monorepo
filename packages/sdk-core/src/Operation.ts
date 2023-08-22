@@ -1,4 +1,4 @@
-import { Superfluid__factory } from "@superfluid-finance/ethereum-contracts/build/typechain";
+import { Superfluid__factory } from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers } from "ethers";
 
 import {

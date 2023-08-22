@@ -3,16 +3,10 @@ pragma solidity >= 0.8.11;
 
 import {
     ISuperfluid,
-    ISuperToken
-} from "../interfaces/superfluid/ISuperfluid.sol";
-
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-
-import {
+    ISuperToken,
+    IConstantFlowAgreementV1,
     IInstantDistributionAgreementV1
-} from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 
 /**
  * @title Library for Token Centric Interface

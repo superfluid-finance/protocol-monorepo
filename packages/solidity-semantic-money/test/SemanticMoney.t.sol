@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "forge-std/Test.sol";
-import "../src/SemanticMoney.sol";
+import { Test } from "forge-std/Test.sol";
+import {
+    Value, FlowRate, Time, Unit,
+    BasicParticle, PDPoolIndex, PDPoolMember, PDPoolMemberMU
+} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 
 contract SemanticMoneyTest is Test {
 
@@ -129,7 +132,7 @@ contract SemanticMoneyTest is Test {
         internal pure returns (BasicParticle memory, BasicParticle memory) {
         return a.flow2(b, FlowRate.wrap(v), t);
     }
-    struct UU_Test_Data {
+    struct UUTestVars {
         BasicParticle a;
         BasicParticle b;
         Time t1;
@@ -143,7 +146,7 @@ contract SemanticMoneyTest is Test {
                          internal pure returns (BasicParticle memory, BasicParticle memory) op1,
                          function (BasicParticle memory, BasicParticle memory, Time, int64)
                          internal pure returns (BasicParticle memory, BasicParticle memory) op2) internal {
-        UU_Test_Data memory d;
+        UUTestVars memory d;
         d.t1 = Time.wrap(m1);
         d.t2 = d.t1 + Time.wrap(m2);
         d.t3 = d.t2 + Time.wrap(m3);
@@ -165,7 +168,7 @@ contract SemanticMoneyTest is Test {
         run_uu_test(m1, x1, m2, r2, m3, uu_shift2, uu_flow2);
     }
     function test_uu_flow2(uint16 m1, int64 r1, uint16 m2, int64 r2, uint16 m3) external {
-        UU_Test_Data memory d;
+        UUTestVars memory d;
         d.t1 = Time.wrap(m1);
         d.t2 = d.t1 + Time.wrap(m2);
         d.t3 = d.t2 + Time.wrap(m3);
@@ -186,7 +189,7 @@ contract SemanticMoneyTest is Test {
         internal pure returns (BasicParticle memory a2, PDPoolIndex memory b2) {
         (a2, b2,) = a.flow2(b, FlowRate.wrap(v), t);
     }
-    struct UPDP_Test_Data {
+    struct UPDPTestVars {
         BasicParticle a;
         PDPoolIndex b;
         PDPoolMember b1;
@@ -211,7 +214,7 @@ contract SemanticMoneyTest is Test {
                               internal pure returns (BasicParticle memory, PDPoolIndex memory) op2,
                               // final test time
                               uint16 m5) internal {
-        UPDP_Test_Data memory d;
+        UPDPTestVars memory d;
         d.t1 = Time.wrap(m1);
         d.t2 = d.t1 + Time.wrap(m2);
         d.t3 = d.t2 + Time.wrap(m3);
@@ -276,7 +279,7 @@ contract SemanticMoneyTest is Test {
                               internal pure returns (BasicParticle memory, PDPoolIndex memory) op2,
                               // final test time
                               uint16 m5) internal {
-        UPDP_Test_Data memory d;
+        UPDPTestVars memory d;
         d.t1 = Time.wrap(m1);
         d.t2 = d.t1 + Time.wrap(m2);
         d.t3 = d.t2 + Time.wrap(m3);
@@ -329,7 +332,7 @@ contract SemanticMoneyTest is Test {
         run_updp_2m_test(m1, u1, m2, r2, updp_flow2, m3, u2, m4, x4, updp_shift2, m5);
     }
     function test_updp_flow2(uint16 m1, int64 r1, uint16 m2, int64 r2, uint16 m3) external {
-        UPDP_Test_Data memory d;
+        UPDPTestVars memory d;
         d.t1 = Time.wrap(m1);
         d.t2 = d.t1 + Time.wrap(m2);
         d.t3 = d.t2 + Time.wrap(m3);

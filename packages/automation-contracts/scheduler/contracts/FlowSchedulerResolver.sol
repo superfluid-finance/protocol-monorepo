@@ -4,13 +4,8 @@ pragma solidity ^0.8.0;
 
 import { FlowScheduler } from "./FlowScheduler.sol";
 import {
-    ISuperToken
-} from "../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import { 
-    IConstantFlowAgreementV1 
-} from "../../../ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
-
-
+    ISuperToken, IConstantFlowAgreementV1
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 contract FlowSchedulerResolver {
 

@@ -44,7 +44,7 @@ if [ -n "$GITHUB_ENV" ];then
         setBuildAll
     fi
     # if root package.json changed, rebuild everything
-    if grep -E "^package.json|yarn.lock$" changed-files.list;then
+    if grep -E "^(package.json|yarn.lock)$" changed-files.list;then
         echo "Root package.json changed."
         setBuildAll
     fi
@@ -53,6 +53,7 @@ if [ -n "$GITHUB_ENV" ];then
         BUILD_ETHEREUM_CONTRACTS=1
         BUILD_SUBGRAPH=1
         BUILD_HOT_FUZZ=1
+        BUILD_AUTOMATION_CONTRACTS=1
         echo Ethereum contracts, HotFuzz and Subgraph will be tested.
     fi
     # if specified hot-fuzz folders and files changed

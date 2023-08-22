@@ -1,22 +1,42 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.11;
 
-import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
+// ISuperfluid.sol can also be used as an umbrella-import for everything Superfluid, hence we should have these unused
+// import.
+//
+// solhint-disable no-unused-import
+
+/// Global definitions
+import {
+    SuperAppDefinitions,
+    ContextDefinitions,
+    FlowOperatorDefinitions,
+    BatchOperation,
+    SuperfluidGovernanceConfigs
+} from "./Definitions.sol";
+/// Super token related interfaces:
+/// Note: CustomSuperTokenBase is not included for people building CustomSuperToken.
+import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
+import { TokenInfo, ERC20WithTokenInfo } from "../tokens/ERC20WithTokenInfo.sol";
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
 import { ISuperToken } from "./ISuperToken.sol";
 import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
+import { ISETH } from "../tokens/ISETH.sol";
+/// Superfluid/ERC20x NFTs
+import { IFlowNFTBase } from "./IFlowNFTBase.sol";
+import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
+import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
+import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
+/// Superfluid agreement interfaces:
 import { ISuperAgreement } from "./ISuperAgreement.sol";
+import { IConstantFlowAgreementV1 } from "../agreements/IConstantFlowAgreementV1.sol";
+import { IInstantDistributionAgreementV1 } from "../agreements/IInstantDistributionAgreementV1.sol";
+/// Superfluid App interfaces:
 import { ISuperApp } from "./ISuperApp.sol";
-import {
-    BatchOperation,
-    ContextDefinitions,
-    FlowOperatorDefinitions,
-    SuperAppDefinitions,
-    SuperfluidGovernanceConfigs
-} from "./Definitions.sol";
-import { TokenInfo } from "../tokens/TokenInfo.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
+/// Superfluid governance
+import { ISuperfluidGovernance } from "./ISuperfluidGovernance.sol";
 
 /**
  * @title Host interface
@@ -103,7 +123,7 @@ interface ISuperfluid {
      * @dev Register a new agreement class to the system
      * @param agreementClassLogic Initial agreement class code
      *
-     * @custom:modifiers 
+     * @custom:modifiers
      * - onlyGovernance
      */
     function registerAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -119,7 +139,7 @@ interface ISuperfluid {
     * @dev Update code of an agreement class
     * @param agreementClassLogic New code for the agreement class
     *
-    * @custom:modifiers 
+    * @custom:modifiers
     *  - onlyGovernance
     */
     function updateAgreementClass(ISuperAgreement agreementClassLogic) external;
@@ -522,9 +542,9 @@ interface ISuperfluid {
         // app credit used, allowing negative values over a callback session
         // the appCreditUsed value over a callback sessions is calculated with:
         // existing flow data owed deposit + sum of the callback agreements
-        // deposit deltas 
+        // deposit deltas
         // the final value used to modify the state is determined by the
-        // _adjustNewAppCreditUsed function (in AgreementLibrary.sol) which takes 
+        // _adjustNewAppCreditUsed function (in AgreementLibrary.sol) which takes
         // the appCreditUsed value reached in the callback session and the app
         // credit granted
         int256 appCreditUsed;

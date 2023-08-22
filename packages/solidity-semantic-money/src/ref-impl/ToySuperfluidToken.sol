@@ -7,9 +7,9 @@ import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableS
 import { Clones } from "@openzeppelin/contracts/proxy/Clones.sol";
 import { FlowId, ISuperfluidToken } from "./ISuperfluidToken.sol";
 import {
-    Time, Value, FlowRate, Unit,
+    Time, Value, FlowRate,
     BasicParticle,
-    PDPoolIndex, PDPoolMember, PDPoolMemberMU
+    PDPoolIndex
 } from "../SemanticMoney.sol";
 import { TokenMonad } from "../TokenMonad.sol";
 import {
@@ -30,7 +30,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
 
     ToySuperfluidPool public immutable POOL_CONTRACT_MASTER_COPY;
 
-    Time public LIQUIDATION_PERIOD = Time.wrap(1000 seconds);
+    Time public liquidationPeriod = Time.wrap(1000 seconds);
 
     struct AccountData {
         Value    totalBuffer;
@@ -61,7 +61,7 @@ contract ToySuperfluidToken is ISuperfluidToken, TokenMonad {
     }
 
     function setLiquidationPeriod(Time a) external {
-        LIQUIDATION_PERIOD = a;
+        liquidationPeriod = a;
     }
 
     ////////////////////////////////////////////////////////////////////////////////

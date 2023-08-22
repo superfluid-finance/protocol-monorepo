@@ -39,7 +39,7 @@ function extractWeb3Options({isTruffle, web3, ethers, from}) {
 /// @dev Load contract from truffle built artifacts
 function builtTruffleContractLoader(name) {
     try {
-        const directoryPath = path.join(__dirname, "../../build/contracts");
+        const directoryPath = path.join(__dirname, "../../build/truffle");
         const builtContract = require(path.join(directoryPath, name + ".json"));
         return builtContract;
     } catch (e) {

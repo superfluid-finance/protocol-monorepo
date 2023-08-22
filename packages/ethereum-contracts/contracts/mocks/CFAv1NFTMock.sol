@@ -3,31 +3,13 @@
 pragma solidity 0.8.19;
 
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {
-    SafeERC20
-} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import {
-    UUPSProxiable
-} from "../upgradability/UUPSProxiable.sol";
-import { SuperToken } from "../superfluid/SuperToken.sol";
+import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
-import {
-    SuperfluidToken
-} from "../superfluid/SuperfluidToken.sol";
-import {
-    ISuperfluid
-} from "../interfaces/superfluid/ISuperfluid.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import {
-    ConstantOutflowNFT,
-    IConstantOutflowNFT
-} from "../superfluid/ConstantOutflowNFT.sol";
-import {
-    ConstantInflowNFT,
-    IConstantInflowNFT
-} from "../superfluid/ConstantInflowNFT.sol";
+import { SuperfluidToken } from "../superfluid/SuperfluidToken.sol";
+import { ISuperfluid, IConstantInflowNFT, IConstantOutflowNFT } from "../interfaces/superfluid/ISuperfluid.sol";
+import { ConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+import { ConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 
 contract ConstantOutflowNFTMock is ConstantOutflowNFT {
     constructor(
@@ -231,6 +213,7 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
             );
     }
 
+    // solhint-disable-next-line no-empty-blocks
     function updateCode(address newAddress) external override {
         // dummy impl
     }

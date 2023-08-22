@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.11;
 
-import { ISuperToken } from "./ISuperToken.sol";
 import { IFlowNFTBase } from "./IFlowNFTBase.sol";
 
 interface IConstantInflowNFT is IFlowNFTBase {

@@ -1,5 +1,5 @@
 const {ethers} = require("hardhat");
-const testResolverArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/utils/TestResolver.sol/TestResolver.json");
+const testResolverArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/TestResolver.sol/TestResolver.json");
 
 const {
     deployTestFramework,

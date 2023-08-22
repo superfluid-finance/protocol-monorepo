@@ -2451,10 +2451,10 @@
     lodash "^4.17.21"
     tsify "^5.0.4"
 
-"@superfluid-finance/sdk-redux@^0.4.1-dev.08816e6.0":
-  version "0.4.1-dev.f4cbef8.0"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-redux/-/sdk-redux-0.4.1-dev.f4cbef8.0.tgz#5246ac4497b89b0f7475cf3794f3f3f6ae94e03a"
-  integrity sha512-SpyHdxcoOHlx5zKqSpF3yS42ePK6aBktuvbN52Dfp4TIKTS6wvn1URGxyIeCckGQ4V4AIGGn2nX3Oo0EuT+1WA==
+"@superfluid-finance/sdk-redux@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-redux/-/sdk-redux-0.4.0.tgz#252f03687372043a8d253339fb92e15a81bde02a"
+  integrity sha512-BRFuU5LW2EJABIFs2oIszqZdE1/aCOkkSAXXlf0qoHw2r2X70srVtuqu7N7h8GvngkM3LQE4Xex5siFcciNidA==
   dependencies:
     graphql-request "^5.0.0"
     lodash "^4.17.21"
@@ -14518,9 +14518,9 @@ window-size@^0.2.0:
   integrity sha512-UD7d8HFA2+PZsbKyaOCEy8gMh1oDtHgJh1LfgjQ4zVXmYjAT/kvz3PueITKuqDiIXQe7yzpPnxX3lNc+AhQMyw==
 
 word-wrap@^1.2.3, word-wrap@~1.2.3:
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.3.tgz#610636f6b1f703891bd34771ccb17fb93b47079c"
-  integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
+  version "1.2.5"
+  resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.5.tgz#d2c45c6dd4fbce621a66f136cbe328afd0410b34"
+  integrity sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==
 
 workbox-background-sync@6.5.4:
   version "6.5.4"

@@ -4,7 +4,7 @@ import {
     IResolver,
     Superfluid,
     SuperfluidGovernanceII,
-} from "@superfluid-finance/ethereum-contracts/build/typechain";
+} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers, Overrides } from "ethers";
 
 // TODO (0xdavinchee): reorganize this

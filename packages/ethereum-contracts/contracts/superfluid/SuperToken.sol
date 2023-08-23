@@ -44,13 +44,13 @@ contract SuperToken is
 
     // solhint-disable-next-line var-name-mixedcase
     IConstantOutflowNFT immutable public CONSTANT_OUTFLOW_NFT;
-    
+
     // solhint-disable-next-line var-name-mixedcase
     IConstantInflowNFT immutable public CONSTANT_INFLOW_NFT;
 
     // solhint-disable-next-line var-name-mixedcase
     IPoolMemberNFT immutable public POOL_MEMBER_NFT;
-    
+
     // solhint-disable-next-line var-name-mixedcase
     IPoolAdminNFT immutable public POOL_ADMIN_NFT;
 
@@ -94,7 +94,7 @@ contract SuperToken is
     uint256 private _reserve29;
     uint256 private _reserve30;
     uint256 internal _reserve31;
-    
+
     // NOTE: You cannot add more storage here. Refer to CustomSuperTokenBase.sol
     // to see the hard-coded storage padding used by SETH and PureSuperToken
 
@@ -124,7 +124,7 @@ contract SuperToken is
         emit PoolMemberNFTCreated(poolMemberNFT);
     }
 
-    
+
     /// @dev Initialize the Super Token proxy
     function initialize(
         IERC20 underlyingToken,
@@ -749,7 +749,7 @@ contract SuperToken is
         address account,
         address spender,
         uint256 subtractedValue
-    ) 
+    )
         external virtual override
         onlyHost
     {
@@ -774,7 +774,7 @@ contract SuperToken is
         address recipient,
         uint256 amount,
         bytes memory userData
-    ) 
+    )
         external virtual override
         onlyHost
     {

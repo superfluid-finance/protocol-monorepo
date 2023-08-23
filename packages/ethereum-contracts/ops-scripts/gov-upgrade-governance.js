@@ -72,7 +72,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     await govLogic.castrate();
     console.log("Marked gov logic as initialized (castrate)");
 
-    await sendGovernanceAction(sf, (gov) =>
-        gov.updateCode(govLogic.address)
+    await sendGovernanceAction(sf, (govMethods) =>
+        govMethods.updateCode(govLogic.address)
     );
 });

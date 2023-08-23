@@ -25,8 +25,8 @@ import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
 import { ISETH } from "../tokens/ISETH.sol";
 /// Superfluid/ERC20x NFTs
 import { IFlowNFTBase } from "./IFlowNFTBase.sol";
-import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
 import { ISuperfluidPool } from "./ISuperfluidPool.sol";

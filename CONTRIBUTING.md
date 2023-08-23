@@ -22,6 +22,11 @@ Additionally recommended:
 The recommended way is to use the [nix package manager](https://nixos.org/download.html) to get a reproducible, declarative and reliable development environment.
 The Nix shell provides a complete environment, with all tooling included.
 
+After installing Nix, you may also need to add this to `nix.conf` (located in `.config/nix` in single-user installs and in `/etc/nix` in multi-user installs):
+```
+experimental-features = nix-command flakes
+```
+
 Development shells options are available as different devShells commands in ([nix flakes](https://nixos.wiki/wiki/Flakes) required):
 
 - minimum, minimum development environment for building monorepo.

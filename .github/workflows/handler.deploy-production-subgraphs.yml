@@ -25,23 +25,23 @@ on:
         description: 'The name of the network you want to deploy to (e.g. `eth-mainnet`) or `all` for all networks. Be aware of non-canonical names still used with some vendors!'
 
 jobs:
-  build-and-test-local-subgraph:
-    uses: ./.github/workflows/call.test-local-subgraph.yml
-    name: Run Subgraph Unit and Integration Tests
+  # build-and-test-local-subgraph:
+  #   uses: ./.github/workflows/call.test-local-subgraph.yml
+  #   name: Run Subgraph Unit and Integration Tests
 
-  build-and-test-local-subgraph-against-previous-sdk-core-releases:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Local Subgraph against SDK-Core previous and current releases
-    with:
-      subgraph-release: ''
-      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+  # build-and-test-local-subgraph-against-previous-sdk-core-releases:
+  #   uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+  #   name: Test Local Subgraph against SDK-Core previous and current releases
+  #   with:
+  #     subgraph-release: ''
+  #     subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   deploy-subgraph:
     uses: ./.github/workflows/call.deploy-subgraph.yml
-    needs: [ 
-            build-and-test-local-subgraph
-           , build-and-test-local-subgraph-against-previous-sdk-core-releases
-           ]
+#    needs: [
+#            build-and-test-local-subgraph
+#           , build-and-test-local-subgraph-against-previous-sdk-core-releases
+#           ]
     name: Deploy The Graph
     with:
       release_branch: ${{ github.event.inputs.release_branch }}

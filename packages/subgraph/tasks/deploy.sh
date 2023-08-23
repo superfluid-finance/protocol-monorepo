@@ -108,17 +108,19 @@ deploy_subgraph() {
 
 # Argument validation
 if [ -z "$VENDOR" ] || [ -z "$NETWORK" ] || [ -z "$RELEASE_BRANCH" ] || [ -z "$VERSION_LABEL" ]; then
+    echo "An argument is missing"
     print_usage_and_exit
 fi
 
 # We can safely ignore this warning, becasue the value in vendor won't contain whitespaces
 # shellcheck disable=SC2199,SC2076
-if [[ ! " ${SUPPORTED_VENDORS[@]} " =~ " $vendor " ]]; then
+if [[ ! " ${SUPPORTED_VENDORS[@]} " =~ " $VENDOR " ]]; then
+    echo "The vendor $VENDOR is currently not supported"
     print_usage_and_exit
 fi
 
 # create a reference to the network list we need
-declare -n NETWORKS_REF="${vendor^^}_NETWORKS"
+declare -n NETWORKS_REF="${VENDOR^^}_NETWORKS"
 
 # Handle all vs specific network
 if [ "$NETWORK" == "all" ]; then

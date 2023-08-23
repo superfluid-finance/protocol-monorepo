@@ -49,7 +49,7 @@
         "node-fetch": "2.6.12"
     },
     "devDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.7.2",
+        "@superfluid-finance/ethereum-contracts": "1.8.0",
         "chai-as-promised": "^7.1.1",
         "webpack": "^5.88.2",
         "webpack-bundle-analyzer": "^4.9.0",

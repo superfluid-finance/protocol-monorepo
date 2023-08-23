@@ -22,10 +22,10 @@
         "@openzeppelin/contracts": "4.9.3"
     },
     "peerDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.7.2"
+        "@superfluid-finance/ethereum-contracts": "1.8.0"
     },
     "devDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.7.2"
+        "@superfluid-finance/ethereum-contracts": "1.8.0"
     },
     "license": "AGPL-3.0",
     "bugs": {

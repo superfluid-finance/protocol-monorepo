@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+## [v1.8.0] - 2023-08-23
+
 ### Added
 
 - Publish `build/bundled-abi.{js,json}` in the npm package.

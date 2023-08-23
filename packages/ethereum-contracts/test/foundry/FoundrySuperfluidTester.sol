@@ -2170,8 +2170,13 @@ contract FoundrySuperfluidTester is Test {
             RealtimeBalance memory balanceSnapshot = _balanceSnapshots[superToken_][account];
             (int256 avb, uint256 deposit, uint256 owedDeposit, uint256 currentTime) =
                 superToken_.realtimeBalanceOfNow(account);
+            int96 cfaNetFlowRate = superToken_.getCFANetFlowRate(account);
 
-            int96 netFlowRate = superToken_.getNetFlowRate(account);
+            // GDA Net Flow Rate is 0 for pools because this is not accounted for in the pools' RTB
+            // however it is the disconnected flow rate for that pool
+            int96 gdaNetFlowRate =
+                sf.gda.isPool(superToken_, account) ? int96(0) : superToken_.getGDANetFlowRate(account);
+            int96 netFlowRate = cfaNetFlowRate + gdaNetFlowRate;
             int256 amountFlowedSinceSnapshot = (currentTime - balanceSnapshot.timestamp).toInt256() * netFlowRate;
             int256 expectedAvb = balanceSnapshot.availableBalance + amountFlowedSinceSnapshot;
 

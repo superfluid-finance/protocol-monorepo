@@ -837,6 +837,32 @@ library SuperTokenV1Library {
     }
 
     /**
+     * @dev get CFA net flow rate for given account for given token
+     * @param token Super token address
+     * @param account Account to query
+     * @return flowRate The net flow rate of the account
+     */
+    function getCFANetFlowRate(ISuperToken token, address account)
+        internal view returns (int96 flowRate)
+    {
+        (, IConstantFlowAgreementV1 cfa) = _getHostAndCFA(token);
+        return cfa.getNetFlow(token, account);
+    }
+
+    /**
+     * @dev get GDA net flow rate for given account for given token
+     * @param token Super token address
+     * @param account Account to query
+     * @return flowRate The net flow rate of the account
+     */
+    function getGDANetFlowRate(ISuperToken token, address account)
+        internal view returns (int96 flowRate)
+    {
+        (, IGeneralDistributionAgreementV1 gda) = _getHostAndGDA(token);
+        return gda.getNetFlow(token, account);
+    }
+
+    /**
      * @dev get the aggregated flow info of the account
      * @param token Super token address
      * @param account Account to query
@@ -1119,20 +1145,20 @@ library SuperTokenV1Library {
 
     /**
      * @dev Distributes tokens in a more developer friendly way than `updateIndex`. Instead of
-     * passing the new total index value, you pass the amount of tokens desired to be distributed. 
+     * passing the new total index value, you pass the amount of tokens desired to be distributed.
      * @param token Super Token used with the index.
      * @param indexId ID of the index.
-     * @param amount - total number of tokens desired to be distributed 
-     * NOTE in many cases, there can be some precision loss 
-     This may cause a slight difference in the amount param specified and the actual amount distributed. 
+     * @param amount - total number of tokens desired to be distributed
+     * NOTE in many cases, there can be some precision loss
+     This may cause a slight difference in the amount param specified and the actual amount distributed.
      See below for math:
      //indexDelta = amount the index will be updated by during an internal call to _updateIndex().
      It is calculated like so:
-     indexDelta = amount / totalUnits 
+     indexDelta = amount / totalUnits
      (see the distribute() implementatation in ./agreements/InstantDistributionAgreement.sol)
      * NOTE Solidity does not support floating point numbers
-     So the indexDelta will be rounded down to the nearest integer. 
-     This will create a 'remainder' amount of tokens that will not be distributed 
+     So the indexDelta will be rounded down to the nearest integer.
+     This will create a 'remainder' amount of tokens that will not be distributed
      (we'll call this the 'distribution modulo')
      distributionModulo = amount - indexDelta * totalUnits
      * NOTE due to rounding, there may be a small amount of tokens left in the publisher's account

@@ -26,6 +26,7 @@ function try_verify() {
     npx truffle run --network "$TRUFFLE_NETWORK" verify "$@" ||
         FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$*"
         # NOTE: append using length so that having spaces in the element is not a problem
+        # TODO: version 0.6.5 of the plugin seems to not reliably return non-zero if verification fails
 }
 
 function link_library() {

@@ -34,6 +34,18 @@
             "name": "protocol-v1-goerli",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-goerli"
         },
+        "subgraphVesting": {
+            "name": "vesting-v1-eth-goerli",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-eth-goerli"
+        },
+        "subgraphFlowScheduler": {
+            "name": "scheduling-v1-eth-goerli",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-eth-goerli"
+        },
+        "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-eth-goerli",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-eth-goerli"
+        },
         "publicRPCs": [
             "https://rpc.ankr.com/eth_goerli",
             "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
@@ -74,6 +86,18 @@
         "subgraphV1": {
             "name": "protocol-v1-mumbai",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-mumbai"
+        },
+        "subgraphVesting": {
+            "name": "vesting-v1-polygon-mumbai",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-polygon-mumbai"
+        },
+        "subgraphFlowScheduler": {
+            "name": "scheduling-v1-polygon-mumbai",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-polygon-mumbai"
+        },
+        "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-polygon-mumbai",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-polygon-mumbai"
         },
         "publicRPCs": [
             "https://rpc.ankr.com/polygon_mumbai",
@@ -303,6 +327,18 @@
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-xdai",
             "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/xdai/api"
         },
+        "subgraphVesting": {
+            "name": "vesting-v1-xdai-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-xdai-mainnet"
+        },
+        "subgraphFlowScheduler": {
+            "name": "scheduling-v1-xdai-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-xdai-mainnet"
+        },
+        "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-xdai-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-xdai-mainnet"
+        },
         "publicRPCs": [
             "https://rpc.gnosischain.com",
             "https://gnosischain-rpc.gateway.pokt.network"
@@ -345,6 +381,18 @@
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-matic",
             "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/matic/api"
         },
+        "subgraphVesting": {
+            "name": "vesting-v1-polygon-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-polygon-mainnet"
+          },
+        "subgraphFlowScheduler": {
+            "name": "scheduling-v1-polygon-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-polygon-mainnet"
+        },
+        "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-polygon-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-polygon-mainnet"
+        },
         "publicRPCs": [
             "https://polygon-rpc.com",
             "https://poly-rpc.gateway.pokt.network"
@@ -386,6 +434,18 @@
             "name": "protocol-v1-optimism-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-mainnet"
         },
+        "subgraphVesting": {
+            "name": "vesting-v1-optimism-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-optimism-mainnet"
+          },
+          "subgraphFlowScheduler": {
+            "name": "scheduling-v1-optimism-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-optimism-mainnet"
+          },
+          "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-optimism-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-optimism-mainnet"
+          },
         "publicRPCs": [
             "https://mainnet.optimism.io",
             "https://rpc.ankr.com/optimism"
@@ -427,6 +487,18 @@
             "name": "protocol-v1-arbitrum-one",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-one"
         },
+        "subgraphVesting": {
+            "name": "vesting-v1-arbitrum-one",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-arbitrum-one"
+          },
+          "subgraphFlowScheduler": {
+            "name": "scheduling-v1-arbitrum-one",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-arbitrum-one"
+          },
+          "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-arbitrum-one",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-arbitrum-one"
+          },
         "publicRPCs": [
             "https://arb1.arbitrum.io/rpc",
             "https://arbitrum.blockpi.network/v1/rpc/public"
@@ -468,6 +540,18 @@
             "name": "protocol-v1-avalanche-c",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-c"
         },
+        "subgraphVesting": {
+            "name": "vesting-v1-avalanche-c",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-avalanche-c"
+          },
+          "subgraphFlowScheduler": {
+            "name": "scheduling-v1-avalanche-c",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-avalanche-c"
+          },
+          "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-avalanche-c",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-avalanche-c"
+          },
         "publicRPCs": [
             "https://api.avax.network/ext/bc/C/rpc",
             "https://rpc.ankr.com/avalanche"
@@ -509,6 +593,18 @@
             "name": "protocol-v1-bsc-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-bsc-mainnet"
         },
+        "subgraphVesting": {
+            "name": "vesting-v1-bsc-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-bsc-mainnet"
+          },
+          "subgraphFlowScheduler": {
+            "name": "scheduling-v1-bsc-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-bsc-mainnet"
+          },
+          "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-bsc-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-bsc-mainnet"
+          },
         "publicRPCs": [
             "https://bscrpc.com",
             "https://bsc-dataseed.binance.org"
@@ -551,6 +647,18 @@
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-eth-mainnet",
             "satsumaEndpoint": "https://subgraph.satsuma-prod.com/c5br3jaVlJI6/superfluid/eth-mainnet/api"
         },
+        "subgraphVesting": {
+            "name": "vesting-v1-eth-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-eth-mainnet"
+          },
+          "subgraphFlowScheduler": {
+            "name": "scheduling-v1-eth-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-eth-mainnet"
+          },
+          "subgraphAutoWrap": {
+            "name": "auto-wrap-v1-eth-mainnet",
+            "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-eth-mainnet"
+          },
         "publicRPCs": [
             "https://cloudflare-eth.com",
             "https://eth-rpc.gateway.pokt.network"

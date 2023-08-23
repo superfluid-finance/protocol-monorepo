@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.8.4;
+pragma solidity >= 0.8.11;
 
 /**
  * @title Super app definitions library
@@ -108,24 +108,24 @@ library ContextDefinitions {
  * @title Flow Operator definitions library
   * @author Superfluid
  */
- library FlowOperatorDefinitions {
-    uint8 constant internal AUTHORIZE_FLOW_OPERATOR_CREATE = uint8(1) << 0;
-    uint8 constant internal AUTHORIZE_FLOW_OPERATOR_UPDATE = uint8(1) << 1;
-    uint8 constant internal AUTHORIZE_FLOW_OPERATOR_DELETE = uint8(1) << 2;
-    uint8 constant internal AUTHORIZE_FULL_CONTROL =
-        AUTHORIZE_FLOW_OPERATOR_CREATE | AUTHORIZE_FLOW_OPERATOR_UPDATE | AUTHORIZE_FLOW_OPERATOR_DELETE;
-    uint8 constant internal REVOKE_FLOW_OPERATOR_CREATE = ~(uint8(1) << 0);
-    uint8 constant internal REVOKE_FLOW_OPERATOR_UPDATE = ~(uint8(1) << 1);
-    uint8 constant internal REVOKE_FLOW_OPERATOR_DELETE = ~(uint8(1) << 2);
+library FlowOperatorDefinitions {
+   uint8 constant internal AUTHORIZE_FLOW_OPERATOR_CREATE = uint8(1) << 0;
+   uint8 constant internal AUTHORIZE_FLOW_OPERATOR_UPDATE = uint8(1) << 1;
+   uint8 constant internal AUTHORIZE_FLOW_OPERATOR_DELETE = uint8(1) << 2;
+   uint8 constant internal AUTHORIZE_FULL_CONTROL =
+       AUTHORIZE_FLOW_OPERATOR_CREATE | AUTHORIZE_FLOW_OPERATOR_UPDATE | AUTHORIZE_FLOW_OPERATOR_DELETE;
+   uint8 constant internal REVOKE_FLOW_OPERATOR_CREATE = ~(uint8(1) << 0);
+   uint8 constant internal REVOKE_FLOW_OPERATOR_UPDATE = ~(uint8(1) << 1);
+   uint8 constant internal REVOKE_FLOW_OPERATOR_DELETE = ~(uint8(1) << 2);
 
-    function isPermissionsClean(uint8 permissions) internal pure returns (bool) {
-        return (
-            permissions & ~(AUTHORIZE_FLOW_OPERATOR_CREATE
-                | AUTHORIZE_FLOW_OPERATOR_UPDATE
-                | AUTHORIZE_FLOW_OPERATOR_DELETE)
-            ) == uint8(0);
-    }
- }
+   function isPermissionsClean(uint8 permissions) internal pure returns (bool) {
+       return (
+           permissions & ~(AUTHORIZE_FLOW_OPERATOR_CREATE
+               | AUTHORIZE_FLOW_OPERATOR_UPDATE
+               | AUTHORIZE_FLOW_OPERATOR_DELETE)
+           ) == uint8(0);
+   }
+}
 
 /**
  * @title Batch operation library

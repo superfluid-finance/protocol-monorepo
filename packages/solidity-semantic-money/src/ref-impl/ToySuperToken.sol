@@ -7,9 +7,9 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 
 import {
-    Time, Value, FlowRate, Unit,
-    BasicParticle, PDPoolIndex, PDPoolMember, PDPoolMemberMU,
-    ISuperfluidPool, ToySuperfluidPool,
+    Time, Value, FlowRate,
+    BasicParticle, PDPoolIndex,
+    ISuperfluidPool,
     FlowId, ToySuperfluidToken
 } from "./ToySuperfluidToken.sol";
 
@@ -136,7 +136,7 @@ contract ToySuperToken is ToySuperfluidToken, IERC20 {
     {
         // not using oldFlowRate in this model
         // surprising effect: reducing flow rate may require more buffer when liquidation_period adjusted upward
-        Value newBufferAmount = newFlowRate.mul(LIQUIDATION_PERIOD);
+        Value newBufferAmount = newFlowRate.mul(liquidationPeriod);
         Value bufferDelta = newBufferAmount - flowData[flowHash].buffer;
         eff = _doShift(eff, from, address(this), bufferDelta);
         accountData[from].totalBuffer = accountData[from].totalBuffer + bufferDelta;

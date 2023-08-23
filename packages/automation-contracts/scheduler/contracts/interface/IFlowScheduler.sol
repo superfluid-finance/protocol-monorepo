@@ -2,14 +2,10 @@
 pragma solidity ^0.8.0;
 
 import {
-    ISuperToken, ISuperfluid
-} from "../../../../ethereum-contracts/contracts/interfaces/superfluid/ISuperToken.sol";
-import {
-    IConstantFlowAgreementV1
-} from "../../../../ethereum-contracts/contracts/interfaces/agreements/IConstantFlowAgreementV1.sol";
+    ISuperToken
+} from "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluid.sol";
 
 interface IFlowScheduler {
-
     error TimeWindowInvalid();
     error AccountInvalid();
     error ZeroAddress();
@@ -56,11 +52,7 @@ interface IFlowScheduler {
      * @param sender The sender account
      * @param receiver The receiver account
      */
-    event FlowScheduleDeleted(
-        ISuperToken indexed superToken,
-        address indexed sender,
-        address indexed receiver
-    );
+    event FlowScheduleDeleted(ISuperToken indexed superToken, address indexed sender, address indexed receiver);
 
     /**
      * @dev Emitted when the start of a stream is executed
@@ -93,11 +85,7 @@ interface IFlowScheduler {
      * @param userData Arbitrary UserData to be added to the stream (or bytes(0) if no data needed)
      */
     event DeleteFlowExecuted(
-        ISuperToken indexed superToken,
-        address indexed sender,
-        address indexed receiver,
-        uint32 endDate,
-        bytes userData
+        ISuperToken indexed superToken, address indexed sender, address indexed receiver, uint32 endDate, bytes userData
     );
 
     /**
@@ -130,11 +118,9 @@ interface IFlowScheduler {
      * @param receiver The receiver account
      * @param ctx Superfluid context used when batching operations. (or bytes(0) if not SF batching)
      */
-    function deleteFlowSchedule(
-        ISuperToken superToken,
-        address receiver,
-        bytes memory ctx
-    ) external returns (bytes memory newCtx);
+    function deleteFlowSchedule(ISuperToken superToken, address receiver, bytes memory ctx)
+        external
+        returns (bytes memory newCtx);
 
     /**
      * @dev Executes the starting of a stream
@@ -143,12 +129,9 @@ interface IFlowScheduler {
      * @param receiver The receiver account
      * @param userData Arbitrary UserData to be added to the stream (or bytes(0) if no data needed)
      */
-    function executeCreateFlow(
-        ISuperToken superToken,
-        address sender,
-        address receiver,
-        bytes memory userData
-    ) external returns(bool success);
+    function executeCreateFlow(ISuperToken superToken, address sender, address receiver, bytes memory userData)
+        external
+        returns (bool success);
 
     /**
      * @dev Executes the stopping of a stream
@@ -157,12 +140,9 @@ interface IFlowScheduler {
      * @param receiver The receiver account
      * @param userData Arbitrary UserData to be added to the stream (or bytes(0) if no data needed)
      */
-    function executeDeleteFlow(
-        ISuperToken superToken,
-        address sender,
-        address receiver,
-        bytes memory userData
-    ) external returns(bool success);
+    function executeDeleteFlow(ISuperToken superToken, address sender, address receiver, bytes memory userData)
+        external
+        returns (bool success);
 
     /**
      * @dev Get data currently stored for a flow schedule
@@ -170,9 +150,8 @@ interface IFlowScheduler {
      * @param sender The sender account
      * @param receiver The receiver account
      */
-    function getFlowSchedule(
-        address superToken,
-        address sender,
-        address receiver
-    ) external view returns (FlowSchedule memory);
+    function getFlowSchedule(address superToken, address sender, address receiver)
+        external
+        view
+        returns (FlowSchedule memory);
 }

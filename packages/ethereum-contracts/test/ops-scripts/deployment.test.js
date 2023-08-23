@@ -5,6 +5,7 @@ const deployFramework = require("../../ops-scripts/deploy-framework");
 const deployTestToken = require("../../ops-scripts/deploy-test-token");
 const deploySuperToken = require("../../ops-scripts/deploy-super-token");
 const deployTestEnvironment = require("../../ops-scripts/deploy-test-environment");
+const deployAuxContracts = require("../../ops-scripts/deploy-aux-contracts");
 const {expect} = require("chai");
 const Resolver = artifacts.require("Resolver");
 const TestToken = artifacts.require("TestToken");
@@ -501,6 +502,15 @@ contract("Embedded deployment scripts", (accounts) => {
 
         it("ops-scripts/deploy-test-environment.js", async () => {
             await deployTestEnvironment(errorHandler, [], deploymentOptions);
+        });
+
+        it("ops-scripts/deploy-aux-contracts.js", async () => {
+            const resolver = await web3tx(Resolver.new, "Resolver.new")();
+            process.env.RESOLVER_ADDRESS = resolver.address;
+
+            await deployFramework(errorHandler, deploymentOptions);
+
+            await deployAuxContracts(errorHandler, deploymentOptions);
         });
     });
 

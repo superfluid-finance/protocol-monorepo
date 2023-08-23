@@ -5,29 +5,21 @@ pragma solidity 0.8.19;
 // Notes: SuperToken is rich with states, disable this default rule here.
 
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
 import {
     ISuperfluid,
-    ISuperfluidGovernance,
     ISuperToken,
-    ISuperAgreement,
     IERC20,
-    IERC777,
-    TokenInfo
+    IConstantOutflowNFT,
+    IConstantInflowNFT
 } from "../interfaces/superfluid/ISuperfluid.sol";
-import { ISuperfluidToken, SuperfluidToken } from "./SuperfluidToken.sol";
+import { SuperfluidToken } from "./SuperfluidToken.sol";
 import { ERC777Helper } from "../libs/ERC777Helper.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { SafeMath } from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IERC777Recipient } from "@openzeppelin/contracts/token/ERC777/IERC777Recipient.sol";
 import { IERC777Sender } from "@openzeppelin/contracts/token/ERC777/IERC777Sender.sol";
 import { Address } from "@openzeppelin/contracts/utils/Address.sol";
-import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../interfaces/superfluid/IConstantInflowNFT.sol";
-import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
-import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
 
 /**
  * @title Superfluid's super token implementation
@@ -126,6 +118,7 @@ contract SuperToken is
         string calldata s
     )
         external
+        virtual
         override
         initializer // OpenZeppelin Initializable
     {
@@ -142,11 +135,11 @@ contract SuperToken is
         emit Transfer(address(0), address(0), 0);
     }
 
-    function proxiableUUID() public pure override returns (bytes32) {
+    function proxiableUUID() public pure virtual override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
-    function updateCode(address newAddress) external override {
+    function updateCode(address newAddress) external virtual override {
         if (msg.sender != address(_host)) revert SUPER_TOKEN_ONLY_HOST();
         UUPSProxiable._updateCodeAddress(newAddress);
 
@@ -167,15 +160,15 @@ contract SuperToken is
      * ERC20 Token Info
      *************************************************************************/
 
-    function name() external view override returns (string memory) {
+    function name() external view virtual override returns (string memory) {
         return _name;
     }
 
-    function symbol() external view override returns (string memory) {
+    function symbol() external view virtual override returns (string memory) {
         return _symbol;
     }
 
-    function decimals() external pure override returns (uint8) {
+    function decimals() external pure virtual override returns (uint8) {
         return _STANDARD_DECIMALS;
     }
 
@@ -233,7 +226,7 @@ contract SuperToken is
         bytes memory operatorData,
         bool requireReceptionAck
     )
-        private
+        internal
     {
         if (from == address(0)) {
             revert SUPER_TOKEN_TRANSFER_FROM_ZERO_ADDRESS();
@@ -269,23 +262,25 @@ contract SuperToken is
      * @dev Creates `amount` tokens and assigns them to `account`, increasing
      * the total supply.
      *
-     * If a send hook is registered for `account`, the corresponding function
-     * will be called with `operator`, `data` and `operatorData`.
+     * If invokeHook is true and a send hook is registered for `account`,
+     * the corresponding function will be called with `operator`, `userData` and `operatorData`.
      *
      * See {IERC777Sender} and {IERC777Recipient}.
      *
-     * Emits {Minted} and {IERC20-Transfer} events.
+     * Emits {Minted} and {IERC20.Transfer} events.
      *
      * Requirements
      *
      * - `account` cannot be the zero address.
-     * - if `account` is a contract, it must implement the {IERC777Recipient}
+     * - if `invokeHook` and `requireReceptionAck` are set and `account` is a contract,
+     *   it must implement the {IERC777Recipient}
      * interface.
      */
     function _mint(
         address operator,
         address account,
         uint256 amount,
+        bool invokeHook,
         bool requireReceptionAck,
         bytes memory userData,
         bytes memory operatorData
@@ -298,7 +293,9 @@ contract SuperToken is
 
         SuperfluidToken._mint(account, amount);
 
-        _callTokensReceived(operator, address(0), account, amount, userData, operatorData, requireReceptionAck);
+        if (invokeHook) {
+            _callTokensReceived(operator, address(0), account, amount, userData, operatorData, requireReceptionAck);
+        }
 
         emit Minted(operator, account, amount, userData, operatorData);
         emit Transfer(address(0), account, amount);
@@ -315,6 +312,7 @@ contract SuperToken is
         address operator,
         address from,
         uint256 amount,
+        bool invokeHook,
         bytes memory userData,
         bytes memory operatorData
     )
@@ -324,7 +322,9 @@ contract SuperToken is
             revert SUPER_TOKEN_BURN_FROM_ZERO_ADDRESS();
         }
 
-        _callTokensToSend(operator, from, address(0), amount, userData, operatorData);
+        if (invokeHook) {
+            _callTokensToSend(operator, from, address(0), amount, userData, operatorData);
+        }
 
         SuperfluidToken._burn(from, amount);
 
@@ -421,7 +421,7 @@ contract SuperToken is
      *************************************************************************/
 
     function totalSupply()
-        public view override returns (uint256)
+        public view virtual override returns (uint256)
     {
         return _totalSupply;
     }
@@ -431,6 +431,7 @@ contract SuperToken is
     )
         public
         view
+        virtual
         override
         returns(uint256 balance)
     {
@@ -440,19 +441,19 @@ contract SuperToken is
     }
 
     function transfer(address recipient, uint256 amount)
-        public override returns (bool)
+        public virtual override returns (bool)
     {
         return _transferFrom(msg.sender, msg.sender, recipient, amount);
     }
 
     function allowance(address account, address spender)
-        public view override returns (uint256)
+        public view virtual override returns (uint256)
     {
         return _allowances[account][spender];
     }
 
     function approve(address spender, uint256 amount)
-        public override
+        public virtual override
         returns (bool)
     {
         _approve(msg.sender, spender, amount);
@@ -460,19 +461,19 @@ contract SuperToken is
     }
 
     function transferFrom(address holder, address recipient, uint256 amount)
-        public override returns (bool)
+        public virtual override returns (bool)
     {
         return _transferFrom(msg.sender, holder, recipient, amount);
     }
 
     function increaseAllowance(address spender, uint256 addedValue)
-        public override returns (bool) {
+        public virtual override returns (bool) {
         _approve(msg.sender, spender, _allowances[msg.sender][spender] + addedValue);
         return true;
     }
 
     function decreaseAllowance(address spender, uint256 subtractedValue)
-        public override returns (bool) {
+        public virtual override returns (bool) {
         _approve(msg.sender, spender, _allowances[msg.sender][spender].sub(subtractedValue,
             "SuperToken: decreased allowance below zero"));
         return true;
@@ -482,33 +483,33 @@ contract SuperToken is
      * ERC-777 functions
      *************************************************************************/
 
-    function granularity() external pure override returns (uint256) { return 1; }
+    function granularity() external pure virtual override returns (uint256) { return 1; }
 
-    function send(address recipient, uint256 amount, bytes calldata data) external override {
-        _send(msg.sender, msg.sender, recipient, amount, data, "", true);
+    function send(address recipient, uint256 amount, bytes calldata userData) external virtual override {
+        _send(msg.sender, msg.sender, recipient, amount, userData, "", true);
     }
 
-    function burn(uint256 amount, bytes calldata data) external override {
-        _downgrade(msg.sender, msg.sender, msg.sender, amount, data, "");
+    function burn(uint256 amount, bytes calldata userData) external virtual override {
+        _downgrade(msg.sender, msg.sender, msg.sender, amount, userData, "");
     }
 
-    function isOperatorFor(address operator, address tokenHolder) external override view returns (bool) {
+    function isOperatorFor(address operator, address tokenHolder) external virtual override view returns (bool) {
         return _operators.isOperatorFor(operator, tokenHolder);
     }
 
-    function authorizeOperator(address operator) external override {
+    function authorizeOperator(address operator) external virtual override {
         address holder = msg.sender;
         _operators.authorizeOperator(holder, operator);
         emit AuthorizedOperator(operator, holder);
     }
 
-    function revokeOperator(address operator) external override {
+    function revokeOperator(address operator) external virtual override {
         address holder = msg.sender;
         _operators.revokeOperator(holder, operator);
         emit RevokedOperator(operator, holder);
     }
 
-    function defaultOperators() external override view returns (address[] memory) {
+    function defaultOperators() external virtual override view returns (address[] memory) {
         return ERC777Helper.defaultOperators(_operators);
     }
 
@@ -516,23 +517,23 @@ contract SuperToken is
         address sender,
         address recipient,
         uint256 amount,
-        bytes calldata data,
+        bytes calldata userData,
         bytes calldata operatorData
-    ) external override {
+    ) external virtual override {
         address operator = msg.sender;
         if (!_operators.isOperatorFor(operator, sender)) revert SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
-        _send(operator, sender, recipient, amount, data, operatorData, true);
+        _send(operator, sender, recipient, amount, userData, operatorData, true);
     }
 
     function operatorBurn(
         address account,
         uint256 amount,
-        bytes calldata data,
+        bytes calldata userData,
         bytes calldata operatorData
-    ) external override {
+    ) external virtual override {
         address operator = msg.sender;
         if (!_operators.isOperatorFor(operator, account)) revert SUPER_TOKEN_CALLER_IS_NOT_OPERATOR_FOR_HOLDER();
-        _downgrade(operator, account, account, amount, data, operatorData);
+        _downgrade(operator, account, account, amount, userData, operatorData);
     }
 
     function _setupDefaultOperators(address[] memory operators) internal {
@@ -548,11 +549,11 @@ contract SuperToken is
         uint256 amount,
         bytes memory userData
     )
-        external override
+        external virtual override
         onlySelf
     {
-        _mint(msg.sender, account, amount,
-            false /* requireReceptionAck */, userData, new bytes(0));
+        _mint(msg.sender, account, amount, userData.length != 0 /* invokeHook */,
+            userData.length != 0 /* requireReceptionAck */, userData, new bytes(0));
     }
 
     function selfBurn(
@@ -560,10 +561,10 @@ contract SuperToken is
        uint256 amount,
        bytes memory userData
     )
-       external override
+       external virtual override
        onlySelf
     {
-       _burn(msg.sender, account, amount, userData, new bytes(0));
+       _burn(msg.sender, account, amount, userData.length != 0 /* invokeHook */, userData, new bytes(0));
     }
 
     function selfApproveFor(
@@ -571,7 +572,7 @@ contract SuperToken is
         address spender,
         uint256 amount
     )
-        external override
+        external virtual override
         onlySelf
     {
         _approve(account, spender, amount);
@@ -583,7 +584,7 @@ contract SuperToken is
         address recipient,
         uint256 amount
     )
-        external override
+        external virtual override
         onlySelf
     {
         _transferFrom(spender, holder, recipient, amount);
@@ -594,7 +595,7 @@ contract SuperToken is
      *************************************************************************/
 
     function transferAll(address recipient)
-        external override
+        external virtual override
     {
         _transferFrom(msg.sender, msg.sender, recipient, balanceOf(msg.sender));
     }
@@ -604,27 +605,27 @@ contract SuperToken is
      *************************************************************************/
 
     /// @dev ISuperfluidGovernance.getUnderlyingToken implementation
-    function getUnderlyingToken() external view override returns(address) {
+    function getUnderlyingToken() external view virtual override returns(address) {
         return address(_underlyingToken);
     }
 
     /// @dev ISuperToken.upgrade implementation
-    function upgrade(uint256 amount) external override {
+    function upgrade(uint256 amount) external virtual override {
         _upgrade(msg.sender, msg.sender, msg.sender, amount, "", "");
     }
 
     /// @dev ISuperToken.upgradeTo implementation
-    function upgradeTo(address to, uint256 amount, bytes calldata data) external override {
-        _upgrade(msg.sender, msg.sender, to, amount, data, "");
+    function upgradeTo(address to, uint256 amount, bytes calldata userData) external virtual override {
+        _upgrade(msg.sender, msg.sender, to, amount, userData, "");
     }
 
     /// @dev ISuperToken.downgrade implementation
-    function downgrade(uint256 amount) external override {
+    function downgrade(uint256 amount) external virtual override {
         _downgrade(msg.sender, msg.sender, msg.sender, amount, "", "");
     }
 
     /// @inheritdoc ISuperToken
-    function downgradeTo(address to, uint256 amount) external override {
+    function downgradeTo(address to, uint256 amount) external virtual override {
         _downgrade(msg.sender, msg.sender, to, amount, "", "");
     }
 
@@ -635,7 +636,7 @@ contract SuperToken is
         uint256 amount,
         bytes memory userData,
         bytes memory operatorData
-    ) private {
+    ) internal {
         if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
 
         (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
@@ -647,8 +648,8 @@ contract SuperToken is
         if (underlyingAmount != actualUpgradedAmount) revert SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED();
 
         _mint(operator, to, adjustedAmount,
-            // if `userData.length` than 0, we requireReceptionAck
-            userData.length != 0, userData, operatorData);
+            // if `userData.length` is greater than 0, we set invokeHook and requireReceptionAck true
+            userData.length != 0, userData.length != 0, userData, operatorData);
 
         emit TokenUpgraded(to, adjustedAmount);
     }
@@ -658,14 +659,15 @@ contract SuperToken is
         address account,  // the account whose super tokens we are burning
         address to,       // the account receiving the underlying tokens
         uint256 amount,
-        bytes memory data,
-        bytes memory operatorData) private {
+        bytes memory userData,
+        bytes memory operatorData
+    ) internal {
         if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
 
         (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
 
          // _burn will check the (actual) amount availability again
-         _burn(operator, account, adjustedAmount, data, operatorData);
+         _burn(operator, account, adjustedAmount, userData.length != 0, userData, operatorData);
 
         uint256 amountBefore = _underlyingToken.balanceOf(address(this));
         _underlyingToken.safeTransfer(to, underlyingAmount);
@@ -711,7 +713,7 @@ contract SuperToken is
         address spender,
         uint256 amount
     )
-        external override
+        external virtual override
         onlyHost
     {
         _approve(account, spender, amount);
@@ -722,7 +724,7 @@ contract SuperToken is
         address spender,
         uint256 addedValue
     )
-        external override
+        external virtual override
         onlyHost
     {
         _approve(account, spender, _allowances[account][spender] + addedValue);
@@ -733,7 +735,7 @@ contract SuperToken is
         address spender,
         uint256 subtractedValue
     ) 
-        external override
+        external virtual override
         onlyHost
     {
         _approve(account, spender, _allowances[account][spender].sub(subtractedValue,
@@ -746,7 +748,7 @@ contract SuperToken is
         address recipient,
         uint256 amount
     )
-        external override
+        external virtual override
         onlyHost
     {
         _transferFrom(account, spender, recipient, amount);
@@ -758,21 +760,21 @@ contract SuperToken is
         uint256 amount,
         bytes memory userData
     ) 
-        external override
+        external virtual override
         onlyHost
     {
         _send(msg.sender, spender, recipient, amount, userData, "", true);
     }
 
     function operationUpgrade(address account, uint256 amount)
-        external override
+        external virtual override
         onlyHost
     {
         _upgrade(msg.sender, account, account, amount, "", "");
     }
 
     function operationDowngrade(address account, uint256 amount)
-        external override
+        external virtual override
         onlyHost
     {
         _downgrade(msg.sender, account, account, amount, "", "");

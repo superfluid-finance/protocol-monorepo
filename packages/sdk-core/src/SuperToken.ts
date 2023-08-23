@@ -3,7 +3,7 @@ import {
     ISETH__factory,
     ISuperToken,
     ISuperToken__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain";
+} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { BytesLike, ethers, Overrides } from "ethers";
 
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -48,6 +48,7 @@ import {
     IWeb3RealTimeBalanceOf,
     IWeb3Subscription,
     SuperTokenFlowRateAllowanceParams,
+    SuperTokenFlowRateAllowanceWithPermissionsParams,
 } from "./interfaces";
 import {
     getSanitizedTimestamp,
@@ -448,6 +449,44 @@ export default abstract class SuperToken extends ERC20Token {
     }
 
     /**
+     * Increase the flow rate allowance and sets permissions for an ACL operator.
+     * @param flowOperator The permission grantee address
+     * @param permission The permissions to set.
+     * @param flowRateAllowance The amount to increase the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     *
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    increaseFlowRateAllowanceWithPermissions(
+        params: SuperTokenFlowRateAllowanceWithPermissionsParams
+    ): Operation {
+        return this.cfaV1.increaseFlowRateAllowanceWithPermissions({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
+
+    /**
+     * Decrease the flow rate allowance and sets permissions for an ACL operator.
+     * @param flowOperator The permission grantee address
+     * @param permission The permissions to set.
+     * @param flowRateAllowance The amount to decrease the flow rate allowance by.
+     * @param userData Extra user data provided.
+     * @param overrides ethers overrides object for more control over the transaction sent.
+     *
+     * @returns {Operation} An instance of Operation which can be executed or batched.
+     */
+    decreaseFlowRateAllowanceWithPermissions(
+        params: SuperTokenFlowRateAllowanceWithPermissionsParams
+    ): Operation {
+        return this.cfaV1.decreaseFlowRateAllowanceWithPermissions({
+            superToken: this.settings.address,
+            ...params,
+        });
+    }
+
+    /**
      * Update permissions for a flow operator as a sender.
      * @param flowOperator The permission grantee address
      * @param permission The permissions to set.
@@ -763,7 +802,7 @@ export class WrapperSuperToken extends SuperToken {
         overrides,
     }: {
         amount: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }): Operation => {
         const txn = this.contract.populateTransaction.downgrade(
             amount,
@@ -786,7 +825,7 @@ export class WrapperSuperToken extends SuperToken {
     }: {
         amount: string;
         to: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }) => {
         const txn = this.contract.populateTransaction.downgradeTo(to, amount, {
             ...overrides,
@@ -805,7 +844,7 @@ export class WrapperSuperToken extends SuperToken {
         overrides,
     }: {
         amount: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }): Operation => {
         const txn = this.contract.populateTransaction.upgrade(
             amount,
@@ -831,7 +870,7 @@ export class WrapperSuperToken extends SuperToken {
         amount: string;
         to: string;
         data?: BytesLike;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }) => {
         const txn = this.contract.populateTransaction.upgradeTo(
             to,
@@ -909,7 +948,7 @@ export class NativeAssetSuperToken extends SuperToken {
         overrides,
     }: {
         amount: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }): Operation => {
         const txn = this.nativeAssetContract.populateTransaction.upgradeByETH({
             ...overrides,
@@ -932,7 +971,7 @@ export class NativeAssetSuperToken extends SuperToken {
     }: {
         amount: string;
         to: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }) => {
         const txn = this.nativeAssetContract.populateTransaction.upgradeByETHTo(
             to,
@@ -955,7 +994,7 @@ export class NativeAssetSuperToken extends SuperToken {
         overrides,
     }: {
         amount: string;
-        overrides?: Overrides & { from?: string | Promise<string> };
+        overrides?: Overrides & { from?: string };
     }) => {
         const txn = this.nativeAssetContract.populateTransaction.downgradeToETH(
             amount,

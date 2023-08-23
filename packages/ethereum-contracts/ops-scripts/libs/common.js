@@ -39,7 +39,7 @@ function extractWeb3Options({isTruffle, web3, ethers, from}) {
 /// @dev Load contract from truffle built artifacts
 function builtTruffleContractLoader(name) {
     try {
-        const directoryPath = path.join(__dirname, "../../build/contracts");
+        const directoryPath = path.join(__dirname, "../../build/truffle");
         const builtContract = require(path.join(directoryPath, name + ".json"));
         return builtContract;
     } catch (e) {
@@ -189,13 +189,23 @@ async function setResolver(sf, key, value) {
  * process.env.GOVERNANCE_ADMIN_TYPE:
  * - MULTISIG
  * - OWNABLE
- * - (default) auto-detect
+ * - SAFE
+ * - (default) auto-detect (doesn't yet detect Safe)
+ *
+ * @param sf instance of SuperfluidSDK
+ * @param actionFn function that gets governance methods as argument
+ *
+ * @note if the caller intends to invoke methods only available in SuperfluidGovernanceII
+ * (e.g. UUPSProxiable or Ownable), it must provide the SuperfluidGovernanceII artifact
+ * in the sf object.
  */
 async function sendGovernanceAction(sf, actionFn) {
-    const gov = await sf.contracts.SuperfluidGovernanceBase.at(
-        await sf.host.getGovernance.call()
-    );
-    console.log("Governance address:", gov.address);
+    const govAddr = await sf.host.getGovernance.call();
+    console.log("Governance address:", govAddr);
+    const gov = sf.contracts.SuperfluidGovernanceII !== undefined ?
+        await sf.contracts.SuperfluidGovernanceII.at(govAddr) :
+        await sf.contracts.SuperfluidGovernanceBase.at(govAddr);
+
     const govOwner = await (await sf.contracts.Ownable.at(gov.address)).owner();
     console.log("Governance owner:", govOwner);
 
@@ -225,6 +235,66 @@ async function sendGovernanceAction(sf, actionFn) {
             console.log("Governance action executed.");
             break;
         }
+        case "SAFE": {
+            const Web3Adapter = require('@safe-global/safe-web3-lib').default;
+            const Safe = require('@safe-global/safe-core-sdk').default;
+            const SafeServiceClient = require('@safe-global/safe-service-client').default;
+
+            const safeOwner = (await web3.eth.getAccounts())[0]; // tx sender
+            console.log("Address used as Safe owner (1st signer):", safeOwner);
+            const safeAddress = govOwner;
+
+            const ethAdapterOwner1 = new Web3Adapter({
+                web3,
+                signerAddress: safeOwner
+            });
+
+            const safeSdk = await Safe.create({ ethAdapter: ethAdapterOwner1, safeAddress });
+            const safeService = new SafeServiceClient({
+                txServiceUrl: getSafeTxServiceUrl(await web3.eth.getChainId()),
+                ethAdapter: ethAdapterOwner1
+            });
+
+            const data = actionFn(gov.contract.methods).encodeABI();
+            const nextNonce = await safeService.getNextNonce(safeAddress);
+            const safeTransactionData = {
+                to: gov.address,
+                value: 0,
+                data: data,
+                nonce: process.env.SAFE_REPLACE_LAST_TX ? nextNonce-1 : nextNonce
+            };
+            const safeTransaction = await safeSdk.createTransaction({ safeTransactionData });
+            console.log("Safe tx:", safeTransaction);
+
+            const safeTxHash = await safeSdk.getTransactionHash(safeTransaction);
+            console.log("Safe tx hash:", safeTxHash);
+            const signature = await safeSdk.signTransactionHash(safeTxHash);
+            console.log("Signature:", signature);
+
+            const transactionConfig = {
+                safeAddress,
+                safeTxHash,
+                safeTransactionData: safeTransaction.data,
+                senderAddress: safeOwner,
+                senderSignature: signature.data,
+                origin: "ops-scripts"
+            };
+
+            const pendingTxsBefore = await safeService.getPendingTransactions(safeAddress);
+
+            // according to the docs this should return the tx hash, but always returns undefined although succeeding
+            const ret = await safeService.proposeTransaction(transactionConfig);
+            console.log("returned:", ret);
+
+            const pendingTxsAfter = await safeService.getPendingTransactions(safeAddress);
+            console.log(`pending txs before ${pendingTxsBefore.count}, after ${pendingTxsAfter.count}`);
+
+            // workaround for verifying that the proposal was added
+            if (!pendingTxsAfter.count > pendingTxsBefore.count) {
+                throw new Error("Safe pending transactions count didn't increase, propose may have failed!");
+            }
+            break;
+        }
         default: {
             throw new Error("No known admin type specified and autodetect failed");
         }
@@ -234,6 +304,7 @@ async function sendGovernanceAction(sf, actionFn) {
 // Probes the given account to see what kind of admin it is.
 // Possible return values: "MULTISIG", "OWNABLE".
 // Throws when encountering an unknown contract.
+// TODO: add support for detecting SAFE
 async function autodetectGovAdminType(sf, account) {
     if (!await hasCode(web3, account)) {
         console.log("account has no code");
@@ -243,6 +314,29 @@ async function autodetectGovAdminType(sf, account) {
     // this will throw if not exists
     const moc = await multis.required();
     return "MULTISIG";
+}
+
+// returns the Safe Tx Service URL or throws if none available
+// source: https://github.com/safe-global/safe-docs/blob/main/safe-core-api/available-services.md
+function getSafeTxServiceUrl(chainId) {
+    const safeChainNames = {
+        // mainnets
+        1: "mainnet",
+        10: "optimism",
+        56: "bsc",
+        100: "gnosis-chain",
+        137: "polygon",
+        8453: "base",
+        42161: "arbitrum",
+        43114: "avalanche",
+        // testnets
+        5: "goerli",
+        84531: "base-testnet"
+    };
+    if (safeChainNames[chainId] === undefined) {
+        throw new Error(`no Safe tx service url known for chainId ${chainId}`);
+    }
+    return `https://safe-transaction-${safeChainNames[chainId]}.safe.global`;
 }
 
 /****************************************************************
@@ -330,6 +424,38 @@ function getScriptRunnerFactory(runnerOpts = {}) {
     };
 }
 
+/****************************************************************
+ * Helpers to store versionString in Resolver
+ ****************************************************************/
+
+// versionString format: [x]x.[y]y.[z]z-rrrrrrrr
+// x: major version, y: minor version, z: patch, r: 8-digit git revision (hex)
+
+// takes an argument of the form [x]x.[y]y.[z]z-rrrrrrrr and returns a pseudo address
+function versionStringToPseudoAddress(versionString) {
+    const [versions, suffix] = versionString.split('-');
+    const [major, minor, patch] = versions.split('.').map(v => v.padStart(2, '0'));  // Pad with leading zeros
+    return `0x000000000000000000${major}${minor}${patch}${suffix}`;
+}
+
+// takes a pseudo address as argument and decodes it to a versionString
+function pseudoAddressToVersionString(pseudoAddress) {
+    const str = pseudoAddress.replace(/^0x/, '').toLowerCase(); // remove leading 0x
+    const major = parseInt(str.slice(18, 20), 10);
+    const minor = parseInt(str.slice(20, 22), 10);
+    const patch = parseInt(str.slice(22, 24), 10);
+    const revision = str.slice(24);
+
+    if (
+        !str.startsWith("000000000000000000") ||
+        isNaN(major) || isNaN(minor) || isNaN(patch)
+    ) {
+        throw new Error("Provided address doesn't encode a valid versionString");
+    }
+
+    return `${major}.${minor}.${patch}-${revision}`;
+}
+
 module.exports = {
     ZERO_ADDRESS,
 
@@ -349,4 +475,7 @@ module.exports = {
     getPastEvents,
 
     getScriptRunnerFactory,
+
+    versionStringToPseudoAddress,
+    pseudoAddressToVersionString,
 };

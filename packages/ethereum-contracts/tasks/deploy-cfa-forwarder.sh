@@ -2,7 +2,7 @@
 set -eux
 
 # Usage:
-# tasks/deploy-cfa-forwarder.sh <network> <contract-addr>
+# tasks/deploy-cfa-forwarder.sh <network> [<contract-addr>]
 #
 # Example:
 # tasks/deploy-cfa-forwarder.sh optimism-goerli 0xcfa132e353cb4e398080b9700609bb008eceb125
@@ -24,7 +24,7 @@ set -eux
 # On some networks you may need to use override ENV vars for the deployment to succeed
 
 network=$1
-cfaFwdAddr=0xcfA132E353cB4E398080B9700609bb008eceB125
+cfaFwdAddr=${2:-0xcfA132E353cB4E398080B9700609bb008eceB125}
 
 # deploy
 npx truffle exec --network "$network" ops-scripts/deploy-deterministically.js : CFAv1Forwarder

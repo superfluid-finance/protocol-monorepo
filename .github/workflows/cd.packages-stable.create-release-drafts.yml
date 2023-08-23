@@ -1,0 +1,204 @@
+name: CD | Create Monorepo Packages Stable Release Draft
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "dev"
+    paths:
+      - "packages/ethereum-contracts/**"
+      - "packages/subgraph/**"
+      - "packages/metadata/**"
+      - "packages/sdk-core/**"
+      - "packages/sdk-redux/**"
+      - ".github/workflows/cd.packages-stable.create-release-drafts.yml"
+
+jobs:
+  create-ethereum-contracts-release-draft:
+    name: Create Ethereum-Contracts Release Draft
+
+    runs-on: ubuntu-latest
+
+    permissions: write-all
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Check package versions
+        run: ./tasks/check-package-version.sh ethereum-contracts SHOULD_PUBLISH_ETHEREUM_CONTRACTS ETHEREUM_CONTRACTS_NEW_VERSION >> "$GITHUB_ENV"
+
+      - name: Create ethereum-contracts stable release draft
+        if: env.SHOULD_PUBLISH_ETHEREUM_CONTRACTS == 1
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ethereum-contracts@v${{ env.ETHEREUM_CONTRACTS_NEW_VERSION }}
+          release_name: ethereum-contracts@v${{ env.ETHEREUM_CONTRACTS_NEW_VERSION }}
+          body_path: .github/RELEASE_TEMPLATE/release-notes.md
+          draft: true
+
+  create-subgraph-release-draft:
+    name: Create Subgraph Release Draft
+
+    runs-on: ubuntu-latest
+
+    permissions: write-all
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Check package versions
+        run: |
+          SUBGRAPH_NEW_VERSION=$(jq -r .version packages/subgraph/package.json)
+          git fetch --prune --tags # github checkout action by default doesn't fetch these
+          if git tag | grep -e "^subgraph@v${SUBGRAPH_NEW_VERSION}$"; then
+            echo "subgraph version unchanged: $SUBGRAPH_NEW_VERSION" >&2
+            echo "SHOULD_PUBLISH_SUBGRAPH=0" >> "$GITHUB_ENV"
+          else
+          echo "subgraph changed: $SUBGRAPH_NEW_VERSION" >&2
+            echo "SHOULD_PUBLISH_SUBGRAPH=1" >> "$GITHUB_ENV"
+            echo "SUBGRAPH_NEW_VERSION=$SUBGRAPH_NEW_VERSION" >> "$GITHUB_ENV"
+          fi
+
+      - name: Create subgraph stable release draft
+        if: env.SHOULD_PUBLISH_SUBGRAPH == 1
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: subgraph@v${{ env.SUBGRAPH_NEW_VERSION }}
+          release_name: subgraph@v${{ env.SUBGRAPH_NEW_VERSION }}
+          body_path: .github/RELEASE_TEMPLATE/release-notes.md
+          draft: true
+
+  create-and-publish-metadata-package:
+    name: Create Metadata Release Draft and Publish to NPM
+
+    runs-on: ubuntu-latest
+
+    permissions: write-all
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Check package versions
+        run: ./tasks/check-package-version.sh metadata SHOULD_PUBLISH_METADATA METADATA_NEW_VERSION >> "$GITHUB_ENV"
+
+      - name: Create metadata stable release draft
+        if: env.SHOULD_PUBLISH_METADATA == 1
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: metadata@v${{ env.METADATA_NEW_VERSION }}
+          release_name: metadata@v${{ env.METADATA_NEW_VERSION }}
+          body: |
+            Please refer to the CHANGELOG.md file in metadata package for more details on the changeset.
+          draft: false
+      - name: Publish metadata package
+        if: env.SHOULD_PUBLISH_METADATA == 1
+        run: |
+          yarn --cwd packages/metadata build
+          tasks/npm-publish.sh packages/metadata/ latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
+
+  test-sdk-core-query-schema-against-deployed-v1-subgraphs:
+    uses: ./.github/workflows/call.check-query-schema-against-subgraph.yml
+    name: Test SDK-Core Query Schema and Queries Against Deployed V1 Subgraphs
+    with:
+      subgraph-release: v1
+
+  test-sdk-core-with-v1-release-subgraph:
+    uses: ./.github/workflows/call.test-sdk-core.yml
+    name: Build and Test SDK-Core (Release branch)
+    with:
+      subgraph-release: v1
+      subgraph-endpoint: ""
+      run-coverage-tests: false
+
+  create-sdk-core-release-draft:
+    name: Create SDK-Core Release Draft
+
+    runs-on: ubuntu-latest
+
+    needs:
+      [
+        test-sdk-core-query-schema-against-deployed-v1-subgraphs,
+        test-sdk-core-with-v1-release-subgraph,
+      ]
+
+    permissions: write-all
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Check package versions
+        run: ./tasks/check-package-version.sh sdk-core SHOULD_PUBLISH_SDK_CORE SDK_CORE_NEW_VERSION >> "$GITHUB_ENV"
+
+      - name: Create sdk-core stable release draft
+        if: env.SHOULD_PUBLISH_SDK_CORE == 1
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: sdk-core@v${{ env.SDK_CORE_NEW_VERSION }}
+          release_name: sdk-core@v${{ env.SDK_CORE_NEW_VERSION }}
+          body_path: .github/RELEASE_TEMPLATE/release-notes.md
+          draft: true
+
+  create-sdk-redux-release-draft:
+    name: Create SDK-Redux Release Draft
+
+    runs-on: ubuntu-latest
+
+    permissions: write-all
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 18.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+          registry-url: https://registry.npmjs.org/
+
+      - name: Check package versions
+        run: ./tasks/check-package-version.sh sdk-redux SHOULD_PUBLISH_SDK_REDUX SDK_REDUX_NEW_VERSION >> "$GITHUB_ENV"
+
+      - name: Create sdk-redux stable release draft
+        if: env.SHOULD_PUBLISH_SDK_REDUX == 1
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: sdk-redux@v${{ env.SDK_REDUX_NEW_VERSION }}
+          release_name: sdk-redux@v${{ env.SDK_REDUX_NEW_VERSION }}
+          body_path: .github/RELEASE_TEMPLATE/release-notes.md
+          draft: true

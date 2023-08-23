@@ -1,12 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.8.4;
+pragma solidity >= 0.8.11;
 
 import { ISuperToken } from "./ISuperToken.sol";
-
-import {
-    IERC20,
-    ERC20WithTokenInfo
-} from "../tokens/ERC20WithTokenInfo.sol";
+import { IERC20, ERC20WithTokenInfo } from "../tokens/ERC20WithTokenInfo.sol";
 
 /**
  * @title Super token factory interface

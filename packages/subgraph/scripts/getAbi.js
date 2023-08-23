@@ -21,7 +21,7 @@ const contracts = [
 
 const directoryPath = path.join(
     __dirname,
-    "../../ethereum-contracts/build/contracts"
+    "../../ethereum-contracts/build/truffle"
 );
 
 fs.mkdir("abis/", (err) => {

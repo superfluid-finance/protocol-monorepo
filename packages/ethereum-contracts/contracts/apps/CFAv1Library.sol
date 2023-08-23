@@ -1,14 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.8.4;
+pragma solidity >= 0.8.11;
 
 import {
     ISuperfluid,
-    ISuperfluidToken
-} from "../interfaces/superfluid/ISuperfluid.sol";
-
-import {
+    ISuperfluidToken,
     IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
+} from "../interfaces/superfluid/ISuperfluid.sol";
 
 /**
  * @title Constant flow agreement v1 library

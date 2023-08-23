@@ -1,6 +1,4 @@
 name: List Super Token
-env:
-  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   workflow_dispatch:
@@ -37,7 +35,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3

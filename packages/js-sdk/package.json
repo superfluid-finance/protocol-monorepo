@@ -24,7 +24,7 @@
     },
     "scripts": {
         "dev": "nodemon -e js,ts -i build -x 'truffle test 2>&1'",
-        "build": "tasks/build-abi-js.sh && webpack",
+        "build": "webpack",
         "testenv:start": "../ethereum-contracts/test/testenv-ctl.sh start",
         "testenv:stop": "../ethereum-contracts/test/testenv-ctl.sh stop",
         "pretest": "{ run-s testenv:start > /dev/null& } && sleep 5",
@@ -43,19 +43,16 @@
         "cloc": "sh tasks/cloc.sh"
     },
     "dependencies": {
-        "@superfluid-finance/metadata": "git+https://github.com/superfluid-finance/metadata.git",
-        "@truffle/contract": "4.5.23",
-        "auto-bind": "^4.0.0",
-        "node-fetch": "^2.6.7"
-    },
-    "peerDependencies": {
-        "@truffle/contract": "^4.0.0"
+        "@superfluid-finance/metadata": "1.1.12",
+        "@truffle/contract": "4.6.28",
+        "auto-bind": "4.0.0",
+        "node-fetch": "2.6.12"
     },
     "devDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.7.0",
+        "@superfluid-finance/ethereum-contracts": "1.7.2",
         "chai-as-promised": "^7.1.1",
-        "webpack": "^5.74.0",
-        "webpack-bundle-analyzer": "^4.6.1",
+        "webpack": "^5.88.2",
+        "webpack-bundle-analyzer": "^4.9.0",
         "webpack-cli": "^4.10.0"
     }
 }

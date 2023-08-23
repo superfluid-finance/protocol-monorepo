@@ -4,7 +4,7 @@ import {
     IResolver,
     Superfluid,
     SuperfluidGovernanceII,
-} from "@superfluid-finance/ethereum-contracts/build/typechain";
+} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers, Overrides } from "ethers";
 
 // TODO (0xdavinchee): reorganize this
@@ -50,8 +50,8 @@ export interface IShouldUseCallAgreement {
     readonly shouldUseCallAgreement?: boolean;
 }
 
-interface EthersParams {
-    readonly overrides?: Overrides & { from?: string | Promise<string> };
+export interface EthersParams {
+    readonly overrides?: Overrides & { from?: string };
 }
 
 // write request interfaces
@@ -588,4 +588,14 @@ export interface SuperTokenFlowRateAllowanceParams extends EthersParams {
 export interface FlowRateAllowanceParams
     extends SuperTokenFlowRateAllowanceParams {
     readonly superToken: string;
+}
+
+export interface FlowRateAllowanceWithPermissionsParams
+    extends FlowRateAllowanceParams {
+    readonly permissionsDelta: number;
+}
+
+export interface SuperTokenFlowRateAllowanceWithPermissionsParams
+    extends SuperTokenFlowRateAllowanceParams {
+    readonly permissionsDelta: number;
 }

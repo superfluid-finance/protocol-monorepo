@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.4;
+pragma solidity >=0.8.11;
+
+// What do you expect...
+// solhint-disable max-states-count
 
 import { CFAv1Forwarder } from "./CFAv1Forwarder.sol";
 import { IDAv1Forwarder } from "./IDAv1Forwarder.sol";
@@ -9,7 +12,7 @@ import { ConstantFlowAgreementV1 } from "../agreements/ConstantFlowAgreementV1.s
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { InstantDistributionAgreementV1 } from "../agreements/InstantDistributionAgreementV1.sol";
-import { ISuperTokenFactory, SuperTokenFactory, ERC20WithTokenInfo } from "../superfluid/SuperTokenFactory.sol";
+import { SuperTokenFactory } from "../superfluid/SuperTokenFactory.sol";
 import { TestToken } from "./TestToken.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
 import { SETHProxy } from "../tokens/SETH.sol";
@@ -36,6 +39,8 @@ contract SuperfluidFrameworkDeploymentSteps {
     uint256 public constant DEFAULT_LIQUIDATION_PERIOD = 4 hours;
     uint256 public constant DEFAULT_PATRICIAN_PERIOD = 30 minutes;
     uint256 public constant DEFAULT_TOGA_MIN_BOND_DURATION = 1 weeks;
+    // TODO we blame solidity that does not suppor this yet
+    // solhint-disable-next-line var-name-mixedcase
     address[] public DEFAULT_TRUSTED_FORWARDERS = new address[](0);
 
     string public constant RESOLVER_BASE_SUPER_TOKEN_KEY = "supertokens.test.";
@@ -53,6 +58,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         SuperfluidLoader superfluidLoader;
         CFAv1Forwarder cfaV1Forwarder;
         IDAv1Forwarder idaV1Forwarder;
+        TOGA toga;
     }
 
     uint8 private currentStep;
@@ -277,7 +283,7 @@ contract SuperfluidFrameworkDeploymentSteps {
 
         // Register CFAv1Forwarder with Resolver
         testResolver.set("CFAv1Forwarder", address(cfaV1Forwarder));
-        
+
         // Register IDAv1Forwarder with Resolver
         testResolver.set("IDAv1Forwarder", address(idaV1Forwarder));
     }
@@ -303,7 +309,8 @@ contract SuperfluidFrameworkDeploymentSteps {
             resolver: testResolver,
             superfluidLoader: superfluidLoader,
             cfaV1Forwarder: cfaV1Forwarder,
-            idaV1Forwarder: idaV1Forwarder
+            idaV1Forwarder: idaV1Forwarder,
+            toga: toga
         });
         return sf;
     }
@@ -340,6 +347,7 @@ contract SuperfluidFrameworkDeploymentSteps {
 
             // Deploy GDAv1Forwarder
             // TODO
+            // solhint-disable-next-line no-empty-blocks
         } else if (step == 4) {
             // Deploy SuperfluidPool
             // Initialize GDA with SuperfluidPool beacon

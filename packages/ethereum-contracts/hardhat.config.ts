@@ -6,7 +6,7 @@ import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomiclabs/hardhat-ethers";
 import {
     TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
-    TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD
+    TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD,
 } from "hardhat/builtin-tasks/task-names";
 import "solidity-coverage";
 import {config as dotenvConfig} from "dotenv";
@@ -22,18 +22,21 @@ try {
     );
 }
 
-// The built-in compiler (auto-downloaded if not yet present) can be overridden by setting SOLC_PATH
+// The built-in compiler (auto-downloaded if not yet present) can be overridden by setting SOLC
 // If set, we assume it's a native compiler which matches the required Solidity version.
 subtask(TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD).setAction(
     async (args, hre, runSuper) => {
         console.log("subtask TASK_COMPILE_SOLIDITY_GET_SOLC_BUILD");
-        if (process.env.SOLC_PATH !== undefined) {
-            console.log("Using Solidity compiler set in SOLC_PATH:", process. env.SOLC_PATH);
+        if (process.env.SOLC !== undefined) {
+            console.log(
+                "Using Solidity compiler set in SOLC:",
+                process.env.SOLC
+            );
             return {
-                compilerPath: process.env.SOLC_PATH,
+                compilerPath: process.env.SOLC,
                 isSolcJs: false, // false for native compiler
-                version: args.solcVersion
-            }
+                version: args.solcVersion,
+            };
         } else {
             // fall back to the default
             return runSuper();
@@ -97,7 +100,11 @@ const config: HardhatUserConfig = {
                 enabled: true,
                 runs: 200,
             },
+            evmVersion: "paris",
         },
+    },
+    paths: {
+        artifacts: "build/hardhat",
     },
     networks: {
         "bsc-mainnet": {
@@ -162,6 +169,10 @@ const config: HardhatUserConfig = {
     },
     mocha: {
         timeout: 250000,
+        parallel: !!process.env.HARDHAT_RUN_PARALLEL,
+        jobs: process.env.HARDHAT_TEST_JOBS
+            ? parseInt(process.env.HARDHAT_TEST_JOBS)
+            : undefined,
     },
     docgen: {
         outputDir: "docs/api",

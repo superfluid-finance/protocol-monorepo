@@ -7,7 +7,8 @@
         "lint": "run-s lint:*",
         "lint:sol": "solhint -w 0 contracts/*.sol contracts/*/*.sol && echo '✔  Your .sol files look good.'",
         "pre-commit": "if [ ! -z \"$(git status -s .)\" ];then run-s pre-commit:*;else true;fi",
-        "pre-commit:lint": "yarn lint"
+        "pre-commit:lint": "yarn lint",
+        "check-updates": "ncu --target minor"
     },
     "bin": {
         "hot-fuzz": "./hot-fuzz"
@@ -18,13 +19,13 @@
         "directory": "packages/hot-fuzz"
     },
     "dependencies": {
-        "@openzeppelin/contracts": "4.8.2"
+        "@openzeppelin/contracts": "4.9.3"
     },
     "peerDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.2.2"
+        "@superfluid-finance/ethereum-contracts": "1.7.1"
     },
     "devDependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.7.0"
+        "@superfluid-finance/ethereum-contracts": "1.7.2"
     },
     "license": "AGPL-3.0",
     "bugs": {

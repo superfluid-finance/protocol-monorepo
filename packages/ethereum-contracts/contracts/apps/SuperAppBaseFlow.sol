@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.8.4;
+pragma solidity >= 0.8.11;
 
 import { ISuperfluid, ISuperToken, ISuperApp, SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperTokenV1Library } from "./SuperTokenV1Library.sol";
@@ -9,7 +9,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
 
     bytes32 public constant CFAV1_TYPE = keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1");
 
-    ISuperfluid public host;
+    ISuperfluid public immutable HOST;
 
     /// @dev Thrown when the callback caller is not the host.
     error UnauthorizedHost();
@@ -28,9 +28,10 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         ISuperfluid host_,
         bool activateOnCreated,
         bool activateOnUpdated,
-        bool activateOnDeleted
+        bool activateOnDeleted,
+        string memory registrationKey
     ) {
-        host = host_;
+        HOST = host_;
 
         uint256 callBackDefinitions = SuperAppDefinitions.APP_LEVEL_FINAL
             | SuperAppDefinitions.BEFORE_AGREEMENT_CREATED_NOOP;
@@ -49,7 +50,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
                 | SuperAppDefinitions.AFTER_AGREEMENT_TERMINATED_NOOP;
         }
 
-        host_.registerApp(callBackDefinitions);
+        host_.registerAppWithKey(callBackDefinitions, registrationKey);
     }
 
     /**
@@ -131,7 +132,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes calldata /*cbdata*/,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
-        if (msg.sender != address(host)) revert UnauthorizedHost();
+        if (msg.sender != address(HOST)) revert UnauthorizedHost();
         if (!isAcceptedAgreement(agreementClass)) return ctx;
         if (!isAcceptedSuperToken(superToken)) revert NotAcceptedSuperToken();
 
@@ -154,7 +155,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes calldata agreementData,
         bytes calldata /*ctx*/
     ) external view override returns (bytes memory /*beforeData*/) {
-        if (msg.sender != address(host)) revert UnauthorizedHost();
+        if (msg.sender != address(HOST)) revert UnauthorizedHost();
         if (!isAcceptedAgreement(agreementClass)) return "0x";
         if (!isAcceptedSuperToken(superToken)) revert NotAcceptedSuperToken();
 
@@ -175,7 +176,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes calldata cbdata,
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
-        if (msg.sender != address(host)) revert UnauthorizedHost();
+        if (msg.sender != address(HOST)) revert UnauthorizedHost();
         if (!isAcceptedAgreement(agreementClass)) return ctx;
         if (!isAcceptedSuperToken(superToken)) revert NotAcceptedSuperToken();
 
@@ -202,7 +203,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes calldata /*ctx*/
     ) external view override returns (bytes memory /*beforeData*/) {
         // we're not allowed to revert in this callback, thus just return empty beforeData on failing checks
-        if (msg.sender != address(host)
+        if (msg.sender != address(HOST)
             || !isAcceptedAgreement(agreementClass)
             || !isAcceptedSuperToken(superToken))
         {
@@ -227,7 +228,7 @@ abstract contract SuperAppBaseFlow is ISuperApp {
         bytes calldata ctx
     ) external override returns (bytes memory newCtx) {
         // we're not allowed to revert in this callback, thus just return ctx on failing checks
-        if (msg.sender != address(host)
+        if (msg.sender != address(HOST)
             || !isAcceptedAgreement(agreementClass)
             || !isAcceptedSuperToken(superToken))
         {
@@ -258,6 +259,6 @@ abstract contract SuperAppBaseFlow is ISuperApp {
      *      Current implementation expects ConstantFlowAgreement
      */
     function isAcceptedAgreement(address agreementClass) internal view virtual returns (bool) {
-        return agreementClass == address(host.getAgreementClass(CFAV1_TYPE));
+        return agreementClass == address(HOST.getAgreementClass(CFAV1_TYPE));
     }
 }

@@ -80,7 +80,7 @@ function list<
     TReturn extends ILightEntity,
     TQuery extends {chainId: number} & SubgraphListQuery<TFilter, TOrderBy>,
     TFilter extends {[key: string]: unknown} = NonNullable<TQuery['filter']>,
-    TOrderBy extends string = NonNullable<TQuery['order']>['orderBy']
+    TOrderBy extends string = NonNullable<TQuery['order']>['orderBy'],
 >(
     builder: SubgraphEndpointBuilder,
     queryHandler: SubgraphListQueryHandler<TReturn, TQuery, TFilter> & RelevantAddressProviderFromFilter<TFilter>

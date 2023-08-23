@@ -3,6 +3,8 @@ const {web3tx} = require("@decentral.ee/web3-helpers");
 const {
     getScriptRunnerFactory: S,
     extractWeb3Options,
+    hasCode,
+    sendGovernanceAction,
 } = require("./libs/common");
 
 /**
@@ -49,19 +51,21 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     });
     await sf.initialize();
 
-    if (newGovOwner.toLowerCase() !== myAccount.toLowerCase()) {
-        const govAddress = await sf.host.getGovernance.call();
-        console.log("Governance address", govAddress);
-        const ownable = await sf.contracts.Ownable.at(govAddress);
-        if ((await ownable.owner()).toLowerCase() === myAccount.toLowerCase()) {
-            await web3tx(
-                ownable.transferOwnership,
-                "Transfer the ownership of the governance to new owner"
-            )(newGovOwner);
+    const govAddress = await sf.host.getGovernance.call();
+    console.log("Governance address", govAddress);
+    const ownable = await sf.contracts.Ownable.at(govAddress);
+    const govOwner = await ownable.owner();
+    console.log("Current owner of the governance", govOwner);
+    if (newGovOwner.toLowerCase() !== govOwner.toLowerCase()) {
+        // if owner is an EOA, it must match the caller account
+        if (await hasCode(web3, govOwner) || (govOwner).toLowerCase() === myAccount.toLowerCase()) {
+            await sendGovernanceAction(sf, (govMethods) =>
+                govMethods.transferOwnership(newGovOwner)
+            );
         } else {
             console.log("ERR: I am not owner of the governance.");
         }
-    } else {
+    } else { // new owner == old owner
         console.log("I remain the owner of the governance.");
     }
 

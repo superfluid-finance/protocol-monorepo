@@ -250,7 +250,9 @@ describe("SuperTokenFactory Mapper Unit Tests", () => {
                 BIG_INT_ZERO,                  // totalAmountStreamedUntilUpdatedAt
                 BIG_INT_ZERO,                  // totalAmountTransferredUntilUpdatedAt
                 BIG_INT_ZERO,                  // totalAmountDistributedUntilUpdatedAt
-                FAKE_SUPER_TOKEN_TOTAL_SUPPLY  // totalSupply = 100
+                FAKE_SUPER_TOKEN_TOTAL_SUPPLY,  // totalSupply = 100,
+                0, // totalNumberOfAccounts
+                0 // totalNumberOfHolders
             );
 
         });

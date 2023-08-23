@@ -2,14 +2,26 @@
 
 # In all seriousness, this script should be written in perl. To the dearest leader Tim Toady.
 
-export HOT_FUZZ_MODE=1
-
 D="$(dirname "$0")"
 L="$(readlink "$0")" # do not use -f since mac BSD coreutils does not like it
 
-ECHIDNA_TEST=${ECHIDNA_TEST:-echidna-test}
+ECHIDNA=${ECHIDNA:-echidna}
 HOTFUZZ_DIR=$D/"$(dirname "$L")"
 set -xe
+
+function apply_crytic_workaround() {
+    # SEE https://github.com/crytic/echidna/issues/738
+    [ -e "node_modules" ] || mkdir -p node_modules
+    ln -sf ../../../node_modules/\@superfluid-finance node_modules/
+    ln -sf ../../../node_modules/\@openzeppelin node_modules/
+    ln -sf ../../packages .
+}
+
+function cleanup_crytic_workaround() {
+    rm -f "node_modules/@superfluid-finance" || true
+    rm -f "node_modules/@openzeppelin" || true
+    rm -f packages || true
+}
 
 function digest_last_corpus() {
     sleep 2 # wait for corpus dumped, just in case
@@ -22,15 +34,17 @@ function digests() {
 trap digests SIGINT
 
 function cleanup() {
-    # nothing for now
-    true
+    cleanup_crytic_workaround
 }
 trap cleanup EXIT
 
-function oops () {
+function oops() {
     echo "$@" >&2
     exit 1
 }
+
+# TODO: have a commandline option
+mode=${HOT_FUZZ_MODE:-truffle}
 
 function hott() {
     TEST_CONTRACT_CONFIG=$1
@@ -40,9 +54,26 @@ function hott() {
 
     rm -rf crytic-export/
     rm -rf build/hot-fuzz-contracts/
-    npx truffle compile --all \
-        && "$ECHIDNA_TEST" . --config <(cat $HOTFUZZ_DIR/echidna.yaml $TEST_CONTRACT_CONFIG) --contract $TEST_CONTRACT \
-        && digests
+
+    apply_crytic_workaround
+
+    case $mode in
+        truffle)
+            export CRYTIC_COMPILE_FRAMEWORK=truffle
+            ;;
+        foundry)
+            export CRYTIC_COMPILE_FRAMEWORK=foundry
+            ;;
+        *)
+            echo "Unknown mode: $mode"
+            ;;
+    esac
+
+    "$ECHIDNA" .  \
+        --config <(cat echidna.yaml ${TEST_CONTRACT_CONFIG}) \
+        --workers 6 \
+        --contract $TEST_CONTRACT \
+    && digests
 }
 
 TEST_CONTRACT_CONFIG=$1

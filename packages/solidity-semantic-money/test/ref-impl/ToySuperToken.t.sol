@@ -1,8 +1,14 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.19;
 
-import "forge-std/Test.sol";
-import "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.sol";
+// solhint-disable not-rely-on-time
+
+import { Test } from "forge-std/Test.sol";
+import {
+    Value, FlowRate, Time, Unit
+} from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
+import { ToySuperToken, FlowId } from "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperToken.sol";
+import { ToySuperfluidPool } from "@superfluid-finance/solidity-semantic-money/src/ref-impl/ToySuperfluidPool.sol";
 
 
 contract ToySuperTokenTest is Test {
@@ -19,6 +25,7 @@ contract ToySuperTokenTest is Test {
     uint internal constant INIT_BALANCE = 1e20;
     uint internal immutable N_TESTERS;
 
+    // solhint-disable-next-line var-name-mixedcase
     address[] internal TEST_ACCOUNTS = [admin,alice,bob,carol,dan,eve,frank,grace,heidi,ivan];
     ToySuperToken internal token;
     uint256 internal tLP;
@@ -29,7 +36,7 @@ contract ToySuperTokenTest is Test {
 
     function setUp() public {
         token = new ToySuperToken();
-        tLP = uint256(Time.unwrap(token.LIQUIDATION_PERIOD()));
+        tLP = uint256(Time.unwrap(token.liquidationPeriod()));
         for (uint i = 1; i < N_TESTERS; ++i) {
             vm.startPrank(admin);
             token.transfer(TEST_ACCOUNTS[i], INIT_BALANCE);
@@ -823,7 +830,7 @@ contract ToySuperTokenTest is Test {
         uint16 dt; // time delta
     }
     function test_pool_random_seqs(PoolUpdateStep[20] memory steps) external {
-        uint N_MEMBERS = 5;
+        uint nMembers = 5;
         ToySuperfluidPool pl = _createPool(alice);
         // if (vm.envOr("NO_FOUNDRY_TEST_STEPS_LIMIT", uint256(0)) == 0) vm.assume(steps.length < 20);
         for (uint i = 0; i < steps.length; ++i) {
@@ -831,7 +838,7 @@ contract ToySuperTokenTest is Test {
 
             PoolUpdateStep memory s = steps[i];
             uint a = s.a % 4;
-            uint u = 1 + s.u % N_MEMBERS; // a pool of 5 testers including the pool creator
+            uint u = 1 + s.u % nMembers; // a pool of 5 testers including the pool creator
 
             emit log_named_uint("> timestamp", block.timestamp);
             emit log_named_uint("tester", u);
@@ -852,7 +859,7 @@ contract ToySuperTokenTest is Test {
                 emit log_named_int("pdr", FlowRate.unwrap(pdr));
                 vm.stopPrank();
             } else if (a == 2) {
-                uint u4 = 1 + s.v % N_MEMBERS;
+                uint u4 = 1 + s.v % nMembers;
                 emit log_named_string("action", "claimAll");
                 emit log_named_uint("claim for", u4);
                 vm.startPrank(TEST_ACCOUNTS[u]);
@@ -919,7 +926,7 @@ contract ToySuperTokenTest is Test {
             bSum = bSum + ob;
             rSum = rSum + nr;
         }
-        for (uint i = 1; i <= N_MEMBERS; ++i) {
+        for (uint i = 1; i <= nMembers; ++i) {
             (Value ob, Value fpb, Value db) = token.realtimeBalanceVectorNow(TEST_ACCOUNTS[i]);
             Value avb = token.realtimeBalanceNow(TEST_ACCOUNTS[i]);
             Value cb = pl.getClaimable(TEST_ACCOUNTS[i]);
@@ -944,7 +951,7 @@ contract ToySuperTokenTest is Test {
             dSum = dSum - ob;
         }
         assertEq(rSum, FlowRate.wrap(0), "rSum");
-        assertEq(bSum - Value.wrap(int256(INIT_BALANCE * N_MEMBERS)), Value.wrap(0), "bSum");
+        assertEq(bSum - Value.wrap(int256(INIT_BALANCE * nMembers)), Value.wrap(0), "bSum");
         assertEq(dSum, Value.wrap(0), "dSum");
     }
 }

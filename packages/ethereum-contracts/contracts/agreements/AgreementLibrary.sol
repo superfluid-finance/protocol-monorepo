@@ -2,12 +2,10 @@
 pragma solidity 0.8.19;
 
 import {
-    ISuperfluidGovernance,
     ISuperfluid,
     ISuperfluidToken,
     ISuperApp,
-    SuperAppDefinitions,
-    ContextDefinitions
+    SuperAppDefinitions
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
 
@@ -41,6 +39,8 @@ library AgreementLibrary {
     {
         require(token.getHost() == msg.sender, "unauthorized host");
         require(ISuperfluid(msg.sender).isCtxValid(ctx), "invalid ctx");
+        // [SECURITY] NOTE: we are holding the assumption here that the decoded ctx is correct
+        // at this point.
         return ISuperfluid(msg.sender).decodeCtx(ctx);
     }
 
@@ -165,7 +165,7 @@ library AgreementLibrary {
         // should never go below 0, otherwise the SuperApp can return more money than borrowed
         return max(
             0,
-            
+
             // NOTE: we use min(appCreditGranted, appCallbackDepositDelta) to ensure that the SuperApp borrows
             // appCreditGranted at most and appCallbackDepositDelta at least (if smaller than appCreditGranted)
             min(

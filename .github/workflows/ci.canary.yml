@@ -12,6 +12,20 @@ on:
       - ".github/workflows/call.test-local-subgraph.yml"
 
 jobs:
+  check:
+    name: Checking what packages need to be built
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      build_subgraph: ${{ env.BUILD_SUBGRAPH }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Check changeset
+        run: tasks/check-changeset.sh ${{ github.sha }} dev
+
   essential-build-and-test:
     name: Build and test essential packages of dev branch
 
@@ -19,11 +33,11 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16, 18]
+        node-version: [18, 20]
 
     defaults:
       run:
-        shell: nix develop .#ci-node${{ matrix.node-version }} -c bash {0}
+        shell: nix develop .#ci-node${{ matrix.node-version }} -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -50,9 +64,9 @@ jobs:
         run: |
           yarn install --frozen-lockfile
           yarn lint
-          yarn build
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
+          echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
+          yarn build
           yarn test
         env:
           POLYGON_MAINNET_PROVIDER_URL: ${{ secrets.POLYGON_MAINNET_PROVIDER_URL }}
@@ -60,7 +74,7 @@ jobs:
 
   test-hot-fuzz:
     uses: ./.github/workflows/call.test-hot-fuzz.yml
-    if: false # broken atm
+    name: Hot Fuzz (Development Branch)
 
   test-subgraph:
     uses: ./.github/workflows/call.test-local-subgraph.yml
@@ -73,20 +87,6 @@ jobs:
       subgraph-release: local
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
       run-coverage-tests: false
-
-  check:
-    name: Checking what packages need to be built
-
-    runs-on: ubuntu-latest
-
-    outputs:
-      build_subgraph: ${{ env.BUILD_SUBGRAPH }}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Check changeset
-        run: tasks/check-changeset.sh ${{ github.sha }} dev
 
   # deploy subgraph if changes are made, we can call this every time, but we won't actually do any deployments
   # if the IPFS hash generated stays the same (no mapping logic changes)
@@ -114,41 +114,10 @@ jobs:
     name: Build and Test Automation Contracts (Canary Branch)
 
   coverage-ethereum-contracts:
-    name: Run coverage test of ethereum-contracts of dev branch
-
-    runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        shell: nix develop -c bash {0}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: cachix/install-nix-action@v19
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install, run coverage test
-        run: |
-          yarn install --frozen-lockfile
-          yarn build
-          echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
-          echo "FOUNDRY_SOLC_VERSION=$SOLC_PATH" >> $GITHUB_ENV
-          yarn workspace @superfluid-finance/ethereum-contracts test-coverage
-
-      - name: Install lcov
-        run: sudo apt-get -y install lcov
-
-      - name: Clean up and merge coverage artifacts
-        run: ./tasks/coverage-cleanup.sh
-
-      - name: Create coverage artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ethereum-contracts-coverage
-          path: |
-            packages/ethereum-contracts/coverage/
+    name: Coverage test ethereum-contracts (Canary Branch)
+    uses: ./.github/workflows/call.test-ethereum-contracts.yml
+    with:
+      run-coverage-tests: true
 
   coverage-sdk-core:
     uses: ./.github/workflows/call.test-sdk-core.yml
@@ -158,42 +127,10 @@ jobs:
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
       run-coverage-tests: true
 
-  publish-coverage-reports:
-    name: Publish coverage reports
+  upload-coverage-reports:
+    name: Upload Coverage Reports (Feature Branch)
+    uses: ./.github/workflows/call.upload-coverage-reports.yml
     needs: [coverage-ethereum-contracts, coverage-sdk-core]
-
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Download ethereum-contracts-coverage
-        uses: actions/download-artifact@v3
-        with:
-          name: ethereum-contracts-coverage
-          path: packages/ethereum-contracts/coverage
-      - name: Upload ethereum-contracts-coverage to codecov
-        uses: codecov/codecov-action@v2
-        with:
-          files: packages/ethereum-contracts/coverage/lcov.info
-          name: ethereum-contracts-coverage
-          flags: ethereum-contracts
-          fail_ci_if_error: true
-
-      - name: Download sdk-core-coverage
-        uses: actions/download-artifact@v3
-        with:
-          name: sdk-core-coverage
-          path: packages/sdk-core/coverage
-      - name: Upload sdk-core-coverage to codecov
-        uses: codecov/codecov-action@v2
-        with:
-          files: packages/sdk-core/coverage/lcov.info
-          name: sdk-core-coverage
-          flags: sdk-core
-          fail_ci_if_error: true
 
   all-packages-tested:
     name: All packages tested (Dev Branch)
@@ -203,7 +140,7 @@ jobs:
     needs: [ essential-build-and-test
            , test-spec-haskell
            , test-solidity-semantic-money
-          #  , test-hot-fuzz
+           , test-hot-fuzz
            , test-subgraph
            , coverage-ethereum-contracts
            , coverage-sdk-core
@@ -224,11 +161,10 @@ jobs:
           }
           check_result essential-build-and-test ${{ needs.essential-build-and-test.result }}
           check_result spec-haskell ${{ needs.test-spec-haskell.result }}
-          # removed check_result hot-fuzz
+          check_result hot-fuzz ${{ needs.test-hot-fuzz.result }}
           check_result subgraph ${{ needs.test-subgraph.result }}
           check_result ethereum-contracts-coverage ${{ needs.coverage-ethereum-contracts.result }}
           check_result sdk-core-coverage ${{ needs.coverage-sdk-core.result }}
-
 
   publish-npm-packages:
     name: Publish canary packages to registries
@@ -241,7 +177,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -271,6 +207,7 @@ jobs:
           tasks/npm-publish.sh packages/ethereum-contracts/ dev --verbose
           tasks/npm-publish.sh packages/sdk-core/ dev --verbose
           tasks/npm-publish.sh packages/sdk-redux/ dev --verbose
+          tasks/npm-publish.sh packages/metadata/ dev --verbose
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPMJS_TOKEN: ${{ secrets.NPMJS_TOKEN }}
@@ -284,7 +221,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -347,7 +284,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -365,6 +302,8 @@ jobs:
         run: |
           cd packages/ethereum-contracts
           npx truffle exec --network ${{ matrix.network }} ops-scripts/deploy-test-environment.js
+          npx truffle exec --network ${{ matrix.network }} ops-scripts/info-print-contract-addresses.js : addresses.vars
+          tasks/etherscan-verify-framework.sh ${{ matrix.network }} addresses.vars
         env:
           RELEASE_VERSION: master
           AVALANCHE_FUJI_MNEMONIC: ${{ secrets.BUILD_AGENT_MNEMONIC  }}

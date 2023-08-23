@@ -2,9 +2,10 @@
 root = '../../../'
 libs = ['lib']
 src = 'packages/automation-contracts/autowrap'
+solc_version = "0.8.19"
 remappings = [
     '@superfluid-finance/solidity-semantic-money/src/=packages/solidity-semantic-money/src/',
-    '@superfluid-finance/ethereum-contracts/contracts/=packages/ethereum-contracts/contracts/',
+    '@superfluid-finance/ethereum-contracts/=packages/ethereum-contracts/',
     '@openzeppelin/=node_modules/@openzeppelin/',
     'ds-test/=lib/forge-std/lib/ds-test/src/',
     'forge-std/=lib/forge-std/src/']

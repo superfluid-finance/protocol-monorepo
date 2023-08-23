@@ -8,13 +8,10 @@ import {
     IERC20,
     ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperfluid, IConstantOutflowNFT, IConstantInflowNFT } from "../interfaces/superfluid/ISuperfluid.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-import { SuperToken } from "../superfluid/SuperToken.sol";
 import { FullUpgradableSuperTokenProxy } from "./FullUpgradableSuperTokenProxy.sol";
-import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
-import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 
 abstract contract SuperTokenFactoryBase is
     UUPSProxiable,
@@ -78,7 +75,11 @@ abstract contract SuperTokenFactoryBase is
         // and passed in as a parameter to SuperTokenFactory constructor
         _SUPER_TOKEN_LOGIC = superTokenLogic;
 
-        UUPSProxiable(address(_SUPER_TOKEN_LOGIC)).castrate();
+        // this is optional - allow to fail in order to not force re-deployment
+        // solhint-disable-next-line no-empty-blocks
+        try UUPSProxiable(address(_SUPER_TOKEN_LOGIC)).castrate() {}
+        // solhint-disable-next-line no-empty-blocks
+        catch {}
 
         CONSTANT_OUTFLOW_NFT_LOGIC = constantOutflowNFTLogic;
 
@@ -355,17 +356,15 @@ contract SuperTokenFactory is SuperTokenFactoryBase
     constructor(
         ISuperfluid host,
         ISuperToken superTokenLogic,
-        IConstantOutflowNFT constantOutflowNFT,
-        IConstantInflowNFT constantInflowNFT
+        IConstantOutflowNFT constantOutflowNFTLogic,
+        IConstantInflowNFT constantInflowNFTLogic
     )
         SuperTokenFactoryBase(
             host,
             superTokenLogic,
-            constantOutflowNFT,
-            constantInflowNFT
+            constantOutflowNFTLogic,
+            constantInflowNFTLogic
         )
     // solhint-disable-next-line no-empty-blocks
-    {
-
-    }
+    {}
 }

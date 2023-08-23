@@ -1,7 +1,7 @@
 import {
     Superfluid,
     Superfluid__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain";
+} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers, Overrides } from "ethers";
 
 import Operation from "./Operation";
@@ -32,7 +32,7 @@ export default class Host {
         agreementAddress: string,
         callData: string,
         userData: string | undefined,
-        overrides?: Overrides & { from?: string | Promise<string> }
+        overrides?: Overrides & { from?: string }
     ): Operation => {
         const txn = this.contract.populateTransaction.callAgreement(
             agreementAddress,
@@ -53,7 +53,7 @@ export default class Host {
     callAppAction = (
         app: string,
         callData: string,
-        overrides?: Overrides & { from?: string | Promise<string> }
+        overrides?: Overrides & { from?: string }
     ): Operation => {
         const txn = this.contract.populateTransaction.callAppAction(
             app,

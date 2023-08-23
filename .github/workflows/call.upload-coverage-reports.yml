@@ -1,0 +1,42 @@
+name: Reusable Workflow | Upload Coverage Reports
+
+on:
+  workflow_call:
+
+
+jobs:
+  upload-coverage-reports:
+    name: Upload coverage reports
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download ethereum-contracts-coverage
+        uses: actions/download-artifact@v3
+        with:
+          name: ethereum-contracts-coverage
+          path: packages/ethereum-contracts/coverage
+      - name: Upload ethereum-contracts-coverage to codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: packages/ethereum-contracts/coverage/lcov.info
+          name: ethereum-contracts-coverage
+          flags: ethereum-contracts
+          fail_ci_if_error: true
+
+      - name: Download sdk-core-coverage
+        uses: actions/download-artifact@v3
+        with:
+          name: sdk-core-coverage
+          path: packages/sdk-core/coverage
+      - name: Upload sdk-core-coverage to codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: packages/sdk-core/coverage/lcov.info
+          name: sdk-core-coverage
+          flags: sdk-core
+          fail_ci_if_error: true

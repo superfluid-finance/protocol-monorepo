@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.8.4;
+pragma solidity >= 0.8.11;
 
-import {
-    ISuperToken
-} from "../../interfaces/superfluid/ISuperToken.sol";
+// We export this too because it seems reasonable for a custom super token.
+// solhint-disable-next-line no-unused-import
+import { ISuperToken } from "../../interfaces/superfluid/ISuperToken.sol";
 
 /**
  * @title Custom super token base contract

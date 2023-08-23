@@ -1,7 +1,7 @@
 import {
     ERC20WithTokenInfo,
     ERC20WithTokenInfo__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain";
+} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers } from "ethers";
 
 import Operation from "./Operation";

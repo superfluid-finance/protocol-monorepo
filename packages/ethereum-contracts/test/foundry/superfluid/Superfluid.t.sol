@@ -39,7 +39,7 @@ contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
             assertEq(address(agreementClasses[i]), address(mocks[i]), "Superfluid.t: agreement class not registered");
         }
 
-        AgreementMock mock = new AgreementMock(
+        AgreementMock badmock = new AgreementMock(
             address(sf.host),
             keccak256(abi.encode("max.bad")),
             maxNumAgreements + 1
@@ -47,7 +47,7 @@ contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
 
         vm.startPrank(sf.governance.owner());
         vm.expectRevert(ISuperfluid.HOST_MAX_256_AGREEMENTS.selector);
-        sf.governance.registerAgreementClass(sf.host, address(mock));
+        sf.governance.registerAgreementClass(sf.host, address(badmock));
         vm.stopPrank();
     }
 }

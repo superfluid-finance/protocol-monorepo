@@ -1,4 +1,14 @@
+import { Superfluid__factory } from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers } from "ethers";
+
+import {
+    batchOperationTypeStringToTypeMap,
+    getCallDataFunctionArgs,
+    OperationStruct,
+} from "./BatchCall";
+import { SFError } from "./SFError";
+import multiplyGasLimit from "./multiplyGasLimit";
+import { removeSigHashFromCallData } from "./utils";
 
 export type BatchOperationType =
     | "UNSUPPORTED" // 0
@@ -72,19 +82,10 @@ export default class Operation {
             const estimatedGasLimit = await providerOrSigner.estimateGas(
                 populatedTransaction
             );
-
-            // NOTE: BigNumber doesn't support multiplication with decimals.
-            const commonDenominator = 100;
-            const multipliedGasLimit =
-                gasLimitMultiplier === 1 // No need to modify estimated gas limit when multiplier is 1.
-                    ? estimatedGasLimit
-                    : estimatedGasLimit
-                          .div(commonDenominator)
-                          .mul(
-                              Math.round(gasLimitMultiplier * commonDenominator)
-                          );
-
-            populatedTransaction.gasLimit = multipliedGasLimit;
+            populatedTransaction.gasLimit = multiplyGasLimit(
+                estimatedGasLimit,
+                gasLimitMultiplier
+            );
         }
 
         return populatedTransaction;
@@ -120,5 +121,73 @@ export default class Operation {
     getTransactionHash = async (signer: ethers.Signer): Promise<string> => {
         const signedTxn = await this.getSignedTransaction(signer);
         return ethers.utils.keccak256(signedTxn);
+    };
+
+    /**
+     * Gets the `OperationStruct` object.
+     * @param operation an `Operation` object
+     * @param index the index of the `Operation` in the batchCall
+     * @returns {Promise<OperationStruct>} OperationStruct object for batchCall
+     */
+    toOperationStruct = async (index: number): Promise<OperationStruct> => {
+        const batchOperationType = batchOperationTypeStringToTypeMap.get(
+            this.type
+        );
+        const populatedTransaction = await this.populateTransactionPromise;
+        if (!batchOperationType) {
+            throw new SFError({
+                type: "UNSUPPORTED_OPERATION",
+                message: "The operation at index " + index + " is unsupported.",
+            });
+        }
+
+        /* istanbul ignore next */
+        if (!populatedTransaction.to || !populatedTransaction.data) {
+            throw new SFError({
+                type: "MISSING_TRANSACTION_PROPERTIES",
+                message: "The transaction is missing the to or data property.",
+            });
+        }
+
+        const encoder = ethers.utils.defaultAbiCoder;
+
+        // Handles Superfluid.callAgreement
+        if (this.type === "SUPERFLUID_CALL_AGREEMENT") {
+            const functionArgs = getCallDataFunctionArgs(
+                Superfluid__factory.abi,
+                populatedTransaction.data
+            );
+            const data = encoder.encode(
+                ["bytes", "bytes"],
+                [functionArgs["callData"], functionArgs["userData"]]
+            );
+
+            return {
+                operationType: batchOperationType,
+                target: functionArgs["agreementClass"],
+                data,
+            };
+        }
+
+        // Handles Superfluid.callAppAction
+        if (this.type === "CALL_APP_ACTION") {
+            const functionArgs = getCallDataFunctionArgs(
+                Superfluid__factory.abi,
+                populatedTransaction.data
+            );
+
+            return {
+                operationType: batchOperationType,
+                target: functionArgs["app"],
+                data: functionArgs["callData"],
+            };
+        }
+
+        // Handles remaining ERC20/ERC777/SuperToken Operations
+        return {
+            operationType: batchOperationType,
+            target: populatedTransaction.to,
+            data: removeSigHashFromCallData(populatedTransaction.data),
+        };
     };
 }

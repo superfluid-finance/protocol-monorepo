@@ -17,8 +17,7 @@ import {
     SuperfluidGovernanceConfigs,
     ISuperfluidToken,
     ISuperToken,
-    ISuperTokenFactory,
-    IERC20
+    ISuperTokenFactory
 } from "../interfaces/superfluid/ISuperfluid.sol";
 
 import { CallUtils } from "../libs/CallUtils.sol";
@@ -292,20 +291,24 @@ contract Superfluid is
         emit SuperTokenFactoryUpdated(_superTokenFactory);
     }
 
-    function updateSuperTokenLogic(ISuperToken token)
+    function updateSuperTokenLogic(ISuperToken token, address newLogicOverride)
         external override
         onlyGovernance
     {
-        address code = address(_superTokenFactory.getSuperTokenLogic());
+        address newLogic = newLogicOverride != address(0) ?
+            newLogicOverride :
+            address(_superTokenFactory.getSuperTokenLogic());
+
         // assuming it's uups proxiable
-        UUPSProxiable(address(token)).updateCode(code);
-        emit SuperTokenLogicUpdated(token, code);
+        UUPSProxiable(address(token)).updateCode(newLogic);
+        emit SuperTokenLogicUpdated(token, newLogic);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     // App Registry
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+    /// @custom:deprecated
     function registerApp(
         uint256 configWord
     )
@@ -438,7 +441,7 @@ contract Superfluid is
         if (!isApp(targetApp)) revert HOST_RECEIVER_IS_NOT_SUPER_APP();
         if (getAppCallbackLevel(sourceApp) <= getAppCallbackLevel(targetApp)) {
             revert HOST_SOURCE_APP_NEEDS_HIGHER_APP_LEVEL();
-        } 
+        }
         _compositeApps[sourceApp][targetApp] = true;
     }
 
@@ -1011,19 +1014,25 @@ contract Superfluid is
 
         callData = _replacePlaceholderCtx(callData, ctx);
 
+        uint256 gasLimit = CALLBACK_GAS_LIMIT;
         uint256 gasLeftBefore = gasleft();
         if (isStaticall) {
             /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).staticcall{ gas: CALLBACK_GAS_LIMIT }(callData);
+            (success, returnedData) = address(app).staticcall{ gas: gasLimit }(callData);
         } else {
             /* solhint-disable-next-line avoid-low-level-calls*/
-            (success, returnedData) = address(app).call{ gas: CALLBACK_GAS_LIMIT }(callData);
+            (success, returnedData) = address(app).call{ gas: gasLimit }(callData);
         }
 
         if (!success) {
-            // "/ 63" is a magic to avoid out of gas attack. 
-            // See https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2.
-            // A callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail rule.
+            // - "/ 63" is a magic to avoid out of gas attack.
+            //   See: https://medium.com/@wighawag/ethereum-the-concept-of-gas-and-its-dangers-28d0eb809bb2.
+            // - Without it, an app callback may use this to block the APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK jail
+            //   rule.
+            // - Also note that, the CALLBACK_GAS_LIMIT given to the app includes the overhead an app developer may not
+            //   have direct control of, such as abi decoding code block. It is recommend for the app developer to stay
+            //   at least 30000 less gas usage from that value to not trigger
+            //   APP_RULE_NO_REVERT_ON_TERMINATION_CALLBACK.
             if (!SafeGasLibrary._isOutOfGas(gasLeftBefore)) {
                 if (!isTermination) {
                     CallUtils.revertFromReturnedData(returnedData);

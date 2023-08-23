@@ -1,6 +1,4 @@
 name: CD | Create PR Artifact
-env:
-  GITHUB_TOKEN: ${{ secrets.CI_GITHUB_TOKEN }}
 
 on:
   pull_request:
@@ -14,7 +12,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash {0}
+        shell: nix develop -c bash -xe {0}
 
     if: ${{ !github.event.pull_request.draft }}
 
@@ -79,17 +77,10 @@ jobs:
             mv -- "$f" "${f%.tgz}-${sha:0:7}.tgz"
           done
 
-      - name: Create empty artifact
-        if: env.PUBLISH_PR_ARTIFACT != 1
-        run: |
-          prNumber=${{ github.event.number }}
-          dirName="bin/${prNumber}"
-          mkdir -p $dirName
-          touch $dirName/.empty
-
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: pr-packages
           path: bin
           retention-days: 1
+          if-no-files-found: warn

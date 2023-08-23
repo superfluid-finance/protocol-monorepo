@@ -1,19 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import {
-    ISuperfluid,
-    ISuperToken
-} from "../interfaces/superfluid/ISuperfluid.sol";
-
-import { ISuperApp, ISuperAgreement } from "../interfaces/superfluid/ISuperfluid.sol";
-
-import { ContextDefinitions, SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
-
+import { ISuperfluid, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
+import { SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperAppBase } from "../apps/SuperAppBase.sol";
-
-import { IConstantFlowAgreementV1 } from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import { IInstantDistributionAgreementV1 } from "../interfaces/agreements/IInstantDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 
 contract SuperTokenLibraryCFAMock {
@@ -234,6 +224,51 @@ contract SuperTokenLibraryCFAMock {
         bytes memory userData
     ) public {
         token.decreaseFlowRateAllowance(flowOperator, subtractedFlowRateAllowance, userData);
+    }
+
+    function increaseFlowRateAllowanceWithPermissionsTest(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissionsToAdd,
+        int96 addedFlowRateAllowance
+    ) public {
+        token.increaseFlowRateAllowanceWithPermissions(flowOperator, permissionsToAdd, addedFlowRateAllowance);
+    }
+
+    function decreaseFlowRateAllowanceWithPermissionsTest(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissionsToRemove,
+        int96 subtractedFlowRateAllowance
+    ) public {
+        token.decreaseFlowRateAllowanceWithPermissions(flowOperator, permissionsToRemove, subtractedFlowRateAllowance);
+    }
+
+    function increaseFlowRateAllowanceWithPermissionsWithUserDataTest(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissionsToAdd,
+        int96 addedFlowRateAllowance,
+        bytes memory userData
+    ) public {
+        token.increaseFlowRateAllowanceWithPermissions(
+            flowOperator,
+            permissionsToAdd,
+            addedFlowRateAllowance,
+            userData
+        );
+    }
+
+    function decreaseFlowRateAllowanceWithPermissionsWithUserDataTest(
+        ISuperToken token,
+        address flowOperator,
+        uint8 permissionsToRemove,
+        int96 subtractedFlowRateAllowance,
+        bytes memory userData
+    ) public {
+        token.decreaseFlowRateAllowanceWithPermissions(
+            flowOperator, permissionsToRemove, subtractedFlowRateAllowance, userData
+        );
     }
 }
 

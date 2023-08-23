@@ -4,6 +4,44 @@ All notable changes to the ethereum-contracts will be documented in this file.
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## Unreleased
+
+### Added
+
+- Publish `build/bundled-abi.{js,json}` in the npm package.
+
+### Breaking
+
+- Publish `build/truffle/*.json` truffle contract artifacts in the npm package instead.
+- Publish `build/typechain-ethers-v5` in the npm package instead.
+- Removed scripts from npm package, use dev-scripts instead.
+
+### Fixes
+
+- Ship ERC1820Registry.json with dev-scripts.
+
+### Changed
+
+- Node dependency updates.
+- Raise minimum solc development requirement for ethereum-contracts to 0.8.11.
+
+## [v1.7.2] - 2023-08-11
+
+### Added
+- `increaseFlowRateAllowanceWithPermissions` and `decreaseFlowRateAllowanceWithPermissions` added to `ConstantFlowAgreementV1.sol`
+
+### Changed
+- `SuperToken.sol` made external and public methods virtual to facilitate creation of customized implementations.
+- Explicitly set EVM target to "paris" because EIP-3855 isn't yet supported on all chains with Superfluid deployment.
+- `SuperAppBaseFlow.sol` uses `registerAppWithKey` instead of deprecated `registerApp`
+- `SuperfluidGovernanceBase.sol` add a method for updating SuperTokens to other than the canonical implementation.
+- `SuperToken.sol` invoke mint/burn hooks only if userData is not empty
+
+## [v1.7.1] - 2023-06-27
+
+### Added
+- `SuperfluidLoaderLibrary.sol` added to easily get the canonical host contract address on different networks
+- `IDAv1Forwarder.sol` added
+
 ### Changed
 - Dual licenses going forward: AGPLv3 for core contracts and MIT for external developers.
 

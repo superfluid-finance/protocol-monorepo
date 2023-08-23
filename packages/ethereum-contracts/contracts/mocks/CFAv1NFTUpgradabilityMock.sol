@@ -1,20 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import {
-    IConstantFlowAgreementV1
-} from "../interfaces/agreements/IConstantFlowAgreementV1.sol";
-import {
-    ISuperfluid
-} from "../interfaces/superfluid/ISuperfluid.sol";
-import {
-    ConstantInflowNFT,
-    IConstantInflowNFT
-} from "../superfluid/ConstantInflowNFT.sol";
-import {
-    ConstantOutflowNFT,
-    IConstantOutflowNFT
-} from "../superfluid/ConstantOutflowNFT.sol";
+import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
+import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
+import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { FlowNFTBase } from "../superfluid/FlowNFTBase.sol";
 
 /*//////////////////////////////////////////////////////////////////////////
@@ -52,7 +41,7 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
 
         assembly { slot := _symbol.slot offset := _symbol.offset }
         if (slot != 2 || offset != 0) revert STORAGE_LOCATION_CHANGED("_symbol");
-        
+
         assembly { slot := _tokenApprovals.slot offset := _tokenApprovals.offset }
         if (slot != 3 || offset != 0) revert STORAGE_LOCATION_CHANGED("_tokenApprovals");
 
@@ -90,14 +79,14 @@ contract FlowNFTBaseStorageLayoutMock is FlowNFTBase {
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal override {
+    ) internal pure override {
         _transfer(from, to, tokenId);
     }
     function proxiableUUID() public pure override returns (bytes32) {
         return keccak256("");
     }
 
-    function tokenURI(uint256 tokenId) external view override returns (string memory) {
+    function tokenURI(uint256 /* tokenId */) external pure override returns (string memory) {
         return "";
     }
 }
@@ -164,7 +153,7 @@ contract ConstantInflowNFTStorageLayoutMock is ConstantInflowNFT {
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal override {
+    ) internal override pure {
         _transfer(from, to, tokenId);
     }
 }
@@ -210,7 +199,7 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT {
 
         assembly { slot := _reserve21.slot offset := _reserve21.offset }
         if (slot != 21 || offset != 0) revert STORAGE_LOCATION_CHANGED("_reserve21");
-        
+
         assembly { slot := _flowDataByTokenId.slot offset := _flowDataByTokenId.offset }
     }
 
@@ -232,7 +221,7 @@ contract ConstantOutflowNFTStorageLayoutMock is ConstantOutflowNFT {
         address to,
         uint256 tokenId,
         bytes memory // data
-    ) internal override {
+    ) internal pure override {
         _transfer(from, to, tokenId);
     }
 }

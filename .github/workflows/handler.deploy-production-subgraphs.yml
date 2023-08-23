@@ -12,16 +12,17 @@ on:
     inputs:
       vendor:
         required: true
-        description: "Where to deploy subgraph to; superfluid, graph, or satsuma"
+        description: "Where to deploy subgraph to; one of `superfluid`, `graph`, or `satsuma`"
         type: string
       release_branch:
-        required: false
+        required: true
         type: string
-        description: 'The subgraph release: feature, dev, v1. Required for self-hosted and Te Graph. '
+        default: v1
+        description: 'The subgraph release: v1, dev, feature.'
       network:
         required: true
         type: string
-        description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or `all` for all networks.'         
+        description: 'The name of the network you want to deploy to (e.g. `eth-mainnet`) or `all` for all networks. Be aware of non-canonical names still used with some vendors!'
 
 jobs:
   build-and-test-local-subgraph:
@@ -35,44 +36,19 @@ jobs:
       subgraph-release: ''
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
-  deploy-hosted-service-subgraph:
+  deploy-subgraph:
     uses: ./.github/workflows/call.deploy-subgraph.yml
     needs: [ 
             build-and-test-local-subgraph
            , build-and-test-local-subgraph-against-previous-sdk-core-releases
            ]
-    name: Deploy The Graph Hosted Subgraph
+    name: Deploy The Graph
     with:
       release_branch: ${{ github.event.inputs.release_branch }}
       network: ${{ github.event.inputs.network }}
-      vendor: "graph"
+      vendor: ${{ github.event.inputs.vendor }}
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
-
-  deploy-satsuma-subgraph:
-    uses: ./.github/workflows/call.deploy-subgraph.yml
-    needs: [ 
-            build-and-test-local-subgraph
-           , build-and-test-local-subgraph-against-previous-sdk-core-releases
-           ]
-    name: Deploy Satsuma Hosted Subgraph
-    with:
-      network: ${{ github.event.inputs.network }}
-      vendor: "satsuma"
-    secrets:
       SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
-
-  deploy-self-hosted-subgraph:
-    uses: ./.github/workflows/call.deploy-subgraph.yml
-    needs: [ 
-            build-and-test-local-subgraph
-           , build-and-test-local-subgraph-against-previous-sdk-core-releases
-           ]
-    name: Deploy Superfluid Self Hosted Subgraph
-    with:
-      release_branch: "v1"
-      network: ${{ github.event.inputs.network }}
-      vendor: "superfluid"
-    secrets:
       SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}
-      SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}      
+      SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}

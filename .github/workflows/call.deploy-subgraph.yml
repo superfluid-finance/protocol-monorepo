@@ -8,9 +8,10 @@ on:
         description: "Where to deploy subgraph to; superfluid, graph, or satsuma"
         type: string
       release_branch:
-        required: false
+        required: true
         type: string
-        description: 'The subgraph release: feature, dev, v1'
+        default: 'v1'
+        description: 'The subgraph release: v1, dev, feature'
       network:
         required: true
         type: string
@@ -110,30 +111,15 @@ jobs:
         with:
           tagRegex: "subgraph@(.*)" 
 
-      # Now depending on the vendor, deploy using the appropriate script.
-
-      - name: "Deploy to Superfluid self-hosted node"
-        if: inputs.vendor == 'superfluid'
-        run: ./tasks/deploy-self-hosted-network.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
+      # Version is the git tag or revision
+      - name: "Deploy to a node"
+        run: |
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          versionLabel="${GIT_TAG_NAME:-$shortRev}"
+          ./tasks/deploy.sh -o ${{ inputs.vendor }} -n ${{ inputs.network }} -r ${{ inputs.release_branch }} -v ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}
           SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}
-
-      - name: "Deploy to The Graph (hosted service)"
-        if: inputs.vendor == 'graph'
-        run: ./tasks/deploy-graph-networks.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
-        working-directory: ${{ env.subgraph-working-directory }}
-        env:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
-
-      # Version is the git tag or revision
-      - name: "Deploy to Satsuma"
-        if: inputs.vendor == 'satsuma'
-        run: |
-          shortRev=$(git rev-parse --short ${{ github.sha }})
-          versionLabel="${GIT_TAG_NAME:-$shortRev}"
-          ./tasks/deploy-satsuma-networks.sh -n ${{ inputs.network }} -v $versionLabel
-        working-directory: ${{ env.subgraph-working-directory }}
-        env:
           SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

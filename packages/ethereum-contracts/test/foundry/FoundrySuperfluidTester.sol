@@ -655,6 +655,15 @@ contract FoundrySuperfluidTester is Test {
         }
     }
 
+    function _helperTransferAll(ISuperToken superToken_, address sender, address receiver) internal {
+        vm.startPrank(sender);
+        superToken_.transferAll(receiver);
+        vm.stopPrank();
+
+        _helperTakeBalanceSnapshot(superToken_, sender);
+        _helperTakeBalanceSnapshot(superToken_, receiver);
+    }
+
     // Write Helpers - ConstantFlowAgreementV1
     /// @notice Creates a flow between a sender and receiver at a given flow rate
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.

@@ -6,7 +6,7 @@ import {
     ISuperTokenFactory, ISuperToken, IERC20, ERC20WithTokenInfo
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
 import {
-    ISuperfluid, IConstantInflowNFT, IConstantOutflowNFT, IPoolAdminNFT, IPoolMemberNFT
+    ISuperfluid, IConstantOutflowNFT, IConstantInflowNFT, IPoolAdminNFT, IPoolMemberNFT
 } from "../interfaces/superfluid/ISuperfluid.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";

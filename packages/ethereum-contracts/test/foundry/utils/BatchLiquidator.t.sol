@@ -5,6 +5,7 @@ import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperflu
 import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { ISuperfluidPool } from "../../../contracts/interfaces/superfluid/ISuperfluidPool.sol";
 import { BatchLiquidator } from "../../../contracts/utils/BatchLiquidator.sol";
+import "forge-std/Test.sol";
 
 contract BatchLiquidatorTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for ISuperToken;
@@ -24,9 +25,7 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
     // Helpers
 
     function _transferAllToSink(address sender) internal {
-        vm.startPrank(sender);
-        superToken.transferAll(admin);
-        vm.stopPrank();
+        _helperTransferAll(superToken, sender, admin);
     }
 
     function _assertNoCFAFlow(address sender, address receiver) internal {
@@ -253,8 +252,12 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         _helperUpdateMemberUnits(pool, alice, bob, 1);
         _helperDistributeFlow(superToken, alice, alice, pool, FLOW_RATE);
 
+        console.log("gm");
         _helperCreateFlow(superToken, carol, bob, FLOW_RATE);
+        console.log("gmggg");
         _helperCreateFlow(superToken, dan, bob, FLOW_RATE);
+
+        console.log("goodby");
 
         _transferAllToSink(alice);
         _transferAllToSink(carol);

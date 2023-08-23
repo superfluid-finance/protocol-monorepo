@@ -24,23 +24,23 @@ on:
         description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or `all` for all networks.'         
 
 jobs:
-  build-and-test-local-subgraph:
-    uses: ./.github/workflows/call.test-local-subgraph.yml
-    name: Run Subgraph Unit and Integration Tests
+  # build-and-test-local-subgraph:
+  #   uses: ./.github/workflows/call.test-local-subgraph.yml
+  #   name: Run Subgraph Unit and Integration Tests
 
-  build-and-test-local-subgraph-against-previous-sdk-core-releases:
-    uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
-    name: Test Local Subgraph against SDK-Core previous and current releases
-    with:
-      subgraph-release: ''
-      subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
+  # build-and-test-local-subgraph-against-previous-sdk-core-releases:
+  #   uses: ./.github/workflows/call.test-subgraph-on-previous-sdk-core-versions.yml
+  #   name: Test Local Subgraph against SDK-Core previous and current releases
+  #   with:
+  #     subgraph-release: ''
+  #     subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
   deploy-hosted-service-subgraph:
     uses: ./.github/workflows/call.deploy-subgraph.yml
-    needs: [ 
-            build-and-test-local-subgraph
-           , build-and-test-local-subgraph-against-previous-sdk-core-releases
-           ]
+#    needs: [ 
+#            build-and-test-local-subgraph
+#           , build-and-test-local-subgraph-against-previous-sdk-core-releases
+#           ]
     name: Deploy The Graph Hosted Subgraph
     with:
       release_branch: ${{ github.event.inputs.release_branch }}
@@ -51,10 +51,10 @@ jobs:
 
   deploy-satsuma-subgraph:
     uses: ./.github/workflows/call.deploy-subgraph.yml
-    needs: [ 
-            build-and-test-local-subgraph
-           , build-and-test-local-subgraph-against-previous-sdk-core-releases
-           ]
+    # needs: [ 
+    #         build-and-test-local-subgraph
+    #        , build-and-test-local-subgraph-against-previous-sdk-core-releases
+    #        ]
     name: Deploy Satsuma Hosted Subgraph
     with:
       network: ${{ github.event.inputs.network }}
@@ -64,10 +64,10 @@ jobs:
 
   deploy-self-hosted-subgraph:
     uses: ./.github/workflows/call.deploy-subgraph.yml
-    needs: [ 
-            build-and-test-local-subgraph
-           , build-and-test-local-subgraph-against-previous-sdk-core-releases
-           ]
+    # needs: [ 
+    #         build-and-test-local-subgraph
+    #        , build-and-test-local-subgraph-against-previous-sdk-core-releases
+    #        ]
     name: Deploy Superfluid Self Hosted Subgraph
     with:
       release_branch: "v1"

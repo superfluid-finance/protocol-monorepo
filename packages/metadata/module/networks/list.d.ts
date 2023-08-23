@@ -17,6 +17,7 @@ interface ContractAddresses {
     readonly flowScheduler: string;
     readonly batchLiquidator: string;
     readonly autowrap: AutowrapAddresses;
+    readonly existentialNFTCloneFactory: string;
 }
 interface SubgraphData {
     readonly name: string;

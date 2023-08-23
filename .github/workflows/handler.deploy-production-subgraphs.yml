@@ -1,9 +1,7 @@
 # Handler Workflow Summary
-# This handler workflow file can be used to deploy our production subgraphs.
-# It will deploy to all networks on both the Hosted Service and Satsuma.
-# This takes a satsuma_version_label and will set it for all networks on Satsuma.
-# When we add a new hosted solution (self-hosted, graph studio), we should create a
-# new call.deploy-<solution>-subgraph.yml file and add it here.
+# This handler workflow file can be used to deploy our subgraphs.
+# It can be used to one network, or all networks to either
+# self-hosted nodes, the Graph Hosted Service and Satsuma.
 
 name: Handler | Deploy Production Subgraph
 env:
@@ -12,10 +10,20 @@ env:
 on:
   workflow_dispatch:
     inputs:
-      satsuma_version_label:
+      vendor:
+        required: true
+        description: "Where to deploy subgraph to; one of `superfluid`, `graph`, or `satsuma`"
+        type: string
+      release_branch:
         required: true
         type: string
-        description: 'The version label for Satsuma endpoint (e.g. v0.0.x)'
+        default: v1
+        description: 'The subgraph release: v1, dev, feature.'
+      network:
+        required: true
+        type: string
+        description: 'The name of the network you want to deploy to (e.g. `eth-mainnet`) or `all` for all networks. Be aware of non-canonical names still used with some vendors!'
+
 jobs:
   build-and-test-local-subgraph:
     uses: ./.github/workflows/call.test-local-subgraph.yml
@@ -28,28 +36,19 @@ jobs:
       subgraph-release: ''
       subgraph-endpoint: http://localhost:8000/subgraphs/name/superfluid-test
 
-  deploy-hosted-service-subgraph:
-    uses: ./.github/workflows/call.deploy-hosted-service-subgraph.yml
+  deploy-subgraph:
+    uses: ./.github/workflows/call.deploy-subgraph.yml
     needs: [ 
             build-and-test-local-subgraph
            , build-and-test-local-subgraph-against-previous-sdk-core-releases
            ]
-    name: Deploy Hosted Service Subgraph
+    name: Deploy The Graph
     with:
-      release_branch: "v1"
-      network: "all"
+      release_branch: ${{ github.event.inputs.release_branch }}
+      network: ${{ github.event.inputs.network }}
+      vendor: ${{ github.event.inputs.vendor }}
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
-
-  deploy-satsuma-subgraph:
-    uses: ./.github/workflows/call.deploy-satsuma-subgraph.yml
-    needs: [ 
-            build-and-test-local-subgraph
-           , build-and-test-local-subgraph-against-previous-sdk-core-releases
-           ]
-    name: Deploy Satsuma Subgraph
-    with:
-      satsuma_version_label: ${{ github.event.inputs.satsuma_version_label }}
-      network: "all"
-    secrets:
       SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}
+      SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}
+      SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}

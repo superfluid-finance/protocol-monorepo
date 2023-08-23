@@ -2,7 +2,7 @@
 pragma solidity 0.8.19;
 
 import { ISuperfluid, ISuperfluidToken } from "../interfaces/superfluid/ISuperfluid.sol";
-import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
+import { ISuperfluidPool } from "../superfluid/SuperfluidPool.sol";
 import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
 import { ForwarderBase } from "./ForwarderBase.sol";
 
@@ -24,6 +24,11 @@ contract GDAv1Forwarder is ForwarderBase {
                 _host.getAgreementClass(keccak256("org.superfluid-finance.agreements.GeneralDistributionAgreement.v1"))
             )
         );
+    }
+
+    function createPool(ISuperfluidToken token, address admin) external returns (bool success, ISuperfluidPool pool) {
+        pool = _gda.createPool(token, admin);
+        success = true;
     }
 
     /**
@@ -121,7 +126,7 @@ contract GDAv1Forwarder is ForwarderBase {
      * @return The flow distribution flow rate
      */
     function getFlowDistributionFlowRate(ISuperfluidToken token, address from, ISuperfluidPool to)
-        internal
+        external
         view
         returns (int96)
     {
@@ -152,7 +157,7 @@ contract GDAv1Forwarder is ForwarderBase {
         address from,
         ISuperfluidPool to,
         int96 requestedFlowRate
-    ) internal view returns (int96 actualFlowRate, int96 totalDistributionFlowRate) {
+    ) external view returns (int96 actualFlowRate, int96 totalDistributionFlowRate) {
         return _gda.estimateFlowDistributionActualFlowRate(token, from, to, requestedFlowRate);
     }
 
@@ -169,7 +174,7 @@ contract GDAv1Forwarder is ForwarderBase {
         address from,
         ISuperfluidPool to,
         uint256 requestedAmount
-    ) internal view returns (uint256 actualAmount) {
+    ) external view returns (uint256 actualAmount) {
         return _gda.estimateDistributionActualAmount(token, from, to, requestedAmount);
     }
 
@@ -179,7 +184,7 @@ contract GDAv1Forwarder is ForwarderBase {
      * @param member The member address.
      * @return A boolean value indicating whether the member is connected to the pool.
      */
-    function isMemberConnected(ISuperfluidPool pool, address member) public view returns (bool) {
+    function isMemberConnected(ISuperfluidPool pool, address member) external view returns (bool) {
         return _gda.isMemberConnected(pool, member);
     }
 

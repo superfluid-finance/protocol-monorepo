@@ -252,6 +252,7 @@ contract BatchLiquidatorTest is FoundrySuperfluidTester {
         _helperUpdateMemberUnits(pool, alice, bob, 1);
         _helperDistributeFlow(superToken, alice, alice, pool, FLOW_RATE);
 
+
         console.log("gm");
         _helperCreateFlow(superToken, carol, bob, FLOW_RATE);
         console.log("gmggg");

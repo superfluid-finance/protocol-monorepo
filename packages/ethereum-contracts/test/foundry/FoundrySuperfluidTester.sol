@@ -1453,19 +1453,29 @@ contract FoundrySuperfluidTester is Test {
 
     // Write Helpers - GeneralDistributionAgreementV1/SuperfluidPool
 
-    function _helperCreatePool(ISuperToken _superToken, address _caller, address _poolAdmin)
+    function _helperCreatePool(ISuperToken _superToken, address _caller, address _poolAdmin, bool _useForwarder)
         internal
-        returns (SuperfluidPool)
+        returns (ISuperfluidPool)
     {
+        ISuperfluidPool localPool;
+
         vm.startPrank(_caller);
-        SuperfluidPool localPool = SuperfluidPool(address(sf.gda.createPool(_superToken, _poolAdmin)));
+        if (!_useForwarder) {
+            localPool = SuperfluidPool(address(sf.gda.createPool(_superToken, _poolAdmin)));
+        } else {
+            (, localPool) = sf.gdaV1Forwarder.createPool(_superToken, _poolAdmin);
+        }
         vm.stopPrank();
         _addAccount(address(localPool));
 
         // Assert Pool Creation was properly handled
+        address poolAdmin = localPool.admin();
         {
-            assertTrue(sf.gda.isPool(_superToken, address(localPool)), "GDAv1.t: Created pool is not pool");
-            assertEq(localPool.admin(), _poolAdmin, "GDAv1.t: Pool admin is incorrect");
+            bool isPool = _useForwarder
+                ? sf.gdaV1Forwarder.isPool(_superToken, address(localPool))
+                : sf.gda.isPool(_superToken, address(localPool));
+            assertTrue(isPool, "GDAv1.t: Created pool is not pool");
+            assertEq(poolAdmin, _poolAdmin, "GDAv1.t: Pool admin is incorrect");
             assertEq(address(localPool.superToken()), address(_superToken), "GDAv1.t: Pool super token is incorrect");
         }
 
@@ -1484,7 +1494,22 @@ contract FoundrySuperfluidTester is Test {
             assertEq(poolAdminData.admin, _poolAdmin, "_helperCreatePool: Pool Admin NFT admin mismatch");
         }
 
+        // Assert Admin is PoolAdjustment Flow receiver
+        {
+            (address adjustmentFlowRecipient,,) = _useForwarder
+                ? sf.gdaV1Forwarder.getPoolAdjustmentFlowInfo(localPool)
+                : sf.gda.getPoolAdjustmentFlowInfo(localPool);
+            assertEq(poolAdmin, adjustmentFlowRecipient, "_helperCreatePool: Incorrect pool adjustment flow receiver");
+        }
+
         return localPool;
+    }
+
+    function _helperCreatePool(ISuperToken _superToken, address _caller, address _poolAdmin)
+        internal
+        returns (ISuperfluidPool)
+    {
+        return _helperCreatePool(_superToken, _caller, _poolAdmin, false);
     }
 
     function _helperUpdateMemberUnits(ISuperfluidPool pool_, address caller_, address member_, uint128 newUnits_)
@@ -1570,18 +1595,24 @@ contract FoundrySuperfluidTester is Test {
         // _assertRealTimeBalances(ISuperToken(address(poolSuperToken)));
     }
 
-    function _helperConnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_) internal {
+    function _helperConnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_, bool useForwarder_)
+        internal
+    {
         (bool isConnectedBefore, int256 oldUnits, int96 oldFlowRate) = _helperGetMemberPoolState(pool_, caller_);
 
         PoolUnitData memory poolUnitDataBefore = _helperGetPoolUnitsData(pool_);
         PoolFlowRateData memory poolFlowRateDataBefore = _helperGetPoolFlowRatesData(pool_);
 
         vm.startPrank(caller_);
-        sf.host.callAgreement(
-            sf.gda,
-            abi.encodeWithSelector(IGeneralDistributionAgreementV1.connectPool.selector, pool_, ""),
-            new bytes(0)
-        );
+        if (useForwarder_) {
+            sf.gdaV1Forwarder.connectPool(pool_, "");
+        } else {
+            sf.host.callAgreement(
+                sf.gda,
+                abi.encodeWithSelector(IGeneralDistributionAgreementV1.connectPool.selector, pool_, ""),
+                new bytes(0)
+            );
+        }
         vm.stopPrank();
 
         PoolUnitData memory poolUnitDataAfter = _helperGetPoolUnitsData(pool_);
@@ -1591,7 +1622,10 @@ contract FoundrySuperfluidTester is Test {
             _helperTakeBalanceSnapshot(superToken_, caller_);
         }
 
-        assertEq(sf.gda.isMemberConnected(superToken_, address(pool_), caller_), true, "GDAv1.t: Member not connected");
+        bool isMemberConnected = useForwarder_
+            ? sf.gdaV1Forwarder.isMemberConnected(pool_, caller_)
+            : sf.gda.isMemberConnected(superToken_, address(pool_), caller_);
+        assertEq(isMemberConnected, true, "GDAv1.t: Member not connected");
 
         // Assert connected units delta for the pool
         {
@@ -1620,14 +1654,24 @@ contract FoundrySuperfluidTester is Test {
         _assertGlobalInvariants();
     }
 
-    function _helperDisconnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_) internal {
+    function _helperConnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_) internal {
+        _helperConnectPool(caller_, superToken_, pool_, false);
+    }
+
+    function _helperDisconnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_, bool useForwarder_)
+        internal
+    {
         (bool isConnectedBefore, int256 oldUnits, int96 oldFlowRate) = _helperGetMemberPoolState(pool_, caller_);
 
         PoolUnitData memory poolUnitDataBefore = _helperGetPoolUnitsData(pool_);
         PoolFlowRateData memory poolFlowRateDataBefore = _helperGetPoolFlowRatesData(pool_);
 
         vm.startPrank(caller_);
-        sf.host.callAgreement(sf.gda, abi.encodeCall(sf.gda.disconnectPool, (pool_, new bytes(0))), new bytes(0));
+        if (useForwarder_) {
+            sf.gdaV1Forwarder.disconnectPool(pool_, "");
+        } else {
+            sf.host.callAgreement(sf.gda, abi.encodeCall(sf.gda.disconnectPool, (pool_, new bytes(0))), new bytes(0));
+        }
         vm.stopPrank();
 
         PoolUnitData memory poolUnitDataAfter = _helperGetPoolUnitsData(pool_);
@@ -1669,17 +1713,23 @@ contract FoundrySuperfluidTester is Test {
         _assertGlobalInvariants();
     }
 
+    function _helperDisconnectPool(address caller_, ISuperToken superToken_, ISuperfluidPool pool_) internal {
+        _helperDisconnectPool(caller_, superToken_, pool_, false);
+    }
+
     function _helperDistributeViaGDA(
         ISuperToken superToken_,
         address caller_,
         address from_,
         ISuperfluidPool pool_,
-        uint256 requestedAmount
+        uint256 requestedAmount,
+        bool useForwarder
     ) internal {
         (int256 fromRTBBefore,,,) = superToken.realtimeBalanceOfNow(from_);
 
-        uint256 actualAmountDistributed =
-            sf.gda.estimateDistributionActualAmount(superToken, alice, pool_, requestedAmount);
+        uint256 actualAmountDistributed = useForwarder
+            ? sf.gdaV1Forwarder.estimateDistributionActualAmount(superToken, from_, pool_, requestedAmount)
+            : sf.gda.estimateDistributionActualAmount(superToken, from_, pool_, requestedAmount);
 
         address[] memory members = _poolMembers[address(pool_)].values();
         uint256[] memory memberBalancesBefore = new uint256[](members.length);
@@ -1692,13 +1742,15 @@ contract FoundrySuperfluidTester is Test {
             memberClaimableBefore[i] = uint256(claimable);
         }
 
-        vm.startPrank(caller_);
-        sf.host.callAgreement(
-            sf.gda,
-            abi.encodeCall(sf.gda.distribute, (superToken_, from_, pool_, requestedAmount, new bytes(0))),
-            new bytes(0)
-        );
-        vm.stopPrank();
+        {
+            vm.startPrank(caller_);
+            if (useForwarder) {
+                sf.gdaV1Forwarder.distribute(superToken_, from_, pool_, requestedAmount, new bytes(0));
+            } else {
+                superToken_.distributeToPool(from_, pool_, requestedAmount);
+            }
+            vm.stopPrank();
+        }
 
         {
             _helperTakeBalanceSnapshot(superToken_, from_);
@@ -1707,17 +1759,19 @@ contract FoundrySuperfluidTester is Test {
         uint256 amountPerUnit = pool_.getTotalUnits() > 0 ? actualAmountDistributed / pool_.getTotalUnits() : 0;
 
         // Assert Distributor RTB
-        (int256 fromRTBAfter,,,) = superToken.realtimeBalanceOfNow(from_);
-        // If the distributor is a connected member themselves, they will receive the units
-        // they have just distributed
-        uint256 amountReceivedInitial = sf.gda.isMemberConnected(superToken, address(pool_), from_)
-            ? uint256(pool_.getUnits(from_)) * amountPerUnit
-            : 0;
-        assertEq(
-            fromRTBAfter,
-            fromRTBBefore - int256(actualAmountDistributed) + int256(amountReceivedInitial),
-            "GDAv1.t D: Distributor RTB incorrect"
-        );
+        {
+            (int256 fromRTBAfter,,,) = superToken.realtimeBalanceOfNow(from_);
+            // If the distributor is a connected member themselves, they will receive the units
+            // they have just distributed
+            uint256 amountReceivedInitial = sf.gda.isMemberConnected(superToken, address(pool_), from_)
+                ? uint256(pool_.getUnits(from_)) * amountPerUnit
+                : 0;
+            assertEq(
+                fromRTBAfter,
+                fromRTBBefore - int256(actualAmountDistributed) + int256(amountReceivedInitial),
+                "GDAv1.t D: Distributor RTB incorrect"
+            );
+        }
 
         if (members.length == 0) return;
 
@@ -1754,15 +1808,27 @@ contract FoundrySuperfluidTester is Test {
         _assertGlobalInvariants();
     }
 
+    function _helperDistributeViaGDA(
+        ISuperToken superToken_,
+        address caller_,
+        address from_,
+        ISuperfluidPool pool_,
+        uint256 requestedAmount
+    ) internal {
+        _helperDistributeViaGDA(superToken_, caller_, from_, pool_, requestedAmount, false);
+    }
+
     function _helperDistributeFlow(
         ISuperToken superToken_,
         address caller,
         address from,
         ISuperfluidPool pool_,
-        int96 requestedFlowRate
+        int96 requestedFlowRate,
+        bool useForwarder
     ) internal {
-        (int96 actualFlowRate, int96 totalDistributionFlowRate) =
-            sf.gda.estimateFlowDistributionActualFlowRate(superToken_, from, pool_, requestedFlowRate);
+        (int96 actualFlowRate, int96 totalDistributionFlowRate) = useForwarder
+            ? sf.gdaV1Forwarder.estimateFlowDistributionActualFlowRate(superToken_, from, pool_, requestedFlowRate)
+            : sf.gda.estimateFlowDistributionActualFlowRate(superToken_, from, pool_, requestedFlowRate);
 
         address[] memory members = _poolMembers[address(pool_)].values();
         int96[] memory memberFlowRatesBefore = new int96[](members.length);
@@ -1773,7 +1839,11 @@ contract FoundrySuperfluidTester is Test {
         }
 
         vm.startPrank(caller);
-        superToken_.distributeFlow(from, pool_, requestedFlowRate);
+        if (useForwarder) {
+            sf.gdaV1Forwarder.distributeFlow(superToken_, from, pool_, requestedFlowRate, new bytes(0));
+        } else {
+            superToken_.distributeFlow(from, pool_, requestedFlowRate);
+        }
         vm.stopPrank();
 
         {
@@ -1783,7 +1853,9 @@ contract FoundrySuperfluidTester is Test {
         int96 poolTotalFlowRateAfter = pool_.getTotalFlowRate();
         {
             // Assert distributor flow rate
-            int96 fromToPoolFlowRateAfter = sf.gda.getFlowRate(superToken_, from, pool_);
+            int96 fromToPoolFlowRateAfter = useForwarder
+                ? sf.gdaV1Forwarder.getFlowDistributionFlowRate(superToken_, from, pool_)
+                : sf.gda.getFlowRate(superToken_, from, pool_);
             assertEq(
                 fromToPoolFlowRateAfter,
                 actualFlowRate,
@@ -1823,6 +1895,16 @@ contract FoundrySuperfluidTester is Test {
         // Assert RTB for all users
         // _assertRealTimeBalances(superToken_);
         _assertGlobalInvariants();
+    }
+
+    function _helperDistributeFlow(
+        ISuperToken superToken_,
+        address caller,
+        address from,
+        ISuperfluidPool pool_,
+        int96 requestedFlowRate
+    ) internal {
+        _helperDistributeFlow(superToken_, caller, from, pool_, requestedFlowRate, false);
     }
 
     // Write Helpers - SuperfluidPool ERC20 Functionality

@@ -80,6 +80,7 @@ async function hasCode(web3, address) {
 
 /**
  * @dev Check if the code at the address differs from the contract object provided
+ * @param replacements should contain all immutable contract fields, encoded as words
  * TODO: this isn't always working as intended, see https://github.com/superfluid-finance/protocol-monorepo/issues/1448
  */
 async function codeChanged(
@@ -191,12 +192,21 @@ async function setResolver(sf, key, value) {
  * - OWNABLE
  * - SAFE
  * - (default) auto-detect (doesn't yet detect Safe)
+ *
+ * @param sf instance of SuperfluidSDK
+ * @param actionFn function that gets governance methods as argument
+ *
+ * @note if the caller intends to invoke methods only available in SuperfluidGovernanceII
+ * (e.g. UUPSProxiable or Ownable), it must provide the SuperfluidGovernanceII artifact
+ * in the sf object.
  */
 async function sendGovernanceAction(sf, actionFn) {
-    const gov = await sf.contracts.SuperfluidGovernanceBase.at(
-        await sf.host.getGovernance.call()
-    );
-    console.log("Governance address:", gov.address);
+    const govAddr = await sf.host.getGovernance.call();
+    console.log("Governance address:", govAddr);
+    const gov = sf.contracts.SuperfluidGovernanceII !== undefined ?
+        await sf.contracts.SuperfluidGovernanceII.at(govAddr) :
+        await sf.contracts.SuperfluidGovernanceBase.at(govAddr);
+
     const govOwner = await (await sf.contracts.Ownable.at(gov.address)).owner();
     console.log("Governance owner:", govOwner);
 
@@ -308,7 +318,7 @@ async function autodetectGovAdminType(sf, account) {
 }
 
 // returns the Safe Tx Service URL or throws if none available
-// source: https://github.com/safe-global/safe-docs/blob/main/learn/safe-core/safe-core-api/available-services.md
+// source: https://github.com/safe-global/safe-docs/blob/main/safe-core-api/available-services.md
 function getSafeTxServiceUrl(chainId) {
     const safeChainNames = {
         // mainnets
@@ -317,6 +327,7 @@ function getSafeTxServiceUrl(chainId) {
         56: "bsc",
         100: "gnosis-chain",
         137: "polygon",
+        8453: "base",
         42161: "arbitrum",
         43114: "avalanche",
         // testnets
@@ -414,6 +425,38 @@ function getScriptRunnerFactory(runnerOpts = {}) {
     };
 }
 
+/****************************************************************
+ * Helpers to store versionString in Resolver
+ ****************************************************************/
+
+// versionString format: [x]x.[y]y.[z]z-rrrrrrrr
+// x: major version, y: minor version, z: patch, r: 8-digit git revision (hex)
+
+// takes an argument of the form [x]x.[y]y.[z]z-rrrrrrrr and returns a pseudo address
+function versionStringToPseudoAddress(versionString) {
+    const [versions, suffix] = versionString.split('-');
+    const [major, minor, patch] = versions.split('.').map(v => v.padStart(2, '0'));  // Pad with leading zeros
+    return `0x000000000000000000${major}${minor}${patch}${suffix}`;
+}
+
+// takes a pseudo address as argument and decodes it to a versionString
+function pseudoAddressToVersionString(pseudoAddress) {
+    const str = pseudoAddress.replace(/^0x/, '').toLowerCase(); // remove leading 0x
+    const major = parseInt(str.slice(18, 20), 10);
+    const minor = parseInt(str.slice(20, 22), 10);
+    const patch = parseInt(str.slice(22, 24), 10);
+    const revision = str.slice(24);
+
+    if (
+        !str.startsWith("000000000000000000") ||
+        isNaN(major) || isNaN(minor) || isNaN(patch)
+    ) {
+        throw new Error("Provided address doesn't encode a valid versionString");
+    }
+
+    return `${major}.${minor}.${patch}-${revision}`;
+}
+
 module.exports = {
     ZERO_ADDRESS,
 
@@ -433,4 +476,7 @@ module.exports = {
     getPastEvents,
 
     getScriptRunnerFactory,
+
+    versionStringToPseudoAddress,
+    pseudoAddressToVersionString,
 };

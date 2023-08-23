@@ -28,7 +28,7 @@ export default
                 "manager": "0x0B82D14E9616ca4d260E77454834AdCf5887595F",
                 "wrapStrategy": "0xea49af829d3e28d3ec49e0e0a0ba1e7860a56f60"
             },
-            "existentialNFTCloneFactory": "0x0CAD89d92727D101f4Ff95948ec1D6a8E161bbAD"
+            "existentialNFTCloneFactory": "0x8c430c53364666261035B9f6a855791cb65889B1"
         },
         "startBlockV1": 3550000,
         "logsQueryRange": 10000,
@@ -128,7 +128,7 @@ export default
             "gdaV1": "0xe87F46A15C410F151309Bf7516e130087Fc6a5E5",
             "superTokenFactory": "0xfafe31cf998Df4e5D8310B03EBa8fb5bF327Eaf5",
             "superfluidLoader": "0x5Bb5908dcCC9Bb0fC39a78CfDf9e47B4C08E9521",
-            "existentialNFTCloneFactory": "0x8e03f0EDb581E8B6Aad80eecE89b3028388f4b53"
+            "existentialNFTCloneFactory": "0xE9748B7eDf99ca28d071Fd8E9fc2Fa7a1B60FF47"
         },
         "startBlockV1": 340000,
         "logsQueryRange": 50000,
@@ -192,7 +192,7 @@ export default
                 "manager": "0x30aE282CF477E2eF28B14d0125aCEAd57Fe1d7a1",
                 "wrapStrategy": "0x1D65c6d3AD39d454Ea8F682c49aE7744706eA96d"
             },
-            "existentialNFTCloneFactory": "0xBd787e0302909fA4e8A3F862bE26BF5BdbE613Ef"
+            "existentialNFTCloneFactory": "0x06a82e6A0204166eB2036638fC73CeAAb402C8e4"
         },
         "startBlockV1": 3220000,
         "logsQueryRange": 50000,
@@ -221,7 +221,7 @@ export default
             "idaV1": "0x9358C7dCCc6B8CA6F526311e8ac266F8C861B7ea",
             "superTokenFactory": "0x254C2e152E8602839D288A7bccdf3d0974597193",
             "superfluidLoader": "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd",
-            "existentialNFTCloneFactory": "0xa2B295C321265D9B9EE4Ba13F3E666258a0Db563"
+            "existentialNFTCloneFactory": "0xcDD4276815Ff39535d18f014E600C84e08b01913"
         },
         "startBlockV1": 3322400,
         "logsQueryRange": 10000,
@@ -254,7 +254,7 @@ export default
             "idaV1": "0xaa4FCc799B8857FA87b2945Dc6572D5d76b35485",
             "superTokenFactory": "0x1015BE31D7711D95d2c3444708FB53cC851ba856",
             "superfluidLoader": "0x15F0Ca26781C3852f8166eD2ebce5D18265cceb7",
-            "existentialNFTCloneFactory": "0x81398Af97997F3973416d312939F790636719195"
+            "existentialNFTCloneFactory": "0x69f1a4Ae3fE44Bb161d77BE748eebBdF2eCe6545"
         },
         "startBlockV1": 5249500,
         "logsQueryRange": 10000,
@@ -286,7 +286,7 @@ export default
             "idaV1": "0xBf22019a4A4430bA67D3B0c8B4d5Edc48F913301",
             "superTokenFactory": "0x0F3B163623F05b2BfF42956f7C7bd31456bd83a2",
             "superfluidLoader": "0xda6db863cb2EE39b196edB8159c38A1ed5c55344",
-            "existentialNFTCloneFactory": "0xE3d8455a27f5cB58c2A85Aa0beBF0cd49196D308"
+            "existentialNFTCloneFactory": "0xe4bbA294E0F7C4a83a105F7fe2CeCf4D7Bd8B3c0"
         },
         "startBlockV1": 726000,
         "logsQueryRange": 20000,

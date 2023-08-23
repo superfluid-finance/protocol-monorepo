@@ -8,6 +8,8 @@ jobs:
   publish-release:
     name: Publish release package
 
+    permissions: write-all
+
     runs-on: ubuntu-latest
 
     defaults:

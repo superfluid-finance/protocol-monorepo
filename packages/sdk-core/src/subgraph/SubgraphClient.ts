@@ -1,12 +1,8 @@
 import { TypedDocumentNode } from "@graphql-typed-document-node/core";
 import { DocumentNode } from "graphql";
-import { request } from "graphql-request";
+import { request, RequestExtendedOptions, Variables } from "graphql-request";
 
 type RequestDocument = string | DocumentNode;
-
-export declare type Variables = {
-    [key: string]: unknown;
-};
 
 export declare type BatchRequestDocument<V = Variables> = {
     document: RequestDocument;
@@ -16,15 +12,17 @@ export declare type BatchRequestDocument<V = Variables> = {
 export class SubgraphClient {
     constructor(readonly subgraphUrl: string) {}
 
-    async request<T = unknown, V extends Variables = Variables>(
+    async request<T, V extends Variables = Variables>(
         document: RequestDocument | TypedDocumentNode<T, V>,
         variables?: V
     ): Promise<T> {
-        return await request<T, V>(
-            this.subgraphUrl,
+        return await request<T, V>({
+            url: this.subgraphUrl,
             document,
-            variables ? cleanVariables<V>(variables) : undefined
-        );
+            variables: variables ? cleanVariables<V>(variables) : undefined,
+            // TODO: explicit casting is semi-dirty and not recommended
+            // but I am not sure how to fix this right now
+        } as RequestExtendedOptions<V, T>);
     }
 }
 

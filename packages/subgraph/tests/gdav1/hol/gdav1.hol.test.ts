@@ -1,27 +1,8 @@
 import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { assert, beforeEach, clearStore, describe, test } from "matchstick-as/assembly/index";
-import { handleFlowOperatorUpdated } from "../../../src/mappings/cfav1";
-import {
-    BIG_INT_ONE,
-    BIG_INT_ZERO,
-    getAccountTokenSnapshotID,
-    getFlowOperatorID,
-    getPoolMemberID,
-    getStreamID,
-    ZERO_ADDRESS,
-} from "../../../src/utils";
+import { BIG_INT_ONE, BIG_INT_ZERO, getPoolDistributorID, getPoolMemberID, ZERO_ADDRESS } from "../../../src/utils";
 import { assertHigherOrderBaseProperties } from "../../assertionHelpers";
-import {
-    FAKE_INITIAL_BALANCE,
-    FALSE,
-    TRUE,
-    alice,
-    bob,
-    maticXAddress,
-    maticXName,
-    maticXSymbol,
-    superfluidPool,
-} from "../../constants";
+import { FALSE, TRUE, alice, bob, maticXAddress, superfluidPool } from "../../constants";
 import {
     createBufferAdjustedEvent,
     createDistributionClaimedEvent,
@@ -29,18 +10,13 @@ import {
     createInstantDistributionUpdatedEvent,
     createMemberUnitsUpdatedEvent,
     createPoolAndReturnPoolCreatedEvent,
-    createPoolConnectionUpdatedEvent,
-    createPoolCreatedEvent,
     updatePoolConnectionAndReturnPoolConnectionUpdatedEvent,
 } from "../gdav1.helper";
-import { Pool } from "../../../generated/schema";
 import {
     handleBufferAdjusted,
     handleFlowDistributionUpdated,
     handleInstantDistributionUpdated,
-    handlePoolConnectionUpdated,
 } from "../../../src/mappings/gdav1";
-import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../../mockedFunctions";
 import { updateMemberUnitsAndReturnMemberUnitsUpdatedEvent } from "../gdav1.helper";
 import { handleDistributionClaimed, handleMemberUnitsUpdated } from "../../../src/mappings/superfluidPool";
 import { getOrInitPoolMember } from "../../../src/mappingHelpers";
@@ -532,10 +508,121 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         assert.fieldEquals("PoolMember", id, "pool", poolAddress.toHexString());
     });
 
-    // PoolDistributor
-    // handleBufferAdjusted
-    // handleFlowDistributionUpdated
-    // handleInstantDistributionUpdated
+    test("handleBufferAdjusted() - PoolDistributor Entity: totalBufferAmount updated", () => {
+        const distributor = alice;
+
+        const BUFFER = BigInt.fromI32(100);
+
+        const bufferAdjustedEvent = createBufferAdjustedEvent(
+            superToken, // token
+            superfluidPool, // pool
+            distributor, // poolDistributor
+            BUFFER, // bufferDelta
+            BUFFER, // newBufferAmount
+            BUFFER // totalBufferAmount
+        );
+
+        handleBufferAdjusted(bufferAdjustedEvent);
+
+        const id = getPoolDistributorID(Address.fromString(superfluidPool), Address.fromString(distributor));
+
+        assertHigherOrderBaseProperties("PoolDistributor", id, bufferAdjustedEvent);
+        assert.fieldEquals(
+            "PoolDistributor",
+            id,
+            "totalAmountInstantlyDistributedUntilUpdatedAt",
+            BIG_INT_ZERO.toString()
+        );
+        assert.fieldEquals(
+            "PoolDistributor",
+            id,
+            "totalAmountFlowedDistributedUntilUpdatedAt",
+            BIG_INT_ZERO.toString()
+        );
+        assert.fieldEquals("PoolDistributor", id, "totalAmountDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("PoolDistributor", id, "totalBuffer", BUFFER.toString());
+        assert.fieldEquals("PoolDistributor", id, "flowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("PoolDistributor", id, "account", distributor);
+        assert.fieldEquals("PoolDistributor", id, "pool", superfluidPool);
+    });
+
+    test("handleFlowDistributionUpdated() - PoolDistributor Entity: flowRate updated", () => {
+        const distributor = alice;
+        const operator = alice;
+        const emptyFlowRate = BigInt.fromI32(0);
+        const newFlowRate = BigInt.fromI32(100000000);
+        const flowDistributionUpdatedEvent = createFlowDistributionUpdatedEvent(
+            superToken,
+            superfluidPool,
+            distributor,
+            operator,
+            emptyFlowRate, // old flow rate
+            newFlowRate, // new distributor to pool flow rate
+            newFlowRate, // new total distribution flow rate
+            alice, // adjustment flow recipient
+            BigInt.fromI32(0) // adjustment flow rate
+        );
+
+        handleFlowDistributionUpdated(flowDistributionUpdatedEvent);
+
+        const id = getPoolDistributorID(Address.fromString(superfluidPool), Address.fromString(distributor));
+
+        assertHigherOrderBaseProperties("PoolDistributor", id, flowDistributionUpdatedEvent);
+        assert.fieldEquals(
+            "PoolDistributor",
+            id,
+            "totalAmountInstantlyDistributedUntilUpdatedAt",
+            BIG_INT_ZERO.toString()
+        );
+        assert.fieldEquals(
+            "PoolDistributor",
+            id,
+            "totalAmountFlowedDistributedUntilUpdatedAt",
+            BIG_INT_ZERO.toString()
+        );
+        assert.fieldEquals("PoolDistributor", id, "totalAmountDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("PoolDistributor", id, "totalBuffer", BIG_INT_ZERO.toString());
+        assert.fieldEquals("PoolDistributor", id, "flowRate", newFlowRate.toString());
+        assert.fieldEquals("PoolDistributor", id, "account", distributor);
+        assert.fieldEquals("PoolDistributor", id, "pool", superfluidPool);
+    });
+
+    test("handleInstantDistributionUpdated() - PoolDistributor Entity: flowRate updated", () => {
+        const distributor = alice;
+        const operator = alice;
+        const requestedAmount = BigInt.fromI32(100000000);
+        const instantDistributionUpdatedEvent = createInstantDistributionUpdatedEvent(
+            superToken,
+            superfluidPool,
+            distributor,
+            operator,
+            requestedAmount,
+            requestedAmount
+        );
+
+        handleInstantDistributionUpdated(instantDistributionUpdatedEvent);
+
+        const id = getPoolDistributorID(Address.fromString(superfluidPool), Address.fromString(distributor));
+
+        assertHigherOrderBaseProperties("PoolDistributor", id, instantDistributionUpdatedEvent);
+        assert.fieldEquals(
+            "PoolDistributor",
+            id,
+            "totalAmountInstantlyDistributedUntilUpdatedAt",
+            requestedAmount.toString()
+        );
+        assert.fieldEquals(
+            "PoolDistributor",
+            id,
+            "totalAmountFlowedDistributedUntilUpdatedAt",
+            BIG_INT_ZERO.toString()
+        );
+        assert.fieldEquals("PoolDistributor", id, "totalAmountDistributedUntilUpdatedAt", requestedAmount.toString());
+        assert.fieldEquals("PoolDistributor", id, "totalBuffer", BIG_INT_ZERO.toString());
+        assert.fieldEquals("PoolDistributor", id, "flowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("PoolDistributor", id, "account", distributor);
+        assert.fieldEquals("PoolDistributor", id, "pool", superfluidPool);
+    });
 });
 
 function assertEmptyPoolData(id: string, event: ethereum.Event, token: string): void {

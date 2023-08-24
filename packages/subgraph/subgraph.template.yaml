@@ -232,6 +232,8 @@ dataSources:
             file: ./abis/IGeneralDistributionAgreementV1.json
           - name: ISuperfluidPool
             file: ./abis/ISuperfluidPool.json
+          - name: ISuperToken
+            file: ./abis/ISuperToken.json
         eventHandlers:
           - event: BufferAdjusted(indexed address,indexed address,indexed address,int256,uint256,uint256)
             handler: handleBufferAdjusted
@@ -434,6 +436,8 @@ templates:
       abis:
         - name: ISuperfluidPool
           file: ./abis/ISuperfluidPool.json
+        - name: ISuperToken
+          file: ./abis/ISuperToken.json
       eventHandlers:
         - event: MemberUnitsUpdated(indexed address,indexed address,uint128)
           handler: handleMemberUnitsUpdated

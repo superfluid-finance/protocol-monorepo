@@ -3,6 +3,10 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.13]
+### Added
+- Added field `existentialNFTCloneFactory` to contract addresses
+
 ## [v1.1.12]
 ### Added
 - Added subgraph endpoints for: Autowrap, FlowScheduler and Vesting contracts

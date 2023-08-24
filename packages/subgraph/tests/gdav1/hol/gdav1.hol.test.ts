@@ -1,4 +1,4 @@
-import { BigInt, ethereum } from "@graphprotocol/graph-ts";
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts";
 import { assert, beforeEach, clearStore, describe, test } from "matchstick-as/assembly/index";
 import { handleFlowOperatorUpdated } from "../../../src/mappings/cfav1";
 import {
@@ -6,12 +6,15 @@ import {
     BIG_INT_ZERO,
     getAccountTokenSnapshotID,
     getFlowOperatorID,
+    getPoolMemberID,
     getStreamID,
     ZERO_ADDRESS,
 } from "../../../src/utils";
 import { assertHigherOrderBaseProperties } from "../../assertionHelpers";
 import {
     FAKE_INITIAL_BALANCE,
+    FALSE,
+    TRUE,
     alice,
     bob,
     maticXAddress,
@@ -31,9 +34,16 @@ import {
     updatePoolConnectionAndReturnPoolConnectionUpdatedEvent,
 } from "../gdav1.helper";
 import { Pool } from "../../../generated/schema";
-import { handleBufferAdjusted, handleFlowDistributionUpdated, handlePoolConnectionUpdated } from "../../../src/mappings/gdav1";
+import {
+    handleBufferAdjusted,
+    handleFlowDistributionUpdated,
+    handleInstantDistributionUpdated,
+    handlePoolConnectionUpdated,
+} from "../../../src/mappings/gdav1";
 import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../../mockedFunctions";
 import { updateMemberUnitsAndReturnMemberUnitsUpdatedEvent } from "../gdav1.helper";
+import { handleDistributionClaimed, handleMemberUnitsUpdated } from "../../../src/mappings/superfluidPool";
+import { getOrInitPoolMember } from "../../../src/mappingHelpers";
 
 const initialFlowRate = BigInt.fromI32(100);
 const superToken = maticXAddress;
@@ -100,12 +110,13 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ONE.toString());
         assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "flowRate", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "totalBuffer", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "token", ZERO_ADDRESS.toHex());
         assert.fieldEquals("Pool", id, "admin", ZERO_ADDRESS.toHex());
     });
 
-    test("handlePoolConnectionUpdated() - Disconnected member connection updated:", () => {
+    test("handlePoolConnectionUpdated() - Pool Entity: Disconnected member connection updated", () => {
         const account = bob;
         const connected = false;
 
@@ -136,12 +147,13 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ONE.toString());
         assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "flowRate", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "totalBuffer", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "token", ZERO_ADDRESS.toHex());
         assert.fieldEquals("Pool", id, "admin", ZERO_ADDRESS.toHex());
     });
 
-    test("handleBufferAdjusted() - Total buffer value updated:", () => {
+    test("handleBufferAdjusted() - Pool Entity: Total buffer value updated", () => {
         const distributor = alice;
 
         const BUFFER = BigInt.fromI32(100);
@@ -170,30 +182,356 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "flowRate", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "totalBuffer", BUFFER.toString());
         assert.fieldEquals("Pool", id, "token", ZERO_ADDRESS.toHex());
         assert.fieldEquals("Pool", id, "admin", ZERO_ADDRESS.toHex());
     });
 
-    // Pool
-    // handleBufferAdjusted
-    // handleFlowDistributionUpdated
-    // handleInstantDistributionUpdated
-    // handleDistributionClaimed
-    // handleMemberUnitsUpdated
-    // connected member
-    // disconnected member
-    // 0 => some units
-    // connected member
-    // disconnected member
-    // some units => 0
-    // connected member
-    // disconnected member
+    test("handleFlowDistributionUpdated() - Pool Entity: flow related fields updated:", () => {
+        const distributor = alice;
+        const operator = alice;
+        const emptyFlowRate = BigInt.fromI32(0);
+        const newFlowRate = BigInt.fromI32(100000000);
+        const flowDistributionUpdatedEvent = createFlowDistributionUpdatedEvent(
+            superToken,
+            superfluidPool,
+            distributor,
+            operator,
+            emptyFlowRate, // old flow rate
+            newFlowRate, // new distributor to pool flow rate
+            newFlowRate, // new total distribution flow rate
+            alice, // adjustment flow recipient
+            BigInt.fromI32(0) // adjustment flow rate
+        );
 
-    // PoolMember
-    // handlePoolConnectionUpdated
-    // handleDistributionClaimed
-    // handleMemberUnitsUpdated
+        handleFlowDistributionUpdated(flowDistributionUpdatedEvent);
+
+        const id = flowDistributionUpdatedEvent.params.pool.toHexString();
+
+        assertHigherOrderBaseProperties("Pool", id, flowDistributionUpdatedEvent);
+        assert.fieldEquals("Pool", id, "totalUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountInstantlyDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountFlowedDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "flowRate", newFlowRate.toString());
+        assert.fieldEquals("Pool", id, "totalBuffer", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "token", ZERO_ADDRESS.toHex());
+        assert.fieldEquals("Pool", id, "admin", ZERO_ADDRESS.toHex());
+    });
+
+    test("handleInstantDistributionUpdated() - Pool Entity: Total distributed amount updated:", () => {
+        const distributor = alice;
+        const operator = alice;
+        const requestedAmount = BigInt.fromI32(100000000);
+        const instantDistributionUpdatedEvent = createInstantDistributionUpdatedEvent(
+            superToken,
+            superfluidPool,
+            distributor,
+            operator,
+            requestedAmount,
+            requestedAmount
+        );
+
+        handleInstantDistributionUpdated(instantDistributionUpdatedEvent);
+
+        const id = instantDistributionUpdatedEvent.params.pool.toHexString();
+
+        assertHigherOrderBaseProperties("Pool", id, instantDistributionUpdatedEvent);
+        assert.fieldEquals("Pool", id, "totalUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountInstantlyDistributedUntilUpdatedAt", requestedAmount.toString());
+        assert.fieldEquals("Pool", id, "totalAmountFlowedDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountDistributedUntilUpdatedAt", requestedAmount.toString());
+        assert.fieldEquals("Pool", id, "totalMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "flowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalBuffer", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "token", ZERO_ADDRESS.toHex());
+        assert.fieldEquals("Pool", id, "admin", ZERO_ADDRESS.toHex());
+    });
+
+    test("handleDistributionClaimed() - Pool Entity: No changes", () => {
+        const poolMember = alice;
+        const claimedAmount = BigInt.fromI32(100000000);
+        const distributionClaimedEvent = createDistributionClaimedEvent(
+            superToken,
+            poolMember,
+            claimedAmount,
+            claimedAmount
+        );
+
+        handleDistributionClaimed(distributionClaimedEvent);
+
+        const id = distributionClaimedEvent.address.toHexString();
+
+        assertHigherOrderBaseProperties("Pool", id, distributionClaimedEvent);
+        assert.fieldEquals("Pool", id, "totalUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountInstantlyDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountFlowedDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "flowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalBuffer", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "token", ZERO_ADDRESS.toHex());
+        assert.fieldEquals("Pool", id, "admin", ZERO_ADDRESS.toHex());
+    });
+
+    test("handleMemberUnitsUpdated() - Pool Entity: Units data updated (connected member) 0 to > 0 units", () => {
+        const poolMember = alice;
+        const units = BigInt.fromI32(100000000);
+        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+        const poolMemberEntity = getOrInitPoolMember(
+            memberUnitsUpdatedEvent,
+            memberUnitsUpdatedEvent.address,
+            Address.fromString(poolMember)
+        );
+        poolMemberEntity.isConnected = true;
+        poolMemberEntity.save();
+
+        handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
+
+        const id = memberUnitsUpdatedEvent.address.toHexString();
+
+        assertHigherOrderBaseProperties("Pool", id, memberUnitsUpdatedEvent);
+        assert.fieldEquals("Pool", id, "totalUnits", units.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedUnits", units.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountInstantlyDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountFlowedDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalMembers", BIG_INT_ONE.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ONE.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "flowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalBuffer", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "token", ZERO_ADDRESS.toHex());
+        assert.fieldEquals("Pool", id, "admin", ZERO_ADDRESS.toHex());
+    });
+
+    test("handleMemberUnitsUpdated() - Pool Entity: Units data updated (connected member) > 0 to 0 units", () => {
+        const poolMember = alice;
+        const units = BigInt.fromI32(100000000);
+        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+        const poolMemberEntity = getOrInitPoolMember(
+            memberUnitsUpdatedEvent,
+            memberUnitsUpdatedEvent.address,
+            Address.fromString(poolMember)
+        );
+        poolMemberEntity.isConnected = true;
+        poolMemberEntity.save();
+
+        handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
+
+        const memberUnitsUpdatedEventZeroUnits = createMemberUnitsUpdatedEvent(superToken, poolMember, BIG_INT_ZERO);
+
+        handleMemberUnitsUpdated(memberUnitsUpdatedEventZeroUnits);
+
+        const id = memberUnitsUpdatedEvent.address.toHexString();
+
+        assertHigherOrderBaseProperties("Pool", id, memberUnitsUpdatedEvent);
+        assert.fieldEquals("Pool", id, "totalUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountInstantlyDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountFlowedDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "flowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalBuffer", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "token", ZERO_ADDRESS.toHex());
+        assert.fieldEquals("Pool", id, "admin", ZERO_ADDRESS.toHex());
+    });
+
+    test("handleMemberUnitsUpdated() - Pool Entity: Units data updated (disconnected member) 0 to > 0 units", () => {
+        const poolMember = alice;
+        const units = BigInt.fromI32(100000000);
+        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+        const poolMemberEntity = getOrInitPoolMember(
+            memberUnitsUpdatedEvent,
+            memberUnitsUpdatedEvent.address,
+            Address.fromString(poolMember)
+        );
+        poolMemberEntity.save();
+
+        handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
+
+        const id = memberUnitsUpdatedEvent.address.toHexString();
+
+        assertHigherOrderBaseProperties("Pool", id, memberUnitsUpdatedEvent);
+        assert.fieldEquals("Pool", id, "totalUnits", units.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedUnits", units.toString());
+        assert.fieldEquals("Pool", id, "totalAmountInstantlyDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountFlowedDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalMembers", BIG_INT_ONE.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ONE.toString());
+        assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "flowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalBuffer", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "token", ZERO_ADDRESS.toHex());
+        assert.fieldEquals("Pool", id, "admin", ZERO_ADDRESS.toHex());
+    });
+
+    test("handleMemberUnitsUpdated() - Pool Entity: Units data updated (connected member) > 0 to 0 units", () => {
+        const poolMember = alice;
+        const units = BigInt.fromI32(100000000);
+        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+        const poolMemberEntity = getOrInitPoolMember(
+            memberUnitsUpdatedEvent,
+            memberUnitsUpdatedEvent.address,
+            Address.fromString(poolMember)
+        );
+        poolMemberEntity.save();
+
+        handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
+
+        const memberUnitsUpdatedEventZeroUnits = createMemberUnitsUpdatedEvent(superToken, poolMember, BIG_INT_ZERO);
+
+        handleMemberUnitsUpdated(memberUnitsUpdatedEventZeroUnits);
+
+        const id = memberUnitsUpdatedEvent.address.toHexString();
+
+        assertHigherOrderBaseProperties("Pool", id, memberUnitsUpdatedEvent);
+        assert.fieldEquals("Pool", id, "totalUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedUnits", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountInstantlyDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountFlowedDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalAmountDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "flowRate", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "totalBuffer", BIG_INT_ZERO.toString());
+        assert.fieldEquals("Pool", id, "token", ZERO_ADDRESS.toHex());
+        assert.fieldEquals("Pool", id, "admin", ZERO_ADDRESS.toHex());
+    });
+
+    test("handlePoolConnectionUpdated - PoolMember Entity: isConnected updated from false to true", () => {
+        const account = bob;
+        const connected = true;
+        const units = BigInt.fromI32(1);
+
+        const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(superToken, account, units);
+
+        const poolAddress = memberUnitsUpdatedEvent.address;
+
+        const poolConnectionUpdatedEvent = updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
+            superToken,
+            account,
+            poolAddress.toHexString(),
+            connected,
+            initialFlowRate
+        );
+        const id = getPoolMemberID(poolAddress, Address.fromString(account));
+
+        assertHigherOrderBaseProperties("PoolMember", id, poolConnectionUpdatedEvent);
+        assert.fieldEquals("PoolMember", id, "units", units.toString());
+        assert.fieldEquals("PoolMember", id, "isConnected", TRUE);
+        assert.fieldEquals("PoolMember", id, "totalAmountClaimed", BIG_INT_ZERO.toString());
+        assert.fieldEquals("PoolMember", id, "account", account);
+        assert.fieldEquals("PoolMember", id, "pool", poolAddress.toHexString());
+    });
+
+    test("handlePoolConnectionUpdated - PoolMember Entity: isConnected updated from true to false", () => {
+        const account = bob;
+        const connected = true;
+        const units = BigInt.fromI32(1);
+
+        const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(superToken, account, units);
+
+        const poolAddress = memberUnitsUpdatedEvent.address;
+
+        const poolConnectionUpdatedEvent = updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
+            superToken,
+            account,
+            poolAddress.toHexString(),
+            connected,
+            initialFlowRate
+        );
+
+        updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
+            superToken,
+            account,
+            poolAddress.toHexString(),
+            false,
+            initialFlowRate
+        );
+        const id = getPoolMemberID(poolAddress, Address.fromString(account));
+
+        assertHigherOrderBaseProperties("PoolMember", id, poolConnectionUpdatedEvent);
+        assert.fieldEquals("PoolMember", id, "units", units.toString());
+        assert.fieldEquals("PoolMember", id, "isConnected", FALSE);
+        assert.fieldEquals("PoolMember", id, "totalAmountClaimed", BIG_INT_ZERO.toString());
+        assert.fieldEquals("PoolMember", id, "account", account);
+        assert.fieldEquals("PoolMember", id, "pool", poolAddress.toHexString());
+    });
+
+    test("handleDistributionClaimed() - PoolMember Entity: totalAmountClaimed updated", () => {
+        const poolMember = alice;
+        const claimedAmount = BigInt.fromI32(100000000);
+        const distributionClaimedEvent = createDistributionClaimedEvent(
+            superToken,
+            poolMember,
+            claimedAmount,
+            claimedAmount
+        );
+
+        const poolAddress = distributionClaimedEvent.address;
+
+        handleDistributionClaimed(distributionClaimedEvent);
+
+        const id = getPoolMemberID(poolAddress, Address.fromString(poolMember));
+
+        assertHigherOrderBaseProperties("PoolMember", id, distributionClaimedEvent);
+        assert.fieldEquals("PoolMember", id, "units", BIG_INT_ZERO.toString());
+        assert.fieldEquals("PoolMember", id, "isConnected", FALSE);
+        assert.fieldEquals("PoolMember", id, "totalAmountClaimed", claimedAmount.toString());
+        assert.fieldEquals("PoolMember", id, "account", poolMember);
+        assert.fieldEquals("PoolMember", id, "pool", poolAddress.toHexString());
+    });
+
+    test("handleMemberUnitsUpdated() - PoolMember Entity: units updated", () => {
+        const poolMember = alice;
+        const units = BigInt.fromI32(100000000);
+        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+
+        const poolAddress = memberUnitsUpdatedEvent.address;
+
+        handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
+
+        const id = getPoolMemberID(poolAddress, Address.fromString(poolMember));
+
+        assertHigherOrderBaseProperties("PoolMember", id, memberUnitsUpdatedEvent);
+        assert.fieldEquals("PoolMember", id, "units", units.toString());
+        assert.fieldEquals("PoolMember", id, "isConnected", FALSE);
+        assert.fieldEquals("PoolMember", id, "totalAmountClaimed", BIG_INT_ZERO.toString());
+        assert.fieldEquals("PoolMember", id, "account", poolMember);
+        assert.fieldEquals("PoolMember", id, "pool", poolAddress.toHexString());
+    });
+
     // PoolDistributor
     // handleBufferAdjusted
     // handleFlowDistributionUpdated
@@ -212,6 +550,7 @@ function assertEmptyPoolData(id: string, event: ethereum.Event, token: string): 
     assert.fieldEquals("Pool", id, "totalConnectedMembers", BIG_INT_ZERO.toString());
     assert.fieldEquals("Pool", id, "totalDisconnectedMembers", BIG_INT_ZERO.toString());
     assert.fieldEquals("Pool", id, "adjustmentFlowRate", BIG_INT_ZERO.toString());
+    assert.fieldEquals("Pool", id, "flowRate", BIG_INT_ZERO.toString());
     assert.fieldEquals("Pool", id, "totalBuffer", BIG_INT_ZERO.toString());
     assert.fieldEquals("Pool", id, "token", token);
     assert.fieldEquals("Pool", id, "admin", admin);

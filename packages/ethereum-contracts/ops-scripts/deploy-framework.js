@@ -1303,9 +1303,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             );
             await superfluidPoolBeacon.upgradeTo(superfluidPoolLogicAddress);
         }
+    }
 
     // finally, set the version string in resolver
-
     if (previousVersionString !== versionString) {
         const sfObjForResolver = {
             contracts: {

@@ -137,7 +137,7 @@ jobs:
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
 
       - name: "Deploy ${{ inputs.network }} to The Graph Hosted Subgraph endpoint"
-        if: inputs.network != 'all' && inputs.vendor == 'thegraph'
+        if: inputs.network != 'all' && inputs.vendor == 'graph'
         run: ./tasks/deploy-graph-networks.sh -n ${{ inputs.network }} -v ${{ inputs.release_branch }}
         working-directory: ${{ env.subgraph-working-directory }}
         env:

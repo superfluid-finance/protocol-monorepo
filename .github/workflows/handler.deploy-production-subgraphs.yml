@@ -13,11 +13,16 @@ on:
       vendor:
         required: true
         description: "Where to deploy subgraph to; superfluid, graph, or satsuma"
-        type: string
+        default: "superfluid" 
+        type: choice
+        options:
+            - superfluid
+            - graph
+            - satsuma    
       release_branch:
         required: false
         type: string
-        description: 'The subgraph release: feature, dev, v1. Required for self-hosted and Te Graph. '
+        description: 'The subgraph release: feature, dev, v1. Required for Superfluid and The Graph vendors. '
       network:
         required: true
         type: string
@@ -37,6 +42,7 @@ jobs:
 
   deploy-hosted-service-subgraph:
     uses: ./.github/workflows/call.deploy-subgraph.yml
+    if: github.event.inputs.vendor == 'graph'
     needs: [ 
             build-and-test-local-subgraph
            , build-and-test-local-subgraph-against-previous-sdk-core-releases
@@ -51,6 +57,7 @@ jobs:
 
   deploy-satsuma-subgraph:
     uses: ./.github/workflows/call.deploy-subgraph.yml
+    if: github.event.inputs.vendor == 'satsuma'
     needs: [ 
             build-and-test-local-subgraph
            , build-and-test-local-subgraph-against-previous-sdk-core-releases
@@ -64,6 +71,7 @@ jobs:
 
   deploy-self-hosted-subgraph:
     uses: ./.github/workflows/call.deploy-subgraph.yml
+    if: github.event.inputs.vendor == 'superfluid'
     needs: [ 
             build-and-test-local-subgraph
            , build-and-test-local-subgraph-against-previous-sdk-core-releases

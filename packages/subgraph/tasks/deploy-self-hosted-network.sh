@@ -51,12 +51,12 @@ deploy_subgraph() {
     fi
 
     echo "********* Deploying protocol-$version_label-$network subgraph to $network network... **********"
-    NODE_URL="${SUBGRAPH_URL_TEMPLATE//\{\{NETWORK\}\}/$network}"
+    NODE_URL="${SUBGRAPH_URL_TEMPLATE//\{\{NETWORK\}\}/$network}/admin/"
 
     $GRAPH_CLI create "protocol-$version_label-$network" --node "$NODE_URL" && \
     $GRAPH_CLI deploy "protocol-$version_label-$network" \
         --version-label "$version_label" \
-        --node "$NODE_URL/admin/" \
+        --node "$NODE_URL" \
         --ipfs "$IPFS_API"
 }
 

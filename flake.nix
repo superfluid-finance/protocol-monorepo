@@ -65,8 +65,8 @@
     node18DevInputs = nodeDevInputsWith pkgs.nodejs_18;
     node20DevInputs = nodeDevInputsWith pkgs.nodejs_20;
 
-    # minimem development shell
-    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node18DevInputs;
+    # minimum development shell
+    minimumDevInputs = commonDevInputs ++ ethDevInputs ++ node20DevInputs;
 
     # additional tooling for whitehat hackers
     whitehatInputs = with pkgs; [

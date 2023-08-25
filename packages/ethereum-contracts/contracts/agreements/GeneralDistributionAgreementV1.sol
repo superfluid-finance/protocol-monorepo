@@ -30,8 +30,6 @@ import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
 import { AgreementBase } from "./AgreementBase.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 
-// TODO: add summed CFA + GDA net flow rate onto SuperToken.sol/SuperfluidToken.sol
-
 /**
  * @title General Distribution Agreement
  * @author Superfluid
@@ -887,8 +885,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         returns (bytes memory)
     {
         address token = abi.decode(eff, (address));
-        // TODO see if this can be optimized, seems unnecessary to re-retrieve all the data
-        // from storage to ensure totalBuffer and isPool isn't overriden
         UniversalIndexData memory universalIndexData = _getUIndexData(eff, owner);
 
         ISuperfluidToken(token).updateAgreementStateSlot(

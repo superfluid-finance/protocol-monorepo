@@ -70,14 +70,6 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         GDA = gda;
     }
 
-    // TODO transferability of admin should be allowed
-    // nft transferable?
-    // customizable metadata for the NFT can be considered
-    // solhint-disable-next-line no-empty-blocks
-    function transferAdmin(address admin_) external {
-        // What happens to the Admin NFT?
-    }
-
     function initialize(address admin_, ISuperfluidToken superToken_) external initializer {
         admin = admin_;
         superToken = superToken_;
@@ -484,9 +476,6 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         mu = mu.settle(t);
         mu.m.owned_units = mu.m.owned_units + shiftUnits;
         // offset the claimed amount from the settled value if any
-        // TODO Should probably not expose the private _settled_value field.
-        //      Alternatively could be a independent field, while the implementer can optimize
-        //      it away by merging their storage using monoidal laws again.
         mu.m._settled_value = mu.m._settled_value - claimedAmount;
         _disconnectedMembers = _pdPoolMemberToMemberData(mu.m, 0);
     }

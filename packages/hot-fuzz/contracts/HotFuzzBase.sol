@@ -93,16 +93,20 @@ contract HotFuzzBase {
         internal view
         returns (address[] memory accounts)
     {
-        accounts = new address[](nTesters + otherAccounts.length);
+        accounts = new address[](_numAccounts());
         for (uint i = 0; i < nTesters; ++i) accounts[i] = address(testers[i]);
         for (uint i = 0; i < otherAccounts.length; ++i) accounts[i + nTesters] = otherAccounts[i];
     }
 
+    function _numAccounts() internal view returns (uint256) {
+        return nTesters + otherAccounts.length;
+    }
+
     function _getOneTester(uint8 a)
         internal view
-        returns (SuperfluidTester testerA)
+        returns (SuperfluidTester tester)
     {
-        testerA = testers[a % nTesters];
+        tester = testers[a % _numAccounts()];
     }
 
     /// @dev The testers returned will never be the same
@@ -110,9 +114,8 @@ contract HotFuzzBase {
         internal view
         returns (SuperfluidTester testerA, SuperfluidTester testerB)
     {
-        testerA = testers[a % nTesters];
-        // avoid tester B to be the same as tester A
-        testerB = testers[((a % nTesters) + (b % (nTesters - 1))) % nTesters];
+        testerA = _getOneTester(a);
+        testerB = _getOneTester(b);
     }
 
     function _superTokenBalanceOfNow(address a) internal view returns (int256 avb) {

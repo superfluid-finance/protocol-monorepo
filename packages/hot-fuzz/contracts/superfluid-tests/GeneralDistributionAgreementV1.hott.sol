@@ -9,7 +9,7 @@ import {ISuperfluidPool} from
 abstract contract GDAHotFuzzMixin is HotFuzzBase {
     ISuperfluidPool[] public pools;
 
-    function getRandomPool(uint256 input) public view returns (ISuperfluidPool pool) {
+    function getRandomPool(uint8 input) public view returns (ISuperfluidPool pool) {
         if (pools.length > 0) {
             pool = pools[input % (pools.length - 1)];
         }
@@ -116,7 +116,6 @@ contract GDAHotFuzz is HotFuzzBase(10), GDAHotFuzzMixin {
 
         for (uint256 i; i < NUM_POOLS; i++) {
             (SuperfluidTester tester) = _getOneTester(uint8(i));
-            // create a pool breaks
             ISuperfluidPool pool = tester.createPool(address(tester));
             _addPool(pool);
         }

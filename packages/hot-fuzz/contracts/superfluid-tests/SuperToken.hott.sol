@@ -4,8 +4,38 @@ pragma solidity >= 0.8.0;
 
 import "../HotFuzzBase.sol";
 
-
 abstract contract SuperTokenHotFuzzMixin is HotFuzzBase {
+    function approve(uint8 a, uint8 b, uint256 amount) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        testerA.approve(address(testerB), amount);
+    }
+
+    function increaseAllowance(uint8 a, uint8 b, uint256 addedValue) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        testerA.increaseAllowance(address(testerB), addedValue);
+    }
+
+    function decreaseAllowance(uint8 a, uint8 b, uint256 subtractedValue) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        testerA.decreaseAllowance(address(testerB), subtractedValue);
+    }
+
+    function transfer(uint8 a, uint8 b, uint256 amount) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        testerA.transfer(address(testerB), amount);
+    }
+
+    function transferFrom(uint8 a, uint8 b, uint8 c, uint256 amount) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        SuperfluidTester testerC = _getOneTester(c);
+        testerA.transferFrom(address(testerB), address(testerC), amount);
+    }
+
+    function transferAll(uint8 a, uint8 b) public {
+        (SuperfluidTester testerA, SuperfluidTester testerB) = _getTwoTesters(a, b);
+        testerA.transferAll(address(testerB));
+    }
+
     function upgrade(uint8 a, uint64 amount) public {
         require(amount > 0);
         SuperfluidTester tester = _getOneTester(a);

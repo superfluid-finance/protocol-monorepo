@@ -37,6 +37,30 @@ contract SuperfluidTester {
         superToken.downgrade(amount);
     }
 
+    function transferAll(address recipient) public {
+        superToken.transferAll(recipient);
+    }
+
+    function approve(address spender, uint256 amount) public {
+        superToken.approve(spender, amount);
+    }
+
+    function transfer(address recipient, uint256 amount) public {
+        superToken.transfer(recipient, amount);
+    }
+
+    function transferFrom(address sender, address recipient, uint256 amount) public {
+        superToken.transferFrom(sender, recipient, amount);
+    }
+
+    function increaseAllowance(address spender, uint256 addedValue) public {
+        superToken.increaseAllowance(spender, addedValue);
+    }
+
+    function decreaseAllowance(address spender, uint256 subtractedValue) public {
+        superToken.decreaseAllowance(spender, subtractedValue);
+    }
+
     // CFA functions
 
     function flow(address receiver, int96 flowRate) public {
@@ -90,9 +114,7 @@ contract SuperfluidTester {
         int96 subtractedFlowRateAllowance
     ) public {
         superToken.decreaseFlowRateAllowanceWithPermissions(
-            flowOperator,
-            permissionsToRemove,
-            subtractedFlowRateAllowance
+            flowOperator, permissionsToRemove, subtractedFlowRateAllowance
         );
     }
 

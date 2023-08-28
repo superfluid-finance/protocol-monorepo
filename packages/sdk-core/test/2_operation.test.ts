@@ -141,17 +141,24 @@ makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should be able to use arbitrary gas estimation limit", async () => {
-            const { operation: updateOp1 } = await createCallAppActionOperation(
+            const GAS_MULTIPLIER = 2;
+
+            const { operation } = await createCallAppActionOperation(
                 testEnv.alice,
                 testEnv.sdkFramework,
                 420
             );
-            const populatedTxn = await updateOp1.populateTransactionPromise;
-            const estimatedGas = await testEnv.alice.estimateGas(populatedTxn);
-            const updateOpTxn1 = await updateOp1.exec(testEnv.alice, 2);
 
-            expect(updateOpTxn1.gasLimit).to.equal(
-                multiplyGasLimit(estimatedGas, 2)
+            const populatedTxn = await operation.populateTransactionPromise;
+            const estimatedGas = await testEnv.alice.estimateGas(populatedTxn);
+
+            const callAppActionTxn = await operation.exec(
+                testEnv.alice,
+                GAS_MULTIPLIER
+            );
+
+            expect(callAppActionTxn.gasLimit).to.equal(
+                multiplyGasLimit(estimatedGas, GAS_MULTIPLIER)
             );
         });
 

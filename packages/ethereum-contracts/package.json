@@ -13,6 +13,7 @@
         "/contracts/**/*",
         "!/contracts/mocks/*",
         "/build/truffle/*.json",
+        "/build/hardhat/**/*",
         "!/build/truffle/*Mock*.json",
         "!/build/truffle/*Tester*.json",
         "!/build/truffle/*Anvil.json",

@@ -91,12 +91,13 @@ jobs:
   # deploy subgraph if changes are made, we can call this every time, but we won't actually do any deployments
   # if the IPFS hash generated stays the same (no mapping logic changes)
   deploy-subgraph-changes:
-    uses: ./.github/workflows/call.deploy-hosted-service-subgraph.yml
+    uses: ./.github/workflows/call.deploy-subgraph.yml
     name: "Deploy Hosted Service Subgraph to dev endpoints on all networks"
     needs: [check, test-subgraph]
     if: needs.check.outputs.build_subgraph
     with:
-      release_branch: dev
+      vendor: graph
+      deployment_env: dev
       network: "all"
     secrets:
       THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}

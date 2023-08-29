@@ -163,8 +163,10 @@ const config: HardhatUserConfig = {
             ...createNetworkConfig("base-goerli"),
             url: process.env.BASE_GOERLI_PROVIDER_URL || "",
         },
-        coverage: {
-            url: "http://127.0.0.1:8555",
+        hardhat: {
+            // Fixing an issue that parallel coverage test is not working for unkown reason.
+            // Ref: https://github.com/NomicFoundation/hardhat/issues/4310
+            allowUnlimitedContractSize: process.env.IS_COVERAGE_TEST ? true : undefined,
         },
     },
     mocha: {

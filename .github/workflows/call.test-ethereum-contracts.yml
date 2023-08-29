@@ -95,11 +95,11 @@ jobs:
           echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
           yarn test-coverage
         working-directory: ./packages/ethereum-contracts
-        # env:
-          # NOTE: they don't quite work, it seems each worker runs all tests hence making things even slower
-          # IS_COVERAGE_TEST: true
-          # HARDHAT_TEST_JOBS: 4
-          # HARDHAT_RUN_PARALLEL: true
+        env:
+          # NOTE: 4 workers would overwhelm the free-tier github runner
+          IS_COVERAGE_TEST: true
+          HARDHAT_TEST_JOBS: 2
+          HARDHAT_RUN_PARALLEL: true
 
       - name: Clean up and merge coverage artifacts
         if: inputs.run-coverage-tests == true

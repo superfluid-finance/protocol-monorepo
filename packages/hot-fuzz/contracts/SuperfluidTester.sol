@@ -26,7 +26,18 @@ contract SuperfluidTester {
     }
 
     // ERC20 Functions
-    // TODO: transfer, approve, etc.
+    function approve(address spender, uint256 amount) public {
+        superToken.approve(spender, amount);
+    }
+
+    function transfer(address recipient, uint256 amount) public {
+        superToken.transfer(recipient, amount);
+    }
+
+    function transferFrom(address sender, address recipient, uint256 amount) public {
+        superToken.transferFrom(sender, recipient, amount);
+    }
+
     // SuperToken Functions
     function upgradeSuperToken(uint256 amount) public {
         token.approve(address(superToken), amount);
@@ -39,18 +50,6 @@ contract SuperfluidTester {
 
     function transferAll(address recipient) public {
         superToken.transferAll(recipient);
-    }
-
-    function approve(address spender, uint256 amount) public {
-        superToken.approve(spender, amount);
-    }
-
-    function transfer(address recipient, uint256 amount) public {
-        superToken.transfer(recipient, amount);
-    }
-
-    function transferFrom(address sender, address recipient, uint256 amount) public {
-        superToken.transferFrom(sender, recipient, amount);
     }
 
     function increaseAllowance(address spender, uint256 addedValue) public {

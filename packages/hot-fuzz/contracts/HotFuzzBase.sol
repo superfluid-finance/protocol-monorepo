@@ -60,6 +60,7 @@ contract HotFuzzBase {
         otherAccounts = new address[](0);
 
         _addAccount(address(sf.gda));
+        _addAccount(address(sf.toga));
     }
 
     function _initTesters() virtual internal {

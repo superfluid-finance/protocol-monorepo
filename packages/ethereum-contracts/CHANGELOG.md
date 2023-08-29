@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Added
+
+- Added 'test-slither' yarn sub-task.
+
 ## [v1.8.1] - 2023-08-28
 
 ### Fixed

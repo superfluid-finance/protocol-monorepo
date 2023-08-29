@@ -783,6 +783,15 @@ contract FoundrySuperfluidTester is Test {
 
             _helperTakeBalanceSnapshot(superToken_, sender);
             _helperTakeBalanceSnapshot(superToken_, receiver);
+
+            if (caller != sender && caller != receiver) {
+                _helperTakeBalanceSnapshot(superToken_, caller);
+            }
+
+            // Get the default reward address for the token and update their snapshot too in the
+            // liquidation case
+            address rewardAddress = sf.governance.getRewardAddress(sf.host, superToken_);
+            _helperTakeBalanceSnapshot(superToken_, rewardAddress);
         }
 
         // Assert Flow Data + Account Flow Info for sender/receiver
@@ -2098,7 +2107,6 @@ contract FoundrySuperfluidTester is Test {
     ) internal {
         (uint256 lastUpdated, int96 netFlowRate, uint256 deposit, uint256 owedDeposit) =
             sf.cfa.getAccountFlowInfo(superToken, account);
-
         int96 expectedNetFlowRate = flowInfoBefore.flowRate + (isSender ? -flowRateDelta : flowRateDelta);
         int256 depositDelta =
             superToken.getBufferAmountByFlowRate(flowRateDelta < 0 ? -flowRateDelta : flowRateDelta).toInt256();

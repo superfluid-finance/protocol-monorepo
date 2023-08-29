@@ -704,16 +704,6 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         assertEq(poolAdjustmentFlowRate, 0, "GDAv1.t: Pool adjustment rate is non-zero");
     }
 
-    function testDistributeFlowToDisconnectedMember(UpdateMemberData memory member, int32 flowRate, bool useForwarder)
-        public
-    {
-        vm.assume(flowRate > 0);
-
-        _helperUpdateMemberUnits(currentPool, alice, member.member, 1);
-
-        _helperDistributeFlow(superToken, alice, alice, currentPool, 1, useForwarder);
-    }
-
     function testDistributeFlowToUnconnectedMembers(
         UpdateMemberData[5] memory members,
         int32 flowRate,

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.8.11;
+pragma solidity >= 0.8.10;
 
 // Have all the candies please, though you are damned for craving for convenience.
 // solhint-disable-next-line no-global-import

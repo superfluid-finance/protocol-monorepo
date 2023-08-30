@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.8.11;
+pragma solidity >= 0.8.10;
 
 library SuperfluidLoaderLibrary {
     error UnsupportedNetwork();
@@ -23,7 +23,7 @@ library SuperfluidLoaderLibrary {
     uint256 private constant OPTIMISM_GOERLI = 420;
     uint256 private constant AVALANCHE_FUJI = 43113;
     uint256 private constant ZKEVM_TESTNET = 1442;
-    
+
 
     function getHost() public view returns (address) {
         if (block.chainid == ETH_MAINNET) {

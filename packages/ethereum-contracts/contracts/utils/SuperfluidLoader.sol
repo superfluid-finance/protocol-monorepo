@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.11;
+pragma solidity >=0.8.10;
 
 import { IResolver } from "../interfaces/utils/IResolver.sol";
 import {

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.8.11;
+pragma solidity >= 0.8.10;
 
 // We export this too because it seems reasonable for a custom super token.
 // solhint-disable-next-line no-unused-import

@@ -14,9 +14,15 @@
       inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    agda-stdlib = {
+      url = "github:jkopanski/agda-stdlib";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
+      };
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, foundry, solc } :
+  outputs = { self, nixpkgs, flake-utils, foundry, solc, agda-stdlib } :
   flake-utils.lib.eachDefaultSystem (system:
   let
     minDevSolcVer = "solc_0_8_11"; # minimum solidity version used for external development
@@ -84,6 +90,11 @@
       ghc
       hlint
       stylish-haskell
+      # for agda
+      (agda.withPackages (p: [
+          (agda-stdlib.packages.${system}.default)
+          p.agda-categories
+      ]))
       # sage math
       sage
       # testing tooling

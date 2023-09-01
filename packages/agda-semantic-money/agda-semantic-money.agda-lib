@@ -1,0 +1,3 @@
+name: catlog
+depend: standard-library-2.0
+include: src

@@ -342,8 +342,8 @@ abstract contract IConstantFlowAgreementV1 is ISuperAgreement {
     /**
      * @dev Get the flow data between `sender` and `receiver` of `token`
      * @param token Super token address
-     * @param sender Flow receiver
-     * @param receiver Flow sender
+     * @param sender Flow sender
+     * @param receiver Flow receiver
      * @return timestamp Timestamp of when the flow is updated
      * @return flowRate The flow rate
      * @return deposit The amount of deposit the flow

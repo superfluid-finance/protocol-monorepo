@@ -59,10 +59,10 @@ lift₂ f a b = λ t → f (a t) (b t) -- TODO: point-free style, how??
 V = ℤ
 
 _+_ : β V -> β V -> β V
-(x + y) t = x t Int.+ y t
+_+_ = lift₂ Int._+_
 
 -_ : β V -> β V
-(- x) t = Int.- x t
+-_ = lift₁ (Int.-_)
 
 <+> : β V × β V -> β V
 <+> (b₀ , b₁) = b₀ + b₁ -- TODO use lift₂, also define the meaning of the product.
@@ -95,4 +95,4 @@ pay₂-prop-to-op :
   ∀ (from to op : β V) ->
   ∀ (t : 𝕋) ->
   (to + (- op)) at t ≡ (proj₂ (pay₂ (from , to) op)) at t
-pay₂-to = λ from to op t → refl
+pay₂-prop-to-op = λ from to op t → refl

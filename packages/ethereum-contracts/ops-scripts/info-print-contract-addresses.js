@@ -69,6 +69,17 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         sf.host.address
     )}\n`;
     output += `SUPERFLUID_GOVERNANCE=${await sf.host.getGovernance()}\n`;
+
+    // If govenrnance is upgradable, also add the logic
+    try {
+        const gov = await sf.contracts.UUPSProxiable.at(
+            await sf.host.getGovernance.call()
+        );
+        output += `SUPERFLUID_GOVERNANCE_LOGIC=${await gov.getCodeAddress()}\n`;
+    } catch (e) {
+        // ignore
+    }
+
     output += `SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY=${await sf.host.getSuperTokenFactory()}\n`;
     output += `SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC=${await sf.host.getSuperTokenFactoryLogic()}\n`;
     output += `CFA_PROXY=${sf.agreements.cfa.address}\n`;

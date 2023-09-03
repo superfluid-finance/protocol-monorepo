@@ -65,6 +65,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         additionalContracts: [
             "Ownable",
             "IMultiSigWallet",
+            "ISafe",
             "SuperfluidGovernanceBase",
             "Resolver",
             "UUPSProxiable",

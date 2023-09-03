@@ -153,16 +153,22 @@ async function getCodeAddress(UUPSProxiable, proxyAddress) {
 async function setResolver(sf, key, value) {
     console.log(`Setting resolver ${key} -> ${value} ...`);
     const resolver = await sf.contracts.Resolver.at(sf.resolver.address);
-    switch (process.env.RESOLVER_ADMIN_TYPE) {
+
+    // since the Resolver implements AccessControlEnumerable, it could have multiple admins.
+    // we're currently using a single admin, thus can just pick the last one here.
+    const ADMIN_ROLE = "0x" + "0".repeat(64);
+    const ac = await sf.contracts.IAccessControlEnumerable.at(
+        sf.resolver.address
+    );
+    const nrAdmins = (await ac.getRoleMemberCount(ADMIN_ROLE)).toNumber();
+    const resolverAdmin = await ac.getRoleMember(ADMIN_ROLE, nrAdmins - 1);
+
+    const adminType = process.env.RESOLVER_ADMIN_TYPE
+        || await autodetectAdminType(sf, resolverAdmin);
+
+    switch (adminType) {
         case "MULTISIG": {
             console.log("Resolver Admin type: MultiSig");
-            const ADMIN_ROLE = "0x" + "0".repeat(64);
-            const ac = await sf.contracts.IAccessControlEnumerable.at(
-                sf.resolver.address
-            );
-            const rmCnt = (await ac.getRoleMemberCount(ADMIN_ROLE)).toNumber();
-            // always picks the last admin set (could be more than one)
-            const resolverAdmin = await ac.getRoleMember(ADMIN_ROLE, rmCnt - 1);
             const multis = await sf.contracts.IMultiSigWallet.at(resolverAdmin);
             console.log("MultiSig address: ", multis.address);
             const data = resolver.contract.methods.set(key, value).encodeABI();
@@ -174,11 +180,23 @@ async function setResolver(sf, key, value) {
             );
             break;
         }
-        default: {
+        case "OWNABLE": {
             console.log("Resolver Admin type: Direct Ownership (default)");
             console.log("Executing admin action...");
             await resolver.set(key, value);
             console.log("Admin action executed.");
+            break;
+        }
+        case "SAFE": {
+            await executeSafeTransaction(
+                resolverAdmin,
+                resolver.address,
+                resolver.contract.methods.set(key, value).encodeABI()
+            );
+            break;
+        }
+        default: {
+            throw new Error("No known admin type specified and autodetect failed");
         }
     }
 }
@@ -210,7 +228,7 @@ async function sendGovernanceAction(sf, actionFn) {
     console.log("Governance owner:", govOwner);
 
     const adminType = process.env.GOVERNANCE_ADMIN_TYPE
-        || await autodetectGovAdminType(sf, govOwner);
+        || await autodetectAdminType(sf, govOwner);
 
     switch (adminType) {
         case "MULTISIG": {
@@ -236,63 +254,11 @@ async function sendGovernanceAction(sf, actionFn) {
             break;
         }
         case "SAFE": {
-            const Web3Adapter = require('@safe-global/safe-web3-lib').default;
-            const Safe = require('@safe-global/safe-core-sdk').default;
-            const SafeServiceClient = require('@safe-global/safe-service-client').default;
-
-            const safeOwner = (await web3.eth.getAccounts())[0]; // tx sender
-            console.log("Address used as Safe owner (1st signer):", safeOwner);
-            const safeAddress = govOwner;
-
-            const ethAdapterOwner1 = new Web3Adapter({
-                web3,
-                signerAddress: safeOwner
-            });
-
-            const safeSdk = await Safe.create({ ethAdapter: ethAdapterOwner1, safeAddress });
-            const safeService = new SafeServiceClient({
-                txServiceUrl: getSafeTxServiceUrl(await web3.eth.getChainId()),
-                ethAdapter: ethAdapterOwner1
-            });
-
-            const data = actionFn(gov.contract.methods).encodeABI();
-            const nextNonce = await safeService.getNextNonce(safeAddress);
-            const safeTransactionData = {
-                to: gov.address,
-                value: 0,
-                data: data,
-                nonce: process.env.SAFE_REPLACE_LAST_TX ? nextNonce-1 : nextNonce
-            };
-            const safeTransaction = await safeSdk.createTransaction({ safeTransactionData });
-            console.log("Safe tx:", safeTransaction);
-
-            const safeTxHash = await safeSdk.getTransactionHash(safeTransaction);
-            console.log("Safe tx hash:", safeTxHash);
-            const signature = await safeSdk.signTransactionHash(safeTxHash);
-            console.log("Signature:", signature);
-
-            const transactionConfig = {
-                safeAddress,
-                safeTxHash,
-                safeTransactionData: safeTransaction.data,
-                senderAddress: safeOwner,
-                senderSignature: signature.data,
-                origin: "ops-scripts"
-            };
-
-            const pendingTxsBefore = await safeService.getPendingTransactions(safeAddress);
-
-            // according to the docs this should return the tx hash, but always returns undefined although succeeding
-            const ret = await safeService.proposeTransaction(transactionConfig);
-            console.log("returned:", ret);
-
-            const pendingTxsAfter = await safeService.getPendingTransactions(safeAddress);
-            console.log(`pending txs before ${pendingTxsBefore.count}, after ${pendingTxsAfter.count}`);
-
-            // workaround for verifying that the proposal was added
-            if (!pendingTxsAfter.count > pendingTxsBefore.count) {
-                throw new Error("Safe pending transactions count didn't increase, propose may have failed!");
-            }
+            await executeSafeTransaction(
+                govOwner, // Safe address
+                gov.address, // target contract address
+                actionFn(gov.contract.methods).encodeABI() // safeTxData
+            );
             break;
         }
         default: {
@@ -301,19 +267,38 @@ async function sendGovernanceAction(sf, actionFn) {
     }
 }
 
+/****************************************************************
+ * Multisig helpers
+ ****************************************************************/
+
 // Probes the given account to see what kind of admin it is.
 // Possible return values: "MULTISIG", "OWNABLE".
 // Throws when encountering an unknown contract.
 // TODO: add support for detecting SAFE
-async function autodetectGovAdminType(sf, account) {
+async function autodetectAdminType(sf, account) {
     if (!await hasCode(web3, account)) {
         console.log("account has no code");
         return "OWNABLE";
     }
-    const multis = await sf.contracts.IMultiSigWallet.at(account);
-    // this will throw if not exists
-    const moc = await multis.required();
-    return "MULTISIG";
+
+    try {
+        const multis = await sf.contracts.IMultiSigWallet.at(account);
+        await multis.required();
+        return "MULTISIG";
+    } catch(e) {
+        console.log("not detecting legacy multisig fingerprint");
+    }
+
+    try {
+        const safe = await sf.contracts.ISafe.at(account);
+        const safeVersion = await safe.VERSION();
+        console.log("detected Safe version", safeVersion);
+        return "SAFE";
+    } catch(e) {
+        console.log("not detecting Safe fingerprint");
+    }
+
+    throw new Error(`Unknown admin contract type of account ${account}`);
 }
 
 // returns the Safe Tx Service URL or throws if none available
@@ -337,6 +322,67 @@ function getSafeTxServiceUrl(chainId) {
         throw new Error(`no Safe tx service url known for chainId ${chainId}`);
     }
     return `https://safe-transaction-${safeChainNames[chainId]}.safe.global`;
+}
+
+// safeTxData is the ABI encoded transaction data of the inner call to be made by the Safe
+async function executeSafeTransaction(safeAddr, targetContractAddr, safeTxData) {
+    const Web3Adapter = require('@safe-global/safe-web3-lib').default;
+    const Safe = require('@safe-global/safe-core-sdk').default;
+    const SafeServiceClient = require('@safe-global/safe-service-client').default;
+
+    const safeOwner = (await web3.eth.getAccounts())[0]; // tx sender
+    console.log("Safe signer being used:", safeOwner);
+
+    const ethAdapterOwner1 = new Web3Adapter({
+        web3,
+        signerAddress: safeOwner
+    });
+
+    const safeSdk = await Safe.create({ ethAdapter: ethAdapterOwner1, safeAddress: safeAddr });
+
+    const safeService = new SafeServiceClient({
+        txServiceUrl: getSafeTxServiceUrl(await web3.eth.getChainId()),
+        ethAdapter: ethAdapterOwner1
+    });
+
+    const data = safeTxData;
+    const nextNonce = await safeService.getNextNonce(safeAddr);
+    const safeTransactionData = {
+        to: targetContractAddr,
+        value: 0,
+        data: data,
+        nonce: process.env.SAFE_REPLACE_LAST_TX ? nextNonce-1 : nextNonce
+    };
+    const safeTransaction = await safeSdk.createTransaction({ safeTransactionData });
+    console.log("Safe tx:", safeTransaction);
+
+    const safeTxHash = await safeSdk.getTransactionHash(safeTransaction);
+    console.log("Safe tx hash:", safeTxHash);
+    const signature = await safeSdk.signTransactionHash(safeTxHash);
+    console.log("Signature:", signature);
+
+    const transactionConfig = {
+        safeAddress: safeAddr,
+        safeTransactionData: safeTransaction.data,
+        safeTxHash: safeTxHash,
+        senderAddress: safeOwner,
+        senderSignature: signature.data,
+        origin: "ops-scripts"
+    };
+
+    const pendingTxsBefore = await safeService.getPendingTransactions(safeAddr);
+
+    // according to the docs this should return the tx hash, but always returns undefined although succeeding
+    const ret = await safeService.proposeTransaction(transactionConfig);
+    console.log("returned:", ret);
+
+    const pendingTxsAfter = await safeService.getPendingTransactions(safeAddr);
+    console.log(`pending txs before ${pendingTxsBefore.count}, after ${pendingTxsAfter.count}`);
+
+    // workaround for verifying that the proposal was added
+    if (!pendingTxsAfter.count > pendingTxsBefore.count) {
+        throw new Error("Safe pending transactions count didn't increase, propose may have failed!");
+    }
 }
 
 /****************************************************************

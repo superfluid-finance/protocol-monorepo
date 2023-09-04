@@ -16,6 +16,7 @@ out
 *.env
 lerna-debug.log
 lcov.info
+.envrc
 
 *.ignore.*
 yarn-error.log

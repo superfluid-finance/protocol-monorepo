@@ -8,6 +8,8 @@
 
 set -x
 
+CONTRACTS_DIR=build/truffle/contracts
+
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
 
@@ -34,9 +36,9 @@ function link_library() {
     local library_name="$2"
     local library_address="$3"
 
-    cp -f "build/contracts/${contract_name}.json" "build/contracts/${contract_name}.json.bak"
+    cp -f "$CONTRACTS_DIR/${contract_name}.json" "$CONTRACTS_DIR/${contract_name}.json.bak"
     jq -s '.[0] * .[1]' \
-        "build/contracts/${contract_name}.json.bak" \
+        "$CONTRACTS_DIR/${contract_name}.json.bak" \
         <(cat <<EOF
 {
     "networks": {
@@ -48,7 +50,7 @@ function link_library() {
     }
 }
 EOF
-        ) > "build/contracts/${contract_name}.json"
+        ) > "$CONTRACTS_DIR/${contract_name}.json"
 }
 
 if [ -n "$RESOLVER" ]; then
@@ -120,7 +122,7 @@ fi
 if [ -n "$IDA_PROXY" ]; then
     try_verify InstantDistributionAgreementV1@"${IDA_PROXY}" --custom-proxy UUPSProxy
 fi
-mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
+mv -f $CONTRACTS_DIR/InstantDistributionAgreementV1.json.bak $CONTRACTS_DIR/InstantDistributionAgreementV1.json
 
 if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
     # special case: verify only the proxy

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.8.0;
+pragma solidity >=0.8.11;
 
 // minimal interface for interacting with Safe contracts
 interface ISafe {

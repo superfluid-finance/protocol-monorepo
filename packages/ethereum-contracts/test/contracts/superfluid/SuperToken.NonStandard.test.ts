@@ -56,9 +56,8 @@ describe("SuperToken's Non Standard Functions", function () {
     beforeEach(async function () {
         await t.beforeEachTestCase();
         t.beforeEachTestCaseBenchmark(this);
-        const mockWalletFactory = await ethers.getContractFactory(
-            "MockSmartWallet"
-        );
+        const mockWalletFactory =
+            await ethers.getContractFactory("MockSmartWallet");
         mockWallet = await mockWalletFactory.deploy();
     });
 
@@ -486,9 +485,8 @@ describe("SuperToken's Non Standard Functions", function () {
             const {timestamp} = await ethers.provider.getBlock("latest");
 
             const finalBalanceAlice = await testToken.balanceOf(alice);
-            const finalSuperTokenBalanceAlice = await superToken.balanceOf(
-                alice
-            );
+            const finalSuperTokenBalanceAlice =
+                await superToken.balanceOf(alice);
             const finalRealBalanceAlice = await superToken.realtimeBalanceOf(
                 alice,
                 timestamp

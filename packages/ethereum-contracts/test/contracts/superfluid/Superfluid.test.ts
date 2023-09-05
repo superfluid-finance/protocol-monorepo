@@ -49,13 +49,11 @@ describe("Superfluid Host Contract", function () {
 
             ({admin, alice, bob} = t.aliases);
             ({superfluid, governance} = t.contracts);
-            agreementMockFactory = await ethers.getContractFactory(
-                "AgreementMock"
-            );
+            agreementMockFactory =
+                await ethers.getContractFactory("AgreementMock");
             agreementMockInterface = agreementMockFactory.interface;
-            superAppMockFactory = await ethers.getContractFactory(
-                "SuperAppMock"
-            );
+            superAppMockFactory =
+                await ethers.getContractFactory("SuperAppMock");
             superAppMockInterface = superAppMockFactory.interface;
         });
 
@@ -69,9 +67,8 @@ describe("Superfluid Host Contract", function () {
         });
 
         async function createAgreementMock(type: string, version: number) {
-            const agreementMockFactory = await ethers.getContractFactory(
-                "AgreementMock"
-            );
+            const agreementMockFactory =
+                await ethers.getContractFactory("AgreementMock");
             return agreementMockFactory.deploy(
                 superfluid.address,
                 type,
@@ -111,9 +108,8 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#1.5 update the code by governance", async () => {
-                const sfMockFactory = await ethers.getContractFactory(
-                    "SuperfluidMock"
-                );
+                const sfMockFactory =
+                    await ethers.getContractFactory("SuperfluidMock");
                 const mock1 = await sfMockFactory.deploy(
                     false /* nonUpgradable */,
                     false /* appWhiteListingEnabled */
@@ -420,9 +416,8 @@ describe("Superfluid Host Contract", function () {
                     poolAdminNFTProxy.address,
                     poolMemberNFTProxy.address
                 );
-                const factory2LogicFactory = await ethers.getContractFactory(
-                    "SuperTokenFactory"
-                );
+                const factory2LogicFactory =
+                    await ethers.getContractFactory("SuperTokenFactory");
                 const factory2Logic = await factory2LogicFactory.deploy(
                     superfluid.address,
                     superTokenLogic.address,
@@ -758,9 +753,8 @@ describe("Superfluid Host Contract", function () {
                     )
                 );
 
-                const SuperAppMockFactory = await ethers.getContractFactory(
-                    "SuperAppMock"
-                );
+                const SuperAppMockFactory =
+                    await ethers.getContractFactory("SuperAppMock");
                 app = await SuperAppMockFactory.deploy(
                     superfluid.address,
                     1,
@@ -1328,9 +1322,8 @@ describe("Superfluid Host Contract", function () {
                     for (let i = 0; i < tests.length; ++i) {
                         console.debug("testing noop mask for", tests[i][1]);
 
-                        const app2Factory = await ethers.getContractFactory(
-                            "SuperAppMock"
-                        );
+                        const app2Factory =
+                            await ethers.getContractFactory("SuperAppMock");
                         const app2 = await app2Factory.deploy(
                             superfluid.address,
                             /* APP_TYPE_FINAL_LEVEL */
@@ -1820,9 +1813,8 @@ describe("Superfluid Host Contract", function () {
                     )
                 );
 
-                const SuperAppMockFactory = await ethers.getContractFactory(
-                    "SuperAppMock"
-                );
+                const SuperAppMockFactory =
+                    await ethers.getContractFactory("SuperAppMock");
                 app = await SuperAppMockFactory.deploy(
                     superfluid.address,
                     1,
@@ -2072,9 +2064,8 @@ describe("Superfluid Host Contract", function () {
                     )
                 );
 
-                const SuperAppMockFactory = await ethers.getContractFactory(
-                    "SuperAppMock"
-                );
+                const SuperAppMockFactory =
+                    await ethers.getContractFactory("SuperAppMock");
                 SuperAppMock = await SuperAppMockFactory.deploy(
                     superfluid.address,
                     1,
@@ -2405,9 +2396,8 @@ describe("Superfluid Host Contract", function () {
                         web3.utils.sha3("MockAgreement")!
                     )
                 );
-                const SuperAppMockFactory = await ethers.getContractFactory(
-                    "SuperAppMock"
-                );
+                const SuperAppMockFactory =
+                    await ethers.getContractFactory("SuperAppMock");
                 const app = await SuperAppMockFactory.deploy(
                     superfluid.address,
                     1,
@@ -2446,9 +2436,8 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#10.5 batchCall one fail revert all", async () => {
-                const SuperAppMockFactory = await ethers.getContractFactory(
-                    "SuperAppMock"
-                );
+                const SuperAppMockFactory =
+                    await ethers.getContractFactory("SuperAppMock");
                 const app = await SuperAppMockFactory.deploy(
                     superfluid.address,
                     1,
@@ -2495,9 +2484,8 @@ describe("Superfluid Host Contract", function () {
             let forwarder: ForwarderMock;
 
             beforeEach(async () => {
-                const ForwarderMockFactory = await ethers.getContractFactory(
-                    "ForwarderMock"
-                );
+                const ForwarderMockFactory =
+                    await ethers.getContractFactory("ForwarderMock");
                 forwarder = await ForwarderMockFactory.deploy();
             });
 
@@ -2595,9 +2583,8 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#20.3 replace with new governance", async () => {
-                const TestGovernanceFactory = await ethers.getContractFactory(
-                    "TestGovernance"
-                );
+                const TestGovernanceFactory =
+                    await ethers.getContractFactory("TestGovernance");
                 const newGov = await TestGovernanceFactory.deploy();
                 await governance.replaceGovernance(
                     superfluid.address,
@@ -2700,9 +2687,8 @@ describe("Superfluid Host Contract", function () {
             });
 
             it("#30.3 host is not upgradable", async () => {
-                const mock1Factory = await ethers.getContractFactory(
-                    "SuperfluidMock"
-                );
+                const mock1Factory =
+                    await ethers.getContractFactory("SuperfluidMock");
                 const mock1 = await mock1Factory.deploy(
                     false /* nonUpgradable */,
                     false /* appWhiteListingEnabled */

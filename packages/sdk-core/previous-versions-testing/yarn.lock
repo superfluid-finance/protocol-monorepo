@@ -342,10 +342,10 @@
     "@ethersproject/properties" "^5.6.0"
     "@ethersproject/strings" "^5.6.0"
 
-"@superfluid-finance/sdk-core@0.4.1":
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-core/-/sdk-core-0.4.1.tgz#141ae751701f926a6b93520ef4f39fb10fcd5f79"
-  integrity sha512-frJJT8XzU228n/YAZ21fvdIGyHF7k0TPp6g9CrzHlOqIMbBY/6tqYrpq8jKcEK0y8JmgM6B4MZACjEZsUlcw+w==
+"@superfluid-finance/sdk-core@0.4.3":
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/@superfluid-finance/sdk-core/-/sdk-core-0.4.3.tgz#d5b1c63e7e7b52edb59c066eaaf683f9ba18689a"
+  integrity sha512-9RaGnN5O4WzfDw3+KodAvvGF+TNctjDEcaYg5nfWeN9EOGB744FGSqN80mgROavbYSltC4bXBSueYvHrpxZfWg==
   dependencies:
     ajv "^8.11.0"
     browserify "^17.0.0"
@@ -1644,9 +1644,9 @@ scrypt-js@3.0.1:
   integrity sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==
 
 semver@^6.1.0:
-  version "6.3.0"
-  resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
-  integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
+  version "6.3.1"
+  resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.1.tgz#556d2ef8689146e46dcea4bfdd095f3434dffcb4"
+  integrity sha512-BR7VvDCVHO+q2xBEWskxS6DJE1qRnb7DxzUrogb71CWoSficBxYsiAGd+Kl0mmq/MprG9yArRkyrQxTO6XjMzA==
 
 sha.js@^2.4.0, sha.js@^2.4.8:
   version "2.4.11"

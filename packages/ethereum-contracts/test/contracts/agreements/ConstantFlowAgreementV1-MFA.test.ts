@@ -101,9 +101,8 @@ describe("CFAv1 | Multi Flow Super App Tests", function () {
     let app: MultiFlowTesterApp;
 
     beforeEach(async () => {
-        const mfaFactory = await ethers.getContractFactory(
-            "MultiFlowTesterApp"
-        );
+        const mfaFactory =
+            await ethers.getContractFactory("MultiFlowTesterApp");
         app = await mfaFactory.deploy(cfa.address, superfluid.address);
         t.addAlias("mfa", app.address);
     });

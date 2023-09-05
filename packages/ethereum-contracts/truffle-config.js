@@ -185,6 +185,8 @@ const E = (module.exports = {
         "eth-mainnet": {
             ...createNetworkDefaultConfiguration("eth-mainnet"),
             network_id: 1, // mainnet's id
+            maxPriorityFeePerGas: 200e6, // 0.2 gwei. The default of 2.5 gwei is overpaying
+            maxFeePerGas: 50e9,
         },
 
         "eth-goerli": {
@@ -292,6 +294,8 @@ const E = (module.exports = {
         "base-mainnet": {
             ...createNetworkDefaultConfiguration("base-mainnet"),
             network_id: 8453,
+            maxPriorityFeePerGas: 1e6, // 0.001 gwei - even 0 may do
+            maxFeePerGas: 1e9, // 1 gwei
         },
         "base-goerli": {
             ...createNetworkDefaultConfiguration("base-goerli"),

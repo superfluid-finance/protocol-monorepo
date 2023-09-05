@@ -70,6 +70,9 @@ if [ -n "$SUPERFLUID_GOVERNANCE" ]; then
     if [ -n "$IS_TESTNET" ];then
         try_verify TestGovernance@"${SUPERFLUID_GOVERNANCE}"
     else
+        if [ -n "$SUPERFLUID_GOVERNANCE_LOGIC" ]; then
+            try_verify SuperfluidGovernanceII@"${SUPERFLUID_GOVERNANCE_LOGIC}"
+        fi
         try_verify SuperfluidGovernanceII@"${SUPERFLUID_GOVERNANCE}" --custom-proxy SuperfluidGovernanceIIProxy
     fi
 fi

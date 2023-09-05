@@ -189,6 +189,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "Ownable",
         "CFAv1Forwarder",
         "IMultiSigWallet",
+        "ISafe",
         "SuperfluidGovernanceBase",
         "Resolver",
         "SuperfluidLoader",
@@ -204,6 +205,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         "InstantDistributionAgreementV1",
         "ConstantOutflowNFT",
         "ConstantInflowNFT",
+        "IAccessControlEnumerable",
     ];
     const mockContracts = [
         "SuperfluidMock",
@@ -213,6 +215,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     const {
         Ownable,
         IMultiSigWallet,
+        ISafe,
         CFAv1Forwarder,
         SuperfluidGovernanceBase,
         Resolver,
@@ -866,6 +869,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 contracts: {
                     Ownable,
                     IMultiSigWallet,
+                    ISafe,
                     SuperfluidGovernanceBase,
                 },
             },
@@ -885,6 +889,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         const sfObjForResolver = {
             contracts: {
                 Resolver,
+                IMultiSigWallet,
+                ISafe,
                 IAccessControlEnumerable,
             },
             resolver: {

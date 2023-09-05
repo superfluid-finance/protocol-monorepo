@@ -410,9 +410,8 @@ export default class TestEnvironment {
             testTokenAddress
         );
         const superTokenKey = "supertokens.test." + tokenSymbol + "x";
-        const superTokenAddress = await this.contracts.resolver.get(
-            superTokenKey
-        );
+        const superTokenAddress =
+            await this.contracts.resolver.get(superTokenKey);
 
         const superToken = await ethers.getContractAt(
             "SuperTokenMock",
@@ -698,9 +697,8 @@ export default class TestEnvironment {
         amount: BigNumber,
         tokenSymbol = TOKEN_SYMBOL
     ) {
-        const {superToken} = await this.getAndSetTestTokenAndSuperTokenMock(
-            tokenSymbol
-        );
+        const {superToken} =
+            await this.getAndSetTestTokenAndSuperTokenMock(tokenSymbol);
         const fromAccount = this.getAddress(from);
         const toAccount = this.getAddress(to);
         await superToken
@@ -1007,9 +1005,8 @@ export default class TestEnvironment {
         syncExpectedBalancesFn: () => void,
         tokenSymbol = TOKEN_SYMBOL
     ) {
-        const {superToken} = await this.getAndSetTestTokenAndSuperTokenMock(
-            tokenSymbol
-        );
+        const {superToken} =
+            await this.getAndSetTestTokenAndSuperTokenMock(tokenSymbol);
 
         const txBlock = await ethers.provider.getBlock("latest");
         const balances2: {[address: string]: RealtimeBalance} = {};

@@ -33,12 +33,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
         const tx = await completeTransaction({
             sf: this._sf,
             args: [
@@ -68,12 +66,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @return {Promise<Subscription>} Subscription data
      */
     async getIndex({superToken, publisher, indexId}) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
         const result = await this._ida.getIndex(
             superTokenNorm,
             publisherNorm,
@@ -89,12 +85,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @return {Promise<Subscription>} Subscription data
      */
     async listIndices({superToken, publisher}) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
         return (
             await this._sf.getPastEvents(this._ida, "IndexCreated", {
                 token: superTokenNorm,
@@ -121,12 +115,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
         const tx = await completeTransaction({
             sf: this._sf,
             args: [
@@ -169,12 +161,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
         const tx = await completeTransaction({
             sf: this._sf,
             args: [
@@ -216,15 +206,12 @@ module.exports = class InstantDistributionAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
-        const subscriberNorm = await this._sf.utils.normalizeAddressParam(
-            subscriber
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
+        const subscriberNorm =
+            await this._sf.utils.normalizeAddressParam(subscriber);
         const tx = await completeTransaction({
             sf: this._sf,
             args: [
@@ -274,15 +261,12 @@ module.exports = class InstantDistributionAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
-        const subscriberNorm = await this._sf.utils.normalizeAddressParam(
-            subscriber
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
+        const subscriberNorm =
+            await this._sf.utils.normalizeAddressParam(subscriber);
         const tx = await completeTransaction({
             sf: this._sf,
             args: [
@@ -330,15 +314,12 @@ module.exports = class InstantDistributionAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
-        const subscriberNorm = await this._sf.utils.normalizeAddressParam(
-            subscriber
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
+        const subscriberNorm =
+            await this._sf.utils.normalizeAddressParam(subscriber);
         const tx = await completeTransaction({
             sf: this._sf,
             args: [
@@ -388,15 +369,12 @@ module.exports = class InstantDistributionAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
-        const subscriberNorm = await this._sf.utils.normalizeAddressParam(
-            subscriber
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
+        const subscriberNorm =
+            await this._sf.utils.normalizeAddressParam(subscriber);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
         const tx = await completeTransaction({
             sf: this._sf,
@@ -434,15 +412,12 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @return {Promise<Subscription>} Subscription data
      */
     async getSubscription({superToken, publisher, indexId, subscriber}) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
-        const subscriberNorm = await this._sf.utils.normalizeAddressParam(
-            subscriber
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
+        const subscriberNorm =
+            await this._sf.utils.normalizeAddressParam(subscriber);
         const result = await this._ida.getSubscription.call(
             superTokenNorm,
             publisherNorm,
@@ -475,15 +450,12 @@ module.exports = class InstantDistributionAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
-        const subscriberNorm = await this._sf.utils.normalizeAddressParam(
-            subscriber
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
+        const subscriberNorm =
+            await this._sf.utils.normalizeAddressParam(subscriber);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
         const tx = await completeTransaction({
             sf: this._sf,
@@ -520,12 +492,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @return {Promise<Subscription>} Subscription data
      */
     async listSubscribers({superToken, publisher, indexId}) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const publisherNorm = await this._sf.utils.normalizeAddressParam(
-            publisher
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const publisherNorm =
+            await this._sf.utils.normalizeAddressParam(publisher);
         let updates;
         updates = await this._sf.getPastEvents(this._ida, "IndexUnitsUpdated", {
             token: superTokenNorm,
@@ -553,12 +523,10 @@ module.exports = class InstantDistributionAgreementV1Helper {
      * @return {Promise<Subscription>} Subscription data
      */
     async listSubscriptions({superToken, subscriber}) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
-        const subscriberNorm = await this._sf.utils.normalizeAddressParam(
-            subscriber
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
+        const subscriberNorm =
+            await this._sf.utils.normalizeAddressParam(subscriber);
         const result = await this._ida.listSubscriptions(
             superTokenNorm,
             subscriberNorm

@@ -81,14 +81,14 @@
     "dependencies": {
         "@decentral.ee/web3-helpers": "0.5.3",
         "@openzeppelin/contracts": "4.9.3",
-        "@truffle/contract": "4.6.28",
+        "@truffle/contract": "4.6.29",
         "ethereumjs-tx": "2.1.2",
         "ethereumjs-util": "7.1.5"
     },
     "devDependencies": {
         "@nomiclabs/hardhat-truffle5": "^2.0.7",
-        "@safe-global/safe-core-sdk": "^3.3.4",
-        "@safe-global/safe-service-client": "^2.0.2",
+        "@safe-global/safe-core-sdk": "^3.3.5",
+        "@safe-global/safe-service-client": "^2.0.3",
         "@safe-global/safe-web3-lib": "^1.9.4",
         "@superfluid-finance/js-sdk": "0.6.3",
         "@superfluid-finance/metadata": "1.1.13",
@@ -99,7 +99,7 @@
         "mochawesome": "^7.1.3",
         "readline": "1.3.0",
         "solidity-coverage": "0.8.4",
-        "solidity-docgen": "^0.6.0-beta.35",
+        "solidity-docgen": "^0.6.0-beta.36",
         "stack-trace": "0.0.10",
         "truffle-flattener": "^1.6.0",
         "truffle-plugin-verify": "0.6.5"

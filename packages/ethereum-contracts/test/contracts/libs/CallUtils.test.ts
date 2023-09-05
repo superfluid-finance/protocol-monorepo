@@ -15,12 +15,14 @@ describe("CallUtils", function () {
             isTruffle: true,
             nAccounts: 5,
         });
-        const CallUtilsMockFactory =
-            await ethers.getContractFactory("CallUtilsMock");
+        const CallUtilsMockFactory = await ethers.getContractFactory(
+            "CallUtilsMock"
+        );
         callUtilsMock = await CallUtilsMockFactory.deploy();
 
-        const CallUtilsTesterFactory =
-            await ethers.getContractFactory("CallUtilsTester");
+        const CallUtilsTesterFactory = await ethers.getContractFactory(
+            "CallUtilsTester"
+        );
         callUtilsTester = await CallUtilsTesterFactory.deploy();
     });
 

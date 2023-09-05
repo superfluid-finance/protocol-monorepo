@@ -33,8 +33,9 @@ describe("Miscellaneous for test coverages", () => {
         let UUPSProxiableMock: UUPSProxiableMock__factory;
         before(async () => {
             UUPSProxyFactory = await ethers.getContractFactory("UUPSProxy");
-            UUPSProxiableMock =
-                await ethers.getContractFactory("UUPSProxiableMock");
+            UUPSProxiableMock = await ethers.getContractFactory(
+                "UUPSProxiableMock"
+            );
         });
 
         it("UUPSProxy", async () => {
@@ -65,8 +66,9 @@ describe("Miscellaneous for test coverages", () => {
             );
             const uuid1 = web3.utils.sha3("UUPSProxiableMock1")!;
             const uuid2 = web3.utils.sha3("UUPSProxiableMock2")!;
-            const UUPSProxiableMockFactory =
-                await ethers.getContractFactory("UUPSProxiableMock");
+            const UUPSProxiableMockFactory = await ethers.getContractFactory(
+                "UUPSProxiableMock"
+            );
             const mock1a = await UUPSProxiableMockFactory.deploy(uuid1, 1);
             const mock1b = await UUPSProxiableMockFactory.deploy(uuid1, 2);
             const mock2 = await UUPSProxiableMockFactory.deploy(uuid2, 1);

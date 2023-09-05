@@ -496,8 +496,9 @@ describe("SuperToken's ERC777 implementation", function () {
                         });
 
                         it("operatorSend reverts", async function () {
-                            const operatorSigner =
-                                await ethers.getSigner(operator);
+                            const operatorSigner = await ethers.getSigner(
+                                operator
+                            );
                             await expectCustomError(
                                 tokenContract
                                     .connect(operatorSigner)
@@ -514,8 +515,9 @@ describe("SuperToken's ERC777 implementation", function () {
                         });
 
                         it("mint (internal) reverts", async function () {
-                            const operatorSigner =
-                                await ethers.getSigner(operator);
+                            const operatorSigner = await ethers.getSigner(
+                                operator
+                            );
                             await expectCustomError(
                                 tokenContract
                                     .connect(operatorSigner)
@@ -531,8 +533,9 @@ describe("SuperToken's ERC777 implementation", function () {
                         });
 
                         it("mint (internal) to zero address reverts", async function () {
-                            const operatorSigner =
-                                await ethers.getSigner(operator);
+                            const operatorSigner = await ethers.getSigner(
+                                operator
+                            );
                             await expectCustomError(
                                 tokenContract
                                     .connect(operatorSigner)

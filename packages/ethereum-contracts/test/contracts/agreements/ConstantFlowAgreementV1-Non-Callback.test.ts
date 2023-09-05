@@ -2195,8 +2195,9 @@ describe("CFAv1 | Non-Callback Tests", function () {
         });
 
         it("#1.8.4 only authorized host can access token", async () => {
-            const fakeSfMockFactory =
-                await ethers.getContractFactory("FakeSuperfluidMock");
+            const fakeSfMockFactory = await ethers.getContractFactory(
+                "FakeSuperfluidMock"
+            );
             const fakeHost = await fakeSfMockFactory.deploy();
             const createFlowCallData = agreementHelper.getModifyFlowCallData({
                 type: FLOW_TYPE_CREATE,

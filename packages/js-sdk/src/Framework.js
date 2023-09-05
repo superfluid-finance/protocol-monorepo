@@ -178,8 +178,9 @@ module.exports = class Framework {
             return superTokenAddress !== ZERO_ADDRESS;
         } else {
             try {
-                const superToken =
-                    await this.contracts.ISuperToken.at(superTokenKey);
+                const superToken = await this.contracts.ISuperToken.at(
+                    superTokenKey
+                );
                 const symbol = await superToken.symbol();
                 const superTokenAddress = await this.resolver.get(
                     `supertokens.${this.version}.${symbol}`

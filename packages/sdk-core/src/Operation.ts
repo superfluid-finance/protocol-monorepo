@@ -79,8 +79,9 @@ export default class Operation {
         // a gasLimit for their transaction prior to execution and so we keep it as is else we apply
         // a specified or the default (1.2) multiplier on the gas limit.
         if (!populatedTransaction.gasLimit) {
-            const estimatedGasLimit =
-                await providerOrSigner.estimateGas(populatedTransaction);
+            const estimatedGasLimit = await providerOrSigner.estimateGas(
+                populatedTransaction
+            );
             populatedTransaction.gasLimit = multiplyGasLimit(
                 estimatedGasLimit,
                 gasLimitMultiplier
@@ -102,8 +103,9 @@ export default class Operation {
             signer,
             gasLimitMultiplier
         );
-        const signerPopulatedTransaction =
-            await signer.populateTransaction(populatedTransaction);
+        const signerPopulatedTransaction = await signer.populateTransaction(
+            populatedTransaction
+        );
         const signedTransaction = await signer.signTransaction(
             signerPopulatedTransaction
         );

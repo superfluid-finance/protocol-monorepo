@@ -1704,8 +1704,9 @@ describe("IDAv1 | Non-Callback Tests", function () {
 
     context("#3 misc", async () => {
         it("#3.1 only authorized host can access token", async () => {
-            const fakeHostFactory =
-                await ethers.getContractFactory("FakeSuperfluidMock");
+            const fakeHostFactory = await ethers.getContractFactory(
+                "FakeSuperfluidMock"
+            );
             const fakeHost = await fakeHostFactory.deploy();
             const idaAddress = t.contracts.ida.address;
             await expect(

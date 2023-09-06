@@ -600,7 +600,7 @@ interface ISuperfluid {
      * @dev Batch call function
      * @param operations Array of batch operations
      */
-    function batchCall(Operation[] calldata operations) external;
+    function batchCall(Operation[] calldata operations) external payable;
 
     /**
      * @dev Batch call function for trusted forwarders (EIP-2771)

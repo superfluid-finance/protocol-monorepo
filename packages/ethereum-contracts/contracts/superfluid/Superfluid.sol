@@ -625,7 +625,7 @@ contract Superfluid is
             appCreditToken: ISuperfluidToken(address(0))
         }));
         bool success;
-        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, ctx);
+        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, 0, ctx);
         if (!success) {
             CallUtils.revertFromReturnedData(returnedData);
         }
@@ -647,6 +647,7 @@ contract Superfluid is
     function _callAppAction(
         address msgSender,
         ISuperApp app,
+        uint256 value,
         bytes memory callData
     )
         internal
@@ -670,7 +671,7 @@ contract Superfluid is
             appCreditToken: ISuperfluidToken(address(0))
         }));
         bool success;
-        (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, ctx);
+        (success, returnedData) = _callExternalWithReplacedCtx(address(app), callData, value, ctx);
         if (success) {
             ctx = abi.decode(returnedData, (bytes));
             if (!_isCtxValid(ctx)) revert APP_RULE(SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
@@ -688,7 +689,7 @@ contract Superfluid is
         external override // NOTE: modifiers are called in _callAppAction
         returns(bytes memory returnedData)
     {
-        return _callAppAction(msg.sender, app, callData);
+        return _callAppAction(msg.sender, app, 0, callData);
     }
 
     /**************************************************************************
@@ -716,7 +717,7 @@ contract Superfluid is
         newCtx = _updateContext(context);
 
         bool success;
-        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, newCtx);
+        (success, returnedData) = _callExternalWithReplacedCtx(address(agreementClass), callData, 0, newCtx);
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             assert(_isCtxValid(newCtx));
@@ -747,7 +748,7 @@ contract Superfluid is
         context.msgSender = msg.sender;
         newCtx = _updateContext(context);
 
-        (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(address(app), callData, newCtx);
+        (bool success, bytes memory returnedData) = _callExternalWithReplacedCtx(address(app), callData, 0, newCtx);
         if (success) {
             (newCtx) = abi.decode(returnedData, (bytes));
             if (!_isCtxValid(newCtx)) revert APP_RULE(SuperAppDefinitions.APP_RULE_CTX_IS_READONLY);
@@ -784,6 +785,7 @@ contract Superfluid is
     )
        internal
     {
+        bool valueForwarded = false;
         for (uint256 i = 0; i < operations.length; ++i) {
             uint32 operationType = operations[i].operationType;
             if (operationType == BatchOperation.OPERATION_TYPE_ERC20_APPROVE) {
@@ -842,7 +844,9 @@ contract Superfluid is
                 _callAppAction(
                     msgSender,
                     ISuperApp(operations[i].target),
+                    valueForwarded ? 0 : msg.value,
                     operations[i].data);
+                valueForwarded = true;
             } else {
                revert HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
             }
@@ -853,7 +857,7 @@ contract Superfluid is
     function batchCall(
        Operation[] calldata operations
     )
-       external override
+       external override payable
     {
         _batchCall(msg.sender, operations);
     }
@@ -975,6 +979,7 @@ contract Superfluid is
     function _callExternalWithReplacedCtx(
         address target,
         bytes memory callData,
+        uint256 value,
         bytes memory ctx
     )
         private
@@ -987,7 +992,7 @@ contract Superfluid is
 
         // STEP 2: Call external with replaced context
         /* solhint-disable-next-line avoid-low-level-calls */
-        (success, returnedData) = target.call(callData);
+        (success, returnedData) = target.call{value: value}(callData);
         // if target is not a contract or some arbitrary address,
         // success will be true and returnedData will be 0x (length = 0)
         // this leads to unintended behaviors, so we want to check to ensure

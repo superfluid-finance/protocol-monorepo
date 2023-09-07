@@ -192,4 +192,20 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         assertEq(address(alice).balance, 42);
         assertEq(address(sf.host).balance, 0);
     }
+
+    function testBatchCallWithValueToNonPayableTarget() public {
+        SuperAppMock superAppMock = new SuperAppMock(sf.host, 0xF, false);
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        // the ETH is forwraded with the first action.
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION,
+            target: address(superAppMock),
+            data: abi.encodeCall(superAppMock.actionCallActionNoop, (""))
+        });
+        vm.deal(alice, 42);
+        vm.prank(alice);
+
+        vm.expectRevert("CallUtils: target revert()");
+        sf.host.batchCall{value: 42}(ops);
+    }
 }

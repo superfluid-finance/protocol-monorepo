@@ -9,6 +9,7 @@ import { IConstantFlowAgreementV1 } from "../../../contracts/interfaces/agreemen
 import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
+import { SuperAppMock } from "../../../contracts/mocks/SuperAppMocks.sol";
 
 contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
     using SuperTokenV1Library for SuperToken;
@@ -153,5 +154,58 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         (,, int96 flowRateAllowanceAfter) = sf.cfa.getFlowOperatorData(superToken, alice, bob);
         assertEq(aliceToBobAllowanceAfter, aliceToBobAllowanceBefore + 100);
         assertEq(flowRateAllowanceAfter, flowRateAllowanceBefore + 100);
+    }
+
+    function testBatchCallWithValue() public {
+        SuperAppMock superAppMock = new SuperAppMock(sf.host, 0xF, false);
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](2);
+        // the ETH is forwraded with the first action.
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION,
+            target: address(superAppMock),
+            data: abi.encodeCall(superAppMock.actionCallPayable, (""))
+        });
+        // Adding a 2nd action to make sure this is properly handled
+        ops[1] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION,
+            target: address(superAppMock),
+            data: abi.encodeCall(superAppMock.actionCallPayable, (""))
+        });
+        vm.deal(alice, 42);
+        vm.prank(alice);
+        sf.host.batchCall{value: 42}(ops);
+        assertEq(address(superAppMock).balance, 42);
+        assertEq(address(sf.host).balance, 0);
+    }
+
+    function testBatchCallWithValueFailIfNotForwarded() public {
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        // random operation which doesn't consume the provided value
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE,
+            target: address(superToken),
+            data: abi.encode(bob, 100)
+        });
+        vm.deal(alice, 42);
+        vm.prank(alice);
+        sf.host.batchCall{value: 42}(ops);
+        assertEq(address(alice).balance, 42);
+        assertEq(address(sf.host).balance, 0);
+    }
+
+    function testBatchCallWithValueToNonPayableTarget() public {
+        SuperAppMock superAppMock = new SuperAppMock(sf.host, 0xF, false);
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        // the ETH is forwraded with the first action.
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION,
+            target: address(superAppMock),
+            data: abi.encodeCall(superAppMock.actionCallActionNoop, (""))
+        });
+        vm.deal(alice, 42);
+        vm.prank(alice);
+
+        vm.expectRevert("CallUtils: target revert()");
+        sf.host.batchCall{value: 42}(ops);
     }
 }

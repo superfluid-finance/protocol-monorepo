@@ -8,6 +8,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 - Added 'test-slither' yarn sub-task.
+- Expose `SuperToken._underlyingDecimals` with `SuperToken.getUnderlyingDecimals()`
+- Expose `_toUnderlyingAmount(uint256 amount)` with `toUnderlyingAmount(uint256 amount)`
 
 ## [v1.8.1] - 2023-08-28
 

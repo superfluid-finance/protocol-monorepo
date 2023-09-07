@@ -175,5 +175,21 @@ contract SuperfluidBatchCallTest is FoundrySuperfluidTester {
         vm.prank(alice);
         sf.host.batchCall{value: 42}(ops);
         assertEq(address(superAppMock).balance, 42);
+        assertEq(address(sf.host).balance, 0);
+    }
+
+    function testBatchCallWithValueFailIfNotForwarded() public {
+        ISuperfluid.Operation[] memory ops = new ISuperfluid.Operation[](1);
+        // random operation which doesn't consume the provided value
+        ops[0] = ISuperfluid.Operation({
+            operationType: BatchOperation.OPERATION_TYPE_ERC20_INCREASE_ALLOWANCE,
+            target: address(superToken),
+            data: abi.encode(bob, 100)
+        });
+        vm.deal(alice, 42);
+        vm.prank(alice);
+        sf.host.batchCall{value: 42}(ops);
+        assertEq(address(alice).balance, 42);
+        assertEq(address(sf.host).balance, 0);
     }
 }

@@ -851,6 +851,10 @@ contract Superfluid is
                revert HOST_UNKNOWN_BATCH_CALL_OPERATION_TYPE();
             }
         }
+        if (msg.value != 0 && !valueForwarded) {
+            // return ETH provided if not forwarded
+            payable(msg.sender).transfer(msg.value);
+        }
     }
 
     /// @dev ISuperfluid.batchCall implementation

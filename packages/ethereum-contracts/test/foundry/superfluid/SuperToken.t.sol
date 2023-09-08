@@ -10,12 +10,62 @@ import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superf
 import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/superfluid/PoolAdminNFT.sol";
 import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/superfluid/PoolMemberNFT.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
+import { TestToken } from "../../../contracts/utils/TestToken.sol";
 
 contract SuperTokenTest is FoundrySuperfluidTester {
     constructor() FoundrySuperfluidTester(0) { }
 
     function setUp() public override {
         super.setUp();
+    }
+
+    function testUnderlyingTokenDecimals() public {
+        assertEq(token.decimals(), superToken.getUnderlyingDecimals());
+    }
+
+    function testToUnderlyingAmountWithUpgrade(uint8 decimals, uint256 amount) public {
+        vm.assume(amount < type(uint64).max);
+        // We assume that most underlying tokens will not have more than 32 decimals
+        vm.assume(decimals <= 32);
+        (TestToken localToken, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", decimals, type(uint256).max);
+        (uint256 underlyingAmount, uint256 adjustedAmount) = localSuperToken.toUnderlyingAmount(amount);
+        localToken.mint(alice, INIT_TOKEN_BALANCE);
+        vm.startPrank(alice);
+        localToken.approve(address(localSuperToken), underlyingAmount);
+        localSuperToken.upgrade(adjustedAmount);
+        vm.stopPrank();
+        uint256 upgradedBalance = localSuperToken.balanceOf(alice);
+        assertEq(upgradedBalance, adjustedAmount, "testToUnderlyingAmount: upgraded amount wrong");
+    }
+
+    function testToUnderlyingAmountWithDowngrade(uint8 decimals, uint256 upgradeAmount, uint256 downgradeAmount)
+        public
+    {
+        vm.assume(upgradeAmount < type(uint64).max);
+        // We assume that most underlying tokens will not have more than 32 decimals
+        vm.assume(decimals <= 32);
+        vm.assume(downgradeAmount < upgradeAmount);
+        (TestToken localToken, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", decimals, type(uint256).max);
+        (uint256 underlyingAmount, uint256 adjustedAmount) = localSuperToken.toUnderlyingAmount(upgradeAmount);
+        localToken.mint(alice, INIT_TOKEN_BALANCE);
+
+        vm.startPrank(alice);
+        localToken.approve(address(localSuperToken), underlyingAmount);
+        localSuperToken.upgrade(adjustedAmount);
+
+        uint256 underlyingBalanceBefore = localToken.balanceOf(alice);
+        (underlyingAmount, adjustedAmount) = localSuperToken.toUnderlyingAmount(downgradeAmount);
+        localSuperToken.downgrade(adjustedAmount);
+        uint256 underlyingBalance = localToken.balanceOf(alice);
+        vm.stopPrank();
+
+        assertEq(
+            underlyingBalance,
+            underlyingBalanceBefore + underlyingAmount,
+            "testToUnderlyingAmount: underlying amount wrong"
+        );
     }
 
     function testRevertSuperTokenUpdateCodeWrongNFTProxies() public {

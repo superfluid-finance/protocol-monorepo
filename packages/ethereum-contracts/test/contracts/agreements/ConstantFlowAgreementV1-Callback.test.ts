@@ -449,9 +449,8 @@ describe("CFAv1 | Callback Tests", function () {
         let signer: SignerWithAddress;
 
         before(async () => {
-            streamRedirectorFactory = await ethers.getContractFactory(
-                "StreamRedirector"
-            );
+            streamRedirectorFactory =
+                await ethers.getContractFactory("StreamRedirector");
         });
 
         beforeEach(async () => {

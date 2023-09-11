@@ -215,20 +215,17 @@ export default class Framework {
                 const superfluidLoaderAddress = await resolver.get(
                     "SuperfluidLoader-v1"
                 );
-                const cfaV1ForwarderAddress = await resolver.get(
-                    "CFAv1Forwarder"
-                );
-                const gdaV1ForwarderAddress = await resolver.get(
-                    "GDAv1Forwarder"
-                );
+                const cfaV1ForwarderAddress =
+                    await resolver.get("CFAv1Forwarder");
+                const gdaV1ForwarderAddress =
+                    await resolver.get("GDAv1Forwarder");
                 const superfluidLoader = SuperfluidLoader__factory.connect(
                     superfluidLoaderAddress,
                     provider
                 );
 
-                const framework = await superfluidLoader.loadFramework(
-                    releaseVersion
-                );
+                const framework =
+                    await superfluidLoader.loadFramework(releaseVersion);
                 const governanceAddress = await Superfluid__factory.connect(
                     framework.superfluid,
                     provider

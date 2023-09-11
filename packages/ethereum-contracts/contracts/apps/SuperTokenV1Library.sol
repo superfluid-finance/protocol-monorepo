@@ -1809,7 +1809,140 @@ library SuperTokenV1Library {
         return true;
     }
 
-    // TODO: need to add withCtx functions for the GDA
+    /** GDA WITH CTX FUNCTIONS ************************************* */
+
+    function updateMemberUnitsWithCtx(
+        ISuperToken token,
+        ISuperfluidPool pool,
+        address memberAddress,
+        uint128 newUnits,
+        bytes memory ctx
+    ) internal returns (bytes memory newCtx) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.updateMemberUnits,
+                (
+                    pool,
+                    memberAddress,
+                    newUnits,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
+    function claimAllWithCtx(ISuperToken token, ISuperfluidPool pool, address memberAddress, bytes memory ctx)
+        internal
+        returns (bytes memory newCtx)
+    {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.claimAll,
+                (
+                    pool,
+                    memberAddress,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
+    function connectPoolWithCtx(ISuperToken token, ISuperfluidPool pool, bytes memory ctx)
+        internal
+        returns (bytes memory newCtx)
+    {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.connectPool,
+                (
+                    pool,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
+    function disconnectPoolWithCtx(ISuperToken token, ISuperfluidPool pool, bytes memory ctx)
+        internal
+        returns (bytes memory newCtx)
+    {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.disconnectPool,
+                (
+                    pool,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
+    function distributeWithCtx(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool pool,
+        uint256 requestedAmount,
+        bytes memory ctx
+    ) internal returns (bytes memory newCtx) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.distribute,
+                (
+                    token,
+                    from,
+                    pool,
+                    requestedAmount,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
+    function distributeFlowWithCtx(
+        ISuperToken token,
+        address from,
+        ISuperfluidPool pool,
+        int96 requestedFlowRate,
+        bytes memory ctx
+    ) internal returns (bytes memory newCtx) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        (newCtx,) = host.callAgreementWithContext(
+            gda,
+            abi.encodeCall(
+                gda.distributeFlow,
+                (
+                    token,
+                    from,
+                    pool,
+                    requestedFlowRate,
+                    new bytes(0) // ctx placeholder
+                )
+            ),
+            "0x",
+            ctx
+        );
+    }
+
     // ************** private helpers **************
 
     // @note We must use hardcoded constants here because:

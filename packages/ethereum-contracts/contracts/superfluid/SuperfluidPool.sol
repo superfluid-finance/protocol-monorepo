@@ -320,7 +320,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
 
     /// @inheritdoc ISuperfluidPool
     function updateMemberUnits(address memberAddr, uint128 newUnits) external returns (bool) {
-        if (admin != msg.sender) revert SUPERFLUID_POOL_NOT_POOL_ADMIN();
+        if (msg.sender != admin && msg.sender != address(GDA)) revert SUPERFLUID_POOL_NOT_POOL_ADMIN_OR_GDA();
 
         _updateMemberUnits(memberAddr, newUnits);
 

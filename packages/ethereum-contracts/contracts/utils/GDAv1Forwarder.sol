@@ -26,9 +26,47 @@ contract GDAv1Forwarder is ForwarderBase {
         );
     }
 
+    /**
+     * @dev Creates a new Superfluid Pool.
+     * @param token The Super Token address.
+     * @param admin The pool admin address.
+     * @return success A boolean value indicating whether the pool was created successfully.
+     * @return pool The address of the deployed Superfluid Pool
+     */
     function createPool(ISuperfluidToken token, address admin) external returns (bool success, ISuperfluidPool pool) {
         pool = _gda.createPool(token, admin);
         success = true;
+    }
+
+    /**
+     * @dev Updates the units of a pool member.
+     * @param pool The Superfluid Pool to update.
+     * @param memberAddress The address of the member to update.
+     * @param newUnits The new units of the member.
+     * @param userData User-specific data.
+     */
+    function updateMemberUnits(ISuperfluidPool pool, address memberAddress, uint128 newUnits, bytes memory userData)
+        external
+        returns (bool success)
+    {
+        bytes memory callData = abi.encodeCall(_gda.updateMemberUnits, (pool, memberAddress, newUnits, new bytes(0)));
+
+        return _forwardBatchCall(address(_gda), callData, userData);
+    }
+
+    /**
+     * @dev Claims all tokens from the pool.
+     * @param pool The Superfluid Pool to claim from.
+     * @param memberAddress The address of the member to claim for.
+     * @param userData User-specific data.
+     */
+    function claimAll(ISuperfluidPool pool, address memberAddress, bytes memory userData)
+        external
+        returns (bool success)
+    {
+        bytes memory callData = abi.encodeCall(_gda.claimAll, (pool, memberAddress, new bytes(0)));
+
+        return _forwardBatchCall(address(_gda), callData, userData);
     }
 
     /**

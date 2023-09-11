@@ -12,10 +12,12 @@ import { ISuperfluidPool } from "../superfluid/ISuperfluidPool.sol";
 abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     // Custom Errors
     error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED(); // 0xf67d263e
-    error GDA_FLOW_DOES_NOT_EXIST();
+    error GDA_FLOW_DOES_NOT_EXIST(); // 0x29f4697e
     error GDA_NON_CRITICAL_SENDER(); // 0x666f381d
     error GDA_INSUFFICIENT_BALANCE(); // 0x33115c3f
-    error GDA_NO_NEGATIVE_FLOW_RATE(); // 0x15f25663
+    error GDA_NO_NEGATIVE_FLOW_RATE();  // 0x15f25663
+    error GDA_ADMIN_CANNOT_BE_POOL();   // 0x9ab88a26
+    error GDA_NOT_POOL_ADMIN(); // 0x3a87e565
     error GDA_NO_ZERO_ADDRESS_ADMIN(); // 0x82c5d837
     error GDA_ONLY_SUPER_TOKEN_POOL(); // 0x90028c37
 
@@ -129,6 +131,16 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     /// @param admin The admin of the pool
     /// @param token The token address
     function createPool(ISuperfluidToken token, address admin) external virtual returns (ISuperfluidPool pool);
+
+    function updateMemberUnits(ISuperfluidPool pool, address memberAddress, uint128 newUnits, bytes calldata ctx)
+        external
+        virtual
+        returns (bytes memory newCtx);
+
+    function claimAll(ISuperfluidPool pool, address memberAddress, bytes calldata ctx)
+        external
+        virtual
+        returns (bytes memory newCtx);
 
     /// @notice Connects `msg.sender` to `pool`.
     /// @dev This is used to connect a pool to the GDA.

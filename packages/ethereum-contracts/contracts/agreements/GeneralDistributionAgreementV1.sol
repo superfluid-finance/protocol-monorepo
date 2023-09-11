@@ -269,8 +269,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     function createPool(ISuperfluidToken token, address admin) external override returns (ISuperfluidPool pool) {
         // @note ensure if token and admin are the same that nothing funky happens with echidna
         if (admin == address(0)) revert GDA_NO_ZERO_ADDRESS_ADMIN();
-        // @note some sort of token logic
-        // if (token == address(0)) revert GDA_NO_ZERO_ADDRESS_TOKEN();
+        if (_isPool(token, admin)) revert GDA_ADMIN_CANNOT_BE_POOL();
 
         pool =
             ISuperfluidPool(address(SuperfluidPoolDeployerLibrary.deploy(address(superfluidPoolBeacon), admin, token)));
@@ -293,6 +292,36 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         emit PoolCreated(token, admin, pool);
+    }
+
+    /// @inheritdoc IGeneralDistributionAgreementV1
+    function updateMemberUnits(ISuperfluidPool pool, address memberAddress, uint128 newUnits, bytes calldata ctx)
+        external
+        override
+        returns (bytes memory newCtx)
+    {
+        ISuperfluidToken token = pool.superToken();
+        address admin = pool.admin();
+        ISuperfluid.Context memory currentContext = AgreementLibrary.authorizeTokenAccess(token, ctx);
+
+        // Only the admin can update member units here
+        if (currentContext.msgSender != admin) revert GDA_NOT_POOL_ADMIN();
+        newCtx = ctx;
+
+        pool.updateMemberUnits(memberAddress, newUnits);
+    }
+
+    /// @inheritdoc IGeneralDistributionAgreementV1
+    function claimAll(ISuperfluidPool pool, address memberAddress, bytes calldata ctx)
+        external
+        override
+        returns (bytes memory newCtx)
+    {
+        ISuperfluidToken token = pool.superToken();
+        AgreementLibrary.authorizeTokenAccess(token, ctx);
+        newCtx = ctx;
+
+        pool.claimAll(memberAddress);
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1

@@ -1521,9 +1521,22 @@ contract FoundrySuperfluidTester is Test {
         return _helperCreatePool(_superToken, _caller, _poolAdmin, false);
     }
 
-    function _helperUpdateMemberUnits(ISuperfluidPool pool_, address caller_, address member_, uint128 newUnits_)
-        internal
-    {
+    function _helperUpdateMemberUnits(
+        ISuperfluidPool pool_,
+        address caller_,
+        address member_,
+        uint128 newUnits_
+    ) internal {
+        _helperUpdateMemberUnits(pool_, caller_, member_, newUnits_, false);
+    }
+
+    function _helperUpdateMemberUnits(
+        ISuperfluidPool pool_,
+        address caller_,
+        address member_,
+        uint128 newUnits_,
+        bool useGDA_
+    ) internal {
         // there is a hard restriction in which total units must never exceed type(int96).max
         vm.assume(newUnits_ < type(uint72).max);
         ISuperfluidToken poolSuperToken = pool_.superToken();

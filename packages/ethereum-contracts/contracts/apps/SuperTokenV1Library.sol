@@ -1709,6 +1709,42 @@ library SuperTokenV1Library {
         pool = gda.createPool(token, admin);
     }
 
+    function updateMemberUnits(ISuperToken token, ISuperfluidPool pool, address memberAddress, uint128 newUnits)
+        internal
+        returns (bool)
+    {
+        return updateMemberUnits(token, pool, memberAddress, newUnits, new bytes(0));
+    }
+
+    function updateMemberUnits(
+        ISuperToken token,
+        ISuperfluidPool pool,
+        address memberAddress,
+        uint128 newUnits,
+        bytes memory userData
+    ) internal returns (bool) {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        host.callAgreement(
+            gda, abi.encodeCall(gda.updateMemberUnits, (pool, memberAddress, newUnits, new bytes(0))), userData
+        );
+
+        return true;
+    }
+
+    function claimAll(ISuperToken token, ISuperfluidPool pool, address memberAddress) internal returns (bool) {
+        return claimAll(token, pool, memberAddress, new bytes(0));
+    }
+
+    function claimAll(ISuperToken token, ISuperfluidPool pool, address memberAddress, bytes memory userData)
+        internal
+        returns (bool)
+    {
+        (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
+        host.callAgreement(gda, abi.encodeCall(gda.claimAll, (pool, memberAddress, new bytes(0))), userData);
+
+        return true;
+    }
+
     function connectPool(ISuperToken token, ISuperfluidPool pool) internal returns (bool) {
         return connectPool(token, pool, new bytes(0));
     }
@@ -1716,6 +1752,7 @@ library SuperTokenV1Library {
     function connectPool(ISuperToken token, ISuperfluidPool pool, bytes memory userData) internal returns (bool) {
         (ISuperfluid host, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
         host.callAgreement(gda, abi.encodeCall(gda.connectPool, (pool, new bytes(0))), userData);
+
         return true;
     }
 
@@ -1772,6 +1809,7 @@ library SuperTokenV1Library {
         return true;
     }
 
+    // TODO: need to add withCtx functions for the GDA
     // ************** private helpers **************
 
     // @note We must use hardcoded constants here because:

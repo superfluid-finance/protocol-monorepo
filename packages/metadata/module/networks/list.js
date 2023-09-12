@@ -28,7 +28,7 @@ export default
                 "manager": "0x0B82D14E9616ca4d260E77454834AdCf5887595F",
                 "wrapStrategy": "0xea49af829d3e28d3ec49e0e0a0ba1e7860a56f60"
             },
-            "existentialNFTCloneFactory": "0x8c430c53364666261035B9f6a855791cb65889B1"
+            "existentialNFTCloneFactory": "0x3e5e8449477F80a3Dc0bA394882AeAB300c7F807"
         },
         "startBlockV1": 3550000,
         "logsQueryRange": 10000,
@@ -82,7 +82,7 @@ export default
                 "manager": "0x3eAB3c6207F488E475b7955B631B564F0E6317B9",
                 "wrapStrategy": "0x544728AFDBeEafBeC9e1329031788edb53017bC4"
             },
-            "existentialNFTCloneFactory": "0x65f72da99920fc893f9b94164b359ffe36051dbc"
+            "existentialNFTCloneFactory": "0xfC4E49AfcDDDcc2B90794DC214cc324d17B15619"
         },
         "startBlockV1": 8100000,
         "logsQueryRange": 10000,
@@ -128,7 +128,7 @@ export default
             "gdaV1": "0xe87F46A15C410F151309Bf7516e130087Fc6a5E5",
             "superTokenFactory": "0xfafe31cf998Df4e5D8310B03EBa8fb5bF327Eaf5",
             "superfluidLoader": "0x5Bb5908dcCC9Bb0fC39a78CfDf9e47B4C08E9521",
-            "existentialNFTCloneFactory": "0xE9748B7eDf99ca28d071Fd8E9fc2Fa7a1B60FF47"
+            "existentialNFTCloneFactory": "0xFCb633f4ff90241391aD92E4678eC2a11a94a990"
         },
         "startBlockV1": 340000,
         "logsQueryRange": 50000,
@@ -158,7 +158,7 @@ export default
             "gdaV1": "0xe87F46A15C410F151309Bf7516e130087Fc6a5E5",
             "superTokenFactory": "0xfafe31cf998Df4e5D8310B03EBa8fb5bF327Eaf5",
             "superfluidLoader": "0x5Bb5908dcCC9Bb0fC39a78CfDf9e47B4C08E9521",
-            "existentialNFTCloneFactory": "0x1bBc06F00b9F5964eb8F7ED044e15C8dE13368bE"
+            "existentialNFTCloneFactory": "0x22f391AB6755F0A8986AFD543289C43701beaCAa"
         },
         "startBlockV1": 93000,
         "logsQueryRange": 50000,
@@ -192,7 +192,7 @@ export default
                 "manager": "0x30aE282CF477E2eF28B14d0125aCEAd57Fe1d7a1",
                 "wrapStrategy": "0x1D65c6d3AD39d454Ea8F682c49aE7744706eA96d"
             },
-            "existentialNFTCloneFactory": "0x06a82e6A0204166eB2036638fC73CeAAb402C8e4"
+            "existentialNFTCloneFactory": "0xF76529ddEE7AA7890323eCa40C212758DD93B888"
         },
         "startBlockV1": 3220000,
         "logsQueryRange": 50000,
@@ -221,7 +221,7 @@ export default
             "idaV1": "0x9358C7dCCc6B8CA6F526311e8ac266F8C861B7ea",
             "superTokenFactory": "0x254C2e152E8602839D288A7bccdf3d0974597193",
             "superfluidLoader": "0x554c06487bEc8c890A0345eb05a5292C1b1017Bd",
-            "existentialNFTCloneFactory": "0xcDD4276815Ff39535d18f014E600C84e08b01913"
+            "existentialNFTCloneFactory": "0x0D1F0d4629B722b4dFabd195c14F12f2095418d9"
         },
         "startBlockV1": 3322400,
         "logsQueryRange": 10000,
@@ -254,7 +254,7 @@ export default
             "idaV1": "0xaa4FCc799B8857FA87b2945Dc6572D5d76b35485",
             "superTokenFactory": "0x1015BE31D7711D95d2c3444708FB53cC851ba856",
             "superfluidLoader": "0x15F0Ca26781C3852f8166eD2ebce5D18265cceb7",
-            "existentialNFTCloneFactory": "0x69f1a4Ae3fE44Bb161d77BE748eebBdF2eCe6545"
+            "existentialNFTCloneFactory": "0x42B332F56BCD15F0D7cd523E5eC26Cd0734621eD"
         },
         "startBlockV1": 5249500,
         "logsQueryRange": 10000,
@@ -286,7 +286,7 @@ export default
             "idaV1": "0xBf22019a4A4430bA67D3B0c8B4d5Edc48F913301",
             "superTokenFactory": "0x0F3B163623F05b2BfF42956f7C7bd31456bd83a2",
             "superfluidLoader": "0xda6db863cb2EE39b196edB8159c38A1ed5c55344",
-            "existentialNFTCloneFactory": "0xe4bbA294E0F7C4a83a105F7fe2CeCf4D7Bd8B3c0"
+            "existentialNFTCloneFactory": "0x70bbB7a057A13070dF11d533e8f299357D778637"
         },
         "startBlockV1": 726000,
         "logsQueryRange": 20000,
@@ -294,9 +294,7 @@ export default
         "subgraphV1": {
             "name": "protocol-v1-polygon-zkevm-testnet"
         },
-        "publicRPCs": [
-            "https://rpc.public.zkevm-test.net"
-        ]
+        "publicRPCs": ["https://rpc.public.zkevm-test.net"]
     },
     {
         "name": "xdai-mainnet",
@@ -328,7 +326,7 @@ export default
                 "manager": "0x8082e58681350876aFe8f52d3Bf8672034A03Db0",
                 "wrapStrategy": "0x51FBAbD31A615E14b1bC12E9d887f60997264a4E"
             },
-            "existentialNFTCloneFactory": "0xB9B8cDb05aD60e98a13a0F4b5E9d73Bc31557E61"
+            "existentialNFTCloneFactory": "0xCd67c5bC1dfA3FF7d86b5ABc62A65C912Cbd2DA7"
         },
         "startBlockV1": 14820000,
         "logsQueryRange": 20000,
@@ -383,7 +381,7 @@ export default
                 "manager": "0x2581c27E7f6D6AF452E63fCe884EDE3EDd716b32",
                 "wrapStrategy": "0xb4afa36BAd8c76976Dc77a21c9Ad711EF720eE4b"
             },
-            "existentialNFTCloneFactory": "0x177Ab68dc7B0032Fce7d64d5BD28a5983bD42B3B"
+            "existentialNFTCloneFactory": "0x497aa106Da00BFa8f8BC266EF0793131930Fa630"
         },
         "startBlockV1": 11650500,
         "logsQueryRange": 10000,
@@ -396,7 +394,7 @@ export default
         "subgraphVesting": {
             "name": "vesting-v1-polygon-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-polygon-mainnet"
-          },
+        },
         "subgraphFlowScheduler": {
             "name": "scheduling-v1-polygon-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-polygon-mainnet"
@@ -438,7 +436,7 @@ export default
                 "manager": "0x1fA76f2Cd0C3fe6c399A80111408d9C42C0CAC23",
                 "wrapStrategy": "0x0Cf060a501c0040e9CCC708eFE94079F501c6Bb4"
             },
-            "existentialNFTCloneFactory": "0xC8DCf0cbB0f02475eBADAbE7daebc5B8b6b81F57"
+            "existentialNFTCloneFactory": "0xCb0Ff4D0cA186f0Fc0301258066Fe3fA258417a6"
         },
         "startBlockV1": 4300000,
         "logsQueryRange": 50000,
@@ -450,15 +448,15 @@ export default
         "subgraphVesting": {
             "name": "vesting-v1-optimism-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-optimism-mainnet"
-          },
-          "subgraphFlowScheduler": {
+        },
+        "subgraphFlowScheduler": {
             "name": "scheduling-v1-optimism-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-optimism-mainnet"
-          },
-          "subgraphAutoWrap": {
+        },
+        "subgraphAutoWrap": {
             "name": "auto-wrap-v1-optimism-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-optimism-mainnet"
-          },
+        },
         "publicRPCs": [
             "https://mainnet.optimism.io",
             "https://rpc.ankr.com/optimism"
@@ -492,7 +490,7 @@ export default
                 "manager": "0xf01825eAFAe5CD1Dab5593EFAF218efC8968D272",
                 "wrapStrategy": "0x342076aA957B0ec8bC1d3893af719b288eA31e61"
             },
-            "existentialNFTCloneFactory": "0x554a8AcEF6C689a74b25b1C41F58fA2e678162b5"
+            "existentialNFTCloneFactory": "0xF353978890204756fc5fa6dfbD16a91eac9E6f4d"
         },
         "startBlockV1": 7600000,
         "logsQueryRange": 50000,
@@ -504,15 +502,15 @@ export default
         "subgraphVesting": {
             "name": "vesting-v1-arbitrum-one",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-arbitrum-one"
-          },
-          "subgraphFlowScheduler": {
+        },
+        "subgraphFlowScheduler": {
             "name": "scheduling-v1-arbitrum-one",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-arbitrum-one"
-          },
-          "subgraphAutoWrap": {
+        },
+        "subgraphAutoWrap": {
             "name": "auto-wrap-v1-arbitrum-one",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-arbitrum-one"
-          },
+        },
         "publicRPCs": [
             "https://arb1.arbitrum.io/rpc",
             "https://arbitrum.blockpi.network/v1/rpc/public"
@@ -546,7 +544,7 @@ export default
                 "manager": "0x8082e58681350876aFe8f52d3Bf8672034A03Db0",
                 "wrapStrategy": "0x51FBAbD31A615E14b1bC12E9d887f60997264a4E"
             },
-            "existentialNFTCloneFactory": "0x94A8358E313044BC5Bc4a615dA4E59aCAF3e1101"
+            "existentialNFTCloneFactory": "0x94aE5f52E401A5766b0877d2f030cFb9C3792BD7"
         },
         "startBlockV1": 14700000,
         "logsQueryRange": 50000,
@@ -558,15 +556,15 @@ export default
         "subgraphVesting": {
             "name": "vesting-v1-avalanche-c",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-avalanche-c"
-          },
-          "subgraphFlowScheduler": {
+        },
+        "subgraphFlowScheduler": {
             "name": "scheduling-v1-avalanche-c",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-avalanche-c"
-          },
-          "subgraphAutoWrap": {
+        },
+        "subgraphAutoWrap": {
             "name": "auto-wrap-v1-avalanche-c",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-avalanche-c"
-          },
+        },
         "publicRPCs": [
             "https://api.avax.network/ext/bc/C/rpc",
             "https://rpc.ankr.com/avalanche"
@@ -600,7 +598,7 @@ export default
                 "manager": "0x2AcdD61ac1EFFe1535109449c31889bdE8d7f325",
                 "wrapStrategy": "0x9e308cb079ae130790F604b1030cDf386670f199"
             },
-            "existentialNFTCloneFactory": "0x143ea239159155B408e71CDbE836e8CFD6766732"
+            "existentialNFTCloneFactory": "0xe9F27eb8cdAaA0B01a4034e109496C3026b01bd9"
         },
         "startBlockV1": 18800000,
         "logsQueryRange": 5000,
@@ -612,15 +610,15 @@ export default
         "subgraphVesting": {
             "name": "vesting-v1-bsc-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-bsc-mainnet"
-          },
-          "subgraphFlowScheduler": {
+        },
+        "subgraphFlowScheduler": {
             "name": "scheduling-v1-bsc-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-bsc-mainnet"
-          },
-          "subgraphAutoWrap": {
+        },
+        "subgraphAutoWrap": {
             "name": "auto-wrap-v1-bsc-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-bsc-mainnet"
-          },
+        },
         "publicRPCs": [
             "https://bscrpc.com",
             "https://bsc-dataseed.binance.org"
@@ -666,15 +664,15 @@ export default
         "subgraphVesting": {
             "name": "vesting-v1-eth-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/vesting-v1-eth-mainnet"
-          },
-          "subgraphFlowScheduler": {
+        },
+        "subgraphFlowScheduler": {
             "name": "scheduling-v1-eth-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/scheduling-v1-eth-mainnet"
-          },
-          "subgraphAutoWrap": {
+        },
+        "subgraphAutoWrap": {
             "name": "auto-wrap-v1-eth-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/auto-wrap-v1-eth-mainnet"
-          },
+        },
         "publicRPCs": [
             "https://cloudflare-eth.com",
             "https://eth-rpc.gateway.pokt.network"
@@ -711,10 +709,7 @@ export default
             "name": "protocol-v1-celo-mainnet",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-celo-mainnet"
         },
-        "publicRPCs": [
-            "https://forno.celo.org",
-            "https://rpc.ankr.com/celo"
-        ],
+        "publicRPCs": ["https://forno.celo.org", "https://rpc.ankr.com/celo"],
         "coinGeckoId": "celo"
     },
     {
@@ -738,7 +733,7 @@ export default
             "superfluidLoader": "0x6B24A6F34ab96267Fef9F8AC9fe6CC104C228127",
             "toga": "0xA87F76e99f6C8Ff8996d14f550ceF47f193D9A09",
             "batchLiquidator": "0x889ebeCaD5F8C34Fd96023456d0fC5cE54eb74Cb",
-            "existentialNFTCloneFactory": "0x74b57883f8ce9F2BD330286E884CfD8BB24AC4ED"
+            "existentialNFTCloneFactory": "0x642332562BC60a4Bd9681E7bb1588f7456A497aC"
         },
         "startBlockV1": 1000000,
         "logsQueryRange": 20000,
@@ -746,9 +741,7 @@ export default
         "subgraphV1": {
             "name": "protocol-v1-base-mainnet"
         },
-        "publicRPCs": [
-            "https://developer-access-mainnet.base.org"
-        ],
+        "publicRPCs": ["https://developer-access-mainnet.base.org"],
         "coinGeckoId": "base"
     }
 ]

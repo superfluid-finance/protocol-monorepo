@@ -1895,8 +1895,8 @@ library SuperTokenV1Library {
 
     function distributeWithCtx(
         ISuperToken token,
-        address from,
         ISuperfluidPool pool,
+        address from,
         uint256 requestedAmount,
         bytes memory ctx
     ) internal returns (bytes memory newCtx) {
@@ -1920,8 +1920,8 @@ library SuperTokenV1Library {
 
     function distributeFlowWithCtx(
         ISuperToken token,
-        address from,
         ISuperfluidPool pool,
+        address from,
         int96 requestedFlowRate,
         bytes memory ctx
     ) internal returns (bytes memory newCtx) {

@@ -1539,7 +1539,7 @@ contract FoundrySuperfluidTester is Test {
     ) internal {
         // there is a hard restriction in which total units must never exceed type(int96).max
         vm.assume(newUnits_ < type(uint72).max);
-        ISuperfluidToken poolSuperToken = pool_.superToken();
+        ISuperToken poolSuperToken = ISuperToken(address(pool_.superToken()));
         if (caller_ == address(0) || member_ == address(0) || sf.gda.isPool(poolSuperToken, member_)) return;
 
         (bool isConnected, int256 oldUnits,) = _helperGetMemberPoolState(pool_, member_);
@@ -1550,7 +1550,11 @@ contract FoundrySuperfluidTester is Test {
         (int256 balanceBefore,,,) = poolSuperToken.realtimeBalanceOfNow(member_);
 
         vm.startPrank(caller_);
-        pool_.updateMemberUnits(member_, newUnits_);
+        if (useGDA_) {
+            poolSuperToken.updateMemberUnits(pool_, member_, newUnits_);
+        } else {
+            pool_.updateMemberUnits(member_, newUnits_);
+        }
         vm.stopPrank();
 
         PoolUnitData memory poolUnitDataAfter = _helperGetPoolUnitsData(pool_);
@@ -1571,13 +1575,11 @@ contract FoundrySuperfluidTester is Test {
 
         // Assert that the flow rate for a member is updated accordingly
         {
-            int96 poolTotalFlowRate = pool_.getTotalFlowRate();
             uint128 totalUnits = pool_.getTotalUnits();
-            uint128 flowRatePerUnit = totalUnits == 0 ? 0 : uint128(uint96(poolTotalFlowRate)) / totalUnits;
-            int96 memberFlowRate = pool_.getMemberFlowRate(member_);
+            uint128 flowRatePerUnit = totalUnits == 0 ? 0 : uint128(uint96(pool_.getTotalFlowRate())) / totalUnits;
             assertEq(
                 flowRatePerUnit * newUnits_,
-                uint128(uint96(memberFlowRate)),
+                uint128(uint96(pool_.getMemberFlowRate(member_))),
                 "_helperUpdateMemberUnits: Member flow rate incorrect"
             );
         }

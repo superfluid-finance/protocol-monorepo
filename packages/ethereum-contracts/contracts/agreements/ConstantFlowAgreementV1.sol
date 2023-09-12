@@ -18,6 +18,7 @@ import { AgreementBase } from "./AgreementBase.sol";
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { AgreementLibrary } from "./AgreementLibrary.sol";
 import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
+import { SolvencyHelperLibrary } from "../libs/SolvencyHelperLibrary.sol";
 
 /**
  * @title ConstantFlowAgreementV1 contract
@@ -170,7 +171,7 @@ contract ConstantFlowAgreementV1 is
          external view override
          returns (int96 flowRate)
      {
-         (uint256 liquidationPeriod, ) = _decode3PsData(token);
+         (uint256 liquidationPeriod, ) = SolvencyHelperLibrary.decode3PsData(ISuperfluid(_host), token);
          flowRate = _getMaximumFlowRateFromDepositPure(liquidationPeriod, deposit);
      }
 
@@ -212,11 +213,12 @@ contract ConstantFlowAgreementV1 is
             return true;
         }
 
-        (uint256 liquidationPeriod, uint256 patricianPeriod) = _decode3PsData(token);
+        (uint256 liquidationPeriod, uint256 patricianPeriod) =
+            SolvencyHelperLibrary.decode3PsData(ISuperfluid(_host), token);
         (,FlowData memory senderAccountState) = _getAccountFlowState(token, account);
         int256 signedTotalCFADeposit = senderAccountState.deposit.toInt256();
 
-        return _isPatricianPeriod(
+        return SolvencyHelperLibrary.isPatricianPeriod(
             availableBalance,
             signedTotalCFADeposit,
             liquidationPeriod,
@@ -1348,7 +1350,9 @@ contract ConstantFlowAgreementV1 is
             uint256 minimumDeposit;
             // STEP 1: calculate deposit required for the flow
             {
-                (uint256 liquidationPeriod, ) = _decode3PsData(token);
+
+                (uint256 liquidationPeriod,) =
+                    SolvencyHelperLibrary.decode3PsData(ISuperfluid(_host), token);
                 ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
                 minimumDeposit = gov.getConfigAsUint256(
                     ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
@@ -1485,8 +1489,9 @@ contract ConstantFlowAgreementV1 is
         // To retrieve patrician period
         // Note: curly brackets are to handle stack too deep overflow issue
         {
-            (uint256 liquidationPeriod, uint256 patricianPeriod) = _decode3PsData(token);
-            isCurrentlyPatricianPeriod = _isPatricianPeriod(
+            (uint256 liquidationPeriod, uint256 patricianPeriod) =
+                SolvencyHelperLibrary.decode3PsData(ISuperfluid(_host), token);
+            isCurrentlyPatricianPeriod = SolvencyHelperLibrary.isPatricianPeriod(
                 availableBalance,
                 signedTotalCFADeposit,
                 liquidationPeriod,
@@ -1617,50 +1622,6 @@ contract ConstantFlowAgreementV1 is
             flowData.deposit = ((wordA >> 64) & uint256(type(uint64).max)) << 32 /* recover clipped bits*/;
             flowData.owedDeposit = (wordA & uint256(type(uint64).max)) << 32 /* recover clipped bits*/;
         }
-    }
-
-    /**************************************************************************
-     * 3P's Pure Functions
-     *************************************************************************/
-
-    //
-    // Data packing:
-    //
-    // WORD A: |    reserved    | patricianPeriod | liquidationPeriod |
-    //         |      192       |        32       |         32        |
-    //
-    // NOTE:
-    // - liquidation period has 32 bits length
-    // - patrician period also has 32 bits length
-
-    function _decode3PsData(
-        ISuperfluidToken token
-    )
-        internal view
-        returns(uint256 liquidationPeriod, uint256 patricianPeriod)
-    {
-        ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(_host).getGovernance());
-        uint256 pppConfig = gov.getConfigAsUint256(ISuperfluid(_host), token, CFAV1_PPP_CONFIG_KEY);
-        (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
-    }
-
-    function _isPatricianPeriod(
-        int256 availableBalance,
-        int256 signedTotalCFADeposit,
-        uint256 liquidationPeriod,
-        uint256 patricianPeriod
-    )
-        internal pure
-        returns (bool)
-    {
-        if (signedTotalCFADeposit == 0) {
-            return false;
-        }
-
-        int256 totalRewardLeft = availableBalance + signedTotalCFADeposit;
-        int256 totalCFAOutFlowrate = signedTotalCFADeposit / int256(liquidationPeriod);
-        // divisor cannot be zero with existing outflow
-        return totalRewardLeft / totalCFAOutFlowrate > int256(liquidationPeriod - patricianPeriod);
     }
 
     /**************************************************************************

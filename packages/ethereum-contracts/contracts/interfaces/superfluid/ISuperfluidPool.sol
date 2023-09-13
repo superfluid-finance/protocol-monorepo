@@ -17,7 +17,9 @@ interface ISuperfluidPool is IERC20 {
     error SUPERFLUID_POOL_NOT_GDA();                // 0xfcbe3f9e
 
     // Events
-    event MemberUnitsUpdated(ISuperfluidToken indexed token, address indexed member, uint128 units);
+    event MemberUnitsUpdated(
+        ISuperfluidToken indexed token, address indexed member, uint128 oldUnits, uint128 newUnits
+    );
     event DistributionClaimed(
         ISuperfluidToken indexed token, address indexed member, int256 claimedAmount, int256 totalClaimed
     );

@@ -914,15 +914,16 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         (, FlowDistributionData memory flowDistributionData) =
             _getFlowDistributionData(ISuperfluidToken(token), flowHash);
 
-        bytes32[] memory data = _encodeFlowDistributionData(
-            FlowDistributionData({
-                lastUpdated: uint32(block.timestamp),
-                flowRate: int256(FlowRate.unwrap(newFlowRate)).toInt96(),
-                buffer: flowDistributionData.buffer
-            })
+        ISuperfluidToken(token).updateAgreementData(
+            flowHash,
+            _encodeFlowDistributionData(
+                FlowDistributionData({
+                    lastUpdated: uint32(block.timestamp),
+                    flowRate: int256(FlowRate.unwrap(newFlowRate)).toInt96(),
+                    buffer: flowDistributionData.buffer
+                })
+            )
         );
-
-        ISuperfluidToken(token).updateAgreementData(flowHash, data);
 
         return eff;
     }

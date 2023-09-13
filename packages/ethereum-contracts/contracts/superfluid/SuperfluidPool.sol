@@ -396,7 +396,11 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
         Unit wrappedUnits = _toSemanticMoneyUnit(newUnits);
 
         PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(_index);
-        PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(_membersData[memberAddr]);
+        MemberData memory memberData = _membersData[memberAddr];
+        PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(memberData);
+
+        uint128 oldUnits = memberData.ownedUnits;
+
         PDPoolMemberMU memory mu = PDPoolMemberMU(pdPoolIndex, pdPoolMember);
 
         // update pool's disconnected units
@@ -418,7 +422,7 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
             _membersData[memberAddr] = _pdPoolMemberToMemberData(pdPoolMember, claimedValue);
             assert(GDA.appendIndexUpdateByPool(superToken, p, t));
         }
-        emit MemberUnitsUpdated(superToken, memberAddr, newUnits);
+        emit MemberUnitsUpdated(superToken, memberAddr, oldUnits, newUnits);
 
         _handlePoolMemberNFT(memberAddr, newUnits);
 

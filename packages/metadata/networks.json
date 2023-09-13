@@ -297,6 +297,8 @@
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0xBf22019a4A4430bA67D3B0c8B4d5Edc48F913301",
             "superTokenFactory": "0x0F3B163623F05b2BfF42956f7C7bd31456bd83a2",
+            "constantOutflowNFT": "0xDBD6f113E46A99D7BF95edfa47390c0c8127E922",
+            "constantInflowNFT": "0xcb05535bd212eCFC4B7b9db81d6C2C768b726776",
             "superfluidLoader": "0xda6db863cb2EE39b196edB8159c38A1ed5c55344",
             "existentialNFTCloneFactory": "0x70bbB7a057A13070dF11d533e8f299357D778637"
         },

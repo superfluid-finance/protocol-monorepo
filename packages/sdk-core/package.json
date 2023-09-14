@@ -56,7 +56,7 @@
     },
     "dependencies": {
         "@superfluid-finance/ethereum-contracts": "1.8.1",
-        "@superfluid-finance/metadata": "1.1.15",
+        "@superfluid-finance/metadata": "1.1.16",
         "browserify": "^17.0.0",
         "graphql-request": "^6.1.0",
         "lodash": "^4.17.21",

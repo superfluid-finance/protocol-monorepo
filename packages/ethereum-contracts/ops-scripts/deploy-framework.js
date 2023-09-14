@@ -394,6 +394,9 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         if (config.cfaFwd) {
             trustedForwarders.push(config.cfaFwd);
         }
+        if (config.gdaFwd) {
+            trustedForwarders.push(config.gdaFwd);
+        }
         console.log(`initializing governance with config: ${JSON.stringify({
             liquidationPeriod: config.liquidationPeriod,
             patricianPeriod: config.patricityPeriod,

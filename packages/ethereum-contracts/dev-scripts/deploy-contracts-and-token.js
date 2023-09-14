@@ -15,7 +15,7 @@ async function deployContractsAndToken() {
         testResolverArtifact.abi,
         framework.resolver
     );
-    
+
     await deployer
         .connect(Deployer)
         .deployWrapperSuperToken(

@@ -242,13 +242,13 @@ dataSources:
           - event: BufferAdjusted(indexed address,indexed address,indexed address,int256,uint256,uint256)
             handler: handleBufferAdjusted
             receipt: true
-          - event: FlowDistributionUpdated(indexed address,indexed address,indexed address,address,int96,int96,int96,address,int96)
+          - event: FlowDistributionUpdated(indexed address,indexed address,indexed address,address,int96,int96,int96,address,int96,bytes)
             handler: handleFlowDistributionUpdated
             receipt: true
-          - event: InstantDistributionUpdated(indexed address,indexed address,indexed address,address,uint256,uint256)
+          - event: InstantDistributionUpdated(indexed address,indexed address,indexed address,address,uint256,uint256,bytes)
             handler: handleInstantDistributionUpdated
             receipt: true
-          - event: PoolConnectionUpdated(indexed address,indexed address,indexed address,bool)
+          - event: PoolConnectionUpdated(indexed address,indexed address,indexed address,bool,bytes)
             handler: handlePoolConnectionUpdated
             receipt: true
           - event: PoolCreated(indexed address,indexed address,address)

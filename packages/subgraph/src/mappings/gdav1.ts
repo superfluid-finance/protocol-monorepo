@@ -384,6 +384,7 @@ function _createPoolConnectionUpdatedEntity(
     ev.connected = event.params.connected;
     ev.pool = event.params.pool.toHex();
     ev.poolMember = event.params.account.toHex();
+    ev.userData = event.params.userData;
 
     ev.save();
 
@@ -431,6 +432,7 @@ function _createInstantDistributionUpdatedEntity(
     ev.actualAmount = event.params.actualAmount;
     ev.pool = event.params.pool.toHex();
     ev.poolDistributor = event.params.distributor.toHex();
+    ev.userData = event.params.userData;
 
     ev.save();
 
@@ -459,6 +461,7 @@ function _createFlowDistributionUpdatedEntity(
     ev.adjustmentFlowRate = event.params.adjustmentFlowRate;
     ev.pool = event.params.pool.toHex();
     ev.poolDistributor = event.params.distributor.toHex();
+    ev.userData = event.params.userData;
 
     ev.save();
 

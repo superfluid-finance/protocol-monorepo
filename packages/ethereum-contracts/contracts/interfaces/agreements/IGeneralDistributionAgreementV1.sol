@@ -15,8 +15,8 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     error GDA_FLOW_DOES_NOT_EXIST(); // 0x29f4697e
     error GDA_NON_CRITICAL_SENDER(); // 0x666f381d
     error GDA_INSUFFICIENT_BALANCE(); // 0x33115c3f
-    error GDA_NO_NEGATIVE_FLOW_RATE();  // 0x15f25663
-    error GDA_ADMIN_CANNOT_BE_POOL();   // 0x9ab88a26
+    error GDA_NO_NEGATIVE_FLOW_RATE(); // 0x15f25663
+    error GDA_ADMIN_CANNOT_BE_POOL(); // 0x9ab88a26
     error GDA_NOT_POOL_ADMIN(); // 0x3a87e565
     error GDA_NO_ZERO_ADDRESS_ADMIN(); // 0x82c5d837
     error GDA_ONLY_SUPER_TOKEN_POOL(); // 0x90028c37
@@ -28,7 +28,8 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
         address indexed distributor,
         address operator,
         uint256 requestedAmount,
-        uint256 actualAmount
+        uint256 actualAmount,
+        bytes userData
     );
 
     event FlowDistributionUpdated(
@@ -43,13 +44,18 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
         int96 newDistributorToPoolFlowRate,
         int96 newTotalDistributionFlowRate,
         address adjustmentFlowRecipient,
-        int96 adjustmentFlowRate
+        int96 adjustmentFlowRate,
+        bytes userData
     );
 
     event PoolCreated(ISuperfluidToken indexed token, address indexed admin, ISuperfluidPool pool);
 
     event PoolConnectionUpdated(
-        ISuperfluidToken indexed token, ISuperfluidPool indexed pool, address indexed account, bool connected
+        ISuperfluidToken indexed token,
+        ISuperfluidPool indexed pool,
+        address indexed account,
+        bool connected,
+        bytes userData
     );
 
     event BufferAdjusted(
@@ -118,10 +124,9 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     ) external view virtual returns (uint256 actualAmount);
 
     /// @notice Gets the adjustment flow rate of `pool` for `token`.
-    /// @param token The token address
     /// @param pool The pool address
     /// @return adjustment flow rate
-    function getPoolAdjustmentFlowRate(ISuperfluidToken token, address pool) external view virtual returns (int96);
+    function getPoolAdjustmentFlowRate(address pool) external view virtual returns (int96);
 
     ////////////////////////////////////////////////////////////////////////////////
     // Pool Operations

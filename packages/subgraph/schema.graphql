@@ -663,6 +663,7 @@ type PoolConnectionUpdatedEvent implements Event @entity(immutable: true) {
 
     token: Bytes!
     connected: Boolean!
+    userData: Bytes!
 
     pool: Pool!
     poolMember: PoolMember!
@@ -721,6 +722,7 @@ type InstantDistributionUpdatedEvent implements Event @entity(immutable: true) {
     operator: Bytes!
     requestedAmount: BigInt!
     actualAmount: BigInt!
+    userData: Bytes!
 
     pool: Pool!
     poolDistributor: PoolDistributor!
@@ -753,6 +755,7 @@ type FlowDistributionUpdatedEvent implements Event @entity(immutable: true) {
     newTotalDistributionFlowRate: BigInt!
     adjustmentFlowRecipient: Bytes!
     adjustmentFlowRate: BigInt!
+    userData: Bytes!
 
     pool: Pool!
     poolDistributor: PoolDistributor!

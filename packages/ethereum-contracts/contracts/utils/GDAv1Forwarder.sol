@@ -173,12 +173,11 @@ contract GDAv1Forwarder is ForwarderBase {
 
     /**
      * @dev Gets the pool adjustment flow rate for the specified pool.
-     * @param token The Super Token address.
      * @param pool The pool address.
      * @return The pool adjustment flow rate.
      */
-    function getPoolAdjustmentFlowRate(ISuperfluidToken token, address pool) external view virtual returns (int96) {
-        return _gda.getPoolAdjustmentFlowRate(token, pool);
+    function getPoolAdjustmentFlowRate(address pool) external view virtual returns (int96) {
+        return _gda.getPoolAdjustmentFlowRate(pool);
     }
 
     /**

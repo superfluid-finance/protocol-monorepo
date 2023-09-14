@@ -561,10 +561,14 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         } catch (err) {
             console.error(err);
         }
+        const delegatableTokenMonad = await web3tx(
+            DelegatableTokenMonad.new,
+            "DelegatableTokenMonad.new"
+        )();
         const agreement = await web3tx(
             GeneralDistributionAgreementV1.new,
             "GeneralDistributionAgreementV1.new"
-        )(superfluid.address);
+        )(superfluid.address, delegatableTokenMonad.address);
 
         console.log(
             "New GeneralDistributionAgreementV1 address",

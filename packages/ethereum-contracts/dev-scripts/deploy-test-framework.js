@@ -7,6 +7,7 @@ const SuperfluidCFAv1DeployerLibraryArtifact = require("@superfluid-finance/ethe
 const SuperfluidIDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidIDAv1DeployerLibrary.json");
 const SuperfluidGDAv1DeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidGDAv1DeployerLibrary.json");
 const SuperTokenDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperTokenDeployerLibrary.json");
+const DelegatableTokenMonadDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/DelegatableTokenMonadDeployerLibrary.json");
 const SuperfluidPeripheryDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPeripheryDeployerLibrary.json");
 const SuperfluidPoolLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidPoolLogicDeployerLibrary.json");
 const SuperfluidFlowNFTLogicDeployerLibraryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/utils/SuperfluidFrameworkDeploymentSteps.sol/SuperfluidFlowNFTLogicDeployerLibrary.json");
@@ -148,6 +149,14 @@ const deployTestFramework = async () => {
                 signer,
             }
         );
+    const DelegatableTokenMonadDeployerLibrary =
+        await _getFactoryAndReturnDeployedContract(
+            "DelegatableTokenMonadDeployerLibrary",
+            DelegatableTokenMonadDeployerLibraryArtifact,
+            {
+                signer,
+            }
+        );
     const SuperfluidPeripheryDeployerLibrary =
         await _getFactoryAndReturnDeployedContract(
             "SuperfluidPeripheryDeployerLibrary",
@@ -238,6 +247,8 @@ const deployTestFramework = async () => {
                     CFAv1ForwarderDeployerLibrary.address,
                 IDAv1ForwarderDeployerLibrary:
                     IDAv1ForwarderDeployerLibrary.address,
+                DelegatableTokenMonadDeployerLibrary:
+                    DelegatableTokenMonadDeployerLibrary.address,
                 GDAv1ForwarderDeployerLibrary:
                     GDAv1ForwarderDeployerLibrary.address,
                 SuperfluidLoaderDeployerLibrary:

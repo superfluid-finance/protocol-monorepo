@@ -40,18 +40,13 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         uint256 minBondDuration;
     }
 
-    error DEPLOY_SUPER_TOKEN_REQUIRES_1820();
-    error DEPLOY_SUPER_TOKEN_REQUIRES_DEPLOY_SUPER_TOKEN_CONTRACTS();
-    error DEPLOY_TOGA_REQUIRES_1820();
-    error RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
-
     /// @notice Deploys the Superfluid Framework (Test)
     /// @dev This uses default configurations for the framework.
     /// NOTE: ERC1820 must be deployed as a prerequisite before calling this function.
     function deployTestFramework() external {
         // Default Configs
-        for (uint256 i = 0; i < _getNumSteps(); ++i) {
-            _executeStep(uint8(i));
+        for (uint256 i = 0; i < getNumSteps(); ++i) {
+            executeStep(uint8(i));
         }
     }
 
@@ -142,37 +137,11 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
 
     function _handleResolverList(bool _listOnResolver, string memory _resolverKey, address _superTokenAddress)
         internal
-        requiresResolver
     {
+        if (address(testResolver) == address(0)) revert RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
         if (_listOnResolver) {
             testResolver.set(_resolverKey, address(_superTokenAddress));
         }
-    }
-
-    function _deployTOGA(uint256 _minBondDuration) internal override deployTogaRequires1820 {
-        super._deployTOGA(_minBondDuration);
-    }
-
-    //// JS-Specific Functions ////
-    function getNumSteps() external pure returns (uint8) {
-        return _getNumSteps();
-    }
-
-    function executeStep(uint8 step) external {
-        _executeStep(step);
-    }
-
-    function _is1820Deployed() internal view returns (bool) {
-        uint256 codeSize;
-        assembly {
-            codeSize := extcodesize(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24)
-        }
-        return codeSize != 0;
-    }
-
-    modifier requiresResolver() {
-        if (address(testResolver) == address(0)) revert RESOLVER_LIST_REQUIRES_DEPLOY_PERIPHERALS();
-        _;
     }
 
     modifier requiresSuperTokenFactory() {
@@ -182,11 +151,6 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
 
     modifier deploySuperTokenRequires1820() {
         if (!_is1820Deployed()) revert DEPLOY_SUPER_TOKEN_REQUIRES_1820();
-        _;
-    }
-
-    modifier deployTogaRequires1820() {
-        if (!_is1820Deployed()) revert DEPLOY_TOGA_REQUIRES_1820();
         _;
     }
 }

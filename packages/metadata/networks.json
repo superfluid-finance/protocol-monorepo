@@ -728,7 +728,7 @@
             "superfluidLoader": "0xAd6e6849d8eEa62AF9271808afb726610fB451a6",
             "toga": "0x9bCa3a623e7b2e248510d88B2894F54898d88F91",
             "batchLiquidator": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
-            "existentialNFTCloneFactory": "0x835e58065fb76cD51e6fDd156A7C2240194Dc27c"
+            "existentialNFTCloneFactory": "0x051e766e2d8dc65ae2bFCF084A50AD0447634227"
         },
         "startBlockV1": 16393000,
         "logsQueryRange": 20000,

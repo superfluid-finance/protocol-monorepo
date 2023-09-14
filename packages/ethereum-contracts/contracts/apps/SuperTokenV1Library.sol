@@ -20,6 +20,9 @@ import {
  * of ISuperToken.
  * Note that it is important to "warm up" the cache and cache the host, cfa, ida before calling,
  * this is only applicable to Foundry tests where the vm.expectRevert() will not work as expected.
+ * You must use vm.startPrank(account) instead of vm.prank when executing functions if the cache
+ * isn't "warmed up" yet. vm.prank impersonates the account only for the first call, which will be
+ * used for caching.
  */
 library SuperTokenV1Library {
     /** CFA BASE CRUD ************************************* */

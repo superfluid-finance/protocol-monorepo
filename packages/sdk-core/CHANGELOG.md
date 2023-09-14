@@ -5,6 +5,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+## [0.6.9] - 2023-09-11
+
 ### Added
 - Support for new `increaseFlowRateAllowanceWithPermissions` and `decreaseFlowRateAllowanceWithPermissions` functions on `CFAv1` class
 

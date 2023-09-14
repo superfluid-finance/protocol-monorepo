@@ -806,6 +806,7 @@ type MemberUnitsUpdatedEvent implements Event @entity(immutable: true) {
     order: BigInt!
 
     token: Bytes!
+    oldUnits: BigInt!
     units: BigInt!
 
     pool: Pool!
@@ -1694,7 +1695,7 @@ type Pool @entity {
         @derivedFrom(field: "pool")
     flowDistributionUpdatedEvents: [FlowDistributionUpdatedEvent!]!
         @derivedFrom(field: "pool")
-    poolMemberUnitsUpdatedEvents: [MemberUnitsUpdatedEvent!]! @derivedFrom(field: "pool")
+    memberUnitsUpdatedEvents: [MemberUnitsUpdatedEvent!]! @derivedFrom(field: "pool")
     distributionClaimedEvents: [DistributionClaimedEvent!]!
         @derivedFrom(field: "pool")
 }
@@ -1719,7 +1720,7 @@ type PoolMember @entity {
     # ---------------------------------- links ----------------------------------
     poolConnectionUpdatedEvents: [PoolConnectionUpdatedEvent!]!
         @derivedFrom(field: "poolMember")
-    poolMemberUnitsUpdatedEvents: [MemberUnitsUpdatedEvent!]!
+    memberUnitsUpdatedEvents: [MemberUnitsUpdatedEvent!]!
         @derivedFrom(field: "poolMember")
     distributionClaimedEvents: [DistributionClaimedEvent!]!
         @derivedFrom(field: "poolMember")

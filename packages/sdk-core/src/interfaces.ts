@@ -617,7 +617,6 @@ export interface SuperTokenGetPoolAdjustmentFlowRateParams {
 
 export interface GetPoolAdjustmentFlowRateParams
     extends SuperTokenGetPoolAdjustmentFlowRateParams {
-    readonly token: string;
 }
 
 export interface SuperTokenIsPoolParams {

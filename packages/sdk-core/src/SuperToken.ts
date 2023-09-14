@@ -832,7 +832,6 @@ export default abstract class SuperToken extends ERC20Token {
         params: SuperTokenGetPoolAdjustmentFlowRateParams
     ): Promise<string> => {
         return this.gdaV1.getPoolAdjustmentFlowRate({
-            token: this.settings.address,
             ...params,
         });
     };

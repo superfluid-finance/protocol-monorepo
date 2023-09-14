@@ -447,7 +447,7 @@ templates:
         - name: ISuperfluid
           file: ./abis/ISuperfluid.json
       eventHandlers:
-        - event: MemberUnitsUpdated(indexed address,indexed address,uint128)
+        - event: MemberUnitsUpdated(indexed address,indexed address,uint128,uint128)
           handler: handleMemberUnitsUpdated
           receipt: true
         - event: DistributionClaimed(indexed address,indexed address,int256,int256)

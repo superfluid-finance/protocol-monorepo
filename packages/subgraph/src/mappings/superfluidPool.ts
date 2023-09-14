@@ -52,8 +52,8 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     const hasMembershipWithUnits = membershipWithUnitsExists(poolMember.id);
 
     const previousUnits = poolMember.units;
-    const unitsDelta = event.params.units.minus(previousUnits);
-    poolMember.units = event.params.units;
+    const unitsDelta = event.params.newUnits.minus(previousUnits);
+    poolMember.units = event.params.newUnits;
 
     poolMember.save();
 
@@ -75,7 +75,7 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
     pool.save();
 
     // 0 units to > 0 units
-    if (previousUnits.equals(BIG_INT_ZERO) && event.params.units.gt(BIG_INT_ZERO)) {
+    if (previousUnits.equals(BIG_INT_ZERO) && event.params.newUnits.gt(BIG_INT_ZERO)) {
         pool.totalMembers = pool.totalMembers + 1;
         // if the member is connected with units now, we add one to connected
         if (poolMember.isConnected) {
@@ -145,7 +145,8 @@ function _createMemberUnitsUpdatedEntity(event: MemberUnitsUpdated): MemberUnits
     initializeEventEntity(ev, event, [event.params.token, event.address, event.params.member]);
 
     ev.token = event.params.token;
-    ev.units = event.params.units;
+    ev.oldUnits = event.params.oldUnits;
+    ev.units = event.params.newUnits;
     ev.pool = event.address.toHex();
     ev.poolMember = event.params.member.toHex();
     ev.save();

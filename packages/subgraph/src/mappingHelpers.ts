@@ -703,7 +703,7 @@ if (accountTokenSnapshot == null) {
         tokenStatistic.save();
 
     }
-    
+
     return accountTokenSnapshot as AccountTokenSnapshot;
 }
 
@@ -1079,7 +1079,7 @@ export function updateATSStreamedAndBalanceUntilUpdatedAt(
     );
 
     const balanceUntilUpdatedAtBeforeUpdate = accountTokenSnapshot.balanceUntilUpdatedAt;
-    
+
     //////////////// CFA + GDA streamed amounts ////////////////
     const totalAmountStreamedSinceLastUpdatedAt =
         getAmountStreamedSinceLastUpdatedAt(

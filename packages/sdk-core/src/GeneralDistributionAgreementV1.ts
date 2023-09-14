@@ -204,14 +204,13 @@ export default class GeneralDistributionAgreementV1 extends SuperfluidAgreement 
     getPoolAdjustmentFlowRate = async (
         params: GetPoolAdjustmentFlowRateParams
     ): Promise<string> => {
-        const normalizedToken = normalizeAddress(params.token);
         const normalizedPool = normalizeAddress(params.pool);
 
         try {
             return (
                 await this.contract
                     .connect(params.providerOrSigner)
-                    .getPoolAdjustmentFlowRate(normalizedToken, normalizedPool)
+                    .getPoolAdjustmentFlowRate(normalizedPool)
             ).toString();
         } catch (err) {
             throw new SFError({

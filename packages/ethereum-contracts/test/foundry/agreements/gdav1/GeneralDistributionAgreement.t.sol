@@ -5,23 +5,22 @@ import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableS
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/IBeacon.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
-import "../FoundrySuperfluidTester.sol";
+import "../../FoundrySuperfluidTester.sol";
 import {
     GeneralDistributionAgreementV1,
     IGeneralDistributionAgreementV1
-} from "../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
-import { DelegatableTokenMonad } from "../../../contracts/agreements/gdav1/DelegatableTokenMonad.sol";
-import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
-import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
-import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
-import { ISuperfluidPool, SuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
-import { SuperfluidPoolStorageLayoutMock } from "../../../contracts/mocks/SuperfluidPoolUpgradabilityMock.sol";
-import { IPoolNFTBase } from "../../../contracts/interfaces/agreements/gdav1/IPoolNFTBase.sol";
-import { IPoolAdminNFT } from "../../../contracts/interfaces/agreements/gdav1/IPoolAdminNFT.sol";
-import { IPoolMemberNFT } from "../../../contracts/interfaces/agreements/gdav1/IPoolMemberNFT.sol";
-import { IFlowNFTBase } from "../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
-import { IConstantOutflowNFT } from "../../../contracts/interfaces/superfluid/IConstantOutflowNFT.sol";
-import { IConstantInflowNFT } from "../../../contracts/interfaces/superfluid/IConstantInflowNFT.sol";
+} from "../../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
+import { SuperTokenV1Library } from "../../../../contracts/apps/SuperTokenV1Library.sol";
+import { ISuperToken, SuperToken } from "../../../../contracts/superfluid/SuperToken.sol";
+import { ISuperfluidToken } from "../../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperfluidPool, SuperfluidPool } from "../../../../contracts/agreements/gdav1/SuperfluidPool.sol";
+import { SuperfluidPoolStorageLayoutMock } from "../../../../contracts/mocks/SuperfluidPoolUpgradabilityMock.sol";
+import { IPoolNFTBase } from "../../../../contracts/interfaces/agreements/gdav1/IPoolNFTBase.sol";
+import { IPoolAdminNFT } from "../../../../contracts/interfaces/agreements/gdav1/IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../../../../contracts/interfaces/agreements/gdav1/IPoolMemberNFT.sol";
+import { IFlowNFTBase } from "../../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
+import { IConstantOutflowNFT } from "../../../../contracts/interfaces/superfluid/IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "../../../../contracts/interfaces/superfluid/IConstantInflowNFT.sol";
 
 /// @title GeneralDistributionAgreementV1 Integration Tests
 /// @author Superfluid
@@ -57,213 +56,12 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     }
 
     /*//////////////////////////////////////////////////////////////////////////
-                                GDA Setters/Getters Tests
-    //////////////////////////////////////////////////////////////////////////*/
-    // Universal Index Setters/Getters
-    function testSetGetUIndex(address owner, uint32 settledAt, int96 flowRate, int256 settledValue) public {
-        bytes memory eff = abi.encode(superToken);
-        BasicParticle memory p = BasicParticle({
-            _settled_at: Time.wrap(settledAt),
-            _flow_rate: FlowRate.wrap(flowRate),
-            _settled_value: Value.wrap(settledValue)
-        });
-        // sf.gda.setUIndex(eff, owner, p);
-        (BasicParticle memory setP,) = sf.gda.getUIndexAndUindexData(eff, owner);
-
-        assertEq(Time.unwrap(p._settled_at), Time.unwrap(setP._settled_at), "settledAt not equal");
-        assertEq(FlowRate.unwrap(p._flow_rate), FlowRate.unwrap(setP._flow_rate), "flowRate not equal");
-        assertEq(Value.unwrap(p._settled_value), Value.unwrap(setP._settled_value), "settledValue not equal");
-    }
-
-    function testSetGetUIndexData(address owner, uint32 settledAt, int96 flowRate, int256 settledValue) public {
-        vm.assume(owner != address(currentPool));
-
-        bytes memory eff = abi.encode(superToken);
-        BasicParticle memory p = BasicParticle({
-            _settled_at: Time.wrap(settledAt),
-            _flow_rate: FlowRate.wrap(flowRate),
-            _settled_value: Value.wrap(settledValue)
-        });
-        // sf.gda.setUIndex(eff, owner, p);
-        (, GeneralDistributionAgreementV1.UniversalIndexData memory setUIndexData) =
-            sf.gda.getUIndexAndUindexData(eff, owner);
-
-        assertEq(settledAt, setUIndexData.settledAt, "settledAt not equal");
-        assertEq(flowRate, setUIndexData.flowRate, "flowRate not equal");
-        assertEq(settledValue, setUIndexData.settledValue, "settledValue not equal");
-        assertEq(0, setUIndexData.totalBuffer, "totalBuffer not equal");
-        assertEq(false, setUIndexData.isPool, "isPool not equal");
-    }
-
-    // Flow Distribution Data Setters/Getters
-    function testSetGetFlowDistributionData(
-        address from,
-        ISuperfluidPool to,
-        uint32 newFlowRate,
-        uint96 newFlowRateDelta
-    ) public {
-        uint256 lastUpdated = block.timestamp;
-        // sf.gda.setFlowInfo(
-        //     abi.encode(superToken),
-        //     from,
-        //     address(to),
-        //     FlowRate.wrap(int128(uint128(newFlowRate))),
-        //     FlowRate.wrap(int128(uint128(newFlowRateDelta)))
-        // );
-
-        vm.warp(1000);
-
-        (bool exist, GeneralDistributionAgreementV1.FlowDistributionData memory setFlowDistributionData) =
-            sf.gda.getFlowDistributionData(superToken, from, address(to));
-
-        assertEq(true, exist, "flow distribution data does not exist");
-
-        assertEq(int96(uint96(newFlowRate)), setFlowDistributionData.flowRate, "flowRate not equal");
-
-        assertEq(lastUpdated, setFlowDistributionData.lastUpdated, "lastUpdated not equal");
-
-        assertEq(0, setFlowDistributionData.buffer, "buffer not equal");
-        assertEq(
-            int96(FlowRate.unwrap(sf.gda.getFlowRate(abi.encode(superToken), from, address(to)))),
-            int96(uint96(newFlowRate)),
-            "_getFlowRate: flow rate not equal"
-        );
-        assertEq(
-            sf.gda.getFlowRate(superToken, from, to), int96(uint96(newFlowRate)), "getFlowRate: flow rate not equal"
-        );
-    }
-
-    // Pool Member Data Setters/Getters
-    function testSetGetPoolMemberData(address poolMember, ISuperfluidPool _pool, uint32 poolID) public {
-        vm.assume(poolID > 0);
-        vm.assume(address(_pool) != address(0));
-        vm.assume(address(poolMember) != address(0));
-        bytes32 poolMemberId = sf.gda.getPoolMemberId(poolMember, _pool);
-
-        vm.startPrank(address(sf.gda));
-        // superToken.updateAgreementData(
-        //     poolMemberId,
-        //     sf.gda.encodePoolMemberData(
-        //         GeneralDistributionAgreementV1.PoolMemberData({ poolID: poolID, pool: address(_pool) })
-        //     )
-        // );
-        vm.stopPrank();
-
-        (bool exist, GeneralDistributionAgreementV1.PoolMemberData memory setPoolMemberData) =
-            sf.gda.getPoolMemberData(superToken, poolMember, _pool);
-
-        assertEq(true, exist, "pool member data does not exist");
-        assertEq(poolID, setPoolMemberData.poolID, "poolID not equal");
-        assertEq(address(_pool), setPoolMemberData.pool, "pool not equal");
-    }
-
-    // Proportional Distribution Pool Index Setters/Getters
-    function testSetGetPDPIndex(
-        address owner,
-        uint128 totalUnits,
-        uint32 wrappedSettledAt,
-        int96 wrappedFlowRate,
-        int256 wrappedSettledValue
-    ) public {
-        vm.assume(owner != address(0));
-        vm.assume(totalUnits < uint128(type(int128).max));
-        bytes memory eff = abi.encode(superToken);
-        PDPoolIndex memory pdpIndex = PDPoolIndex({
-            total_units: Unit.wrap(int128(totalUnits)),
-            _wrapped_particle: BasicParticle({
-                _settled_at: Time.wrap(wrappedSettledAt),
-                _flow_rate: FlowRate.wrap(wrappedFlowRate),
-                _settled_value: Value.wrap(wrappedSettledValue)
-            })
-        });
-        ISuperfluidPool anotherPool = sf.gda.createPool(superToken, owner);
-
-        vm.startPrank(address(sf.gda));
-        // (, PDPoolIndex memory setPdpIndex) = sf.gda.setAndGetPDPIndex(eff, address(anotherPool), pdpIndex);
-        vm.stopPrank();
-
-        // assertEq(Unit.unwrap(pdpIndex.total_units), Unit.unwrap(setPdpIndex.total_units), "total units not equal");
-        // assertEq(
-        //     Time.unwrap(pdpIndex._wrapped_particle._settled_at),
-        //     Time.unwrap(setPdpIndex._wrapped_particle._settled_at),
-        //     "settled at not equal"
-        // );
-        // assertEq(
-        //     FlowRate.unwrap(pdpIndex._wrapped_particle._flow_rate),
-        //     FlowRate.unwrap(setPdpIndex._wrapped_particle._flow_rate),
-        //     "flow rate not equal"
-        // );
-        // assertEq(
-        //     Value.unwrap(pdpIndex._wrapped_particle._settled_value),
-        //     Value.unwrap(setPdpIndex._wrapped_particle._settled_value),
-        //     "settled value not equal"
-        // );
-    }
-
-    // Adjust Buffer => FlowDistributionData modified
-    function testAdjustBufferUpdatesFlowDistributionData(address from, int32 oldFlowRate, int32 newFlowRate) public {
-        vm.assume(newFlowRate >= 0);
-
-        uint256 expectedBuffer = uint256(int256(newFlowRate)) * liquidationPeriod;
-        sf.gda.adjustBuffer(
-            abi.encode(superToken),
-            address(currentPool),
-            from,
-            FlowRate.wrap(int128(oldFlowRate)),
-            FlowRate.wrap(int128(newFlowRate))
-        );
-
-        (bool exist, GeneralDistributionAgreementV1.FlowDistributionData memory flowDistributionData) =
-            sf.gda.getFlowDistributionData(superToken, from, address(currentPool));
-        assertEq(exist, true, "flow distribution data does not exist");
-        assertEq(flowDistributionData.buffer, expectedBuffer, "buffer not equal");
-        assertEq(flowDistributionData.flowRate, int96(newFlowRate), "buffer not equal");
-        assertEq(
-            int96(FlowRate.unwrap(sf.gda.getFlowRate(abi.encode(superToken), from, address(currentPool)))),
-            int96(newFlowRate),
-            "_getFlowRate: flow rate not equal"
-        );
-        assertEq(
-            sf.gda.getFlowRate(superToken, from, ISuperfluidPool(currentPool)),
-            int96(newFlowRate),
-            "getFlowRate: flow rate not equal"
-        );
-    }
-
-    // Adjust Buffer => UniversalIndexData modified
-    function testAdjustBufferUpdatesUniversalIndexData(address from, int32 oldFlowRate, int32 newFlowRate) public {
-        vm.assume(newFlowRate >= 0);
-
-        uint256 bufferDelta = uint256(int256(newFlowRate)) * liquidationPeriod; // expected buffer == buffer delta
-            // because of fresh state
-        (, GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataBefore) =
-            sf.gda.getUIndexAndUindexData(abi.encode(superToken), from);
-        sf.gda.adjustBuffer(
-            abi.encode(superToken),
-            address(currentPool),
-            from,
-            FlowRate.wrap(int128(oldFlowRate)),
-            FlowRate.wrap(int128(newFlowRate))
-        );
-
-        (, GeneralDistributionAgreementV1.UniversalIndexData memory fromUindexDataAfter) =
-            sf.gda.getUIndexAndUindexData(abi.encode(superToken), from);
-
-        assertEq(
-            fromUindexDataBefore.totalBuffer + bufferDelta,
-            fromUindexDataAfter.totalBuffer,
-            "from total buffer not equal"
-        );
-    }
-
-    /*//////////////////////////////////////////////////////////////////////////
                                 GDA Integration Tests
     //////////////////////////////////////////////////////////////////////////*/
 
     function testInitializeGDA(IBeacon beacon) public {
-        DelegatableTokenMonad delegatableTokenMonad = new DelegatableTokenMonad();
         GeneralDistributionAgreementV1 gdaV1 =
-            new GeneralDistributionAgreementV1(sf.host, address(delegatableTokenMonad));
+            new GeneralDistributionAgreementV1(sf.host);
         assertEq(address(gdaV1.superfluidPoolBeacon()), address(0), "GDAv1.t: Beacon address not address(0)");
         gdaV1.initialize(beacon);
 

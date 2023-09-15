@@ -14,8 +14,8 @@ import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantO
 import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
 import { PoolAdminNFT, IPoolAdminNFT } from "../agreements/gdav1/PoolAdminNFT.sol";
 import { PoolMemberNFT, IPoolMemberNFT } from "../agreements/gdav1/PoolMemberNFT.sol";
-import { GeneralDistributionAgreementV1Harness } from "../mocks/GeneralDistributionAgreementV1Harness.sol";
 import { InstantDistributionAgreementV1 } from "../agreements/InstantDistributionAgreementV1.sol";
+import { GeneralDistributionAgreementV1 } from "../agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import { SuperTokenFactory } from "../superfluid/SuperTokenFactory.sol";
 import { TestToken } from "./TestToken.sol";
 import { PureSuperToken } from "../tokens/PureSuperToken.sol";
@@ -31,7 +31,6 @@ import { TOGA } from "./TOGA.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
-import { DelegatableTokenMonad } from "../agreements/gdav1/DelegatableTokenMonad.sol";
 
 /// @title Superfluid Framework Deployment Steps
 /// @author Superfluid
@@ -59,7 +58,7 @@ contract SuperfluidFrameworkDeploymentSteps {
         ConstantFlowAgreementV1 cfa;
         CFAv1Library.InitData cfaLib;
         InstantDistributionAgreementV1 ida;
-        GeneralDistributionAgreementV1Harness gda;
+        GeneralDistributionAgreementV1 gda;
         IDAv1Library.InitData idaLib;
         SuperTokenFactory superTokenFactory;
         TestResolver resolver;
@@ -82,8 +81,8 @@ contract SuperfluidFrameworkDeploymentSteps {
     ConstantFlowAgreementV1 internal cfaV1Logic;
     InstantDistributionAgreementV1 internal idaV1;
     InstantDistributionAgreementV1 internal idaV1Logic;
-    GeneralDistributionAgreementV1Harness internal gdaV1;
-    GeneralDistributionAgreementV1Harness internal gdaV1Logic;
+    GeneralDistributionAgreementV1 internal gdaV1;
+    GeneralDistributionAgreementV1 internal gdaV1Logic;
 
     // SuperToken-related Contracts
     ConstantOutflowNFT internal constantOutflowNFTLogic;
@@ -106,7 +105,6 @@ contract SuperfluidFrameworkDeploymentSteps {
     GDAv1Forwarder internal gdaV1Forwarder;
     BatchLiquidator internal batchLiquidator;
     TOGA internal toga;
-    address internal delegatableTokenMonad;
 
     error DEPLOY_AGREEMENTS_REQUIRES_DEPLOY_CORE();
     error DEPLOY_PERIPHERALS_REQUIRES_DEPLOY_CORE();
@@ -280,7 +278,7 @@ contract SuperfluidFrameworkDeploymentSteps {
     }
 
     function getNumSteps() public pure returns (uint8) {
-        return 9;
+        return 8;
     }
 
     function executeStep(uint8 step) public {
@@ -312,13 +310,8 @@ contract SuperfluidFrameworkDeploymentSteps {
                 DEFAULT_PATRICIAN_PERIOD,
                 DEFAULT_TRUSTED_FORWARDERS
             );
-
-            // AGREEMENT CONTRACTS
         } else if (step == 2) {
-            DelegatableTokenMonad delegatableTokenMonadContract =
-                DelegatableTokenMonadDeployerLibrary.deployDelegatableTokenMonadDeployer();
-            delegatableTokenMonad = address(delegatableTokenMonadContract);
-        } else if (step == 3) {
+            // AGREEMENT CONTRACTS
             // Deploy Superfluid CFA, IDA, GDA
 
             if (address(host) == address(0)) revert DEPLOY_AGREEMENTS_REQUIRES_DEPLOY_CORE();
@@ -331,8 +324,7 @@ contract SuperfluidFrameworkDeploymentSteps {
             idaV1Logic = SuperfluidIDAv1DeployerLibrary.deployInstantDistributionAgreementV1(host);
 
             // _deployGDAv1();
-            gdaV1Logic =
-                SuperfluidGDAv1DeployerLibrary.deployGeneralDistributionAgreementV1Harness(host, delegatableTokenMonad);
+            gdaV1Logic = SuperfluidGDAv1DeployerLibrary.deployGeneralDistributionAgreementV1(host);
 
             // _registerAgreements();
             // we set the canonical address based on host.getAgreementClass() because
@@ -343,10 +335,9 @@ contract SuperfluidFrameworkDeploymentSteps {
             testGovernance.registerAgreementClass(host, address(idaV1Logic));
             idaV1 = InstantDistributionAgreementV1(address(host.getAgreementClass(idaV1Logic.agreementType())));
             testGovernance.registerAgreementClass(host, address(gdaV1Logic));
-            gdaV1 = GeneralDistributionAgreementV1Harness(address(host.getAgreementClass(gdaV1Logic.agreementType())));
-
+            gdaV1 = GeneralDistributionAgreementV1(address(host.getAgreementClass(gdaV1Logic.agreementType())));
+        } else if (step == 3) {
             // PERIPHERAL CONTRACTS: FORWARDERS
-        } else if (step == 4) {
             // Deploy CFAv1Forwarder
             // _deployCFAv1Forwarder()
             cfaV1Forwarder = CFAv1ForwarderDeployerLibrary.deployCFAv1Forwarder(host);
@@ -364,9 +355,8 @@ contract SuperfluidFrameworkDeploymentSteps {
             gdaV1Forwarder = GDAv1ForwarderDeployerLibrary.deployGDAv1Forwarder(host);
             // _enableGDAv1ForwarderAsTrustedForwarder();
             testGovernance.enableTrustedForwarder(host, ISuperfluidToken(address(0)), address(gdaV1Forwarder));
-
+        } else if (step == 4) {
             // PERIPHERAL CONTRACTS: SuperfluidPool Logic
-        } else if (step == 5) {
             // Deploy SuperfluidPool
             // Initialize GDA with SuperfluidPool beacon
             // _deploySuperfluidPoolLogicAndInitializeGDA();
@@ -380,22 +370,18 @@ contract SuperfluidFrameworkDeploymentSteps {
             // Deploy SuperfluidPool beacon
             SuperfluidUpgradeableBeacon superfluidPoolBeacon =
                 ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
-
             gdaV1.initialize(superfluidPoolBeacon);
-
+        } else if (step == 5) {
             // PERIPHERAL CONTRACTS: NFT Proxy and Logic
-        } else if (step == 6) {
             // Deploy Superfluid NFTs (Proxy and Logic contracts)
             _deployNFTProxyAndLogicAndInitialize();
-
+        } else if (step == 6) {
             // PERIPHERAL CONTRACTS: SuperToken Logic and SuperTokenFactory Logic
-        } else if (step == 7) {
             // Deploy SuperToken Logic
             // Deploy SuperToken Factory
             _deploySuperTokenLogicAndSuperTokenFactoryAndUpdateContracts();
-
+        } else if (step == 7) {
             // PERIPHERAL CONTRACTS: Resolver, SuperfluidLoader, TOGA, BatchLiquidator
-        } else if (step == 8) {
             // Deploy TestResolver
             // Deploy SuperfluidLoader and make SuperfluidFrameworkDpeloyer an admin for the TestResolver
             // Set TestGovernance, Superfluid, SuperfluidLoader and CFAv1Forwarder in TestResolver
@@ -480,29 +466,19 @@ library SuperfluidIDAv1DeployerLibrary {
     }
 }
 
-/// @title DelegatableTokenMonadDeployerLibrary
-/// @author Superfluid
-/// @notice An external library that deploys DelegatableTokenMonad contract
-/// @dev This library is used for testing purposes only, not deployments to test OR production networks
-library DelegatableTokenMonadDeployerLibrary {
-    function deployDelegatableTokenMonadDeployer() external returns (DelegatableTokenMonad) {
-        return new DelegatableTokenMonad();
-    }
-}
-
 /// @title SuperfluidGDAv1DeployerLibrary
 /// @author Superfluid
 /// @notice An external library that deploys Superfluid GeneralDistributionAgreementV1 contract
 /// @dev This library is used for testing purposes only, not deployments to test OR production networks
 library SuperfluidGDAv1DeployerLibrary {
-    /// @notice deploys the Superfluid GeneralDistributionAgreementV1Harness Contract
+    /// @notice deploys the Superfluid GeneralDistributionAgreementV1 Contract
     /// @param _host Superfluid host address
-    /// @return newly deployed GeneralDistributionAgreementV1Harness contract
-    function deployGeneralDistributionAgreementV1Harness(ISuperfluid _host, address _delegatableTokenMonad)
+    /// @return newly deployed GeneralDistributionAgreementV1 contract
+    function deployGeneralDistributionAgreementV1(ISuperfluid _host)
         external
-        returns (GeneralDistributionAgreementV1Harness)
+        returns (GeneralDistributionAgreementV1)
     {
-        return new GeneralDistributionAgreementV1Harness(_host, _delegatableTokenMonad);
+        return new GeneralDistributionAgreementV1(_host);
     }
 }
 
@@ -619,7 +595,7 @@ library SuperfluidLoaderDeployerLibrary {
 library SuperfluidPoolLogicDeployerLibrary {
     /// @notice deploys the Superfluid SuperfluidPool contract
     /// @return newly deployed SuperfluidPool contract
-    function deploySuperfluidPool(GeneralDistributionAgreementV1Harness _gda) external returns (SuperfluidPool) {
+    function deploySuperfluidPool(GeneralDistributionAgreementV1 _gda) external returns (SuperfluidPool) {
         return new SuperfluidPool(_gda);
     }
 }

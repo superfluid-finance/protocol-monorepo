@@ -347,7 +347,8 @@ describe("SuperTokenV1Library.GDA", function () {
                         ethers.utils.getAddress(
                             superTokenLibGDASuperAppMock.address
                         ),
-                        false
+                        false,
+                        "0x3078"
                     );
             });
 
@@ -397,7 +398,8 @@ describe("SuperTokenV1Library.GDA", function () {
                             superTokenLibGDASuperAppMock.address
                         ),
                         100,
-                        0
+                        0,
+                        "0x3078"
                     );
             });
 
@@ -435,7 +437,8 @@ describe("SuperTokenV1Library.GDA", function () {
                         ethers.utils.getAddress(
                             superTokenLibGDASuperAppMock.address
                         ),
-                        0
+                        0,
+                        "0x3078"
                     );
             });
         });

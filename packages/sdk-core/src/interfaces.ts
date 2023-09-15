@@ -616,8 +616,7 @@ export interface SuperTokenGetPoolAdjustmentFlowRateParams {
 }
 
 export interface GetPoolAdjustmentFlowRateParams
-    extends SuperTokenGetPoolAdjustmentFlowRateParams {
-}
+    extends SuperTokenGetPoolAdjustmentFlowRateParams {}
 
 export interface SuperTokenIsPoolParams {
     readonly account: string;

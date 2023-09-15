@@ -24,8 +24,6 @@ import {
 import { ISuperfluidPool, SuperfluidPool } from "../../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 import { SuperTokenV1Library } from "../../../../contracts/apps/SuperTokenV1Library.sol";
 
-/// @note TODO - we may end up testing DelegatableTokenMonad here instead if enough stuff is moved out
-
 /// @title GeneralDistributionAgreementV1 Property Tests
 /// @author Superfluid
 /// @notice This is a contract that runs property tests for the GDAv1

@@ -22,6 +22,7 @@ import {
 import { mockedGetAppManifest, mockedRealtimeBalanceOf } from "../../mockedFunctions";
 import { updatePoolConnectionAndReturnPoolConnectionUpdatedEvent } from "../gdav1.helper";
 import { updateMemberUnitsAndReturnMemberUnitsUpdatedEvent } from "../gdav1.helper";
+import { stringToBytes } from "../../converters";
 
 const initialFlowRate = BigInt.fromI32(100);
 const superToken = maticXAddress;
@@ -45,13 +46,15 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     test("handlePoolConnectionUpdated() - Should create a new handlePoolConnectionUpdatedEvent entity (connected)", () => {
         const account = bob;
         const connected = true;
+        const userData = stringToBytes("");
 
         const poolConnectionUpdatedEvent = updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
             superToken,
             account,
             superfluidPool,
             connected,
-            initialFlowRate
+            initialFlowRate,
+            userData
         );
 
         const id = assertEventBaseProperties(poolConnectionUpdatedEvent, "PoolConnectionUpdated");
@@ -64,13 +67,15 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     test("handlePoolConnectionUpdated() - Should create a new handlePoolConnectionUpdatedEvent entity (disconnected)", () => {
         const account = bob;
         const connected = false;
+        const userData = stringToBytes("");
 
         const poolConnectionUpdatedEvent = updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
             superToken,
             account,
             superfluidPool,
             connected,
-            initialFlowRate
+            initialFlowRate,
+            userData
         );
 
         const id = assertEventBaseProperties(poolConnectionUpdatedEvent, "PoolConnectionUpdated");
@@ -111,6 +116,7 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
         const requestedAmount = BigInt.fromI32(69);
         const actualAmount = BigInt.fromI32(70);
         const poolDistributor = bob;
+        const userData = stringToBytes("");
 
         const instantDistributionUpdatedEvent = createInstantDistributionUpdatedEvent(
             superToken,
@@ -118,7 +124,8 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
             poolDistributor,
             operator,
             requestedAmount,
-            actualAmount
+            actualAmount,
+            userData
         );
 
         handleInstantDistributionUpdated(instantDistributionUpdatedEvent);
@@ -140,6 +147,7 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
         const adjustmentFlowRecipient = alice;
         const adjustmentFlowRate = BigInt.fromI32(5);
         const poolDistributor = bob;
+        const userData = stringToBytes("");
 
         const flowDistributionUpdatedEvent = createFlowDistributionUpdatedEvent(
             superToken,
@@ -150,7 +158,8 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
             newDistributorToPoolFlowRate,
             newTotalDistributionFlowRate,
             adjustmentFlowRecipient,
-            adjustmentFlowRate
+            adjustmentFlowRate,
+            userData
         );
 
         handleFlowDistributionUpdated(flowDistributionUpdatedEvent);
@@ -212,14 +221,20 @@ describe("GeneralDistributionAgreementV1 Event Entity Unit Tests", () => {
     });
 
     test("handleMemberUnitsUpdated() - Should create a new MemberUnitsUpdatedEvent entity", () => {
-        const units = BigInt.fromI32(69);
+        const oldUnits = BigInt.fromI32(0);
+        const newUnits = BigInt.fromI32(69);
         const poolMember = bob;
 
-        const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(superToken, poolMember, units);
+        const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(
+            superToken,
+            poolMember,
+            oldUnits,
+            newUnits
+        );
 
         const id = assertEventBaseProperties(memberUnitsUpdatedEvent, "MemberUnitsUpdated");
         assert.fieldEquals("MemberUnitsUpdatedEvent", id, "token", superToken);
         assert.fieldEquals("MemberUnitsUpdatedEvent", id, "poolMember", poolMember);
-        assert.fieldEquals("MemberUnitsUpdatedEvent", id, "units", units.toString());
+        assert.fieldEquals("MemberUnitsUpdatedEvent", id, "units", newUnits.toString());
     });
 });

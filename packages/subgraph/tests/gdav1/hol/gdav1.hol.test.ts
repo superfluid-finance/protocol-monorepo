@@ -20,6 +20,7 @@ import {
 import { updateMemberUnitsAndReturnMemberUnitsUpdatedEvent } from "../gdav1.helper";
 import { handleDistributionClaimed, handleMemberUnitsUpdated } from "../../../src/mappings/superfluidPool";
 import { getOrInitPoolMember } from "../../../src/mappingHelpers";
+import { stringToBytes } from "../../converters";
 
 const initialFlowRate = BigInt.fromI32(100);
 const superToken = maticXAddress;
@@ -42,13 +43,15 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
 
         const account = bob;
         const connected = true;
+        const userData = stringToBytes("");
 
         const poolConnectionUpdatedEvent = updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
             superToken,
             account,
             superfluidPool,
             connected,
-            initialFlowRate
+            initialFlowRate,
+            userData
         );
 
         const id = superfluidPool;
@@ -58,10 +61,12 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
     test("handlePoolConnectionUpdated() - Member (>0 units) connection updated: Pool entity changes", () => {
         const account = bob;
         const connected = true;
+        const userData = stringToBytes("");
 
         const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(
             superToken,
             account,
+            BigInt.fromI32(0),
             BigInt.fromI32(1)
         );
 
@@ -70,7 +75,8 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
             account,
             memberUnitsUpdatedEvent.address.toHexString(),
             connected,
-            initialFlowRate
+            initialFlowRate,
+            userData
         );
 
         const id = memberUnitsUpdatedEvent.address.toHexString();
@@ -95,10 +101,12 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
     test("handlePoolConnectionUpdated() - Pool Entity: Disconnected member connection updated", () => {
         const account = bob;
         const connected = false;
+        const userData = stringToBytes("");
 
         const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(
             superToken,
             account,
+            BigInt.fromI32(0),
             BigInt.fromI32(1)
         );
 
@@ -107,7 +115,8 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
             account,
             memberUnitsUpdatedEvent.address.toHexString(),
             connected,
-            initialFlowRate
+            initialFlowRate,
+            userData
         );
 
         const id = memberUnitsUpdatedEvent.address.toHexString();
@@ -169,6 +178,7 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         const operator = alice;
         const emptyFlowRate = BigInt.fromI32(0);
         const newFlowRate = BigInt.fromI32(100000000);
+        const userData = stringToBytes("");
         const flowDistributionUpdatedEvent = createFlowDistributionUpdatedEvent(
             superToken,
             superfluidPool,
@@ -178,7 +188,8 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
             newFlowRate, // new distributor to pool flow rate
             newFlowRate, // new total distribution flow rate
             alice, // adjustment flow recipient
-            BigInt.fromI32(0) // adjustment flow rate
+            BigInt.fromI32(0), // adjustment flow rate
+            userData
         );
 
         handleFlowDistributionUpdated(flowDistributionUpdatedEvent);
@@ -206,13 +217,15 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         const distributor = alice;
         const operator = alice;
         const requestedAmount = BigInt.fromI32(100000000);
+        const userData = stringToBytes("");
         const instantDistributionUpdatedEvent = createInstantDistributionUpdatedEvent(
             superToken,
             superfluidPool,
             distributor,
             operator,
             requestedAmount,
-            requestedAmount
+            requestedAmount,
+            userData
         );
 
         handleInstantDistributionUpdated(instantDistributionUpdatedEvent);
@@ -269,8 +282,9 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
 
     test("handleMemberUnitsUpdated() - Pool Entity: Units data updated (connected member) 0 to > 0 units", () => {
         const poolMember = alice;
-        const units = BigInt.fromI32(100000000);
-        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+        const oldUnits = BigInt.fromI32(0);
+        const newUnits = BigInt.fromI32(100000000);
+        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, oldUnits, newUnits);
         const poolMemberEntity = getOrInitPoolMember(
             memberUnitsUpdatedEvent,
             memberUnitsUpdatedEvent.address,
@@ -284,8 +298,8 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         const id = memberUnitsUpdatedEvent.address.toHexString();
 
         assertHigherOrderBaseProperties("Pool", id, memberUnitsUpdatedEvent);
-        assert.fieldEquals("Pool", id, "totalUnits", units.toString());
-        assert.fieldEquals("Pool", id, "totalConnectedUnits", units.toString());
+        assert.fieldEquals("Pool", id, "totalUnits", newUnits.toString());
+        assert.fieldEquals("Pool", id, "totalConnectedUnits", newUnits.toString());
         assert.fieldEquals("Pool", id, "totalDisconnectedUnits", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "totalAmountInstantlyDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "totalAmountFlowedDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
@@ -302,8 +316,9 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
 
     test("handleMemberUnitsUpdated() - Pool Entity: Units data updated (connected member) > 0 to 0 units", () => {
         const poolMember = alice;
-        const units = BigInt.fromI32(100000000);
-        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+        const oldUnits = BigInt.fromI32(0);
+        const newUnits = BigInt.fromI32(100000000);
+        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, oldUnits, newUnits);
         const poolMemberEntity = getOrInitPoolMember(
             memberUnitsUpdatedEvent,
             memberUnitsUpdatedEvent.address,
@@ -314,7 +329,12 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
 
         handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
 
-        const memberUnitsUpdatedEventZeroUnits = createMemberUnitsUpdatedEvent(superToken, poolMember, BIG_INT_ZERO);
+        const memberUnitsUpdatedEventZeroUnits = createMemberUnitsUpdatedEvent(
+            superToken,
+            poolMember,
+            newUnits,
+            BIG_INT_ZERO
+        );
 
         handleMemberUnitsUpdated(memberUnitsUpdatedEventZeroUnits);
 
@@ -339,8 +359,9 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
 
     test("handleMemberUnitsUpdated() - Pool Entity: Units data updated (disconnected member) 0 to > 0 units", () => {
         const poolMember = alice;
-        const units = BigInt.fromI32(100000000);
-        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+        const oldUnits = BigInt.fromI32(0);
+        const newUnits = BigInt.fromI32(100000000);
+        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, oldUnits, newUnits);
         const poolMemberEntity = getOrInitPoolMember(
             memberUnitsUpdatedEvent,
             memberUnitsUpdatedEvent.address,
@@ -353,9 +374,9 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         const id = memberUnitsUpdatedEvent.address.toHexString();
 
         assertHigherOrderBaseProperties("Pool", id, memberUnitsUpdatedEvent);
-        assert.fieldEquals("Pool", id, "totalUnits", units.toString());
+        assert.fieldEquals("Pool", id, "totalUnits", newUnits.toString());
         assert.fieldEquals("Pool", id, "totalConnectedUnits", BIG_INT_ZERO.toString());
-        assert.fieldEquals("Pool", id, "totalDisconnectedUnits", units.toString());
+        assert.fieldEquals("Pool", id, "totalDisconnectedUnits", newUnits.toString());
         assert.fieldEquals("Pool", id, "totalAmountInstantlyDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "totalAmountFlowedDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
         assert.fieldEquals("Pool", id, "totalAmountDistributedUntilUpdatedAt", BIG_INT_ZERO.toString());
@@ -371,8 +392,9 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
 
     test("handleMemberUnitsUpdated() - Pool Entity: Units data updated (connected member) > 0 to 0 units", () => {
         const poolMember = alice;
-        const units = BigInt.fromI32(100000000);
-        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+        const oldUnits = BigInt.fromI32(0);
+        const newUnits = BigInt.fromI32(100000000);
+        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, oldUnits, newUnits);
         const poolMemberEntity = getOrInitPoolMember(
             memberUnitsUpdatedEvent,
             memberUnitsUpdatedEvent.address,
@@ -382,7 +404,12 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
 
         handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
 
-        const memberUnitsUpdatedEventZeroUnits = createMemberUnitsUpdatedEvent(superToken, poolMember, BIG_INT_ZERO);
+        const memberUnitsUpdatedEventZeroUnits = createMemberUnitsUpdatedEvent(
+            superToken,
+            poolMember,
+            newUnits,
+            BIG_INT_ZERO
+        );
 
         handleMemberUnitsUpdated(memberUnitsUpdatedEventZeroUnits);
 
@@ -408,9 +435,16 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
     test("handlePoolConnectionUpdated - PoolMember Entity: isConnected updated from false to true", () => {
         const account = bob;
         const connected = true;
-        const units = BigInt.fromI32(1);
+        const oldUnits = BigInt.fromI32(0);
+        const newUnits = BigInt.fromI32(1);
+        const userData = stringToBytes("");
 
-        const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(superToken, account, units);
+        const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(
+            superToken,
+            account,
+            oldUnits,
+            newUnits
+        );
 
         const poolAddress = memberUnitsUpdatedEvent.address;
 
@@ -419,12 +453,13 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
             account,
             poolAddress.toHexString(),
             connected,
-            initialFlowRate
+            initialFlowRate,
+            userData
         );
         const id = getPoolMemberID(poolAddress, Address.fromString(account));
 
         assertHigherOrderBaseProperties("PoolMember", id, poolConnectionUpdatedEvent);
-        assert.fieldEquals("PoolMember", id, "units", units.toString());
+        assert.fieldEquals("PoolMember", id, "units", newUnits.toString());
         assert.fieldEquals("PoolMember", id, "isConnected", TRUE);
         assert.fieldEquals("PoolMember", id, "totalAmountClaimed", BIG_INT_ZERO.toString());
         assert.fieldEquals("PoolMember", id, "account", account);
@@ -434,9 +469,16 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
     test("handlePoolConnectionUpdated - PoolMember Entity: isConnected updated from true to false", () => {
         const account = bob;
         const connected = true;
-        const units = BigInt.fromI32(1);
+        const oldUnits = BigInt.fromI32(0);
+        const newUnits = BigInt.fromI32(1);
+        const userData = stringToBytes("");
 
-        const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(superToken, account, units);
+        const memberUnitsUpdatedEvent = updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(
+            superToken,
+            account,
+            oldUnits,
+            newUnits
+        );
 
         const poolAddress = memberUnitsUpdatedEvent.address;
 
@@ -445,7 +487,8 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
             account,
             poolAddress.toHexString(),
             connected,
-            initialFlowRate
+            initialFlowRate,
+            userData
         );
 
         updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
@@ -453,12 +496,13 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
             account,
             poolAddress.toHexString(),
             false,
-            initialFlowRate
+            initialFlowRate,
+            userData
         );
         const id = getPoolMemberID(poolAddress, Address.fromString(account));
 
         assertHigherOrderBaseProperties("PoolMember", id, poolConnectionUpdatedEvent);
-        assert.fieldEquals("PoolMember", id, "units", units.toString());
+        assert.fieldEquals("PoolMember", id, "units", newUnits.toString());
         assert.fieldEquals("PoolMember", id, "isConnected", FALSE);
         assert.fieldEquals("PoolMember", id, "totalAmountClaimed", BIG_INT_ZERO.toString());
         assert.fieldEquals("PoolMember", id, "account", account);
@@ -491,8 +535,9 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
 
     test("handleMemberUnitsUpdated() - PoolMember Entity: units updated", () => {
         const poolMember = alice;
-        const units = BigInt.fromI32(100000000);
-        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+        const oldUnits = BigInt.fromI32(0);
+        const newUnits = BigInt.fromI32(100000000);
+        const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, oldUnits, newUnits);
 
         const poolAddress = memberUnitsUpdatedEvent.address;
 
@@ -501,7 +546,7 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         const id = getPoolMemberID(poolAddress, Address.fromString(poolMember));
 
         assertHigherOrderBaseProperties("PoolMember", id, memberUnitsUpdatedEvent);
-        assert.fieldEquals("PoolMember", id, "units", units.toString());
+        assert.fieldEquals("PoolMember", id, "units", newUnits.toString());
         assert.fieldEquals("PoolMember", id, "isConnected", FALSE);
         assert.fieldEquals("PoolMember", id, "totalAmountClaimed", BIG_INT_ZERO.toString());
         assert.fieldEquals("PoolMember", id, "account", poolMember);
@@ -551,6 +596,7 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         const operator = alice;
         const emptyFlowRate = BigInt.fromI32(0);
         const newFlowRate = BigInt.fromI32(100000000);
+        const userData = stringToBytes("");
         const flowDistributionUpdatedEvent = createFlowDistributionUpdatedEvent(
             superToken,
             superfluidPool,
@@ -560,7 +606,8 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
             newFlowRate, // new distributor to pool flow rate
             newFlowRate, // new total distribution flow rate
             alice, // adjustment flow recipient
-            BigInt.fromI32(0) // adjustment flow rate
+            BigInt.fromI32(0), // adjustment flow rate
+            userData
         );
 
         handleFlowDistributionUpdated(flowDistributionUpdatedEvent);
@@ -591,13 +638,15 @@ describe("GeneralDistributionAgreementV1 Higher Order Level Entity Unit Tests", 
         const distributor = alice;
         const operator = alice;
         const requestedAmount = BigInt.fromI32(100000000);
+        const userData = stringToBytes("");
         const instantDistributionUpdatedEvent = createInstantDistributionUpdatedEvent(
             superToken,
             superfluidPool,
             distributor,
             operator,
             requestedAmount,
-            requestedAmount
+            requestedAmount,
+            userData
         );
 
         handleInstantDistributionUpdated(instantDistributionUpdatedEvent);

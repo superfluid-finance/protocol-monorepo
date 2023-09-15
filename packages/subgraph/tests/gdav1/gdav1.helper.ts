@@ -10,8 +10,8 @@ import {
     DistributionClaimed,
     MemberUnitsUpdated,
 } from "../../generated/GeneralDistributionAgreementV1/ISuperfluidPool";
-import { getAddressEventParam, getBigIntEventParam, getBooleanEventParam } from "../converters";
-import { BigInt } from "@graphprotocol/graph-ts";
+import { getAddressEventParam, getBigIntEventParam, getBooleanEventParam, getBytesEventParam } from "../converters";
+import { BigInt, Bytes } from "@graphprotocol/graph-ts";
 import { handlePoolConnectionUpdated, handlePoolCreated } from "../../src/mappings/gdav1";
 import { BIG_INT_ZERO } from "../../src/utils";
 import { FAKE_INITIAL_BALANCE } from "../constants";
@@ -48,9 +48,16 @@ export function updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
     account: string,
     superfluidPool: string,
     connected: boolean,
-    initialFlowRate: BigInt
+    initialFlowRate: BigInt,
+    userData: Bytes
 ): PoolConnectionUpdated {
-    const poolConnectionUpdatedEvent = createPoolConnectionUpdatedEvent(superToken, superfluidPool, account, connected);
+    const poolConnectionUpdatedEvent = createPoolConnectionUpdatedEvent(
+        superToken,
+        superfluidPool,
+        account,
+        connected,
+        userData
+    );
 
     // getOrInitAccountTokenSnapshot(event) => getOrInitAccount(account) => host.try_getAppManifest(account)
     mockedGetAppManifest(account, false, false, BIG_INT_ZERO);
@@ -72,9 +79,10 @@ export function updatePoolConnectionAndReturnPoolConnectionUpdatedEvent(
 export function updateMemberUnitsAndReturnMemberUnitsUpdatedEvent(
     superToken: string,
     poolMember: string,
-    units: BigInt
+    oldUnits: BigInt,
+    newUnits: BigInt
 ): MemberUnitsUpdated {
-    const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, units);
+    const memberUnitsUpdatedEvent = createMemberUnitsUpdatedEvent(superToken, poolMember, oldUnits, newUnits);
 
     handleMemberUnitsUpdated(memberUnitsUpdatedEvent);
 
@@ -96,7 +104,8 @@ export function createPoolConnectionUpdatedEvent(
     token: string,
     pool: string,
     poolMember: string,
-    connected: boolean
+    connected: boolean,
+    userData: Bytes
 ): PoolConnectionUpdated {
     const newPoolConnectionUpdatedEvent = changetype<PoolConnectionUpdated>(newMockEvent());
     newPoolConnectionUpdatedEvent.parameters = new Array();
@@ -104,6 +113,7 @@ export function createPoolConnectionUpdatedEvent(
     newPoolConnectionUpdatedEvent.parameters.push(getAddressEventParam("pool", pool));
     newPoolConnectionUpdatedEvent.parameters.push(getAddressEventParam("poolMember", poolMember));
     newPoolConnectionUpdatedEvent.parameters.push(getBooleanEventParam("connected", connected));
+    newPoolConnectionUpdatedEvent.parameters.push(getBytesEventParam("userData", userData));
 
     return newPoolConnectionUpdatedEvent;
 }
@@ -134,7 +144,8 @@ export function createInstantDistributionUpdatedEvent(
     poolDistributor: string,
     operator: string,
     requestedAmount: BigInt,
-    actualAmount: BigInt
+    actualAmount: BigInt,
+    userData: Bytes
 ): InstantDistributionUpdated {
     const newInstantDistributionUpdatedEvent = changetype<InstantDistributionUpdated>(newMockEvent());
     newInstantDistributionUpdatedEvent.parameters = new Array();
@@ -144,6 +155,7 @@ export function createInstantDistributionUpdatedEvent(
     newInstantDistributionUpdatedEvent.parameters.push(getAddressEventParam("operator", operator));
     newInstantDistributionUpdatedEvent.parameters.push(getBigIntEventParam("requestedAmount", requestedAmount));
     newInstantDistributionUpdatedEvent.parameters.push(getBigIntEventParam("actualAmount", actualAmount));
+    newInstantDistributionUpdatedEvent.parameters.push(getBytesEventParam("userData", userData));
 
     return newInstantDistributionUpdatedEvent;
 }
@@ -157,7 +169,8 @@ export function createFlowDistributionUpdatedEvent(
     newDistributorToPoolFlowRate: BigInt,
     newTotalDistributionFlowRate: BigInt,
     adjustmentFlowRecipient: string,
-    adjustmentFlowRate: BigInt
+    adjustmentFlowRate: BigInt,
+    userData: Bytes
 ): FlowDistributionUpdated {
     const newFlowDistributionUpdatedEvent = changetype<FlowDistributionUpdated>(newMockEvent());
     newFlowDistributionUpdatedEvent.parameters = new Array();
@@ -176,6 +189,7 @@ export function createFlowDistributionUpdatedEvent(
         getAddressEventParam("adjustmentFlowRecipient", adjustmentFlowRecipient)
     );
     newFlowDistributionUpdatedEvent.parameters.push(getBigIntEventParam("adjustmentFlowRate", adjustmentFlowRate));
+    newFlowDistributionUpdatedEvent.parameters.push(getBytesEventParam("userData", userData));
 
     return newFlowDistributionUpdatedEvent;
 }
@@ -196,12 +210,18 @@ export function createDistributionClaimedEvent(
     return newDistributionClaimedEvent;
 }
 
-export function createMemberUnitsUpdatedEvent(token: string, poolMember: string, units: BigInt): MemberUnitsUpdated {
+export function createMemberUnitsUpdatedEvent(
+    token: string,
+    poolMember: string,
+    oldUnits: BigInt,
+    newUnits: BigInt
+): MemberUnitsUpdated {
     const newMemberUnitsUpdatedEvent = changetype<MemberUnitsUpdated>(newMockEvent());
     newMemberUnitsUpdatedEvent.parameters = new Array();
     newMemberUnitsUpdatedEvent.parameters.push(getAddressEventParam("token", token));
     newMemberUnitsUpdatedEvent.parameters.push(getAddressEventParam("poolMember", poolMember));
-    newMemberUnitsUpdatedEvent.parameters.push(getBigIntEventParam("units", units));
+    newMemberUnitsUpdatedEvent.parameters.push(getBigIntEventParam("oldUnits", oldUnits));
+    newMemberUnitsUpdatedEvent.parameters.push(getBigIntEventParam("newUnits", newUnits));
 
     return newMemberUnitsUpdatedEvent;
 }

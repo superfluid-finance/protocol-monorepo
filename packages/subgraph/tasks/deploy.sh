@@ -65,7 +65,7 @@ deploy_to_graph() {
     )
 
     local graphNetwork="${legacyNetworkNames[$network]:-$network}"
-    local subgraphName="superfluid-finance/protocol-$graphNetwork-$DEPLOYMENT_ENV"
+    local subgraphName="superfluid-finance/protocol-$DEPLOYMENT_ENV-$graphNetwork"
 
     echo "********* Deploying $network subgraph $subgraphName to The Graph (hosted service). **********"
     $GRAPH_CLI deploy \

@@ -5,10 +5,10 @@ import "forge-std/Test.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
     GeneralDistributionAgreementV1
-} from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
+} from "../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import {
     SuperfluidPool
-} from "../../../contracts/superfluid/SuperfluidPool.sol";
+} from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 
 /// @title SuperfluidPool Property Tests
 /// @author Superfluid

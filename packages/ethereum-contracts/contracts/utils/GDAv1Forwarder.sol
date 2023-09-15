@@ -2,8 +2,8 @@
 pragma solidity 0.8.19;
 
 import { ISuperfluid, ISuperfluidToken } from "../interfaces/superfluid/ISuperfluid.sol";
-import { ISuperfluidPool } from "../superfluid/SuperfluidPool.sol";
-import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
+import { ISuperfluidPool } from "../agreements/gdav1/SuperfluidPool.sol";
+import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import { ForwarderBase } from "./ForwarderBase.sol";
 
 /**

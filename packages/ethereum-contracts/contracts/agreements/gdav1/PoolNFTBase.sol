@@ -7,11 +7,11 @@ pragma solidity 0.8.19;
 // Notes: We use these interfaces in natspec documentation below, grep @inheritdoc
 // solhint-disable-next-line no-unused-import
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import { UUPSProxiable } from "../upgradability/UUPSProxiable.sol";
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { ISuperTokenFactory } from "../interfaces/superfluid/ISuperTokenFactory.sol";
-import { IPoolNFTBase } from "../interfaces/superfluid/IPoolNFTBase.sol";
-import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
+import { UUPSProxiable } from "../../upgradability/UUPSProxiable.sol";
+import { ISuperfluid } from "../../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperTokenFactory } from "../../interfaces/superfluid/ISuperTokenFactory.sol";
+import { IPoolNFTBase } from "../../interfaces/agreements/gdav1/IPoolNFTBase.sol";
+import { IGeneralDistributionAgreementV1 } from "../../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 
 abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
     string public constant DEFAULT_BASE_URI = "https://nft.superfluid.finance/pool/v2/getmeta";

@@ -4,8 +4,8 @@ pragma solidity 0.8.19;
 import { BasicParticle, PDPoolIndex, FlowRate } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
 import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
-import { GeneralDistributionAgreementV1 } from "../agreements/GeneralDistributionAgreementV1.sol";
-import { ISuperfluidPool } from "../superfluid/SuperfluidPool.sol";
+import { GeneralDistributionAgreementV1 } from "../agreements/gdav1/GeneralDistributionAgreementV1.sol";
+import { ISuperfluidPool } from "../agreements/gdav1/SuperfluidPool.sol";
 
 /// @note we may not want this as we might be able to simply test this with our .prop test?
 

@@ -11,7 +11,7 @@ import {
 import {
     IGeneralDistributionAgreementV1,
     ISuperfluidPool
-} from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
+} from "../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 
 /**
  * @title Library for Token Centric Interface

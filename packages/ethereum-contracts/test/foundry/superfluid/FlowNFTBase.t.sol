@@ -12,8 +12,8 @@ import {
     IConstantOutflowNFT
 } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
-import { IPoolAdminNFT } from "../../../contracts/superfluid/PoolAdminNFT.sol";
-import { IPoolMemberNFT } from "../../../contracts/superfluid/PoolMemberNFT.sol";
+import { IPoolAdminNFT } from "../../../contracts/agreements/gdav1/PoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { ConstantOutflowNFTMock, ConstantInflowNFTMock } from "../../../contracts/mocks/CFAv1NFTMock.sol";

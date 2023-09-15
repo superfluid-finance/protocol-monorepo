@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import { FoundrySuperfluidTester, SuperTokenV1Library } from "../FoundrySuperfluidTester.sol";
 import { ISuperToken } from "../../../contracts/superfluid/SuperToken.sol";
-import { ISuperfluidPool } from "../../../contracts/interfaces/superfluid/ISuperfluidPool.sol";
+import { ISuperfluidPool } from "../../../contracts/interfaces/agreements/gdav1/ISuperfluidPool.sol";
 import { BatchLiquidator } from "../../../contracts/utils/BatchLiquidator.sol";
 
 contract BatchLiquidatorTest is FoundrySuperfluidTester {

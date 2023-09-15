@@ -9,16 +9,16 @@ import "../FoundrySuperfluidTester.sol";
 import {
     GeneralDistributionAgreementV1,
     IGeneralDistributionAgreementV1
-} from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
-import { DelegatableTokenMonad } from "../../../contracts/agreements/DelegatableTokenMonad.sol";
+} from "../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
+import { DelegatableTokenMonad } from "../../../contracts/agreements/gdav1/DelegatableTokenMonad.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { ISuperfluidToken } from "../../../contracts/interfaces/superfluid/ISuperfluidToken.sol";
-import { ISuperfluidPool, SuperfluidPool } from "../../../contracts/superfluid/SuperfluidPool.sol";
+import { ISuperfluidPool, SuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 import { SuperfluidPoolStorageLayoutMock } from "../../../contracts/mocks/SuperfluidPoolUpgradabilityMock.sol";
-import { IPoolNFTBase } from "../../../contracts/interfaces/superfluid/IPoolNFTBase.sol";
-import { IPoolAdminNFT } from "../../../contracts/interfaces/superfluid/IPoolAdminNFT.sol";
-import { IPoolMemberNFT } from "../../../contracts/interfaces/superfluid/IPoolMemberNFT.sol";
+import { IPoolNFTBase } from "../../../contracts/interfaces/agreements/gdav1/IPoolNFTBase.sol";
+import { IPoolAdminNFT } from "../../../contracts/interfaces/agreements/gdav1/IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../../../contracts/interfaces/agreements/gdav1/IPoolMemberNFT.sol";
 import { IFlowNFTBase } from "../../../contracts/interfaces/superfluid/IFlowNFTBase.sol";
 import { IConstantOutflowNFT } from "../../../contracts/interfaces/superfluid/IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "../../../contracts/interfaces/superfluid/IConstantInflowNFT.sol";

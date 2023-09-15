@@ -4,7 +4,6 @@ pragma solidity 0.8.19;
 
 import { SafeCast } from "@openzeppelin/contracts/utils/math/SafeCast.sol";
 import { IBeacon } from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import { ISuperfluid, ISuperfluidGovernance } from "../interfaces/superfluid/ISuperfluid.sol";
 import {
     BasicParticle,
     PDPoolIndex,
@@ -13,19 +12,20 @@ import {
     Time,
     FlowRate
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
-import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
-import { SuperfluidPoolDeployerLibrary } from "../libs/SuperfluidPoolDeployerLibrary.sol";
-import { IGeneralDistributionAgreementV1 } from "../interfaces/agreements/IGeneralDistributionAgreementV1.sol";
-import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
-import { IConstantOutflowNFT } from "../interfaces/superfluid/IConstantOutflowNFT.sol";
-import { ISuperToken } from "../interfaces/superfluid/ISuperToken.sol";
-import { IPoolAdminNFT } from "../interfaces/superfluid/IPoolAdminNFT.sol";
-import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
-import { SlotsBitmapLibrary } from "../libs/SlotsBitmapLibrary.sol";
-import { SolvencyHelperLibrary } from "../libs/SolvencyHelperLibrary.sol";
-import { SafeGasLibrary } from "../libs/SafeGasLibrary.sol";
-import { AgreementBase } from "./AgreementBase.sol";
-import { AgreementLibrary } from "./AgreementLibrary.sol";
+import { ISuperfluid, ISuperfluidGovernance } from "../../interfaces/superfluid/ISuperfluid.sol";
+import { SuperfluidPool } from "./SuperfluidPool.sol";
+import { SuperfluidPoolDeployerLibrary } from "../../libs/SuperfluidPoolDeployerLibrary.sol";
+import { IGeneralDistributionAgreementV1 } from "../../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
+import { ISuperfluidToken } from "../../interfaces/superfluid/ISuperfluidToken.sol";
+import { IConstantOutflowNFT } from "../../interfaces/superfluid/IConstantOutflowNFT.sol";
+import { ISuperToken } from "../../interfaces/superfluid/ISuperToken.sol";
+import { IPoolAdminNFT } from "../../interfaces/agreements/gdav1/IPoolAdminNFT.sol";
+import { ISuperfluidPool } from "../../interfaces/agreements/gdav1/ISuperfluidPool.sol";
+import { SlotsBitmapLibrary } from "../../libs/SlotsBitmapLibrary.sol";
+import { SolvencyHelperLibrary } from "../../libs/SolvencyHelperLibrary.sol";
+import { SafeGasLibrary } from "../../libs/SafeGasLibrary.sol";
+import { AgreementBase } from "../AgreementBase.sol";
+import { AgreementLibrary } from "../AgreementLibrary.sol";
 import { DelegatableTokenMonad } from "./DelegatableTokenMonad.sol";
 
 /**

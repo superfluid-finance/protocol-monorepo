@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity >=0.8.4;
 
-import { ISuperAgreement } from "../superfluid/ISuperAgreement.sol";
-import { ISuperfluidToken } from "../superfluid/ISuperfluidToken.sol";
-import { ISuperfluidPool } from "../superfluid/ISuperfluidPool.sol";
+import { ISuperAgreement } from "../../superfluid/ISuperAgreement.sol";
+import { ISuperfluidToken } from "../../superfluid/ISuperfluidToken.sol";
+import { ISuperfluidPool } from "../../agreements/gdav1/ISuperfluidPool.sol";
 
 /**
  * @title General Distribution Agreement interface

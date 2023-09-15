@@ -4,9 +4,9 @@ pragma solidity 0.8.19;
 import { IERC165, IERC721, IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { PoolNFTBaseIntegrationTest, FakePool } from "./PoolNFTBase.t.sol";
-import { IPoolNFTBase } from "../../../contracts/interfaces/superfluid/IPoolNFTBase.sol";
-import { IPoolAdminNFT } from "../../../contracts/interfaces/superfluid/IPoolAdminNFT.sol";
-import { ISuperfluidPool } from "../../../contracts/superfluid/SuperfluidPool.sol";
+import { IPoolNFTBase } from "../../../contracts/interfaces/agreements/gdav1/IPoolNFTBase.sol";
+import { IPoolAdminNFT } from "../../../contracts/interfaces/agreements/gdav1/IPoolAdminNFT.sol";
+import { ISuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 
 contract PoolAdminNFTIntegrationTest is PoolNFTBaseIntegrationTest {
     using Strings for uint256;

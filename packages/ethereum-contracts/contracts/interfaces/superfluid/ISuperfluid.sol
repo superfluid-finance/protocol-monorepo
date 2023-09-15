@@ -27,14 +27,14 @@ import { ISETH } from "../tokens/ISETH.sol";
 import { IFlowNFTBase } from "./IFlowNFTBase.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
-import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
-import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
+import { IPoolAdminNFT } from "../agreements/gdav1/IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../agreements/gdav1/IPoolMemberNFT.sol";
 /// Superfluid agreement interfaces:
 import { ISuperAgreement } from "./ISuperAgreement.sol";
 import { IConstantFlowAgreementV1 } from "../agreements/IConstantFlowAgreementV1.sol";
 import { IInstantDistributionAgreementV1 } from "../agreements/IInstantDistributionAgreementV1.sol";
-import { IGeneralDistributionAgreementV1 } from "../agreements/IGeneralDistributionAgreementV1.sol";
-import { ISuperfluidPool } from "./ISuperfluidPool.sol";
+import { IGeneralDistributionAgreementV1 } from "../agreements/gdav1/IGeneralDistributionAgreementV1.sol";
+import { ISuperfluidPool } from "../agreements/gdav1/ISuperfluidPool.sol";
 /// Superfluid App interfaces:
 import { ISuperApp } from "./ISuperApp.sol";
 /// Superfluid governance

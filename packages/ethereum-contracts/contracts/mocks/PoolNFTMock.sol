@@ -4,9 +4,9 @@ pragma solidity 0.8.19;
 
 import { Strings } from "@openzeppelin/contracts/utils/Strings.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { PoolAdminNFT } from "../superfluid/PoolAdminNFT.sol";
-import { PoolMemberNFT } from "../superfluid/PoolMemberNFT.sol";
-import { PoolNFTBase } from "../superfluid/PoolNFTBase.sol";
+import { PoolAdminNFT } from "../agreements/gdav1/PoolAdminNFT.sol";
+import { PoolMemberNFT } from "../agreements/gdav1/PoolMemberNFT.sol";
+import { PoolNFTBase } from "../agreements/gdav1/PoolNFTBase.sol";
 
 contract PoolNFTBaseMock is PoolNFTBase {
     using Strings for uint256;

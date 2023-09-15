@@ -8,7 +8,7 @@ import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import {
     GeneralDistributionAgreementV1,
     ISuperfluid
-} from "../../../contracts/agreements/GeneralDistributionAgreementV1.sol";
+} from "../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
 
 /// @note TODO - we may end up testing DelegatableTokenMonad here instead if enough stuff is moved out
 

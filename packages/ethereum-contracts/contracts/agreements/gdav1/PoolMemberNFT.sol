@@ -2,11 +2,11 @@
 pragma solidity 0.8.19;
 
 import { IERC721Metadata } from "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-import { IPoolMemberNFT } from "../interfaces/superfluid/IPoolMemberNFT.sol";
+import { IPoolMemberNFT } from "../../interfaces/agreements/gdav1/IPoolMemberNFT.sol";
 import { PoolNFTBase } from "./PoolNFTBase.sol";
-import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
-import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperfluid } from "../../interfaces/superfluid/ISuperfluid.sol";
+import { ISuperfluidPool } from "../../interfaces/agreements/gdav1/ISuperfluidPool.sol";
+import { ISuperfluidToken } from "../../interfaces/superfluid/ISuperfluidToken.sol";
 
 contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
     //// Storage Variables ////

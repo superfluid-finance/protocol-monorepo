@@ -3,7 +3,7 @@ pragma solidity 0.8.19;
 
 import { ISuperfluid, ISuperToken } from "../interfaces/superfluid/ISuperfluid.sol";
 import { SuperAppDefinitions } from "../interfaces/superfluid/ISuperfluid.sol";
-import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
+import { ISuperfluidPool } from "../interfaces/agreements/gdav1/ISuperfluidPool.sol";
 import { SuperAppBase } from "../apps/SuperAppBase.sol";
 import { SuperTokenV1Library } from "../apps/SuperTokenV1Library.sol";
 

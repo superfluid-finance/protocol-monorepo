@@ -12,11 +12,12 @@ import {
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { TokenMonad } from "@superfluid-finance/solidity-semantic-money/src/TokenMonad.sol";
 
-import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
-import { ISuperfluidPool } from "../interfaces/superfluid/ISuperfluidPool.sol";
+import { SuperfluidPool } from "./SuperfluidPool.sol";
+import { ISuperfluidPool } from "../../interfaces/agreements/gdav1/ISuperfluidPool.sol";
 import { GeneralDistributionAgreementV1 } from "./GeneralDistributionAgreementV1.sol";
-import { ISuperfluidToken } from "../interfaces/superfluid/ISuperfluidToken.sol";
+import { ISuperfluidToken } from "../../interfaces/superfluid/ISuperfluidToken.sol";
 
+// @note we can remove this maybe and just use the .prop pattern of inheriting the contract to test what we want to test
 /**
  * @title DelegatableTokenMonad
  * A version of the TokenMonad contract which is deployed and called by the GDA

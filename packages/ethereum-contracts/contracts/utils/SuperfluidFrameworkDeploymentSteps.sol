@@ -12,8 +12,8 @@ import { TestGovernance } from "./TestGovernance.sol";
 import { ConstantFlowAgreementV1 } from "../agreements/ConstantFlowAgreementV1.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../superfluid/ConstantInflowNFT.sol";
-import { PoolAdminNFT, IPoolAdminNFT } from "../superfluid/PoolAdminNFT.sol";
-import { PoolMemberNFT, IPoolMemberNFT } from "../superfluid/PoolMemberNFT.sol";
+import { PoolAdminNFT, IPoolAdminNFT } from "../agreements/gdav1/PoolAdminNFT.sol";
+import { PoolMemberNFT, IPoolMemberNFT } from "../agreements/gdav1/PoolMemberNFT.sol";
 import { GeneralDistributionAgreementV1Harness } from "../mocks/GeneralDistributionAgreementV1Harness.sol";
 import { InstantDistributionAgreementV1 } from "../agreements/InstantDistributionAgreementV1.sol";
 import { SuperTokenFactory } from "../superfluid/SuperTokenFactory.sol";
@@ -23,7 +23,7 @@ import { SETHProxy } from "../tokens/SETH.sol";
 import { ISuperToken, SuperToken } from "../superfluid/SuperToken.sol";
 import { TestResolver } from "./TestResolver.sol";
 import { SuperfluidLoader } from "./SuperfluidLoader.sol";
-import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
+import { SuperfluidPool } from "../agreements/gdav1/SuperfluidPool.sol";
 import { SuperfluidUpgradeableBeacon } from "../upgradability/SuperfluidUpgradeableBeacon.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
 import { BatchLiquidator } from "./BatchLiquidator.sol";
@@ -31,7 +31,7 @@ import { TOGA } from "./TOGA.sol";
 import { CFAv1Library } from "../apps/CFAv1Library.sol";
 import { IDAv1Library } from "../apps/IDAv1Library.sol";
 import { IResolver } from "../interfaces/utils/IResolver.sol";
-import { DelegatableTokenMonad } from "../agreements/DelegatableTokenMonad.sol";
+import { DelegatableTokenMonad } from "../agreements/gdav1/DelegatableTokenMonad.sol";
 
 /// @title Superfluid Framework Deployment Steps
 /// @author Superfluid

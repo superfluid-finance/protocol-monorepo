@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
-import { GeneralDistributionAgreementV1 } from "../agreements/GeneralDistributionAgreementV1.sol";
-import { SuperfluidPool } from "../superfluid/SuperfluidPool.sol";
+import { GeneralDistributionAgreementV1 } from "../agreements/gdav1/GeneralDistributionAgreementV1.sol";
+import { SuperfluidPool } from "../agreements/gdav1/SuperfluidPool.sol";
 import { IStorageLayoutBase } from "./IStorageLayoutBase.sol";
 
 /// @title SuperfluidPoolStorageLayoutMock

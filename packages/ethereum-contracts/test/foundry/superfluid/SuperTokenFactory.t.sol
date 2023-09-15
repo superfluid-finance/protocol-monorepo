@@ -5,8 +5,8 @@ import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { SuperTokenFactory } from "../../../contracts/superfluid/SuperTokenFactory.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
-import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/superfluid/PoolAdminNFT.sol";
-import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/superfluid/PoolMemberNFT.sol";
+import { PoolAdminNFT, IPoolAdminNFT } from "../../../contracts/agreements/gdav1/PoolAdminNFT.sol";
+import { PoolMemberNFT, IPoolMemberNFT } from "../../../contracts/agreements/gdav1/PoolMemberNFT.sol";
 import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
 

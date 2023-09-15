@@ -7,8 +7,8 @@ import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
-import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
-import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
+import { IPoolAdminNFT } from "../agreements/gdav1/IPoolAdminNFT.sol";
+import { IPoolMemberNFT } from "../agreements/gdav1/IPoolMemberNFT.sol";
 
 /**
  * @title Super token (Superfluid Token + ERC20 + ERC777) interface

@@ -2,10 +2,10 @@
 // solhint-disable reason-string
 pragma solidity 0.8.19;
 
-import { PoolNFTBase } from "../superfluid/PoolNFTBase.sol";
+import { PoolNFTBase } from "../agreements/gdav1/PoolNFTBase.sol";
 import { ISuperfluid } from "../interfaces/superfluid/ISuperfluid.sol";
-import { PoolMemberNFT } from "../superfluid/PoolMemberNFT.sol";
-import { PoolAdminNFT } from "../superfluid/PoolAdminNFT.sol";
+import { PoolMemberNFT } from "../agreements/gdav1/PoolMemberNFT.sol";
+import { PoolAdminNFT } from "../agreements/gdav1/PoolAdminNFT.sol";
 import { IStorageLayoutBase } from "./IStorageLayoutBase.sol";
 
 contract PoolNFTBaseStorageLayoutMock is PoolNFTBase, IStorageLayoutBase {

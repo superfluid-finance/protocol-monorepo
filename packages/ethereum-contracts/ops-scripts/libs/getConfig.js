@@ -59,6 +59,7 @@ module.exports = function getConfig(chainId) {
             getLogsRange: sfNw?.logsQueryRange || 5000,
         },
         cfaFwd: sfNw?.contractsV1?.cfaV1Forwarder || "0xcfA132E353cB4E398080B9700609bb008eceB125",
+        gdaFwd: sfNw?.contractsV1?.gdaV1Forwarder || "0x6dA170169d5Fca20F902b7E5755346a97c94B07c",
         nativeTokenSymbol: sfNw?.nativeTokenSymbol || "ETH",
         metadata: sfNw,
         resolverAddress: global?.process.env.RESOLVER_ADDRESS || sfNw?.contractsV1?.resolver,

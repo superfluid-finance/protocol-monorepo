@@ -2,37 +2,47 @@ const sfMetadata = require("@superfluid-finance/metadata");
 
 module.exports = function getConfig(chainId) {
 
-/*
- * REFERENCES:
- * - https://docs.biconomy.io/misc/contract-addresses
- */
-
     const EXTRA_CONFIG = {
+        // here go the trusted forwarders which aren't part of the framework contracts
+
         // Local Testing
         4447: {
             // for local testing (truffle internal ganache and TestEnvironment)
             // this is a fake forwarder address, it is to test the deployment script
-            biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
+            trustedForwarders: ["0x3075b4dc7085C48A14A5A39BBa68F58B19545971"],
         },
         5777: {
             // for local testing (external ganache)
             // this is a fake forwarder address, it is to test the deployment script
-            biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
+            trustedForwarders: ["0x3075b4dc7085C48A14A5A39BBa68F58B19545971"],
         },
         6777: {
             // for coverage testing
             // this is a fake forwarder address, it is to test the deployment script
-            biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
+            trustedForwarders: ["0x3075b4dc7085C48A14A5A39BBa68F58B19545971"],
         },
 
         // Ethereum Goerli Testnet
         5: {
-            biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
+            trustedForwarders: ["0xE041608922d06a4F26C0d4c27d8bCD01daf1f792"], // biconomy
+        },
+
+        // Optimism Goerli Testnet
+        420: {
+            trustedForwarders: ["0x9C73373C70F23920EA54F7883dCB1F85b162Df40"], // biconomy
+        },
+
+        // Avalanche Fuji Testnet
+        43113: {
+            trustedForwarders: ["0x6271Ca63D30507f2Dcbf99B52787032506D75BBF"], // biconomy
         },
 
         // Polygon Mumbai Testnet
         80001: {
-            biconomyForwarder: "0x2B99251eC9650e507936fa9530D11dE4d6C9C05c",
+            trustedForwarders: [
+                "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b", // biconomy 1
+                "0x69015912AA33720b842dCD6aC059Ed623F28d9f7"  // biconomy 2
+            ]
         },
 
         // Celo Mainnet

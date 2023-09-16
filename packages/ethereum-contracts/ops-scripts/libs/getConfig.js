@@ -22,29 +22,6 @@ module.exports = function getConfig(chainId) {
             trustedForwarders: ["0x3075b4dc7085C48A14A5A39BBa68F58B19545971"],
         },
 
-        // Ethereum Goerli Testnet
-        5: {
-            trustedForwarders: ["0xE041608922d06a4F26C0d4c27d8bCD01daf1f792"], // biconomy
-        },
-
-        // Optimism Goerli Testnet
-        420: {
-            trustedForwarders: ["0x9C73373C70F23920EA54F7883dCB1F85b162Df40"], // biconomy
-        },
-
-        // Avalanche Fuji Testnet
-        43113: {
-            trustedForwarders: ["0x6271Ca63D30507f2Dcbf99B52787032506D75BBF"], // biconomy
-        },
-
-        // Polygon Mumbai Testnet
-        80001: {
-            trustedForwarders: [
-                "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b", // biconomy 1
-                "0x69015912AA33720b842dCD6aC059Ed623F28d9f7"  // biconomy 2
-            ]
-        },
-
         // Celo Mainnet
         42220: {
             gov_enableAppWhiteListing: false,
@@ -72,6 +49,7 @@ module.exports = function getConfig(chainId) {
         nativeTokenSymbol: sfNw?.nativeTokenSymbol || "ETH",
         metadata: sfNw,
         resolverAddress: global?.process.env.RESOLVER_ADDRESS || sfNw?.contractsV1?.resolver,
+        trustedForwarders: sfNw?.trustedForwarders,
         ...EXTRA_CONFIG[chainId]
     };
 };

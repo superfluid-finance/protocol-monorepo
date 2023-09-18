@@ -93,7 +93,7 @@ jobs:
         run: |
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
           echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
-          yarn test-coverage
+          NODE_OPTIONS=\"$NODE_OPTIONS --max_old_space_size=4096\" yarn test-coverage
         working-directory: ./packages/ethereum-contracts
         # NOTE: currently coverage report is not working properly in parallel mode.
         #

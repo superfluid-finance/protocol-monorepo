@@ -27,10 +27,11 @@ interface SubgraphData {
     readonly satsumaEndpoint?: string;
 }
 export interface NetworkMetaData {
-    readonly name: string;
+    readonly name: string; // Superfluid canonical network name
     readonly isTestnet: boolean;
     readonly networkId: number;
     readonly chainId: number;
+    readonly sfId: number; // Superfluid canonical network id
     readonly shortName: string;
     readonly uppercaseName: string;
     readonly humanReadableName: string;
@@ -43,6 +44,7 @@ export interface NetworkMetaData {
     readonly subgraphV1: SubgraphData;
     readonly publicRPCs?: string[];
     readonly coinGeckoId?: string;
+    readonly trustedForwarders?: string[]; // list of additional trusted forwarders
 }
 declare const _default: NetworkMetaData[];
 export default _default;

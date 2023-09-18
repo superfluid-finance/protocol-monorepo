@@ -3,7 +3,7 @@ import {
     CFAv1Forwarder__factory,
     IConstantFlowAgreementV1,
     IConstantFlowAgreementV1__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
+} from "./typechain-types";
 import { ethers } from "ethers";
 
 import Host from "./Host";

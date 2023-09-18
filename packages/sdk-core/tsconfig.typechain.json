@@ -2,7 +2,7 @@
     "extends": "./tsconfig",
     "compilerOptions": {
         "target": "ES2019",
-        "outDir": "build/typechain-ethers-v5",
+        "outDir": "src/typechain-types",
         "moduleResolution": "node",
         "module": "CommonJS",
         "declaration": true,
@@ -10,6 +10,6 @@
         "sourceMap": true
     },
     "files": [],
-    "include": ["typechain-types"],
+    "include": ["src/typechain-types-raw"],
     "exclude": ["node_modules/**"]
 }

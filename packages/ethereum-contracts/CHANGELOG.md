@@ -8,6 +8,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Breaking
 - `TokenInfo` and `ERC20WithTokenInfo` interface/abstract contract are removed from the codebase, including the bundled ABI contracts
   - Migration: Use `IERC20Metadata` instead, as this replaces the previous contracts
+- `build/typechain-ethers-v5` is removed from the npm package
+  - Migration: Consume the ABIs and utilize whatever tool you'd like to generate types from them
 
 ### Added
 

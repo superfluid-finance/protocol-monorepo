@@ -6,3 +6,4 @@ coverage
 *.generated.ts
 /typechain-types
 /artifacts
+src/typechain-types

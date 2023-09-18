@@ -285,7 +285,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
     //     );
     // }
 
-    function testParticleInputEncodeDecodeUniversalIndexData(
+    function testEncodeDecodeParticleInputUniversalIndexData(
         int96 flowRate,
         uint32 settledAt,
         int256 settledValue,
@@ -307,7 +307,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         assertEq(isPool_, decoded.isPool, "isPool not equal");
     }
 
-    function testUIDataInputEncodeDecodeUniversalIndexData(
+    function testEncodeDecodeUIDataInputeUniversalIndexData(
         int96 flowRate,
         uint32 settledAt,
         int256 settledValue,
@@ -339,7 +339,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         assertEq(data.settledValue, Value.unwrap(particle._settled_value), "settledValue not equal");
     }
 
-    function testFlowDistributionDataEncodeDecode(int96 flowRate, uint96 buffer) public {
+    function testEncodeDecodeFlowDistributionData(int96 flowRate, uint96 buffer) public {
         vm.assume(flowRate >= 0);
         vm.assume(buffer >= 0);
         GeneralDistributionAgreementV1.FlowDistributionData memory original = GeneralDistributionAgreementV1
@@ -353,7 +353,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         assertEq(original.lastUpdated, decoded.lastUpdated, "lastUpdated not equal");
     }
 
-    function testPoolMemberDataEncodeDecode(address pool, uint32 poolID) public {
+    function testEncodeDecodePoolMemberData(address pool, uint32 poolID) public {
         vm.assume(pool != address(0));
         GeneralDistributionAgreementV1.PoolMemberData memory original =
             GeneralDistributionAgreementV1.PoolMemberData({ pool: pool, poolID: poolID });

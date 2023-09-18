@@ -1,9 +1,3 @@
-import {
-    ISETH,
-    ISETH__factory,
-    ISuperToken,
-    ISuperToken__factory,
-} from "./typechain-types";
 import { BytesLike, ethers, Overrides } from "ethers";
 
 import ConstantFlowAgreementV1 from "./ConstantFlowAgreementV1";
@@ -48,6 +42,12 @@ import {
     SuperTokenFlowRateAllowanceParams,
     SuperTokenFlowRateAllowanceWithPermissionsParams,
 } from "./interfaces";
+import {
+    ISETH,
+    ISETH__factory,
+    ISuperToken,
+    ISuperToken__factory,
+} from "./typechain-types";
 import {
     getSanitizedTimestamp,
     getStringCurrentTimeInSeconds,

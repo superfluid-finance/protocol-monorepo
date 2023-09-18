@@ -1,9 +1,3 @@
-import {
-    CFAv1Forwarder,
-    CFAv1Forwarder__factory,
-    IConstantFlowAgreementV1,
-    IConstantFlowAgreementV1__factory,
-} from "./typechain-types";
 import { ethers } from "ethers";
 
 import Host from "./Host";
@@ -28,6 +22,12 @@ import {
     IWeb3FlowOperatorData,
     IWeb3FlowOperatorDataParams,
 } from "./interfaces";
+import {
+    CFAv1Forwarder,
+    CFAv1Forwarder__factory,
+    IConstantFlowAgreementV1,
+    IConstantFlowAgreementV1__factory,
+} from "./typechain-types";
 import {
     getSanitizedTimestamp,
     isPermissionsClean,

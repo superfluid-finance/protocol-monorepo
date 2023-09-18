@@ -1,13 +1,13 @@
-import {
-    SuperfluidGovernanceII,
-    SuperfluidGovernanceII__factory,
-} from "./typechain-types";
 import { ethers } from "ethers";
 
 import {
     IGetGovernanceParametersParams,
     IWeb3GovernanceParams,
 } from "./interfaces";
+import {
+    SuperfluidGovernanceII,
+    SuperfluidGovernanceII__factory,
+} from "./typechain-types";
 
 export default class Governance {
     contract: SuperfluidGovernanceII;

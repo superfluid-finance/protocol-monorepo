@@ -1,7 +1,3 @@
-import {
-    IInstantDistributionAgreementV1,
-    IInstantDistributionAgreementV1__factory,
-} from "./typechain-types";
 import { ethers } from "ethers";
 
 import Host from "./Host";
@@ -21,6 +17,10 @@ import {
     IWeb3Index,
     IWeb3Subscription,
 } from "./interfaces";
+import {
+    IInstantDistributionAgreementV1,
+    IInstantDistributionAgreementV1__factory,
+} from "./typechain-types";
 import { normalizeAddress } from "./utils";
 
 const idaInterface = IInstantDistributionAgreementV1__factory.createInterface();

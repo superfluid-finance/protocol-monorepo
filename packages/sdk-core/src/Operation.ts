@@ -1,4 +1,3 @@
-import { Superfluid__factory } from "./typechain-types";
 import { ethers } from "ethers";
 
 import {
@@ -8,6 +7,7 @@ import {
 } from "./BatchCall";
 import { SFError } from "./SFError";
 import multiplyGasLimit from "./multiplyGasLimit";
+import { Superfluid__factory } from "./typechain-types";
 import { removeSigHashFromCallData } from "./utils";
 
 export type BatchOperationType =

@@ -270,6 +270,10 @@ contract SuperAppMock is ISuperApp {
         assert(false);
     }
 
+    function actionCallPayable(bytes calldata ctx) external payable returns (bytes memory newCtx) {
+        newCtx = ctx;
+    }
+
     /*************************************************************************
     * Callbacks
     **************************************************************************/

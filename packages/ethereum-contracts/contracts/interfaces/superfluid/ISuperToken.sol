@@ -385,6 +385,23 @@ interface ISuperToken is ISuperfluidToken, IERC20Metadata, IERC777 {
     function getUnderlyingToken() external view returns(address tokenAddr);
 
     /**
+     * @dev Return the underlying token decimals
+     * @return underlyingDecimals Underlying token decimals
+     */
+    function getUnderlyingDecimals() external view returns (uint8 underlyingDecimals);
+
+    /**
+     * @dev Return the underlying token conversion rate
+     * @param amount Number of tokens to be upgraded (in 18 decimals)
+     * @return underlyingAmount The underlying token amount after scaling
+     * @return adjustedAmount The super token amount after scaling
+     */
+    function toUnderlyingAmount(uint256 amount)
+        external
+        view
+        returns (uint256 underlyingAmount, uint256 adjustedAmount);
+
+    /**
      * @dev Upgrade ERC20 to SuperToken.
      * @param amount Number of tokens to be upgraded (in 18 decimals)
      *

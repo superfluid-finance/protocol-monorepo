@@ -28,9 +28,8 @@ describe("SuperfluidToken implementation", function () {
     const formattedData = ethers.utils.hexZeroPad("0x42", 32);
 
     async function createAgreementMock(type: string, version: number) {
-        const agreementMockFactory = await ethers.getContractFactory(
-            "AgreementMock"
-        );
+        const agreementMockFactory =
+            await ethers.getContractFactory("AgreementMock");
         return await agreementMockFactory.deploy(
             superfluid.address,
             type,

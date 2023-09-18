@@ -9,6 +9,8 @@
         "const-name-snakecase": "error",
         "immutable-vars-naming": ["off", { "immutablesAsConstants" : false }],
         "explicit-types": ["off"],
+        "custom-errors": "off",
+        "one-contract-per-file": "off",
         "reason-string": ["error", { "maxLength": 64 }],
         "compiler-version": ["off"],
         "constructor-syntax": "error",

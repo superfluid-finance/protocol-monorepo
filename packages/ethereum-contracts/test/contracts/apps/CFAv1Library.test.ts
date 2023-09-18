@@ -65,9 +65,8 @@ describe("CFAv1 Library testing", function () {
         await superToken.mintInternal(bob, mintAmount, "0x", "0x");
 
         // deploy a contract we'll use for testing the library
-        const CFALibraryMockFactory = await ethers.getContractFactory(
-            "CFALibraryMock"
-        );
+        const CFALibraryMockFactory =
+            await ethers.getContractFactory("CFALibraryMock");
         cfaLibraryMock = await CFALibraryMockFactory.deploy(host.address);
 
         const CFALibrarySuperAppMockFactory = await ethers.getContractFactory(

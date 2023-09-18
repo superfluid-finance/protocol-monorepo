@@ -1,20 +1,34 @@
-name: Reusable Workflow | Deploy Subgraph to Hosted Service
+name: Reusable Workflow | Deploy Subgraph
 
 on:
   workflow_call:
     inputs:
-      release_branch:
+      vendor:
+        required: true
+        description: "Where to deploy subgraph to; superfluid, graph, or satsuma"
+        type: string
+      deployment_env:
         required: true
         type: string
-        description: 'The subgraph release: feature, dev, v1'
+        description: 'The subgraph deployment env: v1, dev, feature'
       network:
         required: true
         type: string
         description: 'The network you want to deploy to (matic, xdai, eth-mainnet, etc.) or `all` for all networks.'
+
     secrets:
+      SUBGRAPH_URL_TEMPLATE:
+        description: 'Subgraph endpoint url template'
+        required: false
+      SATSUMA_DEPLOY_KEY:
+        description: 'Satsuma deploy key'
+        required: false
       THE_GRAPH_ACCESS_TOKEN:
-        description: 'The Graph access token for deploying subgraphs'
-        required: true
+        description: 'The Graph (hosted service) access token for deploying subgraphs'
+        required: false
+      SUPERFLUID_IPFS_API:
+        description: 'Superfluid IPFS API endpoint'
+        required: false
 
 jobs:
   show-contexts:
@@ -36,7 +50,7 @@ jobs:
           echo github.base_ref: ${{ github.base_ref }}
 
   deploy-subgraph:
-    name: Deploy Hosted Service Subgraph
+    name: Build and Deploy Subgraph
 
     runs-on: ubuntu-latest
     env:
@@ -44,7 +58,7 @@ jobs:
 
     defaults:
       run:
-        shell: nix develop -c bash -xe {0}
+        shell: nix develop -c bash {0}
 
     steps:
       - uses: actions/checkout@v3
@@ -65,40 +79,46 @@ jobs:
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Prepare subgraph manifest"
-        # This step is required for generating an arbitrary subgraph.yaml
+        # This step is required for generating a preliminary subgraph.yaml
         # and addresses.ts file for the yarn codegen step below
         # using a mock.json networks file.
         run: ./tasks/prepare-manifest.sh mock
         working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Generate meta.ignore.ts file"
+        # Collects metadata like the git branch and commit hash
         run: "yarn generate-sf-meta"
         working-directory: ${{ env.subgraph-working-directory }}
         env:
           COMMIT_HASH: ${{ github.sha }}
-          CONFIGURATION: ${{ inputs.release_branch }}
+          CONFIGURATION: ${{ inputs.deployment_env }}
 
       - name: "Generate AssemblyScript types"
         run: "yarn codegen"
         working-directory: ${{ env.subgraph-working-directory }}
 
-      - name: Ensure release_branch property is passed
+      # - name: Ensure deployment_env property is passed
+      #   run: |
+      #     if [ "${{ inputs.deployment_env }}" == "" ];then
+      #       echo "You must pass in the deployment_env at a minimum."
+      #       exit 1
+      #     fi
+
+      # If tagged, get subgraph tag name that starts with subgraph@. Outputs $GIT_TAG_NAME
+      - uses: olegtarasov/get-tag@v2.1.2
+        id: "getSubgraphTag"
+        with:
+          tagRegex: "subgraph@(.*)" 
+
+      # Version is the git tag or revision
+      - name: "Deploy to a node"
         run: |
-          if [ "${{ inputs.release_branch }}" == "" ];then
-            echo "You must pass in the release_branch at a minimum."
-            exit 1
-          fi
-
-      - name: "Deploy to All Hosted Subgraph Superfluid endpoints"
-        if: inputs.network == 'all'
-        run: ./tasks/deploy-all-hosted-service-networks.sh ${{ inputs.release_branch }}
+          shortRev=$(git rev-parse --short ${{ github.sha }})
+          versionLabel="${GIT_TAG_NAME:-$shortRev}"
+          ./tasks/deploy.sh -o ${{ inputs.vendor }} -n ${{ inputs.network }} -r ${{ inputs.deployment_env }} -v $versionLabel
         working-directory: ${{ env.subgraph-working-directory }}
         env:
+          SUBGRAPH_URL_TEMPLATE: ${{ secrets.SUBGRAPH_URL_TEMPLATE }}
+          SUPERFLUID_IPFS_API: ${{ secrets.SUPERFLUID_IPFS_API }}
           THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
-
-      - name: "Deploy to Hosted Subgraph Superfluid endpoint"
-        if: inputs.network != 'all'
-        run: ./tasks/deploy-to-hosted-service-network.sh ${{ inputs.release_branch }} ${{ inputs.network }}
-        working-directory: ${{ env.subgraph-working-directory }}
-        env:
-          THE_GRAPH_ACCESS_TOKEN: ${{ secrets.THE_GRAPH_ACCESS_TOKEN }}
+          SATSUMA_DEPLOY_KEY: ${{ secrets.SATSUMA_DEPLOY_KEY }}

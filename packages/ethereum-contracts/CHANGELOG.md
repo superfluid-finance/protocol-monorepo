@@ -7,6 +7,23 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
+- Added 'test-slither' yarn sub-task.
+- Expose `SuperToken._underlyingDecimals` with `SuperToken.getUnderlyingDecimals()`
+- Expose `_toUnderlyingAmount(uint256 amount)` with `toUnderlyingAmount(uint256 amount)`
+- `batchCall` supports payable `OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION`: only the first `OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION` will be payable
+
+### Changed
+
+## [v1.8.1] - 2023-08-28
+
+### Fixed
+
+- Publish `build/hardhat/*/*` again.
+
+## [v1.8.0] - 2023-08-23
+
+### Added
+
 - Publish `build/bundled-abi.{js,json}` in the npm package.
 
 ### Breaking

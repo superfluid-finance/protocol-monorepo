@@ -24,8 +24,8 @@ import { ISuperTokenFactory } from "./ISuperTokenFactory.sol";
 import { ISETH } from "../tokens/ISETH.sol";
 /// Superfluid/ERC20x NFTs
 import { IFlowNFTBase } from "./IFlowNFTBase.sol";
-import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
+import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 import { IPoolAdminNFT } from "./IPoolAdminNFT.sol";
 import { IPoolMemberNFT } from "./IPoolMemberNFT.sol";
 /// Superfluid agreement interfaces:
@@ -599,7 +599,7 @@ interface ISuperfluid {
      * @dev Batch call function
      * @param operations Array of batch operations
      */
-    function batchCall(Operation[] calldata operations) external;
+    function batchCall(Operation[] calldata operations) external payable;
 
     /**
      * @dev Batch call function for trusted forwarders (EIP-2771)

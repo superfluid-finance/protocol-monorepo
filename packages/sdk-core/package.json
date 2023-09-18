@@ -1,6 +1,6 @@
 {
     "name": "@superfluid-finance/sdk-core",
-    "version": "0.6.8",
+    "version": "0.6.9",
     "description": "SDK Core for building with Superfluid Protocol",
     "homepage": "https://github.com/superfluid-finance/protocol-monorepo/tree/dev/packages/sdk-core#readme",
     "repository": {
@@ -55,24 +55,24 @@
         "url": "https://github.com/superfluid-finance/protocol-monorepo/issues"
     },
     "dependencies": {
-        "@superfluid-finance/ethereum-contracts": "1.7.2",
-        "@superfluid-finance/metadata": "1.1.11",
+        "@superfluid-finance/ethereum-contracts": "1.8.1",
+        "@superfluid-finance/metadata": "1.1.16",
         "browserify": "^17.0.0",
-        "graphql-request": "^4.3.0",
+        "graphql-request": "^6.1.0",
         "lodash": "^4.17.21",
         "tsify": "^5.0.4"
     },
     "devDependencies": {
-        "@graphql-codegen/cli": "^2.16.5",
-        "@graphql-codegen/introspection": "^2.2.3",
+        "@graphql-codegen/cli": "^5.0.0",
+        "@graphql-codegen/introspection": "^4.0.0",
         "@graphql-codegen/near-operation-file-preset": "^2.5.0",
-        "@graphql-codegen/typed-document-node": "^2.3.13",
-        "@graphql-codegen/typescript": "^2.8.8",
-        "@graphql-codegen/typescript-operations": "^2.5.13",
+        "@graphql-codegen/typed-document-node": "^5.0.1",
+        "@graphql-codegen/typescript": "^4.0.1",
+        "@graphql-codegen/typescript-operations": "^4.0.1",
         "@graphql-typed-document-node/core": "^3.2.0",
         "ajv": "^8.12.0",
-        "get-graphql-schema": "^2.1.2",
         "ethers": "^5.7.2",
+        "get-graphql-schema": "^2.1.2",
         "mocha": "^10.2.0"
     },
     "peerDependencies": {

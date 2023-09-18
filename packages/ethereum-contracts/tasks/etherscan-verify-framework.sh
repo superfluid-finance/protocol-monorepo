@@ -8,6 +8,8 @@
 
 set -x
 
+CONTRACTS_DIR=build/truffle/contracts
+
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
 
@@ -26,6 +28,7 @@ function try_verify() {
     npx truffle run --network "$TRUFFLE_NETWORK" verify "$@" ||
         FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$*"
         # NOTE: append using length so that having spaces in the element is not a problem
+        # TODO: version 0.6.5 of the plugin seems to not reliably return non-zero if verification fails
 }
 
 function link_library() {
@@ -33,9 +36,9 @@ function link_library() {
     local library_name="$2"
     local library_address="$3"
 
-    cp -f "build/contracts/${contract_name}.json" "build/contracts/${contract_name}.json.bak"
+    cp -f "$CONTRACTS_DIR/${contract_name}.json" "$CONTRACTS_DIR/${contract_name}.json.bak"
     jq -s '.[0] * .[1]' \
-        "build/contracts/${contract_name}.json.bak" \
+        "$CONTRACTS_DIR/${contract_name}.json.bak" \
         <(cat <<EOF
 {
     "networks": {
@@ -47,7 +50,7 @@ function link_library() {
     }
 }
 EOF
-        ) > "build/contracts/${contract_name}.json"
+        ) > "$CONTRACTS_DIR/${contract_name}.json"
 }
 
 if [ -n "$RESOLVER" ]; then
@@ -67,6 +70,9 @@ if [ -n "$SUPERFLUID_GOVERNANCE" ]; then
     if [ -n "$IS_TESTNET" ];then
         try_verify TestGovernance@"${SUPERFLUID_GOVERNANCE}"
     else
+        if [ -n "$SUPERFLUID_GOVERNANCE_LOGIC" ]; then
+            try_verify SuperfluidGovernanceII@"${SUPERFLUID_GOVERNANCE_LOGIC}"
+        fi
         try_verify SuperfluidGovernanceII@"${SUPERFLUID_GOVERNANCE}" --custom-proxy SuperfluidGovernanceIIProxy
     fi
 fi
@@ -116,7 +122,7 @@ fi
 if [ -n "$IDA_PROXY" ]; then
     try_verify InstantDistributionAgreementV1@"${IDA_PROXY}" --custom-proxy UUPSProxy
 fi
-mv -f build/contracts/InstantDistributionAgreementV1.json.bak build/contracts/InstantDistributionAgreementV1.json
+mv -f $CONTRACTS_DIR/InstantDistributionAgreementV1.json.bak $CONTRACTS_DIR/InstantDistributionAgreementV1.json
 
 if [ -n "$SUPER_TOKEN_NATIVE_COIN" ];then
     # special case: verify only the proxy

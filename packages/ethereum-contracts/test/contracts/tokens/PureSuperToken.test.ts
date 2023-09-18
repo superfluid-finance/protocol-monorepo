@@ -38,9 +38,8 @@ describe("PureSuperToken Contract", function () {
     });
 
     it("#1 initialization", async () => {
-        const PureSuperTokenFactory = await ethers.getContractFactory(
-            "PureSuperToken"
-        );
+        const PureSuperTokenFactory =
+            await ethers.getContractFactory("PureSuperToken");
         const PureSuperToken = await PureSuperTokenFactory.deploy();
         await web3tx(
             superTokenFactory.initializeCustomSuperToken,

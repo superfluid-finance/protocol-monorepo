@@ -88,9 +88,8 @@ describe("IDAv1Library testing", function () {
     });
 
     beforeEach(async function () {
-        const idaV1LibMockFactory = await ethers.getContractFactory(
-            "IDAv1LibraryMock"
-        );
+        const idaV1LibMockFactory =
+            await ethers.getContractFactory("IDAv1LibraryMock");
         idaV1LibMock = (await idaV1LibMockFactory.deploy(host.address)).connect(
             aliceSigner
         );

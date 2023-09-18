@@ -11,12 +11,15 @@ interface ContractAddresses {
     readonly idaV1: string;
     readonly gdaV1: string;
     readonly superTokenFactory: string;
+    readonly constantOutflowNFT?: string;
+    readonly constantInflowNFT?: string;
     readonly superfluidLoader: string;
     readonly toga: string;
     readonly vestingScheduler: string;
     readonly flowScheduler: string;
     readonly batchLiquidator: string;
     readonly autowrap: AutowrapAddresses;
+    readonly existentialNFTCloneFactory: string;
 }
 interface SubgraphData {
     readonly name: string;

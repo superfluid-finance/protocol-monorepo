@@ -31,8 +31,8 @@ import {
  */
 export interface SubgraphListQuery<
     TFilter extends {
-        id?: InputMaybe<Scalars["ID"]>;
-        id_gt?: InputMaybe<Scalars["ID"]>;
+        id?: InputMaybe<Scalars["ID"]["input"]>;
+        id_gt?: InputMaybe<Scalars["ID"]["input"]>;
     },
     TOrderBy extends string,
 > {
@@ -114,16 +114,16 @@ export abstract class SubgraphQueryHandler<
         TListQuery extends SubgraphListQuery<TFilter, TOrderBy>,
         TSubgraphQuery,
         TSubgraphQueryVariables extends Exact<{
-            first?: InputMaybe<Scalars["Int"]>;
+            first?: InputMaybe<Scalars["Int"]["input"]>;
             orderBy?: InputMaybe<TOrderBy>;
             orderDirection?: InputMaybe<OrderDirection>;
-            skip?: InputMaybe<Scalars["Int"]>;
+            skip?: InputMaybe<Scalars["Int"]["input"]>;
             where?: InputMaybe<TFilter>;
             block?: InputMaybe<Block_Height>;
         }>,
         TFilter extends {
-            id?: InputMaybe<Scalars["ID"]>;
-            id_gt?: InputMaybe<Scalars["ID"]>;
+            id?: InputMaybe<Scalars["ID"]["input"]>;
+            id_gt?: InputMaybe<Scalars["ID"]["input"]>;
         } = NonNullable<TListQuery["filter"]>,
         TOrderBy extends string = NonNullable<TListQuery["order"]>["orderBy"],
     >

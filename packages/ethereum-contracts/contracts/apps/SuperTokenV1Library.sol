@@ -15,6 +15,9 @@ import {
  * of ISuperToken.
  * Note that it is important to "warm up" the cache and cache the host, cfa, ida before calling,
  * this is only applicable to Foundry tests where the vm.expectRevert() will not work as expected.
+ * You must use vm.startPrank(account) instead of vm.prank when executing functions if the cache
+ * isn't "warmed up" yet. vm.prank impersonates the account only for the first call, which will be
+ * used for caching.
  */
 library SuperTokenV1Library {
     /** CFA BASE CRUD ************************************* */
@@ -1076,20 +1079,20 @@ library SuperTokenV1Library {
 
     /**
      * @dev Distributes tokens in a more developer friendly way than `updateIndex`. Instead of
-     * passing the new total index value, you pass the amount of tokens desired to be distributed. 
+     * passing the new total index value, you pass the amount of tokens desired to be distributed.
      * @param token Super Token used with the index.
      * @param indexId ID of the index.
-     * @param amount - total number of tokens desired to be distributed 
-     * NOTE in many cases, there can be some precision loss 
-     This may cause a slight difference in the amount param specified and the actual amount distributed. 
+     * @param amount - total number of tokens desired to be distributed
+     * NOTE in many cases, there can be some precision loss
+     This may cause a slight difference in the amount param specified and the actual amount distributed.
      See below for math:
      //indexDelta = amount the index will be updated by during an internal call to _updateIndex().
      It is calculated like so:
-     indexDelta = amount / totalUnits 
+     indexDelta = amount / totalUnits
      (see the distribute() implementatation in ./agreements/InstantDistributionAgreement.sol)
      * NOTE Solidity does not support floating point numbers
-     So the indexDelta will be rounded down to the nearest integer. 
-     This will create a 'remainder' amount of tokens that will not be distributed 
+     So the indexDelta will be rounded down to the nearest integer.
+     This will create a 'remainder' amount of tokens that will not be distributed
      (we'll call this the 'distribution modulo')
      distributionModulo = amount - indexDelta * totalUnits
      * NOTE due to rounding, there may be a small amount of tokens left in the publisher's account

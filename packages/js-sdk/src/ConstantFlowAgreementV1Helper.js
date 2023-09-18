@@ -37,13 +37,11 @@ module.exports = class ConstantFlowAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
-        const receiverNorm = await this._sf.utils.normalizeAddressParam(
-            receiver
-        );
+        const receiverNorm =
+            await this._sf.utils.normalizeAddressParam(receiver);
         const flowRateNorm = this._sf.utils.normalizeFlowRateParam(flowRate);
         userData = userData || "0x";
         console.debug(
@@ -96,13 +94,11 @@ module.exports = class ConstantFlowAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
-        const receiverNorm = await this._sf.utils.normalizeAddressParam(
-            receiver
-        );
+        const receiverNorm =
+            await this._sf.utils.normalizeAddressParam(receiver);
         const flowRateNorm = this._sf.utils.normalizeFlowRateParam(flowRate);
         userData = userData || "0x";
         console.debug(
@@ -157,13 +153,11 @@ module.exports = class ConstantFlowAgreementV1Helper {
         gasOptions = {},
         onTransaction = () => null,
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
-        const receiverNorm = await this._sf.utils.normalizeAddressParam(
-            receiver
-        );
+        const receiverNorm =
+            await this._sf.utils.normalizeAddressParam(receiver);
         const byNorm =
             (by && (await this._sf.utils.normalizeAddressParam(by))) ||
             senderNorm;
@@ -212,13 +206,11 @@ module.exports = class ConstantFlowAgreementV1Helper {
         receiver,
         //unit
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
         const senderNorm = await this._sf.utils.normalizeAddressParam(sender);
-        const receiverNorm = await this._sf.utils.normalizeAddressParam(
-            receiver
-        );
+        const receiverNorm =
+            await this._sf.utils.normalizeAddressParam(receiver);
         const result = await this._cfa.getFlow(
             superTokenNorm,
             senderNorm,
@@ -238,9 +230,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
         account,
         //unit
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
         const accountNorm = await this._sf.utils.normalizeAddressParam(account);
         const netFlow = await this._cfa.getNetFlow(superTokenNorm, accountNorm);
         return netFlow.toString();
@@ -257,9 +248,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
         account,
         //unit
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
         const accountNorm = await this._sf.utils.normalizeAddressParam(account);
         const result = await this._cfa.getAccountFlowInfo(
             superTokenNorm,
@@ -304,9 +294,8 @@ module.exports = class ConstantFlowAgreementV1Helper {
         onlyOutFlows,
         //unit
     }) {
-        const superTokenNorm = await this._sf.utils.normalizeTokenParam(
-            superToken
-        );
+        const superTokenNorm =
+            await this._sf.utils.normalizeTokenParam(superToken);
         const accountNorm = await this._sf.utils.normalizeAddressParam(account);
         const result = {};
         if (!onlyOutFlows) {

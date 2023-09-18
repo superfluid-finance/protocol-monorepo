@@ -35,6 +35,7 @@ module.exports = eval(`(${S.toString()})({
         additionalContracts: [
             "Ownable",
             "IMultiSigWallet",
+            "ISafe",
             "SuperfluidGovernanceBase",
         ],
         contractLoader: builtTruffleContractLoader,

@@ -6,6 +6,7 @@ export default
         "isTestnet": true,
         "networkId": 5,
         "chainId": 5,
+        "sfId": 101,
         "shortName": "goerli",
         "uppercaseName": "ETH_GOERLI",
         "humanReadableName": "Goerli",
@@ -55,6 +56,11 @@ export default
         "publicRPCs": [
             "https://rpc.ankr.com/eth_goerli",
             "https://goerli.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
+        ],
+        "trustedForwarders": [
+            "0xE041608922d06a4F26C0d4c27d8bCD01daf1f792",
+            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
+            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
         ]
     },
     {
@@ -62,6 +68,7 @@ export default
         "isTestnet": true,
         "networkId": 80001,
         "chainId": 80001,
+        "sfId": 102,
         "shortName": "mumbai",
         "uppercaseName": "POLYGON_MUMBAI",
         "humanReadableName": "Polygon Mumbai",
@@ -112,6 +119,12 @@ export default
         "publicRPCs": [
             "https://rpc.ankr.com/polygon_mumbai",
             "https://matic-mumbai.chainstacklabs.com"
+        ],
+        "trustedForwarders": [
+            "0x9399bb24dbb5c4b782c70c2969f58716ebbd6a3b",
+            "0x69015912AA33720b842dCD6aC059Ed623F28d9f7",
+            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
+            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
         ]
     },
     {
@@ -119,6 +132,7 @@ export default
         "isTestnet": true,
         "networkId": 420,
         "chainId": 420,
+        "sfId": 103,
         "shortName": "opgoerli",
         "uppercaseName": "OPTIMISM_GOERLI",
         "humanReadableName": "Optimism Goerli",
@@ -145,13 +159,23 @@ export default
         "subgraphV1": {
             "name": "protocol-v1-optimism-goerli",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-optimism-goerli"
-        }
+        },
+        "publicRPCs": [
+            "https://goerli.optimism.io",
+            "https://opt-goerli.g.alchemy.com/v2/demo"
+        ],
+        "trustedForwarders": [
+            "0x9C73373C70F23920EA54F7883dCB1F85b162Df40",
+            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
+            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
+        ]
     },
     {
         "name": "arbitrum-goerli",
         "isTestnet": true,
         "networkId": 421613,
         "chainId": 421613,
+        "sfId": 104,
         "shortName": "arbgoerli",
         "uppercaseName": "ARBITRUM_GOERLI",
         "humanReadableName": "Arbitrum Goerli",
@@ -178,13 +202,22 @@ export default
         "subgraphV1": {
             "name": "protocol-v1-arbitrum-goerli",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-arbitrum-goerli"
-        }
+        },
+        "publicRPCs": [
+            "https://goerli-rollup.arbitrum.io/rpc",
+            "https://arb-goerli.g.alchemy.com/v2/demo"
+        ],
+        "trustedForwarders": [
+            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
+            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
+        ]
     },
     {
         "name": "avalanche-fuji",
         "isTestnet": true,
         "networkId": 43113,
         "chainId": 43113,
+        "sfId": 105,
         "shortName": "fuji",
         "uppercaseName": "AVALANCHE_FUJI",
         "humanReadableName": "Avalanche Fuji",
@@ -215,13 +248,23 @@ export default
         "subgraphV1": {
             "name": "protocol-v1-avalanche-fuji",
             "hostedEndpoint": "https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-v1-avalanche-fuji"
-        }
+        },
+        "publicRPCs": [
+            "https://api.avax-test.network/ext/bc/C/rpc",
+            "https://avalanche-fuji-c-chain.publicnode.com"
+        ],
+        "trustedForwarders": [
+            "0x6271Ca63D30507f2Dcbf99B52787032506D75BBF",
+            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
+            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
+        ]
     },
     {
         "name": "eth-sepolia",
         "isTestnet": true,
         "networkId": 11155111,
         "chainId": 11155111,
+        "sfId": 106,
         "shortName": "sepolia",
         "uppercaseName": "ETH_SEPOLIA",
         "humanReadableName": "Sepolia",
@@ -257,6 +300,7 @@ export default
         "isTestnet": true,
         "networkId": 84531,
         "chainId": 84531,
+        "sfId": 107,
         "shortName": "bgoerli",
         "uppercaseName": "BASE_GOERLI",
         "humanReadableName": "Base Goerli",
@@ -284,6 +328,10 @@ export default
         "publicRPCs": [
             "https://goerli.base.org",
             "https://base-goerli.public.blastapi.io"
+        ],
+        "trustedForwarders": [
+            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
+            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
         ]
     },
     {
@@ -291,6 +339,7 @@ export default
         "isTestnet": true,
         "networkId": 1442,
         "chainId": 1442,
+        "sfId": 108,
         "shortName": "pzkevmtest",
         "uppercaseName": "POLYGON_ZKEVM_TESTNET",
         "humanReadableName": "Polygon zkEVM Testnet",
@@ -315,13 +364,18 @@ export default
         "subgraphV1": {
             "name": "protocol-v1-polygon-zkevm-testnet"
         },
-        "publicRPCs": ["https://rpc.public.zkevm-test.net"]
+        "publicRPCs": ["https://rpc.public.zkevm-test.net"],
+        "trustedForwarders": [
+            "0xb539068872230f20456CF38EC52EF2f91AF4AE49",
+            "0xd8253782c45a12053594b9deB72d8e8aB2Fca54c"
+        ]
     },
     {
         "name": "xdai-mainnet",
         "isTestnet": false,
         "networkId": 100,
         "chainId": 100,
+        "sfId": 1,
         "shortName": "xdai",
         "uppercaseName": "XDAI_MAINNET",
         "humanReadableName": "Gnosis Chain",
@@ -382,6 +436,7 @@ export default
         "isTestnet": false,
         "networkId": 137,
         "chainId": 137,
+        "sfId": 2,
         "shortName": "matic",
         "uppercaseName": "POLYGON_MAINNET",
         "humanReadableName": "Polygon",
@@ -439,6 +494,7 @@ export default
         "isTestnet": false,
         "networkId": 10,
         "chainId": 10,
+        "sfId": 3,
         "shortName": "optimism",
         "uppercaseName": "OPTIMISM_MAINNET",
         "humanReadableName": "Optimism",
@@ -495,6 +551,7 @@ export default
         "isTestnet": false,
         "networkId": 42161,
         "chainId": 42161,
+        "sfId": 4,
         "shortName": "arbone",
         "uppercaseName": "ARBITRUM_ONE",
         "humanReadableName": "Arbitrum One",
@@ -551,6 +608,7 @@ export default
         "isTestnet": false,
         "networkId": 43114,
         "chainId": 43114,
+        "sfId": 5,
         "shortName": "avalanche",
         "uppercaseName": "AVALANCHE_C",
         "humanReadableName": "Avalanche C",
@@ -607,6 +665,7 @@ export default
         "isTestnet": false,
         "networkId": 56,
         "chainId": 56,
+        "sfId": 5,
         "shortName": "bsc",
         "uppercaseName": "BSC_MAINNET",
         "humanReadableName": "BNB Smart Chain",
@@ -663,6 +722,7 @@ export default
         "isTestnet": false,
         "networkId": 1,
         "chainId": 1,
+        "sfId": 6,
         "shortName": "mainnet",
         "uppercaseName": "ETH_MAINNET",
         "humanReadableName": "Ethereum",
@@ -717,6 +777,7 @@ export default
         "isTestnet": false,
         "networkId": 42220,
         "chainId": 42220,
+        "sfId": 7,
         "shortName": "celo",
         "uppercaseName": "CELO_MAINNET",
         "humanReadableName": "Celo",
@@ -752,6 +813,7 @@ export default
         "isTestnet": false,
         "networkId": 8453,
         "chainId": 8453,
+        "sfId": 8,
         "shortName": "base",
         "uppercaseName": "BASE_MAINNET",
         "humanReadableName": "Base",

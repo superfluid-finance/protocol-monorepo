@@ -2,37 +2,24 @@ const sfMetadata = require("@superfluid-finance/metadata");
 
 module.exports = function getConfig(chainId) {
 
-/*
- * REFERENCES:
- * - https://docs.biconomy.io/misc/contract-addresses
- */
-
     const EXTRA_CONFIG = {
+        // here go the trusted forwarders which aren't part of the framework contracts
+
         // Local Testing
         4447: {
             // for local testing (truffle internal ganache and TestEnvironment)
             // this is a fake forwarder address, it is to test the deployment script
-            biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
+            trustedForwarders: ["0x3075b4dc7085C48A14A5A39BBa68F58B19545971"],
         },
         5777: {
             // for local testing (external ganache)
             // this is a fake forwarder address, it is to test the deployment script
-            biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
+            trustedForwarders: ["0x3075b4dc7085C48A14A5A39BBa68F58B19545971"],
         },
         6777: {
             // for coverage testing
             // this is a fake forwarder address, it is to test the deployment script
-            biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
-        },
-
-        // Ethereum Goerli Testnet
-        5: {
-            biconomyForwarder: "0x3075b4dc7085C48A14A5A39BBa68F58B19545971",
-        },
-
-        // Polygon Mumbai Testnet
-        80001: {
-            biconomyForwarder: "0x2B99251eC9650e507936fa9530D11dE4d6C9C05c",
+            trustedForwarders: ["0x3075b4dc7085C48A14A5A39BBa68F58B19545971"],
         },
 
         // Celo Mainnet
@@ -62,6 +49,7 @@ module.exports = function getConfig(chainId) {
         nativeTokenSymbol: sfNw?.nativeTokenSymbol || "ETH",
         metadata: sfNw,
         resolverAddress: global?.process.env.RESOLVER_ADDRESS || sfNw?.contractsV1?.resolver,
+        trustedForwarders: sfNw?.trustedForwarders,
         ...EXTRA_CONFIG[chainId]
     };
 };

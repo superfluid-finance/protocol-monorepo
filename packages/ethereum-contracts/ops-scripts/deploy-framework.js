@@ -362,8 +362,8 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
     if (governanceInitializationRequired) {
         const accounts = await web3.eth.getAccounts();
         const trustedForwarders = [];
-        if (config.biconomyForwarder) {
-            trustedForwarders.push(config.biconomyForwarder);
+        if (config.trustedForwarders) {
+            trustedForwarders.push(...config.trustedForwarders);
         }
         if (config.cfaFwd) {
             trustedForwarders.push(config.cfaFwd);

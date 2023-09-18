@@ -161,7 +161,13 @@ async function setResolver(sf, key, value) {
         sf.resolver.address
     );
     const nrAdmins = (await ac.getRoleMemberCount(ADMIN_ROLE)).toNumber();
-    const resolverAdmin = await ac.getRoleMember(ADMIN_ROLE, nrAdmins - 1);
+    const resolverAdmin = nrAdmins > 0 ?
+        await ac.getRoleMember(ADMIN_ROLE, nrAdmins - 1):
+        await (async () => {
+            // This is for eth-goerli (and maybe other networks too)
+            console.log(`!!! resolver.getRoleMemberCount() returned 0. Trying account[0] as resolver admin.`);
+            return (await web3.eth.getAccounts())[0];
+        })();
 
     const adminType = process.env.RESOLVER_ADMIN_TYPE
         || await autodetectAdminType(sf, resolverAdmin);

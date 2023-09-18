@@ -237,9 +237,8 @@ module.exports = class Framework {
                 );
                 if (tokenAddress !== ZERO_ADDRESS) {
                     // if it is, we assume its ERC20 super token wrapper is postfixed with "x"
-                    underlyingToken = await this.contracts.IERC20Metadata.at(
-                        tokenAddress
-                    );
+                    underlyingToken =
+                        await this.contracts.IERC20Metadata.at(tokenAddress);
                     if (!skipTokens) this.tokens[tokenKey] = underlyingToken;
                     console.debug(
                         `${tokenKey}: IERC20Metadata .tokens["${tokenKey}"]`,

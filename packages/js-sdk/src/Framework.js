@@ -238,13 +238,12 @@ module.exports = class Framework {
                 );
                 if (tokenAddress !== ZERO_ADDRESS) {
                     // if it is, we assume its ERC20 super token wrapper is postfixed with "x"
-                    underlyingToken =
-                        await this.contracts.ERC20WithTokenInfo.at(
-                            tokenAddress
-                        );
+                    underlyingToken = await this.contracts.IERC20Metadata.at(
+                        tokenAddress
+                    );
                     if (!skipTokens) this.tokens[tokenKey] = underlyingToken;
                     console.debug(
-                        `${tokenKey}: ERC20WithTokenInfo .tokens["${tokenKey}"]`,
+                        `${tokenKey}: IERC20Metadata .tokens["${tokenKey}"]`,
                         tokenAddress
                     );
                     superTokenKey = tokenKey + "x";
@@ -293,7 +292,7 @@ module.exports = class Framework {
         // if underlying token is still null or undefined, load it
         if (!underlyingToken) {
             if (underlyingTokenAddress !== ZERO_ADDRESS) {
-                underlyingToken = await this.contracts.ERC20WithTokenInfo.at(
+                underlyingToken = await this.contracts.IERC20Metadata.at(
                     underlyingTokenAddress
                 );
                 if (!isLoadingByAddress && !skipTokens) {
@@ -314,7 +313,7 @@ module.exports = class Framework {
 
     /**
      * @dev Create the ERC20 wrapper from underlying token
-     * @param {Any} tokenInfo the TokenInfo contract object to the underlying token
+     * @param {Any} iERC20Metadata the IERC20Metadata contract object to the underlying token
      * @param {string} superTokenName (optional) overriding superTokenName
      * @param {string} superTokenSymbol (optional) overriding superTokenSymbol
      * @param {address} from (optional) send transaction from
@@ -322,11 +321,11 @@ module.exports = class Framework {
      * @return {Promise<Transaction>} web3 transaction object
      */
     async createERC20Wrapper(
-        tokenInfo,
+        iERC20Metadata,
         {superTokenSymbol, superTokenName, from, upgradability} = {}
     ) {
-        const tokenName = await tokenInfo.name.call();
-        const tokenSymbol = await tokenInfo.symbol.call();
+        const tokenName = await iERC20Metadata.name.call();
+        const tokenSymbol = await iERC20Metadata.symbol.call();
         superTokenName = superTokenName || `Super ${tokenName}`;
         superTokenSymbol = superTokenSymbol || `${tokenSymbol}x`;
         const factory = await this.contracts.ISuperTokenFactory.at(
@@ -335,7 +334,7 @@ module.exports = class Framework {
         upgradability =
             typeof upgradability === "undefined" ? 1 : upgradability;
         const tx = await factory.createERC20Wrapper(
-            tokenInfo.address,
+            iERC20Metadata.address,
             upgradability,
             superTokenName,
             superTokenSymbol,

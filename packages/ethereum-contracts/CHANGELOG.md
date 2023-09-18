@@ -5,6 +5,10 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## Unreleased
 
+### Breaking
+- `TokenInfo` and `ERC20WithTokenInfo` interface/abstract contract are removed from the codebase, including the bundled ABI contracts
+  - Migration: Use `IERC20Metadata` instead, as this replaces the previous contracts
+
 ### Added
 
 - Added 'test-slither' yarn sub-task.

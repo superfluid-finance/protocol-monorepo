@@ -1,6 +1,6 @@
 import {
-    ERC20WithTokenInfo,
-    ERC20WithTokenInfo__factory,
+    IERC20Metadata,
+    IERC20Metadata__factory,
 } from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers } from "ethers";
 
@@ -11,15 +11,15 @@ import { normalizeAddress } from "./utils";
 
 export default class ERC20Token {
     readonly address: string;
-    readonly contract: ERC20WithTokenInfo;
+    readonly contract: IERC20Metadata;
 
     constructor(address: string) {
         this.address = address;
 
         this.contract = new ethers.Contract(
             address,
-            ERC20WithTokenInfo__factory.abi
-        ) as ERC20WithTokenInfo;
+            IERC20Metadata__factory.abi
+        ) as IERC20Metadata;
     }
 
     /** ### ERC20 Token Contract Read Functions ### */

@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.11;
 
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SuperfluidFrameworkDeploymentSteps, TokenDeployerLibrary } from "./SuperfluidFrameworkDeploymentSteps.sol";
-import { ISuperTokenFactory, ERC20WithTokenInfo } from "../superfluid/SuperTokenFactory.sol";
+import { ISuperTokenFactory } from "../superfluid/SuperTokenFactory.sol";
 import { SuperToken } from "../superfluid/SuperToken.sol";
 import { TestToken } from "./TestToken.sol";
 import { ISETH } from "../interfaces/tokens/ISETH.sol";
@@ -178,7 +179,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         superToken = SuperToken(
             address(
                 superTokenFactory.createERC20Wrapper(
-                    ERC20WithTokenInfo(address(underlyingToken)),
+                    IERC20Metadata(address(underlyingToken)),
                     ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
                     string.concat("Super ", _underlyingSymbol),
                     superTokenSymbol

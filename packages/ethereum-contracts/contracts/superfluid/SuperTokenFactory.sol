@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     ISuperTokenFactory,
-    ISuperToken,
-    IERC20,
-    ERC20WithTokenInfo
+    ISuperToken
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
 import { ISuperfluid, IConstantOutflowNFT, IConstantInflowNFT } from "../interfaces/superfluid/ISuperfluid.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
@@ -155,7 +154,7 @@ abstract contract SuperTokenFactoryBase is
     }
 
     /// @inheritdoc ISuperTokenFactory
-    function createCanonicalERC20Wrapper(ERC20WithTokenInfo _underlyingToken)
+    function createCanonicalERC20Wrapper(IERC20Metadata _underlyingToken)
         external
         returns (ISuperToken)
     {
@@ -209,7 +208,7 @@ abstract contract SuperTokenFactoryBase is
 
     /// @inheritdoc ISuperTokenFactory
     function createERC20Wrapper(
-        IERC20 underlyingToken,
+        IERC20Metadata underlyingToken,
         uint8 underlyingDecimals,
         Upgradability upgradability,
         string calldata name,
@@ -248,7 +247,7 @@ abstract contract SuperTokenFactoryBase is
 
     /// @inheritdoc ISuperTokenFactory
     function createERC20Wrapper(
-        ERC20WithTokenInfo underlyingToken,
+        IERC20Metadata underlyingToken,
         Upgradability upgradability,
         string calldata name,
         string calldata symbol

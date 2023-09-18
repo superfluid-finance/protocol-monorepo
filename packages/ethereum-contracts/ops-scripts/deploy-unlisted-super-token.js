@@ -40,24 +40,21 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const sf = new SuperfluidSDK.Framework({
         ...extractWeb3Options(options),
         version: protocolReleaseVersion,
-        additionalContracts: ["UUPSProxiable"],
+        additionalContracts: ["UUPSProxiable", "IERC20Metadata"],
         contractLoader: builtTruffleContractLoader,
     });
     await sf.initialize();
 
-    const tokenInfo = await sf.contracts.TokenInfo.at(tokenAddress);
-    const tokenInfoName = await tokenInfo.name.call();
-    const tokenInfoSymbol = await tokenInfo.symbol.call();
-    const tokenInfoDecimals = await tokenInfo.decimals.call();
-    console.log("Underlying token name", tokenInfoName);
-    console.log("Underlying token info name()", tokenInfoName);
-    console.log("Underlying token info symbol()", tokenInfoSymbol);
-    console.log(
-        "Underlying token info decimals()",
-        tokenInfoDecimals.toString()
-    );
+    const iERC20Metadata = await sf.contracts.IERC20Metadata.at(tokenAddress);
+    const name = await iERC20Metadata.name.call();
+    const symbol = await iERC20Metadata.symbol.call();
+    const decimals = await iERC20Metadata.decimals.call();
+    console.log("Underlying token name", name);
+    console.log("Underlying token info name()", name);
+    console.log("Underlying token info symbol()", symbol);
+    console.log("Underlying token info decimals()", decimals.toString());
     console.log("Creating the wrapper...");
-    const superToken = await sf.createERC20Wrapper(tokenInfo, {
+    const superToken = await sf.createERC20Wrapper(iERC20Metadata, {
         superTokenName,
         superTokenSymbol,
     });

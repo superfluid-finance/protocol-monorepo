@@ -10,6 +10,6 @@
         "sourceMap": true
     },
     "files": [],
-    "include": ["src/typechain-types-raw"],
+    "include": ["src/typechain-types"],
     "exclude": ["node_modules/**"]
 }

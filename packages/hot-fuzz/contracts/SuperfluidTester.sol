@@ -4,7 +4,7 @@ pragma solidity >= 0.8.0;
 import "@superfluid-finance/ethereum-contracts/contracts/superfluid/Superfluid.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/superfluid/SuperToken.sol";
 import {ISuperfluidPool} from
-    "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidPool.sol";
+    "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/gdav1/ISuperfluidPool.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/agreements/ConstantFlowAgreementV1.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/agreements/InstantDistributionAgreementV1.sol";
 import "@superfluid-finance/ethereum-contracts/contracts/apps/CFAv1Library.sol";

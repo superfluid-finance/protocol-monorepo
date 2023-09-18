@@ -4,7 +4,7 @@ pragma solidity >= 0.8.0;
 
 import {HotFuzzBase, SuperfluidTester} from "../HotFuzzBase.sol";
 import {ISuperfluidPool} from
-    "@superfluid-finance/ethereum-contracts/contracts/interfaces/superfluid/ISuperfluidPool.sol";
+    "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/gdav1/ISuperfluidPool.sol";
 
 abstract contract GDAHotFuzzMixin is HotFuzzBase {
     ISuperfluidPool[] public pools;

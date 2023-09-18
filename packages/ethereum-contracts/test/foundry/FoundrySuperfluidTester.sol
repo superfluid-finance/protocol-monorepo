@@ -57,6 +57,11 @@ contract FoundrySuperfluidTester is Test {
         UNSUPPORTED_TOKEN_TYPE
     }
 
+    struct _StackVars_UseBools {
+        bool useForwarder;
+        bool useGDA;
+    }
+
     struct RealtimeBalance {
         int256 availableBalance;
         uint256 deposit;
@@ -1521,13 +1526,32 @@ contract FoundrySuperfluidTester is Test {
         return _helperCreatePool(_superToken, _caller, _poolAdmin, false);
     }
 
-    function _helperUpdateMemberUnits(
+    function _helperUpdateMemberUnits(ISuperfluidPool pool_, address caller_, address member_, uint128 newUnits_)
+        internal
+    {
+        _StackVars_UseBools memory useBools_;
+        _helperUpdateMemberUnits(pool_, caller_, member_, newUnits_, useBools_);
+    }
+
+    function _updateMemberUnits(
         ISuperfluidPool pool_,
+        ISuperToken poolSuperToken,
         address caller_,
         address member_,
-        uint128 newUnits_
+        uint128 newUnits_,
+        _StackVars_UseBools memory useBools_
     ) internal {
-        _helperUpdateMemberUnits(pool_, caller_, member_, newUnits_, false);
+        vm.startPrank(caller_);
+        if (useBools_.useGDA) {
+            if (useBools_.useForwarder) {
+                sf.gdaV1Forwarder.updateMemberUnits(pool_, member_, newUnits_, new bytes(0));
+            } else {
+                poolSuperToken.updateMemberUnits(pool_, member_, newUnits_);
+            }
+        } else {
+            pool_.updateMemberUnits(member_, newUnits_);
+        }
+        vm.stopPrank();
     }
 
     function _helperUpdateMemberUnits(
@@ -1535,7 +1559,7 @@ contract FoundrySuperfluidTester is Test {
         address caller_,
         address member_,
         uint128 newUnits_,
-        bool useGDA_
+        _StackVars_UseBools memory useBools_
     ) internal {
         // there is a hard restriction in which total units must never exceed type(int96).max
         vm.assume(newUnits_ < type(uint72).max);
@@ -1548,15 +1572,9 @@ contract FoundrySuperfluidTester is Test {
 
         (int256 claimableBalance,) = pool_.getClaimableNow(member_);
         (int256 balanceBefore,,,) = poolSuperToken.realtimeBalanceOfNow(member_);
-
-        vm.startPrank(caller_);
-        if (useGDA_) {
-            poolSuperToken.updateMemberUnits(pool_, member_, newUnits_);
-        } else {
-            pool_.updateMemberUnits(member_, newUnits_);
+        {
+            _updateMemberUnits(pool_, poolSuperToken, caller_, member_, newUnits_, useBools_);
         }
-        vm.stopPrank();
-
         PoolUnitData memory poolUnitDataAfter = _helperGetPoolUnitsData(pool_);
 
         {

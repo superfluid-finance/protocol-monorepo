@@ -60,8 +60,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     //////////////////////////////////////////////////////////////////////////*/
 
     function testInitializeGDA(IBeacon beacon) public {
-        GeneralDistributionAgreementV1 gdaV1 =
-            new GeneralDistributionAgreementV1(sf.host);
+        GeneralDistributionAgreementV1 gdaV1 = new GeneralDistributionAgreementV1(sf.host);
         assertEq(address(gdaV1.superfluidPoolBeacon()), address(0), "GDAv1.t: Beacon address not address(0)");
         gdaV1.initialize(beacon);
 
@@ -336,8 +335,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         uint64 distributionFlowRate,
         uint32 minDepositMultiplier,
         address member,
-        bool useGDA,
-        bool useForwarder
+        FoundrySuperfluidTester._StackVars_UseBools memory useBools_
     ) public {
         vm.assume(distributionFlowRate < minDepositMultiplier);
         vm.assume(distributionFlowRate > 0);
@@ -352,7 +350,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.stopPrank();
 
         _helperConnectPool(member, superToken, currentPool);
-        _helperUpdateMemberUnits(currentPool, alice, member, 1, useGDA);
+        _helperUpdateMemberUnits(currentPool, alice, member, 1, useBools_);
         _helperDistributeFlow(superToken, alice, alice, currentPool, int96(int64(distributionFlowRate)));
         (, uint256 buffer,,) = superToken.realtimeBalanceOfNow(alice);
         assertEq(buffer, minimumDeposit, "GDAv1.t: Min buffer should be used");
@@ -362,8 +360,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         int32 distributionFlowRate,
         uint32 minDepositMultiplier,
         address member,
-        bool useGDA,
-        bool useForwarder
+        FoundrySuperfluidTester._StackVars_UseBools memory useBools_
     ) public {
         vm.assume(uint32(distributionFlowRate) >= minDepositMultiplier);
         vm.assume(distributionFlowRate > 0);
@@ -379,7 +376,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.stopPrank();
 
         _helperConnectPool(member, superToken, currentPool);
-        _helperUpdateMemberUnits(currentPool, alice, member, 1, useGDA);
+        _helperUpdateMemberUnits(currentPool, alice, member, 1, useBools_);
         _helperDistributeFlow(superToken, alice, alice, currentPool, int96(distributionFlowRate));
         (, uint256 buffer,,) = superToken.realtimeBalanceOfNow(alice);
         assertTrue(buffer >= minimumDeposit, "GDAv1.t: Buffer should be >= minDeposit");
@@ -388,8 +385,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     function testDistributeFlowToConnectedMemberSendingToCFA(
         int32 flowRate,
         uint64 units,
-        bool useGDA,
-        bool useForwarder
+        FoundrySuperfluidTester._StackVars_UseBools memory useBools_
     ) public {
         vm.assume(flowRate > 0);
         // alice creates currentPool in setUp()
@@ -397,7 +393,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
 
         uint128 memberUnits = uint128(units);
 
-        _helperUpdateMemberUnits(currentPool, alice, bob, memberUnits, useGDA);
+        _helperUpdateMemberUnits(currentPool, alice, bob, memberUnits, useBools_);
 
         _helperDistributeFlow(superToken, alice, alice, currentPool, requestedDistributionFlowRate);
 
@@ -428,7 +424,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         assertEq(sf.gda.getFlowRate(superToken, alice, currentPool), 0, "GDAv1.t: distributionFlowRate should be 0");
     }
 
-    function testDistributeFlowCriticalLiquidation(uint64 units, bool useGDA, bool useForwarder) public {
+    function testDistributeFlowCriticalLiquidation(uint64 units, _StackVars_UseBools memory useBools_) public {
         uint256 balance = superToken.balanceOf(alice);
         int96 flowRate = balance.toInt256().toInt96() / type(int32).max;
         int96 requestedDistributionFlowRate = int96(flowRate);
@@ -436,7 +432,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         uint128 memberUnits = uint128(units);
 
         _helperConnectPool(bob, superToken, currentPool);
-        _helperUpdateMemberUnits(currentPool, alice, bob, memberUnits, useGDA);
+        _helperUpdateMemberUnits(currentPool, alice, bob, memberUnits, useBools_);
 
         (int96 actualDistributionFlowRate,) =
             sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, currentPool, requestedDistributionFlowRate);
@@ -449,7 +445,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         }
     }
 
-    function testDistributeFlowInsolventLiquidation(uint64 units, bool useGDA, bool useForwarder) public {
+    function testDistributeFlowInsolventLiquidation(uint64 units, _StackVars_UseBools memory useBools_) public {
         uint256 balance = superToken.balanceOf(alice);
         int96 flowRate = balance.toInt256().toInt96() / type(int32).max;
         int96 requestedDistributionFlowRate = int96(flowRate);
@@ -457,7 +453,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         uint128 memberUnits = uint128(units);
 
         _helperConnectPool(bob, superToken, currentPool);
-        _helperUpdateMemberUnits(currentPool, alice, bob, memberUnits, useGDA);
+        _helperUpdateMemberUnits(currentPool, alice, bob, memberUnits, useBools_);
         _helperDistributeFlow(superToken, alice, alice, currentPool, requestedDistributionFlowRate);
 
         (int96 actualDistributionFlowRate,) =
@@ -474,8 +470,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     function testDistributeToDisconnectedMembers(
         UpdateMemberData[5] memory members,
         uint256 distributionAmount,
-        bool useForwarder,
-        bool useGDA
+        _StackVars_UseBools memory useBools_
     ) public {
         address distributor = alice;
         uint256 distributorBalance = superToken.balanceOf(distributor);
@@ -484,16 +479,15 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(distributionAmount < distributorBalance);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useGDA);
+            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
         }
-        _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount, useForwarder);
+        _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount, useBools_.useForwarder);
     }
 
     function testDistributeToConnectedMembers(
         UpdateMemberData[5] memory members,
         uint256 distributionAmount,
-        bool useForwarder,
-        bool useGDA
+        _StackVars_UseBools memory useBools_
     ) public {
         address distributor = alice;
         uint256 distributorBalance = superToken.balanceOf(distributor);
@@ -502,30 +496,29 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(distributionAmount < distributorBalance);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            _helperConnectPool(members[i].member, superToken, currentPool, useForwarder);
-            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useGDA);
+            _helperConnectPool(members[i].member, superToken, currentPool, useBools_.useForwarder);
+            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
             _addAccount(members[i].member);
         }
-        _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount, useForwarder);
+        _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount, useBools_.useForwarder);
     }
 
     function testDistributeFlowToConnectedMembers(
         UpdateMemberData[5] memory members,
         int32 flowRate,
-        bool useForwarder,
-        bool useGDA
+        _StackVars_UseBools memory useBools_
     ) public {
         vm.assume(members.length > 0);
         vm.assume(flowRate > 0);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            _helperConnectPool(members[i].member, superToken, currentPool, useForwarder);
-            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useGDA);
+            _helperConnectPool(members[i].member, superToken, currentPool, useBools_.useForwarder);
+            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
             _addAccount(members[i].member);
         }
 
-        _helperDistributeFlow(superToken, alice, alice, currentPool, 100, useForwarder);
-        int96 poolAdjustmentFlowRate = useForwarder
+        _helperDistributeFlow(superToken, alice, alice, currentPool, 100, useBools_.useForwarder);
+        int96 poolAdjustmentFlowRate = useBools_.useForwarder
             ? sf.gdaV1Forwarder.getPoolAdjustmentFlowRate(address(currentPool))
             : sf.gda.getPoolAdjustmentFlowRate(address(currentPool));
         assertEq(poolAdjustmentFlowRate, 0, "GDAv1.t: Pool adjustment rate is non-zero");
@@ -535,18 +528,17 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         UpdateMemberData[5] memory members,
         int32 flowRate,
         uint16 warpTime,
-        bool useForwarder,
-        bool useGDA
+        _StackVars_UseBools memory useBools_
     ) public {
         vm.assume(flowRate > 0);
         vm.assume(members.length > 0);
 
         for (uint256 i = 0; i < members.length; ++i) {
-            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useGDA);
+            _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
         }
 
         int96 requestedFlowRate = flowRate;
-        _helperDistributeFlow(superToken, alice, alice, currentPool, requestedFlowRate, useForwarder);
+        _helperDistributeFlow(superToken, alice, alice, currentPool, requestedFlowRate, useBools_.useForwarder);
         (int96 actualDistributionFlowRate,) =
             sf.gda.estimateFlowDistributionActualFlowRate(superToken, alice, currentPool, requestedFlowRate);
 
@@ -578,8 +570,12 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
                 );
                 assertEq(memberRTB, 0, "testDistributeFlowToUnconnectedMembers: memberRTB != 0");
                 vm.startPrank(member);
-                if (useGDA) {
-                    superToken.claimAll(currentPool, member);
+                if (useBools_.useGDA) {
+                    if (useBools_.useForwarder) {
+                        sf.gdaV1Forwarder.claimAll(currentPool, member, new bytes(0));
+                    } else {
+                        superToken.claimAll(currentPool, member);
+                    }
                 } else {
                     currentPool.claimAll();
                 }
@@ -643,8 +639,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         address to,
         int96 unitsAmount,
         int128 transferAmount,
-        bool useGDA,
-        bool useForwarder
+        FoundrySuperfluidTester._StackVars_UseBools memory useBools_
     ) public {
         // @note we use int96 because overflow will happen otherwise
         vm.assume(unitsAmount >= 0);
@@ -653,7 +648,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(to != address(0));
         vm.assume(from != to);
         vm.assume(transferAmount <= unitsAmount);
-        _helperUpdateMemberUnits(currentPool, alice, from, uint128(int128(unitsAmount)), useGDA);
+        _helperUpdateMemberUnits(currentPool, alice, from, uint128(int128(unitsAmount)), useBools_);
 
         _helperSuperfluidPoolUnitsTransfer(currentPool, from, to, uint256(uint128(transferAmount)));
     }
@@ -662,14 +657,13 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         address owner,
         address spender,
         int128 transferAmount,
-        bool useGDA,
-        bool useForwarder
+        FoundrySuperfluidTester._StackVars_UseBools memory useBools_
     ) public {
         vm.assume(transferAmount > 0);
         vm.assume(spender != address(0));
         vm.assume(owner != address(0));
         vm.assume(spender != owner);
-        _helperUpdateMemberUnits(currentPool, alice, owner, uint128(int128(transferAmount)), useGDA);
+        _helperUpdateMemberUnits(currentPool, alice, owner, uint128(int128(transferAmount)), useBools_);
         _helperSuperfluidPoolApprove(currentPool, owner, spender, uint256(uint128(transferAmount)));
         _helperSuperfluidPoolUnitsTransferFrom(currentPool, spender, owner, spender, uint256(uint128(transferAmount)));
     }
@@ -678,14 +672,13 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         address owner,
         address spender,
         int128 transferAmount,
-        bool useGDA,
-        bool useForwarder
+        FoundrySuperfluidTester._StackVars_UseBools memory useBools_
     ) public {
         vm.assume(transferAmount > 0);
         vm.assume(spender != address(0));
         vm.assume(owner != address(0));
         vm.assume(spender != owner);
-        _helperUpdateMemberUnits(currentPool, alice, owner, uint128(int128(transferAmount)), useGDA);
+        _helperUpdateMemberUnits(currentPool, alice, owner, uint128(int128(transferAmount)), useBools_);
         _helperSuperfluidPoolIncreaseAllowance(currentPool, owner, spender, uint256(uint128(transferAmount)));
         _helperSuperfluidPoolUnitsTransferFrom(currentPool, spender, owner, spender, uint256(uint128(transferAmount)));
     }
@@ -702,7 +695,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         uint16 dt; // time delta
     }
 
-    function testPoolRandomSeqs(PoolUpdateStep[20] memory steps, bool useForwarder, bool useGDA) external {
+    function testPoolRandomSeqs(PoolUpdateStep[20] memory steps, _StackVars_UseBools memory useBools_) external {
         uint256 N_MEMBERS = 5;
 
         for (uint256 i = 0; i < steps.length; ++i) {
@@ -721,14 +714,14 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             if (action == 0) {
                 emit log_named_string("action", "updateMember");
                 emit log_named_uint("units", s.v);
-                _helperUpdateMemberUnits(currentPool, currentPool.admin(), user, s.v, useGDA);
+                _helperUpdateMemberUnits(currentPool, currentPool.admin(), user, s.v, useBools_);
             } else if (action == 1) {
                 emit log_named_string("action", "distributeFlow");
                 emit log_named_uint("flow rate", s.v);
                 if (sf.gda.getFlowRate(superToken, user, currentPool) == 0) {
                     vm.assume(s.v > 0);
                 }
-                _helperDistributeFlow(superToken, user, user, currentPool, int96(uint96(s.v)), useForwarder);
+                _helperDistributeFlow(superToken, user, user, currentPool, int96(uint96(s.v)), useBools_.useForwarder);
             } else if (action == 2) {
                 address u4 = TEST_ACCOUNTS[1 + (s.v % N_MEMBERS)];
                 emit log_named_string("action", "claimAll");
@@ -741,12 +734,12 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
                 emit log_named_string("action", "doConnectPool");
                 emit log_named_string("doConnect", doConnect ? "true" : "false");
                 doConnect
-                    ? _helperConnectPool(user, superToken, currentPool, useForwarder)
-                    : _helperDisconnectPool(user, superToken, currentPool, useForwarder);
+                    ? _helperConnectPool(user, superToken, currentPool, useBools_.useForwarder)
+                    : _helperDisconnectPool(user, superToken, currentPool, useBools_.useForwarder);
             } else if (action == 4) {
                 emit log_named_string("action", "distribute");
                 emit log_named_uint("distributionAmount", s.v);
-                _helperDistributeViaGDA(superToken, user, user, currentPool, uint256(s.v), useForwarder);
+                _helperDistributeViaGDA(superToken, user, user, currentPool, uint256(s.v), useBools_.useForwarder);
             } else {
                 assert(false);
             }
@@ -754,7 +747,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             {
                 (int256 own, int256 fromPools, int256 buffer) =
                     sf.gda.realtimeBalanceVectorAt(superToken, address(currentPool), block.timestamp);
-                int96 nr = useForwarder
+                int96 nr = useBools_.useForwarder
                     ? sf.gdaV1Forwarder.getNetFlow(superToken, address(currentPool))
                     : sf.gda.getNetFlow(superToken, address(currentPool));
                 emit log_string("> currentPool before time warp");
@@ -770,7 +763,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
             {
                 (int256 own, int256 fromPools, int256 buffer) =
                     sf.gda.realtimeBalanceVectorAt(superToken, address(currentPool), block.timestamp);
-                int96 nr = useForwarder
+                int96 nr = useBools_.useForwarder
                     ? sf.gdaV1Forwarder.getNetFlow(superToken, address(currentPool))
                     : sf.gda.getNetFlow(superToken, address(currentPool));
                 emit log_string("> currentPool before time warp");

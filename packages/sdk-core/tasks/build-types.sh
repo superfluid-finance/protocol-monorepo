@@ -3,16 +3,13 @@
 # make sure that if any step fails, the script fails
 set -xe
 
-if [ -d "./src/typechain-types" ]; then
-  rm -rf ./src/typechain-types
-fi
+rm -rf ./src/typechain-types
 
 # if the typechain files do not exist, we build
 # hardhat so that it does exist
 if [ ! -d "../ethereum-contracts/typechain-types" ]; then
-  cd ../ethereum-contracts
-  yarn build:contracts:hardhat
-  cd ../sdk-core
+  echo "typechain-types does not exist: You must build ethereum-contracts first to generate it."
+  exit 1
 fi
 
 # copy the typechain files over from ethereum-contracts

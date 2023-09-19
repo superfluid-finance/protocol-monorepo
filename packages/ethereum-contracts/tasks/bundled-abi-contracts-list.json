@@ -4,7 +4,7 @@
     "UUPSProxiable",
     "IERC20",
     "IERC777",
-    "TokenInfo", "ERC20WithTokenInfo",
+    "IERC20Metadata",
     "ISuperfluid", "Superfluid",
     "ISuperfluidToken", "SuperfluidToken",
     "ISuperToken", "SuperToken",

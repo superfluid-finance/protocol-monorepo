@@ -22,6 +22,7 @@
     ],
     "scripts": {
         "build": "yarn generate && rm -rf dist && run-s build:*",
+        "build:typechain-types": "./tasks/build-types.sh",
         "build:main": "tsc -p tsconfig.json",
         "build:module": "tsc -p tsconfig.module.json",
         "build:umd": "mkdir -p dist && browserify src/index.ts -s sdkCore -p [ tsify --noImplicitAny --skipLibCheck ] > dist/index.umd.js",

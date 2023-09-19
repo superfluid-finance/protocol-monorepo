@@ -22,7 +22,7 @@ export * from "./pagination";
 export * from "./ordering";
 export * from "./events";
 export * from "./types";
-export * from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
+export * from "./typechain-types";
 
 export { Operation, BatchOperationType as OperationType };
 export { BatchCall };

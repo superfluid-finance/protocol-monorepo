@@ -5,7 +5,7 @@ import {
     SuperfluidFrameworkDeployer,
     TestToken,
     TestToken__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
+} from "../src/typechain-types";
 import {
     Framework,
     NativeAssetSuperToken,

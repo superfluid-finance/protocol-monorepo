@@ -1,12 +1,9 @@
-import {
-    IERC20Metadata,
-    IERC20Metadata__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers } from "ethers";
 
 import Operation from "./Operation";
 import { SFError } from "./SFError";
 import { IBaseSuperTokenParams, ITransferFromParams } from "./interfaces";
+import { IERC20Metadata, IERC20Metadata__factory } from "./typechain-types";
 import { normalizeAddress } from "./utils";
 
 export default class ERC20Token {

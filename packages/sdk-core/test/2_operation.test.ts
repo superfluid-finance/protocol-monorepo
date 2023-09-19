@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import { Framework } from "../src/index";
 import { getPerSecondFlowRateByMonth } from "../src";
-import { IConstantFlowAgreementV1__factory } from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
+import { IConstantFlowAgreementV1__factory } from "../src/typechain-types";
 import Operation from "../src/Operation";
 import hre from "hardhat";
 import { SuperAppTester } from "../typechain-types";

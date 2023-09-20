@@ -13,6 +13,12 @@ import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
  */
 interface ISuperToken is ISuperfluidToken, IERC20Metadata, IERC777 {
 
+    struct AdminOverride {
+        address admin;
+        /// @note we use a struct so the 12 remaining
+        /// packed bytes may be used later on
+    }
+
     /**************************************************************************
      * Errors
      *************************************************************************/
@@ -40,6 +46,31 @@ interface ISuperToken is ISuperfluidToken, IERC20Metadata, IERC777 {
         string calldata n,
         string calldata s
     ) external;
+
+    /**
+     * @dev Initialize the contract with admin override
+     */
+    function initialize(
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string calldata n,
+        string calldata s,
+        address adminOverride
+    ) external;
+
+    /**
+     * @notice Changes the admin override for the SuperToken
+     * @dev Only the current admin can call this function
+     * @param newAdmin New admin override address
+     */
+    function changeAdmin(address newAdmin) external;
+
+    event AdminChanged(address indexed oldAdmin, address indexed newAdmin);
+
+    /**
+     * @dev Returns the admin override struct for the SuperToken
+     */
+    function getAdminOverride() external view returns (AdminOverride memory);
 
     /**************************************************************************
     * Immutable variables

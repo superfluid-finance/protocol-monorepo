@@ -38,10 +38,6 @@ contract SuperToken is
     using ERC777Helper for ERC777Helper.Operators;
     using SafeERC20 for IERC20;
 
-    struct AdminOverride {
-        address admin;
-    }
-
     uint8 constant private _STANDARD_DECIMALS = 18;
 
     // solhint-disable-next-line var-name-mixedcase
@@ -127,25 +123,43 @@ contract SuperToken is
         override
         initializer // OpenZeppelin Initializable
     {
-        _underlyingToken = underlyingToken;
-        _underlyingDecimals = underlyingDecimals;
+        // @note This function is only run once during the initial
+        // deployment of the proxy contract.
 
-        _name = n;
-        _symbol = s;
+        // initialize the Super Token
+        _initialize(underlyingToken, underlyingDecimals, n, s, address(0));
+    }
+    
+    /// @dev Initialize the Super Token proxy with an admin override
+    function initialize(
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string calldata n,
+        string calldata s,
+        address adminOverride
+    )
+        external
+        virtual
+        override
+        initializer // OpenZeppelin Initializable
+    {
+        // @note This function is only run once during the initial
+        // deployment of the proxy contract.
 
-        // register interfaces
-        ERC777Helper.register(address(this));
-
-        // help tools like explorers detect the token contract
-        emit Transfer(address(0), address(0), 0);
+        // initialize the Super Token
+        _initialize(underlyingToken, underlyingDecimals, n, s, adminOverride);
     }
 
     function proxiableUUID() public pure virtual override returns (bytes32) {
         return keccak256("org.superfluid-finance.contracts.SuperToken.implementation");
     }
 
-    function updateCode(address newAddress) external virtual override {
-        if (msg.sender != address(_host)) revert SUPER_TOKEN_ONLY_HOST();
+    /**
+     * @notice Updates the logic contract the proxy is pointing at
+     * @dev 
+     * @param newAddress Address of the new logic contract
+     */
+    function updateCode(address newAddress) external virtual override onlyAdmin {
         UUPSProxiable._updateCodeAddress(newAddress);
 
         // @note This is another check to ensure that when updating to a new SuperToken logic contract
@@ -159,6 +173,16 @@ contract SuperToken is
         ) {
             revert SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED();
         }
+    }
+
+    function changeAdmin(address newAdmin) external override onlyAdmin {
+        address oldAdmin = _adminOverride.admin;
+        _adminOverride.admin = newAdmin;
+        emit AdminChanged(oldAdmin, newAdmin);
+    }
+
+    function getAdminOverride() external view override returns (AdminOverride memory) {
+        return _adminOverride;
     }
 
     /**************************************************************************
@@ -180,6 +204,31 @@ contract SuperToken is
     /**************************************************************************
      * (private) Token Logics
      *************************************************************************/
+
+    function _initialize(
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string calldata n,
+        string calldata s,
+        address adminOverride
+    ) internal {
+        _underlyingToken = underlyingToken;
+        _underlyingDecimals = underlyingDecimals;
+
+        _name = n;
+        _symbol = s;
+
+        _adminOverride.admin = adminOverride;
+
+        // register interfaces
+        ERC777Helper.register(address(this));
+
+        // help tools like explorers detect the token contract
+        emit Transfer(address(0), address(0), 0);
+
+        // previous admin will always be the zero address
+        emit AdminChanged(address(0), adminOverride);
+    }
 
     /**
      * @notice in the original openzeppelin implementation, transfer() and transferFrom()
@@ -810,9 +859,13 @@ contract SuperToken is
         _;
     }
 
+    /**
+     * @dev Admin is the host contract if unset else it is the set admin override address 
+     */
     modifier onlyAdmin() {
         address admin = _adminOverride.admin == address(0) ? address(_host) : _adminOverride.admin;
         if (msg.sender != admin) revert SUPER_TOKEN_ONLY_ADMIN();
+        _;
     }
 
 }

@@ -38,6 +38,10 @@ contract SuperToken is
     using ERC777Helper for ERC777Helper.Operators;
     using SafeERC20 for IERC20;
 
+    struct AdminOverride {
+        address admin;
+    }
+
     uint8 constant private _STANDARD_DECIMALS = 18;
 
     // solhint-disable-next-line var-name-mixedcase
@@ -69,6 +73,9 @@ contract SuperToken is
     /// @dev ERC777 operators support data
     ERC777Helper.Operators internal _operators;
 
+    /// @dev A struct which contains the address of the admin override
+    AdminOverride internal _adminOverride;
+
     // NOTE: for future compatibility, these are reserved solidity slots
     // The sub-class of SuperToken solidity slot will start after _reserve22
 
@@ -76,8 +83,7 @@ contract SuperToken is
     // function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     // behaviors/layout when upgrading
 
-    uint256 internal _reserve22;
-    uint256 private _reserve23;
+    uint256 internal _reserve23;
     uint256 private _reserve24;
     uint256 private _reserve25;
     uint256 private _reserve26;
@@ -802,6 +808,11 @@ contract SuperToken is
     modifier onlySelf() {
         if (msg.sender != address(this)) revert SUPER_TOKEN_ONLY_SELF();
         _;
+    }
+
+    modifier onlyAdmin() {
+        address admin = _adminOverride.admin == address(0) ? address(_host) : _adminOverride.admin;
+        if (msg.sender != admin) revert SUPER_TOKEN_ONLY_ADMIN();
     }
 
 }

@@ -21,7 +21,7 @@ interface ISuperToken is ISuperfluidToken, IERC20Metadata, IERC777 {
     error SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED(); // 0xe3e13698
     error SUPER_TOKEN_NO_UNDERLYING_TOKEN();                     // 0xf79cf656
     error SUPER_TOKEN_ONLY_SELF();                               // 0x7ffa6648
-    error SUPER_TOKEN_ONLY_HOST();                               // 0x98f73704
+    error SUPER_TOKEN_ONLY_ADMIN();                              // 0x0484acab
     error SUPER_TOKEN_ONLY_GOV_OWNER();                          // 0xd9c7ed08
     error SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS();               // 0x81638627
     error SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS();                 // 0xdf070274

@@ -9,8 +9,9 @@ import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/supe
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
+import { TokenDeployerLibrary } from "../../../contracts/utils/SuperfluidFrameworkDeploymentSteps.sol";
 
-contract SuperTokenTest is FoundrySuperfluidTester {
+contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
     constructor() FoundrySuperfluidTester(0) { }
 
     function setUp() public override {
@@ -117,5 +118,16 @@ contract SuperTokenTest is FoundrySuperfluidTester {
         vm.prank(address(sf.host));
         vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
         UUPSProxiable(address(superToken)).updateCode(address(superTokenLogic));
+    }
+
+    function testInitializeSuperTokenWithAndWithoutAdminOverride(address adminOverride) public {
+        (, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, adminOverride);
+
+        assertEq(
+            localSuperToken.getAdminOverride().admin,
+            adminOverride,
+            "testInitializeSuperTokenWithAndWithoutAdminOverride: admin override not set correctly"
+        );
     }
 }

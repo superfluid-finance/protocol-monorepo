@@ -129,7 +129,7 @@ contract SuperToken is
         // initialize the Super Token
         _initialize(underlyingToken, underlyingDecimals, n, s, address(0));
     }
-    
+
     /// @dev Initialize the Super Token proxy with an admin override
     function initialize(
         IERC20 underlyingToken,
@@ -156,7 +156,7 @@ contract SuperToken is
 
     /**
      * @notice Updates the logic contract the proxy is pointing at
-     * @dev 
+     * @dev Only the admin can call this function (host if adminOverride.admin == address(0))
      * @param newAddress Address of the new logic contract
      */
     function updateCode(address newAddress) external virtual override onlyAdmin {
@@ -178,6 +178,7 @@ contract SuperToken is
     function changeAdmin(address newAdmin) external override onlyAdmin {
         address oldAdmin = _adminOverride.admin;
         _adminOverride.admin = newAdmin;
+
         emit AdminChanged(oldAdmin, newAdmin);
     }
 
@@ -860,7 +861,8 @@ contract SuperToken is
     }
 
     /**
-     * @dev Admin is the host contract if unset else it is the set admin override address 
+     * @dev The host contract is implicitly the admin if admin is address(0) else it is the explicitly set admin
+     * override address
      */
     modifier onlyAdmin() {
         address admin = _adminOverride.admin == address(0) ? address(_host) : _adminOverride.admin;

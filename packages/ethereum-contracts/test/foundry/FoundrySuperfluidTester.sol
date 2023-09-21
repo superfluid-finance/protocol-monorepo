@@ -12,7 +12,7 @@ import { ISETH } from "../../contracts/interfaces/tokens/ISETH.sol";
 import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { ConstantFlowAgreementV1 } from "../../contracts/agreements/ConstantFlowAgreementV1.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
-import { ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
+import { IERC20, ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
 import { SuperfluidLoader } from "../../contracts/utils/SuperfluidLoader.sol";
 import { TestResolver } from "../../contracts/utils/TestResolver.sol";
 import { TestToken } from "../../contracts/utils/TestToken.sol";
@@ -606,6 +606,24 @@ contract FoundrySuperfluidTester is Test {
         }
     }
 
+    // Write Helpers - SuperToken
+
+    function _helperDeploySuperTokenAndInitialize(
+        ISuperToken previousSuperToken,
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string memory name,
+        string memory symbol,
+        address adminOverride
+    ) internal returns (SuperToken localSuperToken) {
+        localSuperToken = new SuperToken(
+            sf.host,
+            previousSuperToken.CONSTANT_OUTFLOW_NFT(),
+            previousSuperToken.CONSTANT_INFLOW_NFT()
+        );
+        localSuperToken.initialize(underlyingToken, underlyingDecimals, name, symbol, adminOverride);
+    }
+
     // Write Helpers - ConstantFlowAgreementV1
     /// @notice Creates a flow between a sender and receiver at a given flow rate
     /// @dev This helper assumes a valid flow rate with vm.assume and asserts that state has updated as expected.
@@ -1110,8 +1128,8 @@ contract FoundrySuperfluidTester is Test {
 
             _assertSubscriptionData(params.superToken, subId, approved, units, pending);
 
-        // Assert Global Invariants
-        _assertGlobalInvariants();
+            // Assert Global Invariants
+            _assertGlobalInvariants();
         }
     }
 

@@ -61,6 +61,7 @@ interface ISuperToken is ISuperfluidToken, IERC20Metadata, IERC777 {
     /**
      * @notice Changes the admin override for the SuperToken
      * @dev Only the current admin can call this function
+     * if adminOverride is address(0), it is implicitly the host address
      * @param newAdmin New admin override address
      */
     function changeAdmin(address newAdmin) external;

@@ -27,7 +27,17 @@ function testSchemaAndQueries() {
 
 # for sdk-core releases: test deployed subgraphs
 for i in "${NETWORKS[@]}";do
-    SUBGRAPH_ENDPOINT=https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-$SUBGRAPH_RELEASE_TAG-$i
+    # name mapping for subgraphs created before introducing canonical names
+    declare -A LEGACY_NETWORK_NAMES=(
+        ["xdai-mainnet"]="xdai"
+        ["polygon-mainnet"]="matic"
+        ["eth-goerli"]="goerli"
+        ["polygon-mumbai"]="mumbai"
+    )
+
+    GRAPH_NETWORK="${LEGACY_NETWORK_NAMES[$i]:-$i}"
+
+    SUBGRAPH_ENDPOINT=https://api.thegraph.com/subgraphs/name/superfluid-finance/protocol-$SUBGRAPH_RELEASE_TAG-$GRAPH_NETWORK
 
     testSchemaAndQueries
 

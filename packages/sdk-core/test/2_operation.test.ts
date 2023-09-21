@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { Framework, toBN } from "../src/index";
+import { Framework } from "../src/index";
 import { getPerSecondFlowRateByMonth } from "../src";
-import { IConstantFlowAgreementV1__factory } from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
+import { IConstantFlowAgreementV1__factory } from "../src/typechain-types";
 import Operation from "../src/Operation";
 import hre from "hardhat";
 import { SuperAppTester } from "../typechain-types";
@@ -10,6 +10,7 @@ import { SuperAppTester__factory } from "../typechain-types";
 const cfaInterface = IConstantFlowAgreementV1__factory.createInterface();
 import { TestEnvironment, makeSuite } from "./TestEnvironment";
 import { ethers } from "ethers";
+import multiplyGasLimit from "../src/multiplyGasLimit";
 
 /**
  * Create a simple call app action (setVal) operation with the SuperAppTester contract.
@@ -135,28 +136,29 @@ makeSuite("Operation Tests", (testEnv: TestEnvironment) => {
                     testEnv.sdkFramework,
                     NEW_VAL
                 );
-            const txn = await operation.exec(testEnv.alice, 1);
+            await operation.exec(testEnv.alice, 1);
             expect(await superAppTester.val()).to.equal(NEW_VAL.toString());
         });
 
         it("Should be able to use arbitrary gas estimation limit", async () => {
-            const { operation: updateOp1 } = await createCallAppActionOperation(
-                testEnv.alice,
-                testEnv.sdkFramework,
-                420
-            );
-            const { operation: updateOp2 } = await createCallAppActionOperation(
+            const GAS_MULTIPLIER = 2;
+
+            const { operation } = await createCallAppActionOperation(
                 testEnv.alice,
                 testEnv.sdkFramework,
                 420
             );
 
-            // we are deploying the same contract twice and calling an app action on it twice
-            // we should be using the exact same value for gas estimation
-            const updateOpTxn1 = await updateOp1.exec(testEnv.alice, 1);
-            const updateOpTxn2 = await updateOp2.exec(testEnv.alice, 2);
-            expect(updateOpTxn1.gasLimit.mul(toBN(2))).to.equal(
-                updateOpTxn2.gasLimit
+            const populatedTxn = await operation.populateTransactionPromise;
+            const estimatedGas = await testEnv.alice.estimateGas(populatedTxn);
+
+            const callAppActionTxn = await operation.exec(
+                testEnv.alice,
+                GAS_MULTIPLIER
+            );
+
+            expect(callAppActionTxn.gasLimit).to.equal(
+                multiplyGasLimit(estimatedGas, GAS_MULTIPLIER)
             );
         });
 

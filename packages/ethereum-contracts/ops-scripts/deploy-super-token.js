@@ -51,10 +51,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         additionalContracts: [
             "Ownable",
             "IMultiSigWallet",
+            "ISafe",
             "SuperfluidGovernanceBase",
             "Resolver",
             "UUPSProxiable",
             "SETHProxy",
+            "IERC20Metadata",
         ],
         contractLoader: builtTruffleContractLoader,
     });
@@ -63,7 +65,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const {
         Resolver,
         UUPSProxiable,
-        ERC20WithTokenInfo,
+        IERC20Metadata,
         ISuperToken,
         ISETH,
         SETHProxy,
@@ -111,7 +113,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         if (web3.utils.isAddress(tokenSymbolOrAddress)) {
             tokenAddress = tokenSymbolOrAddress;
             tokenSymbol = await (
-                await ERC20WithTokenInfo.at(tokenAddress)
+                await IERC20Metadata.at(tokenAddress)
             ).symbol.call();
         } else {
             tokenSymbol = tokenSymbolOrAddress;
@@ -127,20 +129,21 @@ module.exports = eval(`(${S.toString()})()`)(async function (
             if (tokenAddress === ZERO_ADDRESS) {
                 throw new Error("Underlying ERC20 Token not found");
             }
-            const tokenInfo = await sf.contracts.TokenInfo.at(tokenAddress);
-            const tokenInfoName = await tokenInfo.name.call();
-            const tokenInfoSymbol = await tokenInfo.symbol.call();
-            const tokenInfoDecimals = await tokenInfo.decimals.call();
+            const iERC20Metadata =
+                await sf.contracts.IERC20Metadata.at(tokenAddress);
+            const name = await iERC20Metadata.name.call();
+            const symbol = await iERC20Metadata.symbol.call();
+            const decimals = await iERC20Metadata.decimals.call();
             console.log("Underlying token address", tokenAddress);
-            console.log("Underlying token info name()", tokenInfoName);
-            console.log("Underlying token info symbol()", tokenInfoSymbol);
+            console.log("Underlying token info name()", name);
+            console.log("Underlying token info symbol()", symbol);
             console.log(
                 "Underlying token info decimals()",
-                tokenInfoDecimals.toString()
+                decimals.toString()
             );
             superTokenKey = `supertokens.${protocolReleaseVersion}.${tokenSymbol}x`;
             deploymentFn = async () => {
-                return await sf.createERC20Wrapper(tokenInfo);
+                return await sf.createERC20Wrapper(iERC20Metadata);
             };
         }
     }

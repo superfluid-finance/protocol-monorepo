@@ -11,12 +11,15 @@ interface ContractAddresses {
     readonly idaV1: string;
     readonly gdaV1: string;
     readonly superTokenFactory: string;
+    readonly constantOutflowNFT?: string;
+    readonly constantInflowNFT?: string;
     readonly superfluidLoader: string;
     readonly toga: string;
     readonly vestingScheduler: string;
     readonly flowScheduler: string;
     readonly batchLiquidator: string;
     readonly autowrap: AutowrapAddresses;
+    readonly existentialNFTCloneFactory: string;
 }
 interface SubgraphData {
     readonly name: string;
@@ -24,10 +27,11 @@ interface SubgraphData {
     readonly satsumaEndpoint?: string;
 }
 export interface NetworkMetaData {
-    readonly name: string;
+    readonly name: string; // Superfluid canonical network name
     readonly isTestnet: boolean;
     readonly networkId: number;
     readonly chainId: number;
+    readonly sfId: number; // Superfluid canonical network id
     readonly shortName: string;
     readonly uppercaseName: string;
     readonly humanReadableName: string;
@@ -40,6 +44,7 @@ export interface NetworkMetaData {
     readonly subgraphV1: SubgraphData;
     readonly publicRPCs?: string[];
     readonly coinGeckoId?: string;
+    readonly trustedForwarders?: string[]; // list of additional trusted forwarders
 }
 declare const _default: NetworkMetaData[];
 export default _default;

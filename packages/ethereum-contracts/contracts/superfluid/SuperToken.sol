@@ -42,7 +42,7 @@ contract SuperToken is
 
     // solhint-disable-next-line var-name-mixedcase
     IConstantOutflowNFT immutable public CONSTANT_OUTFLOW_NFT;
-    
+
     // solhint-disable-next-line var-name-mixedcase
     IConstantInflowNFT immutable public CONSTANT_INFLOW_NFT;
 
@@ -57,10 +57,10 @@ contract SuperToken is
     /// @dev Decimals of the underlying token
     uint8 internal _underlyingDecimals;
 
-    /// @dev TokenInfo Name property
+    /// @dev IERC20Metadata Name property
     string internal _name;
 
-    /// @dev TokenInfo Symbol property
+    /// @dev IERC20Metadata Symbol property
     string internal _symbol;
 
     /// @dev ERC20 Allowances Storage
@@ -86,7 +86,7 @@ contract SuperToken is
     uint256 private _reserve29;
     uint256 private _reserve30;
     uint256 internal _reserve31;
-    
+
     // NOTE: You cannot add more storage here. Refer to CustomSuperTokenBase.sol
     // to see the hard-coded storage padding used by SETH and PureSuperToken
 
@@ -109,7 +109,6 @@ contract SuperToken is
         emit ConstantInflowNFTCreated(constantInflowNFT);
     }
 
-    
     /// @dev Initialize the Super Token proxy
     function initialize(
         IERC20 underlyingToken,
@@ -604,22 +603,38 @@ contract SuperToken is
      * ERC20 wrapping
      *************************************************************************/
 
-    /// @dev ISuperfluidGovernance.getUnderlyingToken implementation
+    /// @inheritdoc ISuperToken
     function getUnderlyingToken() external view virtual override returns(address) {
         return address(_underlyingToken);
     }
 
-    /// @dev ISuperToken.upgrade implementation
+    /// @inheritdoc ISuperToken
+    function getUnderlyingDecimals() external view virtual override returns (uint8) {
+        return _underlyingDecimals;
+    }
+
+    /// @inheritdoc ISuperToken
+    function toUnderlyingAmount(uint256 amount)
+        external
+        view
+        virtual
+        override
+        returns (uint256 underlyingAmount, uint256 adjustedAmount)
+    {
+        return _toUnderlyingAmount(amount);
+    }
+
+    /// @inheritdoc ISuperToken
     function upgrade(uint256 amount) external virtual override {
         _upgrade(msg.sender, msg.sender, msg.sender, amount, "", "");
     }
 
-    /// @dev ISuperToken.upgradeTo implementation
+    /// @inheritdoc ISuperToken
     function upgradeTo(address to, uint256 amount, bytes calldata userData) external virtual override {
         _upgrade(msg.sender, msg.sender, to, amount, userData, "");
     }
 
-    /// @dev ISuperToken.downgrade implementation
+    /// @inheritdoc ISuperToken
     function downgrade(uint256 amount) external virtual override {
         _downgrade(msg.sender, msg.sender, msg.sender, amount, "", "");
     }
@@ -734,7 +749,7 @@ contract SuperToken is
         address account,
         address spender,
         uint256 subtractedValue
-    ) 
+    )
         external virtual override
         onlyHost
     {
@@ -759,7 +774,7 @@ contract SuperToken is
         address recipient,
         uint256 amount,
         bytes memory userData
-    ) 
+    )
         external virtual override
         onlyHost
     {

@@ -1,10 +1,7 @@
-import {
-    Superfluid,
-    Superfluid__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers, Overrides } from "ethers";
 
 import Operation from "./Operation";
+import { Superfluid, Superfluid__factory } from "./typechain-types";
 
 /**
  * Host Helper Class

@@ -93,7 +93,7 @@ jobs:
         run: |
           echo "FOUNDRY_PROFILE=ci" >> $GITHUB_ENV
           echo "FOUNDRY_SOLC_VERSION=$SOLC" >> $GITHUB_ENV
-          NODE_OPTIONS=\"$NODE_OPTIONS --max_old_space_size=4096\" yarn test-coverage
+          yarn test-coverage
         working-directory: ./packages/ethereum-contracts
         # NOTE: currently coverage report is not working properly in parallel mode.
         #
@@ -101,6 +101,7 @@ jobs:
         # Though more likely, it is an issue to https://github.com/sc-forks/solidity-coverage
         env:
           # NOTE: 4 workers would overwhelm the free-tier github runner
+          NODE_OPTIONS: --max_old_space_size=4096
           IS_COVERAGE_TEST: true
           HARDHAT_TEST_JOBS: 2
           HARDHAT_RUN_PARALLEL: false

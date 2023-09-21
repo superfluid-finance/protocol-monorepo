@@ -131,7 +131,7 @@ contract SuperToken is
     }
 
     /// @dev Initialize the Super Token proxy with an admin override
-    function initialize(
+    function initializeWithAdminOverride(
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,

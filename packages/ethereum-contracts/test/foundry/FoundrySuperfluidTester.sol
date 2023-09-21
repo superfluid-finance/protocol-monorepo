@@ -621,7 +621,7 @@ contract FoundrySuperfluidTester is Test {
             previousSuperToken.CONSTANT_OUTFLOW_NFT(),
             previousSuperToken.CONSTANT_INFLOW_NFT()
         );
-        localSuperToken.initialize(underlyingToken, underlyingDecimals, name, symbol, adminOverride);
+        localSuperToken.initializeWithAdminOverride(underlyingToken, underlyingDecimals, name, symbol, adminOverride);
     }
 
     // Write Helpers - ConstantFlowAgreementV1

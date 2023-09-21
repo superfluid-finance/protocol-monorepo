@@ -50,7 +50,7 @@ interface ISuperToken is ISuperfluidToken, IERC20Metadata, IERC777 {
     /**
      * @dev Initialize the contract with admin override
      */
-    function initialize(
+    function initializeWithAdminOverride(
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,

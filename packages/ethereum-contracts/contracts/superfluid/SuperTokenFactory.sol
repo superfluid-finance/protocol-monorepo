@@ -232,7 +232,7 @@ abstract contract SuperTokenFactoryBase is
         }
 
         // initialize the token
-        superToken.initialize(
+        superToken.initializeWithAdminOverride(
             underlyingToken,
             underlyingDecimals,
             name,

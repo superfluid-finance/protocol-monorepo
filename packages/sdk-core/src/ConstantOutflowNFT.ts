@@ -1,10 +1,10 @@
-import {
-    ConstantOutflowNFT__factory,
-    IConstantOutflowNFT,
-} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
 import FlowNFTBase from "./FlowNFTBase";
+import {
+    ConstantOutflowNFT__factory,
+    IConstantOutflowNFT,
+} from "./typechain-types";
 
 export default class ConstantOutflowNFT extends FlowNFTBase {
     override readonly contract: IConstantOutflowNFT;

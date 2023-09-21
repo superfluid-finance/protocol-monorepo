@@ -1,12 +1,9 @@
-import {
-    FlowNFTBase__factory,
-    IFlowNFTBase,
-} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
 import ERC721MetadataToken from "./ERC721Token";
 import { SFError } from "./SFError";
 import { NFTFlowData } from "./interfaces";
+import { FlowNFTBase__factory, IFlowNFTBase } from "./typechain-types";
 import { normalizeAddress } from "./utils";
 
 export default class FlowNFTBase extends ERC721MetadataToken {

@@ -1,8 +1,3 @@
-import {
-    IERC721Metadata,
-    IERC721Metadata__factory,
-    IFlowNFTBase,
-} from "@superfluid-finance/ethereum-contracts/build/typechain";
 import { ethers } from "ethers";
 
 import Operation from "./Operation";
@@ -20,6 +15,11 @@ import {
     NFTFlowData,
     ProviderOrSigner,
 } from "./interfaces";
+import {
+    IERC721Metadata,
+    IERC721Metadata__factory,
+    IFlowNFTBase,
+} from "./typechain-types";
 import { getSanitizedTimestamp, normalizeAddress } from "./utils";
 
 export default class ERC721MetadataToken {

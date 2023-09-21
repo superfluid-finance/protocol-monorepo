@@ -1,3 +1,5 @@
+import { ethers, Overrides } from "ethers";
+
 import {
     IConstantFlowAgreementV1,
     IGeneralDistributionAgreementV1,
@@ -5,8 +7,7 @@ import {
     IResolver,
     Superfluid,
     SuperfluidGovernanceII,
-} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
-import { ethers, Overrides } from "ethers";
+} from "./typechain-types";
 
 // TODO (0xdavinchee): reorganize this
 // Maybe moving these into categorical files

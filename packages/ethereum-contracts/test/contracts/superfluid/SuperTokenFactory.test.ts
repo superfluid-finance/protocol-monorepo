@@ -135,7 +135,12 @@ describe("SuperTokenFactory Contract", function () {
             );
 
             await expectRevertedWith(
-                superTokenLogic.initialize(ZERO_ADDRESS, 0, "", ""),
+                superTokenLogic["initialize(address,uint8,string,string)"](
+                    ZERO_ADDRESS,
+                    0,
+                    "",
+                    ""
+                ),
                 "Initializable: contract is already initialized"
             );
         });

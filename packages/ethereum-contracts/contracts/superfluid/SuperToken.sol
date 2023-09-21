@@ -227,7 +227,7 @@ contract SuperToken is
         // help tools like explorers detect the token contract
         emit Transfer(address(0), address(0), 0);
 
-        // previous admin will always be the zero address
+        // previous admin will always be the zero address in an uninitialized contract
         emit AdminChanged(address(0), adminOverride);
     }
 

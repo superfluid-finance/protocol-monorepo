@@ -92,13 +92,18 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 superToken.updateCode(ZERO_ADDRESS),
                 superToken,
-                "SUPER_TOKEN_ONLY_HOST"
+                "SUPER_TOKEN_ONLY_ADMIN"
             );
         });
 
         it("#1.4 only can initialize once", async () => {
             await expectRevertedWith(
-                superToken.initialize(ZERO_ADDRESS, 18, "name", "symbol"),
+                superToken["initialize(address,uint8,string,string)"](
+                    ZERO_ADDRESS,
+                    18,
+                    "name",
+                    "symbol"
+                ),
                 "Initializable: contract is already initialized"
             );
         });
@@ -746,12 +751,10 @@ describe("SuperToken's Non Standard Functions", function () {
                 customToken,
                 reason
             );
-            await web3tx(customToken.initialize, "customToken.initialize")(
-                ZERO_ADDRESS,
-                0,
-                "Custom SuperTestToken",
-                "CSTT"
-            );
+            await web3tx(
+                customToken["initialize(address,uint8,string,string)"],
+                "customToken.initialize"
+            )(ZERO_ADDRESS, 0, "Custom SuperTestToken", "CSTT");
 
             await web3tx(customToken.selfMint, "customToken.selfMint")(
                 alice,
@@ -781,7 +784,7 @@ describe("SuperToken's Non Standard Functions", function () {
 
         it("#3.4 Custom token can use selfTransferFrom", async () => {
             console.log("customToken.initialize");
-            await customToken.initialize(
+            await customToken["initialize(address,uint8,string,string)"](
                 ZERO_ADDRESS,
                 0,
                 "Custom SuperTestToken",
@@ -860,12 +863,10 @@ describe("SuperToken's Non Standard Functions", function () {
         });
 
         it("#3.5 Custom token can use selfApproveFor", async () => {
-            await web3tx(customToken.initialize, "customToken.initialize")(
-                ZERO_ADDRESS,
-                0,
-                "Custom SuperTestToken",
-                "CSTT"
-            );
+            await web3tx(
+                customToken["initialize(address,uint8,string,string)"],
+                "customToken.initialize"
+            )(ZERO_ADDRESS, 0, "Custom SuperTestToken", "CSTT");
 
             await web3tx(customToken.selfMint, "customToken.selfMint")(
                 alice,

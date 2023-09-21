@@ -7,5 +7,7 @@
     "superTokenFactoryAddress": "0x8bde47397301F0Cd31b9000032fD517a39c946Eb",
     "superfluidGovernanceAddress": "0xee07D9fce4Cf2a891BC979E9d365929506C2982f",
     "resolverV1Address": "0x69604aA4e9e8BF44A73C680997205Edb03A92E41",
-    "nativeAssetSuperTokenAddress": "0x529a4116f160c833c61311569d6b33dff41fd657"
+    "nativeAssetSuperTokenAddress": "0x529a4116f160c833c61311569d6b33dff41fd657",
+    "constantOutflowNFTAddress": "0xcb05535bd212eCFC4B7b9db81d6C2C768b726776",
+    "constantInflowNFTAddress": "0xbF7BCcE8D60A9C3F6bFaEc9346Aa85B9f781a4e9"
 }

@@ -6,5 +6,7 @@
     "idaAddress": "0xfDdcdac21D64B639546f3Ce2868C7EF06036990c",
     "superTokenFactoryAddress": "0x94f26B4c8AD12B18c12f38E878618f7664bdcCE2",
     "resolverV1Address": "0x3710AB3fDE2B61736B8BB0CE845D6c61F667a78E",
-    "nativeAssetSuperTokenAddress": "0x5943f705abb6834cad767e6e4bb258bc48d9c947"
+    "nativeAssetSuperTokenAddress": "0x5943f705abb6834cad767e6e4bb258bc48d9c947",
+    "constantOutflowNFTAddress": "0xB18cbFeA12b5CB2626C74c94920dB1B37Ae91506",
+    "constantInflowNFTAddress": "0xF07df8b66ed80399B1E00981D61aD34EB4293032",
 }

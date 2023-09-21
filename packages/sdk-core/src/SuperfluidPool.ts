@@ -1,7 +1,3 @@
-import {
-    ISuperfluidPool,
-    ISuperfluidPool__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ContractTransaction, ethers } from "ethers";
 
 import { SFError } from "./SFError";
@@ -22,6 +18,7 @@ import {
     SuperfluidPoolIncreaseAllowanceParams,
     UpdateMemberParams,
 } from "./interfaces";
+import { ISuperfluidPool, ISuperfluidPool__factory } from "./typechain-types";
 import { normalizeAddress } from "./utils";
 
 /**

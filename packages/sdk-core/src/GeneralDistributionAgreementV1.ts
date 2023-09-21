@@ -1,9 +1,3 @@
-import {
-    GDAv1Forwarder,
-    GDAv1Forwarder__factory,
-    IGeneralDistributionAgreementV1,
-    IGeneralDistributionAgreementV1__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers } from "ethers";
 
 import Host from "./Host";
@@ -26,6 +20,12 @@ import {
     IsPoolParams,
     PoolAdjustmentFlowInfo,
 } from "./interfaces";
+import {
+    GDAv1Forwarder,
+    GDAv1Forwarder__factory,
+    IGeneralDistributionAgreementV1,
+    IGeneralDistributionAgreementV1__factory,
+} from "./typechain-types";
 import { normalizeAddress } from "./utils";
 
 const gdaInterface = IGeneralDistributionAgreementV1__factory.createInterface();

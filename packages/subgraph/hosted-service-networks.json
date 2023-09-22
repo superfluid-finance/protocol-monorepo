@@ -1,15 +1,15 @@
 [
-    "eth-mainnet",
-    "polygon-mainnet",
+    "eth-goerli",
+    "polygon-mumbai",
+    "optimism-goerli",
+    "arbitrum-goerli",
+    "avalanche-fuji",
     "xdai-mainnet",
+    "polygon-mainnet",
     "optimism-mainnet",
     "arbitrum-one",
     "avalanche-c",
-    "eth-goerli",
-    "polygon-mumbai",
-    "arbitrum-goerli",
-    "optimism-goerli",
-    "avalanche-fuji",
     "bsc-mainnet",
+    "eth-mainnet",
     "celo-mainnet"
 ]

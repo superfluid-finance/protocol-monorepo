@@ -23,7 +23,7 @@ interface ContractAddresses {
 }
 interface SubgraphData {
     readonly name: string;
-    readonly hostedEndpoint: string;
+    readonly hostedEndpoint?: string;
     readonly satsumaEndpoint?: string;
 }
 export interface NetworkMetaData {

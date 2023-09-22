@@ -4,13 +4,14 @@ pragma solidity 0.8.19;
 import { Test } from "forge-std/Test.sol";
 import { UUPSProxy } from "../../../contracts/upgradability/UUPSProxy.sol";
 import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
-import { ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
+import { IERC20, ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
+import { TokenDeployerLibrary } from "../../../contracts/utils/SuperfluidFrameworkDeploymentSteps.sol";
 
-contract SuperTokenTest is FoundrySuperfluidTester {
+contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
     constructor() FoundrySuperfluidTester(0) { }
 
     function setUp() public override {
@@ -117,5 +118,120 @@ contract SuperTokenTest is FoundrySuperfluidTester {
         vm.prank(address(sf.host));
         vm.expectRevert(ISuperToken.SUPER_TOKEN_NFT_PROXY_ADDRESS_CHANGED.selector);
         UUPSProxiable(address(superToken)).updateCode(address(superTokenLogic));
+    }
+
+    function testInitializeSuperTokenWithAndWithoutAdminOverride(address adminOverride) public {
+        (, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, adminOverride);
+
+        assertEq(
+            localSuperToken.getAdminOverride().admin,
+            adminOverride,
+            "testInitializeSuperTokenWithAndWithoutAdminOverride: admin override not set correctly"
+        );
+    }
+
+    function testOnlyHostCanChangeAdminWhenNoAdminOverride(address adminOverride) public {
+        (, ISuperToken localSuperToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+
+        vm.startPrank(address(sf.host));
+        localSuperToken.changeAdmin(adminOverride);
+        vm.stopPrank();
+
+        assertEq(
+            localSuperToken.getAdminOverride().admin,
+            adminOverride,
+            "testOnlyHostCanChangeAdminWhenNoAdminOverride: admin override not set correctly"
+        );
+    }
+
+    function testOnlyAdminOverrideCanChangeAdmin(address adminOverride, address newAdminOverride) public {
+        if (adminOverride == address(0)) {
+            adminOverride = address(sf.host);
+        }
+
+        (, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, adminOverride);
+
+        vm.startPrank(adminOverride);
+        localSuperToken.changeAdmin(newAdminOverride);
+        vm.stopPrank();
+
+        assertEq(
+            localSuperToken.getAdminOverride().admin,
+            newAdminOverride,
+            "testOnlyAdminOverrideCanChangeAdmin: admin override not set correctly"
+        );
+    }
+
+    function testRevertWhenNonAdminTriesToChangeAdmin(address adminOverride, address nonAdminOverride) public {
+        vm.assume(adminOverride != nonAdminOverride);
+        vm.assume(nonAdminOverride != address(0));
+        if (adminOverride == address(0)) {
+            adminOverride = address(sf.host);
+        }
+
+        (, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, adminOverride);
+
+        vm.startPrank(nonAdminOverride);
+        vm.expectRevert(ISuperToken.SUPER_TOKEN_ONLY_ADMIN.selector);
+        localSuperToken.changeAdmin(nonAdminOverride);
+        vm.stopPrank();
+    }
+
+    function testOnlyHostCanUpdateCodeWhenNoAdminOverride() public {
+        (TestToken localTestToken, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+
+        SuperToken newSuperTokenLogic =
+            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", address(0));
+
+        vm.startPrank(address(sf.host));
+        UUPSProxiable(address(localSuperToken)).updateCode(address(newSuperTokenLogic));
+        vm.stopPrank();
+
+        assertEq(
+            UUPSProxiable(address(localSuperToken)).getCodeAddress(),
+            address(newSuperTokenLogic),
+            "testOnlyHostCanUpdateCodeWhenNoAdminOverride: super token logic not updated correctly"
+        );
+    }
+
+    function testOnlyAdminOverrideCanUpdateCode(address adminOverride) public {
+        if (adminOverride == address(0)) {
+            adminOverride = address(sf.host);
+        }
+
+        (TestToken localTestToken, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, adminOverride);
+
+        SuperToken newSuperTokenLogic =
+            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", adminOverride);
+
+        vm.startPrank(adminOverride);
+        UUPSProxiable(address(localSuperToken)).updateCode(address(newSuperTokenLogic));
+        vm.stopPrank();
+
+        assertEq(
+            UUPSProxiable(address(localSuperToken)).getCodeAddress(),
+            address(newSuperTokenLogic),
+            "testOnlyHostCanUpdateCodeWhenNoAdminOverride: super token logic not updated correctly"
+        );
+    }
+
+    function testRevertWhenNonAdminTriesToUpdateCode(address adminOverride, address nonAdminOverride) public {
+        vm.assume(adminOverride != address(sf.host));
+
+        (TestToken localTestToken, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+
+        SuperToken newSuperTokenLogic =
+            _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", adminOverride);
+
+        vm.startPrank(nonAdminOverride);
+        vm.expectRevert(ISuperToken.SUPER_TOKEN_ONLY_ADMIN.selector);
+        UUPSProxiable(address(localSuperToken)).updateCode(address(newSuperTokenLogic));
+        vm.stopPrank();
     }
 }

@@ -90,10 +90,10 @@ contract NoNFTSuperTokenMock is UUPSProxiable, SuperfluidToken {
     /// @dev Decimals of the underlying token
     uint8 internal _underlyingDecimals;
 
-    /// @dev TokenInfo Name property
+    /// @dev IERC20Metadata Name property
     string internal _name;
 
-    /// @dev TokenInfo Symbol property
+    /// @dev IERC20Metadata Symbol property
     string internal _symbol;
 
     /// @dev ERC20 Allowances Storage

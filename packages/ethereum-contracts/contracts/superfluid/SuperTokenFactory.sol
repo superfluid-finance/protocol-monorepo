@@ -1,12 +1,11 @@
 // SPDX-License-Identifier: AGPLv3
 pragma solidity 0.8.19;
 
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import {
     ISuperTokenFactory,
-    ISuperToken,
-    IERC20,
-    ERC20WithTokenInfo
+    ISuperToken
 } from "../interfaces/superfluid/ISuperTokenFactory.sol";
 import { ISuperfluid, IConstantOutflowNFT, IConstantInflowNFT } from "../interfaces/superfluid/ISuperfluid.sol";
 import { UUPSProxy } from "../upgradability/UUPSProxy.sol";
@@ -155,7 +154,7 @@ abstract contract SuperTokenFactoryBase is
     }
 
     /// @inheritdoc ISuperTokenFactory
-    function createCanonicalERC20Wrapper(ERC20WithTokenInfo _underlyingToken)
+    function createCanonicalERC20Wrapper(IERC20Metadata _underlyingToken)
         external
         returns (ISuperToken)
     {
@@ -207,17 +206,14 @@ abstract contract SuperTokenFactoryBase is
         return superToken;
     }
 
-    /// @inheritdoc ISuperTokenFactory
     function createERC20Wrapper(
-        IERC20 underlyingToken,
+        IERC20Metadata underlyingToken,
         uint8 underlyingDecimals,
         Upgradability upgradability,
         string calldata name,
-        string calldata symbol
-    )
-        public override
-        returns (ISuperToken superToken)
-    {
+        string calldata symbol,
+        address adminOverride
+    ) public override returns (ISuperToken superToken) {
         if (address(underlyingToken) == address(0)) {
             revert SUPER_TOKEN_FACTORY_ZERO_ADDRESS();
         }
@@ -236,11 +232,12 @@ abstract contract SuperTokenFactoryBase is
         }
 
         // initialize the token
-        superToken.initialize(
+        superToken.initializeWithAdminOverride(
             underlyingToken,
             underlyingDecimals,
             name,
-            symbol
+            symbol,
+            adminOverride
         );
 
         emit SuperTokenCreated(superToken);
@@ -248,7 +245,49 @@ abstract contract SuperTokenFactoryBase is
 
     /// @inheritdoc ISuperTokenFactory
     function createERC20Wrapper(
-        ERC20WithTokenInfo underlyingToken,
+        IERC20Metadata underlyingToken,
+        uint8 underlyingDecimals,
+        Upgradability upgradability,
+        string calldata name,
+        string calldata symbol
+    )
+        external override
+        returns (ISuperToken superToken)
+    {
+        return createERC20Wrapper(
+            underlyingToken,
+            underlyingDecimals,
+            upgradability,
+            name,
+            symbol,
+            address(0)
+        );
+    }
+
+    /// @inheritdoc ISuperTokenFactory
+    function createERC20Wrapper(
+        IERC20Metadata underlyingToken,
+        Upgradability upgradability,
+        string calldata name,
+        string calldata symbol,
+        address adminOverride
+    )
+        external override
+        returns (ISuperToken superToken)
+    {
+        return createERC20Wrapper(
+            underlyingToken,
+            underlyingToken.decimals(),
+            upgradability,
+            name,
+            symbol,
+            adminOverride
+        );
+    }
+
+    /// @inheritdoc ISuperTokenFactory
+    function createERC20Wrapper(
+        IERC20Metadata underlyingToken,
         Upgradability upgradability,
         string calldata name,
         string calldata symbol
@@ -261,7 +300,8 @@ abstract contract SuperTokenFactoryBase is
             underlyingToken.decimals(),
             upgradability,
             name,
-            symbol
+            symbol,
+            address(0)
         );
     }
 

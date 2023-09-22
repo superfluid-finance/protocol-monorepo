@@ -1,10 +1,4 @@
 import { HardhatEthersHelpers } from "@nomiclabs/hardhat-ethers/types";
-import {
-    Resolver,
-    Resolver__factory,
-    Superfluid__factory,
-    SuperfluidLoader__factory,
-} from "@superfluid-finance/ethereum-contracts/build/typechain-ethers-v5";
 import { ethers } from "ethers";
 import Web3 from "web3";
 
@@ -28,6 +22,12 @@ import {
     validateFrameworkConstructorOptions,
 } from "./frameworkHelpers";
 import { IConfig, IContracts, ISignerConstructorOptions } from "./interfaces";
+import {
+    Resolver,
+    Resolver__factory,
+    Superfluid__factory,
+    SuperfluidLoader__factory,
+} from "./typechain-types";
 import { isEthersProvider, isInjectedWeb3 } from "./utils";
 
 const V1 = "v1";

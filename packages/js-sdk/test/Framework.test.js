@@ -58,7 +58,7 @@ describe("Framework class", function () {
             const {
                 IERC20,
                 IResolver,
-                TokenInfo,
+                IERC20Metadata,
                 ISuperfluid,
                 ISuperToken,
                 ISuperTokenFactory,
@@ -78,10 +78,10 @@ describe("Framework class", function () {
                 IResolver.abi.filter((i) => i.name === "get").length > 0
             );
 
-            assert.isDefined(TokenInfo.abi);
-            assert.equal(TokenInfo.contractName, "TokenInfo");
+            assert.isDefined(IERC20Metadata.abi);
+            assert.equal(IERC20Metadata.contractName, "IERC20Metadata");
             assert.isTrue(
-                TokenInfo.abi.filter((i) => i.name === "symbol").length > 0
+                IERC20Metadata.abi.filter((i) => i.name === "symbol").length > 0
             );
 
             assert.isDefined(ISuperfluid.abi);
@@ -366,7 +366,7 @@ describe("Framework class", function () {
                 from: admin,
             });
             const misoAddress = await sf.resolver.get("tokens.MISO");
-            const misoToken = await sf.contracts.TokenInfo.at(misoAddress);
+            const misoToken = await sf.contracts.IERC20Metadata.at(misoAddress);
             const superMisoToken = await sf.createERC20Wrapper(misoToken, {
                 from: admin,
             });

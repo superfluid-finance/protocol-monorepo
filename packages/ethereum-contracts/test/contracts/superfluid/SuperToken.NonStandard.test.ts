@@ -92,7 +92,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 superToken.updateCode(ZERO_ADDRESS),
                 superToken,
-                "SUPER_TOKEN_ONLY_HOST"
+                "SUPER_TOKEN_ONLY_ADMIN"
             );
         });
 

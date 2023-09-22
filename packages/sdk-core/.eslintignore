@@ -2,6 +2,6 @@ dist
 build
 coverage
 cache
-src/typechain
+src/typechain-types
 src/abi
 **/*.generated.*

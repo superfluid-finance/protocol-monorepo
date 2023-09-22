@@ -8,17 +8,17 @@ const {
 async function deployContractsAndToken() {
     const [Deployer] = await ethers.getSigners();
 
-    const {frameworkDeployer: deployer } = await deployTestFramework();
+    const {frameworkDeployer: deployer} = await deployTestFramework();
     const framework = await deployer.getFramework();
 
     const resolver = await ethers.getContractAt(
         testResolverArtifact.abi,
         framework.resolver
     );
-    
+
     await deployer
         .connect(Deployer)
-        .deployWrapperSuperToken(
+        ["deployWrapperSuperToken(string,string,uint8,uint256)"](
             "Fake DAI",
             "fDAI",
             18,

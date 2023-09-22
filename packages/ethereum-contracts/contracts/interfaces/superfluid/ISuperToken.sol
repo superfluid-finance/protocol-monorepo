@@ -2,9 +2,8 @@
 pragma solidity >= 0.8.11;
 
 import { ISuperfluidToken } from "./ISuperfluidToken.sol";
-import { TokenInfo } from "../tokens/TokenInfo.sol";
+import { IERC20, IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { IERC777 } from "@openzeppelin/contracts/token/ERC777/IERC777.sol";
-import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IConstantOutflowNFT } from "./IConstantOutflowNFT.sol";
 import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
 
@@ -12,7 +11,13 @@ import { IConstantInflowNFT } from "./IConstantInflowNFT.sol";
  * @title Super token (Superfluid Token + ERC20 + ERC777) interface
  * @author Superfluid
  */
-interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
+interface ISuperToken is ISuperfluidToken, IERC20Metadata, IERC777 {
+
+    struct AdminOverride {
+        address admin;
+        /// @note we use a struct so the 12 remaining
+        /// packed bytes may be used later on
+    }
 
     /**************************************************************************
      * Errors
@@ -22,7 +27,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     error SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED(); // 0xe3e13698
     error SUPER_TOKEN_NO_UNDERLYING_TOKEN();                     // 0xf79cf656
     error SUPER_TOKEN_ONLY_SELF();                               // 0x7ffa6648
-    error SUPER_TOKEN_ONLY_HOST();                               // 0x98f73704
+    error SUPER_TOKEN_ONLY_ADMIN();                              // 0x0484acab
     error SUPER_TOKEN_ONLY_GOV_OWNER();                          // 0xd9c7ed08
     error SUPER_TOKEN_APPROVE_FROM_ZERO_ADDRESS();               // 0x81638627
     error SUPER_TOKEN_APPROVE_TO_ZERO_ADDRESS();                 // 0xdf070274
@@ -42,6 +47,32 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
         string calldata s
     ) external;
 
+    /**
+     * @dev Initialize the contract with admin override
+     */
+    function initializeWithAdminOverride(
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string calldata n,
+        string calldata s,
+        address adminOverride
+    ) external;
+
+    /**
+     * @notice Changes the admin override for the SuperToken
+     * @dev Only the current admin can call this function
+     * if adminOverride is address(0), it is implicitly the host address
+     * @param newAdmin New admin override address
+     */
+    function changeAdmin(address newAdmin) external;
+
+    event AdminChanged(address indexed oldAdmin, address indexed newAdmin);
+
+    /**
+     * @dev Returns the admin override struct for the SuperToken
+     */
+    function getAdminOverride() external view returns (AdminOverride memory);
+
     /**************************************************************************
     * Immutable variables
     *************************************************************************/
@@ -52,19 +83,19 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
     function CONSTANT_INFLOW_NFT() external view returns (IConstantInflowNFT);
 
     /**************************************************************************
-    * TokenInfo & ERC777
+    * IERC20Metadata & ERC777
     *************************************************************************/
 
     /**
      * @dev Returns the name of the token.
      */
-    function name() external view override(IERC777, TokenInfo) returns (string memory);
+    function name() external view override(IERC777, IERC20Metadata) returns (string memory);
 
     /**
      * @dev Returns the symbol of the token, usually a shorter version of the
      * name.
      */
-    function symbol() external view override(IERC777, TokenInfo) returns (string memory);
+    function symbol() external view override(IERC777, IERC20Metadata) returns (string memory);
 
     /**
      * @dev Returns the number of decimals used to get its user representation.
@@ -81,7 +112,7 @@ interface ISuperToken is ISuperfluidToken, TokenInfo, IERC20, IERC777 {
      * no way affects any of the arithmetic of the contract, including
      * {IERC20-balanceOf} and {IERC20-transfer}.
      */
-    function decimals() external view override(TokenInfo) returns (uint8);
+    function decimals() external view override(IERC20Metadata) returns (uint8);
 
     /**************************************************************************
     * ERC20 & ERC777

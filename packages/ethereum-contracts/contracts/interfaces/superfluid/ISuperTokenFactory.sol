@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >= 0.8.11;
 
+import { IERC20Metadata } from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import { ISuperToken } from "./ISuperToken.sol";
-import { IERC20, ERC20WithTokenInfo } from "../tokens/ERC20WithTokenInfo.sol";
-
 /**
  * @title Super token factory interface
  * @author Superfluid
@@ -56,14 +55,54 @@ interface ISuperTokenFactory {
      * @param upgradability Upgradability mode
      * @param name Super token name
      * @param symbol Super token symbol
+     * @param adminOverride Admin address override
      * @return superToken The deployed and initialized wrapper super token
      */
     function createERC20Wrapper(
-        IERC20 underlyingToken,
+        IERC20Metadata underlyingToken,
+        uint8 underlyingDecimals,
+        Upgradability upgradability,
+        string calldata name,
+        string calldata symbol,
+        address adminOverride
+    )
+        external
+        returns (ISuperToken superToken);
+
+    /**
+     * @notice Create new super token wrapper for the underlying ERC20 token
+     * @param underlyingToken Underlying ERC20 token
+     * @param underlyingDecimals Underlying token decimals
+     * @param upgradability Upgradability mode
+     * @param name Super token name
+     * @param symbol Super token symbol
+     * @return superToken The deployed and initialized wrapper super token
+     */
+    function createERC20Wrapper(
+        IERC20Metadata underlyingToken,
         uint8 underlyingDecimals,
         Upgradability upgradability,
         string calldata name,
         string calldata symbol
+    )
+        external
+        returns (ISuperToken superToken);
+
+    /**
+     * @notice Create new super token wrapper for the underlying ERC20 token
+     * @param underlyingToken Underlying ERC20 token
+     * @param upgradability Upgradability mode
+     * @param name Super token name
+     * @param symbol Super token symbol
+     * @param adminOverride Admin address override
+     * @return superToken The deployed and initialized wrapper super token
+     */
+    function createERC20Wrapper(
+        IERC20Metadata underlyingToken,
+        Upgradability upgradability,
+        string calldata name,
+        string calldata symbol,
+        address adminOverride
     )
         external
         returns (ISuperToken superToken);
@@ -79,7 +118,7 @@ interface ISuperTokenFactory {
      * - It assumes token provide the .decimals() function
      */
     function createERC20Wrapper(
-        ERC20WithTokenInfo underlyingToken,
+        IERC20Metadata underlyingToken,
         Upgradability upgradability,
         string calldata name,
         string calldata symbol
@@ -93,7 +132,7 @@ interface ISuperTokenFactory {
      * @param _underlyingToken Underlying ERC20 token
      * @return ISuperToken the created supertoken
      */
-    function createCanonicalERC20Wrapper(ERC20WithTokenInfo _underlyingToken)
+    function createCanonicalERC20Wrapper(IERC20Metadata _underlyingToken)
         external
         returns (ISuperToken);
 

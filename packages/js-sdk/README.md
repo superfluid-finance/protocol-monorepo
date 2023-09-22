@@ -72,8 +72,6 @@ await bob.flow({
     to interact with the host contract (Superfluid.sol).
 -   `sf.contracts` : The [truffle contract](https://www.trufflesuite.com/docs/truffle/reference/contract-abstractions) objects loaded by the SDK:
     -   `IERC20` : The ERC20 Interface.
-    -   `TokenInfo` : A customary ERC20 token info interface (name/symbol/decimals).
-    -   `ERC20WithTokenInfo` : A combination of IERC20 and TokenInfo.
     -   `TestToken` : A ERC20 Test token.
     -   `IResolver` : A simple resolver interface to locate different versions of the contracts.
     -   `ISuperfluid` : The Superfluid host contract interface.

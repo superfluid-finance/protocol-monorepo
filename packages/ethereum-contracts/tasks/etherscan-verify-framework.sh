@@ -77,6 +77,10 @@ if [ -n "$SUPERFLUID_GOVERNANCE" ]; then
     fi
 fi
 
+if [ -n "$SUPERFLUID_LOADER" ]; then
+    try_verify SuperfluidLoader@"${SUPERFLUID_LOADER}"
+fi
+
 if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC" ]; then
     try_verify SuperTokenFactory@"${SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC}"
 fi

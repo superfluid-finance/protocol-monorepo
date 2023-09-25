@@ -8,6 +8,9 @@ jobs:
     name: Run subgraph unit tests
     runs-on: ubuntu-latest
 
+    env:
+      subgraph-working-directory: ./packages/subgraph
+
     defaults:
       run:
         shell: nix develop -c bash -xe {0}
@@ -34,10 +37,14 @@ jobs:
       - name: "Build contracts"
         run: yarn build
         working-directory: ./packages/ethereum-contracts
+      
+      - name: "Build"
+        run: npx ts-node scripts/buildNetworkConfig.ts polygon-mainnet
+        working-directory: ${{ env.subgraph-working-directory }}
 
       - name: "Run unit tests"
         run: yarn matchstick
-        working-directory: ./packages/subgraph
+        working-directory: ${{ env.subgraph-working-directory }}
 
   subgraph-end-to-end-integration:
     name: Run subgraph integration tests

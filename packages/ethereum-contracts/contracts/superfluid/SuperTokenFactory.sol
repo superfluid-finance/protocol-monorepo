@@ -206,17 +206,14 @@ abstract contract SuperTokenFactoryBase is
         return superToken;
     }
 
-    /// @inheritdoc ISuperTokenFactory
     function createERC20Wrapper(
         IERC20Metadata underlyingToken,
         uint8 underlyingDecimals,
         Upgradability upgradability,
         string calldata name,
-        string calldata symbol
-    )
-        public override
-        returns (ISuperToken superToken)
-    {
+        string calldata symbol,
+        address adminOverride
+    ) public override returns (ISuperToken superToken) {
         if (address(underlyingToken) == address(0)) {
             revert SUPER_TOKEN_FACTORY_ZERO_ADDRESS();
         }
@@ -235,14 +232,57 @@ abstract contract SuperTokenFactoryBase is
         }
 
         // initialize the token
-        superToken.initialize(
+        superToken.initializeWithAdminOverride(
             underlyingToken,
             underlyingDecimals,
             name,
-            symbol
+            symbol,
+            adminOverride
         );
 
         emit SuperTokenCreated(superToken);
+    }
+
+    /// @inheritdoc ISuperTokenFactory
+    function createERC20Wrapper(
+        IERC20Metadata underlyingToken,
+        uint8 underlyingDecimals,
+        Upgradability upgradability,
+        string calldata name,
+        string calldata symbol
+    )
+        external override
+        returns (ISuperToken superToken)
+    {
+        return createERC20Wrapper(
+            underlyingToken,
+            underlyingDecimals,
+            upgradability,
+            name,
+            symbol,
+            address(0)
+        );
+    }
+
+    /// @inheritdoc ISuperTokenFactory
+    function createERC20Wrapper(
+        IERC20Metadata underlyingToken,
+        Upgradability upgradability,
+        string calldata name,
+        string calldata symbol,
+        address adminOverride
+    )
+        external override
+        returns (ISuperToken superToken)
+    {
+        return createERC20Wrapper(
+            underlyingToken,
+            underlyingToken.decimals(),
+            upgradability,
+            name,
+            symbol,
+            adminOverride
+        );
     }
 
     /// @inheritdoc ISuperTokenFactory
@@ -260,7 +300,8 @@ abstract contract SuperTokenFactoryBase is
             underlyingToken.decimals(),
             upgradability,
             name,
-            symbol
+            symbol,
+            address(0)
         );
     }
 

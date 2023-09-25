@@ -15,9 +15,13 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
+        
 
       - name: Send slack message
-        run: node tasks/daily-slack-bot.js 
+        working-directory: tasks
+        run: |
+          npm install ethers --force
+          node daily-slack-bot.js
         env: 
           CI_SLACK_WEBHOOK: ${{ secrets.CI_SLACK_WEBHOOK }}
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}

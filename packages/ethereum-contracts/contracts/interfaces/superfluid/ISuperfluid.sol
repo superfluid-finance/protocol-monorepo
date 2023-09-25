@@ -233,6 +233,13 @@ interface ISuperfluid {
      */
     event SuperTokenLogicUpdated(ISuperToken indexed token, address code);
 
+    /**
+     * @notice Change the SuperToken admin override
+     * @dev The admin override is the only account allowed to update the token logic
+     * For backward compatibility, the "host" is the default "admin" if unset (address(0)).
+     */
+    function changeSuperTokenAdmin(ISuperToken token, address newAdmin) external;
+
     /**************************************************************************
      * App Registry
      *************************************************************************/

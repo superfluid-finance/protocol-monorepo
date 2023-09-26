@@ -26,6 +26,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - `SuperTokenFactory.createERC20Wrapper()` overloads added to create a SuperToken AND explicitly initialize a SuperToken with an admin
 
 ### Changed
+- Reuse config keys from `SuperfluidGovernanceConfigs` instead of duplicating them in `ConstantFlowAgreementV1`.
 
 ## [v1.8.1] - 2023-08-28
 

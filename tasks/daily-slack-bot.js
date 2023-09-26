@@ -31,6 +31,9 @@ const greenImage =
 const whiteListedAddresses = [
     "0xb63e38d21b31719e6df314d3d2c351df0d4a9162", // Polygon Mainnet IDLEx
     "0xe01f8743677da897f4e7de9073b57bf034fc2433", // Optimism Goerli and Arbitrum Goerli ETHx, read and write as proxy still works fine
+    "0x00a27a8cf40d419fe581643f5c7d671e158ca4c3", // Old 2021 contract
+    "0x42c3f8648bb518ae5fd74a79b4df6406171095ae", // Old 2021 contract
+    "0xeb5748f9798b11af79f892f344f585e3a88aa784" // Old 2021 contract
 ]
 
 const networkSpecificData = {

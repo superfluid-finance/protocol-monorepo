@@ -681,7 +681,9 @@ contract FoundrySuperfluidTester is Test {
         localSuperToken = new SuperToken(
             sf.host,
             previousSuperToken.CONSTANT_OUTFLOW_NFT(),
-            previousSuperToken.CONSTANT_INFLOW_NFT()
+            previousSuperToken.CONSTANT_INFLOW_NFT(),
+            previousSuperToken.POOL_ADMIN_NFT(),
+            previousSuperToken.POOL_MEMBER_NFT()
         );
         localSuperToken.initializeWithAdminOverride(underlyingToken, underlyingDecimals, name, symbol, adminOverride);
     }

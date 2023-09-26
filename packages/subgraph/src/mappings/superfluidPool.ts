@@ -45,8 +45,6 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
 }
 
 export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
-    log.critical("brick it", []);
-
     // - PoolMember
     // - units
     const poolMember = getOrInitPoolMember(event, event.address, event.params.member);

@@ -21,15 +21,15 @@ export const echo = "0x15d34aaf54267db7d7c367839aaf71a00a2c6a65";
 export const superfluidPool = "0xd8da6bf26964af9d7eed9e03e53415d37aa96045";
 
 // contract addresses (polygon)
-export const hostAddress = "0xeb796bdb90ffa0f28255275e16936d25d3418603";
-export const cfaV1Address = "0x49e565ed1bdc17f3d220f72df0857c26fa83f873";
-export const idaV1Address = "0x804348d4960a61f2d5f9ce9103027a3e849e09b8";
-export const superTokenFactoryAddress = "0x200657e2f123761662567a1744f9acae50df47e6";
-export const superTokenLogicAddress = "0x7b043b577a10b06296fe0bd0402f5025d97a3839";
-export const resolverAddress = "0x8c54c83fbde3c59e59dd6e324531fb93d4f504d3";
+export const hostAddress = "0x3e14dc1b13c488a8d5d310918780c983bd5982e7";
+export const cfaV1Address = "0x6eee6060f715257b970700bc2656de21dedf074c";
+export const idaV1Address = "0xb0aabba4b2783a72c52956cdef62d438eca2d7a1";
+export const superTokenFactoryAddress = "0x2c90719f25b10fc5646c82da3240c76fa5bccf34";
+export const superTokenLogicAddress = "0x1349b5f1006ef0366a7b6ae41fa9155c6cd91e4b";
+export const resolverAddress = "0xe0cc76334405ee8b39213e620587d815967af39c";
 // this is not the actual TOGA
 export const togaAddress = "0x6aeaee5fd4d05a741723d752d30ee4d72690a8f7";
-export const maticXAddress = "0x96b82b65acf7072efeb00502f45757f254c2a0d4";
+export const maticXAddress = "0x3ad736904e9e65189c3000c7dd2c8ac8bb7cd4e3";
 export const maticXSymbol = "MATICx";
 export const maticXName = "Super MATIC";
 export const daiXAddress = "0x5d8b4c2554aeb7e86f387b4d6c00ac33499ed01f";

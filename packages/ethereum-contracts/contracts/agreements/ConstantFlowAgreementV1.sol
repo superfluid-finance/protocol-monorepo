@@ -66,12 +66,6 @@ contract ConstantFlowAgreementV1 is
     /// @dev Maximum flow rate
     uint256 public constant MAXIMUM_FLOW_RATE = uint256(uint96(type(int96).max));
 
-    bytes32 private constant CFAV1_PPP_CONFIG_KEY =
-        keccak256("org.superfluid-finance.agreements.ConstantFlowAgreement.v1.PPPConfiguration");
-
-    bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
-        keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
-
     // An arbitrarily chosen safety limit for the external calls to protect against out-of-gas grief exploits.
     // solhint-disable-next-line var-name-mixedcase
     uint64 constant public CFA_HOOK_GAS_LIMIT = 250000;
@@ -184,8 +178,11 @@ contract ConstantFlowAgreementV1 is
         // base case: 0 flow rate
         if (flowRate == 0) return 0;
          ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(_host).getGovernance());
-         uint256 minimumDeposit = gov.getConfigAsUint256(ISuperfluid(_host), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
-         uint256 pppConfig = gov.getConfigAsUint256(ISuperfluid(_host), token, CFAV1_PPP_CONFIG_KEY);
+        uint256 minimumDeposit = gov.getConfigAsUint256(
+            ISuperfluid(_host), token, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY
+        );
+        uint256 pppConfig =
+            gov.getConfigAsUint256(ISuperfluid(_host), token, SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY);
          (uint256 liquidationPeriod, ) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
          return _getDepositRequiredForFlowRatePure(minimumDeposit, liquidationPeriod, flowRate);
      }
@@ -1199,7 +1196,7 @@ contract ConstantFlowAgreementV1 is
             // https://github.com/superfluid-finance/protocol-monorepo/wiki/About-App-Credit
             // Allow apps to take an additional amount of app credit (minimum deposit)
             uint256 minimumDeposit = gov.getConfigAsUint256(
-                ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+                ISuperfluid(msg.sender), token, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
 
             // NOTE: we do not provide additionalAppCreditAmount when cbStates.appCreditGranted is 0
             // (closing streams)
@@ -1351,7 +1348,7 @@ contract ConstantFlowAgreementV1 is
                 (uint256 liquidationPeriod, ) = _decode3PsData(token);
                 ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(msg.sender).getGovernance());
                 minimumDeposit = gov.getConfigAsUint256(
-                    ISuperfluid(msg.sender), token, SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
+                    ISuperfluid(msg.sender), token, SuperfluidGovernanceConfigs.SUPERTOKEN_MINIMUM_DEPOSIT_KEY);
                 // rounding up the number for app credit too
                 // CAVEAT:
                 // - Now app could create a flow rate that is slightly higher than the incoming flow rate.
@@ -1640,7 +1637,8 @@ contract ConstantFlowAgreementV1 is
         returns(uint256 liquidationPeriod, uint256 patricianPeriod)
     {
         ISuperfluidGovernance gov = ISuperfluidGovernance(ISuperfluid(_host).getGovernance());
-        uint256 pppConfig = gov.getConfigAsUint256(ISuperfluid(_host), token, CFAV1_PPP_CONFIG_KEY);
+        uint256 pppConfig =
+            gov.getConfigAsUint256(ISuperfluid(_host), token, SuperfluidGovernanceConfigs.CFAV1_PPP_CONFIG_KEY);
         (liquidationPeriod, patricianPeriod) = SuperfluidGovernanceConfigs.decodePPPConfig(pppConfig);
     }
 

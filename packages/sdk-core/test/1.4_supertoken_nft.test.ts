@@ -119,6 +119,123 @@ makeSuite("SuperToken-NFT Tests", (testEnv: TestEnvironment) => {
                 "CFA_NFT_APPROVE_CALLER_NOT_OWNER_OR_APPROVED_FOR_ALL"
             );
         });
+
+        it("Should catch error in balanceOf", async () => {
+            try {
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.balanceOf(
+                    {
+                        owner: "0x",
+                        providerOrSigner: testEnv.alice,
+                    }
+                );
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "There was an error getting balanceOf"
+                );
+            }
+        });
+
+        it("Should catch error in getApproved", async () => {
+            try {
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.getApproved(
+                    {
+                        tokenId: "0x",
+                        providerOrSigner: testEnv.alice,
+                    }
+                );
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "There was an error getting getApproved"
+                );
+            }
+        });
+
+        it("Should catch error in isApprovedForAll", async () => {
+            try {
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.isApprovedForAll(
+                    {
+                        owner: "0x",
+                        operator: "0x",
+                        providerOrSigner: testEnv.alice,
+                    }
+                );
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "There was an error getting isApprovedForAll"
+                );
+            }
+        });
+
+        it("Should catch error in name", async () => {
+            try {
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.name({
+                    providerOrSigner: testEnv.alice,
+                });
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "There was an error getting name"
+                );
+            }
+        });
+
+        it("Should catch error in symbol", async () => {
+            try {
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.symbol({
+                    providerOrSigner: testEnv.alice,
+                });
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "There was an error getting symbol"
+                );
+            }
+        });
+
+        it("Should catch error in tokenURI", async () => {
+            try {
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.tokenURI(
+                    {
+                        tokenId: "0x",
+                        providerOrSigner: testEnv.alice,
+                    }
+                );
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "There was an error getting tokenURI"
+                );
+            }
+        });
+
+        it("Should catch error in getTokenId", async () => {
+            try {
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.getTokenId(
+                    {
+                        superToken: testEnv.wrapperSuperToken.address,
+                        sender: testEnv.alice.address,
+                        receiver: testEnv.bob.address,
+                        providerOrSigner: "testEnv.alice" as any,
+                    }
+                );
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "There was an error getting token id"
+                );
+            }
+        });
+
+        it("Should catch error in flowDataByTokenId", async () => {
+            try {
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.flowDataByTokenId(
+                    {
+                        tokenId: "0x",
+                        providerOrSigner: testEnv.alice,
+                    }
+                );
+            } catch (err: any) {
+                expect(err.message).to.contain(
+                    "There was an error getting flow data by token id"
+                );
+            }
+        });
     });
 
     describe("Happy Path Tests", () => {
@@ -197,6 +314,37 @@ makeSuite("SuperToken-NFT Tests", (testEnv: TestEnvironment) => {
                     }
                 );
             expect(balance.toString()).to.equal("1");
+        });
+
+        it("Should be able to get name", async () => {
+            const name =
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.name({
+                    providerOrSigner: testEnv.alice,
+                });
+            expect(name).to.equal("Constant Outflow NFT");
+        });
+
+        it("Should be able to get symbol", async () => {
+            const symbol =
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.symbol({
+                    providerOrSigner: testEnv.alice,
+                });
+            expect(symbol.toString()).to.equal("COF");
+        });
+
+        it("Should be able to get tokenURI", async () => {
+            const tokenId = await createFlow(testEnv);
+
+            const tokenURI =
+                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.tokenURI(
+                    {
+                        tokenId,
+                        providerOrSigner: testEnv.alice,
+                    }
+                );
+            expect(tokenURI).to.contain(
+                "https://nft.superfluid.finance/cfa/v2/getmeta?flowRate=385802469135802&outgoing=true&token_address=0x45d4ca85712c57f7d40810a90e84bd8af4b4d494&chain_id=31337&token_symbol=fDAIx&sender=0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266&receiver=0x70997970c51812dc3a010c7d01b50e0d17dc79c8&token_decimals=18&start_date="
+            );
         });
     });
 });

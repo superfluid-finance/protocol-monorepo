@@ -130,6 +130,23 @@ abstract contract SuperfluidGovernanceBase is ISuperfluidGovernance
         }
     }
 
+    function changeSuperTokenAdmin(ISuperfluid host, ISuperToken token, address newAdmin)
+        external
+        onlyAuthorized(host)
+    {
+        host.changeSuperTokenAdmin(token, newAdmin);
+    }
+
+    function batchChangeSuperTokenAdmin(ISuperfluid host, ISuperToken[] calldata token, address[] calldata newAdmins)
+        external
+        onlyAuthorized(host)
+    {
+        assert(token.length == newAdmins.length);
+        for (uint i = 0; i < token.length; ++i) {
+            host.changeSuperTokenAdmin(token[i], newAdmins[i]);
+        }
+    }
+
     event ConfigChanged(
         ISuperfluid indexed host,
         ISuperfluidToken indexed superToken,

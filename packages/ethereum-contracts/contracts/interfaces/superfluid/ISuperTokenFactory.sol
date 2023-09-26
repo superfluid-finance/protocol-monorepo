@@ -51,6 +51,27 @@ interface ISuperTokenFactory {
      * @param upgradability Upgradability mode
      * @param name Super token name
      * @param symbol Super token symbol
+     * @param adminOverride Admin address override
+     * @return superToken The deployed and initialized wrapper super token
+     */
+    function createERC20Wrapper(
+        IERC20Metadata underlyingToken,
+        uint8 underlyingDecimals,
+        Upgradability upgradability,
+        string calldata name,
+        string calldata symbol,
+        address adminOverride
+    )
+        external
+        returns (ISuperToken superToken);
+
+    /**
+     * @notice Create new super token wrapper for the underlying ERC20 token
+     * @param underlyingToken Underlying ERC20 token
+     * @param underlyingDecimals Underlying token decimals
+     * @param upgradability Upgradability mode
+     * @param name Super token name
+     * @param symbol Super token symbol
      * @return superToken The deployed and initialized wrapper super token
      */
     function createERC20Wrapper(
@@ -59,6 +80,25 @@ interface ISuperTokenFactory {
         Upgradability upgradability,
         string calldata name,
         string calldata symbol
+    )
+        external
+        returns (ISuperToken superToken);
+
+    /**
+     * @notice Create new super token wrapper for the underlying ERC20 token
+     * @param underlyingToken Underlying ERC20 token
+     * @param upgradability Upgradability mode
+     * @param name Super token name
+     * @param symbol Super token symbol
+     * @param adminOverride Admin address override
+     * @return superToken The deployed and initialized wrapper super token
+     */
+    function createERC20Wrapper(
+        IERC20Metadata underlyingToken,
+        Upgradability upgradability,
+        string calldata name,
+        string calldata symbol,
+        address adminOverride
     )
         external
         returns (ISuperToken superToken);

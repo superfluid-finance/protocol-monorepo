@@ -55,6 +55,31 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
     /// @dev SuperToken name and symbol format: `Super ${_underlyingSymbol}` and `${_underlyingSymbol}x`, respectively
     /// @param _underlyingName The underlying token name
     /// @param _underlyingSymbol The token symbol
+    /// @param _decimals The token decimals
+    /// @param _mintLimit The mint limit of the underlying token
+    /// @param adminOverride The admin override address for the Super Token
+    /// @return underlyingToken and superToken
+    function deployWrapperSuperToken(
+        string calldata _underlyingName,
+        string calldata _underlyingSymbol,
+        uint8 _decimals,
+        uint256 _mintLimit,
+        address adminOverride
+    )
+        external
+        requiresSuperTokenFactory
+        deploySuperTokenRequires1820
+        returns (TestToken underlyingToken, SuperToken superToken)
+    {
+        return _deployWrapperSuperToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit, adminOverride);
+    }
+
+    /// @notice Deploys an ERC20 and a Wrapper Super Token for the ERC20 and lists both in the resolver
+    /// @dev SuperToken name and symbol format: `Super ${_underlyingSymbol}` and `${_underlyingSymbol}x`, respectively
+    /// @param _underlyingName The underlying token name
+    /// @param _underlyingSymbol The token symbol
+    /// @param _decimals The token decimals
+    /// @param _mintLimit The mint limit of the underlying token
     /// @return underlyingToken and superToken
     function deployWrapperSuperToken(
         string calldata _underlyingName,
@@ -67,29 +92,7 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         deploySuperTokenRequires1820
         returns (TestToken underlyingToken, SuperToken superToken)
     {
-        underlyingToken =
-            TokenDeployerLibrary.deployTestToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit);
-
-        string memory superTokenSymbol = string.concat(_underlyingSymbol, "x");
-
-        superToken = SuperToken(
-            address(
-                superTokenFactory.createERC20Wrapper(
-                    IERC20Metadata(address(underlyingToken)),
-                    ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
-                    string.concat("Super ", _underlyingSymbol),
-                    superTokenSymbol
-                )
-            )
-        );
-
-        // list underlying token in resolver
-        string memory underlyingTokenKey = string.concat(RESOLVER_BASE_TOKEN_KEY, underlyingToken.symbol());
-        _handleResolverList(true, underlyingTokenKey, address(underlyingToken));
-
-        // list super token in resolver
-        string memory superTokenKey = string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, superToken.symbol());
-        _handleResolverList(true, superTokenKey, address(superToken));
+        return _deployWrapperSuperToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit, address(0));
     }
 
     /// @notice Deploys a Native Asset Super Token and lists it in the resolver
@@ -143,6 +146,40 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         if (_listOnResolver) {
             testResolver.set(_resolverKey, address(_superTokenAddress));
         }
+    }
+
+    function _deployWrapperSuperToken(
+        string calldata _underlyingName,
+        string calldata _underlyingSymbol,
+        uint8 _decimals,
+        uint256 _mintLimit,
+        address _adminOverride
+    ) internal returns (TestToken underlyingToken, SuperToken superToken) {
+        underlyingToken =
+            TokenDeployerLibrary.deployTestToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit);
+
+        string memory superTokenSymbol = string.concat(_underlyingSymbol, "x");
+
+        superToken = SuperToken(
+            address(
+                superTokenFactory.createERC20Wrapper(
+                    IERC20Metadata(address(underlyingToken)),
+                    underlyingToken.decimals(),
+                    ISuperTokenFactory.Upgradability.SEMI_UPGRADABLE,
+                    string.concat("Super ", _underlyingSymbol),
+                    superTokenSymbol,
+                    _adminOverride
+                )
+            )
+        );
+
+        // list underlying token in resolver
+        string memory underlyingTokenKey = string.concat(RESOLVER_BASE_TOKEN_KEY, underlyingToken.symbol());
+        _handleResolverList(true, underlyingTokenKey, address(underlyingToken));
+
+        // list super token in resolver
+        string memory superTokenKey = string.concat(RESOLVER_BASE_SUPER_TOKEN_KEY, superToken.symbol());
+        _handleResolverList(true, superTokenKey, address(superToken));
     }
 
     modifier requiresSuperTokenFactory() {

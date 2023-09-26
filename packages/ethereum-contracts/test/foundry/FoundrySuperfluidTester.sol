@@ -21,7 +21,7 @@ import { UUPSProxy } from "../../contracts/upgradability/UUPSProxy.sol";
 import { ConstantFlowAgreementV1 } from "../../contracts/agreements/ConstantFlowAgreementV1.sol";
 import { IGeneralDistributionAgreementV1 } from "../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
 import { SuperTokenV1Library } from "../../contracts/apps/SuperTokenV1Library.sol";
-import { ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
+import { IERC20, ISuperToken, SuperToken } from "../../contracts/superfluid/SuperToken.sol";
 import { SuperfluidLoader } from "../../contracts/utils/SuperfluidLoader.sol";
 import { TestResolver } from "../../contracts/utils/TestResolver.sol";
 import { TestToken } from "../../contracts/utils/TestToken.sol";
@@ -660,6 +660,7 @@ contract FoundrySuperfluidTester is Test {
         }
     }
 
+    // Write Helpers - SuperToken
     function _helperTransferAll(ISuperToken superToken_, address sender, address receiver) internal {
         vm.startPrank(sender);
         superToken_.transferAll(receiver);
@@ -667,6 +668,22 @@ contract FoundrySuperfluidTester is Test {
 
         _helperTakeBalanceSnapshot(superToken_, sender);
         _helperTakeBalanceSnapshot(superToken_, receiver);
+    }
+
+    function _helperDeploySuperTokenAndInitialize(
+        ISuperToken previousSuperToken,
+        IERC20 underlyingToken,
+        uint8 underlyingDecimals,
+        string memory name,
+        string memory symbol,
+        address adminOverride
+    ) internal returns (SuperToken localSuperToken) {
+        localSuperToken = new SuperToken(
+            sf.host,
+            previousSuperToken.CONSTANT_OUTFLOW_NFT(),
+            previousSuperToken.CONSTANT_INFLOW_NFT()
+        );
+        localSuperToken.initializeWithAdminOverride(underlyingToken, underlyingDecimals, name, symbol, adminOverride);
     }
 
     // Write Helpers - ConstantFlowAgreementV1

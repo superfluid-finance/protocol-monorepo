@@ -2,6 +2,7 @@
 pragma solidity 0.8.19;
 
 import "../FoundrySuperfluidTester.sol";
+import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.sol";
 import { SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { SuperTokenV1Library } from "../../../contracts/apps/SuperTokenV1Library.sol";
 import { ISuperAgreement } from "../../../contracts/interfaces/superfluid/ISuperAgreement.sol";
@@ -49,6 +50,37 @@ contract SuperfluidIntegrationTest is FoundrySuperfluidTester {
         vm.startPrank(sf.governance.owner());
         vm.expectRevert(ISuperfluid.HOST_MAX_256_AGREEMENTS.selector);
         sf.governance.registerAgreementClass(sf.host, address(badmock));
+        vm.stopPrank();
+    }
+
+    function testChangeSuperTokenAdmin(address newAdmin) public {
+        vm.startPrank(address(sf.governance));
+        sf.host.changeSuperTokenAdmin(superToken, newAdmin);
+        vm.stopPrank();
+
+        assertEq(superToken.getAdminOverride().admin, newAdmin, "Superfluid.t: super token admin not changed");
+    }
+
+    function testRevertChangeSuperTokenAdminWhenHostIsNotAdminOverride(address initialAdmin, address newAdmin) public {
+        vm.assume(initialAdmin != address(0));
+        vm.assume(newAdmin != address(0));
+        vm.assume(initialAdmin != address(sf.host));
+
+        vm.startPrank(address(sf.host));
+        superToken.changeAdmin(initialAdmin);
+        vm.stopPrank();
+
+        vm.startPrank(address(sf.governance));
+        vm.expectRevert(ISuperToken.SUPER_TOKEN_ONLY_ADMIN.selector);
+        sf.host.changeSuperTokenAdmin(superToken, newAdmin);
+        vm.stopPrank();
+    }
+
+    function testRevertChangeSuperTokenAdminWhenNotGovernanceCalling(address newAdmin) public {
+        vm.assume(newAdmin != address(sf.governance));
+        vm.startPrank(newAdmin);
+        vm.expectRevert(ISuperfluid.HOST_ONLY_GOVERNANCE.selector);
+        sf.host.changeSuperTokenAdmin(superToken, newAdmin);
         vm.stopPrank();
     }
 }

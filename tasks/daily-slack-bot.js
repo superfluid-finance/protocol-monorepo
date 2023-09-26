@@ -1,4 +1,5 @@
 const https = require("https");
+const ethers = require("ethers")
 
 const workflowPath =
     "https://api.github.com/repos/superfluid-finance/protocol-monorepo/actions/runs?per_page=100";
@@ -18,8 +19,7 @@ const topSectionMessage =
     "Looks like there are some lonely pull requests open in your area";
 const workflowFileName = ".github/workflows/ci.canary.yml";
 const metadataLink =
-    "https://raw.githubusercontent.com/superfluid-finance/metadata/master/networks.json";
-
+    "https://raw.githubusercontent.com/superfluid-finance/protocol-monorepo/dev/packages/metadata/networks.json";
 const redImage =
     "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/Solid_red.svg/512px-Solid_red.svg.png?20150316143248";
 const orangeImage =
@@ -100,6 +100,8 @@ const networkSpecificData = {
     },
 };
 
+const superTokenFactoryABI = [{ "inputs": [{ "internalType": "contract ISuperfluid", "name": "host", "type": "address" }, { "internalType": "contract ISuperToken", "name": "superTokenLogic", "type": "address" }, { "internalType": "contract IConstantOutflowNFT", "name": "constantOutflowNFTLogic", "type": "address" }, { "internalType": "contract IConstantInflowNFT", "name": "constantInflowNFTLogic", "type": "address" }, { "internalType": "contract IPoolAdminNFT", "name": "poolAdminNFT", "type": "address" }, { "internalType": "contract IPoolMemberNFT", "name": "poolMemberNFT", "type": "address" }], "stateMutability": "nonpayable", "type": "constructor" }, { "inputs": [], "name": "SUPER_TOKEN_FACTORY_ALREADY_EXISTS", "type": "error" }, { "inputs": [], "name": "SUPER_TOKEN_FACTORY_DOES_NOT_EXIST", "type": "error" }, { "inputs": [], "name": "SUPER_TOKEN_FACTORY_NON_UPGRADEABLE_IS_DEPRECATED", "type": "error" }, { "inputs": [], "name": "SUPER_TOKEN_FACTORY_ONLY_GOVERNANCE_OWNER", "type": "error" }, { "inputs": [], "name": "SUPER_TOKEN_FACTORY_ONLY_HOST", "type": "error" }, { "inputs": [], "name": "SUPER_TOKEN_FACTORY_UNINITIALIZED", "type": "error" }, { "inputs": [], "name": "SUPER_TOKEN_FACTORY_ZERO_ADDRESS", "type": "error" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "bytes32", "name": "uuid", "type": "bytes32" }, { "indexed": false, "internalType": "address", "name": "codeAddress", "type": "address" }], "name": "CodeUpdated", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "contract ISuperToken", "name": "token", "type": "address" }], "name": "CustomSuperTokenCreated", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": false, "internalType": "uint8", "name": "version", "type": "uint8" }], "name": "Initialized", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "contract ISuperToken", "name": "token", "type": "address" }], "name": "SuperTokenCreated", "type": "event" }, { "anonymous": false, "inputs": [{ "indexed": true, "internalType": "contract ISuperToken", "name": "tokenLogic", "type": "address" }], "name": "SuperTokenLogicCreated", "type": "event" }, { "inputs": [], "name": "CONSTANT_INFLOW_NFT_LOGIC", "outputs": [{ "internalType": "contract IConstantInflowNFT", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "CONSTANT_OUTFLOW_NFT_LOGIC", "outputs": [{ "internalType": "contract IConstantOutflowNFT", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "POOL_ADMIN_NFT_LOGIC", "outputs": [{ "internalType": "contract IPoolAdminNFT", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "POOL_MEMBER_NFT_LOGIC", "outputs": [{ "internalType": "contract IPoolMemberNFT", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "_SUPER_TOKEN_LOGIC", "outputs": [{ "internalType": "contract ISuperToken", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "castrate", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "_underlyingToken", "type": "address" }], "name": "computeCanonicalERC20WrapperAddress", "outputs": [{ "internalType": "address", "name": "superTokenAddress", "type": "address" }, { "internalType": "bool", "name": "isDeployed", "type": "bool" }], "stateMutability": "view", "type": "function" }, { "inputs": [{ "internalType": "contract ERC20WithTokenInfo", "name": "_underlyingToken", "type": "address" }], "name": "createCanonicalERC20Wrapper", "outputs": [{ "internalType": "contract ISuperToken", "name": "", "type": "address" }], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "contract ERC20WithTokenInfo", "name": "underlyingToken", "type": "address" }, { "internalType": "enum ISuperTokenFactory.Upgradability", "name": "upgradability", "type": "uint8" }, { "internalType": "string", "name": "name", "type": "string" }, { "internalType": "string", "name": "symbol", "type": "string" }], "name": "createERC20Wrapper", "outputs": [{ "internalType": "contract ISuperToken", "name": "superToken", "type": "address" }], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "contract IERC20", "name": "underlyingToken", "type": "address" }, { "internalType": "uint8", "name": "underlyingDecimals", "type": "uint8" }, { "internalType": "enum ISuperTokenFactory.Upgradability", "name": "upgradability", "type": "uint8" }, { "internalType": "string", "name": "name", "type": "string" }, { "internalType": "string", "name": "symbol", "type": "string" }], "name": "createERC20Wrapper", "outputs": [{ "internalType": "contract ISuperToken", "name": "superToken", "type": "address" }], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "_underlyingTokenAddress", "type": "address" }], "name": "getCanonicalERC20Wrapper", "outputs": [{ "internalType": "address", "name": "superTokenAddress", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "getCodeAddress", "outputs": [{ "internalType": "address", "name": "codeAddress", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "getHost", "outputs": [{ "internalType": "address", "name": "host", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "getSuperTokenLogic", "outputs": [{ "internalType": "contract ISuperToken", "name": "", "type": "address" }], "stateMutability": "view", "type": "function" }, { "inputs": [], "name": "initialize", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "components": [{ "internalType": "address", "name": "underlyingToken", "type": "address" }, { "internalType": "address", "name": "superToken", "type": "address" }], "internalType": "struct SuperTokenFactoryBase.InitializeData[]", "name": "_data", "type": "tuple[]" }], "name": "initializeCanonicalWrapperSuperTokens", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "customSuperTokenProxy", "type": "address" }], "name": "initializeCustomSuperToken", "outputs": [], "stateMutability": "nonpayable", "type": "function" }, { "inputs": [], "name": "proxiableUUID", "outputs": [{ "internalType": "bytes32", "name": "", "type": "bytes32" }], "stateMutability": "pure", "type": "function" }, { "inputs": [{ "internalType": "address", "name": "newAddress", "type": "address" }], "name": "updateCode", "outputs": [], "stateMutability": "nonpayable", "type": "function" }]
+
 async function getDataAsJson(url) {
     let options = {
         headers: {
@@ -159,6 +161,18 @@ async function sendMessageToSlack(data) {
     req.end();
 }
 
+async function getSuperTokenLogicAddress(network) {
+    const rpcUrl = "https://rpc-endpoints.superfluid.dev/" + network.name
+    const provider = new ethers.JsonRpcProvider(rpcUrl)
+    const contract = new ethers.Contract(network.contractsV1.superTokenFactory, superTokenFactoryABI, provider)
+    try {
+        return await contract.getSuperTokenLogic()
+    } catch (e) {
+        console.log(e)
+    }
+}
+
+
 async function checkNetworkContractVerification(network) {
     if (networkSpecificData[network.name] === undefined) {
         return "";
@@ -167,6 +181,17 @@ async function checkNetworkContractVerification(network) {
     contractsToCheck.nativeTokenWrapper = network.nativeTokenWrapper;
     contractsToCheck.wrapperToken =
         networkSpecificData[network.name].wrapperTokenAddress;
+    contractsToCheck.superTokenLogic = await getSuperTokenLogicAddress(network)
+    if (network.contractsV1.autowrap) {
+        contractsToCheck.autoWrapManager = network.contractsV1.autowrap.manager
+        contractsToCheck.autoWrapStrategy = network.contractsV1.autowrap.wrapStrategy
+        delete network.contractsV1.autowrap
+    }
+    const networkTokenAddressList = await getNetworkTokenAddressList(network);
+    contractsToCheck = {
+        ...contractsToCheck,
+        ...networkTokenAddressList
+    };
     let networkMessage = "";
     for (const [contractName, address] of Object.entries(contractsToCheck)) {
         networkMessage += await checkIndividualContractVerification(
@@ -183,6 +208,56 @@ async function checkNetworkContractVerification(network) {
     }
 }
 
+async function getNetworkTokenAddressList(network) {
+    return new Promise((resolve, reject) => {
+        let response = '';
+        const hostName = network.subgraphV1.hostedEndpoint ? "api.thegraph.com" : "subgraph.satsuma-prod.com";
+        const path = network.subgraphV1.hostedEndpoint ? network.subgraphV1.hostedEndpoint.split(hostName)[1] : network.subgraphV1.satsumaEndpoint.split(hostName)[1];
+        let options = {
+            headers: {
+                "Content-Type": "application/json",
+                "User-Agent": "Elvi.js slack bot",
+            },
+            hostname: hostName,
+            path: path,
+            method: "POST",
+        };
+
+        const req = https
+            .request(options, (res) => {
+                console.log("Status Code:", res.statusCode);
+
+                res.on("data", (chunk) => {
+                    response += chunk.toString();
+                });
+
+                res.on("end", () => {
+                    try {
+                        const parsedResponse = JSON.parse(response);
+                        const newObject = {};
+                        parsedResponse.data.tokens.forEach((token) => {
+                            newObject[token.symbol] = token.id;
+                        });
+                        resolve(newObject);
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            })
+            .on("error", (err) => {
+                console.log("Error: ", err.message);
+                reject(err);
+            });
+
+        req.write(
+            JSON.stringify({
+                query: "query {  tokens(where: {isListed: true}) {    symbol    id  }}",
+            })
+        );
+        req.end();
+    });
+}
+
 async function checkIndividualContractVerification(
     network,
     contractName,
@@ -197,7 +272,7 @@ async function checkIndividualContractVerification(
     if (result.status === undefined) {
         throw new Error(`Failed checking ${contractName}: ${contractAddress}`);
     }
-    if(result.result === "Invalid API Key") {
+    if (result.result === "Invalid API Key") {
         throw new Error(`Invalid API key for ${network.name}}`);
     }
     if (
@@ -235,8 +310,8 @@ async function checkIndividualContractVerification(
     const lastWorkflowId = lastWorkflow.id;
     const lastWorkflowUsage = await getDataAsJson(
         "https://api.github.com/repos/superfluid-finance/protocol-monorepo/actions/runs/" +
-            lastWorkflowId +
-            "/timing"
+        lastWorkflowId +
+        "/timing"
     );
 
     const workflowStatus = lastWorkflow.status;
@@ -257,8 +332,8 @@ async function checkIndividualContractVerification(
     async function getPrOldestCommit(prJson) {
         let allCommits = await getDataAsJson(
             "https://api.github.com/repos/superfluid-finance/protocol-monorepo/pulls/" +
-                prJson.number +
-                "/commits"
+            prJson.number +
+            "/commits"
         );
         return allCommits[allCommits.length - 1];
     }
@@ -450,14 +525,14 @@ async function checkIndividualContractVerification(
             addSectionWithImage(
                 webhookPayload,
                 "Please have a look at: *<" +
-                    oldestDraftPRUrl +
-                    "|" +
-                    oldestDraftPRTitle +
-                    ">*\nColumbus would have went to America " +
-                    americaTrips +
-                    " times already by this time ,do something with this as this has been open for *" +
-                    lastDraftPrUpdateBeforeDays +
-                    "* days",
+                oldestDraftPRUrl +
+                "|" +
+                oldestDraftPRTitle +
+                ">*\nColumbus would have went to America " +
+                americaTrips +
+                " times already by this time ,do something with this as this has been open for *" +
+                lastDraftPrUpdateBeforeDays +
+                "* days",
                 redWarningIcon,
                 "It took them 36 days"
             );
@@ -482,10 +557,10 @@ async function checkIndividualContractVerification(
         } else {
             let draftMessage = oldestDraftPR
                 ? "There are no open PRs????? *<" +
-                  allPullRequests +
-                  "|" +
-                  amountOfDraftPRs +
-                  " pull requests are in draft , you might want to look into those>*"
+                allPullRequests +
+                "|" +
+                amountOfDraftPRs +
+                " pull requests are in draft , you might want to look into those>*"
                 : "There are no open and draft PRs? What is this, why u no work, you might want to read this:\n*<https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request|How to create a pull request>*";
             addSectionWithImage(
                 webhookPayload,
@@ -516,9 +591,9 @@ async function checkIndividualContractVerification(
             addContextWithImage(
                 webhookPayload,
                 "*The PR has been last updated before " +
-                    lastUpdatedBeforeDays +
-                    " days*\nLast commit: " +
-                    oldestPRMessage,
+                lastUpdatedBeforeDays +
+                " days*\nLast commit: " +
+                oldestPRMessage,
                 imageToAddToContext,
                 imageText
             );

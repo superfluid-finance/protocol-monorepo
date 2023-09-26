@@ -111,7 +111,9 @@ deploy_to_superfluid() {
 }
 
 # Vendor specific function dispatcher
-# Expected arguments: vendor, canonical network name
+# Expected arguments: 
+# $1 - vendor
+# $2 - canonical network name
 deploy_to() {
     local vendor="$1"
     local network="$2"
@@ -124,6 +126,8 @@ deploy_to() {
         echo "The network, $network, is currently not on the list of networks supported by $vendor."
         exit 1
     fi
+
+    npx ts-node ./scripts/buildNetworkConfig.ts "$network"
 
     # prepare the manifest prior to deployment
     # this generates the subgraph.yaml and

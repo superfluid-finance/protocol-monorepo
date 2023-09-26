@@ -18,8 +18,8 @@
         "pretest": "yarn testenv:start",
         "test": "npx hardhat test",
         "matchstick": "run-s matchstick:*",
-        "matchstick:prepare-manifest": "mustache config/polygon-mumbai.json subgraph.template.yaml > subgraph.yaml",
-        "matchstick:prepare-addresses": "mustache config/polygon-mumbai.json src/addresses.template.ts > src/addresses.ts",
+        "matchstick:prepare-manifest": "mustache config/polygon-mainnet.json subgraph.template.yaml > subgraph.yaml",
+        "matchstick:prepare-addresses": "mustache config/polygon-mainnet.json src/addresses.template.ts > src/addresses.ts",
         "matchstick:prepare-generated": "yarn getAbi && yarn codegen && yarn generate-sf-meta-local",
         "matchstick:test": "graph test",
         "dev": "yarn matchstick && nodemon -e ts -x yarn matchstick:test",
@@ -55,7 +55,7 @@
         "mustache": "^4.2.0"
     },
     "devDependencies": {
-        "@superfluid-finance/metadata": "1.1.16",
+        "@superfluid-finance/metadata": "1.1.17",
         "coingecko-api": "^1.0.10",
         "graphql": "^16.8.0",
         "graphql-request": "^6.1.0",

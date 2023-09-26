@@ -69,11 +69,10 @@ export default class FlowNFTBase extends ERC721MetadataToken {
         tokenId: string;
         providerOrSigner: ethers.providers.Provider | ethers.Signer;
     }): Promise<NFTFlowData> => {
-        const normalizedTokenId = normalizeAddress(tokenId);
         try {
             const flowData = await this.contract
                 .connect(providerOrSigner)
-                .flowDataByTokenId(normalizedTokenId);
+                .flowDataByTokenId(tokenId);
             return this._sanitizeNFTFlowData(flowData);
         } catch (err) {
             throw new SFError({

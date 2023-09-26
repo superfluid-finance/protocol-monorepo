@@ -3,7 +3,6 @@ import { ethers } from "ethers";
 import { makeSuite, TestEnvironment } from "./TestEnvironment";
 
 makeSuite("SuperToken-IDA Tests", (testEnv: TestEnvironment) => {
-    // Note: Alpha will create the Index which Deployer and Bravo
     describe("Revert cases", () => {
         it("Should throw an error if one of the input addresses is invalid", async () => {
             try {

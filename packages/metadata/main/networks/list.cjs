@@ -76,7 +76,6 @@ module.exports =
         "contractsV1": {
             "resolver": "0x8C54C83FbDe3C59e59dd6E324531FB93d4F504d3",
             "host": "0xEB796bdb90fFA0f28255275e16936D25d3418603",
-            "governance": "0x2637eA93EE5cd887ff9AC98185eA67Bd70C5f62e",
             "cfaV1": "0x49e565Ed1bdc17F3d220f72DF0857C26FA83F873",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0x804348D4960a61f2d5F9ce9103027A3E849E09b8",
@@ -139,7 +138,6 @@ module.exports =
         "contractsV1": {
             "resolver": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
             "host": "0xE40983C2476032A0915600b9472B3141aA5B5Ba9",
-            "governance": "0x777Be25F9fdcA87e8a0E06Ad4be93d65429FCb9f",
             "cfaV1": "0xff48668fa670A85e55A7a822b352d5ccF3E7b18C",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0x96215257F2FcbB00135578f766c0449d239bd92F",
@@ -181,7 +179,6 @@ module.exports =
         "contractsV1": {
             "resolver": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
             "host": "0xE40983C2476032A0915600b9472B3141aA5B5Ba9",
-            "governance": "0x777Be25F9fdcA87e8a0E06Ad4be93d65429FCb9f",
             "cfaV1": "0xff48668fa670A85e55A7a822b352d5ccF3E7b18C",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0x96215257F2FcbB00135578f766c0449d239bd92F",
@@ -222,7 +219,6 @@ module.exports =
         "contractsV1": {
             "resolver": "0xf0ec6A8842Ca72Aec8A4D4573E731242389e18A8",
             "host": "0x85Fe79b998509B77BF10A8BD4001D58475D29386",
-            "governance": "0xA55632254Bc9F739bDe7191c8a4510aDdae3ef6D",
             "cfaV1": "0x16843ac25Ccc58Aa7960ba05f61cBB17b36b130A",
             "cfaV1Forwarder": "0x2CDd45c5182602a36d391F7F16DD9f8386C3bD8D",
             "idaV1": "0xA44dEC7A0Dde1a56AeDe4143C1ef89cf5d956782",
@@ -268,7 +264,6 @@ module.exports =
         "contractsV1": {
             "resolver": "0x6813edE4E78ecb830d380d0F7F684c12aAc95F02",
             "host": "0x109412E3C84f0539b43d39dB691B08c90f58dC7c",
-            "governance": "0x21d4E9fbB9DB742E6ef4f29d189a7C18B0b59136",
             "cfaV1": "0x6836F23d6171D74Ef62FcF776655aBcD2bcd62Ef",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0x9358C7dCCc6B8CA6F526311e8ac266F8C861B7ea",
@@ -304,7 +299,6 @@ module.exports =
         "contractsV1": {
             "resolver": "0x598D5dB9902cbBd6e8Ee9CDb3A231377cdA2f018",
             "host": "0x507c3a7C6Ccc253884A2e3a3ee2A211cC7E796a6",
-            "governance": "0xbe20Bac0DCF6f01834F51CCDab2dD72707C6e9b6",
             "cfaV1": "0x4C476F2Fb27272680F2f6f2592E94d9e704691bC",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0xaa4FCc799B8857FA87b2945Dc6572D5d76b35485",
@@ -343,7 +337,6 @@ module.exports =
         "contractsV1": {
             "resolver": "0x642332562BC60a4Bd9681E7bb1588f7456A497aC",
             "host": "0xe64f81d5dDdA1c7172e5C6d964E8ef1BD82D8704",
-            "governance": "0xF21019b8688e7730Ca6D9002569eCBaF8d1A3083",
             "cfaV1": "0x1EAa5ceA064aab2692AF257FB31f5291fdA3Cdee",
             "cfaV1Forwarder": "0xcfA132E353cB4E398080B9700609bb008eceB125",
             "idaV1": "0xBf22019a4A4430bA67D3B0c8B4d5Edc48F913301",
@@ -393,7 +386,6 @@ module.exports =
             "flowScheduler": "0x9cC7fc484fF588926149577e9330fA5b2cA74336",
             "vestingScheduler": "0x0170FFCC75d178d426EBad5b1a31451d00Ddbd0D",
             "wrapManager": "0x7a2899D179a8F205C8EDAd2e52954cA5f6d48D1A",
-            "wrapStrategy": "0xc3B7f0b221a002fE8Fc93b4Ef9BB6362950510F2",
             "autowrap": {
                 "manager": "0x8082e58681350876aFe8f52d3Bf8672034A03Db0",
                 "wrapStrategy": "0x51FBAbD31A615E14b1bC12E9d887f60997264a4E"

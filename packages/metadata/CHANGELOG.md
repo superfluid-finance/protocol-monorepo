@@ -3,6 +3,11 @@ All notable changes to the metadata will be documented in this file.
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.1.17]
+### Fixed
+- Removed `governance` from testnets, changes frequently and can't be reliably kept up to date here
+- Removed wrong contract entry for xdai-mainnet
+
 ## [v1.1.16]
 ### Fixed
 - Fixed `gdaV1` address for `avalanche-fuji`

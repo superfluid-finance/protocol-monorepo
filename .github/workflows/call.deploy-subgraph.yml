@@ -97,6 +97,10 @@ jobs:
         run: "yarn codegen"
         working-directory: ${{ env.subgraph-working-directory }}
 
+      - name: Get Hosted Service Networks from metadata
+        run: npx ts-node ./scripts/getHostedServiceNetworks.ts
+        working-directory: ${{ env.subgraph-working-directory }}
+
       # - name: Ensure deployment_env property is passed
       #   run: |
       #     if [ "${{ inputs.deployment_env }}" == "" ];then

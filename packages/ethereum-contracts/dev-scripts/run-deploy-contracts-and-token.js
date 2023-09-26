@@ -1,7 +1,7 @@
 const fs = require("fs");
 const {ethers} = require("hardhat");
-const superTokenFactoryArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/superfluid/SuperTokenFactory.sol/SuperTokenFactory.json");
-const superTokenArtifact = require("@superfluid-finance/ethereum-contracts/artifacts/contracts/superfluid/SuperToken.sol/SuperToken.json");
+const superTokenFactoryArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/superfluid/SuperTokenFactory.sol/SuperTokenFactory.json");
+const superTokenArtifact = require("@superfluid-finance/ethereum-contracts/build/hardhat/contracts/superfluid/SuperToken.sol/SuperToken.json");
 const {deployContractsAndToken} = require("./deploy-contracts-and-token");
 
 deployContractsAndToken()

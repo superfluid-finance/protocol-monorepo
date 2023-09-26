@@ -7,6 +7,7 @@ interface SubgraphConfig {
     readonly hostAddress: string;
     readonly cfaAddress: string;
     readonly idaAddress: string;
+    readonly gdaAddress: string;
     readonly superTokenFactoryAddress: string;
     readonly resolverV1Address: string;
     readonly nativeAssetSuperTokenAddress: string;
@@ -27,6 +28,7 @@ function main() {
         hostAddress: networkMetadata.contractsV1.host,
         cfaAddress: networkMetadata.contractsV1.cfaV1,
         idaAddress: networkMetadata.contractsV1.idaV1,
+        gdaAddress: networkMetadata.contractsV1.gdaV1,
         superTokenFactoryAddress: networkMetadata.contractsV1.superTokenFactory,
         resolverV1Address: networkMetadata.contractsV1.resolver,
         nativeAssetSuperTokenAddress: networkMetadata.nativeTokenWrapper,

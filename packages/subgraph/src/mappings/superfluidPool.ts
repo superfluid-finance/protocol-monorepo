@@ -1,3 +1,4 @@
+import { log } from "@graphprotocol/graph-ts";
 import {
     DistributionClaimed,
     MemberUnitsUpdated,
@@ -19,8 +20,6 @@ import { BIG_INT_ZERO, createEventID, initializeEventEntity, membershipWithUnits
 
 export function handleDistributionClaimed(event: DistributionClaimed): void {
     const token = event.params.token;
-    // Create Event Entity
-    _createDistributionClaimedEntity(event);
 
     // Update Pool
     let pool = getOrInitPool(event, event.address.toHex());
@@ -40,11 +39,13 @@ export function handleDistributionClaimed(event: DistributionClaimed): void {
     // Update ATS
     updateATSStreamedAndBalanceUntilUpdatedAt(event.params.member, token, event.block, null);
     _createAccountTokenSnapshotLogEntity(event, event.params.member, token, eventName);
+
+    // Create Event Entity
+    _createDistributionClaimedEntity(event);
 }
 
 export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
-    // Create Event Entity
-    _createMemberUnitsUpdatedEntity(event);
+    log.critical("brick it", []);
 
     // - PoolMember
     // - units
@@ -124,6 +125,9 @@ export function handleMemberUnitsUpdated(event: MemberUnitsUpdated): void {
             false // isIDA
         );
     }
+
+    // Create Event Entity
+    _createMemberUnitsUpdatedEntity(event);
 }
 
 function _createDistributionClaimedEntity(event: DistributionClaimed): DistributionClaimedEvent {

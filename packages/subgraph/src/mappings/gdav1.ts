@@ -38,8 +38,6 @@ import {
 
 export function handlePoolCreated(event: PoolCreated): void {
     const eventName = "PoolCreated";
-    // Create Event Entity
-    _createPoolCreatedEntity(event);
 
     const pool = getOrInitPool(event, event.params.pool.toHex());
     pool.token = event.params.token.toHex();
@@ -75,14 +73,13 @@ export function handlePoolCreated(event: PoolCreated): void {
     );
 
     _createTokenStatisticLogEntity(event, event.params.token, eventName);
+    // Create Event Entity
+    _createPoolCreatedEntity(event);
 }
 
 export function handlePoolConnectionUpdated(
     event: PoolConnectionUpdated
 ): void {
-    // Create Event Entity
-    _createPoolConnectionUpdatedEntity(event);
-
     // Update Pool Member Entity
     const poolMember = getOrInitPoolMember(
         event,
@@ -168,12 +165,12 @@ export function handlePoolConnectionUpdated(
     );
 
     _createTokenStatisticLogEntity(event, event.params.token, eventName);
+
+    // Create Event Entity
+    _createPoolConnectionUpdatedEntity(event);
 }
 
 export function handleBufferAdjusted(event: BufferAdjusted): void {
-    // Create Event Entity
-    _createBufferAdjustedEntity(event);
-
     // Update Pool Distributor
     let poolDistributor = getOrInitPoolDistributor(
         event,
@@ -202,14 +199,14 @@ export function handleBufferAdjusted(event: BufferAdjusted): void {
         event.params.bufferDelta
     );
     tokenStatistic.save();
+
+    // Create Event Entity
+    _createBufferAdjustedEntity(event);
 }
 
 export function handleFlowDistributionUpdated(
     event: FlowDistributionUpdated
 ): void {
-    // Create Event Entity
-    _createFlowDistributionUpdatedEntity(event);
-
     // Update Pool Distributor
     let poolDistributor = getOrInitPoolDistributor(
         event,
@@ -267,14 +264,14 @@ export function handleFlowDistributionUpdated(
         event.params.token,
         eventName
     );
+
+    // Create Event Entity
+    _createFlowDistributionUpdatedEntity(event);
 }
 
 export function handleInstantDistributionUpdated(
     event: InstantDistributionUpdated
 ): void {
-    // Create Event Entity
-    _createInstantDistributionUpdatedEntity(event);
-
     // Update Pool Distributor
     let poolDistributor = getOrInitPoolDistributor(
         event,
@@ -345,6 +342,9 @@ export function handleInstantDistributionUpdated(
         event.params.token,
         eventName
     );
+
+    // Create Event Entity
+    _createInstantDistributionUpdatedEntity(event);
 }
 
 // Event Entity Creation Functions

@@ -3,31 +3,29 @@ import { expect } from "chai";
 import { makeSuite, TestEnvironment } from "./TestEnvironment";
 import { getPerSecondFlowRateByMonth } from "../src";
 
+const createFlow = async (testEnv: TestEnvironment) => {
+    const flowRate = getPerSecondFlowRateByMonth("1000");
+    await testEnv.wrapperSuperToken
+        .createFlow({
+            sender: testEnv.alice.address,
+            receiver: testEnv.bob.address,
+            flowRate,
+        })
+        .exec(testEnv.alice);
+
+    return await testEnv.wrapperSuperToken.constantOutflowNFTProxy.getTokenId({
+        superToken: testEnv.wrapperSuperToken.address,
+        sender: testEnv.alice.address,
+        receiver: testEnv.bob.address,
+        providerOrSigner: testEnv.alice,
+    });
+};
+
 makeSuite("SuperToken-NFT Tests", (testEnv: TestEnvironment) => {
     describe("Revert cases", () => {
-        let tokenId: string;
-        beforeEach(async () => {
-            const flowRate = getPerSecondFlowRateByMonth("1000");
-            await testEnv.wrapperSuperToken
-                .createFlow({
-                    sender: testEnv.alice.address,
-                    receiver: testEnv.bob.address,
-                    flowRate,
-                })
-                .exec(testEnv.alice);
-
-            tokenId =
-                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.getTokenId(
-                    {
-                        superToken: testEnv.wrapperSuperToken.address,
-                        sender: testEnv.alice.address,
-                        receiver: testEnv.bob.address,
-                        providerOrSigner: testEnv.alice,
-                    }
-                );
-        });
-
         it("Should revert when trying to transferFrom", async () => {
+            const tokenId = await createFlow(testEnv);
+
             await expect(
                 testEnv.wrapperSuperToken.constantOutflowNFTProxy
                     .transferFrom({
@@ -43,6 +41,8 @@ makeSuite("SuperToken-NFT Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should revert when trying to safeTransferFrom", async () => {
+            const tokenId = await createFlow(testEnv);
+
             await expect(
                 testEnv.wrapperSuperToken.constantOutflowNFTProxy
                     .safeTransferFrom({
@@ -58,6 +58,8 @@ makeSuite("SuperToken-NFT Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should revert when trying to safeTransferFromWithData", async () => {
+            const tokenId = await createFlow(testEnv);
+
             await expect(
                 testEnv.wrapperSuperToken.constantOutflowNFTProxy
                     .safeTransferFromWithData({
@@ -87,6 +89,8 @@ makeSuite("SuperToken-NFT Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should revert if approve to owner", async () => {
+            const tokenId = await createFlow(testEnv);
+
             await expect(
                 testEnv.wrapperSuperToken.constantOutflowNFTProxy
                     .approve({
@@ -101,6 +105,8 @@ makeSuite("SuperToken-NFT Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should revert if approve on behalf of someone else", async () => {
+            const tokenId = await createFlow(testEnv);
+
             await expect(
                 testEnv.wrapperSuperToken.constantOutflowNFTProxy
                     .approve({
@@ -116,29 +122,9 @@ makeSuite("SuperToken-NFT Tests", (testEnv: TestEnvironment) => {
     });
 
     describe("Happy Path Tests", () => {
-        let tokenId: string;
-        beforeEach(async () => {
-            const flowRate = getPerSecondFlowRateByMonth("1000");
-            await testEnv.wrapperSuperToken
-                .createFlow({
-                    sender: testEnv.alice.address,
-                    receiver: testEnv.bob.address,
-                    flowRate,
-                })
-                .exec(testEnv.alice);
-
-            tokenId =
-                await testEnv.wrapperSuperToken.constantOutflowNFTProxy.getTokenId(
-                    {
-                        superToken: testEnv.wrapperSuperToken.address,
-                        sender: testEnv.alice.address,
-                        receiver: testEnv.bob.address,
-                        providerOrSigner: testEnv.alice,
-                    }
-                );
-        });
-
         it("Should be able to get flowDataByTokenId", async () => {
+            const tokenId = await createFlow(testEnv);
+
             const flowData =
                 await testEnv.wrapperSuperToken.constantOutflowNFTProxy.flowDataByTokenId(
                     {
@@ -151,6 +137,8 @@ makeSuite("SuperToken-NFT Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should be able to approve", async () => {
+            const tokenId = await createFlow(testEnv);
+
             await testEnv.wrapperSuperToken.constantOutflowNFTProxy
                 .approve({
                     approved: testEnv.bob.address,
@@ -188,6 +176,8 @@ makeSuite("SuperToken-NFT Tests", (testEnv: TestEnvironment) => {
         });
 
         it("Should be able to get ownerOf", async () => {
+            const tokenId = await createFlow(testEnv);
+
             const owner =
                 await testEnv.wrapperSuperToken.constantOutflowNFTProxy.ownerOf(
                     {

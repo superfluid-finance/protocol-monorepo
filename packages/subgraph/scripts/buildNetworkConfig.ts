@@ -13,6 +13,8 @@ interface SubgraphConfig {
     readonly nativeAssetSuperTokenAddress: string;
 }
 
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+
 // script usage: npx ts-node ./scripts/buildNetworkConfig.ts <NETWORK_NAME>
 function main() {
     const networkName = process.argv[2];
@@ -28,7 +30,7 @@ function main() {
         hostAddress: networkMetadata.contractsV1.host,
         cfaAddress: networkMetadata.contractsV1.cfaV1,
         idaAddress: networkMetadata.contractsV1.idaV1,
-        gdaAddress: networkMetadata.contractsV1.gdaV1,
+        gdaAddress: networkMetadata.contractsV1.gdaV1 || ZERO_ADDRESS,
         superTokenFactoryAddress: networkMetadata.contractsV1.superTokenFactory,
         resolverV1Address: networkMetadata.contractsV1.resolver,
         nativeAssetSuperTokenAddress: networkMetadata.nativeTokenWrapper,

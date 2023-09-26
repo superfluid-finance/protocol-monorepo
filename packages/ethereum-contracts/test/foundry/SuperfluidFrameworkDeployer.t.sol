@@ -69,7 +69,7 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         uint256 _mintLimit
     ) public {
         (TestToken underlyingToken, SuperToken _superToken) =
-            sfDeployer.deployWrapperSuperToken(_name, _symbol, _decimals, _mintLimit);
+            sfDeployer.deployWrapperSuperToken(_name, _symbol, _decimals, _mintLimit, address(0));
 
         // assert underlying erc20 name/symbol properly set
         assertEq(underlyingToken.name(), _name, "SFDeployer: Underlying token name not properly set");

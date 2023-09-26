@@ -222,7 +222,7 @@ contract FoundrySuperfluidTester is Test {
 
     /// @notice Deploys a Wrapper SuperToken with an underlying test token and gives tokens to the test accounts
     function _setUpWrapperSuperToken() internal {
-        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         address[] memory accounts = _listAccounts();
         for (uint256 i = 0; i < accounts.length; ++i) {

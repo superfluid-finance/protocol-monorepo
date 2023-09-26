@@ -34,7 +34,7 @@ contract SlotsBitmapLibraryPropertyTest is Test {
         vm.stopPrank();
 
         vm.startPrank(subscriber);
-        (token, superToken) = sfDeployer.deployWrapperSuperToken("Test Token", "TST", 18, type(uint256).max);
+        (token, superToken) = sfDeployer.deployWrapperSuperToken("Test Token", "TST", 18, type(uint256).max, address(0));
         vm.stopPrank();
     }
 

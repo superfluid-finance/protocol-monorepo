@@ -74,27 +74,6 @@ contract SuperfluidFrameworkDeployer is SuperfluidFrameworkDeploymentSteps {
         return _deployWrapperSuperToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit, adminOverride);
     }
 
-    /// @notice Deploys an ERC20 and a Wrapper Super Token for the ERC20 and lists both in the resolver
-    /// @dev SuperToken name and symbol format: `Super ${_underlyingSymbol}` and `${_underlyingSymbol}x`, respectively
-    /// @param _underlyingName The underlying token name
-    /// @param _underlyingSymbol The token symbol
-    /// @param _decimals The token decimals
-    /// @param _mintLimit The mint limit of the underlying token
-    /// @return underlyingToken and superToken
-    function deployWrapperSuperToken(
-        string calldata _underlyingName,
-        string calldata _underlyingSymbol,
-        uint8 _decimals,
-        uint256 _mintLimit
-    )
-        external
-        requiresSuperTokenFactory
-        deploySuperTokenRequires1820
-        returns (TestToken underlyingToken, SuperToken superToken)
-    {
-        return _deployWrapperSuperToken(_underlyingName, _underlyingSymbol, _decimals, _mintLimit, address(0));
-    }
-
     /// @notice Deploys a Native Asset Super Token and lists it in the resolver
     /// @dev e.g. ETHx, MATICx, AVAXx, etc. The underlying is the Native Asset.
     /// @param _name The token name

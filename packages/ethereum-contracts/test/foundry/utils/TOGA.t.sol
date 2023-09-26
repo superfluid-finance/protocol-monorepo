@@ -18,7 +18,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     TOGA internal toga;
 
     uint256 internal immutable MIN_BOND_DURATION;
-    uint256 internal constant DEFAULT_BOND_AMOUNT = 1E18;
+    uint256 internal constant DEFAULT_BOND_AMOUNT = 1e18;
     IERC1820Registry internal constant _ERC1820_REG = IERC1820Registry(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
     constructor() FoundrySuperfluidTester(5) {
@@ -131,7 +131,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         // setting the lower bound > 1 in order to avoid
         // failures due to the exit stream not having enough min deposit
         // (clipping related)
-        bond = bound(bond_, 1E12, INIT_SUPER_TOKEN_BALANCE);
+        bond = bound(bond_, 1e12, INIT_SUPER_TOKEN_BALANCE);
         // before allowing higher limits, also consider that
         // the values returned by toga.getMaxExitRateFor() may not be achievable in practice
         // because of the flowrate data type restriction
@@ -309,7 +309,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function testPICClosesStream(uint256 bond) public {
         bond = _boundBondValue(bond);
 
-        _helperSendPICBid(alice, superToken, bond, 1E3);
+        _helperSendPICBid(alice, superToken, bond, 1e3);
 
         vm.warp(block.timestamp + 1000);
         _helperDeleteFlow(superToken, alice, address(toga), alice);
@@ -324,7 +324,7 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
         _assertNetFlow(superToken, alice, 0);
 
         // bob sends a bid too
-        _helperSendPICBid(bob, superToken, bond, 1E3);
+        _helperSendPICBid(bob, superToken, bond, 1e3);
         _assertNetFlow(superToken, alice, 0);
     }
 
@@ -386,7 +386,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function testBondAndExitRateLimits(uint256 bond, int96 exitRate) public {
         bond = bound(
             bond,
-            exitRate == 0 ? 1 : 1 << 32, // with small bonds, opening the stream can fail due to CFA deposit having a flow of 1<<32 due to clipping
+            exitRate == 0 ? 1 : 1 << 32, // with small bonds, opening the stream can fail due to CFA deposit having a
+                // flow of 1<<32 due to clipping
             uint256(type(int256).max) // SuperToken doesn't support the full uint256 range
         );
 
@@ -407,7 +408,8 @@ contract TOGAIntegrationTest is FoundrySuperfluidTester {
     function testMultiplePICsInParallel(uint256 bond) public {
         bond = _boundBondValue(bond);
 
-        (, ISuperToken superToken2) = sfDeployer.deployWrapperSuperToken("TEST2", "TEST2", 18, type(uint256).max);
+        (, ISuperToken superToken2) =
+            sfDeployer.deployWrapperSuperToken("TEST2", "TEST2", 18, type(uint256).max, address(0));
 
         deal(address(superToken2), alice, INIT_SUPER_TOKEN_BALANCE);
         deal(address(superToken2), bob, INIT_SUPER_TOKEN_BALANCE);

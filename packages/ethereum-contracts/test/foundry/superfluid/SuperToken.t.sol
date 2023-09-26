@@ -29,7 +29,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         // We assume that most underlying tokens will not have more than 32 decimals
         vm.assume(decimals <= 32);
         (TestToken localToken, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", decimals, type(uint256).max);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", decimals, type(uint256).max, address(0));
         (uint256 underlyingAmount, uint256 adjustedAmount) = localSuperToken.toUnderlyingAmount(amount);
         localToken.mint(alice, INIT_TOKEN_BALANCE);
         vm.startPrank(alice);
@@ -48,7 +48,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         vm.assume(decimals <= 32);
         vm.assume(downgradeAmount < upgradeAmount);
         (TestToken localToken, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", decimals, type(uint256).max);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", decimals, type(uint256).max, address(0));
         (uint256 underlyingAmount, uint256 adjustedAmount) = localSuperToken.toUnderlyingAmount(upgradeAmount);
         localToken.mint(alice, INIT_TOKEN_BALANCE);
 
@@ -154,7 +154,8 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
     }
 
     function testOnlyHostCanChangeAdminWhenNoAdminOverride(address adminOverride) public {
-        (, ISuperToken localSuperToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         vm.startPrank(address(sf.host));
         localSuperToken.changeAdmin(adminOverride);
@@ -204,7 +205,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
 
     function testOnlyHostCanUpdateCodeWhenNoAdminOverride() public {
         (TestToken localTestToken, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         SuperToken newSuperTokenLogic =
             _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", address(0));
@@ -246,7 +247,7 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         vm.assume(adminOverride != address(sf.host));
 
         (TestToken localTestToken, ISuperToken localSuperToken) =
-            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         SuperToken newSuperTokenLogic =
             _helperDeploySuperTokenAndInitialize(localSuperToken, localTestToken, 18, "FTT", "FTT", adminOverride);

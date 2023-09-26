@@ -53,7 +53,7 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         sfDeployer.deployTestFramework();
         sf = sfDeployer.getFramework();
 
-        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (token, superToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         // /// Deploy SuperfluidPool logic contract
         // SuperfluidPool superfluidPoolLogic =

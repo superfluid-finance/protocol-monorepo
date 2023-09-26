@@ -50,7 +50,8 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
     function testBatchChangeSuperTokenAdmin(address newAdmin) public {
         vm.assume(newAdmin != address(0));
 
-        (, ISuperToken localSuperToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         ISuperToken[] memory superTokens = new ISuperToken[](2);
         superTokens[0] = superToken;        // host admin
@@ -90,7 +91,8 @@ contract SuperfluidGovernanceIntegrationTest is FoundrySuperfluidTester {
         vm.assume(newAdmin != address(0));
         vm.assume(newAdmin != address(sf.governance.owner()));
 
-        (, ISuperToken localSuperToken) = sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max);
+        (, ISuperToken localSuperToken) =
+            sfDeployer.deployWrapperSuperToken("FTT", "FTT", 18, type(uint256).max, address(0));
 
         ISuperToken[] memory superTokens = new ISuperToken[](2);
         superTokens[0] = superToken;        // host admin

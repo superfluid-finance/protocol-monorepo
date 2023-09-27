@@ -423,6 +423,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     ) internal virtual {
         _transfer(from, to, tokenId);
     }
+
     /// @dev Deletes the tokenApprovals for `tokenId`
     /// @param tokenId the token id whose approvals we're clearing
     function _burn(uint256 tokenId) internal virtual {

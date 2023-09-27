@@ -15,7 +15,7 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertTrue(address(sf.ida) != address(0), "SFDeployer: ida not deployed");
         assertTrue(address(sf.superTokenFactory) != address(0), "SFDeployer: superTokenFactory not deployed");
         assertTrue(address(sf.superTokenLogic) != address(0), "SFDeployer: superTokenLogic not deployed");
-        assertTrue(address(sf.constantOuflowNFT) != address(0), "SFDeployer: constantOuflowNFT not deployed");
+        assertTrue(address(sf.constantOutflowNFT) != address(0), "SFDeployer: constantOutflowNFT not deployed");
         assertTrue(address(sf.constantInflowNFT) != address(0), "SFDeployer: constantInflowNFT not deployed");
         assertTrue(address(sf.resolver) != address(0), "SFDeployer: resolver not deployed");
         assertTrue(address(sf.superfluidLoader) != address(0), "SFDeployer: superfluidLoader not deployed");

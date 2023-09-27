@@ -12,6 +12,8 @@ import {
 // Maybe moving these into categorical files
 // makes more sense than stuffing them all here
 
+export type ProviderOrSigner = ethers.providers.Provider | ethers.Signer;
+
 // read request interfaces
 export interface IAccountTokenSnapshotFilter {
     readonly account?: string;
@@ -87,16 +89,16 @@ export interface ISuperTokenGetSubscriptionParams {
     readonly indexId: string;
     readonly publisher: string;
     readonly subscriber: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 export interface ISuperTokenGetIndexParams {
     readonly indexId: string;
     readonly publisher: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 export interface ISuperTokenPublisherParams extends ISuperTokenBaseIDAParams {
     readonly publisher: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 export interface ISuperTokenPubSubParams extends EthersParams {
     readonly indexId: string;
@@ -177,7 +179,7 @@ export interface IFullControlParams
 }
 
 export interface IRealtimeBalanceOfParams {
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
     readonly account: string;
     readonly timestamp?: number;
 }
@@ -202,53 +204,53 @@ export interface ERC777SendParams extends EthersParams {
 export interface ISuperTokenGetFlowParams {
     readonly sender: string;
     readonly receiver: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 
 export interface ISuperTokenGetFlowInfoParams {
     readonly account: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 
 export interface IGetFlowParams {
     readonly superToken: string;
     readonly sender: string;
     readonly receiver: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 
 export interface IGetAccountFlowInfoParams {
     readonly superToken: string;
     readonly account: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 
 export interface IGetFlowOperatorDataParams {
     readonly superToken: string;
     readonly sender: string;
     readonly flowOperator: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 
 export interface IGetFlowOperatorDataByIDParams {
     readonly superToken: string;
     readonly flowOperatorId: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 
 export interface IGetGovernanceParametersParams {
-    providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    providerOrSigner: ProviderOrSigner;
     token?: string;
 }
 export interface ISuperTokenFlowOperatorDataParams {
     readonly sender: string;
     readonly flowOperator: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 
 export interface ISuperTokenFlowOperatorDataByIDParams {
     readonly flowOperatorId: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 
 export interface IBaseIDAParams {
@@ -270,11 +272,11 @@ export interface IBaseSubscriptionParams extends IBaseIDAParams {
 export interface IGetSubscriptionParams extends IBaseIDAParams {
     readonly publisher: string;
     readonly subscriber: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 export interface IGetIndexParams extends IBaseIDAParams {
     readonly publisher: string;
-    readonly providerOrSigner: ethers.providers.Provider | ethers.Signer;
+    readonly providerOrSigner: ProviderOrSigner;
 }
 
 export interface IDistributeParams extends EthersParams {
@@ -512,6 +514,66 @@ export interface IWeb3GovernanceParams {
     readonly minimumDeposit: string;
 }
 
+export interface ERC20BalanceOfParams {
+    readonly account: string;
+    readonly providerOrSigner: ProviderOrSigner;
+}
+export interface ERC20AllowanceParams {
+    readonly owner: string;
+    readonly spender: string;
+    readonly providerOrSigner: ProviderOrSigner;
+}
+export interface ERC20BalanceOfParams {
+    readonly account: string;
+    readonly providerOrSigner: ProviderOrSigner;
+}
+
+// ERC721
+
+export interface NFTFlowData {
+    readonly flowSender: string;
+    readonly flowStartDate: Date;
+    readonly flowReceiver: string;
+}
+
+export interface ERC721TransferFromParams extends EthersParams {
+    readonly from: string;
+    readonly to: string;
+    readonly tokenId: string;
+}
+
+export interface ERC721SafeTransferFromParams extends ERC721TransferFromParams {
+    readonly data: string;
+}
+
+export interface ERC721ApproveParams extends EthersParams {
+    readonly approved: string;
+    readonly tokenId: string;
+}
+
+export interface ERC721SetApprovalForAllParams extends EthersParams {
+    readonly operator: string;
+    readonly approved: boolean;
+}
+
+export interface ERC721BalanceOfParams {
+    readonly owner: string;
+    readonly providerOrSigner: ProviderOrSigner;
+}
+
+export interface ERC721TokenIdQueryParams {
+    readonly tokenId: string;
+    readonly providerOrSigner: ProviderOrSigner;
+}
+export interface ERC721IsApprovedForAllParams {
+    readonly owner: string;
+    readonly operator: string;
+    readonly providerOrSigner: ProviderOrSigner;
+}
+
+export type ERC721OwnerOfParams = ERC721TokenIdQueryParams;
+export type ERC721GetApprovedParams = ERC721TokenIdQueryParams;
+export type ERC721TokenURIParams = ERC721TokenIdQueryParams;
 export interface ERC20IncreaseAllowanceParams extends EthersParams {
     readonly spender: string;
     readonly amount: string;

@@ -5,6 +5,7 @@ const contracts = [
     "ConstantFlowAgreementV1",
     "ERC20",
     "IConstantFlowAgreementV1",
+    "IFlowNFTBase",
     "IResolver",
     "ISuperTokenFactory",
     "ISuperToken",

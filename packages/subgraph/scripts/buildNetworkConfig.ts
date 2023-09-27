@@ -10,7 +10,11 @@ interface SubgraphConfig {
     readonly superTokenFactoryAddress: string;
     readonly resolverV1Address: string;
     readonly nativeAssetSuperTokenAddress: string;
+    readonly constantOutflowNFTAddress: string;
+    readonly constantInflowNFTAddress: string;
 }
+
+const ADDRESS_ZERO = "0x0000000000000000000000000000000000000000";
 
 // script usage: npx ts-node ./scripts/buildNetworkConfig.ts <NETWORK_NAME>
 function main() {
@@ -21,7 +25,7 @@ function main() {
     if (!networkMetadata) {
         throw new Error("No metadata found");
     }
-    const newThing: SubgraphConfig = {
+    const subgraphConfig: SubgraphConfig = {
         network: networkMetadata.shortName,
         hostStartBlock: networkMetadata.startBlockV1,
         hostAddress: networkMetadata.contractsV1.host,
@@ -30,12 +34,16 @@ function main() {
         superTokenFactoryAddress: networkMetadata.contractsV1.superTokenFactory,
         resolverV1Address: networkMetadata.contractsV1.resolver,
         nativeAssetSuperTokenAddress: networkMetadata.nativeTokenWrapper,
+        constantOutflowNFTAddress:
+            networkMetadata.contractsV1.constantOutflowNFT || ADDRESS_ZERO,
+        constantInflowNFTAddress:
+            networkMetadata.contractsV1.constantInflowNFT || ADDRESS_ZERO,
     };
 
     const writeToDir =
         __dirname.split("subgraph")[0] + `subgraph/config/${networkName}.json`;
 
-    fs.writeFile(writeToDir, JSON.stringify(newThing), (err) => {
+    fs.writeFile(writeToDir, JSON.stringify(subgraphConfig), (err) => {
         if (err) {
             console.log(err);
             process.exit(1);

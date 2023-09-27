@@ -479,6 +479,8 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(distributionAmount < distributorBalance);
 
         for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i].member) || members[i].member == address(0)) continue;
+
             _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
         }
         _helperDistributeViaGDA(superToken, alice, alice, currentPool, distributionAmount, useBools_.useForwarder);
@@ -496,6 +498,8 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(distributionAmount < distributorBalance);
 
         for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i].member) || members[i].member == address(0)) continue;
+
             _helperConnectPool(members[i].member, superToken, currentPool, useBools_.useForwarder);
             _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
             _addAccount(members[i].member);
@@ -512,6 +516,8 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(flowRate > 0);
 
         for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i].member) || members[i].member == address(0)) continue;
+
             _helperConnectPool(members[i].member, superToken, currentPool, useBools_.useForwarder);
             _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
             _addAccount(members[i].member);
@@ -534,6 +540,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.assume(members.length > 0);
 
         for (uint256 i = 0; i < members.length; ++i) {
+            if (sf.gda.isPool(superToken, members[i].member) || members[i].member == address(0)) continue;
             _helperUpdateMemberUnits(currentPool, alice, members[i].member, members[i].newUnits, useBools_);
         }
 

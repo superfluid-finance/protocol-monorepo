@@ -2,12 +2,7 @@
 pragma solidity 0.8.19;
 
 import { FoundrySuperfluidTester } from "./FoundrySuperfluidTester.sol";
-import {
-    IPureSuperToken,
-    ISETH,
-    TestToken,
-    SuperToken
-} from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
+import { IPureSuperToken, ISETH, TestToken, SuperToken } from "../../contracts/utils/SuperfluidFrameworkDeployer.sol";
 import { SuperfluidLoader } from "../../contracts/utils/SuperfluidLoader.sol";
 
 contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
@@ -20,6 +15,9 @@ contract SuperfluidFrameworkDeployerTest is FoundrySuperfluidTester {
         assertTrue(address(sf.ida) != address(0), "SFDeployer: ida not deployed");
         assertTrue(address(sf.gda) != address(0), "SFDeployer: gda not deployed");
         assertTrue(address(sf.superTokenFactory) != address(0), "SFDeployer: superTokenFactory not deployed");
+        assertTrue(address(sf.superTokenLogic) != address(0), "SFDeployer: superTokenLogic not deployed");
+        assertTrue(address(sf.constantOutflowNFT) != address(0), "SFDeployer: constantOutflowNFT not deployed");
+        assertTrue(address(sf.constantInflowNFT) != address(0), "SFDeployer: constantInflowNFT not deployed");
         assertTrue(address(sf.resolver) != address(0), "SFDeployer: resolver not deployed");
         assertTrue(address(sf.superfluidLoader) != address(0), "SFDeployer: superfluidLoader not deployed");
         assertTrue(address(sf.cfaV1Forwarder) != address(0), "SFDeployer: cfaV1Forwarder not deployed");

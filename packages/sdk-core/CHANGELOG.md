@@ -5,6 +5,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [Unreleased]
 
+### Added
+- Support for `ConstantOutflowNFT` and `ConstantInflowNFT` functions
+
 ## [0.6.9] - 2023-09-11
 
 ### Added

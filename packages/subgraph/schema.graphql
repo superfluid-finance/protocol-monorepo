@@ -1385,7 +1385,7 @@ type TransferEvent implements Event @entity(immutable: true) {
 
     """
     Contains the addresses that were impacted by this event:
-    addresses[0] = `token` (superToken)
+    addresses[0] = `token` (superToken if `isNFTTransfer` is false, otherwise the ConstantOutflowNFT or ConstantInflowNFT)
     addresses[1] = `from`
     addresses[2] = `to`
     """
@@ -1396,7 +1396,15 @@ type TransferEvent implements Event @entity(immutable: true) {
 
     from: Account!
     to: Account!
+    isNFTTransfer: Boolean!
+    """
+    If `isNFTTransfer` is true, value is the `tokenId` of the NFT transferred.
+    """
     value: BigInt!
+
+    """
+    If `isNFTTransfer` is true, value is the NFT address, else it is the SuperToken address.
+    """
     token: Bytes!
 }
 
@@ -1444,6 +1452,88 @@ type TokenUpgradedEvent implements Event @entity(immutable: true) {
 
     token: Bytes!
     amount: BigInt!
+}
+
+
+#     NFTs    #
+type ApprovalEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    owner: Account!
+
+    """
+    The address that will be granted allowance to transfer the NFT.
+    """
+    to: Account!
+    """
+    The id of the NFT that will be granted allowance to transfer.
+    The id is: uint256(keccak256(abi.encode(block.chainid, superToken, sender, receiver)))
+    """
+    tokenId: BigInt!
+}
+
+type ApprovalForAllEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    owner: Account!
+
+    """
+    The address that will be granted operator permissions for the all of the owner's tokens.
+    """
+    operator: Account!
+    """
+    Whether the operator is enabled or disabled for `owner`.
+    """
+    approved: Boolean!
+}
+
+type MetadataUpdateEvent implements Event @entity(immutable: true) {
+    id: ID!
+    transactionHash: Bytes!
+    gasPrice: BigInt!
+    gasUsed: BigInt!
+    timestamp: BigInt!
+    name: String!
+
+    """
+    Empty addresses array.
+    """
+    addresses: [Bytes!]!
+    blockNumber: BigInt!
+    logIndex: BigInt!
+    order: BigInt!
+
+    """
+    The id of the NFT that will be granted allowance to transfer.
+    The id is: uint256(keccak256(abi.encode(block.chainid, superToken, sender, receiver)))
+    """
+    tokenId: BigInt!
 }
 
 #     SuperTokenFactory    #

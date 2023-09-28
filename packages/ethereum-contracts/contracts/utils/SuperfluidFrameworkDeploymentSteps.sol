@@ -61,6 +61,9 @@ contract SuperfluidFrameworkDeploymentSteps {
         GeneralDistributionAgreementV1 gda;
         IDAv1Library.InitData idaLib;
         SuperTokenFactory superTokenFactory;
+        ISuperToken superTokenLogic;
+        ConstantOutflowNFT constantOutflowNFT;
+        ConstantInflowNFT constantInflowNFT;
         TestResolver resolver;
         SuperfluidLoader superfluidLoader;
         CFAv1Forwarder cfaV1Forwarder;
@@ -259,6 +262,9 @@ contract SuperfluidFrameworkDeploymentSteps {
             idaLib: IDAv1Library.InitData(host, idaV1),
             gda: gdaV1,
             superTokenFactory: superTokenFactory,
+            superTokenLogic: superTokenLogic,
+            constantOutflowNFT: constantOutflowNFT,
+            constantInflowNFT: constantInflowNFT,
             resolver: testResolver,
             superfluidLoader: superfluidLoader,
             cfaV1Forwarder: cfaV1Forwarder,

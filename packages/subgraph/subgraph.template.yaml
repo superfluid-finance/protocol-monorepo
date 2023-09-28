@@ -289,6 +289,72 @@ dataSources:
           - event: Set(indexed string,address)
             handler: handleSet
             receipt: true
+    - kind: ethereum/contract
+      name: ConstantOutflowNFT
+      network: {{ network }}
+      source:
+        address: "{{ constantOutflowNFTAddress }}"
+        abi: IFlowNFTBase
+        startBlock: {{ hostStartBlock }}
+      mapping:
+        kind: ethereum/events
+        apiVersion: 0.0.7
+        language: wasm/assemblyscript
+        file: ./src/mappings/flowNFT.ts
+        entities:
+          - ApprovalEvent
+          - ApprovalForAllEvent
+          - MetadataUpdateEvent
+          - TransferEvent
+        abis:
+          - name: IFlowNFTBase
+            file: ./abis/IFlowNFTBase.json
+        eventHandlers:
+          - event: Transfer(indexed address,indexed address,indexed uint256)
+            handler: handleTransfer
+            receipt: true
+          - event: Approval(indexed address,indexed address,indexed uint256)
+            handler: handleApproval
+            receipt: true
+          - event: ApprovalForAll(indexed address,indexed address,bool)
+            handler: handleApprovalForAll
+            receipt: true
+          - event: MetadataUpdate(uint256)
+            handler: handleMetadataUpdate
+            receipt: true
+    - kind: ethereum/contract
+      name: ConstantInflowNFT
+      network: {{ network }}
+      source:
+        address: "{{ constantInflowNFTAddress }}"
+        abi: IFlowNFTBase
+        startBlock: {{ hostStartBlock }}
+      mapping:
+        kind: ethereum/events
+        apiVersion: 0.0.7
+        language: wasm/assemblyscript
+        file: ./src/mappings/flowNFT.ts
+        entities:
+          - ApprovalEvent
+          - ApprovalForAllEvent
+          - MetadataUpdateEvent
+          - TransferEvent
+        abis:
+          - name: IFlowNFTBase
+            file: ./abis/IFlowNFTBase.json
+        eventHandlers:
+          - event: Transfer(indexed address,indexed address,indexed uint256)
+            handler: handleTransfer
+            receipt: true
+          - event: Approval(indexed address,indexed address,indexed uint256)
+            handler: handleApproval
+            receipt: true
+          - event: ApprovalForAll(indexed address,indexed address,bool)
+            handler: handleApprovalForAll
+            receipt: true
+          - event: MetadataUpdate(uint256)
+            handler: handleMetadataUpdate
+            receipt: true
 templates:
   - name: SuperToken
     kind: ethereum/contract
@@ -348,6 +414,12 @@ templates:
           receipt: true
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
+          receipt: true
+        - event: ConstantOutflowNFTCreated(indexed address)
+          handler: handleConstantOutflowNFTCreated
+          receipt: true
+        - event: ConstantInflowNFTCreated(indexed address)
+          handler: handleConstantInflowNFTCreated
           receipt: true
   - kind: ethereum/contract
     name: SuperfluidGovernance

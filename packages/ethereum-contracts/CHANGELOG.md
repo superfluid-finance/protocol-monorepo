@@ -28,6 +28,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Changed
 - Reuse config keys from `SuperfluidGovernanceConfigs` instead of duplicating them in `ConstantFlowAgreementV1`.
 
+### Fixed
+- Downgrading `PureSuperToken` will no longer revert and just burn the tokens, reducing the total supply.
+
 ## [v1.8.1] - 2023-08-28
 
 ### Fixed

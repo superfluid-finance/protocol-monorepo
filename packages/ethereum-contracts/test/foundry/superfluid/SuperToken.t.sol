@@ -7,6 +7,7 @@ import { UUPSProxiable } from "../../../contracts/upgradability/UUPSProxiable.so
 import { IERC20, ISuperToken, SuperToken } from "../../../contracts/superfluid/SuperToken.sol";
 import { ConstantOutflowNFT, IConstantOutflowNFT } from "../../../contracts/superfluid/ConstantOutflowNFT.sol";
 import { ConstantInflowNFT, IConstantInflowNFT } from "../../../contracts/superfluid/ConstantInflowNFT.sol";
+import { IPureSuperToken } from "../../../contracts/interfaces/tokens/IPureSuperToken.sol";
 import { FoundrySuperfluidTester } from "../FoundrySuperfluidTester.sol";
 import { TestToken } from "../../../contracts/utils/TestToken.sol";
 import { TokenDeployerLibrary } from "../../../contracts/utils/SuperfluidFrameworkDeploymentSteps.sol";
@@ -233,5 +234,115 @@ contract SuperTokenIntegrationTest is FoundrySuperfluidTester {
         vm.expectRevert(ISuperToken.SUPER_TOKEN_ONLY_ADMIN.selector);
         UUPSProxiable(address(localSuperToken)).updateCode(address(newSuperTokenLogic));
         vm.stopPrank();
+    }
+
+    function testPureSuperTokenDowngrade(address holder, int256 initialSupply, int256 downgradeAmount) public {
+        _assumeValidPureSuperTokenBurnConditions(holder, initialSupply, downgradeAmount);
+
+        vm.startPrank(holder);
+        (IPureSuperToken pureSuperToken) = sfDeployer.deployPureSuperToken("Mr. Token", "MR", uint256(initialSupply));
+        uint256 initialTotalSupply = pureSuperToken.totalSupply();
+        pureSuperToken.downgrade(uint256(downgradeAmount));
+        vm.stopPrank();
+
+        assertEq(
+            pureSuperToken.totalSupply(),
+            initialTotalSupply - uint256(downgradeAmount),
+            "testPureSuperTokenDowngrade: total supply not updated correctly"
+        );
+    }
+
+    function testPureSuperTokenDowngradeTo(address holder, address to, int256 initialSupply, int256 downgradeAmount)
+        public
+    {
+        _assumeValidPureSuperTokenBurnConditions(holder, initialSupply, downgradeAmount);
+
+        vm.startPrank(holder);
+        (IPureSuperToken pureSuperToken) = sfDeployer.deployPureSuperToken("Mr. Token", "MR", uint256(initialSupply));
+        uint256 initialTotalSupply = pureSuperToken.totalSupply();
+        // @note this function doesn't do anything except for burning the tokens
+        // that is, `to` receives nothing
+        pureSuperToken.downgradeTo(to, uint256(downgradeAmount));
+        vm.stopPrank();
+
+        assertEq(
+            pureSuperToken.totalSupply(),
+            initialTotalSupply - uint256(downgradeAmount),
+            "testPureSuperTokenDowngradeTo: total supply not updated correctly"
+        );
+    }
+
+    function testPureSuperTokenBurn(address holder, int256 initialSupply, int256 downgradeAmount) public {
+        _assumeValidPureSuperTokenBurnConditions(holder, initialSupply, downgradeAmount);
+
+        vm.startPrank(holder);
+        (IPureSuperToken pureSuperToken) = sfDeployer.deployPureSuperToken("Mr. Token", "MR", uint256(initialSupply));
+        uint256 initialTotalSupply = pureSuperToken.totalSupply();
+        pureSuperToken.burn(uint256(downgradeAmount), "");
+        vm.stopPrank();
+
+        assertEq(
+            pureSuperToken.totalSupply(),
+            initialTotalSupply - uint256(downgradeAmount),
+            "testPureSuperTokenBurn: total supply not updated correctly"
+        );
+    }
+
+    function testPureSuperTokenOperatorBurn(
+        address operator,
+        address holder,
+        int256 initialSupply,
+        int256 downgradeAmount
+    ) public {
+        _assumeValidPureSuperTokenBurnConditions(holder, initialSupply, downgradeAmount);
+
+        vm.startPrank(holder);
+        (IPureSuperToken pureSuperToken) = sfDeployer.deployPureSuperToken("Mr. Token", "MR", uint256(initialSupply));
+        pureSuperToken.authorizeOperator(operator);
+        vm.stopPrank();
+
+        assertTrue(
+            pureSuperToken.isOperatorFor(operator, holder), "testPureSuperTokenOperatorBurn: operator not authorized"
+        );
+        uint256 initialTotalSupply = pureSuperToken.totalSupply();
+
+        vm.startPrank(operator);
+        pureSuperToken.operatorBurn(holder, uint256(downgradeAmount), "", "");
+        vm.stopPrank();
+
+        assertEq(
+            pureSuperToken.totalSupply(),
+            initialTotalSupply - uint256(downgradeAmount),
+            "testPureSuperTokenOperatorBurn: total supply not updated correctly"
+        );
+    }
+
+    function testPureSuperTokenOperationDowngrade(address holder, int256 initialSupply, int256 downgradeAmount)
+        public
+    {
+        _assumeValidPureSuperTokenBurnConditions(holder, initialSupply, downgradeAmount);
+
+        vm.startPrank(holder);
+        (IPureSuperToken pureSuperToken) = sfDeployer.deployPureSuperToken("Mr. Token", "MR", uint256(initialSupply));
+        uint256 initialTotalSupply = pureSuperToken.totalSupply();
+        vm.stopPrank();
+        vm.startPrank(address(sf.host));
+        pureSuperToken.operationDowngrade(holder, uint256(downgradeAmount));
+        vm.stopPrank();
+
+        assertEq(
+            pureSuperToken.totalSupply(),
+            initialTotalSupply - uint256(downgradeAmount),
+            "testPureSuperTokenOperatorBurn: total supply not updated correctly"
+        );
+    }
+
+    function _assumeValidPureSuperTokenBurnConditions(address holder, int256 initialSupply, int256 downgradeAmount)
+        internal
+    {
+        vm.assume(initialSupply > downgradeAmount);
+        vm.assume(initialSupply > 0);
+        vm.assume(downgradeAmount > 0);
+        vm.assume(holder != address(0));
     }
 }

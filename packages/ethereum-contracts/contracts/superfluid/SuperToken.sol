@@ -733,20 +733,26 @@ contract SuperToken is
         bytes memory userData,
         bytes memory operatorData
     ) internal {
-        if (address(_underlyingToken) == address(0)) revert SUPER_TOKEN_NO_UNDERLYING_TOKEN();
+        bool hasNoUnderlying = address(_underlyingToken) == address(0);
 
         (uint256 underlyingAmount, uint256 adjustedAmount) = _toUnderlyingAmount(amount);
 
-         // _burn will check the (actual) amount availability again
-         _burn(operator, account, adjustedAmount, userData.length != 0, userData, operatorData);
+        adjustedAmount = hasNoUnderlying ? amount : adjustedAmount;
 
-        uint256 amountBefore = _underlyingToken.balanceOf(address(this));
-        _underlyingToken.safeTransfer(to, underlyingAmount);
-        uint256 amountAfter = _underlyingToken.balanceOf(address(this));
-        uint256 actualDowngradedAmount = amountBefore - amountAfter;
-        if (underlyingAmount != actualDowngradedAmount) revert SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED();
+        // _burn will check the (actual) amount availability again
+        _burn(operator, account, adjustedAmount, userData.length != 0, userData, operatorData);
 
-        emit TokenDowngraded(account, adjustedAmount);
+        if (!hasNoUnderlying) {
+            uint256 amountBefore = _underlyingToken.balanceOf(address(this));
+            _underlyingToken.safeTransfer(to, underlyingAmount);
+            uint256 amountAfter = _underlyingToken.balanceOf(address(this));
+            uint256 actualDowngradedAmount = amountBefore - amountAfter;
+            if (underlyingAmount != actualDowngradedAmount) {
+                revert SUPER_TOKEN_INFLATIONARY_DEFLATIONARY_NOT_SUPPORTED();
+            }
+
+            emit TokenDowngraded(account, adjustedAmount);
+        }
     }
 
     /**

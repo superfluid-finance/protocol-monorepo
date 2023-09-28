@@ -744,7 +744,7 @@ describe("SuperToken's Non Standard Functions", function () {
             await expectCustomError(
                 customToken.downgrade(100),
                 customToken,
-                reason
+                "SF_TOKEN_BURN_INSUFFICIENT_BALANCE"
             );
             await web3tx(customToken.initialize, "customToken.initialize")(
                 ZERO_ADDRESS,

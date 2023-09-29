@@ -246,12 +246,21 @@ interface ISuperfluid {
 
     /**
      * @dev Message sender (must be a contract) declares itself as a super app.
-     * @custom:deprecated you should use `registerAppWithKey` or `registerAppByFactory` instead,
-     * because app registration is currently governance permissioned on mainnets.
      * @param configWord The super app manifest configuration, flags are defined in
      * `SuperAppDefinitions`
      */
     function registerApp(uint256 configWord) external;
+
+    /**
+     * @dev Message sender (must be a contract) declares itself as a super app.
+     * because app registration is currently governance permissioned on mainnets.
+     * @param app The super app address
+     * @param configWord The super app manifest configuration, flags are defined in
+     * `SuperAppDefinitions`
+     * @notice On mainnet deployments, only factory contracts pre-authorized by governance can use this.
+     * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
+     */
+    function registerApp(ISuperApp app, uint256 configWord) external;
     /**
      * @dev App registered event
      * @param app Address of jailed app
@@ -260,6 +269,8 @@ interface ISuperfluid {
 
     /**
      * @dev Message sender declares itself as a super app.
+     * @custom:deprecated you should use `registerApp(uint256 configWord) instead,
+     * because we've switched to an expire date based logic instead of one-time keys.
      * @param configWord The super app manifest configuration, flags are defined in `SuperAppDefinitions`
      * @param registrationKey The registration key issued by the governance, needed to register on a mainnet.
      * @notice See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide
@@ -271,6 +282,7 @@ interface ISuperfluid {
 
     /**
      * @dev Message sender (must be a contract) declares app as a super app
+     * @custom:deprecated you should use `registerApp(ISuperApp app, uint256 configWord) instead.
      * @param configWord The super app manifest configuration, flags are defined in `SuperAppDefinitions`
      * @notice On mainnet deployments, only factory contracts pre-authorized by governance can use this.
      * See https://github.com/superfluid-finance/protocol-monorepo/wiki/Super-App-White-listing-Guide

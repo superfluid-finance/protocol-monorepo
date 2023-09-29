@@ -312,12 +312,8 @@ contract Superfluid is
     // App Registry
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /// @custom:deprecated
-    function registerApp(
-        uint256 configWord
-    )
-        external override
-    {
+    /// @inheritdoc ISuperfluid
+    function registerApp(uint256 configWord) external override {
         // check if whitelisting required
         if (APP_WHITE_LISTING_ENABLED) {
             revert HOST_NO_APP_REGISTRATION_PERMISSIONS();
@@ -325,6 +321,13 @@ contract Superfluid is
         _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 
+    /// @inheritdoc ISuperfluid
+    function registerApp(ISuperApp app, uint256 configWord) external override {
+        _registerAppByFactory(app, configWord);
+    }
+
+
+    /// @custom:deprecated
     function registerAppWithKey(uint256 configWord, string calldata registrationKey)
         external override
     {
@@ -346,27 +349,31 @@ contract Superfluid is
         _registerApp(configWord, ISuperApp(msg.sender), true);
     }
 
+    /// @custom:deprecated
     function registerAppByFactory(
         ISuperApp app,
         uint256 configWord
     )
         external override
     {
+        _registerAppByFactory(app, configWord);
+    }
+
+    function _registerAppByFactory(ISuperApp app, uint256 configWord) internal {
         // msg sender must be a contract
         {
             uint256 cs;
             // solhint-disable-next-line no-inline-assembly
-            assembly { cs := extcodesize(caller()) }
+            assembly {
+                cs := extcodesize(caller())
+            }
             if (cs == 0) revert HOST_MUST_BE_CONTRACT();
         }
 
         if (APP_WHITE_LISTING_ENABLED) {
             // check if msg sender is authorized to register
             bytes32 configKey = SuperfluidGovernanceConfigs.getAppFactoryConfigKey(msg.sender);
-            bool isAuthorizedAppFactory = _gov.getConfigAsUint256(
-                this,
-                ISuperfluidToken(address(0)),
-                configKey) == 1;
+            bool isAuthorizedAppFactory = _gov.getConfigAsUint256(this, ISuperfluidToken(address(0)), configKey) == 1;
 
             if (!isAuthorizedAppFactory) revert HOST_UNAUTHORIZED_SUPER_APP_FACTORY();
         }

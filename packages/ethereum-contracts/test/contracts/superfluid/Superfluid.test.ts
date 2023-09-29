@@ -519,7 +519,7 @@ describe("Superfluid Host Contract", function () {
 
             it("#4.2 app registration rules", async () => {
                 await expectCustomError(
-                    superfluid.registerApp(1, {from: admin}),
+                    superfluid["registerApp(uint256)"](1, {from: admin}),
                     superfluid,
                     "APP_RULE",
                     t.customErrorCode.APP_RULE_NO_REGISTRATION_FOR_EOA
@@ -617,6 +617,11 @@ describe("Superfluid Host Contract", function () {
             it("#4.7 app registration as factory by EOA should fail", async () => {
                 await expectCustomError(
                     superfluid.registerAppByFactory(ZERO_ADDRESS, 1),
+                    superfluid,
+                    "HOST_MUST_BE_CONTRACT"
+                );
+                await expectCustomError(
+                    superfluid["registerApp(address,uint256)"](ZERO_ADDRESS, 1),
                     superfluid,
                     "HOST_MUST_BE_CONTRACT"
                 );

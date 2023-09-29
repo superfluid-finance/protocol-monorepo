@@ -486,7 +486,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
         const slotsBitmapLibrary = await deployExternalLibraryAndLink(
             SlotsBitmapLibrary,
             "SlotsBitmapLibrary",
-            "SLOTS_BITMAP_LIBRARY_ADDRESS",
+            "SLOTS_BITMAP_LIBRARY",
             InstantDistributionAgreementV1
         );
         slotsBitmapLibraryAddress = slotsBitmapLibrary.address;
@@ -544,7 +544,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             await deployExternalLibraryAndLink(
                 SuperfluidPoolDeployerLibrary,
                 "SuperfluidPoolDeployerLibrary",
-                "SUPER_TOKEN_POOL_DEPLOYER_LIBRARY_ADDRESS",
+                "SUPERFLUID_POOL_DEPLOYER",
                 GeneralDistributionAgreementV1
             );
 
@@ -849,7 +849,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                     poolMemberNFTLAddr,
                     [superfluidConstructorParam, ap(gdaPAddr)]
                 );
-                console.log("   poolMemberNFTLogicChanged:", pmNFTContract);
+                console.log("   poolMemberNFTLogicChanged:", poolMemberNFTLogicChanged);
 
                 const superTokenFactoryCodeChanged = await codeChanged(
                     web3,
@@ -1190,7 +1190,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
             console.log(
                 `SuperToken new logic code address ${superTokenLogic.address}`
             );
-            output += `SUPERFLUID_SUPER_TOKEN_LOGIC=${superTokenLogic.address}\n`;
+            output += `SUPER_TOKEN_LOGIC=${superTokenLogic.address}\n`;
 
             superTokenFactoryLogic = await web3tx(
                 SuperTokenFactoryLogic.new,
@@ -1203,7 +1203,7 @@ module.exports = eval(`(${S.toString()})({skipArgv: true})`)(async function (
                 poolAdminNFTLogicAddress,
                 poolMemberNFTLogicAddress
             );
-            output += `SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC=${superTokenFactoryLogic.address}\n`;
+            output += `SUPER_TOKEN_FACTORY_LOGIC=${superTokenFactoryLogic.address}\n`;
             return superTokenFactoryLogic.address;
         }
     );

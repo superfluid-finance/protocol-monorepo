@@ -2,16 +2,19 @@
 
 # verification script for etherscan-like explorers.
 # takes 2 arguments: the canonical network name and a file with a list of contract addresses to verify.
+# If additional arguments are provided, they will be added to individual verification commands.
 # tries to verify the (sub)set of contracts listed in the file.
 # if proxy addresses are provided, verification against up-to-date logic contracts will only succeed
 # once they point to those (after gov upgrade execution)
 
 set -x
 
-CONTRACTS_DIR=build/truffle/contracts
+CONTRACTS_DIR=build/truffle
 
 TRUFFLE_NETWORK=$1
 ADDRESSES_VARS=$2
+shift 2
+EXTRA_ARGS="$*"
 
 if [ -z "$ADDRESSES_VARS" ]; then
     echo "no addresses provided, fetching myself..."
@@ -25,7 +28,7 @@ source "$ADDRESSES_VARS"
 FAILED_VERIFICATIONS=()
 function try_verify() {
     echo # newline for better readability
-    npx truffle run --network "$TRUFFLE_NETWORK" verify "$@" ||
+    npx truffle run --network "$TRUFFLE_NETWORK" verify "$@" "$EXTRA_ARGS" ||
         FAILED_VERIFICATIONS[${#FAILED_VERIFICATIONS[@]}]="$*"
         # NOTE: append using length so that having spaces in the element is not a problem
         # TODO: version 0.6.5 of the plugin seems to not reliably return non-zero if verification fails
@@ -97,11 +100,11 @@ if [ -n "$SUPERFLUID_LOADER" ]; then
     try_verify SuperfluidLoader@"${SUPERFLUID_LOADER}"
 fi
 
-if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC" ]; then
-    try_verify SuperTokenFactory@"${SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC}"
+if [ -n "$SUPER_TOKEN_FACTORY_LOGIC" ]; then
+    try_verify SuperTokenFactory@"${SUPER_TOKEN_FACTORY_LOGIC}"
 fi
-if [ -n "$SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY" ]; then
-    try_verify SuperTokenFactory@"${SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY}" --custom-proxy UUPSProxy
+if [ -n "$SUPER_TOKEN_FACTORY_PROXY" ]; then
+    try_verify SuperTokenFactory@"${SUPER_TOKEN_FACTORY_PROXY}" --custom-proxy UUPSProxy
 fi
 
 if [ -n "$CONSTANT_OUTFLOW_NFT_LOGIC" ]; then
@@ -128,8 +131,8 @@ if [ -n "$POOL_MEMBER_NFT_PROXY" ]; then
     try_verify PoolMemberNFT@"${POOL_MEMBER_NFT_PROXY}" --custom-proxy UUPSProxy
 fi
 
-if [ -n "$SUPERFLUID_SUPER_TOKEN_LOGIC" ]; then
-    try_verify SuperToken@"${SUPERFLUID_SUPER_TOKEN_LOGIC}"
+if [ -n "$SUPER_TOKEN_LOGIC" ]; then
+    try_verify SuperToken@"${SUPER_TOKEN_LOGIC}"
 fi
 
 if [ -n "$CFA_LOGIC" ]; then
@@ -139,11 +142,11 @@ if [ -n "$CFA_PROXY" ]; then
     try_verify ConstantFlowAgreementV1@"${CFA_PROXY}" --custom-proxy UUPSProxy
 fi
 
-if [ -n "$SLOTS_BITMAP_LIBRARY_ADDRESS" ]; then
-    try_verify SlotsBitmapLibrary@"${SLOTS_BITMAP_LIBRARY_ADDRESS}"
+if [ -n "$SLOTS_BITMAP_LIBRARY" ]; then
+    try_verify SlotsBitmapLibrary@"${SLOTS_BITMAP_LIBRARY}"
 fi
 
-link_library "InstantDistributionAgreementV1" "SlotsBitmapLibrary" "${SLOTS_BITMAP_LIBRARY_ADDRESS}"
+link_library "InstantDistributionAgreementV1" "SlotsBitmapLibrary" "${SLOTS_BITMAP_LIBRARY}"
 if [ -n "$IDA_LOGIC" ]; then
     try_verify InstantDistributionAgreementV1@"${IDA_LOGIC}"
 fi
@@ -151,12 +154,12 @@ if [ -n "$IDA_PROXY" ]; then
     try_verify InstantDistributionAgreementV1@"${IDA_PROXY}" --custom-proxy UUPSProxy
 fi
 
-if [ -n "$SUPERFLUID_POOL_DEPLOYER_ADDRESS" ]; then
-    try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER_ADDRESS}"
+if [ -n "$SUPERFLUID_POOL_DEPLOYER" ]; then
+    try_verify SuperfluidPoolDeployerLibrary@"${SUPERFLUID_POOL_DEPLOYER}"
 fi
 
-link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${GDA_SLOTS_BITMAP_LIBRARY_ADDRESS}"
-link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER_ADDRESS}"
+link_library "GeneralDistributionAgreementV1" "SlotsBitmapLibrary" "${GDA_SLOTS_BITMAP_LIBRARY}"
+link_library "GeneralDistributionAgreementV1" "SuperfluidPoolDeployerLibrary" "${SUPERFLUID_POOL_DEPLOYER}"
 if [ -n "$GDA_LOGIC" ]; then
     try_verify GeneralDistributionAgreementV1@"${GDA_LOGIC}"
 fi

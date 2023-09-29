@@ -66,6 +66,7 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     if (config.isTestnet) {
         output += "IS_TESTNET=1\n";
     }
+
     output += `NETWORK_ID=${networkId}\n`;
     output += `RESOLVER=${sf.resolver.address}\n`;
     output += `SUPERFLUID_LOADER=${sf.loader.address}\n`;
@@ -86,20 +87,20 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         // ignore
     }
 
-    output += `SUPERFLUID_SUPER_TOKEN_FACTORY_PROXY=${await sf.host.getSuperTokenFactory()}\n`;
-    output += `SUPERFLUID_SUPER_TOKEN_FACTORY_LOGIC=${await sf.host.getSuperTokenFactoryLogic()}\n`;
+    output += `SUPER_TOKEN_FACTORY_PROXY=${await sf.host.getSuperTokenFactory()}\n`;
+    output += `SUPER_TOKEN_FACTORY_LOGIC=${await sf.host.getSuperTokenFactoryLogic()}\n`;
     output += `CFA_PROXY=${sf.agreements.cfa.address}\n`;
     output += `CFA_LOGIC=${await getCodeAddress(
         UUPSProxiable,
         sf.agreements.cfa.address
     )}\n`;
     output += `IDA_PROXY=${sf.agreements.ida.address}\n`;
-    output += `SLOTS_BITMAP_LIBRARY_ADDRESS=${
+    output += `SLOTS_BITMAP_LIBRARY=${
         "0x" +
         (
             await web3.eth.call({
                 to: sf.agreements.ida.address,
-                data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY_ADDRESS()
+                data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY()
             })
         ).slice(-40)
     }\n`;
@@ -113,12 +114,12 @@ module.exports = eval(`(${S.toString()})()`)(async function (
         )
     );
     output += `GDA_PROXY=${gdaProxy}\n`;
-    output += `GDA_SLOTS_BITMAP_LIBRARY_ADDRESS=${
+    output += `GDA_SLOTS_BITMAP_LIBRARY=${
         "0x" +
         (
             await web3.eth.call({
                 to: gdaProxy,
-                data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY_ADDRESS()
+                data: "0x3fd4176a", //SLOTS_BITMAP_LIBRARY()
             })
         ).slice(-40)
     }\n`;
@@ -128,14 +129,14 @@ module.exports = eval(`(${S.toString()})()`)(async function (
     const superfluidPoolBeaconContract = await SuperfluidUpgradeableBeacon.at(
         await gdaContract.superfluidPoolBeacon()
     );
-    output += `SUPERFLUID_POOL_DEPLOYER_ADDRESS=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
+    output += `SUPERFLUID_POOL_DEPLOYER=${await gdaContract.SUPERFLUID_POOL_DEPLOYER_ADDRESS()}\n`;
     output += `SUPERFLUID_POOL_BEACON=${superfluidPoolBeaconContract.address}\n`;
     output += `SUPERFLUID_POOL_LOGIC=${await superfluidPoolBeaconContract.implementation()}\n`;
 
     const superTokenLogicAddress = await (
         await ISuperTokenFactory.at(await sf.host.getSuperTokenFactory())
     ).getSuperTokenLogic();
-    output += `SUPERFLUID_SUPER_TOKEN_LOGIC=${superTokenLogicAddress}\n`;
+    output += `SUPER_TOKEN_LOGIC=${superTokenLogicAddress}\n`;
 
     const superTokenLogicContract = await SuperToken.at(superTokenLogicAddress);
 

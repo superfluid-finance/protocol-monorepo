@@ -443,6 +443,7 @@ function _createTransferEventEntity(event: Transfer): void {
         event.params.from,
         event.params.to,
     ]);
+    ev.isNFTTransfer = false;
     ev.from = event.params.from.toHex();
     ev.to = event.params.to.toHex();
     ev.value = event.params.value;

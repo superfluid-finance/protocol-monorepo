@@ -6,6 +6,7 @@ export type ErrorType =
     | "CREATE_SIGNER"
     | "SUPERTOKEN_READ"
     | "CFAV1_READ"
+    | "NFT_READ"
     | "IDAV1_READ"
     | "INVALID_ADDRESS"
     | "INVALID_OBJECT"

@@ -317,8 +317,7 @@ abstract contract FlowNFTBase is UUPSProxiable, IFlowNFTBase {
     }
 
     /// @notice Returns whether `tokenId` exists
-    /// @dev Explain to a developer any extra details
-    /// Tokens can be managed by their owner or approved accounts via `approve` or `setApprovalForAll`.
+    /// @dev Tokens can be managed by their owner or approved accounts via `approve` or `setApprovalForAll`.
     /// Tokens start existing when they are minted (`_mint`),
     /// and stop existing when they are burned (`_burn`).
     /// @param tokenId the token id we're interested in seeing if exists

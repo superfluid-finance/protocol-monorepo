@@ -3,12 +3,8 @@ pragma solidity 0.8.19;
 
 import "forge-std/Test.sol";
 import "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
-import {
-    GeneralDistributionAgreementV1
-} from "../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
-import {
-    SuperfluidPool
-} from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
+import { GeneralDistributionAgreementV1 } from "../../../contracts/agreements/gdav1/GeneralDistributionAgreementV1.sol";
+import { SuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
 
 /// @title SuperfluidPool Property Tests
 /// @author Superfluid
@@ -16,12 +12,9 @@ import {
 /// It involves testing the pure functions of the SuperfluidPool to ensure that we get
 /// the expected output for a range of inputs.
 contract SuperfluidPoolProperties is SuperfluidPool, Test {
-    constructor() SuperfluidPool(GeneralDistributionAgreementV1(address(0))) {}
+    constructor() SuperfluidPool(GeneralDistributionAgreementV1(address(0))) { }
 
-    function _helper_Assert_Wrapped_Particle(
-        PoolIndexData memory poolIndexData,
-        BasicParticle memory particle
-    ) internal {
+    function _helperAssertWrappedParticle(PoolIndexData memory poolIndexData, BasicParticle memory particle) internal {
         assertEq(
             FlowRate.unwrap(particle.flow_rate()),
             int128(poolIndexData.wrappedFlowRate),
@@ -39,10 +32,7 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
         );
     }
 
-    function _helper_Assert_Wrapped_Particle(
-        MemberData memory memberData,
-        BasicParticle memory particle
-    ) internal {
+    function _helperAssertWrappedParticle(MemberData memory memberData, BasicParticle memory particle) internal {
         assertEq(
             FlowRate.unwrap(particle.flow_rate()),
             int128(memberData.syncedFlowRate),
@@ -60,30 +50,19 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
         );
     }
 
-    function testPoolIndexDataToWrappedParticle(
-        PoolIndexData memory data
-    ) public {
-        BasicParticle
-            memory wrappedParticle = _poolIndexDataToWrappedParticle(
-                data
-            );
-        _helper_Assert_Wrapped_Particle(data, wrappedParticle);
+    function testPoolIndexDataToWrappedParticle(PoolIndexData memory data) public {
+        BasicParticle memory wrappedParticle = _poolIndexDataToWrappedParticle(data);
+        _helperAssertWrappedParticle(data, wrappedParticle);
     }
 
-    function testPoolIndexDataToPDPoolIndex(
-        PoolIndexData memory data
-    ) public {
+    function testPoolIndexDataToPDPoolIndex(PoolIndexData memory data) public {
         vm.assume(data.totalUnits < uint128(type(int128).max));
 
-        PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(
-            data
-        );
+        PDPoolIndex memory pdPoolIndex = poolIndexDataToPDPoolIndex(data);
         assertEq(
-            uint128(Unit.unwrap(pdPoolIndex.total_units)),
-            data.totalUnits,
-            "SuperfluidPool.prop: total units not equal"
+            uint128(Unit.unwrap(pdPoolIndex.total_units)), data.totalUnits, "SuperfluidPool.prop: total units not equal"
         );
-        _helper_Assert_Wrapped_Particle(data, pdPoolIndex._wrapped_particle);
+        _helperAssertWrappedParticle(data, pdPoolIndex._wrapped_particle);
     }
 
     function testPDPoolIndexToPoolIndexData(
@@ -95,41 +74,29 @@ contract SuperfluidPoolProperties is SuperfluidPool, Test {
         vm.assume(totalUnits > 0);
         PDPoolIndex memory pdPoolIndex = PDPoolIndex(
             Unit.wrap(totalUnits),
-            BasicParticle(
-                Time.wrap(wrappedSettledAt),
-                FlowRate.wrap(wrappedFlowRate),
-                Value.wrap(wrappedSettledValue)
-            )
+            BasicParticle(Time.wrap(wrappedSettledAt), FlowRate.wrap(wrappedFlowRate), Value.wrap(wrappedSettledValue))
         );
-        PoolIndexData memory poolIndexData = _pdPoolIndexToPoolIndexData(
-            pdPoolIndex
-        );
+        PoolIndexData memory poolIndexData = _pdPoolIndexToPoolIndexData(pdPoolIndex);
         assertEq(
             poolIndexData.totalUnits,
             uint128(Unit.unwrap(pdPoolIndex.total_units)),
             "SuperfluidPool.prop: total units not equal"
         );
-        _helper_Assert_Wrapped_Particle(poolIndexData, pdPoolIndex._wrapped_particle);
+        _helperAssertWrappedParticle(poolIndexData, pdPoolIndex._wrapped_particle);
     }
 
-    function testMemberDataToPDPoolMember(
-        MemberData memory data
-    ) public {
+    function testMemberDataToPDPoolMember(MemberData memory data) public {
         vm.assume(data.ownedUnits < uint128(type(int128).max));
 
-        PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(
-            data
-        );
+        PDPoolMember memory pdPoolMember = _memberDataToPDPoolMember(data);
         assertEq(
             uint128(Unit.unwrap(pdPoolMember.owned_units)),
             data.ownedUnits,
             "SuperfluidPool.prop: owned units not equal"
         );
         assertEq(
-            Value.unwrap(pdPoolMember._settled_value),
-            data.settledValue,
-            "SuperfluidPool.prop: settled value not equal"
+            Value.unwrap(pdPoolMember._settled_value), data.settledValue, "SuperfluidPool.prop: settled value not equal"
         );
-        _helper_Assert_Wrapped_Particle(data, pdPoolMember._synced_particle);
+        _helperAssertWrappedParticle(data, pdPoolMember._synced_particle);
     }
 }

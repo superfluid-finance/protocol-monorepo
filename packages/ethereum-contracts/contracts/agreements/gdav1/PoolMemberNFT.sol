@@ -17,7 +17,7 @@ contract PoolMemberNFT is PoolNFTBase, IPoolMemberNFT {
     /// - rename any of the existing variables
     /// - remove any of the existing variables
 
-    /// @notice A mapping from token id to FlowNFTData
+    /// @notice A mapping from token id to PoolMemberNFT data
     /// PoolMemberNFTData: { address pool, address member, uint128 units }
     /// @dev The token id is uint256(keccak256(abi.encode(pool, member)))
     mapping(uint256 => PoolMemberNFTData) internal _poolMemberDataByTokenId;

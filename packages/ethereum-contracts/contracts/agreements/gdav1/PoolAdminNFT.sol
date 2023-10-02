@@ -17,7 +17,7 @@ contract PoolAdminNFT is PoolNFTBase, IPoolAdminNFT {
     /// - rename any of the existing variables
     /// - remove any of the existing variables
 
-    /// @notice A mapping from token id to FlowNFTData
+    /// @notice A mapping from token id to PoolAdminNFT data
     /// PoolAdminNFTData: { address pool, address admin }
     /// @dev The token id is uint256(keccak256(abi.encode(pool, admin)))
     mapping(uint256 => PoolAdminNFTData) internal _poolAdminDataByTokenId;

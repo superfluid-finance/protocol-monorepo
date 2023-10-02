@@ -134,14 +134,14 @@ abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
     }
 
     /// @notice Returns the name of the NFT
-    /// @dev Should follow the naming convention: TOKENx Constant Outflow/Inflow NFT
+    /// @dev Should follow the naming convention: (Pool Admin|Pool Member) NFT
     /// @return name of the NFT
     function name() external view virtual override returns (string memory) {
         return _name;
     }
 
     /// @notice Returns the symbol of the NFT
-    /// @dev Should follow the naming convention: TOKENx(COF/CIF)
+    /// @dev Should follow the naming convention: PA|PM
     /// @return symbol of the NFT
     function symbol() external view virtual override returns (string memory) {
         return _symbol;
@@ -227,8 +227,7 @@ abstract contract PoolNFTBase is UUPSProxiable, IPoolNFTBase {
     }
 
     /// @notice Returns whether `tokenId` exists
-    /// @dev Explain to a developer any extra details
-    /// Tokens can be managed by their owner or approved accounts via `approve` or `setApprovalForAll`.
+    /// @dev Tokens can be managed by their owner or approved accounts via `approve` or `setApprovalForAll`.
     /// Tokens start existing when they are minted (`_mint`),
     /// and stop existing when they are burned (`_burn`).
     /// @param tokenId the token id we're interested in seeing if exists

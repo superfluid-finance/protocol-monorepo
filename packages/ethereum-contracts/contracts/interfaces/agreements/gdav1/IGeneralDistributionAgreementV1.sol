@@ -11,15 +11,25 @@ import { ISuperfluidPool } from "../../agreements/gdav1/ISuperfluidPool.sol";
  */
 abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     // Custom Errors
-    error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED(); // 0xf67d263e
-    error GDA_FLOW_DOES_NOT_EXIST(); // 0x29f4697e
-    error GDA_NON_CRITICAL_SENDER(); // 0x666f381d
-    error GDA_INSUFFICIENT_BALANCE(); // 0x33115c3f
-    error GDA_NO_NEGATIVE_FLOW_RATE(); // 0x15f25663
-    error GDA_ADMIN_CANNOT_BE_POOL(); // 0x9ab88a26
-    error GDA_NOT_POOL_ADMIN(); // 0x3a87e565
-    error GDA_NO_ZERO_ADDRESS_ADMIN(); // 0x82c5d837
-    error GDA_ONLY_SUPER_TOKEN_POOL(); // 0x90028c37
+    error GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();          // 0xf67d263e
+    error GDA_DISTRIBUTE_FROM_ANY_ADDRESS_NOT_ALLOWED();    // 0x7761a5e5
+    error GDA_FLOW_DOES_NOT_EXIST();                        // 0x29f4697e
+    error GDA_NON_CRITICAL_SENDER();                        // 0x666f381d
+    error GDA_INSUFFICIENT_BALANCE();                       // 0x33115c3f
+    error GDA_NO_NEGATIVE_FLOW_RATE();                      // 0x15f25663
+    error GDA_ADMIN_CANNOT_BE_POOL();                       // 0x9ab88a26
+    error GDA_NOT_POOL_ADMIN();                             // 0x3a87e565
+    error GDA_NO_ZERO_ADDRESS_ADMIN();                      // 0x82c5d837
+    error GDA_ONLY_SUPER_TOKEN_POOL();                      // 0x90028c37
+
+    struct PoolConfig {
+        /// @dev if true, the pool members can transfer their owned units
+        /// else, only the pool admin can manipulate the units for pool members
+        bool transferabilityForUnitsOwner;
+        /// @dev if true, anyone can execute distributions via the pool
+        /// else, only the pool admin can execute distributions via the pool
+        bool distributionFromAnyAddress;
+    }
 
     // Events
     event InstantDistributionUpdated(
@@ -37,8 +47,7 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
         ISuperfluidPool indexed pool,
         address indexed distributor,
         // operator's have permission to liquidate critical flows
-        // they also may have permission via ACL to open flows on
-        // behalf of others
+        // on behalf of others
         address operator,
         int96 oldFlowRate,
         int96 newDistributorToPoolFlowRate,
@@ -94,7 +103,8 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     /// @notice Executes an optimistic estimation of what the actual flow distribution flow rate may be.
     /// The actual flow distribution flow rate is the flow rate that will be sent from `from`.
     /// NOTE: this is only precise in an atomic transaction. DO NOT rely on this if querying off-chain.
-    /// @dev The difference between the requested flow rate and the actual flow rate is the adjustment flow rate.
+    /// @dev The difference between the requested flow rate and the actual flow rate is the adjustment flow rate,
+    /// this adjustment flow rate goes to the pool admin.
     /// @param token The token address
     /// @param from The sender address
     /// @param to The pool address
@@ -133,9 +143,13 @@ abstract contract IGeneralDistributionAgreementV1 is ISuperAgreement {
     ////////////////////////////////////////////////////////////////////////////////
 
     /// @notice Creates a new pool for `token` where the admin is `admin`.
-    /// @param admin The admin of the pool
     /// @param token The token address
-    function createPool(ISuperfluidToken token, address admin) external virtual returns (ISuperfluidPool pool);
+    /// @param admin The admin of the pool
+    /// @param poolConfig The pool configuration (see PoolConfig struct)
+    function createPool(ISuperfluidToken token, address admin, PoolConfig memory poolConfig)
+        external
+        virtual
+        returns (ISuperfluidPool pool);
 
     function updateMemberUnits(ISuperfluidPool pool, address memberAddress, uint128 newUnits, bytes calldata ctx)
         external

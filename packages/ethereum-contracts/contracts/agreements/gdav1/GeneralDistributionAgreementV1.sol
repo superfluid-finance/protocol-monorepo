@@ -16,7 +16,7 @@ import {
 } from "@superfluid-finance/solidity-semantic-money/src/SemanticMoney.sol";
 import { TokenMonad } from "@superfluid-finance/solidity-semantic-money/src/TokenMonad.sol";
 import { SuperfluidPool } from "./SuperfluidPool.sol";
-import { SuperfluidPoolDeployerLibrary } from "../../libs/SuperfluidPoolDeployerLibrary.sol";
+import { SuperfluidPoolDeployerLibrary } from "./SuperfluidPoolDeployerLibrary.sol";
 import { IGeneralDistributionAgreementV1 } from "../../interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import { ISuperfluidToken } from "../../interfaces/superfluid/ISuperfluidToken.sol";
 import { IConstantOutflowNFT } from "../../interfaces/superfluid/IConstantOutflowNFT.sol";
@@ -260,13 +260,26 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         actualAmount = uint256(Value.unwrap(actualDistributionAmount));
     }
 
-    function _createPool(ISuperfluidToken token, address admin) internal returns (ISuperfluidPool pool) {
+    function _createPool(
+        ISuperfluidToken token,
+        address admin,
+        IGeneralDistributionAgreementV1.PoolConfig memory config
+    ) internal returns (ISuperfluidPool pool) {
         // @note ensure if token and admin are the same that nothing funky happens with echidna
         if (admin == address(0)) revert GDA_NO_ZERO_ADDRESS_ADMIN();
         if (_isPool(token, admin)) revert GDA_ADMIN_CANNOT_BE_POOL();
 
-        pool =
-            ISuperfluidPool(address(SuperfluidPoolDeployerLibrary.deploy(address(superfluidPoolBeacon), admin, token)));
+        pool = ISuperfluidPool(
+            address(
+                SuperfluidPoolDeployerLibrary.deploy(
+                    address(superfluidPoolBeacon),
+                    admin,
+                    token,
+                    config.transferabilityForUnitsOwner,
+                    config.distributionFromAnyAddress
+                )
+            )
+        );
 
         // @note We utilize the storage slot for Universal Index State
         // to store whether an account is a pool or not
@@ -289,8 +302,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
-    function createPool(ISuperfluidToken token, address admin) external override returns (ISuperfluidPool pool) {
-        return _createPool(token, admin);
+    function createPool(ISuperfluidToken token, address admin, IGeneralDistributionAgreementV1.PoolConfig memory config)
+        external
+        override
+        returns (ISuperfluidPool pool)
+    {
+        return _createPool(token, admin, config);
     }
 
     /// @inheritdoc IGeneralDistributionAgreementV1
@@ -421,6 +438,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
             revert GDA_ONLY_SUPER_TOKEN_POOL();
         }
 
+        if (!pool.distributionFromAnyAddress()) {
+            if (pool.admin() != currentContext.msgSender) {
+                revert GDA_DISTRIBUTE_FROM_ANY_ADDRESS_NOT_ALLOWED();
+            }
+        }
+
         if (from != currentContext.msgSender) {
             revert GDA_DISTRIBUTE_FOR_OTHERS_NOT_ALLOWED();
         }
@@ -477,6 +500,12 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         }
 
         newCtx = ctx;
+
+        if (!pool.distributionFromAnyAddress()) {
+            if (pool.admin() != flowVars.currentContext.msgSender) {
+                revert GDA_DISTRIBUTE_FROM_ANY_ADDRESS_NOT_ALLOWED();
+            }
+        }
 
         (, FlowRate actualFlowRate, FlowRate newDistributionFlowRate) = _doDistributeFlowViaPool(
             abi.encode(token),

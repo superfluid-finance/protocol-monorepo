@@ -20,7 +20,7 @@ contract PoolAdminNFTIntegrationTest is PoolNFTBaseIntegrationTest {
         vm.assume(_receiver != address(0));
         vm.assume(_poolAdmin != _receiver);
 
-        ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _poolAdmin);
+        ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _poolAdmin, poolConfig);
         uint256 nftId = _helperGetPoolAdminNftId(address(pool), _poolAdmin);
 
         _helperRevertIfTransferFrom(
@@ -52,5 +52,4 @@ contract PoolAdminNFTIntegrationTest is PoolNFTBaseIntegrationTest {
     function testTokenURIForPoolAdminNFT(uint256 tokenId) public {
         assertEq(poolAdminNFT.tokenURI(tokenId), string(abi.encodePacked(poolAdminNFT.baseURI())));
     }
-
 }

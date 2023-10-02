@@ -27,14 +27,26 @@ contract SuperfluidPoolStorageLayoutMock is SuperfluidPool, IStorageLayoutBase {
 
         assembly { slot := _index.slot offset := _index.offset }
         if (slot != 2 || offset != 0) revert STORAGE_LOCATION_CHANGED("_index");
+        // slot 2: uint128 total units | uint32 wrappedSettledAt | int96 wrappedFlowRate
+        // slot 3: int256 wrappedSettledValue
 
         assembly { slot := _membersData.slot offset := _membersData.offset }
         if (slot != 4 || offset != 0) revert STORAGE_LOCATION_CHANGED("_membersData");
 
         assembly { slot := _disconnectedMembers.slot offset := _disconnectedMembers.offset }
         if (slot != 5 || offset != 0) revert STORAGE_LOCATION_CHANGED("_disconnectedMembers");
+        // slot 5: uint128 ownedUnits | uint32 syncedSettledAt | int96 syncedFlowRate
+        // slot 6: int256 syncedSettledValue
+        // slot 7: int256 settledValue
+        // slot 8: int256 claimedValue
 
         assembly { slot := _allowances.slot offset := _allowances.offset }
         if (slot != 9 || offset != 0) revert STORAGE_LOCATION_CHANGED("_allowances");
+
+        assembly { slot := transferabilityForUnitsOwner.slot offset := transferabilityForUnitsOwner.offset }
+        if (slot != 10 || offset != 0) revert STORAGE_LOCATION_CHANGED("transferabilityForUnitsOwner");
+
+        assembly { slot := distributionFromAnyAddress.slot offset := distributionFromAnyAddress.offset }
+        if (slot != 10 || offset != 1) revert STORAGE_LOCATION_CHANGED("distributionFromAnyAddress");
     }
 }

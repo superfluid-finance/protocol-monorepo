@@ -30,11 +30,15 @@ contract GDAv1Forwarder is ForwarderBase {
      * @dev Creates a new Superfluid Pool.
      * @param token The Super Token address.
      * @param admin The pool admin address.
+     * @param config The pool configuration (see PoolConfig in IGeneralDistributionAgreementV1.sol)
      * @return success A boolean value indicating whether the pool was created successfully.
      * @return pool The address of the deployed Superfluid Pool
      */
-    function createPool(ISuperfluidToken token, address admin) external returns (bool success, ISuperfluidPool pool) {
-        pool = _gda.createPool(token, admin);
+    function createPool(ISuperfluidToken token, address admin, IGeneralDistributionAgreementV1.PoolConfig memory config)
+        external
+        returns (bool success, ISuperfluidPool pool)
+    {
+        pool = _gda.createPool(token, admin, config);
         success = true;
     }
 

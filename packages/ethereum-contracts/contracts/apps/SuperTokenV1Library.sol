@@ -1707,9 +1707,12 @@ library SuperTokenV1Library {
 
     /** GDA BASE FUNCTIONS ************************************* */
 
-    function createPool(ISuperToken token, address admin) internal returns (ISuperfluidPool pool) {
+    function createPool(ISuperToken token, address admin, IGeneralDistributionAgreementV1.PoolConfig memory poolConfig)
+        internal
+        returns (ISuperfluidPool pool)
+    {
         (, IGeneralDistributionAgreementV1 gda) = _getAndCacheHostAndGDA(token);
-        pool = gda.createPool(token, admin);
+        pool = gda.createPool(token, admin, poolConfig);
     }
 
     function updateMemberUnits(ISuperToken token, ISuperfluidPool pool, address memberAddress, uint128 newUnits)

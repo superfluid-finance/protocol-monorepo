@@ -17,7 +17,7 @@ contract EchidnaTestCases is FoundrySuperfluidTester {
     function setUp() public override {
         super.setUp();
         vm.startPrank(alice);
-        currentPool = SuperfluidPool(address(superToken.createPool(alice)));
+        currentPool = SuperfluidPool(address(superToken.createPool(alice, poolConfig)));
         _addAccount(address(currentPool));
         vm.stopPrank();
     }

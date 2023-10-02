@@ -37,8 +37,6 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    // @note TODO add some struct validation layout
-    // refer to solidity docs for struct layout
     struct PoolIndexData {
         uint128 totalUnits;
         uint32 wrappedSettledAt;
@@ -61,18 +59,33 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     address public admin;
     PoolIndexData internal _index;
     mapping(address => MemberData) internal _membersData;
+    
     /// @dev This is a pseudo member, representing all the disconnected members
     MemberData internal _disconnectedMembers;
-    // @dev owner => (spender => amount)
+    
+    /// @dev owner => (spender => amount)
     mapping(address => mapping(address => uint256)) internal _allowances;
+    
+    /// @inheritdoc ISuperfluidPool
+    bool public transferabilityForUnitsOwner;
+    
+    /// @inheritdoc ISuperfluidPool
+    bool public distributionFromAnyAddress;
 
     constructor(GeneralDistributionAgreementV1 gda) {
         GDA = gda;
     }
 
-    function initialize(address admin_, ISuperfluidToken superToken_) external initializer {
+    function initialize(
+        address admin_,
+        ISuperfluidToken superToken_,
+        bool transferabilityForUnitsOwner_,
+        bool distributionFromAnyAddress_
+    ) external initializer {
         admin = admin_;
         superToken = superToken_;
+        transferabilityForUnitsOwner = transferabilityForUnitsOwner_;
+        distributionFromAnyAddress = distributionFromAnyAddress_;
     }
 
     function proxiableUUID() public pure override returns (bytes32) {
@@ -141,7 +154,8 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     }
 
     function _transfer(address from, address to, uint256 amount) internal {
-        // @note this is a brute forced initial approach
+        if (!transferabilityForUnitsOwner) revert SUPERFLUID_POOL_TRANSFER_UNITS_NOT_ALLOWED();
+
         uint128 fromUnitsBefore = _getUnits(from);
         uint128 toUnitsBefore = _getUnits(to);
         _updateMemberUnits(from, fromUnitsBefore - amount.toUint128());

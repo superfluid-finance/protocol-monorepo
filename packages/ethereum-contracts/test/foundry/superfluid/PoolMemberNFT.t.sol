@@ -7,6 +7,7 @@ import { PoolNFTBaseIntegrationTest, FakePool } from "./PoolNFTBase.t.sol";
 import { IPoolNFTBase } from "../../../contracts/interfaces/agreements/gdav1/IPoolNFTBase.sol";
 import { IPoolMemberNFT } from "../../../contracts/interfaces/agreements/gdav1/IPoolMemberNFT.sol";
 import { ISuperfluidPool } from "../../../contracts/agreements/gdav1/SuperfluidPool.sol";
+import { IGeneralDistributionAgreementV1 } from "../../../contracts/interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 import "forge-std/Test.sol";
 
 contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
@@ -20,7 +21,7 @@ contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
         vm.assume(_receiver != address(0));
         vm.assume(_member != _receiver);
 
-        ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _poolAdmin);
+        ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _poolAdmin, poolConfig);
         uint256 nftId = _helperGetPoolMemberNftId(address(pool), _member);
 
         vm.startPrank(_poolAdmin);
@@ -48,7 +49,7 @@ contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
     function testRevertIfMintingForZeroUnitMember(address _admin, address _member) public {
         vm.assume(_admin != address(0));
         vm.assume(_member != address(0));
-        ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _admin);
+        ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _admin, poolConfig);
         vm.expectRevert(IPoolMemberNFT.POOL_MEMBER_NFT_NO_UNITS.selector);
         poolMemberNFT.mockMint(address(pool), _member);
     }
@@ -56,7 +57,7 @@ contract PoolMemberNFTIntegrationTest is PoolNFTBaseIntegrationTest {
     function testRevertIfBurningNFTOfMemberWithUnits(address _admin, address _member) public {
         vm.assume(_admin != address(0));
         vm.assume(_member != address(0));
-        ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _admin);
+        ISuperfluidPool pool = sf.gda.createPool(superTokenMock, _admin, poolConfig);
         uint256 nftId = _helperGetPoolMemberNftId(address(pool), _member);
 
         vm.startPrank(_admin);

@@ -66,8 +66,13 @@ contract GeneralDistributionAgreementV1Properties is GeneralDistributionAgreemen
         //     ProxyDeployerLibrary.deploySuperfluidUpgradeableBeacon(address(superfluidPoolLogic));
         // this.initialize(superfluidPoolBeacon);
 
+        IGeneralDistributionAgreementV1.PoolConfig memory poolConfig = IGeneralDistributionAgreementV1.PoolConfig({
+            transferabilityForUnitsOwner: true,
+            distributionFromAnyAddress: true
+        });
+
         vm.startPrank(alice);
-        currentPool = SuperfluidPool(address(sf.gda.createPool(superToken, alice)));
+        currentPool = SuperfluidPool(address(sf.gda.createPool(superToken, alice, poolConfig)));
         vm.stopPrank();
 
         (liquidationPeriod,) = sf.governance.getPPPConfig(sf.host, superToken);

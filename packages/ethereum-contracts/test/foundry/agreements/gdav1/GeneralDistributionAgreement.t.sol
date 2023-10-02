@@ -49,7 +49,7 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
     function setUp() public override {
         super.setUp();
         vm.startPrank(alice);
-        currentPool = SuperfluidPool(address(superToken.createPool(alice)));
+        currentPool = SuperfluidPool(address(superToken.createPool(alice, poolConfig)));
         _addAccount(address(currentPool));
         vm.stopPrank();
         (liquidationPeriod,) = sf.governance.getPPPConfig(sf.host, superToken);
@@ -157,8 +157,8 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         assertEq(isPatricianPeriod, false, "false patrician period");
     }
 
-    function testCreatePool(bool useForwarder) public {
-        _helperCreatePool(superToken, alice, alice, useForwarder);
+    function testCreatePool(bool useForwarder, IGeneralDistributionAgreementV1.PoolConfig memory config) public {
+        _helperCreatePool(superToken, alice, alice, useForwarder, config);
     }
 
     function testRevertConnectPoolByNonHost(address notHost) public {
@@ -192,6 +192,32 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.startPrank(alice);
         vm.expectRevert(IGeneralDistributionAgreementV1.GDA_ONLY_SUPER_TOKEN_POOL.selector);
         superToken.distributeFlow(alice, ISuperfluidPool(bob), requestedFlowRate);
+        vm.stopPrank();
+    }
+
+    function testRevertDistributeFromAnyAddressWhenNotAllowed(bool useForwarder) public {
+        IGeneralDistributionAgreementV1.PoolConfig memory config = IGeneralDistributionAgreementV1.PoolConfig({
+            transferabilityForUnitsOwner: true,
+            distributionFromAnyAddress: false
+        });
+        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
+
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_DISTRIBUTE_FROM_ANY_ADDRESS_NOT_ALLOWED.selector);
+        vm.startPrank(bob);
+        superToken.distributeToPool(bob, pool, 1);
+        vm.stopPrank();
+    }
+
+    function testRevertDistributeFlowFromAnyAddressWhenNotAllowed(bool useForwarder) public {
+        IGeneralDistributionAgreementV1.PoolConfig memory config = IGeneralDistributionAgreementV1.PoolConfig({
+            transferabilityForUnitsOwner: true,
+            distributionFromAnyAddress: false
+        });
+        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
+
+        vm.expectRevert(IGeneralDistributionAgreementV1.GDA_DISTRIBUTE_FROM_ANY_ADDRESS_NOT_ALLOWED.selector);
+        vm.startPrank(bob);
+        superToken.distributeFlow(bob, pool, 1);
         vm.stopPrank();
     }
 
@@ -638,6 +664,40 @@ contract GeneralDistributionAgreementV1IntegrationTest is FoundrySuperfluidTeste
         vm.startPrank(from);
         vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_NO_POOL_MEMBERS.selector);
         currentPool.transfer(address(currentPool), uint256(uint128(transferAmount)));
+        vm.stopPrank();
+    }
+
+    function testRevertIfTransferNotAllowed(bool useForwarder) public {
+        IGeneralDistributionAgreementV1.PoolConfig memory config = IGeneralDistributionAgreementV1.PoolConfig({
+            transferabilityForUnitsOwner: false,
+            distributionFromAnyAddress: true
+        });
+        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
+
+        _helperUpdateMemberUnits(currentPool, alice, bob, 1000);
+
+        vm.startPrank(bob);
+        vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_TRANSFER_UNITS_NOT_ALLOWED.selector);
+        pool.transfer(alice, 1000);
+        vm.stopPrank();
+    }
+
+    function testRevertIfTransferFromNotAllowed(bool useForwarder) public {
+        IGeneralDistributionAgreementV1.PoolConfig memory config = IGeneralDistributionAgreementV1.PoolConfig({
+            transferabilityForUnitsOwner: false,
+            distributionFromAnyAddress: true
+        });
+        ISuperfluidPool pool = _helperCreatePool(superToken, alice, alice, useForwarder, config);
+
+        _helperUpdateMemberUnits(currentPool, alice, bob, 1000);
+
+        vm.startPrank(bob);
+        pool.approve(carol, 1000);
+        vm.stopPrank();
+
+        vm.startPrank(carol);
+        vm.expectRevert(ISuperfluidPool.SUPERFLUID_POOL_TRANSFER_UNITS_NOT_ALLOWED.selector);
+        pool.transferFrom(bob, carol, 1000);
         vm.stopPrank();
     }
 

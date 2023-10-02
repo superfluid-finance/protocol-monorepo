@@ -10,11 +10,12 @@ import { ISuperfluidToken } from "../../superfluid/ISuperfluidToken.sol";
 interface ISuperfluidPool is IERC20 {
     // Custom Errors
 
-    error SUPERFLUID_POOL_INVALID_TIME();           // 0x83c35016
-    error SUPERFLUID_POOL_NO_POOL_MEMBERS();        // 0xe10f405a
-    error SUPERFLUID_POOL_NO_ZERO_ADDRESS();        // 0x54eb6ee6
-    error SUPERFLUID_POOL_NOT_POOL_ADMIN_OR_GDA();  // 0x1c5fbdcb
-    error SUPERFLUID_POOL_NOT_GDA();                // 0xfcbe3f9e
+    error SUPERFLUID_POOL_INVALID_TIME();               // 0x83c35016
+    error SUPERFLUID_POOL_NO_POOL_MEMBERS();            // 0xe10f405a
+    error SUPERFLUID_POOL_NO_ZERO_ADDRESS();            // 0x54eb6ee6
+    error SUPERFLUID_POOL_NOT_POOL_ADMIN_OR_GDA();      // 0x1c5fbdcb
+    error SUPERFLUID_POOL_NOT_GDA();                    // 0xfcbe3f9e
+    error SUPERFLUID_POOL_TRANSFER_UNITS_NOT_ALLOWED(); // 0x2285efba
 
     // Events
     event MemberUnitsUpdated(
@@ -23,6 +24,12 @@ interface ISuperfluidPool is IERC20 {
     event DistributionClaimed(
         ISuperfluidToken indexed token, address indexed member, int256 claimedAmount, int256 totalClaimed
     );
+
+    /// @notice A boolean indicating whether pool members can transfer their units
+    function transferabilityForUnitsOwner() external view returns (bool);
+
+    /// @notice A boolean indicating whether addresses other than the pool admin can distribute via the pool
+    function distributionFromAnyAddress() external view returns (bool);
 
     /// @notice The pool admin
     /// @dev The admin is the creator of the pool and has permissions to update member units

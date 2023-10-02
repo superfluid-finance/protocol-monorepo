@@ -164,6 +164,9 @@ contract FoundrySuperfluidTester is Test {
     mapping(address pool => mapping(address member => ExpectedPoolMemberData expectedData)) internal
         _poolToExpectedMemberData;
 
+    /// @notice The default poolConfig (true, true)
+    IGeneralDistributionAgreementV1.PoolConfig public poolConfig;
+
     constructor(uint8 nTesters) {
         // deploy ERC1820 registry
         vm.etch(ERC1820RegistryCompiled.at, ERC1820RegistryCompiled.bin);
@@ -195,6 +198,11 @@ contract FoundrySuperfluidTester is Test {
         bytes32 hashedTokenType = keccak256(abi.encode(tokenType));
 
         _addAccount(address(sf.toga));
+
+        poolConfig = IGeneralDistributionAgreementV1.PoolConfig({
+            transferabilityForUnitsOwner: true,
+            distributionFromAnyAddress: true
+        });
 
         // @note we must use a ternary expression because immutable variables cannot be initialized
         // in an if statement
@@ -293,6 +301,10 @@ contract FoundrySuperfluidTester is Test {
     /// @notice Adds an account to the testing mix
     function _addAccount(address account) internal {
         if (OTHER_ACCOUNTS.contains(account)) return;
+
+        for (uint i = 0; i < TEST_ACCOUNTS.length; ++i) {
+            if (TEST_ACCOUNTS[i] == account) return;
+        }
 
         OTHER_ACCOUNTS.add(account);
     }
@@ -1486,17 +1498,20 @@ contract FoundrySuperfluidTester is Test {
 
     // Write Helpers - GeneralDistributionAgreementV1/SuperfluidPool
 
-    function _helperCreatePool(ISuperToken _superToken, address _caller, address _poolAdmin, bool _useForwarder)
-        internal
-        returns (ISuperfluidPool)
-    {
+    function _helperCreatePool(
+        ISuperToken _superToken,
+        address _caller,
+        address _poolAdmin,
+        bool _useForwarder,
+        IGeneralDistributionAgreementV1.PoolConfig memory _poolConfig
+    ) internal returns (ISuperfluidPool) {
         ISuperfluidPool localPool;
 
         vm.startPrank(_caller);
         if (!_useForwarder) {
-            localPool = SuperfluidPool(address(sf.gda.createPool(_superToken, _poolAdmin)));
+            localPool = SuperfluidPool(address(sf.gda.createPool(_superToken, _poolAdmin, _poolConfig)));
         } else {
-            (, localPool) = sf.gdaV1Forwarder.createPool(_superToken, _poolAdmin);
+            (, localPool) = sf.gdaV1Forwarder.createPool(_superToken, _poolAdmin, _poolConfig);
         }
         vm.stopPrank();
         _addAccount(address(localPool));
@@ -1542,7 +1557,7 @@ contract FoundrySuperfluidTester is Test {
         internal
         returns (ISuperfluidPool)
     {
-        return _helperCreatePool(_superToken, _caller, _poolAdmin, false);
+        return _helperCreatePool(_superToken, _caller, _poolAdmin, false, poolConfig);
     }
 
     function _helperUpdateMemberUnits(ISuperfluidPool pool_, address caller_, address member_, uint128 newUnits_)

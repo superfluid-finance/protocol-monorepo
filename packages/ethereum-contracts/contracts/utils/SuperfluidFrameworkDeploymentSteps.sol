@@ -54,6 +54,9 @@ contract SuperfluidFrameworkDeploymentSteps {
         InstantDistributionAgreementV1 ida;
         IDAv1Library.InitData idaLib;
         SuperTokenFactory superTokenFactory;
+        ISuperToken superTokenLogic;
+        ConstantOutflowNFT constantOutflowNFT;
+        ConstantInflowNFT constantInflowNFT;
         TestResolver resolver;
         SuperfluidLoader superfluidLoader;
         CFAv1Forwarder cfaV1Forwarder;
@@ -128,8 +131,7 @@ contract SuperfluidFrameworkDeploymentSteps {
     }
 
     function _deployCFAv1() internal {
-        cfaV1Logic =
-            SuperfluidCFAv1DeployerLibrary.deployConstantFlowAgreementV1(host);
+        cfaV1Logic = SuperfluidCFAv1DeployerLibrary.deployConstantFlowAgreementV1(host);
     }
 
     function _deployIDAv1() internal {
@@ -306,6 +308,9 @@ contract SuperfluidFrameworkDeploymentSteps {
             ida: idaV1,
             idaLib: IDAv1Library.InitData(host, idaV1),
             superTokenFactory: superTokenFactory,
+            superTokenLogic: superTokenLogic,
+            constantOutflowNFT: constantOutflowNFT,
+            constantInflowNFT: constantInflowNFT,
             resolver: testResolver,
             superfluidLoader: superfluidLoader,
             cfaV1Forwarder: cfaV1Forwarder,
@@ -433,10 +438,7 @@ library SuperfluidCFAv1DeployerLibrary {
     /// @notice deploys ConstantFlowAgreementV1 contract
     /// @param _host address of the Superfluid contract
     /// @return newly deployed ConstantFlowAgreementV1 contract
-    function deployConstantFlowAgreementV1(ISuperfluid _host)
-        external
-        returns (ConstantFlowAgreementV1)
-    {
+    function deployConstantFlowAgreementV1(ISuperfluid _host) external returns (ConstantFlowAgreementV1) {
         return new ConstantFlowAgreementV1(_host);
     }
 }

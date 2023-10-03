@@ -38,6 +38,8 @@ contract SuperToken is
     using ERC777Helper for ERC777Helper.Operators;
     using SafeERC20 for IERC20;
 
+    bytes32 constant private _ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
+
     uint8 constant private _STANDARD_DECIMALS = 18;
 
     // solhint-disable-next-line var-name-mixedcase
@@ -69,9 +71,6 @@ contract SuperToken is
     /// @dev ERC777 operators support data
     ERC777Helper.Operators internal _operators;
 
-    /// @dev A struct which contains the address of the admin override
-    AdminOverride internal _adminOverride;
-
     // NOTE: for future compatibility, these are reserved solidity slots
     // The sub-class of SuperToken solidity slot will start after _reserve22
 
@@ -79,7 +78,8 @@ contract SuperToken is
     // function in its respective mock contract to ensure that it doesn't break anything or lead to unexpected
     // behaviors/layout when upgrading
 
-    uint256 internal _reserve23;
+    uint256 internal _reserve22;
+    uint256 private _reserve23;
     uint256 private _reserve24;
     uint256 private _reserve25;
     uint256 private _reserve26;
@@ -130,13 +130,13 @@ contract SuperToken is
         _initialize(underlyingToken, underlyingDecimals, n, s, address(0));
     }
 
-    /// @dev Initialize the Super Token proxy with an admin override
-    function initializeWithAdminOverride(
+    /// @dev Initialize the Super Token proxy with an admin
+    function initializeWithAdmin(
         IERC20 underlyingToken,
         uint8 underlyingDecimals,
         string calldata n,
         string calldata s,
-        address adminOverride
+        address admin
     )
         external
         virtual
@@ -147,7 +147,7 @@ contract SuperToken is
         // deployment of the proxy contract.
 
         // initialize the Super Token
-        _initialize(underlyingToken, underlyingDecimals, n, s, adminOverride);
+        _initialize(underlyingToken, underlyingDecimals, n, s, admin);
     }
 
     function proxiableUUID() public pure virtual override returns (bytes32) {
@@ -156,7 +156,7 @@ contract SuperToken is
 
     /**
      * @notice Updates the logic contract the proxy is pointing at
-     * @dev Only the admin can call this function (host if adminOverride.admin == address(0))
+     * @dev Only the admin can call this function (host if admin == address(0))
      * @param newAddress Address of the new logic contract
      */
     function updateCode(address newAddress) external virtual override onlyAdmin {
@@ -176,15 +176,30 @@ contract SuperToken is
     }
 
     function changeAdmin(address newAdmin) external override onlyAdmin {
-        address oldAdmin = _adminOverride.admin;
-        _adminOverride.admin = newAdmin;
+        address oldAdmin = _getAdmin();
+        _setAdmin(newAdmin);
 
         emit AdminChanged(oldAdmin, newAdmin);
     }
 
-    function getAdminOverride() external view override returns (AdminOverride memory) {
-        return _adminOverride;
+    function getAdmin() external view override returns (address) {
+        return _getAdmin();
     }
+
+    function _getAdmin() internal view returns (address admin) {
+        assembly {
+            // solium-disable-line
+            admin := sload(_ADMIN_SLOT)
+        }
+    }
+
+    function _setAdmin(address newAdmin) internal {
+        assembly {
+            // solium-disable-line
+            sstore(_ADMIN_SLOT, newAdmin)
+        }
+    }
+
 
     /**************************************************************************
      * ERC20 Token Info
@@ -211,7 +226,7 @@ contract SuperToken is
         uint8 underlyingDecimals,
         string calldata n,
         string calldata s,
-        address adminOverride
+        address admin
     ) internal {
         _underlyingToken = underlyingToken;
         _underlyingDecimals = underlyingDecimals;
@@ -219,7 +234,7 @@ contract SuperToken is
         _name = n;
         _symbol = s;
 
-        _adminOverride.admin = adminOverride;
+        _setAdmin(admin);
 
         // register interfaces
         ERC777Helper.register(address(this));
@@ -228,7 +243,7 @@ contract SuperToken is
         emit Transfer(address(0), address(0), 0);
 
         // previous admin will always be the zero address in an uninitialized contract
-        emit AdminChanged(address(0), adminOverride);
+        emit AdminChanged(address(0), admin);
     }
 
     /**
@@ -865,7 +880,8 @@ contract SuperToken is
      * override address
      */
     modifier onlyAdmin() {
-        address admin = _adminOverride.admin == address(0) ? address(_host) : _adminOverride.admin;
+        address adminSlotAdmin = _getAdmin();
+        address admin = adminSlotAdmin == address(0) ? address(_host) : adminSlotAdmin;
         if (msg.sender != admin) revert SUPER_TOKEN_ONLY_ADMIN();
         _;
     }

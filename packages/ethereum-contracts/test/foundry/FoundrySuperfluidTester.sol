@@ -614,14 +614,14 @@ contract FoundrySuperfluidTester is Test {
         uint8 underlyingDecimals,
         string memory name,
         string memory symbol,
-        address adminOverride
+        address admin
     ) internal returns (SuperToken localSuperToken) {
         localSuperToken = new SuperToken(
             sf.host,
             previousSuperToken.CONSTANT_OUTFLOW_NFT(),
             previousSuperToken.CONSTANT_INFLOW_NFT()
         );
-        localSuperToken.initializeWithAdminOverride(underlyingToken, underlyingDecimals, name, symbol, adminOverride);
+        localSuperToken.initializeWithAdmin(underlyingToken, underlyingDecimals, name, symbol, admin);
     }
 
     // Write Helpers - ConstantFlowAgreementV1

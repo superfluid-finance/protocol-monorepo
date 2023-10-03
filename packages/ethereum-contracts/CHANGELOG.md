@@ -18,11 +18,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - Expose `_toUnderlyingAmount(uint256 amount)` with `toUnderlyingAmount(uint256 amount)`
 - `batchCall` supports payable `OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION`: only the first `OPERATION_TYPE_SUPERFLUID_CALL_APP_ACTION` will be payable
 - Added two new functions to `SuperfluidGovernanceBase.sol`: `changeSuperTokenAdmin` and `batchChangeSuperTokenAdmin`
-- `Superfluid.changeSuperTokenAdmin()` function added to be called via governance for tokens with no admin override
-- Added an overloaded `initialize` to `SuperToken.sol`, which additionally takes `address adminOverride` if you want to initialize the token with an admin override
+- `Superfluid.changeSuperTokenAdmin()` function added to be called via governance for tokens with no admin address
+- Added an overloaded `initialize` to `SuperToken.sol`, which additionally takes `address admin` if you want to initialize the token with an admin address
 - `SuperToken.changeAdmin(address newAdmin)` added which is only callable by the current admin, the "admin" of a SuperToken can change the admin and update the proxy contract's pointer to a logic contract
   > Note that the default admin (when address(0)) is the host contract as is currently the case
-- `SuperToken.getAdminOverride()` added to retrieve the AdminOverride struct (currently only holds one property: `address admin`), but is future-proofed with 12 additional bits that can be packed in the struct
+- `SuperToken.getAdmin()` added to retrieve the admin address
 - `SuperTokenFactory.createERC20Wrapper()` overloads added to create a SuperToken AND explicitly initialize a SuperToken with an admin
 
 ### Changed

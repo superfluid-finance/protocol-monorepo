@@ -97,34 +97,6 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
     bytes32 private constant SUPERTOKEN_MINIMUM_DEPOSIT_KEY =
         keccak256("org.superfluid-finance.superfluid.superTokenMinimumDeposit");
 
-    struct UniversalIndexData {
-        int96 flowRate;
-        uint32 settledAt;
-        uint256 totalBuffer;
-        bool isPool;
-        int256 settledValue;
-    }
-
-    struct FlowDistributionData {
-        uint32 lastUpdated;
-        int96 flowRate;
-        uint256 buffer; // stored as uint96
-    }
-
-    struct PoolMemberData {
-        address pool;
-        uint32 poolID; // the slot id in the pool's subs bitmap
-    }
-
-    struct StackVarsLiquidation {
-        ISuperfluidToken token;
-        int256 availableBalance;
-        address sender;
-        bytes32 distributionFlowHash;
-        int256 signedTotalGDADeposit;
-        address liquidator;
-    }
-
     IBeacon public superfluidPoolBeacon;
 
     constructor(ISuperfluid host) AgreementBase(address(host)) { }
@@ -927,7 +899,7 @@ contract GeneralDistributionAgreementV1 is AgreementBase, TokenMonad, IGeneralDi
         bytes memory, // eff,
         address pool
     ) internal view override returns (PDPoolIndex memory) {
-        SuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).getIndex();
+        ISuperfluidPool.PoolIndexData memory data = SuperfluidPool(pool).getIndex();
         return SuperfluidPool(pool).poolIndexDataToPDPoolIndex(data);
     }
 

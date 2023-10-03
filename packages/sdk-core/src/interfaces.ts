@@ -696,11 +696,11 @@ export interface PoolAdjustmentFlowInfo {
 
 export interface SuperTokenCreatePoolParams {
     readonly admin: string;
+    readonly config: PoolConfigStruct;
     readonly signer: ethers.Signer;
 }
 export interface CreatePoolParams extends SuperTokenCreatePoolParams {
     readonly token: string;
-    readonly config: PoolConfigStruct;
 }
 
 export interface ConnectPoolParams

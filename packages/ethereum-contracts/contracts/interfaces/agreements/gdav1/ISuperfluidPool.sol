@@ -8,6 +8,24 @@ import { ISuperfluidToken } from "../../superfluid/ISuperfluidToken.sol";
  * @dev The interface for any super token pool regardless of the distribution schemes.
  */
 interface ISuperfluidPool is IERC20 {
+
+    // Structs
+    struct PoolIndexData {
+        uint128 totalUnits;
+        uint32 wrappedSettledAt;
+        int96 wrappedFlowRate;
+        int256 wrappedSettledValue;
+    }
+
+    struct MemberData {
+        uint128 ownedUnits;
+        uint32 syncedSettledAt;
+        int96 syncedFlowRate;
+        int256 syncedSettledValue;
+        int256 settledValue;
+        int256 claimedValue;
+    }
+
     // Custom Errors
 
     error SUPERFLUID_POOL_INVALID_TIME();               // 0x83c35016

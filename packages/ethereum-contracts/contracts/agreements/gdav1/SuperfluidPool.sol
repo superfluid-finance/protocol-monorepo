@@ -37,38 +37,22 @@ contract SuperfluidPool is ISuperfluidPool, BeaconProxiable {
     using SafeCast for uint256;
     using SafeCast for int256;
 
-    struct PoolIndexData {
-        uint128 totalUnits;
-        uint32 wrappedSettledAt;
-        int96 wrappedFlowRate;
-        int256 wrappedSettledValue;
-    }
-
-    struct MemberData {
-        uint128 ownedUnits;
-        uint32 syncedSettledAt;
-        int96 syncedFlowRate;
-        int256 syncedSettledValue;
-        int256 settledValue;
-        int256 claimedValue;
-    }
-
     GeneralDistributionAgreementV1 public immutable GDA;
 
     ISuperfluidToken public superToken;
     address public admin;
     PoolIndexData internal _index;
     mapping(address => MemberData) internal _membersData;
-    
+
     /// @dev This is a pseudo member, representing all the disconnected members
     MemberData internal _disconnectedMembers;
-    
+
     /// @dev owner => (spender => amount)
     mapping(address => mapping(address => uint256)) internal _allowances;
-    
+
     /// @inheritdoc ISuperfluidPool
     bool public transferabilityForUnitsOwner;
-    
+
     /// @inheritdoc ISuperfluidPool
     bool public distributionFromAnyAddress;
 

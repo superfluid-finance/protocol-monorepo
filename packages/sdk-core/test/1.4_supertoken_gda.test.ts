@@ -759,6 +759,10 @@ const shouldCreatePool = async (
 ) => {
     const data = await superToken.createPool({
         admin,
+        config: {
+            transferabilityForUnitsOwner: true,
+            distributionFromAnyAddress: true,
+        },
         signer,
     });
 

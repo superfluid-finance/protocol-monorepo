@@ -112,7 +112,11 @@ describe("SuperTokenV1Library.GDA", function () {
     it("#1.1 Should be able to create pool", async () => {
         const createPoolTxn = await superTokenLibraryGDAMock.createPoolTest(
             superToken.address,
-            alice
+            alice,
+            {
+                transferabilityForUnitsOwner: true,
+                distributionFromAnyAddress: true,
+            }
         );
         const receipt = await createPoolTxn.wait();
         const poolAddress = getPoolAddressFromReceipt(receipt);
@@ -132,7 +136,11 @@ describe("SuperTokenV1Library.GDA", function () {
             admin = await ethers.getSigner(alice);
             const createPoolTxn = await superTokenLibraryGDAMock.createPoolTest(
                 superToken.address,
-                admin.address
+                admin.address,
+                {
+                    transferabilityForUnitsOwner: true,
+                    distributionFromAnyAddress: true,
+                }
             );
             const receipt = await createPoolTxn.wait();
             const poolAddress = getPoolAddressFromReceipt(receipt);
@@ -271,7 +279,11 @@ describe("SuperTokenV1Library.GDA", function () {
                 const createPoolTxn =
                     await superTokenLibGDASuperAppMock.createPoolTest(
                         appSuperToken.address,
-                        superTokenLibGDASuperAppMock.address
+                        superTokenLibGDASuperAppMock.address,
+                        {
+                            transferabilityForUnitsOwner: true,
+                            distributionFromAnyAddress: true,
+                        }
                     );
                 const receipt = await createPoolTxn.wait();
                 const poolAddress = getPoolAddressFromReceipt(receipt);

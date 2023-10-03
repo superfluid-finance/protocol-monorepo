@@ -5,6 +5,8 @@ pragma solidity >= 0.8.0;
 import {HotFuzzBase, SuperfluidTester} from "../HotFuzzBase.sol";
 import {ISuperfluidPool} from
     "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/gdav1/ISuperfluidPool.sol";
+import {PoolConfig} from
+    "@superfluid-finance/ethereum-contracts/contracts/interfaces/agreements/gdav1/IGeneralDistributionAgreementV1.sol";
 
 abstract contract GDAHotFuzzMixin is HotFuzzBase {
     ISuperfluidPool[] public pools;
@@ -15,9 +17,9 @@ abstract contract GDAHotFuzzMixin is HotFuzzBase {
         }
     }
 
-    function createPool(uint8 a) public {
+    function createPool(uint8 a, PoolConfig memory config) public {
         (SuperfluidTester tester) = _getOneTester(a);
-        ISuperfluidPool pool = tester.createPool(address(tester));
+        ISuperfluidPool pool = tester.createPool(address(tester), config);
         _addPool(pool);
     }
 
@@ -114,9 +116,14 @@ contract GDAHotFuzz is HotFuzzBase(10), GDAHotFuzzMixin {
     constructor() {
         _initTesters();
 
+        PoolConfig memory config = PoolConfig({
+            transferabilityForUnitsOwner: true,
+            distributionFromAnyAddress: true
+        });
+
         for (uint256 i; i < NUM_POOLS; i++) {
             (SuperfluidTester tester) = _getOneTester(uint8(i));
-            ISuperfluidPool pool = tester.createPool(address(tester));
+            ISuperfluidPool pool = tester.createPool(address(tester), config);
             _addPool(pool);
         }
     }
